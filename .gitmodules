@@ -5,3 +5,7 @@
 	path = NekGPU
 	url = git@github.com:thilinarmtb/NekGPU.git
 	branch = nek-paranumal
+[submodule "occa"]
+	path = occa
+	url = git@github.com:thilinarmtb/occa.git
+	branch = nek-paranumal
