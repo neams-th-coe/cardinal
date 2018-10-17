@@ -1,0 +1,3 @@
+[submodule "libparanumal"]
+	path = libparanumal
+	url = git@github.com:thilinarmtb/libparanumal.git
