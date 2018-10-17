@@ -1,3 +1,7 @@
 [submodule "libparanumal"]
 	path = libparanumal
 	url = git@github.com:thilinarmtb/libparanumal.git
+[submodule "NekGPU"]
+	path = NekGPU
+	url = git@github.com:thilinarmtb/NekGPU.git
+	branch = nek-paranumal
