@@ -9,3 +9,7 @@
 	path = occa
 	url = git@github.com:thilinarmtb/occa.git
 	branch = nek-paranumal
+[submodule "moose"]
+	path = moose
+	url = git@github.com:idaholab/moose.git
+	branch = master
