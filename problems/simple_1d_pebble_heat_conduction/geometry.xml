@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="7" name="Fuel kernel" region="-7" universe="1" />
+  <cell id="2" material="3" name="Buffer" region="7 -8" universe="1" />
+  <cell id="3" material="4" name="Inner PyC" region="8 -9" universe="1" />
+  <cell id="4" material="5" name="SiC" region="9 -10" universe="1" />
+  <cell id="5" material="4" name="Outer PyC" region="10 -11" universe="1" />
+  <cell id="6" material="6" name="Filler" region="11" universe="1" />
+  <cell id="7" material="1" name="Graphite core" region="-14" universe="3" />
+  <cell fill="2" id="8" name="Active region" region="14 -13" universe="3" />
+  <cell id="9" material="2" name="Graphite shell" region="13 -12" universe="3" />
+  <cell id="10" material="8" name="Coolant" region="12 1 -2 3 -4 5 -6" universe="3" />
+  <lattice id="2">
+    <pitch>0.18125800000000003 0.18125800000000003 0.18125800000000003</pitch>
+    <outer>1</outer>
+    <dimension>1 1 1</dimension>
+    <lower_left>-0.09062900000000002 -0.09062900000000002 -0.09062900000000002</lower_left>
+    <universes>
+1 </universes>
+  </lattice>
+  <surface boundary="reflective" coeffs="-1.53" id="1" type="x-plane" />
+  <surface boundary="reflective" coeffs="1.53" id="2" type="x-plane" />
+  <surface boundary="reflective" coeffs="-1.53" id="3" type="y-plane" />
+  <surface boundary="reflective" coeffs="1.53" id="4" type="y-plane" />
+  <surface boundary="reflective" coeffs="-1.53" id="5" type="z-plane" />
+  <surface boundary="reflective" coeffs="1.53" id="6" type="z-plane" />
+  <surface coeffs="0.0 0.0 0.0 0.04" id="7" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 0.05" id="8" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 0.053500000000000006" id="9" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 0.05700000000000001" id="10" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 0.06050000000000001" id="11" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 1.5" id="12" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 1.4" id="13" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 1.25" id="14" type="sphere" />
+</geometry>
