@@ -67,14 +67,21 @@ include            $(FRAMEWORK_DIR)/app.mk
 export CXX := $(libmesh_CXX)
 export CC  := $(libmesh_CC)
 export FC  := $(libmesh_FC)
+export OCCA_DIR
 
 occa: 
 	make -C $(OCCA_DIR) -j
 
 libparanumal:
-	make -C $(LIBP_DIR)/solvers/elliptic -j
-	make -C $(LIBP_DIR)/solvers/ins -j
-	make -C $(LIBP_DIR)/solvers/parAlmond -j
+	make -C $(LIBP_DIR)/solvers/elliptic -j lib
+	make -C $(LIBP_DIR)/solvers/ins -j lib
+	make -C $(LIBP_DIR)/libs/parAlmond -j lib
+	make -C $(LIBP_DIR)/libs/gatherScatter -j lib 
+	cd $(LIBP_DIR) && ar -cr libP.a solvers/elliptic/libelliptic.a solvers/ins/libins.a libs/parAlmond/libparAlmond.a
 
+nek_libp:
+	mkdir -p $(NEK_LIBP_DIR)/build
+	cd $(NEK_LIBP_DIR)/build && cmake -DBASEDIR=$(CONTRIB_DIR) ..
+	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build
 
-.PHONY: occa libparanumal
+.PHONY: occa libparanumal nek_libp
