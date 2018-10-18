@@ -69,19 +69,22 @@ export CC  := $(libmesh_CC)
 export FC  := $(libmesh_FC)
 export OCCA_DIR
 
-occa: 
+LIBELLIPTIC    := $(LIBP_DIR)/solvers/elliptic/libelliptic.a
+LIBINS         := $(LIBP_DIR)/solvers/ins/libins.a
+LIBPARALMOND   := $(LIBP_DIR)/libs/parAlmond/libparAlmond.a
+LIBOGS         := $(LIBP_DIR)/libs/gatherScatter/libogs.a
+LIBBLASLAPACK  := $(LIBP_DIR)/3rdParty/BlasLapack/libBlasLapack.a
+PARANUMAL_LIBS := $(LIBELLIPTIC) $(LIBINS) $(LIBPARALMOND) $(LIBOGS) $(LIBBLASLAPACK)
+
+occa:
 	make -C $(OCCA_DIR) -j
 
-libparanumal:
-	make -C $(LIBP_DIR)/solvers/elliptic -j lib
-	make -C $(LIBP_DIR)/solvers/ins -j lib
-	make -C $(LIBP_DIR)/libs/parAlmond -j lib
-	make -C $(LIBP_DIR)/libs/gatherScatter -j lib 
-	make -C $(LIBP_DIR)/3rdParty/BlasLapack -j lib 
+$(PARANUMAL_LIBS): occa
+	make -C $(dir $@) -j lib
 
-nek_libp:
+nek-libp: $(PARANUMAL_LIBS)
 	mkdir -p $(NEK_LIBP_DIR)/build
 	cd $(NEK_LIBP_DIR)/build && cmake -DBASEDIR=$(CONTRIB_DIR) ..
 	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build nek-libp
 
-.PHONY: occa libparanumal nek_libp
+.PHONY: occa nek-libp
