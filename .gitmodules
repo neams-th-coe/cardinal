@@ -4,7 +4,7 @@
 [submodule "NekGPU"]
 	path = contrib/NekGPU
 	url = git@github.com:thilinarmtb/NekGPU.git
-	branch = nek-paranumal
+	branch = ext-lib-dirs
 [submodule "occa"]
 	path = contrib/occa
 	url = git@github.com:thilinarmtb/occa.git
