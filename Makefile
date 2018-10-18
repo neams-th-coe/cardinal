@@ -77,11 +77,11 @@ libparanumal:
 	make -C $(LIBP_DIR)/solvers/ins -j lib
 	make -C $(LIBP_DIR)/libs/parAlmond -j lib
 	make -C $(LIBP_DIR)/libs/gatherScatter -j lib 
-	cd $(LIBP_DIR) && ar -cr libP.a solvers/elliptic/libelliptic.a solvers/ins/libins.a libs/parAlmond/libparAlmond.a
+	make -C $(LIBP_DIR)/3rdParty/BlasLapack -j lib 
 
 nek_libp:
 	mkdir -p $(NEK_LIBP_DIR)/build
 	cd $(NEK_LIBP_DIR)/build && cmake -DBASEDIR=$(CONTRIB_DIR) ..
-	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build
+	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build nek-libp
 
 .PHONY: occa libparanumal nek_libp
