@@ -361,7 +361,7 @@ USR_LFLAGS+=" -L$SOURCE_ROOT_GSLIB/lib -lgs"
 
 # tweak makefile template 
 echo "generating makefile ..."
-rm -rf Makefile.nek 2>/dev/null
+rm -rf $CASEDIR/Makefile 2>/dev/null
 
 sed \
   -e "s|@FC@|$FC|" \
@@ -431,7 +431,7 @@ else
 fi
 
 if [ "$USR" != "" ]; then
-  echo "###########################################################" >> Makefile.nek
+  echo "###########################################################" >> $CASEDIR/Makefile
   echo "include makefile_usr.inc" >> .makefile
 fi
 
@@ -439,7 +439,7 @@ if [ -f .makefile ]; then
   sed -e "1i\\
   ### makefile automatically created by makenek `date +"%m/%d/%Y %T"` ###" \
     -e "s|@CASEDIR@|${CASEDIR}|" \
-    -e "s|@CASENAME@|${CASENAME}|" .makefile > Makefile.nek 
+    -e "s|@CASENAME@|${CASENAME}|" .makefile > $CASEDIR/Makefile
 else
   echo "ERROR: Nek Makefile could not be created!"
   exit 1 

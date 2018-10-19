@@ -114,6 +114,7 @@ nek-libp: $(PARANUMAL_LIBS)
 	cd $(NEK_LIBP_DIR)/build && cmake -DBASEDIR=$(CONTRIB_DIR) ..
 	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build nek-libp
 
+# Just compiles gslib and libnek5000 (not cvode or hypre)
 nek5000:
 	echo $(CARDINAL_DIR)
 	SOURCE_ROOT="$(NEK_DIR)" \
@@ -124,6 +125,10 @@ nek5000:
 		MPI=1 \
 		USR_LFLAGS="-mcmodel=large -L$(NEK_LIBP_DIR)/build -Wl,-rpath,$(NEK_LIBP_DIR)/build -lnek-libp" \
 		$(CARDINAL_DIR)/config/configure-nek.sh
+	cd $(NEK_DIR)/3rd_party/gslib && ./install
+	# cd $(NEK_DIR)/3rd_party/cvode && ./install
+	# cd $(NEK_DIR)/3rd_party/hypre && ./install
+	make -C $(NEK_CASEDIR) lib
 
 
 .PHONY: occa nek-libp nek5000
