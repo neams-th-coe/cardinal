@@ -16,7 +16,7 @@
 #
 # ======================================================================================
 
-CARDINAL_DIR    ?= $(CURDIR)
+CARDINAL_DIR    ?= $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
 NEK5K_DIR       ?= $(CONTRIB_DIR)/Nek5000
