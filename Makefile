@@ -3,7 +3,8 @@
 # ======================================================================================
 #
 # Required environment Variables:
-# * NEK5K_CASEDIR : Dir with Nek5000 input deck (.usr, SIZE, and .rea files)
+# * NEK_CASEDIR : Dir with Nek5000 input deck (.usr, SIZE, and .rea files)
+# * NEK_CASENAME : Name of the Nek5000 .usr and .rea files
 # 
 # Optional environment variables:
 # * CARDINAL_DIR : Top-level Cardinal src dir (default: this Makefile's dir)
@@ -16,10 +17,10 @@
 #
 # ======================================================================================
 
-APPLICATION_DIR := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
-CONTRIB_DIR     := $(APPLICATION_DIR)/contrib
+CARDINAL_DIR := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
+CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
-NEK5K_DIR       ?= $(CONTRIB_DIR)/Nek5000
+NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
 OCCA_DIR        ?= $(CONTRIB_DIR)/occa
 LIBP_DIR        ?= $(CONTRIB_DIR)/libparanumal
 NEK_LIBP_DIR    ?= $(CONTRIB_DIR)/NekGPU/nek-libp
@@ -75,6 +76,7 @@ include $(MOOSE_DIR)/modules/modules.mk
 # other set variables).
 # ======================================================================================
 
+APPLICATION_DIR    := $(CARDINAL_DIR)
 APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
@@ -92,6 +94,7 @@ export CXX := $(libmesh_CXX)
 export CC  := $(libmesh_CC)
 export FC  := $(libmesh_FC)
 export OCCA_DIR
+export CARDINAL_DIR
 
 LIBELLIPTIC    := $(LIBP_DIR)/solvers/elliptic/libelliptic.a
 LIBINS         := $(LIBP_DIR)/solvers/ins/libins.a
@@ -111,4 +114,16 @@ nek-libp: $(PARANUMAL_LIBS)
 	cd $(NEK_LIBP_DIR)/build && cmake -DBASEDIR=$(CONTRIB_DIR) ..
 	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build nek-libp
 
-.PHONY: occa nek-libp
+nek5000:
+	echo $(CARDINAL_DIR)
+	SOURCE_ROOT="$(NEK_DIR)" \
+		CASEDIR="$(NEK_CASEDIR)" \
+		CASENAME="$(NEK_CASENAME)" \
+	 	FFLAGS="-mcmodel=large -I$(NEK_LIBP_DIR)/inc" \
+		CFLAGS="-mcmodel=large" \
+		MPI=1 \
+		USR_LFLAGS="-mcmodel=large -L$(NEK_LIBP_DIR)/build -Wl,-rpath,$(NEK_LIBP_DIR)/build -lnek-libp" \
+		$(CARDINAL_DIR)/config/configure-nek.sh
+
+
+.PHONY: occa nek-libp nek5000
