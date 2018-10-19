@@ -1,11 +1,20 @@
-###############################################################################
-################### MOOSE Application Standard Makefile #######################
-###############################################################################
+# ======================================================================================
+# Cardinal Makefile
+# ======================================================================================
 #
-# Optional Environment variables
-# MOOSE_DIR        - Root directory of the MOOSE project
+# Required environment Variables:
+# * NEK5K_CASEDIR : Dir with Nek5000 input deck (.usr, SIZE, and .rea files)
+# 
+# Optional environment variables:
+# * CARDINAL_DIR : Top-level Cardinal src dir (default: this Makefile's dir)
+# * CONTRIB_DIR : Dir with third-party src (default: $(CARDINAL_DIR)/contrib)
+# * MOOSE_SUBMODULE : Top-level MOOSE src dir (default: $(CONTRIB_DIR)/moose)
+# * NEK5_DIR : Top-level Nek5000 src dir (default: $(CONTRIB_DIR)/Nek5000)
+# * OCCA_DIR : Top-level OCCA src dir (default: $(CONTRIB_DIR)/occa)
+# * LIBP_DIR : Top-level libparanumal src dir (default: $(CONTRIB_DIR)/libparanumal 
+# * NEK_LIBP_DIR : Top-level nek-libp src dir (default: $(CONTRIB_DIR)/NekGPU/nek-libp
 #
-###############################################################################
+# ======================================================================================
 
 CARDINAL_DIR    ?= $(CURDIR)
 CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
@@ -15,7 +24,9 @@ OCCA_DIR        ?= $(CONTRIB_DIR)/occa
 LIBP_DIR        ?= $(CONTRIB_DIR)/libparanumal
 NEK_LIBP_DIR    ?= $(CONTRIB_DIR)/NekGPU/nek-libp
 
-################################## MOOSE ####################################
+# ======================================================================================
+# MOOSE
+# ======================================================================================
 
 # Use the MOOSE submodule if it exists and MOOSE_DIR is not set
 ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
@@ -29,10 +40,13 @@ FRAMEWORK_DIR      := $(MOOSE_DIR)/framework
 include $(FRAMEWORK_DIR)/build.mk
 include $(FRAMEWORK_DIR)/moose.mk
 
-################################## MODULES ####################################
+# ======================================================================================
+# MOOSE
+#
 # To use certain physics included with MOOSE, set variables below to
 # yes as needed.  Or set ALL_MODULES to yes to turn on everything (overrides
 # other set variables).
+# ======================================================================================
 
 ALL_MODULES         := no
 
@@ -52,17 +66,28 @@ XFEM                := no
 POROUS_FLOW         := no
 
 include $(MOOSE_DIR)/modules/modules.mk
-###############################################################################
 
-# dep apps
+# ======================================================================================
+# Dependent Apps
+#
+# To use certain physics included with MOOSE, set variables below to
+# yes as needed.  Or set ALL_MODULES to yes to turn on everything (overrides
+# other set variables).
+# ======================================================================================
+
 APPLICATION_DIR    := $(CURDIR)
 APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
 include            $(FRAMEWORK_DIR)/app.mk
 
-###############################################################################
-# Additional special case targets should be added here
+# ======================================================================================
+# Third-party Apps
+#
+# To use certain physics included with MOOSE, set variables below to
+# yes as needed.  Or set ALL_MODULES to yes to turn on everything (overrides
+# other set variables).
+# ======================================================================================
 
 export CXX := $(libmesh_CXX)
 export CC  := $(libmesh_CC)
