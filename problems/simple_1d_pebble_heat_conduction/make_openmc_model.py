@@ -1,4 +1,13 @@
+import os
+
+import numpy as np
 import openmc
+
+
+def flibe_density(p, T):
+    # assumes the default value for drho_dp of 1.7324e-7
+    rho = -0.4884*T + 1.7324e-7*(p - 101325.0) + 2413.0 # kg/m3
+    return ('kg/m3', rho)
 
 # -------------- Specs and dimensions --------------
 
@@ -13,27 +22,32 @@ uranium_enrichment = 19.9
 clearance = 0.02
 box_width = 2*pebble_outer_radius*(1 + clearance)
 
-flibe_density = ('g/cm3', 1.9627)         # UCBTH-14-002, Table 1-2
-pebble_core_density = ('g/cm3', 1.59368)  # Cisneros, Table 3-1
-pebble_shell_density = ('g/cm3', 1.74)    # Cisneros, Table 3-1
-
 # TRISO parameters
 fuel_kernel_density = ('kg/m3', 10500.0)  # UCBTH-14-002, Table 2-1
-fuel_kernel_radius = 400.0*μm             # UCBTH-14-002, Table 2-1
+fuel_kernel_radius = 400.0*μm / 2         # UCBTH-14-002, Table 2-1
 buffer_thickness = 100.0*μm               # UCBTH-14-002, Table 2-1
 pyc_inner_thickness = 35.0*μm             # UCBTH-14-002, Table 2-1
 sic_thickness = 35.0*μm                   # UCBTH-14-002, Table 2-1
 pyc_outer_thickness = 35.0*μm             # UCBTH-14-002, Table 2-1
+packing_fraction = 0.40                   # UCBTH-14-002, Table 2-1
 
 buffer_radius = fuel_kernel_radius + buffer_thickness
 pyc_inner_radius = buffer_radius + pyc_inner_thickness
 sic_radius = pyc_inner_radius + sic_thickness
 pyc_outer_radius = sic_radius + pyc_outer_thickness
 
+# Densities
+pebble_core_density = ('g/cm3', 1.59368)  # Cisneros, Table 3-1
+pebble_shell_density = ('g/cm3', 1.74)    # Cisneros, Table 3-1
 buffer_density = ('g/cm3', 1.0)  # Cisneros, Table 3-1
 pyc_density = ('g/cm3', 1.87)    # Cisneros, Table 3-1
 sic_density = ('g/cm3', 3.2)     # Cisneros, Table 3-1
 
+# FLiBe properties
+inlet_temperature = 273.15 + 600.0        # UCBTH-14-002, Table 1-1
+outlet_temperature = 273.15 + 700.0       # UCBTH-14-002, Table 1-1
+flibe_temperature = (inlet_temperature + outlet_temperature)/2
+li7_enrichment = 0.99995
 
 # -------------- Materials --------------
 
@@ -73,17 +87,19 @@ graphite_filler.add_s_alpha_beta('c_Graphite')
 
 uco = openmc.Material(name=f'Uranium oxycarbide')
 uco.add_element('U', 1.0, enrichment=uranium_enrichment)
+# TODO: More realistic isotopic composition for 19.9% enrichment
 uco.add_element('C', 1.5)
 uco.add_nuclide('O16', 0.5)
 uco.set_density(*fuel_kernel_density)
 
 # From Cisneros, appendix B, material 24
 flibe = openmc.Material(name='2LiF-BeF2')
-flibe.set_density('atom/b-cm',  8.34284e-02)
-flibe.add_nuclide('Li6', 3.28e-07)
-flibe.add_nuclide('Li7', 2.38258e-02)
-flibe.add_nuclide('Be9', 1.19185e-02)
-flibe.add_nuclide('F19', 4.76740e-02)
+flibe.set_density(*flibe_density(101.325e3, flibe_temperature))
+flibe.add_nuclide('Li7', 2.0*li7_enrichment)
+flibe.add_nuclide('Li6', 2.0*(1 - li7_enrichment))
+flibe.add_element('Be', 1.0)
+flibe.add_element('F', 4.0)
+# TODO: FLiBe S(a,b)??
 
 # -------------- Geometry --------------
 
@@ -101,35 +117,51 @@ kernel_sphere = openmc.Sphere(R=fuel_kernel_radius)
 buffer_sphere = openmc.Sphere(R=buffer_radius)
 pyc_inner_sphere = openmc.Sphere(R=pyc_inner_radius)
 sic_sphere = openmc.Sphere(R=sic_radius)
-pyc_outer_sphere = openmc.Sphere(R=pyc_outer_radius)
 
 triso_kernel = openmc.Cell(name='Fuel kernel', fill=uco, region=-kernel_sphere)
 triso_buffer = openmc.Cell(name='Buffer', fill=graphite_buffer, region=+kernel_sphere & -buffer_sphere)
 triso_pyc_inner = openmc.Cell(name='Inner PyC', fill=graphite_pyc, region=+buffer_sphere & -pyc_inner_sphere)
 triso_sic = openmc.Cell(name='SiC', fill=sic, region=+pyc_inner_sphere & -sic_sphere)
-triso_pyc_outer = openmc.Cell(name='Outer PyC', fill=graphite_pyc, region=+sic_sphere & -pyc_outer_sphere)
-active_filler = openmc.Cell(name='Filler', fill=graphite_filler, region=+pyc_outer_sphere)
+triso_pyc_outer = openmc.Cell(name='Outer PyC', fill=graphite_pyc, region=+sic_sphere)
 
 triso_univ = openmc.Universe(cells=[triso_kernel, triso_buffer, triso_pyc_inner,
-                                    triso_sic, triso_pyc_outer, active_filler])
+                                    triso_sic, triso_pyc_outer])
 
-# Ordered lattice for TRISOs
-# TODO: Use random sphere packing to get real distribution of particles
-triso_lat = openmc.RectLattice()
-f = 1.498  # Manually adjusted to get a uranium mass of 1.5 g
-triso_lat.lower_left = (-f*pyc_outer_radius, -f*pyc_outer_radius, -f*pyc_outer_radius)
-triso_lat.pitch = (2*f*pyc_outer_radius, 2*f*pyc_outer_radius, 2*f*pyc_outer_radius)
-triso_lat.universes = [[[triso_univ]]]
-triso_lat.outer = triso_univ
+if os.path.exists('triso_centers.npy'):
+    triso_centers = np.load('triso_centers.npy')
+    trisos = [openmc.model.TRISO(pyc_outer_radius, triso_univ, c)
+              for c in triso_centers]
+else:
+    # Use random sphere packing to generate TRISOs
+    trisos = openmc.model.pack_trisos(
+        fill=triso_univ,
+        radius=pyc_outer_radius,
+        domain_shape='spherical shell',
+        domain_radius=pebble_active_radius,
+        domain_inner_radius=pebble_core_radius,
+        packing_fraction=packing_fraction
+    )
+
+    # Create file for TRISO centers
+    triso_centers = np.array([t.center for t in trisos])
+    np.save('triso_centers.npy', triso_centers)
 
 # Pebble
 outer_sphere = openmc.Sphere(R=pebble_outer_radius)
 active_sphere = openmc.Sphere(R=pebble_active_radius)
 core_sphere = openmc.Sphere(R=pebble_core_radius)
 pebble_core = openmc.Cell(name='Graphite core', fill=graphite_core, region=-core_sphere)
-active_region = openmc.Cell(name='Active region', fill=triso_lat, region=+core_sphere & -active_sphere)
+active_region = openmc.Cell(name='Active region', region=+core_sphere & -active_sphere)
 pebble_shell = openmc.Cell(name='Graphite shell', fill=graphite_shell, region=+active_sphere & -outer_sphere)
 coolant = openmc.Cell(name='Coolant', fill=flibe, region=+outer_sphere & inside_box)
+
+# Put TRISOS into a lattice and assign to pebble active region
+lower_left, upper_right = active_region.bounding_box
+shape = (5, 5, 5)
+pitch = (upper_right - lower_left)/shape
+triso_lat = openmc.model.create_triso_lattice(
+    trisos, lower_left, pitch, shape, graphite_filler)
+active_region.fill = triso_lat
 
 geom = openmc.Geometry([pebble_core, active_region, pebble_shell, coolant])
 
@@ -137,15 +169,14 @@ geom = openmc.Geometry([pebble_core, active_region, pebble_shell, coolant])
 
 settings = openmc.Settings()
 settings.source = openmc.Source(
-    space=openmc.stats.Box(*pebble_shell.bounding_box,
-                           only_fissionable=True)
+    space=openmc.stats.Box(*pebble_shell.bounding_box, only_fissionable=True)
 )
 settings.particles = 1000
 settings.inactive = 10
 settings.batches = 50
 
 # Add volume calculation
-vol_calc = openmc.VolumeCalculation([uco], 100000, *active_region.bounding_box)
+vol_calc = openmc.VolumeCalculation([uco], 10000000, *active_region.bounding_box)
 settings.volume_calculations = [vol_calc]
 
 # Export model

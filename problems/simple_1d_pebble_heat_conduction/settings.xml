@@ -12,7 +12,7 @@
   <volume_calc>
     <domain_type>material</domain_type>
     <domain_ids>7</domain_ids>
-    <samples>100000</samples>
+    <samples>10000000</samples>
     <lower_left>-1.4 -1.4 -1.4</lower_left>
     <upper_right>1.4 1.4 1.4</upper_right>
   </volume_calc>

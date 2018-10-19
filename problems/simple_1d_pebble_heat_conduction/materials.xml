@@ -42,10 +42,10 @@
     <nuclide ao="0.5" name="O16" />
   </material>
   <material id="8" name="2LiF-BeF2">
-    <density units="atom/b-cm" value="0.0834284" />
-    <nuclide ao="3.28e-07" name="Li6" />
-    <nuclide ao="0.0238258" name="Li7" />
-    <nuclide ao="0.0119185" name="Be9" />
-    <nuclide ao="0.047674" name="F19" />
+    <density units="kg/m3" value="1962.13354" />
+    <nuclide ao="1.9999" name="Li7" />
+    <nuclide ao="9.999999999998899e-05" name="Li6" />
+    <nuclide ao="1.0" name="Be9" />
+    <nuclide ao="4.0" name="F19" />
   </material>
 </materials>
