@@ -16,8 +16,8 @@
 #
 # ======================================================================================
 
-APPLICATION_DIR := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
-CONTRIB_DIR     := $(APPLICATION_DIR)/contrib
+CARDINAL_DIR    ?= $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
+CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
 NEK5K_DIR       ?= $(CONTRIB_DIR)/Nek5000
 OCCA_DIR        ?= $(CONTRIB_DIR)/occa
@@ -75,6 +75,7 @@ include $(MOOSE_DIR)/modules/modules.mk
 # other set variables).
 # ======================================================================================
 
+APPLICATION_DIR    := $(CURDIR)
 APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
