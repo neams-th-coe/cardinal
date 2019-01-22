@@ -83,9 +83,11 @@ APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
 
+$(NEK_CASEDIR)/$(NEK_CASENAME).o: libnek5000
+
 
 ADDITIONAL_APP_DEPS := libnek5000 libopenmc
-ADDITIONAL_LIBS := -lnek5000 -L$(NEK_CASEDIR) -lopenmc -L$(OPENMC_DIR)/build/lib
+ADDITIONAL_LIBS :=  $(NEK_CASEDIR)/obj/$(NEK_CASENAME).o -lnek5000 -L$(NEK_CASEDIR) -lgs -L$(NEK_DIR)/3rd_party/gslib/lib -lopenmc -L$(OPENMC_DIR)/build/lib
 
 include            $(FRAMEWORK_DIR)/app.mk
 
@@ -103,7 +105,7 @@ export FC  := $(libmesh_F90)
 export CARDINAL_DIR
 
 libnek5000:
-	cd $(NEK_CASEDIR) && SOURCE_ROOT=$(NEK_DIR) $(NEK_DIR)/bin/makenek $(NEK_CASENAME) -nocompile
+	cd $(NEK_CASEDIR) && SOURCE_ROOT=$(NEK_DIR) $(NEK_DIR)/bin/makenek $(NEK_CASENAME)
 	cd $(NEK_CASEDIR) && make lib
 
 libopenmc:

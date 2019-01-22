@@ -1,0 +1,8 @@
+      parameter (nl_max=100)
+      parameter (nf_max=100)
+      common/expansion_tdata/n_legendre, m_fourier
+      common/expansion_tcoef/coeff_tij(nl_max,nf_max)
+      common/expansion_fcoef/coeff_fij(nl_max,nf_max)
+      common/expansion_recon/flux_recon(lx1,ly1,lz1,lelt)
+      common/test_passing/ flux_moose, temp_nek
+
