@@ -4,7 +4,7 @@
 	branch = master
 [submodule "contrib/Nek5000"]
 	path = contrib/Nek5000
-	url = git@github.com:Nek5000/Nek5000.git
+	url = git@github.com:RonRahaman/Nek5000.git
 [submodule "contrib/openmc"]
 	path = contrib/openmc
 	url = git@github.com:openmc-dev/openmc.git
