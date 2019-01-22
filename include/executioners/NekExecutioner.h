@@ -11,7 +11,7 @@ InputParameters validParams<NekExecutioner>();
 class NekExecutioner : public Transient
 {
 public:
-  NekExecutioner(const InputParameters parameters);
+  NekExecutioner(const InputParameters & parameters);
 
   virtual void init();
   virtual void preStep();

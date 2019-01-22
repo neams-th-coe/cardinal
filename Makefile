@@ -81,6 +81,9 @@ APPLICATION_DIR    := $(CARDINAL_DIR)
 APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
+
+ADDITIONAL_APP_LIBS := -lnek5000 -L$(NEK_CASEDIR) -lopenmc -L$(OPENMC_DIR)/build
+
 include            $(FRAMEWORK_DIR)/app.mk
 
 # ======================================================================================
@@ -116,7 +119,7 @@ nek-libp: $(PARANUMAL_LIBS)
 	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build nek-libp
 
 # Just compiles gslib and libnek5000 (not cvode or hypre)
-nek5000:
+libnek5000: nek-libp
 	echo $(CARDINAL_DIR)
 	SOURCE_ROOT="$(NEK_DIR)" \
 		CASEDIR="$(NEK_CASEDIR)" \
@@ -131,9 +134,9 @@ nek5000:
 	# cd $(NEK_DIR)/3rd_party/hypre && ./install
 	make -C $(NEK_CASEDIR) lib
 
-openmc:
+libopenmc:
 	mkdir -p $(OPENMC_DIR)/build
 	cd $(OPENMC_DIR)/build && cmake $(OPENMC_DIR)
 	make -C $(OPENMC_DIR)/build libopenmc
 
-.PHONY: occa nek-libp nek5000 openmc
+.PHONY: occa nek-libp libnek5000 libopenmc

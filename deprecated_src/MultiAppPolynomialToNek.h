@@ -3,12 +3,6 @@
 
 #include "MultiAppTransfer.h"
 
-// Forward declarations
-class MultiAppPolynomialToNek;
-
-template<>
-InputParameters validParams<MultiAppPolynomialToNek>();
-
 class MultiAppPolynomialToNek :
     public MultiAppTransfer
 {
@@ -20,5 +14,8 @@ protected:
   std::vector<VariableName> _source_variable_names;
   std::vector<VariableName> _to_aux_names;
 };
+
+template<>
+InputParameters validParams<MultiAppPolynomialToNek>();
 
 #endif //CARDINAL_MULTIAPPPOLYNOMIALTONEK_H

@@ -1,9 +1,6 @@
 #ifndef CARDINAL_LEGENDREPOLYNOMIAL_H
 #define CARDINAL_LEGENDREPOLYNOMIAL_H
 
-#ifndef LEGENDREPOLYNOMIAL_H
-#define LEGENDREPOLYNOMIAL_H
-
 #include "Function.h"
 #include "math.h"
 
