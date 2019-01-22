@@ -24,6 +24,7 @@ NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
 OCCA_DIR        ?= $(CONTRIB_DIR)/occa
 LIBP_DIR        ?= $(CONTRIB_DIR)/libparanumal
 NEK_LIBP_DIR    ?= $(CONTRIB_DIR)/NekGPU/nek-libp
+OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 
 # ======================================================================================
 # MOOSE
@@ -92,7 +93,7 @@ include            $(FRAMEWORK_DIR)/app.mk
 
 export CXX := $(libmesh_CXX)
 export CC  := $(libmesh_CC)
-export FC  := $(libmesh_FC)
+export FC  := $(libmesh_F90)
 export OCCA_DIR
 export CARDINAL_DIR
 
@@ -130,5 +131,9 @@ nek5000:
 	# cd $(NEK_DIR)/3rd_party/hypre && ./install
 	make -C $(NEK_CASEDIR) lib
 
+openmc:
+	mkdir -p $(OPENMC_DIR)/build
+	cd $(OPENMC_DIR)/build && cmake $(OPENMC_DIR)
+	make -C $(OPENMC_DIR)/build libopenmc
 
-.PHONY: occa nek-libp nek5000
+.PHONY: occa nek-libp nek5000 openmc
