@@ -82,6 +82,8 @@ APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
 
+
+ADDITIONAL_APP_DEPS := libnek500 libopenmc
 ADDITIONAL_APP_LIBS := -lnek5000 -L$(NEK_CASEDIR) -lopenmc -L$(OPENMC_DIR)/build
 
 include            $(FRAMEWORK_DIR)/app.mk
@@ -97,42 +99,11 @@ include            $(FRAMEWORK_DIR)/app.mk
 export CXX := $(libmesh_CXX)
 export CC  := $(libmesh_CC)
 export FC  := $(libmesh_F90)
-export OCCA_DIR
 export CARDINAL_DIR
 
-LIBELLIPTIC    := $(LIBP_DIR)/solvers/elliptic/libelliptic.a
-LIBINS         := $(LIBP_DIR)/solvers/ins/libins.a
-LIBPARALMOND   := $(LIBP_DIR)/libs/parAlmond/libparAlmond.a
-LIBOGS         := $(LIBP_DIR)/libs/gatherScatter/libogs.a
-LIBBLASLAPACK  := $(LIBP_DIR)/3rdParty/BlasLapack/libBlasLapack.a
-PARANUMAL_LIBS := $(LIBELLIPTIC) $(LIBINS) $(LIBPARALMOND) $(LIBOGS) $(LIBBLASLAPACK)
-
-occa:
-	make -C $(OCCA_DIR) -j
-
-$(PARANUMAL_LIBS): occa
-	make -C $(dir $@) -j lib
-
-nek-libp: $(PARANUMAL_LIBS)
-	mkdir -p $(NEK_LIBP_DIR)/build
-	cd $(NEK_LIBP_DIR)/build && cmake -DBASEDIR=$(CONTRIB_DIR) ..
-	make VERBOSE=1 -C $(NEK_LIBP_DIR)/build nek-libp
-
-# Just compiles gslib and libnek5000 (not cvode or hypre)
-libnek5000: nek-libp
-	echo $(CARDINAL_DIR)
-	SOURCE_ROOT="$(NEK_DIR)" \
-		CASEDIR="$(NEK_CASEDIR)" \
-		CASENAME="$(NEK_CASENAME)" \
-	 	FFLAGS="-mcmodel=large -I$(NEK_LIBP_DIR)/inc" \
-		CFLAGS="-mcmodel=large" \
-		MPI=1 \
-		USR_LFLAGS="-mcmodel=large -L$(NEK_LIBP_DIR)/build -Wl,-rpath,$(NEK_LIBP_DIR)/build -lnek-libp" \
-		$(CARDINAL_DIR)/config/configure-nek.sh
-	cd $(NEK_DIR)/3rd_party/gslib && ./install
-	# cd $(NEK_DIR)/3rd_party/cvode && ./install
-	# cd $(NEK_DIR)/3rd_party/hypre && ./install
-	make -C $(NEK_CASEDIR) lib
+libnek5000:
+	cd $(NEK_CASEDIR) && SOURCE_ROOT=$(NEK_DIR) $(NEK_DIR)/bin/makenek $(NEK_CASENAME) -nocompile
+	cd $(NEK_CASEDIR) && make lib
 
 libopenmc:
 	mkdir -p $(OPENMC_DIR)/build
