@@ -21,10 +21,11 @@ CARDINAL_DIR := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST
 CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
 NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
-OCCA_DIR        ?= $(CONTRIB_DIR)/occa
-LIBP_DIR        ?= $(CONTRIB_DIR)/libparanumal
-NEK_LIBP_DIR    ?= $(CONTRIB_DIR)/NekGPU/nek-libp
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
+
+# DEBUG
+NEK_CASEDIR  ?= =$(NEK_DIR)/short_tests/ethier/
+NEK_CASENAME ?= ethier
 
 # ======================================================================================
 # MOOSE
@@ -83,7 +84,7 @@ BUILD_EXEC         := yes
 GEN_REVISION       := no
 
 
-ADDITIONAL_APP_DEPS := libnek500 libopenmc
+ADDITIONAL_APP_DEPS := libnek5000 libopenmc
 ADDITIONAL_APP_LIBS := -lnek5000 -L$(NEK_CASEDIR) -lopenmc -L$(OPENMC_DIR)/build
 
 include            $(FRAMEWORK_DIR)/app.mk
