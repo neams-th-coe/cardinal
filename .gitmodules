@@ -1,14 +1,3 @@
-[submodule "libparanumal"]
-	path = contrib/libparanumal
-	url = git@github.com:thilinarmtb/libparanumal.git
-[submodule "NekGPU"]
-	path = contrib/NekGPU
-	url = git@github.com:thilinarmtb/NekGPU.git
-	branch = ext-lib-dirs
-[submodule "occa"]
-	path = contrib/occa
-	url = git@github.com:thilinarmtb/occa.git
-	branch = nek-paranumal
 [submodule "moose"]
 	path = contrib/moose
 	url = git@github.com:idaholab/moose.git
