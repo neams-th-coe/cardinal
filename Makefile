@@ -85,7 +85,7 @@ GEN_REVISION       := no
 
 
 ADDITIONAL_APP_DEPS := libnek5000 libopenmc
-ADDITIONAL_APP_LIBS := -lnek5000 -L$(NEK_CASEDIR) -lopenmc -L$(OPENMC_DIR)/build
+ADDITIONAL_LIBS := -lnek5000 -L$(NEK_CASEDIR) -lopenmc -L$(OPENMC_DIR)/build/lib
 
 include            $(FRAMEWORK_DIR)/app.mk
 
