@@ -3,7 +3,7 @@
 //
 
 #include "ExternalOpenmcProblem.h"
-#include "openmc/capi.h"
+#include "openmc.h"
 
 
 // TODO: registerMooseObject ?
