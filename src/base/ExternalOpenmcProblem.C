@@ -2,7 +2,7 @@
 // Created by Ronald Rahaman on 2019-01-23.
 //
 
-#include "ExternalOpenmcProblem.hpp"
+#include "ExternalOpenmcProblem.h"
 #include "openmc/capi.h"
 
 

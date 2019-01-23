@@ -2,7 +2,7 @@
 // Created by Ronald Rahaman on 2019-01-23.
 //
 
-#include "ExternalOpenmcProblemApp.hpp"
+#include "ExternalOpenmcProblemApp.h"
 #include "AppFactory.h"
 
 template <>
