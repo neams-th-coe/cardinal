@@ -4,6 +4,7 @@
 
 #include "ExternalOpenmcProblemApp.h"
 #include "AppFactory.h"
+#include "openmc/capi.h"
 
 template <>
 InputParameters
@@ -15,6 +16,8 @@ validParams<ExternalOpenmcProblemApp>()
 
 ExternalOpenmcProblemApp::ExternalOpenmcProblemApp(InputParameters parameters) : MooseApp(parameters)
 {
+  char * argv[] = {nullptr, nullptr};
+  openmc_init(1, argv, &_communicator.get());
   registerAll(_factory, _action_factory, _syntax);
 }
 
