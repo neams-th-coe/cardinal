@@ -13,7 +13,7 @@ InputParameters
 validParams<ExternalOpenmcProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
-  params.addRequiredParam<VariableName>("power", "specified power for OpenMC");
+  params.addRequiredParam<Real>("power", "specified power for OpenMC");
 
   return params;
 }
