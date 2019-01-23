@@ -24,7 +24,7 @@ NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 
 # DEBUG
-NEK_CASEDIR  ?= =$(NEK_DIR)/short_tests/ethier/
+NEK_CASEDIR  ?= $(NEK_DIR)/short_tests/ethier/
 NEK_CASENAME ?= ethier
 
 # ======================================================================================
@@ -84,7 +84,6 @@ BUILD_EXEC         := yes
 GEN_REVISION       := no
 
 $(NEK_CASEDIR)/$(NEK_CASENAME).o: libnek5000
-
 
 ADDITIONAL_APP_DEPS := libnek5000 libopenmc
 ADDITIONAL_LIBS :=  $(NEK_CASEDIR)/obj/$(NEK_CASENAME).o -lnek5000 -L$(NEK_CASEDIR) -lgs -L$(NEK_DIR)/3rd_party/gslib/lib -lopenmc -L$(OPENMC_DIR)/build/lib
