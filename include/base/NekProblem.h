@@ -11,10 +11,13 @@ InputParameters validParams<NekProblem>();
 class NekProblem : public ExternalProblem
 {
 public:
-  explicit NekProblem(const InputParameters & params);
+  NekProblem(const InputParameters & params);
+  ~NekProblem(){}
 
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
+
+  virtual bool converged() override { return true; }
 };
 
 #endif //CARDINAL_NEKPROBLEM_H

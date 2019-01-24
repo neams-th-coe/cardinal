@@ -4,8 +4,9 @@
 
 #include "NekProblem.h"
 #include "Moose.h"
-#include "openmc.h"
 #include "NekInterface.h"
+
+registerMooseObject("MooseApp", NekProblem);
 
 template<>
 InputParameters
