@@ -1,8 +1,13 @@
       parameter (lsurf_m=1000)
-      common /point_cloud/ pc_x(lsurf_m*4), pc_y(lsurf_m*4), 
-     & pc_z(lsurf_m*4), pc_flag(lsurf_m*4)
+      common /point_cloudx/ pc_x(lsurf_m*4)
+      common /point_cloudy/ pc_y(lsurf_m*4)
+      common /point_cloudz/ pc_z(lsurf_m*4)
+      common /point_cloudt/ pc_t(lsurf_m*4)
+      common /point_cloudf/ pc_f(lsurf_m*4)
+      common /ref_element/  pc_flag(lsurf_m*4)
+      common /tot_surf/ nw_bdt       
       common /data_reference/ plmask(lelt), pflmask(lelt), 
-     & pplist(lelt), offset, nw_bd1, nw_bdt
+     & pplist(lelt), offset, nw_bd1
       common /data_cloud/ pc_t(lsurf_m), pc_f(lsurf_m)
       common /test_passing/ flux_moose, temp_nek
       real pc_x, pc_y, pc_z, pc_flag, pc_t, pc_f
