@@ -81,7 +81,7 @@ extern struct {
 } tot_surf_;
 
 // subroutine nek_init(intracomm)
-void FORTRAN_CALL(nek_init)(const int&);  // Ron likes this better now
+void FORTRAN_CALL(nek_init)(const int &);
 void FORTRAN_CALL(nek_init_step)();
 void FORTRAN_CALL(nek_step)();
 void FORTRAN_CALL(nek_finalize_step)();
