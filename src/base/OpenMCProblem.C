@@ -2,7 +2,7 @@
 // Created by Ronald Rahaman on 2019-01-23.
 //
 
-#include "ExternalOpenmcProblem.h"
+#include "OpenMCProblem.h"
 #include "openmc.h"
 
 
@@ -10,7 +10,7 @@
 
 template<>
 InputParameters
-validParams<ExternalOpenmcProblem>()
+validParams<OpenMCProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
   params.addRequiredParam<Real>("power", "specified power for OpenMC");
@@ -18,17 +18,16 @@ validParams<ExternalOpenmcProblem>()
   return params;
 }
 
-ExternalOpenmcProblem::ExternalOpenmcProblem(const InputParameters &params) : ExternalProblem(params)
+OpenMCProblem::OpenMCProblem(const InputParameters &params) : ExternalProblem(params)
 {
 }
 
-void ExternalOpenmcProblem::externalSolve()
+void OpenMCProblem::externalSolve()
 {
   _console << "Beginning OpenMC external solve";
   openmc_run();
 }
 
-void ExternalOpenmcProblem::syncSolutions(ExternalProblem::Direction direction)
+void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 {
 }
-

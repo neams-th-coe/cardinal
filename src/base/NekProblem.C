@@ -2,32 +2,32 @@
 // Created by Ronald Rahaman on 2019-01-23.
 //
 
-#include "ExternalNekProblem.h"
+#include "NekProblem.h"
 #include "Moose.h"
 #include "openmc.h"
 #include "NekInterface.h"
 
 template<>
 InputParameters
-validParams<ExternalNekProblem>()
+validParams<NekProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
   // No required parameters
   return params;
 }
 
-ExternalNekProblem::ExternalNekProblem(const InputParameters &params) : ExternalProblem(params)
+NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params)
 {
 }
 
 
-void ExternalNekProblem::externalSolve()
+void NekProblem::externalSolve()
 {
   _console << "Beginning Nek5000 external solve";
   Nek5000::FORTRAN_CALL(nek_step)();
 }
 
-void ExternalNekProblem::syncSolutions(ExternalProblem::Direction direction)
+void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 {
 
 }
