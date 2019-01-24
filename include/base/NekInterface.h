@@ -54,15 +54,31 @@ extern struct {
 
 extern struct {
   double pc_x[];
+} point_cloudx_;
+
+extern struct {
   double pc_y[];
-  double pc_z[];  
-  double pc_flag[];
-} point_cloud_;
+} point_cloudy_;
+
+extern struct {
+  double pc_z[];
+} point_cloudz_;
 
 extern struct {
   double pc_t[];
+} point_temp_;
+
+extern struct {
   double pc_f[];
-} data_cloud_;
+} point_flux_;
+
+extern struct {
+  double pc_flag[];
+} ref_element_;
+
+extern struct {
+  long int  nw_dbt[];
+} tot_surf_;
 
 // subroutine nek_init(intracomm)
 void FORTRAN_CALL(nek_init)(const int &);
