@@ -121,6 +121,7 @@ c      implicit none
 
       include 'SIZE'
       include 'TOTAL'
+      ifflow=.false. 
 
       return
       end
