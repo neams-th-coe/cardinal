@@ -77,7 +77,7 @@ extern struct {
 } ref_element_;
 
 extern struct {
-  long int  nw_dbt[];   // total number of vertices 
+  long int  nw_dbt;   // total number of elements (we are assuming QUAD4, so vertices are obtained as 4*nw_bdt 
 } tot_surf_;
 
 // subroutine nek_init(intracomm)
