@@ -14,6 +14,7 @@ public:
   explicit ExternalNekProblem(const InputParameters & params);
 
   virtual void externalSolve() override;
+  virtual void syncSolutions(ExternalProblem::Direction direction) override;
 };
 
 #endif //CARDINAL_EXTERNALNEKPROBLEM_H

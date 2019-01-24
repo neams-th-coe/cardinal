@@ -14,6 +14,7 @@ public:
   explicit ExternalOpenmcProblem(const InputParameters & params);
 
   virtual void externalSolve() override;
+  virtual void syncSolutions(ExternalProblem::Direction direction) override;
 };
 
 

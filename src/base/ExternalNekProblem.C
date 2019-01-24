@@ -18,7 +18,16 @@ validParams<ExternalNekProblem>()
 
 ExternalNekProblem::ExternalNekProblem(const InputParameters &params) : ExternalProblem(params)
 {
+}
+
+
+void ExternalNekProblem::externalSolve()
+{
   _console << "Beginning Nek5000 external solve";
   Nek5000::FORTRAN_CALL(nek_step)();
 }
 
+void ExternalNekProblem::syncSolutions(ExternalProblem::Direction direction)
+{
+
+}

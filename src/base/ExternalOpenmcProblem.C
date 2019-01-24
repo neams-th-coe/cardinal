@@ -20,7 +20,15 @@ validParams<ExternalOpenmcProblem>()
 
 ExternalOpenmcProblem::ExternalOpenmcProblem(const InputParameters &params) : ExternalProblem(params)
 {
+}
+
+void ExternalOpenmcProblem::externalSolve()
+{
   _console << "Beginning OpenMC external solve";
   openmc_run();
+}
+
+void ExternalOpenmcProblem::syncSolutions(ExternalProblem::Direction direction)
+{
 }
 
