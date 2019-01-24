@@ -12,8 +12,8 @@
 #include "MooseApp.h"
 #include "AppFactory.h"
 #include "CommandLine.h"
-#include "OpenMCProblem.h"
 #include "OpenMCApp.h"
+#include "NekApp.h"
 
 // Create a performance log
 PerfLog Moose::perf_log("cardinal");
@@ -36,11 +36,12 @@ main(int argc, char *argv[])
 
   std::string app_class_name;
   if (which_app == "openmc") {
-    app_class_name = "ExternalOpenmcProblemApp";
+    app_class_name = "OpenMCApp";
     OpenMCApp::registerApps();
   }
   else if (which_app == "nek5000" or which_app == "nek") {
-    std::cerr << "--app nek not done yet!" << std::endl;
+    app_class_name = "NekApp";
+    NekApp::registerApps();
   }
   else
     std::cerr << "Wrong --app option!" << std::endl;
