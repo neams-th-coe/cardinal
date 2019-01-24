@@ -5,6 +5,7 @@
 #include "ExternalNekProblem.h"
 #include "Moose.h"
 #include "openmc.h"
+#include "NekInterface.h"
 
 template<>
 InputParameters
@@ -18,6 +19,6 @@ validParams<ExternalNekProblem>()
 ExternalNekProblem::ExternalNekProblem(const InputParameters &params) : ExternalProblem(params)
 {
   _console << "Beginning Nek5000 external solve";
-  FORTRAN_CALL(nek_step)();
+  Nek5000::FORTRAN_CALL(nek_step)();
 }
 

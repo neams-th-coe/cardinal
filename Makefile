@@ -87,6 +87,7 @@ $(NEK_CASEDIR)/$(NEK_CASENAME).o: libnek5000
 
 ADDITIONAL_APP_DEPS := libnek5000 libopenmc
 ADDITIONAL_LIBS :=  $(NEK_CASEDIR)/obj/$(NEK_CASENAME).o -lnek5000 -L$(NEK_CASEDIR) -lgs -L$(NEK_DIR)/3rd_party/gslib/lib -lopenmc -L$(OPENMC_DIR)/build/lib
+ADDITIONAL_INCLUDES := -I$(OPENMC_DIR)/include/
 
 include            $(FRAMEWORK_DIR)/app.mk
 
