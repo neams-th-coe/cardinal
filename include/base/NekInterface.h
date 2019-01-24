@@ -53,19 +53,23 @@ extern struct {
 } test_passing_;
 
 extern struct {
-  double coeff_tij[];
-} expansion_tcoef_;
+  double pc_x[];
+  double pc_y[];
+  double pc_z[];  
+  double pc_flag[];
+} point_cloud_;
 
 extern struct {
-  double coeff_fij[];
-} expansion_fcoef_;
+  double pc_t[];
+  double pc_f[];
+} data_cloud_;
 
 // subroutine nek_init(intracomm)
 void FORTRAN_CALL(nek_init)(const int &);
 void FORTRAN_CALL(nek_init_step)();
 void FORTRAN_CALL(nek_step)();
 void FORTRAN_CALL(nek_finalize_step)();
-void FORTRAN_CALL(nek_expansion)();
+void FORTRAN_CALL(nek_pointscloud)();
 void FORTRAN_CALL(flux_reconstruction)();
 }
 }

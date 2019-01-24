@@ -1,8 +1,10 @@
-      parameter (nl_max=100)
-      parameter (nf_max=100)
-      common/expansion_tdata/n_legendre, m_fourier
-      common/expansion_tcoef/coeff_tij(nl_max,nf_max)
-      common/expansion_fcoef/coeff_fij(nl_max,nf_max)
-      common/expansion_recon/flux_recon(lx1,ly1,lz1,lelt)
-      common/test_passing/ flux_moose, temp_nek
+      parameter (lsurf_m=1000)
+      common /point_cloud/ pc_x(lsurf_m*4), pc_y(lsurf_m*4), 
+     & pc_z(lsurf_m*4), pc_flag(lsurf_m*4)
+      common /data_reference/ plmask(lelt), pflmask(lelt), 
+     & pplist(lelt), offset, nw_bd1, nw_bdt
+      common /data_cloud/ pc_t(lsurf_m), pc_f(lsurf_m)
+      common /test_passing/ flux_moose, temp_nek
+      real pc_x, pc_y, pc_z, pc_flag, pc_t, pc_f
+      integer plmask, pflmask, pllist, offset, nw_bd1, nw_bdt 
 
