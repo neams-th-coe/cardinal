@@ -18,4 +18,4 @@ public:
   static void registerAll(Factory & f, ActionFactory & af, Syntax & s);
 };
 
-#endif //CARDINAL_NEKAPP_H
+#endif //CARDINAL_NEKAPP<_H

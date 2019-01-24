@@ -4,7 +4,7 @@
 
 #include "NekApp.h"
 #include "AppFactory.h"
-#include "openmc.h"
+#include "NekInterface.h"
 
 template <>
 InputParameters
@@ -16,7 +16,8 @@ validParams<NekApp>()
 
 NekApp::NekApp(InputParameters parameters) : MooseApp(parameters)
 {
-  openmc_init(&_communicator.get());
+  Nek5000::FORTRAN_CALL(nek_init)(_communicator.get());
+
   registerAll(_factory, _action_factory, _syntax);
 }
 

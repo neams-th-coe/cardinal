@@ -5,14 +5,14 @@
 # Required environment Variables:
 # * NEK_CASEDIR : Dir with Nek5000 input deck (.usr, SIZE, and .rea files)
 # * NEK_CASENAME : Name of the Nek5000 .usr and .rea files
-# 
+#
 # Optional environment variables:
 # * CARDINAL_DIR : Top-level Cardinal src dir (default: this Makefile's dir)
 # * CONTRIB_DIR : Dir with third-party src (default: $(CARDINAL_DIR)/contrib)
 # * MOOSE_SUBMODULE : Top-level MOOSE src dir (default: $(CONTRIB_DIR)/moose)
 # * NEK5_DIR : Top-level Nek5000 src dir (default: $(CONTRIB_DIR)/Nek5000)
 # * OCCA_DIR : Top-level OCCA src dir (default: $(CONTRIB_DIR)/occa)
-# * LIBP_DIR : Top-level libparanumal src dir (default: $(CONTRIB_DIR)/libparanumal 
+# * LIBP_DIR : Top-level libparanumal src dir (default: $(CONTRIB_DIR)/libparanumal
 # * NEK_LIBP_DIR : Top-level nek-libp src dir (default: $(CONTRIB_DIR)/NekGPU/nek-libp
 #
 # ======================================================================================
@@ -86,7 +86,8 @@ GEN_REVISION       := no
 $(NEK_CASEDIR)/$(NEK_CASENAME).o: libnek5000
 
 ADDITIONAL_APP_DEPS := libnek5000 libopenmc
-ADDITIONAL_LIBS :=  $(NEK_CASEDIR)/obj/$(NEK_CASENAME).o -lnek5000 -L$(NEK_CASEDIR) -lgs -L$(NEK_DIR)/3rd_party/gslib/lib -lopenmc -L$(OPENMC_DIR)/build/lib
+EXTERNAL_FLAGS :=  $(NEK_CASEDIR)/obj/$(NEK_CASENAME).o $(NEK_CASEDIR)/libnek5000.a -L$(NEK_CASEDIR) -lgs -L$(NEK_DIR)/3rd_party/gslib/lib -lopenmc -L$(OPENMC_DIR)/build/lib
+ADDITIONAL_LIBS := -Xlinker -rpath $(NEK_CASEDIR) -Xlinker -rpath $(OPENMC_DIR)/build/lib
 ADDITIONAL_INCLUDES := -I$(OPENMC_DIR)/include/
 
 include            $(FRAMEWORK_DIR)/app.mk
