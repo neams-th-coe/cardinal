@@ -87,210 +87,166 @@ C=======================================================================
       return
       end
 C=======================================================================
-      subroutine nek_expansion()
-
+      subroutine nek_pointscloud()
       include 'SIZE'
       include 'TOTAL'
-      include 'NEKMOOSE' 
+      include 'NEKMOOSE'
       integer e,f
+      integer tots_np(lp), iwk(lp)
 
-      real*8 fmode(lx1,ly1,lz1,lelt), cache(lx1,ly1,lz1,lelt)
-      real*8 sint, sint1, sarea, sarea1
-      real*8 pi
+      nxyz=lx1*ly1*lz1
 
-      pi=4.0*atan(1.0)
-      ntot=nx1*ny1*nz1*nelt
+      nw_bd1 = 0
+      do e=1,nelt
+      eg = lglel(e)
+      do f=1,6
+        if (cbc(f,e,2).eq.'f  ') then
+           nw_bd1=nw_bd1+1
+           plmask(e) =1
+           pflmask(e)=f 
+           pplist(e)=nw_bd1
+        endif
+      enddo
+      enddo
+            
+      tots_np(nid+1)=nw_bd1
+      call igop(tots_np,iwk,'+  ', np)
 
-      call rzero(fmode,ntot)
-      do i0=1,n_legendre
-        do j0=1,m_fourier
-          call nek_mode(fmode,i0,j0)
-          sarea1=0.0
-          sint1= 0.0
-          do e=1,nelt
-            do f=1,6
-              sint=0.0
-              sarea=0.0
-              if (cbc(f,e,1).eq.'W  ') then
-                call col3(cache,fmode,t,ntot)
-                call surface_int(sint,sarea,cache,e,f)
-                sint1=sint1+sint
-                sarea1=sarea1+sarea
-              endif
-            enddo
-          enddo
-          call  gop(sint1,wtmp,'+  ',1)
-          call  gop(sarea1,wtmp,'+  ',1)
-!
-          coeff_tij(i0,j0)=sint1*4.0*pi/sarea1
-!
+      offset=0
+      if (nid.gt.0) then
+        do i=1,nid
+        offset=offset+tots_np(i)
         enddo
+      endif
+ 
+      do i=1,nelt
+         pplist(e)=pplist(e)+offset 
       enddo
 
-c     For Testing
-c     call nek_testp()
-      return
-      end
-C=======================================================================
-      subroutine nek_diag()
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKMOOSE' 
-      common/diags_coeff/diag_c(nl_max,nf_max)
-      integer e,f
-
-      real*8 fmode(lx1,ly1,lz1,lelt)
-      real*8 cache(lx1,ly1,lz1,lelt)
-      real*8 sint, sint1
-
-      ntot=nx1*ny1*nz1*nelt
-
-      zmin=glmin(zm1,ntot)
-      zmax=glmax(zm1,ntot)
-
-      call rzero(fmode,ntot)
-         do i0=1,n_legendre
-           do j0=1,m_fourier
-             call nek_mode(fmode,i0,j0)  
-             sint1=0.0
-             do e=1,nelt
-               do f=1,6
-                 sint=0.0
-                 if (cbc(f,e,1).eq.'W  ') then
-                   call col3(cache,fmode,fmode,ntot)
-                   call surface_int(sint,sarea,cache,e,f)
-                   sint1=sint1+sint
-                 endif
-               enddo
-             enddo
-          call  gop(sint1,wtmp,'+  ',1)
-          diag_c(i0,j0)=sint1*2.0/(0.5*(zmax-zmin))
-          if (nid.eq.0) write(6,*)i0,j0,diag_c(i0,j0)
-        enddo
-      enddo
-
-      return
-      end
-C=======================================================================
-      subroutine nek_testp()
-      include 'SIZE'
-      include 'TOTAL'
-      include 'NEKMOOSE'      
-      integer e,f
-      real*8 fmode(lx1,ly1,lz1,lelt), cache(lx1,ly1,lz1,lelt)
-      real*8 fun(lx1,ly1,lz1,lelt) 
-      ntot=nx1*ny1*nz1*nelt
-      call rzero(fmode,ntot)
-      call rzero(fun,ntot)   
-         do i0=1,n_legendre
-           do j0=1,m_fourier
-             call nek_mode(fmode,i0,j0)
-             do i=1,ntot
-             fun(i,1,1,1)=fun(i,1,1,1)+fmode(i,1,1,1)*coeff_tij(i0,j0) 
-             enddo  
-          enddo
-         enddo
-      call rzero(cache,ntot) 
-      call sub3(cache,fun,t,ntot)
-      do i=1,ntot
-        c1=cache(i,1,1,1)**2
-        cache(i,1,1,1)=c1 
+      nw_bdt=0
+      do i=1,np
+        nw_bdt = nw_bdt + tots_np(i)
       enddo
  
-      sint1=0.0
-      sarea1=0.0
-      do e=1,lelt
-        do f=1,6
-          call surface_int(sint,sarea,cache,e,f)
-          if (cbc(f,e,1).eq.'W  ') then
-           sint1=sint1+sint
-           sarea1=sarea1+sarea
-          endif
-         enddo
-      enddo
-      call  gop(sint1,wtmp,'+  ',1)
-      call  gop(sarea1,wtmp,'+  ',1)
+      call assign_p(pc_x,xm1)
+      call assign_p(pc_y,ym1)
+      call assign_p(pc_z,zm1)
 
-      er_avg=sqrt(sint1/sarea1)
-      if (nid.eq.0) write(6,*)"Error: ",er_avg
+      do i=1,nw_bdt
+      do j=1,4
+         pc_flag((i-1)*4+j)=dble(i)
+      enddo 
+      enddo 
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine assign_p (vpf,fu)
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKMOOSE' 
+      integer e,eg
+      real*8 vpf(lsurf_m*4)
+      real*8 fu(lx1,lx1,lx1,lelt)
+
+      integer i_us, ip_stp, iv_istp
+
+      real*8 wtmp(lsurf_m*4)
+
+      do i=1,4*lsurf_m
+      vpf(i)=0.0
+      enddo
+
+      do e=1,nelt
+
+      if (plmask(e).eq.1)  then
+
+      i_us=(pplist(e)-1)*4
+ 
+      if (pflmask(e).eq.1) then
+      vpf(i_us)=fu(1,1,1,e)
+      vpf(i_us+1)=fu(lx1,1,1,e)
+      vpf(i_us+3)=fu(1,1,lx1,e)
+      vpf(i_us+2)=fu(lx1,1,lx1,e)
+      endif
+
+      if (pflmask(e).eq.2) then
+      vpf(i_us)=fu(lx1,1,1,e)
+      vpf(i_us+1)=fu(lx1,lx1,1,e)
+      vpf(i_us+3)=fu(lx1,1,lx1,e)
+      vpf(i_us+2)=fu(lx1,lx1,lx1,e)
+      endif
+
+      if (pflmask(e).eq.3)  then
+      vpf(i_us)=fu(1,lx1,1,e)
+      vpf(i_us+1)=fu(lx1,lx1,1,e)
+      vpf(i_us+3)=fu(1,lx1,lx1,e)
+      vpf(i_us+2)=fu(lx1,lx1,lx1,e)
+      endif
+
+      if (pflmask(e).eq.4) then
+      vpf(i_us)=fu(1,1,1,e)
+      vpf(i_us+1)=fu(1,lx1,1,e)
+      vpf(i_us+3)=fu(1,1,lx1,e)
+      vpf(i_us+2)=fu(1,lx1,lx1,e)
+      endif
+
+      if (pflmask(e).eq.5) then
+      vpf(i_us)=fu(1,1,1,e)
+      vpf(i_us+1)=fu(lx1,1,1,e)
+      vpf(i_us+3)=fu(1,lx1,1,e)
+      vpf(i_us+2)=fu(lx1,lx1,1,e)
+      endif
+
+      if (pflmask(e).eq.6) then
+      vpf(i_us)=fu(1,1,lx1,e)
+      vpf(i_us+1)=fu(lx1,1,lx1,e)
+      vpf(i_us+3)=fu(1,lx1,lx1,e)
+      vpf(i_us+2)=fu(lx1,lx1,lx1,e)
+      endif
+
+      endif
+      enddo
+
+      call  gop(vpf,wtmp,'+  ',4*nw_bdt)
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine rassign (fu,vpf,nn)
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKMOOSE' 
+      integer e,eg
+
+      real*8 vpf(lsurf_m*4)
+      real*8 fu(3,3,3,lelt)
+
+c     Placeholder
+
       return
       end
 C=======================================================================
-      subroutine nek_mode(fmode,im,jm)
+      subroutine nek_interpolation()
       include 'SIZE'
       include 'TOTAL'
+      include 'NEKMOOSE' 
       integer e,f
-      real*8 fmode(lx1,ly1,lz1,lelt) 
-      ntot=nx1*ny1*nz1*nelt
-      zmin=glmin(zm1,ntot)
-      zmax=glmax(zm1,ntot)
-             do e=1,nelt
-               do f=1,6
-                 if (cbc(f,e,1).eq.'W  ') then
-                   call dsset(nx1,ny1,nz1)
-                   iface  = eface1(f)
-                   js1    = skpdat(1,iface)
-                   jf1    = skpdat(2,iface)
-                   jskip1 = skpdat(3,iface)
-                   js2    = skpdat(4,iface)
-                   jf2    = skpdat(5,iface)
-                   jskip2 = skpdat(6,iface)
-                   do j2=js2,jf2,jskip2
-                     do j1=js1,jf1,jskip1
-                       x=xm1(j1,j2,1,e)
-                       y=ym1(j1,j2,1,e)
-                       z=zm1(j1,j2,1,e)
-                       z_leg=2*((z-zmin)/zmax)-1
-                       theta=atan2(y,x)
-                       fmode(j1,j2,1,e)=
-     &                 pl_leg(z_leg,im-1)*fl_four(theta,jm-1)
-                     enddo
-                   enddo
-                 endif
-              enddo
-            enddo
+
+      call assign_p(pc_t,t)
+ 
       return
-      end 
-c-----------------------------------------------------------------------
+      end
+C=======================================================================
       subroutine flux_reconstruction()
       include 'SIZE'
       include 'TOTAL'
       include 'NEKMOOSE'  
       integer e,f
-      real*8 coeff_base, flux_base, flux_moose 
-      real*8 fmode(lx1,ly1,lz1,lelt)
       ntot=nx1*ny1*nz1*nelt
 
-c     --------------------------------------
-c     The flux from MOOSE must have proper sign
-c     --------------------------------------
-      coeff_base=-1.0 
-      flux_base=0.25 ! from energy conservation in the problem
-c     --------------------------------------
-
-      call rzero(flux_recon,ntot)
-         do i0=1,n_legendre
-           do j0=1,m_fourier
-             call rzero(fmode,ntot)
-             call nek_mode(fmode,i0,j0)
-             do i=1,ntot
-             flux_recon(i,1,1,1)= flux_recon(i,1,1,1)
-     &                  + coeff_base*fmode(i,1,1,1)*coeff_fij(i0,j0)
-             enddo
-          enddo
-         enddo
-
-c---- Below is for testing
-c             do i=1,ntot
-c             flux_recon(i,1,1,1)= 0.0
-c             enddo
-c--------------------------
-
-c---- Renormalization
-      sint1=0.0
-      sarea1=0.0
-
-      do e=1,lelt
+!     Call to rassign and spectral interpolation
+      do e=1,nelt 
         do f=1,6
           call surface_int(sint,sarea,flux_recon,e,f)
           if (cbc(f,e,1).eq.'W  ') then
@@ -304,56 +260,9 @@ c---- Renormalization
       call  gop(sarea1,wtmp,'+  ',1)
 
       flux_moose=sint1/sarea1
-      do i=1,ntot
-         flux_recon(i,1,1,1)= flux_recon(i,1,1,1)*flux_base/flux_moose
-      enddo
-c-----------------------
-      return
-      end
-c-----------------------------------------------------------------------
-! calculates Legendre polynomials using a recurrence relationship. If
-! n > the maximum Legendre order, the function returns 0.0.
-      function pl_leg(x,n)
-      parameter (nl_max=100) ! should never be bigger than 100
-      real*8 pl,pl_leg
-      real*8 x
-      real*8 pln(0:n)
-      integer n, k
-
-      pln(0) = 1.0
-      pln(1) = x
-
-      if (n.le.1) then
-        pl = pln(n)
-      else if (n.le.nl_max) then
-        do k=1,n-1
-          pln(k+1) = ((2.0*k+1.0)*x*pln(k)-dble(k)*pln(k-1))/(dble(k+1))
-        end do
-        pl = pln(n)
-      else
-        pl = 0.0
-      end if
-
-      pl_leg = pl*sqrt(dble(2*n+1)/2.0)
 
       return
       end
-c-----------------------------------------------------------------------
-! calculates Fourier polynomials Fn(x)
-      function fl_four(x,n)
-      real*8 fl_four,pi
-      real*8 x, A
-      integer n, k
-
-      pi=4.0*atan(1.0)
-      A=1.0/sqrt(pi)
-
-      if (n.eq.0) A=1.0/sqrt(2*pi)
-      fl_four=A*cos(n*x)
-
-      return
-      end
-c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       subroutine cdscal_mod (igeom)
 C
@@ -383,7 +292,7 @@ C
       endif
 
 
-      napprox(1) = laxt  ! Fix this... pff 10/10/15
+c      napprox(1) = laxt  ! Fix this... pff 10/10/15
 
       nel    = nelfld(ifield)
       n   = nx1*ny1*nz1*nel
@@ -485,7 +394,6 @@ C
       include 'SIZE'
       include 'INPUT'
       include 'TSTEP'
-      include 'TURBO' 
       include 'DEALIAS'
 
       real*8 ts, dnekclock
@@ -527,11 +435,11 @@ c-----------------------------------------------------------------------
       call setsolv
       call comment
 
-      if (ifcmt) then
-         if (nio.eq.0.and.istep.le.1) write(6,*) 'CMT branch active'
-         call cmt_nek_advance
-         return
-      endif
+c      if (ifcmt) then
+c         if (nio.eq.0.and.istep.le.1) write(6,*) 'CMT branch active'
+c         call cmt_nek_advance
+c         return
+c      endif
 
       if (ifsplit) then   ! PN/PN formulation
 
