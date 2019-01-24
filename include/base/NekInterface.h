@@ -53,40 +53,41 @@ extern struct {
 } test_passing_;
 
 extern struct {
-  double pc_x[];
+  double pc_x[];     // vertex X coordinate, in sequential order
 } point_cloudx_;
 
 extern struct {
-  double pc_y[];
+  double pc_y[];     // vertex Y coordinate, in sequential order
 } point_cloudy_;
 
 extern struct {
-  double pc_z[];
+  double pc_z[];     // vertex Z coordinate, in sequential order
 } point_cloudz_;
 
 extern struct {
-  double pc_t[];
+  double pc_t[];     // temperature vertex data    
 } point_temp_;
 
 extern struct {
-  double pc_f[];
+  double pc_f[];     // flux vertex data
 } point_flux_;
 
 extern struct {
-  double pc_flag[];
+  double pc_flag[];  // element number for each vertex      
 } ref_element_;
 
 extern struct {
-  long int  nw_dbt[];
+  long int  nw_dbt[];   // total number of vertices 
 } tot_surf_;
 
 // subroutine nek_init(intracomm)
-void FORTRAN_CALL(nek_init)(const int &);
-void FORTRAN_CALL(nek_init_step)();
-void FORTRAN_CALL(nek_step)();
-void FORTRAN_CALL(nek_finalize_step)();
-void FORTRAN_CALL(nek_pointscloud)();
-void FORTRAN_CALL(flux_reconstruction)();
+void FORTRAN_CALL(nek_init)(const int &);   // initilization, pass a communicator
+void FORTRAN_CALL(nek_init_step)();         // call once before each time step
+void FORTRAN_CALL(nek_step)();              // call for each picard iteration within the step
+void FORTRAN_CALL(nek_finalize_step)();     // call at the end of step
+void FORTRAN_CALL(nek_interpolation)();  // to be called before extracting data from common blocks
+void FORTRAN_CALL(nek_pointscloud)();    // to be called before extracting point cloud locations from common blocks
+void FORTRAN_CALL(flux_reconstruction)(); // to be called after loading flux data in common blocks
 }
 }
 
