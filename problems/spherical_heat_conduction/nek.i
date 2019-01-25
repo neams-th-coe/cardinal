@@ -1,6 +1,5 @@
 [Mesh]
-  type = FileMesh
-  file = sphere.e
+  type = NekMesh
 []
 
 [Variables]
