@@ -6,7 +6,7 @@
 #include "Moose.h"
 #include "NekInterface.h"
 
-registerMooseObject("MooseApp", NekProblem);
+registerMooseObject("NekApp", NekProblem);
 
 template<>
 InputParameters
