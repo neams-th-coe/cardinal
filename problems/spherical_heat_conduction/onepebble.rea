@@ -16,14 +16,14 @@
    -1.0E-4     p012 DT
    0.00000     p013 IOCOMM
    0.00000     p014 IOTIME
-   500.0       p015 IOSTEP
+   100.0       p015 IOSTEP
    0.00000     p016 PSSOLVER: 0=default
    0.00000     p017
    0.00000     p018 GRID < 0 --> # cells on screen
    0.00000     p019 INTYPE
    0.00000     p020 NORDER
    1.000E-05   p021 DIVERGENCE
-   1.000E-08   p022 HELMHOLTZ
+   1.000E-03   p022 HELMHOLTZ
    0.00000     p023 NPSCAL
    0.100E-01   p024 TOLREL
    0.100E-01   p025 TOLABS
@@ -143,7 +143,7 @@
  **MESH DATA** 6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8
      -8858  3        8858     NELT,NDIM,NELV
             1 PRESOLVE/RESTART OPTIONS  *****
-onepebble.run01
+onepebble.run02
             7         INITIAL CONDITIONS *****
 C Default
 C Default
