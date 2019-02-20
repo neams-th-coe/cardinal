@@ -4,7 +4,7 @@
 
 #include "OpenMCApp.h"
 #include "AppFactory.h"
-#include "capi.h"
+#include "openmc/capi.h"
 
 template <>
 InputParameters
