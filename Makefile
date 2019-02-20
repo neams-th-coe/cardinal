@@ -24,7 +24,7 @@ NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 
 # DEBUG
-NEK_CASEDIR  ?= $(NEK_DIR)/problems/spherical_heat_conduction
+NEK_CASEDIR  ?= $(CARDINAL_DIR)/problems/spherical_heat_conduction
 NEK_CASENAME ?= onepebble
 
 # ======================================================================================
@@ -88,7 +88,7 @@ $(NEK_CASEDIR)/$(NEK_CASENAME).o: libnek5000
 ADDITIONAL_APP_DEPS := libnek5000 libopenmc
 EXTERNAL_FLAGS :=  $(NEK_CASEDIR)/obj/$(NEK_CASENAME).o $(NEK_CASEDIR)/libnek5000.a -L$(NEK_CASEDIR) -lgs -L$(NEK_DIR)/3rd_party/gslib/lib -lopenmc -L$(OPENMC_DIR)/build/lib
 ADDITIONAL_LIBS := -Xlinker -rpath $(NEK_CASEDIR) -Xlinker -rpath $(OPENMC_DIR)/build/lib
-ADDITIONAL_INCLUDES := -I$(OPENMC_DIR)/include/
+ADDITIONAL_INCLUDES := -I$(OPENMC_DIR)/include/openmc/
 
 include            $(FRAMEWORK_DIR)/app.mk
 
