@@ -24,8 +24,8 @@ NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 
 # DEBUG
-NEK_CASEDIR  ?= $(NEK_DIR)/short_tests/ethier/
-NEK_CASENAME ?= ethier
+NEK_CASEDIR  ?= $(NEK_DIR)/problems/spherical_heat_conduction
+NEK_CASENAME ?= onepebble
 
 # ======================================================================================
 # MOOSE
@@ -114,4 +114,4 @@ libopenmc:
 	cd $(OPENMC_DIR)/build && cmake $(OPENMC_DIR)
 	make -C $(OPENMC_DIR)/build libopenmc
 
-.PHONY: occa nek-libp libnek5000 libopenmc
+.PHONY: libnek5000 libopenmc
