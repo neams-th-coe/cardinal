@@ -18,6 +18,11 @@ public:
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
   virtual bool converged() override { return true; }
+
+  virtual void addExternalVariables() override;
+
+protected:
+  unsigned int _temp_var;
 };
 
 #endif //CARDINAL_NEKPROBLEM_H
