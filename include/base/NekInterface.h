@@ -66,7 +66,7 @@ extern struct {
 
 extern struct {
   double pc_t[];     // temperature vertex data    
-} point_temp_;
+} point_cloudt_;
 
 extern struct {
   double pc_f[];     // flux vertex data
