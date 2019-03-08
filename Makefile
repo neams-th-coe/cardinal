@@ -17,15 +17,22 @@
 #
 # ======================================================================================
 
-CARDINAL_DIR := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
+CARDINAL_DIR    := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
 NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
+GSLIB_DIR       ?= $(CONTRIB_DIR)/gslib
 
-# DEBUG
 NEK_CASEDIR  ?= $(CARDINAL_DIR)/problems/spherical_heat_conduction
 NEK_CASENAME ?= onepebble
+
+# ======================================================================================
+# PETSc
+# ======================================================================================
+
+# Use compiler info discovered by PETSC
+include $(PETSC_DIR)/lib/petsc/conf/petscvariables
 
 # ======================================================================================
 # MOOSE
@@ -44,11 +51,7 @@ include $(FRAMEWORK_DIR)/build.mk
 include $(FRAMEWORK_DIR)/moose.mk
 
 # ======================================================================================
-# MOOSE
-#
-# To use certain physics included with MOOSE, set variables below to
-# yes as needed.  Or set ALL_MODULES to yes to turn on everything (overrides
-# other set variables).
+# MOOSE Apps
 # ======================================================================================
 
 ALL_MODULES         := no
@@ -72,32 +75,6 @@ include $(MOOSE_DIR)/modules/modules.mk
 
 # ======================================================================================
 # Dependent Apps
-#
-# To use certain physics included with MOOSE, set variables below to
-# yes as needed.  Or set ALL_MODULES to yes to turn on everything (overrides
-# other set variables).
-# ======================================================================================
-
-APPLICATION_DIR    := $(CARDINAL_DIR)
-APPLICATION_NAME   := cardinal
-BUILD_EXEC         := yes
-GEN_REVISION       := no
-
-$(NEK_CASEDIR)/$(NEK_CASENAME).o: libnek5000
-
-ADDITIONAL_APP_DEPS := libnek5000 libopenmc
-EXTERNAL_FLAGS :=  $(NEK_CASEDIR)/obj/$(NEK_CASENAME).o $(NEK_CASEDIR)/libnek5000.a -L$(NEK_CASEDIR) -lgs -L$(NEK_DIR)/3rd_party/gslib/lib -lopenmc -L$(OPENMC_DIR)/build/lib
-ADDITIONAL_LIBS := -Xlinker -rpath $(NEK_CASEDIR) -Xlinker -rpath $(OPENMC_DIR)/build/lib
-ADDITIONAL_INCLUDES := -I$(OPENMC_DIR)/include
-
-include            $(FRAMEWORK_DIR)/app.mk
-
-# ======================================================================================
-# Third-party Apps
-#
-# To use certain physics included with MOOSE, set variables below to
-# yes as needed.  Or set ALL_MODULES to yes to turn on everything (overrides
-# other set variables).
 # ======================================================================================
 
 export CXX := $(libmesh_CXX)
@@ -105,13 +82,21 @@ export CC  := $(libmesh_CC)
 export FC  := $(libmesh_F90)
 export CARDINAL_DIR
 
-libnek5000:
-	cd $(NEK_CASEDIR) && SOURCE_ROOT=$(NEK_DIR) $(NEK_DIR)/bin/makenek $(NEK_CASENAME)
-	cd $(NEK_CASEDIR) && make lib
+APPLICATION_DIR    := $(CARDINAL_DIR)
+APPLICATION_NAME   := cardinal-$(NEK_CASENAME)
+BUILD_EXEC         := yes
+GEN_REVISION       := no
 
-libopenmc:
-	mkdir -p $(OPENMC_DIR)/build
-	cd $(OPENMC_DIR)/build && cmake $(OPENMC_DIR)
-	make -C $(OPENMC_DIR)/build libopenmc
+include            $(CARDINAL_DIR)/config/gslib.mk
+include            $(CARDINAL_DIR)/config/nek.mk
+include            $(CARDINAL_DIR)/config/openmc.mk
 
-.PHONY: libnek5000 libopenmc
+# CC_LINKER_SLFLAG is from petscvariables
+ADDITIONAL_DEPEND_LIBS := $(NEK_LIB) $(GS_LIB) $(OPENMC_LIB)
+ADDITIONAL_LIBS := -L$(NEK_LIBDIR) -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) -lnek5000_$(NEK_CASENAME) -lgs -lopenmc $(CC_LINKER_SLFLAG)$(NEK_LIBDIR) $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+ADDITIONAL_INCLUDES := -I$(CURDIR)/include
+EXTERNAL_FLAGS := -L$(NEK_LIBDIR) -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) \
+  -lnek5000_$(NEK_CASENAME) -lgs -lopenmc $(CC_LINKER_SLFLAG)$(NEK_LIBDIR) \
+  $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(CURDIR)/lib
+
+include            $(FRAMEWORK_DIR)/app.mk
