@@ -46,7 +46,7 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
       auto num_elems = Nek5000::tot_surf_.nw_dbt;
 
-      auto nek_temperature = Nek5000::point_temp_.pc_t;
+      auto nek_temperature = Nek5000::point_cloudt_.pc_t;
 
       auto & solution = _aux->solution();
 
