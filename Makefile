@@ -80,6 +80,13 @@ include $(MOOSE_DIR)/modules/modules.mk
 export CXX := $(libmesh_CXX)
 export CC  := $(libmesh_CC)
 export FC  := $(libmesh_F90)
+export FFLAGS := $(libmesh_FFLAGS)
+export CFLAGS := $(libmesh_CFLAGS)
+export CXXFLAGS := $(libmesh_CXXFLAGS)
+export CPPFLAGS := $(libmesh_CPPFLAGS)
+export LDFLAGS := $(libmesh_LDFLAGS)
+export LIBS := $(libmesh_LIBS)
+
 export CARDINAL_DIR
 
 APPLICATION_DIR    := $(CARDINAL_DIR)
