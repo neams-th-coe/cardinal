@@ -81,12 +81,8 @@ SESSION_NAME := $(CURDIR)/SESSION.NAME
 # Rules/recipes
 # ===========================================================================
 
-$(NEK_EXEC) : $(NEK_DRIVE_OBJ) $(NEK_LIB) | $(SESSION_NAME)
-	$(FC) $(F_CPPFLAGS) $(FFLAGS) -o $@ $< $(F_LDFLAGS) -lnek5000_$(NEK_CASENAME) $(F_LIBS) 
-
-$(NEK_LIB) : $(NEK_C_OBJ) $(NEK_F_OBJ) | $(NEK_LIBDIR) $(SESSION_NAME)
-	$(AR) $(AR_FLAGS) $@ $?
-	$(RANLIB) $@
+$(NEK_EXEC) : $(NEK_DRIVE_OBJ) $(NEK_C_OBJ) $(NEK_F_OBJ)  | $(SESSION_NAME)
+	$(FC) $(F_CPPFLAGS) $(FFLAGS) -o $@ $^ $(F_LDFLAGS) $(F_LIBS) 
 
 $(NEK_C_OBJ) : $(NEK_OBJDIR)/%.o : %.c | $(NEK_OBJDIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^ $(LDFLAGS) $(LIBS)
@@ -108,6 +104,4 @@ $(SESSION_NAME):
 clean_nek:
 	@rm -rf $(NEK_OBJDIR) libnek5000_$(NEK_CASENAME).a nek5000_$(NEK_CASENAME)
 
-libnek5000: $(NEK_LIB)
-
-.PHONY: libnek5000 clean_nek
+.PHONY: clean_nek
