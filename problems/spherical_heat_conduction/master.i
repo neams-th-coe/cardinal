@@ -72,6 +72,13 @@
     multi_app = nek
     variable = nek_temp
   []
+  [avg_flux]
+    type = MultiAppNearestNodeTransfer
+    source_variable = avg_flux
+    direction = to_multiapp
+    multi_app = nek
+    variable = avg_flux
+  []
 []
 
 [AuxVariables]

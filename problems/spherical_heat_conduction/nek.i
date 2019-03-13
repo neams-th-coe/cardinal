@@ -7,6 +7,11 @@
   []
 []
 
+[AuxVariables]
+  [avg_flux]
+  []
+[]
+
 [Problem]
   type = NekProblem
 []
