@@ -70,7 +70,7 @@ extern struct {
 
 extern struct {
   double pc_f[];     // flux vertex data
-} point_flux_;
+} point_cloudf_;
 
 extern struct {
   double pc_flag[];  // element number for each vertex      
