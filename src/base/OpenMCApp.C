@@ -6,6 +6,8 @@
 #include "AppFactory.h"
 #include "openmc/capi.h"
 
+registerKnownLabel("OpenMCApp");
+
 template <>
 InputParameters
 validParams<OpenMCApp>()
@@ -16,7 +18,10 @@ validParams<OpenMCApp>()
 
 OpenMCApp::OpenMCApp(InputParameters parameters) : MooseApp(parameters)
 {
-  //openmc_init(&_communicator.get());
+  int argc = 1;
+  char * argv[1] = {"openmc"};
+
+  openmc_init(argc, argv, &_communicator.get());
   registerAll(_factory, _action_factory, _syntax);
 }
 
@@ -29,4 +34,10 @@ void OpenMCApp::registerAll(Factory &f, ActionFactory &af, Syntax &s)
 void OpenMCApp::registerApps()
 {
   registerApp(OpenMCApp);
+}
+
+OpenMCApp::~OpenMCApp() 
+{
+  _console << "Finalizing OpenMC...";
+  openmc_finalize();
 }

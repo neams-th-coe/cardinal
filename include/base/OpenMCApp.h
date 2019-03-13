@@ -12,7 +12,7 @@ class OpenMCApp : public MooseApp
 {
 public:
   explicit OpenMCApp(InputParameters parameters);
-  virtual ~OpenMCApp() {};
+  virtual ~OpenMCApp();
 
   static void registerApps();
   static void registerAll(Factory & f, ActionFactory & af, Syntax & s);

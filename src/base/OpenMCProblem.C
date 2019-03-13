@@ -5,8 +5,7 @@
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
 
-
-// TODO: registerMooseObject ?
+registerMooseObject("OpenMCApp", OpenMCProblem);
 
 template<>
 InputParameters
@@ -24,7 +23,6 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) : ExternalProblem(pa
 
 void OpenMCProblem::externalSolve()
 {
-  _console << "Beginning OpenMC external solve";
   openmc_run();
 }
 

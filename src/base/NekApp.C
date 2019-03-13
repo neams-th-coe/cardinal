@@ -6,6 +6,8 @@
 #include "AppFactory.h"
 #include "NekInterface.h"
 
+registerKnownLabel("NekApp");
+
 template <>
 InputParameters
 validParams<NekApp>()
