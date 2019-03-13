@@ -11,10 +11,14 @@ InputParameters validParams<OpenMCProblem>();
 class OpenMCProblem : public ExternalProblem
 {
 public:
-  explicit OpenMCProblem(const InputParameters & params);
+  OpenMCProblem(const InputParameters & params);
+  virtual ~OpenMCProblem() override {}
 
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
+
+  virtual bool converged() override { return true; }
+  virtual void addExternalVariables() override {}
 };
 
 
