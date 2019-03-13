@@ -40,7 +40,7 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
       break;
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      Nek5000::FORTRAN_CALL(nek_pointscloud)();
+      Nek5000::FORTRAN_CALL(nek_interpolation)();
 
       auto & mesh = _mesh.getMesh();
 
@@ -71,6 +71,8 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
           solution.set(dof_idx, nek_temperature[node_offset]);
         }
       }
+
+      solution.close();
 
       break;
     }

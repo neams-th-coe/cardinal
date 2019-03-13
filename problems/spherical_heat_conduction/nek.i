@@ -3,7 +3,7 @@
 []
 
 [Variables]
-  [temp]
+  [dummy]
   []
 []
 
@@ -17,5 +17,8 @@
 []
 
 [Outputs]
-  exodus = true
+  [exo]
+    type = Exodus
+    output_dimension = 3
+  []
 []

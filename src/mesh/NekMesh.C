@@ -67,4 +67,6 @@ NekMesh::buildMesh()
       elem->set_node(n) = node_ptr;
     }
   }
+
+  _mesh->prepare_for_use();
 }
