@@ -77,4 +77,18 @@
 [AuxVariables]
   [nek_temp]
   []
+  [avg_flux]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[AuxKernels]
+  [avg_flux]
+    type = FluxAverageAux
+    coupled = 'temp'
+    diffusivity = thermal_conductivity
+    variable = avg_flux
+    boundary = '1'
+  []
 []
