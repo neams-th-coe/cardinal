@@ -72,9 +72,30 @@
     multi_app = nek
     variable = nek_temp
   []
+  [avg_flux]
+    type = MultiAppNearestNodeTransfer
+    source_variable = avg_flux
+    direction = to_multiapp
+    multi_app = nek
+    variable = avg_flux
+  []
 []
 
 [AuxVariables]
   [nek_temp]
+  []
+  [avg_flux]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[AuxKernels]
+  [avg_flux]
+    type = FluxAverageAux
+    coupled = 'temp'
+    diffusivity = thermal_conductivity
+    variable = avg_flux
+    boundary = '1'
   []
 []
