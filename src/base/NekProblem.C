@@ -36,8 +36,43 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 {
   switch(direction)
   {
+
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
-      break;
+    {
+      auto & mesh = _mesh.getMesh();
+
+      auto num_elems = Nek5000::tot_surf_.nw_dbt;
+
+      auto nek_flux = Nek5000::point_cloudf_.pc_f;
+
+      auto & solution = _aux->solution();
+
+      auto sys_number = _aux->number();
+
+      // Here's how this works:
+      // We are reading Quad4s so each one has 4 nodes
+      // So loop over the elements and pull out the nodes... easy
+
+      for (unsigned int e = 0; e < num_elems; e++)
+      {
+        auto elem_ptr = mesh.elem_ptr(e);
+
+        for (unsigned int n = 0; n < 4; n++)
+        {
+          auto node_ptr = elem_ptr->node_ptr(n);
+
+          auto node_offset = (e * 4) + n;
+
+          auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
+
+          nek_flux[node_offset] = solution(dof_idx);
+        }
+      }
+
+      //Nek5000::FORTRAN_CALL(flux_reconstruction)();
+    }
+
+    break;
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
       Nek5000::FORTRAN_CALL(nek_interpolation)();
@@ -89,4 +124,7 @@ NekProblem::addExternalVariables()
 
   addAuxVariable("temp", nodal);
   _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
+
+  addAuxVariable("avg_flux", nodal);
+  _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
 }

@@ -23,6 +23,7 @@ public:
 
 protected:
   unsigned int _temp_var;
+  unsigned int _avg_flux_var;
 };
 
 #endif //CARDINAL_NEKPROBLEM_H
