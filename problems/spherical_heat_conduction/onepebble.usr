@@ -151,6 +151,7 @@ c      implicit none
 
       include 'SIZE'
       include 'TOTAL'
+      common /flux_reconstructed/flux_recon(lx1,ly1,lz1,lelt)
 
       integer f,e
       n=lx1*ly1*lz1*nelt
@@ -204,6 +205,8 @@ c      implicit none
 
       call fix_geom(2)  
 c     call gen_rea(2)
+
+      call rzero(flux_recon,n)
 
       return
       end
