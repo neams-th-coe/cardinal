@@ -2,14 +2,14 @@
    2.6099999      NEKTON VERSION
            3  DIMENSIONAL RUN
          118  PARAMETERS FOLLOW
-   1.00000     p001 DENSITY 
-   0.0001      p002 VISCOS 3e-7
+   2000.0      p001 DENSITY ! Flibe
+   1.0         p002 VISCOS  ! Adding Turbulent component
    0.00000     p003
    0.00000     p004
    0.00000     p005
    0.00000     p006
-   0.00000     p007 RHOCP
-   1.00000     p008 CONDUCT
+ 5000000.0     p007 RHOCP      !Flibe
+   0.50000     p008 CONDUCT    !Flibe    
    0.00000     p009
    0.00000     p010 FINTIME
    10000.0     p011 NSTEPS
