@@ -10,7 +10,7 @@
   []
   [heat]
     type = BodyForce
-    value = 2e5
+    value = 2e7
     variable = temp
   []
 []
@@ -34,7 +34,7 @@
 [Materials]
   [hc]
     type = GenericConstantMaterial
-    prop_values = '0.01' # W/mK
+    prop_values = '20' # W/mK
     prop_names = 'thermal_conductivity'
   []
 []
@@ -42,9 +42,10 @@
 [Executioner]
   type = Transient
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  num_steps = 5
+  num_steps = 1000
   petsc_options_value = 'hypre boomeramg'
   dt = 1e-4
+  nl_rel_tol = 1e-5
 []
 
 [Variables]
@@ -87,6 +88,7 @@
   [avg_flux]
     family = MONOMIAL
     order = CONSTANT
+    initial_condition = 0
   []
 []
 
