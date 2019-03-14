@@ -111,7 +111,7 @@ c      implicit none
       ux   = 0.0
       uy   = 0.0
       uz   = 0.0
-      temp = 0.0
+      temp = 573.0
 
       return
       end
