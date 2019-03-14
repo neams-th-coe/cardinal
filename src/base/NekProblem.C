@@ -69,7 +69,7 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
         }
       }
 
-      //Nek5000::FORTRAN_CALL(flux_reconstruction)();
+      Nek5000::FORTRAN_CALL(flux_reconstruction)();
     }
 
     break;
