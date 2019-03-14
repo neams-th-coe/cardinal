@@ -93,7 +93,7 @@ c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
       uy   = 1.0
       uz   = 0.0
       temp = 573.0
-      flux = abs(flux_recon(ix,iy,iz,gllel(eg)))
+      flux = flux_recon(ix,iy,iz,gllel(eg)) ! flux has sign
 
       return
       end
