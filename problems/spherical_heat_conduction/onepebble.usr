@@ -85,14 +85,15 @@ c      implicit none
       include 'SIZE'
       include 'TOTAL'
       include 'NEKUSE'
+      common /flux_reconstructed/flux_recon(lx1,ly1,lz1,lelt)
 
 c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
 
       ux   = 0.0
       uy   = 1.0
       uz   = 0.0
-      temp = 0.0
-      flux = 1.0  
+      temp = 573.0
+      flux = abs(flux_recon(ix,iy,iz,gllel(eg)))
 
       return
       end
