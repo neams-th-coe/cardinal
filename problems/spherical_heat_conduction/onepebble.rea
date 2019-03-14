@@ -143,7 +143,7 @@
  **MESH DATA** 6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8
      -8858  3        8858     NELT,NDIM,NELV
             1 PRESOLVE/RESTART OPTIONS  *****
-onepebble.run03
+onepebble.run03 U
             7         INITIAL CONDITIONS *****
 C Default
 C Default
