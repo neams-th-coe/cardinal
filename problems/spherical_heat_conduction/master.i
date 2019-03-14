@@ -10,7 +10,7 @@
   []
   [heat]
     type = BodyForce
-    value = 1e9
+    value = 2e5
     variable = temp
   []
 []
@@ -34,7 +34,7 @@
 [Materials]
   [hc]
     type = GenericConstantMaterial
-    prop_values = '150' # W/mK
+    prop_values = '0.01' # W/mK
     prop_names = 'thermal_conductivity'
   []
 []
@@ -96,6 +96,21 @@
     coupled = 'temp'
     diffusivity = thermal_conductivity
     variable = avg_flux
+    boundary = '1'
+  []
+[]
+
+[Postprocessors]
+  [total_flux]
+    type = SideFluxIntegral
+    diffusivity = thermal_conductivity
+    variable = 'temp'
+    boundary = '1'
+  []
+  [average_flux]
+    type = SideFluxAverage
+    diffusivity = thermal_conductivity
+    variable = 'temp'
     boundary = '1'
   []
 []
