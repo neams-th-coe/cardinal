@@ -36,5 +36,5 @@ FluxAverageAux::FluxAverageAux(const InputParameters & parameters)
 Real
 FluxAverageAux::computeValue()
 {
-  return _diffusivity[_qp] * _coupled_gradient[_qp] * _normals[_qp];
+  return -_diffusivity[_qp] * _coupled_gradient[_qp] * _normals[_qp];
 }
