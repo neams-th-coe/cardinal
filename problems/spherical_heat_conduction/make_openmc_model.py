@@ -134,6 +134,9 @@ core_sphere = openmc.Sphere(r=pebble_core_radius)
 pebble_core = openmc.Cell(name='Graphite core', fill=graphite_core, region=-core_sphere)
 active_region = openmc.Cell(name='Active region', region=+core_sphere & -active_sphere)
 pebble_shell = openmc.Cell(name='Graphite shell', fill=graphite_shell, region=+active_sphere & -outer_sphere)
+pebble_univ = openmc.Universe(cells=[pebble_core, active_region, pebble_shell])
+
+pebble = openmc.Cell(name='Pebble', fill=pebble_univ, region=-outer_sphere)
 coolant = openmc.Cell(name='Coolant', fill=flibe, region=+outer_sphere & inside_box)
 
 if os.path.exists('triso_centers.npy'):
@@ -164,7 +167,7 @@ triso_lat = openmc.model.create_triso_lattice(
     trisos, lower_left, pitch, shape, graphite_filler)
 active_region.fill = triso_lat
 
-geom = openmc.Geometry([pebble_core, active_region, pebble_shell, coolant])
+geom = openmc.Geometry([pebble, coolant])
 
 # -------------- Settings --------------
 
