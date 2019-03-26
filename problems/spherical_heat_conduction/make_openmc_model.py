@@ -113,10 +113,10 @@ zmax = openmc.ZPlane(z0=+box_width/2, boundary_type=bc)
 inside_box = +xmin & -xmax & +ymin & -ymax & +zmin & -zmax
 
 # TRISO particle
-kernel_sphere = openmc.Sphere(R=fuel_kernel_radius)
-buffer_sphere = openmc.Sphere(R=buffer_radius)
-pyc_inner_sphere = openmc.Sphere(R=pyc_inner_radius)
-sic_sphere = openmc.Sphere(R=sic_radius)
+kernel_sphere = openmc.Sphere(r=fuel_kernel_radius)
+buffer_sphere = openmc.Sphere(r=buffer_radius)
+pyc_inner_sphere = openmc.Sphere(r=pyc_inner_radius)
+sic_sphere = openmc.Sphere(r=sic_radius)
 
 triso_kernel = openmc.Cell(name='Fuel kernel', fill=uco, region=-kernel_sphere)
 triso_buffer = openmc.Cell(name='Buffer', fill=graphite_buffer, region=+kernel_sphere & -buffer_sphere)
@@ -127,33 +127,34 @@ triso_pyc_outer = openmc.Cell(name='Outer PyC', fill=graphite_pyc, region=+sic_s
 triso_univ = openmc.Universe(cells=[triso_kernel, triso_buffer, triso_pyc_inner,
                                     triso_sic, triso_pyc_outer])
 
+# Pebble
+outer_sphere = openmc.Sphere(r=pebble_outer_radius)
+active_sphere = openmc.Sphere(r=pebble_active_radius)
+core_sphere = openmc.Sphere(r=pebble_core_radius)
+pebble_core = openmc.Cell(name='Graphite core', fill=graphite_core, region=-core_sphere)
+active_region = openmc.Cell(name='Active region', region=+core_sphere & -active_sphere)
+pebble_shell = openmc.Cell(name='Graphite shell', fill=graphite_shell, region=+active_sphere & -outer_sphere)
+coolant = openmc.Cell(name='Coolant', fill=flibe, region=+outer_sphere & inside_box)
+
 if os.path.exists('triso_centers.npy'):
     triso_centers = np.load('triso_centers.npy')
     trisos = [openmc.model.TRISO(pyc_outer_radius, triso_univ, c)
               for c in triso_centers]
 else:
     # Use random sphere packing to generate TRISOs
-    trisos = openmc.model.pack_trisos(
-        fill=triso_univ,
+    triso_centers = openmc.model.pack_spheres(
         radius=pyc_outer_radius,
-        domain_shape='spherical shell',
-        domain_radius=pebble_active_radius,
-        domain_inner_radius=pebble_core_radius,
-        packing_fraction=packing_fraction
+        region=active_region.region,
+        pf=packing_fraction,
+        initial_pf=0.15
     )
 
+    trisos = [openmc.model.TRISO(pyc_outer_radius, triso_univ, c)
+              for c in triso_centers]
+
     # Create file for TRISO centers
-    triso_centers = np.array([t.center for t in trisos])
     np.save('triso_centers.npy', triso_centers)
 
-# Pebble
-outer_sphere = openmc.Sphere(R=pebble_outer_radius)
-active_sphere = openmc.Sphere(R=pebble_active_radius)
-core_sphere = openmc.Sphere(R=pebble_core_radius)
-pebble_core = openmc.Cell(name='Graphite core', fill=graphite_core, region=-core_sphere)
-active_region = openmc.Cell(name='Active region', region=+core_sphere & -active_sphere)
-pebble_shell = openmc.Cell(name='Graphite shell', fill=graphite_shell, region=+active_sphere & -outer_sphere)
-coolant = openmc.Cell(name='Coolant', fill=flibe, region=+outer_sphere & inside_box)
 
 # Put TRISOS into a lattice and assign to pebble active region
 lower_left, upper_right = active_region.bounding_box
