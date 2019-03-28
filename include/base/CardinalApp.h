@@ -11,16 +11,16 @@
 
 #include "MooseApp.h"
 
-class cardinalApp;
+class CardinalApp;
 
 template <>
-InputParameters validParams<cardinalApp>();
+InputParameters validParams<CardinalApp>();
 
-class cardinalApp : public MooseApp
+class CardinalApp : public MooseApp
 {
 public:
-  cardinalApp(InputParameters parameters);
-  virtual ~cardinalApp();
+  CardinalApp(InputParameters parameters);
+  virtual ~CardinalApp();
 
   static void registerApps();
   static void registerAll(Factory & f, ActionFactory & af, Syntax & s);

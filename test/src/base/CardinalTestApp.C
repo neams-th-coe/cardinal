@@ -6,8 +6,8 @@
 //*
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
-#include "cardinalTestApp.h"
-#include "cardinalApp.h"
+#include "CardinalTestApp.h"
+#include "CardinalApp.h"
 #include "Moose.h"
 #include "AppFactory.h"
 #include "MooseSyntax.h"
@@ -15,36 +15,36 @@
 
 template <>
 InputParameters
-validParams<cardinalTestApp>()
+validParams<CardinalTestApp>()
 {
-  InputParameters params = validParams<cardinalApp>();
+  InputParameters params = validParams<CardinalApp>();
   return params;
 }
 
-cardinalTestApp::cardinalTestApp(InputParameters parameters) : MooseApp(parameters)
+CardinalTestApp::CardinalTestApp(InputParameters parameters) : MooseApp(parameters)
 {
-  cardinalTestApp::registerAll(
+  CardinalTestApp::registerAll(
       _factory, _action_factory, _syntax, getParam<bool>("allow_test_objects"));
 }
 
-cardinalTestApp::~cardinalTestApp() {}
+CardinalTestApp::~CardinalTestApp() {}
 
 void
-cardinalTestApp::registerAll(Factory & f, ActionFactory & af, Syntax & s, bool use_test_objs)
+CardinalTestApp::registerAll(Factory & f, ActionFactory & af, Syntax & s, bool use_test_objs)
 {
-  cardinalApp::registerAll(f, af, s);
+  CardinalApp::registerAll(f, af, s);
   if (use_test_objs)
   {
-    Registry::registerObjectsTo(f, {"cardinalTestApp"});
-    Registry::registerActionsTo(af, {"cardinalTestApp"});
+    Registry::registerObjectsTo(f, {"CardinalTestApp"});
+    Registry::registerActionsTo(af, {"CardinalTestApp"});
   }
 }
 
 void
-cardinalTestApp::registerApps()
+CardinalTestApp::registerApps()
 {
-  registerApp(cardinalApp);
-  registerApp(cardinalTestApp);
+  registerApp(CardinalApp);
+  registerApp(CardinalTestApp);
 }
 
 /***************************************************************************************************
@@ -52,12 +52,12 @@ cardinalTestApp::registerApps()
  **************************************************************************************************/
 // External entry point for dynamic application loading
 extern "C" void
-cardinalTestApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
+CardinalTestApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
-  cardinalTestApp::registerAll(f, af, s);
+  CardinalTestApp::registerAll(f, af, s);
 }
 extern "C" void
-cardinalTestApp__registerApps()
+CardinalTestApp__registerApps()
 {
-  cardinalTestApp::registerApps();
+  CardinalTestApp::registerApps();
 }

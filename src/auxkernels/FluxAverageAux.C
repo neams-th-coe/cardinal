@@ -9,7 +9,7 @@
 
 #include "FluxAverageAux.h"
 
-registerMooseObject("cardinalApp", FluxAverageAux);
+registerMooseObject("CardinalApp", FluxAverageAux);
 
 template <>
 InputParameters

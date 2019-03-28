@@ -14,7 +14,7 @@
 #include "CommandLine.h"
 #include "OpenMCApp.h"
 #include "NekApp.h"
-#include "cardinalApp.h"
+#include "CardinalApp.h"
 
 // Create a performance log
 PerfLog Moose::perf_log("cardinal");
@@ -37,7 +37,7 @@ main(int argc, char *argv[])
 
   OpenMCApp::registerApps();
   NekApp::registerApps();
-  cardinalApp::registerApps();
+  CardinalApp::registerApps();
 
   std::string app_class_name;
   if (which_app == "openmc")
@@ -45,7 +45,7 @@ main(int argc, char *argv[])
   else if (which_app == "nek5000" or which_app == "nek")
     app_class_name = "NekApp";
   else
-    app_class_name = "cardinalApp";
+    app_class_name = "CardinalApp";
 
   // Create and run the app
   std::shared_ptr<MooseApp> app = AppFactory::createAppShared(app_class_name, argc, argv);

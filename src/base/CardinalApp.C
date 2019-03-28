@@ -1,50 +1,52 @@
-#include "cardinalApp.h"
+#include "CardinalApp.h"
 #include "Moose.h"
 #include "AppFactory.h"
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
 
+registerKnownLabel("CardinalApp");
+
 template <>
 InputParameters
-validParams<cardinalApp>()
+validParams<CardinalApp>()
 {
   InputParameters params = validParams<MooseApp>();
   return params;
 }
 
-cardinalApp::cardinalApp(InputParameters parameters) : MooseApp(parameters)
+CardinalApp::CardinalApp(InputParameters parameters) : MooseApp(parameters)
 {
-  cardinalApp::registerAll(_factory, _action_factory, _syntax);
+  CardinalApp::registerAll(_factory, _action_factory, _syntax);
 }
 
-cardinalApp::~cardinalApp() {}
+CardinalApp::~CardinalApp() {}
 
 void
-cardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
+CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
   ModulesApp::registerAll(f, af, s);
-  Registry::registerObjectsTo(f, {"cardinalApp"});
-  Registry::registerActionsTo(af, {"cardinalApp"});
+  Registry::registerObjectsTo(f, {"CardinalApp"});
+  Registry::registerActionsTo(af, {"CardinalApp"});
 
   /* register custom execute flags, action syntax, etc. here */
 }
 
 void
-cardinalApp::registerApps()
+CardinalApp::registerApps()
 {
-  registerApp(cardinalApp);
+  registerApp(CardinalApp);
 }
 
 /***************************************************************************************************
  *********************** Dynamic Library Entry Points - DO NOT MODIFY ******************************
  **************************************************************************************************/
 extern "C" void
-cardinalApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
+CardinalApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
-  cardinalApp::registerAll(f, af, s);
+  CardinalApp::registerAll(f, af, s);
 }
 extern "C" void
-cardinalApp__registerApps()
+CardinalApp__registerApps()
 {
-  cardinalApp::registerApps();
+  CardinalApp::registerApps();
 }
