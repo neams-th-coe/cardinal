@@ -1,0 +1,43 @@
+variables:
+
+  # Re-uses project workspace, uses `git clean` to undo changes made by last
+  # commit, and uses `git fetch` to get updates.  If workspace is not present,
+  # uses `git clone`.
+  GIT_STRATEGY: fetch
+
+  # Fetches all submodules
+  GIT_SUBMODULE_STRATEGY: recursive
+
+  OPENMC_CROSS_SECTIONS: $CI_PROJECT_DIR/endf71_multitemp/cross_sections.xml
+
+stages:
+  - setup
+  - build
+  - test
+
+setup:download_cross_sections:
+  stage: setup
+  variables:
+    GIT_STRATEGY: clone
+  script:
+    - wget https://anl.box.com/shared/static/46osfq56h4bd68r6e6pbhupsk4gbnvj2.xz -O - | tar -C $CI_PROJECT_DIR -xvJ
+
+build:onepebble:
+  stage: build
+  variables:
+    CC: mpicc
+    CXX: mpicxx
+    FC: mpif90
+    F77: mpif77
+  script:
+    - make -j4 NEK_CASENAME=onepebble NEK_CASEDIR="$CI_PROJECT_DIR/problems/spherical_heat_conduction"
+
+test:onepebble_openmc:
+  stage: test
+  dependencies:
+    - build:onepebble
+    - setup:download_cross_sections
+  script:
+    - cd problems/spherical_heat_conduction
+    - mpirun -np 2 ../../cardinal-onepebble-opt --app openmc -i openmc.i --n-threads=8
+
