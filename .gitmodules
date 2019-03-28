@@ -1,16 +1,16 @@
 [submodule "moose"]
 	path = contrib/moose
-	url = git@github.com:idaholab/moose.git
+	url = https://github.com/idaholab/moose.git
 	branch = master
 [submodule "contrib/Nek5000"]
 	path = contrib/Nek5000
-	url = git@github.com:RonRahaman/Nek5000.git
+	url = https://github.com/RonRahaman/Nek5000.git
   branch = cardinal
 [submodule "contrib/openmc"]
 	path = contrib/openmc
-	url = git@github.com:openmc-dev/openmc.git
+	url = https://github.com/openmc-dev/openmc.git
   branch = develop
 [submodule "contrib/gslib"]
 	path = contrib/gslib
-	url = git@github.com:gslib/gslib.git
+	url = https://github.com/gslib/gslib.git
   branch = v1.0.3
