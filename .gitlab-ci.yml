@@ -39,5 +39,5 @@ test:onepebble_openmc:
     - setup:download_cross_sections
   script:
     - cd problems/spherical_heat_conduction
-    - mpirun -np 2 ../../cardinal-onepebble-opt --app openmc -i openmc.i --n-threads=8
+    - mpirun -np 2 "$CI_PROJECT_DIR/cardinal-onepebble-opt" --app openmc -i openmc.i --n-threads=8
 
