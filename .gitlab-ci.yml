@@ -11,19 +11,14 @@ variables:
   OPENMC_CROSS_SECTIONS: $CI_PROJECT_DIR/endf71_multitemp/cross_sections.xml
 
 stages:
-  - setup
   - build
+  - download
   - test
-
-setup:download_cross_sections:
-  stage: setup
-  variables:
-    GIT_STRATEGY: clone
-  script:
-    - wget https://anl.box.com/shared/static/46osfq56h4bd68r6e6pbhupsk4gbnvj2.xz -O - | tar -C $CI_PROJECT_DIR -xvJ
 
 build:onepebble:
   stage: build
+  variables:
+    GIT_STRATEGY: clone
   variables:
     CC: mpicc
     CXX: mpicxx
@@ -32,13 +27,20 @@ build:onepebble:
   script:
     - make -j4 NEK_CASENAME=onepebble NEK_CASEDIR="$CI_PROJECT_DIR/problems/spherical_heat_conduction"
 
+download:cross_sections:
+  stage: download
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - wget https://anl.box.com/shared/static/46osfq56h4bd68r6e6pbhupsk4gbnvj2.xz -O - | tar -C $CI_PROJECT_DIR -xvJ
+
 test:onepebble_openmc:
   stage: test
   variables:
     GIT_STRATEGY: none
   dependencies:
     - build:onepebble
-    - setup:download_cross_sections
+    - download:cross_sections
   script:
     - cd problems/spherical_heat_conduction
     - mpirun -np 2 "$CI_PROJECT_DIR/cardinal-onepebble-opt" --app openmc -i openmc.i --n-threads=8
