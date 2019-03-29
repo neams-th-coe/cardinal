@@ -1,10 +1,3 @@
-NEW_VPATH = $(NEK_CASEDIR):$(NEK_DIR)/core:$(NEK_DIR)/core/3rd_party
-ifneq (,$(VPATH))
-VPATH := $(VPATH):$(NEW_VPATH)
-else
-VPATH := $(NEW_VPATH)
-endif
-
 # ===========================================================================
 # Compiler flags
 # ===========================================================================
@@ -90,9 +83,12 @@ $(NEK_C_OBJ) : $(NEK_OBJDIR)/%.o : %.c | $(NEK_OBJDIR)
 $(NEK_F_OBJ) $(NEK_DRIVE_OBJ) : $(NEK_OBJDIR)/%.o : %.f SIZE | $(NEK_OBJDIR)
 	$(FC) $(F_CPPFLAGS) $(FFLAGS) -c -o $@ $< $(F_LDFLAGS) $(F_LIBS)
 
-$(NEK_CASENAME).f: $(NEK_CASENAME).usr
+$(NEK_CASEDIR)/$(NEK_CASENAME).f: $(NEK_CASENAME).usr
 	@echo "********************* MAKING USR *********************************"
 	@cd $(NEK_CASEDIR) && CASENAME="$(NEK_CASENAME)" PPS="$(PPS)" $(NEK_DIR)/core/mkuserfile
+
+$(NEK_OBJDIR)/$(NEK_CASENAME).o: $(NEK_CASEDIR)/$(NEK_CASENAME).f SIZE | $(NEK_OBJDIR)
+	$(FC) $(F_CPPFLAGS) $(FFLAGS) -c -o $@ $< $(F_LDFLAGS) $(F_LIBS)
 
 $(NEK_OBJDIR) $(NEK_LIBDIR):
 	@mkdir -p $@

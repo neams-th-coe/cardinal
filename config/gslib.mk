@@ -1,10 +1,3 @@
-NEW_VPATH = $(GSLIB_DIR)/src
-ifneq (,$(VPATH))
-VPATH := $(VPATH):$(NEW_VPATH)
-else
-VPATH := $(NEW_VPATH)
-endif
-
 # Info we want from petscvariables:
 #   * CC: C compiler; used to detect MPI
 #   * CC_FLAGS: Used to set GS_CFLAGS

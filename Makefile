@@ -27,6 +27,8 @@ GSLIB_DIR       ?= $(CONTRIB_DIR)/gslib
 NEK_CASEDIR  ?= $(CARDINAL_DIR)/problems/spherical_heat_conduction
 NEK_CASENAME ?= onepebble
 
+VPATH := $(NEK_CASEDIR):$(NEK_DIR)/core:$(NEK_DIR)/core/3rd_party:$(GSLIB_DIR)/src
+
 # ======================================================================================
 # PETSc
 # ======================================================================================
