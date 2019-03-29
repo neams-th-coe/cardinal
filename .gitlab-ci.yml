@@ -34,6 +34,8 @@ build:onepebble:
 
 test:onepebble_openmc:
   stage: test
+  variables:
+    GIT_STRATEGY: none
   dependencies:
     - build:onepebble
     - setup:download_cross_sections
