@@ -8,7 +8,8 @@ variables:
   # Fetches all submodules
   GIT_SUBMODULE_STRATEGY: recursive
 
-  OPENMC_CROSS_SECTIONS: $CI_PROJECT_DIR/endf71_multitemp/cross_sections.xml
+  OPENMC_CROSS_SECTIONS: $CI_PROJECT_DIR/nndc_hdf5/cross_sections.xml
+  OPENMC_ENDF_DATA: $CI_PROJECT_DIR/endf-b-vii.1
 
 stages:
   - build
@@ -32,7 +33,8 @@ download:cross_sections:
   variables:
     GIT_STRATEGY: none
   script:
-    - wget https://anl.box.com/shared/static/46osfq56h4bd68r6e6pbhupsk4gbnvj2.xz -O - | tar -C $CI_PROJECT_DIR -xvJ
+    - if [[ ! -e $OPENMC_CROSS_SECTIONS ]]; then wget -q -O - https://anl.box.com/shared/static/pzutl4i2717yypv12l78l7fn5nmg6grs.xz | tar -C $CI_PROJECT_DIR -xJ; fi
+    - if [[ ! -d $OPENMC_ENDF_DATA/neutrons || ! -d $OPENMC_ENDF_DATA/photoat || ! -d $OPENMC_ENDF_DATA/atomic_relax ]]; then wget -q -O - https://anl.box.com/shared/static/4kd2gxnf4gtk4w1c8eua5fsua22kvgjb.xz | tar -C $CI_PROJECT_DIR -xJ; fi
 
 test:onepebble_openmc:
   stage: test
