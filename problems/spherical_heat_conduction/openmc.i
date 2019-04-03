@@ -11,6 +11,7 @@
 [Problem]
   type = OpenMCProblem
   power = 0.15
+  centers = '0 0 0'
 []
 
 [Executioner]
