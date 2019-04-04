@@ -23,7 +23,8 @@ private:
   openmc::CellFilter *_filter;
   std::unique_ptr<openmc::Tally> &_tally;
 
-  std::vector<int32_t> _cells {};
+  std::vector<int32_t> _cell_indices {};
+  std::vector<int32_t> _cell_instances {};
 
 public:
   OpenMCProblem(const InputParameters & params);

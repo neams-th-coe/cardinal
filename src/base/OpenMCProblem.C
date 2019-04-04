@@ -36,12 +36,12 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     p.r() = {c(0), c(1), c(2)};
     p.u() = {0., 0., 1.};
     openmc::find_cell(&p, false);
-    int32_t idx_cell = p.coord_[0].cell;
-    _cells.push_back(idx_cell);
+    _cell_indices.push_back(p.coord_[0].cell);
+    _cell_instances.push_back(p.cell_instance_);
   }
 
   // Create cell filter
-  _filter->cells_ = _cells;
+  _filter->cells_ = _cell_indices;
   _filter->n_bins_ = _filter->cells_.size();
   for (int i = 0; i < _filter->cells_.size(); ++i) {
     _filter->map_[_filter->cells_[i]] = i;
@@ -59,6 +59,27 @@ void OpenMCProblem::externalSolve()
 
 void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 {
+  switch (direction)
+  {
+    case ExternalProblem::Direction::TO_EXTERNAL_APP:
+    {
+      for (int i=0; i < _cell_indices.size(); ++i) {
+        // TODO:  Get temperature from BISON
+        double T = 295.0;
+        openmc_cell_set_temperature(_cell_indices[i], T, &(_cell_instances[i]));
+      }
+      break;
+    }
+    case ExternalProblem::Direction::FROM_EXTERNAL_APP:
+    {
+      break;
+    }
+    default:
+    {
+      mooseError("Shouldn't get here!");
+      break;
+    }
+  }
 }
 
 int32_t get_filter_id()
