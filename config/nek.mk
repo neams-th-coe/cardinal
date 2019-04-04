@@ -15,7 +15,7 @@ endif
 # CC_FLAGS and FC_FLAGS from petscvariables
 CFLAGS     := $(CFLAGS) $(CC_FLAGS) 
 CPPFLAGS   := $(CPPFLAGS) $(patsubst %,-D%,$(NEK_PPLIST)) -I$(NEK_CASEDIR) -I$(NEK_DIR)/core $(FFLAGS) $(PETSC_CC_INCLUDES) 
-FFLAGS     := $(FFLAGS) -fdefault-real-8 -fdefault-double-8 -cpp -I$(NEK_CASEDIR) -I$(NEK_DIR)/core $(FC_FLAGS) $(PETSC_FC_INCLUDES)
+FFLAGS     := $(FFLAGS) -std=legacy -fdefault-real-8 -fdefault-double-8 -cpp -I$(NEK_CASEDIR) -I$(NEK_DIR)/core $(FC_FLAGS) $(PETSC_FC_INCLUDES)
 F_CPPFLAGS := $(patsubst %,$(FC_DEFINE_FLAG)%,$(NEK_PPLIST))
 F_LDFLAGS  := $(LDFLAGS) $(FC_LINKER_FLAGS) -L$(NEK_LIBDIR) -L.
 F_LIBS     := -lgs $(LIBS) $(BLASLAPACK_LIB) 
