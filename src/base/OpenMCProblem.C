@@ -2,6 +2,7 @@
 // Created by Ronald Rahaman on 2019-01-23.
 //
 
+#include "mpi.h"
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
 #include "openmc/particle.h"
@@ -144,4 +145,35 @@ int32_t OpenMCProblem::getNewTally(int32_t tallyId)
   openmc_extend_tallies(1, &index_tally, nullptr);
   openmc_tally_set_id(index_tally, tallyId);
   return index_tally;
+}
+
+xt::xtensor<double, 1> OpenMCProblem::heat_source(double power)
+{
+  // Determine number of realizatoins for normalizing tallies
+  int m = _tally->n_realizations_;
+
+  // Broadcast number of realizations
+  // TODO: Change OpenMC so that it's correct on all ranks
+  MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
+  // Determine energy production in each material
+  auto meanValue = xt::view(_tally->results_, xt::all(), 0, openmc::RESULT_SUM);
+  xt::xtensor<double, 1> heat = JOULE_PER_EV * meanValue / m;
+
+  // Get total heat production [J/source]
+  double totalHeat = xt::sum(heat)();
+
+  // Normalize heat source in each material and collect in an array
+  for (int i = 0; i < cells_.size(); ++i) {
+    // Get volume
+    double V = _cell.at(i).volume_;
+
+    // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
+    // the fraction of heat deposited in each material. Multiplying by power
+    // givens an absolute value in W
+    heat(i) *= power / (total_heat * V);
+  }
+
+  return heat;
+
 }
