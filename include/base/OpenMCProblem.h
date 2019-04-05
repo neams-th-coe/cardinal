@@ -15,16 +15,16 @@ class OpenMCProblem : public ExternalProblem
 private:
   std::vector<Point> _centers;
 
-  int32_t _filter_id;     //! ID for cell filter in OpenMC
-  int32_t _filter_index;  //! Index for cell filter in OpenMC's filter array
-  int32_t _tally_id;      //! 
-  int32_t _tally_index;
+  int32_t _filterId;     //! ID for cell filter in OpenMC
+  int32_t _filterIndex;  //! Index for cell filter in OpenMC's filter array
+  int32_t _tallyId;      //! 
+  int32_t _tallyIndex;
 
   openmc::CellFilter *_filter;
   std::unique_ptr<openmc::Tally> &_tally;
 
-  std::vector<int32_t> _cell_indices {};
-  std::vector<int32_t> _cell_instances {};
+  std::vector<int32_t> _cellIndices {};
+  std::vector<int32_t> _cellInstances {};
 
 public:
   OpenMCProblem(const InputParameters & params);
@@ -36,10 +36,10 @@ public:
   virtual bool converged() override { return true; }
   virtual void addExternalVariables() override {}
 
-  static int32_t get_filter_id();
-  static int32_t get_new_filter(int32_t filter_id, const char *type);
-  static int32_t get_tally_id();
-  static int32_t get_new_tally(int32_t tally_id);
+  static int32_t getFilterId();
+  static int32_t getNewFilter(int32_t filterId, const char *type);
+  static int32_t getTallyId();
+  static int32_t getNewTally(int32_t tallyId);
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H
