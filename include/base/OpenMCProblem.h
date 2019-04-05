@@ -35,11 +35,11 @@ public:
 
   virtual bool converged() override { return true; }
   virtual void addExternalVariables() override {}
-};
 
-int32_t get_filter_id();
-int32_t get_new_filter(int32_t filter_id, const char *type);
-int32_t get_tally_id();
-int32_t get_new_tally(int32_t tally_id);
+  static int32_t get_filter_id();
+  static int32_t get_new_filter(int32_t filter_id, const char *type);
+  static int32_t get_tally_id();
+  static int32_t get_new_tally(int32_t tally_id);
+};
 
 #endif //CARDINAL_OPENMCPROBLEM_H

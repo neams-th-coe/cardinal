@@ -107,7 +107,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 
 //! Queries the next available filter ID from OpenMC
 //! \return The next available filter ID
-int32_t get_filter_id()
+int32_t OpenMCProblem::get_filter_id()
 {
   int32_t filter_id;
   openmc_get_filter_next_id(&filter_id);
@@ -118,7 +118,7 @@ int32_t get_filter_id()
 //! \param[in] The ID of the newly-constructed cell filter
 //! \param[in] The type of the newly-constructed cell filter
 //! \return The index of the new filter in OpenMC's filter array
-int32_t get_new_filter(int32_t filter_id, const char *type)
+int32_t OpenMCProblem::get_new_filter(int32_t filter_id, const char *type)
 {
   int32_t filter_index;
   openmc_new_filter(type, &filter_index);
@@ -128,7 +128,7 @@ int32_t get_new_filter(int32_t filter_id, const char *type)
 
 //! Queries the next available tally ID from OpenMC
 //! \return The next available tally ID
-int32_t get_tally_id()
+int32_t OpenMCProblem::get_tally_id()
 {
   int32_t tally_id;
   openmc_get_tally_next_id(&tally_id);
@@ -138,7 +138,7 @@ int32_t get_tally_id()
 //! Allocates a new tally with unspecified scores/filters in OpenMC
 //! \param[in] The ID of the newly-constructed tally
 //! \return The index of the new tally in OpenMC's tally array
-int32_t get_new_tally(int32_t tally_id) 
+int32_t OpenMCProblem::get_new_tally(int32_t tally_id) 
 {
   int32_t index_tally;
   openmc_extend_tallies(1, &index_tally, nullptr);
