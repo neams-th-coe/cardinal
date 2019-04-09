@@ -40,7 +40,8 @@ public:
   static int32_t getNewFilter(int32_t filterId, const char *type);
   static int32_t getTallyId();
   static int32_t getNewTally(int32_t tallyId);
-  static xt::xtensor<double, 1> heat_source(double power);
+  xt::xtensor<double, 1> heat_source(double power);
+  double get_cell_volume(int cellIndex);
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H

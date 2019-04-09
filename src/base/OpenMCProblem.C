@@ -5,8 +5,11 @@
 #include "mpi.h"
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
+#include "openmc/cell.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
+#include "xtensor/xarray.hpp"
+#include "xtensor/xview.hpp"
 
 registerMooseObject("OpenMCApp", OpenMCProblem);
 
@@ -73,6 +76,10 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
+      // TODO: Get power from params
+      double power = 1.5;
+      // This is an xtensor of heat values per cell
+      auto heat = heat_source(power);
       break;
     }
     default:
@@ -82,29 +89,6 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     }
   }
 }
-
-
-// xt::xtensor<double, 3> OpenMCProblem::tally_results()
-// {
-//   // Get material bins
-//   int32_t* mats;
-//   int32_t n_mats;
-//   openmc_material_filter_get_bins(_filter, &mats, &n_mats);
-// 
-//   // Get tally results and number of realizations
-//   double* results;
-//   std::array<std::size_t, 3> shape;
-//   openmc_tally_results(index_tally_, &results, shape.data());
-//   int32_t m;
-//   err_chk(openmc_tally_get_n_realizations(index_tally_, &m));
-// 
-//   // Determine size
-//   std::size_t size {shape[0] * shape[1] * shape[2]};
-// 
-//   // Adapt array into xtensor with no ownership
-//   return xt::adapt(results, size, xt::no_ownership(), shape);
-// }
-
 
 //! Queries the next available filter ID from OpenMC
 //! \return The next available filter ID
@@ -158,22 +142,38 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source(double power)
 
   // Determine energy production in each material
   auto meanValue = xt::view(_tally->results_, xt::all(), 0, openmc::RESULT_SUM);
+  const double JOULE_PER_EV = 1.6021766208e-19;
   xt::xtensor<double, 1> heat = JOULE_PER_EV * meanValue / m;
 
   // Get total heat production [J/source]
   double totalHeat = xt::sum(heat)();
 
   // Normalize heat source in each material and collect in an array
-  for (int i = 0; i < cells_.size(); ++i) {
+  for (auto &i : _cellIndices) {
     // Get volume
-    double V = _cell.at(i).volume_;
+    double V = get_cell_volume(i);
 
     // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
     // the fraction of heat deposited in each material. Multiplying by power
     // givens an absolute value in W
-    heat(i) *= power / (total_heat * V);
+    _console << "*** Power, total_heat, volume: " << power << " " << totalHeat << " " << V << "\n";
+    heat(i) *= power / (totalHeat * V);
   }
 
   return heat;
 
+}
+
+double OpenMCProblem::get_cell_volume(int cellIndex) {
+  int fillType = openmc::FILTER_CELL;
+  int32_t *matIndices = nullptr;
+  int nMat = 0;
+  openmc_cell_get_fill(cellIndex, &fillType, &matIndices, &nMat);
+  double vol = 0;
+  for (int i = 0; i < nMat; ++i) {
+    double thisVol = 0;
+    openmc_material_get_volume(matIndices[i], &thisVol);
+    vol += thisVol;
+  }
+  return vol;
 }
