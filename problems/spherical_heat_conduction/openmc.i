@@ -12,7 +12,7 @@
   type = OpenMCProblem
   power = 0.15
   centers = '0 0 0'
-  volumes = '0.04050000000000001'
+  volumes = '0.0002782618569027357'
 []
 
 [Executioner]

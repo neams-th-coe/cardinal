@@ -149,14 +149,21 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
   // Get total heat production [J/source]
   double totalHeat = xt::sum(heat)();
 
+  // Debug
+  _console << "*** Power: " << _power << std::endl;
+  _console << "*** Total heat: " << totalHeat << std::endl;
+
   // Normalize heat source in each material and collect in an array
   for (int i = 0; i < _cellIndices.size(); ++i) {
     double V = _volumes[i];
     // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
     // the fraction of heat deposited in each material. Multiplying by power
     // givens an absolute value in W
-    _console << "*** Power, total_heat, volume: " << _power << " " << totalHeat << " " << V << "\n";
     heat(i) *= _power / (totalHeat * V);
+
+    // Debug
+    _console << "*** Volume[" << i << "]: " << V << std::endl;
+    _console << "*** Heat[" << i << "]: " << heat(i) << std::endl;
   }
 
   return heat;
