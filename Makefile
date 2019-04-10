@@ -103,8 +103,11 @@ include            $(CARDINAL_DIR)/config/openmc.mk
 # CC_LINKER_SLFLAG is from petscvariables
 ADDITIONAL_APP_OBJECTS := $(NEK_DRIVE_OBJ) $(NEK_C_OBJ) $(NEK_F_OBJ) 
 ADDITIONAL_DEPEND_LIBS := $(GS_LIB) $(OPENMC_LIB)
-ADDITIONAL_LIBS := -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) -lgs -lopenmc $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) 
-ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(OPENMC_DIR)/include
+ADDITIONAL_LIBS := -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) -lgs -lopenmc \
+	$(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) 
+ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor \
+	-I$(OPENMC_DIR)/vendor/pugixml -I$(OPENMC_DIR)/vendor/xtensor/include \
+	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include
 
 include            $(FRAMEWORK_DIR)/app.mk
 
