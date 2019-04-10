@@ -20,12 +20,15 @@ validParams<OpenMCProblem>()
   InputParameters params = validParams<ExternalProblem>();
   params.addRequiredParam<Real>("power", "specified power for OpenMC");
   params.addRequiredParam<std::vector<Point>>("centers", "coords of pebble centers");
+  params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
   return params;
 }
 
 OpenMCProblem::OpenMCProblem(const InputParameters &params) : 
   ExternalProblem(params), 
   _centers(getParam<std::vector<Point>>("centers")), 
+  _power(getParam<Real>("power")),
+  _volumes(getParam<std::vector<Real>>("volumes")),
   _filterId(getFilterId()),
   _filterIndex(getNewFilter(_filterId, "cell")),
   _tallyId(getTallyId()),
@@ -76,10 +79,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      // TODO: Get power from params
-      double power = 1.5;
       // This is an xtensor of heat values per cell
-      auto heat = heat_source(power);
+      auto heat = heat_source();
       break;
     }
     default:
@@ -131,7 +132,7 @@ int32_t OpenMCProblem::getNewTally(int32_t tallyId)
   return index_tally;
 }
 
-xt::xtensor<double, 1> OpenMCProblem::heat_source(double power)
+xt::xtensor<double, 1> OpenMCProblem::heat_source()
 {
   // Determine number of realizatoins for normalizing tallies
   int m = _tally->n_realizations_;
@@ -149,15 +150,13 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source(double power)
   double totalHeat = xt::sum(heat)();
 
   // Normalize heat source in each material and collect in an array
-  for (auto &i : _cellIndices) {
-    // Get volume
-    double V = get_cell_volume(i);
-
+  for (int i = 0; i < _cellIndices.size(); ++i) {
+    double V = _volumes[i];
     // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
     // the fraction of heat deposited in each material. Multiplying by power
     // givens an absolute value in W
-    _console << "*** Power, total_heat, volume: " << power << " " << totalHeat << " " << V << "\n";
-    heat(i) *= power / (totalHeat * V);
+    _console << "*** Power, total_heat, volume: " << _power << " " << totalHeat << " " << V << "\n";
+    heat(i) *= _power / (totalHeat * V);
   }
 
   return heat;

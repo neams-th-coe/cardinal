@@ -14,10 +14,12 @@ class OpenMCProblem : public ExternalProblem
 {
 private:
   std::vector<Point> _centers;
+  Real _power;
+  std::vector<Real> _volumes;
 
   int32_t _filterId;     //! ID for cell filter in OpenMC
   int32_t _filterIndex;  //! Index for cell filter in OpenMC's filter array
-  int32_t _tallyId;      //! 
+  int32_t _tallyId;      
   int32_t _tallyIndex;
 
   openmc::CellFilter *_filter;
@@ -40,7 +42,7 @@ public:
   static int32_t getNewFilter(int32_t filterId, const char *type);
   static int32_t getTallyId();
   static int32_t getNewTally(int32_t tallyId);
-  xt::xtensor<double, 1> heat_source(double power);
+  xt::xtensor<double, 1> heat_source();
   double get_cell_volume(int cellIndex);
 };
 
