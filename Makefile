@@ -108,6 +108,11 @@ ADDITIONAL_LIBS := -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) -lgs -lopenmc \
 ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor \
 	-I$(OPENMC_DIR)/vendor/pugixml -I$(OPENMC_DIR)/vendor/xtensor/include \
 	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include
+CARDINAL_EXTERNAL_FLAGS := -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) -lgs -lopenmc $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
 
-include            $(FRAMEWORK_DIR)/app.mk
+ include            $(FRAMEWORK_DIR)/app.mk
+
+$(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
+$(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
+$(app_EXEC): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 
