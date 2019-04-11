@@ -123,7 +123,7 @@ c      implicit none
       include 'SIZE'
       include 'TOTAL'
       ifflow=.false. 
-
+      if (istep.eq.0) call nek_pointscloud() 
       return
       end
 c-----------------------------------------------------------------------
