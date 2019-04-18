@@ -27,3 +27,10 @@
     output_dimension = 3
   []
 []
+
+[Postprocessors]
+  [total_flux]
+    type = Receiver
+    default = 0
+  []
+[]

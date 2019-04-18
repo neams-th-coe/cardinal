@@ -69,6 +69,12 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
         }
       }
 
+      auto total_flux = getPostprocessorValue("total_flux");
+
+      std::cout << "Total flux going to Nek: " << total_flux << std::endl;
+
+      Nek5000::test_passing_.flux_moose = total_flux;
+
       Nek5000::FORTRAN_CALL(flux_reconstruction)();
     }
 
