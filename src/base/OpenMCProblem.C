@@ -62,8 +62,16 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 
 void OpenMCProblem::addExternalVariables()
 {
-  auto receiver_params = _factory.getValidParams("Receiver");
-  addPostprocessor("Receiver", "heat_source", receiver_params);
+  {
+    auto receiver_params = _factory.getValidParams("Receiver");
+    addPostprocessor("Receiver", "heat_source", receiver_params);
+  }
+
+  {
+    auto receiver_params = _factory.getValidParams("Receiver");
+    receiver_params.set<Real>("default") = 300;
+    addPostprocessor("Receiver", "average_temp", receiver_params);
+  }
 }
 
 void OpenMCProblem::externalSolve()
@@ -79,7 +87,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       for (int i=0; i < _cellIndices.size(); ++i) {
         // TODO:  Get temperature from BISON
-        double T = 295.0;
+        double T = getPostprocessorValue("average_temp");
         openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
       }
       break;

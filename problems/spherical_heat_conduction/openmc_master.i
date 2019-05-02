@@ -5,6 +5,7 @@
 
 [Variables]
   [temp]
+    initial_condition = 300
   []
 []
 
@@ -41,7 +42,7 @@
 [Materials]
   [hc]
     type = GenericConstantMaterial
-    prop_values = '20' # W/mK
+    prop_values = '0.1' # 20 W/mK -> 0.2 W/cmK
     prop_names = 'thermal_conductivity'
   []
 []
@@ -57,6 +58,17 @@
 
 [Outputs]
   exodus = true
+[]
+
+[Postprocessors]
+  [./openmc_heat_source]
+    type = Receiver
+  []
+  [./average_temp]
+    type = ElementAverageValue
+    variable = temp
+    execute_on = 'initial timestep_begin'
+  []
 []
 
 [MultiApps]
@@ -77,10 +89,11 @@
     from_postprocessor = heat_source
     to_postprocessor = openmc_heat_source
   []
-[]
-
-[Postprocessors]
-  [./openmc_heat_source]
-    type = Receiver
+  [./average_temp_to_openmc]
+    type = MultiAppPostprocessorTransfer
+    direction = to_multiapp
+    multi_app = openmc
+    from_postprocessor = average_temp
+    to_postprocessor = average_temp
   []
 []
