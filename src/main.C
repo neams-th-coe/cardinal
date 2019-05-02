@@ -27,7 +27,7 @@ main(int argc, char *argv[])
   MooseInit init(argc, argv);
 
   // Get which app to run
-  CommandLine::Option app_opt = {"which app to run", {"--app", "app_name"}, true, CommandLine::ARGUMENT::REQUIRED, {}};
+  CommandLine::Option app_opt = {"which app to run", {"--app", "app_name"}, false, CommandLine::ARGUMENT::OPTIONAL, {}};
 
   auto cmds = CommandLine(argc, argv);
   cmds.addOption("which_app", app_opt);

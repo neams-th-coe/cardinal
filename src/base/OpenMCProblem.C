@@ -24,9 +24,9 @@ validParams<OpenMCProblem>()
   return params;
 }
 
-OpenMCProblem::OpenMCProblem(const InputParameters &params) : 
-  ExternalProblem(params), 
-  _centers(getParam<std::vector<Point>>("centers")), 
+OpenMCProblem::OpenMCProblem(const InputParameters &params) :
+  ExternalProblem(params),
+  _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes")),
   _filterId(getFilterId()),
@@ -59,6 +59,13 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _tally->set_scores({"kappa-fission"});
 }
 
+
+void OpenMCProblem::addExternalVariables()
+{
+  auto receiver_params = _factory.getValidParams("Receiver");
+  addPostprocessor("Receiver", "heat_source", receiver_params);
+}
+
 void OpenMCProblem::externalSolve()
 {
   openmc_run();
@@ -81,6 +88,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       // This is an xtensor of heat values per cell
       auto heat = heat_source();
+      _pps_data.storeValue("heat_source", heat(0));
       break;
     }
     default:
@@ -124,7 +132,7 @@ int32_t OpenMCProblem::getTallyId()
 //! Allocates a new tally with unspecified scores/filters in OpenMC
 //! \param[in] The ID of the newly-constructed tally
 //! \return The index of the new tally in OpenMC's tally array
-int32_t OpenMCProblem::getNewTally(int32_t tallyId) 
+int32_t OpenMCProblem::getNewTally(int32_t tallyId)
 {
   int32_t index_tally;
   openmc_extend_tallies(1, &index_tally, nullptr);
