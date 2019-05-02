@@ -34,7 +34,7 @@
 [Materials]
   [hc]
     type = GenericConstantMaterial
-    prop_values = '20' # W/mK
+    prop_values = '0.2' # 20 W/mK -> 0.2 W/cmK
     prop_names = 'thermal_conductivity'
   []
 []
