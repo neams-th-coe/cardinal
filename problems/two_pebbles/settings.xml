@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<settings>
+  <run_mode>eigenvalue</run_mode>
+  <particles>10000</particles>
+  <batches>10</batches>
+  <inactive>5</inactive>
+  <source strength="1.0">
+    <space type="fission">
+      <parameters>-1.44929252265 -1.44929252265 -1.44929252265 1.44929252265 1.44929252265 1.44929252265</parameters>
+    </space>
+  </source>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1</domain_ids>
+    <samples>10000000</samples>
+    <lower_left>-1.32615002072 -1.32615002072 -1.32615002072</lower_left>
+    <upper_right>1.32615002072 1.32615002072 1.32615002072</upper_right>
+  </volume_calc>
+</settings>

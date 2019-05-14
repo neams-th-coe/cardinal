@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plots>
+  <plot basis="xy" color_by="material" filename="xy_1" id="1" type="slice">
+    <origin>0 0 0</origin>
+    <width>28.49225031081641 28.49225031081641</width>
+    <pixels>1000 1000</pixels>
+    <color id="1" rgb="165 42 42" />
+    <color id="2" rgb="176 196 222" />
+    <color id="3" rgb="0 0 255" />
+    <color id="4" rgb="255 165 0" />
+    <color id="5" rgb="0 255 255" />
+    <color id="6" rgb="0 191 255" />
+    <color id="7" rgb="0 0 128" />
+    <color id="8" rgb="255 255 0" />
+  </plot>
+  <plot basis="xy" color_by="material" filename="xy_2" id="2" type="slice">
+    <origin>0 0 3.1500000000000004</origin>
+    <width>28.49225031081641 28.49225031081641</width>
+    <pixels>1000 1000</pixels>
+    <color id="1" rgb="165 42 42" />
+    <color id="2" rgb="176 196 222" />
+    <color id="3" rgb="0 0 255" />
+    <color id="4" rgb="255 165 0" />
+    <color id="5" rgb="0 255 255" />
+    <color id="6" rgb="0 191 255" />
+    <color id="7" rgb="0 0 128" />
+    <color id="8" rgb="255 255 0" />
+  </plot>
+  <plot basis="yz" color_by="material" filename="yz" id="3" type="slice">
+    <origin>0 0 7.218045112781956</origin>
+    <width>30.25413533834587 30.25413533834587</width>
+    <pixels>1000 1000</pixels>
+    <color id="1" rgb="165 42 42" />
+    <color id="2" rgb="176 196 222" />
+    <color id="3" rgb="0 0 255" />
+    <color id="4" rgb="255 165 0" />
+    <color id="5" rgb="0 255 255" />
+    <color id="6" rgb="0 191 255" />
+    <color id="7" rgb="0 0 128" />
+    <color id="8" rgb="255 255 0" />
+  </plot>
+</plots>
