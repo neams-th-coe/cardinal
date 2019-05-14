@@ -19,7 +19,8 @@ validParams<NekProblem>()
   return params;
 }
 
-NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params)
+NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
+                                                        _serialized_solution(NumericVector<Number>::build(_communicator).release())
 {
 }
 
@@ -49,6 +50,16 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
       auto sys_number = _aux->number();
 
+      static bool first = true;
+
+      if (first)
+      {
+        _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
+        first = false;
+      }
+
+      solution.localize(*_serialized_solution);
+
       // Here's how this works:
       // We are reading Quad4s so each one has 4 nodes
       // So loop over the elements and pull out the nodes... easy
@@ -65,7 +76,7 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
           auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
 
-          nek_flux[node_offset] = solution(dof_idx);
+          nek_flux[node_offset] = (*_serialized_solution)(dof_idx);
         }
       }
 
@@ -93,6 +104,8 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
       auto sys_number = _aux->number();
 
+      auto pid = _communicator.rank();
+
       // Here's how this works:
       // We are reading Quad4s so each one has 4 nodes
       // So loop over the elements and pull out the nodes... easy
@@ -105,11 +118,14 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
         {
           auto node_ptr = elem_ptr->node_ptr(n);
 
-          auto node_offset = (e * 4) + n;
+          if (node_ptr->processor_id() == pid)
+          {
+            auto node_offset = (e * 4) + n;
 
-          auto dof_idx = node_ptr->dof_number(sys_number, _temp_var, 0);
+            auto dof_idx = node_ptr->dof_number(sys_number, _temp_var, 0);
 
-          solution.set(dof_idx, nek_temperature[node_offset]);
+            solution.set(dof_idx, nek_temperature[node_offset]);
+          }
         }
       }
 

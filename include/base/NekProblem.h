@@ -3,6 +3,8 @@
 
 #include "ExternalProblem.h"
 
+#include <memory>
+
 class NekProblem;
 
 template<>
@@ -22,6 +24,8 @@ public:
   virtual void addExternalVariables() override;
 
 protected:
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+
   unsigned int _temp_var;
   unsigned int _avg_flux_var;
 };
