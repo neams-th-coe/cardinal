@@ -2,7 +2,7 @@
 <plots>
   <plot basis="xy" color_by="material" filename="xy_1" id="1" type="slice">
     <origin>0 0 0</origin>
-    <width>28.49225031081641 28.49225031081641</width>
+    <width>4.941750044402345 4.941750044402345</width>
     <pixels>1000 1000</pixels>
     <color id="1" rgb="165 42 42" />
     <color id="2" rgb="176 196 222" />
@@ -15,7 +15,7 @@
   </plot>
   <plot basis="xy" color_by="material" filename="xy_2" id="2" type="slice">
     <origin>0 0 3.1500000000000004</origin>
-    <width>28.49225031081641 28.49225031081641</width>
+    <width>4.941750044402345 4.941750044402345</width>
     <pixels>1000 1000</pixels>
     <color id="1" rgb="165 42 42" />
     <color id="2" rgb="176 196 222" />
@@ -27,8 +27,8 @@
     <color id="8" rgb="255 255 0" />
   </plot>
   <plot basis="yz" color_by="material" filename="yz" id="3" type="slice">
-    <origin>0 0 7.218045112781956</origin>
-    <width>30.25413533834587 30.25413533834587</width>
+    <origin>0 0 1.5749999999999997</origin>
+    <width>8.091750044402344 8.091750044402344</width>
     <pixels>1000 1000</pixels>
     <color id="1" rgb="165 42 42" />
     <color id="2" rgb="176 196 222" />
