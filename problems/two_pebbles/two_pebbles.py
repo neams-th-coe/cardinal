@@ -233,18 +233,11 @@ settings.volume_calculations = [volume_fuel]
 model              = openmc.model.Model(geometry=u_zero, settings=settings)
 model.export_to_xml()
 # -------------- Tally ---------------
-# print(l_pebble)
-# print(c_pebble_central)
-# print(u_pebble_random)
-# print(pebble_random)
-# # filter1            = openmc.DistribcellFilter([13])
-# filter1            = openmc.UniverseFilter([u_pebble_random])
-# filter2            = openmc.CellFilter([13])
-# tally              = openmc.Tally(name='tally kappa-fission')
-# tally.filters      = [filter1, filter2]
-# tally.scores       = ['kappa-fission']
-# tallies            = openmc.Tallies([tally])
-# tallies.export_to_xml()
+tally              = openmc.Tally(name='tally kappa-fission')
+tally.filters      = [openmc.CellFilter([c_pebble_1, c_pebble_2])]
+tally.scores       = ['kappa-fission']
+tallies            = openmc.Tallies([tally])
+tallies.export_to_xml()
 # -------------- Plots --------------
 m_colors = {m_fuel:              'brown',
             m_graphite_c_buffer: 'LightSteelBlue',
