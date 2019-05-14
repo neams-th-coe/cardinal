@@ -31,7 +31,7 @@
   <surface coeffs="0.0 0.0 0.0 1.4208750222011723" id="8" type="sphere" />
   <surface coeffs="0 0 0 1.4492925226451958" id="9" type="sphere" />
   <surface coeffs="0 0 3.1500000000000004 1.4492925226451958" id="10" type="sphere" />
-  <surface boundary="reflective" coeffs="0.0 0.0 14.246125155408205" id="11" type="z-cylinder" />
-  <surface boundary="reflective" coeffs="-7.909022556390978" id="12" type="z-plane" />
-  <surface boundary="reflective" coeffs="22.34511278195489" id="13" type="z-plane" />
+  <surface boundary="reflective" coeffs="0.0 0.0 2.4708750222011724" id="11" type="z-cylinder" />
+  <surface boundary="reflective" coeffs="-2.4708750222011724" id="12" type="z-plane" />
+  <surface boundary="vacuum" coeffs="5.620875022201172" id="13" type="z-plane" />
 </geometry>
