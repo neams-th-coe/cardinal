@@ -27,10 +27,10 @@
   <surface coeffs="0.0 0.0 0.0 0.037000000000000005" id="4" type="sphere" />
   <surface coeffs="0.0 0.0 0.0 0.04050000000000001" id="5" type="sphere" />
   <surface coeffs="0.0 0.0 0.0 1.184062518500977" id="6" type="sphere" />
-  <surface coeffs="0.0 0.0 0.0 1.3261500207210941" id="7" type="sphere" />
-  <surface coeffs="0.0 0.0 0.0 1.4208750222011723" id="8" type="sphere" />
-  <surface coeffs="0 0 0 1.4492925226451958" id="9" type="sphere" />
-  <surface coeffs="0 0 3.1500000000000004 1.4492925226451958" id="10" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 1.4052749985199218" id="7" type="sphere" />
+  <surface coeffs="0.0 0.0 0.0 1.5" id="8" type="sphere" />
+  <surface coeffs="0 0 0 1.53" id="9" type="sphere" />
+  <surface coeffs="0 0 3.1500000000000004 1.53" id="10" type="sphere" />
   <surface boundary="reflective" coeffs="0.0 0.0 2.9050500266414065" id="11" type="z-cylinder" />
   <surface boundary="reflective" coeffs="-3.331312533301759" id="12" type="z-plane" />
   <surface boundary="vacuum" coeffs="6.8835000888046896" id="13" type="z-plane" />

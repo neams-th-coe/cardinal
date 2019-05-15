@@ -54,7 +54,11 @@ pitch_triso_lattice   = (radius_fuel+thickness_c_buffer+thickness_pyc_inner+thic
 # 3/1.0556875 = 2.8417500444
 tamu_exp_factor       = 1/1.0556875             # Factor to scale geometry to TAMU experiment with pebble radius 1.0556875 cm
 radius_pebble_inner   = 2.5/2*tamu_exp_factor   # UCBTH-14-002, Table 2-1 (differs slightly from Cisneros, Table 5-2) ; scaled by TAMU experiment factor
-radius_pebble_outer   = 1.4208750222011723
+
+# 1.4 gives keff = 1, but 1.5 is consistent with the Nek5000 and BISON models
+#radius_pebble_outer   = 1.4208750222011723
+radius_pebble_outer   = 1.5
+
 radius_pebble_central = radius_pebble_outer - 0.1*tamu_exp_factor # UCBTH-14-002, Table 2-1; Cisneros, Table 5-2      ; scaled by TAMU experiment factor
 clearance             = 0.02
 # width_flibe           = 2*radius_pebble_outer*(1+clearance)                                                         # scaled by TAMU experiment factor

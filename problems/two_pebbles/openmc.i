@@ -10,9 +10,9 @@
 
 [Problem]
   type = OpenMCProblem
-  power = 0.3
+  power = 1000
   centers = '0 0 0 0 0 3.15'
-  volumes = '0.0335 0.0335'
+  volumes = '14.137166941154067 14.137166941154067'
 []
 
 [Executioner]
