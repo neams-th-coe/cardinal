@@ -110,6 +110,13 @@
 []
 
 [Postprocessors]
+  [total_flux_check]
+    # Should add up to the same thing as total_flux
+    type = SideIntegralVariablePostprocessor
+    variable = avg_flux
+    boundary = 1
+  []
+
   [total_flux]
     type = SideFluxIntegral
     diffusivity = thermal_conductivity
