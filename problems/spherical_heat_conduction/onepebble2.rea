@@ -2,18 +2,18 @@
    2.6099999      NEKTON VERSION
            3  DIMENSIONAL RUN
          118  PARAMETERS FOLLOW
-   1.00000     p001 DENSITY 
-   0.0001      p002 VISCOS 3e-7
+   2.00000     p001 DENSITY 
+   0.5         p002 VISCOS 3e-7
    0.00000     p003
    0.00000     p004
    0.00000     p005
    0.00000     p006
-   1.00000     p007 RHOCP
-   0.0001      p008 CONDUCT
+   5000.00     p007 RHOCP
+   0.5         p008 CONDUCT
    0.00000     p009
    0.00000     p010 FINTIME
    10000.0     p011 NSTEPS
-   -1.0E-4     p012 DT
+   -1.0E-3     p012 DT
    0.00000     p013 IOCOMM
    0.00000     p014 IOTIME
    500.0       p015 IOSTEP
@@ -143,7 +143,7 @@
  **MESH DATA** 6 lines are X,Y,Z;X,Y,Z. Columns corners 1-4;5-8
      -8858  3        8858     NELT,NDIM,NELV
             1 PRESOLVE/RESTART OPTIONS  *****
-onepebble2.run03
+onepebble2.run05  
             7         INITIAL CONDITIONS *****
 C Default
 C Default

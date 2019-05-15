@@ -90,8 +90,8 @@ c      implicit none
 c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
 
       ux   = 0.0
-      uy   = 1.0
-      uz   = 0.0
+      uy   = 0.0
+      uz   = 17.0
       temp = 573.0
       flux = abs(flux_recon(ix,iy,iz,gllel(eg))) ! flux does not have sign
 
@@ -122,9 +122,17 @@ c      implicit none
 
       include 'SIZE'
       include 'TOTAL'
-      ifflow=.false. 
+c      ifflow=.false. 
       n=lx1*ly1*lz1*nelt
-      if (istep.eq.0) call nek_pointscloud() 
+
+c      if (istep.eq.0) then
+c      do i=1,n
+c       xm1(i,1,1,1)=xm1(i,1,1,1)*100.0
+c       ym1(i,1,1,1)=ym1(i,1,1,1)*100.0
+c       zm1(i,1,1,1)=zm1(i,1,1,1)*100.0 
+c      enddo 
+c      call fix_geom(2)
+c      endif 
 
       return
       end
