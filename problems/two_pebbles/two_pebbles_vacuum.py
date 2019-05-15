@@ -54,7 +54,7 @@ pitch_triso_lattice   = (radius_fuel+thickness_c_buffer+thickness_pyc_inner+thic
 # 3/1.0556875 = 2.8417500444
 tamu_exp_factor       = 1/1.0556875             # Factor to scale geometry to TAMU experiment with pebble radius 1.0556875 cm
 radius_pebble_inner   = 2.5/2*tamu_exp_factor   # UCBTH-14-002, Table 2-1 (differs slightly from Cisneros, Table 5-2) ; scaled by TAMU experiment factor
-radius_pebble_outer   = 3.0/2*tamu_exp_factor   # UCBTH-14-002, Table 2-1; Cisneros, Table 5-2                        ; scaled by TAMU experiment factor
+radius_pebble_outer   = 1.4208750222011723
 radius_pebble_central = radius_pebble_outer - 0.1*tamu_exp_factor # UCBTH-14-002, Table 2-1; Cisneros, Table 5-2      ; scaled by TAMU experiment factor
 clearance             = 0.02
 # width_flibe           = 2*radius_pebble_outer*(1+clearance)                                                         # scaled by TAMU experiment factor
@@ -67,16 +67,14 @@ extra_thickness       =  4.3
 x_vessel              =  0.0 
 y_vessel              =  0.0
 
-
 #z1_vessel             = center_1[2] - 1.05*3/2
 #z2_vessel             = center_2[2] + 1.05*6
 #radius_vessel         = 1.05*6
-z1_vessel             = center_1[2] - radius_pebble_outer - 1.05
-z2_vessel             = center_2[2] + radius_pebble_outer + 1.05
-radius_vessel         = radius_pebble_outer + 1.05
+z1_vessel             = -3.331312533301759
+height_vessel         = 10.214812622106448
+z2_vessel             = z1_vessel + height_vessel
+radius_vessel         = 2.9050500266414065
 
-
-height_vessel         = z2_vessel - z1_vessel
 # -------------- Materials Parameters --------
 # TRISO particle
 enrichment_uranium   = 0.199
@@ -207,6 +205,7 @@ s_pebble_2              = openmc.Sphere(x0=center_2[0], y0=center_2[1], z0=cente
 cz_vessel               = openmc.ZCylinder(x0=x_vessel, y0=y_vessel, R=radius_vessel, boundary_type='reflective') # transmission | reflective | vacuum
 pz_vessel_bottom        = openmc.ZPlane(z0=z1_vessel, boundary_type='reflective')
 pz_vessel_top           = openmc.ZPlane(z0=z2_vessel, boundary_type='vacuum')
+#pz_vessel_top           = openmc.ZPlane(z0=z2_vessel, boundary_type='reflective')
 c_pebble_1              = openmc.Cell(name='c_pebble_1', fill=u_pebble, region=-s_pebble_1)
 c_pebble_2              = openmc.Cell(name='c_pebble_2', fill=u_pebble, region=-s_pebble_2)
 c_pebble_1.translation = center_1
