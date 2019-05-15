@@ -231,33 +231,33 @@ u_zero                  = openmc.Geometry([c_vessel,c_pebble_1,c_pebble_2])
 # -------------- Settings --------------
 settings           = openmc.Settings()
 settings.source    = openmc.Source(space=openmc.stats.Box(*c_pebble_1.bounding_box, only_fissionable=True))
-settings.particles = 200000
+settings.particles = 10000
 settings.inactive  = 5 
-settings.batches   = 50
+settings.batches   = 20
 # Fuel volume calculation
 volume_fuel                  = openmc.VolumeCalculation([m_fuel], 10000000, *c_pebble_central.bounding_box)
 settings.volume_calculations = [volume_fuel]
 model              = openmc.model.Model(geometry=u_zero, settings=settings)
 model.export_to_xml()
 # -------------- Tally ---------------
-#tally = openmc.Tally(name='tally kappa-fission')
-#tally.filters = [openmc.CellFilter([c_pebble_1, c_pebble_2])]
-#tally.scores = ['kappa-fission']
-
-viz_mesh = openmc.Mesh()
-viz_mesh.dimension = [100, 100, 100]
-viz_mesh.lower_left = [-radius_vessel, -radius_vessel, z1_vessel]
-viz_mesh.upper_right = [radius_vessel, radius_vessel, z2_vessel]
-
-viz_mesh_filter = openmc.MeshFilter(viz_mesh)
-
-viz_tally = openmc.Tally(name='viz fission')
-viz_tally.filters = [viz_mesh_filter]
-viz_tally.scores = ['kappa-fission']
-
-#tallies = openmc.Tallies([tally, viz_tally])
-tallies = openmc.Tallies([viz_tally])
-tallies.export_to_xml()
+# #tally = openmc.Tally(name='tally kappa-fission')
+# #tally.filters = [openmc.CellFilter([c_pebble_1, c_pebble_2])]
+# #tally.scores = ['kappa-fission']
+# 
+# viz_mesh = openmc.Mesh()
+# viz_mesh.dimension = [100, 100, 100]
+# viz_mesh.lower_left = [-radius_vessel, -radius_vessel, z1_vessel]
+# viz_mesh.upper_right = [radius_vessel, radius_vessel, z2_vessel]
+# 
+# viz_mesh_filter = openmc.MeshFilter(viz_mesh)
+# 
+# viz_tally = openmc.Tally(name='viz fission')
+# viz_tally.filters = [viz_mesh_filter]
+# viz_tally.scores = ['kappa-fission']
+# 
+# #tallies = openmc.Tallies([tally, viz_tally])
+# tallies = openmc.Tallies([viz_tally])
+# tallies.export_to_xml()
 # -------------- Plots --------------
 m_colors = {m_fuel:              'brown',
             m_graphite_c_buffer: 'LightSteelBlue',
