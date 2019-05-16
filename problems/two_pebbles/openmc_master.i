@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = sphere.e
+  file = two_sphere.e
 []
 
 [Variables]

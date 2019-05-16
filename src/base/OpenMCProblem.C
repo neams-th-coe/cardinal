@@ -2,6 +2,8 @@
 // Created by Ronald Rahaman on 2019-01-23.
 //
 
+#include "NearestPointReceiver.h"
+
 #include "mpi.h"
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
@@ -63,8 +65,11 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 void OpenMCProblem::addExternalVariables()
 {
   {
-    auto receiver_params = _factory.getValidParams("Receiver");
-    addPostprocessor("Receiver", "heat_source", receiver_params);
+    auto receiver_params = _factory.getValidParams("NearestPointReceiver");
+
+    receiver_params.set<std::vector<Point>>("positions") = _centers;
+
+    addUserObject("NearestPointReceiver", "heat_source", receiver_params);
   }
 
   {
@@ -96,7 +101,20 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       // This is an xtensor of heat values per cell
       auto heat = heat_source();
-      _pps_data.storeValue("heat_source", heat(0));
+
+      std::vector<Real> values;
+      values.reserve(heat.size());
+
+      for (auto & val : heat)
+      {
+        std::cout << "val: " << val << std::endl;
+        values.push_back(val);
+      }
+
+      auto & receiver = getUserObject<NearestPointReceiver>("heat_source");
+
+      receiver.setValues(values);
+
       break;
     }
     default:
