@@ -10,7 +10,7 @@
   []
   [heat]
     type = BodyForce
-    value = 2e7
+    value = 35.37
     variable = temp
   []
 []

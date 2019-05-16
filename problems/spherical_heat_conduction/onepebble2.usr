@@ -122,7 +122,7 @@ c      implicit none
 
       include 'SIZE'
       include 'TOTAL'
-c      ifflow=.false. 
+      ifflow=.false. 
       n=lx1*ly1*lz1*nelt
 
 c      if (istep.eq.0) then
