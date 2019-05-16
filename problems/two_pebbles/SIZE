@@ -15,7 +15,7 @@ c
       parameter (lx2=lx1-0)            ! p-order for pressure (lx1 or lx1-2)
                                      
       parameter (lelg=3000)            ! max total number of elements
-      parameter (lpmin=2)              ! min MPI ranks
+      parameter (lpmin=1)              ! min MPI ranks
       parameter (lpmax=64)             ! max MPI ranks
       parameter (ldimt=2)              ! max auxiliary fields (temperature + scalars)
 
