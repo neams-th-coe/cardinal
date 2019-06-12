@@ -34,7 +34,7 @@ VPATH := $(NEK_CASEDIR):$(NEK_DIR)/core:$(NEK_DIR)/core/3rd_party:$(GSLIB_DIR)/s
 # ======================================================================================
 
 # Use compiler info discovered by PETSC
-include $(PETSC_DIR)/lib/petsc/conf/petscvariables
+include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
 
 # ======================================================================================
 # MOOSE
@@ -101,10 +101,10 @@ include            $(CARDINAL_DIR)/config/nek.mk
 include            $(CARDINAL_DIR)/config/openmc.mk
 
 # CC_LINKER_SLFLAG is from petscvariables
-ADDITIONAL_APP_OBJECTS := $(NEK_DRIVE_OBJ) $(NEK_C_OBJ) $(NEK_F_OBJ) 
+ADDITIONAL_APP_OBJECTS := $(NEK_DRIVE_OBJ) $(NEK_C_OBJ) $(NEK_F_OBJ)
 ADDITIONAL_DEPEND_LIBS := $(GS_LIB) $(OPENMC_LIB)
 ADDITIONAL_LIBS := -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) -lgs -lopenmc \
-	$(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) 
+	$(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor \
 	-I$(OPENMC_DIR)/vendor/pugixml -I$(OPENMC_DIR)/vendor/xtensor/include \
 	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include
@@ -115,4 +115,3 @@ CARDINAL_EXTERNAL_FLAGS := -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) -lgs -lopenmc $(CC_
 $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_EXEC): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
-

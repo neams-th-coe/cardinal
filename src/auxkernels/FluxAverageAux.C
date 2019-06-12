@@ -9,6 +9,8 @@
 
 #include "FluxAverageAux.h"
 
+#include "Assembly.h"
+
 registerMooseObject("CardinalApp", FluxAverageAux);
 
 template <>
@@ -29,7 +31,7 @@ FluxAverageAux::FluxAverageAux(const InputParameters & parameters)
     _diffusivity(getMaterialProperty<Real>("diffusivity")),
     _coupled_gradient(coupledGradient("coupled")),
     _coupled_var(dynamic_cast<MooseVariable &>(*getVar("coupled", 0))),
-    _normals(_coupled_var.normals())
+    _normals(_assembly.normals())
 {
 }
 

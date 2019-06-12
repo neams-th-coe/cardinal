@@ -7,24 +7,24 @@ NEK_LIBDIR := $(CURDIR)/lib
 
 NEK_PPLIST := MPI TIMER VENDOR_BLAS
 
-HAVE_UNDERSCORE := $(shell cat $$PETSC_DIR/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
+HAVE_UNDERSCORE := $(shell cat $$PETSC_DIR/$(PETSC_ARCH)/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
 ifeq (1,$(HAVE_UNDERSCORE))
 NEK_PPLIST += UNDERSCORE
 endif
 
 # CC_FLAGS and FC_FLAGS from petscvariables
-CFLAGS     := $(CFLAGS) $(CC_FLAGS) 
-CPPFLAGS   := $(CPPFLAGS) $(patsubst %,-D%,$(NEK_PPLIST)) -I$(NEK_CASEDIR) -I$(NEK_DIR)/core $(FFLAGS) $(PETSC_CC_INCLUDES) 
+CFLAGS     := $(CFLAGS) $(CC_FLAGS)
+CPPFLAGS   := $(CPPFLAGS) $(patsubst %,-D%,$(NEK_PPLIST)) -I$(NEK_CASEDIR) -I$(NEK_DIR)/core $(FFLAGS) $(PETSC_CC_INCLUDES)
 FFLAGS     := $(FFLAGS) -std=legacy -fdefault-real-8 -fdefault-double-8 -cpp -I$(NEK_CASEDIR) -I$(NEK_DIR)/core $(FC_FLAGS) $(PETSC_FC_INCLUDES)
 F_CPPFLAGS := $(patsubst %,$(FC_DEFINE_FLAG)%,$(NEK_PPLIST))
 F_LDFLAGS  := $(LDFLAGS) $(FC_LINKER_FLAGS) -L$(NEK_LIBDIR) -L.
-F_LIBS     := -lgs $(LIBS) $(BLASLAPACK_LIB) 
+F_LIBS     := -lgs $(LIBS) $(BLASLAPACK_LIB)
 
 # ===========================================================================
 # Objects
 # ===========================================================================
 
-NEK_C_CORE := byte chelpers dictionary finiparser iniparser nek_comm  
+NEK_C_CORE := byte chelpers dictionary finiparser iniparser nek_comm
 
 NEK_F_CORE := bdry byte_mpi calcz coef conduct \
  connect1 connect2 convect cvode_driver \
@@ -35,7 +35,7 @@ NEK_F_CORE := bdry byte_mpi calcz coef conduct \
  navier1 navier2 navier3 navier4 navier5 navier6 navier7 \
  navier8 nek_in_situ papi perturb plan4 plan5 \
  planx postpro prepost reader_par reader_re2 reader_rea \
- speclib ssolv subs1 subs2 vprops 
+ speclib ssolv subs1 subs2 vprops
 
 # Always use Nek mxm (TODO: support hardware-specific MXM?)
 NEK_MXM := mxm_std
@@ -53,7 +53,7 @@ NEK_COMM_MPI := comm_mpi
 NEK_NEKNEKO := singlmesh
 
 # Placeholder for unsupported feature
-NEK_VIST := 
+NEK_VIST :=
 
 # Always use vendor blas.  Just a placeholder
 NEK_BLAS :=
@@ -75,7 +75,7 @@ SESSION_NAME := $(CURDIR)/SESSION.NAME
 # ===========================================================================
 
 $(NEK_EXEC) : $(NEK_DRIVE_OBJ) $(NEK_C_OBJ) $(NEK_F_OBJ)  | $(SESSION_NAME)
-	$(FC) $(F_CPPFLAGS) $(FFLAGS) -o $@ $^ $(F_LDFLAGS) $(F_LIBS) 
+	$(FC) $(F_CPPFLAGS) $(FFLAGS) -o $@ $^ $(F_LDFLAGS) $(F_LIBS)
 
 $(NEK_C_OBJ) : $(NEK_OBJDIR)/%.o : %.c | $(NEK_OBJDIR)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^ $(LDFLAGS) $(LIBS)

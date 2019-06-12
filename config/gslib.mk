@@ -23,7 +23,7 @@ GS_CPPFLAGS += -DMPI
 endif
 
 # Discover Fortran name-mangling
-HAVE_UNDERSCORE := $(shell cat $$PETSC_DIR/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
+HAVE_UNDERSCORE := $(shell cat $$PETSC_DIR/$(PETSC_ARCH)/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
 ifeq (1,$(HAVE_UNDERSCORE))
 GS_HEADER_MACROS += UNDERSCORE
 GS_CPPFLAGS += -DUNDERSCORE
@@ -72,7 +72,7 @@ $(GS_LIB): $(GS_OBJ) | $(GS_LIBDIR)
 $(GS_OBJ): $(GS_OBJDIR)/%.o : %.c $(GS_CONFIG_H) | $(GS_CONFIG_H) $(GS_OBJDIR)
 	$(CC) $(GS_CPPFLAGS) $(GS_CFLAGS) -c $< -o $@
 
-$(GS_CONFIG_H): $(PETSC_DIR)/lib/petsc/conf/petscvariables $(PETSC_DIR)/include/petscconf.h | $(GS_INCLUDE_DIR)
+$(GS_CONFIG_H): $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables $(PETSC_DIR)/$(PETSC_ARCH)/include/petscconf.h | $(GS_INCLUDE_DIR)
 	@rm -rf $@
 	@for var in $(GS_HEADER_MACROS); do \
 	echo "#ifndef $${var}\n#define $${var}\n#endif\n" >> $@; \
@@ -89,7 +89,3 @@ clean_gs:
 libgs: $(GS_LIB)
 
 .PHONY: libgs clean_gs
-
-
-
-
