@@ -36,6 +36,8 @@ public:
 
   virtual Real spatialValue(const Point & p) const override;
 
+  const std::vector<Point> & positions() { return _positions; }
+
   void setValues(const std::vector<Real> & values);
 
 protected:

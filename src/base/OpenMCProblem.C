@@ -66,16 +66,18 @@ void OpenMCProblem::addExternalVariables()
 {
   {
     auto receiver_params = _factory.getValidParams("NearestPointReceiver");
-
     receiver_params.set<std::vector<Point>>("positions") = _centers;
 
+    // Will be filled with values from OpenMC
     addUserObject("NearestPointReceiver", "heat_source", receiver_params);
   }
 
   {
-    auto receiver_params = _factory.getValidParams("Receiver");
-    receiver_params.set<Real>("default") = 300;
-    addPostprocessor("Receiver", "average_temp", receiver_params);
+    auto receiver_params = _factory.getValidParams("NearestPointReceiver");
+    receiver_params.set<std::vector<Point>>("positions") = _centers;
+
+    // Will receive values from the master
+    addUserObject("NearestPointReceiver", "average_temp", receiver_params);
   }
 }
 
@@ -90,9 +92,11 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      for (int i=0; i < _cellIndices.size(); ++i) {
-        // TODO:  Get temperature from BISON
-        double T = getPostprocessorValue("average_temp");
+      auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
+      for (int i=0; i < _cellIndices.size(); ++i)
+      {
+        double T = average_temp.spatialValue(_centers[i]);
+//        std::cout << T << std::endl;
         openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
       }
       break;
@@ -106,10 +110,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       values.reserve(heat.size());
 
       for (auto & val : heat)
-      {
-        std::cout << "val: " << val << std::endl;
         values.push_back(val);
-      }
 
       auto & receiver = getUserObject<NearestPointReceiver>("heat_source");
 
@@ -184,8 +185,8 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
   double totalHeat = xt::sum(heat)();
 
   // Debug
-  _console << "*** Power: " << _power << std::endl;
-  _console << "*** Total heat: " << totalHeat << std::endl;
+//  _console << "*** Power: " << _power << std::endl;
+//  _console << "*** Total heat: " << totalHeat << std::endl;
 
   // Normalize heat source in each material and collect in an array
   for (int i = 0; i < _cellIndices.size(); ++i) {
@@ -196,8 +197,8 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
     heat(i) *= _power / (totalHeat * V);
 
     // Debug
-    _console << "*** Volume[" << i << "]: " << V << std::endl;
-    _console << "*** Heat[" << i << "]: " << heat(i) << std::endl;
+//    _console << "*** Volume[" << i << "]: " << V << std::endl;
+//    _console << "*** Heat[" << i << "]: " << heat(i) << std::endl;
   }
 
   return heat;
