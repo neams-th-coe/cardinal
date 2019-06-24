@@ -134,6 +134,8 @@ c      enddo
 c      call fix_geom(2)
 c      endif 
 
+      if (istep.eq.0) time=0.0
+
       return
       end
 c-----------------------------------------------------------------------
