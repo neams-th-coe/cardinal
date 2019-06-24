@@ -22,9 +22,10 @@
 []
 
 [Outputs]
-  [exo]
+  [nek_exo]
     type = Exodus
     output_dimension = 3
+    interval = 100
   []
 []
 

@@ -55,6 +55,8 @@
 
 [Outputs]
   exodus = true
+  interval = 100
+  execute_on = 'timestep_end'
 []
 
 [MultiApps]
