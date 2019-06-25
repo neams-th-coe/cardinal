@@ -8,6 +8,7 @@
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
+#include "openmc/lattice.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "xtensor/xarray.hpp"
@@ -24,6 +25,24 @@ validParams<OpenMCProblem>()
   params.addRequiredParam<std::vector<Point>>("centers", "coords of pebble centers");
   params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
   return params;
+}
+
+void fill_pebble_cells(int32_t universe_index, std::vector<int32_t>& cells)
+{
+  const auto &universe = openmc::model::universes.at(universe_index);
+  for (auto cell_index : universe->cells_) {
+    const auto &cell = openmc::model::cells.at(cell_index);
+    if (cell->type_ == openmc::FILL_MATERIAL) {
+      cells.push_back(cell_index);
+    } else if (cell->type_ == openmc::FILL_UNIVERSE) {
+      fill_pebble_cells(cell->fill_, cells);
+    } else if (cell->type_ == openmc::FILL_LATTICE) {
+      const auto &lat = openmc::model::lattices.at(cell->fill_);
+      for (auto it = lat->begin(); it != lat->end(); ++it) {
+        fill_pebble_cells(*it, cells);
+      }
+    }
+  }
 }
 
 OpenMCProblem::OpenMCProblem(const InputParameters &params) :
@@ -47,6 +66,10 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     openmc::find_cell(&p, false);
     _cellIndices.push_back(p.coord_[0].cell);
     _cellInstances.push_back(p.cell_instance_);
+
+    _pebbleCells.emplace_back();
+    const auto &outer_cell = openmc::model::cells[p.coord_[0].cell];
+    fill_pebble_cells(outer_cell->fill_, _pebbleCells.back());
   }
 
   // Setup cell filter
@@ -93,11 +116,13 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
-      for (int i=0; i < _cellIndices.size(); ++i)
+      for (int i=0; i < _pebbleCells.size(); ++i)
       {
         double T = average_temp.spatialValue(_centers[i]);
 //        std::cout << T << std::endl;
-        openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
+        for (auto cell_index : _pebbleCells[i]) {
+          openmc_cell_set_temperature(cell_index, T, nullptr);
+        }
       }
       break;
     }

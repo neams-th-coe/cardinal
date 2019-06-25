@@ -44,6 +44,7 @@ private:
 
   std::vector<int32_t> _cellIndices {};
   std::vector<int32_t> _cellInstances {};
+  std::vector<std::vector<int32_t>> _pebbleCells {};
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H
