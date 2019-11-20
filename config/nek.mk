@@ -78,7 +78,7 @@ $(NEK_EXEC) : $(NEK_DRIVE_OBJ) $(NEK_C_OBJ) $(NEK_F_OBJ)  | $(SESSION_NAME)
 	$(FC) $(F_CPPFLAGS) $(FFLAGS) -o $@ $^ $(F_LDFLAGS) $(F_LIBS)
 
 $(NEK_C_OBJ) : $(NEK_OBJDIR)/%.o : %.c | $(NEK_OBJDIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^ $(LDFLAGS) $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< $(LDFLAGS) $(LIBS)
 
 $(NEK_F_OBJ) $(NEK_DRIVE_OBJ) : $(NEK_OBJDIR)/%.o : %.f SIZE | $(NEK_OBJDIR)
 	$(FC) $(F_CPPFLAGS) $(FFLAGS) -c -o $@ $< $(F_LDFLAGS) $(F_LIBS)
