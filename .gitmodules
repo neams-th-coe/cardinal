@@ -16,4 +16,5 @@
   branch = v1.0.3
 [submodule "problems/large-problems"]
 	path = problems/large-problems
-	url = git@xgitlab.cels.anl.gov:neams-th-coe/large-problems.git
+	url = https://xgitlab.cels.anl.gov/neams-th-coe/large-problems.git
+  branch = master
