@@ -215,3 +215,16 @@ python/peacock/tests/postprocessor_tab/TestPostprocessorPluginManager_test_scrip
 !python/peacock/tests/**/input/*.*
 peacock_tmp_diff.exo
 *.e.diff
+
+# Cardinal
+bin/**
+include/**
+lib/**
+obj_*/**
+share/**
+nndc*/**
+endf*/**
+cardinal-*-debug
+cardinal-*-opt
+*.h5
+SESSION.NAME
