@@ -7,7 +7,7 @@ NEK_LIBDIR := $(CURDIR)/lib
 
 NEK_PPLIST := MPI TIMER VENDOR_BLAS
 
-HAVE_UNDERSCORE := $(shell cat $$PETSC_DIR/$(PETSC_ARCH)/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
+HAVE_UNDERSCORE := $(shell cat $(PETSC_DIR)/$(PETSC_ARCH)/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
 ifeq (1,$(HAVE_UNDERSCORE))
 NEK_PPLIST += UNDERSCORE
 endif
@@ -66,7 +66,7 @@ NEK_DRIVE_OBJ := $(NEK_OBJDIR)/drive.o
 
 NEK_EXEC := nek5000_$(NEK_CASENAME)
 
-NEK_LIB := $(NEK_LIBDIR)/libnek5000_$(NEK_CASENAME).a
+NEK_LIB := $(CURDIR)/lib/libnek5000_$(NEK_CASENAME).a
 
 SESSION_NAME := $(CURDIR)/SESSION.NAME
 
@@ -74,11 +74,15 @@ SESSION_NAME := $(CURDIR)/SESSION.NAME
 # Rules/recipes
 # ===========================================================================
 
-$(NEK_EXEC) : $(NEK_DRIVE_OBJ) $(NEK_C_OBJ) $(NEK_F_OBJ)  | $(SESSION_NAME)
+$(NEK_LIB): $(NEK_C_OBJ) $(NEK_F_OBJ) | $(SESSION_NAME) $(NEK_LIBDIR)
+	$(AR) $(AR_FLAGS) $@ $^
+	$(RANLIB) $@
+
+$(NEK_EXEC) : $(NEK_LIB)  | $(SESSION_NAME)
 	$(FC) $(F_CPPFLAGS) $(FFLAGS) -o $@ $^ $(F_LDFLAGS) $(F_LIBS)
 
 $(NEK_C_OBJ) : $(NEK_OBJDIR)/%.o : %.c | $(NEK_OBJDIR)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $^ $(LDFLAGS) $(LIBS)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< $(LDFLAGS) $(LIBS)
 
 $(NEK_F_OBJ) $(NEK_DRIVE_OBJ) : $(NEK_OBJDIR)/%.o : %.f SIZE | $(NEK_OBJDIR)
 	$(FC) $(F_CPPFLAGS) $(FFLAGS) -c -o $@ $< $(F_LDFLAGS) $(F_LIBS)

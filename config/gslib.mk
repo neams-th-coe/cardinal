@@ -23,7 +23,7 @@ GS_CPPFLAGS += -DMPI
 endif
 
 # Discover Fortran name-mangling
-HAVE_UNDERSCORE := $(shell cat $$PETSC_DIR/$(PETSC_ARCH)/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
+HAVE_UNDERSCORE := $(shell cat $(PETSC_DIR)/$(PETSC_ARCH)/include/petscconf.h | sed -n 's/^\#define[[:blank:]]\{1,\}PETSC_HAVE_FORTRAN_UNDERSCORE[[:blank:]]\{1,\}\([[:digit:]]\{1,\}\)/\1/p')
 ifeq (1,$(HAVE_UNDERSCORE))
 GS_HEADER_MACROS += UNDERSCORE
 GS_CPPFLAGS += -DUNDERSCORE
@@ -66,7 +66,7 @@ GS_CONFIG_H := $(GS_INCLUDE_DIR)/config.h
 # ==================================================================
 
 $(GS_LIB): $(GS_OBJ) | $(GS_LIBDIR)
-	$(AR) $(AR_FLAGS) $@ $?
+	$(AR) $(AR_FLAGS) $@ $^
 	$(RANLIB) $@
 
 $(GS_OBJ): $(GS_OBJDIR)/%.o : %.c $(GS_CONFIG_H) | $(GS_CONFIG_H) $(GS_OBJDIR)
