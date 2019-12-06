@@ -20,17 +20,15 @@
 CARDINAL_DIR    := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
-NEK_DIR         ?= $(CONTRIB_DIR)/Nek5000
+NEKRS_DIR       ?= $(CONTRIB_DIR)/nekrs
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
-GSLIB_DIR       ?= $(CONTRIB_DIR)/gslib
 PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc
 PETSC_ARCH      ?= arch-moose
 LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
 
-NEK_CASEDIR  ?= $(CARDINAL_DIR)/problems/spherical_heat_conduction
-NEK_CASENAME ?= onepebble
-
-VPATH := $(NEK_CASEDIR):$(NEK_DIR)/core:$(NEK_DIR)/core/3rd_party:$(GSLIB_DIR)/src
+OCCA_CUDA_ENABLED=0
+OCCA_HIP_ENABLED=0
+OCCA_OPENCL_ENABLED=0
 
 # ======================================================================================
 # PETSc
@@ -95,25 +93,24 @@ export LIBS := $(libmesh_LIBS)
 export CARDINAL_DIR
 
 APPLICATION_DIR    := $(CARDINAL_DIR)
-APPLICATION_NAME   := cardinal-$(NEK_CASENAME)
+APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
 
-include            $(CARDINAL_DIR)/config/gslib.mk
-include            $(CARDINAL_DIR)/config/nek.mk
+include            $(CARDINAL_DIR)/config/nekrs.mk
 include            $(CARDINAL_DIR)/config/openmc.mk
 
 # CC_LINKER_SLFLAG is from petscvariables
-ADDITIONAL_DEPEND_LIBS := $(NEK_LIB) $(GS_LIB) $(OPENMC_LIB)
-ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib -L$(NEK_LIBDIR) -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) \
-	 $(NEK_LIB) -lgs -lopenmc \
-	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEK_LIBDIR) $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+ADDITIONAL_DEPEND_LIBS := $(NEKRS_LIB) $(OPENMC_LIB)
+ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) \
+	-lnekrs -lgs -lopenmc \
+	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor \
 	-I$(OPENMC_DIR)/vendor/pugixml -I$(OPENMC_DIR)/vendor/xtensor/include \
 	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include
-CARDINAL_EXTERNAL_FLAGS := -L$(CARDINAL_DIR)/lib -L$(NEK_LIBDIR) -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) \
-	$(NEK_LIB) -lgs -lopenmc \
-	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEK_LIBDIR) $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
+CARDINAL_EXTERNAL_FLAGS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) \
+	-lnekrs -lgs -lopenmc \
+	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
 
  include            $(FRAMEWORK_DIR)/app.mk
 
