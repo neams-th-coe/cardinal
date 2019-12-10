@@ -34,6 +34,7 @@ NekMesh::safeClone() const
 void
 NekMesh::buildMesh()
 {
+  /*
   // _mesh = _app.getNekMesh();
 
   Nek5000::FORTRAN_CALL(nek_pointscloud)();
@@ -69,4 +70,5 @@ NekMesh::buildMesh()
   }
 
   _mesh->prepare_for_use();
+  */
 }

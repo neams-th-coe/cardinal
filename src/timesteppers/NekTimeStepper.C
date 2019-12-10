@@ -32,7 +32,7 @@ NekTimeStepper::computeDT()
 void
 NekTimeStepper::step()
 {
-  FORTRAN_CALL(Nek5000::nek_step)();
+  //FORTRAN_CALL(Nek5000::nek_step)();
 }
 
 bool

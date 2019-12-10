@@ -18,7 +18,9 @@ validParams<NekApp>()
 
 NekApp::NekApp(InputParameters parameters) : MooseApp(parameters)
 {
+  /*
   Nek5000::FORTRAN_CALL(nek_init)(_communicator.get());
+  */
 
   registerAll(_factory, _action_factory, _syntax);
 }
