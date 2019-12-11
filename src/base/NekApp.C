@@ -31,22 +31,17 @@ validParams<NekApp>()
   return params;
 }
 
-NekApp::NekApp(InputParameters parameters) : MooseApp(parameters)
+NekApp::NekApp(InputParameters parameters) 
+  : MooseApp(parameters),
+    _setup_file(getParam<std::string>("nekrs_setup")),
+    _size_target(getParam<int>("nekrs_buildonly")),
+    _build_only(_size_target > 0 ? 1 : 0),
+    _ci_mode(getParam<int>("nekrs_cimode"))
 {
-  // Corresponds to cmdOptions struct in nekRS/src/main.cpp
-  // auto setup_file = parameters.get<std::string>("nekrs_setup") + ".par";
-  // auto size_target = parameters.get<int>("nekrs_buildonly");
-  // auto build_only = size_target > 0 ? 1 : 0;
-  // auto ci_mode = parameters.get<int>("nekrs_cimode");
-  // std::string cache_dir;
-
-  std::string setup_file{"ethier.par"};
-  int size_target = 0;
-  int build_only = 0;
-  int ci_mode = 0;
   std::string cache_dir;
 
-  nekrs::setup(_communicator.get(), build_only, size_target, ci_mode, cache_dir, setup_file);
+  nekrs::setup(_communicator.get(), _build_only, _size_target, _ci_mode, 
+      cache_dir, _setup_file + ".par");
 
   registerAll(_factory, _action_factory, _syntax);
 }

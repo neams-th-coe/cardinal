@@ -218,8 +218,6 @@ peacock_tmp_diff.exo
 
 # Cardinal
 bin/**
-include/**
-lib/**
 obj_*/**
 share/**
 nndc*/**
