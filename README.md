@@ -1,14 +1,26 @@
 # Cardinal
 
-## Build Instructions
+## Building and Running
 
-The top-level Makefile should build your app in one step.  You may build from another directory and
-point it to Cardinal's makefile using `make -f`.  The Makefile variables you should set (either in
-the file or through the `make` command) are Nek-related:
+### With NekRS
 
-* `NEK_CASEDIR`:  The path to the Nek input files (.usr, SIZE, mesh, and restart  files)
-* `NEK_CASENAME`:  The name of the Nek .usr file
+To build with NekRS, set the correct threading API (CUDA, OpenCL, or none) in `Makefile`.  Then, in
+the top-level directory, run `make`.  This will create the executable `cardinal-<mode>` in the
+top-level directory.
 
-After compiling, you should have the executable `cardinal-<casename>-opt` in the top-level cardinal
-directory (no matter where you build everything else).  The `<casename>` is the `NEK_CASENAME` that
-you provided to the makefile.  
+To run with NekRS, first you must export NekRS's configuration variables to your environment.
+These are defined in the file `bin/nekrs.bashrc`:
+
+```
+$ source bin/nekrs.bashrc
+```
+
+
+Then enter the directory with your NekRS case files and use a command such as:
+
+```
+$ mpirun -np 2 ~/repos/cardinal/cardinal-opt --app nek -i nek.i --nekrs-setup eddy
+```
+
+where `--nekrs-setup` is the basename of the `.par` and `.usr` files for your case.  
+
