@@ -22,8 +22,8 @@ CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
 NEKRS_DIR       ?= $(CONTRIB_DIR)/nekrs
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
-PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc
-PETSC_ARCH      ?= arch-moose
+PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc/arch-moose
+PETSC_ARCH      ?= 
 LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
 
 OCCA_CUDA_ENABLED=0
