@@ -152,6 +152,11 @@ c      implicit none
       include 'TOTAL'
       ifheat=.true.
 
+      param(93)=20
+      param(94)=3
+      param(95)=5
+      param(103)=0.05  
+
       return
       end
 c-----------------------------------------------------------------------
