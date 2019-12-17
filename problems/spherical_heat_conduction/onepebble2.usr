@@ -173,15 +173,25 @@ c      implicit none
 
       do e=1,nelt
       do f=1,6
+         boundaryID(f,e) = 0
          if (cbc(f,e,1).eq.'P  ') then
            cbc(f,e,2)='P  '
            do i=1,5
              bc(i,f,e,2)=bc(i,f,e,1)
            enddo
          endif
-         if (cbc(f,e,1).eq.'W  ') cbc(f,e,2)='f  '
-         if (cbc(f,e,1).eq.'O  ') cbc(f,e,2)='O  '
-         if (cbc(f,e,1).eq.'v  ') cbc(f,e,2)='t  '
+         if (cbc(f,e,1).eq.'W  ') then
+                cbc(f,e,2)='f  '
+                boundaryID(f,e) = 1
+         endif       
+         if (cbc(f,e,1).eq.'O  ') then
+                cbc(f,e,2)='I  '
+                boundaryID(f,e) = 2                        
+         endif
+         if (cbc(f,e,1).eq.'v  ') then
+                cbc(f,e,2)='t  '
+                boundaryID(f,e) = 3                        
+         endif
       enddo
       enddo
 

@@ -2,30 +2,28 @@
 # nek parameter file
 #
 [GENERAL] 
-startFrom = 'onepebble2.run05 XU'
+polynomialOrder = 5
+startFrom = onepebble2.run05
 numSteps = 10000
 dt = 1e-03
 writeInterval = 100
 extrapolation = OIFS
 targetCFL = 2.0
 
-[PROBLEMTYPE]
-equation = incompNS
-variableProperties = no
-
 [PRESSURE]
 residualTol = 1e-04
 residualProj = no
 
 [VELOCITY]
+boundaryTypeMap = W, O, v
 residualTol = 1e-04
 density = 2.0
 viscosity = 0.5
 
 [TEMPERATURE] # temperature with Hmholtz 
-conjugateHeatTransfer = no 
+boundaryTypeMap = f, I, t
 rhoCp = 100.0
 conductivity = 20.0
-residualTol = 1e-04
+residualTol = 1e-03
 residualProj = yes
 
