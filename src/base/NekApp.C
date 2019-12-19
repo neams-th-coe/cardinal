@@ -40,7 +40,7 @@ NekApp::NekApp(InputParameters parameters)
 {
   std::string cache_dir;
 
-  nekrs::setup(_communicator.get(), _build_only, _size_target, _ci_mode, 
+  nekrs::setup(MPI_COMM_WORLD, _build_only, _size_target, _ci_mode, 
       cache_dir, _setup_file + ".par");
 
   registerAll(_factory, _action_factory, _syntax);
