@@ -43,7 +43,7 @@ void NekProblem::externalSolve()
       if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
     }
 
-    nekrs::runStep(_time, _nTimeSteps);
+    nekrs::runStep(_time, _tstep);
 
     if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
     nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
