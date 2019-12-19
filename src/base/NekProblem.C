@@ -7,6 +7,7 @@
 #include "AuxiliarySystem.h"
 
 #include "NekInterface.h"
+#include "nekrs.hpp"
 
 registerMooseObject("NekApp", NekProblem);
 
@@ -20,19 +21,37 @@ validParams<NekProblem>()
 }
 
 NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
-                                                        _serialized_solution(NumericVector<Number>::build(_communicator).release())
+                                                        _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+    _dt(nekrs::dt()),
+    _outputStep(nekrs::outputStep()),
+    _nTimeSteps(nekrs::NtimeSteps()),
+    _startTime(nekrs::startTime()),
+    _finalTime(nekrs::finalTime()),
+    _time(nekrs::startTime())
 {
 }
 
 
 void NekProblem::externalSolve()
 {
-  /*
-  _console << "Beginning Nek5000 external solve";
-  Nek5000::FORTRAN_CALL(nek_init_step)();
-  Nek5000::FORTRAN_CALL(nek_step)();
-  Nek5000::FORTRAN_CALL(nek_finalize_step)();
-  */
+  if (_time < _finalTime) {
+
+    ++_tstep;
+    
+    int isOutputStep = 0;
+    if (_outputStep > 0) {
+      if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
+    }
+
+    nekrs::runStep(_time, _nTimeSteps);
+
+    if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
+    nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
+    if (isOutputStep) nekrs::nekOutfld();
+
+    _time += _dt;
+
+  }
 }
 
 void NekProblem::syncSolutions(ExternalProblem::Direction direction)
