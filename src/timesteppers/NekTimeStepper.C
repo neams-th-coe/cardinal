@@ -1,5 +1,6 @@
 #include "NekTimeStepper.h"
 #include "NekInterface.h"
+#include "nekrs.hpp"
 
 template<>
 InputParameters validParams<NekTimeStepper>()
