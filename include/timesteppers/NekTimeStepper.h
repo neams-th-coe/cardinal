@@ -21,5 +21,12 @@ protected:
 
 private:
   Real _dt;
+  int _outputStep;
+  int _nTimeSteps;
+  double _startTime;
+  double _finalTime;
+  double _time;
+  int _tstep = 0;
+
 };
 #endif //CARDINAL_NEKTIMESTEPPER_H

@@ -11,7 +11,12 @@ InputParameters validParams<NekTimeStepper>()
 
 NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
     TimeStepper(parameters),
-    _dt(getParam<Real>("dt"))
+    _dt(nekrs::dt()),
+    _outputStep(nekrs::outputStep()),
+    _nTimeSteps(nekrs::NtimeSteps),
+    _startTime(nekrs::startTime()),
+    _finalTime(nekrs::finalTime()),
+    _time(_startTime)
 {
 }
 
@@ -32,7 +37,24 @@ NekTimeStepper::computeDT()
 void
 NekTimeStepper::step()
 {
-  //FORTRAN_CALL(Nek5000::nek_step)();
+  if (_time < _finalTime) {
+
+    ++_tstep;
+    
+    int isOutputStep = 0;
+    if (_outputStep > 0) {
+      if (tStep%_outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
+    }
+
+    nekrs::runStep(_time, _nTimeSteps);
+
+    if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
+    nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
+    if (isOutputStep) nekrs::nekOutfld();
+
+    _time += _dt;
+
+  }
 }
 
 bool
