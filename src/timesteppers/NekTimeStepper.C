@@ -14,10 +14,10 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
     TimeStepper(parameters),
     _dt(nekrs::dt()),
     _outputStep(nekrs::outputStep()),
-    _nTimeSteps(nekrs::NtimeSteps),
+    _nTimeSteps(nekrs::NtimeSteps()),
     _startTime(nekrs::startTime()),
     _finalTime(nekrs::finalTime()),
-    _time(_startTime)
+    _time(nekrs::startTime())
 {
 }
 
@@ -44,7 +44,7 @@ NekTimeStepper::step()
     
     int isOutputStep = 0;
     if (_outputStep > 0) {
-      if (tStep%_outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
+      if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
     }
 
     nekrs::runStep(_time, _nTimeSteps);
