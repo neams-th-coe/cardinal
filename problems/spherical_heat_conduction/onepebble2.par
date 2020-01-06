@@ -2,7 +2,7 @@
 # nek parameter file
 #
 [GENERAL] 
-polynomialOrder = 5
+polynomialOrder = 7
 startFrom = onepebble2.run05
 numSteps = 10000
 dt = 1e-03
@@ -11,6 +11,8 @@ extrapolation = OIFS
 targetCFL = 2.0
 
 [PRESSURE]
+preconditioner = semg_amg
+amgSolver = parAlmond
 residualTol = 1e-04
 residualProj = no
 
@@ -23,7 +25,7 @@ viscosity = 0.5
 [TEMPERATURE] # temperature with Hmholtz 
 boundaryTypeMap = f, I, t
 rhoCp = 100.0
-conductivity = 20.0
+conductivity = 2.0
 residualTol = 1e-03
 residualProj = yes
 
