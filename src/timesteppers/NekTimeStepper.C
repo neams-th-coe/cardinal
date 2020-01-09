@@ -38,6 +38,7 @@ NekTimeStepper::computeDT()
 void
 NekTimeStepper::step()
 {
+  // TODO:  Was this changed in the driver?
   if (_time < _finalTime) {
 
     ++_tstep;
@@ -47,7 +48,7 @@ NekTimeStepper::step()
       if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
     }
 
-    nekrs::runStep(_time, _nTimeSteps);
+    nekrs::runStep(_time, _dt, _nTimeSteps);
 
     if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
     nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);

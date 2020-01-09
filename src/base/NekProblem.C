@@ -34,6 +34,7 @@ NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
 
 void NekProblem::externalSolve()
 {
+  // TODO:  Was this changed in driver?
   if (_time < _finalTime) {
 
     ++_tstep;
@@ -43,7 +44,7 @@ void NekProblem::externalSolve()
       if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
     }
 
-    nekrs::runStep(_time, _tstep);
+    nekrs::runStep(_time, _dt, _tstep);
 
     if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
     nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);

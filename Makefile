@@ -38,6 +38,25 @@ OCCA_OPENCL_ENABLED=0
 include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
 
 # ======================================================================================
+# HDF5
+# ======================================================================================
+ifndef $(HDF5_INCLUDE_DIR)
+	ifdef $(HDF5_ROOT)
+		HDF5_INCLUDE_DIR = $(HDF5_ROOT)/include
+	else
+		HDF5_INCLUDE_DIR = /usr/include
+	endif
+endif
+
+ifndef $(HDF5_LIBDIR)
+	ifdef $(HDF5_ROOT)
+	  HDF5_LIBDIR = $(HDF5_ROOT)/lib
+	else
+		HDF5_LIBDIR = /usr/lib
+	endif
+endif
+
+# ======================================================================================
 # MOOSE
 # ======================================================================================
 
@@ -104,12 +123,12 @@ include            $(CARDINAL_DIR)/config/openmc.mk
 ADDITIONAL_DEPEND_LIBS := $(NEKRS_LIB) $(OPENMC_LIB)
 ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) -lnekrs -lopenmc \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
-ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(NEKRS_DIR)/src -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor \
+ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(NEKRS_DIR)/src -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor  -I$(HDF5_INCLUDE_DIR) \
 	-I$(OPENMC_DIR)/vendor/pugixml -I$(OPENMC_DIR)/vendor/xtensor/include \
-	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include
-CARDINAL_EXTERNAL_FLAGS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) \
+	-I$(OPENMC_DIR)/vendor/xtl/include
+CARDINAL_EXTERNAL_FLAGS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) \
 	-lnekrs -lopenmc \
-	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
+	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
 
  include            $(FRAMEWORK_DIR)/app.mk
 
