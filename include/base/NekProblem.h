@@ -29,12 +29,10 @@ protected:
   unsigned int _temp_var;
   unsigned int _avg_flux_var;
   Real _dt;
-  int _outputStep;
-  int _nTimeSteps;
-  double _startTime;
-  double _finalTime;
-  double _time;
-  int _tstep = 0;
+  int _output_step;
+  int _n_timesteps;
+  double _start_time;
+  double _final_time;
 };
 
 #endif //CARDINAL_NEKPROBLEM_H
