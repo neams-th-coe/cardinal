@@ -23,37 +23,35 @@ validParams<NekProblem>()
 NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
                                                         _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _dt(nekrs::dt()),
-    _output_step(nekrs::outputStep()),
-    _n_timesteps(nekrs::NtimeSteps()),
-    _start_time(nekrs::startTime()),
-    _final_time(nekrs::finalTime())
+    _outputStep(nekrs::outputStep()),
+    _nTimeSteps(nekrs::NtimeSteps()),
+    _startTime(nekrs::startTime()),
+    _finalTime(nekrs::finalTime()),
+    _time(nekrs::startTime())
 {
 }
 
 
 void NekProblem::externalSolve()
 {
-  auto time = _start_time;
-  int tstep = 1;
-  // 1e-10 is from nekrs main(), not sure why
-  while (time + 1e-10 < _final_time) {
-    auto is_output_step = (_output_step > 0) && 
-        (tstep % _output_step == 0 || tstep == _n_timesteps);
+  // TODO:  Was this changed in driver?
+  if (_time < _finalTime) {
 
-    nekrs::runStep(time, _dt, tstep);
-    time += _dt;
-
-    if (is_output_step) {
-      nekrs::copyToNek(time, tstep);
+    ++_tstep;
+    
+    int isOutputStep = 0;
+    if (_outputStep > 0) {
+      if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
     }
 
-    nekrs::udfExecuteStep(time, tstep, (int) is_output_step);
+    nekrs::runStep(_time, _dt, _tstep);
 
-    if (is_output_step) {
-      nekrs::nekOutfld();
-    }
+    if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
+    nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
+    if (isOutputStep) nekrs::nekOutfld();
 
-    ++tstep;
+    _time += _dt;
+
   }
 }
 
