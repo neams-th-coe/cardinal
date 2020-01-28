@@ -21,4 +21,4 @@
 [submodule "contrib/nekrs"]
 	path = contrib/nekrs
 	url = https://xgitlab.cels.anl.gov/neams-th-coe/nekrs.git
-  branch = fix
+  branch = cardinal
