@@ -11,7 +11,7 @@ variables:
 stages:
   - build_petsc
   - build_libmesh
-  - build_onepebble2
+  - build_onepebble
   - download
   - test
 
@@ -20,7 +20,6 @@ build_petsc:petsc:
   variables:
     GIT_STRATEGY: fetch
   script: 
-    - env | sort
     - cd contrib/moose
     - scripts/update_and_rebuild_petsc.sh
 
@@ -29,48 +28,29 @@ build_libmesh:libmesh:
   dependencies:
     - build_petsc:petsc
   script: 
-    - env | sort
     - cd contrib/moose
     - scripts/update_and_rebuild_libmesh.sh
 
-build_onepebble2:onepebble2:
-  stage: build_onepebble2
+build_onepebble:onepebble:
+  stage: build_onepebble
   dependencies:
     - build_petsc:petsc
     - build_libmesh:libmesh
   script:
-    - env | sort
-    - make -j4 HDF5_ROOT="$HDF5_ROOT" HDF5_INCLUDE_DIR="$HDF5_ROOT/include"
+    - make -j4 NEK_CASENAME=onepebble NEK_CASEDIR="$CI_PROJECT_DIR/problems/spherical_heat_conduction"
 
 download:cross_sections:
   stage: download
   script:
-    - env | sort
     - if [[ ! -e $OPENMC_CROSS_SECTIONS ]]; then wget -q -O - https://anl.box.com/shared/static/pzutl4i2717yypv12l78l7fn5nmg6grs.xz | tar -C $CI_PROJECT_DIR -xJ; fi
     - if [[ ! -d $OPENMC_ENDF_DATA/neutrons || ! -d $OPENMC_ENDF_DATA/photoat || ! -d $OPENMC_ENDF_DATA/atomic_relax ]]; then wget -q -O - https://anl.box.com/shared/static/4kd2gxnf4gtk4w1c8eua5fsua22kvgjb.xz | tar -C $CI_PROJECT_DIR -xJ; fi
 
-test:onepebble2_openmc:
+test:onepebble_openmc:
   stage: test
   dependencies:
-    - build_onepebble2:onepebble2
+    - build_onepebble:onepebble
     - download:cross_sections
-  allow_failure: true
-  timeout: 30m
   script:
-    - env | sort
     - cd problems/spherical_heat_conduction
-    - mpirun -np 4 "$CI_PROJECT_DIR/cardinal-opt" --app openmc -i openmc.i --n-threads=8
-
-test:onepebble2_nekrs:
-  stage: test
-  dependencies:
-    - build_onepebble2:onepebble2
-  allow_failure: true
-  timeout: 30m
-  variables:
-    NEKRS_HOME: $CI_PROJECT_DIR
-  script:
-    - env | sort
-    - cd problems/spherical_heat_conduction
-    - mpirun -np 4 "$CI_PROJECT_DIR/cardinal-opt" --app nek -i nek.i --nekrs-setup onepebble2
+    - mpirun -np 2 "$CI_PROJECT_DIR/cardinal-onepebble-opt" --app openmc -i openmc.i --n-threads=8
 
