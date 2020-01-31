@@ -21,12 +21,12 @@
   num_steps = 5
 []
 
-[Outputs]
-  [exo]
-    type = Exodus
-    output_dimension = 3
-  []
-[]
+# [Outputs]
+#   [exo]
+#     type = Exodus
+#     output_dimension = 3
+#   []
+# []
 
 [Postprocessors]
   [total_flux]
