@@ -89,9 +89,8 @@ void FORTRAN_CALL(nek_step)();              // call for each picard iteration wi
 void FORTRAN_CALL(nek_finalize_step)();     // call at the end of step
 void FORTRAN_CALL(nek_interpolation)();  // to be called before extracting data from common blocks
 void FORTRAN_CALL(nek_pointscloud)();    // to be called before extracting point cloud locations from common blocks
+void FORTRAN_CALL(flux_reconstruction)(); // to be called after loading flux data in common blocks
 }
-
-double *flux_recon = reinterpret_cast<double *>(nekrs::nekPtr("flux_recon"));
 }
 */
 
