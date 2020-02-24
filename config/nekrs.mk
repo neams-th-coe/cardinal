@@ -13,14 +13,12 @@ export OCCA_CUDA_ENABLED
 export OCCA_HIP_ENABLED
 export OCCA_OPENCL_ENABLED
 
-$(NEKRS_LIB):
+$(NEKRS_LIB): .FORCE
 	mkdir -p $(NEKRS_OBJDIR)
 	cd $(NEKRS_DIR) && ./makenrs
-
-libnekrs: $(NEKRS_LIB)
 
 clean_nekrs:
 	cd $(NEKRS_DIR) && ./makenrs clean
 
-.PHONY: libnekrs
+.FORCE: 
 

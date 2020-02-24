@@ -25,6 +25,8 @@ OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc/arch-moose
 PETSC_ARCH      ?= 
 LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
+LIBPARANUMAL_DIR ?= $(NEKRS_DIR)/build/3rd_party/libparanumal
+OCCA_DIR        ?= $(NEKRS_DIR)/build/3rd_party/occa
 
 OCCA_CUDA_ENABLED=0
 OCCA_HIP_ENABLED=0
@@ -125,7 +127,11 @@ ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) -l
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(NEKRS_DIR)/src -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor  -I$(HDF5_INCLUDE_DIR) \
 	-I$(OPENMC_DIR)/vendor/pugixml -I$(OPENMC_DIR)/vendor/xtensor/include \
-	-I$(OPENMC_DIR)/vendor/xtl/include
+	-I$(OPENMC_DIR)/vendor/xtl/include \
+	-I$(LIBPARANUMAL_DIR)/include -I$(LIBPARANUMAL_DIR)/libs/gatherScatter -I$(LIBPARANUMAL_DIR)/libs/gatherScatter/include \
+	-I$(LIBPARANUMAL_DIR)/libs/parAlmond -I$(LIBPARANUMAL_DIR)/libs/parAlmond/include -I$(LIBPARANUMAL_DIR)/solvers/elliptic \
+	-I$(NEKRS_DIR)/build/3rd_party/occa/include
+ADDITIONAL_APP_DEPS := $(NEKRS_LIB)
 CARDINAL_EXTERNAL_FLAGS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) \
 	-lnekrs -lopenmc \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
