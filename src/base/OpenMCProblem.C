@@ -50,14 +50,11 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   }
 
   // Setup cell filter
-  _filter->cells_ = _cellIndices;
-  _filter->n_bins_ = _filter->cells_.size();
-  for (int i = 0; i < _filter->cells_.size(); ++i) {
-    _filter->map_[_filter->cells_[i]] = i;
-  }
+  _filter->set_cells(_cellIndices);
 
   // Setup fission tally
-  _tally->set_filters(&_filterIndex, 1);
+  std::vector<openmc::Filter*> filter_indices = {_filter};
+  _tally->set_filters(filter_indices);
   _tally->set_scores({"kappa-fission"});
 }
 
@@ -177,7 +174,7 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
   MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Determine energy production in each material
-  auto meanValue = xt::view(_tally->results_, xt::all(), 0, openmc::RESULT_SUM);
+  auto meanValue = xt::view(_tally->results_, xt::all(), 0, openmc::TallyResult::SUM);
   const double JOULE_PER_EV = 1.6021766208e-19;
   xt::xtensor<double, 1> heat = JOULE_PER_EV * meanValue / m;
 
@@ -206,7 +203,7 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
 }
 
 double OpenMCProblem::get_cell_volume(int cellIndex) {
-  int fillType = openmc::FILTER_CELL;
+  int fillType {};
   int32_t *matIndices = nullptr;
   int nMat = 0;
   openmc_cell_get_fill(cellIndex, &fillType, &matIndices, &nMat);
