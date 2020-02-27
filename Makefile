@@ -109,8 +109,8 @@ ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib -L$(NEK_LIBDIR) -L$(GS_LIBDIR) -L$(OPEN
 	 $(NEK_LIB) -lgs -lopenmc \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEK_LIBDIR) $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor \
-	-I$(OPENMC_DIR)/vendor/pugixml -I$(OPENMC_DIR)/vendor/xtensor/include \
-	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include
+	-I$(OPENMC_DIR)/vendor/pugixml/src -I$(OPENMC_DIR)/vendor/xtensor/include \
+	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include -I$(OPENMC_DIR)/vendor/gsl-lite/include/
 CARDINAL_EXTERNAL_FLAGS := -L$(CARDINAL_DIR)/lib -L$(NEK_LIBDIR) -L$(GS_LIBDIR) -L$(OPENMC_LIBDIR) \
 	$(NEK_LIB) -lgs -lopenmc \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEK_LIBDIR) $(CC_LINKER_SLFLAG)$(GS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
