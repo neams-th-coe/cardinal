@@ -2,6 +2,8 @@
 #define CARDINAL_NEKINTERFACE_H
 
 #include "Moose.h"
+#include "nekrs.hpp"
+#include "nekInterface/nekInterfaceAdapter.hpp"
 
 // String length for file paths in Nek5000
 #define PATHLEN 132

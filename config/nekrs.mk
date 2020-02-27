@@ -1,7 +1,7 @@
 export NEKRS_INSTALL_DIR := $(CURDIR)
 export NEKRS_OBJDIR := $(CURDIR)/obj_nekrs
 export NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
-export NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so
+export NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so 
 
 export NEKRS_CC := $(libmesh_CC)
 export NEKRS_CXX := $(libmesh_CXX)
@@ -13,14 +13,14 @@ export OCCA_CUDA_ENABLED
 export OCCA_HIP_ENABLED
 export OCCA_OPENCL_ENABLED
 
-$(NEKRS_LIB):
+libnekrs: $(NEKRS_LIB)
+
+$(NEKRS_LIB): .FORCE
 	mkdir -p $(NEKRS_OBJDIR)
 	cd $(NEKRS_DIR) && ./makenrs
-
-libnekrs: $(NEKRS_LIB)
 
 clean_nekrs:
 	cd $(NEKRS_DIR) && ./makenrs clean
 
-.PHONY: libnekrs
+.FORCE: 
 

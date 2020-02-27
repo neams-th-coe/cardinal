@@ -20,4 +20,4 @@
   branch = master
 [submodule "contrib/nekrs"]
 	path = contrib/nekrs
-	url = https://xgitlab.cels.anl.gov/neams-th-coe/nekrs.git
+	url = https://github.com/Nek5000/nekRS.git
