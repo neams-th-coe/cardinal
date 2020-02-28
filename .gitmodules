@@ -8,7 +8,7 @@
   branch = cardinal
 [submodule "contrib/openmc"]
 	path = contrib/openmc
-	url = https://github.com/openmc-dev/openmc.git
+	url = https://github.com/pshriwise/openmc.git
   branch = develop
 [submodule "contrib/gslib"]
 	path = contrib/gslib
