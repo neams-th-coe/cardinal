@@ -19,7 +19,7 @@ build_petsc:petsc:
   stage: build_petsc
   variables:
     GIT_STRATEGY: fetch
-  script: 
+  script:
     - cd contrib/moose
     - scripts/update_and_rebuild_petsc.sh
 
@@ -27,7 +27,7 @@ build_libmesh:libmesh:
   stage: build_libmesh
   dependencies:
     - build_petsc:petsc
-  script: 
+  script:
     - cd contrib/moose
     - scripts/update_and_rebuild_libmesh.sh
 
@@ -42,7 +42,7 @@ build_onepebble:onepebble:
 download:cross_sections:
   stage: download
   script:
-    - if [[ ! -e $OPENMC_CROSS_SECTIONS ]]; then wget -q -O - https://anl.box.com/shared/static/pzutl4i2717yypv12l78l7fn5nmg6grs.xz | tar -C $CI_PROJECT_DIR -xJ; fi
+    - if [[ ! -e $OPENMC_CROSS_SECTIONS ]]; then wget -q -O - https://anl.box.com/shared/static/teaup95cqv8s9nn56hfn7ku8mmelr95p.xz | tar -C $CI_PROJECT_DIR -xJ; fi
     - if [[ ! -d $OPENMC_ENDF_DATA/neutrons || ! -d $OPENMC_ENDF_DATA/photoat || ! -d $OPENMC_ENDF_DATA/atomic_relax ]]; then wget -q -O - https://anl.box.com/shared/static/4kd2gxnf4gtk4w1c8eua5fsua22kvgjb.xz | tar -C $CI_PROJECT_DIR -xJ; fi
 
 test:onepebble_openmc:
@@ -53,4 +53,3 @@ test:onepebble_openmc:
   script:
     - cd problems/spherical_heat_conduction
     - mpirun -np 2 "$CI_PROJECT_DIR/cardinal-onepebble-opt" --app openmc -i openmc.i --n-threads=8
-
