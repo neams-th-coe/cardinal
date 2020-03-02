@@ -18,7 +18,7 @@ stages:
 build_petsc:petsc:
   stage: build_petsc
   variables:
-    GIT_STRATEGY: fetch
+    GIT_STRATEGY: clone
   script: 
     - env | sort
     - cd contrib/moose
