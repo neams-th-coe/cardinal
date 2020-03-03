@@ -20,7 +20,7 @@
 CARDINAL_DIR    := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
-NEKRS_DIR       ?= $(CONTRIB_DIR)/nekrs
+NEKRS_DIR       ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc/arch-moose
 PETSC_ARCH      ?= 

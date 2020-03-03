@@ -1,0 +1,11 @@
+      common /nekmpi/ mid,mp,nekcomm,nekgroup,nekreal
+      integer         mid,mp,nekcomm,nekgroup,nekreal
+
+      common /c_is1/  glo_num((2**ldim)*lelt)
+      integer*8       glo_num
+
+      COMMON /SCNRS/ SC_NRS(LX1*LY1*LZ1*LELT*3)
+      real           SC_NRS
+
+      common /INTNRS/ getu, getp, llelt
+      integer         getu, getp, llelt
