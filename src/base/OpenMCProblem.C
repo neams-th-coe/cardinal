@@ -45,7 +45,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     p.r() = {c(0), c(1), c(2)};
     p.u() = {0., 0., 1.};
     openmc::find_cell(&p, false);
-    _cellIndices.push_back(p.coord_[0].cell);
+    _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
     _cellInstances.push_back(p.cell_instance_);
   }
 
@@ -93,7 +93,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       for (int i=0; i < _cellIndices.size(); ++i)
       {
         double T = average_temp.spatialValue(_centers[i]);
-//        std::cout << T << std::endl;
+        // T = 300;
+        std::cout << "Temp: " << T << std::endl;
         openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
       }
       break;
@@ -176,7 +177,9 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
   // Determine energy production in each material
   auto meanValue = xt::view(_tally->results_, xt::all(), 0, openmc::TallyResult::SUM);
   const double JOULE_PER_EV = 1.6021766208e-19;
-  xt::xtensor<double, 1> heat = JOULE_PER_EV * meanValue / m;
+  xt::xtensor<double, 1> heat = meanValue;
+  heat *= JOULE_PER_EV;
+  heat /= m;
 
   // Get total heat production [J/source]
   double totalHeat = xt::sum(heat)();
