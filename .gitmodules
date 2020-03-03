@@ -18,6 +18,3 @@
 	path = problems/large-problems
 	url = https://xgitlab.cels.anl.gov/neams-th-coe/large-problems.git
   branch = master
-[submodule "contrib/nekrs"]
-	path = contrib/nekrs
-	url = https://github.com/Nek5000/nekRS.git
