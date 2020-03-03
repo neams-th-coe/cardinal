@@ -93,7 +93,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       for (int i=0; i < _cellIndices.size(); ++i)
       {
         double T = average_temp.spatialValue(_centers[i]);
-        // T = 300;
+        T = 300;
         std::cout << "Temp: " << T << std::endl;
         openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
       }
