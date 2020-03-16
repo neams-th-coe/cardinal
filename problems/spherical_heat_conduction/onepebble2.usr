@@ -1,3 +1,4 @@
+      include 'nek_moose.f'
 c-----------------------------------------------------------------------
 c  nek5000 user-file template
 c
@@ -120,8 +121,6 @@ c-----------------------------------------------------------------------
 
 c      implicit none
 
-      include 'SIZE'
-      include 'TOTAL'
       ifflow=.false. 
       n=lx1*ly1*lz1*nelt
 
@@ -132,6 +131,11 @@ c       ym1(i,1,1,1)=ym1(i,1,1,1)*100.0
 c       zm1(i,1,1,1)=zm1(i,1,1,1)*100.0 
 c      enddo 
 c      call fix_geom(2)
+c      endif 
+
+c      if (istep.eq.0) sc_nrs(1) = 2.0
+c      if (nid.eq.0) then 
+c        write(6,*) "Test for Cardinal :", SC_NRS(1)
 c      endif 
 
       return
@@ -166,6 +170,9 @@ c      implicit none
 
       include 'SIZE'
       include 'TOTAL'
+      include 'NEKMOOSE'
+      COMMON /SCNRS/ SC_NRS(LX1*LY1*LZ1*LELT*7)
+      real           SC_NRS
       common /flux_reconstructed/flux_recon(lx1,ly1,lz1,lelt)
 
       integer f,e
@@ -199,7 +206,32 @@ c      implicit none
       call setup_topo
 
       call rzero(flux_recon,n)
+      call nek_pointscloud()
 
+c      storing information in common
+c      parameter (lsurf_m=60000)
+c      common /point_cloudx/ pc_x(lsurf_m*4)
+c      common /point_cloudy/ pc_y(lsurf_m*4)
+c      common /point_cloudz/ pc_z(lsurf_m*4)
+c      common /point_cloudt/ pc_t(lsurf_m*4)
+c      common /point_cloudf/ pc_f(lsurf_m*4)
+c      common /ref_element/  pc_flag(lsurf_m*4)
+c      common /tot_surf/ nw_bdt
+
+  
+      sc_nrs(1)=nw_bdt
+      do i=1,nw_bdt*4
+        sc_nrs(1+i)=pc_x(i)
+        sc_nrs(1+i+nw_bdt*4)=pc_y(i)          
+        sc_nrs(1+i+nw_bdt*4*2)=pc_z(i) 
+      enddo
+
+      if (nid.eq.0) then
+        do i=1,nw_bdt*4
+           write (6,*)i,pc_x(i),pc_y(i),pc_z(i)
+        enddo  
+      endif
+ 
       return
       end
 c-----------------------------------------------------------------------
