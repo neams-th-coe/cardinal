@@ -75,6 +75,16 @@ void OpenMCProblem::addExternalVariables()
 
     // Will receive values from the master
     addUserObject("NearestPointReceiver", "average_temp", receiver_params);
+
+    // Initialize temperatures
+    std::vector<Real> initial_temps;
+    for (int i = 0; i < _cellIndices.size(); ++i) {
+      double T;
+      openmc_cell_get_temperature(_cellIndices[i], &(_cellInstances[i]), &T);
+      initial_temps.push_back(T);
+    }
+    auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
+    average_temp.setValues(initial_temps);
   }
 }
 
@@ -93,7 +103,6 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       for (int i=0; i < _cellIndices.size(); ++i)
       {
         double T = average_temp.spatialValue(_centers[i]);
-        T = 300;
         std::cout << "Temp: " << T << std::endl;
         openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
       }
