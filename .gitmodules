@@ -1,6 +1,6 @@
 [submodule "moose"]
 	path = contrib/moose
-	url = https://github.com/idaholab/moose.git
+	url = https://github.com/pshriwise/moose.git
 	branch = master
 [submodule "contrib/Nek5000"]
 	path = contrib/Nek5000
