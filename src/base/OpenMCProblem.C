@@ -4,10 +4,13 @@
 
 #include "NearestPointReceiver.h"
 
+#define LIBMESH
+
 #include "mpi.h"
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
+#include "openmc/mesh.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "xtensor/xarray.hpp"
@@ -38,6 +41,10 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _filter(dynamic_cast<openmc::CellFilter*>(openmc::model::tally_filters[_filterIndex].get())),
   _tally(openmc::model::tallies[_tallyIndex])
 {
+  // add an unstructured mesh
+  int mesh_id;
+  openmc_add_unstructured_mesh("pebble_mesh.exo", "libmesh", &mesh_id);
+
   // Find cell for each pebble center
   // _centers is initialized with the pebble centers from .i file
   for (auto &c : _centers) {
@@ -51,6 +58,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 
   // Setup cell filter
   _filter->set_cells(_cellIndices);
+
 
   // Setup fission tally
   std::vector<openmc::Filter*> filter_indices = {_filter};
