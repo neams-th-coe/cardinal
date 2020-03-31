@@ -1,20 +1,20 @@
 [submodule "moose"]
 	path = contrib/moose
 	url = https://github.com/pshriwise/moose.git
-	branch = filter_mesh_translation_rebase
+	branch = libmesh_update
 [submodule "contrib/Nek5000"]
 	path = contrib/Nek5000
 	url = https://github.com/RonRahaman/Nek5000.git
-  branch = cardinal
+        branch = cardinal
 [submodule "contrib/openmc"]
 	path = contrib/openmc
 	url = https://github.com/pshriwise/openmc.git
-  branch = libmesh_umesh
+        branch = filter_mesh_translation_rebase
 [submodule "contrib/gslib"]
 	path = contrib/gslib
 	url = https://github.com/gslib/gslib.git
-  branch = v1.0.3
+        branch = v1.0.3
 [submodule "problems/large-problems"]
 	path = problems/large-problems
 	url = https://xgitlab.cels.anl.gov/neams-th-coe/large-problems.git
-  branch = master
+        branch = master
