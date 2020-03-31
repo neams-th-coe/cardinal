@@ -1,7 +1,7 @@
 [submodule "moose"]
 	path = contrib/moose
 	url = https://github.com/pshriwise/moose.git
-	branch = libmesh_update
+	branch = filter_mesh_translation_rebase
 [submodule "contrib/Nek5000"]
 	path = contrib/Nek5000
 	url = https://github.com/RonRahaman/Nek5000.git

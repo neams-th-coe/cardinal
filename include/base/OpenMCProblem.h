@@ -3,6 +3,7 @@
 
 #include "ExternalProblem.h"
 #include "openmc/tallies/filter_cell.h"
+#include "openmc/tallies/filter_mesh.h"
 #include "openmc/tallies/tally.h"
 
 class OpenMCProblem;
@@ -19,6 +20,7 @@ public:
   virtual void addExternalVariables() override;
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
+
 
   virtual bool converged() override { return true; }
 
@@ -40,10 +42,17 @@ private:
   int32_t _tallyIndex;
 
   openmc::CellFilter *_filter;
-  std::unique_ptr<openmc::Tally> &_tally;
 
   std::vector<int32_t> _cellIndices {};
   std::vector<int32_t> _cellInstances {};
+
+  int32_t _meshId;           //! ID of the unstructured mesh in OpenMC
+  int32_t _meshIndex;        //! Index of the unstructured mesh
+
+  std::vector<int32_t> _meshFilterIds;     //! Mesh filter IDs in OpenMC
+  std::vector<int32_t> _meshFilterIndices; //! Mesh filter indices in OpenMC
+  std::vector<int32_t> _meshTallyIds;      //! Mesh Tally IDs in OpenMC
+  std::vector<int32_t> _meshTallyIndices;  //! Tally indices for mesh tallies in OpenMC
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H

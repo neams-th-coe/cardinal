@@ -10,6 +10,7 @@
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
+#include "openmc/constants.h"
 #include "openmc/mesh.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
@@ -38,13 +39,8 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _filterIndex(getNewFilter(_filterId, "cell")),
   _tallyId(getTallyId()),
   _tallyIndex(getNewTally(_tallyId)),
-  _filter(dynamic_cast<openmc::CellFilter*>(openmc::model::tally_filters[_filterIndex].get())),
-  _tally(openmc::model::tallies[_tallyIndex])
+  _filter(dynamic_cast<openmc::CellFilter*>(openmc::model::tally_filters[_filterIndex].get()))
 {
-  // add an unstructured mesh
-  int mesh_id;
-  openmc_add_unstructured_mesh("pebble_mesh.exo", "libmesh", &mesh_id);
-
   // Find cell for each pebble center
   // _centers is initialized with the pebble centers from .i file
   for (auto &c : _centers) {
@@ -59,11 +55,48 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   // Setup cell filter
   _filter->set_cells(_cellIndices);
 
-
   // Setup fission tally
   std::vector<openmc::Filter*> filter_indices = {_filter};
-  _tally->set_filters(filter_indices);
-  _tally->set_scores({"kappa-fission"});
+  auto& tally = openmc::model::tallies[_tallyIndex];
+  tally->set_filters(filter_indices);
+  tally->set_scores({"kappa-fission"});
+
+  // add an unstructured mesh
+  openmc_add_unstructured_mesh("pebble_mesh.exo", "libmesh", &_meshId);
+  openmc_get_mesh_index(_meshId, &_meshIndex);
+
+  for (auto& c : _centers) {
+    // create a new mesh filter
+    int meshFilterId;
+    openmc_get_filter_next_id(&meshFilterId);
+
+    int meshFilterIndex;
+    openmc_new_filter("mesh", &meshFilterIndex);
+    openmc_filter_set_id(meshFilterIndex, meshFilterId);
+    _meshFilterIndices.push_back(meshFilterIndex);
+    _meshFilterIds.push_back(meshFilterId);
+
+    openmc::MeshFilter* meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::model::tally_filters[meshFilterIndex].get());
+    meshFilter->set_mesh(_meshIndex);
+    meshFilter->set_translation({c(0), c(1), c(2)});
+
+    // apply the mesh filter to a tally
+    int meshTallyId;
+    openmc_get_tally_next_id(&meshTallyId);
+    int meshTallyIndex;
+    openmc_extend_tallies(1, &meshTallyIndex, nullptr);
+    openmc_tally_set_id(meshTallyIndex, meshTallyId);
+    _meshTallyIds.push_back(meshTallyId);
+    _meshTallyIndices.push_back(meshTallyIndex);
+
+    // apply mesh to the filter
+    std::vector<openmc::Filter*> mesh_filters = {meshFilter};
+    auto& meshTally = openmc::model::tallies[meshTallyIndex];
+    meshTally->set_filters(mesh_filters);
+    meshTally->set_scores({"kappa-fission"});
+    meshTally->estimator_ = openmc::TallyEstimator::COLLISION;
+  }
+
 }
 
 
@@ -184,15 +217,15 @@ int32_t OpenMCProblem::getNewTally(int32_t tallyId)
 
 xt::xtensor<double, 1> OpenMCProblem::heat_source()
 {
-  // Determine number of realizatoins for normalizing tallies
-  int m = _tally->n_realizations_;
+  // Determine number of realizations for normalizing tallies
+  int m = openmc::model::tallies[_tallyIndex]->n_realizations_;
 
   // Broadcast number of realizations
   // TODO: Change OpenMC so that it's correct on all ranks
   MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Determine energy production in each material
-  auto meanValue = xt::view(_tally->results_, xt::all(), 0, openmc::TallyResult::SUM);
+  auto meanValue = xt::view(openmc::model::tallies[_tallyIndex]->results_, xt::all(), 0, openmc::TallyResult::SUM);
   const double JOULE_PER_EV = 1.6021766208e-19;
   xt::xtensor<double, 1> heat = meanValue;
   heat *= JOULE_PER_EV;
