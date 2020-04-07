@@ -144,7 +144,6 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       for (int i=0; i < _cellIndices.size(); ++i)
       {
         double T = average_temp.spatialValue(_centers[i]);
-        std::cout << "Temp: " << T << std::endl;
         openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
       }
       break;
@@ -234,10 +233,6 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
   // Get total heat production [J/source]
   double totalHeat = xt::sum(heat)();
 
-  // Debug
-//  _console << "*** Power: " << _power << std::endl;
-//  _console << "*** Total heat: " << totalHeat << std::endl;
-
   // Normalize heat source in each material and collect in an array
   for (int i = 0; i < _cellIndices.size(); ++i) {
     double V = _volumes[i];
@@ -246,9 +241,6 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
     // givens an absolute value in W
     heat(i) *= _power / (totalHeat * V);
 
-    // Debug
-//    _console << "*** Volume[" << i << "]: " << V << std::endl;
-//    _console << "*** Heat[" << i << "]: " << heat(i) << std::endl;
   }
 
   return heat;
