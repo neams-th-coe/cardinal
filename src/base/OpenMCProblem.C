@@ -48,6 +48,10 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 
   auto& m = mesh().getMesh();
 
+  if (openmc::settings::libmesh_comm) {
+    std::cerr << "Warning: LibMesh communicator already set in OpenMC." << std::endl;
+
+  }
   openmc::settings::libmesh_comm = &m.comm();
 
   // Find cell for each pebble center
