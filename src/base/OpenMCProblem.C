@@ -14,6 +14,7 @@
 #include "openmc/mesh.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
+#include "openmc/settings.h"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
@@ -41,6 +42,14 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _tallyIndex(getNewTally(_tallyId)),
   _filter(dynamic_cast<openmc::CellFilter*>(openmc::model::tally_filters[_filterIndex].get()))
 {
+
+  int err;
+
+
+  auto& m = mesh().getMesh();
+
+  openmc::settings::libmesh_comm = &m.comm();
+
   // Find cell for each pebble center
   // _centers is initialized with the pebble centers from .i file
   for (auto &c : _centers) {
@@ -62,8 +71,11 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   tally->set_scores({"kappa-fission"});
 
   // add an unstructured mesh
-  openmc_add_unstructured_mesh("pebble_mesh.exo", "libmesh", &_meshId);
-  openmc_get_mesh_index(_meshId, &_meshIndex);
+  err = openmc_add_unstructured_mesh("sphere.e", "libmesh", &_meshId);
+  if (err != 0) { std::cout << "OpenMC Error creating the unstructured mesh" << std::endl; }
+  err = openmc_get_mesh_index(_meshId, &_meshIndex);
+  if (err != 0) { std::cout << "OpenMC Error getting the mesh index" << std::endl; }
+
 
   for (auto& c : _centers) {
     // create a new mesh filter
@@ -71,8 +83,12 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     openmc_get_filter_next_id(&meshFilterId);
 
     int meshFilterIndex;
-    openmc_new_filter("mesh", &meshFilterIndex);
-    openmc_filter_set_id(meshFilterIndex, meshFilterId);
+    err = openmc_new_filter("mesh", &meshFilterIndex);
+    if (err != 0) { std::cout << "OpenMC Failed to create mesh filter" << std::endl; }
+
+    err = openmc_filter_set_id(meshFilterIndex, meshFilterId);
+    if (err != 0) { std::cout << "OpenMC Failed to set filter id" << std::endl; }
+
     _meshFilterIndices.push_back(meshFilterIndex);
     _meshFilterIds.push_back(meshFilterId);
 
@@ -83,9 +99,14 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     // apply the mesh filter to a tally
     int meshTallyId;
     openmc_get_tally_next_id(&meshTallyId);
+
     int meshTallyIndex;
-    openmc_extend_tallies(1, &meshTallyIndex, nullptr);
-    openmc_tally_set_id(meshTallyIndex, meshTallyId);
+    err = openmc_extend_tallies(1, &meshTallyIndex, nullptr);
+    if (err != 0) { std::cout << "OpenMC Error" << std::endl; }
+
+    err = openmc_tally_set_id(meshTallyIndex, meshTallyId);
+    if (err != 0) { std::cout << "OpenMC Error" << std::endl; }
+
     _meshTallyIds.push_back(meshTallyId);
     _meshTallyIndices.push_back(meshTallyIndex);
 
