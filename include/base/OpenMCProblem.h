@@ -35,6 +35,7 @@ private:
   std::vector<Point> _centers;
   Real _power;
   std::vector<Real> _volumes;
+  std::string _mesh_template_filename;
 
   int32_t _filterId;     //! ID for cell filter in OpenMC
   int32_t _filterIndex;  //! Index for cell filter in OpenMC's filter array

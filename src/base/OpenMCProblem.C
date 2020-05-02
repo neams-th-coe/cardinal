@@ -28,6 +28,7 @@ validParams<OpenMCProblem>()
   params.addRequiredParam<Real>("power", "specified power for OpenMC");
   params.addRequiredParam<std::vector<Point>>("centers", "coords of pebble centers");
   params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
+  params.addRequiredParam<std::string>("mesh_template", "mesh tally template for OpenMC");
   return params;
 }
 
@@ -36,6 +37,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes")),
+  _mesh_template_filename(getParam<std::string>("mesh_template")),
   _filterId(getFilterId()),
   _filterIndex(getNewFilter(_filterId, "cell")),
   _tallyId(getTallyId()),
@@ -75,7 +77,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   tally->set_scores({"kappa-fission"});
 
   // add an unstructured mesh
-  err = openmc_add_unstructured_mesh("sphere.e", "libmesh", &_meshId);
+  err = openmc_add_unstructured_mesh(_mesh_template_filename.c_str(), "libmesh", &_meshId);
   if (err != 0) { std::cout << "OpenMC Error creating the unstructured mesh" << std::endl; }
   err = openmc_get_mesh_index(_meshId, &_meshIndex);
   if (err != 0) { std::cout << "OpenMC Error getting the mesh index" << std::endl; }

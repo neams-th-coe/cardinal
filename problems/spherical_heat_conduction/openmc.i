@@ -13,6 +13,7 @@
   power = 0.15
   centers = '0 0 0'
   volumes = '0.0002782618569027357'
+  mesh_template = 'sphere.e'
 []
 
 [Executioner]
