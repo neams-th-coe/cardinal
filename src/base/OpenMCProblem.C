@@ -114,12 +114,41 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 
 void OpenMCProblem::addExternalVariables()
 {
+
+  // cell-based heat source
   {
     auto receiver_params = _factory.getValidParams("NearestPointReceiver");
     receiver_params.set<std::vector<Point>>("positions") = _centers;
 
     // Will be filled with values from OpenMC
     addUserObject("NearestPointReceiver", "heat_source", receiver_params);
+  }
+
+  // mesh-based heat source
+  {
+    // set points based on element centroids
+    std::vector<Point> element_centers;
+
+    for (const auto& tally : _meshTallies) {
+      // get the mesh tally filter
+      const auto& filter = openmc::model::tally_filters[tally->filters(0)];
+      const auto mesh_filter = dynamic_cast<openmc::MeshFilter*>(filter.get());
+      auto translation = mesh_filter->translation();
+
+      const auto& mesh = openmc::model::meshes[mesh_filter->mesh()];
+      const auto umesh = dynamic_cast<openmc::LibMesh*>(mesh.get());
+
+      for (int bin = 0; bin < mesh_filter->n_bins(); bin++) {
+        auto center = umesh->centroid(bin);
+        if (mesh_filter->translated()) { center += translation; }
+        element_centers.push_back({center[0], center[1], center[2]});
+      }
+    }
+    auto receiver_params = _factory.getValidParams("NearestPointReceiver");
+    receiver_params.set<std::vector<Point>>("positions") = element_centers;
+
+    // Will be filled with values from OpenMC
+    addUserObject("NearestPointReceiver", "mesh_heat_source", receiver_params);
   }
 
   {
