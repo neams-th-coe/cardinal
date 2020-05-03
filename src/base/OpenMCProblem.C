@@ -4,14 +4,11 @@
 
 #include "NearestPointReceiver.h"
 
-#define LIBMESH
-
 #include "mpi.h"
 #include "OpenMCProblem.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/constants.h"
-#include "openmc/mesh.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "openmc/settings.h"
@@ -54,6 +51,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     std::cerr << "Warning: LibMesh communicator already set in OpenMC." << std::endl;
 
   }
+
   openmc::settings::libmesh_comm = &m.comm();
 
   // Find cell for each pebble center
@@ -76,56 +74,43 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   tally->set_filters(filter_indices);
   tally->set_scores({"kappa-fission"});
 
-  // add an unstructured mesh
-  err = openmc_add_unstructured_mesh(_mesh_template_filename.c_str(), "libmesh", &_meshId);
-  if (err != 0) { std::cout << "OpenMC Error creating the unstructured mesh" << std::endl; }
-  err = openmc_get_mesh_index(_meshId, &_meshIndex);
-  if (err != 0) { std::cout << "OpenMC Error getting the mesh index" << std::endl; }
+  int meshId = 0;
+  for (const auto& mesh : openmc::model::meshes) { meshId = std::max(meshId, mesh->id_); }
+  auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename);
+  mesh->id_ = ++meshId;
 
+  _mesh_template = mesh.get();
+  int32_t mesh_index = openmc::model::meshes.size();
+  openmc::model::mesh_map[mesh->id_] = mesh_index;
+  openmc::model::meshes.push_back(std::move(mesh));
+
+  // setup a new mesh filter
+  int32_t meshFilterId;
+  openmc_get_filter_next_id(&meshFilterId);
+
+  int32_t meshTallyId;
+  openmc_get_tally_next_id(&meshTallyId);
 
   for (auto& c : _centers) {
-    // create a new mesh filter
-    int meshFilterId;
-    openmc_get_filter_next_id(&meshFilterId);
-
-    int meshFilterIndex;
-    err = openmc_new_filter("mesh", &meshFilterIndex);
-    if (err != 0) { std::cout << "OpenMC Failed to create mesh filter" << std::endl; }
-
-    err = openmc_filter_set_id(meshFilterIndex, meshFilterId);
-    if (err != 0) { std::cout << "OpenMC Failed to set filter id" << std::endl; }
-
-    _meshFilterIndices.push_back(meshFilterIndex);
-    _meshFilterIds.push_back(meshFilterId);
-
-    openmc::MeshFilter* meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::model::tally_filters[meshFilterIndex].get());
-    meshFilter->set_mesh(_meshIndex);
+    auto meshFilter = std::make_unique<openmc::MeshFilter>();
+    meshFilter->set_mesh(mesh_index);
+    meshFilter->set_id(meshFilterId++);
     meshFilter->set_translation({c(0), c(1), c(2)});
+    openmc::model::filter_map[meshFilter->id()] = openmc::model::tally_filters.size();
+    _meshFilters.push_back(meshFilter.get());
+    std::vector<openmc::Filter*> filters = {meshFilter.get()};
+    openmc::model::tally_filters.push_back(std::move(meshFilter));
 
     // apply the mesh filter to a tally
-    int meshTallyId;
-    openmc_get_tally_next_id(&meshTallyId);
+    auto tally = openmc::Tally::create(meshTallyId++);
+    tally->set_filters(filters);
+    tally->set_scores({"kappa-fission"});
+    tally->estimator_ = openmc::TallyEstimator::COLLISION;
+    _meshTallies.push_back(tally);
 
-    int meshTallyIndex;
-    err = openmc_extend_tallies(1, &meshTallyIndex, nullptr);
-    if (err != 0) { std::cout << "OpenMC Error" << std::endl; }
-
-    err = openmc_tally_set_id(meshTallyIndex, meshTallyId);
-    if (err != 0) { std::cout << "OpenMC Error" << std::endl; }
-
-    _meshTallyIds.push_back(meshTallyId);
-    _meshTallyIndices.push_back(meshTallyIndex);
-
-    // apply mesh to the filter
-    std::vector<openmc::Filter*> mesh_filters = {meshFilter};
-    auto& meshTally = openmc::model::tallies[meshTallyIndex];
-    meshTally->set_filters(mesh_filters);
-    meshTally->set_scores({"kappa-fission"});
-    meshTally->estimator_ = openmc::TallyEstimator::COLLISION;
+    // add to openmc
   }
-
 }
-
 
 void OpenMCProblem::addExternalVariables()
 {

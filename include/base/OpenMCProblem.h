@@ -1,9 +1,12 @@
 #ifndef CARDINAL_OPENMCPROBLEM_H
 #define CARDINAL_OPENMCPROBLEM_H
 
+#define LIBMESH
+
 #include "ExternalProblem.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_mesh.h"
+#include "openmc/mesh.h"
 #include "openmc/tallies/tally.h"
 
 class OpenMCProblem;
@@ -47,13 +50,9 @@ private:
   std::vector<int32_t> _cellIndices {};
   std::vector<int32_t> _cellInstances {};
 
-  int32_t _meshId;           //! ID of the unstructured mesh in OpenMC
-  int32_t _meshIndex;        //! Index of the unstructured mesh
-
-  std::vector<int32_t> _meshFilterIds;     //! Mesh filter IDs in OpenMC
-  std::vector<int32_t> _meshFilterIndices; //! Mesh filter indices in OpenMC
-  std::vector<int32_t> _meshTallyIds;      //! Mesh Tally IDs in OpenMC
-  std::vector<int32_t> _meshTallyIndices;  //! Tally indices for mesh tallies in OpenMC
+  const openmc::LibMesh* _mesh_template;               //! OpenMC unstructured mesh instance
+  std::vector<const openmc::MeshFilter*> _meshFilters; //! OpenMC mesh filters
+  std::vector<const openmc::Tally*> _meshTallies;      //! OpenMC mesh tallies
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H
