@@ -193,7 +193,6 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       auto mesh_heat = mesh_heat_source();
       auto & mesh_receiver = getUserObject<NearestPointReceiver>("mesh_heat_source");
       mesh_receiver.setValues(mesh_heat);
-
       break;
     }
     default:
@@ -246,7 +245,6 @@ int32_t OpenMCProblem::getNewTally(int32_t tallyId)
 }
 
 std::vector<double> OpenMCProblem::mesh_heat_source() {
-
   // determine the size of the xtensor
   size_t heat_source_size = _mesh_template->n_bins() * _meshTallies.size();
   xt::xarray<double> heat = xt::zeros<double> ({heat_source_size});
@@ -254,13 +252,11 @@ std::vector<double> OpenMCProblem::mesh_heat_source() {
   for (int i = 0; i < _meshTallies.size(); i++) {
     const auto& tally = _meshTallies[i];
     // Determine number of realizations for normalizing tallies
-
-    int m = tally->n_realizations_;
-
-    auto tally_mean = xt::view(tally->results_, xt::all(), 0, openmc::TallyResult::SUM);
+    auto tally_mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
     auto heat_view = xt::view(heat, xt::range(tally->n_filter_bins() * i, tally->n_filter_bins() * (i+1)));
 
+    int m = tally->n_realizations_;
     // normalize by volume
     for (int bin = 0; bin < tally->n_filter_bins(); bin++) {
       heat(tally->n_filter_bins() * i + bin) = tally_mean(bin) / (m * _mesh_template->volume(bin));
@@ -268,12 +264,10 @@ std::vector<double> OpenMCProblem::mesh_heat_source() {
   }
 
   const double JOULE_PER_EV = 1.6021766208e-19;
-  // convert to
-  heat *= JOULE_PER_EV;
+  double totalHeat = xt::sum(heat)();
 
   // normalize heat generation using power level
-  double totalHeat = xt::sum(heat)();
-  heat *= _power / totalHeat;
+  heat *=  JOULE_PER_EV * _power / totalHeat;
 
   return std::vector<double>(heat.begin(), heat.end());
 }
@@ -288,7 +282,7 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
   MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Determine energy production in each material
-  auto meanValue = xt::view(openmc::model::tallies[_tallyIndex]->results_, xt::all(), 0, openmc::TallyResult::SUM);
+  auto meanValue = xt::view(openmc::model::tallies[_tallyIndex]->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
   const double JOULE_PER_EV = 1.6021766208e-19;
   xt::xtensor<double, 1> heat = meanValue;
   heat *= JOULE_PER_EV;
@@ -308,7 +302,6 @@ xt::xtensor<double, 1> OpenMCProblem::heat_source()
   }
 
   return heat;
-
 }
 
 double OpenMCProblem::get_cell_volume(int cellIndex) {
