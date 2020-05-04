@@ -31,6 +31,7 @@ public:
   static int32_t getNewFilter(int32_t filterId, const char *type);
   static int32_t getTallyId();
   static int32_t getNewTally(int32_t tallyId);
+  std::vector<double> mesh_heat_source();
   xt::xtensor<double, 1> heat_source();
   double get_cell_volume(int cellIndex);
 

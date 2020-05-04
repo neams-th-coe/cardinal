@@ -134,7 +134,6 @@ void OpenMCProblem::addExternalVariables()
       const auto& filter = openmc::model::tally_filters[tally->filters(0)];
       const auto mesh_filter = dynamic_cast<openmc::MeshFilter*>(filter.get());
       auto translation = mesh_filter->translation();
-
       const auto& mesh = openmc::model::meshes[mesh_filter->mesh()];
       const auto umesh = dynamic_cast<openmc::LibMesh*>(mesh.get());
 
@@ -191,18 +190,9 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      // This is an xtensor of heat values per cell
-      auto heat = heat_source();
-
-      std::vector<Real> values;
-      values.reserve(heat.size());
-
-      for (auto & val : heat)
-        values.push_back(val);
-
-      auto & receiver = getUserObject<NearestPointReceiver>("heat_source");
-
-      receiver.setValues(values);
+      auto mesh_heat = mesh_heat_source();
+      auto & mesh_receiver = getUserObject<NearestPointReceiver>("mesh_heat_source");
+      mesh_receiver.setValues(mesh_heat);
 
       break;
     }
@@ -253,6 +243,39 @@ int32_t OpenMCProblem::getNewTally(int32_t tallyId)
   openmc_extend_tallies(1, &index_tally, nullptr);
   openmc_tally_set_id(index_tally, tallyId);
   return index_tally;
+}
+
+std::vector<double> OpenMCProblem::mesh_heat_source() {
+
+  // determine the size of the xtensor
+  size_t heat_source_size = _mesh_template->n_bins() * _meshTallies.size();
+  xt::xarray<double> heat = xt::zeros<double> ({heat_source_size});
+
+  for (int i = 0; i < _meshTallies.size(); i++) {
+    const auto& tally = _meshTallies[i];
+    // Determine number of realizations for normalizing tallies
+
+    int m = tally->n_realizations_;
+
+    auto tally_mean = xt::view(tally->results_, xt::all(), 0, openmc::TallyResult::SUM);
+
+    auto heat_view = xt::view(heat, xt::range(tally->n_filter_bins() * i, tally->n_filter_bins() * (i+1)));
+
+    // normalize by volume
+    for (int bin = 0; bin < tally->n_filter_bins(); bin++) {
+      heat(tally->n_filter_bins() * i + bin) = tally_mean(bin) / (m * _mesh_template->volume(bin));
+    }
+  }
+
+  const double JOULE_PER_EV = 1.6021766208e-19;
+  // convert to
+  heat *= JOULE_PER_EV;
+
+  // normalize heat generation using power level
+  double totalHeat = xt::sum(heat)();
+  heat *= _power / totalHeat;
+
+  return std::vector<double>(heat.begin(), heat.end());
 }
 
 xt::xtensor<double, 1> OpenMCProblem::heat_source()
