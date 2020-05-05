@@ -25,7 +25,8 @@ validParams<OpenMCProblem>()
   params.addRequiredParam<Real>("power", "specified power for OpenMC");
   params.addRequiredParam<std::vector<Point>>("centers", "coords of pebble centers");
   params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
-  params.addRequiredParam<std::string>("mesh_template", "mesh tally template for OpenMC");
+  params.addRequiredParam<std::string>("tally_type", "type of tally to use in OpenMC");
+  params.addParam<std::string>("mesh_template", "mesh tally template for OpenMC");
   return params;
 }
 
@@ -34,6 +35,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes")),
+  _tallyType(getParam<std::string>("tally_type")),
   _meshTemplateFilename(getParam<std::string>("mesh_template")),
   _filterId(getFilterId()),
   _filterIndex(getNewFilter(_filterId, "cell")),
@@ -43,7 +45,6 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 {
 
   int err;
-
 
   auto& m = mesh().getMesh();
 
@@ -109,9 +110,78 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     tally->set_scores({"kappa-fission"});
     tally->estimator_ = openmc::TallyEstimator::COLLISION;
     _meshTallies.push_back(tally);
-
-    // add to openmc
   }
+}
+
+void OpenMCProblem::setupCellTally() {
+  // create a cell filter
+  auto cellFilter = dynamic_cast<openmc::CellFilter*>(openmc::Filter::create("cell"));
+  _cellFilters.push_back(cellFilter);
+
+  // find the cell for each pebble center
+  for (auto &c : _centers) {
+    openmc::Particle p {};
+    p.r() = {c(0), c(1), c(2)};
+    p.u() = {0., 0., 1.};
+    openmc::find_cell(&p, false);
+    _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
+    _cellInstances.push_back(p.cell_instance_);
+  }
+  cellFilter->set_cells(_cellIndices);
+
+  // create a new tally
+  auto tally = openmc::Tally::create();
+  _tallies.push_back(tally);
+
+  tally->set_id(-1);
+  std::vector<openmc::Filter*> tally_filters = {cellFilter};
+  tally->set_filters(tally_filters);
+  tally->set_scores({"kappa-fission"});
+}
+
+void OpenMCProblem::setupMeshTallies() {
+  if (_meshTemplateFilename == "") {
+    mooseError("No template filename specified.");
+  }
+
+  // create the OpenMC mesh instance
+  int meshId = 0;
+  for (const auto& mesh : openmc::model::meshes) { meshId = std::max(meshId, mesh->id_); }
+  auto mesh = std::make_unique<openmc::LibMesh>(_meshTemplateFilename);
+  mesh->id_ = ++meshId;
+  mesh->output_ = false;
+
+  _meshTemplate = mesh.get();
+
+  int32_t mesh_index = openmc::model::meshes.size();
+  openmc::model::mesh_map[mesh->id_] = mesh_index;
+  openmc::model::meshes.push_back(std::move(mesh));
+
+  // setup a new mesh filter
+  int32_t meshFilterId;
+  openmc_get_filter_next_id(&meshFilterId);
+
+  int32_t meshTallyId;
+  openmc_get_tally_next_id(&meshTallyId);
+
+  for (auto& c : _centers) {
+    auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
+    _meshFilters.push_back(meshFilter);
+    meshFilter->set_mesh(mesh_index);
+    meshFilter->set_translation({c(0), c(1), c(2)});
+    std::vector<openmc::Filter*> tally_filters = {meshFilter};
+
+    // apply the mesh filter to a tally
+    auto tally = openmc::Tally::create();
+    tally->set_filters(tally_filters);
+    tally->set_scores({"kappa-fission"});
+    tally->estimator_ = openmc::TallyEstimator::COLLISION;
+    _meshTallies.push_back(tally);
+    _tallies.push_back(tally);
+  }
+
+  // performance optimization - assume the mesh tallies are spatially separate
+  openmc::settings::assume_separate = true;
 }
 
 void OpenMCProblem::addExternalVariables()

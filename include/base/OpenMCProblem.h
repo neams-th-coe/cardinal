@@ -24,8 +24,10 @@ public:
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
-
   virtual bool converged() override { return true; }
+
+  void setupCellTally();
+  void setupMeshTallies();
 
   static int32_t getFilterId();
   static int32_t getNewFilter(int32_t filterId, const char *type);
@@ -39,10 +41,11 @@ private:
   std::vector<Point> _centers;
   Real _power;
   std::vector<Real> _volumes;
+  std::string _tallyType;
   std::string _meshTemplateFilename;
 
-  int32_t _filterId;     //! ID for cell filter in OpenMC
-  int32_t _filterIndex;  //! Index for cell filter in OpenMC's filter array
+  int32_t _filterId;     //! ID for cell filter in OpenMC (remove)
+  int32_t _filterIndex;  //! Index for cell filter in OpenMC's filter array (remove)
   int32_t _tallyId;
   int32_t _tallyIndex;
 
@@ -54,6 +57,9 @@ private:
   const openmc::LibMesh* _meshTemplate;               //! OpenMC unstructured mesh instance
   std::vector<const openmc::MeshFilter*> _meshFilters; //! OpenMC mesh filters
   std::vector<const openmc::Tally*> _meshTallies;      //! OpenMC mesh tallies
+
+  std::vector<const openmc::CellFilter*> _cellFilters;
+  std::vector<const openmc::Tally*> _tallies;
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H
