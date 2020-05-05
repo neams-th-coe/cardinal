@@ -39,7 +39,7 @@ private:
   std::vector<Point> _centers;
   Real _power;
   std::vector<Real> _volumes;
-  std::string _mesh_template_filename;
+  std::string _meshTemplateFilename;
 
   int32_t _filterId;     //! ID for cell filter in OpenMC
   int32_t _filterIndex;  //! Index for cell filter in OpenMC's filter array
@@ -51,7 +51,7 @@ private:
   std::vector<int32_t> _cellIndices {};
   std::vector<int32_t> _cellInstances {};
 
-  const openmc::LibMesh* _mesh_template;               //! OpenMC unstructured mesh instance
+  const openmc::LibMesh* _meshTemplate;               //! OpenMC unstructured mesh instance
   std::vector<const openmc::MeshFilter*> _meshFilters; //! OpenMC mesh filters
   std::vector<const openmc::Tally*> _meshTallies;      //! OpenMC mesh tallies
 };

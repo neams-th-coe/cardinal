@@ -34,7 +34,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes")),
-  _mesh_template_filename(getParam<std::string>("mesh_template")),
+  _meshTemplateFilename(getParam<std::string>("mesh_template")),
   _filterId(getFilterId()),
   _filterIndex(getNewFilter(_filterId, "cell")),
   _tallyId(getTallyId()),
@@ -76,10 +76,12 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 
   int meshId = 0;
   for (const auto& mesh : openmc::model::meshes) { meshId = std::max(meshId, mesh->id_); }
-  auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename);
+  auto mesh = std::make_unique<openmc::LibMesh>(_meshTemplateFilename);
   mesh->id_ = ++meshId;
+  mesh->output_ = false;
 
-  _mesh_template = mesh.get();
+  _meshTemplate = mesh.get();
+
   int32_t mesh_index = openmc::model::meshes.size();
   openmc::model::mesh_map[mesh->id_] = mesh_index;
   openmc::model::meshes.push_back(std::move(mesh));
@@ -246,7 +248,7 @@ int32_t OpenMCProblem::getNewTally(int32_t tallyId)
 
 std::vector<double> OpenMCProblem::mesh_heat_source() {
   // determine the size of the xtensor
-  size_t heat_source_size = _mesh_template->n_bins() * _meshTallies.size();
+  size_t heat_source_size = _meshTemplate->n_bins() * _meshTallies.size();
   xt::xarray<double> heat = xt::zeros<double> ({heat_source_size});
 
   for (int i = 0; i < _meshTallies.size(); i++) {
@@ -259,7 +261,7 @@ std::vector<double> OpenMCProblem::mesh_heat_source() {
     int m = tally->n_realizations_;
     // normalize by volume
     for (int bin = 0; bin < tally->n_filter_bins(); bin++) {
-      heat(tally->n_filter_bins() * i + bin) = tally_mean(bin) / (m * _mesh_template->volume(bin));
+      heat(tally->n_filter_bins() * i + bin) = tally_mean(bin) / (m * _meshTemplate->volume(bin));
     }
   }
 
