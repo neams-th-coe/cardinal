@@ -171,7 +171,7 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
             auto dof_idx = node_ptr->dof_number(sys_number, _temp_var, 0);
 
  //           solution.set(dof_idx, 573.0);
-              solution.set(dof_idx, nek_temperature[node_offset);
+              solution.set(dof_idx, nek_temperature[node_offset]);
           }
         }
       }
