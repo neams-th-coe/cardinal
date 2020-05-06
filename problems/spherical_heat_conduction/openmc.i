@@ -13,6 +13,7 @@
   power = 0.15
   centers = '0 0 0'
   volumes = '0.0002782618569027357'
+  tally_type = 'cell'
   mesh_template = 'sphere.e'
 []
 
