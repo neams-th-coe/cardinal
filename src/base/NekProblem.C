@@ -48,7 +48,7 @@ void NekProblem::externalSolve()
 
     nekrs::runStep(_time, _dt, _tstep);
 
-    if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
+    nekrs::copyToNek(_time+_dt, _tstep);
     nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
     if (isOutputStep) nekrs::nekOutfld();
 
@@ -120,6 +120,8 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
       nekData.cbscnrs[1+num_elems*4*5]=total_flux;
 
+      int _isOutputStep = 0;
+      nekrs::udfExecuteStep(_time, _tstep, _isOutputStep);
  //   Nek5000::test_passing_.flux_moose = total_flux;
 
  //   Nek5000::FORTRAN_CALL(flux_reconstruction)();
@@ -138,9 +140,12 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
       // auto num_elems = Nek5000::tot_surf_.nw_dbt;
 
-      double *nek_temperature = &nekData.cbscnrs[1+num_elems*4*3];
+      auto nek_temperature = &nekData.cbscnrs[1+num_elems*4*3];
       //auto nek_temperature = Nek5000::point_cloudt_.pc_t;
 
+      std::cout << "Test Temperature: " <<nek_temperature[3];
+
+      
       auto & solution = _aux->solution();
 
       auto sys_number = _aux->number();
@@ -165,7 +170,8 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
             auto dof_idx = node_ptr->dof_number(sys_number, _temp_var, 0);
 
-            solution.set(dof_idx, nek_temperature[node_offset]);
+ //           solution.set(dof_idx, 573.0);
+              solution.set(dof_idx, nek_temperature[node_offset);
           }
         }
       }
