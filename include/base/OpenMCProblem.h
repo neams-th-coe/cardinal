@@ -26,12 +26,19 @@ public:
 
   virtual bool converged() override { return true; }
 
+  //! Creates a cell-based tally with a value for each pebble
   void setupCellTally();
+  //! Creates an unstructured mesh tally using a template
+  //! translated to the center of each pebble
   void setupMeshTallies();
 
-  std::vector<double> mesh_heat_source();
-  std::vector<double> heat_source();
-  double get_cell_volume(int cellIndex);
+  // Retrieves cell-based tally values
+  // and contstructs a heat source
+  std::vector<double> cellHeatSource();
+  // Retrieves unstructured mesh tally values
+  // and constructs a heat source
+  std::vector<double> meshHeatSource();
+  double getCellVolume(int cellIndex);
 
 private:
 
@@ -40,21 +47,19 @@ private:
     MESH,
   };
 
-  std::vector<Point> _centers;
-  Real _power;
-  std::vector<Real> _volumes;
-  std::string _meshTemplateFilename;
-  TallyType _tallyType;
+  std::vector<Point> _centers;       //! Locations of the pebble centers
+  Real _power;                       //! Total power produced in the problem (used for heating normalization)
+  std::vector<Real> _volumes;        //! Cell volumes at the location of the pebble centers
+  std::string _meshTemplateFilename; //! Filename of the mesh template to use in the unstructured mesh tally
+  TallyType _tallyType;              //! Tally type used in the OpenMC problem (CELL, MESH)
 
-  openmc::CellFilter *_filter;
+  std::vector<int32_t> _cellIndices {};   //! OpenMC cell indices corresponding to the pebble centers
+  std::vector<int32_t> _cellInstances {}; //! OpenMC cell instances corresponding to the pebble centers
 
-  std::vector<int32_t> _cellIndices {};
-  std::vector<int32_t> _cellInstances {};
-
-  const openmc::LibMesh* _meshTemplate;               //! OpenMC unstructured mesh instance
+  const openmc::LibMesh* _meshTemplate;                //! OpenMC unstructured mesh instance
+  std::vector<const openmc::CellFilter*> _cellFilters; //! OpenMC cell filters
   std::vector<const openmc::MeshFilter*> _meshFilters; //! OpenMC mesh filters
-  std::vector<const openmc::CellFilter*> _cellFilters;
-  std::vector<const openmc::Tally*> _tallies;
+  std::vector<const openmc::Tally*> _tallies;          //! OpenMC tally instances
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H

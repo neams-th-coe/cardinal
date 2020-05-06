@@ -217,13 +217,13 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       auto& receiver = getUserObject<NearestPointReceiver>("heat_source");
       if (_tallyType == TallyType::CELL) {
-        auto heat = heat_source();
+        auto heat = cellHeatSource();
         std::cout << "Cell heat source: " << std::endl;
         for (auto& val : heat) { std::cout << val << " "; }
         std::cout << std::endl;
         receiver.setValues(heat);
       } else {
-        auto mesh_heat = mesh_heat_source();
+        auto mesh_heat = meshHeatSource();
         std::cout << "Mesh heat source: " << std::endl;
         for (auto& val : mesh_heat) { std::cout << val << " "; }
         std::cout << std::endl;
@@ -239,7 +239,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   }
 }
 
-std::vector<double> OpenMCProblem::mesh_heat_source() {
+std::vector<double> OpenMCProblem::meshHeatSource() {
   std::cout << "Tallies size: " << _tallies.size();
   // determine the size of the heat source
   size_t heat_source_size = 0;
@@ -254,6 +254,10 @@ std::vector<double> OpenMCProblem::mesh_heat_source() {
     auto tally_mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
     int m = tally->n_realizations_;
+
+    // TODO: Change OpenMC so that it's correct on all ranks
+    MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
+
     // normalize by volume
     for (int bin = 0; bin < tally->n_filter_bins(); bin++) {
       heat(idx++) = tally_mean(bin) / (m * _meshTemplate->volume(bin));
@@ -273,7 +277,7 @@ std::vector<double> OpenMCProblem::mesh_heat_source() {
   return std::vector<double>(heat.begin(), heat.end());
 }
 
-std::vector<double> OpenMCProblem::heat_source()
+std::vector<double> OpenMCProblem::cellHeatSource()
 {
   auto tally = _tallies.at(0);
 
@@ -314,7 +318,7 @@ std::vector<double> OpenMCProblem::heat_source()
   return std::vector<double>(heat.begin(), heat.end());
 }
 
-double OpenMCProblem::get_cell_volume(int cellIndex) {
+double OpenMCProblem::getCellVolume(int cellIndex) {
   int fillType {};
   int32_t *matIndices = nullptr;
   int nMat = 0;
