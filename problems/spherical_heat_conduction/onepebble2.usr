@@ -111,7 +111,7 @@ c      implicit none
 
       ux   = 0.0
       uy   = 0.0
-      uz   = 0.0
+      uz   = 0.17
       temp = 573.0
 
       return
@@ -119,8 +119,17 @@ c      implicit none
 c-----------------------------------------------------------------------
       subroutine userchk()
 
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKMOOSE'
 c      implicit none
-
+      COMMON /SCNRS/ SC_NRS(LX1*LY1*LZ1*LELT*7)
+      real           SC_NRS
+      common /flux_reconstructed/flux_recon(lx1,ly1,lz1,lelt)
+      
+      integer n_count
+      save n_count
+   
       ifflow=.false. 
       n=lx1*ly1*lz1*nelt
 
@@ -137,6 +146,42 @@ c      if (istep.eq.0) sc_nrs(1) = 2.0
 c      if (nid.eq.0) then 
 c        write(6,*) "Test for Cardinal :", SC_NRS(1)
 c      endif 
+
+       n_count=n_count+1
+
+       ! The first call is at time step zero  
+       
+       if ((1+1+nw_bdt*4*5+n).gt.(7*n)) then
+          if (nid.eq.0) write(6,*) "> Insufficient scratch memory"
+          call exitt() 
+       endif     
+     
+       if (n_count.gt.2) then 
+       if (mod(n_count,2).eq.1) then
+          if (nid.eq.0) write(6,*) "> DOWNLOADING FLUX"
+          do i=1,nw_bdt*4
+             pc_f(i)=sc_nrs(1+i+nw_bdt*4*4)*10000.0
+          enddo
+          flux_moose=sc_nrs(1+1+nw_bdt*4*5)
+          call flux_reconstruction() 
+          do i=1,n
+            sc_nrs(1+1+nw_bdt*4*5+i)=flux_recon(i,1,1,1)
+          enddo 
+       endif
+       
+       if (mod(n_count,2).eq.0) then
+          if (nid.eq.0) write(6,*) "> LOADING TEMPERATURE"
+          tmin=glmin(t,n)
+          tmax=glmax(t,n)
+          if (nid.eq.0) then
+           write(6,*) "> Temperature: ", tmin," - ", tmax
+          endif  
+          call nek_interpolation() 
+          do i=1,nw_bdt*4
+             sc_nrs(1+i+nw_bdt*4*3)=pc_t(i)
+          enddo
+       endif 
+      endif
 
       return
       end
@@ -218,12 +263,13 @@ c      common /point_cloudf/ pc_f(lsurf_m*4)
 c      common /ref_element/  pc_flag(lsurf_m*4)
 c      common /tot_surf/ nw_bdt
 
+!     Units in cm
   
       sc_nrs(1)=nw_bdt
       do i=1,nw_bdt*4
-        sc_nrs(1+i)=pc_x(i)
-        sc_nrs(1+i+nw_bdt*4)=pc_y(i)          
-        sc_nrs(1+i+nw_bdt*4*2)=pc_z(i) 
+        sc_nrs(1+i)=pc_x(i)*100.0
+        sc_nrs(1+i+nw_bdt*4)=pc_y(i)*100.0          
+        sc_nrs(1+i+nw_bdt*4*2)=pc_z(i)*100.0 
       enddo
 
       if (nid.eq.0) then

@@ -2,11 +2,11 @@
 # nek parameter file
 #
 [GENERAL] 
-polynomialOrder = 7
-startFrom = onepebble2.run05
+polynomialOrder = 5
+#startFrom = onepebble2.run03
 numSteps = 10000
-dt = 1e-03
-writeInterval = 100
+dt = 1e-04
+writeInterval = 10 
 extrapolation = OIFS
 targetCFL = 2.0
 
