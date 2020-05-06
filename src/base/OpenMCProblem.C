@@ -34,82 +34,48 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   ExternalProblem(params),
   _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
-  _volumes(getParam<std::vector<Real>>("volumes")),
-  _tallyType(getParam<std::string>("tally_type")),
-  _meshTemplateFilename(getParam<std::string>("mesh_template")),
-  _filterId(getFilterId()),
-  _filterIndex(getNewFilter(_filterId, "cell")),
-  _tallyId(getTallyId()),
-  _tallyIndex(getNewTally(_tallyId)),
-  _filter(dynamic_cast<openmc::CellFilter*>(openmc::model::tally_filters[_filterIndex].get()))
+  _volumes(getParam<std::vector<Real>>("volumes"))
 {
 
   int err;
+
+  auto tallyTypeStr = getParam<std::string>("tally_type");
+
+  if (tallyTypeStr == "cell") {
+    _tallyType = TallyType::CELL;
+  } else if (tallyTypeStr == "mesh") {
+    _tallyType = TallyType::MESH;
+  } else {
+    mooseError("Invalid tally type specified: " + tallyTypeStr);
+  }
+
+  if (_tallyType == TallyType::MESH) {
+    _meshTemplateFilename = getParam<std::string>("mesh_template");
+  }
 
   auto& m = mesh().getMesh();
 
   if (openmc::settings::libmesh_comm) {
     std::cerr << "Warning: LibMesh communicator already set in OpenMC." << std::endl;
-
   }
 
   openmc::settings::libmesh_comm = &m.comm();
 
-  // Find cell for each pebble center
-  // _centers is initialized with the pebble centers from .i file
-  for (auto &c : _centers) {
-    openmc::Particle p {};
-    p.r() = {c(0), c(1), c(2)};
-    p.u() = {0., 0., 1.};
-    openmc::find_cell(&p, false);
-    _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
-    _cellInstances.push_back(p.cell_instance_);
-  }
+    // Find cell for each pebble center
+    // _centers is initialized with the pebble centers from .i file
+    for (auto &c : _centers) {
+      openmc::Particle p {};
+      p.r() = {c(0), c(1), c(2)};
+      p.u() = {0., 0., 1.};
+      openmc::find_cell(&p, false);
+      _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
+      _cellInstances.push_back(p.cell_instance_);
+    }
 
-  // Setup cell filter
-  _filter->set_cells(_cellIndices);
-
-  // Setup fission tally
-  std::vector<openmc::Filter*> filter_indices = {_filter};
-  auto& tally = openmc::model::tallies[_tallyIndex];
-  tally->set_filters(filter_indices);
-  tally->set_scores({"kappa-fission"});
-
-  int meshId = 0;
-  for (const auto& mesh : openmc::model::meshes) { meshId = std::max(meshId, mesh->id_); }
-  auto mesh = std::make_unique<openmc::LibMesh>(_meshTemplateFilename);
-  mesh->id_ = ++meshId;
-  mesh->output_ = false;
-
-  _meshTemplate = mesh.get();
-
-  int32_t mesh_index = openmc::model::meshes.size();
-  openmc::model::mesh_map[mesh->id_] = mesh_index;
-  openmc::model::meshes.push_back(std::move(mesh));
-
-  // setup a new mesh filter
-  int32_t meshFilterId;
-  openmc_get_filter_next_id(&meshFilterId);
-
-  int32_t meshTallyId;
-  openmc_get_tally_next_id(&meshTallyId);
-
-  for (auto& c : _centers) {
-    auto meshFilter = std::make_unique<openmc::MeshFilter>();
-    meshFilter->set_mesh(mesh_index);
-    meshFilter->set_id(meshFilterId++);
-    meshFilter->set_translation({c(0), c(1), c(2)});
-    openmc::model::filter_map[meshFilter->id()] = openmc::model::tally_filters.size();
-    _meshFilters.push_back(meshFilter.get());
-    std::vector<openmc::Filter*> filters = {meshFilter.get()};
-    openmc::model::tally_filters.push_back(std::move(meshFilter));
-
-    // apply the mesh filter to a tally
-    auto tally = openmc::Tally::create(meshTallyId++);
-    tally->set_filters(filters);
-    tally->set_scores({"kappa-fission"});
-    tally->estimator_ = openmc::TallyEstimator::COLLISION;
-    _meshTallies.push_back(tally);
+  if (_tallyType == TallyType::CELL) {
+    setupCellTally();
+  } else if (_tallyType == TallyType::MESH) {
+    setupMeshTallies();
   }
 }
 
@@ -117,16 +83,6 @@ void OpenMCProblem::setupCellTally() {
   // create a cell filter
   auto cellFilter = dynamic_cast<openmc::CellFilter*>(openmc::Filter::create("cell"));
   _cellFilters.push_back(cellFilter);
-
-  // find the cell for each pebble center
-  for (auto &c : _centers) {
-    openmc::Particle p {};
-    p.r() = {c(0), c(1), c(2)};
-    p.u() = {0., 0., 1.};
-    openmc::find_cell(&p, false);
-    _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
-    _cellInstances.push_back(p.cell_instance_);
-  }
   cellFilter->set_cells(_cellIndices);
 
   // create a new tally
@@ -140,7 +96,7 @@ void OpenMCProblem::setupCellTally() {
 }
 
 void OpenMCProblem::setupMeshTallies() {
-  if (_meshTemplateFilename == "") {
+  if (_meshTemplateFilename.empty()) {
     mooseError("No template filename specified.");
   }
 
@@ -149,7 +105,7 @@ void OpenMCProblem::setupMeshTallies() {
   for (const auto& mesh : openmc::model::meshes) { meshId = std::max(meshId, mesh->id_); }
   auto mesh = std::make_unique<openmc::LibMesh>(_meshTemplateFilename);
   mesh->id_ = ++meshId;
-  mesh->output_ = false;
+  //mesh->output_ = false;
 
   _meshTemplate = mesh.get();
 
@@ -176,7 +132,6 @@ void OpenMCProblem::setupMeshTallies() {
     tally->set_filters(tally_filters);
     tally->set_scores({"kappa-fission"});
     tally->estimator_ = openmc::TallyEstimator::COLLISION;
-    _meshTallies.push_back(tally);
     _tallies.push_back(tally);
   }
 
@@ -188,38 +143,36 @@ void OpenMCProblem::addExternalVariables()
 {
 
   // cell-based heat source
+  if (_tallyType == TallyType::CELL)
   {
+    std::cout << "Setting cell params" << std::endl;
     auto receiver_params = _factory.getValidParams("NearestPointReceiver");
     receiver_params.set<std::vector<Point>>("positions") = _centers;
 
     // Will be filled with values from OpenMC
     addUserObject("NearestPointReceiver", "heat_source", receiver_params);
   }
-
   // mesh-based heat source
+  else if (_tallyType == TallyType::MESH)
   {
     // set points based on element centroids
     std::vector<Point> element_centers;
 
-    for (const auto& tally : _meshTallies) {
-      // get the mesh tally filter
-      const auto& filter = openmc::model::tally_filters[tally->filters(0)];
-      const auto mesh_filter = dynamic_cast<openmc::MeshFilter*>(filter.get());
+    for (const auto& mesh_filter : _meshFilters) {
       auto translation = mesh_filter->translation();
       const auto& mesh = openmc::model::meshes[mesh_filter->mesh()];
       const auto umesh = dynamic_cast<openmc::LibMesh*>(mesh.get());
 
       for (int bin = 0; bin < mesh_filter->n_bins(); bin++) {
-        auto center = umesh->centroid(bin);
-        if (mesh_filter->translated()) { center += translation; }
-        element_centers.push_back({center[0], center[1], center[2]});
+        auto centroid = umesh->centroid(bin);
+        if (mesh_filter->translated()) { centroid += translation; }
+        element_centers.push_back({centroid[0], centroid[1], centroid[2]});
       }
     }
     auto receiver_params = _factory.getValidParams("NearestPointReceiver");
     receiver_params.set<std::vector<Point>>("positions") = element_centers;
-
     // Will be filled with values from OpenMC
-    addUserObject("NearestPointReceiver", "mesh_heat_source", receiver_params);
+    addUserObject("NearestPointReceiver", "heat_source", receiver_params);
   }
 
   {
@@ -262,9 +215,20 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      auto mesh_heat = mesh_heat_source();
-      auto & mesh_receiver = getUserObject<NearestPointReceiver>("mesh_heat_source");
-      mesh_receiver.setValues(mesh_heat);
+      auto& receiver = getUserObject<NearestPointReceiver>("heat_source");
+      if (_tallyType == TallyType::CELL) {
+        auto heat = heat_source();
+        std::cout << "Cell heat source: " << std::endl;
+        for (auto& val : heat) { std::cout << val << " "; }
+        std::cout << std::endl;
+        receiver.setValues(heat);
+      } else {
+        auto mesh_heat = mesh_heat_source();
+        std::cout << "Mesh heat source: " << std::endl;
+        for (auto& val : mesh_heat) { std::cout << val << " "; }
+        std::cout << std::endl;
+        receiver.setValues(mesh_heat);
+      }
       break;
     }
     default:
@@ -275,105 +239,79 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   }
 }
 
-//! Queries the next available filter ID from OpenMC
-//! \return The next available filter ID
-int32_t OpenMCProblem::getFilterId()
-{
-  int32_t filterId;
-  openmc_get_filter_next_id(&filterId);
-  return filterId;
-}
-
-//! Allocates a new filter with specified type in OpenMC
-//! \param[in] The ID of the newly-constructed cell filter
-//! \param[in] The type of the newly-constructed cell filter
-//! \return The index of the new filter in OpenMC's filter array
-int32_t OpenMCProblem::getNewFilter(int32_t filterId, const char *type)
-{
-  int32_t filterIndex;
-  openmc_new_filter(type, &filterIndex);
-  openmc_filter_set_id(filterIndex, filterId);
-  return filterIndex;
-}
-
-//! Queries the next available tally ID from OpenMC
-//! \return The next available tally ID
-int32_t OpenMCProblem::getTallyId()
-{
-  int32_t tallyId;
-  openmc_get_tally_next_id(&tallyId);
-  return tallyId;
-}
-
-//! Allocates a new tally with unspecified scores/filters in OpenMC
-//! \param[in] The ID of the newly-constructed tally
-//! \return The index of the new tally in OpenMC's tally array
-int32_t OpenMCProblem::getNewTally(int32_t tallyId)
-{
-  int32_t index_tally;
-  openmc_extend_tallies(1, &index_tally, nullptr);
-  openmc_tally_set_id(index_tally, tallyId);
-  return index_tally;
-}
-
 std::vector<double> OpenMCProblem::mesh_heat_source() {
-  // determine the size of the xtensor
-  size_t heat_source_size = _meshTemplate->n_bins() * _meshTallies.size();
+  std::cout << "Tallies size: " << _tallies.size();
+  // determine the size of the heat source
+  size_t heat_source_size = 0;
+  for (const auto& t : _tallies) { heat_source_size += t->n_filter_bins(); }
   xt::xarray<double> heat = xt::zeros<double> ({heat_source_size});
+  std::cout << "Heat source size: " << heat_source_size << std::endl;
 
-  for (int i = 0; i < _meshTallies.size(); i++) {
-    const auto& tally = _meshTallies[i];
+  size_t idx = 0;
+  for (int i = 0; i < _tallies.size(); i++) {
+    const auto& tally = _tallies[i];
     // Determine number of realizations for normalizing tallies
     auto tally_mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-
-    auto heat_view = xt::view(heat, xt::range(tally->n_filter_bins() * i, tally->n_filter_bins() * (i+1)));
 
     int m = tally->n_realizations_;
     // normalize by volume
     for (int bin = 0; bin < tally->n_filter_bins(); bin++) {
-      heat(tally->n_filter_bins() * i + bin) = tally_mean(bin) / (m * _meshTemplate->volume(bin));
+      heat(idx++) = tally_mean(bin) / (m * _meshTemplate->volume(bin));
     }
   }
 
   const double JOULE_PER_EV = 1.6021766208e-19;
   double totalHeat = xt::sum(heat)();
 
-  // normalize heat generation using power level
-  heat *=  JOULE_PER_EV * _power / totalHeat;
+  if (totalHeat != 0.0) {
+    // normalize heat generation using power level
+    heat *=  JOULE_PER_EV * _power / totalHeat;
+  } else {
+    heat = xt::zeros_like(heat);
+  }
 
   return std::vector<double>(heat.begin(), heat.end());
 }
 
-xt::xtensor<double, 1> OpenMCProblem::heat_source()
+std::vector<double> OpenMCProblem::heat_source()
 {
-  // Determine number of realizations for normalizing tallies
-  int m = openmc::model::tallies[_tallyIndex]->n_realizations_;
+  auto tally = _tallies.at(0);
 
+  // Determine number of realizations for normalizing tallies
+  int m = tally->n_realizations_;
+  std::cout << "Realizations: " << m << std::endl;
   // Broadcast number of realizations
   // TODO: Change OpenMC so that it's correct on all ranks
   MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Determine energy production in each material
-  auto meanValue = xt::view(openmc::model::tallies[_tallyIndex]->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  auto meanValue = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  std::cout << "Mean: " << std::endl;
+  for (auto& val : meanValue) { std::cout << val << " "; }
+  std::cout << std::endl;
+
   const double JOULE_PER_EV = 1.6021766208e-19;
-  xt::xtensor<double, 1> heat = meanValue;
+  xt::xarray<double> heat = meanValue;
   heat *= JOULE_PER_EV;
   heat /= m;
 
   // Get total heat production [J/source]
   double totalHeat = xt::sum(heat)();
 
-  // Normalize heat source in each material and collect in an array
-  for (int i = 0; i < _cellIndices.size(); ++i) {
-    double V = _volumes[i];
-    // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
-    // the fraction of heat deposited in each material. Multiplying by power
-    // givens an absolute value in W
-    heat(i) *= _power / (totalHeat * V);
-
+  if (totalHeat != 0.0) {
+    // Normalize heat source in each material and collect in an array
+    for (int i = 0; i < _cellIndices.size(); ++i) {
+      double V = _volumes[i];
+      // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
+      // the fraction of heat deposited in each material. Multiplying by power
+      // givens an absolute value in W
+      heat(i) *= _power / (totalHeat * V);
+    }
+  } else {
+    heat = xt::zeros_like(heat);
   }
 
-  return heat;
+  return std::vector<double>(heat.begin(), heat.end());
 }
 
 double OpenMCProblem::get_cell_volume(int cellIndex) {

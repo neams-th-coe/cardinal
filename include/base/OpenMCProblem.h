@@ -29,25 +29,22 @@ public:
   void setupCellTally();
   void setupMeshTallies();
 
-  static int32_t getFilterId();
-  static int32_t getNewFilter(int32_t filterId, const char *type);
-  static int32_t getTallyId();
-  static int32_t getNewTally(int32_t tallyId);
   std::vector<double> mesh_heat_source();
-  xt::xtensor<double, 1> heat_source();
+  std::vector<double> heat_source();
   double get_cell_volume(int cellIndex);
 
 private:
+
+  enum class TallyType {
+    CELL,
+    MESH,
+  };
+
   std::vector<Point> _centers;
   Real _power;
   std::vector<Real> _volumes;
-  std::string _tallyType;
   std::string _meshTemplateFilename;
-
-  int32_t _filterId;     //! ID for cell filter in OpenMC (remove)
-  int32_t _filterIndex;  //! Index for cell filter in OpenMC's filter array (remove)
-  int32_t _tallyId;
-  int32_t _tallyIndex;
+  TallyType _tallyType;
 
   openmc::CellFilter *_filter;
 
@@ -56,8 +53,6 @@ private:
 
   const openmc::LibMesh* _meshTemplate;               //! OpenMC unstructured mesh instance
   std::vector<const openmc::MeshFilter*> _meshFilters; //! OpenMC mesh filters
-  std::vector<const openmc::Tally*> _meshTallies;      //! OpenMC mesh tallies
-
   std::vector<const openmc::CellFilter*> _cellFilters;
   std::vector<const openmc::Tally*> _tallies;
 };
