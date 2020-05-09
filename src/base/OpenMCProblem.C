@@ -68,7 +68,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
       p.r() = {c(0), c(1), c(2)};
       p.u() = {0., 0., 1.};
       openmc::find_cell(&p, false);
-      _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
+      _cellIndices.push_back(p.coord_[0].cell);
       _cellInstances.push_back(p.cell_instance_);
     }
 
@@ -105,7 +105,7 @@ void OpenMCProblem::setupMeshTallies() {
   for (const auto& mesh : openmc::model::meshes) { meshId = std::max(meshId, mesh->id_); }
   auto mesh = std::make_unique<openmc::LibMesh>(_meshTemplateFilename);
   mesh->id_ = ++meshId;
-  //mesh->output_ = false;
+  mesh->output_ = false;
 
   _meshTemplate = mesh.get();
 
@@ -145,7 +145,6 @@ void OpenMCProblem::addExternalVariables()
   // cell-based heat source
   if (_tallyType == TallyType::CELL)
   {
-    std::cout << "Setting cell params" << std::endl;
     auto receiver_params = _factory.getValidParams("NearestPointReceiver");
     receiver_params.set<std::vector<Point>>("positions") = _centers;
 
@@ -197,6 +196,7 @@ void OpenMCProblem::addExternalVariables()
 void OpenMCProblem::externalSolve()
 {
   openmc_run();
+  openmc_hard_reset();
 }
 
 void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -206,10 +206,13 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
-      for (int i=0; i < _cellIndices.size(); ++i)
+      for (int i = 0; i < _cellIndices.size(); ++i)
       {
+        auto& cell = openmc::model::cells[i];
         double T = average_temp.spatialValue(_centers[i]);
-        openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
+        // if (cell->fill_ == openmc::Fill::MATERIAL) {
+          // openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
+        // }
       }
       break;
     }
@@ -218,15 +221,9 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       auto& receiver = getUserObject<NearestPointReceiver>("heat_source");
       if (_tallyType == TallyType::CELL) {
         auto heat = cellHeatSource();
-        std::cout << "Cell heat source: " << std::endl;
-        for (auto& val : heat) { std::cout << val << " "; }
-        std::cout << std::endl;
         receiver.setValues(heat);
       } else {
         auto mesh_heat = meshHeatSource();
-        std::cout << "Mesh heat source: " << std::endl;
-        for (auto& val : mesh_heat) { std::cout << val << " "; }
-        std::cout << std::endl;
         receiver.setValues(mesh_heat);
       }
       break;
@@ -240,36 +237,44 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 }
 
 std::vector<double> OpenMCProblem::meshHeatSource() {
-  std::cout << "Tallies size: " << _tallies.size();
+  const double JOULE_PER_EV = 1.6021766208e-19;
+
   // determine the size of the heat source
   size_t heat_source_size = 0;
   for (const auto& t : _tallies) { heat_source_size += t->n_filter_bins(); }
   xt::xarray<double> heat = xt::zeros<double> ({heat_source_size});
-  std::cout << "Heat source size: " << heat_source_size << std::endl;
 
   size_t idx = 0;
+  double totalHeat = 0.0;
   for (int i = 0; i < _tallies.size(); i++) {
     const auto& tally = _tallies[i];
     // Determine number of realizations for normalizing tallies
     auto tally_mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    double tally_sum = std::accumulate(tally_mean.begin(), tally_mean.end(), 0.0);
 
     int m = tally->n_realizations_;
-
     // TODO: Change OpenMC so that it's correct on all ranks
     MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     // normalize by volume
     for (int bin = 0; bin < tally->n_filter_bins(); bin++) {
-      heat(idx++) = tally_mean(bin) / (m * _meshTemplate->volume(bin));
+      heat(idx) = tally_mean(bin) * JOULE_PER_EV / m;
+      totalHeat += heat(idx);
+      idx++;
     }
   }
 
-  const double JOULE_PER_EV = 1.6021766208e-19;
-  double totalHeat = xt::sum(heat)();
-
+  double total_heat = xt::sum(heat)();
+  double f = _power / total_heat;
   if (totalHeat != 0.0) {
     // normalize heat generation using power level
-    heat *=  JOULE_PER_EV * _power / totalHeat;
+    int idx = 0;
+    for (const auto& tally : _tallies) {
+      for (int bin = 0; bin < tally->n_filter_bins(); bin++){
+        heat(idx) *=  f / _meshTemplate->volume(bin);
+        idx++;
+      }
+    }
   } else {
     heat = xt::zeros_like(heat);
   }
@@ -283,16 +288,12 @@ std::vector<double> OpenMCProblem::cellHeatSource()
 
   // Determine number of realizations for normalizing tallies
   int m = tally->n_realizations_;
-  std::cout << "Realizations: " << m << std::endl;
   // Broadcast number of realizations
   // TODO: Change OpenMC so that it's correct on all ranks
   MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // Determine energy production in each material
   auto meanValue = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-  std::cout << "Mean: " << std::endl;
-  for (auto& val : meanValue) { std::cout << val << " "; }
-  std::cout << std::endl;
 
   const double JOULE_PER_EV = 1.6021766208e-19;
   xt::xarray<double> heat = meanValue;
