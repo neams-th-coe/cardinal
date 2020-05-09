@@ -13,8 +13,8 @@
   power = 1000
   centers = '0 0 0 0 0 3.15'
   volumes = '14.137166941154067 14.137166941154067'
-  tally_type = 'cell'
-  mesh_template = 'sphere.e'
+  tally_type = 'mesh'
+  mesh_template = '../spherical_heat_conduction/sphere.e'
 []
 
 [Executioner]
