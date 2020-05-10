@@ -220,8 +220,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       auto& receiver = getUserObject<NearestPointReceiver>("heat_source");
       if (_tallyType == TallyType::CELL) {
-        auto heat = cellHeatSource();
-        receiver.setValues(heat);
+        auto cell_heat = cellHeatSource();
+        receiver.setValues(cell_heat);
       } else {
         auto mesh_heat = meshHeatSource();
         receiver.setValues(mesh_heat);
@@ -237,8 +237,6 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 }
 
 std::vector<double> OpenMCProblem::meshHeatSource() {
-  const double JOULE_PER_EV = 1.6021766208e-19;
-
   // determine the size of the heat source
   size_t heat_source_size = 0;
   for (const auto& t : _tallies) { heat_source_size += t->n_filter_bins(); }
@@ -295,7 +293,6 @@ std::vector<double> OpenMCProblem::cellHeatSource()
   // Determine energy production in each material
   auto meanValue = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
-  const double JOULE_PER_EV = 1.6021766208e-19;
   xt::xarray<double> heat = meanValue;
   heat *= JOULE_PER_EV;
   heat /= m;

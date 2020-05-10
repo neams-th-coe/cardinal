@@ -41,6 +41,7 @@ public:
   double getCellVolume(int cellIndex);
 
 private:
+  const double JOULE_PER_EV {1.6021766208e-19};
 
   enum class TallyType {
     CELL,
