@@ -28,6 +28,9 @@ LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
 LIBPARANUMAL_DIR ?= $(NEKRS_DIR)/build/3rd_party/libparanumal
 OCCA_DIR        ?= $(NEKRS_DIR)/build/3rd_party/occa
 
+HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
+HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
+
 OCCA_CUDA_ENABLED=0
 OCCA_HIP_ENABLED=0
 OCCA_OPENCL_ENABLED=0
@@ -38,25 +41,6 @@ OCCA_OPENCL_ENABLED=0
 
 # Use compiler info discovered by PETSC
 include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
-
-# ======================================================================================
-# HDF5
-# ======================================================================================
-ifndef $(HDF5_INCLUDE_DIR)
-	ifdef $(HDF5_ROOT)
-		HDF5_INCLUDE_DIR = $(HDF5_ROOT)/include
-	else
-		HDF5_INCLUDE_DIR = /usr/include
-	endif
-endif
-
-ifndef $(HDF5_LIBDIR)
-	ifdef $(HDF5_ROOT)
-	  HDF5_LIBDIR = $(HDF5_ROOT)/lib
-	else
-		HDF5_LIBDIR = /usr/lib
-	endif
-endif
 
 # ======================================================================================
 # MOOSE

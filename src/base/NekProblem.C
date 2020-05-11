@@ -6,8 +6,10 @@
 #include "Moose.h"
 #include "AuxiliarySystem.h"
 
-#include "NekInterface.h"
+//#include "NekInterface.h"
 #include "nekrs.hpp"
+#include "nekInterface/nekInterfaceAdapter.hpp"
+//#include "nek2Interface.h"
 
 registerMooseObject("NekApp", NekProblem);
 
@@ -46,7 +48,7 @@ void NekProblem::externalSolve()
 
     nekrs::runStep(_time, _dt, _tstep);
 
-    if (isOutputStep) nekrs::copyToNek(_time+_dt, _tstep);
+    nekrs::copyToNek(_time+_dt, _tstep);
     nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
     if (isOutputStep) nekrs::nekOutfld();
 
@@ -57,7 +59,7 @@ void NekProblem::externalSolve()
 
 void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 {
-  /*
+ 
   switch(direction)
   {
 
@@ -65,9 +67,19 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       auto & mesh = _mesh.getMesh();
 
-      auto num_elems = Nek5000::tot_surf_.nw_dbt;
+      double *n_nekrs = &nekData.cbscnrs[0];  
+      //std::cout << "N. elements A: " << n_nekrs[0];
+      int num_elems =  0;
+      num_elems = (int) n_nekrs[0]; 
+      //std::cout << "N. elements B: " << num_elems;
+ 
+      //num_elems = 0;
 
-      auto nek_flux = Nek5000::point_cloudf_.pc_f;
+      // num_elems = nekData.cbscnrs[0];  
+      // auto num_elems = Nek5000::tot_surf_.nw_dbt;
+
+      double *nek_flux = &nekData.cbscnrs[1+num_elems*4*4];
+      //auto nek_flux = Nek5000::point_cloudf_.pc_f;
 
       auto & solution = _aux->solution();
 
@@ -96,7 +108,6 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
           auto node_ptr = elem_ptr->node_ptr(n);
 
           auto node_offset = (e * 4) + n;
-
           auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
 
           nek_flux[node_offset] = (*_serialized_solution)(dof_idx);
@@ -107,22 +118,34 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
       std::cout << "Total flux going to Nek: " << total_flux << std::endl;
 
-      Nek5000::test_passing_.flux_moose = total_flux;
+      nekData.cbscnrs[1+num_elems*4*5]=total_flux;
 
-      Nek5000::FORTRAN_CALL(flux_reconstruction)();
+      int _isOutputStep = 0;
+      nekrs::udfExecuteStep(_time, _tstep, _isOutputStep);
+ //   Nek5000::test_passing_.flux_moose = total_flux;
+
+ //   Nek5000::FORTRAN_CALL(flux_reconstruction)();
     }
 
     break;
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
-    {
-      Nek5000::FORTRAN_CALL(nek_interpolation)();
-
+    { 
+     
+   //   Nek5000::FORTRAN_CALL(nek_interpolation)();
       auto & mesh = _mesh.getMesh();
 
-      auto num_elems = Nek5000::tot_surf_.nw_dbt;
+      double *n_nekrs = &nekData.cbscnrs[0];
+      int num_elems =  0;
+      num_elems = (int) n_nekrs[0];
 
-      auto nek_temperature = Nek5000::point_cloudt_.pc_t;
+      // auto num_elems = Nek5000::tot_surf_.nw_dbt;
 
+      auto nek_temperature = &nekData.cbscnrs[1+num_elems*4*3];
+      //auto nek_temperature = Nek5000::point_cloudt_.pc_t;
+
+      std::cout << "Test Temperature: " <<nek_temperature[3];
+
+      
       auto & solution = _aux->solution();
 
       auto sys_number = _aux->number();
@@ -147,7 +170,8 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
 
             auto dof_idx = node_ptr->dof_number(sys_number, _temp_var, 0);
 
-            solution.set(dof_idx, nek_temperature[node_offset]);
+ //           solution.set(dof_idx, 573.0);
+              solution.set(dof_idx, nek_temperature[node_offset]);
           }
         }
       }
@@ -159,7 +183,7 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
     default:
       mooseError("Shouldn't get here!");
   }
-  */
+ 
 }
 
 void
