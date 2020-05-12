@@ -68,7 +68,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
       p.r() = {c(0), c(1), c(2)};
       p.u() = {0., 0., 1.};
       openmc::find_cell(&p, false);
-      _cellIndices.push_back(p.coord_[0].cell);
+      _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
       _cellInstances.push_back(p.cell_instance_);
     }
 
@@ -196,7 +196,6 @@ void OpenMCProblem::addExternalVariables()
 void OpenMCProblem::externalSolve()
 {
   openmc_run();
-  openmc_hard_reset();
 }
 
 void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -211,7 +210,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
         auto& cell = openmc::model::cells[i];
         double T = average_temp.spatialValue(_centers[i]);
         // if (cell->fill_ == openmc::Fill::MATERIAL) {
-          // openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
+          openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
         // }
       }
       break;
@@ -317,7 +316,7 @@ std::vector<double> OpenMCProblem::cellHeatSource()
 }
 
 double OpenMCProblem::getCellVolume(int cellIndex) {
-  int fillType {};
+  int fillType = static_cast<int>(openmc::Fill::MATERIAL);
   int32_t *matIndices = nullptr;
   int nMat = 0;
   openmc_cell_get_fill(cellIndex, &fillType, &matIndices, &nMat);
