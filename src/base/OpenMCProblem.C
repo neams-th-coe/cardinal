@@ -56,7 +56,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   auto& m = mesh().getMesh();
 
   if (openmc::settings::libmesh_comm) {
-    std::cerr << "Warning: LibMesh communicator already set in OpenMC." << std::endl;
+    mooseWarning("libMesh communicator already set in OpenMC.");
   }
 
   openmc::settings::libmesh_comm = &m.comm();
@@ -137,6 +137,13 @@ void OpenMCProblem::setupMeshTallies() {
 
   // performance optimization - assume the mesh tallies are spatially separate
   openmc::settings::assume_separate = true;
+
+  // warn user that this setting is present if other tallies existin
+  // (in the tallies.xml for example)
+  if (openmc::model::tallies.size() > _tallies.size()) {
+    mooseWarning("Additional tallies exist in the problem. "
+                 "If spatial overlaps exist, tally data may be inaccurate");
+  }
 }
 
 void OpenMCProblem::addExternalVariables()
@@ -220,9 +227,15 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       auto& receiver = getUserObject<NearestPointReceiver>("heat_source");
       if (_tallyType == TallyType::CELL) {
         auto cell_heat = cellHeatSource();
+        // Debug
+        // std::cout << "Cell heat source: " << std::endl;
+        // for (auto val : cell_heat) { std::cout << val << " " << std::endl; }
         receiver.setValues(cell_heat);
       } else {
         auto mesh_heat = meshHeatSource();
+        // Debug
+        // std::cout << "Mesh heat source: " << std::endl;
+        // for (auto val : mesh_heat) { std::cout << val << " " << std::endl; }
         receiver.setValues(mesh_heat);
       }
       break;
