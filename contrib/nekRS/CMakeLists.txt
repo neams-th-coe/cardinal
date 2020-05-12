@@ -83,6 +83,18 @@ else()
   set(NEKRS_DEBUG 0 CACHE BOOL "")
 endif()
 
+if (DEFINED ENV{OCCA_CXX})
+  set(CMAKE_OCCA_CXX_COMPILER "$ENV{OCCA_CXX}" CACHE STRING "")
+else()
+  set(CMAKE_OCCA_CXX_COMPILER "${CMAKE_CXX_COMPILER}" CACHE STRING "")
+endif()
+
+if (DEFINED ENV{OCCA_CXXFLAGS})
+  set(CMAKE_OCCA_CXX_FLAGS "$ENV{OCCA_CXXFLAGS}" CACHE STRING "")
+else()
+  set(CMAKE_OCCA_CXX_FLAGS "${CMAKE_CXX_FLAGS}" CACHE STRING "")
+endif()
+
 if (DEFINED ENV{OCCA_CUDA_ENABLED})
   set(OCCA_CUDA_ENABLED "$ENV{OCCA_CUDA_ENABLED}" CACHE BOOL "")
 else()
@@ -245,7 +257,10 @@ set(THIRD_PARTY_INCLUDES ${THIRD_PARTY_INCLUDES}
   ${CDSDIR}
 )
 
-set(NEKRS_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/src
+set(NEKRS_INCLUDES 
+  ${CMAKE_CURRENT_SOURCE_DIR}/src
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/mesh
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/core
   ${CMAKE_CURRENT_SOURCE_DIR}/src/udf
   ${NEKINTERFACEDIR}
 )
@@ -296,23 +311,27 @@ add_custom_command(OUTPUT ${LIBP_BUILD_LIBRARIES}
 ###############################################################################
 set(SRC 
     src/nekrs.cpp
-    src/cfl.cpp
-    src/filter.cpp
-    src/bcMap.cpp
-    src/insSetup.cpp
-    src/runTime.cpp
-    src/tombo.cpp
-    src/cds.cpp
+    src/core/cfl.cpp
+    src/core/filter.cpp
+    src/core/bcMap.cpp
+    src/core/insSetup.cpp
+    src/core/runTime.cpp
+    src/core/tombo.cpp
+    src/core/cds.cpp
     src/udf/udf.cpp
-    src/meshSetup.cpp
-    src/meshNekReader.cpp
-    src/meshPhysicalNodesHex3D.cpp
-    src/occaDeviceConfig.cpp
+    src/mesh/meshSetup.cpp
+    src/mesh/meshNekReader.cpp
+    src/mesh/meshPhysicalNodesHex3D.cpp
+    src/mesh/meshParallelConnectNodes.cpp
+    src/core/occaDeviceConfig.cpp
     src/nekInterface/nekInterfaceAdapter.cpp
-    src/parReader.cpp
-    src/configReader.cpp
-    src/tinyexpr.c
-    src/timer.cpp
+    src/core/parReader.cpp
+    src/core/configReader.cpp
+    src/core/tinyexpr.c
+    src/core/timer.cpp
+    src/plugins/avg.cpp
+    src/plugins/velRecycling.cpp
+    src/plugins/RANSktau.cpp
     ## To get fortran flags
     src/dummy.f
 )
