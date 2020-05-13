@@ -68,7 +68,8 @@ NearestPointReceiverTransfer::execute()
         {
           values.clear();
 
-          auto & receiver = _multi_app->appProblemBase(i).getUserObjectTempl<NearestPointReceiver>(_to_uo_name);
+
+          auto & receiver = _multi_app->appProblemBase(i).getUserObject<NearestPointReceiver>(_to_uo_name);
           const auto & points = receiver.positions();
 
           values.reserve(points.size());
