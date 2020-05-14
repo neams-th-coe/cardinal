@@ -11,15 +11,16 @@ variables:
 stages:
   - build_petsc
   - build_libmesh
-  - build_onepebble
+  - build_onepebble2
   - download
   - test
 
 build_petsc:petsc:
   stage: build_petsc
   variables:
-    GIT_STRATEGY: fetch
-  script:
+    GIT_STRATEGY: clone
+  script: 
+    - env | sort
     - cd contrib/moose
     - scripts/update_and_rebuild_petsc.sh
 
@@ -27,17 +28,19 @@ build_libmesh:libmesh:
   stage: build_libmesh
   dependencies:
     - build_petsc:petsc
-  script:
+  script: 
+    - env | sort
     - cd contrib/moose
     - scripts/update_and_rebuild_libmesh.sh
 
-build_onepebble:onepebble:
-  stage: build_onepebble
+build_onepebble2:onepebble2:
+  stage: build_onepebble2
   dependencies:
     - build_petsc:petsc
     - build_libmesh:libmesh
   script:
-    - make -j4 NEK_CASENAME=onepebble NEK_CASEDIR="$CI_PROJECT_DIR/problems/spherical_heat_conduction"
+    - env | sort
+    - make -j4 HDF5_ROOT="$HDF5_ROOT" HDF5_INCLUDE_DIR="$HDF5_ROOT/include"
 
 download:cross_sections:
   stage: download
@@ -45,11 +48,28 @@ download:cross_sections:
     - if [[ ! -e $OPENMC_CROSS_SECTIONS ]]; then wget -q -O - https://anl.box.com/shared/static/teaup95cqv8s9nn56hfn7ku8mmelr95p.xz | tar -C $CI_PROJECT_DIR -xJ; fi
     - if [[ ! -d $OPENMC_ENDF_DATA/neutrons || ! -d $OPENMC_ENDF_DATA/photoat || ! -d $OPENMC_ENDF_DATA/atomic_relax ]]; then wget -q -O - https://anl.box.com/shared/static/4kd2gxnf4gtk4w1c8eua5fsua22kvgjb.xz | tar -C $CI_PROJECT_DIR -xJ; fi
 
-test:onepebble_openmc:
+test:onepebble2_openmc:
   stage: test
   dependencies:
-    - build_onepebble:onepebble
+    - build_onepebble2:onepebble2
     - download:cross_sections
+  allow_failure: true
+  timeout: 30m
   script:
+    - env | sort
     - cd problems/spherical_heat_conduction
-    - mpirun -np 2 "$CI_PROJECT_DIR/cardinal-onepebble-opt" --app openmc -i openmc.i --n-threads=8
+    - mpirun -np 4 "$CI_PROJECT_DIR/cardinal-opt" --app openmc -i openmc.i --n-threads=8
+
+test:onepebble2_nekrs:
+  stage: test
+  dependencies:
+    - build_onepebble2:onepebble2
+  allow_failure: true
+  timeout: 30m
+  variables:
+    NEKRS_HOME: $CI_PROJECT_DIR
+  script:
+    - env | sort
+    - cd problems/spherical_heat_conduction
+    - mpirun -np 4 "$CI_PROJECT_DIR/cardinal-opt" --app nek -i nek.i --nekrs-setup onepebble2
+

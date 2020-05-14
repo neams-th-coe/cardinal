@@ -15,15 +15,15 @@ NekExecutioner::NekExecutioner(const InputParameters & parameters) :
 
 void NekExecutioner::init() {
   Transient::init();
-  FORTRAN_CALL(Nek5000::nek_init)(_communicator.get());
+  //FORTRAN_CALL(Nek5000::nek_init)(_communicator.get());
 }
 
 void NekExecutioner::preStep() {
   Transient::preStep();
-  FORTRAN_CALL(Nek5000::nek_init_step)();
+  //FORTRAN_CALL(Nek5000::nek_init_step)();
 }
 
 void NekExecutioner::postStep() {
   Transient::postStep();
-  FORTRAN_CALL(Nek5000::nek_finalize_step)();
+  //FORTRAN_CALL(Nek5000::nek_finalize_step)();
 }

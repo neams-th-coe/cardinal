@@ -1,0 +1,28 @@
+//
+// nekRS User Defined File
+//
+
+#include <math.h>
+#include "udf.hpp"
+
+/* UDF Functions */                                                      
+
+void UDF_LoadKernels(ins_t *ins)
+{
+}
+
+void UDF_Setup(ins_t *ins)
+{
+  // get IC from nek
+  if (!ins->readRestartFile) nek_copyTo(ins, ins->startTime);
+  ins->o_usrwrk.free(); free(ins->usrwrk);
+  ins->o_usrwrk = ins->mesh->device.malloc(ins->fieldOffset*sizeof(dfloat));
+}
+
+void UDF_ExecuteStep(ins_t *ins, dfloat time, int tstep)
+{
+  nek_userchk();
+  int nwbdt=nekData.cbscnrs[0];
+  auto *ptr=nekData.cbscnrs;
+  ins->o_usrwrk.copyFrom(ptr+ nwbdt*5*4 + 2,ins->fieldOffset*sizeof(dfloat));
+}

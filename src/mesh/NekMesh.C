@@ -8,10 +8,12 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "NekMesh.h"
-#include "NekInterface.h"
+//#include "NekInterface.h"
 
 #include "libmesh/face_quad4.h"
 #include "libmesh/face_tri3.h"
+#include "nekrs.hpp"
+#include "nekInterface/nekInterfaceAdapter.hpp"
 
 registerMooseObject("MooseApp", NekMesh);
 
@@ -34,11 +36,18 @@ NekMesh::safeClone() const
 void
 NekMesh::buildMesh()
 {
+  
   // _mesh = _app.getNekMesh();
+  //Nek5000::FORTRAN_CALL(nek_pointscloud)();
 
-  Nek5000::FORTRAN_CALL(nek_pointscloud)();
+  
+  double *n_nekrs = &nekData.cbscnrs[0];
+  int num_elems =  0;
+  num_elems = (int) n_nekrs[0];
 
-  auto num_elems = Nek5000::tot_surf_.nw_dbt;
+  double *pc_x = &nekData.cbscnrs[1];
+  double *pc_y = &nekData.cbscnrs[1+4*num_elems];
+  double *pc_z = &nekData.cbscnrs[1+2*4*num_elems];
 
   std::cout << "Total number of elements: " << num_elems << std::endl;
 
@@ -56,9 +65,9 @@ NekMesh::buildMesh()
     {
       auto node_offset = (e * 4) + n;
 
-      Point p(Nek5000::point_cloudx_.pc_x[node_offset],
-              Nek5000::point_cloudy_.pc_y[node_offset],
-              Nek5000::point_cloudz_.pc_z[node_offset]);
+      Point p(pc_x[node_offset],
+              pc_y[node_offset],
+              pc_z[node_offset]);
 
       std::cout << "Adding point: " << p << std::endl;
 
@@ -67,6 +76,7 @@ NekMesh::buildMesh()
       elem->set_node(n) = node_ptr;
     }
   }
-
+  std::cout << "Test completion";
   _mesh->prepare_for_use();
+  
 }

@@ -23,8 +23,8 @@
 
 [Outputs]
   [exo]
-    type = Exodus
-    output_dimension = 3
+     type = Exodus
+     output_dimension = 3
   []
 []
 

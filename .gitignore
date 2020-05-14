@@ -62,7 +62,6 @@ temp_print_trace.*
 *.plugin
 *.outp
 *.patch
-*.txt
 *.bib.bak
 *.out
 *.vtk
@@ -218,8 +217,6 @@ peacock_tmp_diff.exo
 
 # Cardinal
 bin/**
-include/**
-lib/**
 obj_*/**
 share/**
 nndc*/**

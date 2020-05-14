@@ -16,6 +16,13 @@ public:
 
   static void registerApps();
   static void registerAll(Factory & f, ActionFactory & af, Syntax & s);
+
+private:
+  std::string _setup_file;
+  int _size_target;
+  int _build_only;
+  int _ci_mode;
+  std::string _cache_dir;
 };
 
 #endif //CARDINAL_NEKAPP<_H

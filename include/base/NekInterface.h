@@ -2,11 +2,13 @@
 #define CARDINAL_NEKINTERFACE_H
 
 #include "Moose.h"
+#include "nekrs.hpp"
+#include "nekInterface/nekInterfaceAdapter.hpp"
 
 // String length for file paths in Nek5000
 #define PATHLEN 132
 
-
+/*
 namespace Nek5000
 {
 // Nek Fortran interface
@@ -90,5 +92,6 @@ void FORTRAN_CALL(nek_pointscloud)();    // to be called before extracting point
 void FORTRAN_CALL(flux_reconstruction)(); // to be called after loading flux data in common blocks
 }
 }
+*/
 
 #endif //CARDINAL_NEKINTERFACE_H
