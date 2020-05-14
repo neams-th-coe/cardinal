@@ -1,0 +1,94 @@
+@kernel void dpdx(const dlong Ntotal,
+                     const dfloat time, 
+                     @restrict const  dfloat *  x,
+                     @restrict const  dfloat *  y,
+                     @restrict const  dfloat *  z,                      
+                     const dlong offset,
+                     @restrict dfloat * FS) {
+  for(dlong n=0;n<Ntotal;++n;@tile(256,@outer,@inner)){
+    if(n<Ntotal){
+      const dfloat xn = x[n]; 
+      const dfloat yn = y[n]; 
+      const dfloat zn = z[n]; 
+      //
+      const dfloat a = p_A; 
+      const dfloat d = p_D; 
+      //
+      const dfloat xx = xn - p_U0*time; 
+      const dfloat yy = yn - p_V0*time; 
+      const dfloat zz = zn - p_W0*time; 
+      //
+      const dfloat exy = exp( a * ( xx + yy ) );
+      const dfloat eyz = exp( a * ( yy + zz ) );
+      const dfloat ezx = exp( a * ( zz + xx ) );
+      // 
+      const dfloat sxy = sin( a * xx + d * yy );
+      const dfloat syz = sin( a * yy + d * zz );
+      const dfloat szx = sin( a * zz + d * xx );
+      //
+      const dfloat cxy = cos( a * xx + d * yy );
+      const dfloat cyz = cos( a * yy + d * zz );
+      const dfloat czx = cos( a * zz + d * xx );
+      // 
+      const dfloat dpdx = -0.5f*(a*a*exp(-2.f*d*d*p_nu*time)*(2.f*a*exp(2.f*a*xx) 
+                         + 2.f*a*cxy*czx*eyz + 2.f*d*czx*cyz*exy 
+                         + 2.f*a*cxy*syz*ezx + 2.f*a*cyz*szx*exy 
+                         - 2.f*a*sxy*syz*ezx - 2.f*d*sxy*szx*eyz)); 
+
+      FS[n + offset] = -dpdx; 
+    }
+  }
+}
+
+
+void exact(dfloat *u, dfloat *v, dfloat *w,
+           const dfloat x, const dfloat y, const dfloat z,
+           const dfloat t, const dfloat visc)
+{                                                                        
+  dfloat a = p_A;                                                   
+  dfloat d = p_D;                                                   
+  dfloat ex,ey,ez;                                                       
+  dfloat exy,eyz,ezx,sxy,syz,szx,cxy,cyz,czx,e2t;                        
+
+  const dfloat xx = x - p_U0*t;
+  const dfloat yy = y - p_V0*t;
+  const dfloat zz = z - p_W0*t;
+
+  ex  = exp(a*xx);                                                        
+  ey  = exp(a*yy);                                                        
+  ez  = exp(a*zz);                                                        
+  e2t = exp(-visc*d*d*t);                                                  
+                                                                         
+  exy = exp(a*(xx + yy));                                                 
+  eyz = exp(a*(yy + zz));                                                  
+  ezx = exp(a*(zz + xx));                                                  
+                                                                         
+  sxy = sin(a*xx + d*yy);                                                  
+  syz = sin(a*yy + d*zz);                                                  
+  szx = sin(a*zz + d*xx);                                                  
+                                                                         
+  cxy = cos(a*xx + d*yy);                                                  
+  cyz = cos(a*yy + d*zz);                                                  
+  czx = cos(a*zz + d*xx);                                                  
+                                                                         
+  *(u)= -a*(ex*syz + ez*cxy)*e2t + p_U0;                                        
+  *(v)= -a*(ey*szx + ex*cyz)*e2t + p_V0;                                        
+  *(w)= -a*(ez*sxy + ey*czx)*e2t + p_W0;                                        
+}   
+
+// Boundary conditions
+void insVelocityDirichletConditions3D(bcData *bc)
+{                                                                        
+  dfloat u, v, w;
+  exact(&u, &v, &w, bc->x, bc->y, bc->z, bc->time, p_nu);
+  bc->uP = u;
+  bc->vP = v;
+  bc->wP = w;
+}
+
+void cdsDirichletConditions3D(bcData *bc)
+{                                                                        
+  dfloat u, v, w;
+  exact(&u, &v, &w, bc->x, bc->y, bc->z, bc->time, p_nu);
+  bc->sP = u;
+}
