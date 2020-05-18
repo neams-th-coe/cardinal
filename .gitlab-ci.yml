@@ -31,7 +31,7 @@ build_libmesh:libmesh:
   script: 
     - env | sort
     - cd contrib/moose
-    - scripts/update_and_rebuild_libmesh.sh
+    - scripts/update_and_rebuild_libmesh.sh  --disable-vtk
 
 build_onepebble2:onepebble2:
   stage: build_onepebble2
