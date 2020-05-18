@@ -22,6 +22,11 @@ macro(install_glob_recurse_if_newer source pattern install_prefix)
   install_("${src_files}" ${source} ${install_prefix})
 endmacro()
 
+macro(install_glob_recurse_if_newer_flat source pattern install_prefix)
+  file(GLOB_RECURSE src_files "${source}/${pattern}") 
+  install_flat_("${src_files}" ${source} ${install_prefix})
+endmacro()
+
 macro(install_glob_if_newer source pattern install_prefix)
   file(GLOB src_files "${source}/${pattern}") 
   install_("${src_files}" ${source} ${install_prefix})
@@ -80,16 +85,18 @@ install_batch_if_newer(@NEKDIR@/3rd_party/parRSB
   @CMAKE_INSTALL_PREFIX@/nek5000/3rd_party/parRSB)
 install_batch_if_newer(@NEKDIR@/3rd_party/parRSB
   @CMAKE_INSTALL_PREFIX@/nek5000/3rd_party/parRSB)
+install_batch_if_newer(@NEKDIR@/3rd_party/parMETIS
+  @CMAKE_INSTALL_PREFIX@/nek5000/3rd_party/parMETIS)
 
 install_files_if_newer(@NEKDIR@/bin/nekconfig @CMAKE_INSTALL_PREFIX@/nek5000/bin)
 
 ## nekRS
 message("-- Installing nekRS")
 install_glob_if_newer(@CMAKE_SOURCE_DIR@/scripts * @CMAKE_INSTALL_PREFIX@/bin)
-install_glob_if_newer(@CMAKE_SOURCE_DIR@/src "*.h*" @CMAKE_INSTALL_PREFIX@/include)
-install_glob_if_newer(@CMAKE_SOURCE_DIR@/src/udf "*.hpp" @CMAKE_INSTALL_PREFIX@/include)
-install_glob_if_newer(@CMAKE_SOURCE_DIR@/src/nekInterface "*.hpp" @CMAKE_INSTALL_PREFIX@/include)
-install_glob_if_newer(@CMAKE_SOURCE_DIR@/src/okl * @CMAKE_INSTALL_PREFIX@/okl)
+install_glob_recurse_if_newer(@CMAKE_SOURCE_DIR@/src "*.h" @CMAKE_INSTALL_PREFIX@/include)
+install_glob_recurse_if_newer(@CMAKE_SOURCE_DIR@/src "*.hpp" @CMAKE_INSTALL_PREFIX@/include)
+install_glob_recurse_if_newer(@CMAKE_SOURCE_DIR@/okl "*.okl" @CMAKE_INSTALL_PREFIX@/okl)
+#install_glob_recurse_if_newer(@CMAKE_SOURCE_DIR@/src/plugins/include "*.hpp" @CMAKE_INSTALL_PREFIX@/include/plugins)
 
 install_files_if_newer(@CMAKE_SOURCE_DIR@/src/udf/CMakeLists.txt @CMAKE_INSTALL_PREFIX@/udf)
 install_files_if_newer("@CMAKE_SOURCE_DIR@/src/nekInterface/NEKINTF;@CMAKE_SOURCE_DIR@/src/nekInterface/nekInterface.f;@CMAKE_SOURCE_DIR@/src/nekInterface/Makefile" @CMAKE_INSTALL_PREFIX@/nekInterface)
