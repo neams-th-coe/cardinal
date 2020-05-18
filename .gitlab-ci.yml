@@ -40,7 +40,7 @@ build_onepebble2:onepebble2:
     - build_libmesh:libmesh
   script:
     - env | sort
-    - make -j4 HDF5_ROOT="$HDF5_ROOT" HDF5_INCLUDE_DIR="$HDF5_ROOT/include"
+    - make -j4
 
 download:cross_sections:
   stage: download
