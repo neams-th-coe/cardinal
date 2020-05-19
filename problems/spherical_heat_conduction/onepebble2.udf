@@ -17,15 +17,23 @@ void UDF_Setup(ins_t *ins)
   // get IC from nek
   if (!ins->readRestartFile) nek_copyTo(ins->startTime);
   ins->o_usrwrk.free(); free(ins->usrwrk);
-  ins->o_usrwrk = ins->mesh->device.malloc(ins->fieldOffset*sizeof(dfloat));
+  ins->usrwrk   = (dfloat*) calloc(ins->mesh->Nelements*ins->mesh->Np, sizeof(dfloat));
+  ins->o_usrwrk = ins->mesh->device.malloc(ins->mesh->Nelements*ins->mesh->Np*sizeof(dfloat), ins->usrwrk);
+  ins->cds->o_usrwrk = ins->o_usrwrk;
+  // printf ("> Test %d \n", ins->mesh->Nelements*ins->mesh->Np*sizeof(dfloat));
 }
 
 void UDF_ExecuteStep(ins_t *ins, dfloat time, int tstep)
 {
   nek_userchk();
-std::cout << "Finished userchk" << std::endl;
+  //std::cout << "Finished userchk" << std::endl;
+
   int nwbdt=nekData.cbscnrs[0];
-  auto *ptr=nekData.cbscnrs;
-  ins->o_usrwrk.copyFrom(ptr+ nwbdt*5*4 + 2,ins->fieldOffset*sizeof(dfloat));
-std::cout << "Finished UDF_ExecuteStep" << std::endl;
+  auto *wrk1 =  nekData.cbscnrs; 
+  wrk1 = wrk1 + nwbdt*5*4 + 2; 
+  ins->o_usrwrk.copyFrom(wrk1,ins->mesh->Nelements*ins->mesh->Np*sizeof(dfloat));
+
+  //auto *ptr=nekData.cbscnrs;
+  //ins->o_usrwrk.copyFrom(wrk, mesh->Nelements*mesh->Np*sizeof(dfloat));
+  //std::cout << "Finished UDF_ExecuteStep" << std::endl;
 }
