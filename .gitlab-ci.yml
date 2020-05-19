@@ -7,6 +7,7 @@ variables:
   CXX: mpicxx
   FC: mpif90
   F77: mpif77
+  METHOD: opt
 
 stages:
   - build_petsc
@@ -31,7 +32,7 @@ build_libmesh:libmesh:
   script: 
     - env | sort
     - cd contrib/moose
-    - scripts/update_and_rebuild_libmesh.sh
+    - scripts/update_and_rebuild_libmesh.sh  --disable-vtk
 
 build_onepebble2:onepebble2:
   stage: build_onepebble2
@@ -40,7 +41,7 @@ build_onepebble2:onepebble2:
     - build_libmesh:libmesh
   script:
     - env | sort
-    - make -j4 HDF5_ROOT="$HDF5_ROOT" HDF5_INCLUDE_DIR="$HDF5_ROOT/include"
+    - make -j4
 
 download:cross_sections:
   stage: download
