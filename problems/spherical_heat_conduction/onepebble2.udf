@@ -17,8 +17,10 @@ void UDF_Setup(ins_t *ins)
   // get IC from nek
   if (!ins->readRestartFile) nek_copyTo(ins->startTime);
   ins->o_usrwrk.free(); free(ins->usrwrk);
-  ins->usrwrk   = (dfloat*) calloc(ins->fieldOffset, sizeof(dfloat));
-  ins->o_usrwrk = ins->mesh->device.malloc(ins->fieldOffset*sizeof(dfloat), ins->usrwrk);
+  ins->usrwrk   = (dfloat*) calloc(ins->mesh->Nelements*ins->mesh->Np, sizeof(dfloat));
+  ins->o_usrwrk = ins->mesh->device.malloc(ins->mesh->Nelements*ins->mesh->Np*sizeof(dfloat), ins->usrwrk);
+  ins->cds->o_usrwrk = ins->o_usrwrk;
+  // printf ("> Test %d \n", ins->mesh->Nelements*ins->mesh->Np*sizeof(dfloat));
 }
 
 void UDF_ExecuteStep(ins_t *ins, dfloat time, int tstep)
