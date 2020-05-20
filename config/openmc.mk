@@ -4,8 +4,10 @@ OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
 $(OPENMC_LIB):
 	mkdir -p $(OPENMC_OBJDIR)
-	cd $(OPENMC_OBJDIR) && cmake -DCMAKE_EXE_LINKER_FLAGS="$(libmesh_LIBS)" -DCMAKE_SHARED_LINKER_FLAGS="$(libmesh_LIBS)" -DCMAKE_INSTALL_PREFIX=$(CURDIR) $(OPENMC_DIR)
-	make VERBOSE=1 -C $(OPENMC_OBJDIR) install
+	mkdir -p $(LIBMESH_DIR)/include/contrib
+	cd $(OPENMC_OBJDIR) && \
+	cmake -L -Dlibmesh=ON -Doptimize=ON -DLIBMESH_DIR=$(LIBMESH_DIR) -DCMAKE_INSTALL_PREFIX=$(CURDIR) $(OPENMC_DIR) && \
+	cmake $(OPENMC_DIR) && make VERBOSE=1 -C $(OPENMC_OBJDIR) install
 
 clean_openmc:
 	make -C $(OPENMC_OBJDIR) clean

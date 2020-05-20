@@ -12,7 +12,9 @@
   type = OpenMCProblem
   power = 0.15
   centers = '0 0 0'
-  volumes = '0.0002782618569027357'
+  volumes = '14.137166941154067'
+  tally_type = 'mesh'
+  mesh_template = 'sphere.e'
 []
 
 [Executioner]
