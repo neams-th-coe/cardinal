@@ -1,5 +1,5 @@
 OPENMC_OBJDIR := $(CURDIR)/obj_openmc
-OPENMC_LIBDIR := $(CURDIR)/lib
+OPENMC_LIBDIR := $(OPENMC_OBJDIR)/lib
 OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
 $(OPENMC_LIB):
