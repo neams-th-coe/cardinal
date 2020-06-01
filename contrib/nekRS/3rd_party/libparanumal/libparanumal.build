@@ -5,6 +5,7 @@ source ${NEKRS_SRC_THIRD_PARTY_DIR}/3rd_party.version
 
 if [ ! -d libparanumal ]; then
   clone_libp
+  cp ${NEKRS_SRC_THIRD_PARTY_DIR}/libparanumal/make.inp ${NEKRS_BIN_THIRD_PARTY_DIR}/libparanumal/make.inp
 fi
 
 if [ ! -f libparanumal/libs/parAlmond/hypre/hypre.tgz ]; then

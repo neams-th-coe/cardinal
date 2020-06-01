@@ -1,6 +1,7 @@
-#
-# nek parameter file
-#
+[OCCA]
+backend = CUDA
+deviceNumber = 0
+
 [GENERAL] 
 polynomialOrder = 5
 #startFrom = onepebble2.run03
