@@ -470,6 +470,7 @@ err:
 }
 
 int nek_setup(MPI_Comm c, setupAide &options_in, ins_t **ins_in) {
+  c = MPI_COMM_WORLD;
   options = &options_in;
   ins = ins_in;
   MPI_Comm_rank(c,&rank);
