@@ -1,5 +1,9 @@
 #/bin/bash
 
+export OPENMC_CROSS_SECTIONS=/gpfs/alpine/nfi114/proj-shared/rahaman/cross_sections/nndc_hdf5/cross_sections.xml
+export OPENMC_ENDF_DATA=/gpfs/alpine/nfi114/proj-shared/rahaman/cross_sections/endf-b-vii.1
+export NEKRS_HOME="$(realpath ../..)"
+
 project_id=nfi114
 NEKRS_HYPRE_NUM_THREADS=1
 
