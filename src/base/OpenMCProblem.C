@@ -67,8 +67,8 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
       openmc::Particle p {};
       p.r() = {c(0), c(1), c(2)};
       p.u() = {0., 0., 1.};
-      openmc::find_cell(&p, false);
-      _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
+      openmc::find_cell(p, false);
+      _cellIndices.push_back(p.coord_[0].cell);
       _cellInstances.push_back(p.cell_instance_);
     }
 
@@ -216,9 +216,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       {
         auto& cell = openmc::model::cells[i];
         double T = average_temp.spatialValue(_centers[i]);
-        // if (cell->fill_ == openmc::Fill::MATERIAL) {
-          openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
-        // }
+        cell->set_temperature(T, _cellInstances[i], true);
       }
       break;
     }
