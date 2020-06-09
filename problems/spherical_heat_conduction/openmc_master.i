@@ -77,11 +77,12 @@
 
 [Transfers]
   [./heat_source_from_openmc]
-    type = MultiAppUserObjectTransfer
+    type = MultiAppCopyTransfer
     direction = from_multiapp
     multi_app = openmc
-    user_object = heat_source
     variable = heat_source
+    source_variable = heat_source
+    execute_on= 'initial timestep_begin'
   []
   [./average_temp_to_openmc]
     type = MultiAppPostprocessorTransfer
