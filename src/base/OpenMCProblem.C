@@ -188,13 +188,13 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       for (int i = 0; i < _cellIndices.size(); ++i)
       {
         auto& cell = openmc::model::cells[_cellIndices[i]];
-        // std::cout << "Getting temperature at location: "
-        //           << _centers[i](0) << ' '
-        //           << _centers[i](1) << ' '
-        //           << _centers[i](2) << std::endl;
+        std::cout << "Getting temperature at location: "
+                  << _centers[i](0) << ' '
+                  << _centers[i](1) << ' '
+                  << _centers[i](2) << std::endl;
 
         double T = average_temp.spatialValue(_centers[i]);
-        // std::cout << "Temperature: " << T << std::endl;
+        std::cout << "Temperature: " << T << std::endl;
         cell->set_temperature(T, _cellInstances[i], true);
       }
       // std::cout << std::endl;
