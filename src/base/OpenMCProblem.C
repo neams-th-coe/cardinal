@@ -13,6 +13,7 @@
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "openmc/settings.h"
+#include "openmc/summary.h"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
@@ -123,9 +124,11 @@ void OpenMCProblem::setupMeshTallies() {
 
   for (auto& c : _centers) {
     auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
-    _meshFilters.push_back(meshFilter);
     meshFilter->set_mesh(mesh_index);
     meshFilter->set_translation({c(0), c(1), c(2)});
+
+    _meshFilters.push_back(meshFilter);
+
     std::vector<openmc::Filter*> tally_filters = {meshFilter};
 
     // apply the mesh filter to a tally
@@ -135,6 +138,7 @@ void OpenMCProblem::setupMeshTallies() {
     tally->estimator_ = openmc::TallyEstimator::COLLISION;
     _tallies.push_back(tally);
   }
+
 
   // performance optimization - assume the mesh tallies are spatially separate
   openmc::settings::assume_separate = true;
@@ -173,6 +177,7 @@ void OpenMCProblem::addExternalVariables()
 
 void OpenMCProblem::externalSolve()
 {
+  openmc::write_summary();
   openmc_run();
 }
 
@@ -183,7 +188,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
-      std::cout << "Temperatures: ";
+      // std::cout << "Temperatures: ";
 
       for (int i = 0; i < _cellIndices.size(); ++i)
       {
@@ -194,7 +199,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
                   << _centers[i](2) << std::endl;
 
         double T = average_temp.spatialValue(_centers[i]);
-        std::cout << "Temperature: " << T << std::endl;
+        // std::cout << "Temperature: " << T << std::endl;
+        // std::cout << "Cell instance: " << _cellInstances[i] << std::endl;
         cell->set_temperature(T, _cellInstances[i], true);
       }
       // std::cout << std::endl;
@@ -227,8 +233,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 
         for (unsigned int i = 0; i < _centers.size(); ++i ) {
           unsigned int offset = i * elems_per_sphere;
-          for (unsigned int e = offset; e < elems_per_sphere; ++e) {
-            auto elem_ptr = transfer_mesh.elem_ptr(e);
+          for (unsigned int e = 0; e < elems_per_sphere; ++e) {
+            auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
             auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
             // set every element in this pebble with the same heating value
             solution.set(dof_idx, cell_heat.at(i));
@@ -249,8 +255,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
           auto& mesh_filter = _meshFilters[i];
           unsigned int offset = i * mesh_filter->n_bins();
 
-          for (unsigned int e = offset; e < mesh_filter->n_bins(); ++e) {
-            auto elem_ptr = transfer_mesh.elem_ptr(e);
+          for (unsigned int e = 0; e < mesh_filter->n_bins(); ++e) {
+            auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
             auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
             solution.set(dof_idx, mesh_heat.at(e));
           }
@@ -310,9 +316,9 @@ std::vector<double> OpenMCProblem::meshHeatSource() {
     heat = xt::zeros_like(heat);
   }
 
-  std::cout << "Heat source: ";
-  for (auto val : heat) { std::cout << val << ' '; }
-  std::cout << std::endl;
+  // std::cout << "Heat source: ";
+  // for (auto val : heat) { std::cout << val << ' '; }
+  // std::cout << std::endl;
 
   return std::vector<double>(heat.begin(), heat.end());
 }
