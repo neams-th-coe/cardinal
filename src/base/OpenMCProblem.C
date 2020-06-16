@@ -177,7 +177,7 @@ void OpenMCProblem::addExternalVariables()
 
 void OpenMCProblem::externalSolve()
 {
-  openmc::write_summary();
+  //openmc::write_summary();
   openmc_run();
 }
 
