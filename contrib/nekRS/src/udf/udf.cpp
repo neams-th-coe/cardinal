@@ -40,7 +40,7 @@ void udfBuild(const char *udfFile)
 
   printf("done\n");
   fflush(stdout);
-  sync();
+  //sync();
   return;
 
 err:
