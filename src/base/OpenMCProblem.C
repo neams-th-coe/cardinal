@@ -12,6 +12,7 @@
 #include "openmc/constants.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
+#include "openmc/message_passing.h"
 #include "openmc/settings.h"
 #include "openmc/summary.h"
 #include "xtensor/xarray.hpp"
@@ -177,7 +178,9 @@ void OpenMCProblem::addExternalVariables()
 
 void OpenMCProblem::externalSolve()
 {
-  openmc::write_summary();
+  if (openmc::mpi::master) {
+    openmc::write_summary();
+  }
   openmc_run();
 }
 
