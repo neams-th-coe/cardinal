@@ -12,6 +12,7 @@
 #include "openmc/constants.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
+#include "openmc/message_passing.h"
 #include "openmc/settings.h"
 #include "openmc/summary.h"
 #include "xtensor/xarray.hpp"
@@ -139,7 +140,6 @@ void OpenMCProblem::setupMeshTallies() {
     _tallies.push_back(tally);
   }
 
-
   // performance optimization - assume the mesh tallies are spatially separate
   openmc::settings::assume_separate = true;
 
@@ -177,7 +177,9 @@ void OpenMCProblem::addExternalVariables()
 
 void OpenMCProblem::externalSolve()
 {
-  //openmc::write_summary();
+  if (openmc::mpi::master) {
+    openmc::write_summary();
+  }
   openmc_run();
 }
 
@@ -194,11 +196,11 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       {
         auto& cell = openmc::model::cells[_cellIndices[i]];
         double T = average_temp.spatialValue(_centers[i]);
-        std::cout << "Temperature at location: "
-                  << _centers[i](0) << ' '
-                  << _centers[i](1) << ' '
-                  << _centers[i](2) <<
-                  " Temp: " << T << std::endl;
+        // std::cout << "Temperature at location: "
+        //           << _centers[i](0) << ' '
+        //           << _centers[i](1) << ' '
+        //           << _centers[i](2) <<
+        //           " Temp: " << T << std::endl;
 
         // std::cout << "Temperature: " << T << std::endl;
         // std::cout << "Cell instance: " << _cellInstances[i] << std::endl;
@@ -259,7 +261,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
           for (unsigned int e = 0; e < mesh_filter->n_bins(); ++e) {
             auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
             auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-            solution.set(dof_idx, mesh_heat.at(e));
+            solution.set(dof_idx, mesh_heat.at(offset + e));
           }
         }
       }
