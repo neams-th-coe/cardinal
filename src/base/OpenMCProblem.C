@@ -177,9 +177,6 @@ void OpenMCProblem::addExternalVariables()
 
 void OpenMCProblem::externalSolve()
 {
-  if (openmc::mpi::master) {
-    openmc::write_summary();
-  }
   openmc_run();
 }
 
