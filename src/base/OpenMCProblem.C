@@ -3,6 +3,7 @@
 //
 
 #include "NearestPointReceiver.h"
+#include "AuxiliarySystem.h"
 
 #include "mpi.h"
 #include "OpenMCProblem.h"
@@ -11,7 +12,9 @@
 #include "openmc/constants.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
+#include "openmc/message_passing.h"
 #include "openmc/settings.h"
+#include "openmc/summary.h"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
@@ -67,8 +70,8 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
       openmc::Particle p {};
       p.r() = {c(0), c(1), c(2)};
       p.u() = {0., 0., 1.};
-      openmc::find_cell(&p, false);
-      _cellIndices.push_back(p.coord_[p.n_coord_ - 1].cell);
+      openmc::find_cell(p, false);
+      _cellIndices.push_back(p.coord_[0].cell);
       _cellInstances.push_back(p.cell_instance_);
     }
 
@@ -122,9 +125,11 @@ void OpenMCProblem::setupMeshTallies() {
 
   for (auto& c : _centers) {
     auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
-    _meshFilters.push_back(meshFilter);
     meshFilter->set_mesh(mesh_index);
     meshFilter->set_translation({c(0), c(1), c(2)});
+
+    _meshFilters.push_back(meshFilter);
+
     std::vector<openmc::Filter*> tally_filters = {meshFilter};
 
     // apply the mesh filter to a tally
@@ -148,40 +153,11 @@ void OpenMCProblem::setupMeshTallies() {
 
 void OpenMCProblem::addExternalVariables()
 {
+  FEType element(CONSTANT, MONOMIAL);
 
-  // cell-based heat source
-  if (_tallyType == TallyType::CELL)
-  {
-    auto receiver_params = _factory.getValidParams("NearestPointReceiver");
-    receiver_params.set<std::vector<Point>>("positions") = _centers;
+  addAuxVariable("heat_source", element);
+  _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
 
-    // Will be filled with values from OpenMC
-    addUserObject("NearestPointReceiver", "heat_source", receiver_params);
-  }
-  // mesh-based heat source
-  else if (_tallyType == TallyType::MESH)
-  {
-    // set points based on element centroids
-    std::vector<Point> element_centers;
-
-    for (const auto& mesh_filter : _meshFilters) {
-      auto translation = mesh_filter->translation();
-      const auto& mesh = openmc::model::meshes[mesh_filter->mesh()];
-      const auto umesh = dynamic_cast<openmc::LibMesh*>(mesh.get());
-
-      for (int bin = 0; bin < mesh_filter->n_bins(); bin++) {
-        auto centroid = umesh->centroid(bin);
-        if (mesh_filter->translated()) { centroid += translation; }
-        element_centers.push_back({centroid[0], centroid[1], centroid[2]});
-      }
-    }
-    auto receiver_params = _factory.getValidParams("NearestPointReceiver");
-    receiver_params.set<std::vector<Point>>("positions") = element_centers;
-    // Will be filled with values from OpenMC
-    addUserObject("NearestPointReceiver", "heat_source", receiver_params);
-  }
-
-  {
     auto receiver_params = _factory.getValidParams("NearestPointReceiver");
     receiver_params.set<std::vector<Point>>("positions") = _centers;
 
@@ -197,7 +173,6 @@ void OpenMCProblem::addExternalVariables()
     }
     auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
     average_temp.setValues(initial_temps);
-  }
 }
 
 void OpenMCProblem::externalSolve()
@@ -212,32 +187,84 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
+      // std::cout << "Temperatures: ";
+
       for (int i = 0; i < _cellIndices.size(); ++i)
       {
-        auto& cell = openmc::model::cells[i];
+        auto& cell = openmc::model::cells[_cellIndices[i]];
         double T = average_temp.spatialValue(_centers[i]);
-        // if (cell->fill_ == openmc::Fill::MATERIAL) {
-          openmc_cell_set_temperature(_cellIndices[i], T, &(_cellInstances[i]));
-        // }
+        // std::cout << "Temperature at location: "
+        //           << _centers[i](0) << ' '
+        //           << _centers[i](1) << ' '
+        //           << _centers[i](2) <<
+        //           " Temp: " << T << std::endl;
+
+        // std::cout << "Temperature: " << T << std::endl;
+        // std::cout << "Cell instance: " << _cellInstances[i] << std::endl;
+        cell->set_temperature(T, _cellInstances[i], true);
       }
+      // std::cout << std::endl;
+
+      for (auto& cell : openmc::model::cells) {
+        if (cell->type_ == openmc::Fill::MATERIAL) {
+          auto val = cell->sqrtkT_[0];
+          // std::cout << val*val / openmc::K_BOLTZMANN << ' ';
+        }
+      }
+      // std::cout << std::endl;
       break;
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      auto& receiver = getUserObject<NearestPointReceiver>("heat_source");
+
+      auto& solution = _aux->solution();
+
+      auto sys_number = _aux->number();
+
+      // get the transfer mesh
+      auto & transfer_mesh = _mesh.getMesh();
+
       if (_tallyType == TallyType::CELL) {
         auto cell_heat = cellHeatSource();
         // Debug
         // std::cout << "Cell heat source: " << std::endl;
         // for (auto val : cell_heat) { std::cout << val << " " << std::endl; }
-        receiver.setValues(cell_heat);
+        unsigned int elems_per_sphere = mesh().nElem() / _centers.size();
+
+        for (unsigned int i = 0; i < _centers.size(); ++i ) {
+          unsigned int offset = i * elems_per_sphere;
+          for (unsigned int e = 0; e < elems_per_sphere; ++e) {
+            auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
+            auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+            // set every element in this pebble with the same heating value
+            solution.set(dof_idx, cell_heat.at(i));
+          }
+
+        }
       } else {
+        // retrieve the heat source values
         auto mesh_heat = meshHeatSource();
+
         // Debug
         // std::cout << "Mesh heat source: " << std::endl;
         // for (auto val : mesh_heat) { std::cout << val << " " << std::endl; }
-        receiver.setValues(mesh_heat);
+
+
+        // set the heat source directly on the mesh elements
+        for (unsigned int i = 0; i < _meshFilters.size(); ++i) {
+          auto& mesh_filter = _meshFilters[i];
+          unsigned int offset = i * mesh_filter->n_bins();
+
+          for (unsigned int e = 0; e < mesh_filter->n_bins(); ++e) {
+            auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
+            auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+            solution.set(dof_idx, mesh_heat.at(offset + e));
+          }
+        }
       }
+
+      solution.close();
+
       break;
     }
     default:
@@ -289,6 +316,10 @@ std::vector<double> OpenMCProblem::meshHeatSource() {
     heat = xt::zeros_like(heat);
   }
 
+  // std::cout << "Heat source: ";
+  // for (auto val : heat) { std::cout << val << ' '; }
+  // std::cout << std::endl;
+
   return std::vector<double>(heat.begin(), heat.end());
 }
 
@@ -324,6 +355,10 @@ std::vector<double> OpenMCProblem::cellHeatSource()
   } else {
     heat = xt::zeros_like(heat);
   }
+
+  std::cout << "Heat source: ";
+  for (auto val : heat) { std::cout << val << ' '; }
+  std::cout << std::endl;
 
   return std::vector<double>(heat.begin(), heat.end());
 }

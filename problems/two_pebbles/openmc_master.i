@@ -14,6 +14,11 @@
     family = MONOMIAL
     order = CONSTANT
   []
+  [average_temp]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+
 []
 
 [Kernels]
@@ -58,11 +63,12 @@
   exodus = true
 []
 
-[Postprocessors]
+[UserObjects]
   [./average_temp]
-    type = ElementAverageValue
+    type = NearestPointAverage
     variable = temp
-    execute_on = 'initial timestep_begin'
+    execute_on = 'initial timestep_end'
+    points = '0 0 0 0 0 3.15'
   []
 []
 
@@ -77,17 +83,17 @@
 
 [Transfers]
   [./heat_source_from_openmc]
-    type = MultiAppUserObjectTransfer
+    type = MultiAppCopyTransfer
     direction = from_multiapp
     multi_app = openmc
-    user_object = heat_source
+    source_variable = heat_source
     variable = heat_source
   []
   [./average_temp_to_openmc]
-    type = MultiAppPostprocessorTransfer
+    type = NearestPointReceiverTransfer
     direction = to_multiapp
     multi_app = openmc
-    from_postprocessor = average_temp
-    to_postprocessor = average_temp
+    from_uo = average_temp
+    to_uo = average_temp
   []
 []

@@ -48,6 +48,8 @@ private:
     MESH,
   };
 
+  unsigned int _heat_source_var;
+
   std::vector<Point> _centers;       //! Locations of the pebble centers
   Real _power;                       //! Total power produced in the problem (used for heating normalization)
   std::vector<Real> _volumes;        //! Cell volumes at the location of the pebble centers
