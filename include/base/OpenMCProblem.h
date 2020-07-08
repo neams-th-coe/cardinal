@@ -48,7 +48,8 @@ private:
     MESH,
   };
 
-  unsigned int _heat_source_var;
+  unsigned int _heat_source_var; //! heat source variable number
+  int _pebble_cell_level; //! coordinate level of the pebble cells in the OpenMC model
 
   std::vector<Point> _centers;       //! Locations of the pebble centers
   Real _power;                       //! Total power produced in the problem (used for heating normalization)
