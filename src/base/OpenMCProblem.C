@@ -29,12 +29,14 @@ validParams<OpenMCProblem>()
   params.addRequiredParam<std::vector<Point>>("centers", "coords of pebble centers");
   params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
   params.addRequiredParam<std::string>("tally_type", "type of tally to use in OpenMC");
+  params.addParam<int>("pebble_cell_level", 0, "Level of pebble cells in the OpenMC model");
   params.addParam<std::string>("mesh_template", "mesh tally template for OpenMC");
   return params;
 }
 
 OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   ExternalProblem(params),
+  _pebble_cell_level(getParam<int>("pebble_cell_level")),
   _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes"))
@@ -71,7 +73,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
       p.r() = {c(0), c(1), c(2)};
       p.u() = {0., 0., 1.};
       openmc::find_cell(p, false);
-      _cellIndices.push_back(p.coord_[0].cell);
+      _cellIndices.push_back(p.coord_[_pebble_cell_level].cell);
       _cellInstances.push_back(p.cell_instance_);
     }
 
@@ -163,16 +165,6 @@ void OpenMCProblem::addExternalVariables()
 
     // Will receive values from the master
     addUserObject("NearestPointReceiver", "average_temp", receiver_params);
-
-    // Initialize temperatures
-    std::vector<Real> initial_temps;
-    for (int i = 0; i < _cellIndices.size(); ++i) {
-      double T;
-      openmc_cell_get_temperature(_cellIndices[i], &(_cellInstances[i]), &T);
-      initial_temps.push_back(T);
-    }
-    auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
-    average_temp.setValues(initial_temps);
 }
 
 void OpenMCProblem::externalSolve()
@@ -356,9 +348,9 @@ std::vector<double> OpenMCProblem::cellHeatSource()
     heat = xt::zeros_like(heat);
   }
 
-  std::cout << "Heat source: ";
-  for (auto val : heat) { std::cout << val << ' '; }
-  std::cout << std::endl;
+  // std::cout << "Heat source: ";
+  // for (auto val : heat) { std::cout << val << ' '; }
+  // std::cout << std::endl;
 
   return std::vector<double>(heat.begin(), heat.end());
 }
