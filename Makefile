@@ -110,7 +110,7 @@ include            $(CARDINAL_DIR)/config/openmc.mk
 # CC_LINKER_SLFLAG is from petscvariables
 ADDITIONAL_DEPEND_LIBS := $(NEKRS_LIB) $(OPENMC_LIB)
 ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) -L$(OCCA_DIR)/lib \
-	-lnekrs -lopenmc -locca \
+	-lnekrs -lopenmc -locca -lhdf5_hl \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(CC_LINKER_SLFLAG)$(OCCA_DIR)/lib
 ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(NEKRS_DIR)/src -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor  -I$(HDF5_INCLUDE_DIR) \
 	-I$(OPENMC_DIR)/vendor/pugixml/src -I$(OPENMC_DIR)/vendor/xtensor/include \
