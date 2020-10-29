@@ -25,7 +25,6 @@ OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc/arch-moose
 PETSC_ARCH      ?=
 LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
-LIBPARANUMAL_DIR ?= $(NEKRS_DIR)/build/3rd_party/libparanumal
 OCCA_DIR        ?= $(NEKRS_DIR)/build/3rd_party/occa
 
 HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
@@ -50,9 +49,9 @@ include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
 
 # Use the MOOSE submodule if it exists and MOOSE_DIR is not set
 ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
-  MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
+	MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
 else
-  MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
+	MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
 endif
 
 # framework
@@ -107,22 +106,56 @@ GEN_REVISION       := no
 include            $(CARDINAL_DIR)/config/nekrs.mk
 include            $(CARDINAL_DIR)/config/openmc.mk
 
-# CC_LINKER_SLFLAG is from petscvariables
 ADDITIONAL_DEPEND_LIBS := $(NEKRS_LIB) $(OPENMC_LIB)
-ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) -L$(OCCA_DIR)/lib \
-	-lnekrs -lopenmc -locca -lhdf5_hl \
-	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(CC_LINKER_SLFLAG)$(OCCA_DIR)/lib
-ADDITIONAL_INCLUDES := -I$(CURDIR)/include -I$(NEKRS_DIR)/src -I$(OPENMC_DIR)/include -I$(OPENMC_DIR)/vendor  -I$(HDF5_INCLUDE_DIR) \
-	-I$(OPENMC_DIR)/vendor/pugixml/src -I$(OPENMC_DIR)/vendor/xtensor/include \
-	-I$(OPENMC_DIR)/vendor/xtl/include -I$(HDF5_ROOT)/include -I$(OPENMC_DIR)/vendor/gsl-lite/include/ \
-	-I$(LIBPARANUMAL_DIR)/include -I$(LIBPARANUMAL_DIR)/libs/gatherScatter -I$(LIBPARANUMAL_DIR)/libs/gatherScatter/include \
-	-I$(LIBPARANUMAL_DIR)/libs/parAlmond -I$(LIBPARANUMAL_DIR)/libs/parAlmond/include -I$(LIBPARANUMAL_DIR)/solvers/elliptic \
-	-I$(NEKRS_DIR)/build/3rd_party/occa/include \
-	-I$(NEKRS_DIR)/src/core 
+
+# CC_LINKER_SLFLAG is from petscvariables
+ADDITIONAL_LIBS := \
+	-L$(CARDINAL_DIR)/lib \
+	-L$(NEKRS_LIBDIR) \
+	-L$(OPENMC_LIBDIR) \
+	-L$(OCCA_DIR)/lib \
+	-lnekrs \
+	-lopenmc \
+	-locca \
+	-lhdf5_hl \
+	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
+	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
+	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
+	$(CC_LINKER_SLFLAG)$(OCCA_DIR)/lib
+
+ADDITIONAL_INCLUDES := \
+	-I$(CURDIR)/include \
+	-I$(HDF5_INCLUDE_DIR) \
+	-I$(HDF5_ROOT)/include \
+	-I$(NEKRS_DIR)/src \
+	-I$(NEKRS_DIR)/src/core \
+	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
+	-I$(NEKRS_INSTALL_DIR)/include \
+	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
+	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
+	-I$(NEKRS_INSTALL_DIR)/include/linAlg \
+	-I$(OPENMC_DIR)/include \
+	-I$(OPENMC_DIR)/vendor  \
+	-I$(OPENMC_DIR)/vendor/gsl-lite/include/ \
+	-I$(OPENMC_DIR)/vendor/pugixml/src \
+	-I$(OPENMC_DIR)/vendor/xtensor/include \
+	-I$(OPENMC_DIR)/vendor/xtl/include
+
 ADDITIONAL_APP_DEPS := libnekrs
-CARDINAL_EXTERNAL_FLAGS := -L$(CARDINAL_DIR)/lib -L$(NEKRS_LIBDIR) -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) \
-	-lnekrs -lopenmc \
-	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR) $(BLASLAPACK_LIB) $(PETSC_EXTERNAL_LIB_BASIC)
+
+CARDINAL_EXTERNAL_FLAGS := \
+	-L$(CARDINAL_DIR)/lib \
+	-L$(NEKRS_LIBDIR) \
+	-L$(OPENMC_LIBDIR) \
+	-L$(HDF5_LIBDIR) \
+	-lnekrs \
+	-lopenmc \
+	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
+	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
+	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
+	$(CC_LINKER_SLFLAG)$(HDF5_LIBDIR) \
+	$(BLASLAPACK_LIB) \
+	$(PETSC_EXTERNAL_LIB_BASIC)
 
 include            $(FRAMEWORK_DIR)/app.mk
 
