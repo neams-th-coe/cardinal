@@ -1,4 +1,4 @@
-export NEKRS_INSTALL_DIR := $(CARDINAL_DIR)/install
+export NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 export NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
 export NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so 
 

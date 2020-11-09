@@ -217,7 +217,6 @@ peacock_tmp_diff.exo
 
 # Cardinal
 bin/**
-obj_*/**
 share/**
 nndc*/**
 endf*/**
@@ -225,3 +224,4 @@ cardinal-*-debug
 cardinal-*-opt
 *.h5
 SESSION.NAME
+install/**

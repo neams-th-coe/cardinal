@@ -11,7 +11,6 @@
 # * CONTRIB_DIR : Dir with third-party src (default: $(CARDINAL_DIR)/contrib)
 # * MOOSE_SUBMODULE : Top-level MOOSE src dir (default: $(CONTRIB_DIR)/moose)
 # * NEK5_DIR : Top-level Nek5000 src dir (default: $(CONTRIB_DIR)/Nek5000)
-# * OCCA_DIR : Top-level OCCA src dir (default: $(CONTRIB_DIR)/occa)
 # * LIBP_DIR : Top-level libparanumal src dir (default: $(CONTRIB_DIR)/libparanumal
 # * NEK_LIBP_DIR : Top-level nek-libp src dir (default: $(CONTRIB_DIR)/NekGPU/nek-libp
 #
@@ -25,7 +24,7 @@ OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc/arch-moose
 PETSC_ARCH      ?=
 LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
-OCCA_DIR        ?= $(NEKRS_DIR)/build/3rd_party/occa
+CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
 HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
@@ -113,7 +112,6 @@ ADDITIONAL_LIBS := \
 	-L$(CARDINAL_DIR)/lib \
 	-L$(NEKRS_LIBDIR) \
 	-L$(OPENMC_LIBDIR) \
-	-L$(OCCA_DIR)/lib \
 	-lnekrs \
 	-lopenmc \
 	-locca \
@@ -121,7 +119,6 @@ ADDITIONAL_LIBS := \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
 	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
 	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
-	$(CC_LINKER_SLFLAG)$(OCCA_DIR)/lib
 
 ADDITIONAL_INCLUDES := \
 	-I$(CURDIR)/include \
@@ -134,14 +131,9 @@ ADDITIONAL_INCLUDES := \
 	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
 	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
 	-I$(NEKRS_INSTALL_DIR)/include/linAlg \
-	-I$(OPENMC_DIR)/include \
-	-I$(OPENMC_DIR)/vendor  \
-	-I$(OPENMC_DIR)/vendor/gsl-lite/include/ \
-	-I$(OPENMC_DIR)/vendor/pugixml/src \
-	-I$(OPENMC_DIR)/vendor/xtensor/include \
-	-I$(OPENMC_DIR)/vendor/xtl/include
+	-I$(OPENMC_INSTALL_DIR)/include
 
-ADDITIONAL_APP_DEPS := libnekrs
+ADDITIONAL_APP_DEPS := libnekrs libopenmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \
