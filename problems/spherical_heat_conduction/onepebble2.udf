@@ -19,7 +19,6 @@ void UDF_Setup(ins_t *ins)
   ins->o_usrwrk.free(); free(ins->usrwrk);
   ins->usrwrk   = (dfloat*) calloc(ins->mesh->Nelements*ins->mesh->Np, sizeof(dfloat));
   ins->o_usrwrk = ins->mesh->device.malloc(ins->mesh->Nelements*ins->mesh->Np*sizeof(dfloat), ins->usrwrk);
-  ins->cds->o_usrwrk = ins->o_usrwrk;
   // printf ("> Test %d \n", ins->mesh->Nelements*ins->mesh->Np*sizeof(dfloat));
 }
 
