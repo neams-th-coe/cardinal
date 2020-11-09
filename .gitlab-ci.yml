@@ -68,7 +68,7 @@ test:onepebble2_nekrs:
   allow_failure: true
   timeout: 30m
   variables:
-    NEKRS_HOME: $CI_PROJECT_DIR
+    NEKRS_HOME: $CI_PROJECT_DIR/install
   script:
     - env | sort
     - cd problems/spherical_heat_conduction

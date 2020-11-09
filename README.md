@@ -9,10 +9,11 @@ the top-level directory, run `make`.  This will create the executable `cardinal-
 top-level directory.
 
 To run with NekRS, first you must set the environment variable `NEKRS_HOME` to be the location of the 
-NekRS root directory.  For a Cardinal build, this will be the top-level of the repository.  
+NekRS root directory.  For a Cardinal build, this will be the `install/` directory under the
+top-level Cardinal directory:
 
 ```
-$ export NEKRS_HOME=$(pwd)
+$ export NEKRS_HOME=$(realpath install/)
 ```
 
 
