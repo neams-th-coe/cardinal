@@ -72,5 +72,6 @@ test:onepebble2_nekrs:
   script:
     - env | sort
     - cd problems/spherical_heat_conduction
+    - $NEKRS_HOME/bin/nrspre onepebble2 4
     - mpirun -np 4 "$CI_PROJECT_DIR/cardinal-opt" --app nek -i nek.i --nekrs-setup onepebble2
 
