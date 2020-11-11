@@ -54,7 +54,6 @@ test:onepebble2_openmc:
   dependencies:
     - build_onepebble2:onepebble2
     - download:cross_sections
-  allow_failure: true
   timeout: 30m
   script:
     - env | sort
@@ -65,12 +64,12 @@ test:onepebble2_nekrs:
   stage: test
   dependencies:
     - build_onepebble2:onepebble2
-  allow_failure: true
   timeout: 30m
   variables:
-    NEKRS_HOME: $CI_PROJECT_DIR
+    NEKRS_HOME: $CI_PROJECT_DIR/install
   script:
     - env | sort
     - cd problems/spherical_heat_conduction
+    - $NEKRS_HOME/bin/nrspre onepebble2 4
     - mpirun -np 4 "$CI_PROJECT_DIR/cardinal-opt" --app nek -i nek.i --nekrs-setup onepebble2
 

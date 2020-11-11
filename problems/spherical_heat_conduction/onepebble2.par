@@ -13,7 +13,6 @@ targetCFL = 2.0
 
 [PRESSURE]
 preconditioner = semg_amg
-amgSolver = parAlmond
 residualTol = 1e-04
 residualProj = no
 
