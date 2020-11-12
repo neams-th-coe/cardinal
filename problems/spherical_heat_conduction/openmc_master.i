@@ -51,9 +51,9 @@
 
 [Executioner]
   type = Transient
-  petsc_options_iname = '-pc_type -pc_hypre_type'
+  #petsc_options_iname = '-pc_type -pc_hypre_type'
   num_steps = 1000
-  petsc_options_value = 'hypre boomeramg'
+  #petsc_options_value = 'hypre boomeramg'
   dt = 1e-4
   nl_rel_tol = 1e-5
 []
