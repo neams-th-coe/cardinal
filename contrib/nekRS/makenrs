@@ -190,6 +190,7 @@ cmake -Wno-dev \
       -DENABLE_OPENCL="${OCCA_OPENCL_ENABLED}" \
       -DENABLE_HIP="${OCCA_HIP_ENABLED}" \
       -DENABLE_METAL="${OCCA_METAL_ENABLED}" \
+      -DHYPRE_DIR="${HYPRE_DIR}" \
       ${NEKRS_DIR}
 
 # =========================
