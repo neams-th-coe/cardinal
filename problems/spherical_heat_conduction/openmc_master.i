@@ -41,6 +41,15 @@
   []
 []
 
+[AuxKernels]
+  [average_temp]
+    variable = average_temp
+    type = SpatialUserObjectAux
+    user_object = average_temp
+    execute_on = 'initial timestep_end'
+  []
+[]
+
 [Materials]
   [hc]
     type = GenericConstantMaterial
@@ -67,7 +76,7 @@
     type = NearestPointAverage
     variable = temp
     points = '0 0 0'
-    execute_on = 'initial timestep_begin'
+    execute_on = 'initial timestep_end'
   []
 []
 
@@ -87,7 +96,6 @@
     multi_app = openmc
     variable = heat_source
     source_variable = heat_source
-    execute_on= 'initial timestep_begin'
   []
   [./average_temp_to_openmc]
     type = NearestPointReceiverTransfer
