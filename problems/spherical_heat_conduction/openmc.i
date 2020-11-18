@@ -10,10 +10,11 @@
 
 [Problem]
   type = OpenMCProblem
-  power = 0.15
+  power = 0.15 # W
   centers = '0 0 0'
   volumes = '14.137166941154067'
   tally_type = 'mesh'
+  pebble_cell_level = 0
   mesh_template = 'sphere.e'
 []
 
