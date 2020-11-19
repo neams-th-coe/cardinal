@@ -5,9 +5,8 @@ if (NOT "${HYPRE_DIR}" STREQUAL "")
   endif()
   message(STATUS "Using HYPRE installation in ${HYPRE_DIR}")
   find_library(HYPRE_FOUND libHYPRE.so PATHS ${HYPRE_DIR}/lib REQUIRED NO_DEFAULT_PATH)
-  find_file(HYPRE_parcsr_ls.h PATHS ${HYPRE_DIR}/include REQUIRED NO_DEFAULT_PATH)
-  find_file(HYPRE.h PATHS ${HYPRE_DIR}/include REQUIRED NO_DEFAULT_PATH)
-
+  find_file(HYPRE_H_FOUND HYPRE.h PATHS ${HYPRE_DIR}/include REQUIRED NO_DEFAULT_PATH)
+  find_file(HYPRE_PARCSR_LS_H_FOUND HYPRE_parcsr_ls.h PATHS ${HYPRE_DIR}/include REQUIRED NO_DEFAULT_PATH)
   add_library(HYPRE SHARED IMPORTED)
   set_target_properties(HYPRE PROPERTIES 
     IMPORTED_LOCATION ${HYPRE_DIR}/lib/libHYPRE.so
