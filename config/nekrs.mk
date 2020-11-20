@@ -1,24 +1,48 @@
-export NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-export NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
-export NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so 
+# These have the same names and meanings as in makenrs
+NEKRS_CFLAGS :=
+NEKRS_CXXFLAGS :=
+NEKRS_FFLAGS :=
+NEKRS_NEK5000_PPLIST := PARRSB DPROCMAP
+NEKRS_LIBP_DEFINES := -DUSE_NULL_PROJECTION=1
+USE_OCCA_MEM_BYTE_ALIGN := 64
+OCCA_CXXFLAGS := -O2 -ftree-vectorize -funroll-loops -march=native -mtune=native
 
-export NEKRS_CC := $(libmesh_CC)
-export NEKRS_CXX := $(libmesh_CXX)
-export NEKRS_FC := $(libmesh_FC)
+cmake_nekrs: 
+	mkdir -p $(NEKRS_BUILDDIR)
+	cd $(NEKRS_BUILDDIR) && \
+	cmake -Wno-dev -Wfatal-errors \
+	-DCMAKE_BUILD_TYPE="RelWithDebInfo" \
+	-DCMAKE_C_COMPILER="$(libmesh_CC)" \
+	-DCMAKE_CXX_COMPILER="$(libmesh_CXX)" \
+	-DCMAKE_Fortran_COMPILER="$(libmesh_F90)" \
+	-DCMAKE_C_FLAGS="$(NEKRS_CFLAGS)" \
+	-DCMAKE_CXX_FLAGS="$(NEKRS_CXXFLAGS)" \
+	-DCMAKE_Fortran_FLAGS="$(NEKRS_FFLAGS)" \
+	-DCMAKE_INSTALL_PREFIX="$(NEKRS_INSTALL_DIR)" \
+	-DNEK5000_PPLIST="$(NEKRS_NEK5000_PPLIST)" \
+	-DLIBP_DEFINES="$(NEKRS_LIBP_DEFINES)" \
+	-DUSE_OCCA_MEM_BYTE_ALIGN="$(USE_OCCA_MEM_BYTE_ALIGN)" \
+	-DOCCA_CXX="$(libmesh_CC)" \
+	-DOCCA_CXXFLAGS="$(OCCA_CXXFLAGS)" \
+	-DENABLE_CUDA="$(OCCA_CUDA_ENABLED)" \
+	-DENABLE_OPENCL="$(OCCA_OPENCL_ENABLED)" \
+	-DENABLE_HIP="$(OCCA_HIP_ENABLED)" \
+	-DENABLE_METAL="$(OCCA_METAL_ENABLED)" \
+	-DHYPRE_DIR="$(HYPRE_DIR)" \
+	$(NEKRS_DIR)
 
-export HYPRE_DIR := $(HYPRE_DIR)
+build_nekrs: | cmake_nekrs
+	make -C $(NEKRS_BUILDDIR) install
 
-export OCCA_CUDA_ENABLED
-export OCCA_HIP_ENABLED
-export OCCA_OPENCL_ENABLED
+cleanall_nekrs: | cmake_nekrs
+	make -C $(NEKRS_BUILDDIR) uninstall clean
 
-libnekrs: $(NEKRS_LIB)
+clobber_nekrs:
+	rm -rf $(NEKRS_LIB) $(NEKRS_BUILDDIR) $(NEKRS_INSTALL_DIR)
 
-$(NEKRS_LIB): .FORCE
-	cd $(NEKRS_DIR) && ./makenrs
+# cleanall and clobberall are from moose.mk
+cleanall: cleanall_nekrs
 
-clean_nekrs:
-	cd $(NEKRS_DIR) && ./makenrs clean
+clobberall: clobber_nekrs
 
-.FORCE: 
-
+.PHONY: cmake_nekrs build_nekrs cleanall_nekrs clobber_nekrs

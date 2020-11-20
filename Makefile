@@ -29,12 +29,35 @@ CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
 HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
+HDF5_INCLUDES := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
 
 OCCA_CUDA_ENABLED=0
 OCCA_HIP_ENABLED=0
 OCCA_OPENCL_ENABLED=0
 
+NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
+NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+NEKRS_INCLUDES := \
+	-I$(NEKRS_DIR)/src \
+	-I$(NEKRS_DIR)/src/core \
+	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
+	-I$(NEKRS_INSTALL_DIR)/include \
+	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
+	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
+	-I$(NEKRS_INSTALL_DIR)/include/linAlg
+NEKRS_LIBDIR := $(NEKRS_INSTALL_DIR)/lib
+NEKRS_LIB := $(NEKRS_LIBDIR)/libnekrs.so
+# This needs to be exported
 export NEKRS_HOME=$(CARDINAL_DIR)
+
+OPENMC_BUILDDIR := $(CARDINAL_DIR)/build/openmc
+OPENMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+OPENMC_INCLUDES := -I$(OPENMC_INSTALL_DIR)/include
+OPENMC_LIBDIR := $(CONTRIB_INSTALL_DIR)/lib
+OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
+
+# This is used in $(FRAMEWORK_DIR)/build.mk
+ADDITIONAL_CPPFLAGS := $(HDF5_INCLUDES) $(OPENMC_INCLUDES) $(NEKRS_INCLUDES)
 
 # ======================================================================================
 # PETSc
@@ -44,7 +67,7 @@ export NEKRS_HOME=$(CARDINAL_DIR)
 include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
 
 # ======================================================================================
-# MOOSE
+# MOOSE core objects
 # ======================================================================================
 
 # Use the MOOSE submodule if it exists and MOOSE_DIR is not set
@@ -60,7 +83,7 @@ include $(FRAMEWORK_DIR)/build.mk
 include $(FRAMEWORK_DIR)/moose.mk
 
 # ======================================================================================
-# MOOSE Apps
+# MOOSE modules
 # ======================================================================================
 
 ALL_MODULES         := no
@@ -83,9 +106,10 @@ POROUS_FLOW         := no
 include $(MOOSE_DIR)/modules/modules.mk
 
 # ======================================================================================
-# Dependent Apps
+# External apps
 # ======================================================================================
 
+# libmesh_CXX, etc, were defined in build.mk
 export CXX := $(libmesh_CXX)
 export CC  := $(libmesh_CC)
 export FC  := $(libmesh_F90)
@@ -106,8 +130,11 @@ GEN_REVISION       := no
 include            $(CARDINAL_DIR)/config/nekrs.mk
 include            $(CARDINAL_DIR)/config/openmc.mk
 
-ADDITIONAL_DEPEND_LIBS := $(NEKRS_LIB) $(OPENMC_LIB)
+# ======================================================================================
+# Building app objects defined in app.mk
+# ======================================================================================
 
+# ADDITIONAL_LIBS are used for linking in app.mk
 # CC_LINKER_SLFLAG is from petscvariables
 ADDITIONAL_LIBS := \
 	-L$(CARDINAL_DIR)/lib \
@@ -119,22 +146,14 @@ ADDITIONAL_LIBS := \
 	-lhdf5_hl \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
 	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
-	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
+	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 
-ADDITIONAL_INCLUDES := \
-	-I$(CURDIR)/include \
-	-I$(HDF5_INCLUDE_DIR) \
-	-I$(HDF5_ROOT)/include \
-	-I$(NEKRS_DIR)/src \
-	-I$(NEKRS_DIR)/src/core \
-	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
-	-I$(NEKRS_INSTALL_DIR)/include \
-	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
-	-I$(NEKRS_INSTALL_DIR)/include/libP/parAlmond \
-	-I$(NEKRS_INSTALL_DIR)/include/linAlg \
-	-I$(OPENMC_INSTALL_DIR)/include
+include            $(FRAMEWORK_DIR)/app.mk
 
-ADDITIONAL_APP_DEPS := libnekrs libopenmc
+# app_objects are defined in moose.mk and built according to the rules in build.mk
+# We need to build these first so we get include dirs
+$(app_objects): build_nekrs build_openmc
+$(test_objects): build_nekrs build_openmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \
@@ -150,8 +169,7 @@ CARDINAL_EXTERNAL_FLAGS := \
 	$(BLASLAPACK_LIB) \
 	$(PETSC_EXTERNAL_LIB_BASIC)
 
-include            $(FRAMEWORK_DIR)/app.mk
-
+# EXTERNAL_FLAGS are for rules in app.mk
 $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_EXEC): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
