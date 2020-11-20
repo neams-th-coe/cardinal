@@ -225,3 +225,4 @@ cardinal-*-opt
 *.h5
 SESSION.NAME
 install/**
+**/.cache

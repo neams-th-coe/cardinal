@@ -24,6 +24,7 @@ OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
 PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc/arch-moose
 PETSC_ARCH      ?=
 LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
+HYPRE_DIR       ?= $(PETSC_DIR)
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
 HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include

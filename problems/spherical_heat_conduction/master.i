@@ -10,10 +10,16 @@
 []
 
 [AuxVariables]
-  [nek_temp]
-    initial_condition = 300
+  [heat_source]
+    family = MONOMIAL
+    order = CONSTANT
   []
-
+  [average_temp]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [nek_temp]
+  []
   [avg_flux]
     family = MONOMIAL
     order = CONSTANT
@@ -27,44 +33,34 @@
     variable = temp
   []
   [heat]
-    type = HeatSource
+    type = CoupledForce
     variable = temp
-    function = 'openmc_heat_func'
-  []
-[]
-
-[AuxKernels]
-  [avg_flux]
-    type = FluxAverageAux
-    coupled = 'temp'
-    diffusivity = thermal_conductivity
-    variable = avg_flux
-    boundary = '1'
+    v = heat_source
   []
 []
 
 [BCs]
-  inactive = 'outside'
   [outside]
     type = DirichletBC
     variable = temp
     boundary = '1'
     value = 300
   []
-  [match_nek]
-    type = MatchedValueBC
-    variable = temp
-    boundary = '1'
-    v = 'nek_temp'
-  []
 []
 
-[Functions]
-  [openmc_heat_func]
-    type = ParsedFunction
-    value = 'openmc_heat_source'
-    vars = 'openmc_heat_source'
-    vals = 'openmc_heat_source'
+[AuxKernels]
+  [average_temp]
+    variable = average_temp
+    type = SpatialUserObjectAux
+    user_object = average_temp
+    execute_on = 'initial timestep_end'
+  []
+  [avg_flux]
+    type = FluxAverageAux
+    coupled = 'temp'
+    diffusivity = thermal_conductivity
+    variable = avg_flux
+    boundary = '1'
   []
 []
 
@@ -79,10 +75,77 @@
 [Executioner]
   type = Transient
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  num_steps = 1000
+  num_steps = 150
   petsc_options_value = 'hypre boomeramg'
   dt = 1e-4
   nl_rel_tol = 1e-5
+[]
+
+[Outputs]
+  exodus = true
+[]
+
+[UserObjects]
+  [./average_temp]
+    type = NearestPointAverage
+    variable = temp
+    points = '0 0 0'
+    execute_on = 'timestep_end'
+  []
+[]
+
+[MultiApps]
+  [openmc]
+    type = TransientMultiApp
+    app_type = OpenMCApp
+    input_files = 'openmc.i'
+    execute_on = timestep_begin
+  []
+  [nek]
+    type = TransientMultiApp
+    app_type = NekApp
+    input_files = 'nek.i'
+  []
+[]
+
+[Transfers]
+  [./heat_source_from_openmc]
+    type = MultiAppCopyTransfer
+    direction = from_multiapp
+    multi_app = openmc
+    source_variable = heat_source
+    variable = heat_source
+  []
+  [./average_temp_to_openmc]
+    type = NearestPointReceiverTransfer
+    direction = to_multiapp
+    multi_app = openmc
+    from_uo = average_temp
+    to_uo = average_temp
+  []
+  [nek_temp]
+    type = MultiAppNearestNodeTransfer
+    source_variable = temp
+    direction = from_multiapp
+    multi_app = nek
+    variable = nek_temp
+    fixed_meshes = true
+  []
+  [avg_flux]
+    type = MultiAppNearestNodeTransfer
+    source_variable = avg_flux
+    direction = to_multiapp
+    multi_app = nek
+    variable = avg_flux
+    fixed_meshes = true
+  []
+  [total_flux_to_nek]
+    type = MultiAppPostprocessorTransfer
+    to_postprocessor = total_flux
+    direction = to_multiapp
+    from_postprocessor = total_flux
+    multi_app = nek
+  []
 []
 
 [Postprocessors]
@@ -97,74 +160,5 @@
     diffusivity = thermal_conductivity
     variable = 'temp'
     boundary = '1'
-  []
-
-  [./openmc_heat_source]
-    type = Receiver
-  []
-  [./average_temp]
-    type = ElementAverageValue
-    variable = temp
-    execute_on = 'initial timestep_begin'
-  []
-[]
-
-[Outputs]
-  exodus = true
-[]
-
-[MultiApps]
-  [nek]
-    type = TransientMultiApp
-    app_type = NekApp
-    input_files = 'nek.i'
-    execute_on = timestep_end
-  []
-
-  [openmc]
-    type = TransientMultiApp
-    app_type = OpenMCApp
-    input_files = 'openmc.i'
-    execute_on = timestep_begin
-  []
-[]
-
-[Transfers]
-  [nek_temp]
-    type = MultiAppNearestNodeTransfer
-    source_variable = temp
-    direction = from_multiapp
-    multi_app = nek
-    variable = nek_temp
-  []
-  [avg_flux]
-    type = MultiAppNearestNodeTransfer
-    source_variable = avg_flux
-    direction = to_multiapp
-    multi_app = nek
-    variable = avg_flux
-  []
-  [total_flux_to_nek]
-    type = MultiAppPostprocessorTransfer
-    to_postprocessor = total_flux
-    direction = to_multiapp
-    from_postprocessor = total_flux
-    multi_app = nek
-  []
-
-  [./heat_source_from_openmc]
-    type = MultiAppPostprocessorTransfer
-    direction = from_multiapp
-    multi_app = openmc
-    reduction_type = average
-    from_postprocessor = heat_source
-    to_postprocessor = openmc_heat_source
-  []
-  [./average_temp_to_openmc]
-    type = MultiAppPostprocessorTransfer
-    direction = to_multiapp
-    multi_app = openmc
-    from_postprocessor = average_temp
-    to_postprocessor = average_temp
   []
 []
