@@ -1,7 +1,14 @@
 cmake_openmc:
 	mkdir -p $(OPENMC_BUILDDIR)
 	mkdir -p $(LIBMESH_DIR)/include/contrib
-	cd $(OPENMC_BUILDDIR) && cmake -L -Dlibmesh=ON -Doptimize=ON -DLIBMESH_DIR=$(LIBMESH_DIR) -DCMAKE_INSTALL_PREFIX=$(CONTRIB_INSTALL_DIR) $(OPENMC_DIR)
+	cd $(OPENMC_BUILDDIR) && \
+	cmake -L \
+	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+	-Dlibmesh=ON \
+	-Doptimize=ON \
+	-DLIBMESH_DIR=$(LIBMESH_DIR) \
+	-DCMAKE_INSTALL_PREFIX=$(CONTRIB_INSTALL_DIR) \
+	$(OPENMC_DIR)
 
 build_openmc: | cmake_openmc
 	make VERBOSE=1 -C $(OPENMC_BUILDDIR) install

@@ -8,7 +8,7 @@ variables:
   FC: mpif90
   F77: mpif77
   METHOD: opt
-  N_RANKS: 4
+  N_RANKS: 2
   N_THREADS: 4
 
 stages:

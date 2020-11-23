@@ -10,8 +10,8 @@ OCCA_CXXFLAGS := -O2 -ftree-vectorize -funroll-loops -march=native -mtune=native
 cmake_nekrs: 
 	mkdir -p $(NEKRS_BUILDDIR)
 	cd $(NEKRS_BUILDDIR) && \
-	cmake -Wno-dev -Wfatal-errors \
-	-DCMAKE_BUILD_TYPE="RelWithDebInfo" \
+	cmake -L -Wno-dev -Wfatal-errors \
+	-DCMAKE_BUILD_TYPE="$(BUILD_TYPE)" \
 	-DCMAKE_C_COMPILER="$(libmesh_CC)" \
 	-DCMAKE_CXX_COMPILER="$(libmesh_CXX)" \
 	-DCMAKE_Fortran_COMPILER="$(libmesh_F90)" \
