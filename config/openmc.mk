@@ -1,4 +1,4 @@
-cmake_openmc:
+$(OPENMC_BUILDDIR)/Makefile: $(OPENMC_DIR)/CMakeLists.txt
 	mkdir -p $(OPENMC_BUILDDIR)
 	mkdir -p $(LIBMESH_DIR)/include/contrib
 	cd $(OPENMC_BUILDDIR) && \
@@ -10,10 +10,10 @@ cmake_openmc:
 	-DCMAKE_INSTALL_PREFIX=$(CONTRIB_INSTALL_DIR) \
 	$(OPENMC_DIR)
 
-build_openmc: | cmake_openmc
+build_openmc: | $(OPENMC_BUILDDIR)/Makefile
 	make VERBOSE=1 -C $(OPENMC_BUILDDIR) install
 
-cleanall_openmc: | cmake_openmc
+cleanall_openmc: | $(OPENMC_BUILDDIR)/Makefile
 	make -C $(OPENMC_BUILDDIR) uninstall clean
 
 clobber_openmc:
@@ -23,5 +23,5 @@ cleanall: cleanall_openmc
 
 clobberall: clobber_openmc
 
-.PHONY: build_openmc cmake_openmc cleanall_openmc clobber_openmc
+.PHONY: build_openmc cleanall_openmc clobber_openmc
 

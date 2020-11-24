@@ -7,7 +7,7 @@ NEKRS_LIBP_DEFINES := -DUSE_NULL_PROJECTION=1
 USE_OCCA_MEM_BYTE_ALIGN := 64
 OCCA_CXXFLAGS := -O2 -ftree-vectorize -funroll-loops -march=native -mtune=native
 
-cmake_nekrs: 
+$(NEKRS_BUILDDIR)/Makefile: $(NEKRS_DIR)/CMakeLists.txt
 	mkdir -p $(NEKRS_BUILDDIR)
 	cd $(NEKRS_BUILDDIR) && \
 	cmake -L -Wno-dev -Wfatal-errors \
@@ -31,10 +31,10 @@ cmake_nekrs:
 	-DHYPRE_DIR="$(HYPRE_DIR)" \
 	$(NEKRS_DIR)
 
-build_nekrs: | cmake_nekrs
+build_nekrs: | $(NEKRS_BUILDDIR)/Makefile
 	make -C $(NEKRS_BUILDDIR) install
 
-cleanall_nekrs: | cmake_nekrs
+cleanall_nekrs: |  $(NEKRS_BUILDDIR)/Makefile
 	make -C $(NEKRS_BUILDDIR) uninstall clean
 
 clobber_nekrs:
