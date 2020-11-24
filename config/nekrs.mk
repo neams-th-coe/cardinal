@@ -45,4 +45,4 @@ cleanall: cleanall_nekrs
 
 clobberall: clobber_nekrs
 
-.PHONY: cmake_nekrs build_nekrs cleanall_nekrs clobber_nekrs
+.PHONY: build_nekrs cleanall_nekrs clobber_nekrs
