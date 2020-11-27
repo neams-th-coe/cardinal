@@ -73,10 +73,11 @@ NekProblem::isOutputStep() const
 
 void NekProblem::externalSolve()
 {
-  Real dt = _timestepper->getDT();
-  bool is_output_step = isOutputStep();
-
   ++_tstep;
+
+  Real dt = _timestepper->getDT();
+
+  bool is_output_step = isOutputStep();
 
   nekrs::runStep(_time, dt, _tstep);
 
