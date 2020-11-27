@@ -1,5 +1,4 @@
-#ifndef CARDINAL_NEKTIMESTEPPER_H
-#define CARDINAL_NEKTIMESTEPPER_H
+#pragma once
 
 #include "TimeStepper.h"
 
@@ -16,17 +15,4 @@ public:
 protected:
   virtual Real computeInitialDT() override;
   virtual Real computeDT() override;
-  virtual void step() override;
-  virtual bool converged();
-
-private:
-  Real _dt;
-  int _outputStep;
-  int _nTimeSteps;
-  double _startTime;
-  double _finalTime;
-  double _time;
-  int _tstep = 0;
-
 };
-#endif //CARDINAL_NEKTIMESTEPPER_H
