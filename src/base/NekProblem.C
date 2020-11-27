@@ -5,11 +5,11 @@
 #include "NekProblem.h"
 #include "Moose.h"
 #include "AuxiliarySystem.h"
+#include "Transient.h"
+#include "TimeStepper.h"
 
-//#include "NekInterface.h"
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
-//#include "nek2Interface.h"
 
 registerMooseObject("NekApp", NekProblem);
 
@@ -18,43 +18,76 @@ InputParameters
 validParams<NekProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
-  // No required parameters
   return params;
 }
 
 NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
-                                                        _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _dt(nekrs::dt()),
+    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _outputStep(nekrs::outputStep()),
-    _nTimeSteps(nekrs::NtimeSteps()),
-    _startTime(nekrs::startTime()),
-    _finalTime(nekrs::finalTime()),
     _time(nekrs::startTime())
 {
+  // If the simulation start time is not zero, the app's time must be shifted
+  // relative to its master app (if any). Until this is implemented, make sure
+  // a start time of zero is used.
+  if (_time != 0.0)
+    mooseError("A non-zero start time is not yet available for 'NekProblem'! "
+      "Change the 'startTime' parameter in your .par file to zero.");
 }
 
+void
+NekProblem::initialSetup()
+{
+  ExternalProblem::initialSetup();
+
+  auto executioner = _app.getExecutioner();
+  Transient * transient_executioner = dynamic_cast<Transient *>(executioner);
+
+  // nekRS only supports transient simulations - therefore, it does not make
+  // sense to use anything except a Transient-derived executioner
+  if (!transient_executioner)
+    mooseError("A Transient-type executioner should be used for nekRS!");
+
+  TimeStepper * stepper = transient_executioner->getTimeStepper();
+  _timestepper = dynamic_cast<NekTimeStepper *>(stepper);
+
+  // To get the correct time stepping information on the MOOSE side, we also
+  // must use the NekTimeStepper
+  if (!_timestepper)
+    mooseError("The 'NekTimeStepper' must be used with 'NekProblem'! You have used: ",
+      _timestepper->name());
+}
+
+bool
+NekProblem::isOutputStep() const
+{
+  Real n_steps = _timestepper->getNumTimeSteps();
+
+  bool is_output_step = false;
+  if (_outputStep > 0) {
+    if (_tstep % _outputStep == 0 || _tstep == n_steps)
+      is_output_step = true;
+  }
+
+  return is_output_step;
+}
 
 void NekProblem::externalSolve()
 {
-  // TODO:  Was this changed in driver?
-  if (_time < _finalTime) {
+  Real dt = _timestepper->getDT();
+  bool is_output_step = isOutputStep();
 
-    ++_tstep;
-    
-    int isOutputStep = 0;
-    if (_outputStep > 0) {
-      if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
-    }
+  ++_tstep;
 
-    nekrs::runStep(_time, _dt, _tstep);
+  nekrs::runStep(_time, dt, _tstep);
 
-    nekrs::copyToNek(_time+_dt, _tstep);
-    nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
-    if (isOutputStep) nekrs::nekOutfld();
+  nekrs::copyToNek(_time + dt, _tstep);
 
-    _time += _dt;
+  nekrs::udfExecuteStep(_time + dt, _tstep, is_output_step);
 
-  }
+  if (is_output_step)
+    nekrs::nekOutfld();
+
+  _time += dt;
 }
 
 void NekProblem::syncSolutions(ExternalProblem::Direction direction)
