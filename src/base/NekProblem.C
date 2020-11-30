@@ -34,6 +34,18 @@ NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
       "Change the 'startTime' parameter in your .par file to zero.");
 }
 
+NekProblem::~NekProblem()
+{
+  if (!_app.isUltimateMaster() && !isOutputStep())
+  {
+    // copy nekRS solution from device to host
+    nekrs::copyToNek(_time, _tstep);
+
+    // write nekRS solution to output
+    nekrs::nekOutfld();
+  }
+}
+
 void
 NekProblem::initialSetup()
 {
