@@ -7,7 +7,7 @@ polynomialOrder = 5
 #startFrom = onepebble2.run03
 numSteps = 5
 dt = 1e-04
-writeInterval = 10 
+writeInterval = 5
 extrapolation = OIFS
 targetCFL = 2.0
 

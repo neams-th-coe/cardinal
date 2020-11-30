@@ -32,13 +32,15 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
   }
   else
   {
-    _end_time = std::numeric_limits<Real>::max();
-
-    // because we adjusted the end time, we also need to adjust the
-    // number of time steps to perform in nekRS. We don't need to perform any
-    // rounding here to make sure we get _exactly_ to the end_time, since this
-    // is just a placeholder value that ensures that the master app has control.
-    _num_time_steps = _end_time / nekrs::dt();
+    // Typically, we would set end_time here to the maximum value this operating
+    // system can handle, and set the number of time steps equal to this end time
+    // divided by the specified time step size. However, this would cause integer
+    // overflow in the number of time steps. So, instead here we set the number
+    // of time steps to the maximum operating system value, and compute the end
+    // time accordingly (since Real has a larger range in representable numbers).
+    // This is just a placeholder anyways to ensure that the master app has control.
+    _num_time_steps = std::numeric_limits<int>::max();
+    _end_time = _num_time_steps * nekrs::dt();
   }
 
   // When using this time stepper, the user should not try to set any constantDT-type
