@@ -1,18 +1,28 @@
-OPENMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-OPENMC_BUILDDIR := $(CARDINAL_DIR)/build/openmc
-OPENMC_LIBDIR := $(CONTRIB_INSTALL_DIR)/lib
-OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
-
-$(OPENMC_LIB):
+$(OPENMC_BUILDDIR)/Makefile: $(OPENMC_DIR)/CMakeLists.txt
 	mkdir -p $(OPENMC_BUILDDIR)
 	mkdir -p $(LIBMESH_DIR)/include/contrib
 	cd $(OPENMC_BUILDDIR) && \
-	cmake -L -Dlibmesh=ON -Doptimize=ON -DLIBMESH_DIR=$(LIBMESH_DIR) -DCMAKE_INSTALL_PREFIX=$(CONTRIB_INSTALL_DIR) $(OPENMC_DIR) && \
-	cmake $(OPENMC_DIR) && make VERBOSE=1 -C $(OPENMC_BUILDDIR) install
+	cmake -L \
+	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
+	-Dlibmesh=ON \
+	-Doptimize=ON \
+	-DLIBMESH_DIR=$(LIBMESH_DIR) \
+	-DCMAKE_INSTALL_PREFIX=$(OPENMC_INSTALL_DIR) \
+	-DCMAKE_INSTALL_LIBDIR=$(OPENMC_LIBDIR) \
+	$(OPENMC_DIR)
 
-clean_openmc:
-	make -C $(OPENMC_BUILDDIR) clean
+build_openmc: | $(OPENMC_BUILDDIR)/Makefile
+	make VERBOSE=1 -C $(OPENMC_BUILDDIR) install
 
-libopenmc: $(OPENMC_LIB)
+cleanall_openmc: | $(OPENMC_BUILDDIR)/Makefile
+	make -C $(OPENMC_BUILDDIR) uninstall clean
 
-.PHONY: libopenmc clean_openmc
+clobber_openmc:
+	rm -rf $(OPENMC_LIB) $(OPENMC_BUILDDIR) $(OPENMC_INSTALL_DIR)
+
+cleanall: cleanall_openmc
+
+clobberall: clobber_openmc
+
+.PHONY: build_openmc cleanall_openmc clobber_openmc
+
