@@ -31,12 +31,6 @@ public:
   NekTimeStepper(const InputParameters & parameters);
 
   /**
-   * Get the current time step size
-   * \return time step size
-   **/
-  virtual Real getDT();
-
-  /**
    * Get the simulation end time
    * \return simulation end time
    **/

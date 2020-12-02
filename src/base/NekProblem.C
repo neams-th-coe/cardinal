@@ -87,7 +87,9 @@ void NekProblem::externalSolve()
 {
   ++_tstep;
 
-  Real dt = _timestepper->getDT();
+  // TODO: once nekRS has adaptive time stepping, we need to check that this does represent
+  // the most up-to-date time step size.
+  Real dt = _timestepper->getCurrentDT();
 
   bool is_output_step = isOutputStep();
 

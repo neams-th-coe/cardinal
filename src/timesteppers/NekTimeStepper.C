@@ -67,12 +67,6 @@ NekTimeStepper::computeDT()
 }
 
 Real
-NekTimeStepper::getDT()
-{
-  return nekrs::dt();
-}
-
-Real
 NekTimeStepper::getEndTime()
 {
   return _end_time;
