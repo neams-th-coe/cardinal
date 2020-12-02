@@ -87,22 +87,31 @@ void NekProblem::externalSolve()
 {
   ++_tstep;
 
-  // TODO: once nekRS has adaptive time stepping, we need to check that this does represent
-  // the most up-to-date time step size.
-  Real dt = _timestepper->getCurrentDT();
+  // The _dt member of NekProblem reflects the time step that MOOSE wants NekApp to
+  // take. For instance, if NekApp is controlled by a master app and subcycling is used,
+  // NekApp must advance to the time interval taken by the master app. If the time step
+  // that MOOSE wants nekRS to take (i.e. _dt) does not match the time step that nekRS
+  // has used to construct all the coefficient matrices, etc. for nekRS's internal time
+  // stepping, an additional step would need to be added below to ensure that nekRS can
+  // _correctly_ take a variable time step. This infrastructure is currently lacking from
+  // nekRS, even though the nekrs::runStep function looks at a high level to be capable of
+  // accepting a variable time step size as input.
+  if (std::abs(_dt - nekrs::dt()) > 1e-8)
+    mooseError("nekRS does not currently allow adaptive time stepping! NekApp is trying to use "
+      "a time step of " + std::to_string(_dt) + ", but nekRS's time step is " + std::to_string(nekrs::dt()));
 
   bool is_output_step = isOutputStep();
 
-  nekrs::runStep(_time, dt, _tstep);
+  nekrs::runStep(_time, _dt, _tstep);
 
-  nekrs::copyToNek(_time + dt, _tstep);
+  nekrs::copyToNek(_time + _dt, _tstep);
 
-  nekrs::udfExecuteStep(_time + dt, _tstep, is_output_step);
+  nekrs::udfExecuteStep(_time + _dt, _tstep, is_output_step);
 
   if (is_output_step)
     nekrs::nekOutfld();
 
-  _time += dt;
+  _time += _dt;
 }
 
 void NekProblem::syncSolutions(ExternalProblem::Direction direction)
