@@ -65,8 +65,7 @@ NekProblem::initialSetup()
   // To get the correct time stepping information on the MOOSE side, we also
   // must use the NekTimeStepper
   if (!_timestepper)
-    mooseError("The 'NekTimeStepper' must be used with 'NekProblem'! You have used: ",
-      _timestepper->name());
+    mooseError("The 'NekTimeStepper' stepper must be used with 'NekProblem'!");
 }
 
 bool
