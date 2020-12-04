@@ -5,11 +5,11 @@
 #include "NekProblem.h"
 #include "Moose.h"
 #include "AuxiliarySystem.h"
+#include "Transient.h"
+#include "TimeStepper.h"
 
-//#include "NekInterface.h"
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
-//#include "nek2Interface.h"
 
 registerMooseObject("NekApp", NekProblem);
 
@@ -18,43 +18,99 @@ InputParameters
 validParams<NekProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
-  // No required parameters
   return params;
 }
 
 NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
-                                                        _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _dt(nekrs::dt()),
+    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _outputStep(nekrs::outputStep()),
-    _nTimeSteps(nekrs::NtimeSteps()),
-    _startTime(nekrs::startTime()),
-    _finalTime(nekrs::finalTime()),
     _time(nekrs::startTime())
 {
+  // If the simulation start time is not zero, the app's time must be shifted
+  // relative to its master app (if any). Until this is implemented, make sure
+  // a start time of zero is used.
+  if (_time != 0.0)
+    mooseError("A non-zero start time is not yet available for 'NekProblem'! "
+      "Change the 'startTime' parameter in your .par file to zero.");
 }
 
+NekProblem::~NekProblem()
+{
+  if (!_app.isUltimateMaster() && !isOutputStep())
+  {
+    // copy nekRS solution from device to host
+    nekrs::copyToNek(_time, _tstep);
+
+    // write nekRS solution to output
+    nekrs::nekOutfld();
+  }
+}
+
+void
+NekProblem::initialSetup()
+{
+  ExternalProblem::initialSetup();
+
+  auto executioner = _app.getExecutioner();
+  Transient * transient_executioner = dynamic_cast<Transient *>(executioner);
+
+  // nekRS only supports transient simulations - therefore, it does not make
+  // sense to use anything except a Transient-derived executioner
+  if (!transient_executioner)
+    mooseError("A Transient-type executioner should be used for nekRS!");
+
+  TimeStepper * stepper = transient_executioner->getTimeStepper();
+  _timestepper = dynamic_cast<NekTimeStepper *>(stepper);
+
+  // To get the correct time stepping information on the MOOSE side, we also
+  // must use the NekTimeStepper
+  if (!_timestepper)
+    mooseError("The 'NekTimeStepper' stepper must be used with 'NekProblem'!");
+}
+
+bool
+NekProblem::isOutputStep() const
+{
+  Real n_steps = _timestepper->getNumTimeSteps();
+
+  bool is_output_step = false;
+  if (_outputStep > 0) {
+    if (_tstep % _outputStep == 0 || _tstep == n_steps)
+      is_output_step = true;
+  }
+
+  return is_output_step;
+}
 
 void NekProblem::externalSolve()
 {
-  // TODO:  Was this changed in driver?
-  if (_time < _finalTime) {
+  ++_tstep;
 
-    ++_tstep;
-    
-    int isOutputStep = 0;
-    if (_outputStep > 0) {
-      if (_tstep % _outputStep == 0 || _tstep == _nTimeSteps) isOutputStep = 1;
-    }
+  // The _dt member of NekProblem reflects the time step that MOOSE wants NekApp to
+  // take. For instance, if NekApp is controlled by a master app and subcycling is used,
+  // NekApp must advance to the time interval taken by the master app. If the time step
+  // that MOOSE wants nekRS to take (i.e. _dt) does not match the time step that nekRS
+  // has used to construct all the coefficient matrices, etc. for nekRS's internal time
+  // stepping, an additional step would need to be added below to ensure that nekRS can
+  // _correctly_ take a variable time step. This infrastructure is currently lacking from
+  // nekRS, even though the nekrs::runStep function looks at a high level to be capable of
+  // accepting a variable time step size as input.
+  if (std::abs(_dt - nekrs::dt()) > 1e-8)
+    mooseError("nekRS does not currently allow adaptive time stepping! NekApp is trying to use "
+      "a time step of " + std::to_string(_dt) + ", but nekRS's time step is " + std::to_string(nekrs::dt()));
 
-    nekrs::runStep(_time, _dt, _tstep);
+  bool is_output_step = isOutputStep();
 
-    nekrs::copyToNek(_time+_dt, _tstep);
-    nekrs::udfExecuteStep(_time+_dt, _tstep, isOutputStep);
-    if (isOutputStep) nekrs::nekOutfld();
+  nekrs::runStep(_time, _dt, _tstep);
 
-    _time += _dt;
+  nekrs::copyToNek(_time + _dt, _tstep);
 
-  }
+  nekrs::udfExecuteStep(_time + _dt, _tstep, is_output_step);
+
+  if (is_output_step)
+    nekrs::nekOutfld();
+
+  _time += _dt;
 }
 
 void NekProblem::syncSolutions(ExternalProblem::Direction direction)

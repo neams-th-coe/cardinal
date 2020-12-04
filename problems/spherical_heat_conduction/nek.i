@@ -18,7 +18,10 @@
 
 [Executioner]
   type = Transient
-  num_steps = 5
+
+  [./TimeStepper]
+    type = NekTimeStepper
+  [../]
 []
 
 [Outputs]
