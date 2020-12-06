@@ -27,6 +27,7 @@ submodule_update:submodules:
   script:
     - env | sort
     - git submodule update --init --recursive contrib/openmc
+    - git submodule update --init contrib/nekRS
     - git submodule update --init contrib/moose
 
 build_petsc:petsc:
