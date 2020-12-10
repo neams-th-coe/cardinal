@@ -42,7 +42,8 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
     // both end_time and num_steps, such that our nekRS setting will prevail.
     if (nekrs::endControlTime())
       _end_time = nekrs::endTime();
-    else if (nekrs::endControlNumSteps())
+
+    if (nekrs::endControlNumSteps())
       _num_steps = nekrs::numSteps();
   }
   else
