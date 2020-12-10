@@ -5,7 +5,8 @@ deviceNumber = 0
 [GENERAL] 
 polynomialOrder = 5
 #startFrom = onepebble2.run03
-numSteps = 5
+stopAt = endTime
+endTime = 5e-4
 dt = 1e-04
 writeInterval = 5
 extrapolation = OIFS

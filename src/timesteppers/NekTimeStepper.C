@@ -25,7 +25,7 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
   // MOOSE input file would consume that wall time.
   if (nekrs::endControlElapsedTime())
     mooseError("A wall time cannot be used to control the end of the nekRS simulation "
-      "when other applications are consuming the same wall time.\n\nPlease set "
+      "when other applications (i.e. MOOSE) are consuming the same wall time.\n\nPlease set "
       "'stopAt' to either 'numSteps' or 'endTime' in your .par file.");
 
   // The NekTimeStepper will take the end simulation control from the nekRS .par file,
@@ -44,7 +44,9 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
       _end_time = nekrs::endTime();
 
     if (nekrs::endControlNumSteps())
-      _num_steps = nekrs::numSteps();
+      mooseError("As a temporary fix, please only use 'stopAt = endTime' in your NekApp "
+        "input file. Once MOOSE PR #16461 is merged, you can continue using 'stopAt = numSteps'.");
+      //_num_steps = nekrs::numSteps(); TODO: add in once MOOSE PR #16461 is merged
   }
   else
   {
