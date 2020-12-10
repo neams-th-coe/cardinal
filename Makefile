@@ -46,7 +46,20 @@ NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
 NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 NEKRS_INCLUDES := \
 	-I$(NEKRS_DIR)/src \
+	-I$(NEKRS_DIR)/src/cds \
 	-I$(NEKRS_DIR)/src/core \
+	-I$(NEKRS_DIR)/src/elliptic \
+	-I$(NEKRS_DIR)/src/elliptic/parAlmond \
+	-I$(NEKRS_DIR)/src/io \
+	-I$(NEKRS_DIR)/src/lib \
+	-I$(NEKRS_DIR)/src/linAlg \
+	-I$(NEKRS_DIR)/src/linearSolver \
+	-I$(NEKRS_DIR)/src/lns \
+	-I$(NEKRS_DIR)/src/mesh \
+	-I$(NEKRS_DIR)/src/nekInterface \
+	-I$(NEKRS_DIR)/src/plugins \
+	-I$(NEKRS_DIR)/src/timeStepper \
+	-I$(NEKRS_DIR)/src/udf \
 	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
 	-I$(NEKRS_INSTALL_DIR)/include \
 	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
