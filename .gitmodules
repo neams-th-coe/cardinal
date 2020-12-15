@@ -1,7 +1,3 @@
-[submodule "moose"]
-	path = contrib/moose
-	url = https://github.com/pshriwise/moose.git
-	branch = libmesh_update
 [submodule "contrib/openmc"]
 	path = contrib/openmc
 	url = https://github.com/pshriwise/openmc.git
@@ -13,3 +9,6 @@
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
 	url = https://xgitlab.cels.anl.gov/neams-th-coe/nekRS.git
+[submodule "contrib/moose"]
+	path = contrib/moose
+	url = https://github.com/idaholab/moose.git
