@@ -44,9 +44,7 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
       _end_time = nekrs::endTime();
 
     if (nekrs::endControlNumSteps())
-      mooseError("As a temporary fix, please only use 'stopAt = endTime' in your NekApp "
-        "input file. Once MOOSE PR #16461 is merged, you can continue using 'stopAt = numSteps'.");
-      //_num_steps = nekrs::numSteps(); TODO: add in once MOOSE PR #16461 is merged
+      forceNumSteps(nekrs::numSteps());
   }
   else
   {
