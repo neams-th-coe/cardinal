@@ -14,16 +14,6 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  // get IC from nek
-  bool readRestartFile = false;
-  nrs->options.getArgs("RESTART FROM FILE", readRestartFile);
-
-  if (!readRestartFile) {
-    dfloat startTime;
-    nrs->options.getArgs("START TIME", startTime);
-    nek_copyTo(startTime);
-  }
-
   nrs->o_usrwrk.free(); free(nrs->usrwrk);
   nrs->usrwrk   = (dfloat*) calloc(nrs->mesh->Nelements*nrs->mesh->Np, sizeof(dfloat));
   nrs->o_usrwrk = nrs->mesh->device.malloc(nrs->mesh->Nelements*nrs->mesh->Np*sizeof(dfloat), nrs->usrwrk);
