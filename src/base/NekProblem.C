@@ -38,7 +38,7 @@ NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
 
 NekProblem::~NekProblem()
 {
-  if (!_app.isUltimateMaster() && !isOutputStep())
+  if (!isOutputStep())
   {
     // copy nekRS solution from device to host
     nekrs::copyToNek(_time, _tstep);
@@ -73,8 +73,6 @@ NekProblem::initialSetup()
 bool
 NekProblem::isOutputStep() const
 {
-  bool is_output_step = false;
-
   if (_app.isUltimateMaster())
   {
     bool last_step = nekrs::lastStep(_time, _tstep, 0.0 /* dummy elapsed time */);
@@ -86,31 +84,24 @@ NekProblem::isOutputStep() const
     // last time step from MOOSE's perspective in NekProblem's destructor.
 
     if (last_step)
-      is_output_step = true;
+      return true;
+  }
+
+  // an output step can also be controlled by run time or an integer number of time steps
+  bool is_output_step = false;
+
+  if (nekrs::writeControlRunTime())
+  {
+    is_output_step = _time >= _output_time;
   }
   else
   {
-    // otherwise, an output step is controlled by either run time or an integer
-    // number of time steps
-    if (nekrs::writeControlRunTime())
-    {
-      is_output_step = _time >= _output_time;
-    }
-    else
-    {
-      int output_interval = (int) _write_interval;
+    int output_interval = (int) _write_interval;
 
-      if (_write_interval > 0)
-        is_output_step = _tstep % output_interval == 0;
-    }
+    if (_write_interval > 0)
+      is_output_step = _tstep % output_interval == 0;
   }
-
-  // TODO: This logic is present on the nekRS side, but I'm not 100% sure it needs
-  // to be there (i.e. the other if statements about would catch this, or it would never
-  // be initialized otherwise...). Keep it here until this is figured out.
-  if (_write_interval <= 0)
-    is_output_step = false;
-
+  
   return is_output_step;
 }
 
