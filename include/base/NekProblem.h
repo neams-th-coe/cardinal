@@ -53,8 +53,19 @@ protected:
   unsigned int _temp_var;
   unsigned int _avg_flux_var;
 
-  /// Interval, in number of time steps, for which to write nekRS output files
-  int _outputStep;
+  /// Start time of the simulation based on nekRS's .par file
+  double _start_time;
+
+  /**
+   * \brief Interval (in either time or number of time steps), for which to write nekRS output files
+   *
+   * In nekRS's time stepping loop, they cast this to an integer to get the time step interval on
+   * which to write output, so we mimic this here for an easier one-to-one comparison with nekRS's main().
+   **/
+  double _write_interval;
+
+  /// If nekRS output is controlled by writing on runtime intervals, this represents the next time to write
+  double _output_time;
 
   /// Current simulation time
   double _time;

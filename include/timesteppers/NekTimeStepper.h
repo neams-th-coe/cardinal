@@ -20,33 +20,14 @@ InputParameters validParams<NekTimeStepper>();
  * some control can be exerted from the MOOSE side is if NekApp is run as
  * a sub-application, in which case the simulation end time is controlled
  * from the master application.
- *
- * TODO: Once nekRS implements adaptive time stepping (and depending on how
- * it is implemented), we may need to adjust how the total number of time steps
- * and simulation end time are determined throughout the course of the simulation.
  **/
 class NekTimeStepper : public TimeStepper
 {
 public:
   NekTimeStepper(const InputParameters & parameters);
 
-  /**
-   * Get the simulation end time
-   * \return simulation end time
-   **/
-  virtual Real getEndTime();
-
-  /**
-   * Get the total number of time steps that will be simulated
-   * \return number of time steps
-   **/
-  virtual Real getNumTimeSteps();
-
 protected:
   virtual Real computeInitialDT() override;
 
   virtual Real computeDT() override;
-
-  /// Total number of time steps to be simulated
-  int _num_time_steps;
 };

@@ -1,17 +1,17 @@
 // Boundary conditions
-void insVelocityDirichletConditions3D(bcData *bc)
+void velocityDirichletConditions(bcData *bc)
 {                                                                        
-  bc->uP = 0.0;
-  bc->vP = 0.0;
-  bc->wP = 0.17;
+  bc->u = 0.0;
+  bc->v = 0.0;
+  bc->w = 0.17;
 }
 
-void cdsDirichletConditions3D(bcData *bc)
+void scalarDirichletConditions(bcData *bc)
 {
-  bc->sP = 573.0;
+  bc->s = 573.0;
 }
 
-void cdsNeumannConditions3D(bcData *bc)
+void scalarNeumannConditions(bcData *bc)
 {
-  bc->sF = bc->wrk[bc->idM];
+  bc->flux = bc->wrk[bc->idM];
 }

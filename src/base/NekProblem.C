@@ -23,26 +23,28 @@ validParams<NekProblem>()
 
 NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _outputStep(nekrs::outputStep()),
-    _time(nekrs::startTime())
+    _start_time(nekrs::startTime()),
+    _write_interval(nekrs::writeInterval()),
+    _output_time(_start_time + _write_interval),
+    _time(_start_time)
 {
   // If the simulation start time is not zero, the app's time must be shifted
   // relative to its master app (if any). Until this is implemented, make sure
   // a start time of zero is used.
-  if (_time != 0.0)
+  if (_start_time != 0.0)
     mooseError("A non-zero start time is not yet available for 'NekProblem'! "
       "Change the 'startTime' parameter in your .par file to zero.");
 }
 
 NekProblem::~NekProblem()
 {
-  if (!_app.isUltimateMaster() && !isOutputStep())
+  if (!isOutputStep())
   {
     // copy nekRS solution from device to host
     nekrs::copyToNek(_time, _tstep);
 
     // write nekRS solution to output
-    nekrs::nekOutfld();
+    nekrs::outfld(_time, _output_time /* not used by nekRS */);
   }
 }
 
@@ -71,14 +73,35 @@ NekProblem::initialSetup()
 bool
 NekProblem::isOutputStep() const
 {
-  Real n_steps = _timestepper->getNumTimeSteps();
+  if (_app.isUltimateMaster())
+  {
+    bool last_step = nekrs::lastStep(_time, _tstep, 0.0 /* dummy elapsed time */);
 
-  bool is_output_step = false;
-  if (_outputStep > 0) {
-    if (_tstep % _outputStep == 0 || _tstep == n_steps)
-      is_output_step = true;
+    // if NekApp is controlled by a master application, then the last time step
+    // is controlled by that master application, in which case we don't want to
+    // write at what nekRS thinks is the last step (since it may or may not be
+    // the actual end step), especially because we ensure that we write on the
+    // last time step from MOOSE's perspective in NekProblem's destructor.
+
+    if (last_step)
+      return true;
   }
 
+  // an output step can also be controlled by run time or an integer number of time steps
+  bool is_output_step = false;
+
+  if (nekrs::writeControlRunTime())
+  {
+    is_output_step = _time >= _output_time;
+  }
+  else
+  {
+    int output_interval = (int) _write_interval;
+
+    if (_write_interval > 0)
+      is_output_step = _tstep % output_interval == 0;
+  }
+  
   return is_output_step;
 }
 
@@ -108,7 +131,16 @@ void NekProblem::externalSolve()
   nekrs::udfExecuteStep(_time + _dt, _tstep, is_output_step);
 
   if (is_output_step)
-    nekrs::nekOutfld();
+  {
+    nekrs::outfld(_time, _output_time /* not used by nekRS */);
+
+    // if we determined that we did need to write an output file, update this
+    // variable so that we can determine whether to write output for the subsequent steps.
+    // Note that output_time is only used if writing is based on runtime and we aren't at
+    // the last time step already.
+    if (is_output_step)
+      _output_time += _write_interval;
+  }
 
   _time += _dt;
 }
