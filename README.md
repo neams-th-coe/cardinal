@@ -1,29 +1,50 @@
 # Cardinal
 
-## Building and Running
+## Building
 
-### With NekRS
+First, set the correct threading API to use for nekRS (CUDA, HIP, or OpenCL) in `Makefile` by setting
+the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
+respectively. If all of these threading APIs are turned off, then a serial backend will be used
+in nekRS, meaning that nekRS will run with MPI parallelism.
 
-To build with NekRS, set the correct threading API (CUDA, OpenCL, or none) in `Makefile`.  Then, in
-the top-level directory, run `make`.  This will create the executable `cardinal-<mode>` in the
-top-level directory.
+Next, fetch all the submodules containing the MOOSE, nekRS, and OpenMC dependencies:
 
-To run with NekRS, first you must set the environment variable `NEKRS_HOME` to be the location of the 
-NekRS root directory.  For a Cardinal build, this will be the `install/` directory under the
-top-level Cardinal directory:
+```
+$ git submodule update --init --recursive
+```
+
+To save some time, especially for fetching the very big `large_problems` submodule or
+other large recursive sub-submodules, you can just fetch the minimum number of submodules to
+build Cardinal:
+
+```
+$ git submodule udpate --init contrib/nekRS
+$ git submodule update --init contrib/moose
+$ git submodule update --init --recursive contrib/openmc
+```
+
+Next, build the PETSc and libMesh dependencies of MOOSE:
+
+```
+$ ./contrib/moose/scripts/update_and_rebuild_petsc.sh
+$ ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
+```
+
+Building libMesh can be quite time consuming. You only need to perform the above step
+if the MOOSE submodule has been updated or this is the first time you are building Cardinal.
+
+Next, you must set the environment variable `NEKRS_HOME` to be the location of the 
+nekRS root directory so that all needed include files are on your path.
+This will be the `install/` directory under the top-level Cardinal directory:
 
 ```
 $ export NEKRS_HOME=$(realpath install/)
 ```
 
-
-Then enter the directory with your NekRS case files and use a command such as:
-
-```
-$ mpirun -np 4 ~/repos/cardinal/cardinal-opt --app nek -i nek.i --nekrs-setup onepebble2
-```
-
-where `--nekrs-setup` is the basename of the `.par` and `.usr` files for your case.  
+Finally, in the top-level directory, run `make`.  This will create the executable `cardinal-<mode>` in the
+top-level directory. `<mode>` is the optimization level used to compile MOOSE. You can control
+this mode with the `METHOD` environment variable, which can be set to any combination of `opt`, `oprof`,
+and `dbg`.
 
 ### Optional Make Variables
 
@@ -33,3 +54,17 @@ where `--nekrs-setup` is the basename of the `.par` and `.usr` files for your ca
 * `HDF5_LIBDIR`: Specify location of HDF5 libraries.  Defaults to:
   * `$HDF5_ROOT/lib` if `HDF5_ROOT` is specified
   * `/usr/lib` if `HDF5_ROOT` is not specified
+
+## Running
+
+Enter the directory with your nekRS case files and use a command such as:
+
+```
+$ mpirun -np 4 ~/repos/cardinal/cardinal-opt --app nek -i nek.i --nekrs-setup onepebble2
+```
+
+where `--nekrs-setup` is the basename of the nekRS files for your case. The `-app` may
+be one of `nek`, `openmc`, or `cardinal` (the default). The `-app` flag basically registers
+the objects in Cardinal under different MooseApps, reflecting how these objects would
+interact with each other if the OpenMC and nekRS wrappings were each ported out to individual
+apps, rather than the coupled case here for Cardinal.
