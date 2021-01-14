@@ -1,0 +1,9 @@
+[Tests]
+  [./first_order_mesh]
+    type = Exodiff
+    input = nek.i
+    exodiff = nek_out.e
+    cli_args = '--app nek --nekrs-setup pyramid'
+    requirement = "NekMesh shall construct a first-order surface mesh from a list of boundary IDs. "
+  [../]
+[]
