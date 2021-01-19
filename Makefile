@@ -48,6 +48,7 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_DIR)/src \
 	-I$(NEKRS_DIR)/src/cds \
 	-I$(NEKRS_DIR)/src/core \
+	-I$(NEKRS_DIR)/src/core/utils \
 	-I$(NEKRS_DIR)/src/elliptic \
 	-I$(NEKRS_DIR)/src/elliptic/parAlmond \
 	-I$(NEKRS_DIR)/src/io \
