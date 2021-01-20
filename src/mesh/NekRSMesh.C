@@ -38,24 +38,21 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
 
   // nekRS must at least have the arrays for temperature and flux initialized, which
   // requires that the [TEMPERATURE] block exists in the nekRS input file
-  // TODO: requires nekRS submodule update
-  // if (!nekrs::hasTemperatureVariable())
-  //   mooseError("To properly transfer temperature and heat flux between nekRS and MOOSE, "
-  //     "your nekRS model must include a solution for temperature.\n\nDid you forget the "
-  //     "TEMPERATURE block in the .par file?");
+  if (!nekrs::hasTemperatureVariable())
+    mooseError("To properly transfer temperature and heat flux between nekRS and MOOSE, "
+      "your nekRS model must include a solution for temperature.\n\nDid you forget the "
+      "TEMPERATURE block in the .par file?");
 
   // While we don't require nekRS to actually _solve_ for the temperature, we should
   // print a warning if there is no temperature solve. For instance, the above check
   // makes sure that we have a [TEMPERATURE] block in the nekRS input file, but we
   // might still toggle the solver off by setting 'solver = none'. Warn the user if
   // the solve is turned off because this is really only a testing feature.
-  // TODO: requires nekRS submodule update
-  bool has_temperature_solve = true;
-  // bool has_temperature_solve = nekrs::hasTemperatureSolve();
-  // if (!has_temperature_solve)
-  //   mooseWarning("By setting 'solver = none' for temperature in the .par file, nekRS "
-  //     "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
-  //     "fixed at its initial condition, and the heat flux transferred to nekRS will be unused.");
+  bool has_temperature_solve = nekrs::hasTemperatureSolve();
+  if (!has_temperature_solve)
+    mooseWarning("By setting 'solver = none' for temperature in the .par file, nekRS "
+      "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
+      "fixed at its initial condition, and the heat flux transferred to nekRS will be unused.");
 
   const auto & filename = getMooseApp().getInputFileName();
 

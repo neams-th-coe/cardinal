@@ -30,7 +30,7 @@ bool endControlNumSteps()
 bool hasTemperatureVariable()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  return nrs->options.compareArgs("TEMPERATURE", "TRUE");
+  return nrs->Nscalar ? nrs->options.compareArgs("SCALAR00 IS TEMPERATURE", "TRUE") : false;
 }
 
 bool hasTemperatureSolve()
