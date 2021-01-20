@@ -89,7 +89,7 @@ test:app_nek:nek.i:
   script:
     - env | sort
     - cd problems/spherical_heat_conduction
-    - mpirun -np "$N_RANKS" "$CI_PROJECT_DIR/cardinal-opt" --app nek -i nek.i --nekrs-setup onepebble2
+    - mpirun -np "$N_RANKS" "$CI_PROJECT_DIR/cardinal-opt" --app nek -i nek.i --nekrs-setup onepebble2 --no-jit
 
 test:app_cardinal:nek_master.i:
   stage: test
@@ -99,7 +99,7 @@ test:app_cardinal:nek_master.i:
   script:
     - env | sort
     - cd problems/spherical_heat_conduction
-    - mpirun -np "$N_RANKS" "$CI_PROJECT_DIR/cardinal-opt" --app cardinal -i nek_master.i --nekrs-setup onepebble2
+    - mpirun -np "$N_RANKS" "$CI_PROJECT_DIR/cardinal-opt" --app cardinal -i nek_master.i --nekrs-setup onepebble2 --no-jit
 
 test:app_cardinal:master.i:
   stage: test
@@ -109,6 +109,6 @@ test:app_cardinal:master.i:
   script:
     - env | sort
     - cd problems/spherical_heat_conduction
-    - mpirun -np "$N_RANKS" "$CI_PROJECT_DIR/cardinal-opt" --app cardinal -i master.i --nekrs-setup onepebble2 --n-threads="$N_THREADS"
+    - mpirun -np "$N_RANKS" "$CI_PROJECT_DIR/cardinal-opt" --app cardinal -i master.i --nekrs-setup onepebble2 --n-threads="$N_THREADS" --no-jit
 
 

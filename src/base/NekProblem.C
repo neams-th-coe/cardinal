@@ -44,7 +44,7 @@ NekProblem::~NekProblem()
     nekrs::copyToNek(_time, _tstep);
 
     // write nekRS solution to output
-    nekrs::outfld(_time, _output_time /* not used by nekRS */);
+    nekrs::outfld(_time);
   }
 }
 
@@ -132,7 +132,7 @@ void NekProblem::externalSolve()
 
   if (is_output_step)
   {
-    nekrs::outfld(_time, _output_time /* not used by nekRS */);
+    nekrs::outfld(_time);
 
     // if we determined that we did need to write an output file, update this
     // variable so that we can determine whether to write output for the subsequent steps.
