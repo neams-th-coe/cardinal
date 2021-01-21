@@ -1,0 +1,13 @@
+[Tests]
+  [./second_order_temperature]
+    type = Exodiff
+    input = nek.i
+    exodiff = nek_out.e
+    cli_args = '--app nek --nekrs-setup pyramid'
+    requirement = "The nekRS temperature solution shall be accurately reconstructed on "
+                  "the nekRSMesh with a second-order transfer. By setting an intial condition "
+                  "for temperature on the nekRS side and then setting 'solver = none', we show "
+                  "that the max/min error in that reconstructed temperature compared to a MOOSE "
+                  "function of the same form is O(1e-8)."
+  [../]
+[]
