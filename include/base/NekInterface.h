@@ -45,6 +45,18 @@ bool hasTemperatureVariable();
 bool hasTemperatureSolve();
 
 /**
+ * Initialize scratch space for flux transfer
+ * @return whether scratch space is already allocated for some other purpose
+  */
+bool initializeScratch();
+
+/// Free the scratch space for the flux transfer
+void freeScratch();
+
+/// Copy the flux from host to device
+void copyFluxToDevice();
+
+/**
  * nekRS process owning the global element in the data transfer mesh
  * @param[in] elem_id element ID
  * @return nekRS process ID
@@ -78,6 +90,98 @@ void interpolationMatrix(double * I, int starting_points, int ending_points);
  * @param[in] M resulting number of interpolated points in 1-D
  */
 void interpolateSurfaceFaceHex3D(double * scratch, double* I, double* x, int N, double* Ix, int M);
+
+/**
+ * Interpolate the nekRS temperature onto the data transfer mesh
+ * @param[in] I interpolation matrix
+ * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
+ * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
+ * @param[out] T interpolated temperature
+ */
+void temperature(const double * I, const int order, const bool needs_interpolation, double* T);
+
+/**
+ * Interpolate the MOOSE flux onto the nekRS mesh
+ * @param[in] I interpolation matrix
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
+ * @param[in] flux_face flux at the libMesh nodes
+ */
+ void flux(const double * I, const int elem_id, const int order, double * flux_face);
+
+/**
+ * Integrate the interpolated flux over the boundaries of the data transfer mesh
+ * @return boundary integrated flux
+ */
+double fluxIntegral();
+
+/**
+ * Normalize the flux sent to nekRS to conserve the total flux
+ * @param[in] moose_integral total integrated flux from MOOSE to conserve
+ * @param[in] nek_integral total integrated flux in nekRS to adjust
+ */
+void normalizeFlux(const double moose_integral, const double nek_integral);
+
+/**
+ * Compute the area integral of a given integrand over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+ * @param[in] integrand field to integrate
+ * @return area integral of a field
+ */
+double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand);
+
+/**
+ * Compute the mass flux weighted integral of a given integrand over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+ * @param[in] integrand field to integrate and weight by mass flux
+ * @return mass flux weighted area average of a field
+ */
+double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand);
+
+/**
+ * Compute the heat flux over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+ * @return heat flux area integral
+ */
+double heatFluxIntegral(const std::vector<int> & boundary_id);
+
+/**
+ * Compute the gradient of a volume field
+ * @param[in] offset in the gradient field for each component (grad_x, grad_y, or grad_z)
+ * @param[in] f field to compute the gradient of
+ * @param[out] grad_f gradient of field
+ */
+void gradient(const int offset, const double * f, double * grad_f);
+
+/**
+ * Find the minimum of a given field over the entire nekRS domain
+ * @param[in] field field to find the minimum value of
+ * @return minimum value of field in volume
+ */
+double volumeMinValue(const field::NekFieldEnum & field);
+
+/**
+ * Find the maximum of a given field over the entire nekRS domain
+ * @param[in] field field to find the minimum value of
+ * @return maximum value of field in volume
+ */
+double volumeMaxValue(const field::NekFieldEnum & field);
+
+/**
+ * Find the minimum of a given field over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to find the extreme value
+ * @param[in] field field to find the minimum value of
+ * @return minimum value of field on boundary
+ */
+double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field);
+
+/**
+ * Find the maximum of a given field over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to find the extreme value
+ * @param[in] field field to find the maximum value of
+ * @param maximum value of field on boundary
+ */
+double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field);
 
 namespace mesh
 {
@@ -181,5 +285,28 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, float* 
 void freeMesh();
 
 } // end namespace mesh
+
+namespace solution
+{
+
+/**
+ * \brief Get the temperature solution at given GLL index
+ *
+ * Because nekRS stores all the passive scalars together in one flat array, this routine
+ * simply indices into the entire passive scalar solution. In order to get temperature, you should
+ * only index up to nrs->cds->fieldOffset.
+ * @param[in] id GLL index
+ * @return temperature value at index
+ */
+const double temperature(const int id);
+
+/**
+ * Return unity, for cases where the integrand or operator we are generalizing acts on 1
+ * @param[in] id GLL index
+ * @return unity
+ */
+const double unity(const int id);
+
+} // end namespace solution
 
 } // end namespace nekrs
