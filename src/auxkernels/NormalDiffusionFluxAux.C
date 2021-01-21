@@ -7,15 +7,14 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#include "FluxAverageAux.h"
-
+#include "NormalDiffusionFluxAux.h"
 #include "Assembly.h"
 
-registerMooseObject("CardinalApp", FluxAverageAux);
+registerMooseObject("CardinalApp", NormalDiffusionFluxAux);
 
 template <>
 InputParameters
-validParams<FluxAverageAux>()
+validParams<NormalDiffusionFluxAux>()
 {
   InputParameters params = validParams<AuxKernel>();
 
@@ -26,17 +25,18 @@ validParams<FluxAverageAux>()
   return params;
 }
 
-FluxAverageAux::FluxAverageAux(const InputParameters & parameters)
+NormalDiffusionFluxAux::NormalDiffusionFluxAux(const InputParameters & parameters)
   : AuxKernel(parameters),
     _diffusivity(getMaterialProperty<Real>("diffusivity")),
     _coupled_gradient(coupledGradient("coupled")),
-    _coupled_var(dynamic_cast<MooseVariable &>(*getVar("coupled", 0))),
     _normals(_assembly.normals())
 {
+  if (!isParamValid("boundary"))
+    paramError("boundary", "A boundary must be provided for 'NormalDiffusionFluxAux'!");
 }
 
 Real
-FluxAverageAux::computeValue()
+NormalDiffusionFluxAux::computeValue()
 {
   return -_diffusivity[_qp] * _coupled_gradient[_qp] * _normals[_qp];
 }
