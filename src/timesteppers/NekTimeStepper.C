@@ -10,11 +10,13 @@ template<>
 InputParameters validParams<NekTimeStepper>()
 {
   InputParameters params = validParams<TimeStepper>();
+  params.addParam<Real>("min_dt", 1e-6, "Minimum time step size to allow MOOSE to set in nekRS");
   return params;
 }
 
 NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
-    TimeStepper(parameters)
+    TimeStepper(parameters),
+    _min_dt(getParam<Real>("min_dt"))
 {
   // nekRS can end a simulation based on (1) a number of time steps, (2) an
   // end time, or (3) a total elapsed wall time. Because this wall timer would
@@ -63,16 +65,31 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
     if (_executioner.parameters().isParamSetByUser(s))
       mooseError("Parameter '" + s + "' is unused by the Executioner because it is " +
         "already specified by 'NekTimeStepper'!");
+
+  // nekRS is currently limited to fixed time stepping. We would need to add a call to
+  // a routine like nekrs::computeDT() which computes the time step based on the CFL condition,
+  // but that function doesn't exist yet. We cannot just call nekrs::dt() in computeDT() here,
+  // because the nrs->dt[0] variable that is returned by nekrs::dt() is the _same_ as that set
+  // by MOOSE. This circular dependency was giving me floating point issues with synchronization
+  // for some subcycling applications. So, until we have variable time stepping in nekRS, let's
+  // set a fixed time step here.
+  _nek_dt = nekrs::dt();
 }
 
 Real
 NekTimeStepper::computeInitialDT()
 {
-  return nekrs::dt();
+  return _nek_dt;
 }
 
 Real
 NekTimeStepper::computeDT()
 {
-  return nekrs::dt();
+  return _nek_dt;
+}
+
+Real
+NekTimeStepper::minDT() const
+{
+  return _min_dt;
 }

@@ -26,8 +26,14 @@ class NekTimeStepper : public TimeStepper
 public:
   NekTimeStepper(const InputParameters & parameters);
 
+  virtual Real minDT() const;
+
 protected:
   virtual Real computeInitialDT() override;
 
   virtual Real computeDT() override;
+
+  Real _min_dt;
+
+  Real _nek_dt;
 };
