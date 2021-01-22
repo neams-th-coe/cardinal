@@ -24,16 +24,8 @@ validParams<NekProblem>()
 NekProblem::NekProblem(const InputParameters &params) : ExternalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _start_time(nekrs::startTime()),
-    _write_interval(nekrs::writeInterval()),
-    _output_time(_start_time + _write_interval),
-    _time(_start_time)
+    _write_interval(nekrs::writeInterval())
 {
-  // If the simulation start time is not zero, the app's time must be shifted
-  // relative to its master app (if any). Until this is implemented, make sure
-  // a start time of zero is used.
-  if (_start_time != 0.0)
-    mooseError("A non-zero start time is not yet available for 'NekProblem'! "
-      "Change the 'startTime' parameter in your .par file to zero.");
 }
 
 NekProblem::~NekProblem()
@@ -68,6 +60,21 @@ NekProblem::initialSetup()
   // must use the NekTimeStepper
   if (!_timestepper)
     mooseError("The 'NekTimeStepper' stepper must be used with 'NekProblem'!");
+
+  // Also make sure that the start time is consistent with what MOOSE wants to use.
+  // If different from what nekRS internally wants to use, use the MOOSE value.
+  const auto moose_start_time = transient_executioner->getStartTime();
+  if (std::abs(moose_start_time - _start_time) > 1e-8)
+  {
+    mooseWarning("The start time set on 'NekRSProblem': " + Moose::stringify(moose_start_time) +
+      " does not match the start time set in nekRS's .par file: " + Moose::stringify(_start_time) + ". "
+      "This may happen if you are using a restart file in nekRS.\n\n" +
+      "Setting start time for 'NekRSProblem' to: " + Moose::stringify(moose_start_time));
+    _start_time = moose_start_time;
+  }
+
+  _time = _start_time;
+  _output_time = _start_time + _write_interval;
 }
 
 bool

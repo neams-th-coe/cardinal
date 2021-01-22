@@ -53,7 +53,7 @@ protected:
   unsigned int _temp_var;
   unsigned int _avg_flux_var;
 
-  /// Start time of the simulation based on nekRS's .par file
+  /// Start time of the simulation
   double _start_time;
 
   /**
