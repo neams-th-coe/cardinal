@@ -1,0 +1,18 @@
+void velocityDirichletConditions(bcData *bc)
+{
+  bc->u = 0.1;
+  bc->v = 0.0;
+  bc->w = 0.0;
+}
+
+void scalarDirichletConditions(bcData *bc)
+{
+  if (bc->id == 6)
+    bc->s = 600.0;
+}
+
+void scalarNeumannConditions(bcData *bc)
+{
+  if (bc->id == 4)
+    bc->flux = bc->wrk[bc->idM];
+}
