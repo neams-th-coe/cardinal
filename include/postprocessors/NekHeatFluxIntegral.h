@@ -25,6 +25,11 @@ InputParameters validParams<NekHeatFluxIntegral>();
  *
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
+ *
+ * This heat flux calculation directly integrates the heat flux in nekRS - we
+ * therefore do not expect this value to match the imposed heat flux at the start
+ * of the nekRS time step (i.e. that we interpolated) because those heat fluxes are
+ * separated in time.
  */
 class NekHeatFluxIntegral : public NekSidePostprocessor
 {
