@@ -45,4 +45,14 @@
                   "exactly the same CSV gold file because the number of time steps differ, and would trigger "
                   "a failure."
   [../]
+  [./cylinder_conduction_mini]
+    type = CSVDiff
+    input = nek_master_mini.i
+    csvdiff = 'nek_master_subcycle_out.csv'
+    cli_args = '--nekrs-setup cylinder'
+    min_parallel = 6
+    requirement = "The same solution shall be obtained when nekRS is run as a sub-app with minimized transfers "
+                  "for in the incoming and outgoing data transfers. We compare against the same CSV file used "
+                  "for the cylinder_conduction_subcycle case because the results should be exactly the same."
+  [../]
 []

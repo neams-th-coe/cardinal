@@ -64,10 +64,6 @@
 [Executioner]
   type = Transient
   num_steps = 1000
-
-  # use a time step bigger than nekRS - this also shows that if the nekRS time step does
-  # not nicely divide into the master app dt, MOOSE adjust the nekRS time step accordingly
-  # to get synchronization every 0.15 seconds.
   dt = 0.15
   nl_abs_tol = 1e-8
   nl_rel_tol = 1e-15
@@ -79,7 +75,7 @@
   [nek]
     type = TransientMultiApp
     app_type = NekApp
-    input_files = 'nek.i'
+    input_files = 'nek_mini.i'
     execute_on = 'timestep_end'
     sub_cycling = true
   []
@@ -106,6 +102,13 @@
     to_postprocessor = flux_integral
     direction = to_multiapp
     from_postprocessor = flux_integral
+    multi_app = nek
+  []
+  [synchronization]
+    type = MultiAppPostprocessorTransfer
+    to_postprocessor = synchronization_in
+    direction = to_multiapp
+    from_postprocessor = synchronization_in
     multi_app = nek
   []
 []
@@ -178,6 +181,10 @@
     variable = nek_temp
     value_type = min
   []
+  [synchronization_in]
+    type = Receiver
+    default = 1.0
+  []
 []
 
 [Outputs]
@@ -185,4 +192,6 @@
   execute_on = 'final'
   print_linear_residuals = false
   csv = true
+  file_base = 'nek_master_subcycle_out'
+  hide = 'synchronization_in'
 []
