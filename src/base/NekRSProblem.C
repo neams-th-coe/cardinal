@@ -36,6 +36,16 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
   if (!_minimize_transfers_in && isParamValid("transfer_in"))
     mooseWarning("'transfer_in' is unused when 'minimize_transfers_in' is set to false!");
 
+  // the way the data transfers are detected depend on nekRS being a sub-application,
+  // so these settings are not invalid if nekRS is the master app (though you could
+  // relax this in the future by reversing the synchronization step identification
+  // from the nekRS-subapp case to the nekRS-master app case - it's just not implemented yet).
+  if (_app.isUltimateMaster())
+    if (_minimize_transfers_in || _minimize_transfers_out)
+      mooseError("The 'minimize_transfers_in' and 'minimize_transfers_out' capabilities "
+        "require that nekRS is receiving and sending data to a master application, but "
+        "in your case nekRS is the master application.");
+
   _nek_mesh = dynamic_cast<NekRSMesh*>(&mesh());
 
   if (!_nek_mesh)
@@ -193,15 +203,26 @@ bool
 NekRSProblem::synchronizeIn()
 {
   bool synchronize = true;
+  static bool first = true;
 
   if (_minimize_transfers_in)
   {
+    // For the minimized incoming synchronization to work correctly, the value
+    // of the incoming postprocessor must not be zero. We only need to check this for the very
+    // first time we evaluate this function. This ensures that you don't accidentally set a
+    // zero value as a default in the master application's postprocessor.
+    if (first && *_transfer_in == false)
+      mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
+        "must not be false! Make sure that the master application's "
+        "postprocessor is not zero.");
+
     if (*_transfer_in == false)
       synchronize = false;
     else
       setPostprocessorValueByName(*_transfer_in_name, false, 0);
   }
 
+  first = false;
   return synchronize;
 }
 
