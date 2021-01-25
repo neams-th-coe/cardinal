@@ -34,4 +34,15 @@
                   "is equivalent. We don't use exactly the same CSV gold file because the number of time steps "
                   "differs, and would trigger a failure."
   [../]
+  [./cylinder_conduction_reversed]
+    type = CSVDiff
+    input = nek_master_reversed.i
+    csvdiff = 'nek_master_reversed_out.csv'
+    cli_args = '--nekrs-setup cylinder'
+    min_parallel = 6
+    requirement = "The same solution shall be obtained when nekRS is run before MOOSE. We compare CSV results "
+                  "against those for the cylinder_conduction case, which match wo within 5e-4. We don't use "
+                  "exactly the same CSV gold file because the number of time steps differ, and would trigger "
+                  "a failure."
+  [../]
 []
