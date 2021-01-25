@@ -88,9 +88,6 @@ public:
 protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
-  /// Whether diagnostic information should be printed to the console
-  const bool & _verbose;
-
   /**
    * \brief Whether to only send heat flux to nekRS on the multiapp synchronization steps
    *

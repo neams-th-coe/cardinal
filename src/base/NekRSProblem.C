@@ -14,7 +14,6 @@ InputParameters
 validParams<NekRSProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
-  params.addParam<bool>("verbose", true, "Whether to print diagnostic information to screen");
   params.addParam<bool>("minimize_transfers_in", false, "Whether to only synchronize nekRS "
     "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
   params.addParam<PostprocessorName>("transfer_in", "Postprocessor providing an indication "
@@ -27,7 +26,6 @@ validParams<NekRSProblem>()
 
 NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _verbose(getParam<bool>("verbose")),
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _start_time(nekrs::startTime())
@@ -286,16 +284,15 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       // We can do an extra check here to make sure that the normalization was done correctly.
       // This will check if there was perhaps a disconnect in the boundaries nekRS thinks are
       // exchanging data vs. what is actually being sent.
-      if (_verbose)
-      {
-        const double normalized_nek_flux = nekrs::fluxIntegral();
-        bool high_rel_err = std::abs(normalized_nek_flux - *_flux_integral) / *_flux_integral > 1e-6;
-        bool high_abs_err = std::abs(normalized_nek_flux - *_flux_integral) > 1e-6;
+      const double normalized_nek_flux = nekrs::fluxIntegral();
+      bool high_rel_err = std::abs(normalized_nek_flux - *_flux_integral) / *_flux_integral > 1e-6;
+      bool high_abs_err = std::abs(normalized_nek_flux - *_flux_integral) > 1e-6;
 
-        if (high_rel_err || high_abs_err)
-          mooseError("Flux normalization process failed! nekRS integrated flux: ", normalized_nek_flux,
-            " MOOSE integrated flux: ",  *_flux_integral);
-      }
+      if (high_rel_err || high_abs_err)
+        mooseError("Flux normalization process failed! nekRS integrated flux: ", normalized_nek_flux,
+          " MOOSE integrated flux: ",  *_flux_integral, ".\n\nThis may happen if the nekRS mesh "
+          "is very different from that used in the App sending heat flux to nekRS and the "
+          "nearest node transfer is only picking up zero values in the coupled App.");
 
       nekrs::copyFluxToDevice();
       break;
