@@ -56,7 +56,7 @@
     execute_on = 'initial timestep_end'
   []
   [avg_flux]
-    type = FluxAverageAux
+    type = NormalDiffusionFluxAux
     coupled = 'temp'
     diffusivity = thermal_conductivity
     variable = avg_flux
