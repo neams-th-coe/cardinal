@@ -45,10 +45,13 @@ bool hasTemperatureVariable();
 bool hasTemperatureSolve();
 
 /**
- * Initialize scratch space for flux transfer
- * @return whether scratch space is already allocated for some other purpose
-  */
-bool initializeScratch();
+ * Whether the scratch space has already been allocated by the user
+ * @return whether scratch space is already allocated
+ */
+bool scratchAvailable();
+
+/// Initialize scratch space for flux transfer
+void initializeScratch();
 
 /// Free the scratch space for the flux transfer
 void freeScratch();

@@ -39,12 +39,9 @@ bool hasTemperatureSolve()
   return hasTemperatureVariable() ? nrs->cds->compute[0] : false;
 }
 
-bool initializeScratch()
+bool scratchAvailable()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
-
-  bool scratch_available = true;
 
   // Because these scratch spaces are available for whatever the user sees fit, it is
   // possible that the user wants to use these arrays for a _different_ purpose aside from
@@ -54,8 +51,19 @@ bool initializeScratch()
   // arrays are already in use, because otherwise our flux transfer might get overwritten
   // by whatever other operation the user is trying to do.
   if (nrs->usrwrk)
+    return false;
+
+  return true;
+}
+
+void initializeScratch()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  // clear them just to be sure
+  if (nrs->usrwrk)
   {
-    scratch_available = false;
     nrs->o_usrwrk.free();
     free(nrs->usrwrk);
   }
@@ -67,8 +75,6 @@ bool initializeScratch()
   // same address as nrs->o_usrwrk, we can simply work with the arrays on nrs.
   nrs->usrwrk = (double *) calloc(mesh->Nelements * mesh->Np, sizeof(double));
   nrs->o_usrwrk = mesh->device.malloc(mesh->Nelements * mesh->Np * sizeof(double), nrs->usrwrk);
-
-  return scratch_available;
 }
 
 void freeScratch()

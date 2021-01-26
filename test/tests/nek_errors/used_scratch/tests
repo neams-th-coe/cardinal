@@ -12,5 +12,6 @@
                   "on the convection-diffusion passive scalar solver, since these arrays are "
                   "reserved in Cardinal for facilitating the heat flux transfer and cannot be used "
                   "in their originally truly-flexible manner as they can in standalone nekRS."
+    skip = "Waiting until all legacy inputs are updated to avoid breaking anyone's inputs"
   [../]
 []
