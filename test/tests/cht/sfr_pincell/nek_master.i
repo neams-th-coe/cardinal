@@ -1,8 +1,8 @@
 [Mesh]
   [circle]
     type = AnnularMeshGenerator
-    nr = 20
-    nt = 20
+    nr = 10
+    nt = 25
     rmin = 0
     rmax = 0.4e-2
     growth_r = -1.3
@@ -10,8 +10,8 @@
   [cylinder]
     type = FancyExtruderGenerator
     input = circle
-    heights = '0.8'
-    num_layers = '20'
+    heights = '0.05 0.7 0.05'
+    num_layers = '5 10 5'
     direction = '0 0 1'
   []
   [transform]
@@ -52,11 +52,14 @@
 
 [Executioner]
   type = Transient
-  num_steps = 1500
-  dt = 1.0
+  num_steps = 1
+  dt = 0.2
   nl_abs_tol = 1e-8
-  steady_state_detection = true
-  steady_state_tolerance = 1e-4
+
+  # In order to obtain the pseudo-steady converged case, run this until steady state is
+  # detected and remove the num_steps
+  #steady_state_detection = true
+  #steady_state_tolerance = 1e-3
 []
 
 [MultiApps]
@@ -171,4 +174,10 @@
 [Outputs]
   exodus = true
   print_linear_residuals = false
+  execute_on = 'final'
+
+  [screen]
+    type = Console
+    hide = 'synchronization_to_nek'
+  []
 []

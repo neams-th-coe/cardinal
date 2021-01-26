@@ -8,7 +8,6 @@
 [Mesh]
   type = NekRSMesh
   boundary = '1'
-  verbose = true
 []
 
 [Executioner]
@@ -53,17 +52,14 @@
     boundary = '3'
     execute_on = initial
   []
-  [flux_bottom]
-    type = NekHeatFluxIntegral
-    boundary = '3'
-  []
-  [flux_top]
-    type = NekHeatFluxIntegral
-    boundary = '4'
-  []
 []
 
 [Outputs]
   exodus = true
   execute_on = 'final'
+
+  [screen]
+    type = Console
+    hide = 'average_inlet_T average_outlet_T synchronization_in'
+  []
 []
