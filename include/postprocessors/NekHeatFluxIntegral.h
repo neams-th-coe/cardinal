@@ -30,6 +30,11 @@ InputParameters validParams<NekHeatFluxIntegral>();
  * therefore do not expect this value to match the imposed heat flux at the start
  * of the nekRS time step (i.e. that we interpolated) because those heat fluxes are
  * separated in time.
+ *
+ * Also very important to note is that the heat flux measured on a boundary that
+ * has GLL points also on a Dirichlet boundary will _never_ match the requested
+ * imposed heat flux because Dirichlet boundary conditions win (note that this is
+ * slightly different from 'Neumann BCs are only weakly imposed').
  */
 class NekHeatFluxIntegral : public NekSidePostprocessor
 {
