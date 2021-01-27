@@ -108,7 +108,7 @@ coupling_boundaries = '2'
 
 [AuxKernels]
   [flux_var]
-    type = NodalNormalDiffusionFluxAux
+    type = NormalDiffusionFluxAux
     variable = flux
     coupled = temperature
     diffusivity = thermal_conductivity
