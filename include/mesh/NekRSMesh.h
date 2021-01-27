@@ -108,6 +108,12 @@ public:
    */
   int GLLIndex(const int node_index) const { return _gll_index[node_index]; }
 
+  /**
+   * Get the scaling factor applied to the nekRS mesh
+   * @return scaling factor
+   */
+  const Real & scaling() const { return _scaling; }
+
 protected:
   /// Initialize members for the mesh and determine the GLL-to-node mapping
   void initializeMeshParams();
@@ -132,6 +138,21 @@ protected:
 
   /// Whether diagnostic information should be printed to the console
   const bool & _verbose;
+
+  /**
+   * \brief Spatial scaling factor to apply to the mesh
+   *
+   * nekRS is dimension agnostic - depending on the values used for the material
+   * properties, the units of the mesh are arbitrary. Other apps that nekRS might
+   * be coupled to could be in different units - to allow each app to use the
+   * units that it wants, we can simply scale the NekRSMesh by a constant factor.
+   * This will also adjust the heat flux coming in to nekRS by an appropriate factor.
+   * For instance, if nekRS solves a problem in units of meters, but a BISON solution
+   * is done on a mesh in units of centimeters, this scaling factor should be set to
+   * 100. Note that other postprocessors will still be calculated on the nekRS mesh,
+   * which will be in whatever units nekRS is internally using.
+   */
+  const Real & _scaling;
 
   /// Order of the nekRS solution
   int _nek_polynomial_order;

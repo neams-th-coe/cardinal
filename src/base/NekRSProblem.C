@@ -254,6 +254,8 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       _console << "Sending heat flux to nekRS boundary " << Moose::stringify(_boundary) << "... " << std::endl;
 
+      const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
+
       auto & mesh = _nek_mesh->getMesh();
       auto & solution = _aux->solution();
       auto sys_number = _aux->number();
@@ -284,7 +286,7 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
           auto node_offset = e * _n_vertices_per_face + node_index;
 
           auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
-          _flux_face[node_index] = (*_serialized_solution)(dof_idx);
+          _flux_face[node_index] = (*_serialized_solution)(dof_idx) * scale_squared;
         }
 
         // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
@@ -296,22 +298,23 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       // the heat flux, we will need to normalize the total flux on the nekRS side by the
       // total flux computed by the coupled MOOSE app.
       const double nek_flux = nekrs::fluxIntegral();
+      const double moose_flux = *_flux_integral;
 
       _console << "Normalizing total nekRS flux of " << nek_flux << " to the conserved MOOSE "
-        "value of " << *_flux_integral << "..." << std::endl;
+        "value of " << moose_flux << "..." << std::endl;
 
-      nekrs::normalizeFlux(*_flux_integral, nek_flux);
+      nekrs::normalizeFlux(moose_flux, nek_flux);
 
       // We can do an extra check here to make sure that the normalization was done correctly.
       // This will check if there was perhaps a disconnect in the boundaries nekRS thinks are
       // exchanging data vs. what is actually being sent.
       const double normalized_nek_flux = nekrs::fluxIntegral();
-      bool high_rel_err = std::abs(normalized_nek_flux - *_flux_integral) / *_flux_integral > 1e-6;
-      bool high_abs_err = std::abs(normalized_nek_flux - *_flux_integral) > 1e-6;
+      bool high_rel_err = std::abs(normalized_nek_flux - moose_flux) / moose_flux > 1e-6;
+      bool high_abs_err = std::abs(normalized_nek_flux - moose_flux) > 1e-6;
 
       if (high_rel_err || high_abs_err)
         mooseError("Flux normalization process failed! nekRS integrated flux: ", normalized_nek_flux,
-          " MOOSE integrated flux: ",  *_flux_integral, ".\n\nThis may happen if the nekRS mesh "
+          " MOOSE integrated flux: ", moose_flux, ".\n\nThis may happen if the nekRS mesh "
           "is very different from that used in the App sending heat flux to nekRS and the "
           "nearest node transfer is only picking up zero values in the coupled App.");
 
