@@ -1,9 +1,15 @@
 [Mesh]
-  type = NekMesh
+  type = NekRSMesh
+  boundary = '1'
+
+  # nekRS solves with a length scale of meters, but nek_master.i is currently solving
+  # in terms of centimeters. Therefore, just for the sake of data transfers, we need to
+  # scale NekRSMesh to centimeters.
+  scaling = 100.0
 []
 
 [Problem]
-  type = NekProblem
+  type = NekRSProblem
 []
 
 [Executioner]
@@ -19,7 +25,7 @@
 []
 
 [Postprocessors]
-  [total_flux]
+  [flux_integral]
     type = Receiver
   []
 

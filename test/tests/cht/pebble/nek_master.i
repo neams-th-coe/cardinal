@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = sphere.e
+  file = ../../../../problems/spherical_heat_conduction/sphere.e
 []
 
 [Kernels]
@@ -16,13 +16,6 @@
 []
 
 [BCs]
-  inactive = 'outside'
-  [outside]
-    type = DirichletBC
-    variable = temp
-    boundary = '1'
-    value = 300
-  []
   [match_nek]
     type = MatchedValueBC
     variable = temp
@@ -42,7 +35,7 @@
 [Executioner]
   type = Transient
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  num_steps = 1000
+  num_steps = 50
   petsc_options_value = 'hypre boomeramg'
   dt = 1e-4
   nl_rel_tol = 1e-5
@@ -56,6 +49,7 @@
 
 [Outputs]
   exodus = true
+  execute_on = 'final'
 []
 
 [MultiApps]
@@ -81,11 +75,11 @@
     multi_app = nek
     variable = avg_flux
   []
-  [total_flux_to_nek]
+  [flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
-    to_postprocessor = total_flux
+    to_postprocessor = flux_integral
     direction = to_multiapp
-    from_postprocessor = total_flux
+    from_postprocessor = flux_integral
     multi_app = nek
   []
 []
@@ -96,7 +90,6 @@
   [avg_flux]
     family = MONOMIAL
     order = CONSTANT
-    initial_condition = 0
   []
 []
 
@@ -111,7 +104,7 @@
 []
 
 [Postprocessors]
-  [total_flux]
+  [flux_integral]
     type = SideFluxIntegral
     diffusivity = thermal_conductivity
     variable = 'temp'
