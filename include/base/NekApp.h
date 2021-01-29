@@ -12,7 +12,7 @@ class NekApp : public MooseApp
 {
 public:
   explicit NekApp(InputParameters parameters);
-  virtual ~NekApp() {};
+  virtual ~NekApp();
 
   static void registerApps();
   static void registerAll(Factory & f, ActionFactory & af, Syntax & s);

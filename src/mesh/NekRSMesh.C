@@ -23,6 +23,7 @@ validParams<NekRSMesh>()
   params.addRequiredParam<std::vector<int>>("boundary", "Boundary ID(s) through which nekRS will be coupled to MOOSE");
   params.addParam<MooseEnum>("order", getNekOrderEnum(), "Order of the surface interpolation between nekRS and MOOSE");
   params.addParam<bool>("verbose", false, "Whether to print mesh generation results to screen");
+  params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
   return params;
 }
 
@@ -31,21 +32,15 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   _boundary(getParam<std::vector<int>>("boundary")),
   _order(getParam<MooseEnum>("order").getEnum<surface::NekOrderEnum>()),
   _verbose(getParam<bool>("verbose")),
+  _scaling(getParam<Real>("scaling")),
   _n_surface_elems(0)
 {
   if (_boundary.size() == 0)
     paramError("boundary", "The length of 'boundary' must be greater than zero!");
 
-  // nekRS must at least have the arrays for temperature and flux initialized, which
-  // requires that the [TEMPERATURE] block exists in the nekRS input file
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("To properly transfer temperature and heat flux between nekRS and MOOSE, "
-      "your nekRS model must include a solution for temperature.\n\nDid you forget the "
-      "TEMPERATURE block in the .par file?");
-
   // While we don't require nekRS to actually _solve_ for the temperature, we should
-  // print a warning if there is no temperature solve. For instance, the above check
-  // makes sure that we have a [TEMPERATURE] block in the nekRS input file, but we
+  // print a warning if there is no temperature solve. For instance, the check in
+  // NekApp makes sure that we have a [TEMPERATURE] block in the nekRS input file, but we
   // might still toggle the solver off by setting 'solver = none'. Warn the user if
   // the solve is turned off because this is really only a testing feature.
   bool has_temperature_solve = nekrs::hasTemperatureSolve();
@@ -209,6 +204,14 @@ void
 NekRSMesh::buildMesh()
 {
   _console << "Building nekRS mesh as an order " << (_order + 1) << " MooseMesh..." << std::endl;
+
+  if (_scaling != 1.0)
+  {
+    std::string size = _scaling > 1.0 ? "larger" : "smaller";
+    _console << "Data transfers will be done with a mesh " << Moose::stringify(_scaling) <<
+      " times " << size << " than nekRS's mesh" << std::endl;
+  }
+
   _console << "Total number of volume elements: " << nekrs::mesh::Nelements() << std::endl;
 
   // initialize the mesh mapping parameters that depend on order
@@ -259,6 +262,7 @@ NekRSMesh::buildMesh()
 
       auto node_offset = e * _n_vertices_per_face + node;
       Point p(_x[node_offset], _y[node_offset], _z[node_offset]);
+      p *= _scaling;
 
       if (_verbose)
         _console << "Adding point: " << p << std::endl;

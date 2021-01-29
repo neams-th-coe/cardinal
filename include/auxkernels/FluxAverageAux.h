@@ -7,43 +7,17 @@
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
-#ifndef FLUXAVERAGEAUX_H
-#define FLUXAVERAGEAUX_H
+#pragma once
 
-#include "AuxKernel.h"
+#include "NormalDiffusionFluxAux.h"
 
-// Forward Declarations
 class FluxAverageAux;
 
 template <>
 InputParameters validParams<FluxAverageAux>();
 
-/**
- * Computes the average "flux" of a coupled variable and puts it in an elemental field.
- *
- * Only works on boundaries.
- */
-class FluxAverageAux : public AuxKernel
+class FluxAverageAux : public NormalDiffusionFluxAux
 {
 public:
   FluxAverageAux(const InputParameters & parameters);
-
-  virtual ~FluxAverageAux() {}
-
-protected:
-  virtual Real computeValue();
-
-  /// The "material" property
-  const MaterialProperty<Real> & _diffusivity;
-
-  /// Coupled gradient
-  const VariableGradient & _coupled_gradient;
-
-  /// The variable we're coupled to
-  MooseVariable & _coupled_var;
-
-  /// normals at quadrature points
-  const MooseArray<Point> & _normals;
 };
-
-#endif // FLUXAVERAGEAUX_H

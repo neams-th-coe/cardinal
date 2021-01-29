@@ -2,16 +2,6 @@
   type = NekMesh
 []
 
-[Variables]
-  [dummy]
-  []
-[]
-
-[AuxVariables]
-  [avg_flux]
-  []
-[]
-
 [Problem]
   type = NekProblem
 []
@@ -25,15 +15,30 @@
 []
 
 [Outputs]
-  [exo]
-     type = Exodus
-     output_dimension = 3
-  []
+  exodus = true
 []
 
 [Postprocessors]
   [total_flux]
     type = Receiver
-    default = 0
+  []
+
+  # This is the heat flux in the nekRS solution, i.e. it is not an integral
+  # of nrs->usrwrk, instead this is directly an integral of k*grad(T)*hat(n).
+  # So this should closely match 'flux_integral'
+  [flux_in_nek]
+    type = NekHeatFluxIntegral
+    boundary = '1'
+  []
+
+  [max_nek_T]
+    type = NekVolumeExtremeValue
+    field = temperature
+    value_type = max
+  []
+  [min_nek_T]
+    type = NekVolumeExtremeValue
+    field = temperature
+    value_type = min
   []
 []

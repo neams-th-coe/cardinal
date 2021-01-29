@@ -226,3 +226,4 @@ cardinal-*-opt
 SESSION.NAME
 install/**
 **/.cache
+*0.f*

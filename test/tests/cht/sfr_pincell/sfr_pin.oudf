@@ -1,0 +1,69 @@
+/**
+ * Here, we set all of the various boundary conditions. These are "device" functions
+ * because all of the solution occurs on the device (including the application of
+ * boundary conditions). nekRS gives you ultimate flexibility in how to set boundary
+ * conditions - here, we apply the conditions based on the sideset ID and, for the scalars,
+ * the scalar ID. In some places we use kernel variables defined in the `.udf` file.
+ *
+ * Each of the functions here is only called on the boundaries that use that condition,
+ * according to what is set in the boundaryTypeMap in the .par file. However, we want
+ * to be sure that this file matches what the .par file suggests, so we perform some
+ * extra checks on validity here.
+ **/
+
+void velocityDirichletConditions(bcData * bc)
+{
+  switch (bc->id)
+  {
+    case 3:
+      bc->u = 0.0; // x-velocity
+      bc->v = 0.0; // y-velocity
+      bc->w = Vz;  // z-velocity
+      break;
+    default:
+       throw std::runtime_error("Invalid Dirichlet velocity BC sideset! You entered: " +
+         std::to_string(bc->id) + "; valid options: 3.");
+  }
+}
+
+void scalarDirichletConditions(bcData * bc)
+{
+  if (bc->scalarId == 0) // temperature
+  {
+    switch (bc->id)
+    {
+      case 3:
+        bc->s = inlet_T;
+        break;
+      default:
+         throw std::runtime_error("Invalid Dirichlet temperature BC sideset! You entered: " +
+           std::to_string(bc->id) + "; valid options: 3.");
+    }
+  }
+  else
+  {
+    throw std::runtime_error("Invalid scalar ID for BC application! You entered: " +
+      std::to_string(bc->scalarId) + "; valid options: 0.");
+  }
+}
+
+void scalarNeumannConditions(bcData * bc)
+{
+  if (bc->scalarId == 0) // temperature
+  {
+    switch (bc->id)
+    {
+      case 1:
+        bc->flux = bc->wrk[bc->idM];
+        break;
+      default:
+         throw std::runtime_error("Invalid Neumann temperature BC sideset! You entered: " +
+           std::to_string(bc->id) + "; valid options: 1.");
+    }
+  }
+  else
+  {
+    throw std::runtime_error("Invalid scalar ID for BC application! You entered: " +
+      std::to_string(bc->scalarId) + "; valid options: 0.");
+  }
+}

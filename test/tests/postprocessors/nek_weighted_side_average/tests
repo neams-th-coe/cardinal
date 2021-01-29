@@ -1,0 +1,20 @@
+[Tests]
+  [./nek_weighted_side_average]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    cli_args = '--app nek --nekrs-setup brick'
+    requirement = "NekMassFluxWeightedSideAverage shall correctly compute a mass flux weighted"
+                  "average of temperatures on the nekRS mesh. The gold file was created "
+                  "by running the moose.i input, which computes the same integrals using "
+                  "existing MOOSE postprocessors on the same mesh on auxvariables that match "
+                  "the functional form of the solution fields initialized in the brick.udf. Here, "
+                  "we don't technically make the gold file with a MOOSE run because MOOSE doesn't "
+                  "have a postprocessor that lets you divide two other postprocessors "
+                  "(such as mdot_side1 / weighted_T_side1 to get what NekMassFluxWeightedSideAverage "
+                  "is computing), but we do the division off-line to confirm that the results are correct."
+                  "Perfect agreement is not to be expected, since the underlying basis functions "
+                  "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
+                  "variables - we just require that they are reasonably close."
+  [../]
+[]
