@@ -3,6 +3,8 @@
     type = Exodiff
     input = nek.i
     exodiff = nek_out.e
+    abs_zero = 1e-5
+    rel_err = 5e-5
     cli_args = '--app nek --nekrs-setup pyramid'
     requirement = "The nekRS temperature solution shall be accurately reconstructed on "
                   "the nekRSMesh with a second-order surface transfer. By setting an intial condition "
