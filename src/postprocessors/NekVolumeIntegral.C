@@ -1,0 +1,34 @@
+//* This file is part of the MOOSE framework
+//* https://www.mooseframework.org
+//*
+//* All rights reserved, see COPYRIGHT for full restrictions
+//* https://github.com/idaholab/moose/blob/master/COPYRIGHT
+//*
+//* Licensed under LGPL 2.1, please see LICENSE for details
+//* https://www.gnu.org/licenses/lgpl-2.1.html
+
+#include "NekVolumeIntegral.h"
+
+registerMooseObject("NekApp", NekVolumeIntegral);
+
+defineLegacyParams(NekVolumeIntegral);
+
+InputParameters
+NekVolumeIntegral::validParams()
+{
+  InputParameters params = GeneralPostprocessor::validParams();
+  params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to integrate");
+  return params;
+}
+
+NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters) :
+  GeneralPostprocessor(parameters),
+  _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
+{
+}
+
+Real
+NekVolumeIntegral::getValue()
+{
+  return nekrs::volumeIntegral(_field);
+}
