@@ -8,7 +8,6 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  std::cout << "in UDF setup" << std::endl;
   auto mesh = nrs->mesh;
 
   int n_gll_points = mesh->Np * mesh->Nelements;
@@ -26,7 +25,6 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = exp(x) + sin(y) + x*y*z;
   }
-  std::cout << "end of setup" << std::endl;
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
