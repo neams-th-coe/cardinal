@@ -1,0 +1,17 @@
+COORDINATES absolute 1.e-6
+
+TIME STEPS relative 5.5e-6 floor 1e-10
+
+GLOBAL VARIABLES relative 5.5e-6 floor 1e-10
+	bison_l2_error relative 6.e-3 # as long as the error stays small relative to its absolute value of 5e-4, that's ok
+	bison_temp_interface
+	flux_integral
+	flux_left
+	nek_temp_interface
+
+NODAL VARIABLES relative 5.5e-6 floor 1e-10
+	temperature
+	nek_temp
+
+ELEMENT VARIABLES relative 5.5e-6 floor 1e-10
+	flux relative 5.5e-5

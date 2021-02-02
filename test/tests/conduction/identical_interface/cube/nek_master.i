@@ -172,4 +172,5 @@
 [Outputs]
   exodus = true
   execute_on = 'final'
+  print_linear_residuals = false
 []
