@@ -12,7 +12,6 @@ GLOBAL VARIABLES relative 5.5e-6 floor 1e-10
 	synchronization_to_nek
 
 NODAL VARIABLES relative 5.5e-6 floor 1e-10
-	nek_temp relative 5e-5
 	temperature
 	source
 

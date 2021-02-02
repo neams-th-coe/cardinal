@@ -10,7 +10,7 @@ GLOBAL VARIABLES relative 5.5e-6 floor 1e-10
 	min_temp_bison
 
 NODAL VARIABLES relative 5.5e-6 floor 1e-10
-	temperature relative 2.0e-5
+	temperature relative 1.0e-4
 
 ELEMENT VARIABLES relative 5.5e-6 floor 1e-10
-	flux relative 2e-4
+	flux relative 1e-3
