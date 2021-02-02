@@ -18,7 +18,6 @@
 [Postprocessors]
   [flux_integral]
     type = Receiver
-    default = 0
   []
   [max_temp_nek]
     type = NekVolumeExtremeValue

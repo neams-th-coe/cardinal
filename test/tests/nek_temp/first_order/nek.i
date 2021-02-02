@@ -75,7 +75,6 @@
   []
   [flux_integral]
     type = Receiver
-    default = 0
   []
 []
 

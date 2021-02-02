@@ -158,7 +158,6 @@
   []
   [synchronize_in]
     type = Receiver
-    default = 0.0
   []
 
   # Because the boundary conditions in the y- and z-directions are insulated, we
