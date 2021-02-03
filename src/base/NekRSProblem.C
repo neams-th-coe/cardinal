@@ -325,8 +325,8 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
   // units of centimeters, but you're coupling to an app based in meters, the fluxes will
   // be very different from one another.
-  if (moose_flux && (std::abs(nek_flux - moose_flux) / moose_flux) > 0.1)
-    mooseDoOnce(mooseWarning("nekRS flux differs from MOOSE flux by more than 10\%! "
+  if (moose_flux && (std::abs(nek_flux - moose_flux) / moose_flux) > 0.25)
+    mooseDoOnce(mooseWarning("nekRS flux differs from MOOSE flux by more than 25\%! "
       "This could indicate that your geometries do not line up properly."));
 
   nekrs::normalizeFlux(moose_flux, nek_flux);
