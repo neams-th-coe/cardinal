@@ -1,9 +1,9 @@
 [Mesh]
   type = GeneratedMesh
   dim = 3
-  nx = 50
-  ny = 50
-  nz = 50
+  nx = 30
+  ny = 30
+  nz = 30
 []
 
 [Variables]
@@ -56,13 +56,13 @@
     type = DirichletBC
     variable = temperature
     boundary = 'top'
-    value = 700.0
+    value = 650.0
   []
   [front]
     type = DirichletBC
     variable = temperature
     boundary = 'front'
-    value = 700.0
+    value = 650.0
   []
 []
 
@@ -75,30 +75,6 @@
 []
 
 [Postprocessors]
-  [flux_left]
-    type = SideFluxIntegral
-    variable = temperature
-    diffusivity = thermal_conductivity
-    boundary = 'left'
-  []
-  [flux_right]
-    type = SideFluxIntegral
-    variable = temperature
-    diffusivity = thermal_conductivity
-    boundary = 'right'
-  []
-  [flux_top]
-    type = SideFluxIntegral
-    variable = temperature
-    diffusivity = thermal_conductivity
-    boundary = 'top'
-  []
-  [flux_front]
-    type = SideFluxIntegral
-    variable = temperature
-    diffusivity = thermal_conductivity
-    boundary = 'front'
-  []
   [source]
     type = ElementIntegralVariablePostprocessor
     variable = source
@@ -122,13 +98,18 @@
     variable = temperature
     boundary = 'back'
   []
+  [flux_out]
+    type = SideFluxIntegral
+    variable = temperature
+    boundary = 'front back top bottom left right'
+    diffusivity = thermal_conductivity
+  []
 []
 
 [Executioner]
-  type = Transient
-  dt = 0.1
-  num_steps = 10
+  type = Steady
   nl_abs_tol = 1e-8
+  nl_rel_tol = 1e-12
 []
 
 [Outputs]

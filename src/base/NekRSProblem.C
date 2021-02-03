@@ -317,6 +317,15 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   _console << "Normalizing total nekRS flux of " << nek_flux << " to the conserved MOOSE "
     "value of " << moose_flux << "..." << std::endl;
 
+  // If before normalization, there is a large difference between the nekRS imposed flux
+  // and the MOOSE flux, this could mean that there is a poor match between the domains,
+  // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
+  // units of centimeters, but you're coupling to an app based in meters, the fluxes will
+  // be very different from one another.
+  if (moose_flux && (std::abs(nek_flux - moose_flux) / moose_flux) > 0.1)
+    mooseDoOnce(mooseWarning("nekRS flux differs from MOOSE flux by more than 10\%! "
+      "This could indicate that your geometries do not line up properly."));
+
   nekrs::normalizeFlux(moose_flux, nek_flux);
 
   // We can do an extra check here to make sure that the normalization was done correctly.
@@ -386,6 +395,15 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 
   _console << "Normalizing total nekRS heat source of " << nek_source << " to the conserved MOOSE "
     "value of " << moose_source << "..." << std::endl;
+
+  // If before normalization, there is a large difference between the nekRS imposed source
+  // and the MOOSE source, this could mean that there is a poor match between the domains,
+  // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
+  // units of centimeters, but you're coupling to an app based in meters, the sources will
+  // be very different from one another.
+  if (moose_source && (std::abs(nek_source - moose_source) / moose_source) > 0.1)
+    mooseDoOnce(mooseWarning("nekRS source differs from MOOSE source by more than 10\%! "
+      "This could indicate that your geometries do not line up properly."));
 
   nekrs::normalizeHeatSource(moose_source, nek_source);
 
