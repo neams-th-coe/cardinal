@@ -30,8 +30,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
-    _start_time(nekrs::startTime()),
-    _offset(0)
+    _start_time(nekrs::startTime())
 {
   if (_minimize_transfers_in && !isParamValid("transfer_in"))
     mooseError("Setting 'minimize_transers_in' to true requires the 'transfer_in' postprocessor!");
@@ -55,13 +54,19 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'! In your [Mesh] "
       "block, you should have 'type = NekRSMesh'");
 
+  // boundary-specific data
   _boundary = _nek_mesh->boundary();
   _n_surface_elems = _nek_mesh->numSurfaceElems();
   _n_vertices_per_surface = _nek_mesh->numVerticesPerSurface();
 
+  // volume-specific data
   _volume = _nek_mesh->volume();
   _n_volume_elems = _nek_mesh->numVolumeElems();
   _n_vertices_per_volume = _nek_mesh->numVerticesPerVolume();
+
+  // generic data
+  _n_elems = _nek_mesh->numElems();
+  _n_vertices_per_elem = _nek_mesh->numVerticesPerElem();
 
   // Depending on the type of coupling, initialize various problem parameters
   if (_boundary && !_volume) // only boundary coupling
@@ -69,7 +74,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _incoming = "boundary heat flux";
     _outgoing = "boundary temperature";
     _n_points = _n_surface_elems * _n_vertices_per_surface;
-    _T = (double*) calloc(_n_surface_elems * _n_vertices_per_surface, sizeof(double));
+    _T = (double*) calloc(_n_points, sizeof(double));
     _flux_face = (double *) calloc(_n_vertices_per_surface, sizeof(double));
   }
   else if (_volume && !_boundary) // only volume coupling
@@ -77,8 +82,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _incoming = "volume power density";
     _outgoing = "volume temperature and density";
     _n_points = _n_volume_elems * _n_vertices_per_volume;
-    _offset = nekrs::scalarFieldOffset();
-    _T = (double*) calloc(_n_volume_elems * _n_vertices_per_volume, sizeof(double));
+    _T = (double*) calloc(_n_points, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
   else // both volume and boundary coupling
@@ -86,8 +90,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _incoming = "heat flux and power density";
     _outgoing = "volume temperature and density";
     _n_points = _n_volume_elems * _n_vertices_per_volume;
-    _offset = nekrs::scalarFieldOffset();
-    _T = (double*) calloc(_n_volume_elems * _n_vertices_per_volume, sizeof(double));
+    _T = (double*) calloc(_n_points, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
 
@@ -340,8 +343,6 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
       " MOOSE integrated flux: ", moose_flux, ".\n\nThis may happen if the nekRS mesh "
       "is very different from that used in the App sending heat flux to nekRS and the "
       "nearest node transfer is only picking up zero values in the coupled App.");
-
-  nekrs::copyScratchToDevice();
 }
 
 void
@@ -419,8 +420,39 @@ NekRSProblem::sendVolumeHeatSourceToNek()
       " MOOSE integrated heat source: ", moose_source, ".\n\nThis may happen if the nekRS mesh "
       "is very different from that used in the App sending heat source to nekRS and the "
       "nearest node transfer is only picking up zero values in the coupled App.");
+}
 
-  nekrs::copyScratchToDevice();
+void
+NekRSProblem::fillAuxVariable(const unsigned int var_number, const double * value)
+{
+  auto & solution = _aux->solution();
+  auto sys_number = _aux->number();
+  auto pid = _communicator.rank();
+
+  for (unsigned int e = 0; e < _n_elems; e++)
+  {
+    auto elem_ptr = _nek_mesh->elemPtr(e);
+
+    for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
+      // vertex is "owned" by the present MOOSE process.
+      if (node_ptr->processor_id() == pid)
+      {
+        int node_index = _nek_mesh->nodeIndex(n);
+        auto node_offset = e * _n_vertices_per_elem + node_index;
+
+        // get the DOF for the temperature auxiliary variable, then use it to set the
+        // temperature in the auxiliary system
+        auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
+        solution.set(dof_idx, value[node_offset]);
+      }
+    }
+  }
+
+  solution.close();
 }
 
 void
@@ -433,38 +465,6 @@ NekRSProblem::getBoundaryTemperatureFromNek()
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature on the boundary.
   nekrs::boundaryTemperature(_nek_mesh->order(), _needs_interpolation, _T);
-
-  auto & solution = _aux->solution();
-  auto sys_number = _aux->number();
-  auto pid = _communicator.rank();
-
-  for (unsigned int e = 0; e < _n_surface_elems; e++)
-  {
-    auto elem_ptr = _nek_mesh->elemPtr(e);
-
-    for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
-    {
-      auto node_ptr = elem_ptr->node_ptr(n);
-
-      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
-      // vertex is "owned" by the present MOOSE process.
-      if (node_ptr->processor_id() == pid)
-      {
-        int node_index = _nek_mesh->boundaryNodeIndex(n);
-        auto node_offset = e * _n_vertices_per_surface + node_index;
-
-        // get the DOF for the temperature auxiliary variable, then use it to set the
-        // temperature in the auxiliary system
-        auto dof_idx = node_ptr->dof_number(sys_number, _temp_var, 0);
-        solution.set(dof_idx, _T[node_offset]);
-      }
-    }
-  }
-
-  solution.close();
-
-  _console << "Interpolated temperature min/max values on interface: " <<
-    minInterpolatedTemperature() << ", " << maxInterpolatedTemperature() << std::endl;
 }
 
 void
@@ -477,38 +477,6 @@ NekRSProblem::getVolumeTemperatureFromNek()
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature in the volume.
   nekrs::volumeTemperature(_nek_mesh->order(), _needs_interpolation, _T);
-
-  auto & solution = _aux->solution();
-  auto sys_number = _aux->number();
-  auto pid = _communicator.rank();
-
-  for (unsigned int e = 0; e < _n_volume_elems; e++)
-  {
-    auto elem_ptr = _nek_mesh->elemPtr(e);
-
-    for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
-    {
-      auto node_ptr = elem_ptr->node_ptr(n);
-
-      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
-      // vertex is "owned" by the present MOOSE process.
-      if (node_ptr->processor_id() == pid)
-      {
-        int node_index = _nek_mesh->volumeNodeIndex(n);
-        auto node_offset = e * _n_vertices_per_volume + node_index;
-
-        // get the DOF for the temperature auxiliary variable, then use it to set the
-        // temperature in the auxiliary system
-        auto dof_idx = node_ptr->dof_number(sys_number, _temp_var, 0);
-        solution.set(dof_idx, _T[node_offset]);
-      }
-    }
-  }
-
-  solution.close();
-
-  _console << "Interpolated temperature min/max values in volume: " <<
-    minInterpolatedTemperature() << ", " << maxInterpolatedTemperature() << std::endl;
 }
 
 void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -529,6 +497,8 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       if (!_boundary && _volume)
         sendVolumeHeatSourceToNek();
 
+      nekrs::copyScratchToDevice();
+
       break;
     }
 
@@ -545,6 +515,11 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       if (!_boundary && _volume)
         getVolumeTemperatureFromNek();
+
+      fillAuxVariable(_temp_var, _T);
+
+      _console << "Interpolated temperature min/max values: " <<
+        minInterpolatedTemperature() << ", " << maxInterpolatedTemperature() << std::endl;
 
       break;
     }

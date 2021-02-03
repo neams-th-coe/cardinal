@@ -55,6 +55,13 @@ public:
    */
   virtual void initialSetup() override;
 
+  /**
+   * Fill an outgoing auxiliary variable field with nekRS solution data
+   * \param[in] var_number auxiliary variable number
+   * \param[in] value nekRS solution data to fill the variable with
+   */
+  virtual void fillAuxVariable(const unsigned int var_number, const double * value);
+
   /// Send boundary heat flux to nekRS
   void sendBoundaryHeatFluxToNek();
 
@@ -203,19 +210,6 @@ protected:
   /// Start time of the simulation based on nekRS's .par file
   double _start_time;
 
-  /**
-   * \brief Offset with which to begin writing into the user scratch space of nekRS
-   *
-   * If nekRS is coupled through _both_ a boundary heat flux (say, to a solid temperature
-   * solver) _and_ a volumetric power density (say, to a neutronics solve), then we need
-   * to be careful about how we index the MOOSE solutions into the nekRS user scratch space,
-   * nrs.usrwrk. Because the OCCA boundary conditions require that nrs.o_usrwrk be in a
-   * specific layout, we will assume here that in this dual situation, that we always write
-   * in volume format, with the heat flux first (followed by a heat source). This parameter
-   * simply provides that offset depending on the setup.
-   */
-  int _offset;
-
   /// Descriptive string for data transfer going in to nekRS
   std::string _incoming;
 
@@ -242,6 +236,12 @@ protected:
 
   /// Number of vertices per volume element of the transfer mesh
   int _n_vertices_per_volume;
+
+  /// Number of elements in the data transfer mesh, which depends on whether boundary/volume coupling
+  int _n_elems;
+
+  /// Number of vertices per element in the data transfer mesh, which depends on whether boundary/volume coupling
+  int _n_vertices_per_elem;
 
   /// Boundary IDs through which to couple nekRS and MOOSE
   const std::vector<int> * _boundary;

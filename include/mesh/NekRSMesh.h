@@ -72,6 +72,34 @@ public:
   const int nekNumQuadraturePoints1D() const;
 
   /**
+   * \brief Get the number of elements in MOOSE's representation of nekRS's mesh
+   *
+   * This function is used to perform the data transfer routines in NekRSProblem
+   * agnostic of whether we have surface or volume coupling.
+   * return number of elements
+   */
+  const int & numElems() const { return _n_elems; }
+
+  /**
+   * \brief Get the number of vertices per element in MOOSE's representation of nekRS's mesh
+   *
+   * This function is used to perform the data transfer routines in NekRSProblem
+   * agnostic of whether we have surface or volume coupling.
+   * return number of vertices per element
+   */
+  const int & numVerticesPerElem() const { return _n_vertices_per_elem; }
+
+  /**
+   * \brief Get the libMesh node index from nekRS's GLL index ordering
+   *
+   * This function is used to perform the data transfer routines in NekRSProblem
+   * agnostic of whether we have surface or volume coupling.
+   * @param[in] gll_index nekRS GLL index
+   * @return node index
+   */
+  int nodeIndex(const int gll_index) const { return (*_node_index)[gll_index]; }
+
+  /**
    * Get the number of surface elements in MOOSE's representation of nekRS's mesh
    * \return number of surface elements
    */
