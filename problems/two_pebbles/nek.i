@@ -32,6 +32,5 @@
 [Postprocessors]
   [total_flux]
     type = Receiver
-    default = 0
   []
 []

@@ -20,11 +20,9 @@
 [Postprocessors]
   [flux_integral]
     type = Receiver
-    default = 0.0
   []
   [synchronize_in]
     type = Receiver
-    default = 0.0
   []
 []
 

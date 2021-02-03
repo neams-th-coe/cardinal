@@ -5,6 +5,7 @@
     exodiff = 'nek_master_out.e'
     cli_args = '--nekrs-setup cylinder'
     min_parallel = 6
+    custom_cmp = 'exodiff.cmp'
     requirement = "A coupled MOOSE-nekRS two-region cylinder heat conduction problem shall predict "
                   "the correct interface and volume temperatures that are obtained from a standalone "
                   "MOOSE heat conduction simulation in the `moose.i` file of both cylinders. "

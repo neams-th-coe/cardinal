@@ -50,6 +50,7 @@
 [Outputs]
   exodus = true
   execute_on = 'final'
+  hide = 'max_pebble_T min_pebble_T'
 []
 
 [MultiApps]
