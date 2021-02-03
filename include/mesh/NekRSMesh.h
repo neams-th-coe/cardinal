@@ -50,6 +50,9 @@ public:
 
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
 
+  /// Add all the elements in the mesh to the MOOSE data structures
+  virtual void addElems();
+
   /**
    * Get the order of the surface mesh; note that this is zero-indexed, so 0 = first, 1 = second
    * \return order
@@ -128,13 +131,13 @@ public:
    * For the case of surface coupling only (i.e. no volume coupling), we create a surface
    * mesh for the elements on the specified boundary IDs
    */
-  virtual void buildSurfaceMesh();
+  virtual void extractSurfaceMesh();
 
   /**
    * For the case of volume coupling only (i.e. no surface coupling), we create a volume
    * mesh for all volume elements
    */
-  virtual void buildVolumeMesh();
+  virtual void extractVolumeMesh();
 
   /**
    * Get the libMesh node index from nekRS's GLL index ordering
@@ -218,6 +221,15 @@ protected:
   /// Number of volume elements in MooseMesh
   int _n_volume_elems;
 
+  /// Number of elements in MooseMesh, which depends on whether building a boundary/volume mesh
+  int _n_elems;
+
+  /// Number of vertices per element, which depends on whether building a boundary/volume mesh
+  int _n_vertices_per_elem;
+
+  /// Mapping of GLL nodes to libMesh nodes, which depends on whether building a boundary/volume mesh
+  std::vector<int> * _node_index;
+
   /// Total number of surface elements in the nekRS problem
   int _nek_n_surface_elems;
 
@@ -257,4 +269,7 @@ protected:
    * By indexing in the GLL index, this returns the node index.
    **/
   std::vector<int> _vol_node_index;
+
+  /// Function pointer to the type of new element to add
+  Elem * (NekRSMesh::*_new_elem)() const;
 };

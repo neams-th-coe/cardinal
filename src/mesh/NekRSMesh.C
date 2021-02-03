@@ -308,16 +308,12 @@ NekRSMesh::buildMesh()
   initializeMeshParams();
 
   if (_boundary && !_volume)
-  {
-    _console << "Building surface coupling mesh...";
-    buildSurfaceMesh();
-  }
+    extractSurfaceMesh();
 
   if (_volume && !_boundary)
-  {
-    _console << "Building volume coupling mesh...";
-    buildVolumeMesh();
-  }
+    extractVolumeMesh();
+
+  addElems();
 
   _mesh->prepare_for_use();
 
@@ -325,8 +321,39 @@ NekRSMesh::buildMesh()
 }
 
 void
-NekRSMesh::buildSurfaceMesh()
+NekRSMesh::addElems()
 {
+  for (unsigned int e = 0; e < _n_elems; e++)
+  {
+    auto elem = (this->*_new_elem)();
+    _mesh->add_elem(elem);
+
+    if (_verbose)
+      _console << std::endl;
+
+    // add one point for each vertex of the face element
+    for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
+    {
+      int node = (*_node_index)[n];
+
+      auto node_offset = e * _n_vertices_per_elem + node;
+      Point p(_x[node_offset], _y[node_offset], _z[node_offset]);
+      p *= _scaling;
+
+      if (_verbose)
+        _console << "Adding point: " << p << std::endl;
+
+      auto node_ptr = _mesh->add_point(p);
+      elem->set_node(n) = node_ptr;
+    }
+  }
+}
+
+void
+NekRSMesh::extractSurfaceMesh()
+{
+  _console << "Building surface coupling mesh...";
+
   // nekRS has already performed a global operation such that all processes know the
   // total number of faces that are on a nekRS boundary. 'nek_n_surface_elems' is the
   // maximum number of surface elements that we might want to communicate fields on
@@ -343,35 +370,17 @@ NekRSMesh::buildSurfaceMesh()
   _console << " Boundary " << Moose::stringify(*_boundary) << " contains " << _n_surface_elems <<
     " of the total of " << _nek_n_surface_elems << " nekRS surface elements" << std::endl;
 
-  for (unsigned int e = 0; e < _n_surface_elems; e++)
-  {
-    auto elem = boundaryElem();
-    _mesh->add_elem(elem);
-
-    if (_verbose)
-      _console << std::endl;
-
-    // add one point for each vertex of the face element
-    for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
-    {
-      int node = _bnd_node_index[n];
-
-      auto node_offset = e * _n_vertices_per_surface + node;
-      Point p(_x[node_offset], _y[node_offset], _z[node_offset]);
-      p *= _scaling;
-
-      if (_verbose)
-        _console << "Adding point: " << p << std::endl;
-
-      auto node_ptr = _mesh->add_point(p);
-      elem->set_node(n) = node_ptr;
-    }
-  }
+  _new_elem = &NekRSMesh::boundaryElem;
+  _n_elems = _n_surface_elems;
+  _n_vertices_per_elem = _n_vertices_per_surface;
+  _node_index = &_bnd_node_index;
 }
 
 void
-NekRSMesh::buildVolumeMesh()
+NekRSMesh::extractVolumeMesh()
 {
+  _console << "Building volume coupling mesh...";
+
   // nekRS has already performed a global operation such that all processes know the
   // toal number of volume elements.
   _x = (double*) malloc(_nek_n_volume_elems * _n_vertices_per_volume * sizeof(double));
@@ -386,30 +395,10 @@ NekRSMesh::buildVolumeMesh()
   _console << " Volume contains " << _n_volume_elems <<
     " of the total of " << _nek_n_volume_elems << " nekRS volume elements" << std::endl;
 
-  for (unsigned int e = 0; e < _n_volume_elems; e++)
-  {
-    auto elem = volumeElem();
-    _mesh->add_elem(elem);
-
-    if (_verbose)
-      _console << std::endl;
-
-    // add one point for each vertex of the face element
-    for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
-    {
-      int node = _vol_node_index[n];
-
-      auto node_offset = e * _n_vertices_per_volume + node;
-      Point p(_x[node_offset], _y[node_offset], _z[node_offset]);
-      p *= _scaling;
-
-      if (_verbose)
-        _console << "Adding point: " << p << std::endl;
-
-      auto node_ptr = _mesh->add_point(p);
-      elem->set_node(n) = node_ptr;
-    }
-  }
+  _new_elem = &NekRSMesh::volumeElem;
+  _n_elems = _n_volume_elems;
+  _n_vertices_per_elem = _n_vertices_per_volume;
+  _node_index = &_vol_node_index;
 }
 
 Elem *
