@@ -3,6 +3,8 @@
 #include "bcMap.hpp"
 
 static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
+static nekrs::mesh::volumeCoupling nek_volume_coupling;
+static nekrs::mesh::interpolationMatrix matrix;
 
 namespace nekrs
 {
@@ -39,6 +41,17 @@ bool hasTemperatureSolve()
   return hasTemperatureVariable() ? nrs->cds->compute[0] : false;
 }
 
+bool hasHeatSourceKernel()
+{
+  return udf.sEqnSource;
+}
+
+int scalarFieldOffset()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  return nrs->cds->fieldOffset;
+}
+
 bool scratchAvailable()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
@@ -68,13 +81,15 @@ void initializeScratch()
     free(nrs->usrwrk);
   }
 
-  // In order to make indexing simpler in the devide user functions (which is where the
+  // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
-  // as volume arrays. This means we must take some care as to how we write into these
-  // because our coupling is a surface-based coupling. Because cds->o_usrwrk points to the
-  // same address as nrs->o_usrwrk, we can simply work with the arrays on nrs.
-  nrs->usrwrk = (double *) calloc(mesh->Nelements * mesh->Np, sizeof(double));
-  nrs->o_usrwrk = mesh->device.malloc(mesh->Nelements * mesh->Np * sizeof(double), nrs->usrwrk);
+  // as volume arrays. At the point that this function is called, we don't know if we have
+  // boundary coupling, volume coupling, or both. So, we allocate enough space here to hold
+  // _both_ a heat flux and a volumetric heat source. These fields are always stored in this
+  // order - i.e. if we only had volume couping, we would only start writing to this array
+  // beginning at index nrs->cds->fieldOffset.
+  nrs->usrwrk = (double *) calloc(2 * nrs->cds->fieldOffset, sizeof(double));
+  nrs->o_usrwrk = mesh->device.malloc(2 * nrs->cds->fieldOffset * sizeof(double), nrs->usrwrk);
 }
 
 void freeScratch()
@@ -91,6 +106,59 @@ void freeScratch()
 void interpolationMatrix(double * I, int starting_points, int ending_points)
 {
   DegreeRaiseMatrix1D(starting_points - 1, ending_points - 1, I);
+}
+
+void initializeInterpolationMatrices(const int n_moost_pts)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  // determine the interpolation matrix for the outgoing transfer
+  int starting_points = mesh->Nq;
+  int ending_points = n_moost_pts;
+  matrix.outgoing = (double *) calloc(starting_points * ending_points, sizeof(double));
+  interpolationMatrix(matrix.outgoing, starting_points, ending_points);
+
+  // determine the interpolation matrix for the incoming transfer
+  std::swap(starting_points, ending_points);
+  matrix.incoming = (double *) calloc(starting_points * ending_points, sizeof(double));
+  interpolationMatrix(matrix.incoming, starting_points, ending_points);
+}
+
+void interpolateVolumeHex3D(const double * I, double * x, int N, double * Ix, int M)
+{
+  double* Ix1 = (dfloat*) calloc(N * N * M, sizeof(double));
+  double* Ix2 = (dfloat*) calloc(N * M * M, sizeof(double));
+
+  for(int k = 0; k < N; ++k)
+    for(int j = 0; j < N; ++j)
+      for(int i = 0; i < M; ++i) {
+        dfloat tmp = 0;
+        for(int n = 0; n < N; ++n)
+          tmp += I[i * N + n] * x[k * N * N + j * N + n];
+        Ix1[k * N * M + j * M + i] = tmp;
+      }
+
+  for(int k = 0; k < N; ++k)
+    for(int j = 0; j < M; ++j)
+      for(int i = 0; i < M; ++i) {
+        dfloat tmp = 0;
+        for(int n = 0; n < N; ++n)
+          tmp += I[j * N + n] * Ix1[k * N * M + n * M + i];
+        Ix2[k * M * M + j * M + i] = tmp;
+      }
+
+  for(int k = 0; k < M; ++k)
+    for(int j = 0; j < M; ++j)
+      for(int i = 0; i < M; ++i) {
+        dfloat tmp = 0;
+        for(int n = 0; n < N; ++n)
+          tmp += I[k * N + n] * Ix2[n * M * M + j * M + i];
+        Ix[k * M * M + j * M + i] = tmp;
+      }
+
+  free(Ix1);
+  free(Ix2);
 }
 
 void interpolateSurfaceFaceHex3D(double* scratch, const double* I, double* x, int N, double* Ix, int M)
@@ -114,20 +182,82 @@ void interpolateSurfaceFaceHex3D(double* scratch, const double* I, double* x, in
     }
 }
 
-void displacementAndCounts(int * counts, int * displacement, const int multiplier = 1.0)
+void displacementAndCounts(const int * base_counts, int * counts, int * displacement, const int multiplier = 1.0)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = nrs->cds->mesh;
 
   for (int i = 0; i < mesh->size; ++i)
-    counts[i] = nek_boundary_coupling.counts[i] * multiplier;
+    counts[i] = base_counts[i] * multiplier;
 
   displacement[0] = 0;
   for(int i = 1; i < mesh->size; i++)
     displacement[i] = displacement[i - 1] + counts[i - 1];
 }
 
-void temperature(const double * I, const int order, const bool needs_interpolation, double* T)
+void volumeTemperature(const int order, const bool needs_interpolation, double* T)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t* mesh = nrs->cds->mesh;
+
+  int start_1d = mesh->Nq;
+  int end_1d = order + 2;
+  int start_3d = start_1d * start_1d * start_1d;
+  int end_3d = end_1d * end_1d * end_1d;
+
+  // allocate temporary space to hold the results of the search for each process
+  double* Ttmp = (double*) calloc(nek_volume_coupling.n_elems * end_3d, sizeof(double));
+
+  // initialize scratch space for the element temperature so that we can easily
+  // pass in element values to interpolateVolumeHex3D
+  double* Telem = (double*) calloc(start_3d, sizeof(double));
+
+  // if we apply the shortcut for first-order interpolations, just hard-code those
+  // indices that we'll grab for a volume hex element
+  int start_2d = start_1d * start_1d;
+  int indices [] = {0, start_1d - 1, start_2d - start_1d, start_2d - 1,
+                    start_3d - start_2d, start_3d - start_2d + start_1d - 1, start_3d - start_1d, start_3d - 1};
+
+  int c = 0;
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * start_3d;
+
+    if (needs_interpolation)
+    {
+      // get the temperature on the face
+      for (int v = 0; v < start_3d; ++v)
+        Telem[v] = nrs->cds->S[offset + v];
+
+      // and then interpolate it
+      interpolateVolumeHex3D(matrix.outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
+      c += end_3d;
+    }
+    else
+    {
+      // get the temperature on the element. We assume on the MOOSE side that
+      // we'll only try this shortcut if the mesh is first order (since the second
+      // order case can only skip the interpolation if nekRS's polynomial order is
+      // 2, which is unlikely for actual calculations.
+      for (int v = 0; v < end_3d; ++v, ++c)
+        Ttmp[c] = nrs->cds->S[offset + indices[v]];
+    }
+  }
+
+  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
+  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement, end_3d);
+
+  MPI_Allgatherv(Ttmp, recvCounts[mesh->rank], MPI_DOUBLE, T,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+
+  free(recvCounts);
+  free(displacement);
+  free(Ttmp);
+  free(Telem);
+}
+
+void boundaryTemperature(const int order, const bool needs_interpolation, double* T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t* mesh = nrs->cds->mesh;
@@ -171,7 +301,7 @@ void temperature(const double * I, const int order, const bool needs_interpolati
         }
 
         // and then interpolate it
-        interpolateSurfaceFaceHex3D(scratch, I, Tface, start_1d, &(Ttmp[c]), end_1d);
+        interpolateSurfaceFaceHex3D(scratch, matrix.outgoing, Tface, start_1d, &(Ttmp[c]), end_1d);
         c += end_2d;
       }
       else
@@ -191,7 +321,7 @@ void temperature(const double * I, const int order, const bool needs_interpolati
 
   int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
   int* displacement = (int *) calloc(mesh->size, sizeof(int));
-  displacementAndCounts(recvCounts, displacement, end_2d);
+  displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement, end_2d);
 
   MPI_Allgatherv(Ttmp, recvCounts[mesh->rank], MPI_DOUBLE, T,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
@@ -203,12 +333,33 @@ void temperature(const double * I, const int order, const bool needs_interpolati
   free(scratch);
 }
 
-int processor_id(const int elem_id)
+void heat_source(const int elem_id, const int order, double * source_elem)
 {
-  return nek_boundary_coupling.process[elem_id];
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  int end_1d = mesh->Nq;
+  int start_1d = order + 2;
+  int end_3d = mesh->Np;
+  int start_3d = start_1d * start_1d * start_1d;
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (mesh->rank == nek_volume_coupling.processor_id(elem_id))
+  {
+    int e = nek_volume_coupling.element[elem_id];
+    double * source_tmp = (double*) calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeHex3D(matrix.incoming, source_elem, start_1d, source_tmp, end_1d);
+
+    int id = e * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+      nrs->usrwrk[nrs->cds->fieldOffset + id + v] = source_tmp[v];
+
+    free(source_tmp);
+  }
 }
 
-void flux(const double * I, const int elem_id, const int order, double * flux_face)
+void flux(const int elem_id, const int order, double * flux_face)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = nrs->cds->mesh;
@@ -219,7 +370,7 @@ void flux(const double * I, const int elem_id, const int order, double * flux_fa
   int start_2d = start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (mesh->rank == processor_id(elem_id))
+  if (mesh->rank == nek_boundary_coupling.processor_id(elem_id))
   {
     int e = nek_boundary_coupling.element[elem_id];
     int f = nek_boundary_coupling.face[elem_id];
@@ -227,7 +378,7 @@ void flux(const double * I, const int elem_id, const int order, double * flux_fa
     double * scratch = (double*) calloc(start_1d * end_1d, sizeof(double));
     double * flux_tmp = (double*) calloc(end_2d, sizeof(double));
 
-    interpolateSurfaceFaceHex3D(scratch, I, flux_face, start_1d, flux_tmp, end_1d);
+    interpolateSurfaceFaceHex3D(scratch, matrix.incoming, flux_face, start_1d, flux_tmp, end_1d);
 
     int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
     for (int i = 0; i < end_2d; ++i)
@@ -239,6 +390,32 @@ void flux(const double * I, const int elem_id, const int order, double * flux_fa
     free(scratch);
     free(flux_tmp);
   }
+}
+
+double sourceIntegral()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  double integral = 0.0;
+
+  for (int k = 0; k < nek_volume_coupling.total_n_elems; ++k)
+  {
+    if (nek_volume_coupling.process[k] == mesh->rank)
+    {
+      int i = nek_volume_coupling.element[k];
+      int offset = i * mesh->Np;
+
+      for (int v = 0; v < mesh->Np; ++v)
+        integral += nrs->usrwrk[nrs->cds->fieldOffset + offset + v] * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  return total_integral;
 }
 
 double fluxIntegral()
@@ -296,7 +473,31 @@ void normalizeFlux(const double moose_integral, const double nek_integral)
   }
 }
 
-void copyFluxToDevice()
+void normalizeHeatSource(const double moose_integral, const double nek_integral)
+{
+  // avoid divide-by-zero
+  if (std::abs(nek_integral) < abs_tol)
+    return;
+
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  const double ratio = moose_integral / nek_integral;
+
+  for (int k = 0; k < nek_volume_coupling.total_n_elems; ++k)
+  {
+    if (nek_volume_coupling.process[k] == mesh->rank)
+    {
+      int i = nek_volume_coupling.element[k];
+      int id = i * mesh->Np;
+
+      for (int v = 0; v < mesh->Np; ++v)
+        nrs->usrwrk[nrs->cds->fieldOffset + id + v] *= ratio;
+    }
+  }
+}
+
+void copyScratchToDevice()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   nrs->o_usrwrk.copyFrom(nrs->usrwrk);
@@ -447,6 +648,43 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
   return reduced_value;
 }
+
+double volumeIntegral(const field::NekFieldEnum & integrand)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  double integral = 0.0;
+
+  const double (*f) (int);
+
+  switch (integrand)
+  {
+    case field::temperature:
+      f = &solution::temperature;
+      break;
+    case field::unity:
+      f = &solution::unity;
+      break;
+    default:
+      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
+  }
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+      integral += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  return total_integral;
+}
+
 
 double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand)
 {
@@ -724,7 +962,69 @@ bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_
   return valid_boundary_ids;
 }
 
-void faceVertices(const std::vector<int> & boundary_id, const int order, float* x, float* y, float* z, int& N)
+void volumeVertices(const int order, double* x, double* y, double* z, int& N)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+
+  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
+  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
+  mesh_t * mesh = createMesh(nrs->cds->mesh->comm, order + 1, 1 /* dummy, not used by 'volumeVertices' */,
+    nrs->cht, nrs->options, nrs->mesh->device, *(nrs->kernelInfo));
+
+  // gather all the numbers of elements (we technically already know this info from
+  // nekrs::mesh::Nelements, but we can base this here on the mesh creation process just to make
+  // sure that nothing gets inconsistent)
+  nek_volume_coupling.n_elems = mesh->Nelements;
+  MPI_Allreduce(&nek_volume_coupling.n_elems, &N, 1, MPI_INT, MPI_SUM, mesh->comm);
+  nek_volume_coupling.total_n_elems = N;
+
+  nek_volume_coupling.counts = (int *) calloc(mesh->size, sizeof(int));
+  MPI_Allgather(&nek_volume_coupling.n_elems, 1, MPI_INT, nek_volume_coupling.counts, 1, MPI_INT, mesh->comm);
+
+  // Save information regarding the volume mesh coupling in terms of the process-local
+  // element IDs and process ownership
+  int * etmp = (int *) malloc(N * sizeof(int));
+  int * ptmp = (int *) malloc(N * sizeof(int));
+
+  nek_volume_coupling.element = (int *) malloc(N * sizeof(int));
+  nek_volume_coupling.process = (int *) malloc(N * sizeof(int));
+
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    etmp[i] = i;
+    ptmp[i] = mesh->rank;
+  }
+
+  // compute the counts and displacement based on the GLL points
+  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
+  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement, mesh->Np);
+
+  MPI_Allgatherv(mesh->x, recvCounts[mesh->rank], MPI_DOUBLE, x,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+
+  MPI_Allgatherv(mesh->y, recvCounts[mesh->rank], MPI_DOUBLE, y,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+
+  MPI_Allgatherv(mesh->z, recvCounts[mesh->rank], MPI_DOUBLE, z,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+
+  // adjust the MPI allgather info for the volume-based data exchange
+  displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement);
+
+  MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.element,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.process,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  free(recvCounts);
+  free(displacement);
+  free(etmp);
+  free(ptmp);
+}
+
+void faceVertices(const std::vector<int> & boundary_id, const int order, double* x, double* y, double* z, int& N)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
 
@@ -738,9 +1038,9 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, float* 
   // scratch space is sized to handle the maximum number of surface points, which would occur
   // if every nekRS surface is to be coupled to MOOSE
   int max_possible_surface_points = mesh->NboundaryFaces * mesh->Nfp;
-  float* xtmp = (float*) malloc(max_possible_surface_points * sizeof(float));
-  float* ytmp = (float*) malloc(max_possible_surface_points * sizeof(float));
-  float* ztmp = (float*) malloc(max_possible_surface_points * sizeof(float));
+  double* xtmp = (double*) malloc(max_possible_surface_points * sizeof(double));
+  double* ytmp = (double*) malloc(max_possible_surface_points * sizeof(double));
+  double* ztmp = (double*) malloc(max_possible_surface_points * sizeof(double));
 
   // Save information regarding the surface mesh coupling in terms of the process-local
   // element IDs, the element-local face IDs, and the process ownership.
@@ -795,19 +1095,19 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, float* 
   // compute the counts and displacement based on the GLL points
   int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
   int* displacement = (int *) calloc(mesh->size, sizeof(int));
-  displacementAndCounts(recvCounts, displacement, mesh->Nfp);
+  displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement, mesh->Nfp);
 
-  MPI_Allgatherv(xtmp, recvCounts[mesh->rank], MPI_FLOAT, x,
-    (const int*)recvCounts, (const int*)displacement, MPI_FLOAT, mesh->comm);
+  MPI_Allgatherv(xtmp, recvCounts[mesh->rank], MPI_DOUBLE, x,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
 
-  MPI_Allgatherv(ytmp, recvCounts[mesh->rank], MPI_FLOAT, y,
-    (const int*)recvCounts, (const int*)displacement, MPI_FLOAT, mesh->comm);
+  MPI_Allgatherv(ytmp, recvCounts[mesh->rank], MPI_DOUBLE, y,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
 
-  MPI_Allgatherv(ztmp, recvCounts[mesh->rank], MPI_FLOAT, z,
-    (const int*)recvCounts, (const int*)displacement, MPI_FLOAT, mesh->comm);
+  MPI_Allgatherv(ztmp, recvCounts[mesh->rank], MPI_DOUBLE, z,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
 
   // adjust the MPI allgather info for face-based data exchange
-  displacementAndCounts(recvCounts, displacement);
+  displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement);
 
   MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.element,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
@@ -834,6 +1134,8 @@ void freeMesh()
   if (nek_boundary_coupling.face) free(nek_boundary_coupling.face);
   if (nek_boundary_coupling.process) free(nek_boundary_coupling.process);
   if (nek_boundary_coupling.counts) free(nek_boundary_coupling.counts);
+  if (matrix.outgoing) free(matrix.outgoing);
+  if (matrix.incoming) free(matrix.incoming);
 }
 
 } // end namespace mesh
