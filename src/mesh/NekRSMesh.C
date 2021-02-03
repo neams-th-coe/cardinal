@@ -40,11 +40,12 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   _n_surface_elems(0),
   _n_volume_elems(0)
 {
+  // TODO: relax this assumption
   if (_boundary && _volume)
     mooseError("Both boundary and volume coupling to nekRS is not yet enabled!");
 
   if (!_boundary && !_volume)
-    mooseError("At least one of 'boundary' and 'volume' must be specified for 'NekRSMesh'!");
+    mooseError("'NekRSMesh' requires at least 'volume = true' or a list of IDs in 'boundary'!");
 
   if (_boundary && _boundary->empty())
     paramError("boundary", "The length of 'boundary' must be greater than zero!");
