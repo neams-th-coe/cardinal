@@ -72,12 +72,17 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   openmc::settings::libmesh_comm = &m.comm();
 
   // Find cell for each pebble center
-  // _centers is initialized with the pebble centers from .i file
-  for (auto &c : _centers) {
+  for (const auto & c : _centers)
+  {
     openmc::Particle p {};
     p.r() = {c(0), c(1), c(2)};
     p.u() = {0., 0., 1.};
-    openmc::find_cell(p, false);
+
+    bool found = openmc::find_cell(p, false);
+    if (!found)
+      mooseError("Cannot find OpenMC cell at position (x, y, z) = (" + Moose::stringify(c(0)) + ", " +
+        Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + ")");
+
     _cellIndices.push_back(p.coord_[_pebble_cell_level].cell);
     _cellInstances.push_back(p.cell_instance_);
   }
@@ -234,6 +239,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
+      _console << "Sending temperature to OpenMC..." << std::endl;
+
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
       // std::cout << "Temperatures: ";
 
