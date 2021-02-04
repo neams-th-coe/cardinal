@@ -27,6 +27,9 @@ public:
 
   virtual bool converged() override { return true; }
 
+  /// Get the center coordinates for all cells of interest
+  virtual void fillCenters();
+
   //! Creates a cell-based tally with a value for each pebble
   void setupCellTally();
   //! Creates an unstructured mesh tally using a template
@@ -43,6 +46,8 @@ public:
 
 private:
   const double JOULE_PER_EV {1.6021766208e-19};
+
+  const int DIMENSION {3};
 
   unsigned int _heat_source_var; //! heat source variable number
   int _pebble_cell_level; //! coordinate level of the pebble cells in the OpenMC model

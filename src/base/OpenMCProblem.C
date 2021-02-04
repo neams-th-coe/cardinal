@@ -4,6 +4,7 @@
 
 #include "NearestPointReceiver.h"
 #include "AuxiliarySystem.h"
+#include "DelimitedFileReader.h"
 
 #include "mpi.h"
 #include "OpenMCProblem.h"
@@ -26,7 +27,11 @@ validParams<OpenMCProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
   params.addRequiredParam<Real>("power", "specified power for OpenMC");
-  params.addRequiredParam<std::vector<Point>>("centers", "coords of pebble centers");
+
+  params.addParam<std::vector<Point>>("centers", "Coordinates of cell centers to transfer data with");
+  params.addParam<std::vector<FileName>>("centers_file", "Alternative way to provide the coordinates of cells "
+    "to transfer data with");
+
   params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(), "type of tally to use in OpenMC");
   params.addParam<int>("pebble_cell_level", 0, "Level of pebble cells in the OpenMC model");
@@ -37,11 +42,17 @@ validParams<OpenMCProblem>()
 OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   ExternalProblem(params),
   _pebble_cell_level(getParam<int>("pebble_cell_level")),
-  _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes")),
   _tallyType(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>())
 {
+  if (isParamValid("centers") == isParamValid("centers_file"))
+    mooseError("OpenMCProblem requires either 'centers' or 'centers_file' - you have specified "
+      "either both or none");
+
+  // get the coordinates for each cell center that we wish to transfer data with
+  fillCenters();
+
   if (_tallyType == tally::mesh)
   {
     if (!isParamValid("mesh_template"))
@@ -81,6 +92,54 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
       break;
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCProblem!");
+  }
+}
+
+void
+OpenMCProblem::fillCenters()
+{
+  if (isParamValid("centers"))
+  {
+    _centers = getParam<std::vector<Point>>("centers");
+
+    // no need to also check if we have the correct length, since using Point ensures that already
+    if (_centers.empty())
+      paramError("centers", "'centers' cannot be empty.");
+  }
+  else if (isParamValid("centers_file"))
+  {
+    std::vector<FileName> centers_file = getParam<std::vector<FileName>>("centers_file");
+
+    if (centers_file.empty())
+      paramError("centers_file", "'centers_file' cannot be empty.");
+
+    for (const auto & f : centers_file)
+    {
+      MooseUtils::DelimitedFileReader file(f, &_communicator);
+      file.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
+      file.read();
+
+      const std::vector<std::vector<double>> & data = file.getData();
+
+      // TODO: can replace by file.numEntries after MOOSE update
+     std::size_t num_entries = 0;
+     for (std::size_t i = 0; i < data.size(); ++i)
+       num_entries += data[i].size();
+
+      if (num_entries % DIMENSION != 0)
+        paramError("centers_file", "Number of entries in 'centers_file' ",
+          f, " must be divisible by 3 to give x, y, and z coordinates");
+
+      for (unsigned int i = 0; i < data.size(); ++i)
+      {
+        Point position;
+
+        for (unsigned int j = 0; j < DIMENSION; j++)
+          position(j) = data[i][j];
+
+        _centers.push_back(position);
+      }
+    }
   }
 }
 
