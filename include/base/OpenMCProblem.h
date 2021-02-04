@@ -8,6 +8,7 @@
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/mesh.h"
 #include "openmc/tallies/tally.h"
+#include "CardinalEnums.h"
 
 class OpenMCProblem;
 
@@ -43,11 +44,6 @@ public:
 private:
   const double JOULE_PER_EV {1.6021766208e-19};
 
-  enum class TallyType {
-    CELL,
-    MESH,
-  };
-
   unsigned int _heat_source_var; //! heat source variable number
   int _pebble_cell_level; //! coordinate level of the pebble cells in the OpenMC model
 
@@ -55,7 +51,7 @@ private:
   Real _power;                       //! Total power produced in the problem (used for heating normalization)
   std::vector<Real> _volumes;        //! Cell volumes at the location of the pebble centers
   std::string _meshTemplateFilename; //! Filename of the mesh template to use in the unstructured mesh tally
-  TallyType _tallyType;              //! Tally type used in the OpenMC problem (CELL, MESH)
+  const tally::TallyTypeEnum _tallyType;              //! Tally type used in the OpenMC problem (CELL, MESH)
 
   std::vector<int32_t> _cellIndices {};   //! OpenMC cell indices corresponding to the pebble centers
   std::vector<int32_t> _cellInstances {}; //! OpenMC cell instances corresponding to the pebble centers

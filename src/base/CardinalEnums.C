@@ -14,3 +14,8 @@ MooseEnum getOperationEnum()
 {
   return MooseEnum("max min", "max");
 }
+
+MooseEnum getTallyTypeEnum()
+{
+  return MooseEnum("cell mesh");
+}
