@@ -85,7 +85,7 @@ NearestPointReceiverTransfer::execute()
 
       for (unsigned int i = 0; i < _multi_app->numGlobalApps(); ++i)
       {
-        if (_multi_app->hasLocalApp(i) && _multi_app->isRootProcessor())
+        if (_multi_app->hasLocalApp(i))
         {
           values.clear();
 

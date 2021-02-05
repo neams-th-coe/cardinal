@@ -27,6 +27,8 @@
     family = MONOMIAL
     order = CONSTANT
   []
+  [rank]
+  []
 []
 
 [ICs]
@@ -56,6 +58,10 @@
     type = SpatialUserObjectAux
     variable = average_g_sub
     user_object = average_g_sub
+  []
+  [rank]
+    type = ProcessorIDAux
+    variable = rank
   []
 []
 
@@ -99,4 +105,5 @@
 
 [Outputs]
   exodus = true
+  hide = 'rank'
 []
