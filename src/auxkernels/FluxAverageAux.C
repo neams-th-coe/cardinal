@@ -23,5 +23,5 @@ validParams<FluxAverageAux>()
 FluxAverageAux::FluxAverageAux(const InputParameters & parameters)
   : NormalDiffusionFluxAux(parameters)
 {
-  mooseError("The 'FluxAverageAux' auxkernel has been remaned to 'NormalDiffusionFluxAux'");
+  mooseDeprecated("The 'FluxAverageAux' auxkernel has been remaned to 'NormalDiffusionFluxAux'");
 }
