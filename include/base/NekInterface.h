@@ -372,15 +372,20 @@ int NboundaryID();
 bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, int & n_boundaries);
 
 /**
- * \brief Get the vertices defining the surface mesh interpolation and store mesh coupling information
- * @param[in] boundary_id nekRS boundary IDs for which to find the face vertices
+ * Store the rank-local element, element-local face, and rank ownership for boundary coupling
+ * @param[in] boundary_id boundaries through which nekRS will be coupled
+ * @param[out] N total number of surface elements
+ */
+void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N);
+
+/**
+ * \brief Get the vertices defining the surface mesh interpolation from the stored coupling information
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[out] x Array of \f$x\f$-coordinates for face vertices
  * @param[out] y Array of \f$y\f$-coordinates for face vertices
  * @param[out] z Array of \f$z\f$-coordinates for face vertices
- * @param[out] N number of face vertices in surface mesh
  */
-void faceVertices(const std::vector<int> & boundary_id, const int order, double* x, double* y, double* z, int& N);
+void faceVertices(const int order, double* x, double* y, double* z);
 
 /**
  * \brief Get the vertices defining the volume mesh interpolation and store mesh coupling information
@@ -388,7 +393,7 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, double*
  * @param[out] x Array of \f$x\f$-coordinates for element vertices
  * @param[out] y Array of \f$y\f$-coordinates for element vertices
  * @param[out] z Array of \f$z\f$-coordinates for element vertices
- * @param[out] N number of vertices in volume mesh
+ * @param[out] N total number of volume elements
  */
 void volumeVertices(const int order, double* x, double* y, double* z, int& N);
 

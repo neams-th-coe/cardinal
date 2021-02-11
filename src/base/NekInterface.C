@@ -1024,26 +1024,21 @@ void volumeVertices(const int order, double* x, double* y, double* z, int& N)
   free(ptmp);
 }
 
-void faceVertices(const std::vector<int> & boundary_id, const int order, double* x, double* y, double* z, int& N)
+void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
 
-  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
-  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-  mesh_t * mesh = createMesh(nrs->cds->mesh->comm, order + 1, 1 /* dummy, not used by 'faceVertices' */,
-    nrs->cht, nrs->options, nrs->mesh->device, *(nrs->kernelInfo));
-
-  // Because we won't know how many surface faces are owned by each process, we
-  // allocate temporary space to hold the results of the search for each process. This
-  // scratch space is sized to handle the maximum number of surface points, which would occur
-  // if every nekRS surface is to be coupled to MOOSE
-  int max_possible_surface_points = mesh->NboundaryFaces * mesh->Nfp;
-  double* xtmp = (double*) malloc(max_possible_surface_points * sizeof(double));
-  double* ytmp = (double*) malloc(max_possible_surface_points * sizeof(double));
-  double* ztmp = (double*) malloc(max_possible_surface_points * sizeof(double));
+  // while nekrs::faceVertices creates a new mesh on which the data will be transferred,
+  // here we can just use the already-loaded mesh because during mesh creation (that
+  // differs from nrs->cds->mesh only in polynomial order), the assignment of elements to
+  // processes is exactly the same.
+  mesh_t * mesh = nrs->cds->mesh;
 
   // Save information regarding the surface mesh coupling in terms of the process-local
-  // element IDs, the element-local face IDs, and the process ownership.
+  // element IDs, the element-local face IDs, and the process ownership. We don't yet
+  // know how many surface faces are owned by each process, and which of those sidesets
+  // we're exchanging fields through, so just allocate the maximum space, which would occur
+  // if every nekRS surface were coupled to MOOSE.
   int max_possible_surfaces = mesh->NboundaryFaces;
   int* etmp = (int *) malloc(max_possible_surfaces * sizeof(int));
   int* ftmp = (int *) malloc(max_possible_surfaces * sizeof(int));
@@ -1056,7 +1051,6 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, double*
   // number of faces on boundary of interest for this process
   int Nfaces = 0;
 
-  int c = 0;
   int d = 0;
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {
@@ -1066,19 +1060,10 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, double*
       {
         Nfaces += 1;
 
-        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
-
         etmp[d] = i;
         ftmp[d] = j;
         ptmp[d] = mesh->rank;
         d++;
-
-        for (int v = 0; v < mesh->Nfp; ++v, ++c) {
-          int id = mesh->vmapM[offset + v];
-          xtmp[c] = mesh->x[id];
-          ytmp[c] = mesh->y[id];
-          ztmp[c] = mesh->z[id];
-        }
       }
     }
   }
@@ -1091,6 +1076,60 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, double*
   // make available to all processes the number of faces owned by each process
   nek_boundary_coupling.counts = (int *) calloc(mesh->size, sizeof(int));
   MPI_Allgather(&Nfaces, 1, MPI_INT, nek_boundary_coupling.counts, 1, MPI_INT, mesh->comm);
+
+  // compute the counts and displacements for face-based data exchange
+  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
+  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement);
+
+  MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.element,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  MPI_Allgatherv(ftmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.face,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.process,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  free(recvCounts);
+  free(displacement);
+  free(etmp);
+  free(ftmp);
+  free(ptmp);
+}
+
+void faceVertices(const int order, double* x, double* y, double* z)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+
+  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
+  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
+  mesh_t * mesh = createMesh(nrs->cds->mesh->comm, order + 1, 1 /* dummy, not used by 'faceVertices' */,
+    nrs->cht, nrs->options, nrs->mesh->device, *(nrs->kernelInfo));
+
+  // Allocate space for the coordinates that are on this rank
+  double* xtmp = (double*) malloc(nek_boundary_coupling.n_faces * mesh->Nfp * sizeof(double));
+  double* ytmp = (double*) malloc(nek_boundary_coupling.n_faces * mesh->Nfp * sizeof(double));
+  double* ztmp = (double*) malloc(nek_boundary_coupling.n_faces * mesh->Nfp * sizeof(double));
+
+  int c = 0;
+  for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
+  {
+    if (nek_boundary_coupling.process[k] == mesh->rank)
+    {
+      int i = nek_boundary_coupling.element[k];
+      int j = nek_boundary_coupling.face[k];
+      int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
+      for (int v = 0; v < mesh->Nfp; ++v, ++c)
+      {
+        int id = mesh->vmapM[offset + v];
+        xtmp[c] = mesh->x[id];
+        ytmp[c] = mesh->y[id];
+        ztmp[c] = mesh->z[id];
+      }
+    }
+  }
 
   // compute the counts and displacement based on the GLL points
   int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
@@ -1106,26 +1145,11 @@ void faceVertices(const std::vector<int> & boundary_id, const int order, double*
   MPI_Allgatherv(ztmp, recvCounts[mesh->rank], MPI_DOUBLE, z,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
 
-  // adjust the MPI allgather info for face-based data exchange
-  displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement);
-
-  MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.element,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
-
-  MPI_Allgatherv(ftmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.face,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
-
-  MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.process,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
-
   free(recvCounts);
   free(displacement);
   free(xtmp);
   free(ytmp);
   free(ztmp);
-  free(etmp);
-  free(ftmp);
-  free(ptmp);
 }
 
 void freeMesh()

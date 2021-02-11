@@ -40,10 +40,6 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   _n_surface_elems(0),
   _n_volume_elems(0)
 {
-  // TODO: relax this assumption
-  if (_boundary && _volume)
-    mooseError("Both boundary and volume coupling to nekRS is not yet enabled!");
-
   if (!_boundary && !_volume)
     mooseError("'NekRSMesh' requires at least 'volume = true' or a list of IDs in 'boundary'!");
 
@@ -307,10 +303,22 @@ NekRSMesh::buildMesh()
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
 
+  // Loop through the mesh to establish a data structure (nek_boundary_coupling)
+  // that holds the rank-local element ID, element-local face ID, and owning rank.
+  // This data structure is used internally by nekRS during the transfer portion.
+  // We only need to do this for the boundary case because no matter whether
+  // _boundary is true or false, we will always get the volume coupling info in
+  // extractVolumeMesh().
+  if (_boundary)
+    nekrs::mesh::storeBoundaryCoupling(*_boundary, _n_surface_elems);
+
   if (_boundary && !_volume)
     extractSurfaceMesh();
 
   if (_volume && !_boundary)
+    extractVolumeMesh();
+
+  if (_volume && _boundary)
     extractVolumeMesh();
 
   addElems();
@@ -354,18 +362,14 @@ NekRSMesh::extractSurfaceMesh()
 {
   _console << "Building surface coupling mesh...";
 
-  // nekRS has already performed a global operation such that all processes know the
-  // total number of faces that are on a nekRS boundary. 'nek_n_surface_elems' is the
-  // maximum number of surface elements that we might want to communicate fields on
-  // with MOOSE (i.e. if 'boundary' was set to _all_ of the boundaries in the nekRS model).
-  _x = (double*) malloc(_nek_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  _y = (double*) malloc(_nek_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  _z = (double*) malloc(_nek_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  _x = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  _y = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  _z = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
 
   // Find the global vertex IDs that are on the _boundary. Note that nekRS performs a
   // global communciation here such that each nekRS process has knowledge of all the
   // boundary information.
-  nekrs::mesh::faceVertices(*_boundary, _order, _x, _y, _z, _n_surface_elems);
+  nekrs::mesh::faceVertices(_order, _x, _y, _z);
 
   _console << " Boundary " << Moose::stringify(*_boundary) << " contains " << _n_surface_elems <<
     " of the total of " << _nek_n_surface_elems << " nekRS surface elements" << std::endl;
