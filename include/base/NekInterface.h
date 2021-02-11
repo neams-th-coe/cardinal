@@ -388,14 +388,19 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N);
 void faceVertices(const int order, double* x, double* y, double* z);
 
 /**
+ * Store the rank-local element and rank ownership for volume coupling
+ * @param[out] N total number of volume elements
+ */
+void storeVolumeCoupling(int& N);
+
+/**
  * \brief Get the vertices defining the volume mesh interpolation and store mesh coupling information
  * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
  * @param[out] x Array of \f$x\f$-coordinates for element vertices
  * @param[out] y Array of \f$y\f$-coordinates for element vertices
  * @param[out] z Array of \f$z\f$-coordinates for element vertices
- * @param[out] N total number of volume elements
  */
-void volumeVertices(const int order, double* x, double* y, double* z, int& N);
+void volumeVertices(const int order, double* x, double* y, double* z);
 
 /// Free dynamically allocated memory related to the surface mesh interpolation
 void freeMesh();

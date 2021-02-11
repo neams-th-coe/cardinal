@@ -303,12 +303,17 @@ NekRSMesh::buildMesh()
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
 
+  // Loop through the mesh to establish a data structure (nek_volume_coupling)
+  // that holds the rank-local element ID and owning rank.
+  // This data structure is used internally by nekRS during the transfer portion.
+  // We must call this before storeBoundaryCoupling because that routine will
+  // potentially use the results of this information for later setting sidesets.
+  if (_volume)
+    nekrs::mesh::storeVolumeCoupling(_n_volume_elems);
+
   // Loop through the mesh to establish a data structure (nek_boundary_coupling)
   // that holds the rank-local element ID, element-local face ID, and owning rank.
   // This data structure is used internally by nekRS during the transfer portion.
-  // We only need to do this for the boundary case because no matter whether
-  // _boundary is true or false, we will always get the volume coupling info in
-  // extractVolumeMesh().
   if (_boundary)
     nekrs::mesh::storeBoundaryCoupling(*_boundary, _n_surface_elems);
 
@@ -387,14 +392,14 @@ NekRSMesh::extractVolumeMesh()
 
   // nekRS has already performed a global operation such that all processes know the
   // toal number of volume elements.
-  _x = (double*) malloc(_nek_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  _y = (double*) malloc(_nek_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  _z = (double*) malloc(_nek_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  _x = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  _y = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  _z = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
 
   // Find the global vertex IDs in the volume. Note that nekRS performs a
   // global communciation here such that each nekRS process has knowledge of all the
   // volume information.
-  nekrs::mesh::volumeVertices(_order, _x, _y, _z, _n_volume_elems);
+  nekrs::mesh::volumeVertices(_order, _x, _y, _z);
 
   _console << " Volume contains " << _n_volume_elems <<
     " of the total of " << _nek_n_volume_elems << " nekRS volume elements" << std::endl;

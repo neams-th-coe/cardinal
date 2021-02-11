@@ -962,18 +962,12 @@ bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_
   return valid_boundary_ids;
 }
 
-void volumeVertices(const int order, double* x, double* y, double* z, int& N)
+void storeVolumeCoupling(int& N)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
 
-  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
-  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-  mesh_t * mesh = createMesh(nrs->cds->mesh->comm, order + 1, 1 /* dummy, not used by 'volumeVertices' */,
-    nrs->cht, nrs->options, nrs->mesh->device, *(nrs->kernelInfo));
+  mesh_t * mesh = nrs->cds->mesh;
 
-  // gather all the numbers of elements (we technically already know this info from
-  // nekrs::mesh::Nelements, but we can base this here on the mesh creation process just to make
-  // sure that nothing gets inconsistent)
   nek_volume_coupling.n_elems = mesh->Nelements;
   MPI_Allreduce(&nek_volume_coupling.n_elems, &N, 1, MPI_INT, MPI_SUM, mesh->comm);
   nek_volume_coupling.total_n_elems = N;
@@ -995,6 +989,35 @@ void volumeVertices(const int order, double* x, double* y, double* z, int& N)
     ptmp[i] = mesh->rank;
   }
 
+  // compute the counts and displacement based on the volume-based data exchange
+  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
+  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement);
+
+  MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.element,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.process,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  free(recvCounts);
+  free(displacement);
+  free(etmp);
+  free(ptmp);
+}
+
+void volumeVertices(const int order, double* x, double* y, double* z)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+
+  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
+  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
+  mesh_t * mesh = createMesh(nrs->cds->mesh->comm, order + 1, 1 /* dummy, not used by 'volumeVertices' */,
+    nrs->cht, nrs->options, nrs->mesh->device, *(nrs->kernelInfo));
+
+  nek_volume_coupling.counts = (int *) calloc(mesh->size, sizeof(int));
+  MPI_Allgather(&nek_volume_coupling.n_elems, 1, MPI_INT, nek_volume_coupling.counts, 1, MPI_INT, mesh->comm);
+
   // compute the counts and displacement based on the GLL points
   int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
   int* displacement = (int *) calloc(mesh->size, sizeof(int));
@@ -1008,20 +1031,6 @@ void volumeVertices(const int order, double* x, double* y, double* z, int& N)
 
   MPI_Allgatherv(mesh->z, recvCounts[mesh->rank], MPI_DOUBLE, z,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
-
-  // adjust the MPI allgather info for the volume-based data exchange
-  displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement);
-
-  MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.element,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
-
-  MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.process,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
-
-  free(recvCounts);
-  free(displacement);
-  free(etmp);
-  free(ptmp);
 }
 
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
