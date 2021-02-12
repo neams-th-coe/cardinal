@@ -131,6 +131,14 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
  void flux(const int elem_id, const int order, double * flux_face);
 
 /**
+ * Interpolate a volume-based MOOSE flux into the nekRS mesh
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
+ * @param[in] flux_elem flux at the libMesh nodes
+ */
+void flux_volume(const int elem_id, const int order, double * flux_elem);
+
+/**
  * Interpolate the MOOSE volume heat source onto the nekRS mesh
  * @param[in] elem_id global element ID
  * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)

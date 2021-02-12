@@ -333,6 +333,32 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
   free(scratch);
 }
 
+void flux_volume(const int elem_id, const int order, double * flux_elem)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  int end_1d = mesh->Nq;
+  int start_1d = order + 2;
+  int end_3d = mesh->Np;
+  int start_3d = start_1d * start_1d * start_1d;
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (mesh->rank == nek_volume_coupling.processor_id(elem_id))
+  {
+    int e = nek_volume_coupling.element[elem_id];
+    double * flux_tmp = (double*) calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeHex3D(matrix.incoming, flux_elem, start_1d, flux_tmp, end_1d);
+
+    int id = e * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+      nrs->usrwrk[id + v] = flux_tmp[v];
+
+    free(flux_tmp);
+  }
+}
+
 void heat_source(const int elem_id, const int order, double * source_elem)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();

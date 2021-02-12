@@ -192,8 +192,11 @@ protected:
   /// nekRS temperature interpolated onto the data transfer mesh
   double * _T;
 
-  /// MOOSE flux interpolated onto the data transfer mesh
+  /// MOOSE flux interpolated onto the (boundary) data transfer mesh
   double * _flux_face;
+
+  /// MOOSE flux interpolated onto the (volume) data transfer mesh
+  double * _flux_elem;
 
   /// MOOSE heat source interpolated onto the data transfer mesh
   double * _source_elem;

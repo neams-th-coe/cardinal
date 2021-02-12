@@ -91,6 +91,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _outgoing = "volume temperature and density";
     _n_points = _n_volume_elems * _n_vertices_per_volume;
     _T = (double*) calloc(_n_points, sizeof(double));
+    _flux_elem = (double *) calloc(_n_vertices_per_volume, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
 
@@ -116,6 +117,7 @@ NekRSProblem::~NekRSProblem()
   if (_T) free(_T);
   if (_flux_face) free(_flux_face);
   if (_source_elem) free(_source_elem);
+  if (_flux_elem) free(_flux_elem);
 }
 
 void
@@ -287,28 +289,65 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   auto & mesh = _nek_mesh->getMesh();
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
 
-  for (unsigned int e = 0; e < _n_surface_elems; e++)
+  if (!_volume)
   {
-    auto elem_ptr = mesh.elem_ptr(e);
-
-    for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
+    for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
-      auto node_ptr = elem_ptr->node_ptr(n);
+      auto elem_ptr = mesh.elem_ptr(e);
 
-      // For each face, get the flux at the libMesh nodes. This will be passed into
-      // nekRS, which will interpolate onto its GLL points. Because we are looping over
-      // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
-      // determine the offset in the nekRS arrays.
-      int node_index = _nek_mesh->boundaryNodeIndex(n);
-      auto node_offset = e * _n_vertices_per_surface + node_index;
+      for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
 
-      auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
-      _flux_face[node_index] = (*_serialized_solution)(dof_idx) * scale_squared;
+        // For each face, get the flux at the libMesh nodes. This will be passed into
+        // nekRS, which will interpolate onto its GLL points. Because we are looping over
+        // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+        // determine the offset in the nekRS arrays.
+        int node_index = _nek_mesh->boundaryNodeIndex(n);
+        auto node_offset = e * _n_vertices_per_surface + node_index;
+
+        auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
+        _flux_face[node_index] = (*_serialized_solution)(dof_idx) * scale_squared;
+      }
+
+      // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
+      // onto the nekRS GLL points and then write into the flux scratch space.
+      nekrs::flux(e, _nek_mesh->order(), _flux_face);
     }
+  }
+  else if (_volume)
+  {
+    // For the case of a boundary-only coupling, we could just loop over the elements on
+    // the boundary of interest and write (carefully) into the volume nrs-usrwrk array. Now,
+    // our flux variable is defined over the entire volume (maybe the MOOSE transfer only sent
+    // meaningful values to the coupling boundaries), so we need to do a volume interpolation
+    // of the flux into nrs->usrwrk, rather than a face interpolation. This could definitely be
+    // optimized in the future to truly only just write the boundary values into the nekRS
+    // scratch space rather than the volume values, but it looks right now that our biggest
+    // expense occurs in the MOOSE transfer system, not these transfers internally to nekRS.
+    for (unsigned int e = 0; e < _n_volume_elems; ++e)
+    {
+      auto elem_ptr = mesh.elem_ptr(e);
 
-    // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
-    // onto the nekRS GLL points and then write into the flux scratch space.
-    nekrs::flux(e, _nek_mesh->order(), _flux_face);
+      for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
+
+        // For each element, get the flux at the libMesh nodes. This will be passed into
+        // nekRS, which will interpolate onto its GLL points. Because we are looping over
+        // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+        // determine the offset in the nekRS arrays.
+        int node_index = _nek_mesh->volumeNodeIndex(n);
+        auto node_offset = e * _n_vertices_per_volume + node_index;
+
+        auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
+        _flux_elem[node_index] = (*_serialized_solution)(dof_idx) * scale_squared; // TODO: check
+      }
+
+      // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
+      // onto the nekRS GLL points and then write into the flux scratch space
+      nekrs::flux_volume(e, _nek_mesh->order(), _flux_elem);
+    }
   }
 
   // Because the NekMesh may be quite different from that used in the app solving for
@@ -491,10 +530,10 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         return;
       }
 
-      if (_boundary && !_volume)
+      if (_boundary)
         sendBoundaryHeatFluxToNek();
 
-      if (!_boundary && _volume)
+      if (_volume)
         sendVolumeHeatSourceToNek();
 
       nekrs::copyScratchToDevice();
@@ -510,12 +549,15 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         return;
       }
 
-      if (_boundary && !_volume)
+      if (!_volume)
         getBoundaryTemperatureFromNek();
 
-      if (!_boundary && _volume)
+      if (_volume)
         getVolumeTemperatureFromNek();
 
+      // for boundary-only coupling, this fills a variable on a boundary mesh; otherwise,
+      // this fills a variable on a volume mesh (because we will want a volume temperature for
+      // neutronics feedback, and we can still get a temperature boundary condition from a volume set)
       fillAuxVariable(_temp_var, _T);
 
       _console << "Interpolated temperature min/max values: " <<
