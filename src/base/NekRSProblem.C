@@ -74,26 +74,26 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _incoming = "boundary heat flux";
     _outgoing = "boundary temperature";
     _n_points = _n_surface_elems * _n_vertices_per_surface;
-    _T = (double*) calloc(_n_points, sizeof(double));
     _flux_face = (double *) calloc(_n_vertices_per_surface, sizeof(double));
   }
   else if (_volume && !_boundary) // only volume coupling
   {
     _incoming = "volume power density";
-    _outgoing = "volume temperature and density";
+    _outgoing = "volume temperature";
     _n_points = _n_volume_elems * _n_vertices_per_volume;
-    _T = (double*) calloc(_n_points, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
   else // both volume and boundary coupling
   {
-    _incoming = "heat flux and power density";
-    _outgoing = "volume temperature and density";
+    _incoming = "boundary heat flux and volume power density";
+    _outgoing = "volume temperature";
     _n_points = _n_volume_elems * _n_vertices_per_volume;
-    _T = (double*) calloc(_n_points, sizeof(double));
     _flux_elem = (double *) calloc(_n_vertices_per_volume, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
+
+  // regardless of the boundary/volume coupling, we will always exchange temperature
+  _T = (double*) calloc(_n_points, sizeof(double));
 
   nekrs::initializeInterpolationMatrices(_nek_mesh->numQuadraturePoints1D());
 
@@ -305,7 +305,6 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
         // determine the offset in the nekRS arrays.
         int node_index = _nek_mesh->boundaryNodeIndex(n);
         auto node_offset = e * _n_vertices_per_surface + node_index;
-
         auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
         _flux_face[node_index] = (*_serialized_solution)(dof_idx) * scale_squared;
       }
@@ -339,9 +338,12 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
         // determine the offset in the nekRS arrays.
         int node_index = _nek_mesh->volumeNodeIndex(n);
         auto node_offset = e * _n_vertices_per_volume + node_index;
-
         auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
-        _flux_elem[node_index] = (*_serialized_solution)(dof_idx) * scale_squared; // TODO: check
+
+        // Although we are interpolating into the nekRS volume, we still only multiply this by
+        // the square of the mesh scale (i.e. not the cube of the mesh scale) because we will
+        // be normalizing based on a side integral.
+        _flux_elem[node_index] = (*_serialized_solution)(dof_idx) * scale_squared;
       }
 
       // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
@@ -441,8 +443,8 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
   // units of centimeters, but you're coupling to an app based in meters, the sources will
   // be very different from one another.
-  if (moose_source && (std::abs(nek_source - moose_source) / moose_source) > 0.1)
-    mooseDoOnce(mooseWarning("nekRS source differs from MOOSE source by more than 10\%! "
+  if (moose_source && (std::abs(nek_source - moose_source) / moose_source) > 0.25)
+    mooseDoOnce(mooseWarning("nekRS source differs from MOOSE source by more than 25\%! "
       "This could indicate that your geometries do not line up properly."));
 
   nekrs::normalizeHeatSource(moose_source, nek_source);

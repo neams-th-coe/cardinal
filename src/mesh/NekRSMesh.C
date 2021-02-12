@@ -358,10 +358,7 @@ NekRSMesh::buildMesh()
   if (_boundary && !_volume)
     extractSurfaceMesh();
 
-  if (_volume && !_boundary)
-    extractVolumeMesh();
-
-  if (_volume && _boundary)
+  if (_volume)
     extractVolumeMesh();
 
   addElems();
