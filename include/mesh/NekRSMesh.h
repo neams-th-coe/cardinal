@@ -298,6 +298,16 @@ protected:
    **/
   std::vector<int> _vol_node_index;
 
+  /**
+   * \brief Mapping of side indices to libMesh side indices
+   *
+   * nekRS uses its own side mapping that differs from that assumed in libMesh. In order
+   * to assign the correct sideset IDs to the MooseMesh, we need to know the mapping between
+   * these different conventions. By indexing in the nekRS side index, this returns the
+   * libMesh side index.
+   */
+  std::vector<int> _side_index;
+
   /// Function pointer to the type of new element to add
   Elem * (NekRSMesh::*_new_elem)() const;
 };

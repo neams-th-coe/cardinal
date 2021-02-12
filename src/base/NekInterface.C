@@ -1000,10 +1000,46 @@ void storeVolumeCoupling(int& N)
   MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.process,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
 
+  int * otmp = (int *) malloc(N * sizeof(int));
+  int * ftmp = (int *) calloc(N, sizeof(int));
+
+  nek_volume_coupling.boundary_offset = (int *) malloc(N * sizeof(int));
+  nek_volume_coupling.n_faces_on_boundary = (int *) calloc(N, sizeof(int));
+
+  int b_start = nek_boundary_coupling.offset;
+  for (int i = 0; i < nek_boundary_coupling.n_faces; ++i)
+  {
+    int e = nek_boundary_coupling.element[b_start + i];
+    if (ftmp[e] == 0)
+      otmp[e] = b_start + i;
+
+    ftmp[e] += 1;
+  }
+
+  MPI_Allgatherv(otmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.boundary_offset,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
+  MPI_Allgatherv(ftmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.n_faces_on_boundary,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
   free(recvCounts);
   free(displacement);
   free(etmp);
   free(ptmp);
+  free(otmp);
+  free(ftmp);
+}
+
+int facesOnBoundary(const int elem_id)
+{
+  return nek_volume_coupling.n_faces_on_boundary[elem_id];
+}
+
+void faceSideset(const int elem_id, const int face_id, int& face, int& side)
+{
+  int offset = nek_volume_coupling.boundary_offset[elem_id];
+  face = nek_boundary_coupling.face[offset + face_id];
+  side = nek_boundary_coupling.boundary_id[offset + face_id];
 }
 
 void volumeVertices(const int order, double* x, double* y, double* z)
@@ -1031,6 +1067,9 @@ void volumeVertices(const int order, double* x, double* y, double* z)
 
   MPI_Allgatherv(mesh->z, recvCounts[mesh->rank], MPI_DOUBLE, z,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+
+  free(recvCounts);
+  free(displacement);
 }
 
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
@@ -1052,10 +1091,12 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
   int* etmp = (int *) malloc(max_possible_surfaces * sizeof(int));
   int* ftmp = (int *) malloc(max_possible_surfaces * sizeof(int));
   int* ptmp = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int* btmp = (int *) malloc(max_possible_surfaces * sizeof(int));
 
   nek_boundary_coupling.element = (int *) malloc(max_possible_surfaces * sizeof(int));
   nek_boundary_coupling.face = (int *) malloc(max_possible_surfaces * sizeof(int));
   nek_boundary_coupling.process = (int *) malloc(max_possible_surfaces * sizeof(int));
+  nek_boundary_coupling.boundary_id = (int *) malloc(max_possible_surfaces * sizeof(int));
 
   // number of faces on boundary of interest for this process
   int Nfaces = 0;
@@ -1072,6 +1113,7 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
         etmp[d] = i;
         ftmp[d] = j;
         ptmp[d] = mesh->rank;
+        btmp[d] = face_id;
         d++;
       }
     }
@@ -1091,6 +1133,8 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
   int* displacement = (int *) calloc(mesh->size, sizeof(int));
   displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement);
 
+  nek_boundary_coupling.offset = displacement[mesh->rank];
+
   MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.element,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
 
@@ -1100,11 +1144,15 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
   MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.process,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
 
+  MPI_Allgatherv(btmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.boundary_id,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+
   free(recvCounts);
   free(displacement);
   free(etmp);
   free(ftmp);
   free(ptmp);
+  free(btmp);
 }
 
 void faceVertices(const int order, double* x, double* y, double* z)
@@ -1167,6 +1215,14 @@ void freeMesh()
   if (nek_boundary_coupling.face) free(nek_boundary_coupling.face);
   if (nek_boundary_coupling.process) free(nek_boundary_coupling.process);
   if (nek_boundary_coupling.counts) free(nek_boundary_coupling.counts);
+  if (nek_boundary_coupling.boundary_id) free(nek_boundary_coupling.boundary_id);
+
+  if (nek_volume_coupling.element) free(nek_volume_coupling.element);
+  if (nek_volume_coupling.process) free(nek_volume_coupling.process);
+  if (nek_volume_coupling.counts) free(nek_volume_coupling.counts);
+  if (nek_volume_coupling.boundary_offset) free(nek_volume_coupling.boundary_offset);
+  if (nek_volume_coupling.n_faces_on_boundary) free(nek_volume_coupling.n_faces_on_boundary);
+
   if (matrix.outgoing) free(matrix.outgoing);
   if (matrix.incoming) free(matrix.incoming);
 }

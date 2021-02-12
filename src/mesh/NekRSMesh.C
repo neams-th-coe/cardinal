@@ -139,6 +139,44 @@ NekRSMesh::initializeMeshParams()
 {
   _nek_polynomial_order = nekrs::mesh::polynomialOrder();
 
+  /**
+   * The libMesh face numbering for a 3-D hexagonal element is
+   *            0
+   *            ^    3
+   *            |   /
+   *         o--------o
+   *        /:  | /  /|
+   *       / :  |/  / |
+   *      /  :     /  |
+   *     o--------o  -|-> 2
+   *  4<-|-  o....|...o
+   *     |  .     |  /
+   *     | .  /|  | /
+   *     |.  / |  |/
+   *     o--------o
+   *       /   |
+   *      1    5
+   *
+   * but for nekRS it is
+   *            3
+   *            ^    5
+   *            |   /
+   *         o--------o
+   *        /:  | /  /|
+   *       / :  |/  / |
+   *      /  :     /  |
+   *     o--------o  -|-> 2
+   *  4<-|-  o....|...o
+   *     |  .     |  /
+   *     | .  /|  | /
+   *     |.  / |  |/
+   *     o--------o
+   *       /   |
+   *      0    1
+
+   */
+  _side_index = {1, 5, 2, 0, 4, 3};
+
   switch (_order)
   {
     case order::first:
@@ -303,19 +341,19 @@ NekRSMesh::buildMesh()
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
 
-  // Loop through the mesh to establish a data structure (nek_volume_coupling)
-  // that holds the rank-local element ID and owning rank.
-  // This data structure is used internally by nekRS during the transfer portion.
-  // We must call this before storeBoundaryCoupling because that routine will
-  // potentially use the results of this information for later setting sidesets.
-  if (_volume)
-    nekrs::mesh::storeVolumeCoupling(_n_volume_elems);
-
   // Loop through the mesh to establish a data structure (nek_boundary_coupling)
   // that holds the rank-local element ID, element-local face ID, and owning rank.
   // This data structure is used internally by nekRS during the transfer portion.
+  // We must call this before the volume portion so that we can map the boundary
+  // coupling to the volume coupling.
   if (_boundary)
     nekrs::mesh::storeBoundaryCoupling(*_boundary, _n_surface_elems);
+
+  // Loop through the mesh to establish a data structure (nek_volume_coupling)
+  // that holds the rank-local element ID and owning rank.
+  // This data structure is used internally by nekRS during the transfer portion.
+  if (_volume)
+    nekrs::mesh::storeVolumeCoupling(_n_volume_elems);
 
   if (_boundary && !_volume)
     extractSurfaceMesh();
@@ -336,6 +374,8 @@ NekRSMesh::buildMesh()
 void
 NekRSMesh::addElems()
 {
+  BoundaryInfo & boundary_info = _mesh->get_boundary_info();
+
   for (unsigned int e = 0; e < _n_elems; e++)
   {
     auto elem = (this->*_new_elem)();
@@ -358,6 +398,23 @@ NekRSMesh::addElems()
 
       auto node_ptr = _mesh->add_point(p);
       elem->set_node(n) = node_ptr;
+    }
+
+    // add sideset IDs to the mesh if we have volume coupling (this only adds the
+    // sidesets associated with the coupling)
+    if (_volume && _boundary)
+    {
+      int n_faces_on_boundary = nekrs::mesh::facesOnBoundary(e);
+      for (int f = 0; f < n_faces_on_boundary; ++f)
+      {
+        // get the sideset ID and local face ID
+        int elem_local_face;
+        int boundary_id;
+        nekrs::mesh::faceSideset(e, f, elem_local_face, boundary_id);
+
+        // add this side to the appropriate boundary ID based on the elem-local face ID
+        boundary_info.add_side(elem, _side_index[elem_local_face], boundary_id);
+      }
     }
   }
 }

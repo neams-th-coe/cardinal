@@ -266,6 +266,13 @@ struct volumeCoupling
   // number of elements owned by each process
   int * counts;
 
+  // offset into the boundary_coupling array where this element's face data begins
+  // (this value is not initialized if that element doesnt have any faces on a boundary)
+  int * boundary_offset;
+
+  // number of faces on a boundary of interest for each element
+  int * n_faces_on_boundary;
+
   // number of coupling elements owned by this process
   int n_elems;
 
@@ -289,6 +296,9 @@ struct boundaryCoupling
   // element-local face IDs on the boundary of interest (for all ranks)
   int * face;
 
+  // problem-global boundary ID for each element (for all ranks)
+  int * boundary_id;
+
   // process owning each face (for all faces)
   int * process;
 
@@ -300,6 +310,9 @@ struct boundaryCoupling
 
   // total number of coupling elements
   int total_n_faces;
+
+  // offset into the element, face, and process arrays where this rank's data begins
+  int offset;
 
   /**
    * nekRS process owning the global element in the data transfer mesh
@@ -401,6 +414,22 @@ void storeVolumeCoupling(int& N);
  * @param[out] z Array of \f$z\f$-coordinates for element vertices
  */
 void volumeVertices(const int order, double* x, double* y, double* z);
+
+/**
+ * Get the number of faces of this global element that are on a coupling boundary
+ * @param[in] elem_id global element ID
+ * @return number of faces on a couling boundary
+ */
+int facesOnBoundary(const int elem_id);
+
+/**
+ * Get the element-local face ID and sideset ID for a given global element
+ * @param[in] elem_id global element ID
+ * @param[in] face_id global face ID
+ * @param[out] face local face ID
+ * @param[out] side boundary ID for the face
+ */
+void faceSideset(const int elem_id, const int face_id, int& face, int& side);
 
 /// Free dynamically allocated memory related to the surface mesh interpolation
 void freeMesh();
