@@ -14,4 +14,4 @@ NODAL VARIABLES relative 5.5e-6 floor 1e-10
 	nek_temp
 
 ELEMENT VARIABLES relative 5.5e-6 floor 1e-10
-	flux relative 5.5e-5
+	flux relative 1e-4

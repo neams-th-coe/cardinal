@@ -4,7 +4,7 @@
     input = nek_master.i
     exodiff = 'nek_master_out.e'
     cli_args = '--nekrs-setup cylinder'
-    min_parallel = 6
+    min_parallel = 8
     custom_cmp = 'exodiff.cmp'
     requirement = "A coupled MOOSE-nekRS two-region cylinder heat conduction problem shall predict "
                   "the correct interface and volume temperatures that are obtained from a standalone "
@@ -26,7 +26,8 @@
     input = nek_master_subcycle.i
     csvdiff = 'nek_master_subcycle_out.csv'
     cli_args = '--nekrs-setup cylinder'
-    min_parallel = 6
+    min_parallel = 8
+    rel_err = 1e-5
     requirement = "The same solution shall be obtained as the cylinder_conduction case when nekRS is "
                   "run with a smaller time step than MOOSE with subcycling. The run will not require the "
                   "the same overall number of time steps as the cylinder_conduction test, so we just compare "
@@ -40,9 +41,10 @@
     input = nek_master_reversed.i
     csvdiff = 'nek_master_reversed_out.csv'
     cli_args = '--nekrs-setup cylinder'
-    min_parallel = 6
+    min_parallel = 8
+    rel_err = 1e-5
     requirement = "The same solution shall be obtained when nekRS is run before MOOSE. We compare CSV results "
-                  "against those for the cylinder_conduction case, which match wo within 5e-4. We don't use "
+                  "against those for the cylinder_conduction case, which match wo within 1e-5. We don't use "
                   "exactly the same CSV gold file because the number of time steps differ, and would trigger "
                   "a failure."
   [../]
@@ -51,7 +53,8 @@
     input = nek_master_mini.i
     csvdiff = 'nek_master_subcycle_out.csv'
     cli_args = '--nekrs-setup cylinder'
-    min_parallel = 6
+    min_parallel = 8
+    rel_err = 1e-5
     requirement = "The same solution shall be obtained when nekRS is run as a sub-app with minimized transfers "
                   "for in the incoming and outgoing data transfers. We compare against the same CSV file used "
                   "for the cylinder_conduction_subcycle case because the results should be exactly the same."

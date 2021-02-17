@@ -33,6 +33,12 @@ bool endControlTime();
 bool endControlNumSteps();
 
 /**
+ * Offset increment for indexing into multi-volume arrays for the scalar fields
+ * @return scalar field offset
+ */
+int scalarFieldOffset();
+
+/**
  * Whether nekRS's input file indicates that the problem has a temperature variable
  * @return whether the nekRS problem includes a temperature variable
  */
@@ -43,6 +49,12 @@ bool hasTemperatureVariable();
  * @return whether nekRS will solve for temperature
  */
 bool hasTemperatureSolve();
+
+/**
+ * Whether nekRS contains an OCCA kernel to apply a source to the passive scalar equations
+ * @return whether nekRS has an OCCA kernel for apply a passive scalar source
+ */
+bool hasHeatSourceKernel();
 
 /**
  * Whether the scratch space has already been allocated by the user
@@ -57,22 +69,16 @@ void initializeScratch();
 void freeScratch();
 
 /// Copy the flux from host to device
-void copyFluxToDevice();
-
-/**
- * nekRS process owning the global element in the data transfer mesh
- * @param[in] elem_id element ID
- * @return nekRS process ID
- */
-int processor_id(const int elem_id);
+void copyScratchToDevice();
 
 /**
  * Determine the receiving counts and displacements for all gather routines
+ * @param[in] base_counts unit-wise receiving counts for each process
  * @param[out] counts receiving counts from each process
  * @param[out] displacement displacement for each process's counts
  * @param[in] multiplier optional multiplier on the face-based data
  */
-void displacementAndCounts(int * counts, int * displacement, const int multiplier);
+void displacementAndCounts(const int * base_counts, int * counts, int * displacement, const int multiplier);
 
 /**
  * Form the 2-D interpolation matrix from a starting GLL quadrature rule to an ending
@@ -92,31 +98,65 @@ void interpolationMatrix(double * I, int starting_points, int ending_points);
  * @param[out] Ix interpolated data
  * @param[in] M resulting number of interpolated points in 1-D
  */
-void interpolateSurfaceFaceHex3D(double * scratch, double* I, double* x, int N, double* Ix, int M);
+void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, int N, double* Ix, int M);
 
 /**
- * Interpolate the nekRS temperature onto the data transfer mesh
- * @param[in] I interpolation matrix
+ * Initialize interpolation matrices for transfers in/out of nekRS
+ * @param[in] n_moose_pts number of MOOSE quadrature points in 1-D
+ */
+void initializeInterpolationMatrices(const int n_moost_pts);
+
+/**
+ * Interpolate the nekRS temperature onto the boundary data transfer mesh
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
  * @param[out] T interpolated temperature
  */
-void temperature(const double * I, const int order, const bool needs_interpolation, double* T);
+void boundaryTemperature(const int order, const bool needs_interpolation, double* T);
+
+/**
+ * Interpolate the nekRS temperature onto the volume data transfer mesh
+ * @param[in] order enumeration of the mesh order (0 = first, 1 = second, etc.)
+ * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
+ * @param[out] T interpolated temperature
+ */
+void volumeTemperature(const int order, const bool needs_interpolation, double* T);
 
 /**
  * Interpolate the MOOSE flux onto the nekRS mesh
- * @param[in] I interpolation matrix
  * @param[in] elem_id global element ID
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[in] flux_face flux at the libMesh nodes
  */
- void flux(const double * I, const int elem_id, const int order, double * flux_face);
+ void flux(const int elem_id, const int order, double * flux_face);
+
+/**
+ * Interpolate a volume-based MOOSE flux into the nekRS mesh
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
+ * @param[in] flux_elem flux at the libMesh nodes
+ */
+void flux_volume(const int elem_id, const int order, double * flux_elem);
+
+/**
+ * Interpolate the MOOSE volume heat source onto the nekRS mesh
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
+ * @param[in] source_elem heat source at the libMesh nodes
+ */
+void heat_source(const int elem_id, const int order, double * source_elem);
 
 /**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
  * @return boundary integrated flux
  */
 double fluxIntegral();
+
+/**
+ * Integrate the interpolated heat source over the volume of the data transfer mesh
+ * @return volume integrated heat source
+ */
+double sourceIntegral();
 
 /**
  * Normalize the flux sent to nekRS to conserve the total flux
@@ -126,12 +166,26 @@ double fluxIntegral();
 void normalizeFlux(const double moose_integral, const double nek_integral);
 
 /**
+ * Normalize the heat source sent to nekRS to conserve the total heat source
+ * @param[in] moose_integral total integrated heat source from MOOSE to conserve
+ * @param[in] nek_integral total integrated heat source in nekRS to adjust
+ */
+void normalizeHeatSource(const double moose_integral, const double nek_integral);
+
+/**
  * Compute the area integral of a given integrand over a set of boundary IDs
  * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
  * @param[in] integrand field to integrate
  * @return area integral of a field
  */
 double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand);
+
+/**
+ * Compute the volume integral of a given integrand over the entire scalar mesh
+ * @param[in] integrand field to integrate
+ * @return volume integral of a field
+ */
+double volumeIntegral(const field::NekFieldEnum & integrand);
 
 /**
  * Compute the mass flux weighted integral of a given integrand over a set of boundary IDs
@@ -188,6 +242,58 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
 namespace mesh
 {
+struct interpolationMatrix
+{
+  /**
+   * \brief Interpolation matrix to interpolate _from_ a MOOSE mesh to the nekRS mesh
+   *
+   * This interpolation matrix is used to interpolate boundary heat flux (for boundary
+   * coupling) or volume power density (for volume coupling) from a MOOSE mesh to nekRS's mesh.
+   */
+  double * incoming;
+
+  /**
+   * \brief Interpolation matrix to interpolate _from_ a nekRS mesh to a MOOSE mesh
+   *
+   * This interpolation matrix is used to interpolate boundary temperature (for boundary
+   * coupling) or volume temperatures and densities (for volume coupling) from nekRS's mesh
+   * to a MOOSE mesh.
+   */
+  double * outgoing;
+};
+
+/// Store the geometry and parallel information related to the volume mesh coupling
+struct volumeCoupling
+{
+  // process-local element IDS (for all elements)
+  int * element;
+
+  // process owning each element (for all elements)
+  int * process;
+
+  // number of elements owned by each process
+  int * counts;
+
+  // offset into the boundary_coupling array where this element's face data begins
+  // (this value is not initialized if that element doesnt have any faces on a boundary)
+  int * boundary_offset;
+
+  // number of faces on a boundary of interest for each element
+  int * n_faces_on_boundary;
+
+  // number of coupling elements owned by this process
+  int n_elems;
+
+  // total number of coupling elements
+  int total_n_elems;
+
+  /**
+   * nekRS process owning the global element in the data transfer mesh
+   * @param[in] elem_id element ID
+   * @return nekRS process ID
+   */
+  int processor_id(const int elem_id) { return process[elem_id]; }
+};
 
 /// Store the geometry and parallel information related to the surface mesh coupling
 struct boundaryCoupling
@@ -197,6 +303,9 @@ struct boundaryCoupling
 
   // element-local face IDs on the boundary of interest (for all ranks)
   int * face;
+
+  // problem-global boundary ID for each element (for all ranks)
+  int * boundary_id;
 
   // process owning each face (for all faces)
   int * process;
@@ -209,6 +318,16 @@ struct boundaryCoupling
 
   // total number of coupling elements
   int total_n_faces;
+
+  // offset into the element, face, and process arrays where this rank's data begins
+  int offset;
+
+  /**
+   * nekRS process owning the global element in the data transfer mesh
+   * @param[in] elem_id element ID
+   * @return nekRS process ID
+   */
+  int processor_id(const int elem_id) { return process[elem_id]; }
 };
 
 /**
@@ -274,15 +393,51 @@ int NboundaryID();
 bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, int & n_boundaries);
 
 /**
- * \brief Get the vertices defining the surface mesh interpolation and store mesh coupling information
- * @param[in] boundary_id nekRS boundary IDs for which to find the face vertices
+ * Store the rank-local element, element-local face, and rank ownership for boundary coupling
+ * @param[in] boundary_id boundaries through which nekRS will be coupled
+ * @param[out] N total number of surface elements
+ */
+void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N);
+
+/**
+ * \brief Get the vertices defining the surface mesh interpolation from the stored coupling information
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[out] x Array of \f$x\f$-coordinates for face vertices
  * @param[out] y Array of \f$y\f$-coordinates for face vertices
  * @param[out] z Array of \f$z\f$-coordinates for face vertices
- * @param[out] N number of face vertices in surface mesh
  */
-void faceVertices(const std::vector<int> & boundary_id, const int order, float* x, float* y, float* z, int& N);
+void faceVertices(const int order, double* x, double* y, double* z);
+
+/**
+ * Store the rank-local element and rank ownership for volume coupling
+ * @param[out] N total number of volume elements
+ */
+void storeVolumeCoupling(int& N);
+
+/**
+ * \brief Get the vertices defining the volume mesh interpolation and store mesh coupling information
+ * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
+ * @param[out] x Array of \f$x\f$-coordinates for element vertices
+ * @param[out] y Array of \f$y\f$-coordinates for element vertices
+ * @param[out] z Array of \f$z\f$-coordinates for element vertices
+ */
+void volumeVertices(const int order, double* x, double* y, double* z);
+
+/**
+ * Get the number of faces of this global element that are on a coupling boundary
+ * @param[in] elem_id global element ID
+ * @return number of faces on a couling boundary
+ */
+int facesOnBoundary(const int elem_id);
+
+/**
+ * Get the element-local face ID and sideset ID for a given global element
+ * @param[in] elem_id global element ID
+ * @param[in] face_id global face ID
+ * @param[out] face local face ID
+ * @param[out] side boundary ID for the face
+ */
+void faceSideset(const int elem_id, const int face_id, int& face, int& side);
 
 /// Free dynamically allocated memory related to the surface mesh interpolation
 void freeMesh();

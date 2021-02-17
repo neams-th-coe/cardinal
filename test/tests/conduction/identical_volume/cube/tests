@@ -1,0 +1,22 @@
+[Tests]
+  [./slab_heat_source]
+    type = Exodiff
+    input = nek_master.i
+    exodiff = 'nek_master_out_nek0.e'
+    cli_args = '--nekrs-setup cube'
+    min_parallel = 8
+    requirement = "A coupled MOOSE-nekRS slab heat conduction problem shall produce the correct "
+                  "temperature distribution when a heat source is applied to the nekRS problem. "
+                  "A reference MOOSE standalone problem (in moose.i) solves the equation "
+                  "k*nabla(T)=7*T, i.e. the 'heat source' is 7*T. This surrogate problem is then "
+                  "replicated with Cardinal, where nekRS solves the k*nabla(T)=q, where q is a "
+                  "heat source 'computed' by MOOSE to be 7*T_n, where T_n is the temperature from "
+                  "nekRS. This problem does not really represent any interesting physical case, but "
+                  "is solely intended to show that nekRS correctly solves the heat equation with a "
+                  "heat source 'computed' by some other app. The solution matches the standalone MOOSE "
+                  "case very well - with a nekRS mesh of 15x15x15 elements, postprocessors for the "
+                  "side- and volume-averaged temperature, as well as maximum temperature, match the "
+                  "MOOSE standalone case to within 0.1%. To keep the gold files small here, this test "
+                  "is only performed on a 10x10x10 nekRS mesh."
+  [../]
+[]

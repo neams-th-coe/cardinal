@@ -6,7 +6,7 @@ MooseEnum getNekOrderEnum();
 MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
 
-namespace surface
+namespace order
 {
   /// Enumeration of possible surface order reconstructions for nekRS solution transfer
   enum NekOrderEnum

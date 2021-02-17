@@ -50,11 +50,14 @@ public:
 
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
 
+  /// Add all the elements in the mesh to the MOOSE data structures
+  virtual void addElems();
+
   /**
    * Get the order of the surface mesh; note that this is zero-indexed, so 0 = first, 1 = second
    * \return order
    */
-  const surface::NekOrderEnum & order() const;
+  const order::NekOrderEnum & order() const { return _order; }
 
   /**
    * Get the number of quadrature points per coordinate direction in MOOSE's representation of nekRS's mesh
@@ -69,44 +72,114 @@ public:
   const int nekNumQuadraturePoints1D() const;
 
   /**
+   * \brief Get the number of elements in MOOSE's representation of nekRS's mesh
+   *
+   * This function is used to perform the data transfer routines in NekRSProblem
+   * agnostic of whether we have surface or volume coupling.
+   * return number of elements
+   */
+  const int & numElems() const { return _n_elems; }
+
+  /**
+   * \brief Get the number of vertices per element in MOOSE's representation of nekRS's mesh
+   *
+   * This function is used to perform the data transfer routines in NekRSProblem
+   * agnostic of whether we have surface or volume coupling.
+   * return number of vertices per element
+   */
+  const int & numVerticesPerElem() const { return _n_vertices_per_elem; }
+
+  /**
+   * \brief Get the libMesh node index from nekRS's GLL index ordering
+   *
+   * This function is used to perform the data transfer routines in NekRSProblem
+   * agnostic of whether we have surface or volume coupling.
+   * @param[in] gll_index nekRS GLL index
+   * @return node index
+   */
+  int nodeIndex(const int gll_index) const { return (*_node_index)[gll_index]; }
+
+  /**
    * Get the number of surface elements in MOOSE's representation of nekRS's mesh
    * \return number of surface elements
    */
-  const int & numSurfaceElems() const;
+  const int & numSurfaceElems() const { return _n_surface_elems; }
 
   /**
    * Get the total number of surface elements in nekRS's mesh
    * \return number of surface elements
    */
-  const int & nekNumSurfaceElems() const;
+  const int & nekNumSurfaceElems() const { return _nek_n_surface_elems; }
 
   /**
-   * Get the number of vertices per face element in MOOSE's representation of nekRS's mesh
-   * \return number of vertices per face
+   * Get the number of vertices per surface element in MOOSE's representation of nekRS's mesh
+   * \return number of vertices per surface
    */
-  const int & numVerticesPerFace() const;
+  const int & numVerticesPerSurface() const { return _n_vertices_per_surface; }
+
+  /**
+   * Get the number of volume elements in MOOSE's representation of nekRS's mesh
+   * \return number of volume elements
+   */
+  const int & numVolumeElems() const { return _n_volume_elems; }
+
+  /**
+   * Get the total number of volume elements in nekRS's mesh
+   * \return number of volume elements
+   */
+  const int & nekNumVolumeElems() const { return _nek_n_volume_elems; }
+
+  /**
+   * Get the number of vertices per volume element in MOOSE's representation of nekRS's mesh
+   * \return number of vertices per volume
+   */
+  const int & numVerticesPerVolume() const { return _n_vertices_per_volume; }
 
   /**
    * Get the boundary ID for which nekRS and MOOSE are coupled
    * \return boundary ID
    */
-  const std::vector<int> & boundary() const;
+  const std::vector<int> * boundary() const { return _boundary; }
+
+  /**
+   * Get whether the mesh permits volume-based coupling
+   * \return whether mesh contains volume elements
+   */
+  const bool & volume() const { return _volume; }
+
+  /// Create a new element for a boundary mesh
+  Elem * boundaryElem() const;
+
+  /// Create a new element for a volume mesh
+  Elem * volumeElem() const;
 
   virtual void buildMesh() override;
+
+  /**
+   * For the case of surface coupling only (i.e. no volume coupling), we create a surface
+   * mesh for the elements on the specified boundary IDs
+   */
+  virtual void extractSurfaceMesh();
+
+  /**
+   * For the case of volume coupling only (i.e. no surface coupling), we create a volume
+   * mesh for all volume elements
+   */
+  virtual void extractVolumeMesh();
 
   /**
    * Get the libMesh node index from nekRS's GLL index ordering
    * @param[in] gll_index nekRS GLL index
    * @return node index
    */
-  int NodeIndex(const int gll_index) const { return _node_index[gll_index]; }
+  int boundaryNodeIndex(const int gll_index) const { return _bnd_node_index[gll_index]; }
 
   /**
-   * Get the nekRS GLL index from libMesh's node index ordering
-   * @param[in] node_index libMesh node index
-   * @return GLL index
+   * Get the libMesh node index from nekRS's GLL index ordering
+   * @param[in] gll_index nekRS GLL index
+   * @return node index
    */
-  int GLLIndex(const int node_index) const { return _gll_index[node_index]; }
+  int volumeNodeIndex(const int gll_index) const { return _vol_node_index[gll_index]; }
 
   /**
    * Get the scaling factor applied to the nekRS mesh
@@ -118,8 +191,18 @@ protected:
   /// Initialize members for the mesh and determine the GLL-to-node mapping
   void initializeMeshParams();
 
+  /**
+   * \brief Whether nekRS is coupled through volumes to MOOSE
+   *
+   * Unlike the case with _boundary, nekRS has no concept of volume/block IDs,
+   * so we cannot have the user provide a vector of volumes that they want to
+   * construct, so the best we can do is use a boolean here to turn on/off the
+   * volume-based coupling for the entire mesh.
+   */
+  const bool & _volume;
+
   /// Boundary ID(s) through which to couple Nek to MOOSE
-  const std::vector<int> _boundary;
+  const std::vector<int> * _boundary;
 
   /**
    * \brief Order of the surface interpolation between nekRS and MOOSE
@@ -131,10 +214,13 @@ protected:
    * onto a second-order surface mesh (i.e. Quad9). Note that this is zero-indexed
    * so that an integer value of 0 = first-order, 1 = second-order, etc.
    **/
-  const surface::NekOrderEnum _order;
+  const order::NekOrderEnum _order;
 
-  /// Number of vertices per face
-  int _n_vertices_per_face;
+  /// Number of vertices per surface
+  int _n_vertices_per_surface;
+
+  /// Number of vertices per volume element
+  int _n_vertices_per_volume;
 
   /// Whether diagnostic information should be printed to the console
   const bool & _verbose;
@@ -160,8 +246,23 @@ protected:
   /// Number of surface elements in MooseMesh
   int _n_surface_elems;
 
+  /// Number of volume elements in MooseMesh
+  int _n_volume_elems;
+
+  /// Number of elements in MooseMesh, which depends on whether building a boundary/volume mesh
+  int _n_elems;
+
+  /// Number of vertices per element, which depends on whether building a boundary/volume mesh
+  int _n_vertices_per_elem;
+
+  /// Mapping of GLL nodes to libMesh nodes, which depends on whether building a boundary/volume mesh
+  std::vector<int> * _node_index;
+
   /// Total number of surface elements in the nekRS problem
   int _nek_n_surface_elems;
+
+  /// Total number of volume elements in the nekRS problem
+  int _nek_n_volume_elems;
 
   ///@{
   /**
@@ -170,13 +271,13 @@ protected:
    * This is ordered according to nekRS's internal geometry layout, and is indexed
    * first by the element and then by the node.
    **/
-  float* _x;
-  float* _y;
-  float* _z;
+  double* _x;
+  double* _y;
+  double* _z;
   ///@}
 
   /**
-   * \brief Mapping of GLL indices to MooseMesh node indices
+   * \brief Mapping of boundary GLL indices to MooseMesh node indices
    *
    * In nekRS, the GLL points are ordered by \f$x\f$, \f$y\f$, and \f$z\f$ coordinates,
    * but in order to construct sensible elements in Moose, we need to reorder these
@@ -184,15 +285,29 @@ protected:
    * we would construct triangles with zero/negative Jacobians instead of quad elements.
    * By indexing in the GLL index, this returns the node index.
    **/
-  std::vector<int> _node_index;
+  std::vector<int> _bnd_node_index;
 
   /**
-   * \brief Mapping of MooseMesh node indices to GLL indices
+   * \brief Mapping of volume GLL indices to MooseMesh node indices
+   *
    * In nekRS, the GLL points are ordered by \f$x\f$, \f$y\f$, and \f$z\f$ coordinates,
    * but in order to construct sensible elements in Moose, we need to reorder these
    * points so that they match a libMesh-friendly node ordering. Without such a mapping,
-   * we would construct triangles with zero/negative Jacobians instead of quad elements.
-   * By indexing in the node index, this returns the GLL index.
+   * we would construct triangles with zero/negative Jacobians instead of hex elements.
+   * By indexing in the GLL index, this returns the node index.
    **/
-   std::vector<int> _gll_index;
+  std::vector<int> _vol_node_index;
+
+  /**
+   * \brief Mapping of side indices to libMesh side indices
+   *
+   * nekRS uses its own side mapping that differs from that assumed in libMesh. In order
+   * to assign the correct sideset IDs to the MooseMesh, we need to know the mapping between
+   * these different conventions. By indexing in the nekRS side index, this returns the
+   * libMesh side index.
+   */
+  std::vector<int> _side_index;
+
+  /// Function pointer to the type of new element to add
+  Elem * (NekRSMesh::*_new_elem)() const;
 };

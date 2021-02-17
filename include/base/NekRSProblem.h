@@ -18,6 +18,17 @@ InputParameters validParams<NekRSProblem>();
  * This object controls all of the execution of and data transfers to/from nekRS,
  * fully abstracted from the Nek5000 backend approach adopted in the similar, but
  * more limited, 'NekProblem' class.
+ *
+ * The nekRS temperature solution is interpolated onto the NekRSMesh by multiplying the
+ * nekRS temperature by an interpolation matrix. In the opposite direction, the flux
+ * from MOOSE is interpolated onto the nekRS mesh by a similar interpolation matrix.
+ * This interpolation matrix expresses the
+ * nekRS/MOOSE solutions in terms of interpolating Legendre polynomials, and is equal to
+ * \f$V_{moose}V_{nek}^{-1}\f$, where \f$V_{moose}\f$ is the Vandermonde matrix of the
+ * MOOSE mesh's node points and \f$V_{nek}\f$ is the Vandermonde matrix of the nekRS
+ * mesh's 1-D quadrature points. If the interpolation matrix is unity, this means that
+ * the libMesh node points exactly coincide with the nekRS quadrature point locations, and
+ * hence no interpolation is actually needed.
  */
 class NekRSProblem : public ExternalProblem
 {
@@ -43,6 +54,25 @@ public:
    * that the correct NekTimeStepper is used, etc.
    */
   virtual void initialSetup() override;
+
+  /**
+   * Fill an outgoing auxiliary variable field with nekRS solution data
+   * \param[in] var_number auxiliary variable number
+   * \param[in] value nekRS solution data to fill the variable with
+   */
+  virtual void fillAuxVariable(const unsigned int var_number, const double * value);
+
+  /// Send boundary heat flux to nekRS
+  void sendBoundaryHeatFluxToNek();
+
+  /// Send volume heat source to nekRS
+  void sendVolumeHeatSourceToNek();
+
+  /// Get boundary temperature from nekRS
+  void getBoundaryTemperatureFromNek();
+
+  /// Get volume temperature from nekRS
+  void getVolumeTemperatureFromNek();
 
   virtual void externalSolve() override;
 
@@ -138,7 +168,7 @@ protected:
   NekTimeStepper * _timestepper;
 
   /**
-   * \brief Total integrated flux coming from the coupled MOOSE app.
+   * \brief Total surface-integrated flux coming from the coupled MOOSE app.
    *
    * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
    * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
@@ -148,11 +178,28 @@ protected:
    */
   const PostprocessorValue * _flux_integral;
 
+  /**
+   * \brief Total volume-integrated heat source coming from the coupled MOOSE app.
+   *
+   * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
+   * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
+   * clear subset/superset of the elements on the nekRS mesh. Therefore, to ensure
+   * conservation of energy, we send the total source integral to nekRS for internal
+   * normalization of the heat source applied on the nekRS mesh.
+   */
+  const PostprocessorValue * _source_integral;
+
   /// nekRS temperature interpolated onto the data transfer mesh
   double * _T;
 
-  /// MOOSE flux interpolated onto the data transfer mesh
+  /// MOOSE flux interpolated onto the (boundary) data transfer mesh
   double * _flux_face;
+
+  /// MOOSE flux interpolated onto the (volume) data transfer mesh
+  double * _flux_elem;
+
+  /// MOOSE heat source interpolated onto the data transfer mesh
+  double * _source_elem;
 
   /// temperature transfer variable written to be nekRS
   unsigned int _temp_var;
@@ -160,8 +207,20 @@ protected:
   /// flux transfer variable read from by nekRS
   unsigned int _avg_flux_var;
 
+  /// volumetric heat source variable read from by nekRS
+  unsigned int _heat_source_var;
+
   /// Start time of the simulation based on nekRS's .par file
   double _start_time;
+
+  /// Descriptive string for data transfer going in to nekRS
+  std::string _incoming;
+
+  /// Descriptive string for data transfer coming from nekRS
+  std::string _outgoing;
+
+  /// Number of points for interpolated fields (temperature, density) on the MOOSE mesh
+  int _n_points;
 
   /// Name of postprocessor containing signal of when a synchronization has occurred
   const PostprocessorName * _transfer_in_name;
@@ -172,11 +231,26 @@ protected:
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
 
-  /// Number of vertices per face of the transfer mesh
-  int _n_vertices_per_face;
+  /// Number of vertices per surface element of the transfer mesh
+  int _n_vertices_per_surface;
+
+  /// Number of volume elements in the data transfer mesh, across all processes
+  int _n_volume_elems;
+
+  /// Number of vertices per volume element of the transfer mesh
+  int _n_vertices_per_volume;
+
+  /// Number of elements in the data transfer mesh, which depends on whether boundary/volume coupling
+  int _n_elems;
+
+  /// Number of vertices per element in the data transfer mesh, which depends on whether boundary/volume coupling
+  int _n_vertices_per_elem;
 
   /// Boundary IDs through which to couple nekRS and MOOSE
-  std::vector<int> _boundary;
+  const std::vector<int> * _boundary;
+
+  /// Whether the mesh contains volume-based coupling
+  bool _volume;
 
   /// Underlying mesh object on which nekRS exchanges fields with MOOSE
   const NekRSMesh* _nek_mesh;
@@ -184,33 +258,8 @@ protected:
   /// Underlying executioner
   Transient * _transient_executioner;
 
-  /**
-   * \brief Interpolation matrix between nekRS temperature solution and representation on the MOOSE mesh
-   *
-   * The nekRS temperature solution is interpolated onto the NekRSMesh by multiplying the
-   * nekRS temperature by an interpolation matrix. This interpolation matrix expresse the
-   * nekRS solution in terms of interpolating Legendre polynomials, and is equal to
-   * \f$V_{moose}V_{nek}^{-1}\f$, where \f$V_{moose}\f$ is the Vandermonde matrix of the
-   * MOOSE mesh's node points and \f$V_{nek}\f$ is the Vandermonde matrix of the nekRS
-   * mesh's 1-D quadrature points. If the interpolation matrix is unity, this means that
-   * the libMesh node points exactly coincide with the nekRS quadrature point locations, and
-   * hence no interpolation is actually needed.
-   */
-   double * _temp_interpolation_matrix;
-
-  /**
-   * \brief Interpolation matrix between MOOSE flux and representation on the nekRS mesh
-   *
-   * The MOOSE flux solution is interpolated onto the nekRS mesh by multiplying the
-   * MOOSE flux by an interpolation matrix. This interpolation matrix expresse the
-   * MOOSE solution in terms of interpolating Legendre polynomials, and is equal to
-   * \f$V_{nek}V_{moose}^{-1}\f$, where \f$V_{moose}\f$ is the Vandermonde matrix of the
-   * MOOSE mesh's node points and \f$V_{nek}\f$ is the Vandermonde matrix of the nekRS
-   * mesh's 1-D quadrature points. If the interpolation matrix is unity, this means that
-   * the libMesh node points exactly coincide with the nekRS quadrature point locations, and
-   * hence no interpolation is actually needed.
-   */
-   double * _flux_interpolation_matrix;
+  /// flag to indicate whether this is the first pass to serialize the solution
+  static bool _first;
 
   /**
    * Whether an interpolation needs to be performed on the nekRS temperature solution, or
