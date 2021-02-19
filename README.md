@@ -23,12 +23,29 @@ $ git submodule update --init contrib/moose
 $ git submodule update --init --recursive contrib/openmc
 ```
 
-Next, build the PETSc and libMesh dependencies of MOOSE:
+The first software that must be built is the PETSc numerics library:
 
 ```
 $ ./contrib/moose/scripts/update_and_rebuild_petsc.sh
+```
+
+If a MOOSE-compatible version of PETSc is already installed, it can
+be used instead of the contrib version, after setting the environment
+variables `PETSC_DIR` and `PETSC_ARCH` to the PETSc install directory
+and architecture name.
+
+Second, build the libMesh finite element library:
+
+```
 $ ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 ```
+
+If a MOOSE-compatible version of libMesh is already installed, it can
+be used instead of the contrib version, after setting the environment
+variable `LIBMESH_DIR` to the libMesh install directory.  Take care if
+attempting this: MOOSE is very quick to adopt newly-added libMesh
+APIs, and is often only compatible with a recent libMesh git HEAD,
+not with even the most recent official libMesh release version.
 
 Building libMesh can be quite time consuming. You only need to perform the above step
 if the MOOSE submodule has been updated or this is the first time you are building Cardinal.
