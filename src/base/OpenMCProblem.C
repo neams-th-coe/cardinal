@@ -178,7 +178,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
       // std::cout << "Temperatures: ";
 
-      for (int i = 0; i < _cellIndices.size(); ++i)
+      for (std::size_t i = 0; i < _cellIndices.size(); ++i)
       {
         auto& cell = openmc::model::cells[_cellIndices[i]];
         double T = average_temp.spatialValue(_centers[i]);
@@ -246,7 +246,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
           auto& mesh_filter = _meshFilters[i];
           unsigned int offset = i * mesh_filter->n_bins();
 
-          for (unsigned int e = 0; e < mesh_filter->n_bins(); ++e) {
+          for (decltype(mesh_filter->n_bins()) e = 0; e < mesh_filter->n_bins(); ++e) {
             auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
             auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
             solution.set(dof_idx, mesh_heat.at(offset + e));
@@ -274,7 +274,7 @@ std::vector<double> OpenMCProblem::meshHeatSource() {
 
   size_t idx = 0;
   double totalHeat = 0.0;
-  for (int i = 0; i < _tallies.size(); i++) {
+  for (std::size_t i = 0; i < _tallies.size(); i++) {
     const auto& tally = _tallies[i];
     // Determine number of realizations for normalizing tallies
     auto tally_mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
@@ -336,7 +336,7 @@ std::vector<double> OpenMCProblem::cellHeatSource()
 
   if (totalHeat != 0.0) {
     // Normalize heat source in each material and collect in an array
-    for (int i = 0; i < _cellIndices.size(); ++i) {
+    for (std::size_t i = 0; i < _cellIndices.size(); ++i) {
       double V = _volumes[i];
       // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
       // the fraction of heat deposited in each material. Multiplying by power

@@ -55,7 +55,7 @@ NekMesh::buildMesh()
   // We are reading Quad4s so each one has 4 nodes
   // So loop over the elements and pull out the nodes... easy
 
-  for (unsigned int e = 0; e < num_elems; e++)
+  for (int e = 0; e < num_elems; e++)
   {
     auto elem = new Quad4;
     _mesh->add_elem(elem);

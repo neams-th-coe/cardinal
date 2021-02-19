@@ -373,7 +373,7 @@ NekRSMesh::addElems()
 {
   BoundaryInfo & boundary_info = _mesh->get_boundary_info();
 
-  for (unsigned int e = 0; e < _n_elems; e++)
+  for (int e = 0; e < _n_elems; e++)
   {
     auto elem = (this->*_new_elem)();
     _mesh->add_elem(elem);
@@ -382,7 +382,7 @@ NekRSMesh::addElems()
       _console << std::endl;
 
     // add one point for each vertex of the face element
-    for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
+    for (int n = 0; n < _n_vertices_per_elem; n++)
     {
       int node = (*_node_index)[n];
 
