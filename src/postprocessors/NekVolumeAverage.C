@@ -23,11 +23,6 @@ NekVolumeAverage::validParams()
 NekVolumeAverage::NekVolumeAverage(const InputParameters & parameters) :
   NekVolumeIntegral(parameters)
 {
-  // it's probably a mistake to supply unity to average, since you'd
-  // always just compute 1
-  if (_field == field::unity)
-    mooseWarning("Providing a 'field' of 'unity' to 'NekVolumeAverage' will compute "
-      "a volume-average of the volume, which will always be unity.");
 }
 
 Real

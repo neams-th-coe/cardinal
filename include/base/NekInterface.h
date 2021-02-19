@@ -448,6 +448,13 @@ namespace solution
 {
 
 /**
+ * Get pointer to various solution functions based on enumeration
+ * @param[in] field field to return a pointer to
+ * @return function pointer to method that returns said field as a function of GLL index
+ */
+const double (*solutionPointer(const field::NekFieldEnum & field))(int);
+
+/**
  * \brief Get the temperature solution at given GLL index
  *
  * Because nekRS stores all the passive scalars together in one flat array, this routine
@@ -457,6 +464,13 @@ namespace solution
  * @return temperature value at index
  */
 double temperature(const int id);
+
+/**
+ * Get the pressure solution at given GLL index
+ * @param[in] id GLL index
+ * @return pressure value at index
+ */
+const double pressure(const int id);
 
 /**
  * Return unity, for cases where the integrand or operator we are generalizing acts on 1

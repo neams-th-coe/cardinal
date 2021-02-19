@@ -23,11 +23,6 @@ NekSideAverage::validParams()
 NekSideAverage::NekSideAverage(const InputParameters & parameters) :
   NekSideIntegral(parameters)
 {
-  // it's probably a mistake to supply unity to average, since you'd
-  // always just compute 1
-  if (_field == field::unity)
-    mooseWarning("Providing a 'field' of 'unity' to 'NekSideAverage' will compute "
-      "an area-average of the area, which will always be unity.");
 }
 
 Real
