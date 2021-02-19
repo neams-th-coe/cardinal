@@ -32,9 +32,13 @@ $ ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 
 Building libMesh can be quite time consuming. You only need to perform the above step
 if the MOOSE submodule has been updated or this is the first time you are building Cardinal.
-On systems with multiple processors, you can set the environment
+On systems with multiple processors, you can first set the environment
 variables `JOBS`, `LIBMESH_JOBS`, and/or `MOOSE_JOBS` to be the number
-of processes to use in the parallel `make` done to build libMesh.
+of processes to use in a parallel `make` to build libMesh.  You can
+also save time by restricting (or add flexibility by expanding) the
+`METHOD` options available later (see below) by setting the
+environment variable `METHODS`, e.g. `oprof dbg` would only build
+those two modes, not all three default builds.
 
 Next, you must set the environment variable `NEKRS_HOME` to be the location of the 
 nekRS root directory so that all needed include files are on your path.
@@ -46,8 +50,16 @@ $ export NEKRS_HOME=$(realpath install/)
 
 Finally, in the top-level directory, run `make`.  This will create the executable `cardinal-<mode>` in the
 top-level directory. `<mode>` is the optimization level used to compile MOOSE. You can control
-this mode with the `METHOD` environment variable, which can be set to any combination of `opt`, `oprof`,
-and `dbg`.
+this mode with the `METHOD` environment variable, which by default can
+be set to any combination of `opt` (optimized mode, for production
+runs), `oprof` (very slightly slower, instrumented for performance
+analysis with tools like "oprofile" or "perf"), and `dbg` (debugging
+mode, *much* slower, with debugging symbols, optimization disabled,
+slow internal assertions enabled, and very slow libstdc++
+range-checking and consistency checks enabled).  If a non-default
+`METHODS` variable was used above, you may also have `devel` (slower
+than oprof, much faster than dbg) or `prof` (slightly slower than
+oprof, instrumented for tools like "gprof") available.
 
 ### Optional Make Variables
 
