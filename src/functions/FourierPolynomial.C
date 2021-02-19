@@ -19,14 +19,14 @@ FourierPolynomial::~FourierPolynomial()
 }
 
 Real
-FourierPolynomial::value(Real t, const Point & p)
+FourierPolynomial::value(Real /*t*/, const Point & /*p*/)
 {
   mooseWarning("value() in FourierPolynomial should not be used");
   return 0.0;
 }
 
 Real
-FourierPolynomial::getPolynomialValue(Real t, Real p1, Real p2, int n)
+FourierPolynomial::getPolynomialValue(Real /*t*/, Real p1, Real p2, int n)
 {
   Real phi = atan2(p2, p1);
   if (n == 0)

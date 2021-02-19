@@ -41,9 +41,6 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes"))
 {
-
-  int err;
-
   auto tallyTypeStr = getParam<std::string>("tally_type");
 
   if (tallyTypeStr == "cell") {
@@ -197,12 +194,14 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       }
       // std::cout << std::endl;
 
+      /*
       for (auto& cell : openmc::model::cells) {
         if (cell->type_ == openmc::Fill::MATERIAL) {
           auto val = cell->sqrtkT_[0];
           // std::cout << val*val / openmc::K_BOLTZMANN << ' ';
         }
       }
+      */
       // std::cout << std::endl;
       break;
     }
@@ -279,7 +278,7 @@ std::vector<double> OpenMCProblem::meshHeatSource() {
     const auto& tally = _tallies[i];
     // Determine number of realizations for normalizing tallies
     auto tally_mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-    double tally_sum = std::accumulate(tally_mean.begin(), tally_mean.end(), 0.0);
+    // double tally_sum = std::accumulate(tally_mean.begin(), tally_mean.end(), 0.0);
 
     int m = tally->n_realizations_;
     // TODO: Change OpenMC so that it's correct on all ranks

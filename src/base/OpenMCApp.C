@@ -25,7 +25,7 @@ OpenMCApp::OpenMCApp(InputParameters parameters) : MooseApp(parameters)
   registerAll(_factory, _action_factory, _syntax);
 }
 
-void OpenMCApp::registerAll(Factory &f, ActionFactory &af, Syntax &s)
+void OpenMCApp::registerAll(Factory &f, ActionFactory &af, Syntax &/*s*/)
 {
   Registry::registerObjectsTo(f, {"OpenMCApp"});
   Registry::registerActionsTo(af, {"OpenMCApp"});
