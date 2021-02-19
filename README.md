@@ -18,7 +18,7 @@ other large recursive sub-submodules, you can just fetch the minimum number of s
 build Cardinal:
 
 ```
-$ git submodule udpate --init contrib/nekRS
+$ git submodule update --init contrib/nekRS
 $ git submodule update --init contrib/moose
 $ git submodule update --init --recursive contrib/openmc
 ```
