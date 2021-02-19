@@ -19,7 +19,7 @@ FourierPolynomial::~FourierPolynomial()
 }
 
 Real
-FourierPolynomial::value(Real /*t*/, const Point & /*p*/)
+FourierPolynomial::value(Real /*t*/, const Point & /*p*/) const
 {
   mooseWarning("value() in FourierPolynomial should not be used");
   return 0.0;

@@ -22,7 +22,7 @@ LegendrePolynomial::~LegendrePolynomial()
 }
 
 Real
-LegendrePolynomial::value(Real /*t*/, const Point & /*p*/)
+LegendrePolynomial::value(Real /*t*/, const Point & /*p*/) const
 {
   mooseWarning("value() in LegendrePolynomial should not be used");
   return 0.0;

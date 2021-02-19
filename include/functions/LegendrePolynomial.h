@@ -10,7 +10,7 @@ public:
   LegendrePolynomial(const InputParameters & parameters);
   virtual ~LegendrePolynomial();
 
-  virtual Real value(Real t, const Point & p);
+  virtual Real value(Real t, const Point & p) const;
   Real getPolynomialValue(Real t, Real p, int n);
 
 protected:
