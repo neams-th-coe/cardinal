@@ -32,6 +32,9 @@ $ ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 
 Building libMesh can be quite time consuming. You only need to perform the above step
 if the MOOSE submodule has been updated or this is the first time you are building Cardinal.
+On systems with multiple processors, you can set the environment
+variables `JOBS`, `LIBMESH_JOBS`, and/or `MOOSE_JOBS` to be the number
+of processes to use in the parallel `make` done to build libMesh.
 
 Next, you must set the environment variable `NEKRS_HOME` to be the location of the 
 nekRS root directory so that all needed include files are on your path.
