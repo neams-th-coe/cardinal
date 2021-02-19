@@ -63,13 +63,13 @@ public:
    * Get the number of quadrature points per coordinate direction in MOOSE's representation of nekRS's mesh
    * \return number of quadrature points per coordinate direction
    */
-  const int numQuadraturePoints1D() const;
+  int numQuadraturePoints1D() const;
 
   /**
    * Get the number of quadrature points per coordiante direction in nekRS's mesh
    * \return number of quadrature points per coordinate direction
    */
-  const int nekNumQuadraturePoints1D() const;
+  int nekNumQuadraturePoints1D() const;
 
   /**
    * \brief Get the number of elements in MOOSE's representation of nekRS's mesh

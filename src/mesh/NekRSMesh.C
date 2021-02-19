@@ -122,13 +122,13 @@ NekRSMesh::safeClone() const
   return libmesh_make_unique<NekRSMesh>(*this);
 }
 
-const int
+int
 NekRSMesh::numQuadraturePoints1D() const
 {
   return _order + 2;
 }
 
-const int
+int
 NekRSMesh::nekNumQuadraturePoints1D() const
 {
   return _nek_polynomial_order + 1;

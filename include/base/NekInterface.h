@@ -456,14 +456,14 @@ namespace solution
  * @param[in] id GLL index
  * @return temperature value at index
  */
-const double temperature(const int id);
+double temperature(const int id);
 
 /**
  * Return unity, for cases where the integrand or operator we are generalizing acts on 1
  * @param[in] id GLL index
  * @return unity
  */
-const double unity(const int id);
+double unity(const int id);
 
 } // end namespace solution
 
