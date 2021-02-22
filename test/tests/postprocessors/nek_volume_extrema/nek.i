@@ -34,6 +34,16 @@
     field = temperature
     value_type = min
   []
+  [max_p]
+    type = NekVolumeExtremeValue
+    field = pressure
+    value_type = max
+  []
+  [min_p]
+    type = NekVolumeExtremeValue
+    field = pressure
+    value_type = min
+  []
   [flux_integral]
     type = Receiver
   []
