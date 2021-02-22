@@ -28,6 +28,10 @@
     type = NekVolumeAverage
     field = temperature
   []
+  [pressure_average]
+    type = NekVolumeAverage
+    field = pressure
+  []
   [source_integral]
     type = Receiver
   []
