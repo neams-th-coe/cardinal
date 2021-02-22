@@ -22,14 +22,14 @@ LegendrePolynomial::~LegendrePolynomial()
 }
 
 Real
-LegendrePolynomial::value(Real t, const Point & p)
+LegendrePolynomial::value(Real /*t*/, const Point & /*p*/) const
 {
   mooseWarning("value() in LegendrePolynomial should not be used");
   return 0.0;
 }
 
 Real
-LegendrePolynomial::getPolynomialValue(Real t, Real p, int n)
+LegendrePolynomial::getPolynomialValue(Real /*t*/, Real p, int n)
 {
   Real z;          // Normalized position
   Real plm2 = 0.0; // L-2 Legendre polynomial value

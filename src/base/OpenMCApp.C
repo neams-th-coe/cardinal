@@ -19,13 +19,14 @@ validParams<OpenMCApp>()
 OpenMCApp::OpenMCApp(InputParameters parameters) : MooseApp(parameters)
 {
   int argc = 1;
-  char * argv[1] = {"openmc"};
+  char openmc[] = "openmc";
+  char * argv[1] = { openmc };
 
   openmc_init(argc, argv, &_communicator.get());
   registerAll(_factory, _action_factory, _syntax);
 }
 
-void OpenMCApp::registerAll(Factory &f, ActionFactory &af, Syntax &s)
+void OpenMCApp::registerAll(Factory &f, ActionFactory &af, Syntax &/*s*/)
 {
   Registry::registerObjectsTo(f, {"OpenMCApp"});
   Registry::registerActionsTo(af, {"OpenMCApp"});

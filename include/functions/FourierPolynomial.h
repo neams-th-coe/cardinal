@@ -10,7 +10,7 @@ public:
   FourierPolynomial(const InputParameters & parameters);
   virtual ~FourierPolynomial();
 
-  virtual Real value(Real t, const Point & p);
+  virtual Real value(Real t, const Point & p) const;
   Real getPolynomialValue(Real t, Real p1, Real p2,  int n);
 
 protected:

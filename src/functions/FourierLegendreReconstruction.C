@@ -47,7 +47,7 @@ FourierLegendreReconstruction::~FourierLegendreReconstruction()
 }
 
 Real
-FourierLegendreReconstruction::value(Real t, const Point & p)
+FourierLegendreReconstruction::value(Real t, const Point & p) const
 {
   Real val = 0.0;
 

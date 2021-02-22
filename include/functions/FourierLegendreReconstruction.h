@@ -12,7 +12,7 @@ public:
   FourierLegendreReconstruction(const InputParameters & parameters);
   virtual ~FourierLegendreReconstruction();
 
-  virtual Real value(Real t, const Point & p);
+  virtual Real value(Real t, const Point & p) const;
 
 protected:
 

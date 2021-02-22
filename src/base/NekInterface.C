@@ -393,7 +393,7 @@ void flux(const int elem_id, const int order, double * flux_face)
   int end_1d = mesh->Nq;
   int start_1d = order + 2;
   int end_2d = end_1d * end_1d;
-  int start_2d = start_1d * start_1d;
+  // int start_2d = start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
   if (mesh->rank == nek_boundary_coupling.processor_id(elem_id))
@@ -535,9 +535,9 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
   mesh_t * mesh = nrs->cds->mesh;
 
   double value = -std::numeric_limits<double>::max();
-  MPI_Op reduction_type;
+  // MPI_Op reduction_type;
 
-  const double (*f) (int);
+  double (*f) (int);
 
   // find the field for which we are finding the extreme value
   switch (field)
@@ -576,7 +576,7 @@ double volumeMaxValue(const field::NekFieldEnum & field)
 
   double value = -std::numeric_limits<double>::max();
 
-  const double (*f) (int);
+  double (*f) (int);
 
   // find the field for which we are finding the extreme value
   switch (field)
@@ -591,7 +591,7 @@ double volumeMaxValue(const field::NekFieldEnum & field)
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Np; ++j) {
       int id = i * mesh->Np + j;
-      value = std::max(value, f(i * mesh->Np + j));
+      value = std::max(value, f(id));
     }
   }
 
@@ -609,7 +609,7 @@ double volumeMinValue(const field::NekFieldEnum & field)
 
   double value = std::numeric_limits<double>::max();
 
-  const double (*f) (int);
+  double (*f) (int);
 
   // find the field for which we are finding the extreme value
   switch (field)
@@ -624,7 +624,7 @@ double volumeMinValue(const field::NekFieldEnum & field)
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Np; ++j) {
       int id = i * mesh->Np + j;
-      value = std::min(value, f(i * mesh->Np + j));
+      value = std::min(value, f(id));
     }
   }
 
@@ -642,7 +642,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
   double value = std::numeric_limits<double>::max();
 
-  const double (*f) (int);
+  double (*f) (int);
 
   // find the field for which we are finding the extreme value
   switch (field)
@@ -682,7 +682,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
 
   double integral = 0.0;
 
-  const double (*f) (int);
+  double (*f) (int);
 
   switch (integrand)
   {
@@ -719,7 +719,7 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
 
   double integral = 0.0;
 
-  const double (*f) (int);
+  double (*f) (int);
 
   switch (integrand)
   {
@@ -766,7 +766,7 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
 
   double integral = 0.0;
 
-  const double (*f) (int);
+  double (*f) (int);
 
   switch (integrand)
   {
@@ -1257,13 +1257,13 @@ void freeMesh()
 
 namespace solution
 {
-  const double temperature(const int id)
+  double temperature(const int id)
   {
     nrs_t * nrs = (nrs_t *) nrsPtr();
     return nrs->cds->S[id];
   }
 
-  const double unity(const int /* id */)
+  double unity(const int /* id */)
   {
     return 1.0;
   }
