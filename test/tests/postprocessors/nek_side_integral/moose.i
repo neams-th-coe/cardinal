@@ -6,6 +6,8 @@
 [AuxVariables]
   [temp_test]
   []
+  [pressure_test]
+  []
 []
 
 [ICs]
@@ -13,6 +15,11 @@
     type = FunctionIC
     variable = temp_test
     function = temp
+  []
+  [pressure_test]
+    type = FunctionIC
+    variable = pressure_test
+    function = pressure
   []
 []
 
@@ -41,6 +48,10 @@
   [temp]
     type = ParsedFunction
     value = 'exp(x)+sin(y)+x*y*z'
+  []
+  [pressure]
+    type = ParsedFunction
+    value = 'x+y+z+sin(x*y)'
   []
 []
 
@@ -126,6 +137,46 @@
   [temp_side8]
     type = SideIntegralVariablePostprocessor
     variable = temp_test
+    boundary = '8'
+  []
+  [pressure_side1]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
+    boundary = '1'
+  []
+  [pressure_side2]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
+    boundary = '2'
+  []
+  [pressure_side3]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
+    boundary = '3'
+  []
+  [pressure_side4]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
+    boundary = '4'
+  []
+  [pressure_side5]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
+    boundary = '5'
+  []
+  [pressure_side6]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
+    boundary = '6'
+  []
+  [pressure_side7]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
+    boundary = '7'
+  []
+  [pressure_side8]
+    type = SideIntegralVariablePostprocessor
+    variable = pressure_test
     boundary = '8'
   []
 []

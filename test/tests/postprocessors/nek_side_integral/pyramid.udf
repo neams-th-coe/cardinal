@@ -15,11 +15,11 @@ void UDF_Setup(nrs_t *nrs)
     nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
     nrs->U[n + 2 * nrs->fieldOffset] = 0.0; // z-velocity
 
-    nrs->P[n] = 0.0; // pressure
-
     dfloat x = nrs->mesh->x[n];
     dfloat y = nrs->mesh->y[n];
     dfloat z = nrs->mesh->z[n];
+
+    nrs->P[n] = x + y + z + sin(x * y); // pressure
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = exp(x) + sin(y) + x*y*z; // temperature
   }
