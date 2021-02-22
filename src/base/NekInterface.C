@@ -682,7 +682,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
 
   double integral = 0.0;
 
-  const double (*f) (int);
+  double (*f) (int);
 
   switch (integrand)
   {
