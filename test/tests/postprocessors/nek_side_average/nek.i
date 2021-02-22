@@ -64,6 +64,46 @@
     field = temperature
     boundary = '8'
   []
+  [pressure_avg1]
+    type = NekSideAverage
+    field = pressure
+    boundary = '1'
+  []
+  [pressure_avg2]
+    type = NekSideAverage
+    field = pressure
+    boundary = '2'
+  []
+  [pressure_avg3]
+    type = NekSideAverage
+    field = pressure
+    boundary = '3'
+  []
+  [pressure_avg4]
+    type = NekSideAverage
+    field = pressure
+    boundary = '4'
+  []
+  [pressure_avg5]
+    type = NekSideAverage
+    field = pressure
+    boundary = '5'
+  []
+  [pressure_avg6]
+    type = NekSideAverage
+    field = pressure
+    boundary = '6'
+  []
+  [pressure_avg7]
+    type = NekSideAverage
+    field = pressure
+    boundary = '7'
+  []
+  [pressure_avg8]
+    type = NekSideAverage
+    field = pressure
+    boundary = '8'
+  []
   [flux_integral]
     type = Receiver
   []
