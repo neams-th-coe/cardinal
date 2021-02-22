@@ -646,7 +646,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
   double integral = 0.0;
 
   double (*f) (int);
-  f = solution::solutionPointer(field);
+  f = solution::solutionPointer(integrand);
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
@@ -672,7 +672,7 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
   double integral = 0.0;
 
   double (*f) (int);
-  f = solution::solutionPointer(field);
+  f = solution::solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {
@@ -708,7 +708,7 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
   double integral = 0.0;
 
   double (*f) (int);
-  f = solution::solutionPointer(field);
+  f = solution::solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {

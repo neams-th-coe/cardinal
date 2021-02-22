@@ -22,6 +22,7 @@ namespace field
   enum NekFieldEnum
   {
     temperature,
+    pressure,
     unity
   };
 }
