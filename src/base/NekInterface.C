@@ -1204,9 +1204,9 @@ namespace solution
     return 1.0;
   }
 
-  const double (*solutionPointer(const field::NekFieldEnum & field))(int)
+  double (*solutionPointer(const field::NekFieldEnum & field))(int)
   {
-    const double (*f) (int);
+    double (*f) (int);
 
     switch (field)
     {
