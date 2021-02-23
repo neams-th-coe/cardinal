@@ -293,7 +293,15 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   {
     for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
-      auto elem_ptr = mesh.elem_ptr(e);
+      auto elem_ptr = mesh.query_elem_ptr(e);
+
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+        {
+          libmesh_assert(!mesh.is_serial());
+          continue;
+        }
 
       for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
       {
@@ -326,7 +334,15 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
     // expense occurs in the MOOSE transfer system, not these transfers internally to nekRS.
     for (unsigned int e = 0; e < _n_volume_elems; ++e)
     {
-      auto elem_ptr = mesh.elem_ptr(e);
+      auto elem_ptr = mesh.query_elem_ptr(e);
+
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+        {
+          libmesh_assert(!mesh.is_serial());
+          continue;
+        }
 
       for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
       {
@@ -407,7 +423,15 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 
   for (unsigned int e = 0; e < _n_volume_elems; e++)
   {
-    auto elem_ptr = mesh.elem_ptr(e);
+    auto elem_ptr = mesh.query_elem_ptr(e);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+      {
+        libmesh_assert(!mesh.is_serial());
+        continue;
+      }
 
     for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
     {
@@ -472,7 +496,15 @@ NekRSProblem::fillAuxVariable(const unsigned int var_number, const double * valu
 
   for (unsigned int e = 0; e < _n_elems; e++)
   {
-    auto elem_ptr = _nek_mesh->elemPtr(e);
+    auto elem_ptr = _nek_mesh->queryElemPtr(e);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+      {
+        libmesh_assert(!_nek_mesh->getMesh().is_serial());
+        continue;
+      }
 
     for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
     {
