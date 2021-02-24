@@ -4,6 +4,7 @@
 
 #include "NearestPointReceiver.h"
 #include "AuxiliarySystem.h"
+#include "DelimitedFileReader.h"
 
 #include "mpi.h"
 #include "OpenMCProblem.h"
@@ -26,9 +27,13 @@ validParams<OpenMCProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
   params.addRequiredParam<Real>("power", "specified power for OpenMC");
-  params.addRequiredParam<std::vector<Point>>("centers", "coords of pebble centers");
+
+  params.addParam<std::vector<Point>>("centers", "Coordinates of cell centers to transfer data with");
+  params.addParam<std::vector<FileName>>("centers_file", "Alternative way to provide the coordinates of cells "
+    "to transfer data with");
+
   params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
-  params.addRequiredParam<std::string>("tally_type", "type of tally to use in OpenMC");
+  params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(), "type of tally to use in OpenMC");
   params.addParam<int>("pebble_cell_level", 0, "Level of pebble cells in the OpenMC model");
   params.addParam<std::string>("mesh_template", "mesh tally template for OpenMC");
   return params;
@@ -37,47 +42,112 @@ validParams<OpenMCProblem>()
 OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   ExternalProblem(params),
   _pebble_cell_level(getParam<int>("pebble_cell_level")),
-  _centers(getParam<std::vector<Point>>("centers")),
   _power(getParam<Real>("power")),
-  _volumes(getParam<std::vector<Real>>("volumes"))
+  _volumes(getParam<std::vector<Real>>("volumes")),
+  _tallyType(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>())
 {
-  auto tallyTypeStr = getParam<std::string>("tally_type");
+  if (isParamValid("centers") == isParamValid("centers_file"))
+    mooseError("OpenMCProblem requires either 'centers' or 'centers_file' - you have specified "
+      "either both or none");
 
-  if (tallyTypeStr == "cell") {
-    _tallyType = TallyType::CELL;
-  } else if (tallyTypeStr == "mesh") {
-    _tallyType = TallyType::MESH;
-  } else {
-    mooseError("Invalid tally type specified: " + tallyTypeStr);
-  }
+  // get the coordinates for each cell center that we wish to transfer data with
+  fillCenters();
 
-  if (_tallyType == TallyType::MESH) {
+  if (_tallyType == tally::mesh)
+  {
+    if (!isParamValid("mesh_template"))
+      paramError("mesh_template", "When using a mesh tally, the 'mesh_template' must be provided!");
+
     _meshTemplateFilename = getParam<std::string>("mesh_template");
+
+    if (_meshTemplateFilename.empty())
+      paramError("mesh_template", "When using a mesh tally, the 'mesh_template' parameter cannot be empty!");
   }
 
   auto& m = mesh().getMesh();
 
-  if (openmc::settings::libmesh_comm) {
+  if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
-  }
 
   openmc::settings::libmesh_comm = &m.comm();
 
-    // Find cell for each pebble center
-    // _centers is initialized with the pebble centers from .i file
-    for (auto &c : _centers) {
-      openmc::Particle p {};
-      p.r() = {c(0), c(1), c(2)};
-      p.u() = {0., 0., 1.};
-      openmc::find_cell(p, false);
-      _cellIndices.push_back(p.coord_[_pebble_cell_level].cell);
-      _cellInstances.push_back(p.cell_instance_);
-    }
+  // Find cell for each pebble center
+  for (const auto & c : _centers)
+  {
+    openmc::Particle p {};
+    p.r() = {c(0), c(1), c(2)};
+    p.u() = {0., 0., 1.};
 
-  if (_tallyType == TallyType::CELL) {
-    setupCellTally();
-  } else if (_tallyType == TallyType::MESH) {
-    setupMeshTallies();
+    if (!openmc::find_cell(p, false))
+      mooseError("Cannot find OpenMC cell at position (x, y, z) = (" + Moose::stringify(c(0)) + ", " +
+        Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + ")");
+
+    _cellIndices.push_back(p.coord_[_pebble_cell_level].cell);
+    _cellInstances.push_back(p.cell_instance_);
+  }
+
+  switch (_tallyType)
+  {
+    case tally::cell:
+      setupCellTally();
+      break;
+    case tally::mesh:
+      setupMeshTallies();
+      break;
+    default:
+      mooseError("Unhandled TallyTypeEnum in OpenMCProblem!");
+  }
+}
+
+void
+OpenMCProblem::fillCenters()
+{
+  if (isParamValid("centers"))
+  {
+    _centers = getParam<std::vector<Point>>("centers");
+
+    // no need to also check if we have the correct length, since using Point ensures that already
+    if (_centers.empty())
+      paramError("centers", "'centers' cannot be empty.");
+  }
+  else if (isParamValid("centers_file"))
+  {
+    std::vector<FileName> centers_file = getParam<std::vector<FileName>>("centers_file");
+
+    if (centers_file.empty())
+      paramError("centers_file", "'centers_file' cannot be empty.");
+
+    for (const auto & f : centers_file)
+    {
+      MooseUtils::DelimitedFileReader file(f, &_communicator);
+      file.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
+      file.read();
+
+      const std::vector<std::vector<double>> & data = file.getData();
+
+      // TODO: can replace by file.numEntries after MOOSE update
+     std::size_t num_entries = 0;
+     for (std::size_t i = 0; i < data.size(); ++i)
+       num_entries += data[i].size();
+
+      if (num_entries % DIMENSION != 0)
+        paramError("centers_file", "Number of entries in 'centers_file' ",
+          f, " must be divisible by 3 to give x, y, and z coordinates");
+
+      for (unsigned int i = 0; i < data.size(); ++i)
+      {
+        Point position;
+
+        if (data[i].size() != DIMENSION)
+          paramError("centers_file", "All entries in 'centers_file' ", f,
+            " must contain exactly ", DIMENSION, " coordinates.");
+
+        for (unsigned int j = 0; j < DIMENSION; j++)
+          position(j) = data.at(i).at(j);
+
+        _centers.push_back(position);
+      }
+    }
   }
 }
 
@@ -98,10 +168,6 @@ void OpenMCProblem::setupCellTally() {
 }
 
 void OpenMCProblem::setupMeshTallies() {
-  if (_meshTemplateFilename.empty()) {
-    mooseError("No template filename specified.");
-  }
-
   // create the OpenMC mesh instance
   int meshId = 0;
   for (const auto& mesh : openmc::model::meshes) { meshId = std::max(meshId, mesh->id_); }
@@ -157,16 +223,17 @@ void OpenMCProblem::addExternalVariables()
   addAuxVariable("heat_source", element);
   _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
 
-    auto receiver_params = _factory.getValidParams("NearestPointReceiver");
-    receiver_params.set<std::vector<Point>>("positions") = _centers;
+  auto receiver_params = _factory.getValidParams("NearestPointReceiver");
+  receiver_params.set<std::vector<Point>>("positions") = _centers;
 
-    // Will receive values from the master
-    addUserObject("NearestPointReceiver", "average_temp", receiver_params);
+  // Will receive values from the master
+  addUserObject("NearestPointReceiver", "average_temp", receiver_params);
 }
 
 void OpenMCProblem::externalSolve()
 {
-  openmc_run();
+  int err = openmc_run();
+  if (err) openmc::fatal_error(openmc_err_msg);
 }
 
 void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -175,6 +242,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
+      _console << "Sending temperature to OpenMC..." << std::endl;
+
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
       // std::cout << "Temperatures: ";
 
@@ -207,7 +276,6 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-
       auto& solution = _aux->solution();
 
       auto sys_number = _aux->number();
@@ -215,52 +283,61 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       // get the transfer mesh
       auto & transfer_mesh = _mesh.getMesh();
 
-      if (_tallyType == TallyType::CELL) {
-        auto cell_heat = cellHeatSource();
-        // Debug
-        // std::cout << "Cell heat source: " << std::endl;
-        // for (auto val : cell_heat) { std::cout << val << " " << std::endl; }
-        unsigned int elems_per_sphere = mesh().nElem() / _centers.size();
+      switch (_tallyType)
+      {
+        case tally::cell:
+        {
+          auto cell_heat = cellHeatSource();
+          // Debug
+          // std::cout << "Cell heat source: " << std::endl;
+          // for (auto val : cell_heat) { std::cout << val << " " << std::endl; }
+          unsigned int elems_per_sphere = mesh().nElem() / _centers.size();
 
-        for (unsigned int i = 0; i < _centers.size(); ++i ) {
-          unsigned int offset = i * elems_per_sphere;
-          for (unsigned int e = 0; e < elems_per_sphere; ++e) {
-            auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
-            auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-            // set every element in this pebble with the same heating value
-            solution.set(dof_idx, cell_heat.at(i));
+          for (unsigned int i = 0; i < _centers.size(); ++i ) {
+            unsigned int offset = i * elems_per_sphere;
+            for (unsigned int e = 0; e < elems_per_sphere; ++e) {
+              auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
+              auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+              // set every element in this pebble with the same heating value
+              solution.set(dof_idx, cell_heat.at(i));
+            }
           }
 
+          break;
         }
-      } else {
-        // retrieve the heat source values
-        auto mesh_heat = meshHeatSource();
+        case tally::mesh:
+        {
+          auto mesh_heat = meshHeatSource();
 
-        // Debug
-        // std::cout << "Mesh heat source: " << std::endl;
-        // for (auto val : mesh_heat) { std::cout << val << " " << std::endl; }
+          // Debug
+          // std::cout << "Mesh heat source: " << std::endl;
+          // for (auto val : mesh_heat) { std::cout << val << " " << std::endl; }
 
 
-        // set the heat source directly on the mesh elements
-        for (unsigned int i = 0; i < _meshFilters.size(); ++i) {
-          auto& mesh_filter = _meshFilters[i];
-          unsigned int offset = i * mesh_filter->n_bins();
+          // set the heat source directly on the mesh elements
+          for (unsigned int i = 0; i < _meshFilters.size(); ++i) {
+            auto& mesh_filter = _meshFilters[i];
+            unsigned int offset = i * mesh_filter->n_bins();
 
-          for (decltype(mesh_filter->n_bins()) e = 0; e < mesh_filter->n_bins(); ++e) {
-            auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
-            auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-            solution.set(dof_idx, mesh_heat.at(offset + e));
+            for (decltype(mesh_filter->n_bins()) e = 0; e < mesh_filter->n_bins(); ++e) {
+              auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
+              auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+              solution.set(dof_idx, mesh_heat.at(offset + e));
+            }
           }
-        }
+        break;
       }
 
-      solution.close();
+      default:
+        mooseError("Unhandled TallyTypeEnum in OpenMCProblem!");
+    }
 
-      break;
+    solution.close();
+    break;
     }
     default:
     {
-      mooseError("Shouldn't get here!");
+      mooseError("Unhandled DirectionEnum in OpenMCProblem!");
       break;
     }
   }

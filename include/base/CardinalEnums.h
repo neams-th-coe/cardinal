@@ -5,6 +5,7 @@
 MooseEnum getNekOrderEnum();
 MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
+MooseEnum getTallyTypeEnum();
 
 namespace order
 {
@@ -33,5 +34,15 @@ namespace operation
   {
     max,
     min
+  };
+}
+
+namespace tally
+{
+  /// Type of tally to construct for the OpenMC model
+  enum TallyTypeEnum
+  {
+    cell,
+    mesh
   };
 }
