@@ -78,8 +78,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     p.r() = {c(0), c(1), c(2)};
     p.u() = {0., 0., 1.};
 
-    bool found = openmc::find_cell(p, false);
-    if (!found)
+    if (!openmc::find_cell(p, false))
       mooseError("Cannot find OpenMC cell at position (x, y, z) = (" + Moose::stringify(c(0)) + ", " +
         Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + ")");
 
@@ -139,8 +138,12 @@ OpenMCProblem::fillCenters()
       {
         Point position;
 
+        if (data[i].size() != DIMENSION)
+          paramError("centers_file", "All entries in 'centers_file' ", f,
+            " must contain exactly ", DIMENSION, " coordinates.");
+
         for (unsigned int j = 0; j < DIMENSION; j++)
-          position(j) = data[i][j];
+          position(j) = data.at(i).at(j);
 
         _centers.push_back(position);
       }
