@@ -64,8 +64,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   if (_volumes.size() == 1)
   {
     Real vol = _volumes[0];
-    _volumes.resize(_centers.size());
-    std::fill(_volumes.begin(), _volumes.end(), vol);
+    _volumes = std::vector<double>(_centers.size(), vol);
   }
 
   if (_tallyType == tally::mesh)
