@@ -7,14 +7,24 @@ NEKRS_LIBP_DEFINES := -DUSE_NULL_PROJECTION=1
 USE_OCCA_MEM_BYTE_ALIGN := 64
 OCCA_CXXFLAGS := -O2 -ftree-vectorize -funroll-loops -march=native -mtune=native
 
+# autoconf-archive puts some arguments (e.g. -std=c++17) into the compiler
+# variable rather than the compiler flags variable.
+#
+# cmake allows this, but wants any compiler arguments to be
+# semicolon-separated, not space-separated
+space := $(subst ,, )
+LIBMESH_CC_LIST := $(subst $(space),;,$(libmesh_CC))
+LIBMESH_CXX_LIST := $(subst $(space),;,$(libmesh_CXX))
+LIBMESH_F90_LIST := $(subst $(space),;,$(libmesh_F90))
+
 $(NEKRS_BUILDDIR)/Makefile: $(NEKRS_DIR)/CMakeLists.txt
 	mkdir -p $(NEKRS_BUILDDIR)
 	cd $(NEKRS_BUILDDIR) && \
 	cmake -L -Wno-dev -Wfatal-errors \
 	-DCMAKE_BUILD_TYPE="$(BUILD_TYPE)" \
-	-DCMAKE_C_COMPILER="$(libmesh_CC)" \
-	-DCMAKE_CXX_COMPILER="$(libmesh_CXX)" \
-	-DCMAKE_Fortran_COMPILER="$(libmesh_F90)" \
+	-DCMAKE_C_COMPILER="$(LIBMESH_CC_LIST)" \
+	-DCMAKE_CXX_COMPILER="$(LIBMESH_CXX_LIST)" \
+	-DCMAKE_Fortran_COMPILER="$(LIBMESH_F90_LIST)" \
 	-DCMAKE_C_FLAGS="$(NEKRS_CFLAGS)" \
 	-DCMAKE_CXX_FLAGS="$(NEKRS_CXXFLAGS)" \
 	-DCMAKE_Fortran_FLAGS="$(NEKRS_FFLAGS)" \
