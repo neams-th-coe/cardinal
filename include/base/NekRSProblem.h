@@ -165,7 +165,7 @@ protected:
   const bool & _minimize_transfers_out;
 
   /// The time stepper used for selection of time step size
-  NekTimeStepper * _timestepper;
+  NekTimeStepper * _timestepper = nullptr;
 
   /**
    * \brief Total surface-integrated flux coming from the coupled MOOSE app.
@@ -176,7 +176,7 @@ protected:
    * conservation of energy, we send the total flux integral to nekRS for internal
    * normalization of the heat flux applied on the nekRS mesh.
    */
-  const PostprocessorValue * _flux_integral;
+  const PostprocessorValue * _flux_integral = nullptr;
 
   /**
    * \brief Total volume-integrated heat source coming from the coupled MOOSE app.
@@ -187,19 +187,19 @@ protected:
    * conservation of energy, we send the total source integral to nekRS for internal
    * normalization of the heat source applied on the nekRS mesh.
    */
-  const PostprocessorValue * _source_integral;
+  const PostprocessorValue * _source_integral = nullptr;
 
   /// nekRS temperature interpolated onto the data transfer mesh
-  double * _T;
+  double * _T = nullptr;
 
   /// MOOSE flux interpolated onto the (boundary) data transfer mesh
-  double * _flux_face;
+  double * _flux_face = nullptr;
 
   /// MOOSE flux interpolated onto the (volume) data transfer mesh
-  double * _flux_elem;
+  double * _flux_elem = nullptr;
 
   /// MOOSE heat source interpolated onto the data transfer mesh
-  double * _source_elem;
+  double * _source_elem = nullptr;
 
   /// temperature transfer variable written to be nekRS
   unsigned int _temp_var;
@@ -223,10 +223,10 @@ protected:
   int _n_points;
 
   /// Name of postprocessor containing signal of when a synchronization has occurred
-  const PostprocessorName * _transfer_in_name;
+  const PostprocessorName * _transfer_in_name = nullptr;
 
   /// Postprocessor containing the signal of when a synchronization has occurred
-  const PostprocessorValue * _transfer_in;
+  const PostprocessorValue * _transfer_in = nullptr;
 
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
@@ -247,7 +247,7 @@ protected:
   int _n_vertices_per_elem;
 
   /// Boundary IDs through which to couple nekRS and MOOSE
-  const std::vector<int> * _boundary;
+  const std::vector<int> * _boundary = nullptr;
 
   /// Whether the mesh contains volume-based coupling
   bool _volume;
@@ -256,7 +256,7 @@ protected:
   const NekRSMesh* _nek_mesh;
 
   /// Underlying executioner
-  Transient * _transient_executioner;
+  Transient * _transient_executioner = nullptr;
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
