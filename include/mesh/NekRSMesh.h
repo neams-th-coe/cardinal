@@ -252,6 +252,9 @@ protected:
   /// Number of elements in MooseMesh, which depends on whether building a boundary/volume mesh
   int _n_elems;
 
+  /// Function returning the processor id which should own each element
+  int (*_elem_processor_id)(const int elem_id);
+
   /// Number of vertices per element, which depends on whether building a boundary/volume mesh
   int _n_vertices_per_elem;
 

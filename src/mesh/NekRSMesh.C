@@ -363,6 +363,18 @@ NekRSMesh::buildMesh()
 
   addElems();
 
+  // We're looking up the elements by id, so we can't let the ids get
+  // renumbered.
+  _mesh->allow_renumbering(false);
+
+  // If we have a DistributedMesh then we've already partitioned the
+  // elements to match the nekrs mesh, and libMesh shouldn't try to
+  // improve on that.  We won't ever be doing any element deletion or
+  // coarsening, but we *have* neglected to partition the nodes, so
+  // we'll rely on libMesh's "critical" partitioning to do that.
+  if (!_mesh->is_replicated())
+    _mesh->skip_noncritical_partitioning(true);
+
   _mesh->prepare_for_use();
 
   _console << "Done preparing nekRS MooseMesh." << std::endl;
@@ -395,6 +407,7 @@ NekRSMesh::addElems()
 
       auto node_ptr = _mesh->add_point(p);
       elem->set_node(n) = node_ptr;
+      elem->processor_id() = _elem_processor_id(e);
     }
 
     // add sideset IDs to the mesh if we have volume coupling (this only adds the
@@ -437,6 +450,7 @@ NekRSMesh::extractSurfaceMesh()
   _n_elems = _n_surface_elems;
   _n_vertices_per_elem = _n_vertices_per_surface;
   _node_index = &_bnd_node_index;
+  _elem_processor_id = nekrs::mesh::BoundaryElemProcessorID;
 }
 
 void
@@ -462,6 +476,7 @@ NekRSMesh::extractVolumeMesh()
   _n_elems = _n_volume_elems;
   _n_vertices_per_elem = _n_vertices_per_volume;
   _node_index = &_vol_node_index;
+  _elem_processor_id = nekrs::mesh::VolumeElemProcessorID;
 }
 
 Elem *
