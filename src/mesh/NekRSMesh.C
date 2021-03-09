@@ -370,13 +370,19 @@ NekRSMesh::buildMesh()
   // renumbered.
   _mesh->allow_renumbering(false);
 
-  // If we have a DistributedMesh then we've already partitioned the
-  // elements to match the nekrs mesh, and libMesh shouldn't try to
-  // improve on that.  We won't ever be doing any element deletion or
-  // coarsening, but we *have* neglected to partition the nodes, so
-  // we'll rely on libMesh's "critical" partitioning to do that.
+  // If we have a DistributedMesh then:
   if (!_mesh->is_replicated())
-    _mesh->skip_noncritical_partitioning(true);
+    {
+      // we've already partitioned the elements to match the nekrs
+      // mesh, and libMesh shouldn't try to improve on that.  We won't
+      // ever be doing any element deletion or coarsening, so we don't
+      // even need libMesh's "critical" partitioning.
+      _mesh->skip_partitioning(true);
+
+      // But, we haven't yet partitioned nodes, and if we tell libMesh
+      // not to do that automatically then we need to do it manually
+      libMesh::Partitioner::set_node_processor_ids(*_mesh);
+    }
 
   _mesh->prepare_for_use();
 
