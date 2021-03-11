@@ -398,6 +398,8 @@ NekRSMesh::addElems()
   for (int e = 0; e < _n_elems; e++)
   {
     auto elem = (this->*_new_elem)();
+    elem->set_id() = e;
+    elem->processor_id() = _elem_processor_id(e);
     _mesh->add_elem(elem);
 
     if (_verbose)
@@ -417,7 +419,6 @@ NekRSMesh::addElems()
 
       auto node_ptr = _mesh->add_point(p);
       elem->set_node(n) = node_ptr;
-      elem->processor_id() = _elem_processor_id(e);
     }
 
     // add sideset IDs to the mesh if we have volume coupling (this only adds the
