@@ -379,6 +379,10 @@ NekRSMesh::buildMesh()
       // even need libMesh's "critical" partitioning.
       _mesh->skip_partitioning(true);
 
+      // But that means we have to update the partitioning metadata
+      // ourselves
+      _mesh->recalculate_n_partitions();
+
       // But, we haven't yet partitioned nodes, and if we tell libMesh
       // not to do that automatically then we need to do it manually
       libMesh::Partitioner::set_node_processor_ids(*_mesh);
