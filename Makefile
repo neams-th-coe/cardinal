@@ -32,10 +32,10 @@ HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
 HDF5_INCLUDES := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
 
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
-ifeq ($(METHOD),opt)
-	BUILD_TYPE := Release
-else 
+ifeq ($(METHOD),dbg)
 	BUILD_TYPE := Debug
+else 
+	BUILD_TYPE := Release
 endif
 
 OCCA_CUDA_ENABLED=0
