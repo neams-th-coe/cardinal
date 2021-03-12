@@ -1,7 +1,7 @@
 [submodule "contrib/openmc"]
 	path = contrib/openmc
 	url = https://github.com/pshriwise/openmc.git
-  branch = filter_mesh_translation_rebase
+  branch = mft
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
 	url = https://xgitlab.cels.anl.gov/neams-th-coe/nekRS.git
