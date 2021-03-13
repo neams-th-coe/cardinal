@@ -6,7 +6,7 @@ $(OPENMC_BUILDDIR)/Makefile: $(OPENMC_DIR)/CMakeLists.txt
 	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
 	-Dlibmesh=ON \
 	-Doptimize=ON \
-	-DLIBMESH_DIR=$(LIBMESH_DIR) \
+	-DCMAKE_PREFIX_PATH=$(LIBMESH_DIR) \
 	-DCMAKE_INSTALL_PREFIX=$(OPENMC_INSTALL_DIR) \
 	-DCMAKE_INSTALL_LIBDIR=$(OPENMC_LIBDIR) \
 	$(OPENMC_DIR)
@@ -25,4 +25,3 @@ cleanall: cleanall_openmc
 clobberall: clobber_openmc
 
 .PHONY: build_openmc cleanall_openmc clobber_openmc
-
