@@ -78,6 +78,20 @@ range-checking and consistency checks enabled).  If a non-default
 than oprof, much faster than dbg) or `prof` (slightly slower than
 oprof, instrumented for tools like "gprof") available.
 
+To run any problems using OpenMC, you will need to specify a path to
+cross section data. A detailed description of how to specify cross section
+data can be found in the [OpenMC documentation](https://docs.openmc.org/en/stable/usersguide/cross_sections.html).
+Any cross section data set may be used when using OpenMC within Cardinal; however,
+the test suite assumes you are using the ENDF/B7-II.1 data set, which has data for temperatures
+between 250 K and 2500 K. Download this library from [here](https://openmc.org/official-data-libraries/)
+and then set the `OPENMC_CROSS_SECTIONS` environment variable to the location of the
+`cross_sections.xml` file. For example, if you placed the cross-section data in
+`${HOME}/cross_sections`, this environment variable would be set to:
+
+```
+$ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
+```
+
 ### Optional Make Variables
 
 * `HDF5_INCLUDE_DIR`: Specify location of HDF5 headers.  Defaults to:

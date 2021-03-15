@@ -11,6 +11,7 @@
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/constants.h"
+#include "openmc/error.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "openmc/message_passing.h"
@@ -278,23 +279,30 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      _console << "Sending temperature to OpenMC..." << std::endl;
+      _console << "Sending temperature to OpenMC... " << std::endl;
+
+      // find the max/min temperatures sent to OpenMC (for diagnostics)
+      Real maximum = std::numeric_limits<Real>::min();
+      Real minimum = std::numeric_limits<Real>::max();
 
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
-      // std::cout << "Temperatures: ";
 
       for (std::size_t i = 0; i < _cellIndices.size(); ++i)
       {
         auto& cell = openmc::model::cells[_cellIndices[i]];
         double T = average_temp.spatialValue(_centers[i]);
-        // std::cout << "Temperature at location: "
-        //           << _centers[i](0) << ' '
-        //           << _centers[i](1) << ' '
-        //           << _centers[i](2) <<
-        //           " Temp: " << T << std::endl;
+         std::cout << "Temperature at location: "
+                   << _centers[i](0) << ' '
+                   << _centers[i](1) << ' '
+                   << _centers[i](2) <<
+                   " Temp: " << T << std::endl;
+
+        maximum = std::max(maximum, T);
+        minimum = std::min(minimum, T);
 
         // std::cout << "Temperature: " << T << std::endl;
         // std::cout << "Cell instance: " << _cellInstances[i] << std::endl;
+
         cell->set_temperature(T, _cellInstances[i], true);
       }
       // std::cout << std::endl;
@@ -307,7 +315,11 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
         }
       }
       */
-      // std::cout << std::endl;
+
+      _console << "done" << std::endl;
+
+      _console << "Temperature min/max values: " << minimum << ", " << maximum << std::endl;
+
       break;
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
