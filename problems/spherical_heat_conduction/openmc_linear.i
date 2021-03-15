@@ -7,7 +7,10 @@
   type = OpenMCProblem
   power = 0.15 # W
   centers = '0 0 0'
-  volumes = '14.137166941154067'
+
+  # only required for cell-based tallies, but included here anyways for quick switching
+  volumes = '1.279209e+01'
+
   tally_type = 'mesh'
   pebble_cell_level = 0
   mesh_template = 'sphere.e'
@@ -55,6 +58,12 @@
   type = Transient
   dt = 5e-4
   num_steps = 50
+[]
+
+[Postprocessors]
+  [pebble_volume] # show the volume of the pebble for confirmation
+    type = VolumePostprocessor
+  []
 []
 
 [Outputs]
