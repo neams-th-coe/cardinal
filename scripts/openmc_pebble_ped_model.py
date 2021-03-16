@@ -12,6 +12,19 @@ import scipy.stats
 import openmc
 import openmc.model
 
+
+# -------------- Text Colors ----------------
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 # -------------- Unit Conversions -----------
 mm = 0.1   # default cm
 μm = 1e-4  # default cm
@@ -96,12 +109,19 @@ ap.add_argument('-l', dest='shape', type=int,
 
 args = ap.parse_args()
 
+# warn user about pebble center expetation
+radius_warning = ("************************************************************\n"
+                  "This script expects pebble centers scaled to radius = 1.5 cm\n"
+                  "************************************************************")
+print("{}{}{}".format(bcolors.WARNING, radius_warning, bcolors.ENDC))
+
 # transfer argument values to script variables
 random_distribution = args.random_trisos
 verbose = args.verbose
 
 # Pebble centers coordinates (x,y,z)
-print("Reading pseudo-random pebble centers from file pebble_centers_rescaled.txt")
+print("Reading pseudo-random pebble centers "
+      "from file pebble_centers_rescaled.txt...")
 pebble_centers = np.loadtxt('pebble_centers_rescaled.txt', delimiter=' ')
 print("File pebble_centers_rescaled.txt reading completed")
 
@@ -122,10 +142,6 @@ vessel_z_min -= extra_thickness # bottom plane vessel ; scaled by TAMU experimen
 vessel_z_max += extra_thickness # top plane    vessel ; scaled by TAMU experiment factor
 vessel_radius += extra_thickness #                       scaled by TAMU experiment factor
 vessel_height = vessel_z_max - vessel_z_min
-
-print("************************************************************")
-print("This script expects pebble centers scaled to radius = 1.5 cm")
-print("************************************************************")
 
 # -------------- Printing Parameters ---------
 if verbose:
