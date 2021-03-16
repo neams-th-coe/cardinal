@@ -13,21 +13,21 @@ import openmc
 import openmc.model
 
 # -------------- Unit Conversions -----------
-mm                    = 0.1   # default cm
-μm                    = 1e-4  # default cm
+mm = 0.1   # default cm
+μm = 1e-4  # default cm
 
 # -------------- Geometry Constants --------
 # TRISO particle (UCBTH-14-002, Table 2-1)
-radius_fuel           = 400.0*μm/2
-thickness_c_buffer    = 100.0*μm
-thickness_pyc_inner   =  35.0*μm
-thickness_sic         =  35.0*μm
-thickness_pyc_outer   =  35.0*μm
-radius_c_buffer       = radius_fuel + thickness_c_buffer
-radius_pyc_inner      = radius_c_buffer + thickness_pyc_inner
-radius_sic            = radius_pyc_inner + thickness_sic
-radius_pyc_outer      = radius_sic + thickness_pyc_outer
-packing_fraction      = 0.40
+radius_fuel = 400.0*μm/2
+thickness_c_buffer = 100.0*μm
+thickness_pyc_inner = 35.0*μm
+thickness_sic =  35.0*μm
+thickness_pyc_outer = 35.0*μm
+radius_c_buffer = radius_fuel + thickness_c_buffer
+radius_pyc_inner = radius_c_buffer + thickness_pyc_inner
+radius_sic = radius_pyc_inner + thickness_sic
+radius_pyc_outer = radius_sic + thickness_pyc_outer
+packing_fraction = 0.40
 
 # UCBTH-14-002, Table 2-1 (differs slightly from Cisneros, Table 5-2) ; scaled by TAMU experiment factor
 radius_pebble_inner   = 2.5/2
@@ -70,7 +70,11 @@ temperature_flibe    = (temperature_inlet + temperature_outlet)/2
 
 # --------------------------- Main ----------------------------
 ap = ArgumentParser(description="Script for producing a pebble bed"
-                                " geometry from a points file")
+                                " geometry from a points file",
+                    epilog="This script expects the "
+                    "presence of a 'pebble_centers_rescaled.txt'"
+                    " file in which all pebble centers are represented "
+                    " for pebbles with a radius of 1.5 cm.")
 
 ap.add_argument('-e', dest='extra_refl', type=float,
                 default=0.0, help='Additional reflector thickness')
@@ -118,6 +122,10 @@ vessel_z_min -= extra_thickness # bottom plane vessel ; scaled by TAMU experimen
 vessel_z_max += extra_thickness # top plane    vessel ; scaled by TAMU experiment factor
 vessel_radius += extra_thickness #                       scaled by TAMU experiment factor
 vessel_height = vessel_z_max - vessel_z_min
+
+print("************************************************************")
+print("This script expects pebble centers scaled to radius = 1.5 cm")
+print("************************************************************")
 
 # -------------- Printing Parameters ---------
 if verbose:
@@ -342,6 +350,7 @@ settings.temperature = { 'default' : 573.0,
                          'multipole' : True,
                          'range' : (300.0, 1500.0),
                          'tolerance' : 1000.0 }
+
 # Fuel volume calculation
 volume_fuel = openmc.VolumeCalculation([m_fuel], 10000000, *c_pebble_central.bounding_box)
 settings.volume_calculations = [volume_fuel]
