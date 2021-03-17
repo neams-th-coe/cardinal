@@ -100,3 +100,21 @@ NekTimeStepper::minDT() const
 {
   return _min_dt;
 }
+
+void
+NekTimeStepper::setReferenceTime(const Real & L, const Real & U)
+{
+  _t_ref = L / U;
+}
+
+void
+NekTimeStepper::dimensionalizeDT()
+{
+  _nek_dt *= _t_ref;
+}
+
+Real
+NekTimeStepper::nondimensionalDT(const Real & dimensional_dt) const
+{
+  return dimensional_dt / _t_ref;
+}
