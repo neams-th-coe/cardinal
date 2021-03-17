@@ -91,13 +91,6 @@ reflector_porosity   = 0.112  # Novak thesis, Table 6.4, assuming 5 mm gaps b/w 
 rho_graphite         = 1632.0  # Novak thesis, page 234
 rho_reflector = reflector_porosity*rho_flibe + (1 - reflector_porosity)*rho_graphite
 density_reflector    = ('kg/m3', rho_reflector)
-# Graphite-flibe homogenized reflector
-flibe_molar_mass = m_flibe.average_molar_mass * 7
-graphite_molar_mass = m_graphite_outer.average_molar_mass
-# moles of flibe in 1 m^3
-mols_flibe = reflector_porosity * (rho_flibe * 1000.0) / flibe_molar_mass
-# moles of graphite in 1 m^3:
-mols_graphite = (1.0 - reflector_porosity) * (rho_graphite * 1000.0) / graphite_molar_mass
 
 # --------------------------------------------------
 # NO CONSTANT DEFINITIONS BEYOND THIS LINE
@@ -166,7 +159,13 @@ vessel_x, vessel_y = (0.0, 0.0)
 vessel_z_min = np.min(pebble_centers[:, 2]) - radius_pebble_outer
 vessel_z_max = np.max(pebble_centers[:, 2]) + radius_pebble_outer
 vessel_outer_radius = np.max(np.linalg.norm(pebble_centers[:, :-1], axis=1)) + radius_pebble_outer
-vessel_inner_radius = np.max(np.linalg.norm(pebble_centers[:, :-1], axis=1)) + radius_pebble_outer
+vessel_inner_radius = np.min(np.linalg.norm(pebble_centers[:, :-1], axis=1)) + radius_pebble_outer
+
+if args.verbose:
+    print("\tMin pebble (center) z coordinate = {}".format(vessel_z_min))
+    print("\tMax pebble (center) z coordinate = {}".format(vessel_z_max))
+    print("\tMax pebble (center) r coordinate = {}".format(vessel_outer_radius))
+    print("\tMin pebble (center) r coordinate = {}\n".format(vessel_inner_radius))
 
 # Add additional moderation surrounding the pebble bed to reduce the
 # artificially high k-eff due to reflecting boundary conditions
@@ -258,6 +257,13 @@ m_flibe.add_nuclide('Li6', 2.0*(1 - enrichment_li7))
 m_flibe.add_element('Be', 1.0)
 m_flibe.add_element('F', 4.0)
 # TODO: FLiBe coolant - no S(alpha, beta) data available up to ENDF/B-VIIIb4
+# Graphite-flibe homogenized reflector
+flibe_molar_mass = m_flibe.average_molar_mass * 7
+graphite_molar_mass = m_graphite_outer.average_molar_mass
+# moles of flibe in 1 m^3
+mols_flibe = reflector_porosity * (rho_flibe * 1000.0) / flibe_molar_mass
+# moles of graphite in 1 m^3:
+mols_graphite = (1.0 - reflector_porosity) * (rho_graphite * 1000.0) / graphite_molar_mass
 
 # Then, the absolute number of moles is irrelevant since we're adding nuclides based on
 # the atomic representation
@@ -365,7 +371,7 @@ pebble_cells = [c_pebble_inner,
 u_pebble = openmc.Universe(cells=pebble_cells)
 
 # figure out the reactor boundary conditions
-reflfector_bc = args.bc
+reflector_bc = args.bc
 if args.reflector:
     vessel_bc = 'transmission'
 else:
@@ -376,10 +382,13 @@ vessel_outer = openmc.ZCylinder(x0=vessel_x,
                                 y0=vessel_y,
                                 r=vessel_outer_radius,
                                 boundary_type=vessel_bc)
-vessel_inner = openmc.ZCylinder(x0=vessel_x,
-                                y0=vessel_y,
-                                r=vessel_inner_radius,
-                                boundary_type=vessel_bc)
+
+if args.reflector:
+    vessel_inner = openmc.ZCylinder(x0=vessel_x,
+                                    y0=vessel_y,
+                                    r=vessel_inner_radius,
+                                    boundary_type=vessel_bc)
+
 vessel_bottom = openmc.ZPlane(z0=vessel_z_min,
                               boundary_type=vessel_bc)
 vessel_top = openmc.ZPlane(z0=vessel_z_max,
@@ -512,7 +521,7 @@ plot4.colors   = m_colors
 plotv1 = openmc.Plot()
 plotv1.filename = 'plotv1'
 plotv1.width    = (pebble_diameter, pebble_diameter, pebble_diameter)
-plotv1.origin   = (0, 0 ,0)
+plotv1.origin   = (0, 0, 0)
 plotv1.pixels   = (300, 300, 300)
 plotv1.color_by = 'material'
 plotv1.colors   = m_colors
