@@ -554,16 +554,16 @@ plot2.pixels   = (1000, 1000)
 plot2.color_by = 'cell'
 plot2.colors   = m_colors
 
-plot4          = openmc.Plot()
-plot4.filename = 'plot4'
+plot3          = openmc.Plot()
+plot3.filename = 'plot3'
 plot_width   = max(reactor_diameter, reactor_height)
-plot4.width    = (plot_width, plot_width)
-plot4.basis    = 'xz'
+plot3.width    = (plot_width, plot_width)
+plot3.basis    = 'xz'
 plot_zcenter = reflector_z_min + reactor_height/2.0
-plot4.origin   = (0, 0, plot_zcenter)
-plot4.pixels   = (1000, 1000)
-plot4.color_by = 'material'
-plot4.colors   = m_colors
+plot3.origin   = (0, 0, plot_zcenter)
+plot3.pixels   = (1000, 1000)
+plot3.color_by = 'material'
+plot3.colors   = m_colors
 
 plotv1 = openmc.Plot()
 plotv1.filename = 'plotv1'
@@ -574,7 +574,7 @@ plotv1.color_by = 'material'
 plotv1.colors   = m_colors
 plotv1.type     = 'voxel'
 
-plots = openmc.Plots([plot1, plot2, plot4, plotv1])
+plots = openmc.Plots([plot1, plot2, plot3, plotv1])
 
 # Create model and export
 model = openmc.model.Model(geometry=geom, settings=settings)
