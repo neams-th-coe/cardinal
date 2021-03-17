@@ -6,6 +6,8 @@
 [AuxVariables]
   [temp_test]
   []
+  [pressure_test]
+  []
 []
 
 [ICs]
@@ -13,6 +15,11 @@
     type = FunctionIC
     variable = temp_test
     function = temp
+  []
+  [pressure_test]
+    type = FunctionIC
+    variable = pressure_test
+    function = pressure
   []
 []
 
@@ -42,6 +49,10 @@
     type = ParsedFunction
     value = 'exp(x)+sin(y)+x*y*z'
   []
+  [pressure]
+    type = ParsedFunction
+    value = 'exp(x)+exp(y)+exp(z)'
+  []
 []
 
 [Executioner]
@@ -62,5 +73,9 @@
   [temp_integral]
     type = ElementIntegralVariablePostprocessor
     variable = temp_test
+  []
+  [pressure_integral]
+    type = ElementIntegralVariablePostprocessor
+    variable = pressure_test
   []
 []

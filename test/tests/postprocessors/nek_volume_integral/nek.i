@@ -32,6 +32,10 @@
     type = NekVolumeIntegral
     field = temperature
   []
+  [pressure_integral]
+    type = NekVolumeIntegral
+    field = pressure
+  []
   [flux_integral]
     type = Receiver
   []

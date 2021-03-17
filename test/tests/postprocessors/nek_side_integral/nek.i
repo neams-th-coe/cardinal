@@ -104,6 +104,46 @@
     field = temperature
     boundary = '8'
   []
+  [pressure_side1]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '1'
+  []
+  [pressure_side2]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '2'
+  []
+  [pressure_side3]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '3'
+  []
+  [pressure_side4]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '4'
+  []
+  [pressure_side5]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '5'
+  []
+  [pressure_side6]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '6'
+  []
+  [pressure_side7]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '7'
+  []
+  [pressure_side8]
+    type = NekSideIntegral
+    field = pressure
+    boundary = '8'
+  []
   [flux_integral]
     type = Receiver
   []

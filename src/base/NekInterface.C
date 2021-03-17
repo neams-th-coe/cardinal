@@ -535,19 +535,9 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
   mesh_t * mesh = nrs->cds->mesh;
 
   double value = -std::numeric_limits<double>::max();
-  // MPI_Op reduction_type;
 
   double (*f) (int);
-
-  // find the field for which we are finding the extreme value
-  switch (field)
-  {
-    case field::temperature:
-      f = &solution::temperature;
-      break;
-    default:
-      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
+  f = solution::solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {
@@ -577,16 +567,7 @@ double volumeMaxValue(const field::NekFieldEnum & field)
   double value = -std::numeric_limits<double>::max();
 
   double (*f) (int);
-
-  // find the field for which we are finding the extreme value
-  switch (field)
-  {
-    case field::temperature:
-      f = &solution::temperature;
-      break;
-    default:
-      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
+  f = solution::solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Np; ++j) {
@@ -610,16 +591,7 @@ double volumeMinValue(const field::NekFieldEnum & field)
   double value = std::numeric_limits<double>::max();
 
   double (*f) (int);
-
-  // find the field for which we are finding the extreme value
-  switch (field)
-  {
-    case field::temperature:
-      f = &solution::temperature;
-      break;
-    default:
-      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
+  f = solution::solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Np; ++j) {
@@ -643,16 +615,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
   double value = std::numeric_limits<double>::max();
 
   double (*f) (int);
-
-  // find the field for which we are finding the extreme value
-  switch (field)
-  {
-    case field::temperature:
-      f = &solution::temperature;
-      break;
-    default:
-      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
+  f = solution::solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {
@@ -683,18 +646,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
   double integral = 0.0;
 
   double (*f) (int);
-
-  switch (integrand)
-  {
-    case field::temperature:
-      f = &solution::temperature;
-      break;
-    case field::unity:
-      f = &solution::unity;
-      break;
-    default:
-      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
+  f = solution::solutionPointer(integrand);
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
@@ -720,18 +672,7 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
   double integral = 0.0;
 
   double (*f) (int);
-
-  switch (integrand)
-  {
-    case field::temperature:
-      f = &solution::temperature;
-      break;
-    case field::unity:
-      f = &solution::unity;
-      break;
-    default:
-      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
+  f = solution::solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {
@@ -767,18 +708,7 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
   double integral = 0.0;
 
   double (*f) (int);
-
-  switch (integrand)
-  {
-    case field::temperature:
-      f = &solution::temperature;
-      break;
-    case field::unity:
-      f = &solution::unity;
-      break;
-    default:
-      throw std::runtime_error("Unhandled 'NekFieldEnum'!");
-  }
+  f = solution::solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {
@@ -1263,10 +1193,39 @@ namespace solution
     return nrs->cds->S[id];
   }
 
+  double pressure(const int id)
+  {
+    nrs_t * nrs = (nrs_t *) nrsPtr();
+    return nrs->P[id];
+  }
+
   double unity(const int /* id */)
   {
     return 1.0;
   }
+
+  double (*solutionPointer(const field::NekFieldEnum & field))(int)
+  {
+    double (*f) (int);
+
+    switch (field)
+    {
+      case field::temperature:
+        f = &solution::temperature;
+        break;
+      case field::pressure:
+        f = &solution::pressure;
+        break;
+      case field::unity:
+        f = &solution::unity;
+        break;
+      default:
+        throw std::runtime_error("Unhandled 'NekFieldEnum'!");
+    }
+
+    return f;
+  }
+
 } // end namespace solution
 
 } // end namespace nekrs

@@ -6,13 +6,20 @@
 [AuxVariables]
   [temp_test]
   []
+  [pressure_test]
+  []
 []
 
 [ICs]
   [temp_test]
     type = FunctionIC
     variable = temp_test
-    function = temp
+    function = f
+  []
+  [pressure_test]
+    type = FunctionIC
+    variable = pressure_test
+    function = f
   []
 []
 
@@ -38,7 +45,7 @@
 []
 
 [Functions]
-  [temp]
+  [f]
     type = ParsedFunction
     value = 'exp(x)+sin(y)+x*y*z'
   []
@@ -143,6 +150,95 @@
   [min_temp_side8]
     type = NodalExtremeValue
     variable = temp_test
+    boundary = '8'
+    value_type = min
+  []
+
+  [max_pressure_side1]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '1'
+  []
+  [max_pressure_side2]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '2'
+  []
+  [max_pressure_side3]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '3'
+  []
+  [max_pressure_side4]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '4'
+  []
+  [max_pressure_side5]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '5'
+  []
+  [max_pressure_side6]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '6'
+  []
+  [max_pressure_side7]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '7'
+  []
+  [max_pressure_side8]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '8'
+  []
+  [min_pressure_side1]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '1'
+    value_type = min
+  []
+  [min_pressure_side2]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '2'
+    value_type = min
+  []
+  [min_pressure_side3]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '3'
+    value_type = min
+  []
+  [min_pressure_side4]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '4'
+    value_type = min
+  []
+  [min_pressure_side5]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '5'
+    value_type = min
+  []
+  [min_pressure_side6]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '6'
+    value_type = min
+  []
+  [min_pressure_side7]
+    type = NodalExtremeValue
+    variable = pressure_test
+    boundary = '7'
+    value_type = min
+  []
+  [min_pressure_side8]
+    type = NodalExtremeValue
+    variable = pressure_test
     boundary = '8'
     value_type = min
   []
