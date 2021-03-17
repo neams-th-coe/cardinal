@@ -100,7 +100,6 @@ void initializeScratch()
   // beginning at index nrs->cds->fieldOffset.
   nrs->usrwrk = (double *) calloc(MAX_SCRATCH_FIELDS * nrs->cds->fieldOffset, sizeof(double));
   nrs->o_usrwrk = mesh->device.malloc(MAX_SCRATCH_FIELDS * nrs->cds->fieldOffset * sizeof(double), nrs->usrwrk);
-  std::cout << "------ ALLOCATED SCRATCH" << std::endl;
 }
 
 void freeScratch()
