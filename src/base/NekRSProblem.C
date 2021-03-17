@@ -23,6 +23,14 @@ validParams<NekRSProblem>()
     "transfer MUST be the same as the 'to_app' transfer into nekRS.");
   params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
+
+  params.addParam<bool>("nondimensional", false, "Whether nekRS is solved in non-dimensional form");
+  params.addRangeCheckedParam<Real>("U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");
+  params.addRangeCheckedParam<Real>("T_ref", 0.0, "T_ref >= 0.0", "Reference temperature value for non-dimensional solution");
+  params.addRangeCheckedParam<Real>("dT_ref", 1.0, "dT_ref > 0.0", "Reference temperature range value for non-dimensional solution");
+  params.addRangeCheckedParam<Real>("L_ref", 1.0, "L_ref > 0.0", "Reference length scale value for non-dimensional solution");
+  params.addRangeCheckedParam<Real>("rho_ref", 1.0, "rho_ref > 0.0", "Reference density value for non-dimensional solution");
+  params.addRangeCheckedParam<Real>("Cp_ref", 1.0, "Cp_ref > 0.0", "Reference heat capacity value for non-dimensional solution");
   return params;
 }
 
@@ -30,6 +38,13 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
+    _nondimensional(getParam<bool>("nondimensional")),
+    _U_ref(getParam<Real>("U_ref")),
+    _T_ref(getParam<Real>("T_ref")),
+    _dT_ref(getParam<Real>("dT_ref")),
+    _L_ref(getParam<Real>("L_ref")),
+    _rho_ref(getParam<Real>("rho_ref")),
+    _Cp_ref(getParam<Real>("Cp_ref")),
     _start_time(nekrs::startTime())
 {
   if (_minimize_transfers_in && !isParamValid("transfer_in"))
@@ -37,6 +52,23 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
 
   if (!_minimize_transfers_in && isParamValid("transfer_in"))
     mooseWarning("'transfer_in' is unused when 'minimize_transfers_in' is set to false!");
+
+  // if solving in nondimensional form, make sure that the user specified _all_ of the
+  // necessary scaling quantities to prevent errors from forgetting one, which would take
+  // a non-scaled default otherwise
+  std::vector<std::string> scales = {"U_ref", "T_ref", "dT_ref", "L_ref", "rho_ref", "Cp_ref"};
+  std::vector<std::string> descriptions = {"velocity", "temperature", "temperature range", "length",
+    "density", "heat capacity"};
+  for (std::size_t n = 0; n < scales.size(); ++n)
+  {
+    if (_nondimensional && !params.isParamSetByUser(scales[n]))
+      paramError(scales[n], "When nekRS solves in non-dimensional form, a characterstic " + descriptions[n] + " must be provided!");
+    else if (!_nondimensional && params.isParamSetByUser(scales[n]))
+      mooseWarning("When nekRS solves in dimensional form, " + descriptions[n] + " is unused!");
+  }
+
+  // inform nekRS of the scaling that we are using if solving in non-dimensional form
+  nekrs::solution::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_ref, _Cp_ref);
 
   // the way the data transfers are detected depend on nekRS being a sub-application,
   // so these settings are not invalid if nekRS is the master app (though you could
@@ -53,6 +85,15 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
   if (!_nek_mesh)
     mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'! In your [Mesh] "
       "block, you should have 'type = NekRSMesh'");
+
+  // It's too complicated to make sure that the dimensional form _also_ works when our
+  // reference coordinates are different from what MOOSE is expecting, so just throw an error
+  if (_nondimensional && (std::abs(_nek_mesh->scaling() - _L_ref) > 1e-6))
+    paramError("L_ref", "When solving in non-dimensional form, no capability exists to allow "
+      "a nondimensional solution based on reference scales that are not in the same units as the "
+      "coupled MOOSE application!\n\nIf solving nekRS in nondimensional form, you must choose "
+      "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L_ref' "
+      "must match 'scaling' in 'NekRSMesh'.");
 
   // boundary-specific data
   _boundary = _nek_mesh->boundary();
@@ -112,7 +153,7 @@ NekRSProblem::~NekRSProblem()
 {
   // write nekRS solution to output if not already written for this step
   if (!isOutputStep())
-    nekrs::outfld(_time);
+    nekrs::outfld(_timestepper->nondimensionalDT(_time));
 
   if (_T) free(_T);
   if (_flux_face) free(_flux_face);
@@ -158,6 +199,13 @@ NekRSProblem::initialSetup()
   if (!_timestepper)
     mooseError("The 'NekTimeStepper' stepper must be used with 'NekRSProblem'!");
 
+  // Set the reference time for use in dimensionalizing/non-dimensionalizing the time
+  _timestepper->setReferenceTime(_L_ref, _U_ref);
+
+  // Then, dimensionalize the nekRS time so that all occurrences of _dt here are
+  // in dimensional form
+  _timestepper->dimensionalizeDT();
+
   if (_boundary)
     _flux_integral = &getPostprocessorValueByName("flux_integral");
   if (_volume)
@@ -175,7 +223,7 @@ NekRSProblem::isOutputStep() const
 {
   if (_app.isUltimateMaster())
   {
-    bool last_step = nekrs::lastStep(_time, _t_step, 0.0 /* dummy elapsed time */);
+    bool last_step = nekrs::lastStep(_timestepper->nondimensionalDT(_time), _t_step, 0.0 /* dummy elapsed time */);
 
     // if NekApp is controlled by a master application, then the last time step
     // is controlled by that master application, in which case we don't want to
@@ -188,7 +236,7 @@ NekRSProblem::isOutputStep() const
 
   // this routine does not check if we are on the last step - just whether we have
   // met the requested runtime or time step interval
-  return nekrs::isOutputStep(_time, _t_step);
+  return nekrs::isOutputStep(_timestepper->nondimensionalDT(_time), _t_step);
 }
 
 void NekRSProblem::externalSolve()
@@ -210,7 +258,8 @@ void NekRSProblem::externalSolve()
 
   bool is_output_step = isOutputStep();
 
-  nekrs::runStep(step_start_time, _dt, _t_step);
+  nekrs::runStep(_timestepper->nondimensionalDT(step_start_time),
+    _timestepper->nondimensionalDT(_dt), _t_step);
 
   // Note: here, we copy to both the nrs solution arrays and to the Nek5000 backend arrays,
   // because it is possible that users may interact using the legacy usr-file approach.
@@ -219,12 +268,13 @@ void NekRSProblem::externalSolve()
   // time step, even if we're not technically passing data to another app, because we have
   // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
   // by the user.
-  nekrs::copyToNek(step_end_time, _t_step);
+  nekrs::copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  nekrs::udfExecuteStep(step_end_time, _t_step, is_output_step);
+  std::cout << "Tstep: " << _t_step << std::endl;
+  nekrs::udfExecuteStep(_timestepper->nondimensionalDT(step_end_time), _t_step, is_output_step);
 
   if (is_output_step)
-    nekrs::outfld(step_end_time);
+    nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
 
   _time += _dt;
 }
@@ -273,7 +323,7 @@ NekRSProblem::synchronizeOut()
 void
 NekRSProblem::sendBoundaryHeatFluxToNek()
 {
-  _console << "Sending heat flux to nekRS boundary " << Moose::stringify(*_boundary) << "... " << std::endl;
+  _console << "Sending heat flux to nekRS boundary " << Moose::stringify(*_boundary) << "... ";
 
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -287,7 +337,6 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
-  const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
 
   if (!_volume)
   {
@@ -306,11 +355,11 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
         int node_index = _nek_mesh->boundaryNodeIndex(n);
         auto node_offset = e * _n_vertices_per_surface + node_index;
         auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
-        _flux_face[node_index] = (*_serialized_solution)(dof_idx) * scale_squared;
+        _flux_face[node_index] = (*_serialized_solution)(dof_idx) / nekrs::solution::referenceFlux();
       }
 
       // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
-      // onto the nekRS GLL points and then write into the flux scratch space.
+      // onto the nekRS GLL points
       nekrs::flux(e, _nek_mesh->order(), _flux_face);
     }
   }
@@ -326,70 +375,79 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
     // expense occurs in the MOOSE transfer system, not these transfers internally to nekRS.
     for (unsigned int e = 0; e < _n_volume_elems; ++e)
     {
-      auto elem_ptr = mesh.elem_ptr(e);
+      int n_faces_on_boundary = nekrs::mesh::facesOnBoundary(e);
 
-      for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
+      // though the flux is a volume field, the only meaningful values are on the coupling
+      // boundaries, so we can just skip this interpolation if this volume element isn't on
+      // a coupling boundary, because that flux data isn't used anyways
+      if (n_faces_on_boundary > 0)
       {
-        auto node_ptr = elem_ptr->node_ptr(n);
+        auto elem_ptr = mesh.elem_ptr(e);
 
-        // For each element, get the flux at the libMesh nodes. This will be passed into
-        // nekRS, which will interpolate onto its GLL points. Because we are looping over
-        // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
-        // determine the offset in the nekRS arrays.
-        int node_index = _nek_mesh->volumeNodeIndex(n);
-        auto node_offset = e * _n_vertices_per_volume + node_index;
-        auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
+        for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
+        {
+          auto node_ptr = elem_ptr->node_ptr(n);
 
-        // Although we are interpolating into the nekRS volume, we still only multiply this by
-        // the square of the mesh scale (i.e. not the cube of the mesh scale) because we will
-        // be normalizing based on a side integral.
-        _flux_elem[node_index] = (*_serialized_solution)(dof_idx) * scale_squared;
+          // For each element, get the flux at the libMesh nodes. This will be passed into
+          // nekRS, which will interpolate onto its GLL points. Because we are looping over
+          // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+          // determine the offset in the nekRS arrays.
+          int node_index = _nek_mesh->volumeNodeIndex(n);
+          auto node_offset = e * _n_vertices_per_volume + node_index;
+          auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
+          _flux_elem[node_index] = (*_serialized_solution)(dof_idx) / nekrs::solution::referenceFlux();
+        }
+
+        // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
+        // onto the nekRS GLL points
+        nekrs::flux_volume(e, _nek_mesh->order(), _flux_elem);
       }
-
-      // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
-      // onto the nekRS GLL points and then write into the flux scratch space
-      nekrs::flux_volume(e, _nek_mesh->order(), _flux_elem);
     }
   }
 
+  _console << "done" << std::endl;
+
   // Because the NekMesh may be quite different from that used in the app solving for
   // the heat flux, we will need to normalize the total flux on the nekRS side by the
-  // total flux computed by the coupled MOOSE app.
+  // total flux computed by the coupled MOOSE app. For this and the next check of the
+  // flux integral, we need to scale the integral back up again to the dimensional form
+  // for the sake of comparison.
+  const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
   const double nek_flux = nekrs::fluxIntegral();
   const double moose_flux = *_flux_integral;
 
-  _console << "Normalizing total nekRS flux of " << nek_flux << " to the conserved MOOSE "
-    "value of " << moose_flux << "..." << std::endl;
+  // For the sake of printing diagnostics to the screen regarding the flux normalization,
+  // we first scale the nek flux by any unit changes and then by the reference flux.
+  const double nek_flux_print_mult = scale_squared * nekrs::solution::referenceFlux();
+
+  _console << "Normalizing total nekRS flux of " << nek_flux * nek_flux_print_mult << " to the conserved MOOSE "
+    "value of " << moose_flux << "... ";
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,
   // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
   // units of centimeters, but you're coupling to an app based in meters, the fluxes will
   // be very different from one another.
-  if (moose_flux && (std::abs(nek_flux - moose_flux) / moose_flux) > 0.25)
+  if (moose_flux && (std::abs(nek_flux * nek_flux_print_mult - moose_flux) / moose_flux) > 0.25)
     mooseDoOnce(mooseWarning("nekRS flux differs from MOOSE flux by more than 25\%! "
       "This could indicate that your geometries do not line up properly."));
 
-  nekrs::normalizeFlux(moose_flux, nek_flux);
+  double normalized_nek_flux = 0.0;
+  const bool successful_normalization = nekrs::normalizeFlux(moose_flux, nek_flux, normalized_nek_flux);
 
-  // We can do an extra check here to make sure that the normalization was done correctly.
-  // This will check if there was perhaps a disconnect in the boundaries nekRS thinks are
-  // exchanging data vs. what is actually being sent.
-  const double normalized_nek_flux = nekrs::fluxIntegral();
-  bool high_rel_err = std::abs(normalized_nek_flux - moose_flux) / moose_flux > 1e-6;
-  bool high_abs_err = std::abs(normalized_nek_flux - moose_flux) > 1e-6;
-
-  if (high_rel_err || high_abs_err)
+  if (!successful_normalization)
     mooseError("Flux normalization process failed! nekRS integrated flux: ", normalized_nek_flux,
       " MOOSE integrated flux: ", moose_flux, ".\n\nThis may happen if the nekRS mesh "
       "is very different from that used in the App sending heat flux to nekRS and the "
       "nearest node transfer is only picking up zero values in the coupled App.");
+
+  _console << "done" << std::endl;
 }
 
 void
 NekRSProblem::sendVolumeHeatSourceToNek()
 {
-  _console << "Sending heat source to nekRS volume..." << std::endl;
+  _console << "Sending heat source to nekRS volume... " << std::endl;
 
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -403,7 +461,6 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
-  const Real scale_cubed = _nek_mesh->scaling() * _nek_mesh->scaling() * _nek_mesh->scaling();
 
   for (unsigned int e = 0; e < _n_volume_elems; e++)
   {
@@ -421,46 +478,51 @@ NekRSProblem::sendVolumeHeatSourceToNek()
       auto node_offset = e * _n_vertices_per_volume + node_index;
 
       auto dof_idx = node_ptr->dof_number(sys_number, _heat_source_var, 0);
-      _source_elem[node_index] = (*_serialized_solution)(dof_idx) * scale_cubed;
+      _source_elem[node_index] = (*_serialized_solution)(dof_idx) / nekrs::solution::referenceSource();
     }
 
     // Now that we have the heat source at the nodes of the NekRSMesh, we can interpolate them
-    // onto the nekRS GLL points and then write into the source scratch space.
+    // onto the nekRS GLL points
     nekrs::heat_source(e, _nek_mesh->order(), _source_elem);
   }
+
+  _console << "done" << std::endl;
 
   // Because the NekMesh may be quite different from that used in the app solving for
   // the heat source, we will need to normalize the total source on the nekRS side by the
   // total source computed by the coupled MOOSE app.
+  const Real scale_cubed = _nek_mesh->scaling() * _nek_mesh->scaling() * _nek_mesh->scaling();
   const double nek_source = nekrs::sourceIntegral();
   const double moose_source = *_source_integral;
 
-  _console << "Normalizing total nekRS heat source of " << nek_source << " to the conserved MOOSE "
-    "value of " << moose_source << "..." << std::endl;
+  // For the sake of printing diagnostics to the screen regarding source normalization,
+  // we first scale the nek source by any unit changes and then by the reference source
+  const double nek_source_print_mult = scale_cubed * nekrs::solution::referenceSource();
+  _console << "Normalizing total nekRS heat source of " << nek_source * nek_source_print_mult << " to the conserved MOOSE "
+    "value of " << moose_source << "... ";
 
   // If before normalization, there is a large difference between the nekRS imposed source
   // and the MOOSE source, this could mean that there is a poor match between the domains,
   // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
   // units of centimeters, but you're coupling to an app based in meters, the sources will
   // be very different from one another.
-  if (moose_source && (std::abs(nek_source - moose_source) / moose_source) > 0.25)
+  if (moose_source && (std::abs(nek_source * nek_source_print_mult - moose_source) / moose_source) > 0.25)
     mooseDoOnce(mooseWarning("nekRS source differs from MOOSE source by more than 25\%! "
       "This could indicate that your geometries do not line up properly."));
 
-  nekrs::normalizeHeatSource(moose_source, nek_source);
+  // Any unit changes (for DIMENSIONAL nekRS runs) are automatically accounted for
+  // here because moose_source is an integral on the MOOSE mesh, while nek_source is
+  // an integral on the nek mesh
+  double normalized_nek_source = 0.0;
+  const bool successful_normalization = nekrs::normalizeHeatSource(moose_source, nek_source, normalized_nek_source);
 
-  // We can do an extra check here to make sure that the normalization was done correctly.
-  // This will check if there was perhaps a disconnect in the boundaries nekRS thinks are
-  // exchanging data vs. what is actually being sent.
-  const double normalized_nek_source = nekrs::sourceIntegral();
-  bool high_rel_err = std::abs(normalized_nek_source - moose_source) / moose_source > 1e-6;
-  bool high_abs_err = std::abs(normalized_nek_source - moose_source) > 1e-6;
-
-  if (high_rel_err || high_abs_err)
+  if (!successful_normalization)
     mooseError("Heat source normalization process failed! nekRS integrated heat source: ", normalized_nek_source,
       " MOOSE integrated heat source: ", moose_source, ".\n\nThis may happen if the nekRS mesh "
       "is very different from that used in the App sending heat source to nekRS and the "
       "nearest node transfer is only picking up zero values in the coupled App.");
+
+  _console << "done" << std::endl;
 }
 
 void
@@ -485,8 +547,7 @@ NekRSProblem::fillAuxVariable(const unsigned int var_number, const double * valu
         int node_index = _nek_mesh->nodeIndex(n);
         auto node_offset = e * _n_vertices_per_elem + node_index;
 
-        // get the DOF for the temperature auxiliary variable, then use it to set the
-        // temperature in the auxiliary system
+        // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary system
         auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
         solution.set(dof_idx, value[node_offset]);
       }
@@ -499,25 +560,29 @@ NekRSProblem::fillAuxVariable(const unsigned int var_number, const double * valu
 void
 NekRSProblem::getBoundaryTemperatureFromNek()
 {
-  _console << "Extracting nekRS temperature from boundary " << Moose::stringify(*_boundary) << "... " << std::endl;
+  _console << "Extracting nekRS temperature from boundary " << Moose::stringify(*_boundary) << "... ";
 
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the boundary temperature information. In
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature on the boundary.
   nekrs::boundaryTemperature(_nek_mesh->order(), _needs_interpolation, _T);
+
+  _console << "done" << std::endl;
 }
 
 void
 NekRSProblem::getVolumeTemperatureFromNek()
 {
-  _console << "Extracting nekRS temperature from volume... " << std::endl;
+  _console << "Extracting nekRS temperature from volume... ";
 
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the volume temperature information. In
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature in the volume.
   nekrs::volumeTemperature(_nek_mesh->order(), _needs_interpolation, _T);
+
+  _console << "done" << std::endl;
 }
 
 void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
