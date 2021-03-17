@@ -1,0 +1,20 @@
+[Tests]
+  [./sfr_pincell]
+    type = Exodiff
+    input = nek_master.i
+
+    # just compare the postprocessors and the interpolated nek solution, since nothing
+    # novel is done on the MOOSE side
+    exodiff = 'nek_master_out_nek0.e'
+    cli_args = '--nekrs-setup sfr_pin'
+    min_parallel = 6
+    requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
+                  "conservation of energy and realistic thermal solutions when nekRS is run in "
+                  "nondimensional form. A wide variety of postprocessors are measured and compared "
+                  "against the same problem in dimensional form in the ../sfr_pincell directory. "
+                  "Most measurements match exactly, but there is about a 1% difference in pressures "
+                  "and a 0.1% difference in temperatures (this is to be expected, though, because "
+                  "the _solve_ is not exactly the same between a nondimensional and dimensional case - "
+                  "the governing equation is the same, but not necessarily the number of iterations, etc."
+  [../]
+[]

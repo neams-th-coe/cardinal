@@ -1,0 +1,33 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+  setupAide & options = nrs->options;
+  occa::properties & kernelInfo = *nrs->kernelInfo;
+
+  // in non-dimensional form, U^+ = U/U_ref, where we chose the reference
+  // velocity to be the inlet velocity
+  kernelInfo["defines/Vz"] = 1.0;
+
+  // in non-dimensional form, T^+ = (T-T_0) / dT, where we chose T_0 as the
+  // inlet temperature and dT as 50 (arbitrary - I could pick it based on the
+  // actual nominal temperature rise, but I'm lazy)
+  kernelInfo["defines/inlet_T"] = 0.0;
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  mesh_t * mesh = nrs->cds->mesh;
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
+
+    nrs->P[n] = 0.0; // pressure
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = 0.0; // temperature
+  }
+}
