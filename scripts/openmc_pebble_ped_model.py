@@ -44,13 +44,10 @@ radius_pyc_outer = radius_sic + thickness_pyc_outer
 packing_fraction = 0.40
 
 # UCBTH-14-002, Table 2-1 (differs slightly from Cisneros, Table 5-2)
-# scaled by TAMU experiment factor
 radius_pebble_inner = 2.5/2
 # UCBTH-14-002, Table 2-1; Cisneros, Table 5-2
-# scaled by TAMU experiment factor
 radius_pebble_outer = 3.0/2
 # UCBTH-14-002, Table 2-1; Cisneros, Table 5-2
-# scaled by TAMU experiment factor
 radius_pebble_central = radius_pebble_outer - 0.1
 # Tolerance for pebbles universe filling
 tolerance = 0.00
@@ -108,8 +105,8 @@ program_epilog = ("This script expects the presence of a "
 ap = ArgumentParser(description=program_description,
                     epilog=program_epilog)
 
-ap.add_argument('-e', dest='extra_refl', type=float,
-                default=0.0, help='Additional reflector thickness')
+ap.add_argument('-e', dest='extra_flibe_layer', type=float,
+                default=0.00001, help='Reflector thickness')
 ap.add_argument('-v', dest='verbose', action='store_true',
                 default=False, help='Enable verbose output')
 ap.add_argument('-r', dest='random_trisos', action='store_true',
@@ -128,8 +125,8 @@ ap.add_argument('-l', dest='pshape', type=int,
 ap.add_argument('-t', dest='tshape', type=int,
                 nargs=3, default=(20, 20, 20),
                 help='TRISO lattice shape')
-ap.add_argument('-f', dest='reflector', action='store_true',
-                default=False, help='Include surrounding reflector')
+ap.add_argument('-f', dest='reflector_thickness', type=float,
+                default=0.0, help='Include surrounding reflector')
 args = ap.parse_args()
 
 # warn user about pebble center expetation
@@ -159,7 +156,8 @@ vessel_x, vessel_y = (0.0, 0.0)
 vessel_z_min = np.min(pebble_centers[:, 2]) - radius_pebble_outer
 vessel_z_max = np.max(pebble_centers[:, 2]) + radius_pebble_outer
 vessel_outer_radius = np.max(np.linalg.norm(pebble_centers[:, :-1], axis=1)) + radius_pebble_outer
-vessel_inner_radius = np.min(np.linalg.norm(pebble_centers[:, :-1], axis=1)) + radius_pebble_outer
+vessel_inner_radius = np.min(np.linalg.norm(pebble_centers[:, :-1], axis=1)) - radius_pebble_outer
+vessel_inner_radius = max(0.0, vessel_inner_radius)
 
 if args.verbose:
     print("\tMin pebble (center) z coordinate = {}".format(vessel_z_min))
@@ -169,19 +167,21 @@ if args.verbose:
 
 # Add additional moderation surrounding the pebble bed to reduce the
 # artificially high k-eff due to reflecting boundary conditions
-extra_thickness =  args.extra_refl  # cm
-vessel_z_min -= extra_thickness  # bottom plane vessel ; scaled by TAMU experiment factor
-vessel_z_max += extra_thickness  # top plane vessel ; scaled by TAMU experiment factor
-vessel_outer_radius += extra_thickness  # scaled by TAMU experiment factor
+extra_thickness =  args.extra_flibe_layer  # cm
+vessel_z_min -= extra_thickness
+vessel_z_max += extra_thickness
+vessel_outer_radius += extra_thickness
 vessel_height = vessel_z_max - vessel_z_min
 
 # Add outer reflector of thickness 40 cm, UCBTH-14-002. We assume that there is then also a reflector
 # of the same thickness on the top and bottom (an arbitrary selection). This reflector surrounds the pebble bed
 # around its outer radius as well as forms the center reflector column.
-reflector_thickness = 40.0
+reflector_thickness = args.reflector_thickness
 reflector_z_min = vessel_z_min - reflector_thickness
 reflector_z_max = vessel_z_max + reflector_thickness
 reflector_outer_radius = vessel_outer_radius + reflector_thickness
+reflector_is_present = reflector_thickness > 0.0
+
 
 # -------------- Printing Parameters ---------
 if verbose:
@@ -202,6 +202,9 @@ if verbose:
     print("Vessel radius inner          [cm] = {}".format(vessel_inner_radius))
     print("Vessel z1_vessel (min z)     [cm] = {}".format(vessel_z_min))
     print("Vessel height_vessel         [cm] = {}".format(vessel_z_max - vessel_z_min))
+    print("Reflector radius outer       [cm] = {}".format(reflector_outer_radius))
+    print("Reflector height             [cm] = {}".format(reflector_z_max - reflector_z_min))
+
     print("Pebbles centers [cm] :")
     print(pebble_centers)
 
@@ -372,7 +375,7 @@ u_pebble = openmc.Universe(cells=pebble_cells)
 
 # figure out the reactor boundary conditions
 reflector_bc = args.bc
-if args.reflector:
+if reflector_is_present:
     vessel_bc = 'transmission'
 else:
     vessel_bc = args.bc
@@ -383,7 +386,7 @@ vessel_outer = openmc.ZCylinder(x0=vessel_x,
                                 r=vessel_outer_radius,
                                 boundary_type=vessel_bc)
 
-if args.reflector:
+if reflector_is_present:
     vessel_inner = openmc.ZCylinder(x0=vessel_x,
                                     y0=vessel_y,
                                     r=vessel_inner_radius,
@@ -397,7 +400,7 @@ vessel_region = -vessel_outer & +vessel_bottom & -vessel_top
 vessel_cell = openmc.Cell(name='Pebble Vessel', region=vessel_region)
 
 reflector_cells = []
-if args.reflector:
+if reflector_is_present:
     vessel_cell.region = vessel_cell.region & +vessel_inner
 
     # Reflector cell
@@ -468,13 +471,15 @@ settings.output = {'summary': False}
 
 # -------------- Plots --------------
 # Plot parameters
-vessel_diameter = 2.0 * vessel_outer_radius
+reactor_diameter = 2.0 * reflector_outer_radius
+reactor_height = reflector_z_max - reflector_z_min
 pebble_diameter = 2.0 * radius_pebble_outer
 
 m_colors = {m_fuel: 'brown',
             m_graphite_c_buffer: 'LightSteelBlue',
             m_graphite_pyc: 'blue',
             m_sic: 'orange',
+            m_reflector: 'green',
             m_graphite_matrix: 'cyan',
             m_graphite_inner: 'DeepSkyBlue',
             m_graphite_outer: 'Navy',
@@ -482,7 +487,7 @@ m_colors = {m_fuel: 'brown',
 
 plot1          = openmc.Plot()
 plot1.filename = 'plot1'
-plot1.width    = (vessel_diameter, vessel_diameter)
+plot1.width    = (reactor_diameter, reactor_diameter)
 plot1.basis    = 'xy'
 plot1.origin   = (0, 0, 0)
 plot1.pixels   = (1000, 1000)
@@ -491,28 +496,19 @@ plot1.colors   = m_colors
 
 plot2          = openmc.Plot()
 plot2.filename = 'plot2'
-plot2.width    = (vessel_diameter, vessel_diameter)
+plot2.width    = (reactor_diameter, reactor_diameter)
 plot2.basis    = 'xy'
 plot2.origin   = (0, 0, 1)
 plot2.pixels   = (1000, 1000)
-plot2.color_by = 'material'
+plot2.color_by = 'cell'
 plot2.colors   = m_colors
-
-plot3          = openmc.Plot()
-plot3.filename = 'plot3'
-plot3.width    = (vessel_diameter, vessel_diameter)
-plot3.basis    = 'xy'
-plot3.origin   = (0, 0, 1)
-plot3.pixels   = (1000, 1000)
-plot3.color_by = 'material'
-plot3.colors   = m_colors
 
 plot4          = openmc.Plot()
 plot4.filename = 'plot4'
-plot_width   = max(vessel_diameter, vessel_height)
+plot_width   = max(reactor_diameter, reactor_height)
 plot4.width    = (plot_width, plot_width)
 plot4.basis    = 'xz'
-plot_zcenter = vessel_z_min + vessel_height/2.0
+plot_zcenter = reflector_z_min + reactor_height/2.0
 plot4.origin   = (0, 0, plot_zcenter)
 plot4.pixels   = (1000, 1000)
 plot4.color_by = 'material'
@@ -527,7 +523,7 @@ plotv1.color_by = 'material'
 plotv1.colors   = m_colors
 plotv1.type     = 'voxel'
 
-plots = openmc.Plots([plot1, plot2, plot3, plot4, plotv1])
+plots = openmc.Plots([plot1, plot2, plot4, plotv1])
 
 # Create model and export
 model = openmc.model.Model(geometry=geom, settings=settings)
