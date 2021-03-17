@@ -530,11 +530,13 @@ m_colors = {m_fuel: 'brown',
             m_graphite_c_buffer: 'LightSteelBlue',
             m_graphite_pyc: 'blue',
             m_sic: 'orange',
-            m_reflector: 'green',
             m_graphite_matrix: 'cyan',
             m_graphite_inner: 'DeepSkyBlue',
             m_graphite_outer: 'Navy',
             m_flibe: 'yellow'}
+
+if reflector_is_present:
+    m_colors[m_reflector] = 'green'
 
 plot1          = openmc.Plot()
 plot1.filename = 'plot1'
