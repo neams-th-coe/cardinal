@@ -5,12 +5,22 @@
 static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
 static nekrs::mesh::volumeCoupling nek_volume_coupling;
 static nekrs::mesh::interpolationMatrix matrix;
+static nekrs::solution::characteristicScales scales;
+
+// Maximum number of fields that we pre-allocate in the scratch space array.
+// The first two are *always* reserved for the heat flux BC and the volumetric
+// heat source to be used in nekRS - all others are still free for use for
+// things like computing wall distances, etc. If anyone ever wants more than
+// 7, we can just change this value and commit that to the Cardinal repo - this
+// is just a number not reflective of any limitations anywhere, so we're free to
+// make it bigger later if we need it. Seven just seems fine for now.
+#define MAX_SCRATCH_FIELDS 7
 
 namespace nekrs
 {
 
 // various constants for controlling tolerances
-constexpr double abs_tol = 1e-14;
+constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
 
 bool endControlElapsedTime()
@@ -88,8 +98,9 @@ void initializeScratch()
   // _both_ a heat flux and a volumetric heat source. These fields are always stored in this
   // order - i.e. if we only had volume couping, we would only start writing to this array
   // beginning at index nrs->cds->fieldOffset.
-  nrs->usrwrk = (double *) calloc(2 * nrs->cds->fieldOffset, sizeof(double));
-  nrs->o_usrwrk = mesh->device.malloc(2 * nrs->cds->fieldOffset * sizeof(double), nrs->usrwrk);
+  nrs->usrwrk = (double *) calloc(MAX_SCRATCH_FIELDS * nrs->cds->fieldOffset, sizeof(double));
+  nrs->o_usrwrk = mesh->device.malloc(MAX_SCRATCH_FIELDS * nrs->cds->fieldOffset * sizeof(double), nrs->usrwrk);
+  std::cout << "------ ALLOCATED SCRATCH" << std::endl;
 }
 
 void freeScratch()
@@ -244,6 +255,14 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
     }
   }
 
+  // dimensionalize the temperature (skip if not needed)
+  if (scales.nondimensional_T)
+  {
+    int Nlocal = nek_volume_coupling.n_elems * end_3d;
+    for (int v = 0; v < Nlocal; ++v)
+      Ttmp[v] = Ttmp[v] * scales.dT_ref + scales.T_ref;
+  }
+
   int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
   int* displacement = (int *) calloc(mesh->size, sizeof(int));
   displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement, end_3d);
@@ -317,6 +336,14 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
         }
       }
     }
+  }
+
+  // dimensionalize the temperature
+  if (scales.nondimensional_T)
+  {
+    int Nlocal = nek_boundary_coupling.n_faces * end_2d;
+    for (int v = 0; v < Nlocal; ++v)
+      Ttmp[v] = Ttmp[v] * scales.dT_ref + scales.T_ref;
   }
 
   int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
@@ -471,11 +498,15 @@ double fluxIntegral()
   return total_integral;
 }
 
-void normalizeFlux(const double moose_integral, const double nek_integral)
+bool normalizeFlux(const double moose_integral, double nek_integral, double & normalized_nek_integral)
 {
+  // scale the nek flux to dimensional form for the sake of normalizing against
+  // a dimensional MOOSE flux
+  nek_integral *= scales.A_ref * scales.flux_ref;
+
   // avoid divide-by-zero
   if (std::abs(nek_integral) < abs_tol)
-    return;
+    return true;
 
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = nrs->cds->mesh;
@@ -497,13 +528,24 @@ void normalizeFlux(const double moose_integral, const double nek_integral)
       }
     }
   }
+
+  // check that the normalization worked properly - confirm against dimensional form
+  normalized_nek_integral = fluxIntegral() * scales.A_ref * scales.flux_ref;
+  bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < rel_tol;
+  bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < abs_tol;
+
+  return low_rel_err && low_abs_err;
 }
 
-void normalizeHeatSource(const double moose_integral, const double nek_integral)
+bool normalizeHeatSource(const double moose_integral, double nek_integral, double & normalized_nek_integral)
 {
+  // scale the nek source to dimensional form for the sake of normalizing against
+  // a dimensional MOOSE source
+  nek_integral *= scales.V_ref * scales.source_ref;
+
   // avoid divide-by-zero
   if (std::abs(nek_integral) < abs_tol)
-    return;
+    return true;
 
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = nrs->cds->mesh;
@@ -521,6 +563,13 @@ void normalizeHeatSource(const double moose_integral, const double nek_integral)
         nrs->usrwrk[nrs->cds->fieldOffset + id + v] *= ratio;
     }
   }
+
+  // check that the normalization worked properly
+  normalized_nek_integral = sourceIntegral() * scales.V_ref * scales.source_ref;
+  bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < rel_tol;
+  bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < abs_tol;
+
+  return low_rel_err && low_abs_err;
 }
 
 void copyScratchToDevice()
@@ -556,6 +605,13 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
   double reduced_value;
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, mesh->comm);
 
+  // dimensionalize the field if needed
+  solution::dimensionalize(field, reduced_value);
+
+  // if temperature, we need to add the reference temperature
+  if (field == field::temperature)
+    reduced_value += scales.T_ref;
+
   return reduced_value;
 }
 
@@ -580,6 +636,13 @@ double volumeMaxValue(const field::NekFieldEnum & field)
   double reduced_value;
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, mesh->comm);
 
+  // dimensionalize the field if needed
+  solution::dimensionalize(field, reduced_value);
+
+  // if temperature, we need to add the reference temperature
+  if (field == field::temperature)
+    reduced_value += scales.T_ref;
+
   return reduced_value;
 }
 
@@ -603,6 +666,13 @@ double volumeMinValue(const field::NekFieldEnum & field)
   // find extreme value across all processes
   double reduced_value;
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, mesh->comm);
+
+  // dimensionalize the field if needed
+  solution::dimensionalize(field, reduced_value);
+
+  // if temperature, we need to add the reference temperature
+  if (field == field::temperature)
+    reduced_value += scales.T_ref;
 
   return reduced_value;
 }
@@ -635,7 +705,39 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
   double reduced_value;
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, mesh->comm);
 
+  // dimensionalize the field if needed
+  solution::dimensionalize(field, reduced_value);
+
+  // if temperature, we need to add the reference temperature
+  if (field == field::temperature)
+    reduced_value += scales.T_ref;
+
   return reduced_value;
+}
+
+double volume()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  double integral = 0.0;
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+      integral += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  // scale the volume integral
+  total_integral *= scales.V_ref;
+
+  return total_integral;
 }
 
 double volumeIntegral(const field::NekFieldEnum & integrand)
@@ -660,9 +762,49 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
 
+  // dimensionalize the field if needed
+  solution::dimensionalize(integrand, total_integral);
+
+  // scale the volume integral
+  total_integral *= scales.V_ref;
+
+  // if temperature, we need to add the reference temperature multiplied by the volume integral
+  if (integrand == field::temperature)
+    total_integral += scales.T_ref * volume();
+
   return total_integral;
 }
 
+double area(const std::vector<int> & boundary_id)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  double integral = 0.0;
+
+  for (int i = 0; i < mesh->Nelements; ++i) {
+    for (int j = 0; j < mesh->Nfaces; ++j) {
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+
+      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+        for (int v = 0; v < mesh->Nfp; ++v) {
+          integral += mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+        }
+      }
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  // scale the boundary integral
+  total_integral *= scales.A_ref;
+
+  return total_integral;
+}
 
 double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand)
 {
@@ -691,6 +833,60 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
   // sum across all processes
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  // dimensionalize the field if needed
+  solution::dimensionalize(integrand, total_integral);
+
+  // scale the boundary integral
+  total_integral *= scales.A_ref;
+
+  // if temperature, we need to add the reference temperature multiplied by the area integral
+  if (integrand == field::temperature)
+    total_integral += scales.T_ref * area(boundary_id);
+
+  return total_integral;
+}
+
+double massFlowrate(const std::vector<int> & boundary_id)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  // TODO: This function only works correctly if the density is constant, because
+  // otherwise we need to copy the density from device to host
+  double rho;
+  nrs->options.getArgs("DENSITY", rho);
+
+  double integral = 0.0;
+
+  for (int i = 0; i < mesh->Nelements; ++i) {
+    for (int j = 0; j < mesh->Nfaces; ++j) {
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+
+      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+        for (int v = 0; v < mesh->Nfp; ++v) {
+          int vol_id = mesh->vmapM[offset + v];
+          int surf_offset = mesh->Nsgeo * (offset + v);
+
+          double normal_velocity =
+            nrs->U[vol_id + 0 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NXID] +
+            nrs->U[vol_id + 1 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NYID] +
+            nrs->U[vol_id + 2 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NZID];
+
+          integral += rho * normal_velocity * mesh->sgeo[surf_offset + WSJID];
+        }
+      }
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  // dimensionalize the mass flux and area
+  total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
 
   return total_integral;
 }
@@ -735,6 +931,16 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
   // sum across all processes
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  // dimensionalize the field if needed
+  solution::dimensionalize(integrand, total_integral);
+
+  // dimensionalize the mass flux and area
+  total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
+
+  // if temperature, we need to add the reference temperature multiplied by the mass flux integral
+  if (integrand == field::temperature)
+    total_integral += scales.T_ref * massFlowrate(boundary_id);
 
   return total_integral;
 }
@@ -781,6 +987,9 @@ double heatFluxIntegral(const std::vector<int> & boundary_id)
   // sum across all processes
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+
+  // multiply by the reference heat flux and an area factor to dimensionalize
+  total_integral *= scales.flux_ref * scales.A_ref;
 
   return total_integral;
 }
@@ -1226,6 +1435,51 @@ namespace solution
     return f;
   }
 
+  void initializeDimensionalScales(const double U_ref, const double T_ref, const double dT_ref, const double L_ref, const double rho_ref, const double Cp_ref)
+  {
+    scales.U_ref = U_ref;
+    scales.T_ref = T_ref;
+    scales.dT_ref = dT_ref;
+    scales.L_ref = L_ref;
+    scales.A_ref = L_ref * L_ref;
+    scales.V_ref = L_ref * L_ref * L_ref;
+    scales.rho_ref = rho_ref;
+    scales.Cp_ref = Cp_ref;
+
+    scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
+    scales.source_ref = scales.flux_ref / L_ref;
+
+    scales.nondimensional_T = (std::abs(dT_ref - 1.0) > abs_tol) ||
+                              (std::abs(T_ref) > abs_tol);
+  }
+
+  double referenceFlux()
+  {
+    return scales.flux_ref;
+  }
+
+  double referenceSource()
+  {
+    return scales.source_ref;
+  }
+
+  void dimensionalize(const field::NekFieldEnum & field, double & value)
+  {
+    switch (field)
+    {
+      case field::temperature:
+        value = value * scales.dT_ref;
+        break;
+      case field::pressure:
+        value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+        break;
+      case field::unity:
+        // no dimensionalization needed
+        break;
+      default:
+        throw std::runtime_error("Unhandled 'NekFieldEnum'!");
+    }
+  }
 } // end namespace solution
 
 } // end namespace nekrs

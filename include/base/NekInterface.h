@@ -162,15 +162,26 @@ double sourceIntegral();
  * Normalize the flux sent to nekRS to conserve the total flux
  * @param[in] moose_integral total integrated flux from MOOSE to conserve
  * @param[in] nek_integral total integrated flux in nekRS to adjust
+ * @param[out] normalized_nek_integral final normalized nek flux integral
+ * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
-void normalizeFlux(const double moose_integral, const double nek_integral);
+bool normalizeFlux(const double moose_integral, double nek_integral, double & normalized_nek_integral);
 
 /**
  * Normalize the heat source sent to nekRS to conserve the total heat source
  * @param[in] moose_integral total integrated heat source from MOOSE to conserve
  * @param[in] nek_integral total integrated heat source in nekRS to adjust
+ * @param[out] normalized_nek_integral final normalized nek source integral
+ * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
-void normalizeHeatSource(const double moose_integral, const double nek_integral);
+bool normalizeHeatSource(const double moose_integral, const double nek_integral, double & normalized_nek_integral);
+
+/**
+ * Compute the area of a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+ * @return area integral
+ */
+double area(const std::vector<int> & boundary_id);
 
 /**
  * Compute the area integral of a given integrand over a set of boundary IDs
@@ -181,11 +192,24 @@ void normalizeHeatSource(const double moose_integral, const double nek_integral)
 double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand);
 
 /**
+ * Compute the volume over the entire scalar mesh
+ * @return volume integral
+ */
+double volume();
+
+/**
  * Compute the volume integral of a given integrand over the entire scalar mesh
  * @param[in] integrand field to integrate
  * @return volume integral of a field
  */
 double volumeIntegral(const field::NekFieldEnum & integrand);
+
+/**
+ * Compute the mass flowrate over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to compute the mass flowrate
+ * @return mass flowrate
+ */
+double massFlowrate(const std::vector<int> & boundary_id);
 
 /**
  * Compute the mass flux weighted integral of a given integrand over a set of boundary IDs
@@ -447,6 +471,32 @@ void freeMesh();
 namespace solution
 {
 
+/// Characteristic scales assumed in nekRS if using a non-dimensional solution
+struct characteristicScales
+{
+  double U_ref;
+
+  double T_ref;
+
+  double dT_ref;
+
+  double L_ref;
+
+  double A_ref;
+
+  double V_ref;
+
+  double rho_ref;
+
+  double Cp_ref;
+
+  double flux_ref;
+
+  double source_ref;
+
+  bool nondimensional_T;
+};
+
 /**
  * Get pointer to various solution functions based on enumeration
  * @param[in] field field to return a pointer to
@@ -478,6 +528,44 @@ double pressure(const int id);
  * @return unity
  */
 double unity(const int id);
+
+/**
+ * Initialize the characteristic scales for a nondimesional solution
+ * @param[in] U_ref reference velocity
+ * @param[in] T_ref reference temperature
+ * @param[in] dT_ref reference temperature range
+ * @param[in] L_ref reference length scale
+ * @param[in] rho_ref reference density
+ * @param[in] Cp_ref reference heat capacity
+ */
+void initializeDimensionalScales(const double U_ref, const double T_ref, const double dT_ref,
+  const double L_ref, const double rho_ref, const double Cp_ref);
+
+/**
+ * \brief Dimensionalize a field by multiplying the nondimensional form by the reference
+ *
+ * This routine dimensionalizes a nondimensional term by multiplying the non-dimensional form
+ * by a scalar, i.e. \f$f^\dagger=\frac{f}{f_ref}\f$, where \f$f^\dagger\f$ is the nondimensional
+ * form and \f$f_{ref}\f$ is a reference scale with form particular to the interpretation of the
+ * field. Note that for temperature in particular, there are still additional steps to
+ * dimensionalize, because we do not define a nondimensional temperature simply as \f$T^\dagger=\frac{T}{\DeltaT_{ref}}\f$.
+ * But, this function just treats the characteristic scale that would appear in the denominator.
+ * @param[in] field physical interpretation of value to dimensionalize
+ * @param[out] value value to dimensionalize
+ */
+void dimensionalize(const field::NekFieldEnum & field, double & value);
+
+/**
+ * Get the reference heat flux scale, \f$\rho C_pU\Delta T\f$
+ * @return reference heat flux scale
+ */
+double referenceFlux();
+
+/**
+ * Get the reference heat source scale, \f$\rho C_pU\Delta T/L\f$
+ * @return reference heat source scale
+ */
+double referenceSource();
 
 } // end namespace solution
 
