@@ -257,7 +257,7 @@ void OpenMCProblem::addExternalVariables()
         Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + ")");
 
     auto& cell = openmc::model::cells[p.coord_[p.n_coord_ - 1].cell];
-    initial_temperatures.push_back(cell->temperature(cell->temperature(p.cell_instance_)));
+    initial_temperatures.push_back(cell->temperature(p.cell_instance_));
 
   }
 
