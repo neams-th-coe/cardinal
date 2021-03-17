@@ -1,0 +1,58 @@
+# This is a nondimensional version of the example in ../cylinder (which temporarily
+# uses different density and specific heat in order to ensure that the non-trivial
+# case is covered.
+#
+# All reference scales are based on the boundary conditions in the sister example.
+#
+# U_ref = 1.0      # this example does not have any flow, so this value is arbitrary
+# k_ref = 1.5
+# rho_ref = 5.0
+# Cp_ref = 6.0
+# L_ref = 0.5      # height of the cylinder
+# dT_ref = 50
+# T_ref = 500
+# Pe = 10.0
+
+[OCCA]
+  backend = CUDA
+  deviceNumber = 0
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 10
+  dt = 0.2
+  polynomialOrder = 7
+  writeControl = timeStep
+  writeInterval = 20
+  extrapolation = OIFS
+  targetCFL = 2.0
+
+[PROBLEMTYPE]
+  equation = incompNS
+  axiSymmetry = no
+  swirl = no
+  cyclicBoundaries = no
+  variableProperties = no
+  stressFormulation = no
+
+[MESH]
+  motion = none
+
+[VELOCITY]
+  solver = none
+  residualTol = 1.0e-6
+  residualProj = no
+  boundaryTypeMap = wall, wall, wall
+
+[PRESSURE]
+  solver = none
+  residualTol = 1.0e-5
+  residualProj = no
+  writeToFieldFile = yes
+
+[TEMPERATURE]
+  conductivity = -10.0
+  rhoCp = 1.0
+  residualTol = 1.0e-7
+  residualProj = no
+  boundaryTypeMap = t, I, I
