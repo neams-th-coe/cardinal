@@ -64,6 +64,43 @@ def flibe_density(p, t):
     rho = -0.4884*t + 1.7324e-7*(p - 101325.0) + 2413.0  # kg/m3
     return rho
 
+def report_pebble_cell_level(geom: openmc.Geometry, cell_name_key):
+    """
+    Traverses the geometry until the cell name key
+    is found in the cell name and reports the level
+    of the pebble cells in the geometry for ease of
+    use with Cardinal
+    """
+
+    level = None
+
+    univ_stack = [(0, geom.root_universe)]
+
+    while True and univ_stack:
+        curr_lvl, curr_univ = univ_stack.pop()
+        cells = curr_univ.cells
+
+        for cell in cells.values():
+            # if one of the cells on this level contains the
+            if cell_name_key in cell.name:
+                level = curr_lvl
+                break
+
+            if isinstance(cell.fill, openmc.Universe):
+                univ_stack.append((curr_lvl + 1, cell.fill))
+            elif isinstance(cell.fill, openmc.Lattice):
+                unique_univs = np.unique(np.asarray(cell.fill.universes).flatten())
+                univ_stack += [(curr_lvl + 1, u) for u in unique_univs]
+
+    if level is not None:
+        msg = ("Level of the pebble cells: {} \n"
+              "(To be used as the 'pebble_cell_level' parameter "
+              "for a cell tally in Cardinal's OpenMCProblem)".format(level))
+        print("{}{}{}".format(bcolors.OKGREEN, msg, bcolors.ENDC))
+    else:
+        raise RuntimeError("Cell key '{}' was not"
+                           "found in the geometry.".format(cell_name_key))
+
 
 # -------------- Materials Parameters --------
 # TRISO particle
@@ -420,6 +457,7 @@ if reflector_is_present:
     reflector_cells = [outer_reflector_cell, inner_reflector_cell, top_reflector_cell, bottom_reflector_cell]
 
 # Creating TRISOs for the pebbles to pack them into a lattice for efficiency
+cell_name_base = 'cell_pebble_'
 cell_name = ['cell_pebble_' + str(i) for i in range(len(pebble_centers))]
 pebble_trisos = []
 for center, name in zip(pebble_centers, cell_name):
@@ -446,6 +484,8 @@ vessel_cell.fill = l_pebble
 # create geometry
 geom_cells = [vessel_cell] + reflector_cells
 geom = openmc.Geometry(geom_cells)
+
+report_pebble_cell_level(geom, cell_name_base)
 
 if verbose:
     print("Cell of the vessel:")
