@@ -202,8 +202,10 @@ if verbose:
     print("Vessel radius inner          [cm] = {}".format(vessel_inner_radius))
     print("Vessel z1_vessel (min z)     [cm] = {}".format(vessel_z_min))
     print("Vessel height_vessel         [cm] = {}".format(vessel_z_max - vessel_z_min))
-    print("Reflector radius outer       [cm] = {}".format(reflector_outer_radius))
-    print("Reflector height             [cm] = {}".format(reflector_z_max - reflector_z_min))
+    print("Reflector present            [--] = {}".format(reflector_is_present))
+    if reflector_is_present:
+        print("Reflector radius outer       [cm] = {}".format(reflector_outer_radius))
+        print("Reflector height             [cm] = {}".format(reflector_z_max - reflector_z_min))
 
     print("Pebbles centers [cm] :")
     print(pebble_centers)
