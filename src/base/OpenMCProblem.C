@@ -242,6 +242,28 @@ void OpenMCProblem::addExternalVariables()
 
   // Will receive values from the master
   addUserObject("NearestPointReceiver", "average_temp", receiver_params);
+
+  // Find cell for each pebble center and get initial temperatures
+  // as set on the OpenMC model
+  std::vector<double> initial_temperatures;
+  for (const auto & c : _centers)
+  {
+    openmc::Particle p {};
+    p.r() = {c(0), c(1), c(2)};
+    p.u() = {0., 0., 1.};
+
+    if (!openmc::find_cell(p, false))
+      mooseError("Cannot find OpenMC cell at position (x, y, z) = (" + Moose::stringify(c(0)) + ", " +
+        Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + ")");
+
+    auto& cell = openmc::model::cells[p.coord_[p.n_coord_ - 1].cell];
+    initial_temperatures.push_back(cell->temperature(cell->temperature(p.cell_instance_)));
+
+  }
+
+  // initialize the user object with these temperatures
+  auto& average_temp = getUserObject<NearestPointReceiver>("average_temp");
+  average_temp.setValues(initial_temperatures);
 }
 
 void OpenMCProblem::externalSolve()
