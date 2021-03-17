@@ -25,6 +25,7 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 # -------------- Unit Conversions -----------
 mm = 0.1   # default cm
 μm = 1e-4  # default cm
@@ -34,7 +35,7 @@ mm = 0.1   # default cm
 radius_fuel = 400.0*μm/2
 thickness_c_buffer = 100.0*μm
 thickness_pyc_inner = 35.0*μm
-thickness_sic =  35.0*μm
+thickness_sic = 35.0*μm
 thickness_pyc_outer = 35.0*μm
 radius_c_buffer = radius_fuel + thickness_c_buffer
 radius_pyc_inner = radius_c_buffer + thickness_pyc_inner
@@ -42,15 +43,19 @@ radius_sic = radius_pyc_inner + thickness_sic
 radius_pyc_outer = radius_sic + thickness_pyc_outer
 packing_fraction = 0.40
 
-# UCBTH-14-002, Table 2-1 (differs slightly from Cisneros, Table 5-2) ; scaled by TAMU experiment factor
-radius_pebble_inner   = 2.5/2
-# UCBTH-14-002, Table 2-1; Cisneros, Table 5-2 ; scaled by TAMU experiment factor
-radius_pebble_outer   = 3.0/2
-# UCBTH-14-002, Table 2-1; Cisneros, Table 5-2 ; scaled by TAMU experiment factor
+# UCBTH-14-002, Table 2-1 (differs slightly from Cisneros, Table 5-2)
+# scaled by TAMU experiment factor
+radius_pebble_inner = 2.5/2
+# UCBTH-14-002, Table 2-1; Cisneros, Table 5-2
+# scaled by TAMU experiment factor
+radius_pebble_outer = 3.0/2
+# UCBTH-14-002, Table 2-1; Cisneros, Table 5-2
+# scaled by TAMU experiment factor
 radius_pebble_central = radius_pebble_outer - 0.1
 # Tolerance for pebbles universe filling
-tolerance             = 0.00
-radius_pebble_flibe   = radius_pebble_outer+tolerance
+tolerance = 0.00
+radius_pebble_flibe = radius_pebble_outer+tolerance
+
 
 # -------------- Functions ------------------
 def flibe_density(p, t):
@@ -59,41 +64,56 @@ def flibe_density(p, t):
     and temperature, t in units of kg/m3
     """
     # assumes the default value for drho_dp of 1.7324e-7
-    rho = -0.4884*t + 1.7324e-7*(p - 101325.0) + 2413.0 # kg/m3
+    rho = -0.4884*t + 1.7324e-7*(p - 101325.0) + 2413.0  # kg/m3
     return rho
+
 
 # -------------- Materials Parameters --------
 # TRISO particle
 enrichment_uranium   = 0.199
-fraction_u234        = 2e-3                 # U234/(U234+U235) mass from Giacint facility fuel
-density_fuel         = ('g/cm3', 10.5)      # UCBTH-14-002, Table 2-1
-density_c_buffer     = ('g/cm3', 1.0)       # Cisneros    , Table 3-1
-density_pyc          = ('g/cm3', 1.87)      # Cisneros    , Table 3-1
-density_sic          = ('g/cm3', 3.2)       # Cisneros    , Table 3-1
+fraction_u234        = 2e-3  # U234/(U234+U235) mass from Giacint facility fuel
+density_fuel         = ('g/cm3', 10.5)  # UCBTH-14-002, Table 2-1
+density_c_buffer     = ('g/cm3', 1.0)  # Cisneros, Table 3-1
+density_pyc          = ('g/cm3', 1.87)  # Cisneros, Table 3-1
+density_sic          = ('g/cm3', 3.2)  # Cisneros, Table 3-1
 # Pebble Graphite
-density_graphite_inner = ('g/cm3', 1.59368) # Cisneros    , Table 3-1
-density_graphite_outer = ('g/cm3', 1.74)    # Cisneros    , Table 3-1
+density_graphite_inner = ('g/cm3', 1.59368)  # Cisneros, Table 3-1
+density_graphite_outer = ('g/cm3', 1.74)  # Cisneros, Table 3-1
 # FLiBe coolant
 enrichment_li7       = 0.99995
-temperature_inlet    = 273.15 + 600.0       # UCBTH-14-002, Table 1-1
-temperature_outlet   = 273.15 + 700.0       # UCBTH-14-002, Table 1-1
+temperature_inlet    = 273.15 + 600.0  # UCBTH-14-002, Table 1-1
+temperature_outlet   = 273.15 + 700.0  # UCBTH-14-002, Table 1-1
 temperature_flibe    = (temperature_inlet + temperature_outlet)/2
 rho_flibe            = flibe_density(101.325e3, temperature_flibe)
 density_flibe        = ('kg/m3', rho_flibe)
 # Reflector, a mixture of graphite and flibe.
-reflector_porosity   = 0.112                # Novak thesis, Table 6.4, assuming 5 mm gaps b/w blocks
-rho_graphite         = 1632.0               # Novak thesis, page 234
-density_reflector    = ('kg/m3', reflector_porosity * rho_flibe + (1 - reflector_porosity) * rho_graphite)
+reflector_porosity   = 0.112  # Novak thesis, Table 6.4, assuming 5 mm gaps b/w blocks
+rho_graphite         = 1632.0  # Novak thesis, page 234
+rho_reflector = reflector_porosity*rho_flibe + (1 - reflector_porosity)*rho_graphite
+density_reflector    = ('kg/m3', rho_reflector)
+# Graphite-flibe homogenized reflector
+flibe_molar_mass = m_flibe.average_molar_mass * 7
+graphite_molar_mass = m_graphite_outer.average_molar_mass
+# moles of flibe in 1 m^3
+mols_flibe = reflector_porosity * (rho_flibe * 1000.0) / flibe_molar_mass
+# moles of graphite in 1 m^3:
+mols_graphite = (1.0 - reflector_porosity) * (rho_graphite * 1000.0) / graphite_molar_mass
+
 # --------------------------------------------------
 # NO CONSTANT DEFINITIONS BEYOND THIS LINE
 
 # --------------------------- Main ----------------------------
-ap = ArgumentParser(description="Script for producing a pebble bed"
-                                " geometry from a points file",
-                    epilog="This script expects the "
-                    "presence of a 'pebble_centers_rescaled.txt'"
-                    " file in which all pebble centers are represented "
-                    " for pebbles with a radius of 1.5 cm.")
+
+program_description = ("Script for producing a pebble bed geometry "
+                       "from a file of pebble centers.")
+
+program_epilog = ("This script expects the presence of a "
+                  "'pebble_centers_rescaled.txt' file in which "
+                  "all pebble centers are represented for pebbles "
+                  "with a radius of 1.5 cm.")
+
+ap = ArgumentParser(description=program_description,
+                    epilog=program_epilog)
 
 ap.add_argument('-e', dest='extra_refl', type=float,
                 default=0.0, help='Additional reflector thickness')
@@ -101,8 +121,8 @@ ap.add_argument('-v', dest='verbose', action='store_true',
                 default=False, help='Enable verbose output')
 ap.add_argument('-r', dest='random_trisos', action='store_true',
                 default=False, help='Enable random TRISO distribution')
-ap.add_argument('-b', dest='vessel_bc', type=str,
-                default='reflective', help='Reactor vessel boundary cond.')
+ap.add_argument('-b', dest='bc', type=str,
+                default='reflective', help='Reactor external B.C.')
 ap.add_argument('-p', dest='particles', type=int,
                 default=1000, help='Particles per batch')
 ap.add_argument('-i', dest='inactive', type=int,
@@ -116,15 +136,16 @@ ap.add_argument('-t', dest='tshape', type=int,
                 nargs=3, default=(20, 20, 20),
                 help='TRISO lattice shape')
 ap.add_argument('-f', dest='reflector', action='store_true',
-                default=False, help='Include surrounding reflector region')
-
+                default=False, help='Include surrounding reflector')
 args = ap.parse_args()
 
 # warn user about pebble center expetation
-radius_warning = ("************************************************************\n"
-                  "This script expects pebble centers scaled to radius = 1.5 cm\n"
-                  "************************************************************")
-print("{}{}{}".format(bcolors.WARNING, radius_warning, bcolors.ENDC))
+scaling_warning = (
+    "************************************************************\n"
+    "This script expects pebble centers scaled to radius = 1.5 cm\n"
+    "************************************************************"
+    )
+print("{}{}{}".format(bcolors.WARNING, scaling_warning, bcolors.ENDC))
 
 # transfer argument values to script variables
 random_distribution = args.random_trisos
@@ -150,9 +171,9 @@ vessel_inner_radius = np.max(np.linalg.norm(pebble_centers[:, :-1], axis=1)) + r
 # Add additional moderation surrounding the pebble bed to reduce the
 # artificially high k-eff due to reflecting boundary conditions
 extra_thickness =  args.extra_refl  # cm
-vessel_z_min -= extra_thickness # bottom plane vessel ; scaled by TAMU experiment factor
-vessel_z_max += extra_thickness # top plane    vessel ; scaled by TAMU experiment factor
-vessel_outer_radius += extra_thickness #                       scaled by TAMU experiment factor
+vessel_z_min -= extra_thickness  # bottom plane vessel ; scaled by TAMU experiment factor
+vessel_z_max += extra_thickness  # top plane vessel ; scaled by TAMU experiment factor
+vessel_outer_radius += extra_thickness  # scaled by TAMU experiment factor
 vessel_height = vessel_z_max - vessel_z_min
 
 # Add outer reflector of thickness 40 cm, UCBTH-14-002. We assume that there is then also a reflector
@@ -173,7 +194,7 @@ if verbose:
     print("TRISO particles radius_pyc_outer      [cm] = {}".format(radius_pyc_outer))
     print("TRISO particles packing fraction           = {}".format(packing_fraction))
     if not random_distribution:
-       print ("TRISO particles regular lattice pitch_triso_lattice [cm] = {}".format(pitch_triso_lattice))
+        print("TRISO particles regular lattice pitch_triso_lattice [cm] = {}".format(pitch_triso_lattice))
     print("Pebble radius_pebble_inner   [cm] = {}".format(radius_pebble_inner))
     print("Pebble radius_pebble_outer   [cm] = {}".format(radius_pebble_outer))
     print("Pebble radius_pebble_central [cm] = {}".format(radius_pebble_central))
@@ -208,7 +229,7 @@ m_graphite_pyc.add_nuclide('C0', 1.0)
 m_graphite_pyc.add_s_alpha_beta('c_Graphite')
 
 m_sic = openmc.Material(name='sic - triso partciles')
-m_sic.add_nuclide('C0' , 1.0)
+m_sic.add_nuclide('C0', 1.0)
 m_sic.add_element('Si', 1.0)
 m_sic.set_density(*density_sic)
 # TODO: Add SiC S(alpha, beta) ; ENDF/B-VIIIb4 has data for both Si and C in SiC
@@ -232,23 +253,11 @@ m_graphite_outer.add_s_alpha_beta('c_Graphite')
 # FLiBe coolant - From Cisneros, appendix B, material 24
 m_flibe = openmc.Material(name='m_flibe - 2LiF-BeF2')
 m_flibe.set_density(*density_flibe)
-m_flibe.add_nuclide('Li7', 2.0*     enrichment_li7)
+m_flibe.add_nuclide('Li7', 2.0*enrichment_li7)
 m_flibe.add_nuclide('Li6', 2.0*(1 - enrichment_li7))
-m_flibe.add_element('Be' , 1.0)
-m_flibe.add_element('F'  , 4.0)
+m_flibe.add_element('Be', 1.0)
+m_flibe.add_element('F', 4.0)
 # TODO: FLiBe coolant - no S(alpha, beta) data available up to ENDF/B-VIIIb4
-
-# Graphite-flibe homogenized reflector
-flibe_molar_mass = m_flibe.average_molar_mass * 7
-graphite_molar_mass = m_graphite_outer.average_molar_mass
-
-# moles of flibe in 1 m^3:
-#            0.112 m^3          * g/m^3                * mol / g
-mols_flibe = reflector_porosity * (rho_flibe * 1000.0) / flibe_molar_mass
-
-# moles of graphite in 1 m^3:
-#            0.888 m^3                  * g/m^3                   * mol / g
-mols_graphite = (1.0 - reflector_porosity) * (rho_graphite * 1000.0) / graphite_molar_mass
 
 # Then, the absolute number of moles is irrelevant since we're adding nuclides based on
 # the atomic representation
@@ -275,7 +284,8 @@ c_triso_sic        = openmc.Cell(name='TIRSO Silicone Carbide', fill=m_sic, regi
 c_triso_pyc_outer  = openmc.Cell(name='TRISO Pyrolitic Graphite Outer', fill=m_graphite_pyc, region=+s_sic & -s_pyc_outer)
 c_triso_matrix     = openmc.Cell(name='TRISO Graphite Matrix', fill=m_graphite_matrix, region=+s_pyc_outer)
 
-triso_cells = [c_triso_fuel, c_triso_c_buffer, c_triso_pyc_inner, c_triso_sic, c_triso_pyc_outer, c_triso_matrix]
+triso_cells = [c_triso_fuel, c_triso_c_buffer, c_triso_pyc_inner,
+               c_triso_sic, c_triso_pyc_outer, c_triso_matrix]
 u_triso = openmc.Universe(cells=triso_cells)
 
 # Pebble Geometry
@@ -290,7 +300,7 @@ c_pebble_flibe = openmc.Cell(name='Pebble exterior (FLiBe)', fill=m_flibe, regio
 l_triso = None
 l_triso_shape = args.tshape
 if verbose:
-    print ("TRISO lattice shape   [cm] = {}".format(l_triso_shape))
+    print("TRISO lattice shape   [cm] = {}".format(l_triso_shape))
 
 # Fill c_pebble_central with TRISO particles
 if not random_distribution:
@@ -354,34 +364,49 @@ pebble_cells = [c_pebble_inner,
                 c_pebble_flibe]
 u_pebble = openmc.Universe(cells=pebble_cells)
 
+# figure out the reactor boundary conditions
+reflfector_bc = args.bc
+if args.reflector:
+    vessel_bc = 'transmission'
+else:
+    vessel_bc = args.bc
+
 # Reactor cells
-vessel_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=vessel_outer_radius)
-vessel_inner = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=vessel_inner_radius)
-vessel_bottom = openmc.ZPlane(z0=vessel_z_min)
-vessel_top = openmc.ZPlane(z0=vessel_z_max)
+vessel_outer = openmc.ZCylinder(x0=vessel_x,
+                                y0=vessel_y,
+                                r=vessel_outer_radius,
+                                boundary_type=vessel_bc)
+vessel_inner = openmc.ZCylinder(x0=vessel_x,
+                                y0=vessel_y,
+                                r=vessel_inner_radius,
+                                boundary_type=vessel_bc)
+vessel_bottom = openmc.ZPlane(z0=vessel_z_min,
+                              boundary_type=vessel_bc)
+vessel_top = openmc.ZPlane(z0=vessel_z_max,
+                           boundary_type=vessel_bc)
 vessel_region = -vessel_outer & +vessel_bottom & -vessel_top
-vessel_cell = openmc.Cell(name='Pebble Vessel', region = vessel_region)
+vessel_cell = openmc.Cell(name='Pebble Vessel', region=vessel_region)
 
 reflector_cells = []
 if args.reflector:
     vessel_cell.region = vessel_cell.region & +vessel_inner
 
     # Reflector cell
-    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=reflector_outer_radius, boundary_type = 'reflective')
-    reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type = 'reflective')
-    reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type = 'reflective')
+    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=reflector_outer_radius, boundary_type=reflector_bc)
+    reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type=reflector_bc)
+    reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type=reflector_bc)
     outer_reflector_region = -reflector_outer & +vessel_bottom & -vessel_top & +vessel_inner
     inner_reflector_region = -vessel_inner & +vessel_bottom & -vessel_top
     top_reflector_region = +vessel_top & -reflector_top & -reflector_outer
     bottom_reflector_region = -vessel_bottom & +reflector_bottom & -reflector_outer
-    outer_reflector_cell = openmc.Cell(name = 'Outer Reflector', region = outer_reflector_region, fill = m_reflector)
-    inner_reflector_cell = openmc.Cell(name = 'Inner Reflector', region = inner_reflector_region, fill = m_reflector)
-    top_reflector_cell = openmc.Cell(name = 'Top Reflector', region = top_reflector_region, fill = m_reflector)
-    bottom_reflector_cell = openmc.Cell(name = 'Bottom Reflector', region = bottom_reflector_region, fill = m_reflector)
+    outer_reflector_cell = openmc.Cell(name='Outer Reflector', region=outer_reflector_region, fill=m_reflector)
+    inner_reflector_cell = openmc.Cell(name='Inner Reflector', region=inner_reflector_region, fill=m_reflector)
+    top_reflector_cell = openmc.Cell(name='Top Reflector', region=top_reflector_region, fill=m_reflector)
+    bottom_reflector_cell = openmc.Cell(name='Bottom Reflector', region=bottom_reflector_region, fill=m_reflector)
     reflector_cells = [outer_reflector_cell, inner_reflector_cell, top_reflector_cell, bottom_reflector_cell]
 
 # Creating TRISOs for the pebbles to pack them into a lattice for efficiency
-cell_name = ['cell_pebble_' + str(i) for i in range (len(pebble_centers))]
+cell_name = ['cell_pebble_' + str(i) for i in range(len(pebble_centers))]
 pebble_trisos = []
 for center, name in zip(pebble_centers, cell_name):
     triso = openmc.model.TRISO(radius_pebble_outer,
@@ -409,8 +434,8 @@ geom_cells = [vessel_cell] + reflector_cells
 geom = openmc.Geometry(geom_cells)
 
 if verbose:
-    print ("Cell of the vessel:")
-    print (vessel_cell)
+    print("Cell of the vessel:")
+    print(vessel_cell)
 
 # -------------- Settings --------------------
 settings = openmc.Settings()
@@ -420,17 +445,17 @@ settings.source    = openmc.Source(space=source_space)
 settings.particles = args.particles
 settings.inactive  = args.inactive
 settings.batches   = args.inactive + args.active
-settings.temperature = { 'default' : 573.0,
-                         'method' : 'interpolation',
-                         'multipole' : True,
-                         'range' : (300.0, 1500.0),
-                         'tolerance' : 1000.0 }
+settings.temperature = {'default': 573.0,
+                        'method': 'interpolation',
+                        'multipole': True,
+                        'range': (300.0, 1500.0),
+                        'tolerance': 1000.0}
 settings.material_cell_offsets = False
 
 # Fuel volume calculation
 volume_fuel = openmc.VolumeCalculation([m_fuel], 10000000, *c_pebble_central.bounding_box)
 settings.volume_calculations = [volume_fuel]
-settings.output = { 'summary' : False }
+settings.output = {'summary': False}
 
 # -------------- Plots --------------
 # Plot parameters
