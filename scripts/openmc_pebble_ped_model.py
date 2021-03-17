@@ -71,6 +71,9 @@ def report_pebble_cell_level(geom: openmc.Geometry, pebble_cells):
     is found in the cell name and reports the level
     of the pebble cells in the geometry for ease of
     use with Cardinal
+
+    Note: this function assumes the pebble cells
+    are all at the same level of the geometry
     """
 
     # ensure the pebble cell container is efficient
@@ -490,6 +493,7 @@ vessel_cell.fill = l_pebble
 geom_cells = [vessel_cell] + reflector_cells
 geom = openmc.Geometry(geom_cells)
 
+# assumes the pebble cells are all at the same level of the geometry
 report_pebble_cell_level(geom, pebble_trisos)
 
 if verbose:
