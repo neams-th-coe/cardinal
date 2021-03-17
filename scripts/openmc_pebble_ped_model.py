@@ -64,13 +64,17 @@ def flibe_density(p, t):
     rho = -0.4884*t + 1.7324e-7*(p - 101325.0) + 2413.0  # kg/m3
     return rho
 
-def report_pebble_cell_level(geom: openmc.Geometry, cell_name_key):
+
+def report_pebble_cell_level(geom: openmc.Geometry, pebble_cells):
     """
     Traverses the geometry until the cell name key
     is found in the cell name and reports the level
     of the pebble cells in the geometry for ease of
     use with Cardinal
     """
+
+    # ensure the pebble cell container is efficient
+    peb_cells = set(pebble_cells)
 
     level = None
 
@@ -81,8 +85,10 @@ def report_pebble_cell_level(geom: openmc.Geometry, cell_name_key):
         cells = curr_univ.cells
 
         for cell in cells.values():
-            # if one of the cells on this level contains the
-            if cell_name_key in cell.name:
+            # if one of the cells on this level
+            # is a pebble cell, set the level and break
+            if 'cell_pebble_' in cell.name:
+            #if cell in peb_cells:
                 level = curr_lvl
                 break
 
@@ -457,7 +463,6 @@ if reflector_is_present:
     reflector_cells = [outer_reflector_cell, inner_reflector_cell, top_reflector_cell, bottom_reflector_cell]
 
 # Creating TRISOs for the pebbles to pack them into a lattice for efficiency
-cell_name_base = 'cell_pebble_'
 cell_name = ['cell_pebble_' + str(i) for i in range(len(pebble_centers))]
 pebble_trisos = []
 for center, name in zip(pebble_centers, cell_name):
@@ -485,7 +490,7 @@ vessel_cell.fill = l_pebble
 geom_cells = [vessel_cell] + reflector_cells
 geom = openmc.Geometry(geom_cells)
 
-report_pebble_cell_level(geom, cell_name_base)
+report_pebble_cell_level(geom, pebble_trisos)
 
 if verbose:
     print("Cell of the vessel:")
