@@ -9,7 +9,7 @@ template <>
 InputParameters
 validParams<NekMeshInfoPostprocessor>()
 {
-  InputParameters params = validParams<GeneralPostprocessor>();
+  InputParameters params = validParams<NekPostprocessor>();
 
   MooseEnum test_type("num_elems num_nodes node_x node_y node_z");
   params.addRequiredParam<MooseEnum>("test_type", test_type, "The type of info to fetch; "
@@ -24,12 +24,9 @@ validParams<NekMeshInfoPostprocessor>()
 }
 
 NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & parameters)
-  : GeneralPostprocessor(parameters),
-   _test_type(getParam<MooseEnum>("test_type")),
-   _mesh(_subproblem.mesh())
+  : NekPostprocessor(parameters),
+   _test_type(getParam<MooseEnum>("test_type"))
 {
-  _nek_mesh = dynamic_cast<const NekRSMesh *>(&_mesh);
-
   if (!_nek_mesh)
     mooseError("'NekMeshInfoPostprocessor' is intended for testing the 'NekRSMesh' mesh, "
       "and cannot be used with other mesh types.");

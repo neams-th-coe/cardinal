@@ -28,7 +28,5 @@ NekMassFluxWeightedSideAverage::NekMassFluxWeightedSideAverage(const InputParame
 Real
 NekMassFluxWeightedSideAverage::getValue()
 {
-  // normalize by mass flow rate, i.e. mass flux weighted integral of unity
-  const field::NekFieldEnum unity = field::unity;
-  return NekMassFluxWeightedSideIntegral::getValue() / nekrs::sideMassFluxWeightedIntegral(_boundary, unity);
+  return NekMassFluxWeightedSideIntegral::getValue() / nekrs::massFlowrate(_boundary);
 }

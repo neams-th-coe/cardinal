@@ -32,5 +32,8 @@ public:
   NekSideAverage(const InputParameters & parameters);
 
   virtual Real getValue() override;
-};
 
+protected:
+  /// Area by which to normalize
+  Real _area;
+};
