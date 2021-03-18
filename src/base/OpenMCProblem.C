@@ -375,6 +375,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       // get the transfer mesh
       auto & transfer_mesh = _mesh.getMesh();
 
+      auto pid = _communicator.rank();
+
       switch (_tallyType)
       {
         case tally::cell:
@@ -388,10 +390,12 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
           for (unsigned int i = 0; i < _centers.size(); ++i ) {
             unsigned int offset = i * elems_per_sphere;
             for (unsigned int e = 0; e < elems_per_sphere; ++e) {
-              auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
-              auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-              // set every element in this pebble with the same heating value
-              solution.set(dof_idx, cell_heat.at(i));
+              auto elem_ptr = transfer_mesh.query_elem_ptr(offset + e);
+              if (elem_ptr && elem_ptr->processor_id() == pid) {
+                auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+                // set every element in this pebble with the same heating value
+                solution.set(dof_idx, cell_heat.at(i));
+              }
             }
           }
 
@@ -412,9 +416,11 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
             unsigned int offset = i * mesh_filter->n_bins();
 
             for (decltype(mesh_filter->n_bins()) e = 0; e < mesh_filter->n_bins(); ++e) {
-              auto elem_ptr = transfer_mesh.elem_ptr(offset + e);
-              auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-              solution.set(dof_idx, mesh_heat.at(offset + e));
+              auto elem_ptr = transfer_mesh.query_elem_ptr(offset + e);
+              if (elem_ptr && elem_ptr->processor_id() == pid) {
+                auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+                solution.set(dof_idx, mesh_heat.at(offset + e));
+              }
             }
           }
         break;
