@@ -36,6 +36,7 @@ validParams<OpenMCProblem>()
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(), "type of tally to use in OpenMC");
   params.addRequiredParam<int>("pebble_cell_level", "Level of pebble cells in the OpenMC model");
   params.addParam<std::string>("mesh_template", "mesh tally template for OpenMC");
+  params.addParam<bool>("check_tally_sum", true, "Check heating tally consistency between timesteps");
   return params;
 }
 
@@ -44,7 +45,8 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   _pebble_cell_level(getParam<int>("pebble_cell_level")),
   _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes")),
-  _tallyType(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>())
+  _tallyType(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
+  _check_tally_sum(getParam<bool>("check_tally_sum"))
 {
   if (isParamValid("centers") == isParamValid("centers_file"))
     mooseError("OpenMCProblem requires either 'centers' or 'centers_file' - you have specified "
@@ -164,12 +166,17 @@ OpenMCProblem::fillCenters()
 }
 
 void OpenMCProblem::setupTallies() {
-  // create a global 'kappa-fission' tally
-  auto tally = openmc::Tally::create();
-  tally->set_scores({"kappa-fission"});
-  tally->set_id(-1);
 
-  _kappa_fission_tally = tally;
+  // create a global 'kappa-fission' tally
+  if (_check_tally_sum) {
+    auto tally = openmc::Tally::create();
+    tally->set_scores({"kappa-fission"});
+    tally->set_id(-1);
+    _kappa_fission_tally = tally;
+    // make sure the global tally estimator matches
+    // when using a mesh tally
+    if (_tallyType == tally::mesh) tally->estimator_ = openmc::TallyEstimator::COLLISION;
+  }
 
   switch (_tallyType)
     {
@@ -182,6 +189,7 @@ void OpenMCProblem::setupTallies() {
       default:
         mooseError("Unhandled TallyTypeEnum in OpenMCProblem!");
     }
+
 }
 
 void OpenMCProblem::setupCellTally() {
@@ -238,8 +246,10 @@ void OpenMCProblem::setupMeshTallies() {
     _tallies.push_back(tally);
   }
 
-  // performance optimization - assume the mesh tallies are spatially separate
-  openmc::settings::assume_separate = true;
+  if (!_check_tally_sum) {
+    // performance optimization - assume the mesh tallies are spatially separate
+    openmc::settings::assume_separate = true;
+  }
 
   // warn user that this setting is present if other tallies existin
   // (in the tallies.xml for example)
@@ -405,11 +415,11 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   }
 }
 
-void OpenMCProblem::kappa_fission_check(double tally_sum) const {
+void OpenMCProblem::checkTallySum(double tally_sum) const {
   double kf_total = kappa_fission_total();
   if ( std::abs(kf_total - tally_sum) / kf_total > openmc::FP_REL_PRECISION) {
     mooseWarning("Heating tally kappa-fission does not match the global kappa-fission value.\n"
-                 "Global value: " + std::to_string(kf_total) + "\nTally value: " + std::to_string(tally_sum));
+                 "Global value: " + std::to_string(kf_total) + "\nTally sum: " + std::to_string(tally_sum));
   }
 }
 
@@ -439,7 +449,7 @@ std::vector<double> OpenMCProblem::meshHeatSource() {
     }
   }
 
-  kappa_fission_check(tally_sum);
+  if (_check_tally_sum) checkTallySum(tally_sum);
 
   double total_heat = xt::sum(heat)();
   double f = _power / total_heat;
@@ -478,7 +488,7 @@ std::vector<double> OpenMCProblem::cellHeatSource()
 
   double tally_sum = xt::sum(meanValue)();
 
-  kappa_fission_check(tally_sum);
+  if (_check_tally_sum) checkTallySum(tally_sum);
 
   xt::xarray<double> heat = meanValue;
   heat *= JOULE_PER_EV;
