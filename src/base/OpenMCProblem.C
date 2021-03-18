@@ -108,17 +108,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
                "' are not unique. Please check the centers and the 'pebble_cell_level' parameter." );
   }
 
-  switch (_tallyType)
-  {
-    case tally::cell:
-      setupCellTally();
-      break;
-    case tally::mesh:
-      setupMeshTallies();
-      break;
-    default:
-      mooseError("Unhandled TallyTypeEnum in OpenMCProblem!");
-  }
+  setupTallies();
 }
 
 void
@@ -415,6 +405,14 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   }
 }
 
+void OpenMCProblem::kappa_fission_check(double tally_sum) const {
+  double kf_total = kappa_fission_total();
+  if ( std::abs(kf_total - tally_sum) / kf_total > openmc::FP_REL_PRECISION) {
+    mooseWarning("Heating tally kappa-fission does not match the global kappa-fission value.\n"
+                 "Global value: " + std::to_string(kf_total) + "\nTally value: " + std::to_string(tally_sum));
+  }
+}
+
 std::vector<double> OpenMCProblem::meshHeatSource() {
   // determine the size of the heat source
   size_t heat_source_size = 0;
@@ -422,7 +420,7 @@ std::vector<double> OpenMCProblem::meshHeatSource() {
   xt::xarray<double> heat = xt::zeros<double> ({heat_source_size});
 
   size_t idx = 0;
-  double totalHeat = 0.0;
+  double tally_sum = 0.0;
   for (std::size_t i = 0; i < _tallies.size(); i++) {
     const auto& tally = _tallies[i];
     // Determine number of realizations for normalizing tallies
@@ -436,14 +434,16 @@ std::vector<double> OpenMCProblem::meshHeatSource() {
     // normalize by volume
     for (int bin = 0; bin < tally->n_filter_bins(); bin++) {
       heat(idx) = tally_mean(bin) * JOULE_PER_EV / m;
-      totalHeat += heat(idx);
+      tally_sum += tally_mean(bin);
       idx++;
     }
   }
 
+  kappa_fission_check(tally_sum);
+
   double total_heat = xt::sum(heat)();
   double f = _power / total_heat;
-  if (totalHeat != 0.0) {
+  if (total_heat != 0.0) {
     // normalize heat generation using power level
     int idx = 0;
     for (const auto& tally : _tallies) {
@@ -476,28 +476,25 @@ std::vector<double> OpenMCProblem::cellHeatSource()
   // Determine energy production in each material
   auto meanValue = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
-  double sum = xt::sum(meanValue)();
+  double tally_sum = xt::sum(meanValue)();
 
-  double kf_total = kappa_fission_total();
-  if ( std::abs(kf_total - sum) / kf_total > openmc::FP_PRECISION) {
-    mooseWarning("Heating tally kappa-fission does not match the global kappa-fission value");
-  }
+  kappa_fission_check(tally_sum);
 
   xt::xarray<double> heat = meanValue;
   heat *= JOULE_PER_EV;
   heat /= m;
 
   // Get total heat production [J/source]
-  double totalHeat = xt::sum(heat)();
+  double total_heat = xt::sum(heat)();
 
-  if (totalHeat != 0.0) {
+  if (total_heat != 0.0) {
     // Normalize heat source in each material and collect in an array
     for (std::size_t i = 0; i < _cellIndices.size(); ++i) {
       double V = _volumes[i];
       // Convert heat from [J/source] to [W/cm^3]. Dividing by total_heat gives
       // the fraction of heat deposited in each material. Multiplying by power
       // givens an absolute value in W
-      heat(i) *= _power / (totalHeat * V);
+      heat(i) *= _power / (total_heat * V);
     }
   } else {
     heat = xt::zeros_like(heat);

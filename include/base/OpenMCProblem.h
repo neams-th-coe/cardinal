@@ -39,7 +39,11 @@ public:
   //! translated to the center of each pebble
   void setupMeshTallies();
 
+  //! Get the global kappa-fission value for the probmlem
   double kappa_fission_total() const;
+
+  //! Check that the tally sum matches the global kappa-fission tally
+  void kappa_fission_check(double tally_sum) const;
 
   // Retrieves cell-based tally values
   // and contstructs a heat source
