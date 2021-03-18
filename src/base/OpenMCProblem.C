@@ -173,6 +173,27 @@ OpenMCProblem::fillCenters()
   }
 }
 
+void OpenMCProblem::setupTallies() {
+  // create a global 'kappa-fission' tally
+  auto tally = openmc::Tally::create();
+  tally->set_scores({"kappa-fission"});
+  tally->set_id(-1);
+
+  _kappa_fission_tally = tally;
+
+  switch (_tallyType)
+    {
+      case tally::cell:
+        setupCellTally();
+        break;
+      case tally::mesh:
+        setupMeshTallies();
+        break;
+      default:
+        mooseError("Unhandled TallyTypeEnum in OpenMCProblem!");
+    }
+}
+
 void OpenMCProblem::setupCellTally() {
   // create a cell filter
   auto cellFilter = dynamic_cast<openmc::CellFilter*>(openmc::Filter::create("cell"));
@@ -236,6 +257,13 @@ void OpenMCProblem::setupMeshTallies() {
     mooseWarning("Additional tallies exist in the problem. "
                  "If spatial overlaps exist, tally data may be inaccurate");
   }
+}
+
+double OpenMCProblem::kappa_fission_total() const
+{
+  auto tally_results = _kappa_fission_tally->results_;
+  double total = tally_results(0, 0, static_cast<int>(openmc::TallyResult::SUM));
+  return total;
 }
 
 void OpenMCProblem::addExternalVariables()
@@ -447,6 +475,13 @@ std::vector<double> OpenMCProblem::cellHeatSource()
 
   // Determine energy production in each material
   auto meanValue = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+
+  double sum = xt::sum(meanValue)();
+
+  double kf_total = kappa_fission_total();
+  if ( std::abs(kf_total - sum) / kf_total > openmc::FP_PRECISION) {
+    mooseWarning("Heating tally kappa-fission does not match the global kappa-fission value");
+  }
 
   xt::xarray<double> heat = meanValue;
   heat *= JOULE_PER_EV;

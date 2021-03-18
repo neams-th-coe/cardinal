@@ -30,11 +30,16 @@ public:
   /// Get the center coordinates for all cells of interest
   virtual void fillCenters();
 
+  //! Create all tallies needed for transfers and problem checks
+  void setupTallies();
+
   //! Creates a cell-based tally with a value for each pebble
   void setupCellTally();
   //! Creates an unstructured mesh tally using a template
   //! translated to the center of each pebble
   void setupMeshTallies();
+
+  double kappa_fission_total() const;
 
   // Retrieves cell-based tally values
   // and contstructs a heat source
@@ -75,6 +80,7 @@ protected:
   std::vector<const openmc::CellFilter*> _cellFilters; //! OpenMC cell filters
   std::vector<const openmc::MeshFilter*> _meshFilters; //! OpenMC mesh filters
   std::vector<const openmc::Tally*> _tallies;          //! OpenMC tally instances
+  const openmc::Tally* _kappa_fission_tally;           //! Global kappa-fission tally
 };
 
 #endif //CARDINAL_OPENMCPROBLEM_H
