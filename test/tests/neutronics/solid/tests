@@ -11,4 +11,13 @@
                   "created with the zero_power.i input file, which does not have OpenMC as "
                   "a sub-app."
   [../]
+  [./three_pebbles]
+    type = Exodiff
+    input = openmc_master.i
+    exodiff = 'openmc_master_out.e openmc_master_out_openmc0'
+    min_parallel = 4
+    min_threads = 2
+    requirement = "A coupled OpenMC-MOOSE problem for three pebbles shall demonstrate "
+                  "correct data transfers between OpenMC and heat conduction in the solid."
+  [../]
 []

@@ -51,8 +51,11 @@
   []
 []
 
-m=${fparse 500/(2--5)}
-b=${fparse 300-500/(2--5)*-5}
+zmin = -1.5
+zmax = 9.5
+
+m=${fparse 500/(zmax-zmin)}
+b=${fparse 300-500/(zmax-zmin)*zmin}
 
 [Functions]
   [axial]
@@ -81,7 +84,7 @@ b=${fparse 300-500/(2--5)*-5}
 [Executioner]
   type = Transient
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  num_steps = 5
+  num_steps = 2
   petsc_options_value = 'hypre boomeramg'
   dt = 1.0
   nl_abs_tol = 1e-8
@@ -119,6 +122,22 @@ b=${fparse 300-500/(2--5)*-5}
   [power_from_openmc]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
+  []
+
+  # These are the max/min temperatures in the MOOSE temperature field; because
+  # this field is averaged with a nearest point average before being sent to OpenMC,
+  # these will be slightly different from the max/min temperatures sent to OpenMC
+  [max_T]
+    type = ElementExtremeValue
+    variable = temp
+    execute_on = 'initial timestep_end'
+    value_type = max
+  []
+  [min_T]
+    type = ElementExtremeValue
+    variable = temp
+    execute_on = 'initial timestep_end'
+    value_type = min
   []
 []
 

@@ -13,8 +13,8 @@
     <summary>false</summary>
   </output>
   <temperature_default>573.0</temperature_default>
-  <temperature_method>interpolation</temperature_method>
-  <temperature_multipole>true</temperature_multipole>
+  <temperature_method>nearest</temperature_method>
+  <temperature_multipole>false</temperature_multipole>
   <temperature_range>300.0 1500.0</temperature_range>
   <temperature_tolerance>1000.0</temperature_tolerance>
   <volume_calc>
