@@ -80,7 +80,7 @@ protected:
   std::vector<int32_t> _cellIndices {};   //! OpenMC cell indices corresponding to the pebble centers
   std::vector<int32_t> _cellInstances {}; //! OpenMC cell instances corresponding to the pebble centers
 
-  bool _check_tally_sum {true}; //! Check tally consistency during transfers
+  bool _check_tally_sum; //! Check tally consistency during transfers
 
   const openmc::LibMesh* _meshTemplate;                //! OpenMC unstructured mesh instance
   std::vector<const openmc::CellFilter*> _cellFilters; //! OpenMC cell filters
