@@ -37,8 +37,7 @@ void OpenMCApp::registerApps()
   registerApp(OpenMCApp);
 }
 
-OpenMCApp::~OpenMCApp() 
+OpenMCApp::~OpenMCApp()
 {
-  _console << "Finalizing OpenMC...";
   openmc_finalize();
 }
