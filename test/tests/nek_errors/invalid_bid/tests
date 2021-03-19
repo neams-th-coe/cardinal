@@ -2,7 +2,10 @@
   [./invalid_boundary_id]
     type = RunException
     input = nek.i
+
+    # nekRS can't use more processors than elements
     max_parallel = 12
+
     expect_err = "Invalid 'boundary' entry specified for 'NekRSMesh': 8\n\nnekRS assumes the boundary IDs are ordered "
                  "contiguously beginning at 1. For this problem, nekRS has 6 boundaries. "
                  "Did you enter a valid 'boundary' in 'nek.i'?"
