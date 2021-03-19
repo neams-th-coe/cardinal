@@ -5,6 +5,7 @@
     csvdiff = nek_volume_out.csv
     cli_args = '--app nek --nekrs-setup cube'
     min_parallel = 2
+    max_parallel = 12
     requirement = "NekRSMesh shall correctly assign sideset IDs based on the nekRS boundary IDs. "
                   "This is verified here by performing area integrals on sidesets defined in MOOSE, "
                   "which exactly match area integrals performed internally in nekRS."
