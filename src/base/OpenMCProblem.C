@@ -34,7 +34,7 @@ validParams<OpenMCProblem>()
 
   params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(), "type of tally to use in OpenMC");
-  params.addParam<int>("pebble_cell_level", 0, "Level of pebble cells in the OpenMC model");
+  params.addRequiredParam<int>("pebble_cell_level", "Level of pebble cells in the OpenMC model");
   params.addParam<std::string>("mesh_template", "mesh tally template for OpenMC");
   return params;
 }
@@ -98,6 +98,14 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
 
     _cellIndices.push_back(p.coord_[_pebble_cell_level].cell);
     _cellInstances.push_back(p.cell_instance_);
+  }
+
+  // ensure that the _cellIndices are unique
+  auto unique_cell_indices = std::set(_cellIndices.begin(), _cellIndices.end());
+  if (_cellIndices.size() != unique_cell_indices.size()) {
+    mooseError("The cells found in the geometry for the centers provided at level '"
+               + Moose::stringify(_pebble_cell_level) +
+               "' are not unique. Please check the centers and the 'pebble_cell_level' parameter." );
   }
 
   switch (_tallyType)
