@@ -90,15 +90,14 @@ def report_pebble_cell_level(geom: openmc.Geometry, pebble_cells):
         for cell in cells.values():
             # if one of the cells on this level
             # is a pebble cell, set the level and break
-            if 'cell_pebble_' in cell.name:
-            #if cell in peb_cells:
+            if cell in peb_cells:
                 level = curr_lvl
                 break
 
             if isinstance(cell.fill, openmc.Universe):
                 univ_stack.append((curr_lvl + 1, cell.fill))
             elif isinstance(cell.fill, openmc.Lattice):
-                unique_univs = np.unique(np.asarray(cell.fill.universes).flatten())
+                unique_univs = set(np.asarray(cell.fill.universes).flatten())
                 univ_stack += [(curr_lvl + 1, u) for u in unique_univs]
 
     if level is not None:
@@ -107,8 +106,8 @@ def report_pebble_cell_level(geom: openmc.Geometry, pebble_cells):
               "for a cell tally in Cardinal's OpenMCProblem)".format(level))
         print("{}{}{}".format(bcolors.OKGREEN, msg, bcolors.ENDC))
     else:
-        raise RuntimeError("Cell key '{}' was not"
-                           "found in the geometry.".format(cell_name_key))
+        raise RuntimeError("Pebble cells were not"
+                           "found in the geometry.")
 
 
 # -------------- Materials Parameters --------
@@ -415,11 +414,11 @@ if not l_triso:
 # Fil central pebble cell with the TRISO lattice
 c_pebble_central.fill = l_triso
 
-pebble_cells = [c_pebble_inner,
-                c_pebble_central,
-                c_pebble_outer,
-                c_pebble_flibe]
-u_pebble = openmc.Universe(cells=pebble_cells)
+pebble_univ_cells = [c_pebble_inner,
+                     c_pebble_central,
+                     c_pebble_outer,
+                     c_pebble_flibe]
+u_pebble = openmc.Universe(cells=pebble_univ_cells)
 
 # figure out the reactor boundary conditions
 reflector_bc = args.bc
@@ -465,14 +464,24 @@ if reflector_is_present:
     bottom_reflector_cell = openmc.Cell(name='Bottom Reflector', region=bottom_reflector_region, fill=m_reflector)
     reflector_cells = [outer_reflector_cell, inner_reflector_cell, top_reflector_cell, bottom_reflector_cell]
 
+# create an additional universe-cell layer for the pebbles
+pebble_univs = []
+pebble_cells = []
+for center in pebble_centers:
+    s = openmc.Sphere(r=radius_pebble_outer)
+    c = openmc.Cell(region=-s, fill=u_pebble)
+    u = openmc.Universe(cells=[c])
+    pebble_cells.append(c)
+    pebble_univs.append(u)
+
 # Creating TRISOs for the pebbles to pack them into a lattice for efficiency
-cell_name = ['cell_pebble_' + str(i) for i in range(len(pebble_centers))]
 pebble_trisos = []
-for center, name in zip(pebble_centers, cell_name):
+for pebble_num, (center, pebble_univ) in enumerate(zip(pebble_centers, pebble_univs)):
+    cell_name = 'cell_pebble_{}'.format(pebble_num)
     triso = openmc.model.TRISO(radius_pebble_outer,
-                               u_pebble,
+                               pebble_univ,
                                center)
-    triso.name = name
+    triso.name = cell_name
     pebble_trisos.append(triso)
 
 # Place pebbles into a lattice
@@ -494,7 +503,7 @@ geom_cells = [vessel_cell] + reflector_cells
 geom = openmc.Geometry(geom_cells)
 
 # assumes the pebble cells are all at the same level of the geometry
-report_pebble_cell_level(geom, pebble_trisos)
+report_pebble_cell_level(geom, pebble_cells)
 
 if verbose:
     print("Cell of the vessel:")
