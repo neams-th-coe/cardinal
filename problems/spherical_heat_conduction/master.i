@@ -90,7 +90,7 @@
     type = NearestPointAverage
     variable = temp
     points = '0 0 0'
-    execute_on = 'timestep_end'
+    execute_on = 'initial timestep_end'
   []
 []
 
