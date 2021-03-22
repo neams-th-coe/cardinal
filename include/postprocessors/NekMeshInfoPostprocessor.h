@@ -40,7 +40,7 @@ private:
   const NekRSMesh * _nek_mesh;
 
   /// element for which to read mesh information
-  const libMesh::dof_id_type * _element;
+  const Elem * _element;
 
   /// element-local node for which to read mesh information
   const libMesh::dof_id_type * _node;

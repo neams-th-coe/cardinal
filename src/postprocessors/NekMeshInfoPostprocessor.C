@@ -15,8 +15,8 @@ validParams<NekMeshInfoPostprocessor>()
   params.addRequiredParam<MooseEnum>("test_type", test_type, "The type of info to fetch; "
     "this is used to toggle between many different tests to avoid creating tons of source files.");
 
-  params.addParam<libMesh::dof_id_type>("element", "Element ID in NekMesh");
   params.addParam<libMesh::dof_id_type>("node", "Element-local node ID");
+  params.addParam<Point>("point", "Point used to locate element");
 
   params.addClassDescription("Perform various tests on the construction of a nekRS mesh on "
     "a particular boundary to give a surface mesh.");
@@ -38,19 +38,22 @@ NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & param
   // and an element-local node ID
   if (_test_type == "node_x" || _test_type == "node_y" || _test_type == "node_z")
   {
-    _element = &getParam<libMesh::dof_id_type>("element");
+    auto locator = _nek_mesh->getPointLocator();
+
+    if (!isParamValid("point"))
+      paramError("point", "When using a node test, a point must be specified to locate an element");
+
+    const Point & p = getParam<Point>("point");
+    _element = (*locator)(p);
+
     _node = &getParam<libMesh::dof_id_type>("node");
 
     if (!_element)
-      paramError("element", "An 'element' must be specified when the 'test_type' is "
-        "'node_x', 'node_y', or 'node_z'.");
+      paramError("point", "The specified point cannot be found in the mesh");
 
     if (!_node)
       paramError("node", "A 'node' must be specified when the 'test_type' is "
         "'node_x', 'node_y', or 'node_z'.");
-
-    if (*_element >= _nek_mesh->nElem())
-      paramError("element", "The 'element' must be in the range [0, number of elements]!");
 
     if (*_node >= _nek_mesh->nNodes() / _nek_mesh->nElem())
       paramError("node", "The 'node' must be in the range [0, number of nodes / element]!");
@@ -67,20 +70,17 @@ NekMeshInfoPostprocessor::getValue()
     return _nek_mesh->nNodes();
   else if (_test_type == "node_x")
   {
-    auto element = _nek_mesh->elemPtr(*_element);
-    auto node = element->node_ptr(*_node);
+    auto node = _element->node_ptr(*_node);
     return (*node)(0);
   }
   else if (_test_type == "node_y")
   {
-    auto element = _nek_mesh->elemPtr(*_element);
-    auto node = element->node_ptr(*_node);
+    auto node = _element->node_ptr(*_node);
     return (*node)(1);
   }
   else if (_test_type == "node_z")
   {
-    auto element = _nek_mesh->elemPtr(*_element);
-    auto node = element->node_ptr(*_node);
+    auto node = _element->node_ptr(*_node);
     return (*node)(2);
   }
   else
