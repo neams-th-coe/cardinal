@@ -418,8 +418,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 void OpenMCProblem::checkTallySum(double tally_sum) const {
   double kf_total = kappa_fission_total();
   if ( std::abs(kf_total - tally_sum) / kf_total > openmc::FP_REL_PRECISION) {
-    mooseWarning("Heating tally kappa-fission does not match the global kappa-fission value.\n"
-                 "Global value: " + Moose::stringify(kf_total) + "\nTally sum: " + Moose::stringify(tally_sum));
+    mooseError("Heating tally kappa-fission does not match the global kappa-fission value.\n"
+               "Global value: " + Moose::stringify(kf_total) + "\nTally sum: " + Moose::stringify(tally_sum));
   }
 }
 
