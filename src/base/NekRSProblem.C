@@ -29,8 +29,8 @@ validParams<NekRSProblem>()
   params.addRangeCheckedParam<Real>("T_ref", 0.0, "T_ref >= 0.0", "Reference temperature value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("dT_ref", 1.0, "dT_ref > 0.0", "Reference temperature range value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("L_ref", 1.0, "L_ref > 0.0", "Reference length scale value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>("rho_ref", 1.0, "rho_ref > 0.0", "Reference density value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>("Cp_ref", 1.0, "Cp_ref > 0.0", "Reference heat capacity value for non-dimensional solution");
+  params.addRangeCheckedParam<Real>("rho_0", 1.0, "rho_0 > 0.0", "Density parameter value for non-dimensional solution");
+  params.addRangeCheckedParam<Real>("Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
   return params;
 }
 
@@ -43,8 +43,8 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _T_ref(getParam<Real>("T_ref")),
     _dT_ref(getParam<Real>("dT_ref")),
     _L_ref(getParam<Real>("L_ref")),
-    _rho_ref(getParam<Real>("rho_ref")),
-    _Cp_ref(getParam<Real>("Cp_ref")),
+    _rho_0(getParam<Real>("rho_0")),
+    _Cp_0(getParam<Real>("Cp_0")),
     _start_time(nekrs::startTime())
 {
   if (_minimize_transfers_in && !isParamValid("transfer_in"))
@@ -56,7 +56,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
   // if solving in nondimensional form, make sure that the user specified _all_ of the
   // necessary scaling quantities to prevent errors from forgetting one, which would take
   // a non-scaled default otherwise
-  std::vector<std::string> scales = {"U_ref", "T_ref", "dT_ref", "L_ref", "rho_ref", "Cp_ref"};
+  std::vector<std::string> scales = {"U_ref", "T_ref", "dT_ref", "L_ref", "rho_0", "Cp_0"};
   std::vector<std::string> descriptions = {"velocity", "temperature", "temperature range", "length",
     "density", "heat capacity"};
   for (std::size_t n = 0; n < scales.size(); ++n)
@@ -68,7 +68,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
   }
 
   // inform nekRS of the scaling that we are using if solving in non-dimensional form
-  nekrs::solution::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_ref, _Cp_ref);
+  nekrs::solution::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
 
   // the way the data transfers are detected depend on nekRS being a sub-application,
   // so these settings are not invalid if nekRS is the master app (though you could

@@ -8,8 +8,8 @@
   T_ref = 628.15
   dT_ref = 50.0
   L_ref = 0.908e-2
-  rho_ref = 834.5
-  Cp_ref = 1228.0
+  rho_0 = 834.5
+  Cp_0 = 1228.0
 []
 
 [Mesh]
