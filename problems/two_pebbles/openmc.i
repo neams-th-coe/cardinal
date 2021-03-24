@@ -3,16 +3,11 @@
   file = two_sphere.e
 []
 
-[Variables]
-  [dummy]
-  []
-[]
-
 [Problem]
   type = OpenMCProblem
   power = 1000
   centers = '0 0 0 0 0 3.15'
-  volumes = '14.137166941154067 14.137166941154067'
+  volumes = '13.986085'
   tally_type = 'mesh'
   mesh_template = 'sphere.e'
 []
@@ -22,9 +17,22 @@
   num_steps = 50
 []
 
+[Postprocessors]
+  [total_volume]
+    type = VolumePostprocessor
+  []
+  [pebble_volume] # show the volume of each pebble for confirmation
+    type = LinearCombinationPostprocessor
+    pp_names = 'total_volume'
+    pp_coefs = '${fparse 1.0/2.0}'
+  []
+[]
+
 [Outputs]
-  [exo]
-    type = Exodus
-    output_dimension = 3
+  exodus = true
+
+  [console]
+    type = Console
+    hide = 'total_volume'
   []
 []

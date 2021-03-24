@@ -32,7 +32,7 @@ validParams<OpenMCProblem>()
   params.addParam<std::vector<FileName>>("centers_file", "Alternative way to provide the coordinates of cells "
     "to transfer data with");
 
-  params.addRequiredParam<std::vector<Real>>("volumes", "volumes of pebbles");
+  params.addParam<std::vector<Real>>("volumes", "volumes of pebbles");
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(), "type of tally to use in OpenMC");
   params.addRequiredParam<int>("pebble_cell_level", "Level of pebble cells in the OpenMC model");
   params.addParam<std::string>("mesh_template", "mesh tally template for OpenMC");
@@ -53,18 +53,27 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   // get the coordinates for each cell center that we wish to transfer data with
   fillCenters();
 
-  // number of supplied volumes must either be 1 (in which case each cell is assumed
-  // to be the same volume) or have a length equal to the number of centers provided
-  if ((_volumes.size() > 1) &&  (_volumes.size() != _centers.size()))
-    paramError("volumes", "When more than one volume is provided, the length must match "
-      "the length of the 'centers' provided!");
-
-  // if only one volume was provided, fill out the _volumes array for heat source normalization
-  // agnostic to whether one or N volumes were provided by the user
-  if (_volumes.size() == 1)
+  if (_tallyType == tally::cell)
   {
-    Real vol = _volumes[0];
-    _volumes = std::vector<double>(_centers.size(), vol);
+    if (!isParamValid("volumes"))
+      paramError("volumes", "Wth cell-based tallies, the volumes of each MOOSE receiving mesh "
+        "must be provided!");
+
+    _volumes = getParam<std::vector<Real>>("volumes");
+
+    // number of supplied volumes must either be 1 (in which case each cell is assumed
+    // to be the same volume) or have a length equal to the number of centers provided
+    if ((_volumes.size() > 1) &&  (_volumes.size() != _centers.size()))
+      paramError("volumes", "When more than one volume is provided, the length must match "
+        "the length of the 'centers' provided!");
+
+    // if only one volume was provided, fill out the _volumes array for heat source normalization
+    // agnostic to whether one or N volumes were provided by the user
+    if (_volumes.size() == 1)
+    {
+      Real vol = _volumes[0];
+      _volumes = std::vector<double>(_centers.size(), vol);
+    }
   }
 
   if (_tallyType == tally::mesh)
