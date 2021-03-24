@@ -92,6 +92,7 @@
   [source_integral]
     type = ElementIntegralVariablePostprocessor
     variable = source
+    execute_on = 'transfer'
   []
 []
 
