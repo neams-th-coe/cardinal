@@ -43,45 +43,56 @@ NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & param
     if (!isParamValid("point"))
       paramError("point", "When using a node test, a point must be specified to locate an element");
 
+    if (!isParamValid("node"))
+      paramError("node", "A 'node' must be specified when the 'test_type' is "
+        "'node_x', 'node_y', or 'node_z'.");
+
     const Point & p = getParam<Point>("point");
     _element = (*locator)(p);
 
-    _node = &getParam<libMesh::dof_id_type>("node");
+    bool found_element = _element;
+    getMooseApp().getCommunicator()->max(found_element);
 
-    if (!_element)
+    if (!found_element)
       paramError("point", "The specified point cannot be found in the mesh");
 
-    if (!_node)
-      paramError("node", "A 'node' must be specified when the 'test_type' is "
-        "'node_x', 'node_y', or 'node_z'.");
+    _node = &getParam<libMesh::dof_id_type>("node");
 
     if (*_node >= _nek_mesh->nNodes() / _nek_mesh->nElem())
       paramError("node", "The 'node' must be in the range [0, number of nodes / element]!");
   }
-
 }
 
 Real
 NekMeshInfoPostprocessor::getValue()
 {
+
   if (_test_type == "num_elems")
     return _nek_mesh->nElem();
   else if (_test_type == "num_nodes")
     return _nek_mesh->nNodes();
-  else if (_test_type == "node_x")
+  else if (_test_type == "node_x" || _test_type == "node_y" || _test_type == "node_z")
   {
-    auto node = _element->node_ptr(*_node);
-    return (*node)(0);
-  }
-  else if (_test_type == "node_y")
-  {
-    auto node = _element->node_ptr(*_node);
-    return (*node)(1);
-  }
-  else if (_test_type == "node_z")
-  {
-    auto node = _element->node_ptr(*_node);
-    return (*node)(2);
+    int id = _test_type == "node_x" ? 0 : (_test_type == "node_y" ? 1 : 2);
+
+    Real coord;
+    libMesh::processor_id_type p_id = 0;
+    const auto comm = getMooseApp().getCommunicator();
+
+    if (_element)
+    {
+      auto node = _element->node_ptr(*_node);
+      coord = (*node)(id);
+      p_id = _element->processor_id();
+    }
+
+    // can get the processor ID of the owning rank by just finding maximum, since
+    // guaranteed rank >= 0
+    comm->max(p_id);
+
+    comm->broadcast(coord, p_id);
+
+    return coord;
   }
   else
     mooseError("Unhandled 'test_type' enum in 'NekMeshInfoPostprocessor'!");
