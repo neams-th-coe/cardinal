@@ -1,0 +1,28 @@
+<?xml version='1.0' encoding='utf-8'?>
+<settings>
+  <run_mode>eigenvalue</run_mode>
+  <particles>1000</particles>
+  <batches>50</batches>
+  <inactive>10</inactive>
+  <source strength="1.0">
+    <space type="fission">
+      <parameters>-2.5 -2.5 -2.5 2.5 2.5 10.5</parameters>
+    </space>
+  </source>
+  <output>
+    <summary>false</summary>
+  </output>
+  <temperature_default>573.0</temperature_default>
+  <temperature_method>nearest</temperature_method>
+  <temperature_multipole>false</temperature_multipole>
+  <temperature_range>300.0 1500.0</temperature_range>
+  <temperature_tolerance>1000.0</temperature_tolerance>
+  <volume_calc>
+    <domain_type>material</domain_type>
+    <domain_ids>1</domain_ids>
+    <samples>10000000</samples>
+    <lower_left>-1.4 -1.4 -1.4</lower_left>
+    <upper_right>1.4 1.4 1.4</upper_right>
+  </volume_calc>
+  <material_cell_offsets>false</material_cell_offsets>
+</settings>

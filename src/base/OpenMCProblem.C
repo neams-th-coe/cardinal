@@ -11,6 +11,7 @@
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/constants.h"
+#include "openmc/error.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "openmc/message_passing.h"
@@ -26,7 +27,8 @@ InputParameters
 validParams<OpenMCProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
-  params.addRequiredParam<Real>("power", "specified power for OpenMC");
+  params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
+    "specified power for normalizing OpenMC kappa fission tally");
 
   params.addParam<std::vector<Point>>("centers", "Coordinates of cell centers to transfer data with");
   params.addParam<std::vector<FileName>>("centers_file", "Alternative way to provide the coordinates of cells "
@@ -249,9 +251,11 @@ void OpenMCProblem::setupMeshTallies() {
 
 void OpenMCProblem::addExternalVariables()
 {
-  FEType element(CONSTANT, MONOMIAL);
+  auto var_params = _factory.getValidParams("MooseVariable");
+  var_params.set<MooseEnum>("family") = "MONOMIAL";
+  var_params.set<MooseEnum>("order") = "CONSTANT";
 
-  addAuxVariable("heat_source", element);
+  addAuxVariable("MooseVariable", "heat_source", var_params);
   _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
 
   auto receiver_params = _factory.getValidParams("NearestPointReceiver");
@@ -295,26 +299,29 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      _console << "Sending temperature to OpenMC..." << std::endl;
+      _console << "Sending temperature to OpenMC... ";
+
+      // find the max/min temperatures sent to OpenMC (for diagnostics)
+      Real maximum = std::numeric_limits<Real>::min();
+      Real minimum = std::numeric_limits<Real>::max();
 
       auto & average_temp = getUserObject<NearestPointReceiver>("average_temp");
-      // std::cout << "Temperatures: ";
 
       for (std::size_t i = 0; i < _cellIndices.size(); ++i)
       {
         auto& cell = openmc::model::cells[_cellIndices[i]];
         double T = average_temp.spatialValue(_centers[i]);
-        // std::cout << "Temperature at location: "
-        //           << _centers[i](0) << ' '
-        //           << _centers[i](1) << ' '
-        //           << _centers[i](2) <<
-        //           " Temp: " << T << std::endl;
+         //std::cout << "Temperature at location: "
+         //          << _centers[i](0) << ' '
+         //          << _centers[i](1) << ' '
+         //          << _centers[i](2) <<
+         //          " Temp: " << T << std::endl;
 
-        // std::cout << "Temperature: " << T << std::endl;
-        // std::cout << "Cell instance: " << _cellInstances[i] << std::endl;
+        maximum = std::max(maximum, T);
+        minimum = std::min(minimum, T);
+
         cell->set_temperature(T, _cellInstances[i], true);
       }
-      // std::cout << std::endl;
 
       /*
       for (auto& cell : openmc::model::cells) {
@@ -324,7 +331,11 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
         }
       }
       */
-      // std::cout << std::endl;
+
+      _console << "done" << std::endl;
+
+      _console << "Temperature min/max values from MOOSE: " << minimum << ", " << maximum << std::endl;
+
       break;
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
