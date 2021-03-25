@@ -8,3 +8,6 @@
 [submodule "contrib/moose"]
 	path = contrib/moose
 	url = https://github.com/idaholab/moose.git
+[submodule "contrib/SAM"]
+	path = contrib/SAM
+	url = https://xgitlab.cels.anl.gov/SAM/SAM.git
