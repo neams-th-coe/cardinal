@@ -391,7 +391,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
             unsigned int offset = i * elems_per_sphere;
             for (unsigned int e = 0; e < elems_per_sphere; ++e) {
               auto elem_ptr = transfer_mesh.query_elem_ptr(offset + e);
-              if (elem_ptr && elem_ptr->processor_id() == pid) {
+              if (elem_ptr) {
                 auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
                 // set every element in this pebble with the same heating value
                 solution.set(dof_idx, cell_heat.at(i));
@@ -417,7 +417,7 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
 
             for (decltype(mesh_filter->n_bins()) e = 0; e < mesh_filter->n_bins(); ++e) {
               auto elem_ptr = transfer_mesh.query_elem_ptr(offset + e);
-              if (elem_ptr && elem_ptr->processor_id() == pid) {
+              if (elem_ptr) {
                 auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
                 solution.set(dof_idx, mesh_heat.at(offset + e));
               }
