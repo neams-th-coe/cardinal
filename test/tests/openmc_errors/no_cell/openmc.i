@@ -10,6 +10,7 @@
   volumes = '14.137166941154067'
   tally_type = mesh
   mesh_template = 'sphere.e'
+  pebble_cell_level = 0
 []
 
 [Executioner]
