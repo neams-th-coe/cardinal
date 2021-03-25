@@ -82,6 +82,14 @@ NekApp::NekApp(InputParameters parameters)
   if (scratch_available)
    nekrs::initializeScratch();
 
+  // Initialize default dimensional scales assuming a dimensional run is performed.
+  // We need to do this construction here so that any tests that *dont* use NekRSProblem
+  // (such as many of the mesh tests) have these scales initialized. If nekRS does indeed
+  // run in nondimensional form, then NekRSProblem is needed to specify those scales,
+  // and there we will again call initializeDimensionalScales.
+  nekrs::solution::initializeDimensionalScales(1.0 /* U_ref */, 0.0 /* T_ref */,
+    1.0 /* dT_ref */, 1.0 /* L_ref */, 1.0 /* rho_ref */, 1.0 /* Cp_ref */);
+
   registerAll(_factory, _action_factory, _syntax);
 }
 

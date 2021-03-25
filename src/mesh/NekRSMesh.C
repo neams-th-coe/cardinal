@@ -24,15 +24,18 @@ validParams<NekRSMesh>()
   InputParameters params = validParams<MooseMesh>();
   params.addParam<std::vector<int>>("boundary", "Boundary ID(s) through which nekRS will be coupled to MOOSE");
   params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
-  params.addParam<MooseEnum>("order", getNekOrderEnum(), "Order of the surface interpolation between nekRS and MOOSE");
+  params.addParam<MooseEnum>("order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
   params.addParam<bool>("verbose", false, "Whether to print mesh generation results to screen");
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
+  params.addParam<bool>("fixed_meshes", false, "Whether the nekRS domain is fixed (no mesh movement "
+    "or adaptive mesh refinement) and some areas and volumes can be cached for postprocessors");
   return params;
 }
 
 NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   MooseMesh(parameters),
   _volume(getParam<bool>("volume")),
+  _fixed_meshes(getParam<bool>("fixed_meshes")),
   _boundary(isParamValid("boundary") ? &getParam<std::vector<int>>("boundary") : nullptr),
   _order(getParam<MooseEnum>("order").getEnum<order::NekOrderEnum>()),
   _verbose(getParam<bool>("verbose")),

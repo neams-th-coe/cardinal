@@ -9,8 +9,7 @@
 
 #pragma once
 
-#include "GeneralPostprocessor.h"
-#include "NekInterface.h"
+#include "NekPostprocessor.h"
 
 class NekSidePostprocessor;
 
@@ -22,7 +21,7 @@ InputParameters validParams<NekSidePostprocessor>();
  * This class just checks that the boundary supplied by the user is a valid
  * ID within the nekRS mesh.
  */
-class NekSidePostprocessor : public GeneralPostprocessor
+class NekSidePostprocessor : public NekPostprocessor
 {
 public:
   static InputParameters validParams();

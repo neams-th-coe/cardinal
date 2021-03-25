@@ -17,14 +17,14 @@ defineLegacyParams(NekVolumeExtremeValue);
 InputParameters
 NekVolumeExtremeValue::validParams()
 {
-  InputParameters params = GeneralPostprocessor::validParams();
+  InputParameters params = NekPostprocessor::validParams();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to find the extreme value of");
   params.addParam<MooseEnum>("value_type", getOperationEnum(), "Operation to perform to get extreme value");
   return params;
 }
 
 NekVolumeExtremeValue::NekVolumeExtremeValue(const InputParameters & parameters) :
-  GeneralPostprocessor(parameters),
+  NekPostprocessor(parameters),
   _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
   _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {

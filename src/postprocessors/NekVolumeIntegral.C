@@ -16,13 +16,13 @@ defineLegacyParams(NekVolumeIntegral);
 InputParameters
 NekVolumeIntegral::validParams()
 {
-  InputParameters params = GeneralPostprocessor::validParams();
+  InputParameters params = NekPostprocessor::validParams();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to integrate");
   return params;
 }
 
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters) :
-  GeneralPostprocessor(parameters),
+  NekPostprocessor(parameters),
   _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
 {
 }

@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "GeneralPostprocessor.h"
+#include "NekPostprocessor.h"
 #include "CardinalEnums.h"
 
 class NekVolumeIntegral;
@@ -25,7 +25,7 @@ InputParameters validParams<NekVolumeIntegral>();
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekVolumeIntegral : public GeneralPostprocessor
+class NekVolumeIntegral : public NekPostprocessor
 {
 public:
   static InputParameters validParams();

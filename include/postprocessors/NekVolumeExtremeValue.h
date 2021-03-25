@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "GeneralPostprocessor.h"
+#include "NekPostprocessor.h"
 #include "CardinalEnums.h"
 
 class NekVolumeExtremeValue;
@@ -24,7 +24,7 @@ InputParameters validParams<NekVolumeExtremeValue>();
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekVolumeExtremeValue : public GeneralPostprocessor
+class NekVolumeExtremeValue : public NekPostprocessor
 {
 public:
   static InputParameters validParams();

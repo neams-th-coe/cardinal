@@ -14,13 +14,13 @@ defineLegacyParams(NekSidePostprocessor);
 InputParameters
 NekSidePostprocessor::validParams()
 {
-  InputParameters params = GeneralPostprocessor::validParams();
+  InputParameters params = NekPostprocessor::validParams();
   params.addRequiredParam<std::vector<int>>("boundary", "Boundary ID(s) for which to compute the postprocessor");
   return params;
 }
 
 NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters) :
-  GeneralPostprocessor(parameters),
+  NekPostprocessor(parameters),
   _boundary(getParam<std::vector<int>>("boundary"))
 {
   const auto & filename = getMooseApp().getInputFileName();

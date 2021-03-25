@@ -23,12 +23,13 @@ NekSideAverage::validParams()
 NekSideAverage::NekSideAverage(const InputParameters & parameters) :
   NekSideIntegral(parameters)
 {
+  if (_fixed_mesh)
+    _area = nekrs::area(_boundary);
 }
 
 Real
 NekSideAverage::getValue()
 {
-  // normalize by the side integral of unity, i.e. the area integral
-  const field::NekFieldEnum unity = field::unity;
-  return NekSideIntegral::getValue() / nekrs::sideIntegral(_boundary, unity);
+  Real area = _fixed_mesh ? _area : nekrs::area(_boundary);
+  return NekSideIntegral::getValue() / area;
 }

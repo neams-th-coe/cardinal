@@ -1,7 +1,6 @@
 #pragma once
 
-#include "GeneralPostprocessor.h"
-#include "NekRSMesh.h"
+#include "NekPostprocessor.h"
 
 class NekMeshInfoPostprocessor;
 
@@ -19,7 +18,7 @@ InputParameters validParams<NekMeshInfoPostprocessor>();
  *
  * for more information on the motivation for this object.
  */
-class NekMeshInfoPostprocessor : public GeneralPostprocessor
+class NekMeshInfoPostprocessor : public NekPostprocessor
 {
 public:
   NekMeshInfoPostprocessor(const InputParameters & parameters);
@@ -32,12 +31,6 @@ public:
 private:
   /// Type of value to compute
   const MooseEnum _test_type;
-
-  /// Base mesh this postprocessor acts on
-  const MooseMesh & _mesh;
-
-  /// NekRS mesh this postprocessor acts on
-  const NekRSMesh * _nek_mesh;
 
   /// element for which to read mesh information
   const libMesh::dof_id_type * _element;

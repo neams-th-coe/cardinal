@@ -5,6 +5,7 @@
 [Mesh]
   type = NekRSMesh
   boundary = '1 2 3 4 5 6 7 8'
+  fixed_mesh = true
 []
 
 [Executioner]
