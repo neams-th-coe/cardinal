@@ -5,8 +5,11 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  order = SECOND
   boundary = '2'
+
+  # set this to SECOND in order to see better agreement with the reference solution;
+  # this is just to keep the test faster
+  order = FIRST
 []
 
 [Executioner]
@@ -37,9 +40,55 @@
     type = NekHeatFluxIntegral
     boundary = '2'
   []
+  [nek_min_1]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '3'
+    value_type = min
+  []
+  [nek_min_2]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '4'
+    value_type = min
+  []
+  [nek_min_3]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '5'
+    value_type = min
+  []
+  [nek_min_4]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '6'
+    value_type = min
+  []
+  [nek_max_1]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '3'
+  []
+  [nek_max_2]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '4'
+  []
+  [nek_max_3]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '5'
+  []
+  [nek_max_4]
+    type = NekSideExtremeValue
+    field = temperature
+    boundary = '6'
+  []
 []
 
 [Outputs]
   exodus = true
-  execute_on = 'final'
+  interval = 30
+
+  hide = 'flux_integral source_integral'
 []

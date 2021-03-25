@@ -77,6 +77,7 @@
   [source_integral_bison]
     type = ElementIntegralVariablePostprocessor
     variable = source_bison
+    execute_on = 'transfer'
     block = '2'
   []
   [flux_integral]
@@ -261,8 +262,8 @@
 
 [Executioner]
   type = Transient
-  dt = 0.1
-  num_steps = 10
+  dt = 0.05
+  num_steps = 30
   nl_abs_tol = 1e-8
   nl_rel_tol = 1e-12
 []
@@ -271,10 +272,5 @@
   exodus = true
   print_linear_residuals = false
   execute_on = 'final'
-  hide = 'source_bison source_nek dummy'
-
-  [screen]
-    type = Console
-    hide = 'source_integral_nek source_integral_bison flux_integral'
-  []
+  hide = 'source_bison source_nek dummy source_integral_nek source_integral_bison flux_integral'
 []

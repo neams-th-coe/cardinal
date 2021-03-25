@@ -5,7 +5,7 @@
 [GENERAL]
   stopAt = numSteps
   numSteps = 10
-  dt = 0.1
+  dt = 0.05
   polynomialOrder = 5
   writeControl = timeStep
   writeInterval = 10
@@ -38,6 +38,6 @@
 [TEMPERATURE]
   conductivity = 10.5
   rhoCp = 1.0
-  residualTol = 1.0e-4
+  residualTol = 1.0e-6
   residualProj = no
   boundaryTypeMap = t, f, I, I, I, I
