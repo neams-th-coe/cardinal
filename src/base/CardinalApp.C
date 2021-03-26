@@ -41,7 +41,7 @@ CardinalApp::registerApps()
   registerApp(CardinalApp);
 
 #ifdef ENABLE_SAM_COUPLING
-  SamApp::registerApps();
+  registerApp(SamApp);
 #endif
 }
 

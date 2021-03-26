@@ -44,6 +44,8 @@ main(int argc, char *argv[])
     app_class_name = "OpenMCApp";
   else if (which_app == "nek5000" or which_app == "nek")
     app_class_name = "NekApp";
+  else if (which_app == "sam")
+    app_class_name = "SamApp";
   else
     app_class_name = "CardinalApp";
 

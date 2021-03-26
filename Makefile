@@ -132,8 +132,6 @@ include $(MOOSE_DIR)/modules/modules.mk
 # SAM submodule
 ifneq ($(SAM_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
-  SAM_DIR             ?= $(CONTRIB_DIR)/SAM
-  libmesh_CXXFLAGS    += -DSAM_ENABLED
   APPLICATION_DIR     := $(SAM_DIR)
   APPLICATION_NAME    := sam
   TENSOR_MECHANICS    := yes
@@ -162,6 +160,7 @@ APPLICATION_DIR    := $(CARDINAL_DIR)
 APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
+DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 
 include            $(CARDINAL_DIR)/config/nekrs.mk
 include            $(CARDINAL_DIR)/config/openmc.mk

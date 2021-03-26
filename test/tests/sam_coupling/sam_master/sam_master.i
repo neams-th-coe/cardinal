@@ -73,6 +73,15 @@
   [../]
 []
 
+[MultiApps]
+  [sub]
+    type = FullSolveMultiApp
+    app_type = CardinalApp
+    input_files = 'cardinal_sub.i'
+    #library_path = ../../../../contrib/SAM/lib
+  []
+[]
+
 [Executioner]
   type = Transient                    # This is a transient simulation
 
@@ -91,7 +100,7 @@
 
   start_time = 0.0                    # Physical time at the beginning of the simulation
   num_steps = 20                      # Max. simulation time steps
-  end_time = 100.                     # Max. physical time at the end of the simulation
+  end_time = 10.                      # Max. physical time at the end of the simulation
 
   [./Quadrature]
     type = TRAP                       # Using trapezoid integration rule
