@@ -4,6 +4,10 @@
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
 
+#ifdef ENABLE_SAM_COUPLING
+#include "SamApp.h"
+#endif
+
 registerKnownLabel("CardinalApp");
 
 template <>
@@ -35,6 +39,10 @@ void
 CardinalApp::registerApps()
 {
   registerApp(CardinalApp);
+
+#ifdef ENABLE_SAM_COUPLING
+  SamApp::registerApps();
+#endif
 }
 
 /***************************************************************************************************
@@ -44,6 +52,10 @@ extern "C" void
 CardinalApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
   CardinalApp::registerAll(f, af, s);
+
+#ifdef ENABLE_SAM_COUPLING
+  SamApp::registerAll(f, af, s);
+#endif
 }
 extern "C" void
 CardinalApp__registerApps()

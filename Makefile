@@ -13,7 +13,7 @@
 # * NEK5_DIR : Top-level Nek5000 src dir (default: $(CONTRIB_DIR)/Nek5000)
 # * LIBP_DIR : Top-level libparanumal src dir (default: $(CONTRIB_DIR)/libparanumal
 # * NEK_LIBP_DIR : Top-level nek-libp src dir (default: $(CONTRIB_DIR)/NekGPU/nek-libp
-#
+# * SAM_DIR: Top-level SAM src dir (default: $(CONTRIB_DIR)/SAM)
 # ======================================================================================
 
 CARDINAL_DIR    := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
@@ -27,6 +27,9 @@ LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
 HYPRE_DIR       ?= $(PETSC_DIR)/$(PETSC_ARCH)
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
+SAM_DIR         ?= $(CONTRIB_DIR)/SAM
+SAM_CONTENT     := $(shell ls $(SAM_DIR) 2> /dev/null)
+
 HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
 HDF5_INCLUDES := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
@@ -34,7 +37,7 @@ HDF5_INCLUDES := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
 ifeq ($(METHOD),dbg)
 	BUILD_TYPE := Debug
-else 
+else
 	BUILD_TYPE := Release
 endif
 
@@ -125,6 +128,18 @@ XFEM                := no
 POROUS_FLOW         := no
 
 include $(MOOSE_DIR)/modules/modules.mk
+
+# SAM submodule
+ifneq ($(SAM_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
+  SAM_DIR             ?= $(CONTRIB_DIR)/SAM
+  libmesh_CXXFLAGS    += -DSAM_ENABLED
+  APPLICATION_DIR     := $(SAM_DIR)
+  APPLICATION_NAME    := sam
+  TENSOR_MECHANICS    := yes
+  FLUID_PROPERTIES    := yes
+  include             $(FRAMEWORK_DIR)/app.mk
+endif
 
 # ======================================================================================
 # External apps
