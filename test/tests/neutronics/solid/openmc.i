@@ -50,7 +50,7 @@
   volumes = '1.322128e+01'
 
   tally_type = 'cell'
-  pebble_cell_level = 1
+  pebble_cell_level = 0
 []
 
 [Postprocessors]

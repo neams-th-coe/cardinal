@@ -54,8 +54,8 @@
 zmin = -1.5
 zmax = 9.5
 
-m=${fparse 500/(zmax-zmin)}
-b=${fparse 300-500/(zmax-zmin)*zmin}
+m=${fparse 1000/(zmax-zmin)}
+b=${fparse 300-1000/(zmax-zmin)*zmin}
 
 [Functions]
   [axial]
