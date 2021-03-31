@@ -25,6 +25,8 @@ public:
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
+  virtual void initialSetup() override;
+
   virtual bool converged() override { return true; }
 
   /// Get the center coordinates for all cells of interest
