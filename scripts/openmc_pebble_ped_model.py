@@ -473,11 +473,10 @@ if radial_reflector_is_present and (not axial_reflector_is_present):
 # only an axial reflector
 if (not radial_reflector_is_present) and axial_reflector_is_present:
 
-    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=vessel_outer_radius, boundary_type='vacuum')
     reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type=reactor_axial_bc)
     reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type=reactor_axial_bc)
-    top_reflector_region = +vessel_top & -reflector_top & -reflector_outer
-    bottom_reflector_region = -vessel_bottom & +reflector_bottom & -reflector_outer
+    top_reflector_region = +vessel_top & -reflector_top & -vessel_outer
+    bottom_reflector_region = -vessel_bottom & +reflector_bottom & -vessel_outer
     top_reflector_cell = openmc.Cell(name='Top Reflector', region=top_reflector_region, fill=m_reflector)
     bottom_reflector_cell = openmc.Cell(name='Bottom Reflector', region=bottom_reflector_region, fill=m_reflector)
     reflector_cells = [top_reflector_cell, bottom_reflector_cell]
