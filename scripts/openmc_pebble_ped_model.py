@@ -156,6 +156,8 @@ ap.add_argument('-v', dest='verbose', action='store_true',
                 default=False, help='Enable verbose output')
 ap.add_argument('-r', dest='random_trisos', action='store_true',
                 default=False, help='Enable random TRISO distribution')
+ap.add_argument('-b', dest='bc', type=str,
+                default='reflective', help='Reactor top/bottom B.C.')
 ap.add_argument('-p', dest='particles', type=int,
                 default=1000, help='Particles per batch')
 ap.add_argument('-i', dest='inactive', type=int,
@@ -422,8 +424,7 @@ pebble_univ_cells = [c_pebble_inner,
 u_pebble = openmc.Universe(cells=pebble_univ_cells)
 
 # figure out the reactor boundary conditions
-reflector_radial_bc = 'vacuum'
-reflector_axial_bc = 'vacuum'
+reactor_axial_bc = args.bc
 
 if radial_reflector_is_present:
     vessel_radial_bc = 'transmission'
@@ -433,7 +434,7 @@ else:
 if axial_reflector_is_present:
     vessel_axial_bc = 'transmission'
 else:
-    vessel_axial_bc = 'reflective'
+    vessel_axial_bc = reactor_axial_bc
 
 # Reactor cells
 vessel_outer = openmc.ZCylinder(x0=vessel_x,
@@ -449,7 +450,39 @@ vessel_region = -vessel_outer & +vessel_bottom & -vessel_top
 vessel_cell = openmc.Cell(name='Pebble Vessel', region=vessel_region)
 
 reflector_cells = []
-if radial_reflector_is_present or axial_reflector_is_present:
+
+# only a radial reflector
+if radial_reflector_is_present and (not axial_reflector_is_present):
+    vessel_inner = openmc.ZCylinder(x0=vessel_x,
+                                    y0=vessel_y,
+                                    r=vessel_inner_radius,
+                                    boundary_type='transmission')
+
+    vessel_cell.region = vessel_cell.region & +vessel_inner
+
+    axial_plane = +vessel_bottom & -vessel_top
+
+    # Reflector cell - for the axial BCs, this takes the same as the vessel axial BCs
+    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=reflector_outer_radius, boundary_type='vacuum')
+    outer_reflector_region = -reflector_outer & axial_plane & +vessel_outer
+    inner_reflector_region = -vessel_inner & axial_plane
+    outer_reflector_cell = openmc.Cell(name='Outer Reflector', region=outer_reflector_region, fill=m_reflector)
+    inner_reflector_cell = openmc.Cell(name='Inner Reflector', region=inner_reflector_region, fill=m_reflector)
+    reflector_cells = [outer_reflector_cell, inner_reflector_cell]
+
+# only an axial reflector
+if (not radial_reflector_is_present) and axial_reflector_is_present:
+
+    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=vessel_outer_radius, boundary_type='vacuum')
+    reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type=reactor_axial_bc)
+    reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type=reactor_axial_bc)
+    top_reflector_region = +vessel_top & -reflector_top & -reflector_outer
+    bottom_reflector_region = -vessel_bottom & +reflector_bottom & -reflector_outer
+    top_reflector_cell = openmc.Cell(name='Top Reflector', region=top_reflector_region, fill=m_reflector)
+    bottom_reflector_cell = openmc.Cell(name='Bottom Reflector', region=bottom_reflector_region, fill=m_reflector)
+    reflector_cells = [top_reflector_cell, bottom_reflector_cell]
+
+if radial_reflector_is_present and axial_reflector_is_present:
     vessel_inner = openmc.ZCylinder(x0=vessel_x,
                                     y0=vessel_y,
                                     r=vessel_inner_radius,
@@ -458,11 +491,16 @@ if radial_reflector_is_present or axial_reflector_is_present:
     vessel_cell.region = vessel_cell.region & +vessel_inner
 
     # Reflector cell
-    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=reflector_outer_radius, boundary_type=reflector_radial_bc)
-    reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type=reflector_axial_bc)
-    reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type=reflector_axial_bc)
-    outer_reflector_region = -reflector_outer & +vessel_bottom & -vessel_top & +vessel_inner
-    inner_reflector_region = -vessel_inner & +vessel_bottom & -vessel_top
+    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=reflector_outer_radius, boundary_type='vacuum')
+    reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type=reactor_axial_bc)
+    reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type=reactor_axial_bc)
+
+    axial_plane = +vessel_bottom & -vessel_top
+
+    # the outer reflector has an axial height from vessel_bottom to vessel_top, and the axial reflector
+    # covers the remaining space
+    outer_reflector_region = -reflector_outer & axial_plane & +vessel_inner
+    inner_reflector_region = -vessel_inner & axial_plane
     top_reflector_region = +vessel_top & -reflector_top & -reflector_outer
     bottom_reflector_region = -vessel_bottom & +reflector_bottom & -reflector_outer
     outer_reflector_cell = openmc.Cell(name='Outer Reflector', region=outer_reflector_region, fill=m_reflector)
