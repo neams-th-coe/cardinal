@@ -375,8 +375,6 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
       // get the transfer mesh
       auto & transfer_mesh = _mesh.getMesh();
 
-      auto pid = _communicator.rank();
-
       switch (_tallyType)
       {
         case tally::cell:
