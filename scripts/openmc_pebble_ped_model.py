@@ -421,28 +421,32 @@ pebble_univ_cells = [c_pebble_inner,
 u_pebble = openmc.Universe(cells=pebble_univ_cells)
 
 # figure out the reactor boundary conditions
-reflector_bc = args.bc
+reflector_radial_bc = 'vacuum'
+reflector_top_bottom_bc = args.bc
+
 if reflector_is_present:
-    vessel_bc = 'transmission'
+    vessel_radial_bc = 'transmission'
+    vessel_top_bottom_bc = 'transmission'
 else:
-    vessel_bc = args.bc
+    vessel_radial_bc = 'vacuum'
+    vessel_top_bottom_bc = reflector_top_bottom_bc
 
 # Reactor cells
 vessel_outer = openmc.ZCylinder(x0=vessel_x,
                                 y0=vessel_y,
                                 r=vessel_outer_radius,
-                                boundary_type=vessel_bc)
+                                boundary_type=vessel_radial_bc)
 
 if reflector_is_present:
     vessel_inner = openmc.ZCylinder(x0=vessel_x,
                                     y0=vessel_y,
                                     r=vessel_inner_radius,
-                                    boundary_type=vessel_bc)
+                                    boundary_type=vessel_radial_bc)
 
 vessel_bottom = openmc.ZPlane(z0=vessel_z_min,
-                              boundary_type=vessel_bc)
+                              boundary_type=vessel_top_bottom_bc)
 vessel_top = openmc.ZPlane(z0=vessel_z_max,
-                           boundary_type=vessel_bc)
+                           boundary_type=vessel_top_bottom_bc)
 vessel_region = -vessel_outer & +vessel_bottom & -vessel_top
 vessel_cell = openmc.Cell(name='Pebble Vessel', region=vessel_region)
 
@@ -451,9 +455,9 @@ if reflector_is_present:
     vessel_cell.region = vessel_cell.region & +vessel_inner
 
     # Reflector cell
-    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=reflector_outer_radius, boundary_type=reflector_bc)
-    reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type=reflector_bc)
-    reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type=reflector_bc)
+    reflector_outer = openmc.ZCylinder(x0=vessel_x, y0=vessel_y, r=reflector_outer_radius, boundary_type=reflector_radial_bc)
+    reflector_bottom = openmc.ZPlane(z0=reflector_z_min, boundary_type=reflector_top_bottom_bc)
+    reflector_top = openmc.ZPlane(z0=reflector_z_max, boundary_type=reflector_top_bottom_bc)
     outer_reflector_region = -reflector_outer & +vessel_bottom & -vessel_top & +vessel_inner
     inner_reflector_region = -vessel_inner & +vessel_bottom & -vessel_top
     top_reflector_region = +vessel_top & -reflector_top & -reflector_outer
