@@ -417,6 +417,18 @@ int NboundaryID();
 bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, int & n_boundaries);
 
 /**
+ * Processor id (rank) owning the given volume element
+ * @return processor id
+ */
+int VolumeElemProcessorID(const int elem_id);
+
+/**
+ * Processor id (rank) owning the given boundary element
+ * @return processor id
+ */
+int BoundaryElemProcessorID(const int elem_id);
+
+/**
  * Store the rank-local element, element-local face, and rank ownership for boundary coupling
  * @param[in] boundary_id boundaries through which nekRS will be coupled
  * @param[out] N total number of surface elements

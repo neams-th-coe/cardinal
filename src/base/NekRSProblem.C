@@ -342,7 +342,15 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   {
     for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
-      auto elem_ptr = mesh.elem_ptr(e);
+      auto elem_ptr = mesh.query_elem_ptr(e);
+
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+        {
+          libmesh_assert(!mesh.is_serial());
+          continue;
+        }
 
       for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
       {
@@ -376,6 +384,16 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
     for (unsigned int e = 0; e < _n_volume_elems; ++e)
     {
       int n_faces_on_boundary = nekrs::mesh::facesOnBoundary(e);
+
+      auto elem_ptr = mesh.query_elem_ptr(e);
+
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+        {
+          libmesh_assert(!mesh.is_serial());
+          continue;
+        }
 
       // though the flux is a volume field, the only meaningful values are on the coupling
       // boundaries, so we can just skip this interpolation if this volume element isn't on
@@ -464,7 +482,15 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 
   for (unsigned int e = 0; e < _n_volume_elems; e++)
   {
-    auto elem_ptr = mesh.elem_ptr(e);
+    auto elem_ptr = mesh.query_elem_ptr(e);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+      {
+        libmesh_assert(!mesh.is_serial());
+        continue;
+      }
 
     for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
     {
@@ -534,7 +560,15 @@ NekRSProblem::fillAuxVariable(const unsigned int var_number, const double * valu
 
   for (unsigned int e = 0; e < _n_elems; e++)
   {
-    auto elem_ptr = _nek_mesh->elemPtr(e);
+    auto elem_ptr = _nek_mesh->queryElemPtr(e);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+      {
+        libmesh_assert(!_nek_mesh->getMesh().is_serial());
+        continue;
+      }
 
     for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
     {

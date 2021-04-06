@@ -1126,6 +1126,16 @@ bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_
   return valid_boundary_ids;
 }
 
+int VolumeElemProcessorID(const int elem_id)
+{
+  return nek_volume_coupling.processor_id(elem_id);
+}
+
+int BoundaryElemProcessorID(const int elem_id)
+{
+  return nek_boundary_coupling.processor_id(elem_id);
+}
+
 void storeVolumeCoupling(int& N)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
