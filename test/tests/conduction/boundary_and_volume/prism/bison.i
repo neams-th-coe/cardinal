@@ -79,8 +79,9 @@
 [Executioner]
   type = Transient
   num_steps = 15
-  dt = 0.1
+  dt = 0.05
   nl_abs_tol = 1e-8
+  nl_rel_tol = 1e-12
 []
 
 [Postprocessors]
@@ -92,10 +93,14 @@
   [source_integral]
     type = ElementIntegralVariablePostprocessor
     variable = source
+    execute_on = 'transfer'
   []
 []
 
 [Outputs]
   exodus = true
   print_linear_residuals = false
+  execute_on = 'final'
+  interval = 30
+  hide = 'flux_integral source_integral'
 []

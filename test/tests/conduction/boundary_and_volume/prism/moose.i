@@ -142,6 +142,50 @@
     point = '0 0 -1'
     variable = temperature
   []
+  [nek_min_1]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face1'
+    value_type = min
+  []
+  [nek_min_2]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face2'
+    value_type = min
+  []
+  [nek_min_3]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face3'
+    value_type = min
+  []
+  [nek_min_4]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face4'
+    value_type = min
+  []
+  [nek_max_1]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face1'
+  []
+  [nek_max_2]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face2'
+  []
+  [nek_max_3]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face3'
+  []
+  [nek_max_4]
+    type = NodalExtremeValue
+    variable = temperature
+    boundary = 'vol1_face4'
+  []
 []
 
 [Executioner]
