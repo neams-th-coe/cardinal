@@ -23,6 +23,15 @@ $ git submodule update --init contrib/moose
 $ git submodule update --init --recursive contrib/openmc
 ```
 
+If you are using Cardinal to couple to SAM, you will also need to fetch the SAM submodule:
+
+```
+$ git submodule update --init contrib/SAM
+```
+
+You will be prompted for login credentials to ANL's xgitlab site. If you do not have credentials,
+you will need to contact the SAM development team to request access.
+
 The first software that must be built is the PETSc numerics library:
 
 ```

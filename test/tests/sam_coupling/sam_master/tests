@@ -1,0 +1,10 @@
+[Tests]
+  [./sam_master]
+    type = RunApp
+    input = sam_master.i
+    cli_args = '--app sam'
+    requirement = "Cardinal shall be able to run SAM as the master application without any data transfers. "
+                  "This test just ensures correct setup of SAM as a submodule with app registration."
+    required_applications = 'SamApp'
+  [../]
+[]
