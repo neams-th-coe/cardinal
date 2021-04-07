@@ -114,7 +114,7 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   }
 
   // ensure that the _cellIndices are unique
-  auto unique_cell_indices = std::set(_cellIndices.begin(), _cellIndices.end());
+  auto unique_cell_indices = std::set<int32_t>(_cellIndices.begin(), _cellIndices.end());
   if (_cellIndices.size() != unique_cell_indices.size()) {
     mooseError("The cells found in the geometry for the centers provided at level '"
                + Moose::stringify(_pebble_cell_level) +
