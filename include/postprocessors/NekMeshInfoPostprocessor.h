@@ -33,7 +33,7 @@ private:
   const MooseEnum _test_type;
 
   /// element for which to read mesh information
-  const libMesh::dof_id_type * _element;
+  const libMesh::Elem * _element;
 
   /// element-local node for which to read mesh information
   const libMesh::dof_id_type * _node;
