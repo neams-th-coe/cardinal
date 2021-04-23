@@ -33,6 +33,10 @@ NormalDiffusionFluxAux::NormalDiffusionFluxAux(const InputParameters & parameter
 {
   if (!isParamValid("boundary"))
     paramError("boundary", "A boundary must be provided for 'NormalDiffusionFluxAux'!");
+
+  mooseError("The NormalDiffusionFluxAux auxkernel has been replaced by the DiffusionFluxAux auxkernel. "
+    "Please replace 'NormalDiffusionFluxAux' with 'DiffusionFluxAux', substitute 'coupled' by 'diffusion_variable', "
+    "and include 'component = normal'");
 }
 
 Real

@@ -131,9 +131,10 @@
 
 [AuxKernels]
   [flux]
-    type = NormalDiffusionFluxAux
+    type = DiffusionFluxAux
     variable = flux
-    coupled = temperature
+    diffusion_variable = temperature
+    component = normal
     diffusivity = thermal_conductivity
     boundary = '1'
   []
