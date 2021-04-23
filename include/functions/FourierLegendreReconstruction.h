@@ -28,7 +28,7 @@ protected:
   /// The order of the Fourier expansion
   int _f_order;
   /// The vector of scalar variables holding the coefficients
-  std::vector<VariableValue *> _poly_scalars;
+  std::vector<const VariableValue *> _poly_scalars;
   /// Legendre polynomial object.  TODO address dynamic casting of this object
   LegendrePolynomial & _legendre_poly_function;
   /// Fourier polynomial object.  TODO address dynamic casting of this object
