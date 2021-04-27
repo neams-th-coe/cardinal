@@ -190,10 +190,10 @@
     variable = bison_flux
 
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
-    # just restrict this transfer between the two surfaces of interest because this
-    # flux is used in nekRS only for a boundary condition
+    # just restrict this transfer from the source surface of interest because this
+    # flux is used in nekRS only for a boundary condition (at the time this test was
+    # created, there was not an option to restrict to a target boundary for elementals)
     source_boundary = '2'
-    target_boundary = '2'
   []
   [bison_flux_integral_to_openmc]
     type = MultiAppPostprocessorTransfer
@@ -222,10 +222,10 @@
     multi_app = nek
 
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
-    # just restrict this transfer between the two surfaces of interest because this
-    # flux is used in nekRS only for a boundary condition
+    # just restrict this transfer from the sourcesurface of interest because this
+    # flux is used in nekRS only for a boundary condition (at the time this test was
+    # created, there was not an option to restrict to a target boundary for elementals)
     source_boundary = '2'
-    target_boundary = '2'
   []
   [bison_flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
