@@ -19,3 +19,8 @@ MooseEnum getTallyTypeEnum()
 {
   return MooseEnum("cell mesh");
 }
+
+MooseEnum getTallyCellFilterEnum()
+{
+  return MooseEnum("cell cell_instance", "cell_instance");
+}
