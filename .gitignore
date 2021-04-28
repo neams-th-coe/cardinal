@@ -228,3 +228,5 @@ install/**
 **/.cache
 *0.f*
 problems/large-problems-master/
+
+*.ppm
