@@ -17,7 +17,7 @@ InputParameters validParams<NekTimeStepper>()
   // it seems that floating point round-off accumulation is significant in nekRS, such
   // that with subcycling, I frequently see that MOOSE wants nekRS to take a time step
   // on the order of 5e-14 in order to "catch up" to a synchronization point.
-  params.set<Real>("timestep_tolerance", true) = 1e-8;
+  params.set<Real>("timestep_tolerance", true) = 1e-6;
   return params;
 }
 
@@ -111,6 +111,12 @@ void
 NekTimeStepper::dimensionalizeDT()
 {
   _nek_dt *= _t_ref;
+}
+
+Real
+NekTimeStepper::dimensionalDT(const Real & nondimensional_dt) const
+{
+  return nondimensional_dt * _t_ref;
 }
 
 Real
