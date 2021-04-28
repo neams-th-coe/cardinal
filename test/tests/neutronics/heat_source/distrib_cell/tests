@@ -1,0 +1,10 @@
+[Tests]
+  [./solid]
+    type = Exodiff
+    input = solid.i
+    exodiff = 'solid_out.e'
+    cli_args = '--app openmc'
+    requirement = "The heat source shall be correctly mapped if the solid cell level is not "
+                  "the highest level."
+  [../]
+[]
