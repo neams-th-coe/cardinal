@@ -1,0 +1,971 @@
+#include "AuxiliarySystem.h"
+
+#include "mpi.h"
+#include "OpenMCCellAverageProblem.h"
+#include "openmc/capi.h"
+#include "openmc/cell.h"
+#include "openmc/constants.h"
+#include "openmc/error.h"
+#include "openmc/particle.h"
+#include "openmc/geometry.h"
+#include "openmc/message_passing.h"
+#include "openmc/settings.h"
+#include "openmc/summary.h"
+#include "xtensor/xarray.hpp"
+#include "xtensor/xview.hpp"
+
+registerMooseObject("OpenMCApp", OpenMCCellAverageProblem);
+
+bool OpenMCCellAverageProblem::_first_incoming_transfer = true;
+
+template<>
+InputParameters
+validParams<OpenMCCellAverageProblem>()
+{
+  InputParameters params = validParams<ExternalProblem>();
+  params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
+    "Power (Watts) to normalize the OpenMC tallies; this is the power "
+    "produced by the entire OpenMC problem.");
+  params.addParam<std::vector<SubdomainID>>("fluid_blocks",
+    "Subdomain ID(s) corresponding to the fluid phase, "
+    "for which both density and temperature will be sent to OpenMC");
+  params.addParam<std::vector<SubdomainID>>("solid_blocks",
+    "Subdomain ID(s) corresponding to the solid phase, "
+    "for which temperature will be sent to OpenMC");
+  params.addRequiredParam<std::vector<SubdomainID>>("tally_blocks",
+    "Subdomain ID(s) for which to add tallies in the OpenMC model");
+  params.addParam<bool>("check_tally_sum", true,
+    "Whether to check consistency between the cell-wise kappa fission tallies with a global tally");
+  params.addParam<bool>("check_zero_tallies", true,
+    "Whether to throw an error if any tallies from OpenMC evaluate to zero; "
+    "this can be helpful in reducing the number of tallies if you inadvertently add tallies "
+    "to a non-fissile region, or for catching geomtery setup errors");
+  params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
+  params.addParam<bool>("skip_first_incoming_transfer", false,
+    "Whether to skip the very first density and temperature transfer into OpenMC; "
+    "this can be used to allow whatever initial condition is set in OpenMC's XML "
+    "files to be used in OpenMC's run the first time OpenMC is run");
+
+  params.addParam<MooseEnum>("tally_filter", getTallyCellFilterEnum(),
+    "Type of filter to apply to the tally, options: cell, cell_instance (default). "
+    "You will generally always want to use the cell_instance option to allow cases with "
+    "distributed cells, but then you are limited to only material fills");
+
+  params.addParam<int>("solid_cell_level", "Coordinate level in OpenMC to stop at for identifying solid cells");
+  params.addParam<int>("fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
+  return params;
+}
+
+OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params) :
+  ExternalProblem(params),
+  _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+  _tally_filter(getParam<MooseEnum>("tally_filter").getEnum<filter::CellFilterEnum>()),
+  _power(getParam<Real>("power")),
+  _check_tally_sum(getParam<bool>("check_tally_sum")),
+  _check_zero_tallies(getParam<bool>("check_zero_tallies")),
+  _verbose(getParam<bool>("verbose")),
+  _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
+  _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
+  _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
+  _density_conversion_factor(0.001),
+  _single_coord_level(openmc::model::n_coord_levels == 1),
+  _n_openmc_cells(openmc::model::cells.size()),
+  _n_cell_digits(digits(_n_openmc_cells))
+{
+  if (openmc::settings::libmesh_comm)
+    mooseWarning("libMesh communicator already set in OpenMC.");
+
+  openmc::settings::libmesh_comm = &_mesh.comm();
+
+  if (!isParamValid("fluid_blocks") && !isParamValid("solid_blocks"))
+    mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
+      "establish the mapping from MOOSE to OpenMC.");
+
+  readBlockParameters(_fluid_blocks, "fluid");
+  readBlockParameters(_solid_blocks, "solid");
+  readBlockParameters(_tally_blocks, "tally");
+
+  // by requiring at least one of 'fluid_blocks' and 'solid_blocks', we know the
+  // incoming transfers will either be just temperature (only solid coupling) or
+  // density and temperature (either only fluid coupling or both fluid and solid coupling)
+  _incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
+
+  // make sure the same block ID doesn't appear in both the fluid and solid blocks,
+  // or else we won't know how to send feedback into OpenMC
+  std::vector<SubdomainID> intersection;
+  std::set_intersection(_fluid_blocks.begin(), _fluid_blocks.end(), _solid_blocks.begin(),
+    _solid_blocks.end(), std::back_inserter(intersection));
+
+  if (intersection.size() != 0)
+    mooseError("Block " + Moose::stringify(intersection[0]) + " cannot be present in both the 'fluid_blocks' and 'solid_blocks'!");
+
+  // get the coordinate level to find cells on for each phase, and warn if invalid or not used
+  getCellLevel("fluid", _fluid_cell_level);
+  getCellLevel("solid", _solid_cell_level);
+
+  initializeElementToCellMapping();
+
+  getMaterialFills();
+
+  initializeTallies();
+}
+
+void
+OpenMCCellAverageProblem::getCellLevel(const std::string name, int & cell_level)
+{
+  std::string param_name = name + "_cell_level";
+
+  if (isParamValid(name + "_blocks"))
+  {
+    if (!isParamValid(param_name))
+      paramError(param_name, "When specifying " + name + " blocks for coupling, the "
+        "coordinate level must be specified!");
+
+    cell_level = getParam<int>(param_name);
+
+    if (cell_level >= openmc::model::n_coord_levels)
+      paramError(param_name, "Coordinate level for finding cells cannot be greater than total number "
+        "of coordinate levels: " + Moose::stringify(openmc::model::n_coord_levels) + "!");
+  }
+  else if (isParamValid(param_name))
+    mooseWarning("Without setting any '" + name + "_blocks', the '" + name + "_cell_level' parameter is unused!");
+}
+
+void
+OpenMCCellAverageProblem::readBlockParameters(std::unordered_set<SubdomainID> & blocks, const std::string name)
+{
+  std::string param_name = name + "_blocks";
+
+  if (isParamValid(param_name))
+  {
+    std::vector<SubdomainID> b = getParam<std::vector<SubdomainID>>(param_name);
+
+    if (b.size() == 0)
+      paramError(param_name, "Size of vector cannot be zero!");
+
+    std::copy(b.begin(), b.end(), std::inserter(blocks, blocks.end()));
+
+    const auto & subdomains = mesh().meshSubdomains();
+    for (const auto & b : blocks)
+      if (subdomains.find(b) == subdomains.end())
+        mooseError("Block " + Moose::stringify(b) + " specified in '" + name + "_blocks' not found in mesh!");
+  }
+}
+
+int
+OpenMCCellAverageProblem::digits(const int & number) const
+{
+  return std::to_string(number).length();
+}
+
+void
+OpenMCCellAverageProblem::storeElementPhaseAndSubdomain()
+{
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    const auto * elem = _mesh.elemPtr(e);
+    auto subdomain_id = elem->subdomain_id();
+
+    _elem_subdomain.push_back(subdomain_id);
+
+    if (_fluid_blocks.count(subdomain_id))
+      _elem_phase.push_back(coupling::density_and_temperature);
+    else if (_solid_blocks.count(subdomain_id))
+      _elem_phase.push_back(coupling::temperature);
+    else
+      _elem_phase.push_back(coupling::none);
+  }
+
+  _n_moose_solid_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::temperature);
+  _n_moose_fluid_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::density_and_temperature);
+  _n_moose_none_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::none);
+}
+
+void
+OpenMCCellAverageProblem::computeCellMappedVolumes()
+{
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    _cell_to_elem_volume[cell_info] = 0.0;
+
+    for (const auto & e : c.second)
+      _cell_to_elem_volume[cell_info] += _mesh.elemPtr(e)->volume();
+  }
+}
+
+const coupling::CouplingFields
+OpenMCCellAverageProblem::cellPhase(const cellInfo & cell_info)
+{
+  return _elem_phase[_cell_to_elem[cell_info][0]];
+}
+
+void
+OpenMCCellAverageProblem::checkCellMappedPhase()
+{
+  // whether the entire problem has identified any fluid or solid cells
+  bool has_fluid_cells = false;
+  bool has_solid_cells = false;
+
+  // whether each cell maps to a single phase
+  for (const auto & c: _cell_to_elem)
+  {
+    int n_solid = 0, n_fluid = 0, n_none = 0;
+    auto cell_info = c.first;
+
+    for (const auto & e : c.second)
+    {
+      switch (_elem_phase[e])
+      {
+        case coupling::temperature:
+          has_solid_cells = true;
+          n_solid++;
+          break;
+        case coupling::density_and_temperature:
+          has_fluid_cells = true;
+          n_fluid++;
+          break;
+        case coupling::none:
+          n_none++;
+          break;
+        default:
+          mooseError("Unhandled CouplingFieldsEnum in OpenMCCellAverageProblem!");
+      }
+    }
+
+    std::stringstream msg;
+      msg << printCell(cell_info) << " : " << std::setw(digits(_n_moose_solid_elems)) << Moose::stringify(n_solid) <<
+      " solid elems  " << std::setw(digits(_n_moose_fluid_elems)) << Moose::stringify(n_fluid) <<
+      " fluid elems  " << std::setw(digits(_n_moose_none_elems)) << Moose::stringify(n_none) <<
+      " uncoupled elems  |  Mapped elems volume: " << std::setw(8) << Moose::stringify(_cell_to_elem_volume[cell_info]);
+
+    std::vector<bool> conditions = {n_fluid > 0, n_solid > 0, n_none > 0};
+    if (std::count(conditions.begin(), conditions.end(), true) > 1)
+      mooseError(msg.str() + "\n\n Each OpenMC cell, instance pair must map to a single element type.");
+
+    if (_verbose)
+      _console << msg.str() << std::endl;
+  }
+
+  if (_has_fluid_blocks && !has_fluid_cells)
+    mooseError("'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!");
+
+  if (_has_solid_blocks && !has_solid_cells)
+    mooseError("'solid_blocks' was specified, but no solid elements mapped to OpenMC cells!");
+}
+
+void
+OpenMCCellAverageProblem::checkCellMappedSubdomains()
+{
+  for (const auto & c : _cell_to_elem)
+  {
+    // find the set of subdomains that this cell maps to
+    std::set<SubdomainID> cell_to_elem_subdomain;
+    for (const auto & e : c.second)
+      cell_to_elem_subdomain.insert(_elem_subdomain[e]);
+
+    // If the OpenMC cell maps to multiple subdomains that _also_ have different
+    // tally settings, we need to error because we are unsure of whether to add tallies or not;
+    // both of these need to be true to error
+    bool at_least_one_in_tallies = false;
+    bool at_least_one_not_in_tallies = false;
+    int block_in_tallies, block_not_in_tallies;
+    for (const auto & s : cell_to_elem_subdomain)
+    {
+      if (!at_least_one_in_tallies)
+      {
+        at_least_one_in_tallies = std::find(_tally_blocks.begin(), _tally_blocks.end(), s) != _tally_blocks.end();
+        block_in_tallies = s;
+      }
+
+      if (!at_least_one_not_in_tallies)
+      {
+        at_least_one_not_in_tallies = std::find(_tally_blocks.begin(), _tally_blocks.end(), s) == _tally_blocks.end();
+        block_not_in_tallies = s;
+      }
+
+      // can cut the search early if we've already hit multiple tally settings
+      if (at_least_one_in_tallies && at_least_one_not_in_tallies)
+        break;
+    }
+
+    const auto cell_info = c.first;
+
+    if (at_least_one_in_tallies && at_least_one_not_in_tallies)
+      mooseError(printCell(cell_info) + " maps to blocks with different tally settings!\n"
+        "Block " + Moose::stringify(block_in_tallies) + " is in 'tally_blocks', but "
+        "block " + Moose::stringify(block_not_in_tallies) + " is not.");
+
+    _cell_has_tally[cell_info] = at_least_one_in_tallies;
+  }
+}
+
+void
+OpenMCCellAverageProblem::getMaterialFills()
+{
+  std::set<int32_t> materials;
+
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    // skip if the cell isn't fluid
+    if (cellPhase(cell_info) != coupling::density_and_temperature)
+      continue;
+
+    int material_fill_type = static_cast<int>(openmc::Fill::MATERIAL);
+    int32_t * material_indices = nullptr;
+    int n_materials = 0;
+
+    int err = openmc_cell_get_fill(cell_info.first, &material_fill_type, &material_indices, &n_materials);
+
+    if (err)
+      mooseError("In attempting to get fill of " + printCell(cell_info) +
+        ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+    // OpenMC checks that for distributed cells, the number of materials either equals 1
+    // or the number of distributed cells; therefore, we just need to index based on the cell
+    // instance (zero for not-distributed cells, otherwise matches the material index)
+    int32_t material_index = material_indices[cell_info.second];
+    _cell_to_material[cell_info] = material_index;
+
+    if (_verbose)
+      _console << printCell(cell_info) << " mapped to " + printMaterial(material_index) << std::endl;
+
+    // check for each material that we haven't already discovered it; if we have, this means we
+    // didnt set up the materials correctly
+    if (materials.find(material_index) == materials.end())
+      materials.insert(material_index);
+    else
+      mooseError(printMaterial(material_index) + " is present in more than one "
+        "fluid cell.\nThis means that your model cannot independently change the density in cells filled "
+        "with this material.");
+  }
+}
+
+int32_t
+OpenMCCellAverageProblem::cellID(const int32_t index) const
+{
+  int32_t id;
+  int err = openmc_cell_get_id(index, &id);
+
+  if (err)
+    mooseError("In attempting to get ID for cell with index " + Moose::stringify(index) +
+      " , OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+  return id;
+}
+
+int32_t
+OpenMCCellAverageProblem::materialID(const int32_t index) const
+{
+  int32_t id;
+  int err = openmc_material_get_id(index, &id);
+
+  if (err)
+  {
+    std::stringstream msg;
+    msg << "In attempting to get ID for material with index " + Moose::stringify(index) +
+      ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
+  }
+
+  return id;
+}
+
+std::string
+OpenMCCellAverageProblem::printCell(const cellInfo & cell_info) const
+{
+  int32_t id = cellID(cell_info.first);
+
+  std::stringstream msg;
+  msg << "cell " << std::setw(_n_cell_digits) << Moose::stringify(id) <<
+   ", instance " << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) <<
+   " (of " << std::setw(_n_cell_digits) << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
+
+  return msg.str();
+}
+
+std::string
+OpenMCCellAverageProblem::printMaterial(const int32_t & index) const
+{
+  int32_t id = materialID(index);
+  std::stringstream msg;
+  msg << "material " << id;
+  return msg.str();
+}
+
+void
+OpenMCCellAverageProblem::initializeElementToCellMapping()
+{
+  _console << "Initializing cell-based coupling between " + Moose::stringify(_mesh.nElem()) +
+    " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
+    Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels)..." << std::endl;
+
+  /* We consider five different cases here based on how the MOOSE and OpenMC
+   * domains might overlap in space:
+   *
+   * 1: Perfect overlap, every MOOSE element maps to an OpenMC cell and every
+   *    OpenMC cell maps to MOOSE element(s)
+   *
+   * 2: MOOSE domain fully encloses the OpenMC domain, so that not every MOOSE
+   *    element maps to an OpenMC cell, but every OpenMC cell maps to a MOOSE element
+   *
+   * 3: OpenMC domain fully encloses the MOOSE domain, so that not every OpenMC
+   *    cell maps to MOOSE element(s), but every MOOSE element maps to an OpenMC cell
+   *
+   * 4: MOOSE and OpenMC domains only partially overlap, so that not every MOOSE
+   *    element maps to an OpenMC and not every OpenMC cell maps to MOOSE element(s)
+   *
+   * 5: The MOOSE and OpenMC domains do not overlap at all, so no MOOSE elements
+   *    map to OpenMC cells and no OpenMC cells map to MOOSE elements.
+   *
+   * We consider situation #5 to be an error, while the others are technically allowed.
+   * We need to error here before getting to OpenMC where we don't map to any cells but
+   * would still try to set a cell filter based on no cells.
+   */
+
+  // First, figure out the phase of each element according to the blocks defined by the user;
+  // also store the element's subdomain for later error checking
+  storeElementPhaseAndSubdomain();
+
+  // Find cell for each element in the mesh based on the element's centroid
+  int n_mapped_solid_elems = 0;
+  int n_mapped_fluid_elems = 0;
+  int n_mapped_none_elems = 0;
+
+  Real uncoupled_volume = 0.0;
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    const auto * elem = _mesh.elemPtr(e);
+
+    const Point & c = elem->centroid();
+    Real element_volume = elem->volume();
+
+    bool error;
+    openmc::Particle p = findCell(c, error);
+
+    // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
+    if (error)
+    {
+      _elem_to_cell.push_back(std::make_pair(UNMAPPED, UNMAPPED));
+      uncoupled_volume += element_volume;
+      n_mapped_none_elems++;
+      continue;
+    }
+
+    // otherwise, this region may potentially map to OpenMC if we _also_ turned
+    // on coupling for this region; first, determine the phase of this element
+    // and store the information
+    int level;
+
+    switch (_elem_phase[e])
+    {
+      case coupling::density_and_temperature:
+      {
+        level = _fluid_cell_level;
+        n_mapped_fluid_elems++;
+        break;
+      }
+      case coupling::temperature:
+      {
+        level = _solid_cell_level;
+        n_mapped_solid_elems++;
+        break;
+      }
+     case coupling::none:
+     {
+       uncoupled_volume += element_volume;
+       n_mapped_none_elems++;
+
+       // we will succeed in finding a valid cell here; for uncoupled regions,
+       // cell_index and cell_instance are unused, so this is just to proceed with program logic
+       level = 0;
+       break;
+     }
+     default:
+       mooseError("Unhandled CouplingFields enum!");
+   }
+
+    if (level > p.n_coord_ - 1)
+    {
+      std::string phase = _fluid_blocks.count(elem->subdomain_id()) ? "fluid" : "solid";
+      mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the " + phase +
+        " exceeds number of nested coordinate levels at (" + Moose::stringify(c(0)) + ", " +
+        Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + "): " +
+        Moose::stringify(p.n_coord_));
+    }
+
+    auto cell_index = p.coord_[level].cell;
+
+    // TODO: this is the cell instance at the lowest level in the geometry, which does
+    // not necessarily match the "level" supplied on the line above
+    auto cell_instance = p.cell_instance_;
+
+    auto cell_info = std::make_pair(cell_index, cell_instance);
+
+    _elem_to_cell.push_back(cell_info);
+
+    // store the map of cells to elements that will be coupled
+    if (_elem_phase[e] != coupling::none)
+      _cell_to_elem[cell_info].push_back(e);
+  }
+
+  if (_cell_to_elem.size() == 0)
+    mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
+      "the specified blocks!");
+
+  int solid_digits = std::max(digits(_n_moose_solid_elems), digits(n_mapped_solid_elems));
+  int fluid_digits = std::max(digits(_n_moose_fluid_elems), digits(n_mapped_fluid_elems));
+  int none_digits = std::max(digits(_n_moose_none_elems), digits(n_mapped_none_elems));
+
+  std::stringstream msg;
+  msg << " MOOSE mesh has:      " <<
+    std::setw(solid_digits) << Moose::stringify(_n_moose_solid_elems) << " solid elems  " <<
+    std::setw(fluid_digits) << Moose::stringify(_n_moose_fluid_elems) << " fluid elems  " <<
+    std::setw(none_digits) << Moose::stringify(_n_moose_none_elems) << " uncoupled elems\n" <<
+    " OpenMC cells map to: " <<
+    std::setw(solid_digits) << Moose::stringify(n_mapped_solid_elems) << " solid elems  " <<
+    std::setw(fluid_digits) << Moose::stringify(n_mapped_fluid_elems) << " fluid elems  " <<
+    std::setw(none_digits) << Moose::stringify(n_mapped_none_elems) << " uncoupled elems" << std::endl;
+
+  _console << msg.str() << std::endl;
+
+  if (_n_moose_solid_elems && (n_mapped_solid_elems != _n_moose_solid_elems))
+   mooseWarning("The MOOSE mesh has " + Moose::stringify(_n_moose_solid_elems) + " solid elements, "
+     "but only " + Moose::stringify(n_mapped_solid_elems) + " got mapped to OpenMC cells.");
+
+  if (_n_moose_fluid_elems && (n_mapped_fluid_elems != _n_moose_fluid_elems))
+   mooseWarning("The MOOSE mesh has " + Moose::stringify(_n_moose_fluid_elems) + " fluid elements, "
+     "but only " + Moose::stringify(n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
+
+  if (n_mapped_none_elems)
+    mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_mapped_none_elems) + " MOOSE elements, " +
+      "which occupy a volume of: " + Moose::stringify(uncoupled_volume));
+
+  // If there is a single coordinate level, we can print a helpful message if there are uncoupled
+  // cells in the domain
+  if (_single_coord_level)
+  {
+    int n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
+    if (n_uncoupled_cells)
+      mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) + " OpenMC cells");
+  }
+
+  // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
+  computeCellMappedVolumes();
+
+  // Check that each cell maps to a single phase
+  checkCellMappedPhase();
+
+  // Check that each cell maps to subdomain IDs that all have the same tally setting
+  checkCellMappedSubdomains();
+
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    if (_cell_has_tally[cell_info])
+      _tally_cells.push_back(cell_info);
+  }
+
+  if (_verbose) _console << std::endl;
+}
+
+void
+OpenMCCellAverageProblem::initializeTallies()
+{
+  // create the global tally for normalization
+  auto global_tally = openmc::Tally::create();
+  global_tally->set_scores({"kappa-fission"});
+  global_tally->set_id(-1);
+  _global_tally = global_tally;
+
+  _console << "Adding tallies to blocks " << Moose::stringify(_tally_blocks) << " for " +
+    Moose::stringify(_tally_cells.size()) + " cells ... ";
+
+  // create the local heating tally
+  auto tally = openmc::Tally::create();
+  tally->set_scores({"kappa-fission"});
+  _local_tally = tally;
+
+  switch (_tally_filter)
+  {
+    case filter::cell:
+    {
+      auto cell_filter = dynamic_cast<openmc::CellFilter *>(openmc::Filter::create("cell"));
+
+      std::vector<int32_t> cell_ids;
+
+      for (const auto & c: _tally_cells)
+        cell_ids.push_back(c.first);
+
+      cell_filter->set_cells(cell_ids);
+
+      std::vector<openmc::Filter *> tally_filters = {cell_filter};
+      tally->set_filters(tally_filters);
+      break;
+    }
+    case filter::cell_instance:
+    {
+      auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+
+      std::vector<openmc::CellInstance> cells;
+      for (const auto & c : _tally_cells)
+        cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
+
+      cell_filter->set_cell_instances(cells);
+
+      std::vector<openmc::Filter *> tally_filters = {cell_filter};
+      tally->set_filters(tally_filters);
+      break;
+    }
+    default:
+      mooseError("Unhandled 'CellFilterEnum' in 'OpenMCCellAverageProblem'!");
+  }
+
+  _console << "done" << std::endl;
+}
+
+openmc::Particle
+OpenMCCellAverageProblem::findCell(const Point & point, bool & error)
+{
+  openmc::Particle p {};
+  p.r() = {point(0), point(1), point(2)};
+  p.u() = {0., 0., 1.};
+
+  error = !openmc::find_cell(p, false);
+
+  return p;
+}
+
+double
+OpenMCCellAverageProblem::tallySum(const openmc::Tally * tally) const
+{
+  double sum = 0.0;
+
+  if (tally)
+  {
+    auto mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    sum = xt::sum(mean)();
+  }
+
+  return sum;
+}
+
+void OpenMCCellAverageProblem::addExternalVariables()
+{
+  auto var_params = _factory.getValidParams("MooseVariable");
+  var_params.set<MooseEnum>("family") = "MONOMIAL";
+  var_params.set<MooseEnum>("order") = "CONSTANT";
+
+  addAuxVariable("MooseVariable", "heat_source", var_params);
+  _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
+
+  addAuxVariable("MooseVariable", "temp", var_params);
+  _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
+
+  // we need a density variable if we are transferring density into OpenMC
+  if (_has_fluid_blocks)
+  {
+    addAuxVariable("MooseVariable", "density", var_params);
+    _density_var = _aux->getFieldVariable<Real>(0, "density").number();
+  }
+}
+
+void OpenMCCellAverageProblem::externalSolve()
+{
+  int err = openmc_run();
+  if (err)
+    mooseError(openmc_err_msg);
+}
+
+void
+OpenMCCellAverageProblem::sendTemperatureToOpenMC()
+{
+  auto & solution = _aux->solution();
+  const auto sys_number = _aux->number();
+  const auto & mesh = _mesh.getMesh();
+
+  _console << "Sending temperature to OpenMC cells... ";
+
+  if (_verbose) _console << std::endl;
+
+  for (const auto & c : _cell_to_elem)
+  {
+    Real average_temp = 0.0;
+    auto cell_info = c.first;
+
+    for (const auto & e : c.second)
+    {
+      auto elem_ptr = mesh.query_elem_ptr(e);
+
+      if (elem_ptr)
+      {
+        auto dof_idx = elem_ptr->dof_number(sys_number, _temp_var, 0);
+        average_temp += (*_serialized_solution)(dof_idx) * elem_ptr->volume();
+      }
+    }
+
+    average_temp /= _cell_to_elem_volume[cell_info];
+
+    if (_verbose)
+      _console << "Setting " << printCell(cell_info) << " to temperature (K): " << std::setw(4) << average_temp << std::endl;
+
+    int err = openmc_cell_set_temperature(cell_info.first, average_temp, &cell_info.second);
+
+    // TODO: could add the option to truncate temperatures if we exceed bounds?
+
+    if (err)
+      mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
+        Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
+  }
+
+  _console << "done" << std::endl;
+}
+
+void
+OpenMCCellAverageProblem::sendDensityToOpenMC()
+{
+  if (_skip_first_incoming_transfer)
+
+  auto & solution = _aux->solution();
+  const auto sys_number = _aux->number();
+  const auto & mesh = _mesh.getMesh();
+
+  _console << "Sending density to OpenMC fluid cells... ";
+
+  if (_verbose) _console << std::endl;
+
+  for (const auto & c : _cell_to_elem)
+  {
+    Real average_density = 0.0;
+    auto cell_info = c.first;
+
+    // skip if the cell isn't fluid
+    if (cellPhase(cell_info) != coupling::density_and_temperature)
+      continue;
+
+    for (const auto & e : c.second)
+    {
+      auto elem_ptr = mesh.query_elem_ptr(e);
+
+      if (elem_ptr)
+      {
+        auto dof_idx = elem_ptr->dof_number(sys_number, _density_var, 0);
+        average_density += (*_serialized_solution)(dof_idx) * elem_ptr->volume();
+      }
+    }
+
+    average_density /= _cell_to_elem_volume[cell_info];
+
+    // OpenMC technically allows a density of >= 0.0, but we can impose a tighter
+    // check here with a better error message than the Excepts() in material->set_density
+    // because it could be a very common mistake to forget to set an initial condition
+    // for density if OpenMC runs first
+    if (average_density <= 0.0)
+      mooseError("Densities less than or equal to zero cannot be set in the OpenMC model!\n " + printCell(cell_info) +
+        " set to density " + Moose::stringify(average_density) + " (kg/m3)");
+
+    if (_verbose)
+      _console << "Setting " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4) << average_density << std::endl;
+
+    int material_fill_type = static_cast<int>(openmc::Fill::MATERIAL);
+    int32_t *material_indices = nullptr;
+    int n_materials = 0;
+
+    int err = openmc_cell_get_fill(cell_info.first, &material_fill_type, &material_indices, &n_materials);
+
+    if (err)
+      mooseError("In attempting to get fill of " + printCell(cell_info) +
+        ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+    if (material_fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+      mooseError("Density transfer does not currently support cells filled with universes or lattices!");
+
+    // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
+    // auxvariable as well as the MOOSE fluid properties module) to g/cm3
+    const char * units = "g/cc";
+    err = openmc_material_set_density(material_indices[cell_info.second], average_density * _density_conversion_factor, units);
+
+    // throw a special error if the cell is void, because the OpenMC error isn't very
+    // clear what the mistake is
+    if (material_indices[0] == -1 /* ID used by OpenMC to represent void */)
+      mooseError("Cannot set density for " + printCell(cell_info) +
+        " because this cell is void (vacuum)!");
+
+    if (err)
+      mooseError("In attempting to set material with index " + Moose::stringify(material_indices[cell_info.second]) +
+        " to density " + Moose::stringify(average_density) + " (kg/m3), OpenMC reported:\n\n" + std::string(openmc_err_msg));
+  }
+
+  _console << "done" << std::endl;
+}
+
+void
+OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
+{
+  auto & solution = _aux->solution();
+  auto sys_number = _aux->number();
+  const auto & mesh = _mesh.getMesh();
+
+  _console << "Extracting OpenMC fission heat source... ";
+
+  // get the total kappa fission source for normalization
+  _global_kappa_fission = tallySum(_global_tally);
+
+  if (_check_tally_sum)
+    checkTallySum();
+
+  auto mean_tally = xt::view(_local_tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  double tally_sum = xt::sum(mean_tally)();
+
+  if (_verbose) _console << std::endl;
+
+  // divide each tally value by the volume that it corresponds to in MOOSE
+  // because we will apply it as a volumetric heat source (W/volume).
+  int i = 0;
+  Real power_fraction_sum = 0.0;
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    // if this cell doesn't have any tallies, skip it
+    if (!_cell_has_tally[cell_info])
+      continue;
+
+    Real power_fraction = mean_tally(i) / _global_kappa_fission;
+    Real volumetric_power = power_fraction * _power / _cell_to_elem_volume[cell_info];
+    power_fraction_sum += power_fraction;
+
+    if (_verbose)
+      _console << printCell(cell_info) << " power fraction: " << std::setw(3) <<
+        Moose::stringify(power_fraction) << std::endl;
+
+    if (_check_zero_tallies && power_fraction < 1e-12)
+      mooseError("Heat source computed for " + printCell(cell_info) + " is zero!\n\n" +
+        "This may occur if there is no fissile material in this cell, or if you have a geometry "
+        "setup error. You can turn off this check by setting 'check_zero_tallies' to false.");
+
+    // loop over all the elements that belong to this cell, and set the heat
+    // source to the computed value
+    for (const auto & e : c.second)
+    {
+      auto elem_ptr = mesh.query_elem_ptr(e);
+      if (elem_ptr)
+      {
+        auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+        solution.set(dof_idx, volumetric_power);
+      }
+    }
+
+    i++;
+  }
+
+  if (_check_tally_sum)
+    if (std::abs(power_fraction_sum - 1.0) > 1e-6)
+      mooseError("Tally normalization process failed! Total power fraction of " +
+        Moose::stringify(power_fraction_sum) + " does not match 1.0!");
+
+  solution.close();
+  _console << "done" << std::endl;
+}
+
+void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
+{
+  auto & solution = _aux->solution();
+
+  static bool first = true;
+  if (first)
+  {
+    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
+    first = false;
+  }
+
+  solution.localize(*_serialized_solution);
+
+  switch (direction)
+  {
+    case ExternalProblem::Direction::TO_EXTERNAL_APP:
+    {
+      if (_first_incoming_transfer && _skip_first_incoming_transfer)
+      {
+        _console << "Skipping " << _incoming_transfer << " transfer into OpenMC" << std::endl;
+        _first_incoming_transfer = false;
+        return;
+      }
+
+      // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
+      // to be setting the temperature of all of the cells in cell_to_elem - only for the density
+      // transfer do we need to filter for the fluid cells
+      sendTemperatureToOpenMC();
+
+      if (_has_fluid_blocks)
+        sendDensityToOpenMC();
+
+      break;
+    }
+    case ExternalProblem::Direction::FROM_EXTERNAL_APP:
+    {
+      getHeatSourceFromOpenMC();
+
+      break;
+    }
+    default:
+      mooseError("Unhandled Direction enum in OpenMCCellAverageProblem!");
+  }
+}
+
+void
+OpenMCCellAverageProblem::checkTallySum() const
+{
+  double kappa_fission = tallySum(_local_tally);
+
+  if (std::abs(_global_kappa_fission - kappa_fission) / _global_kappa_fission > openmc::FP_REL_PRECISION)
+  {
+    std::stringstream msg;
+    msg << "Heating tallies do not match the global kappa-fission tally:\n" <<
+      " Global value: " << Moose::stringify(_global_kappa_fission) <<
+      "\n Tally sum: " << Moose::stringify(kappa_fission) <<
+      "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
+
+    // Add on extra helpful messages if the domain has a single coordinate level
+    if (_single_coord_level)
+    {
+      int n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
+      if (n_uncoupled_cells)
+        msg << "\n\nYour problem has " + Moose::stringify(n_uncoupled_cells) +
+          " uncoupled OpenMC cells; this warning might be caused by these cells contributing\n" +
+          "to the global kappa fission tally, without being part of the multiphysics setup.";
+
+      // If there are cells in OpenMC's problem that we're not coupling with (and therefore not
+      // adding tallies for), it's possible that some of cells we're excluding have fissile material.
+      // This could also be caused by us not turning tallies on for the solid and/or fluid that have fissile
+      // material (note that this only catches cases where we added blocks in 'fluid_blocks' and
+      // 'solid_blocks', but forgot to add them to the 'tally_blocks'
+      bool missing_tallies_in_fluid = _has_fluid_blocks &&
+        std::includes(_tally_blocks.begin(), _tally_blocks.end(), _fluid_blocks.begin(), _fluid_blocks.end());
+
+      bool missing_tallies_in_solid = _has_solid_blocks &&
+        std::includes(_tally_blocks.begin(), _tally_blocks.end(), _solid_blocks.begin(), _solid_blocks.end());
+
+      if (missing_tallies_in_fluid || missing_tallies_in_solid)
+      {
+        std::string missing_tallies;
+
+        if (missing_tallies_in_fluid && missing_tallies_in_solid)
+          missing_tallies = "fluid and solid";
+        else if (missing_tallies_in_fluid)
+          missing_tallies = "fluid";
+        else if (missing_tallies_in_solid)
+          missing_tallies = "solid";
+
+        msg << "\n\nYour problem didn't add tallies for the " << missing_tallies <<
+          "; this warning might be caused by\nfission sources in these regions that "
+          "contribute to the global kappa fission tally, without being\npart of the multiphysics setup.";
+      }
+    }
+
+    mooseError(msg.str());
+  }
+}

@@ -1,0 +1,438 @@
+#pragma once
+
+#define LIBMESH
+
+#include "ExternalProblem.h"
+#include "openmc/tallies/filter_cell.h"
+#include "openmc/tallies/filter_cell_instance.h"
+#include "openmc/tallies/filter_mesh.h"
+#include "openmc/mesh.h"
+#include "openmc/tallies/tally.h"
+#include "CardinalEnums.h"
+
+class OpenMCCellAverageProblem;
+
+template<>
+InputParameters validParams<OpenMCCellAverageProblem>();
+
+/**
+ * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
+ * on solid cells and both temperature and density feedback on fluid cells. The
+ * mapping is established automatically based on looping over all the MOOSE elements
+ * and finding the OpenMC cell at each element's centroid.
+ *
+ * All feedback into OpenMC is performed via element averages, while all tallies
+ * in OpenMC are averaged over cells. The 'fluid_blocks' parameter is used to
+ * indicate which blocks in the MOOSE domain should be used to send density and
+ * temperature to OpenMC, while the 'solid_blocks' parameter is used to indicate
+ * which blocks in the MOOSE domain should be used to send temperature (and *not*
+ * density) to OpenMC. Tallies are automatically added to the OpenMC cells that
+ * correspond to the 'tally_blocks' parameter. Therefore, you can individually
+ * control where multiphysics feedback is sent to OpenMC, and where heat source
+ * feedback is received by MOOSE.
+ *
+ * There are a number of limitations to this class (all of which are tested):
+ *  - Each OpenMC cell shall only map to a single "phase", or else it is unclear
+ *    whether that cell should receive temperature *and* density feedback, or
+ *    only temperature feedback.
+ *     TODO: If this is too restrictive in the future, we could implement some type
+ *           of weighted averaging process. Also, if a cell maps to a phase and an
+ *           unmapped region, perhaps we want to allow that.
+ *  - Each OpenMC cell shall only map to a single tally type (on/off), or else
+ *    it is unclear whether that cell should be tallied. For instance, if an OpenMC
+ *    cell maps to elements that are in both fuel and cladding, and we've only added
+ *    tallies to the fuel, we should error.
+ *
+ * Other limitations that are not tested (you won't error if you encounter these), are:
+ *  - For the fluid, all the cells that we want to tally are on the same level in
+ *    the geometry. This level is specified with the 'fluid_cell_level' parameter.
+ *    A similar restriction applies to the solid, with the 'solid_cell_level' parameter.
+ *
+ * Other considerations you should be aware of:
+ *  - The density being transferred into OpenMC from MOOSE is in units of kg/m3; this
+ *    is the unit employed by the MOOSE fluid properties module.
+ *  - The temperature being transferred into OpenMC from MOOSE is in units of K; this
+ *    is the unit employed by the MOOSE fluid properties module.
+ *  - You will get some extra error checking at your disposal if your geometry consists
+ *    of a single coordinate level.
+ */
+class OpenMCCellAverageProblem : public ExternalProblem
+{
+public:
+  OpenMCCellAverageProblem(const InputParameters & params);
+  virtual ~OpenMCCellAverageProblem() override {}
+
+  /**
+   * Add 'heat_source', 'temp', and, if any fluid blocks are specified, a
+   * 'density' variable. These are used to communicate OpenMC's solution with MOOSE,
+   * and for MOOSE to communicate its solution with OpenMC.
+   */
+  virtual void addExternalVariables() override;
+
+  /// Run a k-eigenvalue OpenMC simulation
+  virtual void externalSolve() override;
+
+  virtual void syncSolutions(ExternalProblem::Direction direction) override;
+
+  virtual bool converged() override { return true; }
+
+  /**
+   * Type definition for storing the relevant aspects of the OpenMC geometry; the first
+   * value is the cell index, while the second is the cell instance.
+   */
+  typedef std::pair<int32_t, int32_t> cellInfo;
+
+  /**
+   * Get the cell index from the element ID
+   * @param[in] elem_id element ID
+   * @return cell index
+   */
+  int32_t elemToCellIndex(const int & elem_id) const { return _elem_to_cell[elem_id].first; }
+
+  /**
+   * Get the cell ID from the element ID
+   * @param[in] elem_id element ID
+   * @return cell ID
+   */
+  int32_t elemToCellID(const int & elem_id) const { return cellID(elemToCellIndex(elem_id)); }
+
+  /**
+   * Get the cell instance from the element ID
+   * @param[in] elem_id element ID
+   * @return cell instance
+   */
+  int32_t elemToCellInstance(const int & elem_id) const { return _elem_to_cell[elem_id].second; }
+
+  /**
+   * Get the cell index, instance pair from element ID
+   * @param[in] elem_id element ID
+   * @return cell index, instance pair
+   */
+  cellInfo elemToCellInfo(const int & elem_id) const { return _elem_to_cell[elem_id]; }
+
+  /**
+   * Get the cell material index based on index, instance pair
+   * @param[in] cell_info cell index, instance pair
+   * @return material index
+   */
+  int32_t cellToMaterialIndex(const cellInfo & cell_info) { return _cell_to_material[cell_info]; }
+
+  /**
+   * Get the cell phase; because we require that each cell map to a single phase,
+   * we simply look up the phase of the first element that this cell maps to.
+   * @param[in] cell_info cell index, instance pair
+   * @return phase
+   */
+  const coupling::CouplingFields cellPhase(const cellInfo & cell_info);
+
+  /**
+   * Get the cell ID
+   * @param[in] index cell index
+   * @return cell ID
+   */
+  int32_t cellID(const int32_t index) const;
+
+  /**
+   * Get the material ID
+   * @param[in] index material index
+   * @return cell material ID
+   */
+  int32_t materialID(const int32_t index) const;
+
+  /**
+   * Get a descriptive, formatted, string describing a cell
+   * @param[in] cell_info cell index, instance pair
+   * @return descriptive string
+   */
+  std::string printCell(const cellInfo & cell_info) const;
+
+  /**
+   * Get a descriptive, formatted, string describing a material
+   * @param[in] index material index
+   * @return descriptive string
+   */
+  std::string printMaterial(const int32_t & index) const;
+
+  /**
+   * Get the density conversion factor (multiplicative factor)
+   * @return density conversion factor from kg/m3 to g/cm3
+   */
+  const Real & densityConversionFactor() const { return _density_conversion_factor; }
+
+protected:
+  /**
+   * Read the block parameters and tally information based on user settings
+   * @param[in] blocks list of block ids to write
+   * @param[in] name phase that these blocks will be mapped to
+   */
+  void readBlockParameters(std::unordered_set<SubdomainID> & blocks, const std::string name);
+
+  /**
+   * Read the phase cell level and check against the maximum level across the OpenMC domain
+   * @param[in] name phase to read the cell level for
+   * @param[out] cell_level cell coordinate level
+   */
+  void getCellLevel(const std::string name, int & cell_level);
+
+  /**
+   * Loop over the elements in the MOOSE mesh and store whether that element corresponds
+   * to fluid, solid, or neither based on the settings in the 'fluid_blocks' and 'solid_blocks'.
+   * Also store the element subdomain for error checking that each OpenMC cell does not map to
+   * multiple blocks with different tally settings.
+   */
+  void storeElementPhaseAndSubdomain();
+
+  /**
+   * Compute the number of digits required to display an integer
+   * @param[in] number number to display
+   */
+  int digits(const int & number) const;
+
+  /**
+   * Compute the mean value of a tally
+   * @param[in] tally OpenMC tally
+   * @return mean value
+   */
+  double tallySum(const openmc::Tally * tally) const;
+
+  /**
+   * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
+   * is mapped based on phase. This function is used to ensure that each OpenMC cell only maps
+   * to a single phase. This function is also used to check that if 'fluid_blocks' is specified,
+   * that we map to at least one OpenMC cell (or else this is probably a mistake). The same check
+   * is also performed for the 'solid_blocks'.
+   */
+  void checkCellMappedPhase();
+
+  /**
+   * Loop over all the OpenMC cells and determine if a cell maps to more than one subdomain
+   * that also has different tally settings (i.e. we would not know whether to add or not to
+   * add tallies to the cell).
+   */
+  void checkCellMappedSubdomains();
+
+  /**
+   * Loop over all the OpenMC cells and compute the volume of the MOOSE elements that each
+   * cell maps to
+   */
+  void computeCellMappedVolumes();
+
+  /// Set up the mapping from MOOSE elements to OpenMC cells
+  void initializeElementToCellMapping();
+
+  /// Add tallies for the fluid and/or solid cells
+  void initializeTallies();
+
+  /// Find the material filling each fluid cell
+  void getMaterialFills();
+
+  /**
+   * Send temperature from MOOSE to the OpenMC cells by computing a volume average
+   * and applying a single temperature per OpenMC cell
+   */
+  void sendTemperatureToOpenMC();
+
+  /**
+   * Send density from MOOSE to the fluid OpenMC cells by computing a volume average
+   * and applying a single density per OpenMC cell.
+   */
+  void sendDensityToOpenMC();
+
+  /**
+   * Extract the heat source from OpenMC and normalize by a global kappa fission tally,
+   * then apply as a uniform field to the corresponding MOOSE elements.
+   */
+  void getHeatSourceFromOpenMC();
+
+  /**
+   * Check the sum of the fluid and solid tallies (if present) against the global
+   * kappa fission tally.
+   */
+  void checkTallySum() const;
+
+  /**
+   * Find the OpenMC cell at a given point in space
+   * @param[in] point point
+   * @param[out] error whether OpenMC reported an error
+   * @return particle in the cell at the given point
+   */
+  openmc::Particle findCell(const Point & point, bool & error);
+
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+
+  /**
+   * Type of filter to apply to extract kappa fission score from OpenMC;
+   * if you want to tally in distributed cells, use 'cell_filter'; however,
+   * this filter requires that those cells be filled with materials. Therefore,
+   * we keep as an option the 'cell' filter, which does not discriminate based
+   * on cell instance, but does allow non-material fills (you will just need to
+   * be careful about how you set up the problem if you want to use lattices).
+   */
+  const filter::CellFilterEnum _tally_filter;
+
+  /// Constant power for the entire OpenMC domain
+  const Real & _power;
+
+  /**
+   * Whether to check the tallies against the global kappa fission tally;
+   * if set to true, and the tallies added for the 'tally_blocks' do not
+   * sum to the global kappa fission tally, an error is thrown. If you are
+   * only performing multiphysics feedback for, say, a single assembly in a
+   * full-core OpenMC model, you must set this check to false, because there
+   * are known fission sources outside the domain of interest.
+   */
+  const bool & _check_tally_sum;
+
+  /**
+   * Whether to check if any of the tallies evaluate to zero; if set to true,
+   * and a tally is zero, an error is thrown. This can be helpful in identifying
+   * cases where you added tallies, but there isn't any fissile material, or
+   * if you have an error in the geometry or tally setup (such as using a CellFilter
+   * when you should be using a CellInstanceFilter).
+   */
+  const bool & _check_zero_tallies;
+
+  /**
+   * Coordinate level in the OpenMC domain that fluid cells are located on,
+   * for the purpose of setting up a cell filter for the fluid phase.
+   */
+  int _fluid_cell_level;
+
+  /**
+   * Coordinate level in the OpenMC domain that solid cells are located on,
+   * for the purpose of setting up a cell filter for the solid phase.
+   */
+  int _solid_cell_level;
+
+  /// Whether to print diagnostic information about model setup and the transfers
+  const bool & _verbose;
+
+  /**
+   * Whether to skip the first density and temperature transfer into OpenMC; this
+   * can be used to apply OpenMC's initial values for density and temperature in its
+   * XML files rather than whatever is transferred into OpenMC from MOOSE.
+   */
+  const bool & _skip_first_incoming_transfer;
+
+  /**
+   * Whether the problem has fluid blocks specified; note that this is NOT necessarily
+   * indicative that the mapping was successful in finding any cells corresponding to those blocks
+   */
+  const bool _has_fluid_blocks;
+
+  /**
+   * Whether the problem has solid blocks specified; note that this is NOT necessarily
+   * indicative that the mapping was successful in finding any cells corresponding to those blocks
+   */
+  const bool _has_solid_blocks;
+
+  /**
+   * Whether tallies should be added to the fluid phase; this should be true if you have
+   * a fissile fluid phase and wish to couple that heat source to MOOSE.
+   */
+  bool _add_tallies_to_fluid;
+
+  /**
+   * Whether tallies should be added to the solid phase; this should be true if you have
+   * a fissile solid phase and wish to couple that heat source to MOOSE.
+   */
+  bool _add_tallies_to_solid;
+
+  /// Blocks in MOOSE mesh that correspond to the fluid phase
+  std::unordered_set<SubdomainID> _fluid_blocks;
+
+  /// Blocks in MOOSE mesh that correspond to the solid phase
+  std::unordered_set<SubdomainID> _solid_blocks;
+
+  /// Blocks (mapped to OpenMC cells) for which to add tallies
+  std::unordered_set<SubdomainID> _tally_blocks;
+
+  /// Constant flag to indicate that a cell was unmapped
+  const int32_t UNMAPPED {-100};
+
+  /// Mapping of MOOSE elements to the OpenMC cell they map to (if any)
+  std::vector<cellInfo> _elem_to_cell {};
+
+  /**
+   * Phase of each element in the MOOSE mesh according to settings in the 'fluid_blocks'
+   * and 'solid_blocks' parameters.
+   */
+  std::vector<coupling::CouplingFields> _elem_phase {};
+
+  /// Subdomain corresponding to each element
+  std::vector<SubdomainID> _elem_subdomain {};
+
+  /// Number of solid elements in the MOOSE mesh
+  int _n_moose_solid_elems;
+
+  /// Number of fluid elements in the MOOSE mesh
+  int _n_moose_fluid_elems;
+
+  /// Number of no-coupling elements in the MOOSE mesh
+  int _n_moose_none_elems;
+
+  /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs
+  std::map<cellInfo, std::vector<unsigned int>> _cell_to_elem;
+
+  /// Whether a cell index, instance pair should be added to the tally filter
+  std::map<cellInfo, bool> _cell_has_tally;
+
+  /// Volume associated with the mapped element space for each OpenMC cell
+  std::map<cellInfo, Real> _cell_to_elem_volume;
+
+  /// Material filling each cell
+  std::map<cellInfo, int32_t> _cell_to_material;
+
+  /// OpenMC cells to which a kappa fission tally is to be added
+  std::vector<cellInfo> _tally_cells;
+
+  /// Global kappa fission tally
+  const openmc::Tally * _global_tally {nullptr};
+
+  /// Local cell-filter kappa fission tally
+  const openmc::Tally * _local_tally {nullptr};
+
+  /**
+   * Descriptive string for transfers going into OpenMC; if fluid blocks are present,
+   * this will be 'density and temperature', while if only solid blocks are present,
+   * this will be 'temperature'.
+   */
+  std::string _incoming_transfer;
+
+  /// Heat source variable
+  unsigned int _heat_source_var;
+
+  /// Temperature variable
+  unsigned int _temp_var;
+
+  /// Density variable, which must be in units of kg/m3 based on internal conversions
+  unsigned int _density_var;
+
+  /// Mean value of the global kappa fission tally
+  Real _global_kappa_fission;
+
+  /// Conversion unit to transfer between kg/m3 and g/cm3
+  const Real _density_conversion_factor;
+
+  /**
+   * Whether the OpenMC model consists of a single coordinate level; we track this so
+   * that we can provide some helpful error messages for this case. If there is more
+   * than one coordinate level, however, the error checking becomes too difficult,
+   * because cells can be filled with universes, lattices, etc.
+   */
+  const bool _single_coord_level;
+
+  /// Total number of OpenMC cells, across all coordinate levels
+  const int _n_openmc_cells;
+
+  /**
+   * Number of digits to use to display the cell ID for diagnostic messages; this is
+   * estimated conservatively based on the total number of cells, even though there
+   * may be distributed cells such that the maximum cell ID is far smaller than the
+   * total number of cells.
+   */
+  const int _n_cell_digits;
+
+  /// Whether the present transfer is the first incoming transfer
+  static bool _first_incoming_transfer;
+};
