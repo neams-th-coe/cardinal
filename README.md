@@ -7,15 +7,9 @@ the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABL
 respectively. If all of these threading APIs are turned off, then a serial backend will be used
 in nekRS, meaning that nekRS will run with MPI parallelism.
 
-Next, fetch all the submodules containing the MOOSE, nekRS, and OpenMC dependencies:
-
-```
-$ git submodule update --init --recursive
-```
-
-To save some time, especially for fetching the very big `large_problems` submodule or
-other large recursive sub-submodules, you can just fetch the minimum number of submodules to
-build Cardinal:
+Next, fetch all the submodules containing the MOOSE, nekRS, OpenMC, and SAM dependencies. If you
+will *not* be using the SAM submodule within Cardinal, you will need to individually clone
+only the open-source the submodules:
 
 ```
 $ git submodule update --init contrib/nekRS
@@ -23,7 +17,7 @@ $ git submodule update --init contrib/moose
 $ git submodule update --init --recursive contrib/openmc
 ```
 
-If you are using Cardinal to couple to SAM, you will also need to fetch the SAM submodule:
+If you are using SAM, you will then also need to fetch the SAM submodule:
 
 ```
 $ git submodule update --init contrib/SAM
@@ -32,7 +26,16 @@ $ git submodule update --init contrib/SAM
 You will be prompted for login credentials to ANL's xgitlab site. If you do not have credentials,
 you will need to contact the SAM development team to request access.
 
-The first software that must be built is the PETSc numerics library:
+We recommend fetching the submodules in this individual approach, but you can also
+get all submodules at once with
+
+```
+$ git submodule update --init --recursive
+```
+
+though this may be slow in cloning the nested sub-submodules in native MOOSE-based applications.
+
+After obtaining all necessary submodules, the first software that must be built is the PETSc numerics library:
 
 ```
 $ ./contrib/moose/scripts/update_and_rebuild_petsc.sh
