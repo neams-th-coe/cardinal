@@ -105,12 +105,12 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
     p.r() = {c(0), c(1), c(2)};
     p.u() = {0., 0., 1.};
 
-    if (!openmc::find_cell(p, false))
+    if (!openmc::exhaustive_find_cell(p))
       mooseError("Cannot find OpenMC cell at position (x, y, z) = (" + Moose::stringify(c(0)) + ", " +
         Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + ")");
 
-    _cellIndices.push_back(p.coord_[_pebble_cell_level].cell);
-    _cellInstances.push_back(p.cell_instance_);
+    _cellIndices.push_back(p.coord(_pebble_cell_level).cell);
+    _cellInstances.push_back(p.cell_instance());
   }
 
   // ensure that the _cellIndices are unique
@@ -301,12 +301,12 @@ void OpenMCProblem::addExternalVariables()
     p.r() = {c(0), c(1), c(2)};
     p.u() = {0., 0., 1.};
 
-    if (!openmc::find_cell(p, false))
+    if (!openmc::exhaustive_find_cell(p))
       mooseError("Cannot find OpenMC cell at position (x, y, z) = (" + Moose::stringify(c(0)) + ", " +
         Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + ")");
 
-    auto& cell = openmc::model::cells[p.coord_[p.n_coord_ - 1].cell];
-    initial_temperatures.push_back(cell->temperature(p.cell_instance_));
+    auto& cell = openmc::model::cells[p.coord(p.n_coord() - 1).cell];
+    initial_temperatures.push_back(cell->temperature(p.cell_instance()));
 
   }
 
