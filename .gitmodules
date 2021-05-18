@@ -1,7 +1,6 @@
 [submodule "contrib/openmc"]
 	path = contrib/openmc
-	url = https://github.com/pshriwise/openmc.git
-  branch = mft
+	url = https://github.com/openmc-dev/openmc.git
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
 	url = https://xgitlab.cels.anl.gov/neams-th-coe/nekRS.git
