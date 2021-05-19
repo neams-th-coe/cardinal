@@ -3,7 +3,7 @@
 	url = https://github.com/openmc-dev/openmc.git
 [submodule "contrib/nekRS"]
 	path = contrib/nekRS
-	url = https://xgitlab.cels.anl.gov/neams-th-coe/nekRS.git
+	url = https://github.com/neams-th-coe/nekRS.git
 [submodule "contrib/moose"]
 	path = contrib/moose
 	url = https://github.com/idaholab/moose.git
