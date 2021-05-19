@@ -1,5 +1,9 @@
 # Cardinal
 
+Cardinal is a wrapping of the spectral element code nekRS and the Monte Carlo
+code OpenMC as a MOOSE application. Cardinal is intended for high-resolution thermal-hydraulics
+and particle transport feedback to MOOSE multiphysics simulations.
+
 ## Building
 
 First, set the correct threading API to use for nekRS (CUDA, HIP, or OpenCL) in `Makefile` by setting
@@ -160,3 +164,12 @@ export CXX=mpicxx
 export FC=mpif90
 ```
 
+## Testing
+
+You can run Cardinal's test suite with the following:
+
+```
+$ ./run_tests -j8
+```
+
+Depending on the availability of the SAM submodule, some tests may be skipped.
