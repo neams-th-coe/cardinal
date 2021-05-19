@@ -487,20 +487,20 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
        mooseError("Unhandled CouplingFields enum!");
    }
 
-    if (level > p.n_coord_ - 1)
+    if (level > p.n_coord() - 1)
     {
       std::string phase = _fluid_blocks.count(elem->subdomain_id()) ? "fluid" : "solid";
       mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the " + phase +
         " exceeds number of nested coordinate levels at (" + Moose::stringify(c(0)) + ", " +
         Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + "): " +
-        Moose::stringify(p.n_coord_));
+        Moose::stringify(p.n_coord()));
     }
 
-    auto cell_index = p.coord_[level].cell;
+    auto cell_index = p.coord(level).cell;
 
     // TODO: this is the cell instance at the lowest level in the geometry, which does
     // not necessarily match the "level" supplied on the line above
-    auto cell_instance = p.cell_instance_;
+    auto cell_instance = p.cell_instance();
 
     auto cell_info = std::make_pair(cell_index, cell_instance);
 
@@ -634,7 +634,7 @@ OpenMCCellAverageProblem::findCell(const Point & point, bool & error)
   p.r() = {point(0), point(1), point(2)};
   p.u() = {0., 0., 1.};
 
-  error = !openmc::find_cell(p, false);
+  error = !openmc::exhaustive_find_cell(p);
 
   return p;
 }
