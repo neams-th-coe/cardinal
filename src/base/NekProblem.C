@@ -209,7 +209,7 @@ void NekProblem::syncSolutions(ExternalProblem::Direction direction)
         }
       }
 
-      auto total_flux = getPostprocessorValue("total_flux");
+      auto total_flux = getPostprocessorValueByName("total_flux");
 
       std::cout << "Total flux going to Nek: " << total_flux << std::endl;
 

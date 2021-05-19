@@ -3,14 +3,19 @@ COORDINATES absolute 1.e-6
 TIME STEPS relative 5.5e-6 floor 1e-10
 
 GLOBAL VARIABLES relative 5.5e-5 floor 1e-10
-	max_interface_T
-	max_temp_bison
-	flux_integral
-	min_interface_T
-	min_temp_bison
+	avg_T_bison
+	avg_T_nek
+	max_T_bison
+	max_T_int
+	max_T_nek
+	min_T_bison
+	min_T_int
+	pt_bison
+	pt_nek
 
 NODAL VARIABLES relative 5.5e-6 floor 1e-10
-	temperature relative 1.0e-4
+	bison_temp
+	nek_temp
 
 ELEMENT VARIABLES relative 5.5e-6 floor 1e-10
-	flux relative 1e-3
+	bison_flux relative 5e-3

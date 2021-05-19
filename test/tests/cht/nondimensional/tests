@@ -9,6 +9,7 @@
     cli_args = '--nekrs-setup sfr_pin'
     min_parallel = 6
     rel_err = 5e-5
+    custom_cmp = exodiff.cmp
     requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
                   "conservation of energy and realistic thermal solutions when nekRS is run in "
                   "nondimensional form. A wide variety of postprocessors are measured and compared "
