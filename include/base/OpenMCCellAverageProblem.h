@@ -259,6 +259,24 @@ protected:
    */
   openmc::Particle findCell(const Point & point, bool & error);
 
+  /**
+   * Get the fill of an OpenMC cell
+   * @param[in] cell_info cell ID, instance
+   * @param[out] fill_type fill type of the cell, one of MATERIAL, UNIVERSE, or LATTICE
+   * @param[out] material_indices indices of material fills
+   * @param[out] n_materials number of material fills, for distributed cells
+   */
+  void cellFill(const cellInfo & cell_info, int & fill_type, int32_t ** material_indices, int & n_materials) const;
+
+  /**
+   * Whether a cell contains any fissile materials; for now, this simply returns true for
+   * cells filled by universes or lattices because we have yet to implement something more
+   * sophisticated that recurses down into all the fills
+   * @param[in] cell_info cell ID, instance
+   * @return whether cell contains fissile material
+   */
+  bool cellHasFissileMaterials(const cellInfo & cell_info) const;
+
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**

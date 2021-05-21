@@ -6,6 +6,7 @@
 #include "openmc/cell.h"
 #include "openmc/constants.h"
 #include "openmc/error.h"
+#include "openmc/material.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "openmc/message_passing.h"
@@ -326,15 +327,11 @@ OpenMCCellAverageProblem::getMaterialFills()
     if (cellPhase(cell_info) != coupling::density_and_temperature)
       continue;
 
-    int material_fill_type = static_cast<int>(openmc::Fill::MATERIAL);
-    int32_t * material_indices = nullptr;
-    int n_materials = 0;
+    int fill_type;
+    int32_t * material_indices;
+    int n_materials;
 
-    int err = openmc_cell_get_fill(cell_info.first, &material_fill_type, &material_indices, &n_materials);
-
-    if (err)
-      mooseError("In attempting to get fill of " + printCell(cell_info) +
-        ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+    cellFill(cell_info, fill_type, &material_indices, n_materials);
 
     // OpenMC checks that for distributed cells, the number of materials either equals 1
     // or the number of distributed cells; therefore, we just need to index based on the cell
@@ -573,13 +570,34 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // Check that each cell maps to subdomain IDs that all have the same tally setting
   checkCellMappedSubdomains();
 
+  std::stringstream warning;
+  bool print_warning = false;
+
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
 
     if (_cell_has_tally[cell_info])
+    {
+      // if the cell doesn't have fissile material, don't add a tally to save some evaluation
+      if (!cellHasFissileMaterials(cell_info))
+      {
+        // for the special case of a single coordinate level, just silently skip adding the tallies
+        if (_using_default_tally_blocks)
+          continue;
+
+        // otherwise, warn the user that they've specified tallies for some non-fissile cells
+        print_warning = true;
+        warning << "\n  " << printCell(cell_info);
+      }
+
       _tally_cells.push_back(cell_info);
+    }
   }
+
+  if (print_warning)
+    mooseWarning("Skipping tallies for: " + warning.str() +
+      "\n\nThese cells do not contain fissile material, but tallies are still specified in 'tally_blocks'.");
 
   if (_verbose) _console << std::endl;
 }
@@ -782,23 +800,19 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     if (_verbose)
       _console << "Setting " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4) << average_density << std::endl;
 
-    int material_fill_type = static_cast<int>(openmc::Fill::MATERIAL);
-    int32_t *material_indices = nullptr;
-    int n_materials = 0;
+    int fill_type;
+    int32_t * material_indices;
+    int n_materials;
 
-    int err = openmc_cell_get_fill(cell_info.first, &material_fill_type, &material_indices, &n_materials);
+    cellFill(cell_info, fill_type, &material_indices, n_materials);
 
-    if (err)
-      mooseError("In attempting to get fill of " + printCell(cell_info) +
-        ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
-
-    if (material_fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+    if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
       mooseError("Density transfer does not currently support cells filled with universes or lattices!");
 
     // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
     // auxvariable as well as the MOOSE fluid properties module) to g/cm3
     const char * units = "g/cc";
-    err = openmc_material_set_density(material_indices[cell_info.second], average_density * _density_conversion_factor, units);
+    int err = openmc_material_set_density(material_indices[cell_info.second], average_density * _density_conversion_factor, units);
 
     // throw a special error if the cell is void, because the OpenMC error isn't very
     // clear what the mistake is
@@ -980,4 +994,51 @@ OpenMCCellAverageProblem::checkTallySum() const
 
     mooseError(msg.str());
   }
+}
+
+void
+OpenMCCellAverageProblem::cellFill(const cellInfo & cell_info, int & fill_type,
+  int32_t ** material_indices, int & n_materials) const
+{
+  fill_type = static_cast<int>(openmc::Fill::MATERIAL);
+  *material_indices = nullptr;
+  n_materials = 0;
+
+  int err = openmc_cell_get_fill(cell_info.first, &fill_type, material_indices, &n_materials);
+
+  if (err)
+    mooseError("In attempting to get fill of " + printCell(cell_info) +
+      ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+}
+
+bool
+OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) const
+{
+  int fill_type;
+  int32_t * material_indices;
+  int n_materials;
+
+  cellFill(cell_info, fill_type, &material_indices, n_materials);
+
+  // TODO: for cells with non-material fills, we need to implement something that recurses
+  // into the cell/universe fills to see if there's anything fissile; until then, just assume
+  // that the cell has something fissile
+  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+    return true;
+
+  // for each material fill, check whether it is fissionable
+  for (int i = 0; i < n_materials; ++i)
+  {
+    int32_t index = material_indices[i];
+
+    // We know void cells certainly aren't fissionable; if not void, check if fissionable
+    if (index != -1 /* ID used by OpenMC to represent void */)
+    {
+      const auto & material = openmc::model::materials[index];
+      if (material->fissionable_)
+        return true;
+    }
+  }
+
+  return false;
 }
