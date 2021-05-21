@@ -148,17 +148,67 @@ $ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_section
 
 ## Running
 
-Enter the directory with your nekRS case files and use a command such as:
+While most MOOSE applications contain a single "App" (like `PronghornApp` for
+Pronghorn, or `BisonApp` for BISON), Cardinal contains three applications -
+
+1. `CardinalApp`, to which are registered any generic classes in Cardinal to facilitate
+   coupling.
+2. `NekApp`, to which are registered any classes dealing specifically with wrapping of nekRS.
+3. `OpenMCApp`, to which are registered any classes dealing specifically with wrapping of OpenMC.
+
+In other words, you could entirely separate out the nekRS wrapping into a separate
+MOOSE application named `Nek` that you create with
+[Stork](https://mooseframework.inl.gov/getting_started/examples_and_tutorials/tutorial01_app_development/step01_moose_app.html)
+like you do when creating any new MOOSE application. Likewise, you could entirely separate
+out the OpenMC wrapping into a separate MOOSE application named `OpenMC`. This design
+philosophy is used in Cardinal because the initialization steps for OpenMC and nekRS
+require different function calls to routines like `nekrs::setup` and `openmc_init`
+that we don't necessarily _always_ want to call if we are omitting one of the physics
+from a particular simulation.
+
+Further, if you are running SAM as the master application, Cardinal will also instantiate
+a `SamApp` so that SAM classes and input file syntax can be run with the Cardinal executable.
+
+The various command line flags you need to pass to run a Cardinal input depends on
+which application is the master app (`CardinalApp`, `NekApp`, `OpenMCApp`, `SamApp`). The
+`-app` flag indicates which application is to be created as the master application
+for a given input file. If you omit `--app <app>`, then by default the input
+file is run with `CardinalApp`. Otherwise, valid options are:
+
+1. `--app openmc`, run the input file with `OpenMCApp`
+2. `--app nek`, run the input file with `NekApp`
+3. `--app sam`, run the input file with `SamApp`
+
+Finally, if the master input file or any of the sub-application input files are to be
+run with `NekApp`, you must also pass `--nekrs-setup <case>` on the command line, where
+`<case>` is the nekRS caes name.
+
+A few (non-exhaustive) examples are now provided. To run
+an input file with a `CardinalApp` master application that doesn't contain nekRS as a sub-app, use
 
 ```
-$ mpirun -np 4 ~/repos/cardinal/cardinal-opt --app nek -i nek.i --nekrs-setup onepebble2
+$ mpirun -np 4 ~/repos/cardinal/cardinal-opt -i input.i
 ```
 
-where `--nekrs-setup` is the basename of the nekRS files for your case. The `-app` may
-be one of `nek`, `openmc`, or `cardinal` (the default). The `-app` flag basically registers
-the objects in Cardinal under different MooseApps, reflecting how these objects would
-interact with each other if the OpenMC and nekRS wrappings were each ported out to individual
-apps, rather than the coupled case here for Cardinal.
+To run an input file with a `CardinalApp` master application that contains nekRS as a sub-app, use
+
+```
+$ mpirun -np 4 ~/repos/cardinal/cardinal-opt -i input.i --nekrs-setup brick
+```
+
+where the nekRS input files for the case are named `brick.re2`, `brick.par`, `brick.udf`, and
+`brick.oudf`. To run an input file with a `NekApp` master application, use
+
+```
+$ mpirun -np 4 ~/repos/cardinal/cardinal-opt --app nek -i nek.i --nekrs-setup brick
+```
+
+And to run an input file with an `OpenMCApp` master application that contains
+nekRS as a sub-app, use
+
+```
+$ mpirun -np 4 ~/repos/cardinal/cardinal-opt --app openmc -i openmc.i --nekrs-setup brick
+```
 
 ## Updating the Submodules
 
@@ -198,3 +248,15 @@ means keeping the lines related to a user-specified HYPRE installation.
 
 After you have resolved the merge conflicts, open a pull request into the `cardinal` branch
 on the [nekRS fork](https://github.com/neams-th-coe/nekRS).
+
+Once the submodule itself is updated, then update the commit pointed to by the nekRS submodule
+in Cardinal. During this step, we need to set the values of some nekRS CMake variables that we
+don't necessarily set up during Cardinal's build process. In the Cardinal `Makefile`,
+update the `NEKRS_VERSION`, `NEKRS_SUBVERSION`, and `GITCOMMITHASH` that are used to
+print the nekRS version at the start of the nekRS initialization. The two
+nekRS version macros can be found in the `build/nekrs/CMakeCache.txt` file that is created
+after compiling Cardinal. Set `NEKRS_VERSION` to the value of `CMAKE_PROJECT_VERSION_MAJOR`
+and set `NEKRS_SUBVERSION` to the value of `CMAKE_PROJECT_VERSION_MINOR`. Finally, set
+`GITCOMMITHASH` to the [git hash](https://github.com/neams-th-coe/nekRS/commits/cardinal)
+of the nekRS fork that you just updated to. All three of `NEKRS_VERSION`, `NEKRS_SUBVERSION`,
+and `GITCOMMITHASH` are added to `CXXFLAGS`.
