@@ -32,7 +32,7 @@ validParams<OpenMCCellAverageProblem>()
   params.addParam<std::vector<SubdomainID>>("solid_blocks",
     "Subdomain ID(s) corresponding to the solid phase, "
     "for which temperature will be sent to OpenMC");
-  params.addRequiredParam<std::vector<SubdomainID>>("tally_blocks",
+  params.addParam<std::vector<SubdomainID>>("tally_blocks",
     "Subdomain ID(s) for which to add tallies in the OpenMC model");
   params.addParam<bool>("check_tally_sum", true,
     "Whether to check consistency between the cell-wise kappa fission tallies with a global tally");
@@ -70,7 +70,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _density_conversion_factor(0.001),
   _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_openmc_cells(openmc::model::cells.size()),
-  _n_cell_digits(digits(_n_openmc_cells))
+  _n_cell_digits(digits(_n_openmc_cells)),
+  _using_default_tally_blocks(_single_coord_level && !isParamValid("tally_blocks"))
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -81,9 +82,20 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
       "establish the mapping from MOOSE to OpenMC.");
 
+  // tally_blocks is optional if the OpenMC geometry has a single coordinate level
+  if (!_single_coord_level && !isParamValid("tally_blocks"))
+    paramError("tally_blocks", "List of tally blocks must be specified for OpenMC geometries with "
+      "more than one coordinate level");
+
   readBlockParameters(_fluid_blocks, "fluid");
   readBlockParameters(_solid_blocks, "solid");
   readBlockParameters(_tally_blocks, "tally");
+
+  // For single-level geometries, we take the default setting for tally_blocks to be all the
+  // blocks in the MOOSE domain
+  if (_using_default_tally_blocks)
+    for (const auto & s : mesh().meshSubdomains())
+      _tally_blocks.insert(s);
 
   // by requiring at least one of 'fluid_blocks' and 'solid_blocks', we know the
   // incoming transfers will either be just temperature (only solid coupling) or

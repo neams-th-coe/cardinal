@@ -29,7 +29,8 @@ InputParameters validParams<OpenMCCellAverageProblem>();
  * density) to OpenMC. Tallies are automatically added to the OpenMC cells that
  * correspond to the 'tally_blocks' parameter. Therefore, you can individually
  * control where multiphysics feedback is sent to OpenMC, and where heat source
- * feedback is received by MOOSE.
+ * feedback is received by MOOSE. If you have a single-level OpenMC geometry,
+ * you can omit 'tally_blocks', in which case tallies are added to all MOOSE blocks.
  *
  * There are a number of limitations to this class (all of which are tested):
  *  - Each OpenMC cell shall only map to a single "phase", or else it is unclear
@@ -432,6 +433,12 @@ protected:
    * total number of cells.
    */
   const int _n_cell_digits;
+
+  /**
+   * For OpenMC geometries with a single coordinate level, we define default behavior for
+   * tally_blocks to be all of the subdomains in the MOOSE mesh.
+   */
+  const bool _using_default_tally_blocks;
 
   /// Whether the present transfer is the first incoming transfer
   static bool _first_incoming_transfer;
