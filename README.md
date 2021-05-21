@@ -30,7 +30,10 @@ for a particular case, you can explicitly set the backend in nekRS's `.par` file
   backend = CPU
 ```
 
-which will override any other settings. If you plan to use a GPU  backend, then you will also need to
+which will override any other settings. The order of precedence for these three options
+is `.par` file > `NEKRS_OCCA_MODE_DEFAULT` environment variable > `nekrs.conf`.
+
+If you plan to use a GPU  backend, then you will also need to
 set the correct threading API in the `Makefile` by setting
 the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
 respectively.
@@ -156,3 +159,42 @@ be one of `nek`, `openmc`, or `cardinal` (the default). The `-app` flag basicall
 the objects in Cardinal under different MooseApps, reflecting how these objects would
 interact with each other if the OpenMC and nekRS wrappings were each ported out to individual
 apps, rather than the coupled case here for Cardinal.
+
+## Updating the Submodules
+
+Cardinal uses submodules for its dependencies - MOOSE, OpenMC, nekRS, and SAM. All dependencies
+except for nekRS point to the main repository remotes for each application. However, in order to
+use the same HYPRE installation as used by MOOSE within nekRS, we maintain a separate
+[nekRS fork](https://github.com/neams-th-coe/nekRS). Another purpose of this separate fork is
+to control exactly what versions of nekRS's dependencies (Nek5000, OCCA, etc.) are used within
+nekRS, since nekRS's build strategy instead simply pulls the latest versions of its dependencies
+at compile time (which could cause conflicts in Cardinal, which points to a fixed version of nekRS
+that might not be compatible with the latest versions of nekRS's dependencies).
+
+Updating the MOOSE, OpenMC, and SAM submodules is routine, but additional instructions are necessary
+for updating the nekRS submodule. The nekRS submodule points to the `cardinal` branch on the
+[nekRS fork](https://github.com/neams-th-coe/nekRS). Assuming you have a separate repository checkout
+of nekRS in your filesystem, first merge the latest master branch into a new nekRS feature update branch.
+
+```
+$ pwd
+  /home/anovak/nekRS
+
+$ git co -b cardinal-update-5-21
+$ git merge origin/master
+```
+
+You will need to correct merge conflicts, which should be restricted to `CMakeLists.txt` and
+`config/hypre.cmake`.
+You should generally just _add_ the merge conflicts from `HEAD`. In `CMakeLists.txt`, this
+means keeping the lines related to `OCCA_TAG`, `NEK5000_TAG`, and `HYPRE_VER`. As you update
+the nekRS fork, update these three tag tags/version numbers according to the dependencies
+used in nekRS. The `OCCA_TAG` should be updated to the latest git hash of the
+[OCCA fork](https://github.com/Nek5000/occa) used in nekRS. The `NEK5000_TAG` shoudl be updated
+to the latest git commit hash of the [Nek5000 repository](https://github.com/Nek5000/Nek5000).
+And finally, the HYPRE version should be updated to the latest version in the
+[HYPRE repository](https://github.com/hypre-space/hypre/releases). In `config/hypre.cmake`, this
+means keeping the lines related to a user-specified HYPRE installation.
+
+After you have resolved the merge conflicts, open a pull request into the `cardinal` branch
+on the [nekRS fork](https://github.com/neams-th-coe/nekRS).
