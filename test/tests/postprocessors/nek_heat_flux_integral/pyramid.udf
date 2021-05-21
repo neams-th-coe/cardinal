@@ -6,7 +6,7 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  auto mesh = nrs->mesh;
+  auto mesh = nrs->cds->mesh[0];
 
   int n_gll_points = mesh->Np * mesh->Nelements;
   for (int n = 0; n < n_gll_points; ++n)
@@ -17,18 +17,18 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->P[n] = 0.0; // pressure
 
-    dfloat x = nrs->mesh->x[n];
-    dfloat y = nrs->mesh->y[n];
-    dfloat z = nrs->mesh->z[n];
+    dfloat x = mesh->x[n];
+    dfloat y = mesh->y[n];
+    dfloat z = mesh->z[n];
 
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = 100*(exp(x) + exp(y)+exp(z)+sin(y) + x*y*z) +
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 100*(exp(x) + exp(y)+exp(z)+sin(y) + x*y*z) +
       500 * x + 500 * y; // temperature
   }
 
   // we need to set this here (not in the par file) because we set the solver = none for
   // the temperature, which in nekRS then stops reading anything else in the TEMPERATURE block.
   // So for this test, we need to set this here to get the corrrect behavior in nekrs::heatFluxIntegral.
-  nrs->options.setArgs("SCALAR00 DIFFUSIVITY", "25");
+  platform->options.setArgs("SCALAR00 DIFFUSIVITY", "25");
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
