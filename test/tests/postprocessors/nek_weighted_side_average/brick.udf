@@ -6,14 +6,14 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  auto mesh = nrs->mesh;
+  auto mesh = nrs->cds->mesh[0];
 
   int n_gll_points = mesh->Np * mesh->Nelements;
   for (int n = 0; n < n_gll_points; ++n)
   {
-    dfloat x = nrs->mesh->x[n];
-    dfloat y = nrs->mesh->y[n];
-    dfloat z = nrs->mesh->z[n];
+    dfloat x = mesh->x[n];
+    dfloat y = mesh->y[n];
+    dfloat z = mesh->z[n];
 
     nrs->U[n + 0 * nrs->fieldOffset] = 1 + x * y * z; // x-velocity
     nrs->U[n + 1 * nrs->fieldOffset] = 2 + y * exp(z); // y-velocity
@@ -21,7 +21,7 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->P[n] = 0.0; // pressure
 
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = exp(x) + sin(y) + x*y*z; // temperature
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
   }
 }
 

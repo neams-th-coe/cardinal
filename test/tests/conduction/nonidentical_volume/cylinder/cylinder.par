@@ -30,7 +30,6 @@
   boundaryTypeMap = wall, wall, wall
 
 [PRESSURE]
-  solver = none
   residualTol = 1.0e-5
   residualProj = no
   writeToFieldFile = yes
