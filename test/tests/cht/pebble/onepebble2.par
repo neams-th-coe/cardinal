@@ -1,5 +1,5 @@
 [OCCA]
-backend = CUDA
+backend = CPU
 deviceNumber = 0
 
 [GENERAL] 
