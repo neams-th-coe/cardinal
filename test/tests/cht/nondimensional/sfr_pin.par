@@ -46,7 +46,7 @@
 
 [PRESSURE]
   residualTol = 1.0e-6
-  residualProj = yes
+  residualProj = no
   preconditioner = semg_amg
 
 [TEMPERATURE]
