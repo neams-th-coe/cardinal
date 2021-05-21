@@ -1,13 +1,43 @@
 # Cardinal
 
+## Setting the OCCA Backend
+
+nekRS uses [OCCA](https://libocca.org/#/) to provide an API for device programming. Available
+backends in nekRS include CPU (i.e. MPI parallelism), CUDA, HIP, OpenCL, and OpenMP. Before
+building Cardinal, please set the type of backend you would like to use.
+
+There are several different ways that you can set the backend. We recommend setting the
+`NEKRS_OCCA_MODE_DEFAULT` environment variable to one of `CPU`, `CUDA`, `HIP`, `OPENCL`, or
+`OPENMP`. This will set the backend for all nekRS runs within Cardinal.
+
+```
+$ export NEKRS_OCCA_MODE_DEFAULT=CPU
+```
+
+Equivalently, you can also set the default backend
+by changing the value of the `OCCA_MODE_DEFAULT` variable in `${NEKRS_HOME}/nekrs.conf`:
+
+```
+OCCA_MODE_DEFAULT = CPU
+```
+
+`nekrs.conf` is created as part of the build process, but changing the value of this variable
+will control the backend used at runtime. Alternatively, if you only want to control the backend
+for a particular case, you can explicitly set the backend in nekRS's `.par` file in the `[OCCA]` block:
+
+```
+[OCCA]
+  backend = CPU
+```
+
+which will override any other settings. If you plan to use a GPU  backend, then you will also need to
+set the correct threading API in the `Makefile` by setting
+the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
+respectively.
+
 ## Building
 
-First, set the correct threading API to use for nekRS (CUDA, HIP, or OpenCL) in `Makefile` by setting
-the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
-respectively. If all of these threading APIs are turned off, then a serial backend will be used
-in nekRS, meaning that nekRS will run with MPI parallelism.
-
-Next, fetch all the submodules containing the MOOSE, nekRS, OpenMC, and SAM dependencies. If you
+First, fetch all the submodules containing the MOOSE, nekRS, OpenMC, and SAM dependencies. If you
 will *not* be using the SAM submodule within Cardinal, you will need to individually clone
 only the open-source the submodules:
 
