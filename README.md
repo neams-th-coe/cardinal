@@ -172,4 +172,6 @@ You can run Cardinal's test suite with the following:
 $ ./run_tests -j8
 ```
 
-Depending on the availability of the SAM submodule, some tests may be skipped.
+Depending on the availability of the SAM submodule, some tests may be skipped. The first time
+you run the test suite, the runtime will be very long due to the just-in-time compilation of
+nekRS. Subsequent runs will be much faster due to the use of cached build files.
