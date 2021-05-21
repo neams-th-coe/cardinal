@@ -14,7 +14,7 @@
 # Pe = 10.0
 
 [OCCA]
-  backend = CUDA
+  backend = CPU
   deviceNumber = 0
 
 [GENERAL]
