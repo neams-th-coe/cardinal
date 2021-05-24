@@ -46,7 +46,7 @@ InputParameters validParams<OpenMCCellAverageProblem>();
  *
  * Other limitations that are not tested (you won't error if you encounter these), are:
  *  - For the fluid, all the cells that we want to tally are on the same level in
- *    the geometry. This level is specified with the 'fluid_cell_level' parameter.
+ *    the OpenMC geometry. This level is specified with the 'fluid_cell_level' parameter.
  *    A similar restriction applies to the solid, with the 'solid_cell_level' parameter.
  *
  * Other considerations you should be aware of:
@@ -54,7 +54,7 @@ InputParameters validParams<OpenMCCellAverageProblem>();
  *    is the unit employed by the MOOSE fluid properties module.
  *  - The temperature being transferred into OpenMC from MOOSE is in units of K; this
  *    is the unit employed by the MOOSE fluid properties module.
- *  - You will get some extra error checking at your disposal if your geometry consists
+ *  - You will get some extra error checking at your disposal if your OpenMC geometry consists
  *    of a single coordinate level.
  */
 class OpenMCCellAverageProblem : public ExternalProblem

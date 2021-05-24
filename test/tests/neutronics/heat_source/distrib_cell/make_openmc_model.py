@@ -4,7 +4,8 @@ import openmc
 # (with uranium in it to cover the possibility of a fissile fluid phase).
 # We are going to compare the tallies computed by OpenMC and how they are
 # extracted and written into MOOSE auxiliary variables. This input differs
-# from the ../make_openmc_model.py script in that the cells are distributed,
+# from the tests in the test/tests/neutronics/heat_source directory
+# in that the cells are distributed,
 # i.e. filling universes in the geometry.
 
 uo2 = openmc.Material()
