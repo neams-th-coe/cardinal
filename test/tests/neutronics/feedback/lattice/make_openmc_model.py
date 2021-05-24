@@ -19,7 +19,7 @@ H = height / N
 
 #######################
 
-all_materials = []
+all_materials = openmc.Materials()
 
 uo2 = openmc.Material(name='UO2')
 uo2.set_density('g/cm3', 10.29769)
@@ -45,8 +45,7 @@ for i in range(N):
   water_materials.append(water)
   all_materials.append(water)
 
-materials = openmc.Materials(all_materials)
-materials.export_to_xml()
+all_materials.export_to_xml()
 
 model = openmc.model.Model()
 
