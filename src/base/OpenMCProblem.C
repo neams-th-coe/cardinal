@@ -182,7 +182,6 @@ void OpenMCProblem::setupTallies() {
   if (_check_tally_sum) {
     auto tally = openmc::Tally::create();
     tally->set_scores({"kappa-fission"});
-    tally->set_id(-1);
     _kappa_fission_tally = tally;
     // make sure the global tally estimator matches
     // when using a mesh tally
@@ -213,7 +212,6 @@ void OpenMCProblem::setupCellTally() {
   auto tally = openmc::Tally::create();
   _tallies.push_back(tally);
 
-  tally->set_id(-1);
   std::vector<openmc::Filter*> tally_filters = {cellFilter};
   tally->set_filters(tally_filters);
   tally->set_scores({"kappa-fission"});

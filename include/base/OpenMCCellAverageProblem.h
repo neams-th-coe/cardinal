@@ -172,10 +172,19 @@ public:
 protected:
   /**
    * Read the block parameters and tally information based on user settings
-   * @param[in] blocks list of block ids to write
    * @param[in] name phase that these blocks will be mapped to
+   * @param[in] blocks list of block ids to write
    */
-  void readBlockParameters(std::unordered_set<SubdomainID> & blocks, const std::string name);
+  void readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks);
+
+  /// Read the parameters for 'fluid_blocks'
+  void readFluidBlocks() { readBlockParameters("fluid", _fluid_blocks); }
+
+  /// Read the parameters for 'solid_blocks'
+  void readSolidBlocks() { readBlockParameters("solid", _solid_blocks); }
+
+  /// Read the parameters for 'tally_blocks'
+  void readTallyBlocks() { readBlockParameters("tally", _tally_blocks); }
 
   /**
    * Read the phase cell level and check against the maximum level across the OpenMC domain
@@ -187,10 +196,8 @@ protected:
   /**
    * Loop over the elements in the MOOSE mesh and store whether that element corresponds
    * to fluid, solid, or neither based on the settings in the 'fluid_blocks' and 'solid_blocks'.
-   * Also store the element subdomain for error checking that each OpenMC cell does not map to
-   * multiple blocks with different tally settings.
    */
-  void storeElementPhaseAndSubdomain();
+  void storeElementPhase();
 
   /**
    * Compute the number of digits required to display an integer
@@ -213,6 +220,19 @@ protected:
    * is also performed for the 'solid_blocks'.
    */
   void checkCellMappedPhase();
+
+  /**
+   * Loop over all the OpenMC cells and find those for which we should add tallies. If the cell
+   * doesn't have fissile material, we will also print a warning for single-level geoemtries.
+   */
+  void storeTallyCells();
+
+  /**
+   * Check that the same MOOSE block ID doesn't apepar in both the 'fluid_blocks' and 'solid_blocks',
+   * or else it's not clear whether that block should exchange temperature and density with MOOSE
+   * or just temperature alone.
+   */
+  void checkBlockOverlap();
 
   /**
    * Loop over all the OpenMC cells and determine if a cell maps to more than one subdomain
@@ -261,21 +281,20 @@ protected:
   void checkTallySum() const;
 
   /**
-   * Find the OpenMC cell at a given point in space
+   * Find the OpenMC cell at a given point in space in terms of the _particle members
    * @param[in] point point
    * @param[out] error whether OpenMC reported an error
-   * @return particle in the cell at the given point
    */
-  openmc::Particle findCell(const Point & point, bool & error);
+  void findCell(const Point & point, bool & error);
 
   /**
    * Get the fill of an OpenMC cell
    * @param[in] cell_info cell ID, instance
    * @param[out] fill_type fill type of the cell, one of MATERIAL, UNIVERSE, or LATTICE
-   * @param[out] material_indices indices of material fills
    * @param[out] n_materials number of material fills, for distributed cells
+   * @return indices of material fills
    */
-  void cellFill(const cellInfo & cell_info, int & fill_type, int32_t ** material_indices, int & n_materials) const;
+  std::vector<int32_t> cellFill(const cellInfo & cell_info, int & fill_type, int & n_materials) const;
 
   /**
    * Whether a cell contains any fissile materials; for now, this simply returns true for
@@ -384,9 +403,6 @@ protected:
    */
   std::vector<coupling::CouplingFields> _elem_phase {};
 
-  /// Subdomain corresponding to each element
-  std::vector<SubdomainID> _elem_subdomain {};
-
   /// Number of solid elements in the MOOSE mesh
   int _n_moose_solid_elems;
 
@@ -412,10 +428,10 @@ protected:
   std::vector<cellInfo> _tally_cells;
 
   /// Global kappa fission tally
-  const openmc::Tally * _global_tally {nullptr};
+  openmc::Tally * _global_tally {nullptr};
 
   /// Local cell-filter kappa fission tally
-  const openmc::Tally * _local_tally {nullptr};
+  openmc::Tally * _local_tally {nullptr};
 
   /**
    * Descriptive string for transfers going into OpenMC; if fluid blocks are present,

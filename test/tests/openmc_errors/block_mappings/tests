@@ -54,7 +54,7 @@
     input = multiple_phases.i
     cli_args = '--app openmc'
     expect_err = "cell 4, instance 0 \(of 1\) :  16 solid elems  3486 fluid elems  0 uncoupled elems  |  Mapped elems volume:  264.336\n\n"
-                 "Each OpenMC cell, instance pair must map to a single element type."
+                 "Each OpenMC cell, instance pair must map to elements of the same phase."
     requirement = "The system shall error if one OpenMC cell maps to more than one phase"
   [../]
   [./multiple_tally_settings]

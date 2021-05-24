@@ -20,8 +20,8 @@ namespace nekrs
 {
 
 // various constants for controlling tolerances
-constexpr double abs_tol = 1e-5;
-constexpr double rel_tol = 1e-3;
+constexpr double abs_tol = 1e-8;
+constexpr double rel_tol = 1e-5;
 
 bool endControlElapsedTime()
 {

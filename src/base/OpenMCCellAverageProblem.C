@@ -87,9 +87,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     paramError("tally_blocks", "List of tally blocks must be specified for OpenMC geometries with "
       "more than one coordinate level");
 
-  readBlockParameters(_fluid_blocks, "fluid");
-  readBlockParameters(_solid_blocks, "solid");
-  readBlockParameters(_tally_blocks, "tally");
+  readFluidBlocks();
+  readSolidBlocks();
+  readTallyBlocks();
 
   // For single-level geometries, we take the default setting for tally_blocks to be all the
   // blocks in the MOOSE domain
@@ -102,14 +102,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   // density and temperature (either only fluid coupling or both fluid and solid coupling)
   _incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
 
-  // make sure the same block ID doesn't appear in both the fluid and solid blocks,
-  // or else we won't know how to send feedback into OpenMC
-  std::vector<SubdomainID> intersection;
-  std::set_intersection(_fluid_blocks.begin(), _fluid_blocks.end(), _solid_blocks.begin(),
-    _solid_blocks.end(), std::back_inserter(intersection));
-
-  if (intersection.size() != 0)
-    mooseError("Block " + Moose::stringify(intersection[0]) + " cannot be present in both the 'fluid_blocks' and 'solid_blocks'!");
+  // Make sure the same block ID doesn't appear in both the fluid and solid blocks,
+  // or else we won't know how to send feedback into OpenMC.
+  checkBlockOverlap();
 
   // get the coordinate level to find cells on for each phase, and warn if invalid or not used
   getCellLevel("fluid", _fluid_cell_level);
@@ -120,6 +115,17 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   getMaterialFills();
 
   initializeTallies();
+}
+
+void
+OpenMCCellAverageProblem::checkBlockOverlap()
+{
+  std::vector<SubdomainID> intersection;
+  std::set_intersection(_fluid_blocks.begin(), _fluid_blocks.end(), _solid_blocks.begin(),
+    _solid_blocks.end(), std::back_inserter(intersection));
+
+  if (intersection.size() != 0)
+    mooseError("Block " + Moose::stringify(intersection[0]) + " cannot be present in both the 'fluid_blocks' and 'solid_blocks'!");
 }
 
 void
@@ -144,7 +150,7 @@ OpenMCCellAverageProblem::getCellLevel(const std::string name, int & cell_level)
 }
 
 void
-OpenMCCellAverageProblem::readBlockParameters(std::unordered_set<SubdomainID> & blocks, const std::string name)
+OpenMCCellAverageProblem::readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks)
 {
   std::string param_name = name + "_blocks";
 
@@ -171,14 +177,12 @@ OpenMCCellAverageProblem::digits(const int & number) const
 }
 
 void
-OpenMCCellAverageProblem::storeElementPhaseAndSubdomain()
+OpenMCCellAverageProblem::storeElementPhase()
 {
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
   {
     const auto * elem = _mesh.elemPtr(e);
     auto subdomain_id = elem->subdomain_id();
-
-    _elem_subdomain.push_back(subdomain_id);
 
     if (_fluid_blocks.count(subdomain_id))
       _elem_phase.push_back(coupling::density_and_temperature);
@@ -254,7 +258,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
     std::vector<bool> conditions = {n_fluid > 0, n_solid > 0, n_none > 0};
     if (std::count(conditions.begin(), conditions.end(), true) > 1)
-      mooseError(msg.str() + "\n\n Each OpenMC cell, instance pair must map to a single element type.");
+      mooseError(msg.str() + "\n\n Each OpenMC cell, instance pair must map to elements of the same phase.");
 
     if (_verbose)
       _console << msg.str() << std::endl;
@@ -275,7 +279,10 @@ OpenMCCellAverageProblem::checkCellMappedSubdomains()
     // find the set of subdomains that this cell maps to
     std::set<SubdomainID> cell_to_elem_subdomain;
     for (const auto & e : c.second)
-      cell_to_elem_subdomain.insert(_elem_subdomain[e]);
+    {
+      const auto * elem = _mesh.elemPtr(e);
+      cell_to_elem_subdomain.insert(elem->subdomain_id());
+    }
 
     // If the OpenMC cell maps to multiple subdomains that _also_ have different
     // tally settings, we need to error because we are unsure of whether to add tallies or not;
@@ -287,13 +294,13 @@ OpenMCCellAverageProblem::checkCellMappedSubdomains()
     {
       if (!at_least_one_in_tallies)
       {
-        at_least_one_in_tallies = std::find(_tally_blocks.begin(), _tally_blocks.end(), s) != _tally_blocks.end();
+        at_least_one_in_tallies = _tally_blocks.count(s) != 0;
         block_in_tallies = s;
       }
 
       if (!at_least_one_not_in_tallies)
       {
-        at_least_one_not_in_tallies = std::find(_tally_blocks.begin(), _tally_blocks.end(), s) == _tally_blocks.end();
+        at_least_one_not_in_tallies = _tally_blocks.count(s) == 0;
         block_not_in_tallies = s;
       }
 
@@ -327,10 +334,9 @@ OpenMCCellAverageProblem::getMaterialFills()
       continue;
 
     int fill_type;
-    int32_t * material_indices;
     int n_materials;
 
-    cellFill(cell_info, fill_type, &material_indices, n_materials);
+    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type, n_materials);
 
     // OpenMC checks that for distributed cells, the number of materials either equals 1
     // or the number of distributed cells; therefore, we just need to index based on the cell
@@ -433,9 +439,8 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
    * would still try to set a cell filter based on no cells.
    */
 
-  // First, figure out the phase of each element according to the blocks defined by the user;
-  // also store the element's subdomain for later error checking
-  storeElementPhaseAndSubdomain();
+  // First, figure out the phase of each element according to the blocks defined by the user
+  storeElementPhase();
 
   // Find cell for each element in the mesh based on the element's centroid
   int n_mapped_solid_elems = 0;
@@ -456,7 +461,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
     if (error)
     {
-      _elem_to_cell.push_back(std::make_pair(UNMAPPED, UNMAPPED));
+      _elem_to_cell.push_back({UNMAPPED, UNMAPPED});
       uncoupled_volume += element_volume;
       n_mapped_none_elems++;
       continue;
@@ -569,6 +574,13 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // Check that each cell maps to subdomain IDs that all have the same tally setting
   checkCellMappedSubdomains();
 
+  // Find the OpenMC cells for which we should add tallies
+  storeTallyCells();
+}
+
+void
+OpenMCCellAverageProblem::storeTallyCells()
+{
   std::stringstream warning;
   bool print_warning = false;
 
@@ -598,6 +610,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseWarning("Skipping tallies for: " + warning.str() +
       "\n\nThese cells do not contain fissile material, but tallies are still specified in 'tally_blocks'.");
 
+  // print newline to keep output neat between output sections
   if (_verbose) _console << std::endl;
 }
 
@@ -605,18 +618,15 @@ void
 OpenMCCellAverageProblem::initializeTallies()
 {
   // create the global tally for normalization
-  auto global_tally = openmc::Tally::create();
-  global_tally->set_scores({"kappa-fission"});
-  global_tally->set_id(-1);
-  _global_tally = global_tally;
+  _global_tally = openmc::Tally::create();
+  _global_tally->set_scores({"kappa-fission"});
 
   _console << "Adding tallies to blocks " << Moose::stringify(_tally_blocks) << " for " +
     Moose::stringify(_tally_cells.size()) + " cells ... ";
 
   // create the local heating tally
-  auto tally = openmc::Tally::create();
-  tally->set_scores({"kappa-fission"});
-  _local_tally = tally;
+  _local_tally = openmc::Tally::create();
+  _local_tally->set_scores({"kappa-fission"});
 
   switch (_tally_filter)
   {
@@ -632,7 +642,7 @@ OpenMCCellAverageProblem::initializeTallies()
       cell_filter->set_cells(cell_ids);
 
       std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      tally->set_filters(tally_filters);
+      _local_tally->set_filters(tally_filters);
       break;
     }
     case filter::cell_instance:
@@ -646,7 +656,7 @@ OpenMCCellAverageProblem::initializeTallies()
       cell_filter->set_cell_instances(cells);
 
       std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      tally->set_filters(tally_filters);
+      _local_tally->set_filters(tally_filters);
       break;
     }
     default:
@@ -718,6 +728,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
 
   _console << "Sending temperature to OpenMC cells... ";
 
+  // print newline to keep output neat between output sections
   if (_verbose) _console << std::endl;
 
   for (const auto & c : _cell_to_elem)
@@ -741,7 +752,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
     if (_verbose)
       _console << "Setting " << printCell(cell_info) << " to temperature (K): " << std::setw(4) << average_temp << std::endl;
 
-    int err = openmc_cell_set_temperature(cell_info.first, average_temp, &cell_info.second);
+    int err = openmc_cell_set_temperature(cell_info.first, average_temp, &cell_info.second, true);
 
     // TODO: could add the option to truncate temperatures if we exceed bounds?
 
@@ -756,14 +767,12 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
 void
 OpenMCCellAverageProblem::sendDensityToOpenMC()
 {
-  if (_skip_first_incoming_transfer)
-
-  auto & solution = _aux->solution();
   const auto sys_number = _aux->number();
   const auto & mesh = _mesh.getMesh();
 
   _console << "Sending density to OpenMC fluid cells... ";
 
+  // print newline to keep output neat between output sections
   if (_verbose) _console << std::endl;
 
   for (const auto & c : _cell_to_elem)
@@ -800,10 +809,9 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
       _console << "Setting " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4) << average_density << std::endl;
 
     int fill_type;
-    int32_t * material_indices;
     int n_materials;
 
-    cellFill(cell_info, fill_type, &material_indices, n_materials);
+    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type, n_materials);
 
     if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
       mooseError("Density transfer does not currently support cells filled with universes or lattices!");
@@ -845,6 +853,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
   auto mean_tally = xt::view(_local_tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
   double tally_sum = xt::sum(mean_tally)();
 
+  // print newline to keep output neat between output sections
   if (_verbose) _console << std::endl;
 
   // divide each tally value by the volume that it corresponds to in MOOSE
@@ -995,29 +1004,32 @@ OpenMCCellAverageProblem::checkTallySum() const
   }
 }
 
-void
+std::vector<int32_t>
 OpenMCCellAverageProblem::cellFill(const cellInfo & cell_info, int & fill_type,
-  int32_t ** material_indices, int & n_materials) const
+  int & n_materials) const
 {
   fill_type = static_cast<int>(openmc::Fill::MATERIAL);
-  *material_indices = nullptr;
+  int32_t * materials = nullptr;
   n_materials = 0;
 
-  int err = openmc_cell_get_fill(cell_info.first, &fill_type, material_indices, &n_materials);
+  int err = openmc_cell_get_fill(cell_info.first, &fill_type, &materials, &n_materials);
 
   if (err)
     mooseError("In attempting to get fill of " + printCell(cell_info) +
       ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+  std::vector<int32_t> material_indices;
+  material_indices.assign(materials, materials + n_materials);
+  return material_indices;
 }
 
 bool
 OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) const
 {
   int fill_type;
-  int32_t * material_indices;
   int n_materials;
 
-  cellFill(cell_info, fill_type, &material_indices, n_materials);
+  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type, n_materials);
 
   // TODO: for cells with non-material fills, we need to implement something that recurses
   // into the cell/universe fills to see if there's anything fissile; until then, just assume
@@ -1026,10 +1038,8 @@ OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) co
     return true;
 
   // for each material fill, check whether it is fissionable
-  for (int i = 0; i < n_materials; ++i)
+  for (const auto & index : material_indices)
   {
-    int32_t index = material_indices[i];
-
     // We know void cells certainly aren't fissionable; if not void, check if fissionable
     if (index != MATERIAL_VOID)
     {
