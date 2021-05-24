@@ -25,7 +25,7 @@ H = height / N
 
 all_materials = []
 
-uo2 = openmc.Material(name = 'UO2')
+uo2 = openmc.Material(name='UO2')
 uo2.set_density('g/cm3', 10.29769)
 uo2.add_nuclide('U235', 0.05)
 uo2.add_nuclide('U238', 0.95)
@@ -41,7 +41,7 @@ all_materials.append(zircaloy)
 # 10 materials for the water
 water_materials = []
 for i in range(N):
-  water = openmc.Material(name = 'water{:n}'.format(i))
+  water = openmc.Material(name='water{:n}'.format(i))
   water.set_density('g/cm3', water_density(T_inlet))
   water.add_element('H', 2.0)
   water.add_element('O', 1.0)
@@ -55,16 +55,16 @@ materials.export_to_xml()
 model = openmc.model.Model()
 
 # create all the surfaces
-pincell_surface = openmc.ZCylinder(r = R, name = 'Pincell outer radius')
-pellet_surface = openmc.ZCylinder(r = Rf, name = 'Pellet outer radius')
-water_surface = openmc.ZCylinder(r = pitch / 2.0, name = 'Water surface', boundary_type = 'white')
+pincell_surface = openmc.ZCylinder(r=R, name='Pincell outer radius')
+pellet_surface = openmc.ZCylinder(r=Rf, name='Pellet outer radius')
+water_surface = openmc.ZCylinder(r=pitch / 2.0, name='Water surface', boundary_type='white')
 
 # loop over all the surfaces needed to define the pincell (N + 1 for the N layers)
 planes = np.linspace(0.0, height, N + 1)
 
 plane_surfaces = []
 for i in range(N + 1):
-  plane_surfaces.append(openmc.ZPlane(z0 = planes[i]))
+  plane_surfaces.append(openmc.ZPlane(z0=planes[i]))
 
 # set the boundary condition on the topmost and bottommost planes to vacuum
 plane_surfaces[0].boundary_type = 'vacuum'
@@ -77,9 +77,9 @@ all_cells = []
 for i in range(N):
   water_material = water_materials[i]
   layer = +plane_surfaces[i] & -plane_surfaces[i + 1]
-  fuel_cells.append(openmc.Cell(fill = uo2, region = -pellet_surface & layer, name = 'Fuel{:n}'.format(i)))
-  clad_cells.append(openmc.Cell(fill = zircaloy, region = +pellet_surface & -pincell_surface & layer, name = 'Clad{:n}'.format(i)))
-  water_cells.append(openmc.Cell(fill = water_material, region = +pincell_surface & layer & -water_surface, name = 'Water{:n}'.format(i)))
+  fuel_cells.append(openmc.Cell(fill=uo2, region=-pellet_surface & layer, name='Fuel{:n}'.format(i)))
+  clad_cells.append(openmc.Cell(fill=zircaloy, region=+pellet_surface & -pincell_surface & layer, name='Clad{:n}'.format(i)))
+  water_cells.append(openmc.Cell(fill=water_material, region=+pincell_surface & layer & -water_surface, name='Water{:n}'.format(i)))
   all_cells.append(fuel_cells[i])
   all_cells.append(clad_cells[i])
   all_cells.append(water_cells[i])

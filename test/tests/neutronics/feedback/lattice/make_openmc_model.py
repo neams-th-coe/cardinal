@@ -25,7 +25,7 @@ H = height / N
 
 all_materials = []
 
-uo2 = openmc.Material(name = 'UO2')
+uo2 = openmc.Material(name='UO2')
 uo2.set_density('g/cm3', 10.29769)
 uo2.add_nuclide('U235', 0.05)
 uo2.add_nuclide('U238', 0.95)
@@ -41,7 +41,7 @@ all_materials.append(zircaloy)
 # 10 materials for the water
 water_materials = []
 for i in range(N):
-  water = openmc.Material(name = 'water{:n}'.format(i))
+  water = openmc.Material(name='water{:n}'.format(i))
   water.set_density('g/cm3', water_density(T_inlet))
   water.add_element('H', 2.0)
   water.add_element('O', 1.0)
@@ -55,16 +55,16 @@ materials.export_to_xml()
 model = openmc.model.Model()
 
 # create a universe containing the repeatable universe that will be used to fill the lattice
-pincell_surface = openmc.ZCylinder(r = R, name = 'Pincell outer radius')
-pellet_surface = openmc.ZCylinder(r = Rf, name = 'Pellet outer radius')
-water_surface = openmc.ZCylinder(r = pitch / 2.0, name = 'Water surface', boundary_type = 'white')
-fuel_cell = openmc.Cell(fill = uo2, region = -pellet_surface, name = 'Fuel')
-clad_cell = openmc.Cell(fill = zircaloy, region = +pellet_surface & -pincell_surface, name = 'Clad')
-water_cell = openmc.Cell(fill = water_materials, region = +pincell_surface & -water_surface, name = 'Water')
-repeatable_univ = openmc.Universe(cells = [fuel_cell, clad_cell, water_cell])
+pincell_surface = openmc.ZCylinder(r=R, name='Pincell outer radius')
+pellet_surface = openmc.ZCylinder(r=Rf, name='Pellet outer radius')
+water_surface = openmc.ZCylinder(r=pitch / 2.0, name='Water surface', boundary_type='white')
+fuel_cell = openmc.Cell(fill=uo2, region=-pellet_surface, name='Fuel')
+clad_cell = openmc.Cell(fill=zircaloy, region=+pellet_surface & -pincell_surface, name='Clad')
+water_cell = openmc.Cell(fill=water_materials, region=+pincell_surface & -water_surface, name='Water')
+repeatable_univ = openmc.Universe(cells=[fuel_cell, clad_cell, water_cell])
 
-outer_cell = openmc.Cell(fill = water_materials[0], region = +pincell_surface & -water_surface, name = 'Outside')
-outer_univ = openmc.Universe(cells = [outer_cell])
+outer_cell = openmc.Cell(fill=water_materials[0], region=+pincell_surface & -water_surface, name='Outside')
+outer_univ = openmc.Universe(cells=[outer_cell])
 
 # create the lattice
 lattice = openmc.RectLattice()
@@ -73,9 +73,9 @@ lattice.pitch = (pitch, pitch, H)
 lattice.universes = np.full((N, 1, 1), repeatable_univ)
 lattice.outer = outer_univ
 
-top = openmc.ZPlane(z0 = height, boundary_type = 'vacuum')
-bottom = openmc.ZPlane(z0 = 0.0, boundary_type = 'vacuum')
-main_cell = openmc.Cell(fill = lattice, region = -water_surface & +bottom & -top)
+top = openmc.ZPlane(z0=height, boundary_type='vacuum')
+bottom = openmc.ZPlane(z0=0.0, boundary_type='vacuum')
+main_cell = openmc.Cell(fill=lattice, region=-water_surface & +bottom & -top)
 
 model.geometry = openmc.Geometry([main_cell])
 

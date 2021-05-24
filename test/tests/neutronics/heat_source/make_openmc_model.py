@@ -7,17 +7,17 @@ import openmc
 
 uo2_a = openmc.Material()
 uo2_a.set_density('g/cc', 10.0)
-uo2_a.add_element('U', 1.0, enrichment = 1.0)
+uo2_a.add_element('U', 1.0, enrichment=1.0)
 uo2_a.add_element('O', 2.0)
 
 uo2_b = openmc.Material()
 uo2_b.set_density('g/cc', 10.0)
-uo2_b.add_element('U', 1.0, enrichment = 5.0)
+uo2_b.add_element('U', 1.0, enrichment=5.0)
 uo2_b.add_element('O', 2.0)
 
 uo2_c = openmc.Material()
 uo2_c.set_density('g/cc', 10.0)
-uo2_c.add_element('U', 1.0, enrichment = 10.0)
+uo2_c.add_element('U', 1.0, enrichment=10.0)
 uo2_c.add_element('O', 2.0)
 
 water = openmc.Material()
@@ -33,22 +33,22 @@ mats.export_to_xml()
 R = 1.5
 zmin = 0.0
 zmax = 8.0
-sphere1 = openmc.Sphere(x0 = 0.0, y0 = 0.0, z0 = zmin, r = R)
-sphere2 = openmc.Sphere(x0 = 0.0, y0 = 0.0, z0 = 4.0, r = R)
-sphere3 = openmc.Sphere(x0 = 0.0, y0 = 0.0, z0 = zmax, r = R)
+sphere1 = openmc.Sphere(x0=0.0, y0=0.0, z0=zmin, r=R)
+sphere2 = openmc.Sphere(x0=0.0, y0=0.0, z0=4.0, r=R)
+sphere3 = openmc.Sphere(x0=0.0, y0=0.0, z0=zmax, r=R)
 
 # create a box surrounding them
 L = 5.0
 l = 0.5
-prism = openmc.model.rectangular_prism(L, L, boundary_type = 'reflective')
-bot = openmc.ZPlane(z0 = zmin - R - l, boundary_type = 'reflective')
-top = openmc.ZPlane(z0 = zmax + R + l, boundary_type = 'reflective')
+prism = openmc.model.rectangular_prism(L, L, boundary_type='reflective')
+bot = openmc.ZPlane(z0=zmin - R - l, boundary_type='reflective')
+top = openmc.ZPlane(z0=zmax + R + l, boundary_type='reflective')
 box = prism & +bot & -top
 
-solid_cell1 = openmc.Cell(fill = uo2_a, region = -sphere1)
-solid_cell2 = openmc.Cell(fill = uo2_b, region = -sphere2)
-solid_cell3 = openmc.Cell(fill = uo2_c, region = -sphere3)
-fluid_cell = openmc.Cell(fill = water, region = +sphere1 & +sphere2 & +sphere3 & box)
+solid_cell1 = openmc.Cell(fill=uo2_a, region=-sphere1)
+solid_cell2 = openmc.Cell(fill=uo2_b, region=-sphere2)
+solid_cell3 = openmc.Cell(fill=uo2_c, region=-sphere3)
+fluid_cell = openmc.Cell(fill=water, region=+sphere1 & +sphere2 & +sphere3 & box)
 geom = openmc.Geometry([solid_cell1, solid_cell2, solid_cell3, fluid_cell])
 geom.export_to_xml()
 

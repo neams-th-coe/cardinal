@@ -9,7 +9,7 @@ import openmc
 
 uo2 = openmc.Material()
 uo2.set_density('g/cc', 10.0)
-uo2.add_element('U', 1.0, enrichment = 1.0)
+uo2.add_element('U', 1.0, enrichment=1.0)
 uo2.add_element('O', 2.0)
 
 water = openmc.Material()
@@ -24,29 +24,29 @@ R = 1.5
 zmin = 0.0
 zmax = 8.0
 
-sphere1 = openmc.Sphere(x0 = 0.0, y0 = 0.0, z0 = zmin, r = R)
-sphere2 = openmc.Sphere(x0 = 0.0, y0 = 0.0, z0 = 4.0, r = R)
-sphere3 = openmc.Sphere(x0 = 0.0, y0 = 0.0, z0 = zmax, r = R)
+sphere1 = openmc.Sphere(x0=0.0, y0=0.0, z0=zmin, r=R)
+sphere2 = openmc.Sphere(x0=0.0, y0=0.0, z0=4.0, r=R)
+sphere3 = openmc.Sphere(x0=0.0, y0=0.0, z0=zmax, r=R)
 
 # create a box surrounding them
 L = 5.0
 l = 0.5
-prism = openmc.model.rectangular_prism(L, L, boundary_type = 'reflective')
-bot = openmc.ZPlane(z0 = zmin - R - l, boundary_type = 'reflective')
-top = openmc.ZPlane(z0 = zmax + R + l, boundary_type = 'reflective')
+prism = openmc.model.rectangular_prism(L, L, boundary_type='reflective')
+bot = openmc.ZPlane(z0=zmin - R - l, boundary_type='reflective')
+top = openmc.ZPlane(z0=zmax + R + l, boundary_type='reflective')
 box = prism & +bot & -top
 
 # Create the pebble universe
-solid_cell = openmc.Cell(fill = uo2, region = box)
-pebble_univ = openmc.Universe(name = 'pebble')
+solid_cell = openmc.Cell(fill=uo2, region=box)
+pebble_univ = openmc.Universe(name='pebble')
 pebble_univ.add_cells([solid_cell])
 
-fluid_cell = openmc.Cell(fill = water, region = +sphere1 & +sphere2 & +sphere3 & box)
-pebble1_cell = openmc.Cell(fill = pebble_univ, region = -sphere1)
-pebble2_cell = openmc.Cell(fill = pebble_univ, region = -sphere2)
-pebble3_cell = openmc.Cell(fill = pebble_univ, region = -sphere3)
+fluid_cell = openmc.Cell(fill=water, region=+sphere1 & +sphere2 & +sphere3 & box)
+pebble1_cell = openmc.Cell(fill=pebble_univ, region=-sphere1)
+pebble2_cell = openmc.Cell(fill=pebble_univ, region=-sphere2)
+pebble3_cell = openmc.Cell(fill=pebble_univ, region=-sphere3)
 
-root_univ = openmc.Universe(name = "root")
+root_univ = openmc.Universe(name="root")
 root_univ.add_cells([fluid_cell, pebble1_cell, pebble2_cell, pebble3_cell])
 
 geometry = openmc.Geometry(root_univ)
