@@ -33,8 +33,7 @@ NekProblem::~NekProblem()
   if (!isOutputStep())
   {
     // copy nekRS solution from device to host
-    //nekrs::copyToNek(_time, _tstep);
-    nek::ocopyToNek(_time, _t_step); // TODO
+    nek::ocopyToNek(_time, _t_step);
 
     // write nekRS solution to output
     nekrs::outfld(_time);
@@ -134,8 +133,7 @@ void NekProblem::externalSolve()
 
   nekrs::runStep(_time, _dt, _tstep);
 
-  //nekrs::copyToNek(_time + _dt, _tstep);
-  nek::ocopyToNek(_time + _dt, _t_step); // TODO
+  nek::ocopyToNek(_time + _dt, _t_step);
 
   nekrs::udfExecuteStep(_time + _dt, _tstep, is_output_step);
 
