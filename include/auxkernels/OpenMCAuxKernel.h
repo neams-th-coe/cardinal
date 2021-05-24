@@ -20,5 +20,12 @@ public:
 protected:
   virtual Real computeValue() = 0;
 
+  /**
+   * Determine whether the MOOSE element maps to an OpenMC cell to make sure we don't call
+   * accessor methods that rely on valid values for the cell instance and index
+   * @return whether element maps to OpenMC
+   */
+  bool mappedElement();
+
   OpenMCCellAverageProblem * _openmc_problem;
 };

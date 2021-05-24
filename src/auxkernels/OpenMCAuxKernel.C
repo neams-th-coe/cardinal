@@ -18,3 +18,10 @@ OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) :
   if (isNodal())
     mooseError("Auxkernels querying the OpenMC problem can only be used with elemental variables!");
 }
+
+bool
+OpenMCAuxKernel::mappedElement()
+{
+  OpenMCCellAverageProblem::cellInfo cell_info = _openmc_problem->elemToCellInfo(_current_elem->id());
+  return !(cell_info.first == OpenMCCellAverageProblem::UNMAPPED);
+}

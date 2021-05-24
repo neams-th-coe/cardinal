@@ -68,7 +68,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
-  _density_conversion_factor(0.001),
   _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_openmc_cells(openmc::model::cells.size()),
   _n_cell_digits(digits(_n_openmc_cells)),
@@ -209,7 +208,7 @@ OpenMCCellAverageProblem::computeCellMappedVolumes()
 }
 
 const coupling::CouplingFields
-OpenMCCellAverageProblem::cellPhase(const cellInfo & cell_info)
+OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
 {
   return _elem_phase[_cell_to_elem[cell_info][0]];
 }
@@ -324,7 +323,7 @@ OpenMCCellAverageProblem::getMaterialFills()
     auto cell_info = c.first;
 
     // skip if the cell isn't fluid
-    if (cellPhase(cell_info) != coupling::density_and_temperature)
+    if (cellCouplingFields(cell_info) != coupling::density_and_temperature)
       continue;
 
     int fill_type;
@@ -773,7 +772,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     auto cell_info = c.first;
 
     // skip if the cell isn't fluid
-    if (cellPhase(cell_info) != coupling::density_and_temperature)
+    if (cellCouplingFields(cell_info) != coupling::density_and_temperature)
       continue;
 
     for (const auto & e : c.second)
@@ -816,7 +815,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
 
     // throw a special error if the cell is void, because the OpenMC error isn't very
     // clear what the mistake is
-    if (material_indices[0] == -1 /* ID used by OpenMC to represent void */)
+    if (material_indices[0] == MATERIAL_VOID)
       mooseError("Cannot set density for " + printCell(cell_info) +
         " because this cell is void (vacuum)!");
 
@@ -1032,7 +1031,7 @@ OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) co
     int32_t index = material_indices[i];
 
     // We know void cells certainly aren't fissionable; if not void, check if fissionable
-    if (index != -1 /* ID used by OpenMC to represent void */)
+    if (index != MATERIAL_VOID)
     {
       const auto & material = openmc::model::materials[index];
       if (material->fissionable_)

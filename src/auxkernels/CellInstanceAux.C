@@ -18,5 +18,7 @@ CellInstanceAux::CellInstanceAux(const InputParameters & parameters) :
 Real
 CellInstanceAux::computeValue()
 {
+  // no special catch for unmapped elements is required here, because elemToCellInstance
+  // returns -1 for UNMAPPED elements
   return _openmc_problem->elemToCellInstance(_current_elem->id());
 }

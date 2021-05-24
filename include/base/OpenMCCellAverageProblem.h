@@ -84,47 +84,53 @@ public:
   typedef std::pair<int32_t, int32_t> cellInfo;
 
   /**
-   * Get the cell index from the element ID
+   * Get the cell index from the element ID; will return UNMAPPED for unmapped elements
    * @param[in] elem_id element ID
    * @return cell index
    */
-  int32_t elemToCellIndex(const int & elem_id) const { return _elem_to_cell[elem_id].first; }
+  int32_t elemToCellIndex(const int & elem_id) const { return elemToCellInfo(elem_id).first; }
 
   /**
-   * Get the cell ID from the element ID
+   * Get the cell ID from the element ID. Note that this function requires that the elem_id
+   * maps to an OpenMC cell, or else an error will be raised from OpenMC in cellID.
    * @param[in] elem_id element ID
    * @return cell ID
    */
   int32_t elemToCellID(const int & elem_id) const { return cellID(elemToCellIndex(elem_id)); }
 
   /**
-   * Get the cell instance from the element ID
+   * Get the cell instance from the element ID; will return UNMAPPED for unmapped elements
    * @param[in] elem_id element ID
    * @return cell instance
    */
-  int32_t elemToCellInstance(const int & elem_id) const { return _elem_to_cell[elem_id].second; }
+  int32_t elemToCellInstance(const int & elem_id) const { return elemToCellInfo(elem_id).second; }
 
   /**
-   * Get the cell index, instance pair from element ID
+   * Get the cell index, instance pair from element ID; if the element doesn't map to an OpenMC
+   * cell, the index and instance are both set to UNMAPPED
    * @param[in] elem_id element ID
    * @return cell index, instance pair
    */
   cellInfo elemToCellInfo(const int & elem_id) const { return _elem_to_cell[elem_id]; }
 
   /**
-   * Get the cell material index based on index, instance pair
+   * Get the cell material index based on index, instance pair. Note that this function requires
+   * a valid instance, index pair for cellInfo - you cannot pass in an unmapped cell, i.e.
+   * (UNMAPPED, UNMAPPED)
    * @param[in] cell_info cell index, instance pair
    * @return material index
    */
   int32_t cellToMaterialIndex(const cellInfo & cell_info) { return _cell_to_material[cell_info]; }
 
   /**
-   * Get the cell phase; because we require that each cell map to a single phase,
-   * we simply look up the phase of the first element that this cell maps to.
+   * Get the fields coupled for each cell; because we require that each cell map to a single phase,
+   * we simply look up the coupled fields of the first element that this cell maps to. Note that
+   * this function requires a valid instance, index pair for cellInfo - you cannot pass in an
+   * unmapped cell, i.e. (UNMAPPED, UNMAPPED)
    * @param[in] cell_info cell index, instance pair
-   * @return phase
+   * @return coupling fields
    */
-  const coupling::CouplingFields cellPhase(const cellInfo & cell_info);
+  const coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info);
 
   /**
    * Get the cell ID
@@ -159,6 +165,9 @@ public:
    * @return density conversion factor from kg/m3 to g/cm3
    */
   const Real & densityConversionFactor() const { return _density_conversion_factor; }
+
+  /// Constant flag to indicate that a cell/element was unmapped
+  static constexpr int32_t UNMAPPED {-1};
 
 protected:
   /**
@@ -366,9 +375,6 @@ protected:
   /// Blocks (mapped to OpenMC cells) for which to add tallies
   std::unordered_set<SubdomainID> _tally_blocks;
 
-  /// Constant flag to indicate that a cell was unmapped
-  const int32_t UNMAPPED {-100};
-
   /// Mapping of MOOSE elements to the OpenMC cell they map to (if any)
   std::vector<cellInfo> _elem_to_cell {};
 
@@ -431,7 +437,7 @@ protected:
   Real _global_kappa_fission;
 
   /// Conversion unit to transfer between kg/m3 and g/cm3
-  const Real _density_conversion_factor;
+  static constexpr Real _density_conversion_factor {0.001};
 
   /**
    * Whether the OpenMC model consists of a single coordinate level; we track this so
@@ -460,4 +466,7 @@ protected:
 
   /// Whether the present transfer is the first incoming transfer
   static bool _first_incoming_transfer;
+
+  /// ID used by OpenMC to indicate that a material fill is VOID
+  static constexpr int MATERIAL_VOID {-1};
 };

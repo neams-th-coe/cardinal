@@ -19,11 +19,19 @@ CellDensityAux::CellDensityAux(const InputParameters & parameters) :
 Real
 CellDensityAux::computeValue()
 {
+  // if the element doesn't map to an OpenMC cell, return a density of -1; otherwise, we would
+  // get an error in the call to cellCouplingFields, since it relies on the
+  // OpenMCCellAverageProblem::_cell_to_elem std::map that wouldn't have an entry that corresponds
+  // to an unmapped cell
+  if (!mappedElement())
+    return OpenMCCellAverageProblem::UNMAPPED;
+
+  OpenMCCellAverageProblem::cellInfo cell_info = _openmc_problem->elemToCellInfo(_current_elem->id());
+
   // we only extract the material information for fluid cells, because otherwise we don't
   // need to know the material info. So, set a value of -1 for non-fluid cells.
-  std::pair<int32_t, int32_t> cell_info = _openmc_problem->elemToCellInfo(_current_elem->id());
-  if (_openmc_problem->cellPhase(cell_info) != coupling::density_and_temperature)
-    return -1;
+  if (_openmc_problem->cellCouplingFields(cell_info) != coupling::density_and_temperature)
+    return OpenMCCellAverageProblem::UNMAPPED;
 
   int32_t index = _openmc_problem->cellToMaterialIndex(cell_info);
 
