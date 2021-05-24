@@ -284,8 +284,9 @@ protected:
    * Find the OpenMC cell at a given point in space in terms of the _particle members
    * @param[in] point point
    * @param[out] error whether OpenMC reported an error
+   * @return particle containing position information
    */
-  void findCell(const Point & point, bool & error);
+  openmc::Particle findCell(const Point & point, bool & error);
 
   /**
    * Get the fill of an OpenMC cell
@@ -452,6 +453,9 @@ protected:
   /// Mean value of the global kappa fission tally
   Real _global_kappa_fission;
 
+  /// Mean value of the local kappa fission tally
+  Real _local_kappa_fission;
+
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor {0.001};
 
@@ -480,8 +484,13 @@ protected:
    */
   const bool _using_default_tally_blocks;
 
-  /// Whether the present transfer is the first incoming transfer
-  static bool _first_incoming_transfer;
+  /**
+   * Whether the present transfer is the first transfer; because ExternalProblem::solve
+   * always does the transfer TO the multiapp first, this is also synonymous with the
+   * first incoming transfer, with respect to whether that transfer is skipped by setting
+   * the 'skip_first_incoming_transfer' parameter
+   */
+  static bool _first_transfer;
 
   /// ID used by OpenMC to indicate that a material fill is VOID
   static constexpr int MATERIAL_VOID {-1};

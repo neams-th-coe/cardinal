@@ -17,7 +17,7 @@
 
 registerMooseObject("OpenMCApp", OpenMCCellAverageProblem);
 
-bool OpenMCCellAverageProblem::_first_incoming_transfer = true;
+bool OpenMCCellAverageProblem::_first_transfer = true;
 
 template<>
 InputParameters
@@ -722,7 +722,6 @@ void OpenMCCellAverageProblem::externalSolve()
 void
 OpenMCCellAverageProblem::sendTemperatureToOpenMC()
 {
-  auto & solution = _aux->solution();
   const auto sys_number = _aux->number();
   const auto & mesh = _mesh.getMesh();
 
@@ -813,6 +812,12 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
 
     std::vector<int32_t> material_indices = cellFill(cell_info, fill_type, n_materials);
 
+    // throw a special error if the cell is void, because the OpenMC error isn't very
+    // clear what the mistake is
+    if (material_indices[0] == MATERIAL_VOID)
+      mooseError("Cannot set density for " + printCell(cell_info) +
+        " because this cell is void (vacuum)!");
+
     if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
       mooseError("Density transfer does not currently support cells filled with universes or lattices!");
 
@@ -820,12 +825,6 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     // auxvariable as well as the MOOSE fluid properties module) to g/cm3
     const char * units = "g/cc";
     int err = openmc_material_set_density(material_indices[cell_info.second], average_density * _density_conversion_factor, units);
-
-    // throw a special error if the cell is void, because the OpenMC error isn't very
-    // clear what the mistake is
-    if (material_indices[0] == MATERIAL_VOID)
-      mooseError("Cannot set density for " + printCell(cell_info) +
-        " because this cell is void (vacuum)!");
 
     if (err)
       mooseError("In attempting to set material with index " + Moose::stringify(material_indices[cell_info.second]) +
@@ -844,14 +843,14 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 
   _console << "Extracting OpenMC fission heat source... ";
 
-  // get the total kappa fission source for normalization
+  // get the total kappa fission sources for normalization
   _global_kappa_fission = tallySum(_global_tally);
+  _local_kappa_fission = tallySum(_local_tally);
+
+  auto mean_tally = xt::view(_local_tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
   if (_check_tally_sum)
     checkTallySum();
-
-  auto mean_tally = xt::view(_local_tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-  double tally_sum = xt::sum(mean_tally)();
 
   // print newline to keep output neat between output sections
   if (_verbose) _console << std::endl;
@@ -868,7 +867,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
     if (!_cell_has_tally[cell_info])
       continue;
 
-    Real power_fraction = mean_tally(i) / _global_kappa_fission;
+    Real power_fraction = mean_tally(i++) / _global_kappa_fission;
     Real volumetric_power = power_fraction * _power / _cell_to_elem_volume[cell_info];
     power_fraction_sum += power_fraction;
 
@@ -878,7 +877,8 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 
     if (_check_zero_tallies && power_fraction < 1e-12)
       mooseError("Heat source computed for " + printCell(cell_info) + " is zero!\n\n" +
-        "This may occur if there is no fissile material in this cell, or if you have a geometry "
+        "This may occur if there is no fissile material in this cell, if you have very few particles, "
+        "or if you have a geometry "
         "setup error. You can turn off this check by setting 'check_zero_tallies' to false.");
 
     // loop over all the elements that belong to this cell, and set the heat
@@ -892,8 +892,6 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         solution.set(dof_idx, volumetric_power);
       }
     }
-
-    i++;
   }
 
   if (_check_tally_sum)
@@ -909,12 +907,8 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
 {
   auto & solution = _aux->solution();
 
-  static bool first = true;
-  if (first)
-  {
+  if (_first_transfer)
     _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-    first = false;
-  }
 
   solution.localize(*_serialized_solution);
 
@@ -922,10 +916,9 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      if (_first_incoming_transfer && _skip_first_incoming_transfer)
+      if (_first_transfer && _skip_first_incoming_transfer)
       {
         _console << "Skipping " << _incoming_transfer << " transfer into OpenMC" << std::endl;
-        _first_incoming_transfer = false;
         return;
       }
 
@@ -948,19 +941,19 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
     default:
       mooseError("Unhandled Direction enum in OpenMCCellAverageProblem!");
   }
+
+  _first_transfer = false;
 }
 
 void
 OpenMCCellAverageProblem::checkTallySum() const
 {
-  double kappa_fission = tallySum(_local_tally);
-
-  if (std::abs(_global_kappa_fission - kappa_fission) / _global_kappa_fission > openmc::FP_REL_PRECISION)
+  if (std::abs(_global_kappa_fission - _local_kappa_fission) / _global_kappa_fission > openmc::FP_REL_PRECISION)
   {
     std::stringstream msg;
     msg << "Heating tallies do not match the global kappa-fission tally:\n" <<
       " Global value: " << Moose::stringify(_global_kappa_fission) <<
-      "\n Tally sum: " << Moose::stringify(kappa_fission) <<
+      "\n Tally sum: " << Moose::stringify(_local_kappa_fission) <<
       "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level
