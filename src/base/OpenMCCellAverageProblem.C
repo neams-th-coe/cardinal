@@ -448,8 +448,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     const Point & c = elem->centroid();
     Real element_volume = elem->volume();
 
-    bool error;
-    openmc::Particle p = findCell(c, error);
+    bool error = findCell(c);
 
     // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
     if (error)
@@ -493,20 +492,20 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
        mooseError("Unhandled CouplingFields enum!");
    }
 
-    if (level > p.n_coord() - 1)
+    if (level > _particle.n_coord() - 1)
     {
       std::string phase = _fluid_blocks.count(elem->subdomain_id()) ? "fluid" : "solid";
       mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the " + phase +
         " exceeds number of nested coordinate levels at (" + Moose::stringify(c(0)) + ", " +
         Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + "): " +
-        Moose::stringify(p.n_coord()));
+        Moose::stringify(_particle.n_coord()));
     }
 
-    auto cell_index = p.coord(level).cell;
+    auto cell_index = _particle.coord(level).cell;
 
     // TODO: this is the cell instance at the lowest level in the geometry, which does
     // not necessarily match the "level" supplied on the line above
-    auto cell_instance = p.cell_instance();
+    auto cell_instance = _particle.cell_instance();
 
     cellInfo cell_info = {cell_index, cell_instance};
 
@@ -659,16 +658,14 @@ OpenMCCellAverageProblem::initializeTallies()
   _console << "done" << std::endl;
 }
 
-openmc::Particle
-OpenMCCellAverageProblem::findCell(const Point & point, bool & error)
+bool
+OpenMCCellAverageProblem::findCell(const Point & point)
 {
-  openmc::Particle p {};
-  p.r() = {point(0), point(1), point(2)};
-  p.u() = {0., 0., 1.};
+  _particle.clear();
+  _particle.r() = {point(0), point(1), point(2)};
+  _particle.u() = {0., 0., 1.};
 
-  error = !openmc::exhaustive_find_cell(p);
-
-  return p;
+  return !openmc::exhaustive_find_cell(_particle);
 }
 
 double

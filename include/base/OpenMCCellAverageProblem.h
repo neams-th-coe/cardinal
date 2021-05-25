@@ -283,10 +283,9 @@ protected:
   /**
    * Find the OpenMC cell at a given point in space in terms of the _particle members
    * @param[in] point point
-   * @param[out] error whether OpenMC reported an error
-   * @return particle containing position information
+   * @return whether OpenMC reported an error
    */
-  openmc::Particle findCell(const Point & point, bool & error);
+  bool findCell(const Point & point);
 
   /**
    * Get the fill of an OpenMC cell
@@ -486,4 +485,7 @@ protected:
 
   /// ID used by OpenMC to indicate that a material fill is VOID
   static constexpr int MATERIAL_VOID {-1};
+
+  /// Dummy particle to reduce number of allocations of particles for cell lookup routines
+  openmc::Particle _particle;
 };
