@@ -97,11 +97,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     for (const auto & s : mesh().meshSubdomains())
       _tally_blocks.insert(s);
 
-  // by requiring at least one of 'fluid_blocks' and 'solid_blocks', we know the
-  // incoming transfers will either be just temperature (only solid coupling) or
-  // density and temperature (either only fluid coupling or both fluid and solid coupling)
-  _incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
-
   // Make sure the same block ID doesn't appear in both the fluid and solid blocks,
   // or else we won't know how to send feedback into OpenMC.
   checkBlockOverlap();
@@ -914,7 +909,8 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
     {
       if (_first_transfer && _skip_first_incoming_transfer)
       {
-        _console << "Skipping " << _incoming_transfer << " transfer into OpenMC" << std::endl;
+        std::string incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
+        _console << "Skipping " << incoming_transfer << " transfer into OpenMC" << std::endl;
         return;
       }
 

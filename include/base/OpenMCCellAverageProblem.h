@@ -433,13 +433,6 @@ protected:
   /// Local cell-filter kappa fission tally
   openmc::Tally * _local_tally {nullptr};
 
-  /**
-   * Descriptive string for transfers going into OpenMC; if fluid blocks are present,
-   * this will be 'density and temperature', while if only solid blocks are present,
-   * this will be 'temperature'.
-   */
-  std::string _incoming_transfer;
-
   /// Heat source variable
   unsigned int _heat_source_var;
 
