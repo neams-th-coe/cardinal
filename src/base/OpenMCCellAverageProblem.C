@@ -508,7 +508,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     // not necessarily match the "level" supplied on the line above
     auto cell_instance = p.cell_instance();
 
-    auto cell_info = std::make_pair(cell_index, cell_instance);
+    cellInfo cell_info = {cell_index, cell_instance};
 
     _elem_to_cell.push_back(cell_info);
 
