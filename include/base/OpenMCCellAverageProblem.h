@@ -292,10 +292,9 @@ protected:
    * Get the fill of an OpenMC cell
    * @param[in] cell_info cell ID, instance
    * @param[out] fill_type fill type of the cell, one of MATERIAL, UNIVERSE, or LATTICE
-   * @param[out] n_materials number of material fills, for distributed cells
    * @return indices of material fills
    */
-  std::vector<int32_t> cellFill(const cellInfo & cell_info, int & fill_type, int & n_materials) const;
+  std::vector<int32_t> cellFill(const cellInfo & cell_info, int & fill_type) const;
 
   /**
    * Whether a cell contains any fissile materials; for now, this simply returns true for

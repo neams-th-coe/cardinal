@@ -334,9 +334,7 @@ OpenMCCellAverageProblem::getMaterialFills()
       continue;
 
     int fill_type;
-    int n_materials;
-
-    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type, n_materials);
+    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
 
     // OpenMC checks that for distributed cells, the number of materials either equals 1
     // or the number of distributed cells; therefore, we just need to index based on the cell
@@ -808,9 +806,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
       _console << "Setting " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4) << average_density << std::endl;
 
     int fill_type;
-    int n_materials;
-
-    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type, n_materials);
+    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
 
     // throw a special error if the cell is void, because the OpenMC error isn't very
     // clear what the mistake is
@@ -998,12 +994,11 @@ OpenMCCellAverageProblem::checkTallySum() const
 }
 
 std::vector<int32_t>
-OpenMCCellAverageProblem::cellFill(const cellInfo & cell_info, int & fill_type,
-  int & n_materials) const
+OpenMCCellAverageProblem::cellFill(const cellInfo & cell_info, int & fill_type) const
 {
   fill_type = static_cast<int>(openmc::Fill::MATERIAL);
   int32_t * materials = nullptr;
-  n_materials = 0;
+  int n_materials = 0;
 
   int err = openmc_cell_get_fill(cell_info.first, &fill_type, &materials, &n_materials);
 
@@ -1020,9 +1015,7 @@ bool
 OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) const
 {
   int fill_type;
-  int n_materials;
-
-  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type, n_materials);
+  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
 
   // TODO: for cells with non-material fills, we need to implement something that recurses
   // into the cell/universe fills to see if there's anything fissile; until then, just assume
