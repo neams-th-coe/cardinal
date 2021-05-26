@@ -165,6 +165,25 @@ export CXX=mpicxx
 export FC=mpif90
 ```
 
+### Sawtooth (INL-HPC) [4/29/2021]
+
+The following `~/.bashrc` allows you to compile Cardinal on Sawtooth, in combination
+with the compilation steps described above.
+
+```
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+export NEKRS_HOME=$HOME/cardinal/install
+module purge
+module load openmpi/4.0.5_ucx1.9
+module load cmake/3.16.2-gcc-9.3.0-tza7
+module load hdf5/1.12.0_ucx1.9
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+```
+
 ## Testing
 
 You can run Cardinal's test suite with the following:
