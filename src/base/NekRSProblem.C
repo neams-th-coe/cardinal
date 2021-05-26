@@ -31,6 +31,11 @@ validParams<NekRSProblem>()
   params.addRangeCheckedParam<Real>("L_ref", 1.0, "L_ref > 0.0", "Reference length scale value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("rho_0", 1.0, "rho_0 > 0.0", "Density parameter value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
+
+  params.addParam<PostprocessorName>("min_T", "If provided, postprocessor used to limit the minimum "
+    "temperature (in dimensional form) in the nekRS problem");
+  params.addParam<PostprocessorName>("max_T", "If provided, postprocessor used to limit the maximum "
+    "temperature (in dimensional form) in the nekRS problem");
   return params;
 }
 
@@ -181,17 +186,6 @@ NekRSProblem::initialSetup()
   if (moose_start_time != 0.0)
     mooseError("A non-zero start time is not yet available for 'NekRSProblem'!");
 
-  // Also make sure that the start time is consistent with what MOOSE wants to use.
-  // If different from what nekRS internally wants to use, use the MOOSE value.
-  if (std::abs(moose_start_time - _start_time) > 1e-8)
-  {
-    mooseWarning("The start time set on 'NekRSProblem': " + Moose::stringify(moose_start_time) +
-      " does not match the start time set in nekRS's .par file: " + Moose::stringify(_start_time) + ". "
-      "This may happen if you are using a restart file in nekRS.\n\n" +
-      "Setting start time for 'NekRSProblem' to: " + Moose::stringify(moose_start_time));
-    _start_time = moose_start_time;
-  }
-
   // To get the correct time stepping information on the MOOSE side, we also
   // must use the NekTimeStepper
   TimeStepper * stepper = _transient_executioner->getTimeStepper();
@@ -201,6 +195,17 @@ NekRSProblem::initialSetup()
 
   // Set the reference time for use in dimensionalizing/non-dimensionalizing the time
   _timestepper->setReferenceTime(_L_ref, _U_ref);
+
+  // Also make sure that the start time is consistent with what MOOSE wants to use.
+  // If different from what nekRS internally wants to use, use the MOOSE value.
+  if (std::abs(moose_start_time - _start_time) > 1e-8)
+  {
+    mooseWarning("The start time set on 'NekRSProblem': " + Moose::stringify(moose_start_time) +
+      " does not match the start time set in nekRS's .par file: " + Moose::stringify(_timestepper->dimensionalDT(_start_time)) + ". "
+      "This may happen if you are using a restart file in nekRS.\n\n" +
+      "Setting start time for 'NekRSProblem' to: " + Moose::stringify(moose_start_time));
+    _start_time = moose_start_time;
+  }
 
   // Then, dimensionalize the nekRS time so that all occurrences of _dt here are
   // in dimensional form
@@ -215,6 +220,18 @@ NekRSProblem::initialSetup()
   {
     _transfer_in_name = &getParam<PostprocessorName>("transfer_in");
     _transfer_in = &getPostprocessorValueByName(*_transfer_in_name);
+  }
+
+  if (isParamValid("min_T"))
+  {
+    auto name = getParam<PostprocessorName>("min_T");
+    _min_T = &getPostprocessorValueByName(name);
+  }
+
+  if (isParamValid("max_T"))
+  {
+    auto name = getParam<PostprocessorName>("max_T");
+    _max_T = &getPostprocessorValueByName(name);
   }
 }
 
@@ -270,8 +287,22 @@ void NekRSProblem::externalSolve()
   // by the user.
   nekrs::copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  std::cout << "Tstep: " << _t_step << std::endl;
   nekrs::udfExecuteStep(_timestepper->nondimensionalDT(step_end_time), _t_step, is_output_step);
+
+  // limit the temperature based on user settings
+  bool limit_temperature = _min_T || _max_T;
+  if (_min_T && !_max_T)
+    _console << "Limiting nekRS temperature to above minimum temperature of " << *_min_T << "... ";
+  if (_max_T && !_min_T)
+    _console << "Limiting nekRS temperature to below maximum temperature of " << *_max_T << "... ";
+  if (_max_T && _min_T)
+    _console << "Limiting nekRS temperature to within the range [" << *_min_T << ", " <<
+      *_max_T << "]... ";
+
+  nekrs::limitTemperature(_min_T, _max_T);
+
+  if (limit_temperature)
+    _console << "done" << std::endl;
 
   if (is_output_step)
     nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));

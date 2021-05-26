@@ -571,6 +571,33 @@ bool normalizeHeatSource(const double moose_integral, double nek_integral, doubl
   return low_rel_err && low_abs_err;
 }
 
+void limitTemperature(const double * min_T, const double * max_T)
+{
+  // if no limiters are provided, simply return
+  if (!min_T && !max_T)
+    return;
+
+  double minimum = min_T ? *min_T : std::numeric_limits<double>::min();
+  double maximum = max_T ? *max_T : std::numeric_limits<double>::max();
+
+  // nondimensionalize if necessary
+  minimum = (minimum - scales.T_ref) / scales.dT_ref;
+  maximum = (maximum - scales.T_ref) / scales.dT_ref;
+
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = nrs->cds->mesh;
+
+  for (int i = 0; i < mesh->Nelements; ++i) {
+    for (int j = 0; j < mesh->Np; ++j) {
+      int id = i * mesh->Np + j;
+      nrs->cds->S[id] = std::clamp(nrs->cds->S[id], minimum, maximum);
+    }
+  }
+
+  // when complete, copy to device
+  nrs->cds->o_S.copyFrom(nrs->cds->S);
+}
+
 void copyScratchToDevice()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();

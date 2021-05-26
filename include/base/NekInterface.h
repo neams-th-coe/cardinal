@@ -227,6 +227,13 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
 double heatFluxIntegral(const std::vector<int> & boundary_id);
 
 /**
+ * Limit the temperature in nekRS to within the range of [min_T, max_T]
+ * @param[in] min_T minimum temperature allowable in nekRS
+ * @param[in] max_T maximum temperature allowable in nekRS
+ */
+void limitTemperature(const double * min_T, const double * max_T);
+
+/**
  * Compute the gradient of a volume field
  * @param[in] offset in the gradient field for each component (grad_x, grad_y, or grad_z)
  * @param[in] f field to compute the gradient of

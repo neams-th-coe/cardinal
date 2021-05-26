@@ -114,7 +114,7 @@ ALL_MODULES         := no
 
 CHEMICAL_REACTIONS  := no
 CONTACT             := no
-FLUID_PROPERTIES    := no
+FLUID_PROPERTIES    := yes
 HEAT_CONDUCTION     := yes
 MISC                := no
 NAVIER_STOKES       := no
@@ -135,7 +135,6 @@ ifneq ($(SAM_CONTENT),)
   APPLICATION_DIR     := $(SAM_DIR)
   APPLICATION_NAME    := sam
   TENSOR_MECHANICS    := yes
-  FLUID_PROPERTIES    := yes
   include             $(FRAMEWORK_DIR)/app.mk
 endif
 

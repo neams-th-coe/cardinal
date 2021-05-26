@@ -239,6 +239,12 @@ protected:
    */
   const PostprocessorValue * _source_integral = nullptr;
 
+  /// Postprocessor to limit the minimum temperature
+  const PostprocessorValue * _min_T = nullptr;
+
+  /// Postprocessor to limit the maximum temperature
+  const PostprocessorValue * _max_T = nullptr;
+
   /// nekRS temperature interpolated onto the data transfer mesh
   double * _T = nullptr;
 

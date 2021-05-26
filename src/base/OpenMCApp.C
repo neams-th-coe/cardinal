@@ -5,6 +5,7 @@
 #include "OpenMCApp.h"
 #include "AppFactory.h"
 #include "openmc/capi.h"
+#include "ModulesApp.h"
 
 registerKnownLabel("OpenMCApp");
 
@@ -26,8 +27,9 @@ OpenMCApp::OpenMCApp(InputParameters parameters) : MooseApp(parameters)
   registerAll(_factory, _action_factory, _syntax);
 }
 
-void OpenMCApp::registerAll(Factory &f, ActionFactory &af, Syntax &/*s*/)
+void OpenMCApp::registerAll(Factory &f, ActionFactory &af, Syntax & s )
 {
+  ModulesApp::registerAll(f, af, s);
   Registry::registerObjectsTo(f, {"OpenMCApp"});
   Registry::registerActionsTo(af, {"OpenMCApp"});
 }
