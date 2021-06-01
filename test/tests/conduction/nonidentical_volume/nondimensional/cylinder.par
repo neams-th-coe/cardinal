@@ -24,19 +24,7 @@
   polynomialOrder = 7
   writeControl = timeStep
   writeInterval = 20
-  extrapolation = OIFS
-  targetCFL = 2.0
-
-[PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = no
-  stressFormulation = no
-
-[MESH]
-  motion = none
+  extrapolation = subCycling
 
 [VELOCITY]
   solver = none
@@ -47,7 +35,6 @@
 [PRESSURE]
   residualTol = 1.0e-5
   residualProj = no
-  writeToFieldFile = yes
 
 [TEMPERATURE]
   conductivity = -10.0

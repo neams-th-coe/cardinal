@@ -19,23 +19,12 @@
   numSteps = 2000
   dt = 0.05233843612334802
   variableDT = no
-  targetCFL = 0.5
   timeStepper = tombo2
-  extrapolation = standard
-  subCyclingSteps = 1
   writeControl = numSteps
   writeInterval = 100
-
-  filtering = none
-  dealiasing = yes
   polynomialOrder = 4
 
 [PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = yes
   stressFormulation = yes
 
 [VELOCITY]

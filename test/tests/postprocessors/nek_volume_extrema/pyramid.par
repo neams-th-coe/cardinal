@@ -9,19 +9,7 @@
   polynomialOrder = 1
   writeControl = timeStep
   writeInterval = 2
-  extrapolation = OIFS
-  targetCFL = 2.0
-
-[PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = no
-  stressFormulation = no
-
-[MESH]
-  motion = none
+  extrapolation = subCycling
 
 [VELOCITY]
   solver = none
@@ -34,11 +22,9 @@
 [PRESSURE]
   residualTol = 1.0e-5
   residualProj = no
-  preconditioner = semg_xxt
-  writeToFieldFile = yes
 
 [TEMPERATURE]
   solver = none
   residualTol = 1.0e-5
-  residualProj - no
+  residualProj  = no
   boundaryTypeMap = f, f, f, f, f, f, f, f

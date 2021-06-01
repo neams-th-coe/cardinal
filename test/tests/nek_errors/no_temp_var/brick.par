@@ -9,19 +9,7 @@
   polynomialOrder = 3
   writeControl = timeStep
   writeInterval = 2
-  extrapolation = OIFS
-  targetCFL = 2.0
-
-[PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = no
-  stressFormulation = no
-
-[MESH]
-  motion = none
+  extrapolation = subCycling
 
 [VELOCITY]
   viscosity = 1.0
@@ -33,5 +21,3 @@
 [PRESSURE]
   residualTol = 1.0e-5
   residualProj = no
-  preconditioner = semg_xxt
-  writeToFieldFile = yes
