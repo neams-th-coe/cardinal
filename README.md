@@ -45,9 +45,15 @@ respectively.
 
 ## Building
 
+This section describes how to compile Cardinal. Compilation of all dependencies (MOOSE, OpenMC,
+nekRS, and SAM) is handled through Cardinal's Makefiles - you don't need to separately build any
+dependencies.
+
+### Fetch the Submodules
+
 First, fetch all the submodules containing the MOOSE, nekRS, OpenMC, and SAM dependencies. If you
 will *not* be using the SAM submodule within Cardinal, you will need to individually clone
-only the open-source the submodules:
+only the open-source submodules:
 
 ```
 $ git submodule update --init contrib/nekRS
@@ -64,14 +70,7 @@ $ git submodule update --init contrib/SAM
 You will be prompted for login credentials to ANL's xgitlab site. If you do not have credentials,
 you will need to contact the SAM development team to request access.
 
-We recommend fetching the submodules in this individual approach, but you can also
-get all submodules at once with
-
-```
-$ git submodule update --init --recursive
-```
-
-though this may be slow in cloning the nested sub-submodules in native MOOSE-based applications.
+### Build Petsc
 
 After obtaining all necessary submodules, the first software that must be built is the PETSc numerics library:
 
@@ -82,7 +81,10 @@ $ ./contrib/moose/scripts/update_and_rebuild_petsc.sh
 If a MOOSE-compatible version of PETSc is already installed, it can
 be used instead of the contrib version, after setting the environment
 variables `PETSC_DIR` and `PETSC_ARCH` to the PETSc install directory
-and architecture name.
+and architecture name. After building PETSc, don't worry if the PETSc
+tests don't pass - please complete the entire set of instructions here.
+
+### Build libMesh
 
 Second, build the libMesh finite element library:
 
@@ -107,26 +109,15 @@ also save time by restricting (or add flexibility by expanding) the
 environment variable `METHODS`, e.g. `oprof dbg` would only build
 those two modes, not all three default builds.
 
-Next, you must set the environment variable `NEKRS_HOME` to be the location of the 
+### Set Environment Variables
+
+Next, you must set the environment variable `NEKRS_HOME` to be the location of the
 nekRS root directory so that all needed include files are on your path.
 This will be the `install/` directory under the top-level Cardinal directory:
 
 ```
 $ export NEKRS_HOME=$(realpath install/)
 ```
-
-Finally, in the top-level directory, run `make`.  This will create the executable `cardinal-<mode>` in the
-top-level directory. `<mode>` is the optimization level used to compile MOOSE. You can control
-this mode with the `METHOD` environment variable, which by default can
-be set to any combination of `opt` (optimized mode, for production
-runs), `oprof` (very slightly slower, instrumented for performance
-analysis with tools like "oprofile" or "perf"), and `dbg` (debugging
-mode, *much* slower, with debugging symbols, optimization disabled,
-slow internal assertions enabled, and very slow libstdc++
-range-checking and consistency checks enabled).  If a non-default
-`METHODS` variable was used above, you may also have `devel` (slower
-than oprof, much faster than dbg) or `prof` (slightly slower than
-oprof, instrumented for tools like "gprof") available.
 
 To run any problems using OpenMC, you will need to specify a path to
 cross section data. A detailed description of how to specify cross section
@@ -141,6 +132,21 @@ and then set the `OPENMC_CROSS_SECTIONS` environment variable to the location of
 ```
 $ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
 ```
+
+### Compile
+
+Finally, in the top-level directory, run `make`.  This will create the executable `cardinal-<mode>` in the
+top-level directory. `<mode>` is the optimization level used to compile MOOSE. You can control
+this mode with the `METHOD` environment variable, which by default can
+be set to any combination of `opt` (optimized mode, for production
+runs), `oprof` (very slightly slower, instrumented for performance
+analysis with tools like "oprofile" or "perf"), and `dbg` (debugging
+mode, *much* slower, with debugging symbols, optimization disabled,
+slow internal assertions enabled, and very slow libstdc++
+range-checking and consistency checks enabled).  If a non-default
+`METHODS` variable was used above, you may also have `devel` (slower
+than oprof, much faster than dbg) or `prof` (slightly slower than
+oprof, instrumented for tools like "gprof") available.
 
 ### Optional Make Variables
 
@@ -176,7 +182,7 @@ a `SamApp` so that SAM classes and input file syntax can be run with the Cardina
 
 The various command line flags you need to pass to run a Cardinal input depends on
 which application is the master app (`CardinalApp`, `NekApp`, `OpenMCApp`, `SamApp`). The
-`-app` flag indicates which application is to be created as the master application
+`--app` flag indicates which application is to be created as the master application
 for a given input file. If you omit `--app <app>`, then by default the input
 file is run with `CardinalApp`. Otherwise, valid options are:
 
@@ -285,13 +291,20 @@ Cardinal uses submodules for its dependencies - MOOSE, OpenMC, nekRS, and SAM. A
 except for nekRS point to the main repository remotes for each application. However, in order to
 use the same HYPRE installation as used by MOOSE within nekRS, we maintain a separate
 [nekRS fork](https://github.com/neams-th-coe/nekRS). Another purpose of this separate fork is
-to control exactly what versions of nekRS's dependencies (Nek5000, OCCA, etc.) are used within
-nekRS, since nekRS's build strategy instead simply pulls the latest versions of its dependencies
-at compile time (which could cause conflicts in Cardinal, which points to a fixed version of nekRS
-that might not be compatible with the latest versions of nekRS's dependencies).
+to allow CIVET's recipes to work with nekRS's dependencies. Specifically, nekRS uses
+[git subtrees](https://www.atlassian.com/git/tutorials/git-subtree) for its dependencies. However,
+Nek5000 contains a [git submodule](https://git-scm.com/book/en/v2/Git-Tools-Submodules),
+for the `examples` repository containing input file examples.
+When CIVET attemps to recursively fetch all nested submodules in Cardinal, the presence of a
+submodule inside of a subtree does not work nicely with git's submodule commands. Therefore, our
+nekRS fork has deleted the `examples` submodule within nekRS's Nek5000 subtree (this submodule
+is not needed anyways, since Cardinal focuses exclusively on nekRS coupling).
 
-Updating the MOOSE, OpenMC, and SAM submodules is routine, but additional instructions are necessary
-for updating the nekRS submodule. The nekRS submodule points to the `cardinal` branch on the
+Updating the MOOSE, OpenMC, and SAM submodules is routine; this section describes the
+steps necessary to update the nekRS submodule; these instructions are solely for project
+maintainers - users do not need to manually update submodules.
+
+The nekRS submodule points to the `cardinal` branch on the
 [nekRS fork](https://github.com/neams-th-coe/nekRS). Assuming you have a separate repository checkout
 of nekRS in your filesystem, first merge the latest master branch into a new nekRS feature update branch.
 
@@ -303,18 +316,9 @@ $ git co -b cardinal-update-5-21
 $ git merge origin/master
 ```
 
-You will need to correct merge conflicts, which should be restricted to `CMakeLists.txt` and
-`config/hypre.cmake`.
-You should generally just _add_ the merge conflicts from `HEAD`. In `CMakeLists.txt`, this
-means keeping the lines related to `OCCA_TAG`, `NEK5000_TAG`, and `HYPRE_VER`. As you update
-the nekRS fork, update these three tag tags/version numbers according to the dependencies
-used in nekRS. The `OCCA_TAG` should be updated to the latest git hash of the
-[OCCA fork](https://github.com/Nek5000/occa) used in nekRS. The `NEK5000_TAG` shoudl be updated
-to the latest git commit hash of the [Nek5000 repository](https://github.com/Nek5000/Nek5000).
-And finally, the HYPRE version should be updated to the latest version in the
-[HYPRE repository](https://github.com/hypre-space/hypre/releases). In `config/hypre.cmake`, this
-means keeping the lines related to a user-specified HYPRE installation.
-
+You will need to correct merge conflicts, which should mostly be keeping the
+`Deleted by us` changes related to removing the `examples` submodule and retaining
+the special HYPRE instructions in `config/hypre.cmake`.
 After you have resolved the merge conflicts, open a pull request into the `cardinal` branch
 on the [nekRS fork](https://github.com/neams-th-coe/nekRS).
 
