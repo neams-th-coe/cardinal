@@ -186,7 +186,7 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  mesh_t * mesh = nrs->cds->mesh;
+  auto mesh = nrs->cds->mesh;
 
   int n_gll_points = mesh->Np * mesh->Nelements;
   for (int n = 0; n < n_gll_points; ++n)
@@ -220,7 +220,7 @@ void UDF_ExecuteStep(nrs_t * nrs, dfloat time, int tstep)
   //  computePinCoordinates();
   //  computeDuctCoefficients();
 
-  //  mesh_t * mesh = nrs->cds->mesh;
+  //  auto mesh = nrs->cds->mesh;
   //  dfloat * wall_distance = (dfloat *) calloc(nrs->cds->fieldOffset, sizeof(dfloat));
 
   //  for (int i = 0; i < mesh->Nelements * mesh->Np; ++i)

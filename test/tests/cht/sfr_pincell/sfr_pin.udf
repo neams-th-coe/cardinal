@@ -40,7 +40,7 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  mesh_t * mesh = nrs->cds->mesh[0];
+  auto mesh = nrs->cds->mesh[0];
 
   dfloat inlet_Vz = inlet_velocity(nrs);
 
