@@ -597,7 +597,7 @@ void limitTemperature(const double * min_T, const double * max_T)
   maximum = (maximum - scales.T_ref) / scales.dT_ref;
 
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Np; ++j) {
