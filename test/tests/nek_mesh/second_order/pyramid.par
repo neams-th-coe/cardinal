@@ -15,12 +15,12 @@
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall, wall, wall
 
 [PRESSURE]
   residualTol = 1.0e-5
-  residualProj = no
+  residualProj = false
 
 [TEMPERATURE]
   solver = none

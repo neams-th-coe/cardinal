@@ -29,16 +29,16 @@
 [VELOCITY]
   solver = none
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
   boundaryTypeMap = wall, wall, wall
 
 [PRESSURE]
   residualTol = 1.0e-5
-  residualProj = no
+  residualProj = false
 
 [TEMPERATURE]
   conductivity = -10.0
   rhoCp = 1.0
   residualTol = 1.0e-7
-  residualProj = no
+  residualProj = false
   boundaryTypeMap = t, I, I

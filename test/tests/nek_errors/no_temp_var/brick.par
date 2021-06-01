@@ -15,9 +15,9 @@
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
   boundaryTypeMap = symz, symz, inlet, outlet, symy, symy
 
 [PRESSURE]
   residualTol = 1.0e-5
-  residualProj = no
+  residualProj = false

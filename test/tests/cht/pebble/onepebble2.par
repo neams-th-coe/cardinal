@@ -12,7 +12,7 @@ extrapolation = subCycling
 [PRESSURE]
 preconditioner = semg_amg
 residualTol = 1e-04
-residualProj = no
+residualProj = false
 
 [VELOCITY]
 boundaryTypeMap = W, O, v
@@ -25,4 +25,4 @@ boundaryTypeMap = f, I, t
 rhoCp = 100000.0
 conductivity = 5.0
 residualTol = 1e-03
-residualProj = yes
+residualProj = true

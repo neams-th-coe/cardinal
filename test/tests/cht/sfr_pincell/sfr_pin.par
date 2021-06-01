@@ -14,18 +14,18 @@
   polynomialOrder = 4
 
 [PROBLEMTYPE]
-  stressFormulation = yes
+  stressFormulation = true
 
 [VELOCITY]
   viscosity = 2.37e-4
   density = 834.5
   boundaryTypeMap = W, W, v, O
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
 
 [PRESSURE]
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = true
   preconditioner = semg_amg
 
 [TEMPERATURE]
