@@ -165,6 +165,35 @@ export CXX=mpicxx
 export FC=mpif90
 ```
 
+### Math and Computer Science (MCS) Compute Nodes [6/1/2021]
+
+The following `~/.bashrc` allows you to compile Cardinal on the MCS compute nodes,
+in combination with the compilation steps described above.
+
+```
+export NEKRS_HOME=$HOME/cardinal/install
+```
+
+The MCS compute nodes use [SoftEnv](https://www.mcs.anl.gov/hs/software/systems/softenv/softenv-intro.html)
+to manage the environment. In addition to the above `~/.bashrc`, the following `~/.soft` file
+is required.
+
+```
+@default
++mpich-3.2-gcc-6.2.0
++gcc-6.2.0
++hdf5-1.8.16-gcc-6.2.0-mpich-3.2-parallel
++cmake-3.14.3
+```
+
+Before building, make sure that the output of `cmake --version` is 3.14.3. If for some
+reason the CMake version still points to the older version as part of the default
+environment, you will need to source the environment again with
+
+```
+$ resoft
+```
+
 ### Sawtooth (INL-HPC) [4/29/2021]
 
 The following `~/.bashrc` allows you to compile Cardinal on Sawtooth, in combination
@@ -174,7 +203,9 @@ with the compilation steps described above.
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
+
 export NEKRS_HOME=$HOME/cardinal/install
+
 module purge
 module load openmpi/4.0.5_ucx1.9
 module load cmake/3.16.2-gcc-9.3.0-tza7
