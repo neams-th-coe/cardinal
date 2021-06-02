@@ -1,6 +1,7 @@
 [Mesh]
   type = FileMesh
   file = ../../meshes/pincell.e
+  parallel_type = replicated
 []
 
 [AuxVariables]
