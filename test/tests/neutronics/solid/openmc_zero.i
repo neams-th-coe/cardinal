@@ -1,6 +1,3 @@
-# The OpenMC model is created with the scripts/openmc_pebble_bed_model.py with the following args
-# openmc_pebble_bed_model.py -e 1.0
-#
 # This is a vertical stack of three pebbles, with a 1 meter thick layer of flibe
 # on the outer periphery and on the top and bottom, to get a k closer to 1.0.
 #
