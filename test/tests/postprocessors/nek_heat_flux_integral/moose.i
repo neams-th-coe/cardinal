@@ -69,49 +69,49 @@
 
 [Postprocessors]
   [flux_side1]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '1'
   []
   [flux_side2]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '2'
   []
   [flux_side3]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '3'
   []
   [flux_side4]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '4'
   []
   [flux_side5]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '5'
   []
   [flux_side6]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '6'
   []
   [flux_side7]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '7'
   []
   [flux_side8]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temp_test
     diffusivity = k
     boundary = '8'

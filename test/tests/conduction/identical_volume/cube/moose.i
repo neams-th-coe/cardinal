@@ -99,7 +99,7 @@
     boundary = 'back'
   []
   [flux_out]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temperature
     boundary = 'front back top bottom left right'
     diffusivity = thermal_conductivity

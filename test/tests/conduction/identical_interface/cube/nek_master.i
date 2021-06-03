@@ -140,7 +140,7 @@
 
 [Postprocessors]
   [flux_left]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temperature
     diffusivity = thermal_conductivity
     boundary = 'left'
