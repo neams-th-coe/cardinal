@@ -70,6 +70,17 @@ $ git submodule update --init contrib/SAM
 You will be prompted for login credentials to ANL's xgitlab site. If you do not have credentials,
 you will need to contact the SAM development team to request access.
 
+### Set the MPI Wrappers
+
+If you don't already explicitly state in your `~/.bashrc` that you are using the MPI
+compilers wrappers, it's a good idea to do so:
+
+```
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+```
+
 ### Build Petsc
 
 After obtaining all necessary submodules, the first software that must be built is the PETSc numerics library:
