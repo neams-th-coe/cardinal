@@ -2,7 +2,7 @@
 
 void UDF_Setup(nrs_t *nrs)
 {
-  mesh_t * mesh = nrs->cds->mesh;
+  auto mesh = nrs->cds->mesh[0];
 
   int n_gll_points = mesh->Np * mesh->Nelements;
   for (int n = 0; n < n_gll_points; ++n)
@@ -13,7 +13,7 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->P[n] = 0.0; // pressure
 
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = 500.0;
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 500.0;
   }
 }
 

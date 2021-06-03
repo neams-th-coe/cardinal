@@ -1,5 +1,5 @@
 [OCCA]
-  backend = CUDA
+  backend = CPU
   deviceNumber = 0
 
 [GENERAL]
@@ -24,6 +24,7 @@
   motion = none
 
 [VELOCITY]
+  solver = none
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6

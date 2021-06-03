@@ -253,7 +253,7 @@ NekRSProblem::isOutputStep() const
 
   // this routine does not check if we are on the last step - just whether we have
   // met the requested runtime or time step interval
-  return nekrs::isOutputStep(_timestepper->nondimensionalDT(_time), _t_step);
+  return nekrs::outputStep(_timestepper->nondimensionalDT(_time), _t_step);
 }
 
 void NekRSProblem::externalSolve()
@@ -285,7 +285,7 @@ void NekRSProblem::externalSolve()
   // time step, even if we're not technically passing data to another app, because we have
   // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
   // by the user.
-  nekrs::copyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
+  nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
   nekrs::udfExecuteStep(_timestepper->nondimensionalDT(step_end_time), _t_step, is_output_step);
 
@@ -308,6 +308,7 @@ void NekRSProblem::externalSolve()
     nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
 
   _time += _dt;
+
 }
 
 bool

@@ -6,8 +6,7 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  std::cout << "in UDF setup" << std::endl;
-  mesh_t * mesh = nrs->mesh;
+  auto mesh = nrs->mesh;
   nrs->usrwrk = (double*) calloc(mesh->Nelements * mesh->Np, sizeof(double));
   nrs->o_usrwrk = mesh->device.malloc(mesh->Nelements * mesh->Np * sizeof(double), nrs->usrwrk);
 }

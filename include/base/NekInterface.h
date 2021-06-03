@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CardinalEnums.h"
+#include "mesh.h"
 #include <string>
 #include <vector>
 
@@ -33,10 +34,30 @@ bool endControlTime();
 bool endControlNumSteps();
 
 /**
- * Offset increment for indexing into multi-volume arrays for the scalar fields
+ * Offset increment for indexing into multi-volume arrays for the scalar fields.
+ * This assumes that all scalars are the same length as the temperature scalar.
+ * TODO: evaluate whether this works if nekRS uses CHT
  * @return scalar field offset
  */
 int scalarFieldOffset();
+
+/**
+ * Get the mesh for the temperature scalar
+ * @return temperature mesh
+ */
+mesh_t * temperatureMesh();
+
+/**
+ * Get the process rank
+ * @return process rank
+ */
+int commRank();
+
+/**
+ * Get the communicator size
+ * @return communicator size
+ */
+int commSize();
 
 /**
  * Whether nekRS's input file indicates that the problem has a temperature variable

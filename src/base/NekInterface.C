@@ -25,8 +25,7 @@ constexpr double rel_tol = 1e-5;
 
 bool endControlElapsedTime()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  return !nrs->options.getArgs("STOP AT ELAPSED TIME").empty();
+  return !platform->options.getArgs("STOP AT ELAPSED TIME").empty();
 }
 
 bool endControlTime()
@@ -41,8 +40,7 @@ bool endControlNumSteps()
 
 bool hasTemperatureVariable()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  return nrs->Nscalar ? nrs->options.compareArgs("SCALAR00 IS TEMPERATURE", "TRUE") : false;
+  return nrs->Nscalar ? platform->options.compareArgs("SCALAR00 IS TEMPERATURE", "TRUE") : false;
 }
 
 bool hasTemperatureSolve()
@@ -59,7 +57,23 @@ bool hasHeatSourceKernel()
 int scalarFieldOffset()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  return nrs->cds->fieldOffset;
+  return nrs->cds->fieldOffset[0];
+}
+
+mesh_t * temperatureMesh()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  return nrs->cds->mesh[0];
+}
+
+int commRank()
+{
+  return platform->comm.mpiRank;
+}
+
+int commSize()
+{
+  return platform->comm.mpiCommSize;
 }
 
 bool scratchAvailable()
@@ -82,7 +96,7 @@ bool scratchAvailable()
 void initializeScratch()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   // clear them just to be sure
   if (nrs->usrwrk)
@@ -98,8 +112,8 @@ void initializeScratch()
   // _both_ a heat flux and a volumetric heat source. These fields are always stored in this
   // order - i.e. if we only had volume couping, we would only start writing to this array
   // beginning at index nrs->cds->fieldOffset.
-  nrs->usrwrk = (double *) calloc(MAX_SCRATCH_FIELDS * nrs->cds->fieldOffset, sizeof(double));
-  nrs->o_usrwrk = mesh->device.malloc(MAX_SCRATCH_FIELDS * nrs->cds->fieldOffset * sizeof(double), nrs->usrwrk);
+  nrs->usrwrk = (double *) calloc(MAX_SCRATCH_FIELDS * scalarFieldOffset(), sizeof(double));
+  nrs->o_usrwrk = platform->device.malloc(MAX_SCRATCH_FIELDS * scalarFieldOffset() * sizeof(double), nrs->usrwrk);
 }
 
 void freeScratch()
@@ -120,8 +134,7 @@ void interpolationMatrix(double * I, int starting_points, int ending_points)
 
 void initializeInterpolationMatrices(const int n_moost_pts)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   // determine the interpolation matrix for the outgoing transfer
   int starting_points = mesh->Nq;
@@ -194,21 +207,20 @@ void interpolateSurfaceFaceHex3D(double* scratch, const double* I, double* x, in
 
 void displacementAndCounts(const int * base_counts, int * counts, int * displacement, const int multiplier = 1.0)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
-  for (int i = 0; i < mesh->size; ++i)
+  for (int i = 0; i < commSize(); ++i)
     counts[i] = base_counts[i] * multiplier;
 
   displacement[0] = 0;
-  for(int i = 1; i < mesh->size; i++)
+  for(int i = 1; i < commSize(); i++)
     displacement[i] = displacement[i - 1] + counts[i - 1];
 }
 
 void volumeTemperature(const int order, const bool needs_interpolation, double* T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t* mesh = nrs->cds->mesh;
+  mesh_t* mesh = temperatureMesh();
 
   int start_1d = mesh->Nq;
   int end_1d = order + 2;
@@ -262,12 +274,12 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
       Ttmp[v] = Ttmp[v] * scales.dT_ref + scales.T_ref;
   }
 
-  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
-  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  int* recvCounts = (int *) calloc(commSize(), sizeof(int));
+  int* displacement = (int *) calloc(commSize(), sizeof(int));
   displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement, end_3d);
 
-  MPI_Allgatherv(Ttmp, recvCounts[mesh->rank], MPI_DOUBLE, T,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(Ttmp, recvCounts[commRank()], MPI_DOUBLE, T,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);
@@ -278,7 +290,7 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
 void boundaryTemperature(const int order, const bool needs_interpolation, double* T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t* mesh = nrs->cds->mesh;
+  mesh_t* mesh = temperatureMesh();
 
   int start_1d = mesh->Nq;
   int end_1d = order + 2;
@@ -303,7 +315,7 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
   int c = 0;
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
   {
-    if (nek_boundary_coupling.process[k] == mesh->rank)
+    if (nek_boundary_coupling.process[k] == commRank())
     {
       int i = nek_boundary_coupling.element[k];
       int j = nek_boundary_coupling.face[k];
@@ -345,12 +357,12 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
       Ttmp[v] = Ttmp[v] * scales.dT_ref + scales.T_ref;
   }
 
-  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
-  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  int* recvCounts = (int *) calloc(commSize(), sizeof(int));
+  int* displacement = (int *) calloc(commSize(), sizeof(int));
   displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement, end_2d);
 
-  MPI_Allgatherv(Ttmp, recvCounts[mesh->rank], MPI_DOUBLE, T,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(Ttmp, recvCounts[commRank()], MPI_DOUBLE, T,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);
@@ -362,7 +374,7 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
 void flux_volume(const int elem_id, const int order, double * flux_elem)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   int end_1d = mesh->Nq;
   int start_1d = order + 2;
@@ -370,7 +382,7 @@ void flux_volume(const int elem_id, const int order, double * flux_elem)
   int start_3d = start_1d * start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (mesh->rank == nek_volume_coupling.processor_id(elem_id))
+  if (commRank() == nek_volume_coupling.processor_id(elem_id))
   {
     int e = nek_volume_coupling.element[elem_id];
     double * flux_tmp = (double*) calloc(mesh->Np, sizeof(double));
@@ -388,7 +400,7 @@ void flux_volume(const int elem_id, const int order, double * flux_elem)
 void heat_source(const int elem_id, const int order, double * source_elem)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   int end_1d = mesh->Nq;
   int start_1d = order + 2;
@@ -396,7 +408,7 @@ void heat_source(const int elem_id, const int order, double * source_elem)
   int start_3d = start_1d * start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (mesh->rank == nek_volume_coupling.processor_id(elem_id))
+  if (commRank() == nek_volume_coupling.processor_id(elem_id))
   {
     int e = nek_volume_coupling.element[elem_id];
     double * source_tmp = (double*) calloc(mesh->Np, sizeof(double));
@@ -405,7 +417,7 @@ void heat_source(const int elem_id, const int order, double * source_elem)
 
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
-      nrs->usrwrk[nrs->cds->fieldOffset + id + v] = source_tmp[v];
+      nrs->usrwrk[scalarFieldOffset() + id + v] = source_tmp[v];
 
     free(source_tmp);
   }
@@ -414,7 +426,7 @@ void heat_source(const int elem_id, const int order, double * source_elem)
 void flux(const int elem_id, const int order, double * flux_face)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   int end_1d = mesh->Nq;
   int start_1d = order + 2;
@@ -422,7 +434,7 @@ void flux(const int elem_id, const int order, double * flux_face)
   // int start_2d = start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (mesh->rank == nek_boundary_coupling.processor_id(elem_id))
+  if (commRank() == nek_boundary_coupling.processor_id(elem_id))
   {
     int e = nek_boundary_coupling.element[elem_id];
     int f = nek_boundary_coupling.face[elem_id];
@@ -447,25 +459,25 @@ void flux(const int elem_id, const int order, double * flux_face)
 double sourceIntegral()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double integral = 0.0;
 
   for (int k = 0; k < nek_volume_coupling.total_n_elems; ++k)
   {
-    if (nek_volume_coupling.process[k] == mesh->rank)
+    if (nek_volume_coupling.process[k] == commRank())
     {
       int i = nek_volume_coupling.element[k];
       int offset = i * mesh->Np;
 
       for (int v = 0; v < mesh->Np; ++v)
-        integral += nrs->usrwrk[nrs->cds->fieldOffset + offset + v] * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+        integral += nrs->usrwrk[scalarFieldOffset() + offset + v] * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   return total_integral;
 }
@@ -473,13 +485,13 @@ double sourceIntegral()
 double fluxIntegral()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double integral = 0.0;
 
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
   {
-    if (nek_boundary_coupling.process[k] == mesh->rank)
+    if (nek_boundary_coupling.process[k] == commRank())
     {
       int i = nek_boundary_coupling.element[k];
       int j = nek_boundary_coupling.face[k];
@@ -492,7 +504,7 @@ double fluxIntegral()
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   return total_integral;
 }
@@ -508,13 +520,13 @@ bool normalizeFlux(const double moose_integral, double nek_integral, double & no
     return true;
 
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   const double ratio = moose_integral / nek_integral;
 
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
   {
-    if (nek_boundary_coupling.process[k] == mesh->rank)
+    if (nek_boundary_coupling.process[k] == commRank())
     {
       int i = nek_boundary_coupling.element[k];
       int j = nek_boundary_coupling.face[k];
@@ -547,19 +559,19 @@ bool normalizeHeatSource(const double moose_integral, double nek_integral, doubl
     return true;
 
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   const double ratio = moose_integral / nek_integral;
 
   for (int k = 0; k < nek_volume_coupling.total_n_elems; ++k)
   {
-    if (nek_volume_coupling.process[k] == mesh->rank)
+    if (nek_volume_coupling.process[k] == commRank())
     {
       int i = nek_volume_coupling.element[k];
       int id = i * mesh->Np;
 
       for (int v = 0; v < mesh->Np; ++v)
-        nrs->usrwrk[nrs->cds->fieldOffset + id + v] *= ratio;
+        nrs->usrwrk[scalarFieldOffset() + id + v] *= ratio;
     }
   }
 
@@ -585,7 +597,7 @@ void limitTemperature(const double * min_T, const double * max_T)
   maximum = (maximum - scales.T_ref) / scales.dT_ref;
 
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Np; ++j) {
@@ -606,8 +618,7 @@ void copyScratchToDevice()
 
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double value = -std::numeric_limits<double>::max();
 
@@ -629,7 +640,7 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
   // find extreme value across all processes
   double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, mesh->comm);
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   solution::dimensionalize(field, reduced_value);
@@ -643,8 +654,7 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
 double volumeMaxValue(const field::NekFieldEnum & field)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double value = -std::numeric_limits<double>::max();
 
@@ -660,7 +670,7 @@ double volumeMaxValue(const field::NekFieldEnum & field)
 
   // find extreme value across all processes
   double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, mesh->comm);
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   solution::dimensionalize(field, reduced_value);
@@ -674,8 +684,7 @@ double volumeMaxValue(const field::NekFieldEnum & field)
 
 double volumeMinValue(const field::NekFieldEnum & field)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double value = std::numeric_limits<double>::max();
 
@@ -691,7 +700,7 @@ double volumeMinValue(const field::NekFieldEnum & field)
 
   // find extreme value across all processes
   double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, mesh->comm);
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   solution::dimensionalize(field, reduced_value);
@@ -705,8 +714,7 @@ double volumeMinValue(const field::NekFieldEnum & field)
 
 double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double value = std::numeric_limits<double>::max();
 
@@ -729,7 +737,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
   // find extreme value across all processes
   double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, mesh->comm);
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   solution::dimensionalize(field, reduced_value);
@@ -743,8 +751,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
 double volume()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double integral = 0.0;
 
@@ -758,7 +765,7 @@ double volume()
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // scale the volume integral
   total_integral *= scales.V_ref;
@@ -768,8 +775,7 @@ double volume()
 
 double volumeIntegral(const field::NekFieldEnum & integrand)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double integral = 0.0;
 
@@ -786,7 +792,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   solution::dimensionalize(integrand, total_integral);
@@ -803,8 +809,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
 
 double area(const std::vector<int> & boundary_id)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double integral = 0.0;
 
@@ -824,7 +829,7 @@ double area(const std::vector<int> & boundary_id)
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // scale the boundary integral
   total_integral *= scales.A_ref;
@@ -834,8 +839,7 @@ double area(const std::vector<int> & boundary_id)
 
 double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   double integral = 0.0;
 
@@ -858,7 +862,7 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   solution::dimensionalize(integrand, total_integral);
@@ -876,12 +880,12 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
 double massFlowrate(const std::vector<int> & boundary_id)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
   double rho;
-  nrs->options.getArgs("DENSITY", rho);
+  platform->options.getArgs("DENSITY", rho);
 
   double integral = 0.0;
 
@@ -897,9 +901,9 @@ double massFlowrate(const std::vector<int> & boundary_id)
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_velocity =
-            nrs->U[vol_id + 0 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NXID] +
-            nrs->U[vol_id + 1 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NYID] +
-            nrs->U[vol_id + 2 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NZID];
+            nrs->U[vol_id + 0 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
+            nrs->U[vol_id + 1 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
+            nrs->U[vol_id + 2 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NZID];
 
           integral += rho * normal_velocity * mesh->sgeo[surf_offset + WSJID];
         }
@@ -909,7 +913,7 @@ double massFlowrate(const std::vector<int> & boundary_id)
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize the mass flux and area
   total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
@@ -920,12 +924,12 @@ double massFlowrate(const std::vector<int> & boundary_id)
 double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
   double rho;
-  nrs->options.getArgs("DENSITY", rho);
+  platform->options.getArgs("DENSITY", rho);
 
   double integral = 0.0;
 
@@ -944,9 +948,9 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_velocity =
-            nrs->U[vol_id + 0 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NXID] +
-            nrs->U[vol_id + 1 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NYID] +
-            nrs->U[vol_id + 2 * nrs->fieldOffset] * mesh->sgeo[surf_offset + NZID];
+            nrs->U[vol_id + 0 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
+            nrs->U[vol_id + 1 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
+            nrs->U[vol_id + 2 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NZID];
 
           integral += f(vol_id) * rho * normal_velocity * mesh->sgeo[surf_offset + WSJID];
         }
@@ -956,7 +960,7 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   solution::dimensionalize(integrand, total_integral);
@@ -974,17 +978,17 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
 double heatFluxIntegral(const std::vector<int> & boundary_id)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   // TODO: This function only works correctly if the conductivity is constant, because
   // otherwise we need to copy the density from device to host
   double k;
-  nrs->options.getArgs("SCALAR00 DIFFUSIVITY", k);
+  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
 
   double integral = 0.0;
 
-  double * grad_T = (double *) calloc(3 * nrs->cds->fieldOffset, sizeof(double));
-  gradient(nrs->cds->fieldOffset, nrs->cds->S, grad_T);
+  double * grad_T = (double *) calloc(3 * scalarFieldOffset(), sizeof(double));
+  gradient(scalarFieldOffset(), nrs->cds->S, grad_T);
 
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Nfaces; ++j) {
@@ -998,9 +1002,9 @@ double heatFluxIntegral(const std::vector<int> & boundary_id)
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_grad_T =
-            grad_T[vol_id + 0 * nrs->cds->fieldOffset] * mesh->sgeo[surf_offset + NXID] +
-            grad_T[vol_id + 1 * nrs->cds->fieldOffset] * mesh->sgeo[surf_offset + NYID] +
-            grad_T[vol_id + 2 * nrs->cds->fieldOffset] * mesh->sgeo[surf_offset + NZID];
+            grad_T[vol_id + 0 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
+            grad_T[vol_id + 1 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
+            grad_T[vol_id + 2 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NZID];
 
           integral += -k * normal_grad_T * mesh->sgeo[surf_offset + WSJID];
         }
@@ -1012,7 +1016,7 @@ double heatFluxIntegral(const std::vector<int> & boundary_id)
 
   // sum across all processes
   double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // multiply by the reference heat flux and an area factor to dimensionalize
   total_integral *= scales.flux_ref * scales.A_ref;
@@ -1023,8 +1027,7 @@ double heatFluxIntegral(const std::vector<int> & boundary_id)
 
 void gradient(const int offset, const double * f, double * grad_f)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   std::vector<std::vector<std::vector<double>>> s_P(mesh->Nq, std::vector<std::vector<double>>(mesh->Nq, std::vector<double>(mesh->Nq, 0)));
   std::vector<std::vector<double>> s_D(mesh->Nq, std::vector<double>(mesh->Nq, 0));
@@ -1095,42 +1098,35 @@ const std::string temperatureBoundaryType(const int boundary)
 
 int polynomialOrder()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  return nrs->cds->mesh->N;
+  return temperatureMesh()->N;
 }
 
 int Nelements()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  int n_local = nrs->cds->mesh->Nelements;
+  int n_local = temperatureMesh()->Nelements;
   int n_global;
-  MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, nrs->cds->mesh->comm);
+  MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   return n_global;
 }
 
 int dim()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  return nrs->cds->mesh->dim;
+  return temperatureMesh()->dim;
 }
 
 int NfaceVertices()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  return nrs->cds->mesh->NfaceVertices;
+  return temperatureMesh()->NfaceVertices;
 }
 
 int NboundaryFaces()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  return nrs->cds->mesh->NboundaryFaces;
+  return temperatureMesh()->NboundaryFaces;
 }
 
 int NboundaryID()
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-
-  if (nrs->mesh->cht)
+  if (temperatureMesh()->cht)
     return nekData.NboundaryIDt;
   else
     return nekData.NboundaryID;
@@ -1165,16 +1161,14 @@ int BoundaryElemProcessorID(const int elem_id)
 
 void storeVolumeCoupling(int& N)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   nek_volume_coupling.n_elems = mesh->Nelements;
-  MPI_Allreduce(&nek_volume_coupling.n_elems, &N, 1, MPI_INT, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&nek_volume_coupling.n_elems, &N, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   nek_volume_coupling.total_n_elems = N;
 
-  nek_volume_coupling.counts = (int *) calloc(mesh->size, sizeof(int));
-  MPI_Allgather(&nek_volume_coupling.n_elems, 1, MPI_INT, nek_volume_coupling.counts, 1, MPI_INT, mesh->comm);
+  nek_volume_coupling.counts = (int *) calloc(commSize(), sizeof(int));
+  MPI_Allgather(&nek_volume_coupling.n_elems, 1, MPI_INT, nek_volume_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
 
   // Save information regarding the volume mesh coupling in terms of the process-local
   // element IDs and process ownership
@@ -1187,19 +1181,19 @@ void storeVolumeCoupling(int& N)
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     etmp[i] = i;
-    ptmp[i] = mesh->rank;
+    ptmp[i] = commRank();
   }
 
   // compute the counts and displacement based on the volume-based data exchange
-  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
-  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  int* recvCounts = (int *) calloc(commSize(), sizeof(int));
+  int* displacement = (int *) calloc(commSize(), sizeof(int));
   displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement);
 
-  MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.element,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(etmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.element,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.process,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(ptmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.process,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
   int * otmp = (int *) malloc(N * sizeof(int));
   int * ftmp = (int *) calloc(N, sizeof(int));
@@ -1217,11 +1211,11 @@ void storeVolumeCoupling(int& N)
     ftmp[e] += 1;
   }
 
-  MPI_Allgatherv(otmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.boundary_offset,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(otmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.boundary_offset,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  MPI_Allgatherv(ftmp, recvCounts[mesh->rank], MPI_INT, nek_volume_coupling.n_faces_on_boundary,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(ftmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.n_faces_on_boundary,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);
@@ -1249,25 +1243,25 @@ void volumeVertices(const int order, double* x, double* y, double* z)
 
   // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
   // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-  mesh_t * mesh = createMesh(nrs->cds->mesh->comm, order + 1, 1 /* dummy, not used by 'volumeVertices' */,
-    nrs->cht, nrs->options, nrs->mesh->device, *(nrs->kernelInfo));
+  mesh_t * mesh = createMesh(platform->comm.mpiComm, order + 1, 1 /* dummy, not used by 'volumeVertices' */,
+    nrs->cht, *(nrs->kernelInfo));
 
-  nek_volume_coupling.counts = (int *) calloc(mesh->size, sizeof(int));
-  MPI_Allgather(&nek_volume_coupling.n_elems, 1, MPI_INT, nek_volume_coupling.counts, 1, MPI_INT, mesh->comm);
+  nek_volume_coupling.counts = (int *) calloc(commSize(), sizeof(int));
+  MPI_Allgather(&nek_volume_coupling.n_elems, 1, MPI_INT, nek_volume_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
 
   // compute the counts and displacement based on the GLL points
-  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
-  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  int* recvCounts = (int *) calloc(commSize(), sizeof(int));
+  int* displacement = (int *) calloc(commSize(), sizeof(int));
   displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement, mesh->Np);
 
-  MPI_Allgatherv(mesh->x, recvCounts[mesh->rank], MPI_DOUBLE, x,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(mesh->x, recvCounts[commRank()], MPI_DOUBLE, x,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  MPI_Allgatherv(mesh->y, recvCounts[mesh->rank], MPI_DOUBLE, y,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(mesh->y, recvCounts[commRank()], MPI_DOUBLE, y,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  MPI_Allgatherv(mesh->z, recvCounts[mesh->rank], MPI_DOUBLE, z,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(mesh->z, recvCounts[commRank()], MPI_DOUBLE, z,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);
@@ -1275,13 +1269,11 @@ void volumeVertices(const int order, double* x, double* y, double* z)
 
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-
   // while nekrs::faceVertices creates a new mesh on which the data will be transferred,
   // here we can just use the already-loaded mesh because during mesh creation (that
   // differs from nrs->cds->mesh only in polynomial order), the assignment of elements to
   // processes is exactly the same.
-  mesh_t * mesh = nrs->cds->mesh;
+  mesh_t * mesh = temperatureMesh();
 
   // Save information regarding the surface mesh coupling in terms of the process-local
   // element IDs, the element-local face IDs, and the process ownership. We don't yet
@@ -1313,7 +1305,7 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
 
         etmp[d] = i;
         ftmp[d] = j;
-        ptmp[d] = mesh->rank;
+        ptmp[d] = commRank();
         btmp[d] = face_id;
         d++;
       }
@@ -1321,32 +1313,32 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
   }
 
   // gather all the boundary face counters and make available in N
-  MPI_Allreduce(&Nfaces, &N, 1, MPI_INT, MPI_SUM, mesh->comm);
+  MPI_Allreduce(&Nfaces, &N, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   nek_boundary_coupling.n_faces = Nfaces;
   nek_boundary_coupling.total_n_faces = N;
 
   // make available to all processes the number of faces owned by each process
-  nek_boundary_coupling.counts = (int *) calloc(mesh->size, sizeof(int));
-  MPI_Allgather(&Nfaces, 1, MPI_INT, nek_boundary_coupling.counts, 1, MPI_INT, mesh->comm);
+  nek_boundary_coupling.counts = (int *) calloc(commSize(), sizeof(int));
+  MPI_Allgather(&Nfaces, 1, MPI_INT, nek_boundary_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
 
   // compute the counts and displacements for face-based data exchange
-  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
-  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  int* recvCounts = (int *) calloc(commSize(), sizeof(int));
+  int* displacement = (int *) calloc(commSize(), sizeof(int));
   displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement);
 
-  nek_boundary_coupling.offset = displacement[mesh->rank];
+  nek_boundary_coupling.offset = displacement[commRank()];
 
-  MPI_Allgatherv(etmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.element,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(etmp, recvCounts[commRank()], MPI_INT, nek_boundary_coupling.element,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  MPI_Allgatherv(ftmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.face,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(ftmp, recvCounts[commRank()], MPI_INT, nek_boundary_coupling.face,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  MPI_Allgatherv(ptmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.process,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(ptmp, recvCounts[commRank()], MPI_INT, nek_boundary_coupling.process,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  MPI_Allgatherv(btmp, recvCounts[mesh->rank], MPI_INT, nek_boundary_coupling.boundary_id,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, mesh->comm);
+  MPI_Allgatherv(btmp, recvCounts[commRank()], MPI_INT, nek_boundary_coupling.boundary_id,
+    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);
@@ -1362,8 +1354,8 @@ void faceVertices(const int order, double* x, double* y, double* z)
 
   // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
   // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-  mesh_t * mesh = createMesh(nrs->cds->mesh->comm, order + 1, 1 /* dummy, not used by 'faceVertices' */,
-    nrs->cht, nrs->options, nrs->mesh->device, *(nrs->kernelInfo));
+  mesh_t * mesh = createMesh(platform->comm.mpiComm, order + 1, 1 /* dummy, not used by 'faceVertices' */,
+    nrs->cht, *(nrs->kernelInfo));
 
   // Allocate space for the coordinates that are on this rank
   double* xtmp = (double*) malloc(nek_boundary_coupling.n_faces * mesh->Nfp * sizeof(double));
@@ -1373,7 +1365,7 @@ void faceVertices(const int order, double* x, double* y, double* z)
   int c = 0;
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
   {
-    if (nek_boundary_coupling.process[k] == mesh->rank)
+    if (nek_boundary_coupling.process[k] == commRank())
     {
       int i = nek_boundary_coupling.element[k];
       int j = nek_boundary_coupling.face[k];
@@ -1390,18 +1382,18 @@ void faceVertices(const int order, double* x, double* y, double* z)
   }
 
   // compute the counts and displacement based on the GLL points
-  int* recvCounts = (int *) calloc(mesh->size, sizeof(int));
-  int* displacement = (int *) calloc(mesh->size, sizeof(int));
+  int* recvCounts = (int *) calloc(commSize(), sizeof(int));
+  int* displacement = (int *) calloc(commSize(), sizeof(int));
   displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement, mesh->Nfp);
 
-  MPI_Allgatherv(xtmp, recvCounts[mesh->rank], MPI_DOUBLE, x,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(xtmp, recvCounts[commRank()], MPI_DOUBLE, x,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  MPI_Allgatherv(ytmp, recvCounts[mesh->rank], MPI_DOUBLE, y,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(ytmp, recvCounts[commRank()], MPI_DOUBLE, y,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  MPI_Allgatherv(ztmp, recvCounts[mesh->rank], MPI_DOUBLE, z,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, mesh->comm);
+  MPI_Allgatherv(ztmp, recvCounts[commRank()], MPI_DOUBLE, z,
+    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);

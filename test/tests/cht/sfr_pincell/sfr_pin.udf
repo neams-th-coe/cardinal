@@ -2,7 +2,7 @@
 
 dfloat inlet_velocity(nrs_t * nrs)
 {
-  setupAide & options = nrs->options;
+  setupAide & options = platform->options;
 
   // specify the Reynolds number, which we'll use to set all other parameters.
   // This is a small value to make solution easier, since this is just a test.
@@ -29,7 +29,7 @@ dfloat inlet_velocity(nrs_t * nrs)
 
 void UDF_LoadKernels(nrs_t *nrs)
 {
-  setupAide & options = nrs->options;
+  setupAide & options = platform->options;
   occa::properties & kernelInfo = *nrs->kernelInfo;
 
   kernelInfo["defines/Vz"] = inlet_velocity(nrs);
@@ -40,7 +40,7 @@ void UDF_LoadKernels(nrs_t *nrs)
 
 void UDF_Setup(nrs_t *nrs)
 {
-  mesh_t * mesh = nrs->cds->mesh;
+  auto mesh = nrs->cds->mesh[0];
 
   dfloat inlet_Vz = inlet_velocity(nrs);
 
@@ -56,6 +56,6 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->P[n] = 0.0; // pressure
 
-    nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = 628.15; // temperature
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 628.15; // temperature
   }
 }
