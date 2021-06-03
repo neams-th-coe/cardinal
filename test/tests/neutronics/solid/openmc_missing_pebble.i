@@ -1,8 +1,7 @@
 # This is a vertical stack of three pebbles, with a 1 meter thick layer of flibe
 # on the outer periphery and on the top and bottom, to get a k closer to 1.0.
 #
-# This input just checks that setting a power of zero in the OpenMC model does not
-# give any different results from a MOOSE-standalone case with zero power.
+# We check that we get an error if we forget one of the pebbles.
 
 [Mesh]
   [sphere]
@@ -14,15 +13,15 @@
     type = CombinerGenerator
     inputs = sphere
     positions = '0 0 0
-                 0 0 4
-                 0 0 8'
+                 0 0 4'
   []
 []
 
 [Problem]
   type = OpenMCProblem
-  power = 0.0
-  centers_file = 'pebble_centers_rescaled.txt'
+  power = 10.0
+  centers = '0 0 0
+             0 0 4'
   volumes = '1.322128e+01'
   tally_type = 'cell'
   pebble_cell_level = 0
@@ -30,6 +29,7 @@
 
 [Executioner]
   type = Transient
+  num_steps = 2
 []
 
 [Outputs]
