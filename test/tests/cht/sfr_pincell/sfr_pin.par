@@ -1,7 +1,6 @@
 # Model of single SFR pincell, fluid region only. All units are in SI.
 [OCCA]
   backend = CPU
-  deviceNumber = 0
 
 [GENERAL]
   stopAt = numSteps

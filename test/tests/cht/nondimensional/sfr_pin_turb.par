@@ -10,6 +10,9 @@
 # The particular length scale selected is based on dividing the mesh in
 # ../sfr_pincell by a factor of 0.908e-2 (the pin pitch)
 
+[OCCA]
+  backend = CPU
+
 [GENERAL]
   stopAt = numSteps
   numSteps = 2000

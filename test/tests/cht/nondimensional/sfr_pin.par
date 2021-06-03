@@ -12,7 +12,6 @@
 
 [OCCA]
   backend = CPU
-  deviceNumber = 0
 
 [GENERAL]
   stopAt = numSteps
