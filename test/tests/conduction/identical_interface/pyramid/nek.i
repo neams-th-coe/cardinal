@@ -16,9 +16,6 @@
 []
 
 [Postprocessors]
-  [flux_integral]
-    type = Receiver
-  []
   [max_temp_nek]
     type = NekVolumeExtremeValue
     field = temperature

@@ -25,10 +25,6 @@
 []
 
 [Postprocessors]
-  [flux_integral]
-    type = Receiver
-  []
-
   # This is the heat flux in the nekRS solution, i.e. it is not an integral
   # of nrs->usrwrk, instead this is directly an integral of k*grad(T)*hat(n).
   # So this should closely match 'flux_integral'

@@ -497,7 +497,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 void
 NekRSProblem::sendVolumeHeatSourceToNek()
 {
-  _console << "Sending heat source to nekRS volume... " << std::endl;
+  _console << "Sending heat source to nekRS volume... ";
 
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -763,11 +763,19 @@ NekRSProblem::addExternalVariables()
     // sending app (such as BISON) into 'avg_flux'.
     addAuxVariable("MooseVariable", "avg_flux", var_params);
     _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
+
+    // add the postprocessor that receives the flux integral for normalization
+    auto pp_params = _factory.getValidParams("Receiver");
+    addPostprocessor("Receiver", "flux_integral", pp_params);
   }
 
   if (_volume)
   {
     addAuxVariable("MooseVariable", "heat_source", var_params);
     _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
+
+    // add the postprocessor that receives the source integral for normalization
+    auto pp_params = _factory.getValidParams("Receiver");
+    addPostprocessor("Receiver", "source_integral", pp_params);
   }
 }

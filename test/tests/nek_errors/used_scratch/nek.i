@@ -15,12 +15,6 @@
   [../]
 []
 
-[Postprocessors]
-  [flux_integral]
-    type = Receiver
-  []
-[]
-
 [Outputs]
   exodus = true
   hide = 'flux_integral'

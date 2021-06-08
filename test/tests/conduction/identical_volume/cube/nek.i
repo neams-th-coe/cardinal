@@ -17,9 +17,6 @@
 []
 
 [Postprocessors]
-  [source_integral]
-    type = Receiver
-  []
   [flux_out]
     type = NekHeatFluxIntegral
     boundary = '1 2 3 4 5 6'

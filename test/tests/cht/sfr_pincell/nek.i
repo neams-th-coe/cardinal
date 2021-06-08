@@ -23,9 +23,6 @@
   [synchronization_in]
     type = Receiver
   []
-  [flux_integral]
-    type = Receiver
-  []
   [nek_flux]
     type = NekHeatFluxIntegral
     boundary = '1'

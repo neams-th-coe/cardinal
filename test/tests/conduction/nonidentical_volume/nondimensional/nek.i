@@ -32,9 +32,6 @@
 []
 
 [Postprocessors]
-  [source_integral]
-    type = Receiver
-  []
   [max_T]
     type = NekVolumeExtremeValue
     field = temperature

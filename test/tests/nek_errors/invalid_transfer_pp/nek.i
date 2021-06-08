@@ -18,9 +18,6 @@
 []
 
 [Postprocessors]
-  [flux_integral]
-    type = Receiver
-  []
   [synchronize_in]
     type = Receiver
   []
