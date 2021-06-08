@@ -381,7 +381,7 @@ protected:
    *
    * To summarize by example - if the MOOSE application uses units of meters, with a mesh
    * named mesh.exo, then the OpenMC-wrapped input file should also use that mesh (with
-   * units of meters) in it's [Mesh] block (or perhaps a coarser version of that mesh if
+   * units of meters) in its [Mesh] block (or perhaps a coarser version of that mesh if
    * the resolution of coupling does not need to match - the units just have to be the same).
    * Then, you should set 'scaling = 100.0' so that the mapping is performed correctly.
    */
