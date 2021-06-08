@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1" name="UO20">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.0" name="U235" />
+    <nuclide ao="1.0" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="2" name="UO21">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.028571428571428574" name="U235" />
+    <nuclide ao="0.9714285714285714" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="3" name="UO22">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.05714285714285715" name="U235" />
+    <nuclide ao="0.9428571428571428" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="4" name="UO23">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.08571428571428572" name="U235" />
+    <nuclide ao="0.9142857142857143" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="5" name="UO24">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.1142857142857143" name="U235" />
+    <nuclide ao="0.8857142857142857" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="6" name="UO25">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.14285714285714288" name="U235" />
+    <nuclide ao="0.8571428571428571" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="7" name="UO26">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.17142857142857143" name="U235" />
+    <nuclide ao="0.8285714285714285" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="8" name="UO27">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.2" name="U235" />
+    <nuclide ao="0.8" name="U238" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+</materials>
