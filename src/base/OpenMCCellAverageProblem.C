@@ -46,6 +46,9 @@ validParams<OpenMCCellAverageProblem>()
     "Whether to skip the very first density and temperature transfer into OpenMC; "
     "this can be used to allow whatever initial condition is set in OpenMC's XML "
     "files to be used in OpenMC's run the first time OpenMC is run");
+  params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0",
+    "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
+    "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
 
   params.addParam<MooseEnum>("tally_filter", getTallyCellFilterEnum(),
     "Type of filter to apply to the tally, options: cell, cell_instance (default). "
@@ -66,6 +69,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
   _verbose(getParam<bool>("verbose")),
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
+  _specified_scaling(params.isParamSetByUser("scaling")),
+  _scaling(getParam<Real>("scaling")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _single_coord_level(openmc::model::n_coord_levels == 1),
@@ -249,7 +254,8 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       msg << printCell(cell_info) << " : " << std::setw(digits(_n_moose_solid_elems)) << Moose::stringify(n_solid) <<
       " solid elems  " << std::setw(digits(_n_moose_fluid_elems)) << Moose::stringify(n_fluid) <<
       " fluid elems  " << std::setw(digits(_n_moose_none_elems)) << Moose::stringify(n_none) <<
-      " uncoupled elems  |  Mapped elems volume: " << std::setw(8) << Moose::stringify(_cell_to_elem_volume[cell_info]);
+      " uncoupled elems  |  Mapped elems volume (cm3): " << std::setw(8) <<
+      Moose::stringify(_cell_to_elem_volume[cell_info] * _scaling * _scaling * _scaling);
 
     std::vector<bool> conditions = {n_fluid > 0, n_solid > 0, n_none > 0};
     if (std::count(conditions.begin(), conditions.end(), true) > 1)
@@ -409,6 +415,10 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
     Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels)..." << std::endl;
 
+  if (_specified_scaling)
+    _console << "Multiplying mesh coordinates by " + Moose::stringify(_scaling) +
+      " to convert to OpenMC's length scale of centimeters" << std::endl;
+
   /* We consider five different cases here based on how the MOOSE and OpenMC
    * domains might overlap in space:
    *
@@ -546,7 +556,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   if (n_mapped_none_elems)
     mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_mapped_none_elems) + " MOOSE elements, " +
-      "which occupy a volume of: " + Moose::stringify(uncoupled_volume));
+      "which occupy a volume of (cm3): " + Moose::stringify(uncoupled_volume * _scaling * _scaling * _scaling));
 
   // If there is a single coordinate level, we can print a helpful message if there are uncoupled
   // cells in the domain
@@ -662,7 +672,7 @@ bool
 OpenMCCellAverageProblem::findCell(const Point & point)
 {
   _particle.clear();
-  _particle.r() = {point(0), point(1), point(2)};
+  _particle.r() = {point(0) * _scaling, point(1) * _scaling, point(2) * _scaling};
   _particle.u() = {0., 0., 1.};
 
   return !openmc::exhaustive_find_cell(_particle);
