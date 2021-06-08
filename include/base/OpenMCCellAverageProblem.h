@@ -360,6 +360,33 @@ protected:
    */
   const bool & _skip_first_incoming_transfer;
 
+  /// Whether a mesh scaling was specified by the user
+  const bool _specified_scaling;
+
+  /**
+   * Multiplicative factor to apply to the mesh in the [Mesh] block in order to convert
+   * whatever units that mesh is in into OpenMC's length scale of centimeters. For instance,
+   * it is commonplace to develop fuel performance models with a length scale of meters.
+   * Rather than onerously convert all MOOSE inputs to which OpenMC will be coupled to units
+   * of centimeters (which might not even be possible depending on how material properties are
+   * calculated for those other applications, like if thermal conductivity is computed by a
+   * module in units of W/m/K), this parameter allows us to scale the mesh over which we loop
+   * to identify a coupling to OpenMC. Note that this does not actually scale the mesh itself,
+   * but simply multiplies the mesh coordinates by this parameter when identifying the mapping
+   * between elements and cells.
+   *
+   * By default, this parameter is set to 1.0, meaning that OpenMC is coupled to another
+   * MOOSE application with an input written in terms of centimeters. Set this parameter to 100
+   * if the coupled MOOSE application is in units of meters, for instance.
+   *
+   * To summarize by example - if the MOOSE application uses units of meters, with a mesh
+   * named mesh.exo, then the OpenMC-wrapped input file should also use that mesh (with
+   * units of meters) in its [Mesh] block (or perhaps a coarser version of that mesh if
+   * the resolution of coupling does not need to match - the units just have to be the same).
+   * Then, you should set 'scaling = 100.0' so that the mapping is performed correctly.
+   */
+  const Real & _scaling;
+
   /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
@@ -417,7 +444,10 @@ protected:
   /// Whether a cell index, instance pair should be added to the tally filter
   std::map<cellInfo, bool> _cell_has_tally;
 
-  /// Volume associated with the mapped element space for each OpenMC cell
+  /**
+   * Volume associated with the mapped element space for each OpenMC cell; the unit
+   * for this volume is whatever is used in the [Mesh] block
+   */
   std::map<cellInfo, Real> _cell_to_elem_volume;
 
   /// Material filling each cell

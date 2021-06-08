@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="1" name="Fuel0" region="-1 -2 -3 -4" universe="1" />
+  <cell id="2" material="2" name="Fuel1" region="-1 -2 -3 4" universe="1" />
+  <cell id="3" material="3" name="Fuel2" region="-1 -2 3 -4" universe="1" />
+  <cell id="4" material="4" name="Fuel3" region="-1 -2 3 4" universe="1" />
+  <cell id="5" material="5" name="Fuel4" region="-1 2 -3 -4" universe="1" />
+  <cell id="6" material="6" name="Fuel5" region="-1 2 -3 4" universe="1" />
+  <cell id="7" material="7" name="Fuel6" region="-1 2 3 -4" universe="1" />
+  <cell id="8" material="8" name="Fuel7" region="-1 2 3 4" universe="1" />
+  <surface boundary="white" coeffs="0.0 0.0 0.0 100.0" id="1" type="sphere" />
+  <surface coeffs="0" id="2" type="x-plane" />
+  <surface coeffs="0" id="3" type="y-plane" />
+  <surface coeffs="0" id="4" type="z-plane" />
+</geometry>
