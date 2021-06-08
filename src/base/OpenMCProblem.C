@@ -313,6 +313,15 @@ void OpenMCProblem::addExternalVariables()
   average_temp.setValues(initial_temperatures);
 }
 
+void
+OpenMCProblem::initialSetup()
+{
+  ExternalProblem::initialSetup();
+
+  int n_centers = _centers.size();
+  _console << "Initializing OpenMC problem with " << Moose::stringify(n_centers) << " coupling points..." << std::endl;
+}
+
 void OpenMCProblem::externalSolve()
 {
   int err = openmc_run();
@@ -366,6 +375,8 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
+      _console << "Extracting heat source from OpenMC... ";
+
       auto& solution = _aux->solution();
 
       auto sys_number = _aux->number();
@@ -419,6 +430,9 @@ void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
               }
             }
           }
+
+        _console << "done" << std::endl;
+
         break;
       }
 
