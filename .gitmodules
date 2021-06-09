@@ -9,4 +9,4 @@
 	url = https://github.com/idaholab/moose.git
 [submodule "contrib/SAM"]
 	path = contrib/SAM
-	url = https://xgitlab.cels.anl.gov/SAM/SAM.git
+	url = https://git-nse.egs.anl.gov/SAM/SAM.git
