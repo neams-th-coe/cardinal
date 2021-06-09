@@ -73,16 +73,10 @@
     variable = difference
     value_type = min
   []
-  [flux_integral]
-    type = Receiver
-  []
-  [source_integral]
-    type = Receiver
-  []
 []
 
 [Outputs]
   exodus = true
   execute_on = 'final'
-  hide = 'flux_integral source_integral heat_source'
+  hide = 'source_integral heat_source'
 []

@@ -144,7 +144,4 @@
     field = pressure
     boundary = '8'
   []
-  [flux_integral]
-    type = Receiver
-  []
 []

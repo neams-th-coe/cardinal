@@ -84,7 +84,4 @@
     field = temperature
     boundary = '6'
   []
-  [flux_integral]
-    type = Receiver
-  []
 []

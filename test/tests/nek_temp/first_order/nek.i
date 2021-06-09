@@ -73,9 +73,6 @@
     variable = difference
     value_type = min
   []
-  [flux_integral]
-    type = Receiver
-  []
 []
 
 [Outputs]

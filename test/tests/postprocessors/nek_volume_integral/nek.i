@@ -18,7 +18,7 @@
 [Outputs]
   [out]
     type = CSV
-    hide = 'flux_integral source_integral'
+    hide = 'source_integral'
     execute_on = 'final'
   []
 []
@@ -35,11 +35,5 @@
   [pressure_integral]
     type = NekVolumeIntegral
     field = pressure
-  []
-  [flux_integral]
-    type = Receiver
-  []
-  [source_integral]
-    type = Receiver
   []
 []

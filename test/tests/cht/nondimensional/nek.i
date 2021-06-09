@@ -37,9 +37,6 @@
   [synchronization_in]
     type = Receiver
   []
-  [flux_integral]
-    type = Receiver
-  []
 
   # side integral
   [area_1]

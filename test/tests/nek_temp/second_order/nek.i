@@ -1,6 +1,5 @@
 [Problem]
   type = NekRSProblem
-  flux_integral = flux_integral
 []
 
 [Mesh]
@@ -73,9 +72,6 @@
     type = NodalExtremeValue
     variable = difference
     value_type = min
-  []
-  [flux_integral]
-    type = Receiver
   []
 []
 

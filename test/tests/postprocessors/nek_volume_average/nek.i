@@ -33,7 +33,4 @@
     type = NekVolumeAverage
     field = pressure
   []
-  [source_integral]
-    type = Receiver
-  []
 []

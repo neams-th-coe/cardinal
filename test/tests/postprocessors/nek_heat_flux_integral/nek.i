@@ -56,7 +56,4 @@
     type = NekHeatFluxIntegral
     boundary = '8'
   []
-  [flux_integral]
-    type = Receiver
-  []
 []

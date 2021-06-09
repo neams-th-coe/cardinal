@@ -120,7 +120,4 @@
     boundary = '8'
     value_type = min
   []
-  [flux_integral]
-    type = Receiver
-  []
 []
