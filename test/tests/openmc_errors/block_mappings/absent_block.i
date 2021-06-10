@@ -32,6 +32,8 @@
     positions = '0 0 0
                  100 0 0'
   []
+
+  parallel_type = replicated
 []
 
 [Problem]

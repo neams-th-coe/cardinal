@@ -10,6 +10,8 @@
   nx = 5
   ny = 5
   nz = 5
+
+  parallel_type = replicated
 []
 
 [AuxVariables]

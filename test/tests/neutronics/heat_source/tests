@@ -4,6 +4,9 @@
     input = overlap_all.i
     exodiff = 'overlap_all_out.e'
     cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 8
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases."
   [../]
@@ -12,6 +15,9 @@
     input = overlap_solid.i
     exodiff = 'overlap_solid_out.e'
     cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 8
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases, but "
                   "heat source coupling only performed for the solid phase."
@@ -21,6 +27,9 @@
     input = overlap_fluid.i
     cli_args = '--app openmc'
     exodiff = 'overlap_fluid_out.e'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 8
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases, but "
                   "heat source coupling only performed for the fluid phase."
@@ -30,6 +39,9 @@
     input = partial_overlap_openmc_union.i
     exodiff = 'partial_overlap_openmc_union_out.e'
     cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 8
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for partial overlap of the OpenMC and MOOSE meshes, where all MOOSE "
                   "elements map to OpenMC cells, but some OpenMC cells are not mapped."
@@ -47,6 +59,9 @@
     input = partial_overlap_moose_union.i
     exodiff = 'partial_overlap_moose_union_out.e'
     cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 8
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for partial overlap of the OpenMC and MOOSE meshes, where all OpenMC "
                   "cells map to MOOSE elements, but some MOOSE elements are not mapped."
@@ -56,6 +71,9 @@
     input = default_tally_blocks.i
     exodiff = 'default_tally_blocks_out.e'
     cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 8
     requirement = "For single-level geometries, tallies shall be added to all MOOSE blocks "
                   "if tally blocks are not specified. The gold file for this test is simply "
                   "a copy of overlap_all_out.e."

@@ -133,19 +133,17 @@
     source_variable = heat_source
   []
   [temp_to_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppMeshFunctionTransfer
     direction = to_multiapp
     multi_app = openmc
     variable = temp
     source_variable = temp
-    fixed_meshes = true
   []
   [density_to_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppMeshFunctionTransfer
     direction = to_multiapp
     multi_app = openmc
     variable = density
     source_variable = density
-    fixed_meshes = true
   []
 []
