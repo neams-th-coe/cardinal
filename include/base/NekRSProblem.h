@@ -257,6 +257,15 @@ protected:
   /// MOOSE heat source interpolated onto the data transfer mesh
   double * _source_elem = nullptr;
 
+  /// displacement in x for all nodes from MOOSE, for moving mesh problems
+  double * _displacement_x = nullptr;
+
+  /// displacement in y for all nodes from MOOSE, for moving mesh problems
+  double * _displacement_y = nullptr;
+
+  /// displacement in z for all nodes from MOOSE, for moving mesh problems
+  double * _displacement_z = nullptr;
+
   /// temperature transfer variable written to be nekRS
   unsigned int _temp_var;
 
