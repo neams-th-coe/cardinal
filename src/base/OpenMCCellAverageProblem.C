@@ -91,6 +91,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
+  _needs_global_tally(_check_tally_sum || _normalize_by_global),
   _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_openmc_cells(openmc::model::cells.size()),
   _n_cell_digits(digits(_n_openmc_cells)),
@@ -739,22 +740,22 @@ void
 OpenMCCellAverageProblem::initializeTallies()
 {
   // create the global tally for normalization
-  _global_tally = openmc::Tally::create();
-  _global_tally->set_scores({"kappa-fission"});
+  if (_needs_global_tally)
+  {
+    _global_tally = openmc::Tally::create();
+    _global_tally->set_scores({"kappa-fission"});
+  }
 
   // create the local heating tally
-  _local_tally = openmc::Tally::create();
-  _local_tally->set_scores({"kappa-fission"});
-
-  // filters to apply to the local tally
-  std::vector<openmc::Filter *> tally_filters;
-
   switch (_tally_type)
   {
     case tally::cell:
     {
       _console << "Adding cell tallies to blocks " << Moose::stringify(_tally_blocks) << " for " +
         Moose::stringify(_tally_cells.size()) + " cells ... ";
+
+      auto tally = openmc::Tally::create();
+      tally->set_scores({"kappa-fission"});
 
       switch (_tally_filter)
       {
@@ -767,7 +768,9 @@ OpenMCCellAverageProblem::initializeTallies()
             cell_ids.push_back(c.first);
 
           cell_filter->set_cells(cell_ids);
-          tally_filters.push_back(cell_filter);
+          std::vector<openmc::Filter *> tally_filters = {cell_filter};
+          tally->set_filters(tally_filters);
+          _local_tally.push_back(tally);
           break;
         }
         case filter::cell_instance:
@@ -779,7 +782,9 @@ OpenMCCellAverageProblem::initializeTallies()
             cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
 
           cell_filter->set_cell_instances(cells);
-          tally_filters.push_back(cell_filter);
+          std::vector<openmc::Filter *> tally_filters = {cell_filter};
+          tally->set_filters(tally_filters);
+          _local_tally.push_back(tally);
           break;
         }
         default:
@@ -790,7 +795,7 @@ OpenMCCellAverageProblem::initializeTallies()
     case tally::mesh:
     {
       _console << "Adding mesh tally based on " << _mesh_template_filename << " at " <<
-        Moose::stringify(_mesh_translations.size()) << " locations ... ";
+        Moose::stringify(_mesh_translations.size()) << " locations ... " << printNewline();
 
       // find the highest mesh ID in the OpenMC problem in the event that there's other mesh
       // tallies besides what is added here
@@ -809,38 +814,42 @@ OpenMCCellAverageProblem::initializeTallies()
       openmc::model::mesh_map[mesh->id_] = mesh_index;
       openmc::model::meshes.push_back(std::move(mesh));
 
-      auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
-      meshFilter->set_mesh(mesh_index);
-      meshFilter->set_translation({_mesh_translations[0](0), _mesh_translations[0](1), _mesh_translations[0](2)});
+      for (const auto & translation : _mesh_translations)
+      {
+        auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
+        meshFilter->set_mesh(mesh_index);
+        meshFilter->set_translation({translation(0), translation(1), translation(2)});
 
-      tally_filters.push_back(meshFilter);
+        _mesh_filters.push_back(meshFilter);
+        std::vector<openmc::Filter *> tally_filters = {meshFilter};
+
+        auto tally = openmc::Tally::create();
+        tally->set_scores({"kappa-fission"});
+        tally->estimator_ = openmc::TallyEstimator::COLLISION;
+        tally->set_filters(tally_filters);
+        _local_tally.push_back(tally);
+
+        Real volume = 0.0;
+        for (decltype(tally->n_filter_bins()) e = 0; e < tally->n_filter_bins(); ++e)
+          volume += _mesh_template->volume(e);
+
+        if (_verbose)
+          _console << " Mesh translated to (" << std::setw(4) << translation(0) << ", " <<
+            std::setw(4) << translation(1) << ", " << std::setw(4) << translation(2) <<
+            "): " << std::setw(6) << tally->n_filter_bins() << " elements  |  volume (cm3): " << std::setw(6) << volume << std::endl;
+      }
 
       // if using a mesh tally, we are restricted to collision estimators; therefore,
       // because we are going to use this global tally for normalization, we need to make
       // sure it also uses a collision estimator
-      _global_tally->estimator_ = openmc::TallyEstimator::COLLISION;
-      _local_tally->estimator_ = openmc::TallyEstimator::COLLISION;
-
-      if (_verbose)
-        _console << std::endl;
-
-      Real volume = 0.0;
-      for (unsigned int e = 0; e < _mesh.nElem(); ++e)
-        volume += _mesh_template->volume(e);
-
-      if (_verbose)
-        _console << " Mesh translated to (" << std::setw(4) << _mesh_translations[0](0) << ", " <<
-          std::setw(4) << _mesh_translations[0](1) << ", " << std::setw(4) << _mesh_translations[0](2) <<
-          "): " << std::setw(6) << _mesh.nElem() << " elements  |  volume (cm3): " << std::setw(6) << volume << std::endl;
+      if (_global_tally)
+        _global_tally->estimator_ = openmc::TallyEstimator::COLLISION;
 
       break;
     }
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
-
-  // finish setting up the local tally now that we have found the filters
-  _local_tally->set_filters(tally_filters);
 
   _console << "done" << std::endl;
 }
@@ -856,14 +865,14 @@ OpenMCCellAverageProblem::findCell(const Point & point)
 }
 
 double
-OpenMCCellAverageProblem::tallySum(const openmc::Tally * tally) const
+OpenMCCellAverageProblem::tallySum(std::vector<openmc::Tally *> tally) const
 {
   double sum = 0.0;
 
-  if (tally)
+  for (const auto & t : tally)
   {
-    auto mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-    sum = xt::sum(mean)();
+    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    sum += xt::sum(mean)();
   }
 
   return sum;
@@ -1036,10 +1045,10 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
   _console << "Extracting OpenMC fission heat source... " << printNewline();
 
   // get the total kappa fission sources for normalization
-  _global_kappa_fission = tallySum(_global_tally);
-  _local_kappa_fission = tallySum(_local_tally);
+  if (_global_tally)
+    _global_kappa_fission = tallySum({_global_tally});
 
-  auto mean_tally = xt::view(_local_tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  _local_kappa_fission = tallySum(_local_tally);
 
   if (_check_tally_sum)
     checkTallySum();
@@ -1050,6 +1059,8 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
   {
     case tally::cell:
     {
+      auto mean_tally = xt::view(_local_tally.at(0)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+
       int i = 0;
       for (const auto & c : _cell_to_elem)
       {
@@ -1084,26 +1095,34 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
     }
   case tally::mesh:
   {
-    // because we assume that the tally mesh matches the [Mesh], simply loop over
-    // every element in the [Mesh]
-    for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+    // TODO: this requires that the mesh exactly correspond to the mesh templates
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
     {
-      auto elem_ptr = mesh.query_elem_ptr(e);
+      const auto * filter = _mesh_filters[i];
+      auto mean_tally = xt::view(_local_tally.at(i)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
-      if (elem_ptr)
+      for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
       {
-        Real power_fraction = normalizeLocalTally(mean_tally(e));
+        auto elem_ptr = mesh.query_elem_ptr(offset + e);
 
-        // divide each tally by the volume that it corresponds to in MOOSE
-        // because we will apply it as a volumetric heat source (W/volume)
-        Real volumetric_power = power_fraction * _power / _mesh_template->volume(e);
-        power_fraction_sum += power_fraction;
+        if (elem_ptr)
+        {
+          Real power_fraction = normalizeLocalTally(mean_tally(e));
 
-        checkZeroTally(power_fraction, "element " + Moose::stringify(e));
+          // divide each tally by the volume that it corresponds to in MOOSE
+          // because we will apply it as a volumetric heat source (W/volume)
+          Real volumetric_power = power_fraction * _power / _mesh_template->volume(e);
+          power_fraction_sum += power_fraction;
 
-        auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-        solution.set(dof_idx, volumetric_power);
+          checkZeroTally(power_fraction, "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
+
+          auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+          solution.set(dof_idx, volumetric_power);
+        }
       }
+
+      offset += filter->n_bins();
     }
 
     break;

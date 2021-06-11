@@ -210,10 +210,10 @@ protected:
 
   /**
    * Compute the mean value of a tally
-   * @param[in] tally OpenMC tally
+   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
    * @return mean value
    */
-  double tallySum(const openmc::Tally * tally) const;
+  double tallySum(std::vector<openmc::Tally *> tally) const;
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
@@ -456,6 +456,12 @@ protected:
   const bool _has_solid_blocks;
 
   /**
+   * Whether a global tally is required for the sake of normalization and/or checking
+   * the tally sum
+   */
+  const bool _needs_global_tally;
+
+  /**
    * Whether tallies should be added to the fluid phase; this should be true if you have
    * a fissile fluid phase and wish to couple that heat source to MOOSE.
    */
@@ -515,8 +521,11 @@ protected:
   /// Global kappa fission tally
   openmc::Tally * _global_tally {nullptr};
 
-  /// Local cell-filter kappa fission tally
-  openmc::Tally * _local_tally {nullptr};
+  /**
+   * Local kappa fission tallies; multiple tallies will only exist when
+   * translating multiple unstructured meshes throughout the geometry
+   */
+  std::vector<openmc::Tally *> _local_tally;
 
   /// OpenMC unstructured mesh instance for use of mesh tallies
   const openmc::LibMesh * _mesh_template;
@@ -594,6 +603,9 @@ protected:
    * use this feature to repeat the same cylinder mesh multiple times throughout the domain.
    */
   std::vector<Point> _mesh_translations;
+
+  /// OpenMC mesh filters for unstructured mesh tallies
+  std::vector<const openmc::MeshFilter *> _mesh_filters;
 
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION {3};
