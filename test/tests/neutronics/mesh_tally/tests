@@ -1,0 +1,15 @@
+[Tests]
+  [./one_mesh]
+    type = Exodiff
+    input = one_mesh.i
+    exodiff = 'one_mesh_out.e'
+    cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
+                  "a local tally when a single mesh is used. "
+                  "The gold file was created with the original OpenMCProblem, showing "
+                  "that the mesh tally implementation is equivalent."
+  [../]
+[]
