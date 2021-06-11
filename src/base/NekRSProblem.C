@@ -45,6 +45,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _nondimensional(getParam<bool>("nondimensional")),
+    _nondimensional(getParam<bool>("ismovingmesh")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),
     _dT_ref(getParam<Real>("dT_ref")),
