@@ -29,9 +29,7 @@
   [combine]
     type = CombinerGenerator
     inputs = 'solid1 solid2 solid3'
-    positions = '0 0 0
-                 0 0 4
-                 0 0 8'
+    positions_file = pebble_centers.txt
   []
 
   parallel_type = replicated
@@ -59,16 +57,12 @@
   verbose = true
   solid_cell_level = 0
   normalize_by_global_tally = false
-  mesh_translations = '0 0 0
-                       0 0 4
-                       0 0 8'
+  mesh_translations_file = pebble_centers.txt
 
   # alternative OpenMC problem that was used to gold the test results
   #type = OpenMCProblem
   #pebble_cell_level = 0
-  #centers = '0 0 0
-  #           0 0 4
-  #           0 0 8'
+  #centers_file = pebble_centers.txt
 
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'
