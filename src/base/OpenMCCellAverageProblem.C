@@ -51,6 +51,9 @@ validParams<OpenMCCellAverageProblem>()
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0",
     "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
     "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
+  params.addParam<bool>("normalize_by_global_tally", true,
+    "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
+    "of the local tally (false)");
 
   params.addParam<MooseEnum>("tally_filter", getTallyCellFilterEnum(),
     "Type of filter to apply to the cell tally, options: cell, cell_instance (default). "
@@ -85,6 +88,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
+  _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _single_coord_level(openmc::model::n_coord_levels == 1),
@@ -1013,6 +1017,15 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction, const std:
       "setup error. You can turn off this check by setting 'check_zero_tallies' to false.");
 }
 
+Real
+OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
+{
+  if (_normalize_by_global)
+    return tally_result / _global_kappa_fission;
+  else
+    return tally_result / _local_kappa_fission;
+}
+
 void
 OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 {
@@ -1046,7 +1059,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         if (!_cell_has_tally[cell_info])
           continue;
 
-        Real power_fraction = mean_tally(i++) / _global_kappa_fission;
+        Real power_fraction = normalizeLocalTally(mean_tally(i++));
 
         // divide each tally value by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric heat source (W/volume).
@@ -1079,7 +1092,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 
       if (elem_ptr)
       {
-        Real power_fraction = mean_tally(e) / _global_kappa_fission;
+        Real power_fraction = normalizeLocalTally(mean_tally(e));
 
         // divide each tally by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric heat source (W/volume)

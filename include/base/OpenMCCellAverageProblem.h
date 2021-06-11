@@ -286,6 +286,14 @@ protected:
   void getHeatSourceFromOpenMC();
 
   /**
+   * Normalize the local tally by either the global kappa fission tally, or the sum
+   * of the local kappa fission tally
+   * @param[in] tally_result value of tally result
+   * @return normalized tally
+   */
+  Real normalizeLocalTally(const Real & tally_result) const;
+
+  /**
    * Check the sum of the fluid and solid tallies (if present) against the global
    * kappa fission tally.
    */
@@ -413,6 +421,27 @@ protected:
    * Then, you should set 'scaling = 100.0' so that the mapping is performed correctly.
    */
   const Real & _scaling;
+
+  /**
+   * How to normalize the OpenMC kappa-fission tally into units of W/volume. If 'true',
+   * normalization is performed by dividing each local tally against a problem-global
+   * kappa-fission tally. The advantage of this approach is that some power-producing parts of the
+   * OpenMC domain can be excluded from multiphysics feedback (without us having to guess
+   * what the power of the *included* part of the domain is). This can let us do
+   * "zooming" type calculations, where perhaps we only want to send T/H feedback to
+   * one bundle in a full core.
+   *
+   * If 'false', normalization is performed by dividing each local tally by the sum
+   * of the local tally itself. The advantage of this approach becomes evident when
+   * using mesh tallies. If a mesh tally does not perfectly align with an OpenMC cell -
+   * for instance, a first-order sphere mesh will not perfectly match the volume of a
+   * TRISO pebble - then not all of the power actually produced in the pebble is
+   * tallies on the mesh approximation to that pebble. Therefore, if you set a core
+   * power of 1 MW and you normalized based on a global kappa fission tally, you'd always
+   * miss some of that power when sending to MOOSE. So, in this case, it is better to
+   * normalize against the local tally itself so that the correct power is preserved.
+   */
+  const bool & _normalize_by_global;
 
   /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
