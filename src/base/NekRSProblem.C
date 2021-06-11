@@ -25,6 +25,7 @@ validParams<NekRSProblem>()
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
 
   params.addParam<bool>("nondimensional", false, "Whether nekRS is solved in non-dimensional form");
+  params.addParam<bool>("ismovingmesh", false, "Whether we have a moving mesh problem or not");
   params.addRangeCheckedParam<Real>("U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("T_ref", 0.0, "T_ref >= 0.0", "Reference temperature value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("dT_ref", 1.0, "dT_ref > 0.0", "Reference temperature range value for non-dimensional solution");
@@ -137,6 +138,14 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _flux_elem = (double *) calloc(_n_vertices_per_volume, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
+
+  if (ismovingmesh)
+  {
+	  _displacement_x = "displacement in x";
+	  _displacement_y = "displacement in y";
+	  _displacement_z = "displacement in z";
+  }
+
 
   // regardless of the boundary/volume coupling, we will always exchange temperature
   _T = (double*) calloc(_n_points, sizeof(double));
