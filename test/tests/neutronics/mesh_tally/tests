@@ -51,4 +51,15 @@
                   "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
                   "approaches the value of a cell tally as the difference in volume decreases."
   [../]
+  [./different_units]
+    type = Exodiff
+    input = different_units.i
+    exodiff = 'different_units_out.e'
+    cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be correctly projected onto a [Mesh] in units of meters "
+                  "when the tally mesh template is in units of centimeters."
+  [../]
 []

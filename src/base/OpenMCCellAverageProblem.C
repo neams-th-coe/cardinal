@@ -146,10 +146,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
       if (_mesh_template_filename.empty())
         paramError("mesh_template", "When using a mesh tally, the mesh template cannot be empty!");
 
-      if (_specified_scaling)
-        mooseWarning("When applying a scaling to the [Mesh], the 'mesh_template' must still be "
-          "in OpenMC's assumed units of centimeters!");
-
       fillMeshTranslations();
 
       break;
@@ -178,6 +174,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   getMaterialFills();
 
   initializeTallies();
+
+  checkMeshTemplateAndTranslations();
 }
 
 template <typename T>
@@ -216,6 +214,81 @@ OpenMCCellAverageProblem::fillMeshTranslations()
     const Point p = {0.0, 0.0, 0.0};
     _mesh_translations = {p};
   }
+}
+
+void
+OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
+{
+  // we can do some rudimentary checking on the mesh template by comparing the centroid
+  // coordinates compared to centroids in the [Mesh] (because right now, we just doing a simple
+  // copy transfer that necessitates the meshes to have the same elements in the same order). If
+  // the first two elements of each mesh translation match the [Mesh], we assume that the meshes
+  // are the same (otherwise, print an error). We need to check two elements per mesh translation
+  // because this ensures that both the position and angular rotation match.
+  unsigned int offset = 0;
+  for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
+  {
+    const auto & filter = _mesh_filters[i];
+
+    // just compare the first two elements
+    for (unsigned int e = 0; e < 2; ++e)
+    {
+      auto elem_ptr = _mesh.queryElemPtr(offset + e);
+
+      if (!elem_ptr)
+        continue;
+
+      // because the mesh template and [Mesh] may be in different units, we need
+      // to adjust the [Mesh] by the scaling factor before doing a comparison
+      auto pt = _mesh_template->centroid(e);
+      Point centroid_template = {pt[0] , pt[1], pt[2]};
+
+      // the translation applied in OpenMC isn't actually registered in the mesh itself;
+      // it is always added on to the point, so we need to do the same here
+      centroid_template += _mesh_translations[i];
+
+      Point centroid_mesh = elem_ptr->centroid() * _scaling;
+
+      // if the centroids are the same except for a factor of 'scaling', then we can
+      // guess that the mesh_template is probably not in units of centimeters
+      Real tol = 1e-6;
+      if (_specified_scaling)
+      {
+        // if scaling was applied correctly, then each calculation of 'scaling' here should equal 1. Otherwise,
+        // if they're all the same, then 'scaling_x' is probably the factor by which the mesh_template
+        // needs to be multiplied, so we can print a helpful error message
+        bool incorrect_scaling = true;
+        for (unsigned int j = 0; j < DIMENSION; ++j)
+        {
+          Real scaling = centroid_mesh(j) / centroid_template(j);
+          incorrect_scaling = incorrect_scaling && (std::abs(scaling - 1.0) > tol);
+        }
+
+        if (incorrect_scaling)
+          mooseError("The centroids of the 'mesh_template' (assumed to be in units of cm) differ from the "
+            "centroids of the [Mesh]\n(assumed to be in units of cm / 'scaling') by a factor of " +
+            Moose::stringify(centroid_mesh(0) / centroid_template(0)) + ".\n\nDid you forget that the 'mesh_template' must be in "
+            "units of centimeters, even when using the 'scaling' parameter?");
+      }
+
+      // check if centroids are the same
+      bool different_centroids = false;
+      for (unsigned int j = 0; j < DIMENSION; ++j)
+        different_centroids = different_centroids || (std::abs(centroid_mesh(j) - centroid_template(j)) > tol);
+
+      if (different_centroids)
+        mooseError("Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh]: (" +
+          Moose::stringify(centroid_mesh(0)) + ", " + Moose::stringify(centroid_mesh(1)) + ", " +
+          Moose::stringify(centroid_mesh(2)) + ")\ndoes not match centroid for element " + Moose::stringify(e) +
+          " in 'mesh_template' " + Moose::stringify(i) + ": (" +
+          Moose::stringify(centroid_template(0)) + ", " + Moose::stringify(centroid_template(1)) + ", " +
+          Moose::stringify(centroid_template(2)) + ")!\n\nThe copy transfer requires that the [Mesh] and " +
+          "'mesh_template' be identical (except for a factor of 'scaling').");
+    }
+
+    offset += filter->n_bins();
+  }
+
 }
 
 void
@@ -1119,8 +1192,11 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
           Real power_fraction = normalizeLocalTally(mean_tally(e));
 
           // divide each tally by the volume that it corresponds to in MOOSE
-          // because we will apply it as a volumetric heat source (W/volume)
-          Real volumetric_power = power_fraction * _power / _mesh_template->volume(e);
+          // because we will apply it as a volumetric heat source (W/volume).
+          // Because we require that the mesh template has units of cm based on the
+          // mesh constructors in OpenMC, we need to adjust the division
+          Real volumetric_power = power_fraction * _power / _mesh_template->volume(e) *
+            _scaling * _scaling * _scaling;
           power_fraction_sum += power_fraction;
 
           checkZeroTally(power_fraction, "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));

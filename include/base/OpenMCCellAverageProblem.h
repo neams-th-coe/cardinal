@@ -204,6 +204,15 @@ protected:
   void readMeshTranslations(const std::vector<std::vector<double>> & data);
 
   /**
+   * Check the setup of the mesh template and translations. Because a simple copy transfer
+   * is used to get the heat source from a mesh tally onto the [Mesh], we require that the
+   * meshes are identical - both in terms of the element ordering and the actual dimensions of
+   * each element. This function performs as many checks as possible to ensure that the meshes
+   * are indeed identical.
+   */
+  void checkMeshTemplateAndTranslations();
+
+  /**
    * Read the phase cell level and check against the maximum level across the OpenMC domain
    * @param[in] name phase to read the cell level for
    * @param[out] cell_level cell coordinate level
