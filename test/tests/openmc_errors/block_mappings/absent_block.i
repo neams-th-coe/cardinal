@@ -40,6 +40,7 @@
   solid_blocks = '100'
   fluid_blocks = '500'
   tally_blocks = '100'
+  tally_type = cell
   solid_cell_level = 0
   fluid_cell_level = 0
 []

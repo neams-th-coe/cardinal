@@ -23,6 +23,7 @@
   type = OpenMCCellAverageProblem
   power = 70.0
   solid_blocks = '100'
+  tally_type = cell
   tally_blocks = '100'
   solid_cell_level = 0
 []
