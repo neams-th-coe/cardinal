@@ -189,9 +189,18 @@ protected:
   /// For keeping the output neat when using verbose
   std::string printNewline() { if (_verbose) return "\n"; else return ""; }
 
+  /**
+   * Check whether a vector extracted with getParam is empty
+   * @param[in] vector vector
+   * @param[in] name name to use for printing error if empty
+   */
   template <typename T> void checkEmptyVector(const std::vector<T> & vector,
     const std::string & name) const;
 
+  /**
+   * Read the mesh translations from file data
+   * @param[in] data
+   */
   void readMeshTranslations(const std::vector<std::vector<double>> & data);
 
   /**
@@ -298,6 +307,11 @@ protected:
    */
   Real normalizeLocalTally(const Real & tally_result) const;
 
+  /**
+   * Add the local kappa-fission tally
+   * @param[in] filters tally filters
+   * @param[in] estimator estimator type
+   */
   void addLocalTally(std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator estimator);
 
   /**
