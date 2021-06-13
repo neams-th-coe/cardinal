@@ -189,6 +189,11 @@ protected:
   /// For keeping the output neat when using verbose
   std::string printNewline() { if (_verbose) return "\n"; else return ""; }
 
+  template <typename T> void checkEmptyVector(const std::vector<T> & vector,
+    const std::string & name) const;
+
+  void readMeshTranslations(const std::vector<std::vector<double>> & data);
+
   /**
    * Read the phase cell level and check against the maximum level across the OpenMC domain
    * @param[in] name phase to read the cell level for
@@ -292,6 +297,8 @@ protected:
    * @return normalized tally
    */
   Real normalizeLocalTally(const Real & tally_result) const;
+
+  void addLocalTally(std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator estimator);
 
   /**
    * Check the sum of the fluid and solid tallies (if present) against the global

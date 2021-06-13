@@ -180,22 +180,26 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   initializeTallies();
 }
 
+template <typename T>
+void
+OpenMCCellAverageProblem::checkEmptyVector(const std::vector<T> & vector, const std::string & name) const
+{
+  if (vector.empty())
+    paramError(name, "Vector cannot be empty!");
+}
+
 void
 OpenMCCellAverageProblem::fillMeshTranslations()
 {
   if (isParamValid("mesh_translations"))
   {
     _mesh_translations = getParam<std::vector<Point>>("mesh_translations");
-
-    if (_mesh_translations.empty())
-      paramError("mesh_translations", "'mesh_translations' cannot be empty.");
+    checkEmptyVector(_mesh_translations, "mesh_translations");
   }
   else if (isParamValid("mesh_translations_file"))
   {
     std::vector<FileName> mesh_translations_file = getParam<std::vector<FileName>>("mesh_translations_file");
-
-    if (mesh_translations_file.empty())
-      paramError("mesh_translations_file", "'mesh_translations_file' cannot be empty.");
+    checkEmptyVector(mesh_translations_file, "mesh_translations_file");
 
     for (const auto & f : mesh_translations_file)
     {
@@ -204,30 +208,30 @@ OpenMCCellAverageProblem::fillMeshTranslations()
       file.read();
 
       const std::vector<std::vector<double>> & data = file.getData();
-
-      if (file.numEntries() % DIMENSION != 0)
-        paramError("mesh_translations_file", "Number of entries in 'mesh_translations_file' ",
-          f, " must be divisible by 3 to give x, y, and z coordinates");
-
-      for (unsigned int i = 0; i < data.size(); ++i)
-      {
-        Point position;
-
-        if (data[i].size() != DIMENSION)
-          paramError("mesh_translations_file", "All entries in 'mesh_translations_file' ", f,
-            " must contain exactly ", DIMENSION, " coordinates.");
-
-        for (unsigned int j = 0; j < DIMENSION; j++)
-          position(j) = data.at(i).at(j);
-
-        _mesh_translations.push_back(position);
-      }
+      readMeshTranslations(data);
     }
   }
   else
   {
     const Point p = {0.0, 0.0, 0.0};
     _mesh_translations = {p};
+  }
+}
+
+void
+OpenMCCellAverageProblem::readMeshTranslations(const std::vector<std::vector<double>> & data)
+{
+  for (const auto & d : data)
+  {
+    if (d.size() != DIMENSION)
+      paramError("mesh_translations_file", "All entries in 'mesh_translations_file' "
+        "must contain exactly ", DIMENSION, " coordinates.");
+
+    Point position;
+    for (unsigned int j = 0; j < DIMENSION; j++)
+      position(j) = d[j];
+
+    _mesh_translations.push_back(position);
   }
 }
 
@@ -271,9 +275,7 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name, std::unord
   if (isParamValid(param_name))
   {
     std::vector<SubdomainID> b = getParam<std::vector<SubdomainID>>(param_name);
-
-    if (b.size() == 0)
-      paramError(param_name, "Size of vector cannot be zero!");
+    checkEmptyVector(b, param_name);
 
     std::copy(b.begin(), b.end(), std::inserter(blocks, blocks.end()));
 
@@ -678,12 +680,12 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   // If there is a single coordinate level, we can print a helpful message if there are uncoupled
   // cells in the domain
-  //if (_single_coord_level)
-  //{
-  //  int n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
-  //  if (n_uncoupled_cells)
-  //    mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) + " OpenMC cells");
-  //}
+  if (_single_coord_level)
+  {
+    int n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
+    if (n_uncoupled_cells)
+      mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) + " OpenMC cells");
+  }
 
   // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
   computeCellMappedVolumes();
@@ -737,6 +739,16 @@ OpenMCCellAverageProblem::storeTallyCells()
 }
 
 void
+OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator estimator)
+{
+  auto tally = openmc::Tally::create();
+  tally->set_scores({"kappa-fission"});
+  tally->estimator_ = estimator;
+  tally->set_filters(filters);
+  _local_tally.push_back(tally);
+}
+
+void
 OpenMCCellAverageProblem::initializeTallies()
 {
   // create the global tally for normalization
@@ -754,9 +766,6 @@ OpenMCCellAverageProblem::initializeTallies()
       _console << "Adding cell tallies to blocks " << Moose::stringify(_tally_blocks) << " for " +
         Moose::stringify(_tally_cells.size()) + " cells ... ";
 
-      auto tally = openmc::Tally::create();
-      tally->set_scores({"kappa-fission"});
-
       switch (_tally_filter)
       {
         case filter::cell:
@@ -769,8 +778,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
           cell_filter->set_cells(cell_ids);
           std::vector<openmc::Filter *> tally_filters = {cell_filter};
-          tally->set_filters(tally_filters);
-          _local_tally.push_back(tally);
+          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
           break;
         }
         case filter::cell_instance:
@@ -783,8 +791,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
           cell_filter->set_cell_instances(cells);
           std::vector<openmc::Filter *> tally_filters = {cell_filter};
-          tally->set_filters(tally_filters);
-          _local_tally.push_back(tally);
+          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
           break;
         }
         default:
@@ -814,30 +821,29 @@ OpenMCCellAverageProblem::initializeTallies()
       openmc::model::mesh_map[mesh->id_] = mesh_index;
       openmc::model::meshes.push_back(std::move(mesh));
 
-      for (const auto & translation : _mesh_translations)
+      for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
       {
+        const auto & translation = _mesh_translations[i];
         auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
         meshFilter->set_mesh(mesh_index);
         meshFilter->set_translation({translation(0), translation(1), translation(2)});
 
         _mesh_filters.push_back(meshFilter);
         std::vector<openmc::Filter *> tally_filters = {meshFilter};
-
-        auto tally = openmc::Tally::create();
-        tally->set_scores({"kappa-fission"});
-        tally->estimator_ = openmc::TallyEstimator::COLLISION;
-        tally->set_filters(tally_filters);
-        _local_tally.push_back(tally);
+        addLocalTally(tally_filters, openmc::TallyEstimator::COLLISION);
 
         Real volume = 0.0;
-        for (decltype(tally->n_filter_bins()) e = 0; e < tally->n_filter_bins(); ++e)
+        for (decltype(_local_tally.at(i)->n_filter_bins()) e = 0; e < _local_tally.at(i)->n_filter_bins(); ++e)
           volume += _mesh_template->volume(e);
 
         if (_verbose)
           _console << " Mesh translated to (" << std::setw(4) << translation(0) << ", " <<
             std::setw(4) << translation(1) << ", " << std::setw(4) << translation(2) <<
-            "): " << std::setw(6) << tally->n_filter_bins() << " elements  |  volume (cm3): " << std::setw(6) << volume << std::endl;
+            "): " << std::setw(6) << _local_tally.at(i)->n_filter_bins() << " elements  |  volume (cm3): " << std::setw(6) << volume << std::endl;
       }
+
+      // TODO: can add the assume_separate setting for a bit of additional performance
+      // if we find that we need it
 
       // if using a mesh tally, we are restricted to collision estimators; therefore,
       // because we are going to use this global tally for normalization, we need to make
@@ -1095,7 +1101,9 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
     }
   case tally::mesh:
   {
-    // TODO: this requires that the mesh exactly correspond to the mesh templates
+    // TODO: this requires that the mesh exactly correspond to the mesh templates;
+    // for cases where they don't match, we'll need to do a nearest-node transfer or something
+
     unsigned int offset = 0;
     for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
     {
