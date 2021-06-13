@@ -147,8 +147,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
         paramError("mesh_template", "When using a mesh tally, the mesh template cannot be empty!");
 
       if (_specified_scaling)
-        paramError("scaling", "A mesh scaling cannot yet be combined with a mesh tally! "
-          "This is not an inherent limitation - it just hasn't been implemented yet.");
+        mooseWarning("When applying a scaling to the [Mesh], the 'mesh_template' must still be "
+          "in OpenMC's assumed units of centimeters!");
 
       fillMeshTranslations();
 
