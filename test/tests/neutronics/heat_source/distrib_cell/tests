@@ -4,8 +4,8 @@
     input = solid.i
     exodiff = 'solid_out.e'
     cli_args = '--app openmc'
-    # This test has very few particles, and OpenMC will error if there aren't any particles
-    # on a particular process
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
     max_parallel = 4
     requirement = "The heat source shall be correctly mapped if the solid cell level is not "
                   "the highest level."
@@ -14,8 +14,8 @@
     type = RunException
     input = warn_zero_tallies.i
     cli_args = '--app openmc --error'
-    # This test has very few particles, and OpenMC will error if there aren't any particles
-    # on a particular process
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
     max_parallel = 4
     expect_err = "Skipping tallies for"
     requirement = "A warning shall be printed if a material-fill cell does not contain any fissile material "
