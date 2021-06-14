@@ -45,7 +45,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _nondimensional(getParam<bool>("nondimensional")),
-    _nondimensional(getParam<bool>("ismovingmesh")),
+    _ismovingmesh(getParam<bool>("ismovingmesh")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),
     _dT_ref(getParam<Real>("dT_ref")),
@@ -140,11 +140,11 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
 
-  if (ismovingmesh)
+  if (_ismovingmesh)
   {
-	  _displacement_x = "displacement in x";
-	  _displacement_y = "displacement in y";
-	  _displacement_z = "displacement in z";
+	  _displacement_x = (double *) calloc(_n_surface_elems * _n_vertices_per_surface, sizeof(double));
+	  _displacement_y = (double *) calloc(_n_surface_elems * _n_vertices_per_surface, sizeof(double));
+	  _displacement_z = (double *) calloc(_n_surface_elems * _n_vertices_per_surface, sizeof(double));
   }
 
 
