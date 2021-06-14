@@ -11,7 +11,7 @@
     type = RunException
     input = nonexistent_block.i
     cli_args = '--app openmc'
-    expect_err = "Block 500 specified in 'solid_blocks' not found in mesh!"
+    expect_err = "Block 500 specified in 'tally_blocks' not found in mesh!"
     requirement = "The system shall error if the user specifies a block ID for coupling that does not exist."
   [../]
   [./no_blocks]
@@ -25,7 +25,7 @@
     type = RunException
     input = empty_block.i
     cli_args = '--app openmc'
-    expect_err = "Size of vector cannot be zero!"
+    expect_err = "Vector cannot be empty!"
     requirement = "The system shall error if an empty vector is provided for the blocks"
   [../]
   [./no_overlap]
@@ -53,7 +53,7 @@
     type = RunException
     input = multiple_phases.i
     cli_args = '--app openmc'
-    expect_err = "cell 4, instance 0 \(of 1\) :  16 solid elems  3486 fluid elems  0 uncoupled elems  |  Mapped elems volume:  264.336\n\n"
+    expect_err = "cell 4, instance 0 \(of 1\):  16 solid elems  3486 fluid elems  0 uncoupled elems  |  Mapped elems volume:  264.336\n\n"
                  "Each OpenMC cell, instance pair must map to elements of the same phase."
     requirement = "The system shall error if one OpenMC cell maps to more than one phase"
   [../]

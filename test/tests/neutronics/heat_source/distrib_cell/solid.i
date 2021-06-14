@@ -51,6 +51,7 @@
   solid_blocks = '100'
   fluid_blocks = '200'
   tally_blocks = '100 200'
+  tally_type = cell
   tally_filter = cell
   check_zero_tallies = false
 

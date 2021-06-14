@@ -42,6 +42,7 @@
   power = 70.0
   solid_blocks = '100'
   fluid_blocks = '200'
+  tally_type = cell
   tally_blocks = '100'
   solid_cell_level = 0
   fluid_cell_level = 0

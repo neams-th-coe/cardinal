@@ -37,6 +37,7 @@
   solid_blocks = '100'
   fluid_blocks = '200'
   tally_blocks = '100 200'
+  tally_type = cell
   verbose = true
 
   # skip the data transfer of temperature into OpenMC for the first time step

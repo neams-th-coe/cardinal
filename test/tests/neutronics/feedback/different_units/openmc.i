@@ -57,6 +57,7 @@
   fluid_blocks = '1'
   tally_blocks = '1'
   verbose = true
+  tally_type = cell
   tally_filter = cell
   fluid_cell_level = 0
 

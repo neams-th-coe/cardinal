@@ -1,4 +1,5 @@
 #include "AuxiliarySystem.h"
+#include "DelimitedFileReader.h"
 
 #include "mpi.h"
 #include "OpenMCCellAverageProblem.h"
@@ -34,7 +35,8 @@ validParams<OpenMCCellAverageProblem>()
     "Subdomain ID(s) corresponding to the solid phase, "
     "for which temperature will be sent to OpenMC");
   params.addParam<std::vector<SubdomainID>>("tally_blocks",
-    "Subdomain ID(s) for which to add tallies in the OpenMC model");
+    "Subdomain ID(s) for which to add tallies in the OpenMC model; "
+    "only used with cell tallies");
   params.addParam<bool>("check_tally_sum", true,
     "Whether to check consistency between the cell-wise kappa fission tallies with a global tally");
   params.addParam<bool>("check_zero_tallies", true,
@@ -49,11 +51,25 @@ validParams<OpenMCCellAverageProblem>()
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0",
     "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
     "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
+  params.addParam<bool>("normalize_by_global_tally", true,
+    "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
+    "of the local tally (false)");
 
   params.addParam<MooseEnum>("tally_filter", getTallyCellFilterEnum(),
-    "Type of filter to apply to the tally, options: cell, cell_instance (default). "
+    "Type of filter to apply to the cell tally, options: cell, cell_instance (default). "
     "You will generally always want to use the cell_instance option to allow cases with "
     "distributed cells, but then you are limited to only material fills");
+  params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
+    "Type of tally to use in OpenMC, options: cell, mesh");
+  params.addParam<std::string>("mesh_template", "Mesh tally template for OpenMC when using mesh tallies; "
+    "at present, this mesh must exactly match the mesh used in the [Mesh] block because a one-to-one copy "
+    "is used to get OpenMC's tally results on the [Mesh] in preparation for transfer to another App.");
+  params.addParam<std::vector<Point>>("mesh_translations",
+    "Coordinates to which each mesh template should be translated, if multiple unstructured meshes "
+    "are desired.");
+  params.addParam<std::vector<FileName>>("mesh_translations_file",
+    "File providing the coordinates to which each mesh template should be translated, if multiple "
+    "unstructured meshes are desired.");
 
   params.addParam<int>("solid_cell_level", "Coordinate level in OpenMC to stop at for identifying solid cells");
   params.addParam<int>("fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
@@ -64,6 +80,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   ExternalProblem(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
   _tally_filter(getParam<MooseEnum>("tally_filter").getEnum<filter::CellFilterEnum>()),
+  _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _power(getParam<Real>("power")),
   _check_tally_sum(getParam<bool>("check_tally_sum")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
@@ -71,36 +88,78 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
+  _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
+  _needs_global_tally(_check_tally_sum || _normalize_by_global),
   _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_openmc_cells(openmc::model::cells.size()),
   _n_cell_digits(digits(_n_openmc_cells)),
-  _using_default_tally_blocks(_single_coord_level && !isParamValid("tally_blocks"))
+  _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks"))
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
 
   openmc::settings::libmesh_comm = &_mesh.comm();
 
+  switch (_tally_type)
+  {
+    case tally::cell:
+    {
+      std::vector<std::string> unused_pars = {"mesh_template", "mesh_translations", "mesh_translations_file"};
+
+      for (const auto & s : unused_pars)
+        if (params.isParamSetByUser(s))
+          mooseWarning("The '" + s + "' parameter is unused when using cell tallies!");
+
+      // tally_blocks is optional if the OpenMC geometry has a single coordinate level
+      if (!_single_coord_level && !isParamValid("tally_blocks"))
+        paramError("tally_blocks", "List of tally blocks must be specified for OpenMC geometries with "
+          "more than one coordinate level");
+
+      readTallyBlocks();
+
+      // For single-level geometries, we take the default setting for tally_blocks to be all the
+      // blocks in the MOOSE domain
+      if (_using_default_tally_blocks)
+        for (const auto & s : _mesh.meshSubdomains())
+          _tally_blocks.insert(s);
+
+      break;
+    }
+    case tally::mesh:
+    {
+      std::vector<std::string> unused_pars = {"tally_filter", "tally_blocks"};
+
+      for (const auto & s : unused_pars)
+        if (params.isParamSetByUser(s))
+          mooseWarning("The '" + s + "' parameter is unused when using mesh tallies!");
+
+      if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
+        mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
+
+      if (!isParamValid("mesh_template"))
+        paramError("mesh_template", "When using a mesh tally, a mesh template must be provided!");
+
+       _mesh_template_filename = getParam<std::string>("mesh_template");
+
+      if (_mesh_template_filename.empty())
+        paramError("mesh_template", "When using a mesh tally, the mesh template cannot be empty!");
+
+      fillMeshTranslations();
+
+      break;
+    }
+    default:
+      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+  }
+
   if (!isParamValid("fluid_blocks") && !isParamValid("solid_blocks"))
     mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
       "establish the mapping from MOOSE to OpenMC.");
 
-  // tally_blocks is optional if the OpenMC geometry has a single coordinate level
-  if (!_single_coord_level && !isParamValid("tally_blocks"))
-    paramError("tally_blocks", "List of tally blocks must be specified for OpenMC geometries with "
-      "more than one coordinate level");
-
   readFluidBlocks();
   readSolidBlocks();
-  readTallyBlocks();
-
-  // For single-level geometries, we take the default setting for tally_blocks to be all the
-  // blocks in the MOOSE domain
-  if (_using_default_tally_blocks)
-    for (const auto & s : mesh().meshSubdomains())
-      _tally_blocks.insert(s);
 
   // Make sure the same block ID doesn't appear in both the fluid and solid blocks,
   // or else we won't know how to send feedback into OpenMC.
@@ -115,6 +174,138 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   getMaterialFills();
 
   initializeTallies();
+
+  checkMeshTemplateAndTranslations();
+}
+
+template <typename T>
+void
+OpenMCCellAverageProblem::checkEmptyVector(const std::vector<T> & vector, const std::string & name) const
+{
+  if (vector.empty())
+    paramError(name, "Vector cannot be empty!");
+}
+
+void
+OpenMCCellAverageProblem::fillMeshTranslations()
+{
+  if (isParamValid("mesh_translations"))
+  {
+    _mesh_translations = getParam<std::vector<Point>>("mesh_translations");
+    checkEmptyVector(_mesh_translations, "mesh_translations");
+  }
+  else if (isParamValid("mesh_translations_file"))
+  {
+    std::vector<FileName> mesh_translations_file = getParam<std::vector<FileName>>("mesh_translations_file");
+    checkEmptyVector(mesh_translations_file, "mesh_translations_file");
+
+    for (const auto & f : mesh_translations_file)
+    {
+      MooseUtils::DelimitedFileReader file(f, &_communicator);
+      file.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
+      file.read();
+
+      const std::vector<std::vector<double>> & data = file.getData();
+      readMeshTranslations(data);
+    }
+  }
+  else
+  {
+    const Point p = {0.0, 0.0, 0.0};
+    _mesh_translations = {p};
+  }
+}
+
+void
+OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
+{
+  // we can do some rudimentary checking on the mesh template by comparing the centroid
+  // coordinates compared to centroids in the [Mesh] (because right now, we just doing a simple
+  // copy transfer that necessitates the meshes to have the same elements in the same order). If
+  // the first two elements of each mesh translation match the [Mesh], we assume that the meshes
+  // are the same (otherwise, print an error). We need to check two elements per mesh translation
+  // because this ensures that both the position and angular rotation match.
+  unsigned int offset = 0;
+  for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
+  {
+    const auto & filter = _mesh_filters[i];
+
+    // just compare the first two elements
+    for (unsigned int e = 0; e < 2; ++e)
+    {
+      auto elem_ptr = _mesh.queryElemPtr(offset + e);
+
+      if (!elem_ptr)
+        continue;
+
+      // because the mesh template and [Mesh] may be in different units, we need
+      // to adjust the [Mesh] by the scaling factor before doing a comparison
+      auto pt = _mesh_template->centroid(e);
+      Point centroid_template = {pt[0] , pt[1], pt[2]};
+
+      // the translation applied in OpenMC isn't actually registered in the mesh itself;
+      // it is always added on to the point, so we need to do the same here
+      centroid_template += _mesh_translations[i];
+
+      Point centroid_mesh = elem_ptr->centroid() * _scaling;
+
+      // if the centroids are the same except for a factor of 'scaling', then we can
+      // guess that the mesh_template is probably not in units of centimeters
+      Real tol = 1e-6;
+      if (_specified_scaling)
+      {
+        // if scaling was applied correctly, then each calculation of 'scaling' here should equal 1. Otherwise,
+        // if they're all the same, then 'scaling_x' is probably the factor by which the mesh_template
+        // needs to be multiplied, so we can print a helpful error message
+        bool incorrect_scaling = true;
+        for (unsigned int j = 0; j < DIMENSION; ++j)
+        {
+          Real scaling = centroid_mesh(j) / centroid_template(j);
+          incorrect_scaling = incorrect_scaling && (std::abs(scaling - 1.0) > tol);
+        }
+
+        if (incorrect_scaling)
+          mooseError("The centroids of the 'mesh_template' (assumed to be in units of cm) differ from the "
+            "centroids of the [Mesh]\n(assumed to be in units of cm / 'scaling') by a factor of " +
+            Moose::stringify(centroid_mesh(0) / centroid_template(0)) + ".\n\nDid you forget that the 'mesh_template' must be in "
+            "units of centimeters, even when using the 'scaling' parameter?");
+      }
+
+      // check if centroids are the same
+      bool different_centroids = false;
+      for (unsigned int j = 0; j < DIMENSION; ++j)
+        different_centroids = different_centroids || (std::abs(centroid_mesh(j) - centroid_template(j)) > tol);
+
+      if (different_centroids)
+        mooseError("Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh]: (" +
+          Moose::stringify(centroid_mesh(0)) + ", " + Moose::stringify(centroid_mesh(1)) + ", " +
+          Moose::stringify(centroid_mesh(2)) + ")\ndoes not match centroid for element " + Moose::stringify(e) +
+          " in 'mesh_template' " + Moose::stringify(i) + ": (" +
+          Moose::stringify(centroid_template(0)) + ", " + Moose::stringify(centroid_template(1)) + ", " +
+          Moose::stringify(centroid_template(2)) + ")!\n\nThe copy transfer requires that the [Mesh] and " +
+          "'mesh_template' be identical (except for a factor of 'scaling').");
+    }
+
+    offset += filter->n_bins();
+  }
+
+}
+
+void
+OpenMCCellAverageProblem::readMeshTranslations(const std::vector<std::vector<double>> & data)
+{
+  for (const auto & d : data)
+  {
+    if (d.size() != DIMENSION)
+      paramError("mesh_translations_file", "All entries in 'mesh_translations_file' "
+        "must contain exactly ", DIMENSION, " coordinates.");
+
+    Point position;
+    for (unsigned int j = 0; j < DIMENSION; j++)
+      position(j) = d[j];
+
+    _mesh_translations.push_back(position);
+  }
 }
 
 void
@@ -157,13 +348,11 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name, std::unord
   if (isParamValid(param_name))
   {
     std::vector<SubdomainID> b = getParam<std::vector<SubdomainID>>(param_name);
-
-    if (b.size() == 0)
-      paramError(param_name, "Size of vector cannot be zero!");
+    checkEmptyVector(b, param_name);
 
     std::copy(b.begin(), b.end(), std::inserter(blocks, blocks.end()));
 
-    const auto & subdomains = mesh().meshSubdomains();
+    const auto & subdomains = _mesh.meshSubdomains();
     for (const auto & b : blocks)
       if (subdomains.find(b) == subdomains.end())
         mooseError("Block " + Moose::stringify(b) + " specified in '" + name + "_blocks' not found in mesh!");
@@ -251,7 +440,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     }
 
     std::stringstream msg;
-      msg << printCell(cell_info) << " : " << std::setw(digits(_n_moose_solid_elems)) << Moose::stringify(n_solid) <<
+      msg << printCell(cell_info) << ": " << std::setw(digits(_n_moose_solid_elems)) << Moose::stringify(n_solid) <<
       " solid elems  " << std::setw(digits(_n_moose_fluid_elems)) << Moose::stringify(n_fluid) <<
       " fluid elems  " << std::setw(digits(_n_moose_none_elems)) << Moose::stringify(n_none) <<
       " uncoupled elems  |  Mapped elems volume (cm3): " << std::setw(8) <<
@@ -264,6 +453,10 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     if (_verbose)
       _console << msg.str() << std::endl;
   }
+
+  // print newline to keep output neat between output sections
+  if (_verbose)
+    _console << std::endl;
 
   if (_has_fluid_blocks && !has_fluid_cells)
     mooseError("'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!");
@@ -573,11 +766,13 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // Check that each cell maps to a single phase
   checkCellMappedPhase();
 
-  // Check that each cell maps to subdomain IDs that all have the same tally setting
-  checkCellMappedSubdomains();
-
-  // Find the OpenMC cells for which we should add tallies
-  storeTallyCells();
+  // Check that each cell maps to subdomain IDs that all have the same tally setting,
+  // and then store which cells should have tallies added to them
+  if (_tally_type == tally::cell)
+  {
+    checkCellMappedSubdomains();
+    storeTallyCells();
+  }
 }
 
 void
@@ -617,52 +812,122 @@ OpenMCCellAverageProblem::storeTallyCells()
 }
 
 void
+OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator estimator)
+{
+  auto tally = openmc::Tally::create();
+  tally->set_scores({"kappa-fission"});
+  tally->estimator_ = estimator;
+  tally->set_filters(filters);
+  _local_tally.push_back(tally);
+}
+
+void
 OpenMCCellAverageProblem::initializeTallies()
 {
   // create the global tally for normalization
-  _global_tally = openmc::Tally::create();
-  _global_tally->set_scores({"kappa-fission"});
-
-  _console << "Adding tallies to blocks " << Moose::stringify(_tally_blocks) << " for " +
-    Moose::stringify(_tally_cells.size()) + " cells ... ";
+  if (_needs_global_tally)
+  {
+    _global_tally = openmc::Tally::create();
+    _global_tally->set_scores({"kappa-fission"});
+  }
 
   // create the local heating tally
-  _local_tally = openmc::Tally::create();
-  _local_tally->set_scores({"kappa-fission"});
-
-  switch (_tally_filter)
+  switch (_tally_type)
   {
-    case filter::cell:
+    case tally::cell:
     {
-      auto cell_filter = dynamic_cast<openmc::CellFilter *>(openmc::Filter::create("cell"));
+      _console << "Adding cell tallies to blocks " << Moose::stringify(_tally_blocks) << " for " +
+        Moose::stringify(_tally_cells.size()) + " cells ... ";
 
-      std::vector<int32_t> cell_ids;
+      switch (_tally_filter)
+      {
+        case filter::cell:
+        {
+          auto cell_filter = dynamic_cast<openmc::CellFilter *>(openmc::Filter::create("cell"));
 
-      for (const auto & c: _tally_cells)
-        cell_ids.push_back(c.first);
+          std::vector<int32_t> cell_ids;
+          for (const auto & c: _tally_cells)
+            cell_ids.push_back(c.first);
 
-      cell_filter->set_cells(cell_ids);
+          cell_filter->set_cells(cell_ids);
+          std::vector<openmc::Filter *> tally_filters = {cell_filter};
+          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
+          break;
+        }
+        case filter::cell_instance:
+        {
+          auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
 
-      std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      _local_tally->set_filters(tally_filters);
+          std::vector<openmc::CellInstance> cells;
+          for (const auto & c : _tally_cells)
+            cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
+
+          cell_filter->set_cell_instances(cells);
+          std::vector<openmc::Filter *> tally_filters = {cell_filter};
+          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
+          break;
+        }
+        default:
+          mooseError("Unhandled 'CellFilterEnum' in 'OpenMCCellAverageProblem'!");
+      }
       break;
     }
-    case filter::cell_instance:
+    case tally::mesh:
     {
-      auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+      _console << "Adding mesh tally based on " << _mesh_template_filename << " at " <<
+        Moose::stringify(_mesh_translations.size()) << " locations ... " << printNewline();
 
-      std::vector<openmc::CellInstance> cells;
-      for (const auto & c : _tally_cells)
-        cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
+      // find the highest mesh ID in the OpenMC problem in the event that there's other mesh
+      // tallies besides what is added here
+      int mesh_id = 0;
+      for (const auto & mesh : openmc::model::meshes)
+        mesh_id = std::max(mesh_id, mesh->id_);
 
-      cell_filter->set_cell_instances(cells);
+      // create a new mesh
+      auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename);
+      mesh->id_ = ++mesh_id;
+      mesh->output_ = false;
 
-      std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      _local_tally->set_filters(tally_filters);
+      _mesh_template = mesh.get();
+
+      int32_t mesh_index = openmc::model::meshes.size();
+      openmc::model::mesh_map[mesh->id_] = mesh_index;
+      openmc::model::meshes.push_back(std::move(mesh));
+
+      for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
+      {
+        const auto & translation = _mesh_translations[i];
+        auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
+        meshFilter->set_mesh(mesh_index);
+        meshFilter->set_translation({translation(0), translation(1), translation(2)});
+
+        _mesh_filters.push_back(meshFilter);
+        std::vector<openmc::Filter *> tally_filters = {meshFilter};
+        addLocalTally(tally_filters, openmc::TallyEstimator::COLLISION);
+
+        Real volume = 0.0;
+        for (decltype(_local_tally.at(i)->n_filter_bins()) e = 0; e < _local_tally.at(i)->n_filter_bins(); ++e)
+          volume += _mesh_template->volume(e);
+
+        if (_verbose)
+          _console << " Mesh translated to (" << std::setw(4) << translation(0) << ", " <<
+            std::setw(4) << translation(1) << ", " << std::setw(4) << translation(2) <<
+            "): " << std::setw(6) << _local_tally.at(i)->n_filter_bins() << " elements  |  volume (cm3): " << std::setw(6) << volume << std::endl;
+      }
+
+      // TODO: can add the assume_separate setting for a bit of additional performance
+      // if we find that we need it
+
+      // if using a mesh tally, we are restricted to collision estimators; therefore,
+      // because we are going to use this global tally for normalization, we need to make
+      // sure it also uses a collision estimator
+      if (_global_tally)
+        _global_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+
       break;
     }
     default:
-      mooseError("Unhandled 'CellFilterEnum' in 'OpenMCCellAverageProblem'!");
+      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
 
   _console << "done" << std::endl;
@@ -679,14 +944,14 @@ OpenMCCellAverageProblem::findCell(const Point & point)
 }
 
 double
-OpenMCCellAverageProblem::tallySum(const openmc::Tally * tally) const
+OpenMCCellAverageProblem::tallySum(std::vector<openmc::Tally *> tally) const
 {
   double sum = 0.0;
 
-  if (tally)
+  for (const auto & t : tally)
   {
-    auto mean = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-    sum = xt::sum(mean)();
+    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    sum += xt::sum(mean)();
   }
 
   return sum;
@@ -725,10 +990,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
   const auto sys_number = _aux->number();
   const auto & mesh = _mesh.getMesh();
 
-  _console << "Sending temperature to OpenMC cells... ";
-
-  // print newline to keep output neat between output sections
-  if (_verbose) _console << std::endl;
+  _console << "Sending temperature to OpenMC cells... " << printNewline();
 
   for (const auto & c : _cell_to_elem)
   {
@@ -769,10 +1031,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
   const auto sys_number = _aux->number();
   const auto & mesh = _mesh.getMesh();
 
-  _console << "Sending density to OpenMC fluid cells... ";
-
-  // print newline to keep output neat between output sections
-  if (_verbose) _console << std::endl;
+  _console << "Sending density to OpenMC fluid cells... " << printNewline();
 
   for (const auto & c : _cell_to_elem)
   {
@@ -833,63 +1092,127 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
 }
 
 void
+OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction, const std::string & descriptor) const
+{
+  if (_verbose)
+    _console << " " << descriptor << " power fraction: " << std::setw(3) <<
+      Moose::stringify(power_fraction) << std::endl;
+
+  if (_check_zero_tallies && power_fraction < 1e-12)
+    mooseError("Heat source computed for " + descriptor + " is zero!\n\n" +
+      "This may occur if there is no fissile material in this region, if you have very few particles, "
+      "or if you have a geometry "
+      "setup error. You can turn off this check by setting 'check_zero_tallies' to false.");
+}
+
+Real
+OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
+{
+  if (_normalize_by_global)
+    return tally_result / _global_kappa_fission;
+  else
+    return tally_result / _local_kappa_fission;
+}
+
+void
 OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
   const auto & mesh = _mesh.getMesh();
 
-  _console << "Extracting OpenMC fission heat source... ";
+  _console << "Extracting OpenMC fission heat source... " << printNewline();
 
   // get the total kappa fission sources for normalization
-  _global_kappa_fission = tallySum(_global_tally);
-  _local_kappa_fission = tallySum(_local_tally);
+  if (_global_tally)
+    _global_kappa_fission = tallySum({_global_tally});
 
-  auto mean_tally = xt::view(_local_tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  _local_kappa_fission = tallySum(_local_tally);
 
   if (_check_tally_sum)
     checkTallySum();
 
-  // print newline to keep output neat between output sections
-  if (_verbose) _console << std::endl;
-
-  // divide each tally value by the volume that it corresponds to in MOOSE
-  // because we will apply it as a volumetric heat source (W/volume).
-  int i = 0;
   Real power_fraction_sum = 0.0;
-  for (const auto & c : _cell_to_elem)
+
+  switch (_tally_type)
   {
-    auto cell_info = c.first;
-
-    // if this cell doesn't have any tallies, skip it
-    if (!_cell_has_tally[cell_info])
-      continue;
-
-    Real power_fraction = mean_tally(i++) / _global_kappa_fission;
-    Real volumetric_power = power_fraction * _power / _cell_to_elem_volume[cell_info];
-    power_fraction_sum += power_fraction;
-
-    if (_verbose)
-      _console << printCell(cell_info) << " power fraction: " << std::setw(3) <<
-        Moose::stringify(power_fraction) << std::endl;
-
-    if (_check_zero_tallies && power_fraction < 1e-12)
-      mooseError("Heat source computed for " + printCell(cell_info) + " is zero!\n\n" +
-        "This may occur if there is no fissile material in this cell, if you have very few particles, "
-        "or if you have a geometry "
-        "setup error. You can turn off this check by setting 'check_zero_tallies' to false.");
-
-    // loop over all the elements that belong to this cell, and set the heat
-    // source to the computed value
-    for (const auto & e : c.second)
+    case tally::cell:
     {
-      auto elem_ptr = mesh.query_elem_ptr(e);
-      if (elem_ptr)
+      auto mean_tally = xt::view(_local_tally.at(0)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+
+      int i = 0;
+      for (const auto & c : _cell_to_elem)
       {
-        auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-        solution.set(dof_idx, volumetric_power);
+        auto cell_info = c.first;
+
+        // if this cell doesn't have any tallies, skip it
+        if (!_cell_has_tally[cell_info])
+          continue;
+
+        Real power_fraction = normalizeLocalTally(mean_tally(i++));
+
+        // divide each tally value by the volume that it corresponds to in MOOSE
+        // because we will apply it as a volumetric heat source (W/volume).
+        Real volumetric_power = power_fraction * _power / _cell_to_elem_volume[cell_info];
+        power_fraction_sum += power_fraction;
+
+        checkZeroTally(power_fraction, printCell(cell_info));
+
+        // loop over all the elements that belong to this cell, and set the heat
+        // source to the computed value
+        for (const auto & e : c.second)
+        {
+          auto elem_ptr = mesh.query_elem_ptr(e);
+          if (elem_ptr)
+          {
+            auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+            solution.set(dof_idx, volumetric_power);
+          }
+        }
       }
+      break;
     }
+  case tally::mesh:
+  {
+    // TODO: this requires that the mesh exactly correspond to the mesh templates;
+    // for cases where they don't match, we'll need to do a nearest-node transfer or something
+
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
+    {
+      const auto * filter = _mesh_filters[i];
+      auto mean_tally = xt::view(_local_tally.at(i)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+
+      for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
+      {
+        auto elem_ptr = mesh.query_elem_ptr(offset + e);
+
+        if (elem_ptr)
+        {
+          Real power_fraction = normalizeLocalTally(mean_tally(e));
+
+          // divide each tally by the volume that it corresponds to in MOOSE
+          // because we will apply it as a volumetric heat source (W/volume).
+          // Because we require that the mesh template has units of cm based on the
+          // mesh constructors in OpenMC, we need to adjust the division
+          Real volumetric_power = power_fraction * _power / _mesh_template->volume(e) *
+            _scaling * _scaling * _scaling;
+          power_fraction_sum += power_fraction;
+
+          checkZeroTally(power_fraction, "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
+
+          auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
+          solution.set(dof_idx, volumetric_power);
+        }
+      }
+
+      offset += filter->n_bins();
+    }
+
+    break;
+  }
+  default:
+    mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
 
   if (_check_tally_sum)
@@ -956,7 +1279,8 @@ OpenMCCellAverageProblem::checkTallySum() const
       "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level
-    if (_single_coord_level)
+    // and cell tallies are used
+    if (_tally_type == tally::cell && _single_coord_level)
     {
       int n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
       if (n_uncoupled_cells)

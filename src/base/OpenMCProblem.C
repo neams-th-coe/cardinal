@@ -150,12 +150,7 @@ OpenMCProblem::fillCenters()
 
       const std::vector<std::vector<double>> & data = file.getData();
 
-      // TODO: can replace by file.numEntries after MOOSE update
-     std::size_t num_entries = 0;
-     for (std::size_t i = 0; i < data.size(); ++i)
-       num_entries += data[i].size();
-
-      if (num_entries % DIMENSION != 0)
+      if (file.numEntries() % DIMENSION != 0)
         paramError("centers_file", "Number of entries in 'centers_file' ",
           f, " must be divisible by 3 to give x, y, and z coordinates");
 

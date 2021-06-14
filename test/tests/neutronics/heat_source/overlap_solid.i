@@ -50,6 +50,7 @@
   power = 100.0
   solid_blocks = '100'
   fluid_blocks = '200'
+  tally_type = cell
   tally_filter = cell
 
   # This input has fissile material in the fluid phase, so we will get a warning

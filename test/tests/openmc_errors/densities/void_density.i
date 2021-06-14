@@ -36,6 +36,7 @@
   type = OpenMCCellAverageProblem
   power = 10.0
   fluid_blocks = '1'
+  tally_type = cell
   tally_blocks = '1'
   verbose = true
 

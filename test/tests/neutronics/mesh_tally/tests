@@ -1,0 +1,65 @@
+[Tests]
+  [./one_mesh]
+    type = Exodiff
+    input = one_mesh.i
+    exodiff = 'one_mesh_out.e'
+    cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
+                  "a local tally when a single mesh is used. "
+                  "The gold file was created with the original OpenMCProblem, showing "
+                  "that the mesh tally implementation is equivalent."
+  [../]
+  [./one_mesh_global]
+    type = Exodiff
+    input = one_mesh_global.i
+    exodiff = 'one_mesh_global_out.e'
+    cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
+                  "a global tally when a single mesh is used. This test was run with successively finer "
+                  "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
+                  "approaches the value of a cell tally as the difference in volume decreases."
+  [../]
+  [./multiple_meshes]
+    type = Exodiff
+    input = multiple_meshes.i
+    exodiff = 'multiple_meshes_out.e'
+    cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
+                  "a local tally when multiple identical meshes are used. "
+                  "The gold file was created with the original OpenMCProblem, showing "
+                  "that the mesh tally implementation is equivalent."
+  [../]
+  [./multiple_meshes_global]
+    type = Exodiff
+    input = multiple_meshes_global.i
+    exodiff = 'multiple_meshes_global_out.e'
+    cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
+                  "a global tally when multiple identical meshes are used. This test was run with successively finer "
+                  "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
+                  "approaches the value of a cell tally as the difference in volume decreases."
+  [../]
+  [./different_units]
+    type = Exodiff
+    input = different_units.i
+    exodiff = 'different_units_out.e'
+    cli_args = '--app openmc'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be correctly projected onto a [Mesh] in units of meters "
+                  "when the tally mesh template is in units of centimeters."
+  [../]
+[]

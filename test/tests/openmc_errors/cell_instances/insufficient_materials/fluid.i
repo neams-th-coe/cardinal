@@ -8,6 +8,7 @@
   power = 500.0
   solid_blocks = '1 3'
   fluid_blocks = '2'
+  tally_type = cell
   tally_blocks = '1'
   verbose = true
   tally_filter = cell_instance

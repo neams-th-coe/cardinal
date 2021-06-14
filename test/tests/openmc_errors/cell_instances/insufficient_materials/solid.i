@@ -7,6 +7,7 @@
   type = OpenMCCellAverageProblem
   power = 500.0
   solid_blocks = '2'
+  tally_type = cell
   tally_blocks = '2'
 
   tally_filter = cell_instance

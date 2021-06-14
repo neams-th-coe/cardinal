@@ -186,6 +186,32 @@ protected:
   /// Read the parameters for 'tally_blocks'
   void readTallyBlocks() { readBlockParameters("tally", _tally_blocks); }
 
+  /// For keeping the output neat when using verbose
+  std::string printNewline() { if (_verbose) return "\n"; else return ""; }
+
+  /**
+   * Check whether a vector extracted with getParam is empty
+   * @param[in] vector vector
+   * @param[in] name name to use for printing error if empty
+   */
+  template <typename T> void checkEmptyVector(const std::vector<T> & vector,
+    const std::string & name) const;
+
+  /**
+   * Read the mesh translations from file data
+   * @param[in] data
+   */
+  void readMeshTranslations(const std::vector<std::vector<double>> & data);
+
+  /**
+   * Check the setup of the mesh template and translations. Because a simple copy transfer
+   * is used to get the heat source from a mesh tally onto the [Mesh], we require that the
+   * meshes are identical - both in terms of the element ordering and the actual dimensions of
+   * each element. This function performs as many checks as possible to ensure that the meshes
+   * are indeed identical.
+   */
+  void checkMeshTemplateAndTranslations();
+
   /**
    * Read the phase cell level and check against the maximum level across the OpenMC domain
    * @param[in] name phase to read the cell level for
@@ -207,10 +233,10 @@ protected:
 
   /**
    * Compute the mean value of a tally
-   * @param[in] tally OpenMC tally
+   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
    * @return mean value
    */
-  double tallySum(const openmc::Tally * tally) const;
+  double tallySum(std::vector<openmc::Tally *> tally) const;
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
@@ -257,6 +283,14 @@ protected:
   void getMaterialFills();
 
   /**
+   * Check whether the power in a particular tally bin is zero, which will throw
+   * an error if 'check_zero_tallies = true'.
+   * @param[in] power_fraction fractional power of the bin
+   * @param[in] descriptor string to use in formatting the error message content
+   */
+  void checkZeroTally(const Real & power_fraction, const std::string & descriptor) const;
+
+  /**
    * Send temperature from MOOSE to the OpenMC cells by computing a volume average
    * and applying a single temperature per OpenMC cell
    */
@@ -275,10 +309,31 @@ protected:
   void getHeatSourceFromOpenMC();
 
   /**
+   * Normalize the local tally by either the global kappa fission tally, or the sum
+   * of the local kappa fission tally
+   * @param[in] tally_result value of tally result
+   * @return normalized tally
+   */
+  Real normalizeLocalTally(const Real & tally_result) const;
+
+  /**
+   * Add the local kappa-fission tally
+   * @param[in] filters tally filters
+   * @param[in] estimator estimator type
+   */
+  void addLocalTally(std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator estimator);
+
+  /**
    * Check the sum of the fluid and solid tallies (if present) against the global
    * kappa fission tally.
    */
   void checkTallySum() const;
+
+  /**
+   * Fill the mesh translations to be applied to each unstructured mesh; if no
+   * translations are explicitly given, a translation of (0.0, 0.0, 0.0) is assumed.
+   */
+  void fillMeshTranslations();
 
   /**
    * Find the OpenMC cell at a given point in space in terms of the _particle members
@@ -315,6 +370,16 @@ protected:
    * be careful about how you set up the problem if you want to use lattices).
    */
   const filter::CellFilterEnum _tally_filter;
+
+  /**
+   * Type of tally to apply to extract kappa fission score from OpenMC;
+   * if you want to tally in cells, use 'cell'. Otherwise, to tally on an
+   * unstructured mesh, use 'mesh'. Currently, this implementation is limited
+   * to a single mesh in the OpenMC geometry.
+   * TODO: allow the same mesh to be repeated several times throughout the
+   * OpenMC geometry
+   */
+  const tally::TallyTypeEnum _tally_type;
 
   /// Constant power for the entire OpenMC domain
   const Real & _power;
@@ -388,6 +453,27 @@ protected:
   const Real & _scaling;
 
   /**
+   * How to normalize the OpenMC kappa-fission tally into units of W/volume. If 'true',
+   * normalization is performed by dividing each local tally against a problem-global
+   * kappa-fission tally. The advantage of this approach is that some power-producing parts of the
+   * OpenMC domain can be excluded from multiphysics feedback (without us having to guess
+   * what the power of the *included* part of the domain is). This can let us do
+   * "zooming" type calculations, where perhaps we only want to send T/H feedback to
+   * one bundle in a full core.
+   *
+   * If 'false', normalization is performed by dividing each local tally by the sum
+   * of the local tally itself. The advantage of this approach becomes evident when
+   * using mesh tallies. If a mesh tally does not perfectly align with an OpenMC cell -
+   * for instance, a first-order sphere mesh will not perfectly match the volume of a
+   * TRISO pebble - then not all of the power actually produced in the pebble is
+   * tallies on the mesh approximation to that pebble. Therefore, if you set a core
+   * power of 1 MW and you normalized based on a global kappa fission tally, you'd always
+   * miss some of that power when sending to MOOSE. So, in this case, it is better to
+   * normalize against the local tally itself so that the correct power is preserved.
+   */
+  const bool & _normalize_by_global;
+
+  /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */
@@ -398,6 +484,12 @@ protected:
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */
   const bool _has_solid_blocks;
+
+  /**
+   * Whether a global tally is required for the sake of normalization and/or checking
+   * the tally sum
+   */
+  const bool _needs_global_tally;
 
   /**
    * Whether tallies should be added to the fluid phase; this should be true if you have
@@ -459,8 +551,14 @@ protected:
   /// Global kappa fission tally
   openmc::Tally * _global_tally {nullptr};
 
-  /// Local cell-filter kappa fission tally
-  openmc::Tally * _local_tally {nullptr};
+  /**
+   * Local kappa fission tallies; multiple tallies will only exist when
+   * translating multiple unstructured meshes throughout the geometry
+   */
+  std::vector<openmc::Tally *> _local_tally;
+
+  /// OpenMC unstructured mesh instance for use of mesh tallies
+  const openmc::LibMesh * _mesh_template;
 
   /// Heat source variable
   unsigned int _heat_source_var;
@@ -506,6 +604,16 @@ protected:
   const bool _using_default_tally_blocks;
 
   /**
+   * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
+   * must be identical to the mesh used in the [Mesh] block because a simple copy transfer
+   * is used to extract the tallies and put on the application's mesh in preparation for
+   * a transfer to another MOOSE app.
+   * TODO: allow the mesh to not be identical, both in terms of using different units
+   * and more general differences like not having a particular phase present
+   */
+  std::string _mesh_template_filename;
+
+  /**
    * Whether the present transfer is the first transfer; because ExternalProblem::solve
    * always does the transfer TO the multiapp first, this is also synonymous with the
    * first incoming transfer, with respect to whether that transfer is skipped by setting
@@ -518,4 +626,17 @@ protected:
 
   /// Dummy particle to reduce number of allocations of particles for cell lookup routines
   openmc::Particle _particle;
+
+  /**
+   * Translations to apply to the mesh template, in the event that the mesh should be
+   * repeated throughout the geometry. For instance, in pincell type geometries, you can
+   * use this feature to repeat the same cylinder mesh multiple times throughout the domain.
+   */
+  std::vector<Point> _mesh_translations;
+
+  /// OpenMC mesh filters for unstructured mesh tallies
+  std::vector<const openmc::MeshFilter *> _mesh_filters;
+
+  /// Spatial dimension of the Monte Carlo problem
+  static constexpr int DIMENSION {3};
 };

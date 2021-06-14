@@ -25,6 +25,7 @@
 
   # we added tally blocks, but forgot to add the fluid blocks
   tally_blocks = '100'
+  tally_type = cell
 []
 
 [Executioner]
