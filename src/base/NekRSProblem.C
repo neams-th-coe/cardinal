@@ -142,9 +142,9 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
 
   if (_ismovingmesh)
   {
-	  _displacement_x = (double *) calloc(_n_surface_elems * _n_vertices_per_surface, sizeof(double));
-	  _displacement_y = (double *) calloc(_n_surface_elems * _n_vertices_per_surface, sizeof(double));
-	  _displacement_z = (double *) calloc(_n_surface_elems * _n_vertices_per_surface, sizeof(double));
+    _displacement_x = (double *) calloc(_n_vertices_per_surface, sizeof(double));
+    _displacement_y = (double *) calloc(_n_vertices_per_surface, sizeof(double));
+    _displacement_z = (double *) calloc(_n_vertices_per_surface, sizeof(double));
   }
 
 
