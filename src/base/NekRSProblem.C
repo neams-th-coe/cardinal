@@ -25,7 +25,7 @@ validParams<NekRSProblem>()
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
 
   params.addParam<bool>("nondimensional", false, "Whether nekRS is solved in non-dimensional form");
-  params.addParam<bool>("ismovingmesh", false, "Whether we have a moving mesh problem or not");
+  params.addParam<bool>("movingmesh", false, "Whether we have a moving mesh problem or not");
   params.addRangeCheckedParam<Real>("U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("T_ref", 0.0, "T_ref >= 0.0", "Reference temperature value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("dT_ref", 1.0, "dT_ref > 0.0", "Reference temperature range value for non-dimensional solution");
@@ -45,7 +45,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _nondimensional(getParam<bool>("nondimensional")),
-    _ismovingmesh(getParam<bool>("ismovingmesh")),
+    _moving_mesh(getParam<bool>("movingmesh")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),
     _dT_ref(getParam<Real>("dT_ref")),
@@ -140,7 +140,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
 
-  if (_ismovingmesh)
+  if (_moving_mesh)
   {
     _displacement_x = (double *) calloc(_n_vertices_per_surface, sizeof(double));
     _displacement_y = (double *) calloc(_n_vertices_per_surface, sizeof(double));

@@ -168,7 +168,8 @@ protected:
   const bool & _nondimensional;
 
   /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
-  const bool & _ismovingmesh;
+  const bool & _moving_mesh;
+
   //@{
   /**
    * \brief Reference scales for nekRS solution in non-dimensional form.
