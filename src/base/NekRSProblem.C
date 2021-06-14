@@ -25,7 +25,7 @@ validParams<NekRSProblem>()
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
 
   params.addParam<bool>("nondimensional", false, "Whether nekRS is solved in non-dimensional form");
-  params.addParam<bool>("movingmesh", false, "Whether we have a moving mesh problem or not");
+  params.addParam<bool>("moving_mesh", false, "Whether we have a moving mesh problem or not");
   params.addRangeCheckedParam<Real>("U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("T_ref", 0.0, "T_ref >= 0.0", "Reference temperature value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("dT_ref", 1.0, "dT_ref > 0.0", "Reference temperature range value for non-dimensional solution");
