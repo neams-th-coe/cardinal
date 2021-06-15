@@ -174,6 +174,12 @@ NekRSProblem::~NekRSProblem()
   if (_flux_face) free(_flux_face);
   if (_source_elem) free(_source_elem);
   if (_flux_elem) free(_flux_elem);
+  if (_moving_mesh) { 
+   free(_displacement_x) ;
+   free(_displacement_y) ;
+   free(_displacement_z) ;
+  }
+
 }
 
 void
