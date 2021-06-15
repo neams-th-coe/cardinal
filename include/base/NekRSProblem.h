@@ -167,6 +167,9 @@ protected:
   /// Whether the nekRS solution is performed in nondimensional scales
   const bool & _nondimensional;
 
+  /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
+  const bool & _moving_mesh;
+
   //@{
   /**
    * \brief Reference scales for nekRS solution in non-dimensional form.
@@ -256,6 +259,15 @@ protected:
 
   /// MOOSE heat source interpolated onto the data transfer mesh
   double * _source_elem = nullptr;
+
+  /// displacement in x for all nodes from MOOSE, for moving mesh problems
+  double * _displacement_x = nullptr;
+
+  /// displacement in y for all nodes from MOOSE, for moving mesh problems
+  double * _displacement_y = nullptr;
+
+  /// displacement in z for all nodes from MOOSE, for moving mesh problems
+  double * _displacement_z = nullptr;
 
   /// temperature transfer variable written to be nekRS
   unsigned int _temp_var;
