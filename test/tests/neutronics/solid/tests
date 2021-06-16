@@ -5,6 +5,9 @@
     exodiff = 'openmc_master_zero_out.e'
     min_parallel = 4
     min_threads = 2
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 6
     requirement = "A coupled OpenMC-MOOSE problem with zero power set in OpenMC "
                   "should give exactly the same results as a standalone MOOSE heat conduction "
                   "simulation of the same problem with zero heat source. The gold file was "
@@ -17,6 +20,9 @@
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
     min_parallel = 4
     min_threads = 2
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 6
     requirement = "A coupled OpenMC-MOOSE problem for three pebbles shall demonstrate "
                   "correct data transfers between OpenMC and heat conduction in the solid."
   [../]

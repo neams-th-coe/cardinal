@@ -1,6 +1,8 @@
 [Mesh]
   type = FileMesh
   file = ../../../neutronics/meshes/pincell.e
+
+  parallel_type = replicated
 []
 
 [Problem]

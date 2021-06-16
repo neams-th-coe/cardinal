@@ -17,6 +17,8 @@
     input = m
     subdomain_id = 1
   []
+
+  parallel_type = replicated
 []
 
 [ICs]

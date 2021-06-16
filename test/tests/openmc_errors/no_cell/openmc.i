@@ -1,6 +1,8 @@
 [Mesh]
   type = FileMesh
   file = sphere.e
+
+  parallel_type = replicated
 []
 
 [Problem]

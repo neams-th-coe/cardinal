@@ -1,6 +1,8 @@
 [Mesh]
   type = FileMesh
   file = sphere_in_m.e
+
+  parallel_type = replicated
 []
 
 [AuxVariables]
@@ -24,6 +26,8 @@
     family = MONOMIAL
     order = CONSTANT
   []
+
+  parallel_type = replicated
 []
 
 [AuxKernels]
