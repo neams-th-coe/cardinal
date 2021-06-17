@@ -10,11 +10,15 @@ Content:
 
 Renderer:
     type: MooseDocs.base.MaterializeRenderer
-    name: cardinal
 
 Extensions:
-    appsyntax:
-        type: MooseDocs.extensions.appsyntax
-        executable: ${ROOT_DIR}
-        includes:
-            - include
+    MooseDocs.extensions.navigation:
+        name: Cardinal
+        repo: https://github.com/neams-th-coe/cardinal
+        menu:
+            Users:
+                Tutorials: tutorials/index.md
+    MooseDocs.extensions.acronym:
+        acronyms:
+            moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
+            vtb: !include ${ROOT_DIR}/doc/acronyms.yml
