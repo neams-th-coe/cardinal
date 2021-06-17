@@ -5,7 +5,45 @@ the Monte Carlo code [OpenMC](https://github.com/openmc-dev/openmc) as a MOOSE a
 Cardinal is intended for providing high-resolution thermal-hydraulics
 and particle transport feedback to MOOSE multiphysics simulations.
 
-## Setting the OCCA Backend
+## Tutorials and Documentation
+
+Please check out our tutorials and documentation to learn how to use Cardinal.
+To download the input files used for the tutorials, check out the tutorials submodule:
+
+```
+$ git submodule update --init tutorials
+```
+
+Then, you need to build the documentation that goes along with these tutorials.
+This documentation also includes documentation of the various classes in Cardinal,
+which will remain up-to-date with any changes made to the code.
+
+Cardinal's tutorials and documentation are written
+using MOOSE's documentation system, MooseDocs. This documentation is built locally
+using Python, with:
+
+```
+$ cd doc
+$ ./moosedocs.py build --serve
+```
+
+When this command is completed, a message will be printed, and you can view the
+documentation and tutorials at a website hosted at
+[http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+
+If you have the MOOSE package environment correctly set up, the above should be
+all that is required to view Cardinal's tutorials and documentation. If needed,
+additional information for using MooseDocs is available
+[here](https://mooseframework.inl.gov/python/MooseDocs/setup.html).
+
+## Building
+
+This section describes how to compile Cardinal. Compilation of all dependencies (MOOSE, OpenMC,
+nekRS, and SAM) is handled through Cardinal's Makefiles - you don't need to separately build any
+dependencies. The SAM dependency is *optional* - if you do not pull the SAM dependency, then
+Cardinal will still build, run, and test fine without SAM.
+
+### Setting the OCCA Backend
 
 nekRS uses [OCCA](https://libocca.org/#/) to provide an API for device programming. Available
 backends in nekRS include CPU (i.e. MPI parallelism), CUDA, HIP, OpenCL, and OpenMP. Before
@@ -42,13 +80,6 @@ If you plan to use a GPU  backend, then you will also need to
 set the correct threading API in the `Makefile` by setting
 the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
 respectively.
-
-## Building
-
-This section describes how to compile Cardinal. Compilation of all dependencies (MOOSE, OpenMC,
-nekRS, and SAM) is handled through Cardinal's Makefiles - you don't need to separately build any
-dependencies. The SAM dependency is *optional* - if you do not pull the SAM dependency, then
-Cardinal will still build, run, and test fine without SAM.
 
 ### Fetch the Submodules
 

@@ -17,6 +17,7 @@ InputParameters
 NekVolumeAverage::validParams()
 {
   InputParameters params = NekVolumeIntegral::validParams();
+  params.addClassDescription("Compute volume averages over nekRS's mesh");
   return params;
 }
 

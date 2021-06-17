@@ -16,8 +16,8 @@ Extensions:
         name: Cardinal
         repo: https://github.com/neams-th-coe/cardinal
         menu:
-            Users:
-                Tutorials: tutorials/index.md
+            Tutorials: tutorials/index.md
+            Source: source/index.md
     MooseDocs.extensions.acronym:
         acronyms:
             moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
