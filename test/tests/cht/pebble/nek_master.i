@@ -1,6 +1,6 @@
 [Mesh]
   type = FileMesh
-  file = ../../../../problems/spherical_heat_conduction/sphere.e
+  file = sphere.e
 []
 
 [Kernels]
