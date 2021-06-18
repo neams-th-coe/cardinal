@@ -17,6 +17,7 @@ InputParameters
 NekSideAverage::validParams()
 {
   InputParameters params = NekSideIntegral::validParams();
+  params.addClassDescription("Computes the average of a specified field over a boundary of the nekRS mesh");
   return params;
 }
 

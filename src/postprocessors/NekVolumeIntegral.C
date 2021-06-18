@@ -18,6 +18,7 @@ NekVolumeIntegral::validParams()
 {
   InputParameters params = NekPostprocessor::validParams();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to integrate");
+  params.addClassDescription("Computes the integral of a field over the volume of the nekRS mesh");
   return params;
 }
 

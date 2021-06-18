@@ -18,6 +18,7 @@ NekSideIntegral::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to integrate");
+  params.addClassDescription("Computes the integral of a field over the boundaries of the nekRS mesh");
   return params;
 }
 

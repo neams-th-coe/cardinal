@@ -20,6 +20,7 @@ NekVolumeExtremeValue::validParams()
   InputParameters params = NekPostprocessor::validParams();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to find the extreme value of");
   params.addParam<MooseEnum>("value_type", getOperationEnum(), "Operation to perform to get extreme value");
+  params.addClassDescription("Computes the extreme value (max/min) of a field over the nekRS mesh");
   return params;
 }
 
