@@ -19,8 +19,14 @@ This documentation also includes documentation of the various classes in Cardina
 which will remain up-to-date with any changes made to the code.
 
 Cardinal's tutorials and documentation are written
-using MOOSE's documentation system, MooseDocs. This documentation is built locally
-using Python, with:
+using MOOSE's documentation system, MooseDocs. To get the _full_ documentation capabilities,
+you will need to have Cardinal compiled locally (the executable `cardinal-opt` is used to
+generate some documentation related to class parameters). Instructions are provided
+in the next section for compiling Cardinal. However, if you don't have
+Cardinal compiled locally, the majority of the documentation will still render
+and be useful for you.
+
+Cardinal's documentation is built using Python, with:
 
 ```
 $ cd doc
@@ -31,7 +37,7 @@ When this command is completed, a message will be printed, and you can view the
 documentation and tutorials at a website hosted at
 [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
-If you have the MOOSE package environment correctly set up, the above should be
+If you have the correct Python packages and Cardinal compiled, the above should be
 all that is required to view Cardinal's tutorials and documentation. If needed,
 additional information for using MooseDocs is available
 [here](https://mooseframework.inl.gov/python/MooseDocs/setup.html).
