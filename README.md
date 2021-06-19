@@ -8,13 +8,8 @@ and particle transport feedback to MOOSE multiphysics simulations.
 ## Tutorials and Documentation
 
 Please check out our tutorials and documentation to learn how to use Cardinal.
-To download the input files used for the tutorials, check out the tutorials submodule:
-
-```
-$ git submodule update --init tutorials
-```
-
-Then, you need to build the documentation that goes along with these tutorials.
+All tutorials are located in the `tutorials` directory.
+You need to build the documentation that goes along with these tutorials.
 This documentation also includes documentation of the various classes in Cardinal,
 which will remain up-to-date with any changes made to the code.
 
@@ -24,9 +19,10 @@ you will need to have Cardinal compiled locally (the executable `cardinal-opt` i
 generate some documentation related to class parameters). Instructions are provided
 in the next section for compiling Cardinal. However, if you don't have
 Cardinal compiled locally, the majority of the documentation will still render
-and be useful for you.
+and be useful for you. You will also need to have the correct MOOSE Python packages;
+see the instructions for using MooseDocs [here](https://mooseframework.inl.gov/python/MooseDocs/setup.html).
 
-Cardinal's documentation is built using Python, with:
+Cardinal's documentation is then built with:
 
 ```
 $ cd doc
@@ -36,11 +32,6 @@ $ ./moosedocs.py build --serve
 When this command is completed, a message will be printed, and you can view the
 documentation and tutorials at a website hosted at
 [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
-
-If you have the correct Python packages and Cardinal compiled, the above should be
-all that is required to view Cardinal's tutorials and documentation. If needed,
-additional information for using MooseDocs is available
-[here](https://mooseframework.inl.gov/python/MooseDocs/setup.html).
 
 ## Building
 
