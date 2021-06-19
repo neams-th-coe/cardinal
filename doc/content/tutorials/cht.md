@@ -1,4 +1,4 @@
-# Conjugate Heat Transfer Coupling of nekRS and MOOSE Heat Conduction
+# Conjugate Heat Transfer Coupling of nekRS and MOOSE
 
 This tutorial describes how to use nekRS to solve for fluid flow and heat transfer
 coupled to a solid described by the MOOSE heat conduction module. Two examples are
@@ -7,9 +7,7 @@ provided - a section of a reflector block in a [!ac](PB-FHR) and a bare 7-pin
 
 A. [Reflector Block Bypass Flow](cht1.md)
 
-
-## Tutorial 1B
-  id=tutorial1b
+B. [Pin Bundle Flow](cht2.md)
 
 This tutorial describes how to use Cardinal to perform conjugate heat transfer
 calculations using nekRS and the MOOSE heat conduction module for a bare

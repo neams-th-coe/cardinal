@@ -1,0 +1,31 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+  setupAide & options = platform->options;
+  occa::properties & kernelInfo = *nrs->kernelInfo;
+
+  // Compute the inlet velocity boundary condition and propagate it to a kernel variable
+  kernelInfo["defines/Vz"] = 1.0;
+
+  // Compute the inlet temperature and propagate it to a kernel variable
+  kernelInfo["defines/inlet_T"] = 0.0;
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  mesh_t * mesh = nrs->cds->mesh[0];
+
+  // loop over all the GLL points and assign directly to the solution arrays by
+  // indexing according to the field offset necessary to hold the data for each
+  // solution component
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
+
+    nrs->P[n] = 0.0; // pressure
+  }
+}
