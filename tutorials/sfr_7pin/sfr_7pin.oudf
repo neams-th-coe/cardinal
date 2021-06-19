@@ -1,0 +1,64 @@
+// This is almost a normal .oudf file - we just need to be sure that for the
+// boundaries that will receive heat flux from MOOSE, to set it with
+// bc->wrk[bc->idM] (we write into this array from MOOSE).
+
+void velocityDirichletConditions(bcData * bc)
+{
+  switch (bc->id)
+  {
+    case 3:
+      bc->u = 0.0; // x-velocity
+      bc->v = 0.0; // y-velocity
+      bc->w = Vz;  // z-velocity
+      break;
+    default:
+       throw std::runtime_error("Invalid Dirichlet velocity BC sideset! You entered: " +
+         std::to_string(bc->id) + "; valid options: 3.");
+  }
+}
+
+void scalarDirichletConditions(bcData * bc)
+{
+  if (bc->scalarId == 0) // temperature
+  {
+    switch (bc->id)
+    {
+      case 3:
+        bc->s = inlet_T;
+        break;
+      default:
+         throw std::runtime_error("Invalid Dirichlet temperature BC sideset! You entered: " +
+           std::to_string(bc->id) + "; valid options: 3.");
+    }
+  }
+  else
+  {
+    throw std::runtime_error("Invalid scalar ID for BC application! You entered: " +
+      std::to_string(bc->scalarId) + "; valid options: 0.");
+  }
+}
+
+void scalarNeumannConditions(bcData * bc)
+{
+  if (bc->scalarId == 0) // temperature
+  {
+    switch (bc->id)
+    {
+      case 1: // boundary coupled to MOOSE
+        bc->flux = bc->wrk[bc->idM];
+        break;
+      case 2: // boundary coupled to MOOSE
+        bc->flux = bc->wrk[bc->idM];
+        break;
+      default:
+        break;
+         throw std::runtime_error("Invalid Neumann temperature BC sideset! You entered: " +
+           std::to_string(bc->id) + "; valid options: 1, 2.");
+    }
+  }
+  else
+  {
+    throw std::runtime_error("Invalid scalar ID for BC application! You entered: " +
+      std::to_string(bc->scalarId) + "; valid options: 0.");
+  }
+}

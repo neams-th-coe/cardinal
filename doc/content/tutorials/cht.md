@@ -5,11 +5,6 @@ coupled to a solid described by the MOOSE heat conduction module. Two examples a
 provided - a section of a reflector block in a [!ac](PB-FHR) and a bare 7-pin
 [!ac](SFR) fuel bundle.
 
-A. [Reflector Block Bypass Flow](cht1.md)
+- [Reflector Bypass Flow](cht1.md)
+- [Pin Bundle Flow](cht2.md)
 
-B. [Pin Bundle Flow](cht2.md)
-
-This tutorial describes how to use Cardinal to perform conjugate heat transfer
-calculations using nekRS and the MOOSE heat conduction module for a bare
-7-pin [!ac](SFR) bundle. nekRS solves for the fluid phase, while MOOSE solves for
-the solid phase.

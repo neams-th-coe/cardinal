@@ -456,7 +456,8 @@ function is then used as an initial condition with a `FunctionIC` object.
   end=Kernels
 
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as the
-`HeatConduction` kernel, or $-\nabla\cdot(k\nabla T)=0$. An auxiliary kernel is also specified
+[HeatConductio](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
+` kernel, or $-\nabla\cdot(k\nabla T)=0$. An auxiliary kernel is also specified
 for the `flux` variable that specifies that the flux on the `fluid_solid_interface` boundary
 should be computed as $-k\nabla T\cdot\hat{n}$.
 
@@ -784,7 +785,7 @@ and is in other places negative (such as near the barrel) where heat leaves the 
 
 In this section, nekRS and MOOSE are coupled for [!ac](CHT) between the FLiBe coolant
 and the reflector blocks and barrel. All input files for this stage of the analysis are present in the
-`pbfhr/reflector/cht` directory. The following sub-sections describe all of these files; for
+`tutorials/fhr_reflector/cht` directory. The following sub-sections describe all of these files; for
 brevity, most emphasis will be placed on input file setup that is different or extends the
 conduction case in [#part1].
 
