@@ -391,12 +391,19 @@ $ mpiexec -np 12 cardinal-opt -i solid.i --nekrs-setup sfr_7pin
 ```
 
 After converting the nekRS output files to a format viewable in Paraview,
-the simulation results can be displayed. The temperature is shown in [temperature]
-along with the mesh lines.
+the simulation results can be displayed. The fluid temperature is shown in [temperature]
+along with the mesh lines of the solid phase, while the solid temperature is
+shown in [temperature2] along with the mesh lines of the fluid phase. The
+temperature color scale is the same in both figures.
 
-!media sfr_temperature.png
+!media sfr_temperature1.png
   id=temperature
-  caption=Temperature computed by nekRS and MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with mesh lines shown in blue.
+  caption=Fluid temperature computed by nekRS for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with solid mesh lines shown in blue.
+  style=width:60%;margin-left:auto;margin-right:auto
+
+!media sfr_temperature2.png
+  id=temperature2
+  caption=Solid temperature computed by MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with fluid mesh lines shown in blue.
   style=width:60%;margin-left:auto;margin-right:auto
 
 

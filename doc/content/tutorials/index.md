@@ -32,7 +32,7 @@ documentation.
 1. [Conjugate Heat Transfer (CHT) coupling of nekRS and MOOSE heat conduction](tutorials/cht.md)
 2. [Solid temperature coupling of OpenMC and MOOSE heat conduction](tutorials/openmc_solid.md)
 3. [Fluid density and temperature coupling of OpenMC and MOOSE Navier-Stokes](tutorials/openmc_fluid.md)
-4. [Multiphysics coupling of nekRS, OpenMC, and MOOSE heat conduction for TRISO pebbles](tutorials/pebbles.md)
+4. [Multiphysics coupling of nekRS, OpenMC, and MOOSE heat conduction](tutorials/coupled.md)
 5. [Multiscale coupling of nekRS and SAM for primary loop modeling](tutorials/sam_coupling.md)
 6. [Extracting nekRS turbulent viscosity as an auxiliary variable](tutorials/nekrs_outputs.md)
 7. [Running nekRS as a standalone application](tutorials/nekrs_standalone.md)

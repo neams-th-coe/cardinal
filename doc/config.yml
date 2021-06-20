@@ -19,6 +19,7 @@ Extensions:
         menu:
             Tutorials: tutorials/index.md
             Source: source/index.md
+            Developers: source/developers.md
     MooseDocs.extensions.appsyntax:
         executable: ${MOOSE_DIR}/../../
     MooseDocs.extensions.acronym:

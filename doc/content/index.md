@@ -21,5 +21,12 @@ heat transfer simulations on meshes that are not necessarily continuous on phase
 interfaces, allowing mesh resolution to be specified based on the underlying physics,
 rather than rigid continuity restrictions in single-application heat transfer codes.
 
-Cardinal is designed with high performance computing and flexibility in mind.
-
+!alert note
+Cardinal does not support a Nek5000 backend - you must use Cardinal with nekRS.
+nekRS is under rapid development, and capabilities continue to grow every day.
+At present, the major limitations in nekRS are a lack of wall functions and
+the only [!ac](RANS) model being the $k$-$\tau$ model. If your work requires features
+in Nek5000 that are not yet available in nekRS, please [contact](https://github.com/Nek5000/nekRS/discussions)
+ the nekRS development team. If your needs will not be met in the near future
+in nekRS, please contact the Cardinal development team to discuss the possibilities
+of adding a Nek5000 backend in Cardinal.
