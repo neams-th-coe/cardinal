@@ -3,7 +3,7 @@
 # Source Documentation
 
 The following is a complete list of documented C++ source. These classes include
-all of the classes in Cardinal, as well as all classes in the MOOSE framework and the
-framework's modules that you are likely to use in Cardinal.
+all of the classes in Cardinal - for all other classes in MOOSE, please consult
+the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html).
 
 !content location=source

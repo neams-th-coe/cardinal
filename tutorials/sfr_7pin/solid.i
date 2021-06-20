@@ -1,6 +1,3 @@
-# In MOOSE, we can define file-local variables that can be used throughout
-# file, which is convenient for setting up problems.
-
 d_pellet = 0.603e-2                           # pellet diameter
 d_pin = 8.0e-3                                # pin (clad) diameter
 t_clad = 0.52e-3                              # clad thickness
@@ -13,38 +10,6 @@ n_axial_pitches = ${fparse active_height / L} # number of wire pitches per heigh
 
 # approximate total power per axial pitch per pin
 pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
-
-# -------------------------------------------------------------------------------- #
-
-# This input file models the solid phase, which includes the pellets, cladding,
-# and duct. Boundary conditions are exchanged with nekRS to couple the codes together.
-# All block IDs and sidesets here refer to the mesh used by the solid phase only.
-#
-# -- block 1: cladding
-# -- block 2, 3: fuel pellet (two blocks needed because theres two element types)
-# -- block 10: duct
-#
-# -- sideset 1: pellet surface
-# -- sideset 4: clad inner surface
-# -- sideset 5: clad outer surface
-# -- sideset 10: duct inner surface
-# -- sideset 20: duct outer surface
-
-# -------------------------------------------------------------------------------- #
-
-# The 'solid_out.e' output file contains the results of the solid phase solution.
-#
-# The 'solid_out_nek0.e' output file contains the MOOSE results of the fluid phase (nekRS)
-# solution. Because no solution is done in MOOSE for the fluid, this file just shows the
-# nekRS mesh mirror (youll see only a surface mesh through which the transfers occur), and
-# the libMesh projected fields.
-#
-# The 'sfr_7pin0.f*' files contain the nekRS results.
-#
-# The 'temperature.png' file shows an image of the complete solution (this is the superposition
-# of the sfr_pin.nek5000 file and solid_out.e in Paraview, with the mesh surfaces turned on.
-# The data transfers make no requirement on the alignment of nodes between applications.
-# MOOSE solves for the pins, duct, and clad, while nekRS solves for the fluid.
 
 [Mesh]
   [clad] # This makes a circular annulus that will represent the clad
@@ -109,6 +74,10 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
     type = CombinerGenerator
     inputs = 'repeat duct'
   []
+
+  # this just represents the node sets as side sets for visualization
+  # in Paraview - this has nothing to do with the actual problem setup
+  construct_side_list_from_node_list = true
 []
 
 [Variables]
@@ -131,9 +100,6 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
   []
 []
 
-# There is a gap between the pellet and the cladding, which we model with a
-# penetration condition that basically applies conduction and radiation fluxes to
-# both sides of the gap
 [ThermalContact]
   # This adds boundary conditions bewteen the fuel and the cladding, which represents
   # the heat flux in both directions as
@@ -183,33 +149,24 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
   []
 []
 
-Fp = 1.0
-
-# Here, we define various thermal conductivity correlations to use for the fuel and cladding
 [Functions]
   [k_sodium]
     type = ParsedFunction
-    # thermal conductivity of sodium, from PBSodiumFluidProperties in Pronghorn
     value = '1.1045e2 + -6.5112e-2 * t + 1.5430e-5 * t * t + -2.4617e-9 * t * t * t'
   []
   [k_HT9]
     type = ParsedFunction
-    # thermal conductivity of HT9, from \cite{leibowitz} (\cite{bison})
     value = 'if (t < 1030, 17.622 + 2.428e-2 * t - 1.696e-5 * t * t,
                            12.027 + 1.218e-2 * t)'
   []
   [k_U]
     type = ParsedFunction
-    # thermal conductivity of uranium metal, because the relative amounts of U-TRU is not given
-    # for the U-TRU-10Zr fuel \cite{bison}. Fp is a factor to account for the fission gas porosity,
-    # which for simplicity I assume is zero.
-    value = 'if (t < 255.4, 16.170 * ${Fp},
-                            if (t < 1173.2, (5.907e-6 * t * t + 1.591e-2 * t + 11.712) * ${Fp},
-                                             38.508 * ${Fp}))'
+    value = 'if (t < 255.4, 16.170,
+                            if (t < 1173.2, (5.907e-6 * t * t + 1.591e-2 * t + 11.712),
+                                             38.508))'
   []
 []
 
-# Assign the thermal conductivity correlations to specific blocks in the mesh
 [Materials]
   [clad_and_duct]
     type = HeatConductionMaterial
@@ -225,7 +182,6 @@ Fp = 1.0
   []
 []
 
-# Print some postprocessors to the screen for evaluating the solution
 [Postprocessors]
   [flux_integral] # evaluate the total heat flux for normalization
     type = SideDiffusiveFluxIntegral
@@ -257,18 +213,16 @@ Fp = 1.0
   []
 []
 
-# run nekRS (with a problem defined in the nek.i file) on the end of each solid timestep
 [MultiApps]
   [nek]
     type = TransientMultiApp
     app_type = NekApp
     input_files = 'nek.i'
-    sub_cycling = true # allows nekRS to take smaller time steps than the solid app, if it wants to
+    sub_cycling = true
     execute_on = timestep_end
   []
 []
 
-# Specify precisely what data transfers will occur
 [Transfers]
   [nek_temp] # grabs temperature from nekRS and stores it in nek_temp
     type = MultiAppNearestNodeTransfer

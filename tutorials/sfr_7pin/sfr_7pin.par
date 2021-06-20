@@ -2,47 +2,27 @@
   stopAt = numSteps
   numSteps = 1000
   dt = 5.0e-4
-  variableDT = no
-  targetCFL = 0.5
   timeStepper = tombo2
-  extrapolation = standard
-  subCyclingSteps = 1
   writeControl = timeStep
   writeInterval = 25
-  filtering = none
   dealiasing = yes
   polynomialOrder = 3
-  optLevel = 2
-
-[PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = yes
-  stressFormulation = yes
-
-[MESH]
-  motion = none
 
 [VELOCITY]
   viscosity = 2.37e-4
   density = 834.5
   boundaryTypeMap = W, W, v, O
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
 
 [PRESSURE]
   residualTol = 1.0e-6
-  residualProj = yes
+  residualProj = false
   preconditioner = semg_amg
 
 [TEMPERATURE]
   conductivity = 64.21
   rhoCp = 1024766.0
-
-  # the first two boundaries are where we will exchange data with MOOSE - we receive
-  # a heat flux from MOOSE, so we need to set these to flux BCs
   boundaryTypeMap = f, f, t, O
   residualTol = 1.0e-5
   absoluteTol = 1.0e-5

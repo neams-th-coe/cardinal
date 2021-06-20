@@ -5,6 +5,7 @@ In this tutorial, you will learn how to:
 
 - Couple nekRS with MOOSE for [!ac](CHT)
 - Reduce the amount of copy to/from commands between host and device for nekRS
+  (an advanced user feature)
 
 This tutorial describes how to use Cardinal to perform [!ac](CHT) coupling of nekRS
 to MOOSE for flow modeling in a bare 7-pin [!ac](SFR) bundle.
@@ -155,6 +156,10 @@ boundaries through which [!ac](CHT) coupling will be performed - interpolations
 using MOOSE's [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 handle any differences in the mesh.
 
+!alert note
+The nekRS mesh, `sfr_7pin.re2`, is a large file - you will need to unzip the mesh
+file, `sfr_7pin.re2.zip` by running `unzip sfr_7pin.re2.zip`.
+
 ## CHT Coupling
 
 In this section, nekRS and MOOSE are coupled for [!ac](CHT) between the sodium
@@ -299,8 +304,101 @@ Finally, we specify an executioner and an exodus output for the solid solution.
 !listing tutorials/sfr_7pin/solid.i
   start=Executioner
 
+### Fluid Input Files
 
-## References
+The fluid phase is solved with Cardinal, which under-the-hood performs the
+solution with nekRS. The wrapping of nekRS as a MOOSE application is specified
+in the `nek.i` file. For [!ac](CHT) coupling, first we construct a mirror of nekRS's
+mesh on the boundaries of interest - the IDs associated with the fluid-solid interfaces
+(as known to nekRS) are boundaries 1 and 2.
+
+!listing tutorials/sfr_7pin/nek.i
+  block=Mesh
+
+Next, [NekRSProblem](/problems/NekRSProblem.md) is used to describe all aspects of the
+nekRS wrapping. We use two boolean options, `minimize_transfer_in` and `minimize_transfers_out`,
+along with a receiving postprocessor named `synchronize`, to indicate
+that we will be reducing the amount of interpolations and host-to-device copies
+for the nekRS wrapping. The `synchronize` postprocessor simply receives
+the `synchronize` postprocessor from the master application.
+
+!listing tutorials/sfr_7pin/nek.i
+  block=synchronize
+
+We specify a number of other postprocessors in order to query the nekRS solution
+and print postprocessor values to screen for each time step. Note that the
+`flux_integral` receiver postprocessor that the master application sends the flux
+integral to does not appear in the input - this postprocessor, like `temp` and
+`avg_flux` auxiliary variables, are added automatically by [NekRSProblem](/problems/NekRSProblem.md).
+
+!listing tutorials/sfr_7pin/nek.i
+  block=Postprocessors
+
+Finally, we specify a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+executioner and [NekTimeStepper](/timesteppers/NekTimeStepper.md) in order for
+nekRS to choose its time step (subject to any synchronization points specified
+by the master application). We also specify an Exodus output file format.
+
+!listing tutorials/sfr_7pin/nek.i
+  block=Executioner
+  end=Postprocessors
+
+Additional files necessary to set up the nekRS problem are the same files you'd need
+to set up a standalone nekRS simulation -
+
+- `sfr_7pin.re`: Custom format nekRS mesh
+- `sfr_7pin.par`: High-level settings for the solver, boundary condition mappings to sidesets,
+  and the equations to solve
+- `sfr_7pin.udf`: User-defined C++ functions for on-line postprocessing and model setup
+- `sfr_7pin.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and source terms
+
+A detailed description of all of the available parameters, settings, and use cases
+for these input files is available on the
+[nekRS documentation website](https://nekrsdoc.readthedocs.io/en/latest/input_files.html).
+Because the purpose of this analysis is to demonstrate Cardinal's capabilties, only
+the aspects of nekRS required to understand the present case will be covered. First,
+begin with the `fluid.par` file, shown in entirety below.
+
+!listing /tutorials/sfr_7pin/sfr_7pin.par
+
+This input differs from the `.par` file in [Tutorial 1](cht1.md) in
+that the input is in dimensional form, and the sidesets and boundary conditions differ.
+Boundaries 1 and 2 will receive heat flux from MOOSE, so these two boundaries set to
+flux boundaries, or `f` for the `[TEMPERATURE]` block. Other settings are largely the same.
+
+The assignment of numeric values for boundary conditions is performed in the
+`sfr_7pin.oudf` file, shown below. Note that for boundaries 1 and 2, where we want to receive
+heat flux from MOOSE, we set the value of the flux equal to `bc->wrk[bc->idM]`, or
+the scratch array that is written by [NekRSProblem](/problems/NekRSProblem.md).
+
+!listing /tutorials/sfr_7pin/sfr_7pin.oudf
+
+Finally, the `sfr_7pin.udf` file contains C++ functions to set up boundary conditions
+and perform other post-processing operations. In `UDF_Setup`, we set initial
+conditions for velocity, pressure, and temperature. For convenience, we define
+local functions like `mass_flowrate()` and `height()` to be able to set problem
+parameters in a single place and use them multiple places (these functions are
+*not* nekRS syntax - i.e. we could equivalently have done something like `#define mdot 0.1`).
+
+!listing /tutorials/sfr_7pin/sfr_7pin.udf
+
+## Execution and Postprocessing
+
+To run the pseudo-steady model, run the following from a command line:
+
+```
+$ mpiexec -np 12 cardinal-opt -i solid.i --nekrs-setup sfr_7pin
+```
+
+After converting the nekRS output files to a format viewable in Paraview,
+the simulation results can be displayed. The temperature is shown in [temperature]
+along with the mesh lines.
+
+!media sfr_temperature.png
+  id=temperature
+  caption=Temperature computed by nekRS and MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with mesh lines shown in blue.
+  style=width:60%;margin-left:auto;margin-right:auto
+
 
 !bibtex bibliography
 

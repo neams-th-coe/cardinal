@@ -1,5 +1,4 @@
 #include "udf.hpp"
-#include "bcMap.hpp"
 
 float mass_flowrate()
 {

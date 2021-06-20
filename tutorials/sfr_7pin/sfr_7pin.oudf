@@ -1,7 +1,3 @@
-// This is almost a normal .oudf file - we just need to be sure that for the
-// boundaries that will receive heat flux from MOOSE, to set it with
-// bc->wrk[bc->idM] (we write into this array from MOOSE).
-
 void velocityDirichletConditions(bcData * bc)
 {
   switch (bc->id)
