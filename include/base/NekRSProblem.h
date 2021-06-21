@@ -65,8 +65,8 @@ public:
   /// Send boundary heat flux to nekRS
   void sendBoundaryHeatFluxToNek();
 
-  /// Send boundary heat flux to nekRS
-  void sendBoundaryDeformationToNek();
+  /// Send volume mesh deformation flux to nekRS
+  void sendVolumeDeformationToNek();
   
   /// Send volume heat source to nekRS
   void sendVolumeHeatSourceToNek();

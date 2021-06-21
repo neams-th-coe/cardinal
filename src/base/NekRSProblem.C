@@ -511,7 +511,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 }
 
 void
-NekRSProblem::sendBoundaryDeformationToNek()
+NekRSProblem::sendVolumeDeformationToNek()
 {
   _console << "Sending deformation to nekRS boundary " << Moose::stringify(*_boundary) << "... ";
 
