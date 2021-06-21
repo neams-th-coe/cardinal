@@ -42,7 +42,6 @@
 
   tally_type = mesh
   power = 100.0
-  check_tally_sum = false
   check_zero_tallies = false
 
   # the [Mesh] is in units of meters - VERY IMPORTANT: the mesh template still must be in
