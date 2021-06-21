@@ -612,7 +612,7 @@ If you edit the `settings.xml` file and increase the number of particles per bat
 to 500000 and also increase the number of inactive and active batches,
 the mesh tally is computed as shown in [mesh_hs2]. By reducing the tally uncertainty,
 we begin to see the "rim effect" common in [!ac](LWR) fuels, where the highest power
-is observed near the very edge of the fuel pellet.
+is observed near the very edge of the fuel pellet. In [mesh_hs2], the clad region is not shown.
 
 !media mesh_hs2.png
   id=mesh_hs2
