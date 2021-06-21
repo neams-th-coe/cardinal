@@ -4,8 +4,8 @@ In this tutorial, you will learn how to:
 
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Couple OpenMC solves in units of centimeters with MOOSE solves in units of meters
-- Use a different heat source mesh than a coupled MOOSE application
 - Repeat the same mesh tally several times throughout the OpenMC domain
+- Use a different heat source mesh than a coupled MOOSE application
 - Apply temperature feedback from homogenized thermal-hydraulics models
 
 This tutorial describes how to use Cardinal to perform temperature and heat
@@ -277,10 +277,141 @@ specified in [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md). 
 integral is off by a factor of $100^3$ from the `power`, then you know right away that the
 `scaling` was not applied correctly.
 
+## Repeated Mesh Tallies
+  id=um
+
+Many geometries of interest to nuclear reactor analysis contain repeated structures -
+such as pebbles in a [!ac](PBR) or pincells in a [!ac](LWR). In [Tutorial 2A](pincell1.md),
+we described how to tally OpenMC's fission heat source on an unstructured mesh. To do so,
+we needed to provide a `mesh_template`, or the file containing the mesh that we want to
+tally on. Cardinal has features that enable you to repeat the same unstructured mesh
+multiple times throughout the OpenMC geometry - so that if we only have a mesh of a single
+pebble, we can avoid the huge memory overhead of forming a mesh of 300000 pebbles and instead
+only store a single mesh in memory (the mesh for a single pebble). This stage of the tutorial
+describes how to repeat the same mesh multiple times throughout the OpenMC geometry for
+multiphysics coupling. This stage of the tutorial also provides important explanations necessary
+when combining unstructured mesh tallies with a MOOSE application that uses a length scale
+other than centimeters.
+
+The files for this stage of the coupling are the
+`solid_um.i` and `openmc_um.i` inputs.
+For the solid, we simply need to swap out the sub-application to point to a different OpenMC
+input file.
+
+!listing /tutorials/pebbles/solid_um.i
+  block=MultiApps
+
+
+Let's begin with the OpenMC wrapping, in `openmc_coarse.i`. The only changes required are
+that we set a mesh tally type, provide a mesh template with the mesh, and specify a number of
+translations to apply to the mesh to move the mesh to the desired end positions in OpenMC's domain.
+
+!listing /tutorials/pebbles/openmc_um.i
+  block=Problem
+
+!alert warning
+When the `[Mesh]` block is not in units of centimeters, you still *must* provide a mesh
+template in units of centimeters. This is why we specify a mesh file, `sphere_in_cm.e` for
+the template instead of `sphere_in_m.e`. The `mesh_translations` also must be specified in
+units of centimeters, because these translations are passed directly to OpenMC (which always
+solves in units of centimeters).
+
+You can alternatively provide a `mesh_translations_file` that contains all the translations
+in a text format.
+
+Because our sphere mesh does not perfectly preserve the volume of the sphere
+[!ac](CSG) cells, we also set `normalize_by_global_tally` to false so that we normalize only
+by the sum of the mesh tally (otherwise, we would miss a small amount of power produced
+within the [!ac](CSG) spheres, but outside the faceted surface of the sphere mesh).
+
+To run this input, enter the following in a command line.
+
+```
+$ mpiexec -np 8 cardinal-opt -i solid_um.i --n-threads=2
+```
+
+Below is shown the heat source computed using an unstructured mesh tally by OpenMC; due to
+the small number of particles, the uncertainty in these tallies are very high, so differences
+from element-to-element are quite high. You can confirm that the combination of an unstructured
+tally mesh in units of centimeters, but a `[Mesh]` in units of meters, functions correctly by
+comparing the `heat_source` postprocessor (which is integrated over the `[Mesh]`, *not* the
+`mesh_template`) to the specified `power`.
+
+!media pebble_hs_mesh.png
+  id=pebble_hs_mesh
+  caption=OpenMC recoverable fission heat source tallied on an unstructured mesh
+  style=width:30%;margin-left:auto;margin-right:auto
+
+Recall that adding unstructured mesh tallies does not affect the resolution of temperature and
+density feedback sent to OpenMC - this resolution is controlled by the cell definitions
+when constructing the OpenMC input.
+
 ## Different Meshes
   id=different_meshes
 
-Up until this point, exactly the same mesh has been
+Up until this point, exactly the same mesh has been used in the MOOSE heat conduction
+module (i.e. in the `solid.i` input file) and in the OpenMC wrapping (i.e. in the
+`openmc.i` input file). Using exactly the same mesh, and a `CONSTANT MONOMIAL` receiver
+variable for heat source in the coupled MOOSE application let us use the
+`MultiAppCopyTransfer` to get the heat source from OpenMC into the coupled MOOSE application
+(this particular transfer literally copies the solution from one application to another,
+but can only be used when the mesh and variable basis are exactly the same).
+
+When we use unstructured mesh tallies in OpenMC, as was introduced in
+[Tutorial 2A](pincell1.md), we require that the unstructured mesh tally be exactly the same
+as the `[Mesh]` used in the OpenMC wrapping. As we saw in [Tutorial 2A](pincell1.md),
+if the elements in the unstructured mesh tally are small, then we require lots of particles to
+get acceptable tally statistics. But we may not want to use a very coarse mesh for the coupled
+thermal solver, either. So, this part of the example modifies this tutorial by using a coarse mesh
+for tallying in OpenMC, that is coupled to a finer mesh where the thermal solution occurs.
+We build upon the unstructured mesh example in [#um].
+
+For this case, our OpenMC wrapping remains unchanged from that shown in [#um] - we
+specify mesh tallies by repeating a single mesh three times throughout the geometry (once for
+each pebble). Instead, we now apply a uniform refinement to the mesh used for computation in
+the solid model. The inputs for this example are `solid_fine.i` and `openmc_um.i`.
+In the solid input file, we use a sphere mesh that was generated entirely separately
+from `sphere_in_m.e` and has more elements.
+
+!listing /tutorials/pebbles/solid_fine.i
+  block=Mesh
+
+Then, the only other required change occurs in the transfer for the heat source. Because
+the mesh used for the solid phase no longer exactly matches the `[Mesh]` used in the OpenMC
+wrapping for storing/receiving heat sources and temperatures, we cannot use the
+[MultiAppCopyTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppCopyTransfer.html),
+because a copy transfer requires the meshes to be exactly the same. Instead,
+we use a [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html).
+Now, we compute a heat source by OpenMC and *normalize* it according to the volume of
+the elements of the `[Mesh]` in the `openmc_um.i` input file. So, when we transfer the heat
+source to a coupled MOOSE application on a different mesh, it's very likely that the integral of
+the heat source is not preserved (because the meshes are different). So, we simply need to
+specify the postprocessors that we'd like to "preserve" during the transfer - we want the
+integral of the heat source on the `[Mesh]` in `solid_fine.i` to match the integral of
+the heat source on the `[Mesh]` in `openmc_um.i`. This ensures that, even though we use
+different meshes in the coupled MOOSE application, we still preserve the specified power
+in the `power` parameter for [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md).
+We enforce conservation by specifying the `from_postprocessors_to_be_preserved` and
+`to_postprocessors_to_be_preserved` parameters.
+
+!listing /tutorials/pebbles/solid_fine.i
+  block=Transfers
+
+To run this input, enter the following in a command line.
+
+```
+$ mpiexec -np 8 cardinal-opt -i solid_fine.i --n-threads=2
+```
+
+[mesh3] shows the temperature computed by MOOSE, the heat source *received* by MOOSE,
+the temperature *applied* to OpenMC, and the heat source computed by OpenMC. The MOOSE
+transfers handle the different meshes in use seamlessly. Again, due to the very small
+number of particles in this tutorial, there is high uncertainty in the tally results, so
+the coupled results won't look particularly realistic unless more particles are used.
+
+!media pebble_hs_mesh3.png
+  id=mesh3
+  caption=Temperature and heat source distributions shown on the different MOOSE and OpenMC meshes
 
 ## Homogenized Temperature Feedback
   id=simplified

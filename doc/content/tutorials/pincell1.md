@@ -540,7 +540,8 @@ As the next part of this tutorial, we will repeat the simulation but replace the
 tallies with unstructured mesh tallies. That is, instead of setting `tally_blocks` and
 providing the MOOSE blocks to which the corresponding OpenMC cells should have tallies added,
 we will simply tally on an unstructured mesh. The inputs for this problem are largely the
-same as in [#coupling]. For the solid, we simply need to swap out the sub-application to
+same as in [#coupling]; the files are now `solid_um.i` and `openmc_um.i`.
+ or the solid, we simply need to swap out the sub-application to
 point to a different input file.
 
 !listing /tutorials/lwr_solid/solid_um.i
