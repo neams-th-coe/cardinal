@@ -876,21 +876,15 @@ OpenMCCellAverageProblem::initializeTallies()
       _console << "Adding mesh tally based on " << _mesh_template_filename << " at " <<
         Moose::stringify(_mesh_translations.size()) << " locations ... " << printNewline();
 
-      // find the highest mesh ID in the OpenMC problem in the event that there's other mesh
-      // tallies besides what is added here
-      int mesh_id = 0;
-      for (const auto & mesh : openmc::model::meshes)
-        mesh_id = std::max(mesh_id, mesh->id_);
-
-      // create a new mesh
+      // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
+      // next available ID
       auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename);
-      mesh->id_ = ++mesh_id;
+      mesh->set_id(-1);
       mesh->output_ = false;
 
-      _mesh_template = mesh.get();
-
       int32_t mesh_index = openmc::model::meshes.size();
-      openmc::model::mesh_map[mesh->id_] = mesh_index;
+
+      _mesh_template = mesh.get();
       openmc::model::meshes.push_back(std::move(mesh));
 
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)

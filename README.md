@@ -52,9 +52,14 @@ Cardinal will still build, run, and test fine without SAM.
 
 ### Fetch the Submodules
 
-First, fetch all the submodules containing the MOOSE, nekRS, OpenMC, and SAM dependencies. If you
-will *not* be using the SAM submodule within Cardinal, you will need to individually clone
-only the open-source submodules:
+First, fetch all the submodules containing the dependencies. Do *NOT* use this command:
+
+```
+$ git submodule update --init --recursive
+```
+
+unless you have access to SAM. SAM is an *optional* dependency in Cardinal, and if you do not
+have access to SAM, then you need to individually check out only the open-source submodules:
 
 ```
 $ git submodule update --init contrib/nekRS
@@ -68,7 +73,8 @@ If you are using SAM (which is an optional dependncy), you will then also need t
 $ git submodule update --init contrib/SAM
 ```
 
-You will be prompted for login credentials to ANL's xgitlab site. If you do not have credentials,
+You will be prompted for login credentials to ANL's
+`https://git-nse.egs.anl.gov` site. If you do not have credentials,
 you will need to contact the SAM development team to request access.
 
 ### Set the MPI Wrappers
