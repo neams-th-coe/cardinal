@@ -5,7 +5,9 @@ Cardinal is hosted on GitHub, and we welcome all contributors.
 ## Contribution Process
 
 All changes made to the Cardinal repository must be made through
-a pull request.
+a pull request. All pull requests should be independently reviewed,
+ except for routine submodule updates that do not
+require subsequent code changes in Cardinal itself.
 
 ## Updating the Submodules
 

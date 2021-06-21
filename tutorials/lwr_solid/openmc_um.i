@@ -90,6 +90,8 @@ L = 300.0
   tally_type = mesh
   mesh_template = 'pincell.e'
   normalize_by_global_tally = false
+  check_tally_sum = false
+  check_zero_tallies = false
 
   solid_cell_level = 0
 []

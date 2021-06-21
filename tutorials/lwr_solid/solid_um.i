@@ -137,7 +137,7 @@ T_fluid = ${fparse 280.0 + 273.15}
 [Executioner]
   type = Transient
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  num_steps = 10
+  num_steps = 3
   petsc_options_value = 'hypre boomeramg'
   dt = 1.0
   nl_abs_tol = 1e-8

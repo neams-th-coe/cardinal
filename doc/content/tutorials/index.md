@@ -14,10 +14,7 @@ framework are all that are needed to send data to/from nekRS and OpenMC and MOOS
 The following tutorials provide an in-exhaustive description of how to use Cardinal
 for a variety of different applications. Because the nekRS and OpenMC wrappings can
 interact with *any* MOOSE application, most examples here are shown using the MOOSE
-heat conduction module simply for illustration - the use of the heat conduction module
-could be substitued for [BISON](https://mooseframework.inl.gov/bison/). Fluids feedback
-could be provided to OpenMC by Pronghorn, and neutronics feedback could be provided
-to nekRS by Griffin.
+heat conduction module simply for illustration.
 
 This project is under significant active
 development; near-term upcoming features are indicated where appropriate.

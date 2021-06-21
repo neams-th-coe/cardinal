@@ -605,7 +605,18 @@ so the uncertainty of these results is high.
 
 !media mesh_hs.png
   id=mesh_hs
-  caption=Unstructured mesh heat source computed by OpenMC, shown on the bottom of the pincell, with 1000 particles per batch
+  caption=Unstructured mesh heat source computed by OpenMC, shown on the bottom of the pincell, with 1000 particles per batch, 10 inactive batches, and 90 active batches
+  style=width:55%;margin-left:auto;margin-right:auto
+
+If you edit the `settings.xml` file and increase the number of particles per batch
+to 500000 and also increase the number of inactive and active batches,
+the mesh tally is computed as shown in [mesh_hs2]. By reducing the tally uncertainty,
+we begin to see the "rim effect" common in [!ac](LWR) fuels, where the highest power
+is observed near the very edge of the fuel pellet.
+
+!media mesh_hs2.png
+  id=mesh_hs2
+  caption=Unstructured mesh heat source computed by OpenMC, shown on the bottom of the pincell, with 500000 particles per batch, 50 inactive batches, and 450 active batches
   style=width:55%;margin-left:auto;margin-right:auto
 
 Finally, please note that adding unstructured mesh tallies only affects how the
