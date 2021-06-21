@@ -11,8 +11,8 @@ This tutorial describes how to use Cardinal to perform [!ac](CHT) coupling of ne
 to MOOSE for flow modeling in a bare 7-pin [!ac](SFR) bundle.
 
 !alert note
-This tutorial assumes that you have read [Tutorial 1](cht1.md) to give most of the
-background of how the coupling works.
+This tutorial assumes that you have read [Tutorial 1A](cht1.md) to give most of the
+background of how the nekRS-MOOSE [!ac](CHT) coupling works.
 
 ## Geometry and Computational Model
 

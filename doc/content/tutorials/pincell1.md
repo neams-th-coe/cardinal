@@ -226,6 +226,7 @@ The OpenMC geometry as produced via plots is shown below.
   style=width:60%;margin-left:auto;margin-right:auto
 
 ## Multiphysics Coupling
+  id=coupling
 
 In this section, OpenMC and MOOSE are coupled for heat source and temperature feedback
 for the solid regions of a [!ac](LWR) pincell. All input files are present in the
@@ -359,7 +360,11 @@ Here, we specify temperature feedback for the pellet (blocks 2 and 3) and the cl
 (block 1). During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
 will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
 are "solid." Then when temperature is sent into OpenMC, that mapping is used to compute
-a volume-average temperature to apply to each OpenMC cell.
+a volume-average temperature to apply to each OpenMC cell. While we use nomenclature
+like `solid_blocks`, please note that these blocks don't need to actually represent
+*solid* - we only use this parameter to note where OpenMC should receive temperature
+feedback, but *not* density feedback (which would require moving the cell boundaries
+for deforming solids).
 
 This problem uses cell tallies, as indicated by the `tally_type` parameter.
 The `tally_blocks` is then used to indicate which OpenMC cells to add tallies to
@@ -511,7 +516,7 @@ the cladding and fuel (at each axial layer), only one temperature is shown for t
 fuel and clad regions in the `cell_temperature` auxiliary variable. The temperatures
 set in OpenMC are volume averages of the temperature computed by MOOSE, i.e. the
 temperature shown in [lwr_solid_temp]. The same color scale is used in
-[lwr_solid_temp] and [lwr_solid_temp_openmc].
+[lwr_solid_temp] and [lwr_solid_temp_mc].
 
 !media lwr_solid_temp.png
   id=lwr_solid_temp
@@ -519,11 +524,95 @@ temperature shown in [lwr_solid_temp]. The same color scale is used in
   style=width:55%;margin-left:auto;margin-right:auto
 
 !media lwr_solid_temp_openmc.png
-  id=lwr_solid_temp_openmc
+  id=lwr_solid_temp_mc
   caption=Temperature set in OpenMC cells (shown in terms of the MOOSE mesh elements that map to each cell), on the bottom of the pincell
   style=width:55%;margin-left:auto;margin-right:auto
 
 ## Adding Mesh Tallies
 
 As the next part of this tutorial, we will repeat the simulation but replace the cell
-tallies with unstructured mesh tallies.
+tallies with unstructured mesh tallies. That is, instead of setting `tally_blocks` and
+providing the MOOSE blocks to which the corresponding OpenMC cells should have tallies added,
+we will simply tally on an unstructured mesh. The inputs for this problem are largely the
+same as in [#coupling]. For the solid, we simply need to swap out the sub-application to
+point to a different input file.
+
+!listing /tutorials/lwr_solid/solid_um.i
+  block=MultiApps
+
+Then, in `openmc_um.i`, we make small modifications to the settings for the
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md). We indicate that
+`tally_type = mesh` and provide the unstructured mesh that we want to tally as a file
+with the `mesh_template` parameter.
+
+!listing /tutorials/lwr_solid/openmc_um.i
+  block=Problem
+
+By default, Cardinal will normalize the OpenMC fission energy tally according
+to a global tally over the entire OpenMC problem. When using mesh tallies on
+curvilinear surfaces, many unstructured meshes cannot perfectly represent the
+domain. In this problem, for instance, the faceted nature of the pincell mesh
+means that a (small) amount of the fission energy is omitted in the tally because
+some regions of the OpenMC [!ac](CSG) cell are *outside* any of the tally mesh
+elements. In order to still obtain a total power given by the `power` parameter,
+we therefore change how the tallies are normalized. Instead of normalizing by a
+problem-wide tally (which includes the regions of the pellet that are outside
+the unstructured mesh), we normalized instead by the sum of the mesh tally itself
+by setting `normalize_by_global_tally = false`. This ensures that the power we
+specify will be obtained when normalizing the OpenMC tally.
+
+Even though we set up the mesh with
+MOOSE's mesh generator system, we output the mesh template, `pincell.e` by running
+MOOSE in mesh-generation mode, which will output the mesh as an Exodus file.
+
+```
+$ cardinal-opt -i solid_um.i --mesh-only
+$ mv solid_um_in.e pincell.e
+```
+
+Note that because the mesh in the `[Mesh]` block contains elements that correspond
+to the cladding, we will technically be tallying in cladding regions, even though
+there isn't a heat source there.
+
+!alert warning
+There are several important limitations in the current implementation of mesh tallies
+in Cardinal - these will be relaxed in the future, but you must be aware of them with the
+current state of the repository. First, if the mesh provided by the `mesh_template`
+has $N$ elements, those elements must
+*exactly* match the first $N$ elements in the mesh in the `[Mesh]` block. The reason for this limitation is that
+the heat source tally is simply written to the corresponding mesh element in the
+`[Mesh]` by element index (as opposed to doing a nearest-element search). If the mesh in the
+`[Mesh]` block contains both solid and fluid elements, for instance, and you only want to
+tally on an unstructured mesh in the solid, all the solid elements in the `[Mesh]` should
+appear first in the total combined mesh. You can use a [CombinerGenerator](https://mooseframework.inl.gov/source/meshgenerators/CombinerGenerator.html)
+to achieve this if your fluid and solid meshes are saved in separate files
+or if you use separate mesh generators for the phases. We have
+checks in place to make sure you don't inadvertently bypass this requirement.
+Second,
+the `mesh_template` *must* be in units of centimeters; this is relevant when
+solving the MOOSE application in different units, like you will learn in
+[Tutorial 2B](triso.md).
+
+To run the input using mesh tallies, enter the following at the command line.
+
+```
+$ mpiexec -np 8 cardinal-opt -i solid_um.i --n-threads=2
+```
+
+[mesh_hs] shows the unstructured mesh heat source computed by OpenMC. Due to the
+very small number of particles used, there are relatively few scores to each mesh element,
+so the uncertainty of these results is high.
+
+!media mesh_hs.png
+  id=mesh_hs
+  caption=Unstructured mesh heat source computed by OpenMC, shown on the bottom of the pincell, with 1000 particles per batch
+  style=width:55%;margin-left:auto;margin-right:auto
+
+Finally, please note that adding unstructured mesh tallies only affects how the
+heat source is measured in OpenMC - the use of unstructured mesh tallies has no
+bearing on the temperature and density resolution going *into* OpenMC. For this
+example, the temperature will have the same resolution as shown in
+[lwr_solid_temp_mc], albeit with slightly different values because the use of
+unstructured mesh tallies changes the coupled solution from the case with cell
+tallies due to the different resolution of the heat source.
+

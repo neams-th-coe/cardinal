@@ -9,6 +9,7 @@ ECP: Exascale Computing Project
 GLL: Gauss-Lobatto-Legendre
 GPU: Graphics Processing Unit
 HPC: High-Performance Computing
+LWR: Light Water Reactor
 MPI: Message Passing Interface
 NEAMS: Nuclear Energy Advanced Modeling and Simulation
 NRIC: National Reactor Innovation Center
@@ -16,4 +17,5 @@ OCCA: Open Concurrent Compute Abstraction
 PB-FHR: Pebble Bed Fluoride-Salt-Cooled High-Temperature Reactor
 SFR: Sodium Fast Reactor
 THTR: Thorium High Temperature Reactor
+TRISO: Tri-Structural Isotropic
 VTB: Virtual Test Bed
