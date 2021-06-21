@@ -210,10 +210,7 @@ OpenMCCellAverageProblem::fillMeshTranslations()
     }
   }
   else
-  {
-    const Point p = {0.0, 0.0, 0.0};
-    _mesh_translations = {p};
-  }
+    _mesh_translations = {Point(0.0, 0.0, 0.0)};
 }
 
 void
@@ -221,8 +218,12 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
 {
   // we can do some rudimentary checking on the mesh template by comparing the centroid
   // coordinates compared to centroids in the [Mesh] (because right now, we just doing a simple
-  // copy transfer that necessitates the meshes to have the same elements in the same order). If
-  // the first two elements of each mesh translation match the [Mesh], we assume that the meshes
+  // copy transfer that necessitates the meshes to have the same elements in the same order). In
+  // other words, you might have two meshes that represent the same geometry, but if you created
+  // the solid phase _first_ in Cubit for one mesh, but the fluid phase _first_ in Cubit for the
+  // other mesh, even though the geometry is the same, the element ordering would be different.
+  //
+  // If the first two elements of each mesh translation match the [Mesh], we assume that the meshes
   // are the same (otherwise, print an error). We need to check two elements per mesh translation
   // because this ensures that both the position and angular rotation match.
   unsigned int offset = 0;
@@ -235,18 +236,19 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
     {
       auto elem_ptr = _mesh.queryElemPtr(offset + e);
 
+      // if element is not on this part of the distributed mesh, skip it
       if (!elem_ptr)
         continue;
 
-      // because the mesh template and [Mesh] may be in different units, we need
-      // to adjust the [Mesh] by the scaling factor before doing a comparison
       auto pt = _mesh_template->centroid(e);
       Point centroid_template = {pt[0] , pt[1], pt[2]};
 
-      // the translation applied in OpenMC isn't actually registered in the mesh itself;
+      // The translation applied in OpenMC isn't actually registered in the mesh itself;
       // it is always added on to the point, so we need to do the same here
       centroid_template += _mesh_translations[i];
 
+      // because the mesh template and [Mesh] may be in different units, we need
+      // to adjust the [Mesh] by the scaling factor before doing a comparison.
       Point centroid_mesh = elem_ptr->centroid() * _scaling;
 
       // if the centroids are the same except for a factor of 'scaling', then we can
@@ -300,11 +302,8 @@ OpenMCCellAverageProblem::readMeshTranslations(const std::vector<std::vector<dou
       paramError("mesh_translations_file", "All entries in 'mesh_translations_file' "
         "must contain exactly ", DIMENSION, " coordinates.");
 
-    Point position;
-    for (unsigned int j = 0; j < DIMENSION; j++)
-      position(j) = d[j];
-
-    _mesh_translations.push_back(position);
+    // DIMENSION will always be 3
+    _mesh_translations.push_back(Point(d[0], d[1], d[2]));
   }
 }
 
@@ -877,21 +876,15 @@ OpenMCCellAverageProblem::initializeTallies()
       _console << "Adding mesh tally based on " << _mesh_template_filename << " at " <<
         Moose::stringify(_mesh_translations.size()) << " locations ... " << printNewline();
 
-      // find the highest mesh ID in the OpenMC problem in the event that there's other mesh
-      // tallies besides what is added here
-      int mesh_id = 0;
-      for (const auto & mesh : openmc::model::meshes)
-        mesh_id = std::max(mesh_id, mesh->id_);
-
-      // create a new mesh
+      // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
+      // next available ID
       auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename);
-      mesh->id_ = ++mesh_id;
+      mesh->set_id(-1);
       mesh->output_ = false;
 
-      _mesh_template = mesh.get();
-
       int32_t mesh_index = openmc::model::meshes.size();
-      openmc::model::mesh_map[mesh->id_] = mesh_index;
+
+      _mesh_template = mesh.get();
       openmc::model::meshes.push_back(std::move(mesh));
 
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
