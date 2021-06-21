@@ -47,7 +47,8 @@ respectively.
 
 This section describes how to compile Cardinal. Compilation of all dependencies (MOOSE, OpenMC,
 nekRS, and SAM) is handled through Cardinal's Makefiles - you don't need to separately build any
-dependencies.
+dependencies. The SAM dependency is *optional* - if you do not pull the SAM dependency, then
+Cardinal will still build, run, and test fine without SAM.
 
 ### Fetch the Submodules
 
@@ -61,7 +62,7 @@ $ git submodule update --init contrib/moose
 $ git submodule update --init --recursive contrib/openmc
 ```
 
-If you are using SAM, you will then also need to fetch the SAM submodule:
+If you are using SAM (which is an optional dependncy), you will then also need to fetch the SAM submodule:
 
 ```
 $ git submodule update --init contrib/SAM
