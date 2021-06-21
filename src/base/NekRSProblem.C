@@ -562,9 +562,9 @@ NekRSProblem::sendVolumeDeformationToNek()
 
       // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
       // onto the nekRS GLL points
-      nekrs::mapDisplacement(e, _nek_mesh->order(), _displacement_x);
-      nekrs::mapDisplacement(e, _nek_mesh->order(), _displacement_y);
-      nekrs::mapDisplacement(e, _nek_mesh->order(), _displacement_z);
+      nekrs::map_volume_displacement(e, _nek_mesh->order(), _displacement_x);
+      nekrs::map_volume_displacement(e, _nek_mesh->order(), _displacement_y);
+      nekrs::map_volume_displacement(e, _nek_mesh->order(), _displacement_z);
     }
   }
   else if (!_volume)

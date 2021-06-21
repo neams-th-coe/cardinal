@@ -168,6 +168,16 @@ void flux_volume(const int elem_id, const int order, double * flux_elem);
 void heat_source(const int elem_id, const int order, double * source_elem);
 
 /**
+ * Interpolate the MOOSE volume mesh displacement onto the nekRS mesh
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
+ * @param[in] disp_vol displacement at the libMesh nodes
+` */
+
+void map_volume_displacement(const int elem_id, const int order, double * disp_vol);
+
+
+/**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
  * @return boundary integrated flux
  */
