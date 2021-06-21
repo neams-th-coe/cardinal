@@ -621,44 +621,6 @@ NekRSProblem::sendVolumeDeformationToNek()
       }
     }*/
   }
-/*   Normalization unnecessary for displacements
-  _console << "done" << std::endl;
-
-  // Because the NekMesh may be quite different from that used in the app solving for
-  // the heat flux, we will need to normalize the total flux on the nekRS side by the
-  // total flux computed by the coupled MOOSE app. For this and the next check of the
-  // flux integral, we need to scale the integral back up again to the dimensional form
-  // for the sake of comparison.
-  const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux = nekrs::fluxIntegral();
-  const double moose_flux = *_flux_integral;
-
-  // For the sake of printing diagnostics to the screen regarding the flux normalization,
-  // we first scale the nek flux by any unit changes and then by the reference flux.
-  const double nek_flux_print_mult = scale_squared * nekrs::solution::referenceFlux();
-
-  _console << "Normalizing total nekRS flux of " << nek_flux * nek_flux_print_mult << " to the conserved MOOSE "
-    "value of " << moose_flux << "... ";
-
-  // If before normalization, there is a large difference between the nekRS imposed flux
-  // and the MOOSE flux, this could mean that there is a poor match between the domains,
-  // even if neither value is zero. For instance, if you forgot that the nekRS mesh is in
-  // units of centimeters, but you're coupling to an app based in meters, the fluxes will
-  // be very different from one another.
-  if (moose_flux && (std::abs(nek_flux * nek_flux_print_mult - moose_flux) / moose_flux) > 0.25)
-    mooseDoOnce(mooseWarning("nekRS flux differs from MOOSE flux by more than 25\%! "
-      "This could indicate that your geometries do not line up properly."));
-
-  double normalized_nek_flux = 0.0;
-  const bool successful_normalization = nekrs::normalizeFlux(moose_flux, nek_flux, normalized_nek_flux);
-
-  if (!successful_normalization)
-    mooseError("Flux normalization process failed! nekRS integrated flux: ", normalized_nek_flux,
-      " MOOSE integrated flux: ", moose_flux, ".\n\nThis may happen if the nekRS mesh "
-      "is very different from that used in the App sending heat flux to nekRS and the "
-      "nearest node transfer is only picking up zero values in the coupled App.");
-
-  _console << "done" << std::endl; */
 }
 void
 NekRSProblem::sendVolumeHeatSourceToNek()
