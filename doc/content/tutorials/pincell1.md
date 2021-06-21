@@ -147,7 +147,7 @@ The initial temperature is 280&deg;C, while the initial heat source in solid dom
 
 This section describes the mesh used for the solid domain. MOOSE
 [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
-the solid mesh. The mesh with block IDs and sidesets is shown in [solid_mesh].
+the solid mesh. [solid_mesh] shows the mesh with block IDs and sidesets.
 
 !media pincell_solid_mesh.png
   id=solid_mesh
@@ -222,7 +222,7 @@ The OpenMC geometry as produced via plots is shown below.
 
 !media pincell_openmc.png
   id=pincell_openmc
-  caption=OpenMC [!ac](CSG) geometry shown along the $x$-$y$ and $x$-$z$ planes
+  caption=OpenMC [!ac](CSG) geometry (colored by cell ID) shown along the $x$-$y$ and $x$-$z$ planes
   style=width:60%;margin-left:auto;margin-right:auto
 
 ## Multiphysics Coupling
@@ -413,6 +413,12 @@ for diagnostic purposes.
 
 !listing /tutorials/lwr_solid/openmc.i
   block=Postprocessors
+
+You will likely notice that many of the always-included MOOSE blocks are not
+present in the `openmc.i` input. [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+automatically adds the `heat_source`, `temp`, and `density` (if density is coupled
+to OpenMC) variables in the `openmc.i` input, so these will never appear in the OpenMC
+wrapper file explicitly.
 
 In addition to the wrapping of OpenMC in the `openmc.i` input file, we
 need to create the XML input files used to run OpenMC from the Python script shown earlier.

@@ -4,6 +4,9 @@ In this tutorial, you will learn how to:
 
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Couple OpenMC solves in units of centimeters with MOOSE solves in units of meters
+- Use a different heat source mesh than a coupled MOOSE application
+- Repeat the same mesh tally several times throughout the OpenMC domain
+- Apply temperature feedback from homogenized thermal-hydraulics models
 
 This tutorial describes how to use Cardinal to perform temperature and heat
 source coupling of OpenMC and MOOSE for modeling fuel pebbles in a lattice.
@@ -11,3 +14,275 @@ source coupling of OpenMC and MOOSE for modeling fuel pebbles in a lattice.
 !alert note
 This tutorial assumes that you have read [Tutorial 2A](pincell1.md) to give most of the
 background for how the OpenMC-MOOSE temperature and heat source coupling works.
+
+## Geometry and Computational Model
+
+In this tutorial, we will consider multiphysics feedback for [!ac](TRISO) pebbles,
+which are very heterogeneous mixtures of millimeter-size fuel particles in a
+graphite matrix. Cardinal contains convenient features for applying multiphysics
+feedback to heterogeneous domains, when a coupled physics application (such as MOOSE
+heat conduction) might *not* also resolve the heterogeneities. For instance, the
+fuel pebble model in the coarse-mesh thermal-hydraulic tool Pronghorn
+[!cite](novak2021b) uses the Heat Source Decomposition method to predict pebble
+interior temperatures, which does not explicitly resolve the [!ac](TRISO) particles
+in the pebble. Of course your thermal-hydraulics application might explicitly resolve
+[!ac](TRISO) particles, and this Cardinal feature might not be of interest. But, if
+you want to incorporate multiphysics feedback from a homogenized thermal-hydraulics
+application, please be sure to read [#simplified].
+
+For now, we first need to introduce other modeling features. Therefore, our beginning
+application will not be to [!ac](TRISO) pebbles, but rather to solid UO$_2$ spheres.
+The [!ac](TRISO) pebble case will be addressed in [#simplified] to help illustrate
+features for homogenized temperature feedback.'
+
+We will model a "stack" of three pebbles, each of 1.5 cm radius. The pebble centers
+are located at $(0, 0, 2)$, $(0, 0, 6)$, and $(0, 0, 10)$, i.e. they are vertically
+stacked. FLiBe coolant occupies the space around the pebbles. Heat is produced in the
+pebbles; we assume the total power is 1500 W. Different enrichments will be specified
+for each pebble.
+
+## Boundary Conditions
+
+For the neutronics physics, the pebbles are placed in a box with $x$-$y$ width
+of 4$\times$4 cm and height of 12 cm. All boundaries of this box are reflecting.
+
+For the solid physics, 
+because heat transfer and fluid flow in the FLiBe is not modeled in this example,
+we approximate the effect of heat removal by the fluid by setting the outer
+surface of the pebble to a convection boundary condition,
+
+\begin{equation}
+\label{eq:1}
+q^{''}=h\left(T-T_\infty\right)
+\end{equation}
+
+where $h=1000$ W/m$^2$/K and $T_\infty=650$&deg;C.
+
+## Initial Conditions
+
+The initial temperature is 650&deg;C, while the initial heat source in the solid is zero.
+
+## Meshing
+
+This section describes the mesh used for the solid domain. Cubit [!cite](cubit) meshing
+software is used. In this problem, we will solve MOOSE in units of meters (OpenMC must always
+solve in units of centimeters). This is often convenient for heat transfer applications because
+material properties for thermal-fluids physics are almost always given in SI units. Further,
+many MOOSE physics inherently assume SI units, such as the
+[fluid property module](https://mooseframework.inl.gov/modules/fluid_properties/index.html)
+and Pronghorn's solid property correlations [!cite](pronghorn_manual). To solve MOOSE in units
+of meters, we will need to create a mesh in units of meters. This mesh is shown
+in [solid_mesh]. The only sideset in the domain is the surface of the pebbles, which is named `1`.
+
+!media pebble_mesh.png
+  id=solid_mesh
+  caption=Mesh for a stack of three pebbles
+  style=width:15%;margin-left:auto;margin-right:auto
+
+## CSG Geometry
+
+This section describes the [!ac](CSG) model setup in OpenMC. In the near future, OpenMC will
+have unstructured mesh tracking capabilities - but until that is available, OpenMC
+geometries all use the [!ac](CSG) geometry approach, where cells are created from half-spaces
+of various common surfaces. This tutorial differs from [Tutorial 2A](pincell1.md)
+in that we will build OpenMC's geometry using *lattices*. A lattice is an ordered repetition
+of universes that is often used to simplify model setup. Please consult
+the OpenMC [lattice documentation](https://docs.openmc.org/en/stable/usersguide/geometry.html#lattices)
+for more details.
+
+Here, we create a repeatable universe consisting of a single pebble and surrounding flibe,
+and then we repeat it three times throughout the geometry. The Python script used to generate
+the OpenMC problem is shown below.
+
+!listing /tutorials/pebbles/make_openmc_model.py
+
+As introduced in [Tutorial 2A](pincell1.md), there are two important aspects of the
+OpenMC geometry creation in this multiphysics context -
+
+- The resolution of the temperature (and density, for fluid feedback) to impose in OpenMC
+- The "level" of the cells with which you want to perform feedback
+
+Here, because we define a single cell for each pebble, we are going to apply a single
+temperature to each pebble cell (you can of course use as many cells as you would like).
+And because we're using a lattice where we repeat the `repeatable_univ` three times in the
+geometry, the level of the cells is *not* level zero. On level zero of the geometry,
+we are in the `main_cell`, which is filled with a lattice. On level 1 of the geometry,
+we are in the `repeatable_univ`, or the universe representing our repeated geometry unit -
+a single pebble plus surrounding flibe. The OpenMC geometry as produced via plots is shown below.
+
+!media pebble_openmc.png
+  id=mc_geom
+  caption=OpenMC geometry (colored by cell ID) for a stack of three pebbles
+  style=width:15%;margin-left:auto;margin-right:auto
+
+In [Tutorial 2A](pincell1.md), you may recall that we had unique cell IDs for
+all regions of the problem - because we divided the geometry into 12 axial layers, we
+had 12 unique fuel cells, 12 unique cladding cells, 12 unique gap cells, and 12 unique fluid
+cells. Here, [mc_geom] is also colored by cell, but instead we see only two unique cell
+*IDs*. This problem is built using *distributed cells*, meaning that we repeat the same
+cell *ID* multiple times throughout the geometry; each time the cell is repeated, we assign
+a new *instance* to that cell. So, the three pebbles are represented as:
+
+- Cell ID 1, instance 0
+- Cell ID 1, instance 1
+- Cell ID 1, instance 2
+
+and the flibe region is represented as:
+
+- Cell ID 2, instance 0
+- Cell ID 2, instance 1
+- Cell ID 2, instance 2
+
+Because our repeated universe is nested one layer below the root universe, we need
+to set `solid_cell_level = 1` when we set up the OpenMC wrapping.
+
+## Multiphysics Coupling
+
+In this section, OpenMC and MOOSE are coupled for heat source and temperature feedback for
+the solid regions of a stack of three pebbles. All input files are present in the
+`tutorials/pebbles` directory. The following sub-sections describe these files.
+
+### Solid Input Files
+
+The solid phase is solved with the MOOSE heat conduction module, and is described in the
+`solid.i` input. We set up the mesh using the [CombinerGenerator](https://mooseframework.inl.gov/source/meshgenerators/CombinerGenerator.html).
+
+!listing /tutorials/pebbles/solid.i
+  block=Mesh
+
+Next, we define the temperature variable, `temp`, and specify the governing equations
+and boundary conditions that we will apply. We set the thermal conductivity of the pebbles
+to 50 W/m/K - note that this heat conduction input is in SI units!
+
+!listing /tutorials/pebbles/solid.i
+  start=Variables
+  end=AuxVariables
+
+The heat source received from OpenMC is stored in the `heat_source` auxiliary variable.
+
+!listing /tutorials/pebbles/solid.i
+  block=AuxVariables
+
+Finally, we specify that we will run an [OpenMCApp](/base/OpenMCApp.md) as a sub-application,
+with data transfers of heat source from OpenMC and temperature to OpenMC and use a transient
+executioner.
+
+!listing /tutorials/pebbles/solid.i
+  start=MultiApps
+
+### Neutronics Input Files
+
+The neutronics physics is solved over the entire domain using OpenMC. The OpenMC wrapping
+is described in the `openmc.i` input file. Although OpenMC does not track particles on a mesh,
+we begin by defining a mesh on which OpenMC will receive temperature from the coupled
+MOOSE application, and on which OpenMC will write the fission heat source. For the time being,
+we use exactly the same mesh as the coupled MOOSE application; we will relax this assumption
+in [#different_meshes].
+
+!listing /tutorials/pebbles/openmc.i
+  block=Mesh
+
+!alert note
+Even though OpenMC solves in units of centimeters, the mesh put in the `[Mesh]` block
+*must* use the same units as in the coupled MOOSE application. Otherwise, the transfers
+used to send temperature and heat source to/from OpenMC will not map to the correct
+elements across applications. For instance, if the `[Mesh]` in the `solid.i` input were
+in units of meters, but the `[Mesh]` in the `openmc.i` input were in units of centimeters,
+then a point $(0, 0, 0.02)$ m in `solid.i` would get mapped to the point
+$(0, 0, 0.02)$ cm in `openmc.i` when using the [MultiAppCopyTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppCopyTransfer.html)
+and [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
+in the `solid.i` input file.
+
+Next, we define auxiliary variables that will help us visualize the cell IDs,
+instances, and temperatures in OpenMC.
+
+!listing /tutorials/pebbles/openmc.i
+  start=AuxVariables
+  end=Problem
+
+The [Problem](https://mooseframework.inl.gov/syntax/Problem/)
+block is then used to specify the OpenMC wrapping. We define a total power of
+1500 W, and indicate that we'd like to add tallies on block 0, which corresponds to the pebbles.
+Because we want to tally separate fission powers for each pebble, we cannot have a cell-type
+[tally filter](https://docs.openmc.org/en/stable/usersguide/tallies.html#filters). If we *did*
+use a cell-type filter, then we would tally all three pebbles as the same region in space,
+because all three pebbles have ID 1. Instead, we specify a `cell_instance` filter, which will
+add tallies for each unique cell ID$+$instance combination. Finally, because we have repeated
+lattices nested one level below the root universe, we set the `solid_cell_level = 1`.
+
+!listing /tutorials/pebbles/openmc.i
+  block=Problem
+
+The `scaling` parameter is used to indicate what multiplicative factor should be
+applied to the `[Mesh]` in order to get to units of centimeters. This scaling factor is
+applied within a `findCell` routine that maps MOOSE elements to OpenMC [!ac](CSG) cells,
+and is all that is needed in order to run MOOSE in units of meters and OpenMC in units
+of centimeters. Because the `[Mesh]` is in units of meters, we set `scaling = 100.0`.
+The scaling is also applied to ensure that the heat source is on the correct
+per-unit-volume scale that is expected by the `[Mesh]`.
+
+Finally, the executioner, output, and postprocessors are the same as those used in
+[Tutorial 2A](pincell1.md).
+
+!listing /tutorials/pebbles/openmc.i
+  start=Executioner
+
+In addition to the wrapping of OpenMC in the `openmc.i` input file, we need to create the
+XML input files used to run OpenMC from the Python script shown earlier. You can
+run the script to generate the input files with:
+
+```
+$ python make_openmc_model.py
+```
+
+## Execution and Postprocessing
+
+To run the coupled calculation, run the following from the command line.
+
+```
+$ mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
+```
+
+This will run both MOOSE and OpenMC with 8 [!ac](MPI) processes and 2 OpenMP threads.
+When the simulation has completed, you will have created a number of different output files:
+
+- `solid_out.e`, an Exodus II output file with the solid mesh and solution
+- `solid_out_openmc0.e`, an Exodus II output file with the OpenMC solution and the data
+  that was ultimately transferred in/out of OpenMC
+
+First, let's examine how the mapping between OpenMC and MOOSE was established.
+When we run with `verbose = true`, you will see the following mapping information displayed:
+
+```
+cell 1, instance 0 (of 3): 256 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  13.2213
+cell 1, instance 1 (of 3): 256 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  13.2213
+cell 1, instance 2 (of 3): 256 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  13.2213
+```
+
+The three cells representing the pebbles are correctly mapped to the corresponding MOOSE elements.
+Shown below is the heat source computed by OpenMC (units of W/m$^3$) and mapped to the MOOSE mesh,
+along with the temperature computed by MOOSE (before and after being averaged and sent to OpenMC cells).
+
+!media pbr_solution.png
+  id=pbr_solution
+  caption=Heat source and temperature computed by a coupled OpenMC-MOOSE model of pebbles
+
+Due to the reflecting nature of the problem, as you increase the number of particles,
+you will see the pebble powers converge on identical values - the only reason that you
+can observe different pebble powers is because the heat source has fairly high uncertainty.
+
+Finally, you can confirm that the `scaling` factor was applied correctly by comparing the
+`heat_source` postprocessor, of the volume integral of the heat source, with the total power
+specified in [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md). If the
+integral is off by a factor of $100^3$ from the `power`, then you know right away that the
+`scaling` was not applied correctly.
+
+## Different Meshes
+  id=different_meshes
+
+Up until this point, exactly the same mesh has been
+
+## Homogenized Temperature Feedback
+  id=simplified
+
+!bibtex bibliography

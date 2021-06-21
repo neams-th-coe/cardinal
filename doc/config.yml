@@ -21,7 +21,9 @@ Extensions:
             Source: source/index.md
             Developers: source/developers.md
     MooseDocs.extensions.appsyntax:
-        executable: ${MOOSE_DIR}/../../
+        executable: ${ROOT_DIR}
+        includes:
+            - include
     MooseDocs.extensions.acronym:
         acronyms:
             moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
