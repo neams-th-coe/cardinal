@@ -56,7 +56,7 @@ At a high level, Cardinal's wrapping of nekRS consists of:
 
 Cardinal developers have an intimate knowledge of how nekRS stores its
 solution fields and mesh, so this entire process is automated for you! nekRS can
-communicate with any other MOOSE application via the [MultiApp]((https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+communicate with any other MOOSE application via the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
 and [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html) systems
 in MOOSE, enabling complex multiscale thermal-hydraulic analysis and multiphysics feedback.
 The same wrapping can be used for [!ac](CHT) analysis with *any* MOOSE
@@ -456,8 +456,8 @@ function is then used as an initial condition with a `FunctionIC` object.
   end=Kernels
 
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as the
-[HeatConductio](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
-` kernel, or $-\nabla\cdot(k\nabla T)=0$. An auxiliary kernel is also specified
+[HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
+ kernel, or $-\nabla\cdot(k\nabla T)=0$. An auxiliary kernel is also specified
 for the `flux` variable that specifies that the flux on the `fluid_solid_interface` boundary
 should be computed as $-k\nabla T\cdot\hat{n}$.
 

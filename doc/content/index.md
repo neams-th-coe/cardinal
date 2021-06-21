@@ -21,6 +21,13 @@ heat transfer simulations on meshes that are not necessarily continuous on phase
 interfaces, allowing mesh resolution to be specified based on the underlying physics,
 rather than rigid continuity restrictions in single-application heat transfer codes.
 
+Cardinal is design with flexibility in mind. You can use Cardinal to couple
+OpenMC and nekRS to the MOOSE framework, as well as run OpenMC and nekRS as standalone
+applications - the `openmc` and `nrsmpi` standalone executables are built as part of
+the Cardinal build process. Further, you don't need to build any of Cardinal's
+dependencies yourself - one Makefile is used to build Cardinal and standalone
+executables for OpenMC and nekRS.
+
 !alert note
 Cardinal does not support a Nek5000 backend - you must use Cardinal with nekRS.
 nekRS is under rapid development, and capabilities continue to grow every day.

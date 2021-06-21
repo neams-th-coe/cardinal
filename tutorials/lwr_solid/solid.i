@@ -3,6 +3,8 @@ clad_ir = 0.40005
 clad_or = 0.45720
 L = 300.0
 
+T_fluid = ${fparse 280.0 + 273.15}
+
 [Mesh]
   [clad] # This makes a circular annulus that will represent the clad
     type = AnnularMeshGenerator
@@ -51,7 +53,7 @@ L = 300.0
 
 [Variables]
   [temp]
-    initial_condition = 300
+    initial_condition = ${T_fluid}
   []
 []
 
@@ -59,19 +61,6 @@ L = 300.0
   [heat_source]
     family = MONOMIAL
     order = CONSTANT
-  []
-  [density]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [rho]
-    type = ParsedAux
-    variable = density
-    function = '-0.4884*temp+2413.0'
-    args = 'temp'
   []
 []
 
@@ -84,69 +73,71 @@ L = 300.0
     type = CoupledForce
     variable = temp
     v = heat_source
-    block = '1'
-  []
-  [sink]
-    type = BodyForce
-    variable = temp
-    value = -20.0
-    block = '2'
   []
 []
 
 [BCs]
-  [top]
-    type = DirichletBC
-    variable = temp
-    boundary = 'top'
-    value = 1000.0
-  []
-  [bottom]
-    type = DirichletBC
-    variable = temp
-    boundary = 'bottom'
-    value = 400.0
-  []
   [surface]
-    type = FunctionDirichletBC
+    type = ConvectiveFluxFunction
+    T_infinity = '${T_fluid}'
+
+    # convert from W/m2/K to W/cm2/K
+    coefficient = ${fparse 1000.0/100.0/100.0}
     variable = temp
-    boundary = 'surface'
-    function = axial
+    boundary = '5'
   []
 []
 
-[Functions]
-  [axial]
-    type = ParsedFunction
-    value = '400+z*(1000-400)/10.0'
+[ThermalContact]
+  # This adds boundary conditions bewteen the fuel and the cladding, which represents
+  # the heat flux in both directions as
+  # q''= h * (T_1 - T_2)
+  # where h is a conductance that accounts for conduction through a material and
+  # radiation between two infinite parallel plate gray bodies.
+  [one_to_two]
+    type = GapHeatTransfer
+    variable = temp
+    primary = '1'
+    secondary = '4'
+
+    # we will use a quadrature-based approach to find the gap width and cross-side temperature
+    quadrature = true
+
+    # emissivity of the fuel
+    emissivity_primary = 0.8
+
+    # emissivity of the clad
+    emissivity_secondary = 0.8
+
+    # thermal conductivity of the gap material
+    gap_conductivity = 1.0
+
+    # geometric terms related to the gap
+    gap_geometry_type = CYLINDER
+    cylinder_axis_point_1 = '0 0 0'
+    cylinder_axis_point_2 = '0 0 ${L}'
   []
 []
 
 [Materials]
-  [k]
+  [k_clad]
     type = GenericConstantMaterial
     prop_values = '0.5'
     prop_names = 'thermal_conductivity'
     block = '1'
   []
-  [k2]
+  [k_fuel]
     type = GenericConstantMaterial
     prop_values = '0.05'
     prop_names = 'thermal_conductivity'
-    block = '2'
-  []
-  [k3]
-    type = GenericConstantMaterial
-    prop_values = '2.0'
-    prop_names = 'thermal_conductivity'
-    block = '3'
+    block = '2 3'
   []
 []
 
 [Executioner]
   type = Transient
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  num_steps = 2
+  num_steps = 10
   petsc_options_value = 'hypre boomeramg'
   dt = 1.0
   nl_abs_tol = 1e-8
@@ -179,12 +170,5 @@ L = 300.0
     multi_app = openmc
     variable = temp
     source_variable = temp
-  []
-  [density_to_openmc]
-    type = MultiAppMeshFunctionTransfer
-    direction = to_multiapp
-    multi_app = openmc
-    variable = density
-    source_variable = density
   []
 []

@@ -1,6 +1,8 @@
 import openmc
+import numpy as np
 
-N = 10    # Number of axial cells to build in the solid to receive feedback
+N = 12          # Number of axial cells to build in the solid to receive feedback
+height = 300.0  # Total height of pincell
 
 ###############################################################################
 # Create materials for the problem
@@ -44,14 +46,34 @@ clad_or = openmc.ZCylinder(r=0.45720, name='Clad OR')
 pitch = 1.25984
 box = openmc.rectangular_prism(pitch, pitch, boundary_type='reflective')
 
-# Create cells, mapping materials to regions
-fuel = openmc.Cell(fill=uo2, region=-fuel_or)
-gap = openmc.Cell(fill=helium, region=+fuel_or & -clad_ir)
-clad = openmc.Cell(fill=zircaloy, region=+clad_ir & -clad_or)
-water = openmc.Cell(fill=borated_water, region=+clad_or & box)
+# Create cells, mapping materials to regions - split up the axial height
+planes = np.linspace(0.0, height, N + 1)
+plane_surfaces = []
+for i in range(N + 1):
+  plane_surfaces.append(openmc.ZPlane(z0=planes[i]))
+
+# set the boundary condition on the topmost and bottommost planes to vacuum
+plane_surfaces[0].boundary_type = 'vacuum'
+plane_surfaces[-1].boundary_type = 'vacuum'
+
+fuel_cells = []
+clad_cells = []
+gap_cells = []
+water_cells = []
+all_cells = []
+for i in range(N):
+  layer = +plane_surfaces[i] & -plane_surfaces[i + 1]
+  fuel_cells.append(openmc.Cell(fill=uo2, region=-fuel_or & layer, name='Fuel{:n}'.format(i)))
+  gap_cells.append(openmc.Cell(fill=helium, region=+fuel_or & -clad_ir & layer, name='Gap{:n}'.format(i)))
+  clad_cells.append(openmc.Cell(fill=zircaloy, region=+clad_ir & -clad_or & layer, name='Clad{:n}'.format(i)))
+  water_cells.append(openmc.Cell(fill=borated_water, region=+clad_or & layer & box, name='Water{:n}'.format(i)))
+  all_cells.append(fuel_cells[i])
+  all_cells.append(gap_cells[i])
+  all_cells.append(clad_cells[i])
+  all_cells.append(water_cells[i])
 
 # Create a geometry and export to XML
-geometry = openmc.Geometry([fuel, gap, clad, water])
+geometry = openmc.Geometry(all_cells)
 geometry.export_to_xml()
 
 ###############################################################################
@@ -64,9 +86,35 @@ settings.inactive = 10
 settings.particles = 1000
 
 # Create an initial uniform spatial source distribution over fissionable zones
-lower_left = (-pitch/2, -pitch/2, -1)
-upper_right = (pitch/2, pitch/2, 1)
+lower_left = (-pitch/2, -pitch/2, 0.0)
+upper_right = (pitch/2, pitch/2, height)
 uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
 settings.source = openmc.source.Source(space=uniform_dist)
 
+settings.temperature = {'default': 280.0 + 273.15,
+                        'method': 'interpolation',
+                        'range': (294.0, 3000.0),
+                        'tolerance': 1000.0}
+
 settings.export_to_xml()
+
+# create some plots to look at the geometry for the sake of the tutorial
+plot1          = openmc.Plot()
+plot1.filename = 'plot1'
+plot1.width    = (pitch, pitch)
+plot1.basis    = 'xy'
+plot1.origin   = (0.0, 0.0, height/2.0)
+plot1.pixels   = (1000, 1000)
+plot1.color_by = 'cell'
+
+plot2          = openmc.Plot()
+plot2.filename = 'plot2'
+plot2.width    = (pitch, height)
+plot2.basis    = 'xz'
+plot2.origin   = (0.0, 0.0, height/2.0)
+plot2.pixels   = (100, int(100 * (height/2.0/pitch)))
+plot2.color_by = 'cell'
+
+plots = openmc.Plots([plot1, plot2])
+plots.export_to_xml()
+
