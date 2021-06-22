@@ -892,8 +892,11 @@ NekRSProblem::addExternalVariables()
     addAuxVariable("MooseVariable", "avg_flux", var_params);
     _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
 
-		// adds the displacement aux variables from the solid mechanics module
-    
+   if (_moving_mesh)
+   {	
+      mooseError("Mesh displacement not supported in boundary coupling!");
+     // pending release of nekRS mesh solver
+   } 
     
 // add the postprocessor that receives the flux integral for normalization
     auto pp_params = _factory.getValidParams("Receiver");
@@ -909,14 +912,18 @@ NekRSProblem::addExternalVariables()
     auto pp_params = _factory.getValidParams("Receiver");
     addPostprocessor("Receiver", "source_integral", pp_params);
     
-    addAuxVariable("MooseVariable", "disp_x", var_params);
-    _disp_x_var = _aux->getFieldVariable<Real>(0, "disp_x").number();
+		// add the displacement aux variables from the solid mechanics solver
+    if (_moving_mesh)
+    {
+			addAuxVariable("MooseVariable", "disp_x", var_params);
+      _disp_x_var = _aux->getFieldVariable<Real>(0, "disp_x").number();
 
-    addAuxVariable("MooseVariable", "disp_y", var_params);
-    _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
+      addAuxVariable("MooseVariable", "disp_y", var_params);
+      _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
     
-    addAuxVariable("MooseVariable", "disp_z", var_params);
-    _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
+      addAuxVariable("MooseVariable", "disp_z", var_params);
+      _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
+    }
 
   }
 }
