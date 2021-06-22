@@ -150,6 +150,13 @@ public:
   int32_t cellToMaterialIndex(const cellInfo & cell_info) { return _cell_to_material[cell_info]; }
 
   /**
+   * Get the first material cell contained in the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return material cell index, instance pair
+   */
+  cellInfo containedMaterialCell(const cellInfo & cell_info) { return _cell_to_contained_material_cell[cell_info]; }
+
+  /**
    * Get the fields coupled for each cell; because we require that each cell map to a single phase,
    * we simply look up the coupled fields of the first element that this cell maps to. Note that
    * this function requires a valid instance, index pair for cellInfo - you cannot pass in an
@@ -194,6 +201,13 @@ public:
   const Real & densityConversionFactor() const { return _density_conversion_factor; }
 
   const std::vector<openmc::Tally *> & getLocalTally() const { return _local_tally; }
+
+  /**
+   * Get the temperature of a cell; for cells not filled with materials, this will return
+   * the temperature of the first material-type cell
+   * @param[in] cell info cell ID, instance
+   */
+  double cellTemperature(const cellInfo & cell_info);
 
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED {-1};
@@ -585,6 +599,13 @@ protected:
 
   /// Material filling each cell
   std::map<cellInfo, int32_t> _cell_to_material;
+
+  /**
+   * First material-type cell contained within the key (a cell info); this is
+   * used for identifying the temperature of a cell filled with many other cells
+   * (which we are allowed to do by nature of the 'set_contained = true' usage)
+   */
+  std::map<cellInfo, cellInfo> _cell_to_contained_material_cell;
 
   /// OpenMC cells to which a kappa fission tally is to be added
   std::vector<cellInfo> _tally_cells;

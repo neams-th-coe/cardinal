@@ -777,6 +777,28 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) + " OpenMC cells");
   }
 
+  // For purposes of reading cell temperatures, we need to save the first contained material-type
+  // cell index, instance pair because calling get_contained_cells() is very slow for every quadrature point
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    const auto & cell = openmc::model::cells[cell_info.first];
+    if (cell->type_ == openmc::Fill::MATERIAL)
+    {
+      _cell_to_contained_material_cell[cell_info] = cell_info;
+    }
+    else
+    {
+      auto contained_cells = cell->get_contained_cells();
+      int32_t cell_index = contained_cells.begin()->first;
+      auto instances = contained_cells.begin()->second;
+      int32_t cell_instance = instances[0];
+
+      _cell_to_contained_material_cell[cell_info] = {cell_index, cell_instance};
+    }
+  }
+
   // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
   computeCellMappedVolumes();
 
@@ -1003,9 +1025,20 @@ void OpenMCCellAverageProblem::addExternalVariables()
 
 void OpenMCCellAverageProblem::externalSolve()
 {
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    _console << printCell(cell_info) << " has temperature before solve of: " << cellTemperature(cell_info) << std::endl;
+  }
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
+
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    _console << printCell(cell_info) << " has temperature after solve of: " << cellTemperature(cell_info) << std::endl;
+  }
 }
 
 void
@@ -1050,6 +1083,8 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
     if (err)
       mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
         Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+    _console << printCell(cell_info) << " has temperature (K): " << cellTemperature(cell_info) << std::endl;
   }
 
   if (!_verbose)
@@ -1288,6 +1323,11 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
       // to be setting the temperature of all of the cells in cell_to_elem - only for the density
       // transfer do we need to filter for the fluid cells
       sendTemperatureToOpenMC();
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    _console << printCell(cell_info) << " has temperature after sendTemperatureToOpenMC of: " << cellTemperature(cell_info) << std::endl;
+  }
 
       if (_has_fluid_blocks)
         sendDensityToOpenMC();
@@ -1305,6 +1345,11 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
   }
 
   _first_transfer = false;
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    _console << printCell(cell_info) << " has temperature at end of syncSolutions of: " << cellTemperature(cell_info) << std::endl;
+  }
 }
 
 void
@@ -1458,4 +1503,17 @@ OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std
       "so that elem->volume() matches MOOSE integrations" << std::endl;
     volume_order = SECOND;
   }
+double
+OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
+{
+  auto material_cell = containedMaterialCell(cell_info);
+
+  double T;
+  int err = openmc_cell_get_temperature(material_cell.first, &material_cell.second, &T);
+
+  if (err)
+    mooseError("In attempting to get temperature of " + printCell(cell_info) +
+      ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+  return T;
 }
