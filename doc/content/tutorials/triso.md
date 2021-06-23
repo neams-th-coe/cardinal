@@ -2,6 +2,7 @@
 
 In this tutorial, you will learn how to:
 
+- Couple OpenMC via temperature and heat source feedback to MOOSE
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Couple OpenMC solves in units of centimeters with MOOSE solves in units of meters
 - Repeat the same mesh tally several times throughout the OpenMC domain
@@ -88,7 +89,8 @@ of various common surfaces. This tutorial differs from [Tutorial 2A](pincell1.md
 in that we will build OpenMC's geometry using *lattices*. A lattice is an ordered repetition
 of universes that is often used to simplify model setup. Please consult
 the OpenMC [lattice documentation](https://docs.openmc.org/en/stable/usersguide/geometry.html#lattices)
-for more details.
+for more details. You might also have lattices in order to accelerate the geometric
+search.
 
 Here, we create a repeatable universe consisting of a single pebble and surrounding flibe,
 and then we repeat it three times throughout the geometry. The Python script used to generate
@@ -415,5 +417,50 @@ the coupled results won't look particularly realistic unless more particles are 
 
 ## Homogenized Temperature Feedback
   id=simplified
+
+In this last section of this tutorial, we change the OpenMC model to consider
+resolved [!ac](TRISO) particles in the pebbles. We will keep the MOOSE heat conduction model
+the same - that is, [!ac](TRISO) particles are not resolved in the heat conduction model,
+such that the temperature exchanged with the OpenMC model actually represents some type
+of volume average over the materials in a pebble.
+
+!alert note
+If your application includes very heterogeneous domains such as [!ac](TRISO) fuels,
+you do *not* need to model the multiphysics coupling in this manner (i.e. not explicitly
+resolving the temperatures in different materials in the thermal model). If you resolve the
+[!ac](TRISO) particles in your MOOSE heat conduction model, then all of the information in
+the previous tutorials applies, and you simply will exchange temperatures with a
+corresponding [!ac](TRISO)-resolved OpenMC model.
+
+Our [!ac](TRISO) pebble will also have a radius of 1.5 cm, but will be entirely filled
+with [!ac](TRISO) particles at 40% packing fraction (we neglect the graphite shell that
+is usually present on the outside of the particle-filled region for simplicity in this tutorial).
+
+First, we need to create a new OpenMC model. A script for doing so is shown below.
+Importantly, the cell instance filter cannot be used with cells not filled with a material -
+this means that, because we do indeed want to tally over cells *not* filled with a material,
+that each of those cells must have a unique ID (recall that for lattices, a cell with the
+same ID is repeated multipled times, with each repeated cell given a different *instance*).
+This just requires us to construct the geometry slightly differently.
+
+!listing /tutorials/trisos/make_openmc_model.py
+
+The OpenMC geometry, colored by material, is shown below. We used OpenMC's
+[random packing features](https://docs.openmc.org/en/stable/examples/triso.html)
+for generating a random packing of [!ac](TRISO) particles. We generate a *single* random
+realization, and then repeat it for each pebble. We also apply a lattice on top of the
+[!ac](TRISO) particles *and* a second lattice on top of the pebbles to speed up the
+geometric search. This lattice differs from the notion of a lattice used in
+[Tutorial 2A](pincell1.md), and moreso refers to a superimposed search grid. For a three
+pebble problem, adding a search grid to the pebbles has an insignificant effect, but should
+certainly be included for larger problems.
+
+!media pbr_openmc.png
+  id=pbr_openmc
+  caption=OpenMC geometry (colored by material) for a stack of three pebbles
+  style=width:20%;margin-left:auto;margin-right:auto
+
+
+
 
 !bibtex bibliography

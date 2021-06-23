@@ -5,7 +5,15 @@ Cardinal is a wrapping of the GPU-based spectral element CFD code
 transport code [OpenMC](https://github.com/openmc-dev/openmc) within the
 MOOSE framework. Cardinal is intended for providing high-resolution
 thermal-hydraulics and/or nuclear heating feedback to MOOSE multiphysics
-simulations.
+simulations. [full_pbr] shows an image of a full-core (350,000 pebbles)
+nekRS simulation of a [!ac](PBR); multiphysics feedback from calculations
+such as these can be incorporated into the MOOSE framework, enabling
+a broad set of multiphysics capabilities relevant to nuclear applications.
+
+!media full_pbr.png
+  id=full_pbr
+  caption=Full-core [!ac](PBR) simulations with nekRS [!cite](lan); MOOSE multiphysics feedback can be incorporated with nekRS and OpenMC simulations with Cardinal
+  style=width:80%;margin-left:auto;margin-right:auto
 
 Cardinal allows nekRS and OpenMC to couple seamlessly with the MOOSE framework,
 enabling in-memory coupling, distributed parallel meshes for very large-scale
@@ -37,3 +45,5 @@ in Nek5000 that are not yet available in nekRS, please [contact](https://github.
  the nekRS development team. If your needs will not be met in the near future
 in nekRS, please contact the Cardinal development team to discuss the possibilities
 of adding a Nek5000 backend in Cardinal.
+
+!bibtex bibliography

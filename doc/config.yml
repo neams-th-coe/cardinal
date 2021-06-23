@@ -19,11 +19,12 @@ Extensions:
         menu:
             Tutorials: tutorials/index.md
             Source: source/index.md
-            Developers: source/developers.md
+            Developers: developers.md
     MooseDocs.extensions.appsyntax:
         executable: ${ROOT_DIR}
         includes:
             - include
+        active: false
     MooseDocs.extensions.acronym:
         acronyms:
             moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
