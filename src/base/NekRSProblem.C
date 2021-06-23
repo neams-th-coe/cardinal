@@ -187,6 +187,44 @@ NekRSProblem::initialSetup()
 {
   ExternalProblem::initialSetup();
 
+  // While we don't require nekRS to actually _solve_ for the temperature, we should
+  // print a warning if there is no temperature solve. For instance, the check in
+  // NekApp makes sure that we have a [TEMPERATURE] block in the nekRS input file, but we
+  // might still toggle the solver off by setting 'solver = none'. Warn the user if
+  // the solve is turned off because this is really only a testing feature.
+  bool has_temperature_solve = nekrs::hasTemperatureSolve();
+  if (!has_temperature_solve)
+    mooseWarning("By setting 'solver = none' for temperature in the .par file, nekRS "
+      "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
+      "fixed at its initial condition, and the heat flux and power transferred to nekRS will be unused.");
+
+  // For boundary-based coupling, we should check that the correct flux boundary
+  // condition is set on all of nekRS's boundaries. To avoid throwing this
+  // error for test cases where we have a [TEMPERATURE] block but set its solve
+  // to 'none', we also check whether we're actually computing for the temperature.
+  auto boundary = _nek_mesh->boundary();
+  if (boundary && has_temperature_solve)
+  {
+    for (const auto & b : *boundary)
+      if (!nekrs::mesh::isHeatFluxBoundary(b))
+      {
+        const std::string type = nekrs::mesh::temperatureBoundaryType(b);
+        mooseError("In order to send a boundary heat flux to nekRS, you must have a flux condition "
+          "for each 'boundary' set in 'NekRSMesh'!\nBoundary " + std::to_string(b) + " is of type '" +
+          type + "' instead of 'fixedGradient'.");
+      }
+  }
+
+  // For volume-based coupling, we should check that there is a udf function providing
+  // the source for the passive scalar equations (this is the analogue of the boundary
+  // condition check for boundary-based coupling). NOTE: This check is imperfect, because
+  // even if there is a source kernel, we cannot tell _which_ passive scalar equation that
+  // it is applied to (we have source kernels for the RANS passive scalar equations, for instance).
+  if (_nek_mesh->volume())
+    if (has_temperature_solve && !nekrs::hasHeatSourceKernel())
+      mooseError("In order to send a heat source to nekRS, you must have an OCCA kernel "
+        "for the source in the passive scalar equations!");
+
   auto executioner = _app.getExecutioner();
   _transient_executioner = dynamic_cast<Transient *>(executioner);
 
