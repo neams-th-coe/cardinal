@@ -15,6 +15,11 @@ NekRSMesh). The field is specified with the `field` parameter, which may be one 
 `pressure`, `temperature`, or `unity`. Setting `field = unity` is equivalent to computing
 unity because the numerator is exactly equal to the denominator.
 
+If running nekRS in non-dimensional form (and you have indicated the
+appropriate nondimensional scales by setting `nondimensional = true`
+for [NekRSProblem](/problems/NekRSProblem.md)), then the value of this postprocessor
+is shown in *dimensional* units.
+
 ## Example Input Syntax
 
 As an example, the following code snippet will evaluate the volume averages of

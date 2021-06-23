@@ -19,6 +19,11 @@ The field is specified with the `field` parameter, which may be one of
 `pressure`, `temperature`, or `unity`. Setting `field = unity` is equivalent to computing
 the volume.
 
+If running nekRS in non-dimensional form (and you have indicated the
+appropriate nondimensional scales by setting `nondimensional = true`
+for [NekRSProblem](/problems/NekRSProblem.md)), then the value of this postprocessor
+is shown in *dimensional* units.
+
 ## Example Input Syntax
 
 As an example, the following code snippet will evaluate the volume (for `field = unity`),

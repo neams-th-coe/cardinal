@@ -17,6 +17,11 @@ and $\hat{n}$ is the surface unit normal. The boundaries over which to integrate
 are specified with the `boundary` parameter; these boundaries
 are the sidesets in nekRS's mesh (i.e. the `.re2` file).
 
+If running nekRS in non-dimensional form (and you have indicated the
+appropriate nondimensional scales by setting `nondimensional = true`
+for [NekRSProblem](/problems/NekRSProblem.md)), then the value of this postprocessor
+is shown in *dimensional* units.
+
 ## Example Input Syntax
 
 As an example, the following code snippet will evaluate the heat flux
