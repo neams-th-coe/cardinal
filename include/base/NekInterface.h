@@ -174,7 +174,9 @@ void heat_source(const int elem_id, const int order, double * source_elem);
  * @param[in] disp_vol displacement at the libMesh nodes
 ` */
 
-void map_volume_displacement(const int elem_id, const int order, double * disp_vol);
+void map_volume_x_displacement(const int elem_id, const int order, double * disp_vol);
+void map_volume_y_displacement(const int elem_id, const int order, double * disp_vol);
+void map_volume_z_displacement(const int elem_id, const int order, double * disp_vol);
 
 
 /**
