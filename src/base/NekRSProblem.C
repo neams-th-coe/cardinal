@@ -249,6 +249,9 @@ NekRSProblem::initialSetup()
     auto name = getParam<PostprocessorName>("max_T");
     _max_T = &getPostprocessorValueByName(name);
   }
+
+  // nekRS calls UDF_ExecuteStep once before the time stepping begins
+  nekrs::udfExecuteStep(_start_time, _t_step, false /* not an output step */);
 }
 
 bool
@@ -291,6 +294,8 @@ void NekRSProblem::externalSolve()
 
   bool is_output_step = isOutputStep();
 
+  // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
+  // evaluated at (step_end_time, _t_step)
   nekrs::runStep(_timestepper->nondimensionalDT(step_start_time),
     _timestepper->nondimensionalDT(_dt), _t_step);
 
@@ -302,8 +307,6 @@ void NekRSProblem::externalSolve()
   // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
   // by the user.
   nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
-
-  nekrs::udfExecuteStep(_timestepper->nondimensionalDT(step_end_time), _t_step, is_output_step);
 
   // limit the temperature based on user settings
   bool limit_temperature = _min_T || _max_T;
@@ -324,7 +327,6 @@ void NekRSProblem::externalSolve()
     nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
 
   _time += _dt;
-
 }
 
 bool
