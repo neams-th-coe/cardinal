@@ -4,6 +4,7 @@
 
 [Mesh]
   type = NekRSMesh
+  order = FIRST
   boundary = '2'
 []
 
