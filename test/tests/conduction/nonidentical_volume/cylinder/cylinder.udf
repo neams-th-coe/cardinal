@@ -1,7 +1,9 @@
 #include "udf.hpp"
 
+// the custom kernel we are adding
 static occa::kernel mooseHeatSourceKernel;
 
+// build the kernel we are adding
 void UDF_LoadKernels(nrs_t *nrs)
 {
   mooseHeatSourceKernel = udfBuildKernel(nrs, "mooseHeatSource");
@@ -10,25 +12,26 @@ void UDF_LoadKernels(nrs_t *nrs)
 void userq(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
 {
   auto mesh = nrs->cds->mesh[0];
+
+  // pass the necessary parameters into the kernel we define in the .oudf file
   mooseHeatSourceKernel(mesh->Nelements, nrs->cds->fieldOffset[0], nrs->o_usrwrk, o_FS);
 }
 
 void UDF_Setup(nrs_t *nrs)
 {
+  // set initial conditions
   auto mesh = nrs->cds->mesh[0];
-
   int n_gll_points = mesh->Np * mesh->Nelements;
   for (int n = 0; n < n_gll_points; ++n)
   {
-    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
-    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 0.0; // z-velocity
-
-    nrs->P[n] = 0.0; // pressure
-
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0;
+    nrs->U[n + 1 * nrs->fieldOffset] = 0.0;
+    nrs->U[n + 2 * nrs->fieldOffset] = 0.0;
+    nrs->P[n] = 0.0;
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 500.0;
   }
 
+  // set a pointer to the custom source function so that nekRS can call it
   udf.sEqnSource = &userq;
 }
 

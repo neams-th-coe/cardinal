@@ -158,6 +158,23 @@ as opposed to the entire voluem mesh) *and* is coupled via fluid temperature and
 feedback to a neutronics application (thus necessitating the volume nekRS solution to
 be communciated to another MOOSE application).
 
+## Other Features
+
+When nekRS is run in non-dimensional form, the `.re2` mesh will also be in non-dimensional
+units. In this case, to ensure that the mesh mirror that handles data transfers to/from
+*dimensional* coupled MOOSE applications (such as BISON) can correctly map the data in
+space, a `scaling` factor must be applied to the mesh mirror.
+
+For example, consider a hypothetical case where nekRS solves for
+flow in a domain of size 5 m $\times$ 5 m. Suppose that the characteristic length is
+taken as $L_{ref}=5$ m; in this case, the mesh in the `.re2` file should be of size
+$1\times1$ to properly set up the nondimensional formulation. When the mesh mirror is constructed,
+if no adjustments are made, the mesh mirror will extend over a range of $1\times1$ - but will
+be coupled to a MOOSE application that probably selects a length scale as meters - not a nondimensional
+scale. So, to convert the mesh mirror back to dimensional units, the `scaling` parameter
+is used. For this example, if the coupled MOOSE application solves in units of meters,
+then `scaling` should be set to 5 to dimensionalize the non-dimensional nekRS mesh.
+
 !syntax parameters /postprocessors/NekRSMesh
 
 !syntax inputs /postprocessors/NekRSMesh
