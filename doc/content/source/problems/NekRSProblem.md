@@ -38,7 +38,7 @@ The order of each of these variables is set to match the `order` selected in the
 This initialization of MOOSE variables happens behind the scenes - for instance, below
 is a complete input file that will run nekRS as a MOOSE application.
 
-!listing /test/tests/conduction/boundary_and_volume/prism/nek.i
+!listing /smallest_input.i
 
 In this particular example, we indicated that we are going to be coupling nekRS through
 both boundary [!ac](CHT) and volumetric heat sources (because we set `volume = true`
