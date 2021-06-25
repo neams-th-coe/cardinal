@@ -19,7 +19,8 @@ Extensions:
         menu:
             Tutorials: tutorials/index.md
             Source: source/index.md
-            Developers: developers.md
+            Developer Guide: developers.md
+            Contact/Citing: contact.md
     MooseDocs.extensions.appsyntax:
         executable: ${ROOT_DIR}
         includes:
