@@ -254,7 +254,7 @@ interpolation onto its [!ac](GLL) points).
   end=AuxVariables
 
 In addition to these three transfers necessary to couple nekRS with MOOSE,
-there is a fourth transfer - `synchronize`, which transfers the `synchronize`
+there is a fourth transfer - `synchronize_in`, which transfers the `synchronize`
 postprocessor to [NekApp](/base/NekApp.md). The `synchronize` postprocessor
 is simply a [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessor that is set to a value of 1 (and no applications transfer anything
@@ -293,11 +293,12 @@ this limited data transfer option can be used to reduce the mesh interpolation
 and host-to-device copying by a factor of 100.
 
 !alert note
-When sub-cycling is used, MOOSE interpolates the heat flux that gets sent to nekRS
+When the `interpolate_transfers = true` option is used
+by the [TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html),
+MOOSE interpolates the heat flux that gets sent to nekRS
 for each nekRS time step based on the master application time steps bounding the nekRS
 step. Using this "minimal transfer" feature will *ignore* the fact that MOOSE is
-interpolating the heat flux, but this is usually of minimal importance for the pseudo-steady
-calculations typically performed.
+interpolating the heat flux.
 
 Finally, we specify an executioner and an exodus output for the solid solution.
 

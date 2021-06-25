@@ -94,6 +94,7 @@ Data gets sent into nekRS, nekRS runs a time step, and data gets extracted from 
   re=void\sExternalProblem::solve.*?^}
 
 ### External Solve
+  id=solve
 
 The actual solve of a timestep by nekRS is peformed within the
 `externalSolve` method, which essentially performs the following.
@@ -290,6 +291,97 @@ nekRS input specification to be converted to non-dimensional form.
 
 ### Reducing CPU/GPU Data Transfers
   id=min
+
+As shown in [#solve], for *every* nekRS time step, data is passed into nekRS
+(which involves interpolating from a MOOSE mesh to a (usually) higher-order nekRS
+mesh and then copying this field from host to device) and data is passed out from
+nekRS (which involves copying this field from device to host and then
+interpolating from a (usually) higher-order nekRS mesh to a MOOSE mesh). When nekRS
+is run in standalone mode, data is only copied between the device and host when an
+output file is written.
+
+If nekRS is run as a sub-application to a master application, and sub-cycling is used,
+a lot of these interpolations and [!ac](CPU)/[!ac](GPU) data transfers can be omitted.
+First, let's explain what MOOSE does in the usual master/sub coupling scheme, using
+boundary coupling with `subcycling = true` as an example.
+
+Suppose you has a master application with a time step size of 1 second, and run nekRS
+as a sub-application with a time step size of 0.4 seconds that executes at the end of
+the master application time step. The calculation procedure involves:
+
+1. Solve the master application from $t$ to $t+1$ seconds.
+1. Transfer a variable representing flux (and its integral) from the master
+  application to the [NekApp](/base/NekApp.md) sub-application) at $t$.
+1. Interpolate the flux from the [NekRSMesh](/mesh/NekRSMesh.md)
+  onto nekRS's [!ac](GLL) points, then normalize it and copy it from host to device.
+  This is simply `syncSolutions(TO_EXTERNAL_APP)`.
+1. Run a nekRS time step from $t$ to $t+0.4$ seconds.
+1. Copy the temperature from device to host and then interpolate nekRS's
+  temperature from nekRS's [!ac](GLL) points to the `NekRSMesh`. This is
+  simply `syncSolutions(FROM_EXTERNAL_APP)`.
+1. *Even though the flux data hasn't changed*, and
+  *even though the temperature data isn't going to be used by the master application yet*,
+  `ExternalProblem::solve()`
+  performs data transfers in/out of nekRS for *every* nekRS time step. Regardless of
+  whether that data has changed or is needed yet by MOOSE, repeat steps 3-5 two times -
+  once for a time step size of 0.4 seconds, and again for a time step size of 0.2 seconds
+  (for the nekRS sub-application to "catch up" to the master application's overall time
+  step length of 1 second.
+
+If nekRS is run with a much smaller time step size $N$ times smaller than its master
+application, this structuring of `ExternalProblem` represents $N-1$ unnecessary
+interpolations and [!ac](CPU) to [!ac](GPU) copies of the flux, and $N-1$
+unnecessary [!ac](GPU) to [!ac](CPU) copies of the temperature and interpolations.
+`NekRSProblem` contains features that allow you to turn off these extra transfers.
+However, MOOSE's [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+system is designed in such a way that sub-applications know very little about
+their master applications (and for good reason - such a design is what enables such
+flexible multiphysics coulpings). So, the only way that `NekApp` can definitively
+know that a data transfer from a master application is the *first* data transfer
+after the flux data has been updated, we monitor the value of a dummy postprocessor
+sent by the master application to `NekApp`. In other words, we define a postprocessor
+in the master application that just has a value of 1.
+
+!listing /tutorials/sfr_7pin/solid.i
+  block=synchronize
+
+We define this postprocessor as a [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
+postprocessor, but we won't actually use it to receive anything from other applications.
+Instead, we set the `default` value to 1 in order to indicate "true". Then,
+at the same time that we send *new* flux values to `NekApp`, we also pass
+this postprocessor.
+
+!listing /tutorials/sfr_7pin/solid.i
+  block=synchronize_in
+
+We then receive this postprocessor in the sub-application.
+
+!listing /tutorials/sfr_7pin/nek.i
+  block=synchronize
+
+This basically means that, when the flux data is *new*, the `NekApp` sub-application
+will receive a value of "true" from the master-application (through the lens of
+this postprocessor).
+
+For data transfer *out* of nekRS, we determine when the temperatue data
+is ready for use by MOOSE by monitoring how close the sub-application is to the
+synchronization time to the master application.
+
+All that is required to use this feature are to define the dummy postprocessor
+in the master application, and transfer it to the sub-application. Then, set the
+following options in `NekRSProblem`, where `transfer_in` is the name of the
+receiving postprocessor in the sub-application.
+
+!listing /tutorials/sfr_7pin/nek.i
+  block=Problem
+
+!alert warning
+When the `interpolate_transfers = true` option is used
+by the [TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html),
+MOOSE interpolates the heat flux that gets sent to nekRS
+for each nekRS time step based on the master application time steps bounding the nekRS
+step. Using this "minimal transfer" feature will *ignore* the fact that MOOSE is
+interpolating the heat flux.
 
 ### Limiting Temperature
 
