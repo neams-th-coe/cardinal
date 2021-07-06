@@ -4,7 +4,7 @@
 []
 
 [Problem]
-  type = NekProblem
+  type = NekRSProblem
 []
 
 [Executioner]
