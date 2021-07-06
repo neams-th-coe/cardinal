@@ -613,7 +613,18 @@ void limitTemperature(const double * min_T, const double * max_T)
 void copyScratchToDevice()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  nrs->o_usrwrk.copyFrom(nrs->usrwrk);
+
+  // From Cardinal, we only write the first two "slices" in nrs->usrwrk. But, the user might
+  // be writing other parts of this scratch space from the .udf file. So, we need to be sure
+  // to only copy the slices reserved for Cardinal, so that we don't accidentally overwrite other
+  // parts of o_usrwrk (which from the order of the UDF calls, would always happen *after* the
+  // flux and/or source transfers into nekRS)
+  mesh_t * mesh = temperatureMesh();
+  int n_gll = mesh->Nelements * mesh->Np;
+
+  // first two slices are always reserved for the heat flux and volumetric heat source. Either one
+  // or both will be present, but we always reserve the first two slices for this coupling data.
+  nrs->o_usrwrk.copyFrom(nrs->usrwrk, 2 * n_gll * sizeof(dfloat), 0);
 }
 
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field)
