@@ -1,7 +1,6 @@
 [Problem]
   type = NekRSProblem
   minimize_transfers_in = true
-  transfer_in = synchronization_in
   minimize_transfers_out = true
 []
 
@@ -28,9 +27,6 @@
     type = NekVolumeExtremeValue
     field = temperature
     value_type = min
-  []
-  [synchronization_in]
-    type = Receiver
   []
 []
 

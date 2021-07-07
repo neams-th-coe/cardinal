@@ -1,7 +1,6 @@
 [Problem]
   type = NekRSProblem
   minimize_transfers_in = true
-  transfer_in = synchronization_in
   minimize_transfers_out = true
 []
 
@@ -20,9 +19,6 @@
 []
 
 [Postprocessors]
-  [synchronization_in]
-    type = Receiver
-  []
   [nek_flux]
     type = NekHeatFluxIntegral
     boundary = '1'
@@ -236,6 +232,6 @@
 
   [screen]
     type = Console
-    hide = 'average_inlet_T average_outlet_T synchronization_in'
+    hide = 'average_inlet_T average_outlet_T transfer_in'
   []
 []
