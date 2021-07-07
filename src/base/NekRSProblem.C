@@ -523,7 +523,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 void
 NekRSProblem::sendVolumeDeformationToNek()
 {
-  _console << "Sending volume deformation to nekRS..." ;
+  _console << "Sending volume deformation to nekRS..." << std::endl ;
 
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -760,10 +760,13 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
  TO DO -------- ADD MESH DEFORMATION FUNCTION FOR BOUNDARY BASED COUPLING WHEN
                 NEKRS MESH SOLVER IS RELEASED */          
 
-      if (_volume)
+      if (_volume) {
         sendVolumeHeatSourceToNek();
-        if (_moving_mesh)
-					sendVolumeDeformationToNek();
+        if (_moving_mesh) {
+          sendVolumeDeformationToNek();
+          nekrs::copyDisplacementToDevice();
+        } 
+      }
 
       nekrs::copyScratchToDevice();
 

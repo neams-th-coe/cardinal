@@ -92,6 +92,9 @@ void freeScratch();
 /// Copy the flux from host to device
 void copyScratchToDevice();
 
+/// Copy volume displacement of mesh from host to device
+void copyDisplacementToDevice();
+
 /**
  * Determine the receiving counts and displacements for all gather routines
  * @param[in] base_counts unit-wise receiving counts for each process
