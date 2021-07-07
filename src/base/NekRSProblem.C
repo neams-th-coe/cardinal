@@ -142,12 +142,14 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
 
   if (_moving_mesh)
   {
+    _incoming += " and mesh displacement";
+
     if (_boundary)
 		{
 			mooseError("Mesh displacement not supported in boundary coupling!");
       // pending release of mesh solver in nekRS...
 		}
-		else if(_volume)		  
+		else if (_volume)
 		{
 			_displacement_x = (double *) calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_y = (double *) calloc(_n_vertices_per_volume, sizeof(double));
@@ -183,11 +185,13 @@ NekRSProblem::~NekRSProblem()
   if (_flux_face) free(_flux_face);
   if (_source_elem) free(_source_elem);
   if (_flux_elem) free(_flux_elem);
-  if (_moving_mesh) { 
-   free(_displacement_x) ;
-   free(_displacement_y) ;
-   free(_displacement_z) ;
-   _console<<"Deallocated memory for displacement variables"<<std::endl;
+
+  if (_moving_mesh)
+  {
+    free(_displacement_x);
+    free(_displacement_y);
+    free(_displacement_z);
+    _console<<"Deallocated memory for displacement variables"<<std::endl;
   }
 
 }
@@ -577,11 +581,6 @@ NekRSProblem::sendVolumeDeformationToNek()
       nekrs::map_volume_z_displacement(e, _nek_mesh->order(), _displacement_z);
       
 //   TEST CODE BELOW. REMOVE BEFORE FINAL COMMIT
-
-      _console<<"mapped displacement aux variables to nek"<<std::endl;
-      _console<<_displacement_x<<std::endl;
-      _console<<_displacement_y<<std::endl;
-      _console<<_displacement_z<<std::endl;
     }
   }  
 }
@@ -756,19 +755,18 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       if (_boundary)
         sendBoundaryHeatFluxToNek();
-/*					if (_moving_mesh)
- TO DO -------- ADD MESH DEFORMATION FUNCTION FOR BOUNDARY BASED COUPLING WHEN
-                NEKRS MESH SOLVER IS RELEASED */          
 
-      if (_volume) {
+      if (_volume)
         sendVolumeHeatSourceToNek();
-        if (_moving_mesh) {
-          sendVolumeDeformationToNek();
-          nekrs::copyDisplacementToDevice();
-        } 
-      }
 
+      // copy the boundary heat flux and/or volume heat source in the scratch space to device
       nekrs::copyScratchToDevice();
+
+      if (_moving_mesh)
+      {
+        sendVolumeDeformationToNek();
+        nekrs::copyDisplacementToDevice();
+      }
 
       break;
     }
@@ -863,7 +861,7 @@ NekRSProblem::addExternalVariables()
     addAuxVariable("MooseVariable", "avg_flux", var_params);
     _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
 
-// add the postprocessor that receives the flux integral for normalization
+    // add the postprocessor that receives the flux integral for normalization
     auto pp_params = _factory.getValidParams("Receiver");
     addPostprocessor("Receiver", "flux_integral", pp_params);
   }
@@ -876,7 +874,7 @@ NekRSProblem::addExternalVariables()
     // add the postprocessor that receives the source integral for normalization
     auto pp_params = _factory.getValidParams("Receiver");
     addPostprocessor("Receiver", "source_integral", pp_params);
-    
+
 		// add the displacement aux variables from the solid mechanics solver
     if (_moving_mesh)
     {
@@ -885,12 +883,11 @@ NekRSProblem::addExternalVariables()
 
       addAuxVariable("MooseVariable", "disp_y", var_params);
       _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
-    
+
       addAuxVariable("MooseVariable", "disp_z", var_params);
       _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
 
       _console<<"Moving mesh displacement AuxVar import successful"<<std::endl;
     }
-
   }
 }
