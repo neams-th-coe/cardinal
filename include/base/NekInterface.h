@@ -92,8 +92,8 @@ void freeScratch();
 /// Copy the flux from host to device
 void copyScratchToDevice();
 
-/// Copy volume displacement of mesh from host to device
-void copyDisplacementToDevice();
+/// Copy volume deformation of mesh from host to device for moving-mesh problems
+void copyDeformationToDevice();
 
 /**
  * Determine the receiving counts and displacements for all gather routines
@@ -177,9 +177,9 @@ void heat_source(const int elem_id, const int order, double * source_elem);
  * @param[in] disp_vol displacement at the libMesh nodes
 ` */
 
-void map_volume_x_displacement(const int elem_id, const int order, double * disp_vol);
-void map_volume_y_displacement(const int elem_id, const int order, double * disp_vol);
-void map_volume_z_displacement(const int elem_id, const int order, double * disp_vol);
+void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol);
+void map_volume_y_deformation(const int elem_id, const int order, double * disp_vol);
+void map_volume_z_deformation(const int elem_id, const int order, double * disp_vol);
 
 
 /**

@@ -456,7 +456,7 @@ void flux(const int elem_id, const int order, double * flux_face)
   }
 }
 
-void map_volume_x_displacement(const int elem_id, const int order, double * disp_vol)
+void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = temperatureMesh();
@@ -482,7 +482,7 @@ void map_volume_x_displacement(const int elem_id, const int order, double * disp
   }
 }
 
-void map_volume_y_displacement(const int elem_id, const int order, double * disp_vol)
+void map_volume_y_deformation(const int elem_id, const int order, double * disp_vol)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = temperatureMesh();
@@ -508,7 +508,7 @@ void map_volume_y_displacement(const int elem_id, const int order, double * disp
   }
 }
 
-void map_volume_z_displacement(const int elem_id, const int order, double * disp_vol)
+void map_volume_z_deformation(const int elem_id, const int order, double * disp_vol)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = temperatureMesh();
@@ -694,7 +694,7 @@ void copyScratchToDevice()
   nrs->o_usrwrk.copyFrom(nrs->usrwrk);
 }
 
-void copyDisplacementToDevice()
+void copyDeformationToDevice()
 {
   mesh_t* mesh = temperatureMesh();
   mesh->o_x.copyFrom(mesh->x);
