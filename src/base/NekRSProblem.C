@@ -576,9 +576,8 @@ NekRSProblem::sendVolumeDeformationToNek()
       nekrs::map_volume_x_deformation(e, _nek_mesh->order(), _displacement_x);
       nekrs::map_volume_y_deformation(e, _nek_mesh->order(), _displacement_y);
       nekrs::map_volume_z_deformation(e, _nek_mesh->order(), _displacement_z);
-      
     }
-  }  
+  }
 }
 void
 NekRSProblem::sendVolumeHeatSourceToNek()
@@ -880,7 +879,7 @@ NekRSProblem::addExternalVariables()
       addAuxVariable("MooseVariable", "disp_y", var_params);
       _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
 
-      addAuxVariable("MooseVariable", "disp_z", var_params); 
+      addAuxVariable("MooseVariable", "disp_z", var_params);
       _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
 
     }

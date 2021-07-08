@@ -280,7 +280,7 @@ protected:
 
   /// x-displacment transfer variable read from tensor mechanics module for moving mesh problems
   unsigned int _disp_x_var;
-  
+
   /// y-displacment transfer variable read from tensor mechanics module for moving mesh problems
   unsigned int _disp_y_var;
 

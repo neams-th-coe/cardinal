@@ -477,7 +477,7 @@ void map_volume_x_deformation(const int elem_id, const int order, double * disp_
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
       mesh->x[id + v] += source_disp[v];
-    
+
     free(source_disp);
   }
 }
