@@ -60,6 +60,10 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
   if (!_minimize_transfers_in && isParamValid("transfer_in"))
     mooseWarning("'transfer_in' is unused when 'minimize_transfers_in' is set to false!");
 
+  // will be implemented soon
+  if (_moving_mesh && _nondimensional)
+    mooseError("Moving mesh features are not yet implemented for a non-dimensional nekRS case!");
+
   // if solving in nondimensional form, make sure that the user specified _all_ of the
   // necessary scaling quantities to prevent errors from forgetting one, which would take
   // a non-scaled default otherwise
@@ -142,11 +146,20 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
 
   if (_moving_mesh)
   {
-    _displacement_x = (double *) calloc(_n_vertices_per_surface, sizeof(double));
-    _displacement_y = (double *) calloc(_n_vertices_per_surface, sizeof(double));
-    _displacement_z = (double *) calloc(_n_vertices_per_surface, sizeof(double));
-  }
+    _incoming += " and mesh displacement";
 
+    if (_boundary)
+    {
+      mooseError("Mesh displacement not supported in boundary coupling!");
+      // pending release of mesh solver in nekRS...
+    }
+    else if (_volume)
+    {
+      _displacement_x = (double *) calloc(_n_vertices_per_volume, sizeof(double));
+      _displacement_y = (double *) calloc(_n_vertices_per_volume, sizeof(double));
+      _displacement_z = (double *) calloc(_n_vertices_per_volume, sizeof(double));
+    }
+  }
 
   // regardless of the boundary/volume coupling, we will always exchange temperature
   _T = (double*) calloc(_n_points, sizeof(double));
@@ -174,12 +187,10 @@ NekRSProblem::~NekRSProblem()
   if (_flux_face) free(_flux_face);
   if (_source_elem) free(_source_elem);
   if (_flux_elem) free(_flux_elem);
-  if (_moving_mesh) { 
-   free(_displacement_x) ;
-   free(_displacement_y) ;
-   free(_displacement_z) ;
-  }
 
+  if (_displacement_x) free(_displacement_x);
+  if (_displacement_y) free(_displacement_y);
+  if (_displacement_z) free(_displacement_z);
 }
 
 void
@@ -551,6 +562,64 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 }
 
 void
+NekRSProblem::sendVolumeDeformationToNek()
+{
+  _console << "Sending volume deformation to nekRS... ";
+
+  auto & solution = _aux->solution();
+  auto sys_number = _aux->number();
+
+  if (_first)
+  {
+    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
+    _first = false;
+  }
+
+  solution.localize(*_serialized_solution);
+
+  auto & mesh = _nek_mesh->getMesh();
+
+  for (unsigned int e = 0; e < _n_volume_elems; e++)
+  {
+    auto elem_ptr = mesh.query_elem_ptr(e);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+      {
+        libmesh_assert(!mesh.is_serial());
+        continue;
+      }
+
+    for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // For each face, get the displacement at the libMesh nodes. This will be passed into
+      // nekRS, which will interpolate onto its GLL points. Because we are looping over
+      // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+      // determine the offset in the nekRS arrays.
+      int node_index = _nek_mesh->volumeNodeIndex(n);
+      auto node_offset = e * _n_vertices_per_volume + node_index;
+      auto dof_idx1 = node_ptr->dof_number(sys_number, _disp_x_var, 0);
+      auto dof_idx2 = node_ptr->dof_number(sys_number, _disp_y_var, 0);
+      auto dof_idx3 = node_ptr->dof_number(sys_number, _disp_z_var, 0);
+      _displacement_x[node_index] = (*_serialized_solution)(dof_idx1);
+      _displacement_y[node_index] = (*_serialized_solution)(dof_idx2);
+      _displacement_z[node_index] = (*_serialized_solution)(dof_idx3);
+    }
+
+    // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
+    // onto the nekRS GLL points
+    nekrs::map_volume_x_deformation(e, _nek_mesh->order(), _displacement_x);
+    nekrs::map_volume_y_deformation(e, _nek_mesh->order(), _displacement_y);
+    nekrs::map_volume_z_deformation(e, _nek_mesh->order(), _displacement_z);
+  }
+
+  _console << "done" << std::endl;
+}
+
+void
 NekRSProblem::sendVolumeHeatSourceToNek()
 {
   _console << "Sending heat source to nekRS volume... ";
@@ -725,7 +794,19 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       if (_volume)
         sendVolumeHeatSourceToNek();
 
+      // copy the boundary heat flux and/or volume heat source in the scratch space to device
       nekrs::copyScratchToDevice();
+
+      if (_moving_mesh)
+      {
+        if (_volume)
+        {
+          sendVolumeDeformationToNek();
+          nekrs::copyDeformationToDevice();
+        }
+
+        // no boundary-based mesh movement available in nekRS yet
+      }
 
       break;
     }
@@ -833,5 +914,19 @@ NekRSProblem::addExternalVariables()
     // add the postprocessor that receives the source integral for normalization
     auto pp_params = _factory.getValidParams("Receiver");
     addPostprocessor("Receiver", "source_integral", pp_params);
+  }
+
+  // add the displacement aux variables from the solid mechanics solver; these will
+  // be needed regardless of whether the displacement is boundary- or volume-based
+  if (_moving_mesh)
+  {
+    addAuxVariable("MooseVariable", "disp_x", var_params);
+    _disp_x_var = _aux->getFieldVariable<Real>(0, "disp_x").number();
+
+    addAuxVariable("MooseVariable", "disp_y", var_params);
+    _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
+
+    addAuxVariable("MooseVariable", "disp_z", var_params);
+    _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
   }
 }

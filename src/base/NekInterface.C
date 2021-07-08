@@ -456,6 +456,84 @@ void flux(const int elem_id, const int order, double * flux_face)
   }
 }
 
+void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = temperatureMesh();
+
+  int end_1d = mesh->Nq;
+  int start_1d = order + 2;
+  int end_3d = mesh->Np;
+  int start_3d = start_1d * start_1d * start_1d;
+
+  // We can only write into the nekRS scratch space if that volume is "owned" by the current process
+  if (commRank() == nek_volume_coupling.processor_id(elem_id))
+  {
+    int e = nek_volume_coupling.element[elem_id];
+    double * source_disp = (double*) calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeHex3D(matrix.incoming, disp_vol, start_1d, source_disp, end_1d);
+
+    int id = e * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+      mesh->x[id + v] += source_disp[v];
+
+    free(source_disp);
+  }
+}
+
+void map_volume_y_deformation(const int elem_id, const int order, double * disp_vol)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = temperatureMesh();
+
+  int end_1d = mesh->Nq;
+  int start_1d = order + 2;
+  int end_3d = mesh->Np;
+  int start_3d = start_1d * start_1d * start_1d;
+
+  // We can only write into the nekRS scratch space if that volume is "owned" by the current process
+  if (commRank() == nek_volume_coupling.processor_id(elem_id))
+  {
+    int e = nek_volume_coupling.element[elem_id];
+    double * source_disp = (double*) calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeHex3D(matrix.incoming, disp_vol, start_1d, source_disp, end_1d);
+
+    int id = e * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+      mesh->y[id + v] += source_disp[v];
+
+    free(source_disp);
+  }
+}
+
+void map_volume_z_deformation(const int elem_id, const int order, double * disp_vol)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = temperatureMesh();
+
+  int end_1d = mesh->Nq;
+  int start_1d = order + 2;
+  int end_3d = mesh->Np;
+  int start_3d = start_1d * start_1d * start_1d;
+
+  // We can only write into the nekRS scratch space if that volume is "owned" by the current process
+  if (commRank() == nek_volume_coupling.processor_id(elem_id))
+  {
+    int e = nek_volume_coupling.element[elem_id];
+    double * source_disp = (double*) calloc(mesh->Np, sizeof(double));
+
+    interpolateVolumeHex3D(matrix.incoming, disp_vol, start_1d, source_disp, end_1d);
+
+    int id = e * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+      mesh->z[id + v] += source_disp[v];
+
+    free(source_disp);
+  }
+}
+
 double sourceIntegral()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
@@ -623,6 +701,15 @@ void copyScratchToDevice()
   // first two slices are always reserved for the heat flux and volumetric heat source. Either one
   // or both will be present, but we always reserve the first two slices for this coupling data.
   nrs->o_usrwrk.copyFrom(nrs->usrwrk, 2 * scalarFieldOffset() * sizeof(dfloat), 0);
+}
+
+void copyDeformationToDevice()
+{
+  mesh_t * mesh = temperatureMesh();
+  mesh->o_x.copyFrom(mesh->x);
+  mesh->o_y.copyFrom(mesh->y);
+  mesh->o_z.copyFrom(mesh->z);
+  mesh->update();
 }
 
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field)

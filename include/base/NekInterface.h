@@ -92,6 +92,9 @@ void freeScratch();
 /// Copy the flux from host to device
 void copyScratchToDevice();
 
+/// Copy volume deformation of mesh from host to device for moving-mesh problems
+void copyDeformationToDevice();
+
 /**
  * Determine the receiving counts and displacements for all gather routines
  * @param[in] base_counts unit-wise receiving counts for each process
@@ -166,6 +169,18 @@ void flux_volume(const int elem_id, const int order, double * flux_elem);
  * @param[in] source_elem heat source at the libMesh nodes
  */
 void heat_source(const int elem_id, const int order, double * source_elem);
+
+//@{
+/**
+ * Interpolate the MOOSE volume mesh displacement onto the nekRS mesh
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
+ * @param[in] disp_vol displacement at the libMesh nodes
+ */
+void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol);
+void map_volume_y_deformation(const int elem_id, const int order, double * disp_vol);
+void map_volume_z_deformation(const int elem_id, const int order, double * disp_vol);
+//@}
 
 /**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh

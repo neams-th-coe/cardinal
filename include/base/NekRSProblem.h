@@ -65,6 +65,9 @@ public:
   /// Send boundary heat flux to nekRS
   void sendBoundaryHeatFluxToNek();
 
+  /// Send volume mesh deformation flux to nekRS
+  void sendVolumeDeformationToNek();
+  
   /// Send volume heat source to nekRS
   void sendVolumeHeatSourceToNek();
 
@@ -275,7 +278,16 @@ protected:
   /// flux transfer variable read from by nekRS
   unsigned int _avg_flux_var;
 
-  /// volumetric heat source variable read from by nekRS
+  /// x-displacment transfer variable read from for moving mesh problems
+  unsigned int _disp_x_var;
+
+  /// y-displacment transfer variable read from for moving mesh problems
+  unsigned int _disp_y_var;
+
+  /// z-displacment transfer variable read from for moving mesh problems
+  unsigned int _disp_z_var;
+
+ /// volumetric heat source variable read from by nekRS
   unsigned int _heat_source_var;
 
   /// Descriptive string for data transfer going in to nekRS
