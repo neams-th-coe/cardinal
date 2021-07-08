@@ -278,13 +278,13 @@ protected:
   /// flux transfer variable read from by nekRS
   unsigned int _avg_flux_var;
 
-  /// x-displacment transfer variable read from tensor mechanics module for moving mesh problems
+  /// x-displacment transfer variable read from for moving mesh problems
   unsigned int _disp_x_var;
 
-  /// y-displacment transfer variable read from tensor mechanics module for moving mesh problems
+  /// y-displacment transfer variable read from for moving mesh problems
   unsigned int _disp_y_var;
 
-  /// z-displacment transfer variable read from tensor mechanics module for moving mesh problems
+  /// z-displacment transfer variable read from for moving mesh problems
   unsigned int _disp_z_var;
 
  /// volumetric heat source variable read from by nekRS
