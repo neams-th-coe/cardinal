@@ -177,6 +177,21 @@ void save_initial_mesh();
 
 //@{
 /**
+ * Initial nekRS mesh coordinates saved to apply time-dependent volume deformation to the initial
+ * nekRS mesh in order to make the deformation congruent to MOOSE-applied deformation
+*/
+static double * initial_mesh_x = nullptr;                                                                                                                                                                          static double * initial_mesh_y = nullptr;
+static double * initial_mesh_z = nullptr;
+//@}
+
+/**
+ * Used to check if the initial nekRS mesh has already been saved, and to prevent accidental
+ * calls to save_initial_mesh() that may overwrite the previously saved initial mesh
+ */
+static bool is_saved_initial_mesh = false;
+
+//@{
+/**
  * Interpolate the MOOSE volume mesh displacement onto the nekRS mesh
  * @param[in] elem_id global element ID
  * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
