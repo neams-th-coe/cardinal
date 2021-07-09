@@ -188,7 +188,7 @@ static double * initial_mesh_z = nullptr;
  * Used to check if the initial nekRS mesh has already been saved, and to prevent accidental
  * calls to save_initial_mesh() that may overwrite the previously saved initial mesh
  */
-static bool is_saved_initial_mesh = false;
+static bool is_saved_initial_mesh = false; // hello
 
 //@{
 /**
