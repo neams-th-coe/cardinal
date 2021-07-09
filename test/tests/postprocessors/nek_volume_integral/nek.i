@@ -36,4 +36,8 @@
     type = NekVolumeIntegral
     field = pressure
   []
+  [velocity_integral]
+    type = NekVolumeIntegral
+    field = velocity
+  []
 []

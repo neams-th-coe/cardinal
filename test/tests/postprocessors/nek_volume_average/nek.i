@@ -33,4 +33,8 @@
     type = NekVolumeAverage
     field = pressure
   []
+  [velocity_average]
+    type = NekVolumeAverage
+    field = velocity
+  []
 []

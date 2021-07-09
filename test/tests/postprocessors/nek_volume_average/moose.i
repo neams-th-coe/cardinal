@@ -8,6 +8,8 @@
   []
   [pressure_test]
   []
+  [velocity_test]
+  []
 []
 
 [ICs]
@@ -20,6 +22,11 @@
     type = FunctionIC
     variable = pressure_test
     function = pressure
+  []
+  [velocity_test]
+    type = FunctionIC
+    variable = velocity_test
+    function = velocity
   []
 []
 
@@ -53,6 +60,10 @@
     type = ParsedFunction
     value = 'exp(x) + exp(y) + exp(z)'
   []
+  [velocity]
+     type = ParsedFunction
+     value = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
+  []
 []
 
 [Executioner]
@@ -74,5 +85,9 @@
   [pressure_average]
     type = ElementAverageValue
     variable = pressure_test
+  []
+  [velocity_average]
+    type = ElementAverageValue
+    variable = velocity_test
   []
 []
