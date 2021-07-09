@@ -180,7 +180,7 @@ void save_initial_mesh();
  * Initial nekRS mesh coordinates saved to apply time-dependent volume deformation to the initial
  * nekRS mesh in order to make the deformation congruent to MOOSE-applied deformation
 */
-static double * initial_mesh_x = nullptr;                                                                                                                                                                          static double * initial_mesh_y = nullptr;
+static double * initial_mesh_x = nullptr;                                                                                                static double * initial_mesh_y = nullptr;
 static double * initial_mesh_z = nullptr;
 //@}
 
