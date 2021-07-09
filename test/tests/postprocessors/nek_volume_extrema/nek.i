@@ -44,4 +44,14 @@
     field = pressure
     value_type = min
   []
+  [max_velocity]
+    type = NekVolumeExtremeValue
+    field = velocity
+    value_type = max
+  []
+  [min_velocity]
+    type = NekVolumeExtremeValue
+    field = velocity
+    value_type = min
+  []
 []

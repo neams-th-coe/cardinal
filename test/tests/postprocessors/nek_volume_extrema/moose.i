@@ -8,6 +8,8 @@
   []
   [pressure_test]
   []
+  [velocity_test]
+  []
 []
 
 [ICs]
@@ -20,6 +22,11 @@
     type = FunctionIC
     variable = pressure_test
     function = pressure
+  []
+  [velocity_test]
+    type = FunctionIC
+    variable = velocity_test
+    function = velocity
   []
 []
 
@@ -52,6 +59,10 @@
   [pressure]
     type = ParsedFunction
     value = 'x+y+z*z+exp(x)'
+  []
+  [velocity]
+     type = ParsedFunction
+     value = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
   []
 []
 
@@ -87,6 +98,16 @@
   [min_p]
     type = NodalExtremeValue
     variable = pressure_test
+    value_type = min
+  []
+  [max_velocity]
+    type = NodalExtremeValue
+    variable = velocity_test
+    value_type = max
+  []
+  [min_velocity]
+    type = NodalExtremeValue
+    variable = velocity_test
     value_type = min
   []
 []

@@ -585,6 +585,13 @@ double pressure(const int id);
 double unity(const int id);
 
 /**
+ * Get the magnitude of the velocity solution at given GLL index
+ * @param[in] id GLL index
+ * @return velocity magnitude at index
+ */
+double velocity(const int id);
+
+/**
  * Initialize the characteristic scales for a nondimesional solution
  * @param[in] U_ref reference velocity
  * @param[in] T_ref reference temperature
