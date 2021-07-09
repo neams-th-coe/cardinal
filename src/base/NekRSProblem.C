@@ -155,6 +155,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     }
     else if (_volume)
     {
+      nekrs::save_initial_mesh();
       _displacement_x = (double *) calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_y = (double *) calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_z = (double *) calloc(_n_vertices_per_volume, sizeof(double));

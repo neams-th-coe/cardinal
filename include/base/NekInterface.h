@@ -170,6 +170,11 @@ void flux_volume(const int elem_id, const int order, double * flux_elem);
  */
 void heat_source(const int elem_id, const int order, double * source_elem);
 
+/**
+ * Save the initial mesh in nekRS for moving mesh problems
+ */
+void save_initial_mesh();
+
 //@{
 /**
  * Interpolate the MOOSE volume mesh displacement onto the nekRS mesh
