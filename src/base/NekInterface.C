@@ -11,9 +11,6 @@ static nekrs::solution::characteristicScales scales;
 static double * initial_mesh_x = nullptr;
 static double * initial_mesh_y = nullptr;
 static double * initial_mesh_z = nullptr;
-// Used to check if the initial nekRS mesh has already been saved, and to prevent accidental
-// calls to save_initial_mesh() that may overwrite the previously saved initial mesh
-static bool is_saved_initial_mesh = false;
 
 // Maximum number of fields that we pre-allocate in the scratch space array.
 // The first two are *always* reserved for the heat flux BC and the volumetric
@@ -466,7 +463,6 @@ void flux(const int elem_id, const int order, double * flux_face)
 
 void save_initial_mesh()
 {
-  if (!is_saved_initial_mesh) {
   mesh_t * mesh = temperatureMesh();
   double no_of_nodes = mesh->Nelements * mesh->Np;
 
@@ -477,9 +473,6 @@ void save_initial_mesh()
   std::memcpy(initial_mesh_x,mesh->x,sizeof(double)*no_of_nodes);
   std::memcpy(initial_mesh_y,mesh->y,sizeof(double)*no_of_nodes);
   std::memcpy(initial_mesh_z,mesh->z,sizeof(double)*no_of_nodes);
-
-  is_saved_initial_mesh = true;
-  }
 }
 
 void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol)
