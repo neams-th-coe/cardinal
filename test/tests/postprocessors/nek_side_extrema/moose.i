@@ -8,6 +8,8 @@
   []
   [pressure_test]
   []
+  [velocity_test]
+  []
 []
 
 [ICs]
@@ -20,6 +22,11 @@
     type = FunctionIC
     variable = pressure_test
     function = f
+  []
+  [velocity_test]
+    type = FunctionIC
+    variable = velocity_test
+    function = velocity
   []
 []
 
@@ -48,6 +55,16 @@
   [f]
     type = ParsedFunction
     value = 'exp(x)+sin(y)+x*y*z'
+  []
+  [velocity]
+     type = ParsedFunction
+     value = 'sqrt(3.0)*exp(-r*r)'
+     vars = 'r'
+     vals = 'r'
+  []
+  [r]
+    type = ParsedFunction
+    value = 'sqrt(x*x+y*y+z*z)'
   []
 []
 
@@ -239,6 +256,95 @@
   [min_pressure_side8]
     type = NodalExtremeValue
     variable = pressure_test
+    boundary = '8'
+    value_type = min
+  []
+
+  [max_velocity_side1]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '1'
+  []
+  [max_velocity_side2]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '2'
+  []
+  [max_velocity_side3]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '3'
+  []
+  [max_velocity_side4]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '4'
+  []
+  [max_velocity_side5]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '5'
+  []
+  [max_velocity_side6]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '6'
+  []
+  [max_velocity_side7]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '7'
+  []
+  [max_velocity_side8]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '8'
+  []
+  [min_velocity_side1]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '1'
+    value_type = min
+  []
+  [min_velocity_side2]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '2'
+    value_type = min
+  []
+  [min_velocity_side3]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '3'
+    value_type = min
+  []
+  [min_velocity_side4]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '4'
+    value_type = min
+  []
+  [min_velocity_side5]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '5'
+    value_type = min
+  []
+  [min_velocity_side6]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '6'
+    value_type = min
+  []
+  [min_velocity_side7]
+    type = NodalExtremeValue
+    variable = velocity_test
+    boundary = '7'
+    value_type = min
+  []
+  [min_velocity_side8]
+    type = NodalExtremeValue
+    variable = velocity_test
     boundary = '8'
     value_type = min
   []
