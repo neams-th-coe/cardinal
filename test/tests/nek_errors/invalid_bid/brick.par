@@ -1,6 +1,5 @@
 [OCCA]
   backend = CPU
-  deviceNumber = 0
 
 [GENERAL]
   stopAt = numSteps
@@ -9,34 +8,20 @@
   polynomialOrder = 1
   writeControl = timeStep
   writeInterval = 2
-  extrapolation = OIFS
-  targetCFL = 2.0
-
-[PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = no
-  stressFormulation = no
-
-[MESH]
-  motion = none
+  extrapolation = subCycling
 
 [VELOCITY]
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
   boundaryTypeMap = symz, symz, inlet, outlet, symy, symy
 
 [PRESSURE]
   residualTol = 1.0e-5
-  residualProj = no
-  preconditioner = semg_xxt
-  writeToFieldFile = yes
+  residualProj = false
 
 [TEMPERATURE]
   residualTol = 1.0e-5
-  residualProj - no
+  residualProj  = no
   boundaryTypeMap = I, f, I, I, I, I

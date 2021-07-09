@@ -10,29 +10,21 @@
 # The particular length scale selected is based on dividing the mesh in
 # ../sfr_pincell by a factor of 0.908e-2 (the pin pitch)
 
+[OCCA]
+  backend = CPU
+
 [GENERAL]
   stopAt = numSteps
   numSteps = 2000
   dt = 1e-2
   variableDT = no
-  targetCFL = 0.5
   timeStepper = tombo2
-  extrapolation = standard
-  subCyclingSteps = 1
   writeControl = numSteps
   writeInterval = 1
-
-  filtering = none
-  dealiasing = yes
   polynomialOrder = 4
 
 [PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = yes
-  stressFormulation = yes
+  stressFormulation = true
 
 [VELOCITY]
 
@@ -42,11 +34,10 @@
   density = 1.0
   boundaryTypeMap = W, W, v, O
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
 
 [PRESSURE]
   residualTol = 1.0e-6
-  residualProj = yes
   preconditioner = semg_amg
 
 [TEMPERATURE]

@@ -1,6 +1,5 @@
 [OCCA]
   backend = CPU
-  deviceNumber = 0
 
 [GENERAL]
   stopAt = numSteps
@@ -9,34 +8,21 @@
   polynomialOrder = 4
   writeControl = timeStep
   writeInterval = 50
-  extrapolation = OIFS
-  targetCFL = 2.0
-
-[PROBLEMTYPE]
-  equation = incompNS
-  axiSymmetry = no
-  swirl = no
-  cyclicBoundaries = no
-  variableProperties = no
-  stressFormulation = no
-
-[MESH]
-  motion = none
+  extrapolation = subCycling
 
 [VELOCITY]
   solver = none
   residualTol = 1.0e-6
-  residualProj = no
+  residualProj = false
   boundaryTypeMap = wall, wall, inlet, outlet
 
 [PRESSURE]
   residualTol = 1.0e-5
-  residualProj = no
-  writeToFieldFile = yes
+  residualProj = false
 
 [TEMPERATURE]
   conductivity = 2.5
   rhoCp = 1.0
   residualTol = 1.0e-10
-  residualProj = no
+  residualProj = false
   boundaryTypeMap = t, f, I, I

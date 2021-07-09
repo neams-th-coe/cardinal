@@ -103,7 +103,7 @@
     boundary = 'interface'
   []
   [flux_interface]
-    type = SideFluxIntegral
+    type = SideDiffusiveFluxIntegral
     variable = temperature
     diffusivity = thermal_conductivity
     boundary = 'interface'

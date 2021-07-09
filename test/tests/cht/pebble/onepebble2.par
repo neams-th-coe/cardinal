@@ -1,20 +1,17 @@
 [OCCA]
 backend = CPU
-deviceNumber = 0
 
-[GENERAL] 
+[GENERAL]
 polynomialOrder = 5
-#startFrom = onepebble2.run03
 numSteps = 5
 dt = 1e-04
 writeInterval = 5
-extrapolation = OIFS
-targetCFL = 2.0
+extrapolation = subCycling
 
 [PRESSURE]
 preconditioner = semg_amg
 residualTol = 1e-04
-residualProj = no
+residualProj = false
 
 [VELOCITY]
 boundaryTypeMap = W, O, v
@@ -22,10 +19,9 @@ residualTol = 1e-04
 density = 1.0
 viscosity = 0.00005
 
-[TEMPERATURE] # temperature with Hmholtz 
+[TEMPERATURE]
 boundaryTypeMap = f, I, t
 rhoCp = 100000.0
 conductivity = 5.0
 residualTol = 1e-03
-residualProj = yes
-
+residualProj = true
