@@ -8,6 +8,8 @@
   []
   [pressure_test]
   []
+  [velocity_test]
+  []
 []
 
 [ICs]
@@ -20,6 +22,11 @@
     type = FunctionIC
     variable = pressure_test
     function = pressure
+  []
+  [velocity_test]
+    type = FunctionIC
+    variable = velocity_test
+    function = velocity
   []
 []
 
@@ -52,6 +59,10 @@
   [pressure]
     type = ParsedFunction
     value = 'x+y+z+sin(x*y)'
+  []
+  [velocity]
+     type = ParsedFunction
+     value = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
   []
 []
 
@@ -177,6 +188,46 @@
   [pressure_side8]
     type = SideIntegralVariablePostprocessor
     variable = pressure_test
+    boundary = '8'
+  []
+  [velocity_avg1]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
+    boundary = '1'
+  []
+  [velocity_avg2]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
+    boundary = '2'
+  []
+  [velocity_avg3]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
+    boundary = '3'
+  []
+  [velocity_avg4]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
+    boundary = '4'
+  []
+  [velocity_avg5]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
+    boundary = '5'
+  []
+  [velocity_avg6]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
+    boundary = '6'
+  []
+  [velocity_avg7]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
+    boundary = '7'
+  []
+  [velocity_avg8]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_test
     boundary = '8'
   []
 []

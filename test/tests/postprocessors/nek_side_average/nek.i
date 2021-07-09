@@ -105,4 +105,44 @@
     field = pressure
     boundary = '8'
   []
+  [velocity_avg1]
+    type = NekSideAverage
+    field = velocity
+    boundary = '1'
+  []
+  [velocity_avg2]
+    type = NekSideAverage
+    field = velocity
+    boundary = '2'
+  []
+  [velocity_avg3]
+    type = NekSideAverage
+    field = velocity
+    boundary = '3'
+  []
+  [velocity_avg4]
+    type = NekSideAverage
+    field = velocity
+    boundary = '4'
+  []
+  [velocity_avg5]
+    type = NekSideAverage
+    field = velocity
+    boundary = '5'
+  []
+  [velocity_avg6]
+    type = NekSideAverage
+    field = velocity
+    boundary = '6'
+  []
+  [velocity_avg7]
+    type = NekSideAverage
+    field = velocity
+    boundary = '7'
+  []
+  [velocity_avg8]
+    type = NekSideAverage
+    field = velocity
+    boundary = '8'
+  []
 []
