@@ -18,9 +18,6 @@ validParams<NekRSProblem>()
   InputParameters params = validParams<ExternalProblem>();
   params.addParam<bool>("minimize_transfers_in", false, "Whether to only synchronize nekRS "
     "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
-  params.addParam<PostprocessorName>("transfer_in", "Postprocessor providing an indication "
-    "of when a synchronization step has just occurred. The 'execute_on' setting for this "
-    "transfer MUST be the same as the 'to_app' transfer into nekRS.");
   params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
 
@@ -42,10 +39,10 @@ validParams<NekRSProblem>()
 
 NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
+    _moving_mesh(getParam<bool>("moving_mesh")),
+    _minimize_transfers_in(_moving_mesh ? true : getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _nondimensional(getParam<bool>("nondimensional")),
-    _moving_mesh(getParam<bool>("moving_mesh")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),
     _dT_ref(getParam<Real>("dT_ref")),
@@ -54,11 +51,14 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _Cp_0(getParam<Real>("Cp_0")),
     _start_time(nekrs::startTime())
 {
-  if (_minimize_transfers_in && !isParamValid("transfer_in"))
-    mooseError("Setting 'minimize_transers_in' to true requires the 'transfer_in' postprocessor!");
-
-  if (!_minimize_transfers_in && isParamValid("transfer_in"))
-    mooseWarning("'transfer_in' is unused when 'minimize_transfers_in' is set to false!");
+  // if the mesh is moving, then we must minimize the incoming data transfers;
+  // if the user set `minimize_transfers_in = false`, print a warning that we're overriding this setting
+  if (_moving_mesh && params.isParamSetByUser("minimize_transfers_in"))
+  {
+    auto user_setting = getParam<bool>("minimize_transfers_in");
+    if (!user_setting)
+      mooseWarning("Overriding 'minimize_transfers_in' to 'true' for moving mesh problems!");
+  }
 
   // will be implemented soon
   if (_moving_mesh && _nondimensional)
@@ -280,12 +280,8 @@ NekRSProblem::initialSetup()
     _flux_integral = &getPostprocessorValueByName("flux_integral");
   if (_volume)
     _source_integral = &getPostprocessorValueByName("source_integral");
-
   if (_minimize_transfers_in)
-  {
-    _transfer_in_name = &getParam<PostprocessorName>("transfer_in");
-    _transfer_in = &getPostprocessorValueByName(*_transfer_in_name);
-  }
+    _transfer_in = &getPostprocessorValueByName("transfer_in");
 
   if (isParamValid("min_T"))
   {
@@ -398,7 +394,7 @@ NekRSProblem::synchronizeIn()
     if (*_transfer_in == false)
       synchronize = false;
     else
-      setPostprocessorValueByName(*_transfer_in_name, false, 0);
+      setPostprocessorValueByName("transfer_in", false, 0);
   }
 
   first = false;
@@ -928,5 +924,11 @@ NekRSProblem::addExternalVariables()
 
     addAuxVariable("MooseVariable", "disp_z", var_params);
     _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
+  }
+
+  if (_minimize_transfers_in)
+  {
+    auto pp_params = _factory.getValidParams("Receiver");
+    addPostprocessor("Receiver", "transfer_in", pp_params);
   }
 }

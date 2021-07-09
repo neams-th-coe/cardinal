@@ -91,7 +91,7 @@
   []
   [synchronize]
     type = MultiAppPostprocessorTransfer
-    to_postprocessor = synchronize_in
+    to_postprocessor = transfer_in
     from_postprocessor = synchronize_in
     direction = to_multiapp
     multi_app = nek

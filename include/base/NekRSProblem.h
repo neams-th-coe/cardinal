@@ -121,6 +121,9 @@ public:
 protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
+  /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
+  const bool & _moving_mesh;
+
   /**
    * \brief Whether to only send heat flux to nekRS on the multiapp synchronization steps
    *
@@ -142,7 +145,7 @@ protected:
    * even bother computing the interpolated data, since it's not used if this parameter
    * is set to true.
    */
-  const bool & _minimize_transfers_in;
+  const bool _minimize_transfers_in;
 
   /**
    * \brief Whether to only send temperature from nekRS on the multiapp synchronization steps
@@ -169,9 +172,6 @@ protected:
 
   /// Whether the nekRS solution is performed in nondimensional scales
   const bool & _nondimensional;
-
-  /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
-  const bool & _moving_mesh;
 
   //@{
   /**
@@ -298,9 +298,6 @@ protected:
 
   /// Number of points for interpolated fields (temperature, density) on the MOOSE mesh
   int _n_points;
-
-  /// Name of postprocessor containing signal of when a synchronization has occurred
-  const PostprocessorName * _transfer_in_name = nullptr;
 
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
