@@ -6,6 +6,14 @@ static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
 static nekrs::mesh::volumeCoupling nek_volume_coupling;
 static nekrs::mesh::interpolationMatrix matrix;
 static nekrs::solution::characteristicScales scales;
+// Initial nekRS mesh coordinates saved to apply time-dependent volume deformation to the initial
+// nekRS mesh in order to make the deformation congruent to MOOSE-applied deformation
+static double * initial_mesh_x = nullptr;
+static double * initial_mesh_y = nullptr;
+static double * initial_mesh_z = nullptr;
+// Used to check if the initial nekRS mesh has already been saved, and to prevent accidental
+// calls to save_initial_mesh() that may overwrite the previously saved initial mesh
+static bool is_saved_initial_mesh = false;
 
 // Maximum number of fields that we pre-allocate in the scratch space array.
 // The first two are *always* reserved for the heat flux BC and the volumetric
