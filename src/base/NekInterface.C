@@ -6,6 +6,11 @@ static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
 static nekrs::mesh::volumeCoupling nek_volume_coupling;
 static nekrs::mesh::interpolationMatrix matrix;
 static nekrs::solution::characteristicScales scales;
+// Initial nekRS mesh coordinates saved to apply time-dependent volume deformation to the initial
+// nekRS mesh in order to make the deformation congruent to MOOSE-applied deformation
+static double * initial_mesh_x = nullptr;
+static double * initial_mesh_y = nullptr;
+static double * initial_mesh_z = nullptr;
 
 // Maximum number of fields that we pre-allocate in the scratch space array.
 // The first two are *always* reserved for the heat flux BC and the volumetric
@@ -456,6 +461,20 @@ void flux(const int elem_id, const int order, double * flux_face)
   }
 }
 
+void save_initial_mesh()
+{
+  mesh_t * mesh = temperatureMesh();
+  double no_of_nodes = mesh->Nelements * mesh->Np;
+
+  initial_mesh_x = (double* ) calloc(no_of_nodes, sizeof(double));
+  initial_mesh_y = (double* ) calloc(no_of_nodes, sizeof(double));
+  initial_mesh_z = (double* ) calloc(no_of_nodes, sizeof(double));
+
+  std::memcpy(initial_mesh_x,mesh->x,sizeof(double)*no_of_nodes);
+  std::memcpy(initial_mesh_y,mesh->y,sizeof(double)*no_of_nodes);
+  std::memcpy(initial_mesh_z,mesh->z,sizeof(double)*no_of_nodes);
+}
+
 void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
@@ -476,7 +495,7 @@ void map_volume_x_deformation(const int elem_id, const int order, double * disp_
 
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
-      mesh->x[id + v] += source_disp[v];
+      mesh->x[id + v] = initial_mesh_x[id+v] + source_disp[v];
 
     free(source_disp);
   }
@@ -502,7 +521,7 @@ void map_volume_y_deformation(const int elem_id, const int order, double * disp_
 
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
-      mesh->y[id + v] += source_disp[v];
+      mesh->y[id + v] = initial_mesh_y[id+v] + source_disp[v];
 
     free(source_disp);
   }
@@ -528,7 +547,7 @@ void map_volume_z_deformation(const int elem_id, const int order, double * disp_
 
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
-      mesh->z[id + v] += source_disp[v];
+      mesh->z[id + v] = initial_mesh_z[id+v] + source_disp[v];
 
     free(source_disp);
   }
