@@ -37,4 +37,16 @@
     type = NekVolumeAverage
     field = velocity
   []
+  [x_velocity_average]
+    type = NekVolumeAverage
+    field = x_velocity
+  []
+  [y_velocity_average]
+    type = NekVolumeAverage
+    field = y_velocity
+  []
+  [z_velocity_average]
+    type = NekVolumeAverage
+    field = z_velocity
+  []
 []
