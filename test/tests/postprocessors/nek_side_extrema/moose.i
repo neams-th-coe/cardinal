@@ -10,6 +10,12 @@
   []
   [velocity_test]
   []
+  [x_velocity_test]
+  []
+  [y_velocity_test]
+  []
+  [z_velocity_test]
+  []
 []
 
 [ICs]
@@ -27,6 +33,21 @@
     type = FunctionIC
     variable = velocity_test
     function = velocity
+  []
+  [x_velocity_test]
+    type = FunctionIC
+    variable = x_velocity_test
+    function = velocity_component
+  []
+  [y_velocity_test]
+    type = FunctionIC
+    variable = y_velocity_test
+    function = velocity_component
+  []
+  [z_velocity_test]
+    type = FunctionIC
+    variable = z_velocity_test
+    function = velocity_component
   []
 []
 
@@ -65,6 +86,12 @@
   [r]
     type = ParsedFunction
     value = 'sqrt(x*x+y*y+z*z)'
+  []
+  [velocity_component]
+    type = ParsedFunction
+    value = 'exp(-r*r)'
+    vars = 'r'
+    vals = 'r'
   []
 []
 
@@ -347,5 +374,293 @@
     variable = velocity_test
     boundary = '8'
     value_type = min
+  []
+  [min_x_velocity_side1]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '1'
+    value_type = min
+  []
+  [min_x_velocity_side2]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '2'
+    value_type = min
+  []
+  [min_x_velocity_side3]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '3'
+    value_type = min
+  []
+  [min_x_velocity_side4]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '4'
+    value_type = min
+  []
+  [min_x_velocity_side5]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '5'
+    value_type = min
+  []
+  [min_x_velocity_side6]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '6'
+    value_type = min
+  []
+  [min_x_velocity_side7]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '7'
+    value_type = min
+  []
+  [min_x_velocity_side8]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '8'
+    value_type = min
+  []
+  [min_y_velocity_side1]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '1'
+    value_type = min
+  []
+  [min_y_velocity_side2]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '2'
+    value_type = min
+  []
+  [min_y_velocity_side3]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '3'
+    value_type = min
+  []
+  [min_y_velocity_side4]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '4'
+    value_type = min
+  []
+  [min_y_velocity_side5]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '5'
+    value_type = min
+  []
+  [min_y_velocity_side6]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '6'
+    value_type = min
+  []
+  [min_y_velocity_side7]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '7'
+    value_type = min
+  []
+  [min_y_velocity_side8]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '8'
+    value_type = min
+  []
+  [min_z_velocity_side1]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '1'
+    value_type = min
+  []
+  [min_z_velocity_side2]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '2'
+    value_type = min
+  []
+  [min_z_velocity_side3]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '3'
+    value_type = min
+  []
+  [min_z_velocity_side4]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '4'
+    value_type = min
+  []
+  [min_z_velocity_side5]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '5'
+    value_type = min
+  []
+  [min_z_velocity_side6]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '6'
+    value_type = min
+  []
+  [min_z_velocity_side7]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '7'
+    value_type = min
+  []
+  [min_z_velocity_side8]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '8'
+    value_type = min
+  []
+  [max_x_velocity_side1]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '1'
+    value_type = max
+  []
+  [max_x_velocity_side2]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '2'
+    value_type = max
+  []
+  [max_x_velocity_side3]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '3'
+    value_type = max
+  []
+  [max_x_velocity_side4]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '4'
+    value_type = max
+  []
+  [max_x_velocity_side5]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '5'
+    value_type = max
+  []
+  [max_x_velocity_side6]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '6'
+    value_type = max
+  []
+  [max_x_velocity_side7]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '7'
+    value_type = max
+  []
+  [max_x_velocity_side8]
+    type = NodalExtremeValue
+    variable = x_velocity_test
+    boundary = '8'
+    value_type = max
+  []
+  [max_y_velocity_side1]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '1'
+    value_type = max
+  []
+  [max_y_velocity_side2]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '2'
+    value_type = max
+  []
+  [max_y_velocity_side3]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '3'
+    value_type = max
+  []
+  [max_y_velocity_side4]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '4'
+    value_type = max
+  []
+  [max_y_velocity_side5]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '5'
+    value_type = max
+  []
+  [max_y_velocity_side6]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '6'
+    value_type = max
+  []
+  [max_y_velocity_side7]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '7'
+    value_type = max
+  []
+  [max_y_velocity_side8]
+    type = NodalExtremeValue
+    variable = y_velocity_test
+    boundary = '8'
+    value_type = max
+  []
+  [max_z_velocity_side1]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '1'
+    value_type = max
+  []
+  [max_z_velocity_side2]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '2'
+    value_type = max
+  []
+  [max_z_velocity_side3]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '3'
+    value_type = max
+  []
+  [max_z_velocity_side4]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '4'
+    value_type = max
+  []
+  [max_z_velocity_side5]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '5'
+    value_type = max
+  []
+  [max_z_velocity_side6]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '6'
+    value_type = max
+  []
+  [max_z_velocity_side7]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '7'
+    value_type = max
+  []
+  [max_z_velocity_side8]
+    type = NodalExtremeValue
+    variable = z_velocity_test
+    boundary = '8'
+    value_type = max
   []
 []
