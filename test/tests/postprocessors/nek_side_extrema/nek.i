@@ -16,7 +16,6 @@
 []
 
 [Outputs]
-exodus = true
   [out]
     type = CSV
     hide = 'flux_integral'
