@@ -137,12 +137,13 @@ void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, i
 void initializeInterpolationMatrices(const int n_moost_pts);
 
 /**
- * Interpolate the nekRS temperature onto the boundary data transfer mesh
+ * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[out] T interpolated temperature
+ * @param[in] f field to interpolate
+ * @param[out] T interpolated boundary value
  */
-void boundaryTemperature(const int order, const bool needs_interpolation, double* T);
+void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
  * Interpolate the nekRS temperature onto the volume data transfer mesh
@@ -414,6 +415,13 @@ struct boundaryCoupling
  * @return whether boundary is a flux boundary
  */
 bool isHeatFluxBoundary(const int boundary);
+
+/**
+ * Whether the specific boundary is a specified temperature boundary
+ * @param[in] boundary boundary ID
+ * @return whether boundary is a temperature boundary
+ */
+bool isTemperatureBoundary(const int boundary);
 
 /**
  * String name indicating the temperature boundary condition type on a given boundary

@@ -172,9 +172,9 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
   // exact subset of the nekRS GLL points). This will happen for any first-order mesh,
   // and if a second-order mesh is used with a polynomial order of 2 in nekRS. Because
   // we pretty much always use a polynomial order greater than 2 in nekRS, let's just
-  // check the first case because this will simplify our code in the nekrs::boundaryTemperature()
+  // check the first case because this will simplify our code in the nekrs::boundarySolution
   // function. If you change this line, you MUST change the innermost if/else statement
-  // in nekrs::temperature!
+  // in nekrs::boundarySolution!
   _needs_interpolation = _nek_mesh->numQuadraturePoints1D() > 2;
 }
 
@@ -759,10 +759,9 @@ NekRSProblem::getBoundaryTemperatureFromNek()
   _console << "Extracting nekRS temperature from boundary " << Moose::stringify(*_boundary) << "... ";
 
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
-  // here such that each nekRS process has all the boundary temperature information. In
-  // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
-  // every process knows the temperature on the boundary.
-  nekrs::boundaryTemperature(_nek_mesh->order(), _needs_interpolation, _T);
+  // here such that each nekRS process has all the boundary temperature information. That is,
+  // every process knows the full boundary temperature solution
+  nekrs::boundarySolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
 
   _console << "done" << std::endl;
 }

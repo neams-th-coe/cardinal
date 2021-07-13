@@ -297,10 +297,13 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
   free(Telem);
 }
 
-void boundaryTemperature(const int order, const bool needs_interpolation, double* T)
+void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t* mesh = temperatureMesh();
+
+  double (*f) (int);
+  f = solution::solutionPointer(field);
 
   int start_1d = mesh->Nq;
   int end_1d = order + 2;
@@ -310,7 +313,7 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
   // allocate temporary space to hold the results of the search for each process
   double* Ttmp = (double*) calloc(nek_boundary_coupling.n_faces * end_2d, sizeof(double));
 
-  // initialize scratch space for the face temperature so that we can easily
+  // initialize scratch space for the face solution so that we can easily
   // pass in face-initialized values to interpolateSurfaceFaceHex3D
   double* Tface = (double*) calloc(start_2d, sizeof(double));
 
@@ -333,11 +336,11 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
 
       if (needs_interpolation)
       {
-        // get the temperature on the face
+        // get the solution on the face
         for (int v = 0; v < start_2d; ++v)
         {
           int id = mesh->vmapM[offset + v];
-          Tface[v] = nrs->cds->S[id];
+          Tface[v] = f(id);
         }
 
         // and then interpolate it
@@ -346,25 +349,28 @@ void boundaryTemperature(const int order, const bool needs_interpolation, double
       }
       else
       {
-        // get the temperature on the face. We assume on the MOOSE side that
+        // get the solution on the face. We assume on the MOOSE side that
         // we'll only try this shortcut if the mesh is first order (since the second
         // order case can only skip the interpolation if nekRS's polynomial order is
         // 2, which is unlikely for actual calculations.
         for (int v = 0; v < end_2d; ++v, ++c)
         {
           int id = mesh->vmapM[offset + indices[v]];
-          Ttmp[c] = nrs->cds->S[id];
+          Ttmp[c] = f(id);
         }
       }
     }
   }
 
-  // dimensionalize the temperature
-  if (scales.nondimensional_T)
+  // dimensionalize the solution if needed
+  int Nlocal = nek_boundary_coupling.n_faces * end_2d;
+  for (int v = 0; v < Nlocal; ++v)
   {
-    int Nlocal = nek_boundary_coupling.n_faces * end_2d;
-    for (int v = 0; v < Nlocal; ++v)
-      Ttmp[v] = Ttmp[v] * scales.dT_ref + scales.T_ref;
+    solution::dimensionalize(field, Ttmp[v]);
+
+    // if temperature, we need to add the reference temperature
+    if (field == field::temperature)
+      Ttmp[v] += scales.T_ref;
   }
 
   int* recvCounts = (int *) calloc(commSize(), sizeof(int));
@@ -1105,7 +1111,7 @@ double heatFluxIntegral(const std::vector<int> & boundary_id)
   mesh_t * mesh = temperatureMesh();
 
   // TODO: This function only works correctly if the conductivity is constant, because
-  // otherwise we need to copy the density from device to host
+  // otherwise we need to copy the conductivity from device to host
   double k;
   platform->options.getArgs("SCALAR00 DIFFUSIVITY", k);
 
@@ -1213,6 +1219,11 @@ namespace mesh
 bool isHeatFluxBoundary(const int boundary)
 {
   return bcMap::text(boundary, "scalar00") == "fixedGradient";
+}
+
+bool isTemperatureBoundary(const int boundary)
+{
+  return bcMap::text(boundary, "scalar00") == "fixedValue";
 }
 
 const std::string temperatureBoundaryType(const int boundary)
