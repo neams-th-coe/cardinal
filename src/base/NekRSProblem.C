@@ -299,7 +299,7 @@ NekRSProblem::initialSetup()
   // nekRS calls UDF_ExecuteStep once before the time stepping begins
   nekrs::udfExecuteStep(_start_time, _t_step, false /* not an output step */);
 
-  // save initial mesh for moving mesh/deformation problems to match exodus output files
+  // save initial mesh for moving mesh problems to match deformation in exodus output files
   if (_moving_mesh)
     nekrs::outfld(_timestepper->nondimensionalDT(_time));
 }
