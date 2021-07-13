@@ -227,10 +227,13 @@ void displacementAndCounts(const int * base_counts, int * counts, int * displace
     displacement[i] = displacement[i - 1] + counts[i - 1];
 }
 
-void volumeTemperature(const int order, const bool needs_interpolation, double* T)
+void volumeSolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t* mesh = temperatureMesh();
+
+  double (*f) (int);
+  f = solution::solutionPointer(field);
 
   int start_1d = mesh->Nq;
   int end_1d = order + 2;
@@ -240,7 +243,7 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
   // allocate temporary space to hold the results of the search for each process
   double* Ttmp = (double*) calloc(nek_volume_coupling.n_elems * end_3d, sizeof(double));
 
-  // initialize scratch space for the element temperature so that we can easily
+  // initialize scratch space for the element solution so that we can easily
   // pass in element values to interpolateVolumeHex3D
   double* Telem = (double*) calloc(start_3d, sizeof(double));
 
@@ -257,9 +260,9 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
 
     if (needs_interpolation)
     {
-      // get the temperature on the face
+      // get the solution on the face
       for (int v = 0; v < start_3d; ++v)
-        Telem[v] = nrs->cds->S[offset + v];
+        Telem[v] = f(offset + v);
 
       // and then interpolate it
       interpolateVolumeHex3D(matrix.outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
@@ -267,21 +270,24 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
     }
     else
     {
-      // get the temperature on the element. We assume on the MOOSE side that
+      // get the solution on the element. We assume on the MOOSE side that
       // we'll only try this shortcut if the mesh is first order (since the second
       // order case can only skip the interpolation if nekRS's polynomial order is
       // 2, which is unlikely for actual calculations.
       for (int v = 0; v < end_3d; ++v, ++c)
-        Ttmp[c] = nrs->cds->S[offset + indices[v]];
+        Ttmp[c] = f(offset + indices[v]);
     }
   }
 
-  // dimensionalize the temperature (skip if not needed)
-  if (scales.nondimensional_T)
+  // dimensionalize the solution if needed
+  int Nlocal = nek_volume_coupling.n_elems * end_3d;
+  for (int v = 0; v < Nlocal; ++v)
   {
-    int Nlocal = nek_volume_coupling.n_elems * end_3d;
-    for (int v = 0; v < Nlocal; ++v)
-      Ttmp[v] = Ttmp[v] * scales.dT_ref + scales.T_ref;
+    solution::dimensionalize(field, Ttmp[v]);
+
+    // if temperature, we need to add the reference temperature
+    if (field == field::temperature)
+      Ttmp[v] += scales.T_ref;
   }
 
   int* recvCounts = (int *) calloc(commSize(), sizeof(int));

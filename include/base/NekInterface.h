@@ -146,12 +146,13 @@ void initializeInterpolationMatrices(const int n_moost_pts);
 void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
- * Interpolate the nekRS temperature onto the volume data transfer mesh
+ * Interpolate the nekRS volume solution onto the volume data transfer mesh
  * @param[in] order enumeration of the mesh order (0 = first, 1 = second, etc.)
  * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[out] T interpolated temperature
+ * @param[in] f field to interpolate
+ * @param[out] T interpolated volume value
  */
-void volumeTemperature(const int order, const bool needs_interpolation, double* T);
+void volumeSolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
  * Interpolate the MOOSE flux onto the nekRS mesh

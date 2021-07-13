@@ -775,7 +775,7 @@ NekRSProblem::getVolumeTemperatureFromNek()
   // here such that each nekRS process has all the volume temperature information. In
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature in the volume.
-  nekrs::volumeTemperature(_nek_mesh->order(), _needs_interpolation, _T);
+  nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
 
   _console << "done" << std::endl;
 }
