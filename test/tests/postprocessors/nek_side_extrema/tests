@@ -4,6 +4,7 @@
     input = nek.i
     csvdiff = nek_out.csv
     cli_args = '--app nek --nekrs-setup pyramid'
+    rel_err = 3e-2
     requirement = "NekSideExtremeValue shall correctly compute max/min values "
                   "on the nekRS mesh boundaries. The gold file was created "
                   "by running the moose.i input, which computes the same max/min operations using "

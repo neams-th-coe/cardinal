@@ -1,2 +1,2 @@
-time,pressure_average,temp_average
-0.0005,2.8550508719668,0.97425735286377
+time,pressure_average,temp_average,velocity_average,x_velocity_average,y_velocity_average,z_velocity_average
+0.0005,2.8550508719668,0.97425735286377,1.4376805027038,-0.051842093214657,1.0136094530114,1.0001544909485

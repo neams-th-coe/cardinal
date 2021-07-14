@@ -1556,12 +1556,53 @@ namespace solution
     return 1.0;
   }
 
+  double x_velocity(const int id)
+  {
+    nrs_t * nrs = (nrs_t *) nrsPtr();
+    return nrs->U[id + 0 * nrs->fieldOffset];
+  }
+
+  double y_velocity(const int id)
+  {
+    nrs_t * nrs = (nrs_t *) nrsPtr();
+    return nrs->U[id + 1 * nrs->fieldOffset];
+  }
+
+  double z_velocity(const int id)
+  {
+    nrs_t * nrs = (nrs_t *) nrsPtr();
+    return nrs->U[id + 2 * nrs->fieldOffset];
+  }
+
+  double velocity(const int id)
+  {
+    nrs_t * nrs = (nrs_t *) nrsPtr();
+    int offset = nrs->fieldOffset;
+
+    return std::sqrt(
+      nrs->U[id + 0 * offset] * nrs->U[id + 0 * offset] +
+      nrs->U[id + 1 * offset] * nrs->U[id + 1 * offset] +
+      nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
+  }
+
   double (*solutionPointer(const field::NekFieldEnum & field))(int)
   {
     double (*f) (int);
 
     switch (field)
     {
+      case field::x_velocity:
+        f = &solution::x_velocity;
+        break;
+      case field::y_velocity:
+        f = &solution::y_velocity;
+        break;
+      case field::z_velocity:
+        f = &solution::z_velocity;
+        break;
+      case field::velocity:
+        f = &solution::velocity;
+        break;
       case field::temperature:
         f = &solution::temperature;
         break;
@@ -1610,6 +1651,18 @@ namespace solution
   {
     switch (field)
     {
+      case field::x_velocity:
+        value = value * scales.U_ref;
+        break;
+      case field::y_velocity:
+        value = value * scales.U_ref;
+        break;
+      case field::z_velocity:
+        value = value * scales.U_ref;
+        break;
+      case field::velocity:
+        value = value * scales.U_ref;
+        break;
       case field::temperature:
         value = value * scales.dT_ref;
         break;

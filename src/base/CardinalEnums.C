@@ -7,7 +7,7 @@ MooseEnum getNekOrderEnum()
 
 MooseEnum getNekFieldEnum()
 {
-  return MooseEnum("temperature pressure unity");
+  return MooseEnum("x_velocity y_velocity z_velocity velocity temperature pressure unity");
 }
 
 MooseEnum getOperationEnum()

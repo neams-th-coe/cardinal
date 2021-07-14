@@ -4,7 +4,7 @@
     input = nek.i
     csvdiff = nek_out.csv
     cli_args = '--app nek --nekrs-setup pyramid'
-    rel_err = 2e-3
+    rel_err = 3e-3
     requirement = "NekVolumeAverage shall correctly compute"
                   "volume-averaged temperatures on the nekRS mesh. The gold file was created "
                   "by running the moose.i input, which computes the same integrals using "

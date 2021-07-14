@@ -23,6 +23,10 @@ namespace field
   /// Enumeration of possible fields to integrate in nekRS
   enum NekFieldEnum
   {
+    x_velocity,
+    y_velocity,
+    z_velocity,
+    velocity,
     temperature,
     pressure,
     unity
