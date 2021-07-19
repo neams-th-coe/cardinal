@@ -7,7 +7,6 @@
   type = NekRSProblem
 
   minimize_transfers_in = true
-  transfer_in = synchronize
   minimize_transfers_out = true
 []
 
@@ -25,10 +24,6 @@
 []
 
 [Postprocessors]
-  [synchronize]
-    type = Receiver
-  []
-
   [pin_flux_in_nek]
     type = NekHeatFluxIntegral
     boundary = '1'

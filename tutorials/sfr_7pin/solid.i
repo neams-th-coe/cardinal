@@ -249,7 +249,7 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
   []
   [synchronize_in]
     type = MultiAppPostprocessorTransfer
-    to_postprocessor = synchronize
+    to_postprocessor = transfer_in
     direction = to_multiapp
     from_postprocessor = synchronize
     multi_app = nek

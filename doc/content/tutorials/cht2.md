@@ -317,14 +317,25 @@ mesh on the boundaries of interest - the IDs associated with the fluid-solid int
   block=Mesh
 
 Next, [NekRSProblem](/problems/NekRSProblem.md) is used to describe all aspects of the
-nekRS wrapping. We use two boolean options, `minimize_transfer_in` and `minimize_transfers_out`,
-along with a receiving postprocessor named `synchronize`, to indicate
-that we will be reducing the amount of interpolations and host-to-device copies
-for the nekRS wrapping. The `synchronize` postprocessor simply receives
-the `synchronize` postprocessor from the master application.
+nekRS wrapping. We use two boolean options, `minimize_transfer_in` and `minimize_transfers_out` [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+in the solid input file.
+to indicate that we will be reducing the amount of interpolations and host-to-device copies
+for the nekRS wrapping. When either of these options is set to true,
+[NekRSProblem](/problems/NekRSProblem.md) automatically adds a
+[Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
+postprocessor named `transfer_in`, as if the following were added to the input file:
 
-!listing tutorials/sfr_7pin/nek.i
-  block=synchronize
+!listing
+[Postprocessors]
+  [transfer_in]
+    type = Receiver
+  []
+[]
+
+The `transfer_in` postprocessor simply receives
+the `synchronize` postprocessor from the master application, as shown in
+the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+in the solid input file.
 
 We specify a number of other postprocessors in order to query the nekRS solution
 and print postprocessor values to screen for each time step. Note that the
