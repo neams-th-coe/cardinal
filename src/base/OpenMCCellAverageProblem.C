@@ -37,7 +37,7 @@ validParams<OpenMCCellAverageProblem>()
   params.addParam<std::vector<SubdomainID>>("tally_blocks",
     "Subdomain ID(s) for which to add tallies in the OpenMC model; "
     "only used with cell tallies");
-  params.addParam<bool>("check_tally_sum", true,
+  params.addParam<bool>("check_tally_sum",
     "Whether to check consistency between the cell-wise kappa fission tallies with a global tally");
   params.addParam<bool>("check_zero_tallies", true,
     "Whether to throw an error if any tallies from OpenMC evaluate to zero; "
@@ -82,13 +82,13 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _tally_filter(getParam<MooseEnum>("tally_filter").getEnum<filter::CellFilterEnum>()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _power(getParam<Real>("power")),
-  _check_tally_sum(getParam<bool>("check_tally_sum")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
   _verbose(getParam<bool>("verbose")),
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
+  _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") : _normalize_by_global),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
@@ -823,6 +823,10 @@ OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters,
 void
 OpenMCCellAverageProblem::initializeTallies()
 {
+  // if the tally sum check is turned off, write a message informing the user
+  if (!_check_tally_sum)
+    _console << "Turning OFF tally sum check against global tally" << std::endl;
+
   // create the global tally for normalization
   if (_needs_global_tally)
   {

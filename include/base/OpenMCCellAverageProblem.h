@@ -385,16 +385,6 @@ protected:
   const Real & _power;
 
   /**
-   * Whether to check the tallies against the global kappa fission tally;
-   * if set to true, and the tallies added for the 'tally_blocks' do not
-   * sum to the global kappa fission tally, an error is thrown. If you are
-   * only performing multiphysics feedback for, say, a single assembly in a
-   * full-core OpenMC model, you must set this check to false, because there
-   * are known fission sources outside the domain of interest.
-   */
-  const bool & _check_tally_sum;
-
-  /**
    * Whether to check if any of the tallies evaluate to zero; if set to true,
    * and a tally is zero, an error is thrown. This can be helpful in identifying
    * cases where you added tallies, but there isn't any fissile material, or
@@ -472,6 +462,21 @@ protected:
    * normalize against the local tally itself so that the correct power is preserved.
    */
   const bool & _normalize_by_global;
+
+  /**
+   * Whether to check the tallies against the global kappa fission tally;
+   * if set to true, and the tallies added for the 'tally_blocks' do not
+   * sum to the global kappa fission tally, an error is thrown. If you are
+   * only performing multiphysics feedback for, say, a single assembly in a
+   * full-core OpenMC model, you must set this check to false, because there
+   * are known fission sources outside the domain of interest.
+   *
+   * If not specified, then this is set to 'true' if normalizing by a global
+   * tally, and to 'false' if normalizing by the local tally (because when we choose
+   * to normalize by the local tally, we're probably using mesh tallies). But you can
+   * of course still set a value for this parameter to override the default.
+   */
+  const bool & _check_tally_sum;
 
   /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
