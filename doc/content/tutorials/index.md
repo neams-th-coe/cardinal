@@ -28,7 +28,7 @@ documentation.
 
 !alert note
 Before embarking on any of these tutorials, please be sure to download the mesh files
-needed for the tutorials. Please follow the instructions [here](mesh_download.md).
+needed for the tutorials; follow the instructions [here](mesh_download.md).
 
 1. [Conjugate Heat Transfer (CHT) coupling of nekRS and MOOSE heat conduction](tutorials/cht.md)
 2. [Solid temperature coupling of OpenMC and MOOSE heat conduction](tutorials/openmc_solid.md)

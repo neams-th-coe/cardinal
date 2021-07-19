@@ -32,7 +32,6 @@
     type = NekHeatFluxIntegral
     boundary = '2'
   []
-
   [max_nek_T]
     type = NekVolumeExtremeValue
     field = temperature

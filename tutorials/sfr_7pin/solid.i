@@ -86,7 +86,6 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
   []
 []
 
-# This app solves heat conduction, with a uniform power in the fuel pellet
 [Kernels]
   [diffusion]
     type = HeatConduction
@@ -132,8 +131,6 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
   []
 []
 
-# We assume insulated on all boundaries except the boundaries that touch fluid -
-# here, we match the temperature to the nekRS temperature (which is stored in nek_temp)
 [BCs]
   [pin_outer]
     type = MatchedValueBC
@@ -257,10 +254,10 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
 []
 
 [AuxVariables]
-  [nek_temp] # this is just a receiver variable to hold data from nekRS
+  [nek_temp]
     initial_condition = 500.0
   []
-  [avg_flux] # this is where we put the heat flux going into nekRS
+  [avg_flux]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -268,7 +265,7 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
 
 
 [AuxKernels]
-  [avg_flux] # this calculates the heat flux on the boundaries that communicate with nekRS
+  [avg_flux]
     type = DiffusionFluxAux
     diffusion_variable = T
     component = normal

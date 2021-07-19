@@ -6,5 +6,5 @@ provided - a section of a reflector block in a [!ac](PB-FHR) and a bare 7-pin
 [!ac](SFR) fuel bundle.
 
 - [Reflector Bypass Flow](cht1.md)
-- [Pin Bundle Flow](cht2.md)
-
+- [Laminar Pin Bundle Flow](cht2.md)
+- [Turbulent Pin Bundle Flow](cht3.md)
