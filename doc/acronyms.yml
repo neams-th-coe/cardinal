@@ -1,5 +1,6 @@
 ABTR: Advanced Burner Test Reactor
 API: Application Programming Interface
+BC: Boundary Condition
 CFD: Computational Fluid Dynamics
 CFL: Courant-Friedrichs-Lewy
 CHT: Conjugate Heat Transfer
@@ -18,6 +19,7 @@ PB-FHR: Pebble Bed Fluoride-Salt-Cooled High-Temperature Reactor
 PBR: Pebble Bed Reactor
 RANS: Reynolds Averaged Navier-Stokes
 SFR: Sodium Fast Reactor
+T/H: Thermal-Hydraulic
 THTR: Thorium High Temperature Reactor
 TRISO: Tri-Structural Isotropic
 VTB: Virtual Test Bed

@@ -6,28 +6,16 @@ void velocityDirichletConditions(bcData * bc)
     bc->v = 0.0; // y-velocity
     bc->w = Vz;  // z-velocity
   }
-  else
-    throw std::runtime_error("This problem only has a Dirichlet velocity condition "
-      "on boundary 5, but you have entered the velocityDirichletConditions function "
-      "for boundary " + std::to_string(bc->id));
 }
 
 void scalarDirichletConditions(bcData * bc)
 {
   if (bc->id == 5)
     bc->s = inlet_T;
-  else
-    throw std::runtime_error("This problem only has a Dirichlet scalar condition "
-      "on boundary 5, but you have entered the scalarDirichletConditions function "
-      "for boundary " + std::to_string(bc->id));
 }
 
 void scalarNeumannConditions(bcData * bc)
 {
   if (bc->id == 1 || bc->id == 2 | bc->id == 7)
     bc->flux = bc->wrk[bc->idM];
-  else
-    throw std::runtime_error("This problem only has a Neumann scalar condition "
-      "on boundaries 1, 2, and 7, but you have entered the scalarNeumannConditions function "
-      "for boundary" + std::to_string(bc->id));
 }

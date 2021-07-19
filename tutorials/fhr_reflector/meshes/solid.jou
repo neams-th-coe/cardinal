@@ -1,6 +1,7 @@
 #!python
 
-# This is a mesh of half of 1/24th of the outer reflector ring in the KP-FHR (there are 24
+# This is a mesh of half of 1/24th of the outer reflector ring in a pebble bed
+# fluoride-salt-cooled high temperature reactor (there are 24
 # blocks per ring), in addition to the barrel. Only the solid phase is modeled.
 
 import math
@@ -9,7 +10,8 @@ import math
 # in Shaver et. al (2019) corresponds to a gap amplification factor of 1.0.
 gap_amplification = 3
 
-# Path to the virtual_test_bed repository on your computer
+# Path to the tutorials directory on your computer, if you want to run this script
+# this will need to be updated
 directory = '/Users/anovak/projects/cardinal/tutorials/'
 
 core_radius       = 2.6

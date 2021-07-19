@@ -9,7 +9,8 @@ import math
 # in Shaver et. al (2019) corresponds to a gap amplification factor of 1.0.
 gap_amplification = 3
 
-# Path to the virtual_test_bed repository on your computer
+# Path to the tutorials directory on your computer, if you want to run this script
+# this will need to be updated
 directory = '/Users/anovak/projects/cardinal/tutorials/'
 
 core_radius       = 2.6
