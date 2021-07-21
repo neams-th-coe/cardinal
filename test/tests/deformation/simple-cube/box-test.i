@@ -31,7 +31,7 @@
 [Functions]
   [temp_ansol]
     type = ParsedFunction
-    value = sin(x)*sin(y)*sin(z)
+    value = (sin(x)*sin(y)*sin(z))+5
   []
   [source_fn]
     type = ParsedFunction

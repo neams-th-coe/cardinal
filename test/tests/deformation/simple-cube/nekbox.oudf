@@ -7,11 +7,7 @@ void velocityDirichletConditions(bcData *bc)
 
 void scalarDirichletConditions(bcData *bc)
 {
-//  dlong ntotal = bc->nx * bc->ny * bc->nz;
-//  for(dlong e=0;e<ntotal;++e;)
-//  {
-  bc->s = sin(bc->x)*sin(bc->y)*sin(bc->z);
-//  }
+  bc->s = (sin(bc->x)*sin(bc->y)*sin(bc->z))+5;
 }
 
 @kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
