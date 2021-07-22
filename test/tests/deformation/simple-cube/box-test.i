@@ -191,8 +191,8 @@
 
 []
 
-
 [Outputs]
   exodus = true
   execute_on = 'final'
+  hide = 'source_auxvar synchronize'
 []
