@@ -699,7 +699,11 @@ void limitTemperature(const double * min_T, const double * max_T)
   for (int i = 0; i < mesh->Nelements; ++i) {
     for (int j = 0; j < mesh->Np; ++j) {
       int id = i * mesh->Np + j;
-      nrs->cds->S[id] = std::clamp(nrs->cds->S[id], minimum, maximum);
+
+      if (nrs->cds->S[id] < minimum)
+        nrs->cds->S[id] = minimum;
+      if (nrs->cds->S[id] > maximum)
+        nrs->cds->S[id] = maximum;
     }
   }
 
