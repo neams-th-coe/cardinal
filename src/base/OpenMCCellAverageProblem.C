@@ -102,6 +102,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
   openmc::settings::libmesh_comm = &_mesh.comm();
 
+  // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
+  // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred
+  // temperature (as opposed to the solid app sending both temperature and heat flux). Temperature is always
+  // transferred. Because we need a material property to represent thermal conductivity, MOOSE's default
+  // settings will force OpenMC to have materials on every block, when that's not actually needed. So
+  // we can turn that check off.
+  setMaterialCoverageCheck(false);
+
   switch (_tally_type)
   {
     case tally::cell:
