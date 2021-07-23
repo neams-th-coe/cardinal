@@ -43,11 +43,11 @@
   []
   [fn_2]
     type = ParsedFunction
-    value = 0
+    value = t*x*z*(2-z)*0.05
   []
   [fn_3]
     type = ParsedFunction
-    value = 0
+    value = t*(y+1)*(y-1)*0.1
   []
 []
 
@@ -148,6 +148,13 @@
      multi_app = nek
      variable = heat_source
    []
+   [source_integral_to_nek]
+     type = MultiAppPostprocessorTransfer
+     from_postprocessor = source_integral_m
+     to_postprocessor = source_integral
+     direction = to_multiapp
+     multi_app = nek
+   []
    [disp_x_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_x_o
@@ -184,7 +191,11 @@
     variable = temp
     function = temp_ansol
   [../]
-    [synchronize]
+  [source_integral_m]
+    type = ElementIntegralVariablePostprocessor
+    variable = source_auxvar
+  []
+  [synchronize]
     type = Receiver
     default = 1
   []

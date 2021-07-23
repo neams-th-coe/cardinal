@@ -43,11 +43,11 @@
   []
   [fn_2]
     type = ParsedFunction
-    value = 0
+    value = t*x*z*(2-z)*0.05
   []
   [fn_3]
     type = ParsedFunction
-    value = 0
+    value = t*(y+1)*(y-1)*0.1
   []
 []
 
