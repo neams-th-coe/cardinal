@@ -1,6 +1,6 @@
 [Mesh]
   type = NekRSMesh
-  order = FIRST
+  order = SECOND
   volume = true
 []
 
@@ -9,31 +9,57 @@
   moving_mesh = true
 []
 
-[Functions]
+[AuxVariables]
   [temp_ansol]
-    type = ParsedFunction
-    value = (sin(x)*sin(y)*sin(z))+5
+    order = SECOND
+  []
+  [dummy]
+  []
+[]
+
+# This AuxVariable and AuxKernel is only here to get the postprocessors
+# to evaluate correctly. This can be deleted after MOOSE issue #17534 is fixed.
+[AuxKernels]
+  [dummy]
+    type = ConstantAux
+    variable = dummy
+    value = 0.0
   []
 []
 
 [Executioner]
   type = Transient
-  [./TimeStepper]
+  [TimeStepper]
     type = NekTimeStepper
-  [../]
+  []
 []
 
 [Postprocessors]
-  [./integral]
-    type = ElementL2Error
+  [integral]
+    type = ElementL2Difference
     variable = temp
-    function = temp_ansol
-  [../]
+    other_variable = temp_ansol
+    execute_on = timestep_end
+  []
+  [max_T]
+    type = NekVolumeExtremeValue
+    field = temperature
+    value_type = max
+    execute_on = timestep_end
+  []
+  [min_T]
+    type = NekVolumeExtremeValue
+    field = temperature
+    value_type = min
+    execute_on = timestep_end
+  []
 []
 
 [Outputs]
   exodus = true
   execute_on = 'final'
-  hide = 'heat_source source_integral transfer_in'
+
+  # uncomment the temp_ansol to see that the solution matches very well
+  hide = 'source_integral transfer_in heat_source dummy temp_ansol'
 []
 

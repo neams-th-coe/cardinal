@@ -11,11 +11,13 @@
 [Variables]
   [temp]
     initial_condition = 600.0
+    order = SECOND
   []
 []
 
 [AuxVariables]
   [source_auxvar]
+    order = SECOND
   []
   [disp_x_o]
     order = SECOND
@@ -24,6 +26,12 @@
     order = SECOND
   []
   [disp_z_o]
+    order = SECOND
+  []
+  [temp_ansol]
+    order = SECOND
+  []
+  [difference]
     order = SECOND
   []
 []
@@ -52,23 +60,23 @@
 []
 
 [Kernels]
-  [./heat]
+  [heat]
     type = HeatConduction
     variable = temp
-  [../]
+  []
   [heat_source]
     type = CoupledForce
     variable = temp
     v = source_auxvar
-  [../]
+  []
 []
 
 [Materials]
-  [./thermal]
+  [thermal]
     type = HeatConductionMaterial
     specific_heat = 1.0
     thermal_conductivity = 1.0
-  [../]
+  []
 []
 
 [AuxKernels]
@@ -96,13 +104,21 @@
     function = fn_3
     execute_on = timestep_begin
   []
+  [temp_ansol]
+    type = FunctionAux
+    variable = temp_ansol
+    function = temp_ansol
+  []
+  [difference]
+    type = ParsedAux
+    variable = difference
+    function = 'temp - temp_ansol'
+    args = 'temp temp_ansol'
+  []
 []
-
 
 [Executioner]
   type = Transient
-  solve_type = 'PJFNK'
-
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
 
@@ -113,15 +129,12 @@
   l_tol = 1e-4
   l_abs_tol = 1e-4
 
-  start_time = 0
-  n_startup_steps = 1
   end_time = 5
   dt = 1
-  dtmin = 0.0001
 []
 
 [BCs]
-  [./bc1]
+  [bc1]
     type = FunctionDirichletBC
     variable = temp
     boundary = '1 2 3 4 5 6'
@@ -139,8 +152,14 @@
   []
 []
 
-
 [Transfers]
+   [analytic_sol_to_nek]
+     type = MultiAppNearestNodeTransfer
+     source_variable = temp_ansol
+     direction = to_multiapp
+     multi_app = nek
+     variable = temp_ansol
+   []
    [source_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = source_auxvar
@@ -186,11 +205,11 @@
 []
 
 [Postprocessors]
-  [./integral]
+  [integral]
     type = ElementL2Error
     variable = temp
     function = temp_ansol
-  [../]
+  []
   [source_integral_m]
     type = ElementIntegralVariablePostprocessor
     variable = source_auxvar
@@ -199,11 +218,30 @@
     type = Receiver
     default = 1
   []
-
+  [max_diff]
+    type = NodalExtremeValue
+    variable = difference
+    value_type = max
+  []
+  [min_diff]
+    type = NodalExtremeValue
+    variable = difference
+    value_type = min
+  []
+  [max_T]
+    type = NodalExtremeValue
+    variable = temp
+    value_type = max
+  []
+  [min_T]
+    type = NodalExtremeValue
+    variable = temp
+    value_type = min
+  []
 []
 
 [Outputs]
   exodus = true
   execute_on = 'final'
-  hide = 'source_auxvar synchronize'
+  hide = 'source_auxvar synchronize temp_ansol difference'
 []
