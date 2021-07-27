@@ -170,6 +170,8 @@ void volumeSolution(const int order, const bool needs_interpolation, const field
  */
 void flux_volume(const int elem_id, const int order, double * flux_elem);
 
+void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
+
 /**
  * Interpolate the MOOSE volume heat source onto the nekRS mesh
  * @param[in] elem_id global element ID
@@ -573,11 +575,17 @@ struct characteristicScales
 };
 
 /**
- * Get pointer to various solution functions based on enumeration
+ * Get pointer to various solution functions (for reading only) based on enumeration
  * @param[in] field field to return a pointer to
  * @return function pointer to method that returns said field as a function of GLL index
  */
 double (*solutionPointer(const field::NekFieldEnum & field))(int);
+
+/**
+ * Write various solution functions based on enumeration
+ * @param[in] field field to write
+ */
+void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat);
 
 /**
  * \brief Get the temperature solution at given GLL index
@@ -631,6 +639,13 @@ double z_velocity(const int id);
  * @return velocity magnitude at index
  */
 double velocity(const int id);
+
+/**
+ * Write a value into the user scratch space that holds the flux
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void flux(const int id, const dfloat value);
 
 /**
  * Initialize the characteristic scales for a nondimesional solution

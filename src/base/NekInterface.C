@@ -393,55 +393,29 @@ void boundarySolution(const int order, const bool needs_interpolation, const fie
   free(scratch);
 }
 
-void flux_volume(const int elem_id, const int order, double * flux_elem)
+void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = temperatureMesh();
+  void (*write_solution) (int, dfloat);
+  write_solution = solution::solutionPointer(field);
 
   int end_1d = mesh->Nq;
   int start_1d = order + 2;
-  int end_3d = mesh->Np;
-  int start_3d = start_1d * start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
   if (commRank() == nek_volume_coupling.processor_id(elem_id))
   {
     int e = nek_volume_coupling.element[elem_id];
-    double * flux_tmp = (double*) calloc(mesh->Np, sizeof(double));
+    double * tmp = (double*) calloc(mesh->Np, sizeof(double));
 
-    interpolateVolumeHex3D(matrix.incoming, flux_elem, start_1d, flux_tmp, end_1d);
-
-    int id = e * mesh->Np;
-    for (int v = 0; v < mesh->Np; ++v)
-      nrs->usrwrk[id + v] = flux_tmp[v];
-
-    free(flux_tmp);
-  }
-}
-
-void heat_source(const int elem_id, const int order, double * source_elem)
-{
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  int end_1d = mesh->Nq;
-  int start_1d = order + 2;
-  int end_3d = mesh->Np;
-  int start_3d = start_1d * start_1d * start_1d;
-
-  // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (commRank() == nek_volume_coupling.processor_id(elem_id))
-  {
-    int e = nek_volume_coupling.element[elem_id];
-    double * source_tmp = (double*) calloc(mesh->Np, sizeof(double));
-
-    interpolateVolumeHex3D(matrix.incoming, source_elem, start_1d, source_tmp, end_1d);
+    interpolateVolumeHex3D(matrix.incoming, T, start_1d, tmp, end_1d);
 
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
-      nrs->usrwrk[scalarFieldOffset() + id + v] = source_tmp[v];
+      write_solution(id + v, tmp[v]);
 
-    free(source_tmp);
+    free(tmp);
   }
 }
 
@@ -490,84 +464,6 @@ void save_initial_mesh()
   std::memcpy(initial_mesh_x,mesh->x,sizeof(double)*no_of_nodes);
   std::memcpy(initial_mesh_y,mesh->y,sizeof(double)*no_of_nodes);
   std::memcpy(initial_mesh_z,mesh->z,sizeof(double)*no_of_nodes);
-}
-
-void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol)
-{
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  int end_1d = mesh->Nq;
-  int start_1d = order + 2;
-  int end_3d = mesh->Np;
-  int start_3d = start_1d * start_1d * start_1d;
-
-  // We can only write into the nekRS scratch space if that volume is "owned" by the current process
-  if (commRank() == nek_volume_coupling.processor_id(elem_id))
-  {
-    int e = nek_volume_coupling.element[elem_id];
-    double * source_disp = (double*) calloc(mesh->Np, sizeof(double));
-
-    interpolateVolumeHex3D(matrix.incoming, disp_vol, start_1d, source_disp, end_1d);
-
-    int id = e * mesh->Np;
-    for (int v = 0; v < mesh->Np; ++v)
-      mesh->x[id + v] = initial_mesh_x[id+v] + source_disp[v];
-
-    free(source_disp);
-  }
-}
-
-void map_volume_y_deformation(const int elem_id, const int order, double * disp_vol)
-{
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  int end_1d = mesh->Nq;
-  int start_1d = order + 2;
-  int end_3d = mesh->Np;
-  int start_3d = start_1d * start_1d * start_1d;
-
-  // We can only write into the nekRS scratch space if that volume is "owned" by the current process
-  if (commRank() == nek_volume_coupling.processor_id(elem_id))
-  {
-    int e = nek_volume_coupling.element[elem_id];
-    double * source_disp = (double*) calloc(mesh->Np, sizeof(double));
-
-    interpolateVolumeHex3D(matrix.incoming, disp_vol, start_1d, source_disp, end_1d);
-
-    int id = e * mesh->Np;
-    for (int v = 0; v < mesh->Np; ++v)
-      mesh->y[id + v] = initial_mesh_y[id+v] + source_disp[v];
-
-    free(source_disp);
-  }
-}
-
-void map_volume_z_deformation(const int elem_id, const int order, double * disp_vol)
-{
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  int end_1d = mesh->Nq;
-  int start_1d = order + 2;
-  int end_3d = mesh->Np;
-  int start_3d = start_1d * start_1d * start_1d;
-
-  // We can only write into the nekRS scratch space if that volume is "owned" by the current process
-  if (commRank() == nek_volume_coupling.processor_id(elem_id))
-  {
-    int e = nek_volume_coupling.element[elem_id];
-    double * source_disp = (double*) calloc(mesh->Np, sizeof(double));
-
-    interpolateVolumeHex3D(matrix.incoming, disp_vol, start_1d, source_disp, end_1d);
-
-    int id = e * mesh->Np;
-    for (int v = 0; v < mesh->Np; ++v)
-      mesh->z[id + v] = initial_mesh_z[id+v] + source_disp[v];
-
-    free(source_disp);
-  }
 }
 
 double sourceIntegral()
@@ -1559,6 +1455,10 @@ void freeMesh()
 
   if (matrix.outgoing) free(matrix.outgoing);
   if (matrix.incoming) free(matrix.incoming);
+
+  if (initial_mesh_x) free(initial_mesh_x);
+  if (initial_mesh_y) free(initial_mesh_y);
+  if (initial_mesh_z) free(initial_mesh_z);
 }
 
 } // end namespace mesh
@@ -1611,6 +1511,36 @@ namespace solution
       nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
   }
 
+  void flux(const int id, const dfloat value)
+  {
+    nrs_t * nrs = (nrs_t *) nrsPtr();
+    nrs->usrwrk[id] = value;
+  }
+
+  void heat_source(const int id, const dfloat value)
+  {
+    nrs_t * nrs = (nrs_t *) nrsPtr();
+    nrs->usrwrk[1 * scalarFieldOffset() + id] = value;
+  }
+
+  void x_displacement(const int id, const dfloat value)
+  {
+    mesh_t * mesh = temperatureMesh();
+    mesh->x[id] = initial_mesh_x[id] + value;
+  }
+
+  void y_displacement(const int id, const dfloat value)
+  {
+    mesh_t * mesh = temperatureMesh();
+    mesh->y[id] = initial_mesh_y[id] + value;
+  }
+
+  void z_displacement(const int id, const dfloat value)
+  {
+    mesh_t * mesh = temperatureMesh();
+    mesh->z[id] = initial_mesh_z[id] + value;
+  }
+
   double (*solutionPointer(const field::NekFieldEnum & field))(int)
   {
     double (*f) (int);
@@ -1640,6 +1570,34 @@ namespace solution
         break;
       default:
         throw std::runtime_error("Unhandled 'NekFieldEnum'!");
+    }
+
+    return f;
+  }
+
+  void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
+  {
+    void (*f) (int, dfloat);
+
+    switch (field)
+    {
+      case field::flux:
+        f = &solution::flux;
+        break;
+      case field::heat_source:
+        f = &solution::heat_source;
+        break;
+      case field::x_displacement:
+        f = &solution::x_displacement;
+        break;
+      case field::y_displacement:
+        f = &solution::y_displacement;
+        break;
+      case field::z_displacement:
+        f = &solution::z_displacement;
+        break;
+      default:
+        throw std::runtime_error("Unhandled NekWriteEnum!");
     }
 
     return f;
