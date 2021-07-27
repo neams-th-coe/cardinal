@@ -16,6 +16,12 @@ namespace nekrs
 {
 
 /**
+ * Whether nekRS's input file indicates a moving mesh
+ * @return whether nekRS's input file indicates a moving mesh
+ */
+bool hasMovingMesh();
+
+/**
  * Whether nekRS's input file intends to terminate the simulation based on a wall time
  * @return whether a wall time is used in nekRS to end the simulation
  */

@@ -237,6 +237,10 @@ NekRSProblem::initialSetup()
       mooseError("In order to send a heat source to nekRS, you must have an OCCA kernel "
         "for the source in the passive scalar equations!");
 
+  if (_moving_mesh && !nekrs::hasMovingMesh())
+    mooseError("In order for MOOSE to compute a mesh deformation in NekRS, you "
+      "must have 'solver = user' in the [MESH] block!");
+
   auto executioner = _app.getExecutioner();
   _transient_executioner = dynamic_cast<Transient *>(executioner);
 

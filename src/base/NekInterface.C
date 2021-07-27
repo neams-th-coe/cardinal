@@ -28,6 +28,11 @@ namespace nekrs
 constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
 
+bool hasMovingMesh()
+{
+  return platform->options.compareArgs("MOVING MESH", "TRUE");
+}
+
 bool endControlElapsedTime()
 {
   return !platform->options.getArgs("STOP AT ELAPSED TIME").empty();
