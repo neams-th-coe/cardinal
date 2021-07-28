@@ -52,6 +52,17 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _Cp_0(getParam<Real>("Cp_0")),
     _start_time(nekrs::startTime())
 {
+  // the NekRSProblem constructor is called right after building the mesh. In order
+  // to have pretty screen output without conflicting with the timed print messages,
+  // print diagnostic info related to the mesh here
+  _nek_mesh = dynamic_cast<NekRSMesh*>(&mesh());
+
+  if (!_nek_mesh)
+    mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'! In your [Mesh] "
+      "block, you should have 'type = NekRSMesh'");
+
+  _nek_mesh->printMeshInfo();
+
   // if the mesh is moving, then we must minimize the incoming data transfers;
   // if the user set `minimize_transfers_in = false`, print a warning that we're overriding this setting
   if (_moving_mesh && params.isParamSetByUser("minimize_transfers_in"))
@@ -91,12 +102,6 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
       mooseError("The 'minimize_transfers_in' and 'minimize_transfers_out' capabilities "
         "require that nekRS is receiving and sending data to a master application, but "
         "in your case nekRS is the master application.");
-
-  _nek_mesh = dynamic_cast<NekRSMesh*>(&mesh());
-
-  if (!_nek_mesh)
-    mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'! In your [Mesh] "
-      "block, you should have 'type = NekRSMesh'");
 
   // It's too complicated to make sure that the dimensional form _also_ works when our
   // reference coordinates are different from what MOOSE is expecting, so just throw an error
