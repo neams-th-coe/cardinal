@@ -137,20 +137,22 @@ void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, i
 void initializeInterpolationMatrices(const int n_moost_pts);
 
 /**
- * Interpolate the nekRS temperature onto the boundary data transfer mesh
+ * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[out] T interpolated temperature
+ * @param[in] f field to interpolate
+ * @param[out] T interpolated boundary value
  */
-void boundaryTemperature(const int order, const bool needs_interpolation, double* T);
+void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
- * Interpolate the nekRS temperature onto the volume data transfer mesh
+ * Interpolate the nekRS volume solution onto the volume data transfer mesh
  * @param[in] order enumeration of the mesh order (0 = first, 1 = second, etc.)
  * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[out] T interpolated temperature
+ * @param[in] f field to interpolate
+ * @param[out] T interpolated volume value
  */
-void volumeTemperature(const int order, const bool needs_interpolation, double* T);
+void volumeSolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
  * Interpolate the MOOSE flux onto the nekRS mesh
@@ -160,38 +162,12 @@ void volumeTemperature(const int order, const bool needs_interpolation, double* 
  */
  void flux(const int elem_id, const int order, double * flux_face);
 
-/**
- * Interpolate a volume-based MOOSE flux into the nekRS mesh
- * @param[in] elem_id global element ID
- * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
- * @param[in] flux_elem flux at the libMesh nodes
- */
-void flux_volume(const int elem_id, const int order, double * flux_elem);
-
-/**
- * Interpolate the MOOSE volume heat source onto the nekRS mesh
- * @param[in] elem_id global element ID
- * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
- * @param[in] source_elem heat source at the libMesh nodes
- */
-void heat_source(const int elem_id, const int order, double * source_elem);
+void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
 
 /**
  * Save the initial mesh in nekRS for moving mesh problems
  */
 void save_initial_mesh();
-
-//@{
-/**
- * Interpolate the MOOSE volume mesh displacement onto the nekRS mesh
- * @param[in] elem_id global element ID
- * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
- * @param[in] disp_vol displacement at the libMesh nodes
- */
-void map_volume_x_deformation(const int elem_id, const int order, double * disp_vol);
-void map_volume_y_deformation(const int elem_id, const int order, double * disp_vol);
-void map_volume_z_deformation(const int elem_id, const int order, double * disp_vol);
-//@}
 
 /**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
@@ -416,6 +392,13 @@ struct boundaryCoupling
 bool isHeatFluxBoundary(const int boundary);
 
 /**
+ * Whether the specific boundary is a specified temperature boundary
+ * @param[in] boundary boundary ID
+ * @return whether boundary is a temperature boundary
+ */
+bool isTemperatureBoundary(const int boundary);
+
+/**
  * String name indicating the temperature boundary condition type on a given boundary
  * @param[in] boundary boundary ID
  * @return string name of boundary condition type
@@ -564,11 +547,17 @@ struct characteristicScales
 };
 
 /**
- * Get pointer to various solution functions based on enumeration
+ * Get pointer to various solution functions (for reading only) based on enumeration
  * @param[in] field field to return a pointer to
  * @return function pointer to method that returns said field as a function of GLL index
  */
 double (*solutionPointer(const field::NekFieldEnum & field))(int);
+
+/**
+ * Write various solution functions based on enumeration
+ * @param[in] field field to write
+ */
+void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat);
 
 /**
  * \brief Get the temperature solution at given GLL index
@@ -622,6 +611,41 @@ double z_velocity(const int id);
  * @return velocity magnitude at index
  */
 double velocity(const int id);
+
+/**
+ * Write a value into the user scratch space that holds the flux
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void flux(const int id, const dfloat value);
+
+/**
+ * Write a value into the user scratch space that holds the volumetric heat source
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void heat_source(const int id, const dfloat value);
+
+/**
+ * Write a value into the x-displacement
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void x_displacement(const int id, const dfloat value);
+
+/**
+ * Write a value into the y-displacement
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void y_displacement(const int id, const dfloat value);
+
+/**
+ * Write a value into the z-displacement
+ * @param[in] id index
+ * @param[in] value value to write
+ */
+void z_displacement(const int id, const dfloat value);
 
 /**
  * Initialize the characteristic scales for a nondimesional solution

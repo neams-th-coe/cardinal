@@ -25,7 +25,6 @@ validParams<NekRSMesh>()
   params.addParam<std::vector<int>>("boundary", "Boundary ID(s) through which nekRS will be coupled to MOOSE");
   params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
   params.addParam<MooseEnum>("order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
-  params.addParam<bool>("verbose", false, "Whether to print mesh generation results to screen");
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
   params.addParam<bool>("fixed_meshes", false, "Whether the nekRS domain is fixed (no mesh movement "
     "or adaptive mesh refinement) and some areas and volumes can be cached for postprocessors");
@@ -38,7 +37,6 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   _fixed_meshes(getParam<bool>("fixed_meshes")),
   _boundary(isParamValid("boundary") ? &getParam<std::vector<int>>("boundary") : nullptr),
   _order(getParam<MooseEnum>("order").getEnum<order::NekOrderEnum>()),
-  _verbose(getParam<bool>("verbose")),
   _scaling(getParam<Real>("scaling")),
   _n_surface_elems(0),
   _n_volume_elems(0)
@@ -78,6 +76,27 @@ NekRSMesh::~NekRSMesh()
   if (_z) free(_z);
 
   nekrs::mesh::freeMesh();
+}
+
+void
+NekRSMesh::printMeshInfo() const
+{
+  _console << " NekRS mesh converted to order " << (_order + 1) << " MooseMesh" << std::endl;
+
+  if (_scaling != 1.0)
+  {
+    std::string size = _scaling > 1.0 ? "larger" : "smaller";
+    _console << " Data transfers will be done with a mesh " << Moose::stringify(_scaling) <<
+      " times " << size << " than nekRS's mesh" << std::endl;
+  }
+
+  if (_boundary && !_volume)
+    _console << " Boundary " << Moose::stringify(*_boundary) << " contains " << _n_surface_elems <<
+      " of the total of " << _nek_n_surface_elems << " nekRS surface elements" << std::endl;
+
+  if (_volume)
+    _console << " Volume contains " << _n_volume_elems <<
+      " of the total of " << _nek_n_volume_elems << " nekRS volume elements" << std::endl;
 }
 
 std::unique_ptr<MooseMesh>
@@ -287,20 +306,8 @@ NekRSMesh::initializeMeshParams()
 void
 NekRSMesh::buildMesh()
 {
-  _console << "Building nekRS mesh as an order " << (_order + 1) << " MooseMesh..." << std::endl;
-
-  if (_scaling != 1.0)
-  {
-    std::string size = _scaling > 1.0 ? "larger" : "smaller";
-    _console << "Data transfers will be done with a mesh " << Moose::stringify(_scaling) <<
-      " times " << size << " than nekRS's mesh" << std::endl;
-  }
-
   _nek_n_surface_elems = nekrs::mesh::NboundaryFaces();
   _nek_n_volume_elems = nekrs::mesh::Nelements();
-
-  _console << "Total number of volume elements: " << _nek_n_volume_elems << std::endl;
-  _console << "Total number of surface elements: " << _nek_n_surface_elems << std::endl;
 
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
@@ -350,8 +357,6 @@ NekRSMesh::buildMesh()
     }
 
   _mesh->prepare_for_use();
-
-  _console << "Done preparing nekRS MooseMesh." << std::endl;
 }
 
 void
@@ -366,9 +371,6 @@ NekRSMesh::addElems()
     elem->processor_id() = _elem_processor_id(e);
     _mesh->add_elem(elem);
 
-    if (_verbose)
-      _console << std::endl;
-
     // add one point for each vertex of the face element
     for (int n = 0; n < _n_vertices_per_elem; n++)
     {
@@ -377,9 +379,6 @@ NekRSMesh::addElems()
       auto node_offset = e * _n_vertices_per_elem + node;
       Point p(_x[node_offset], _y[node_offset], _z[node_offset]);
       p *= _scaling;
-
-      if (_verbose)
-        _console << "Adding point: " << p << std::endl;
 
       auto node_ptr = _mesh->add_point(p);
       elem->set_node(n) = node_ptr;
@@ -407,8 +406,6 @@ NekRSMesh::addElems()
 void
 NekRSMesh::extractSurfaceMesh()
 {
-  _console << "Building surface coupling mesh...";
-
   _x = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
   _y = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
   _z = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
@@ -417,9 +414,6 @@ NekRSMesh::extractSurfaceMesh()
   // global communciation here such that each nekRS process has knowledge of all the
   // boundary information.
   nekrs::mesh::faceVertices(_order, _x, _y, _z);
-
-  _console << " Boundary " << Moose::stringify(*_boundary) << " contains " << _n_surface_elems <<
-    " of the total of " << _nek_n_surface_elems << " nekRS surface elements" << std::endl;
 
   _new_elem = &NekRSMesh::boundaryElem;
   _n_elems = _n_surface_elems;
@@ -431,8 +425,6 @@ NekRSMesh::extractSurfaceMesh()
 void
 NekRSMesh::extractVolumeMesh()
 {
-  _console << "Building volume coupling mesh...";
-
   // nekRS has already performed a global operation such that all processes know the
   // toal number of volume elements.
   _x = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
@@ -443,9 +435,6 @@ NekRSMesh::extractVolumeMesh()
   // global communciation here such that each nekRS process has knowledge of all the
   // volume information.
   nekrs::mesh::volumeVertices(_order, _x, _y, _z);
-
-  _console << " Volume contains " << _n_volume_elems <<
-    " of the total of " << _nek_n_volume_elems << " nekRS volume elements" << std::endl;
 
   _new_elem = &NekRSMesh::volumeElem;
   _n_elems = _n_volume_elems;

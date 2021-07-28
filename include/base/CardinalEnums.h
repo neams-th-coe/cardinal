@@ -20,7 +20,7 @@ namespace order
 
 namespace field
 {
-  /// Enumeration of possible fields to integrate in nekRS
+  /// Enumeration of possible fields to read from nekRS
   enum NekFieldEnum
   {
     x_velocity,
@@ -30,6 +30,16 @@ namespace field
     temperature,
     pressure,
     unity
+  };
+
+  /// Enumeration of possible fields to write in nekRS
+  enum NekWriteEnum
+  {
+    flux,
+    heat_source,
+    x_displacement,
+    y_displacement,
+    z_displacement
   };
 }
 
