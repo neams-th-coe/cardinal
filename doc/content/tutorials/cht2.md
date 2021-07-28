@@ -120,7 +120,7 @@ instructions [here](mesh_download.md) and placed into the
 
 The complete solid mesh is show below; because this mesh is generated using
 the [MeshGenerator](https://mooseframework.inl.gov/syntax/Mesh/)
-system in MOOSE, there is not a single mesh file that describes the solid mesh.
+system in MOOSE, there is not a unified mesh file that describes the solid mesh.
 You can view the solid mesh either by running the simulation (and viewing the mesh
 on which the results are displayed), or simply by running the solid input file in
 mesh generation mode:
@@ -416,7 +416,11 @@ $ mpiexec -np 12 cardinal-opt -i solid.i --nekrs-setup sfr_7pin
 After converting the NekRS output files to a format viewable in Paraview,
 the simulation results can be displayed. The fluid temperature is shown in [temperature]
 along with the mesh lines of the solid phase, while the solid temperature is
-shown in [temperature2] along with the mesh lines of the fluid phase. The
+shown in [temperature2] along with the lines connecting
+[!ac](GLL) points for the fluid phase (note that the mesh shown in [fluid_mesh] shows
+the element boundaries as lines, while the NekRS output file format shows lines connecting
+the [!ac](GLL) points, such that the mesh lines in [temperature2] appear much denser than
+the element boundaries shown in [fluid_mesh]). The
 temperature color scale is the same in both figures.
 
 !media sfr_temperature1.png

@@ -7,9 +7,9 @@ tutorials are *general* features that also apply to fluid feedback in OpenMC.
 For instance, in the [TRISO pebble](triso.md) tutorial, we describe how to
 couple an OpenMC solution in centimeters with a MOOSE solution in meters. This
 feature is equally applicable to both solid and fluid feedback in OpenMC,
-even though the examples here only focus on solid feedback. This is done
-so that the tutorials can slowly progress in complexity.
+even though the examples here only focus on solid feedback. This allows
+the tutorials to slowly progress in complexity, and any capabilities that
+truly are specific to solid temperature feedback will be indicated where applicable.
 
 - [LWR pincell](pincell1.md)
 - [TRISO pebble](triso.md)
-

@@ -622,7 +622,16 @@ with the usual `.fld` field file format used by standalone NekRS calculations.
 
 Finally, several postprocessors are included. A postprocessor named `flux_integral`
 is added automatically by [NekRSProblem](/problems/NekRSProblem.md) to receive the value of the heat flux
-integral from MOOSE for internal normalization in NekRS.
+integral from MOOSE for internal normalization in NekRS. It is as if the following is added
+to the input file:
+
+!listing
+[Postprocessors]
+  [flux_integral]
+    type = Receiver
+  []
+[]
+
 The other three postprocessors are all Cardinal-specific postprocessors that perform
 integrals and global min/max calculations over the NekRS domain for diagnostic purposes.
 Here, the `boundary_flux` [NekHeatFluxIntegral](/postprocessors/NekHeatFluxIntegral.md)
@@ -641,7 +650,21 @@ You will likely notice that many of the almost-always-included MOOSE blocks are 
 from the `nek.i` input file - for instance, there are no nonlinear or auxiliary variables.
 The `NekRSProblem` assists in input file setup by declaring many of these coupling fields
 automatically. For this example, two auxiliary variables named `temp` and `avg_flux` are
-added automatically; these variables receive incoming and outgoing transfers to/from NekRS.
+added automatically, as if the following were included in the input file:
+
+!listing
+[AuxVariables]
+  [avg_flux]
+    order = FIRST
+  []
+  [temp]
+    order = FIRST
+  []
+[]
+
+These variables receive incoming and outgoing transfers to/from NekRS; the `order` is set
+to match the order of the [NekRSMesh](/mesh/NekRSMesh.md).
+
 You will see both `temp` and `avg_flux` referred to in the solid input file `Transfers` section,
 in addition to the `flux_integral` [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessor that receives the integrated heat flux for normalization.

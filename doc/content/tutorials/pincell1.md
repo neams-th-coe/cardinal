@@ -1,4 +1,4 @@
-# Tutorial 2A: LWR Pincell
+# Tutorial 6A: LWR Pincell
 
 In this tutorial, you will learn how to:
 
@@ -10,10 +10,10 @@ This tutorial describes how to use Cardinal to perform temperature and heat
 source coupling of OpenMC to MOOSE for a [!ac](LWR) pincell. While the entire
 domain is modelled by OpenMC, the MOOSE domain only consists of the solid regions.
 After providing the foundation in this tutorial,
-in [Tutorial 3](openmc_fluid.md) we will describe how to introduce both
+in [Tutorial 7](openmc_fluid.md) we will describe how to introduce both
 temperature and density feedback from MOOSE to OpenMC. Finally, in
-[Tutorial 4](coupled.md), we will combine the content of the previous tutorials
-to couple nekRS, OpenMC, and MOOSE heat conduction for fully-coupled multiphysics.
+[Tutorial 9](coupled.md), we will combine the content of the previous tutorials
+to couple NekRS, OpenMC, and MOOSE heat conduction for fully-coupled multiphysics.
 
 ## Particle Transport Coupling
 
@@ -42,7 +42,8 @@ The second stage of the wrapping encompasses the actual multiphysics solve:
   So, if OpenMC represents cell temperature as `std::vector<double>`, this involves reading
   from a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
   representing temperature (which can be transferred with any of MOOSE's transfers to the
-  nekRS wrapping) and writing into OpenMC's internval vectors.
+  NekRS wrapping) and writing into OpenMC's internval vectors. A similar process occurs for
+  density feedback in OpenMC.
 
 Cardinal developers have an intimate knowledge of how OpenMC stores its tally results
 and cell temperatures and densities, so this entire process is automated for you! OpenMC
@@ -50,12 +51,12 @@ can communicate with any other MOOSE application via the [MultiApp](https://moos
 and [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 systems in MOOSE. The same wrapping can be used for temperature, density, and heat source
 feedback with *any* MOOSE application that can compute temperature and density -
-including the nekRS wrapping in Cardinal. The MOOSE-wrapped version of OpenMC interacts
+including the NekRS wrapping in Cardinal. The MOOSE-wrapped version of OpenMC interacts
 with the MOOSE framework in a similar manner as natively-developed MOOSE applications,
 so the agnostic formulations of the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
 and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html) can be used
-to equally set a heat source in Pronghorn or nekRS, and extract temperature and density from
-BISON, nekRS, and Pronghorn.
+to equally set a heat source in Pronghorn or NekRS, and extract temperature and density from
+BISON, NekRS, and Pronghorn.
 
 ## Geometry and Computational Model
 
@@ -116,7 +117,7 @@ thermal contact model is applied based on the sum of thermal conduction and ther
 (across a transparent medium).
 For a paired set of boundaries,
 each quadrature point on boundary A is paired with the nearest quadrature point on boundary B.
-Then, the sum of the radiation and conduction heat fluxes imposed between pais of
+Then, the sum of the radiation and conduction heat fluxes imposed between pairs of
 quadrature points is
 
 \begin{equation}
@@ -132,7 +133,7 @@ resistance is given as
 
 \begin{equation}
 \label{eq:4}
-r_{th}=\frac{ln{\frac{r_2}{r_1}}}{2\pi L k}
+r_{th}=\frac{ln{\left(\frac{r_2}{r_1}\right)}}{2\pi L k}
 \end{equation}
 
 where $r_2>r_1$ are the radial coordinates associated with the outer and inner radii
@@ -148,6 +149,15 @@ The initial temperature is 280&deg;C, while the initial heat source in solid dom
 This section describes the mesh used for the solid domain. MOOSE
 [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
 the solid mesh. [solid_mesh] shows the mesh with block IDs and sidesets.
+Vecause this mesh is generated using
+the [MeshGenerator](https://mooseframework.inl.gov/syntax/Mesh/)
+system in MOOSE, there is not a mesh file that describes the solid mesh.
+You can view the solid mesh either by running the simulation (and viewing the mesh
+on which the results are displayed), or simply by running the solid input file in
+mesh generation mode:
+
+!listing
+$ cardinal-opt -i solid.i --mesh-only
 
 !media pincell_solid_mesh.png
   id=solid_mesh
@@ -159,7 +169,6 @@ This section describes the [!ac](CSG) model setup in OpenMC. In the near future,
 OpenMC will have unstructured mesh tracking capabilities - but until that is available,
 OpenMC geometries all use the [!ac](CSG) geometry approach, where cells are created
 from half-spaces of various common surfaces.
-
 Because this is a Cardinal
 tutorial, we assume you have some basic familiarity with OpenMC, so we only discuss the
 portions of the model setup relevant to multiphysics feedback. When creating the OpenMC
@@ -182,10 +191,12 @@ feedback. If you construct your geometry without *filling* any OpenMC cells with
 other universes, then all your cells are at level zero - i.e. the highest level in
 the geometry. But if your model contains lattices, the level that you want to perform
 multiphysics coupling on is most likely not the highest level in the geometry. For instance,
-[!ac](LWR) core, comprised of hundreds of assemblies. Your approach to creating the
+[!ac](LWR) cores are comprised of hundreds of assemblies. Your approach to creating the
 geometry would probably be to make a single fuel assembly universe, then repeat that
 lattice several times throughout the geometry. If your assembly universe wasn't itself
 filled with any universes, then all your cells of interest are actually at level 1.
+Cardinal allows the flexibility to set the temperature/density for all cells *contained*
+in a particular cell, if desired.
 We will illustrate this lattice concept with a set of [!ac](TRISO) pebbles
 in [Tutorial 2B](triso.md).
 
@@ -203,15 +214,17 @@ height by 13 axial planes.
 
 !alert note
 The particular choice of axial cells has *no* relationship to the solid mesh.
-That is, MOOSE elements can span more than one OpenMC cell.
+That is, MOOSE elements can span more than one OpenMC cell; when mapping by centroid,
+however, each MOOSE element will then be associated with one OpenMC cell (which may be
+imperfect, but represents a form of discretization error in the MOOSE element refinement).
+
+!listing /tutorials/lwr_solid/make_openmc_model.py
 
 And with respect to the second important consideration,
 because we are not filling any universes with other universes or lattices,
 all of the cells in this problem are at the highest level of the geometry -
 i.e. the root universe. Later in the OpenMC wrapping, we will need to provide
 this information, so we simply make a note of it here.
-
-!listing /tutorials/lwr_solid/make_openmc_model.py
 
 !alert note
 For obtaining *temperature* feedback in OpenMC, we simply need to create unique
@@ -246,11 +259,11 @@ OpenMC *always* has geometries set up in length units of centimeters. However,
 MOOSE is dimension-agnostic, and the same physics model can be set up in any
 length unit provided proper scalings are applied to material properties, source terms,
 and the mesh. In this example, we set up the solid input file in length units of centimeters.
-In [Tutorial 2B](triso.md), we will set up the MOOSE input file in a different set
+In [Tutorial 6B](triso.md), we will set up the MOOSE input file in a different set
 of units for illustration.
 
-The heat conduction module will solve for temperature, which we defined
-as a nonlinear variable.
+The heat conduction module will solve for temperature, which we define
+as a nonlinear variable and apply a simple uniform initial condition.
 
 !listing /tutorials/lwr_solid/solid.i
   block=Variables
@@ -354,7 +367,7 @@ is used.
 
 For this example, we specify the total fission power by which to normalize OpenMC's
 tally results (because OpenMC's tally results are in units of eV/source particle).
-Next, we indicate which blocks in the `[Mesh]` in the `openmc.i` file should be considered
+Next, we indicate which blocks in the `[Mesh]` should be considered
 as "solid" (and therefore send temperatures into OpenMC) with the `solid_blocks` parameter.
 Here, we specify temperature feedback for the pellet (blocks 2 and 3) and the cladding
 (block 1). During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
@@ -418,7 +431,23 @@ You will likely notice that many of the always-included MOOSE blocks are not
 present in the `openmc.i` input. [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
 automatically adds the `heat_source`, `temp`, and `density` (if density is coupled
 to OpenMC) variables in the `openmc.i` input, so these will never appear in the OpenMC
-wrapper file explicitly.
+wrapper file explicitly. It is as if the following is included in the input file:
+
+!listing
+[AuxVariables]
+  [heat_source]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [temp]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [density] # only present if fluid_blocks was provided
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
 
 In addition to the wrapping of OpenMC in the `openmc.i` input file, we
 need to create the XML input files used to run OpenMC from the Python script shown earlier.
