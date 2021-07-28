@@ -777,7 +777,7 @@ NekRSProblem::getBoundaryTemperatureFromNek()
 void
 NekRSProblem::getVolumeTemperatureFromNek()
 {
-  CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 0.0, "Extracting nekRS temperature from volume");
+  CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Extracting nekRS temperature from volume");
 
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the volume temperature information. In
