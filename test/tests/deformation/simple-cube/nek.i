@@ -2,6 +2,7 @@
   type = NekRSMesh
   order = SECOND
   volume = true
+  parallel_type = replicated
 []
 
 [Problem]
