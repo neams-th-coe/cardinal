@@ -1118,6 +1118,12 @@ void gradient(const int offset, const double * f, double * grad_f)
 namespace mesh
 {
 
+int boundary_id(const int elem_id, const int face_id)
+{
+  mesh_t * mesh = temperatureMesh();
+  return nek_volume_coupling.boundary[elem_id * mesh->Nfaces + face_id];
+}
+
 bool isHeatFluxBoundary(const int boundary)
 {
   return bcMap::text(boundary, "scalar00") == "fixedGradient";
@@ -1144,6 +1150,11 @@ int Nelements()
   int n_global;
   MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   return n_global;
+}
+
+int Nfaces()
+{
+  return temperatureMesh()->Nfaces;
 }
 
 int dim()
@@ -1211,14 +1222,22 @@ void storeVolumeCoupling(int& N)
   // element IDs and process ownership
   int * etmp = (int *) malloc(N * sizeof(int));
   int * ptmp = (int *) malloc(N * sizeof(int));
+  int * btmp = (int *) malloc(N * mesh->Nfaces * sizeof(int));
 
   nek_volume_coupling.element = (int *) malloc(N * sizeof(int));
   nek_volume_coupling.process = (int *) malloc(N * sizeof(int));
+  nek_volume_coupling.boundary = (int *) malloc(N * mesh->Nfaces * sizeof(int));
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     etmp[i] = i;
     ptmp[i] = commRank();
+
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int id = i * mesh->Nfaces + j;
+      btmp[id] = mesh->EToB[id];
+    }
   }
 
   // compute the counts and displacement based on the volume-based data exchange
@@ -1232,46 +1251,36 @@ void storeVolumeCoupling(int& N)
   MPI_Allgatherv(ptmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.process,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  int * otmp = (int *) malloc(N * sizeof(int));
   int * ftmp = (int *) calloc(N, sizeof(int));
 
-  nek_volume_coupling.boundary_offset = (int *) malloc(N * sizeof(int));
   nek_volume_coupling.n_faces_on_boundary = (int *) calloc(N, sizeof(int));
 
   int b_start = nek_boundary_coupling.offset;
   for (int i = 0; i < nek_boundary_coupling.n_faces; ++i)
   {
     int e = nek_boundary_coupling.element[b_start + i];
-    if (ftmp[e] == 0)
-      otmp[e] = b_start + i;
-
     ftmp[e] += 1;
   }
 
-  MPI_Allgatherv(otmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.boundary_offset,
+  MPI_Allgatherv(ftmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.n_faces_on_boundary,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  MPI_Allgatherv(ftmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.n_faces_on_boundary,
+  displacementAndCounts(nek_volume_coupling.counts, recvCounts, displacement, mesh->Nfaces);
+
+  MPI_Allgatherv(btmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.boundary,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);
   free(etmp);
   free(ptmp);
-  free(otmp);
   free(ftmp);
+  free(btmp);
 }
 
 int facesOnBoundary(const int elem_id)
 {
   return nek_volume_coupling.n_faces_on_boundary[elem_id];
-}
-
-void faceSideset(const int elem_id, const int face_id, int& face, int& side)
-{
-  int offset = nek_volume_coupling.boundary_offset[elem_id];
-  face = nek_boundary_coupling.face[offset + face_id];
-  side = nek_boundary_coupling.boundary_id[offset + face_id];
 }
 
 void volumeVertices(const int order, double* x, double* y, double* z)
@@ -1450,8 +1459,8 @@ void freeMesh()
   if (nek_volume_coupling.element) free(nek_volume_coupling.element);
   if (nek_volume_coupling.process) free(nek_volume_coupling.process);
   if (nek_volume_coupling.counts) free(nek_volume_coupling.counts);
-  if (nek_volume_coupling.boundary_offset) free(nek_volume_coupling.boundary_offset);
   if (nek_volume_coupling.n_faces_on_boundary) free(nek_volume_coupling.n_faces_on_boundary);
+  if (nek_volume_coupling.boundary) free(nek_volume_coupling.boundary);
 
   if (matrix.outgoing) free(matrix.outgoing);
   if (matrix.incoming) free(matrix.incoming);

@@ -386,18 +386,13 @@ NekRSMesh::addElems()
 
     // add sideset IDs to the mesh if we have volume coupling (this only adds the
     // sidesets associated with the coupling)
-    if (_volume && _boundary)
+    if (_volume)
     {
-      int n_faces_on_boundary = nekrs::mesh::facesOnBoundary(e);
-      for (int f = 0; f < n_faces_on_boundary; ++f)
+      for (int f = 0; f < nekrs::mesh::Nfaces(); ++f)
       {
-        // get the sideset ID and local face ID
-        int elem_local_face;
-        int boundary_id;
-        nekrs::mesh::faceSideset(e, f, elem_local_face, boundary_id);
-
-        // add this side to the appropriate boundary ID based on the elem-local face ID
-        boundary_info.add_side(elem, _side_index[elem_local_face], boundary_id);
+        int b_id = nekrs::mesh::boundary_id(e, f);
+        if (b_id != -1 /* NekRS's setting to indicate not on a sideset */)
+          boundary_info.add_side(elem, _side_index[f], b_id);
       }
     }
   }
