@@ -663,6 +663,9 @@ void copyDeformationToDevice()
   mesh->o_y.copyFrom(mesh->y);
   mesh->o_z.copyFrom(mesh->z);
   mesh->update();
+  // update host geometric and volume factors from device in case of mesh deformation
+  mesh->o_sgeo.copyTo(mesh->sgeo);
+  mesh->o_vgeo.copyTo(mesh->vgeo);
 }
 
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field)
