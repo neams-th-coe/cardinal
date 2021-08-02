@@ -8,7 +8,7 @@ namespace OpenMC
 void
 associateSyntax(Syntax & syntax, ActionFactory & /*action_factory*/)
 {
-  registerMooseObjectTask("cardinal:init", Problem, true);
+  registerMooseObjectTask("openmc_init", Problem, true);
   registerSyntax("OpenMCInitAction", "Problem");
 }
 

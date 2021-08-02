@@ -1,7 +1,7 @@
 #include "OpenMCInitAction.h"
 #include "openmc/capi.h"
 
-registerMooseAction("CardinalApp", OpenMCInitAction, "cardinal:init");
+registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 
 InputParameters
 OpenMCInitAction::validParams()
