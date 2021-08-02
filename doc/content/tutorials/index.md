@@ -20,7 +20,7 @@ This project is under significant active
 development; near-term upcoming features are indicated where appropriate. Because Cardinal
 contains wrappings of both NekRS and OpenMC, you may find that you only want to review
 a subset of these tutorials. Within each category, we do recommend moving sequentially;
-but with the exception of the tutorials listed in [multi], the OpenMC tutorials
+but with the exception of the tutorials listed in [#multi], the OpenMC tutorials
 do not have the NekRS tutorials as pre-requisites, and vice versa.
 
 !alert note
