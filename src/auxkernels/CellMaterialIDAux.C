@@ -1,7 +1,7 @@
 #include "CellMaterialIDAux.h"
 #include "CardinalEnums.h"
 
-registerMooseObject("OpenMCApp", CellMaterialIDAux);
+registerMooseObject("CardinalApp", CellMaterialIDAux);
 
 template<>
 InputParameters validParams<CellMaterialIDAux>()

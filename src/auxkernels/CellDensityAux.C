@@ -1,7 +1,7 @@
 #include "CellDensityAux.h"
 #include "CardinalEnums.h"
 
-registerMooseObject("OpenMCApp", CellDensityAux);
+registerMooseObject("CardinalApp", CellDensityAux);
 
 template<>
 InputParameters validParams<CellDensityAux>()

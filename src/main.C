@@ -6,13 +6,11 @@
 //*
 //* Licensed under LGPL 2.1, please see LICENSE for details
 //* https://www.gnu.org/licenses/lgpl-2.1.html
-//#include "cardinalTestApp.h"
 #include "MooseInit.h"
 #include "Moose.h"
 #include "MooseApp.h"
 #include "AppFactory.h"
 #include "CommandLine.h"
-#include "OpenMCApp.h"
 #include "NekApp.h"
 #include "CardinalApp.h"
 
@@ -35,13 +33,14 @@ main(int argc, char *argv[])
   std::string which_app;
   cmds.search("which_app", which_app);
 
-  OpenMCApp::registerApps();
   NekApp::registerApps();
   CardinalApp::registerApps();
 
   std::string app_class_name;
   if (which_app == "openmc")
-    app_class_name = "OpenMCApp";
+    mooseError("You no longer need to specify '--app openmc' for wrapped OpenMC inputs.\n"
+      "The correct app is now inferred from the [Problem] block in the input file.\n"
+      "Please simply remove the '--app openmc' from your run command.");
   else if (which_app == "nek5000" or which_app == "nek")
     app_class_name = "NekApp";
   else if (which_app == "sam")

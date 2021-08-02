@@ -20,7 +20,7 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
-registerMooseObject("OpenMCApp", OpenMCProblem);
+registerMooseObject("CardinalApp", OpenMCProblem);
 
 template<>
 InputParameters

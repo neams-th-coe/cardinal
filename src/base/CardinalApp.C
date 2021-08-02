@@ -3,6 +3,7 @@
 #include "AppFactory.h"
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
+#include "OpenMCSyntax.h"
 
 #ifdef ENABLE_SAM_COUPLING
 #include "SamApp.h"
@@ -33,6 +34,7 @@ CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   Registry::registerActionsTo(af, {"CardinalApp"});
 
   /* register custom execute flags, action syntax, etc. here */
+  OpenMC::associateSyntax(s, af);
 }
 
 void

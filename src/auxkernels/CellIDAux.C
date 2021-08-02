@@ -1,6 +1,6 @@
 #include "CellIDAux.h"
 
-registerMooseObject("OpenMCApp", CellIDAux);
+registerMooseObject("CardinalApp", CellIDAux);
 
 template<>
 InputParameters validParams<CellIDAux>()
