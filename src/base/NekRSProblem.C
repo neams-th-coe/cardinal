@@ -41,7 +41,7 @@ validParams<NekRSProblem>()
 NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _moving_mesh(getParam<bool>("moving_mesh")),
-    _minimize_transfers_in(_moving_mesh ? true : getParam<bool>("minimize_transfers_in")),
+    _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _nondimensional(getParam<bool>("nondimensional")),
     _U_ref(getParam<Real>("U_ref")),
@@ -62,15 +62,6 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
       "block, you should have 'type = NekRSMesh'");
 
   _nek_mesh->printMeshInfo();
-
-  // if the mesh is moving, then we must minimize the incoming data transfers;
-  // if the user set `minimize_transfers_in = false`, print a warning that we're overriding this setting
-  if (_moving_mesh && params.isParamSetByUser("minimize_transfers_in"))
-  {
-    auto user_setting = getParam<bool>("minimize_transfers_in");
-    if (!user_setting)
-      mooseWarning("Overriding 'minimize_transfers_in' to 'true' for moving mesh problems!");
-  }
 
   // will be implemented soon
   if (_moving_mesh && _nondimensional)

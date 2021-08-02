@@ -145,7 +145,7 @@ protected:
    * even bother computing the interpolated data, since it's not used if this parameter
    * is set to true.
    */
-  const bool _minimize_transfers_in;
+  const bool & _minimize_transfers_in;
 
   /**
    * \brief Whether to only send temperature from nekRS on the multiapp synchronization steps

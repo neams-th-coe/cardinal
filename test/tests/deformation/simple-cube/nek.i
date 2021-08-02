@@ -7,6 +7,7 @@
 [Problem]
   type = NekRSProblem
   moving_mesh = true
+  minimize_transfers_in = true
 []
 
 [AuxVariables]
