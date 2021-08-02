@@ -3,7 +3,6 @@
     type = Exodiff
     input = one_mesh.i
     exodiff = 'one_mesh_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -16,7 +15,6 @@
     type = Exodiff
     input = one_mesh_global.i
     exodiff = 'one_mesh_global_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -29,7 +27,6 @@
     type = Exodiff
     input = multiple_meshes.i
     exodiff = 'multiple_meshes_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -42,7 +39,6 @@
     type = Exodiff
     input = multiple_meshes_global.i
     exodiff = 'multiple_meshes_global_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -55,7 +51,6 @@
     type = Exodiff
     input = different_units.i
     exodiff = 'different_units_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32

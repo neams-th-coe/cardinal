@@ -29,7 +29,6 @@
   [./missing_pebble]
     type = RunException
     input = openmc_missing_pebble.i
-    cli_args = '--app openmc'
     min_parallel = 4
     min_threads = 2
     expect_err = "Heating tally kappa-fission does not match the global kappa-fission value"

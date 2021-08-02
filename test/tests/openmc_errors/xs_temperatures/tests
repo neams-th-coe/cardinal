@@ -2,7 +2,6 @@
   [./interpolation_min]
     type = RunException
     input = interpolation_min.i
-    cli_args = '--app openmc'
     expect_err = "In attempting to set cell 1, instance 0 \(of 1\) to temperature -100 \(K\), OpenMC reported:\n\n"
                  "Temperature is below minimum temperature at which data is available."
     requirement = "The system shall error if we attempt to set a temperature in OpenMC below the "
@@ -11,7 +10,6 @@
   [./interpolation_max]
     type = RunException
     input = interpolation_max.i
-    cli_args = '--app openmc'
     expect_err = "In attempting to set cell 1, instance 0 \(of 1\) to temperature 100000 \(K\), OpenMC reported:\n\n"
                  "Temperature is above maximum temperature at which data is available."
     requirement = "The system shall error if we attempt to set a temperature in OpenMC above the "

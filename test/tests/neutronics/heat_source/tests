@@ -3,7 +3,6 @@
     type = Exodiff
     input = overlap_all.i
     exodiff = 'overlap_all_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -14,7 +13,6 @@
     type = Exodiff
     input = overlap_solid.i
     exodiff = 'overlap_solid_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -25,7 +23,6 @@
   [./overlap_fluid]
     type = Exodiff
     input = overlap_fluid.i
-    cli_args = '--app openmc'
     exodiff = 'overlap_fluid_out.e'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
@@ -38,7 +35,6 @@
     type = Exodiff
     input = partial_overlap_openmc_union.i
     exodiff = 'partial_overlap_openmc_union_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -49,7 +45,7 @@
   [./partial_overlap_moose_union_msg]
     type = RunException
     input = partial_overlap_moose_union.i
-    cli_args = '--app openmc --error'
+    cli_args = '--error'
     expect_err = "The MOOSE mesh has 1024 solid elements, but only 768 got mapped to OpenMC cells."
     requirement = "A warning shall be printed if any portion of the MOOSE solid blocks did not "
                   "get mapped to OpenMC cells."
@@ -58,7 +54,6 @@
     type = Exodiff
     input = partial_overlap_moose_union.i
     exodiff = 'partial_overlap_moose_union_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -70,7 +65,6 @@
     type = Exodiff
     input = default_tally_blocks.i
     exodiff = 'default_tally_blocks_out.e'
-    cli_args = '--app openmc'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
