@@ -52,15 +52,14 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _Cp_0(getParam<Real>("Cp_0")),
     _start_time(nekrs::startTime())
 {
-  // the NekRSProblem constructor is called right after building the mesh. In order
-  // to have pretty screen output without conflicting with the timed print messages,
-  // print diagnostic info related to the mesh here
   _nek_mesh = dynamic_cast<NekRSMesh*>(&mesh());
 
   if (!_nek_mesh)
-    mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'! In your [Mesh] "
-      "block, you should have 'type = NekRSMesh'");
+    mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'!");
 
+  // the NekRSProblem constructor is called right after building the mesh. In order
+  // to have pretty screen output without conflicting with the timed print messages,
+  // print diagnostic info related to the mesh here
   _nek_mesh->printMeshInfo();
 
   // if the mesh is moving, then we must minimize the incoming data transfers;
