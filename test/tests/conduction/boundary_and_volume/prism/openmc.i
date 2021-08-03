@@ -144,7 +144,7 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = NekApp
+    app_type = CardinalApp
     input_files = 'nek.i'
     execute_on = timestep_end
     sub_cycling = true

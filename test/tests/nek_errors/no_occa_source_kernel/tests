@@ -2,7 +2,7 @@
   [./no_occa_source_kernel]
     type = RunException
     input = nek.i
-    cli_args = '--app nek --nekrs-setup cube'
+    cli_args = '--nekrs-setup cube'
 
     # nekRS can't use more processors than elements
     max_parallel = 8

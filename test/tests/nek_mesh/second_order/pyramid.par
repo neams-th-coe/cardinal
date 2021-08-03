@@ -3,8 +3,8 @@
 
 [GENERAL]
   stopAt = numSteps
-  numSteps = 1000
-  dt = 5.0e-4
+  numSteps = 1
+  dt = 1
   polynomialOrder = 5
   writeControl = timeStep
   writeInterval = 2
