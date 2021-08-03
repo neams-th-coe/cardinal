@@ -13,57 +13,22 @@
 
 void velocityDirichletConditions(bcData * bc)
 {
-  switch (bc->id)
+  if (bc->id == 3)
   {
-    case 3:
-      bc->u = 0.0; // x-velocity
-      bc->v = 0.0; // y-velocity
-      bc->w = Vz;  // z-velocity
-      break;
-    default:
-       throw std::runtime_error("Invalid Dirichlet velocity BC sideset! You entered: " +
-         std::to_string(bc->id) + "; valid options: 3.");
+    bc->u = 0.0; // x-velocity
+    bc->v = 0.0; // y-velocity
+    bc->w = Vz;  // z-velocity
   }
 }
 
 void scalarDirichletConditions(bcData * bc)
 {
-  if (bc->scalarId == 0) // temperature
-  {
-    switch (bc->id)
-    {
-      case 3:
-        bc->s = inlet_T;
-        break;
-      default:
-         throw std::runtime_error("Invalid Dirichlet temperature BC sideset! You entered: " +
-           std::to_string(bc->id) + "; valid options: 3.");
-    }
-  }
-  else
-  {
-    throw std::runtime_error("Invalid scalar ID for BC application! You entered: " +
-      std::to_string(bc->scalarId) + "; valid options: 0.");
-  }
+  if (bc->id == 3)
+    bc->s = inlet_T;
 }
 
 void scalarNeumannConditions(bcData * bc)
 {
-  if (bc->scalarId == 0) // temperature
-  {
-    switch (bc->id)
-    {
-      case 1:
-        bc->flux = bc->wrk[bc->idM];
-        break;
-      default:
-         throw std::runtime_error("Invalid Neumann temperature BC sideset! You entered: " +
-           std::to_string(bc->id) + "; valid options: 1.");
-    }
-  }
-  else
-  {
-    throw std::runtime_error("Invalid scalar ID for BC application! You entered: " +
-      std::to_string(bc->scalarId) + "; valid options: 0.");
-  }
+  if (bc->id == 1)
+    bc->flux = bc->wrk[bc->idM];
 }

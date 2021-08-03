@@ -193,6 +193,9 @@ public:
    */
   virtual bool fixedMesh() const { return _fixed_meshes; }
 
+  /// Print diagnostic information related to the mesh
+  virtual void printMeshInfo() const;
+
 protected:
   /// Initialize members for the mesh and determine the GLL-to-node mapping
   void initializeMeshParams();
@@ -235,9 +238,6 @@ protected:
 
   /// Number of vertices per volume element
   int _n_vertices_per_volume;
-
-  /// Whether diagnostic information should be printed to the console
-  const bool & _verbose;
 
   /**
    * \brief Spatial scaling factor to apply to the mesh

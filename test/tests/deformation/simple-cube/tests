@@ -1,0 +1,19 @@
+[Tests]
+  [./deformed_conduction]
+    type = Exodiff
+    input = box-test.i
+    exodiff = 'box-test_out_nek0.e'
+    cli_args = '--nekrs-setup nekbox'
+    min_parallel = 8
+    abs_zero = 1e-5
+    rel_err = 5e-4
+    requirement = "This test solves the steady state heat conduction equation "
+                  "with a source term of 3*sin(x)*sin(y)*sin(z) and a conductivity"
+                  "of 1. The temperature obtained should be sin(x)*sin(y)*sin(z)."
+                  "The domain is a cube over [-1,1]^3 that is deforming at each"
+                  "time step in the to the arbitrary functions t*x*z*(2-z)*0.1 for x-coordinates,"
+                  "t*x*z*(2-z)*0.05 in y coordinates, and t*(y+1)*(y-1)*0.1 in z coordinates."
+                  "The gold solution was verified by comparing it"
+                  "to the analytic solution and a solution obtained by MOOSE's heat conduction solve."
+  [../]
+[]
