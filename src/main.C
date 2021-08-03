@@ -11,7 +11,6 @@
 #include "MooseApp.h"
 #include "AppFactory.h"
 #include "CommandLine.h"
-#include "NekApp.h"
 #include "CardinalApp.h"
 
 // Create a performance log
@@ -33,7 +32,6 @@ main(int argc, char *argv[])
   std::string which_app;
   cmds.search("which_app", which_app);
 
-  NekApp::registerApps();
   CardinalApp::registerApps();
 
   std::string app_class_name;
@@ -41,9 +39,13 @@ main(int argc, char *argv[])
     mooseError("You no longer need to specify '--app openmc' for wrapped OpenMC inputs.\n"
       "The correct app is now inferred from the [Problem] block in the input file.\n"
       "Please simply remove the '--app openmc' from your run command.");
-  else if (which_app == "nek5000" or which_app == "nek")
-    app_class_name = "NekApp";
-  else if (which_app == "sam")
+
+  if (which_app == "nek5000" or which_app == "nek")
+    mooseError("You no longer need to specify '--app nek' or '--app nek5000' for wrapped Nek inputs.\n"
+      "The correct app is now inferred from the [Problem] block in the input file.\n"
+      "Please simply remove the '--app nek'/'--app nek5000' from your run command.");
+
+  if (which_app == "sam")
     app_class_name = "SamApp";
   else
     app_class_name = "CardinalApp";

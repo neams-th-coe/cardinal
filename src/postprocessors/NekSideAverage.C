@@ -9,7 +9,7 @@
 
 #include "NekSideAverage.h"
 
-registerMooseObject("NekApp", NekSideAverage);
+registerMooseObject("CardinalApp", NekSideAverage);
 
 defineLegacyParams(NekSideAverage);
 

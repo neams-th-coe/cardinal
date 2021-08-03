@@ -11,7 +11,7 @@
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
 
-registerMooseObject("NekApp", NekProblem);
+registerMooseObject("CardinalApp", NekProblem);
 
 template<>
 InputParameters
@@ -84,7 +84,7 @@ NekProblem::isOutputStep() const
   {
     bool last_step = nekrs::lastStep(_time, _tstep, 0.0 /* dummy elapsed time */);
 
-    // if NekApp is controlled by a master application, then the last time step
+    // if Nek is controlled by a master application, then the last time step
     // is controlled by that master application, in which case we don't want to
     // write at what nekRS thinks is the last step (since it may or may not be
     // the actual end step), especially because we ensure that we write on the
@@ -116,9 +116,9 @@ void NekProblem::externalSolve()
 {
   ++_tstep;
 
-  // The _dt member of NekProblem reflects the time step that MOOSE wants NekApp to
-  // take. For instance, if NekApp is controlled by a master app and subcycling is used,
-  // NekApp must advance to the time interval taken by the master app. If the time step
+  // The _dt member of NekProblem reflects the time step that MOOSE wants Nek to
+  // take. For instance, if Nek is controlled by a master app and subcycling is used,
+  // Nek must advance to the time interval taken by the master app. If the time step
   // that MOOSE wants nekRS to take (i.e. _dt) does not match the time step that nekRS
   // has used to construct all the coefficient matrices, etc. for nekRS's internal time
   // stepping, an additional step would need to be added below to ensure that nekRS can
@@ -126,7 +126,7 @@ void NekProblem::externalSolve()
   // nekRS, even though the nekrs::runStep function looks at a high level to be capable of
   // accepting a variable time step size as input.
   if (std::abs(_dt - nekrs::dt()) > 1e-8)
-    mooseError("nekRS does not currently allow adaptive time stepping! NekApp is trying to use "
+    mooseError("nekRS does not currently allow adaptive time stepping! Nek is trying to use "
       "a time step of " + std::to_string(_dt) + ", but nekRS's time step is " + std::to_string(nekrs::dt()));
 
   bool is_output_step = isOutputStep();

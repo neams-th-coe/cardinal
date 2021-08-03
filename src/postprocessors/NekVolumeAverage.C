@@ -9,7 +9,7 @@
 
 #include "NekVolumeAverage.h"
 
-registerMooseObject("NekApp", NekVolumeAverage);
+registerMooseObject("CardinalApp", NekVolumeAverage);
 
 defineLegacyParams(NekVolumeAverage);
 

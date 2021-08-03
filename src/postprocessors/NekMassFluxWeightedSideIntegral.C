@@ -9,7 +9,7 @@
 
 #include "NekMassFluxWeightedSideIntegral.h"
 
-registerMooseObject("NekApp", NekMassFluxWeightedSideIntegral);
+registerMooseObject("CardinalApp", NekMassFluxWeightedSideIntegral);
 
 defineLegacyParams(NekMassFluxWeightedSideIntegral);
 

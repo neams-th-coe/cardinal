@@ -3,7 +3,7 @@
 #include "MooseMesh.h"
 #include "NekMesh.h"
 
-registerMooseObject("NekApp", NekMeshInfoPostprocessor);
+registerMooseObject("CardinalApp", NekMeshInfoPostprocessor);
 
 template <>
 InputParameters

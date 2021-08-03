@@ -9,7 +9,7 @@
 
 #include "NekSideIntegral.h"
 
-registerMooseObject("NekApp", NekSideIntegral);
+registerMooseObject("CardinalApp", NekSideIntegral);
 
 defineLegacyParams(NekSideIntegral);
 

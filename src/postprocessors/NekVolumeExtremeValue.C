@@ -10,7 +10,7 @@
 #include "NekVolumeExtremeValue.h"
 #include "NekInterface.h"
 
-registerMooseObject("NekApp", NekVolumeExtremeValue);
+registerMooseObject("CardinalApp", NekVolumeExtremeValue);
 
 defineLegacyParams(NekVolumeExtremeValue);
 
