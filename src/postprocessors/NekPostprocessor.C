@@ -25,7 +25,7 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters) :
 {
   _nek_problem = dynamic_cast<const NekRSProblem *>(&_fe_problem);
   if (!_nek_problem)
-    mooseError("Nek postprocessors can only be used with NekRSProblem!");
+    mooseError("Postprocessor with name '" + name() + "' can only be used with NekRSProblem!");
 
   // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that
   // this pointer isn't NULL
