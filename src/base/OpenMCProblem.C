@@ -124,6 +124,11 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   setupTallies();
 }
 
+OpenMCProblem::~OpenMCProblem()
+{
+  openmc_finalize();
+}
+
 void
 OpenMCProblem::fillCenters()
 {

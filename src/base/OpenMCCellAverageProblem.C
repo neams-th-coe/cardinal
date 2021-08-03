@@ -186,6 +186,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   checkMeshTemplateAndTranslations();
 }
 
+OpenMCCellAverageProblem::~OpenMCCellAverageProblem()
+{
+  openmc_finalize();
+}
+
 template <typename T>
 void
 OpenMCCellAverageProblem::checkEmptyVector(const std::vector<T> & vector, const std::string & name) const

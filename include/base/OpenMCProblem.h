@@ -19,7 +19,7 @@ class OpenMCProblem : public ExternalProblem
 {
 public:
   OpenMCProblem(const InputParameters & params);
-  virtual ~OpenMCProblem() override {}
+  virtual ~OpenMCProblem() override;
 
   virtual void addExternalVariables() override;
   virtual void externalSolve() override;
