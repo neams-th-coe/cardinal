@@ -13,10 +13,10 @@ OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) :
   _openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(&_subproblem);
 
   if (!_openmc_problem)
-    mooseError("Auxkernels querying the OpenMC problem can only be used with problems of type 'OpenMCCellAverageProblem'!");
+    mooseError("Auxkernel with name '" + name() + "' can only be used with problems of type 'OpenMCCellAverageProblem'!");
 
   if (isNodal())
-    mooseError("Auxkernels querying the OpenMC problem can only be used with elemental variables!");
+    mooseError("Auxkernel with name '" + name() + "' can only be used with elemental variables!");
 }
 
 bool
