@@ -17,7 +17,7 @@ InputParameters validParams<NekTimeStepper>();
  * directly within the [Executioner] block, instead reading all stepping
  * information (start time, end time, number of time steps, and time step
  * size) directly from nekRS data structures. The only situation for which
- * some control can be exerted from the MOOSE side is if NekApp is run as
+ * some control can be exerted from the MOOSE side is if Nek is run as
  * a sub-application, in which case the simulation end time is controlled
  * from the master application.
  **/

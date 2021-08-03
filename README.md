@@ -177,67 +177,20 @@ oprof, instrumented for tools like "gprof") available.
 
 ## Running
 
-While most MOOSE applications contain a single "App" (like `PronghornApp` for
-Pronghorn, or `BisonApp` for BISON), Cardinal contains three applications -
-
-1. `CardinalApp`, to which are registered any generic classes in Cardinal to facilitate
-   coupling.
-2. `NekApp`, to which are registered any classes dealing specifically with wrapping of nekRS.
-3. `OpenMCApp`, to which are registered any classes dealing specifically with wrapping of OpenMC.
-
-In other words, you could entirely separate out the nekRS wrapping into a separate
-MOOSE application named `Nek` that you create with
-[Stork](https://mooseframework.inl.gov/getting_started/examples_and_tutorials/tutorial01_app_development/step01_moose_app.html)
-like you do when creating any new MOOSE application. Likewise, you could entirely separate
-out the OpenMC wrapping into a separate MOOSE application named `OpenMC`. This design
-philosophy is used in Cardinal because the initialization steps for OpenMC and nekRS
-require different function calls to routines like `nekrs::setup` and `openmc_init`
-that we don't necessarily _always_ want to call if we are omitting one of the physics
-from a particular simulation.
-
-Further, if you are running SAM as the master application, Cardinal will also instantiate
-a `SamApp` so that SAM classes and input file syntax can be run with the Cardinal executable.
-
-The various command line flags you need to pass to run a Cardinal input depends on
-which application is the master app (`CardinalApp`, `NekApp`, `OpenMCApp`, `SamApp`). The
-`--app` flag indicates which application is to be created as the master application
-for a given input file. If you omit `--app <app>`, then by default the input
-file is run with `CardinalApp`. Otherwise, valid options are:
-
-1. `--app openmc`, run the input file with `OpenMCApp`
-2. `--app nek`, run the input file with `NekApp`
-3. `--app sam`, run the input file with `SamApp`
-
-Finally, if the master input file or any of the sub-application input files are to be
-run with `NekApp`, you must also pass `--nekrs-setup <case>` on the command line, where
-`<case>` is the nekRS caes name.
-
-A few (non-exhaustive) examples are now provided. To run
-an input file with a `CardinalApp` master application that doesn't contain nekRS as a sub-app, use
+The command to run a Cardinal input file is:
 
 ```
-$ mpirun -np 4 ~/repos/cardinal/cardinal-opt -i input.i
+$ mpiexec -np <n> cardinal-opt -i input.i [--nekrs-setup=<case>] --n-threads=<s>
 ```
 
-To run an input file with a `CardinalApp` master application that contains nekRS as a sub-app, use
+where `n` is the number of MPI ranks and `s` is the number of OpenMP threads.
+For any cases that run NekRS (as either a master application or as a sub application),
+you must also provide `--nekrs-setup=<case>`, where `case` is the common filename
+prefix describing the NekRS input files `case.re2`, `case.udf`, `case.par`, and
+`case.oudf`.
 
-```
-$ mpirun -np 4 ~/repos/cardinal/cardinal-opt -i input.i --nekrs-setup brick
-```
-
-where the nekRS input files for the case are named `brick.re2`, `brick.par`, `brick.udf`, and
-`brick.oudf`. To run an input file with a `NekApp` master application, use
-
-```
-$ mpirun -np 4 ~/repos/cardinal/cardinal-opt --app nek -i nek.i --nekrs-setup brick
-```
-
-And to run an input file with an `OpenMCApp` master application that contains
-nekRS as a sub-app, use
-
-```
-$ mpirun -np 4 ~/repos/cardinal/cardinal-opt --app openmc -i openmc.i --nekrs-setup brick
-```
+For the special case of running SAM as the master application, you also need to
+pass `--app sam` on the command line to instruct Cardinal to build a `SamApp`.
 
 ## Compiling on HPC Systems
 
