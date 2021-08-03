@@ -32,9 +32,12 @@ NekInitAction::act()
         "the command line!");
 
     std::string setup_file;
-    int size_target;
-    int ci_mode;
     std::string cache_dir;
+
+    // we need to set the default values here because it seems that the default values
+    // that can be set via addCommandLineParam in CardinalApp aren't propagated through the 'search' function
+    int size_target = 0;
+    int ci_mode = 0;
 
     cl->search("nekrs_setup", setup_file);
     cl->search("nekrs_buildonly", size_target);

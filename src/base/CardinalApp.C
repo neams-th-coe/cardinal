@@ -24,10 +24,10 @@ validParams<CardinalApp>()
     "nekrs_setup",  "--nekrs-setup [nekrs_setup]",
     "Specify NekRS setup file (basename for .par, .re2, .udf, and .oudf files)");
   params.addCommandLineParam<int>(
-    "nekrs_buildonly",  "--nekrs-buildonly [#procs]", 0,
+    "nekrs_buildonly",  "--nekrs-buildonly [#procs]",
     "#procs to build NekRS if pre-compiling");
   params.addCommandLineParam<int>(
-    "nekrs_cimode",  "--nekrs-cimode [id]", 0,
+    "nekrs_cimode",  "--nekrs-cimode [id]",
     "CI test ID for NekRS");
   return params;
 }
