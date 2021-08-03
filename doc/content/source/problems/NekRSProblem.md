@@ -356,8 +356,6 @@ this postprocessor.
 
 We then receive this postprocessor in the sub-application.
 
-!listing /tutorials/sfr_7pin/nek.i
-  block=synchronize
 
 This basically means that, when the flux data is *new*, the `NekApp` sub-application
 will receive a value of "true" from the master-application (through the lens of

@@ -16,9 +16,16 @@ $ git clone https://github.com/neams-th-coe/cardinal.git
 ## Building
 
 This section describes how to build Cardinal. Please follow each task in the order it is
-presented.
+presented:
 
-### 1. Fetch Dependencies
+1. [#fetch]
+2. [#env]
+3. [#occa]
+4. [#petsc_libmesh]
+5. [#compiling]
+
+#### Fetch Dependencies
+  id=fetch
 
 Cardinal contains a number of dependencies. However, you do not need to separately
 build/compile *any* of these dependencies - Cardinal's Makefile handles all compilation steps
@@ -42,14 +49,10 @@ git command used to fetch that submodule dependency.
 | NekRS | yes | yes | `git submodule udpate --init contrib/moose` |
 | SAM | no | no | `git submodule update --init contrib/SAM` |
 
-[table2] shows where you can request each optional, closed-source, dependency.
+To get access to the optional SAM dependency, please contact the
+[SAM development team](https://www.anl.gov/nse/system-analysis-module).
 
-!table id=table2 caption=Summary of optional dependencies in Cardinal and where to request access
-| Optional Dependency | Where to Request |
-| :- | :- |
-| SAM | [SAM development team](https://www.anl.gov/nse/system-analysis-module) |
-
-So, to build Cardinal with only the open-source, freely-available dependencies,
+To build Cardinal with only the open-source, freely-available dependencies,
 we next need to fetch the open source submodules.
 
 ```
@@ -67,7 +70,8 @@ $ git submodule update --init contrib/SAM
 
 You will then be prompted to enter credentials to access ANL's gitlab site.
 
-### 2. Set Environment Variables
+#### Set Environment Variables
+  id=env
 
 Next, you must set the environment variable `NEKRS_HOME` to be the location of the
 NekRS root directory so that all needed include files are on your path.
@@ -102,7 +106,8 @@ export CXX=mpicxx
 export FC=mpif90
 ```
 
-### 3. Set the OCCA Backend
+#### Set the OCCA Backend
+  id=occa
 
 NekRS uses [OCCA](https://libocca.org/#/) to provide an API for device programming. Available
 backends in NekRS include CPU (i.e. MPI parallelism), CUDA, HIP, OpenCL, and OpenMP. Before
@@ -145,7 +150,8 @@ set the correct threading API in the `Makefile` by setting
 the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
 respectively.
 
-### 4. Build Petsc
+#### Build PETSc and libMesh
+  id=petsc_libmesh
 
 After obtaining all necessary submodules and setting the relevant
 environment variables and Makefile settings, the first software that must be built is the PETSc numerics library:
@@ -159,8 +165,6 @@ be used instead of the contrib version, after setting the environment
 variables `PETSC_DIR` and `PETSC_ARCH` to the PETSc install directory
 and architecture name. After building PETSc, don't worry if the PETSc
 tests don't pass - please complete the entire set of instructions here.
-
-### 5. Build libMesh
 
 Second, build the libMesh finite element library:
 
@@ -185,7 +189,7 @@ also save time by restricting (or add flexibility by expanding) the
 environment variable `METHODS`, e.g. `oprof dbg` would only build
 those two modes, not all three default builds.
 
-### 6. Compiling Cardinal
+#### Compiling Cardinal
   id=compiling
 
 Finally, in the top-level directory, run `make`.
