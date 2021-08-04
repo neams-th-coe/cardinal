@@ -95,6 +95,19 @@ void initializeScratch();
 /// Free the scratch space for the flux transfer
 void freeScratch();
 
+/**
+ * Get the characteristic length (only valid for nondimensional formulations)
+ * @return characteristic length
+ */
+double characteristicLength();
+
+/**
+ * Get the viscosity used in the definition of the Reynolds number; note that
+ * for dimensional cases, this is only guaranteed to be correct if the viscosity is constant.
+ * @return constant dynamic viscosity
+ */
+double viscosity();
+
 /// Copy the flux from host to device
 void copyScratchToDevice();
 

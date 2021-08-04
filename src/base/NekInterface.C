@@ -137,6 +137,23 @@ void freeScratch()
   }
 }
 
+double characteristicLength()
+{
+  return scales.L_ref;
+}
+
+double viscosity()
+{
+  dfloat mu;
+  setupAide & options = platform->options;
+  options.getArgs("VISCOSITY", mu);
+
+  // because we set rho_ref, U_ref, and L_ref all equal to 1 if our input is dimensional,
+  // we don't need to have separate treatments for dimensional vs. nondimensional cases
+  dfloat Re = 1.0 / mu;
+  return scales.rho_ref * scales.U_ref * scales.L_ref / Re;
+}
+
 void interpolationMatrix(double * I, int starting_points, int ending_points)
 {
   DegreeRaiseMatrix1D(starting_points - 1, ending_points - 1, I);
