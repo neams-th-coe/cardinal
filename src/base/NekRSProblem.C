@@ -22,6 +22,9 @@ validParams<NekRSProblem>()
   params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
 
+  params.addParam<std::string>("casename", "Case name for the NekRS input files; "
+    "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
+    "Can also be provided on the command line with --nekrs-setup, which will override this setting");
   params.addParam<bool>("nondimensional", false, "Whether nekRS is solved in non-dimensional form");
   params.addParam<bool>("moving_mesh", false, "Whether we have a moving mesh problem or not");
   params.addRangeCheckedParam<Real>("U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");

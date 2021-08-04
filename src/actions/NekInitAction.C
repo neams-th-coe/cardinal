@@ -12,11 +12,15 @@ NekInitAction::validParams()
 {
   InputParameters params = MooseObjectAction::validParams();
   params.addParam<std::string>("type", "Problem type");
+  params.addParam<std::string>("casename", "Case name for the NekRS input files; "
+    "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
+    "Can also be provided on the command line with --nekrs-setup, which will override this setting");
   return params;
 }
 
 NekInitAction::NekInitAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters)
+  : MooseObjectAction(parameters),
+    _casename_in_input_file(isParamValid("casename"))
 {
 
 }
@@ -27,11 +31,18 @@ NekInitAction::act()
   if (_type == "NekRSProblem" || _type == "NekProblem")
   {
     std::shared_ptr<CommandLine> cl = _app.commandLine();
-    if (!cl->search("nekrs_setup"))
+    bool casename_on_command_line = cl->search("nekrs_setup");
+
+    if (!casename_on_command_line && !_casename_in_input_file)
       mooseError("All inputs using 'NekRSProblem' or 'NekProblem' must pass '--nekrs-setup <case>' on "
-        "the command line!");
+        "the command line\nor set 'casename = <case>' in the [Problem] block in the Nek-wrapped input file!");
 
     std::string setup_file;
+    if (casename_on_command_line)
+      cl->search("nekrs_setup", setup_file);
+    else
+      setup_file = getParam<std::string>("casename");
+
     std::string cache_dir;
 
     // we need to set the default values here because it seems that the default values
@@ -39,7 +50,6 @@ NekInitAction::act()
     int size_target = 0;
     int ci_mode = 0;
 
-    cl->search("nekrs_setup", setup_file);
     cl->search("nekrs_buildonly", size_target);
     cl->search("nekrs_cimode", ci_mode);
 
