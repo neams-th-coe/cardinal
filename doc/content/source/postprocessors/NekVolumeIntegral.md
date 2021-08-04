@@ -5,21 +5,24 @@
 ## Description
 
 This postprocessor computes the integral of
-a specified field over the volume of the nekRS mesh,
+a specified field over the volume of the NekRS mesh,
 
 \begin{equation}
 p=\int_{\Omega}f\ d\Omega
 \end{equation}
 
 where $p$ is the value of the postprocessor,
-$\Omega$ is the volume of the nekrs mesh (*not* the mesh mirror constructed with
-NekRSMesh), and
+$\Omega$ is the volume of the nekrs mesh, and
 $f$ is the specified field.
-The field is specified with the `field` parameter, which may be one of
-`pressure`, `temperature`, or `unity`. Setting `field = unity` is equivalent to computing
-the volume.
+To be clear, this postprocessor is *not* evaluated on the
+[NekRSMesh](/mesh/NekRSMesh.md) mesh mirror, but instead on the mesh actually
+used for computation in NekRS.
 
-If running nekRS in non-dimensional form (and you have indicated the
+!include /field_specs.md
+
+Setting `field = unity` is equivalent to computing the volume.
+
+If running NekRS in non-dimensional form (and you have indicated the
 appropriate nondimensional scales by setting `nondimensional = true`
 for [NekRSProblem](/problems/NekRSProblem.md)), then the value of this postprocessor
 is shown in *dimensional* units.
@@ -29,7 +32,7 @@ is shown in *dimensional* units.
 As an example, the following code snippet will evaluate the volume (for `field = unity`),
 volume-integrated temperature (for `field = temperature`), and volume-integrated pressure
 (for `field = pressure`)
-on the volume of the nekRS mesh.
+on the volume of the NekRS mesh.
 
 !listing test/tests/postprocessors/nek_volume_integral/nek.i
   block=Postprocessors

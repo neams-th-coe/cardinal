@@ -5,34 +5,35 @@
 ## Description
 
 This postprocessor computes the average of
-a specified field over a boundary in the nekRS mesh,
+a specified field over a boundary in the NekRS mesh,
 
 \begin{equation}
 p=\frac{\int_{\Gamma}f\ d\Gamma}{\int_{\Gamma}\ d\Gamma}
 \end{equation}
 
 where $p$ is the value of the postprocessor,
-$\Gamma$ is the boundary of the nekRS mesh (*not* the mesh mirror constructed with
-NekRSMesh), and
+$\Gamma$ is the boundary of the NekRS mesh, and
 $f$ is the specified field.
-The boundaries over which to integrate in
-the nekRS mesh are specified with the `boundary` parameter; these boundaries
-are the sidesets in nekRS's mesh (i.e. the `.re2` file). The field is specified with the `field` parameter, which may be one of
-`pressure`, `temperature`, or `unity`. Setting `field = unity` is equivalent to computing
-unity, since the numerator will be exactly equal to the denominator.
 
-If running nekRS in non-dimensional form (and you have indicated the
+!include /boundary_specs.md
+
+!include /field_specs.md
+
+Setting `field = unity` is equivalent to computing
+1, since the numerator will be exactly equal to the denominator (`unity` is
+of more use for other postprocessors).
+
+If running NekRS in non-dimensional form (and you have indicated the
 appropriate nondimensional scales by setting `nondimensional = true`
 for [NekRSProblem](/problems/NekRSProblem.md)), then the value of this postprocessor
 is shown in *dimensional* units.
 
 ## Example Input Syntax
 
-As an example, the following code snippet will evaluate the average temperature (for `field = temperature`)
-and pressure (for `field = pressure`)
-on the boundaries of the nekRS mesh.
+As an example, the following code snippet will evaluate the average pressure
+on the NekRS outlet boundary.
 
-!listing test/tests/postprocessors/nek_side_average/nek.i
+!listing tutorials/fhr_reflector/cht/nek.i
   block=Postprocessors
 
 !syntax parameters /postprocessors/NekSideAverage
