@@ -64,8 +64,14 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
   _nek_mesh->printMeshInfo();
 
   // will be implemented soon
-  if (_moving_mesh && _nondimensional)
-    mooseError("Moving mesh features are not yet implemented for a non-dimensional nekRS case!");
+  if (_moving_mesh)
+  {
+    if (_nondimensional)
+      mooseError("Moving mesh features are not yet implemented for a non-dimensional nekRS case!");
+
+    if (!_nek_mesh->getMesh().is_replicated())
+      mooseError("Distributed mesh features are not yet implemented for moving mesh cases!");
+  }
 
   // if solving in nondimensional form, make sure that the user specified _all_ of the
   // necessary scaling quantities to prevent errors from forgetting one, which would take

@@ -6,6 +6,7 @@
 [Mesh]
   type = FileMesh
   file = box.msh
+  parallel_type = replicated
 []
 
 [Variables]
