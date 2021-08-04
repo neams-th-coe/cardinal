@@ -42,6 +42,7 @@ export FC=mpif90
 
 ## Nek5k at ANL
 
+Nek5k uses conda to help set up the environment needed to compile and run Cardinal.
 
 
 ## Sawtooth at INL (4/29/2021)

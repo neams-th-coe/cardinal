@@ -2,7 +2,7 @@
 
 This page provides several tutorials that cover all major use cases of Cardinal.
 By design, Cardinal treats its NekRS and OpenMC wrappings similar to native
-MOOSE applications - NekRS and OpenMC can be combined with other MOOSE applications
+MOOSE applications - NekRS and OpenMC can be combined with *any* other MOOSE application
 to provide multiphysics feedback either together or individually. In addition,
 NekRS and OpenMC can be run as standalone applications using Cardinal, if you would
 like to leverage Cardinal's postprocessing and/or Exodus mesh projection features.
@@ -13,12 +13,11 @@ construct a MultiApp heirarchy that addresses your physics of interest, the exis
 framework are all that are needed to send data to/from NekRS and OpenMC and MOOSE.
 
 The following tutorials provide an in-exhaustive description of how to use Cardinal
-for a variety of different applications. Because the NekRS and OpenMC wrappings can
-interact with *any* MOOSE application, most examples here are shown using the MOOSE
-heat conduction module simply for illustration.
+for a variety of different applications.
+Note that because this project is under significant active
+development; near-term upcoming features are indicated where appropriate.
 
-This project is under significant active
-development; near-term upcoming features are indicated where appropriate. Because Cardinal
+Because Cardinal
 contains wrappings of both NekRS and OpenMC, you may find that you only want to review
 a subset of these tutorials. Within each category, we do recommend moving sequentially;
 but with the exception of the tutorials listed in [#multi], the OpenMC tutorials
@@ -41,7 +40,7 @@ needed for the tutorials; follow the instructions [here](mesh_download.md).
 2. [Conjugate heat transfer coupling of NekRS and MOOSE heat conduction](tutorials/cht.md)
 3. [Volumetric heat source coupling of NekRS and MOOSE chemical species transport](tutorials/volumetric.md)
 4. [Multiscale coupling of NekRS and SAM for primary loop modeling](tutorials/sam_coupling.md)
-5. [Extracting NekRS turbulent viscosity as an auxiliary variable](tutorials/nekrs_outputs.md)
+5. [Extracting the NekRS solution as auxiliary variables](tutorials/nekrs_outputs.md)
 
 ## Tutorials for OpenMC Wrapping
 
