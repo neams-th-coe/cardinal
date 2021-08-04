@@ -34,6 +34,10 @@ validParams<NekRSProblem>()
   params.addRangeCheckedParam<Real>("rho_0", 1.0, "rho_0 > 0.0", "Density parameter value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
 
+  params.addParam<bool>("has_heat_source", true, "Whether a heat source will be applied to the NekRS domain. "
+    "We allow this to be turned off so that we don't need to add an OCCA source kernel if we know the "
+    "heat source in the NekRS domain is zero anyways (such as if NekRS only solves for the fluid and we have solid fuel).");
+
   params.addParam<PostprocessorName>("min_T", "If provided, postprocessor used to limit the minimum "
     "temperature (in dimensional form) in the nekRS problem");
   params.addParam<PostprocessorName>("max_T", "If provided, postprocessor used to limit the maximum "
@@ -47,6 +51,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _nondimensional(getParam<bool>("nondimensional")),
+    _has_heat_source(getParam<bool>("has_heat_source")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),
     _dT_ref(getParam<Real>("dT_ref")),
@@ -91,6 +96,11 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
 
   // inform nekRS of the scaling that we are using if solving in non-dimensional form
   nekrs::solution::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
+
+  if (_nondimensional)
+    _console << "The NekRS model uses the following non-dimensional scales: " <<
+      "\n length: " << _L_ref << "\n velocity: " << _U_ref << "\n temperature: " << _T_ref <<
+      "\n temperature increment: " << _dT_ref << std::endl;
 
   // the way the data transfers are detected depend on nekRS being a sub-application,
   // so these settings are not invalid if nekRS is the master app (though you could
@@ -239,7 +249,7 @@ NekRSProblem::initialSetup()
   // condition check for boundary-based coupling). NOTE: This check is imperfect, because
   // even if there is a source kernel, we cannot tell _which_ passive scalar equation that
   // it is applied to (we have source kernels for the RANS passive scalar equations, for instance).
-  if (_nek_mesh->volume())
+  if (_nek_mesh->volume() && _has_heat_source)
     if (has_temperature_solve && !nekrs::hasHeatSourceKernel())
       mooseError("In order to send a heat source to nekRS, you must have an OCCA kernel "
         "for the source in the passive scalar equations!");
@@ -290,7 +300,7 @@ NekRSProblem::initialSetup()
 
   if (_boundary)
     _flux_integral = &getPostprocessorValueByName("flux_integral");
-  if (_volume)
+  if (_volume && _has_heat_source)
     _source_integral = &getPostprocessorValueByName("source_integral");
   if (_minimize_transfers_in)
     _transfer_in = &getPostprocessorValueByName("transfer_in");
@@ -802,7 +812,7 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       if (_boundary)
         sendBoundaryHeatFluxToNek();
 
-      if (_volume)
+      if (_volume && _has_heat_source)
         sendVolumeHeatSourceToNek();
 
       // copy the boundary heat flux and/or volume heat source in the scratch space to device
@@ -917,7 +927,7 @@ NekRSProblem::addExternalVariables()
     addPostprocessor("Receiver", "flux_integral", pp_params);
   }
 
-  if (_volume)
+  if (_volume && _has_heat_source)
   {
     addAuxVariable("MooseVariable", "heat_source", var_params);
     _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
