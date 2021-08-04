@@ -166,6 +166,8 @@ public:
    */
   const Real & densityConversionFactor() const { return _density_conversion_factor; }
 
+  const std::vector<openmc::Tally *> & getLocalTally() const { return _local_tally; }
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED {-1};
 
