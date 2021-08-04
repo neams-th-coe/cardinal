@@ -127,7 +127,7 @@ b=${fparse 300-500/(zmax-zmin)*zmin}
 [MultiApps]
   [openmc]
     type = TransientMultiApp
-    app_type = OpenMCApp
+    app_type = CardinalApp
     input_files = 'openmc_zero.i'
     execute_on = timestep_begin
   []

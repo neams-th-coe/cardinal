@@ -9,7 +9,7 @@
     expect_err = "Invalid 'boundary' entry specified for 'NekRSMesh': 8\n\nnekRS assumes the boundary IDs are ordered "
                  "contiguously beginning at 1. For this problem, nekRS has 6 boundaries. "
                  "Did you enter a valid 'boundary' in 'nek.i'?"
-    cli_args = '--app nek --nekrs-setup brick'
+    cli_args = '--nekrs-setup brick'
     requirement = "MOOSE shall throw an error if an invalid boundary is specified for the construction "
                   "of nekRS's mesh as a MooseMesh."
   [../]

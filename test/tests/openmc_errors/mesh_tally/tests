@@ -2,7 +2,6 @@
   [./incorrect_scaling]
     type = RunException
     input = incorrect_scaling.i
-    cli_args = '--app openmc'
     expect_err = "The centroids of the 'mesh_template' \(assumed to be in units of cm\) differ from the centroids of the \[Mesh\]\n"
                  "\(assumed to be in units of cm / 'scaling'\) by a factor of 100.\n\n"
                  "Did you forget that the 'mesh_template' must be in units of centimeters, even when using the 'scaling' parameter?"
@@ -12,7 +11,6 @@
   [./incorrect_order]
     type = RunException
     input = incorrect_order.i
-    cli_args = '--app openmc'
     expect_err = "Centroid for element 256 in the \[Mesh\]: \(0.896826, 0.189852, 4.60886\)\n"
                  "does not match centroid for element 0 in 'mesh_template' 1: \(0.896826, 0.189852, 8.60886\)!\n\n"
                  "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical \(except for a factor of 'scaling'\)."
@@ -22,7 +20,6 @@
   [./incorrect_file]
     type = RunException
     input = incorrect_file.i
-    cli_args = '--app openmc'
     expect_err = "Centroid for element 0 in the \[Mesh\]: \(0.896826, 0.189852, 0.608855\)\n"
                  "does not match centroid for element 0 in 'mesh_template' 0: \(-0.0251736, -0.0667374, 0.0847458\)!\n\n"
                  "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical \(except for a factor of 'scaling'\)."

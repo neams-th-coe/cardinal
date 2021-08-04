@@ -16,7 +16,7 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
-registerMooseObject("OpenMCApp", OpenMCCellAverageProblem);
+registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 
 bool OpenMCCellAverageProblem::_first_transfer = true;
 
@@ -184,6 +184,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   initializeTallies();
 
   checkMeshTemplateAndTranslations();
+}
+
+OpenMCCellAverageProblem::~OpenMCCellAverageProblem()
+{
+  openmc_finalize();
 }
 
 template <typename T>

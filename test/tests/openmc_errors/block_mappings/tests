@@ -2,7 +2,6 @@
   [./overlapping_blocks]
     type = RunException
     input = overlapping_blocks.i
-    cli_args = '--app openmc'
     expect_err = "Block 200 cannot be present in both the 'fluid_blocks' and 'solid_blocks'!"
     requirement = "The system shall error if the same block IDs are specified as both "
                   "fluid and solid phases"
@@ -10,49 +9,44 @@
   [./nonexistent_block]
     type = RunException
     input = nonexistent_block.i
-    cli_args = '--app openmc'
     expect_err = "Block 500 specified in 'tally_blocks' not found in mesh!"
     requirement = "The system shall error if the user specifies a block ID for coupling that does not exist."
   [../]
   [./no_blocks]
     type = RunException
     input = no_blocks.i
-    cli_args = '--app openmc'
     expect_err = "At least one of 'fluid_blocks' and 'solid_blocks' must be specified to establish the mapping from MOOSE to OpenMC."
     requirement = "The system shall error if no blocks are specified for coupling"
   [../]
   [./empty_block]
     type = RunException
     input = empty_block.i
-    cli_args = '--app openmc'
     expect_err = "Vector cannot be empty!"
     requirement = "The system shall error if an empty vector is provided for the blocks"
   [../]
   [./no_overlap]
     type = RunException
     input = no_overlap.i
-    cli_args = '--app openmc'
     expect_err = "Did not find any overlap between MOOSE elements and OpenMC cells for the specified blocks!"
     requirement = "The system shall error if the MOOSE blocks and OpenMC cells don't overlap"
   [../]
   [./skipping_moose_feedback]
     type = RunException
     input = skipping_moose_feedback.i
-    cli_args = '--app openmc --error'
+    cli_args = '--error'
     expect_err = "The MOOSE mesh has 1024 solid elements, but only 768 got mapped to OpenMC cells."
     requirement = "The system shall print a warning if some MOOSE elements are unmapped"
   [../]
   [./skipping_openmc_feedback]
     type = RunException
     input = skipping_openmc_feedback.i
-    cli_args = '--app openmc --error'
+    cli_args = '--error'
     expect_err = "Skipping multiphysics feedback for 2 OpenMC cells"
     requirement = "The system shall print a warning if some OpenMC cells are unmapped"
   [../]
   [./multiple_phases]
     type = RunException
     input = multiple_phases.i
-    cli_args = '--app openmc'
     expect_err = "cell 4, instance 0 \(of 1\):  16 solid elems  3486 fluid elems  0 uncoupled elems  |  Mapped elems volume:  264.336\n\n"
                  "Each OpenMC cell, instance pair must map to elements of the same phase."
     requirement = "The system shall error if one OpenMC cell maps to more than one phase"
@@ -60,14 +54,12 @@
   [./multiple_tally_settings]
     type = RunException
     input = multiple_tally_settings.i
-    cli_args = '--app openmc'
     expect_err = "cell 4, instance 0 \(of 1\) maps to blocks with different tally settings!\nBlock 100 is in 'tally_blocks', but block 200 is not."
     requirement = "The system shall error if one OpenMC cell maps to multiple subdomains that don't all have the same tally setting"
   [../]
   [./absent_block]
     type = RunException
     input = absent_block.i
-    cli_args = '--app openmc'
     expect_err = "'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!"
     requirement = "The system shall error if the user sets fluid blocks, but none of the elements map to OpenMC"
   [../]

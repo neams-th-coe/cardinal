@@ -20,7 +20,7 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
-registerMooseObject("OpenMCApp", OpenMCProblem);
+registerMooseObject("CardinalApp", OpenMCProblem);
 
 template<>
 InputParameters
@@ -122,6 +122,11 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   }
 
   setupTallies();
+}
+
+OpenMCProblem::~OpenMCProblem()
+{
+  openmc_finalize();
 }
 
 void

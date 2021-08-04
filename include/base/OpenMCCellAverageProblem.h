@@ -61,7 +61,7 @@ class OpenMCCellAverageProblem : public ExternalProblem
 {
 public:
   OpenMCCellAverageProblem(const InputParameters & params);
-  virtual ~OpenMCCellAverageProblem() override {}
+  virtual ~OpenMCCellAverageProblem() override;
 
   /**
    * Add 'heat_source', 'temp', and, if any fluid blocks are specified, a

@@ -15,7 +15,7 @@
 #include "libmesh/cell_hex27.h"
 #include "nekrs.hpp"
 
-registerMooseObject("MooseApp", NekRSMesh);
+registerMooseObject("CardinalApp", NekRSMesh);
 
 template <>
 InputParameters

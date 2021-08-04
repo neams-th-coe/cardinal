@@ -18,10 +18,10 @@ public:
   /**
    * \brief Write nekRS's solution at the last output step
    *
-   * If NekApp is not the master app, the number of time steps it takes is
+   * If Nek is not the master app, the number of time steps it takes is
    * controlled by the master app. Depending on the settings in the `.par` file,
    * it becomes possible that nekRS may not write an output file on the simulation's
-   * actual last time step, because NekApp may not know when that last time step is.
+   * actual last time step, because Nek may not know when that last time step is.
    * Therefore, here we can force nekRS to write its output.
    **/
   ~NekProblem();

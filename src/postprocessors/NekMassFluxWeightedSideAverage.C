@@ -9,7 +9,7 @@
 
 #include "NekMassFluxWeightedSideAverage.h"
 
-registerMooseObject("NekApp", NekMassFluxWeightedSideAverage);
+registerMooseObject("CardinalApp", NekMassFluxWeightedSideAverage);
 
 defineLegacyParams(NekMassFluxWeightedSideAverage);
 

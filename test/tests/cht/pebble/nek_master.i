@@ -56,7 +56,7 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = NekApp
+    app_type = CardinalApp
     input_files = 'nek.i'
   []
 []

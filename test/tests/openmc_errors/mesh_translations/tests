@@ -2,7 +2,6 @@
   [./invalid_row]
     type = RunException
     input = invalid_row.i
-    cli_args = '--app openmc'
     expect_err = "All entries in 'mesh_translations_file' must contain exactly 3 coordinates."
     requirement = "The system shall error if a particular set of coordinates in the mesh translations "
                   "does not have all requisite x, y, and z components."

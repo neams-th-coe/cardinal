@@ -1,0 +1,16 @@
+[Tests]
+  [./incorrect_problem]
+    type = RunException
+    input = incorrect_problem.i
+    expect_err = "Auxkernel with name 'cell_id' can only be used with problems of type 'OpenMCCellAverageProblem'!"
+    requirement = "The system shall error if an auxkernel that queries OpenMC data structures is not used "
+                  "with the correct problem type."
+  [../]
+  [./incorrect_var_type]
+    type = RunException
+    input = incorrect_var_type.i
+    expect_err = "Auxkernel with name 'cell_id' can only be used with elemental variables!"
+    requirement = "The system shall error if an auxkernel that queries OpenMC data structures is not used "
+                  "with the correct auxvariable type."
+  [../]
+[]

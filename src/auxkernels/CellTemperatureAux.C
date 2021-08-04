@@ -2,7 +2,7 @@
 #include "openmc/cell.h"
 #include "openmc/error.h"
 
-registerMooseObject("OpenMCApp", CellTemperatureAux);
+registerMooseObject("CardinalApp", CellTemperatureAux);
 
 template<>
 InputParameters validParams<CellTemperatureAux>()

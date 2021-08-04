@@ -9,7 +9,7 @@
 
 #include "NekHeatFluxIntegral.h"
 
-registerMooseObject("NekApp", NekHeatFluxIntegral);
+registerMooseObject("CardinalApp", NekHeatFluxIntegral);
 
 defineLegacyParams(NekHeatFluxIntegral);
 

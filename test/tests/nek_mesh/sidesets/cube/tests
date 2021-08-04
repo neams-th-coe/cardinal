@@ -3,7 +3,7 @@
     type = CSVDiff
     input = nek_volume.i
     csvdiff = nek_volume_out.csv
-    cli_args = '--app nek --nekrs-setup cube'
+    cli_args = '--nekrs-setup cube'
     min_parallel = 2
 
     # nekRS can't use more processors than elements

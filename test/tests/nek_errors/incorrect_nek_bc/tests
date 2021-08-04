@@ -9,7 +9,7 @@
     expect_err = "In order to send a boundary heat flux to nekRS, you must have a flux condition "
                  "for each 'boundary' set in 'NekRSMesh'!\nBoundary 2 is of type 'zeroGradient' "
                  "instead of 'fixedGradient'."
-    cli_args = '--app nek --nekrs-setup brick'
+    cli_args = '--nekrs-setup brick'
     requirement = "MOOSE shall throw an error if there is no receiving heat flux boundary condition "
                   "on the nekRS boundaries that are coupled to MOOSE."
   [../]

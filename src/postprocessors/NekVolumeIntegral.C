@@ -9,7 +9,7 @@
 
 #include "NekVolumeIntegral.h"
 
-registerMooseObject("NekApp", NekVolumeIntegral);
+registerMooseObject("CardinalApp", NekVolumeIntegral);
 
 defineLegacyParams(NekVolumeIntegral);
 

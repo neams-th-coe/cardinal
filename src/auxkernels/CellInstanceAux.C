@@ -1,6 +1,6 @@
 #include "CellInstanceAux.h"
 
-registerMooseObject("OpenMCApp", CellInstanceAux);
+registerMooseObject("CardinalApp", CellInstanceAux);
 
 template<>
 InputParameters validParams<CellInstanceAux>()

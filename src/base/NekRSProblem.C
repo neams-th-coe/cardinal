@@ -8,7 +8,7 @@
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
 
-registerMooseObject("NekApp", NekRSProblem);
+registerMooseObject("CardinalApp", NekRSProblem);
 
 bool NekRSProblem::_first = true;
 
@@ -52,15 +52,14 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     _Cp_0(getParam<Real>("Cp_0")),
     _start_time(nekrs::startTime())
 {
-  // the NekRSProblem constructor is called right after building the mesh. In order
-  // to have pretty screen output without conflicting with the timed print messages,
-  // print diagnostic info related to the mesh here
   _nek_mesh = dynamic_cast<NekRSMesh*>(&mesh());
 
   if (!_nek_mesh)
-    mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'! In your [Mesh] "
-      "block, you should have 'type = NekRSMesh'");
+    mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'!");
 
+  // the NekRSProblem constructor is called right after building the mesh. In order
+  // to have pretty screen output without conflicting with the timed print messages,
+  // print diagnostic info related to the mesh here
   _nek_mesh->printMeshInfo();
 
   // will be implemented soon
@@ -183,6 +182,8 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
 
 NekRSProblem::~NekRSProblem()
 {
+  nekrs::freeScratch();
+
   // write nekRS solution to output if not already written for this step
   if (!isOutputStep())
     nekrs::outfld(_timestepper->nondimensionalDT(_time));
@@ -204,7 +205,7 @@ NekRSProblem::initialSetup()
 
   // While we don't require nekRS to actually _solve_ for the temperature, we should
   // print a warning if there is no temperature solve. For instance, the check in
-  // NekApp makes sure that we have a [TEMPERATURE] block in the nekRS input file, but we
+  // Nek makes sure that we have a [TEMPERATURE] block in the nekRS input file, but we
   // might still toggle the solver off by setting 'solver = none'. Warn the user if
   // the solve is turned off because this is really only a testing feature.
   bool has_temperature_solve = nekrs::hasTemperatureSolve();
@@ -318,7 +319,7 @@ NekRSProblem::isOutputStep() const
   {
     bool last_step = nekrs::lastStep(_timestepper->nondimensionalDT(_time), _t_step, 0.0 /* dummy elapsed time */);
 
-    // if NekApp is controlled by a master application, then the last time step
+    // if Nek is controlled by a master application, then the last time step
     // is controlled by that master application, in which case we don't want to
     // write at what nekRS thinks is the last step (since it may or may not be
     // the actual end step), especially because we already ensure that we write on the
@@ -334,9 +335,9 @@ NekRSProblem::isOutputStep() const
 
 void NekRSProblem::externalSolve()
 {
-  // The _dt member of NekRSProblem reflects the time step that MOOSE wants NekApp to
-  // take. For instance, if NekApp is controlled by a master app and subcycling is used,
-  // NekApp must advance to the time interval taken by the master app. If the time step
+  // The _dt member of NekRSProblem reflects the time step that MOOSE wants Nek to
+  // take. For instance, if Nek is controlled by a master app and subcycling is used,
+  // Nek must advance to the time interval taken by the master app. If the time step
   // that MOOSE wants nekRS to take (i.e. _dt) is smaller than we'd like nekRS to take, error.
   if (_dt < _timestepper->minDT())
     mooseError("Requested time step of " + std::to_string(_dt) + " is smaller than the minimum "

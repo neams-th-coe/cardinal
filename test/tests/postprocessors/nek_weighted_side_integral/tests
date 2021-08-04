@@ -3,7 +3,7 @@
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
-    cli_args = '--app nek --nekrs-setup brick'
+    cli_args = '--nekrs-setup brick'
     rel_err = 5e-5
     requirement = "NekMassFluxWeightedSideIntegral shall correctly compute a mass flux weighted"
                   "area integral of temperatures on the nekRS mesh. The gold file was created "

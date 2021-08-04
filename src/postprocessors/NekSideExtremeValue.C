@@ -9,7 +9,7 @@
 
 #include "NekSideExtremeValue.h"
 
-registerMooseObject("NekApp", NekSideExtremeValue);
+registerMooseObject("CardinalApp", NekSideExtremeValue);
 
 defineLegacyParams(NekSideExtremeValue);
 
