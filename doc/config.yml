@@ -27,7 +27,7 @@ Extensions:
         executable: ${ROOT_DIR}
         includes:
             - include
-        active: false
+        active: true
     MooseDocs.extensions.acronym:
         acronyms:
             moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
