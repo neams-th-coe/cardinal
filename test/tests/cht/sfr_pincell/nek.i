@@ -11,7 +11,6 @@
 
 [Executioner]
   type = Transient
-  timestep_tolerance = 1e-10
 
   [TimeStepper]
     type = NekTimeStepper

@@ -11,13 +11,6 @@ InputParameters validParams<NekTimeStepper>()
 {
   InputParameters params = validParams<TimeStepper>();
   params.addParam<Real>("min_dt", 1e-6, "Minimum time step size to allow MOOSE to set in nekRS");
-
-  // Set a higher default value for the timestep tolerance with which time steps are
-  // compared between nekRS and other MOOSE apps in a multiapp hierarchy. For some reason,
-  // it seems that floating point round-off accumulation is significant in nekRS, such
-  // that with subcycling, I frequently see that MOOSE wants nekRS to take a time step
-  // on the order of 5e-14 in order to "catch up" to a synchronization point.
-  params.set<Real>("timestep_tolerance", true) = 1e-6;
   return params;
 }
 
@@ -25,6 +18,13 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
     TimeStepper(parameters),
     _min_dt(getParam<Real>("min_dt"))
 {
+  // Set a higher value for the timestep tolerance with which time steps are
+  // compared between nekRS and other MOOSE apps in a multiapp hierarchy. For some reason,
+  // it seems that floating point round-off accumulation is significant in nekRS, such
+  // that with subcycling, I frequently see that MOOSE wants nekRS to take a time step
+  // on the order of 5e-14 in order to "catch up" to a synchronization point.
+  _executioner.setTimestepTolerance(_min_dt);
+
   // nekRS can end a simulation based on (1) a number of time steps, (2) an
   // end time, or (3) a total elapsed wall time. Because this wall timer would
   // keep incrementing while other applications are running in this multiphysics
