@@ -1,5 +1,6 @@
 [Problem]
   type = NekRSProblem
+  casename = 'sfr_pin'
   minimize_transfers_in = true
   minimize_transfers_out = true
 []

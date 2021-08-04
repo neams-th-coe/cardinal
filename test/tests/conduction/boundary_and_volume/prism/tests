@@ -3,7 +3,6 @@
     type = Exodiff
     input = openmc.i
     exodiff = 'openmc_out.e'
-    cli_args = '--nekrs-setup pyramid'
     min_parallel = 8
     custom_cmp = 'exodiff.cmp'
     requirement = "A coupled MOOSE-nekRS heat conduction problem shall produce the correct temperature "

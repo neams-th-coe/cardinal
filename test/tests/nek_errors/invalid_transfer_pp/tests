@@ -2,7 +2,6 @@
   [./invalid_transfer_pp]
     type = RunException
     input = nek_master.i
-    cli_args = '--nekrs-setup cube'
     expect_err = "The default value for the 'transfer_in' postprocessor received by nekRS "
         "must not be false! Make sure that the master application's "
         "postprocessor is not zero."

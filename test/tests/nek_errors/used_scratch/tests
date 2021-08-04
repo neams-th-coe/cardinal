@@ -7,7 +7,6 @@
                  "done automatically, but you have already initialized these arrays, perhaps "
                  "for a different purpose than transferring flux. Please remove any UDF usage "
                  "of these arrays to continue."
-    cli_args = '--nekrs-setup brick'
     requirement = "MOOSE shall throw an error if the user attempts to use the scratch space arrays "
                   "on the convection-diffusion passive scalar solver, since these arrays are "
                   "reserved in Cardinal for facilitating the heat flux transfer and cannot be used "

@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   minimize_transfers_in = true
+  casename = 'cube'
 []
 
 [Mesh]

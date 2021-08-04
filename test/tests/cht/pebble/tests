@@ -3,7 +3,6 @@
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out.e'
-    cli_args = '--nekrs-setup onepebble2'
     min_parallel = 8
     custom_cmp = exodiff.cmp
     requirement = "A coupled MOOSE-nekRS pebble flow problem shall predict physically realistic "

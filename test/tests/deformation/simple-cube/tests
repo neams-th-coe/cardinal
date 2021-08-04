@@ -3,7 +3,6 @@
     type = Exodiff
     input = box-test.i
     exodiff = 'box-test_out_nek0.e'
-    cli_args = '--nekrs-setup nekbox'
     min_parallel = 8
     abs_zero = 1e-5
     rel_err = 5e-4

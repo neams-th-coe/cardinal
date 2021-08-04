@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   moving_mesh = true
+  casename = 'cube'
 []
 
 [Mesh]

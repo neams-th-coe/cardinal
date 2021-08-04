@@ -1,5 +1,6 @@
 [Mesh]
   type = NekRSMesh
+  casename = 'onepebble2'
   boundary = '1'
 
   # nekRS solves with a length scale of meters, but nek_master.i is currently solving

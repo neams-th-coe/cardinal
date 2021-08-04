@@ -7,7 +7,6 @@
     max_parallel = 12
 
     expect_err = "Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'!"
-    cli_args = '--nekrs-setup brick'
     requirement = "The system shall error if NekRSProblem is not paired with the correct mesh type."
   [../]
 []

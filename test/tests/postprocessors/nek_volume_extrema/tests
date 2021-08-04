@@ -3,7 +3,6 @@
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
-    cli_args = '--nekrs-setup pyramid'
     requirement = "NekVolumeExtremeValue shall correctly compute max/min values "
                   "on the nekRS volume mesh. The gold file was created "
                   "by running the moose.i input, which computes the same max/min operations using "

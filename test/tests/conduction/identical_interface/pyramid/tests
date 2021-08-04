@@ -3,7 +3,6 @@
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out.e'
-    cli_args = '--nekrs-setup pyramid'
     min_parallel = 6
     requirement = "A coupled MOOSE-nekRS two-region pyramid heat conduction problem shall predict "
                   "the correct interface and volume temperatures that are obtained from a standalone "

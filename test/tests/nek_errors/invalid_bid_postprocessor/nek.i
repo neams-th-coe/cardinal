@@ -9,6 +9,7 @@
 
 [Problem]
   type = NekRSProblem
+  casename = 'brick'
 []
 
 [Executioner]
