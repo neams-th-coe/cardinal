@@ -4,6 +4,7 @@
 #include "TimeStepper.h"
 #include "NekInterface.h"
 #include "TimedPrint.h"
+#include "MooseUtils.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -114,7 +115,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
 
   // It's too complicated to make sure that the dimensional form _also_ works when our
   // reference coordinates are different from what MOOSE is expecting, so just throw an error
-  if (_nondimensional && (std::abs(_nek_mesh->scaling() - _L_ref) > 1e-6))
+  if (_nondimensional && !MooseUtils::absoluteFuzzyEqual(_nek_mesh->scaling(), _L_ref))
     paramError("L_ref", "When solving in non-dimensional form, no capability exists to allow "
       "a nondimensional solution based on reference scales that are not in the same units as the "
       "coupled MOOSE application!\n\nIf solving nekRS in nondimensional form, you must choose "
@@ -285,7 +286,7 @@ NekRSProblem::initialSetup()
 
   // Also make sure that the start time is consistent with what MOOSE wants to use.
   // If different from what nekRS internally wants to use, use the MOOSE value.
-  if (std::abs(moose_start_time - _start_time) > 1e-8)
+  if (!MooseUtils::absoluteFuzzyEqual(moose_start_time, _start_time))
   {
     mooseWarning("The start time set on 'NekRSProblem': " + Moose::stringify(moose_start_time) +
       " does not match the start time set in nekRS's .par file: " + Moose::stringify(_timestepper->dimensionalDT(_start_time)) + ". "

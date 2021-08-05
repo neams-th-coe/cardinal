@@ -8,6 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "FissionTallyRelativeError.h"
+#include "MooseUtils.h"
 #include "xtensor/xview.hpp"
 
 registerMooseObject("CardinalApp", FissionTallyRelativeError);
@@ -59,6 +60,11 @@ FissionTallyRelativeError::getValue()
       auto mean = sum(i) / n;
       Real std_dev = std::sqrt((sum_sq(i) / n - mean * mean) / (n - 1));
       Real rel_err = mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+
+      // tallies without any scores to them will have zero error, which doesn't really make
+      // sense to compare against
+      if (MooseUtils::absoluteFuzzyEqual(mean, 0))
+        continue;
 
       switch (_type)
       {

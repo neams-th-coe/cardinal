@@ -1,6 +1,7 @@
 #include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"
 #include "TimedPrint.h"
+#include "MooseUtils.h"
 
 #include "mpi.h"
 #include "OpenMCCellAverageProblem.h"
@@ -267,7 +268,6 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
 
       // if the centroids are the same except for a factor of 'scaling', then we can
       // guess that the mesh_template is probably not in units of centimeters
-      Real tol = 1e-6;
       if (_specified_scaling)
       {
         // if scaling was applied correctly, then each calculation of 'scaling' here should equal 1. Otherwise,
@@ -277,7 +277,7 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
         for (unsigned int j = 0; j < DIMENSION; ++j)
         {
           Real scaling = centroid_mesh(j) / centroid_template(j);
-          incorrect_scaling = incorrect_scaling && (std::abs(scaling - 1.0) > tol);
+          incorrect_scaling = incorrect_scaling && !MooseUtils::absoluteFuzzyEqual(scaling, 1.0);
         }
 
         if (incorrect_scaling)
@@ -290,7 +290,7 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
       // check if centroids are the same
       bool different_centroids = false;
       for (unsigned int j = 0; j < DIMENSION; ++j)
-        different_centroids = different_centroids || (std::abs(centroid_mesh(j) - centroid_template(j)) > tol);
+        different_centroids = different_centroids || !MooseUtils::absoluteFuzzyEqual(centroid_mesh(j), centroid_template(j));
 
       if (different_centroids)
         mooseError("Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh]: (" +
