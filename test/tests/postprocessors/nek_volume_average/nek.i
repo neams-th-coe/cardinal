@@ -5,7 +5,6 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  fixed_mesh = true
 []
 
 [Executioner]
