@@ -18,7 +18,8 @@ InputParameters
 FissionTallyRelativeError::validParams()
 {
   InputParameters params = OpenMCPostprocessor::validParams();
-  params.addParam<MooseEnum>("value_type", getOperationEnum(), "Operation to perform to get extreme value");
+  params.addParam<MooseEnum>("value_type", getOperationEnum(),
+    "Whether to give the maximum or minimum tally relative error; options: 'max' (default), 'min'");
   return params;
 }
 
