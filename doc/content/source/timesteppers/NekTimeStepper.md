@@ -43,8 +43,6 @@ the `min_dt` parameter.
 
 ## Example Input Syntax
 
-Use of this timestepper is often as shown below.
-
 !listing /test/tests/cht/pebble/nek.i
   block=Executioner
 
