@@ -6,7 +6,6 @@
     # just compare the postprocessors and the interpolated nek solution, since nothing
     # novel is done on the MOOSE side
     exodiff = 'nek_master_out_nek0.e'
-    cli_args = '--nekrs-setup sfr_pin'
     min_parallel = 6
     rel_err = 5e-5
     custom_cmp = exodiff.cmp

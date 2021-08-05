@@ -1,5 +1,6 @@
 [Problem]
   type = NekRSProblem
+  casename = 'cube'
 []
 
 [Mesh]

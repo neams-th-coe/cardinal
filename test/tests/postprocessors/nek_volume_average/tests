@@ -12,6 +12,7 @@
                   "the functional form of the solution fields initialized in the pyramid.udf. "
                   "Perfect agreement is not to be expected, since the underlying basis functions "
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
-                  "variables - we just require that they are reasonably close."
+                  "variables - we just require that they are reasonably close. This input also "
+                  "confirms that the case name can still be passed on the command line."
   [../]
 []

@@ -7,7 +7,6 @@
     max_parallel = 12
 
     expect_err = "Postprocessor with name 'nek_avg_temp' can only be used with NekRSProblem!"
-    cli_args = '--nekrs-setup brick'
     requirement = "The system shall error if a Nek postprocessor is not paired with the correct problem."
   [../]
 []

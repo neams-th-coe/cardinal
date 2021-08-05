@@ -3,7 +3,6 @@
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out.e'
-    cli_args = '--nekrs-setup cube'
     min_parallel = 6
     custom_cmp = 'exodiff.cmp'
     requirement = "A coupled MOOSE-nekRS slab heat conduction problem shall predict "

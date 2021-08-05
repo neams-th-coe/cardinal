@@ -10,6 +10,7 @@
 
 [Problem]
   type = NekRSProblem
+  casename = 'onepebble2'
 []
 
 [Executioner]

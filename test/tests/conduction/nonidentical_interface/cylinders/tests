@@ -3,7 +3,6 @@
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out.e'
-    cli_args = '--nekrs-setup cylinder'
     min_parallel = 8
     custom_cmp = 'exodiff.cmp'
     requirement = "A coupled MOOSE-nekRS two-region cylinder heat conduction problem shall predict "
@@ -25,7 +24,6 @@
     type = CSVDiff
     input = nek_master_subcycle.i
     csvdiff = 'nek_master_subcycle_out.csv'
-    cli_args = '--nekrs-setup cylinder'
     min_parallel = 8
     rel_err = 1e-5
     requirement = "The same solution shall be obtained as the cylinder_conduction case when nekRS is "
@@ -40,7 +38,6 @@
     type = CSVDiff
     input = nek_master_reversed.i
     csvdiff = 'nek_master_reversed_out.csv'
-    cli_args = '--nekrs-setup cylinder'
     min_parallel = 8
     rel_err = 1e-5
     requirement = "The same solution shall be obtained when nekRS is run before MOOSE. We compare CSV results "
@@ -52,7 +49,6 @@
     type = CSVDiff
     input = nek_master_mini.i
     csvdiff = 'nek_master_subcycle_out.csv'
-    cli_args = '--nekrs-setup cylinder'
     min_parallel = 8
     rel_err = 1e-5
     requirement = "The same solution shall be obtained when nekRS is run as a sub-app with minimized transfers "

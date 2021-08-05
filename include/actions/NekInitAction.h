@@ -15,4 +15,8 @@ public:
   NekInitAction(const InputParameters & parameters);
 
   virtual void act() override;
+
+protected:
+  /// whether a casename was provided in the input file
+  const bool _casename_in_input_file;
 };

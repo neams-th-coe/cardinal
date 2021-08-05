@@ -8,6 +8,11 @@
   Cp_0 = 6.0
   L_ref = 0.5
   U_ref = 1.0
+
+  # this test also checks that a command line provided case name still overrides
+  # whatever is in the input file (here, doesnt_exist.par, etc. do not exist, but
+  # the test still runs because we pass the correct casename via the cli_args of the test)
+  casename = 'doesnt_exist'
 []
 
 [Mesh]

@@ -3,7 +3,6 @@
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
-    cli_args = '--nekrs-setup pyramid'
     rel_err = 5e-4
     requirement = "NekHeatFluxIntegral shall correctly compute the heat flux integral "
                   "on the nekRS mesh. The gold file was created "

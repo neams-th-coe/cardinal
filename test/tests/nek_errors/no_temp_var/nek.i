@@ -5,6 +5,7 @@
 
 [Problem]
   type = NekProblem
+  casename = 'brick'
 []
 
 [Executioner]
