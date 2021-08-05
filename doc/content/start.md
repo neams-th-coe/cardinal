@@ -106,6 +106,14 @@ export CXX=mpicxx
 export FC=mpif90
 ```
 
+Additional optional environment variables that you may need to set in order
+to build Cardinal:
+
+- `HDF5_INCLUDE_DIR`: location of HDF5 headers. If `HDF5_ROOT` is specified, this
+  defaults to `$HDF5_ROOT/include`; otherwise, this defaults to `/usr/include`
+- `HDF5_LIBDIR`: location of HDF5 libraries. If `$HDF5_ROOT` is specified, this
+  defaults to `$HDF5_ROOT/lib`; otherwise, this defaults to `/usr/lib`
+
 #### Set the OCCA Backend
   id=occa
 
@@ -213,6 +221,21 @@ range-checking and consistency checks enabled).  If a non-default
 than oprof, much faster than dbg) or `prof` (slightly slower than
 oprof, instrumented for tools like "gprof") available.
 
+## Running
+
+The command to run Cardinal is
+
+```
+$ mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
+```
+
+where `n` is the number of MPI ranks and `s` is the number of OpenMP threads.
+While MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,
+NekRS does not use shared memory parallelism.
+
+For the special case of running SAM as the master application, you also need to pass
+`--app sam` on the command line to instruct Cardinal to build a `SamApp`.
+
 ## Testing
 
 Cardinal uses MOOSE's CIVET system for regression testing [!cite](slaughter).
@@ -236,3 +259,4 @@ directory, run
 ```
 $ mpiexec -np 4 cardinal-opt -i nek_master.i
 ```
+
