@@ -4,7 +4,7 @@
 # insulated, insulated, and insulated boundary conditions, respectively.
 # Based on the data transfers assumed in/out from nekRS, we should throw
 # an error if a flux boundary condition is not specified on the boundary
-# we set for NekMesh, because otherwise that heat flux condition would
+# we set for NekRSMesh, because otherwise that heat flux condition would
 # never get used.
 
 [Mesh]
