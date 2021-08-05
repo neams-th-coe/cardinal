@@ -1,6 +1,6 @@
 # NekRSMesh
 
-!syntax description /postprocessors/NekRSMesh
+!syntax description /Mesh/NekRSMesh
 
 ## Description
 
@@ -81,7 +81,7 @@ mirror mesh would consist of the elements on boundaries 1 through 6 in the NekRS
 but those boundary IDs are not preserved in the mirror. This is a limitation of libMesh,
 because *sideset* names cannot be associated with 2-D elements. However, this has not yet
 been a limitation in Cardinal, because we can still perform operations based on NekRS
-sideset IDs through the various Nek postprocessors in Cardinal.
+sideset IDs through the various Nek mesh in Cardinal.
 If these postprocessors do not meet your needs, you can retain nekRs sideset IDs when
 constructing a volume-and-boundary mesh; please see [#vb] for details.
 
@@ -175,8 +175,8 @@ scale. So, to convert the mesh mirror back to dimensional units, the `scaling` p
 is used. For this example, if the coupled MOOSE application solves in units of meters,
 then `scaling` should be set to 5 to dimensionalize the non-dimensional NekRS mesh.
 
-!syntax parameters /postprocessors/NekRSMesh
+!syntax parameters /Mesh/NekRSMesh
 
-!syntax inputs /postprocessors/NekRSMesh
+!syntax inputs /Mesh/NekRSMesh
 
-!syntax children /postprocessors/NekRSMesh
+!syntax children /Mesh/NekRSMesh

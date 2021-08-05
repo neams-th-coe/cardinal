@@ -1,6 +1,6 @@
 # NekVolumeExtremeValue
 
-!syntax description /postprocessors/NekVolumeExtremeValue
+!syntax description /Postprocessors/NekVolumeExtremeValue
 
 ## Description
 
@@ -44,8 +44,8 @@ over the volume of the NekRS mesh.
 !listing tutorials/sfr_multiphysics/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekVolumeExtremeValue
+!syntax parameters /Postprocessors/NekVolumeExtremeValue
 
-!syntax inputs /postprocessors/NekVolumeExtremeValue
+!syntax inputs /Postprocessors/NekVolumeExtremeValue
 
-!syntax children /postprocessors/NekVolumeExtremeValue
+!syntax children /Postprocessors/NekVolumeExtremeValue

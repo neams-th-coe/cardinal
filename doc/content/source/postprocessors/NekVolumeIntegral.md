@@ -1,6 +1,6 @@
 # NekVolumeIntegral
 
-!syntax description /postprocessors/NekVolumeIntegral
+!syntax description /Postprocessors/NekVolumeIntegral
 
 ## Description
 
@@ -37,8 +37,8 @@ on the volume of the NekRS mesh.
 !listing test/tests/postprocessors/nek_volume_integral/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekVolumeIntegral
+!syntax parameters /Postprocessors/NekVolumeIntegral
 
-!syntax inputs /postprocessors/NekVolumeIntegral
+!syntax inputs /Postprocessors/NekVolumeIntegral
 
-!syntax children /postprocessors/NekVolumeIntegral
+!syntax children /Postprocessors/NekVolumeIntegral

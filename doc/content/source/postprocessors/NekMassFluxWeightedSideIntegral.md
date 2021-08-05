@@ -1,6 +1,6 @@
 # NekMassFluxWeightedSideIntegral
 
-!syntax description /postprocessors/NekMassFluxWeightedSideIntegral
+!syntax description /Postprocessors/NekMassFluxWeightedSideIntegral
 
 ## Description
 
@@ -36,8 +36,8 @@ mass flowrate on the inlet and outlet boundaries of the NekRS mesh.
 !listing tutorials/fhr_reflector/cht/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekMassFluxWeightedSideIntegral
+!syntax parameters /Postprocessors/NekMassFluxWeightedSideIntegral
 
-!syntax inputs /postprocessors/NekMassFluxWeightedSideIntegral
+!syntax inputs /Postprocessors/NekMassFluxWeightedSideIntegral
 
-!syntax children /postprocessors/NekMassFluxWeightedSideIntegral
+!syntax children /Postprocessors/NekMassFluxWeightedSideIntegral

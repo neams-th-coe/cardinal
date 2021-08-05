@@ -1,6 +1,6 @@
-# NekTimestepper
+# NekTimeStepper
 
-!syntax description /timesteppers/NekTimestepper
+!syntax description /Executioner/TimeStepper/NekTimeStepper
 
 ## Description
 
@@ -46,8 +46,8 @@ Below is a code snippet showing common usage of `NekTimeStepper`.
 !listing /test/tests/cht/pebble/nek.i
   block=Executioner
 
-!syntax parameters /timesteppers/NekTimestepper
+!syntax parameters /Executioner/TimeStepper/NekTimeStepper
 
-!syntax inputs /timesteppers/NekTimestepper
+!syntax inputs /Executioner/TimeStepper/NekTimeStepper
 
-!syntax children /timesteppers/NekTimestepper
+!syntax children /Executioner/TimeStepper/NekTimeStepper

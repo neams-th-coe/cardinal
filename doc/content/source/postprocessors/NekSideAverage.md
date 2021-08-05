@@ -1,6 +1,6 @@
 # NekSideAverage
 
-!syntax description /postprocessors/NekSideAverage
+!syntax description /Postprocessors/NekSideAverage
 
 ## Description
 
@@ -36,8 +36,8 @@ on the NekRS outlet boundary.
 !listing tutorials/fhr_reflector/cht/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekSideAverage
+!syntax parameters /Postprocessors/NekSideAverage
 
-!syntax inputs /postprocessors/NekSideAverage
+!syntax inputs /Postprocessors/NekSideAverage
 
-!syntax children /postprocessors/NekSideAverage
+!syntax children /Postprocessors/NekSideAverage

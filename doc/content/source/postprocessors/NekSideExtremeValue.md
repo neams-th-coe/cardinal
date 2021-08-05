@@ -1,6 +1,6 @@
 # NekSideExtremeValue
 
-!syntax description /postprocessors/NekSideExtremeValue
+!syntax description /Postprocessors/NekSideExtremeValue
 
 ## Description
 
@@ -43,8 +43,8 @@ on the boundaries of the NekRS mesh.
 !listing test/tests/postprocessors/nek_side_extrema/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekSideExtremeValue
+!syntax parameters /Postprocessors/NekSideExtremeValue
 
-!syntax inputs /postprocessors/NekSideExtremeValue
+!syntax inputs /Postprocessors/NekSideExtremeValue
 
-!syntax children /postprocessors/NekSideExtremeValue
+!syntax children /Postprocessors/NekSideExtremeValue

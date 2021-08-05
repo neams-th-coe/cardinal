@@ -1,6 +1,6 @@
 # NekVolumeAverage
 
-!syntax description /postprocessors/NekVolumeAverage
+!syntax description /Postprocessors/NekVolumeAverage
 
 ## Description
 
@@ -34,8 +34,8 @@ temperature (for `field = temperature`) and pressure (for `field = pressure`) ov
 !listing test/tests/postprocessors/nek_volume_average/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekVolumeAverage
+!syntax parameters /Postprocessors/NekVolumeAverage
 
-!syntax inputs /postprocessors/NekVolumeAverage
+!syntax inputs /Postprocessors/NekVolumeAverage
 
-!syntax children /postprocessors/NekVolumeAverage
+!syntax children /Postprocessors/NekVolumeAverage

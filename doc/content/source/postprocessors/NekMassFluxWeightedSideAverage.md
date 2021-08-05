@@ -1,6 +1,6 @@
 # NekMassFluxWeightedSideAverage
 
-!syntax description /postprocessors/NekMassFluxWeightedSideAverage
+!syntax description /Postprocessors/NekMassFluxWeightedSideAverage
 
 ## Description
 
@@ -38,8 +38,8 @@ average of temperature over the outlet boundary of NekRS's mesh.
 !listing tutorials/sfr_multiphysics/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekMassFluxWeightedSideAverage
+!syntax parameters /Postprocessors/NekMassFluxWeightedSideAverage
 
-!syntax inputs /postprocessors/NekMassFluxWeightedSideAverage
+!syntax inputs /Postprocessors/NekMassFluxWeightedSideAverage
 
-!syntax children /postprocessors/NekMassFluxWeightedSideAverage
+!syntax children /Postprocessors/NekMassFluxWeightedSideAverage

@@ -390,8 +390,8 @@ either one of both of
 the `min_T` and `max_T` postprocessors. With these specified, the temperature written to
 the [NekRSMesh](/mesh/NekRSMesh.md) is adjusted to the range $\left\lbrack T_{min},T_{max}\right\rbrack$.
 
-!syntax parameters /problems/NekRSProblem
+!syntax parameters /Problem/NekRSProblem
 
-!syntax inputs /problems/NekRSProblem
+!syntax inputs /Problem/NekRSProblem
 
-!syntax children /problems/NekRSProblem
+!syntax children /Problem/NekRSProblem

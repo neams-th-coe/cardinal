@@ -1,6 +1,6 @@
 # NekHeatFluxIntegral
 
-!syntax description /postprocessors/NekHeatFluxIntegral
+!syntax description /Postprocessors/NekHeatFluxIntegral
 
 ## Description
 
@@ -30,8 +30,8 @@ over two different boundaries in NekRS's mesh.
 !listing tutorials/sfr_7pin/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekHeatFluxIntegral
+!syntax parameters /Postprocessors/NekHeatFluxIntegral
 
-!syntax inputs /postprocessors/NekHeatFluxIntegral
+!syntax inputs /Postprocessors/NekHeatFluxIntegral
 
-!syntax children /postprocessors/NekHeatFluxIntegral
+!syntax children /Postprocessors/NekHeatFluxIntegral

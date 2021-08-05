@@ -1,6 +1,6 @@
 # NekSideIntegral
 
-!syntax description /postprocessors/NekSideIntegral
+!syntax description /Postprocessors/NekSideIntegral
 
 ## Description
 
@@ -36,8 +36,8 @@ on the boundaries of the NekRS mesh.
 !listing test/tests/postprocessors/nek_side_integral/nek.i
   block=Postprocessors
 
-!syntax parameters /postprocessors/NekSideIntegral
+!syntax parameters /Postprocessors/NekSideIntegral
 
-!syntax inputs /postprocessors/NekSideIntegral
+!syntax inputs /Postprocessors/NekSideIntegral
 
-!syntax children /postprocessors/NekSideIntegral
+!syntax children /Postprocessors/NekSideIntegral
