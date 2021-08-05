@@ -17,6 +17,7 @@ InputParameters
 NekHeatFluxIntegral::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
+  params.addClassDescription("Compute heat flux over a boundary in the NekRS mesh");
   return params;
 }
 

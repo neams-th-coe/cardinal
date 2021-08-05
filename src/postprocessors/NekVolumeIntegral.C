@@ -17,7 +17,10 @@ InputParameters
 NekVolumeIntegral::validParams()
 {
   InputParameters params = NekPostprocessor::validParams();
-  params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to integrate");
+  params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to integrate; "
+    "options: x_velocity, y_velocity, z_velocity, "
+    "velocity, temperature, pressure, unity");
+  params.addClassDescription("Compute the integral of a field over the NekRS mesh");
   return params;
 }
 
