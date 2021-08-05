@@ -187,12 +187,6 @@ public:
    */
   const Real & scaling() const { return _scaling; }
 
-  /**
-   * Whether the nekRS mesh is fixed in the simulation (not moving, no AMR)
-   * @return whether the mesh is fixed
-   */
-  virtual bool fixedMesh() const { return _fixed_meshes; }
-
   /// Print diagnostic information related to the mesh
   virtual void printMeshInfo() const;
 
@@ -209,14 +203,6 @@ protected:
    * volume-based coupling for the entire mesh.
    */
   const bool & _volume;
-
-  /**
-   * Whether the nekRS mesh is fixed (no mesh movement or adaptive mesh refinement)
-   *
-   * This setting can be used to indicate that volumes and areas used for normalizing
-   * the Nek postprocessors can be computed just once at the start of the simulation.
-   */
-  const bool & _fixed_meshes;
 
   /// Boundary ID(s) through which to couple Nek to MOOSE
   const std::vector<int> * _boundary;
