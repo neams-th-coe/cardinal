@@ -113,7 +113,7 @@
     boundary = '1'
   []
   [average_flux]
-    type = SideFluxAverage
+    type = SideDiffusiveFluxAverage
     diffusivity = thermal_conductivity
     variable = 'temp'
     boundary = '1'

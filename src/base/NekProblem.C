@@ -18,6 +18,9 @@ InputParameters
 validParams<NekProblem>()
 {
   InputParameters params = validParams<ExternalProblem>();
+  params.addParam<std::string>("casename", "Case name for the NekRS input files; "
+    "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
+    "Can also be provided on the command line with --nekrs-setup, which will override this setting");
   return params;
 }
 

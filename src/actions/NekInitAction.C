@@ -35,7 +35,7 @@ NekInitAction::act()
 
     if (!casename_on_command_line && !_casename_in_input_file)
       mooseError("All inputs using 'NekRSProblem' or 'NekProblem' must pass '--nekrs-setup <case>' on "
-        "the command line\nor set 'casename = <case>' in the [Problem] block in the Nek-wrapped input file!");
+        "the command line\nor set casename = '<case>' in the [Problem] block in the Nek-wrapped input file!");
 
     std::string setup_file;
     if (casename_on_command_line)
