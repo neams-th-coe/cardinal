@@ -14,21 +14,21 @@
 #include "ElementAverageValue.h"
 #include "ElementVariableVectorPostprocessor.h"
 // Forward Declarations
-class NearestPointAverage;
+class CardinalNearestPointAverage;
 
 template <>
-InputParameters validParams<NearestPointAverage>();
+InputParameters validParams<CardinalNearestPointAverage>();
 
 /**
  * Given a list of points this object computes the variable integral
  * closest to each one of those points.
  */
-class NearestPointAverage
+class CardinalNearestPointAverage
   : public NearestPointBase<ElementAverageValue,
                             ElementVariableVectorPostprocessor>
 {
 public:
-  NearestPointAverage(const InputParameters & parameters);
+  CardinalNearestPointAverage(const InputParameters & parameters);
 
   virtual Real spatialValue(const Point & point) const override;
 
