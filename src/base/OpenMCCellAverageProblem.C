@@ -1051,7 +1051,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
   }
 
   if (!_verbose)
-    _console << "done. Sent min/max (K): " << minimum << ", " << maximum;
+    _console << "done. Sent cell-averaged min/max (K): " << minimum << ", " << maximum;
   _console << std::endl;
 }
 
@@ -1125,7 +1125,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
   }
 
   if (!_verbose)
-    _console << "done. Sent min/max (kg/m3): " << minimum << ", " << maximum;
+    _console << "done. Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum;
   _console << std::endl;
 }
 
