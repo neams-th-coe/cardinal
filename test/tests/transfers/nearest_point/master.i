@@ -74,7 +74,7 @@
 
 [UserObjects]
   [./average_f_master] # this computes the average that well send to sub
-    type = NearestPointAverage
+    type = CardinalNearestPointAverage
     variable = f
     points = '0 0 0
               4 0 0

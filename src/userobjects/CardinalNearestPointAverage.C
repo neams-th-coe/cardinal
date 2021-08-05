@@ -8,13 +8,13 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 // MOOSE includes
-#include "NearestPointAverage.h"
+#include "CardinalNearestPointAverage.h"
 
-registerMooseObject("MooseApp", NearestPointAverage);
+registerMooseObject("MooseApp", CardinalNearestPointAverage);
 
 template <>
 InputParameters
-validParams<NearestPointAverage>()
+validParams<CardinalNearestPointAverage>()
 {
   InputParameters params = nearestPointBaseValidParams<ElementAverageValue,
                                                        ElementVariableVectorPostprocessor>();
@@ -25,7 +25,7 @@ validParams<NearestPointAverage>()
   return params;
 }
 
-NearestPointAverage::NearestPointAverage(
+CardinalNearestPointAverage::CardinalNearestPointAverage(
     const InputParameters & parameters)
   : NearestPointBase<ElementAverageValue, ElementVariableVectorPostprocessor>(
         parameters),
@@ -35,7 +35,7 @@ NearestPointAverage::NearestPointAverage(
 }
 
 Real
-NearestPointAverage::spatialValue(const Point & point) const
+CardinalNearestPointAverage::spatialValue(const Point & point) const
 {
   unsigned int i = nearestPointIndex(point);
 
@@ -49,7 +49,7 @@ NearestPointAverage::spatialValue(const Point & point) const
 }
 
 Real
-NearestPointAverage::userObjectValue(unsigned int i) const
+CardinalNearestPointAverage::userObjectValue(unsigned int i) const
 {
   if (i >= _np_post_processor_values.size())
     mooseError("The vector length of vector post processor is ",
@@ -61,7 +61,7 @@ NearestPointAverage::userObjectValue(unsigned int i) const
 }
 
 void
-NearestPointAverage::finalize()
+CardinalNearestPointAverage::finalize()
 {
   if (_user_objects.size() != _np_post_processor_values.size())
     mooseError("The vector length of the vector postproessor ",
@@ -78,7 +78,7 @@ NearestPointAverage::finalize()
 }
 
 unsigned int
-NearestPointAverage::nearestPointIndex(const Point & p) const
+CardinalNearestPointAverage::nearestPointIndex(const Point & p) const
 {
   unsigned int closest = 0;
   Real closest_distance = std::numeric_limits<Real>::max();
