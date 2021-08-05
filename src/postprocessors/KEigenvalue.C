@@ -46,7 +46,7 @@ KEigenvalue::getValue()
     case eigenvalue::combined:
     {
       if (n <= 3)
-        mooseError("Cannot compute combined k-effective estimate with 3 or less realizations!");
+        mooseError("Cannot compute combined k-effective estimate with fewer than 4 realizations!");
 
       double k_eff[2];
       openmc::openmc_get_keff(k_eff);
