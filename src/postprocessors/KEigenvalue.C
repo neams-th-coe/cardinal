@@ -10,7 +10,7 @@
 #include "KEigenvalue.h"
 #include "openmc/eigenvalue.h"
 
-registerMooseObject("OpenMCApp", KEigenvalue);
+registerMooseObject("CardinalApp", KEigenvalue);
 
 defineLegacyParams(KEigenvalue);
 

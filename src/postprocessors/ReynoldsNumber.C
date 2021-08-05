@@ -10,7 +10,7 @@
 #include "ReynoldsNumber.h"
 #include "NekInterface.h"
 
-registerMooseObject("NekApp", ReynoldsNumber);
+registerMooseObject("CardinalApp", ReynoldsNumber);
 
 defineLegacyParams(ReynoldsNumber);
 

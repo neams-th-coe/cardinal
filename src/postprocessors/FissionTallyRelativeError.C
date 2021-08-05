@@ -10,7 +10,7 @@
 #include "FissionTallyRelativeError.h"
 #include "xtensor/xview.hpp"
 
-registerMooseObject("OpenMCApp", FissionTallyRelativeError);
+registerMooseObject("CardinalApp", FissionTallyRelativeError);
 
 defineLegacyParams(FissionTallyRelativeError);
 
