@@ -17,7 +17,7 @@ template<>
 InputParameters
 validParams<NekRSProblem>()
 {
-  InputParameters params = validParams<ExternalProblem>();
+  InputParameters params = validParams<NekRSProblemBase>();
   params.addParam<bool>("minimize_transfers_in", false, "Whether to only synchronize nekRS "
     "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
   params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
@@ -26,14 +26,6 @@ validParams<NekRSProblem>()
   params.addParam<std::string>("casename", "Case name for the NekRS input files; "
     "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
     "Can also be provided on the command line with --nekrs-setup, which will override this setting");
-  params.addParam<bool>("nondimensional", false, "Whether nekRS is solved in non-dimensional form");
-  params.addParam<bool>("moving_mesh", false, "Whether we have a moving mesh problem or not");
-  params.addRangeCheckedParam<Real>("U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>("T_ref", 0.0, "T_ref >= 0.0", "Reference temperature value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>("dT_ref", 1.0, "dT_ref > 0.0", "Reference temperature range value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>("L_ref", 1.0, "L_ref > 0.0", "Reference length scale value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>("rho_0", 1.0, "rho_0 > 0.0", "Density parameter value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>("Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
 
   params.addParam<bool>("has_heat_source", true, "Whether a heat source will be applied to the NekRS domain. "
     "We allow this to be turned off so that we don't need to add an OCCA source kernel if we know the "
@@ -46,31 +38,13 @@ validParams<NekRSProblem>()
   return params;
 }
 
-NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(params),
+NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _moving_mesh(getParam<bool>("moving_mesh")),
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
-    _nondimensional(getParam<bool>("nondimensional")),
     _has_heat_source(getParam<bool>("has_heat_source")),
-    _U_ref(getParam<Real>("U_ref")),
-    _T_ref(getParam<Real>("T_ref")),
-    _dT_ref(getParam<Real>("dT_ref")),
-    _L_ref(getParam<Real>("L_ref")),
-    _rho_0(getParam<Real>("rho_0")),
-    _Cp_0(getParam<Real>("Cp_0")),
-    _start_time(nekrs::startTime())
 {
-  _nek_mesh = dynamic_cast<NekRSMesh*>(&mesh());
-
-  if (!_nek_mesh)
-    mooseError("Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'!");
-
-  // the NekRSProblem constructor is called right after building the mesh. In order
-  // to have pretty screen output without conflicting with the timed print messages,
-  // print diagnostic info related to the mesh here
-  _nek_mesh->printMeshInfo();
-
   // will be implemented soon
   if (_moving_mesh)
   {
@@ -80,28 +54,6 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : ExternalProblem(para
     if (!_nek_mesh->getMesh().is_replicated())
       mooseError("Distributed mesh features are not yet implemented for moving mesh cases!");
   }
-
-  // if solving in nondimensional form, make sure that the user specified _all_ of the
-  // necessary scaling quantities to prevent errors from forgetting one, which would take
-  // a non-scaled default otherwise
-  std::vector<std::string> scales = {"U_ref", "T_ref", "dT_ref", "L_ref", "rho_0", "Cp_0"};
-  std::vector<std::string> descriptions = {"velocity", "temperature", "temperature range", "length",
-    "density", "heat capacity"};
-  for (std::size_t n = 0; n < scales.size(); ++n)
-  {
-    if (_nondimensional && !params.isParamSetByUser(scales[n]))
-      paramError(scales[n], "When nekRS solves in non-dimensional form, a characterstic " + descriptions[n] + " must be provided!");
-    else if (!_nondimensional && params.isParamSetByUser(scales[n]))
-      mooseWarning("When nekRS solves in dimensional form, " + descriptions[n] + " is unused!");
-  }
-
-  // inform nekRS of the scaling that we are using if solving in non-dimensional form
-  nekrs::solution::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
-
-  if (_nondimensional)
-    _console << "The NekRS model uses the following non-dimensional scales: " <<
-      "\n length: " << _L_ref << "\n velocity: " << _U_ref << "\n temperature: " << _T_ref <<
-      "\n temperature increment: " << _dT_ref << std::endl;
 
   // the way the data transfers are detected depend on nekRS being a sub-application,
   // so these settings are not invalid if nekRS is the master app (though you could
@@ -215,7 +167,7 @@ NekRSProblem::~NekRSProblem()
 void
 NekRSProblem::initialSetup()
 {
-  ExternalProblem::initialSetup();
+  NekRSProblemBase::initialSetup();
 
   // While we don't require nekRS to actually _solve_ for the temperature, we should
   // print a warning if there is no temperature solve. For instance, the check in
@@ -258,46 +210,6 @@ NekRSProblem::initialSetup()
   if (_moving_mesh && !nekrs::hasMovingMesh())
     mooseError("In order for MOOSE to compute a mesh deformation in NekRS, you "
       "must have 'solver = user' in the [MESH] block!");
-
-  auto executioner = _app.getExecutioner();
-  _transient_executioner = dynamic_cast<Transient *>(executioner);
-
-  // nekRS only supports transient simulations - therefore, it does not make
-  // sense to use anything except a Transient-derived executioner
-  if (!_transient_executioner)
-    mooseError("A Transient-type executioner should be used for nekRS!");
-
-  // If the simulation start time is not zero, the app's time must be shifted
-  // relative to its master app (if any). Until this is implemented, make sure
-  // a start time of zero is used.
-  const auto moose_start_time = _transient_executioner->getStartTime();
-  if (moose_start_time != 0.0)
-    mooseError("A non-zero start time is not yet available for 'NekRSProblem'!");
-
-  // To get the correct time stepping information on the MOOSE side, we also
-  // must use the NekTimeStepper
-  TimeStepper * stepper = _transient_executioner->getTimeStepper();
-  _timestepper = dynamic_cast<NekTimeStepper *>(stepper);
-  if (!_timestepper)
-    mooseError("The 'NekTimeStepper' stepper must be used with 'NekRSProblem'!");
-
-  // Set the reference time for use in dimensionalizing/non-dimensionalizing the time
-  _timestepper->setReferenceTime(_L_ref, _U_ref);
-
-  // Also make sure that the start time is consistent with what MOOSE wants to use.
-  // If different from what nekRS internally wants to use, use the MOOSE value.
-  if (!MooseUtils::absoluteFuzzyEqual(moose_start_time, _start_time))
-  {
-    mooseWarning("The start time set on 'NekRSProblem': " + Moose::stringify(moose_start_time) +
-      " does not match the start time set in nekRS's .par file: " + Moose::stringify(_timestepper->dimensionalDT(_start_time)) + ". "
-      "This may happen if you are using a restart file in nekRS.\n\n" +
-      "Setting start time for 'NekRSProblem' to: " + Moose::stringify(moose_start_time));
-    _start_time = moose_start_time;
-  }
-
-  // Then, dimensionalize the nekRS time so that all occurrences of _dt here are
-  // in dimensional form
-  _timestepper->dimensionalizeDT();
 
   if (_boundary)
     _flux_integral = &getPostprocessorValueByName("flux_integral");
@@ -357,7 +269,7 @@ void NekRSProblem::externalSolve()
     mooseError("Requested time step of " + std::to_string(_dt) + " is smaller than the minimum "
       "time step allowed in nekRS!");
 
-  // By using the _time object on the ExternalProblem base class (which represents the
+  // By using the _time object on the NekRSProblemBase base class (which represents the
   // time that we're simulating _to_, we need to pass sometimes slightly different
   // times into the nekRS routines, which assume that the "time" passed into their
   // routines is sometimes a different interpretation.
@@ -798,11 +710,11 @@ NekRSProblem::getVolumeTemperatureFromNek()
   nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
 }
 
-void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
+void NekRSProblem::syncSolutions(NekRSProblemBase::Direction direction)
 {
   switch(direction)
   {
-    case ExternalProblem::Direction::TO_EXTERNAL_APP:
+    case NekRSProblemBase::Direction::TO_EXTERNAL_APP:
     {
       if (!synchronizeIn())
       {
@@ -833,7 +745,7 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       break;
     }
 
-    case ExternalProblem::Direction::FROM_EXTERNAL_APP:
+    case NekRSProblemBase::Direction::FROM_EXTERNAL_APP:
     {
       if (!synchronizeOut())
       {

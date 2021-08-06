@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ExternalProblem.h"
+#include "NekRSProblemBase.h"
 #include "NekTimeStepper.h"
 #include "NekRSMesh.h"
 #include "Transient.h"
@@ -30,7 +30,7 @@ InputParameters validParams<NekRSProblem>();
  * the libMesh node points exactly coincide with the nekRS quadrature point locations, and
  * hence no interpolation is actually needed.
  */
-class NekRSProblem : public ExternalProblem
+class NekRSProblem : public NekRSProblemBase
 {
 public:
   NekRSProblem(const InputParameters & params);
@@ -79,9 +79,7 @@ public:
 
   virtual void externalSolve() override;
 
-  virtual void syncSolutions(ExternalProblem::Direction direction) override;
-
-  virtual bool converged() override { return true; }
+  virtual void syncSolutions(NekRSProblemBase::Direction direction) override;
 
   virtual void addExternalVariables() override;
 
@@ -141,7 +139,7 @@ protected:
    *
    * nekRS is often subcycled relative to the application controlling it -
    * that is, nekRS may be run with a time step 10x smaller than a conduction MOOSE app.
-   * The ExternalProblem interface in MOOSE, however, currently synchronizes (i.e. sends
+   * The NekRSProblemBase interface in MOOSE, however, currently synchronizes (i.e. sends
    * data to/from nekRS) on _every_ nekRS time step. If 'interpolate_transfers = false'
    * in the master application, then the heat flux going into nekRS is fixed for each
    * of the subcycled time steps it takes, so these extra data transfers are
@@ -164,7 +162,7 @@ protected:
    *
    * nekRS is often subcycled relative to the application controlling it -
    * that is, nekRS may be run with a time step 10x smaller than a conduction MOOSE app.
-   * The ExternalProblem interface in MOOSE, however, currently synchronizes (i.e. sends
+   * The NekRSProblemBase interface in MOOSE, however, currently synchronizes (i.e. sends
    * data to/from nekRS) on _every_ nekRS time step. If 'interpolate_transfers = false'
    * in the master application, then the temperature coming from nekRS is fixed
    * (from the master's perspective) for each
@@ -182,61 +180,8 @@ protected:
    */
   const bool & _minimize_transfers_out;
 
-  /// Whether the nekRS solution is performed in nondimensional scales
-  const bool & _nondimensional;
-
   /// Whether a heat source will be applied to NekRS from MOOSE
   const bool & _has_heat_source;
-
-  //@{
-  /**
-   * \brief Reference scales for nekRS solution in non-dimensional form.
-   *
-   * If nekRS is solving in non-dimensional form, this means that the nekRS solution
-   * is performed for:
-   *
-   * - nondimensional temperature \f$T^\dagger\f$, defined as
-   *   \f$T^\dagger=\frac{T-T_{ref}}{\Delta T_{ref}}\f$.
-   *   The 'T_ref' and 'dT_ref' variables here represent these scales.
-   *
-   * - nondimensional velocity \f$U^\dagger=\frac{u}{U_{ref}}\f$. The 'U_ref' variable here
-   *   represents this velocity scale.
-   *
-   * - nondimensional pressure \f$P^dagger=\frac{P}{\rho_{0}U_{ref}^2}\f$. The 'rho_0'
-   *   variable here represents this density parameter.
-   *
-   * In terms of heat flux boundary conditions, the entire energy conservation equation
-   * in nekRS is multiplied by \f$\frac{L_{ref}}{\rho_{0}C_{p,0}U_{ref}\Delta T_{ref}}\f$
-   * in order to clear the coefficient on the convective. Therefore, the heat source in
-   * nekRS is expressed in nondimensional form as \f$q^\dagger=\frac{q}{\rho_{0}C_{p,0}U_{ref}\Delta T_{ref}}\f$.
-   * Here, 'Cp_0' is the specific heat capacity scale.
-   *
-   * Unfortunately, there is no systematic way to get these reference
-   * scales from nekRS, so we need to inform MOOSE of any possible scaling so that we
-   * can appropriately scale the nekRS temperature to the dimensional form that is usually
-   * expected in MOOSE. Therefore, these scales just need to match what is used in the nekRS
-   * input files used to specify boundary conditions. Conversion between dimensional MOOSE
-   * heat flux to dimensionless nekRS heat flux is performed automatically, and does not require
-   * any special treatment in the nekRS scalarNeumannBC kernel.
-   */
-  const Real & _U_ref;
-
-  const Real & _T_ref;
-
-  const Real & _dT_ref;
-
-  const Real & _L_ref;
-
-  const Real & _rho_0;
-
-  const Real & _Cp_0;
-  //@}
-
-  /// Start time of the simulation based on nekRS's .par file
-  double _start_time;
-
-  /// The time stepper used for selection of time step size
-  NekTimeStepper * _timestepper = nullptr;
 
   /**
    * \brief Total surface-integrated flux coming from the coupled MOOSE app.
@@ -340,12 +285,6 @@ protected:
 
   /// Whether the mesh contains volume-based coupling
   bool _volume;
-
-  /// Underlying mesh object on which nekRS exchanges fields with MOOSE
-  const NekRSMesh* _nek_mesh;
-
-  /// Underlying executioner
-  Transient * _transient_executioner = nullptr;
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
