@@ -7,6 +7,7 @@ MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getTallyCellFilterEnum();
+MooseEnum getEigenvalueEnum();
 
 namespace order
 {
@@ -81,5 +82,17 @@ namespace coupling
     temperature,
     density_and_temperature,
     none
+  };
+}
+
+namespace eigenvalue
+{
+  /// Type of OpenMC k-eigenvalue global tally
+  enum EigenvalueEnum
+  {
+    collision,
+    absorption,
+    tracklength,
+    combined
   };
 }
