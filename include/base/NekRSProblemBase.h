@@ -49,6 +49,18 @@ public:
 
   virtual bool converged() override { return true; }
 
+  /**
+   * Whether the solve is in nondimensional form
+   * @return whether solve is in nondimensional form
+   */
+  virtual bool nondimensional() const { return _nondimensional; }
+
+  /**
+   * Whether the mesh is moving
+   * @return whether the mesh is moving
+   */
+  virtual bool movingMesh() const = 0;
+
 protected:
   /// Whether the nekRS solution is performed in nondimensional scales
   const bool & _nondimensional;

@@ -12,7 +12,7 @@
 #include "GeneralPostprocessor.h"
 #include "NekRSMesh.h"
 #include "NekInterface.h"
-#include "NekRSProblem.h"
+#include "NekRSProblemBase.h"
 
 class NekPostprocessor;
 
@@ -44,5 +44,5 @@ protected:
   const NekRSMesh * _nek_mesh;
 
   /// Underlying problem
-  const NekRSProblem * _nek_problem;
+  const NekRSProblemBase * _nek_problem;
 };

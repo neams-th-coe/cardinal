@@ -111,17 +111,7 @@ public:
    */
   virtual double minInterpolatedTemperature() const;
 
-  /**
-   * Whether the mesh is moving
-   * @return whether the mesh is moving
-   */
-  virtual bool movingMesh() const { return _moving_mesh; }
-
-  /**
-   * Whether the solve is in nondimensional form
-   * @return whether solve is in nondimensional form
-   */
-  virtual bool nondimensional() const { return _nondimensional; }
+  virtual bool movingMesh() const override { return _moving_mesh; }
 
 protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;

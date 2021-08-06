@@ -17,4 +17,6 @@ public:
   NekRSStandaloneProblem(const InputParameters & params);
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override {}
+
+  virtual bool movingMesh() const override;
 };

@@ -1,4 +1,5 @@
 #include "NekRSStandaloneProblem.h"
+#include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekRSStandaloneProblem);
 
@@ -12,4 +13,10 @@ validParams<NekRSStandaloneProblem>()
 
 NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters &params) : NekRSProblemBase(params)
 {
+}
+
+bool
+NekRSStandaloneProblem::movingMesh() const
+{
+  return nekrs::hasMovingMesh();
 }
