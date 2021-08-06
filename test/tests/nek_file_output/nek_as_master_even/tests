@@ -1,0 +1,9 @@
+[Tests]
+  [./nek_as_master_even_output]
+    type = CheckFiles
+    input = nek.i
+    check_files = 'pyramid0.f00001 pyramid0.f00002'
+    requirement = "The correct output file writing sequence shall occur based on .par settings "
+                  "when NekRS is the master application and when an even time step division occurs."
+  [../]
+[]

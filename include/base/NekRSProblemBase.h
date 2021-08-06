@@ -112,6 +112,9 @@ protected:
   /// Start time of the simulation based on NekRS's .par file
   double _start_time;
 
+  /// Whether the most recent time step was an output file writing step
+  bool _is_output_step;
+
   /**
    * Underlying mesh object on which NekRS exchanges fields with MOOSE
    * or extracts NekRS's solution for I/O features

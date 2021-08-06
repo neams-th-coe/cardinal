@@ -4,6 +4,6 @@
     input = nek.i
     check_files = 'pyramid0.f00001 pyramid0.f00002 pyramid0.f00003 pyramid0.f00004'
     requirement = "The correct output file writing sequence shall occur based on .par settings "
-                  "when NekRS is the master application."
+                  "when NekRS is the master application and when an uneven time step division occurs."
   [../]
 []

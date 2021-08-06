@@ -83,7 +83,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
 NekRSProblemBase::~NekRSProblemBase()
 {
   // write nekRS solution to output if not already written for this step
-  if (!isOutputStep())
+  if (!_is_output_step)
     nekrs::outfld(_timestepper->nondimensionalDT(_time));
 }
 
@@ -173,7 +173,9 @@ void NekRSProblemBase::externalSolve()
   // by the user.
   nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  if (isOutputStep())
+  _is_output_step = isOutputStep();
+
+  if (_is_output_step)
     nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
 
   _time += _dt;
