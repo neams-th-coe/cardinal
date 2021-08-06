@@ -8,7 +8,7 @@ template<>
 InputParameters validParams<CellTemperatureAux>()
 {
   InputParameters params = validParams<OpenMCAuxKernel>();
-  params.addClassDescription("Display the OpenMC cell temperature at each MOOSE element");
+  params.addClassDescription("Display the OpenMC cell temperature (K) at each MOOSE element");
   return params;
 }
 
