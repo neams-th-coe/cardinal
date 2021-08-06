@@ -40,7 +40,7 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
     _moving_mesh(getParam<bool>("moving_mesh")),
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
-    _has_heat_source(getParam<bool>("has_heat_source")),
+    _has_heat_source(getParam<bool>("has_heat_source"))
 {
   // will be implemented soon
   if (_moving_mesh)
@@ -61,15 +61,6 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
       mooseError("The 'minimize_transfers_in' and 'minimize_transfers_out' capabilities "
         "require that nekRS is receiving and sending data to a master application, but "
         "in your case nekRS is the master application.");
-
-  // It's too complicated to make sure that the dimensional form _also_ works when our
-  // reference coordinates are different from what MOOSE is expecting, so just throw an error
-  if (_nondimensional && !MooseUtils::absoluteFuzzyEqual(_nek_mesh->scaling(), _L_ref))
-    paramError("L_ref", "When solving in non-dimensional form, no capability exists to allow "
-      "a nondimensional solution based on reference scales that are not in the same units as the "
-      "coupled MOOSE application!\n\nIf solving nekRS in nondimensional form, you must choose "
-      "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L_ref' "
-      "must match 'scaling' in 'NekRSMesh'.");
 
   // boundary-specific data
   _boundary = _nek_mesh->boundary();
@@ -146,10 +137,6 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
 NekRSProblem::~NekRSProblem()
 {
   nekrs::freeScratch();
-
-  // write nekRS solution to output if not already written for this step
-  if (!isOutputStep())
-    nekrs::outfld(_timestepper->nondimensionalDT(_time));
 
   if (_T) free(_T);
   if (_flux_face) free(_flux_face);

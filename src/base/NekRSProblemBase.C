@@ -4,6 +4,7 @@
 #include "TimeStepper.h"
 #include "NekInterface.h"
 #include "TimedPrint.h"
+#include "MooseUtils.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -68,10 +69,22 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
     _console << "The NekRS model uses the following non-dimensional scales: " <<
       "\n length: " << _L_ref << "\n velocity: " << _U_ref << "\n temperature: " << _T_ref <<
       "\n temperature increment: " << _dT_ref << std::endl;
+
+  // It's too complicated to make sure that the dimensional form _also_ works when our
+  // reference coordinates are different from what MOOSE is expecting, so just throw an error
+  if (_nondimensional && !MooseUtils::absoluteFuzzyEqual(_nek_mesh->scaling(), _L_ref))
+    paramError("L_ref", "When solving in non-dimensional form, no capability exists to allow "
+      "a nondimensional solution based on reference scales that are not in the same units as the "
+      "coupled MOOSE application!\n\nIf solving nekRS in nondimensional form, you must choose "
+      "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L_ref' "
+      "must match 'scaling' in 'NekRSMesh'.");
 }
 
 NekRSProblemBase::~NekRSProblemBase()
 {
+  // write nekRS solution to output if not already written for this step
+  if (!isOutputStep())
+    nekrs::outfld(_timestepper->nondimensionalDT(_time));
 }
 
 void
