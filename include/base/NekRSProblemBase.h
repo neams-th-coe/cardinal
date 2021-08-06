@@ -26,6 +26,23 @@ public:
 
   ~NekRSProblemBase();
 
+  /**
+   * Optional entry point called in externalSolve() where we can adjust
+   * the NekRS solution (such as to clip out high/low values of temperature).
+   * This is called after runStep(), but before writing anything to the Nek5000
+   * backend or to output files.
+   */
+  virtual void adjustNekSolution() {}
+
+  /**
+   * \brief Whether nekRS should write an output file for the current time step
+   *
+   * A nekRS output file (suffix .f000xx) is written if the time step is an integer
+   * multiple of the output writing interval or if the time step is the last time step.
+   * \return whether to write a nekRS output file
+   **/
+  virtual bool isOutputStep() const;
+
   virtual void initialSetup() override;
 
   virtual void externalSolve() override;

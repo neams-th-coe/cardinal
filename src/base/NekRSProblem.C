@@ -22,10 +22,7 @@ validParams<NekRSProblem>()
     "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
   params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
-
-  params.addParam<std::string>("casename", "Case name for the NekRS input files; "
-    "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
-    "Can also be provided on the command line with --nekrs-setup, which will override this setting");
+  params.addParam<bool>("moving_mesh", false, "Whether we have a moving mesh problem or not");
 
   params.addParam<bool>("has_heat_source", true, "Whether a heat source will be applied to the NekRS domain. "
     "We allow this to be turned off so that we don't need to add an OCCA source kernel if we know the "
@@ -230,68 +227,13 @@ NekRSProblem::initialSetup()
     _max_T = &getPostprocessorValueByName(name);
   }
 
-  // nekRS calls UDF_ExecuteStep once before the time stepping begins
-  nekrs::udfExecuteStep(_start_time, _t_step, false /* not an output step */);
-
   // save initial mesh for moving mesh problems to match deformation in exodus output files
   if (_moving_mesh)
     nekrs::outfld(_timestepper->nondimensionalDT(_time));
 }
 
-bool
-NekRSProblem::isOutputStep() const
+void NekRSProblem::adjustNekSolution()
 {
-  if (_app.isUltimateMaster())
-  {
-    bool last_step = nekrs::lastStep(_timestepper->nondimensionalDT(_time), _t_step, 0.0 /* dummy elapsed time */);
-
-    // if Nek is controlled by a master application, then the last time step
-    // is controlled by that master application, in which case we don't want to
-    // write at what nekRS thinks is the last step (since it may or may not be
-    // the actual end step), especially because we already ensure that we write on the
-    // last time step from MOOSE's perspective in NekRSProblem's destructor.
-    if (last_step)
-      return true;
-  }
-
-  // this routine does not check if we are on the last step - just whether we have
-  // met the requested runtime or time step interval
-  return nekrs::outputStep(_timestepper->nondimensionalDT(_time), _t_step);
-}
-
-void NekRSProblem::externalSolve()
-{
-  // The _dt member of NekRSProblem reflects the time step that MOOSE wants Nek to
-  // take. For instance, if Nek is controlled by a master app and subcycling is used,
-  // Nek must advance to the time interval taken by the master app. If the time step
-  // that MOOSE wants nekRS to take (i.e. _dt) is smaller than we'd like nekRS to take, error.
-  if (_dt < _timestepper->minDT())
-    mooseError("Requested time step of " + std::to_string(_dt) + " is smaller than the minimum "
-      "time step allowed in nekRS!");
-
-  // By using the _time object on the NekRSProblemBase base class (which represents the
-  // time that we're simulating _to_, we need to pass sometimes slightly different
-  // times into the nekRS routines, which assume that the "time" passed into their
-  // routines is sometimes a different interpretation.
-  double step_start_time = _time - _dt;
-  double step_end_time = _time;
-
-  bool is_output_step = isOutputStep();
-
-  // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
-  // evaluated at (step_end_time, _t_step)
-  nekrs::runStep(_timestepper->nondimensionalDT(step_start_time),
-    _timestepper->nondimensionalDT(_dt), _t_step);
-
-  // Note: here, we copy to both the nrs solution arrays and to the Nek5000 backend arrays,
-  // because it is possible that users may interact using the legacy usr-file approach.
-  // If we move away from the Nek5000 backend entirely, we could replace this line with
-  // direct OCCA memcpy calls. But we do definitely need some type of copy here for _every_
-  // time step, even if we're not technically passing data to another app, because we have
-  // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
-  // by the user.
-  nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
-
   // limit the temperature based on user settings
   bool limit_temperature = _min_T || _max_T;
   std::string msg;
@@ -308,11 +250,6 @@ void NekRSProblem::externalSolve()
     CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, msg);
     nekrs::limitTemperature(_min_T, _max_T);
   }
-
-  if (is_output_step)
-    nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
-
-  _time += _dt;
 }
 
 bool

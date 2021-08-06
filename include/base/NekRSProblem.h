@@ -77,20 +77,15 @@ public:
   /// Get volume temperature from nekRS
   void getVolumeTemperatureFromNek();
 
-  virtual void externalSolve() override;
+  /**
+   * Adjust the NekRS solution by introducing max/min temperature clipping
+   * to help with underresolved flow
+   */
+  virtual void adjustNekSolution() override;
 
   virtual void syncSolutions(NekRSProblemBase::Direction direction) override;
 
   virtual void addExternalVariables() override;
-
-  /**
-   * \brief Whether nekRS should write an output file for the current time step
-   *
-   * A nekRS output file (suffix .f000xx) is written if the time step is an integer
-   * multiple of the output writing interval or if the time step is the last time step.
-   * \return whether to write a nekRS output file
-   **/
-  virtual bool isOutputStep() const;
 
   /**
    * Whether data should be synchronized in to nekRS
