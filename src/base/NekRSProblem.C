@@ -634,11 +634,11 @@ NekRSProblem::getVolumeTemperatureFromNek()
   nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
 }
 
-void NekRSProblem::syncSolutions(NekRSProblemBase::Direction direction)
+void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 {
   switch(direction)
   {
-    case NekRSProblemBase::Direction::TO_EXTERNAL_APP:
+    case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       if (!synchronizeIn())
       {
@@ -669,7 +669,7 @@ void NekRSProblem::syncSolutions(NekRSProblemBase::Direction direction)
       break;
     }
 
-    case NekRSProblemBase::Direction::FROM_EXTERNAL_APP:
+    case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
       if (!synchronizeOut())
       {

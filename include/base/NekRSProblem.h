@@ -83,7 +83,7 @@ public:
    */
   virtual void adjustNekSolution() override;
 
-  virtual void syncSolutions(NekRSProblemBase::Direction direction) override;
+  virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
   virtual void addExternalVariables() override;
 

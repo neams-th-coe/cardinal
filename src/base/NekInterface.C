@@ -70,6 +70,20 @@ int scalarFieldOffset()
   return nrs->cds->fieldOffset[0];
 }
 
+mesh_t * entireMesh()
+{
+  if (hasTemperatureVariable())
+    return temperatureMesh();
+  else
+    return flowMesh();
+}
+
+mesh_t * flowMesh()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  return nrs->meshV;
+}
+
 mesh_t * temperatureMesh()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
@@ -234,8 +248,6 @@ void interpolateSurfaceFaceHex3D(double* scratch, const double* I, double* x, in
 
 void displacementAndCounts(const int * base_counts, int * counts, int * displacement, const int multiplier = 1.0)
 {
-  mesh_t * mesh = temperatureMesh();
-
   for (int i = 0; i < commSize(); ++i)
     counts[i] = base_counts[i] * multiplier;
 
