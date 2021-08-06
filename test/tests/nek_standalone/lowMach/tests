@@ -1,0 +1,10 @@
+[Tests]
+  [./test]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "Cardinal shall be able to run the lowMach NekRS example with a thin wrapper. "
+                  "We add a few postprocessors (which match the screen output of NekRS) to monitor "
+                  "the final solution."
+  [../]
+[]
