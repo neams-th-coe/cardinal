@@ -31,6 +31,7 @@ NekSideExtremeValue::NekSideExtremeValue(const InputParameters & parameters) :
   _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
   _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
+  checkValidField(_field);
 }
 
 Real

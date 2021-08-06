@@ -13,6 +13,7 @@
 #include "NekRSMesh.h"
 #include "NekInterface.h"
 #include "NekRSProblemBase.h"
+#include "CardinalEnums.h"
 
 class NekPostprocessor;
 
@@ -32,6 +33,12 @@ public:
 
   virtual void initialize() override {}
   virtual void execute() override {}
+
+  /**
+   * Check whether a provided field is valid for this postprocessor
+   * @param[in] field field
+   */
+  virtual void checkValidField(const field::NekFieldEnum & field) const;
 
 protected:
   /// Base mesh this postprocessor acts on

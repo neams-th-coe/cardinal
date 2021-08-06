@@ -1,0 +1,10 @@
+[Tests]
+  [./invalid_field]
+    type = RunException
+    input = nek.i
+    expect_err = "Postprocessor with name 'max_T' cannot set 'field = temperature' because your Nek case files "
+                 "do not have a temperature variable!"
+    requirement = "The system shall throw an error if trying to use temperature postprocessors for inputs "
+                  "that don't have a temperature variable."
+  [../]
+[]

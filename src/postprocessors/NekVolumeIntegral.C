@@ -28,6 +28,7 @@ NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters) :
   NekPostprocessor(parameters),
   _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
 {
+  checkValidField(_field);
 }
 
 Real

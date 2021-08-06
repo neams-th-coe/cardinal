@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "NekSidePostprocessor.h"
+#include "NekSideIntegral.h"
 #include "CardinalEnums.h"
 
 class NekMassFluxWeightedSideIntegral;
@@ -27,7 +27,7 @@ InputParameters validParams<NekMassFluxWeightedSideIntegral>();
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekMassFluxWeightedSideIntegral : public NekSidePostprocessor
+class NekMassFluxWeightedSideIntegral : public NekSideIntegral
 {
 public:
   static InputParameters validParams();
@@ -35,9 +35,5 @@ public:
   NekMassFluxWeightedSideIntegral(const InputParameters & parameters);
 
   virtual Real getValue() override;
-
-protected:
-  /// field to integrate and weight by the mass flux
-  const field::NekFieldEnum _field;
 };
 
