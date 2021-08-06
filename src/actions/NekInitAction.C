@@ -28,7 +28,7 @@ NekInitAction::NekInitAction(const InputParameters & parameters)
 void
 NekInitAction::act()
 {
-  if (_type == "NekRSProblem" || _type == "NekProblem")
+  if (_type == "NekRSProblem" || _type == "NekProblem" || _type == "NekRSStandaloneProblem")
   {
     std::shared_ptr<CommandLine> cl = _app.commandLine();
     bool casename_on_command_line = cl->search("nekrs_setup");
@@ -59,7 +59,11 @@ NekInitAction::act()
 
     nekrs::setup(comm, build_only, size_target, ci_mode, cache_dir, setup_file,
       "" /* backend */, "" /* device ID */);
+  }
 
+  // setup actions only needed if coupling with MOOSE
+  if (_type == "NekRSProblem" || _type == "NekProblem")
+  {
     // First check we should do is that a temperature variable exists, or else many
     // of our indexes into `nrs->cds` would give seg faults
     if (!nekrs::hasTemperatureVariable())
