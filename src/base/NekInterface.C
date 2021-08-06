@@ -483,7 +483,7 @@ void flux(const int elem_id, const int order, double * flux_face)
 
 void save_initial_mesh()
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
   double no_of_nodes = mesh->Nelements * mesh->Np;
 
   initial_mesh_x = (double* ) calloc(no_of_nodes, sizeof(double));
@@ -679,7 +679,7 @@ void copyDeformationToDevice()
 
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double value = -std::numeric_limits<double>::max();
 
@@ -715,7 +715,7 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
 double volumeMaxValue(const field::NekFieldEnum & field)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double value = -std::numeric_limits<double>::max();
 
@@ -745,7 +745,7 @@ double volumeMaxValue(const field::NekFieldEnum & field)
 
 double volumeMinValue(const field::NekFieldEnum & field)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double value = std::numeric_limits<double>::max();
 
@@ -775,7 +775,7 @@ double volumeMinValue(const field::NekFieldEnum & field)
 
 double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double value = std::numeric_limits<double>::max();
 
@@ -812,7 +812,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
 double volume()
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double integral = 0.0;
 
@@ -836,7 +836,7 @@ double volume()
 
 double volumeIntegral(const field::NekFieldEnum & integrand)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double integral = 0.0;
 
@@ -870,7 +870,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
 
 double area(const std::vector<int> & boundary_id)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double integral = 0.0;
 
@@ -900,7 +900,7 @@ double area(const std::vector<int> & boundary_id)
 
 double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   double integral = 0.0;
 
@@ -941,7 +941,7 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
 double massFlowrate(const std::vector<int> & boundary_id)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
@@ -985,7 +985,7 @@ double massFlowrate(const std::vector<int> & boundary_id)
 double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   // TODO: This function only works correctly if the density is constant, because
   // otherwise we need to copy the density from device to host
@@ -1149,7 +1149,7 @@ namespace mesh
 
 int boundary_id(const int elem_id, const int face_id)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
   return nek_volume_coupling.boundary[elem_id * mesh->Nfaces + face_id];
 }
 
@@ -1170,12 +1170,12 @@ const std::string temperatureBoundaryType(const int boundary)
 
 int polynomialOrder()
 {
-  return temperatureMesh()->N;
+  return entireMesh()->N;
 }
 
 int Nelements()
 {
-  int n_local = temperatureMesh()->Nelements;
+  int n_local = entireMesh()->Nelements;
   int n_global;
   MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   return n_global;
@@ -1183,27 +1183,27 @@ int Nelements()
 
 int Nfaces()
 {
-  return temperatureMesh()->Nfaces;
+  return entireMesh()->Nfaces;
 }
 
 int dim()
 {
-  return temperatureMesh()->dim;
+  return entireMesh()->dim;
 }
 
 int NfaceVertices()
 {
-  return temperatureMesh()->NfaceVertices;
+  return entireMesh()->NfaceVertices;
 }
 
 int NboundaryFaces()
 {
-  return temperatureMesh()->NboundaryFaces;
+  return entireMesh()->NboundaryFaces;
 }
 
 int NboundaryID()
 {
-  if (temperatureMesh()->cht)
+  if (entireMesh()->cht)
     return nekData.NboundaryIDt;
   else
     return nekData.NboundaryID;
@@ -1238,7 +1238,7 @@ int BoundaryElemProcessorID(const int elem_id)
 
 void storeVolumeCoupling(int& N)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   nek_volume_coupling.n_elems = mesh->Nelements;
   MPI_Allreduce(&nek_volume_coupling.n_elems, &N, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
