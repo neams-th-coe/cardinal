@@ -38,14 +38,14 @@
   []
   [x_velocity_average]
     type = NekVolumeAverage
-    field = x_velocity
+    field = velocity_x
   []
   [y_velocity_average]
     type = NekVolumeAverage
-    field = y_velocity
+    field = velocity_y
   []
   [z_velocity_average]
     type = NekVolumeAverage
-    field = z_velocity
+    field = velocity_z
   []
 []

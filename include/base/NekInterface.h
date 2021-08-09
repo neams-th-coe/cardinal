@@ -606,21 +606,21 @@ double unity(const int id);
  * @param[in] id GLL index
  * @return x-velocity at index
  */
-double x_velocity(const int id);
+double velocity_x(const int id);
 
 /**
  * Get the y-velocity at given GLL index
  * @param[in] id GLL index
  * @return y-velocity at index
  */
-double y_velocity(const int id);
+double velocity_y(const int id);
 
 /**
  * Get the z-velocity at given GLL index
  * @param[in] id GLL index
  * @return z-velocity at index
  */
-double z_velocity(const int id);
+double velocity_z(const int id);
 
 /**
  * Get the magnitude of the velocity solution at given GLL index
