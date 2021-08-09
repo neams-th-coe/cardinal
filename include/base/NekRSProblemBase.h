@@ -49,6 +49,10 @@ public:
 
   virtual bool converged() override { return true; }
 
+  virtual void addExternalVariables() override;
+
+  virtual void syncSolutions(ExternalProblem::Direction direction) override;
+
   /**
    * Whether the solve is in nondimensional form
    * @return whether solve is in nondimensional form
@@ -62,6 +66,24 @@ public:
   virtual bool movingMesh() const = 0;
 
 protected:
+  /**
+   * Fill an outgoing auxiliary variable field with nekRS solution data
+   * \param[in] var_number auxiliary variable number
+   * \param[in] value nekRS solution data to fill the variable with
+   */
+  virtual void fillAuxVariable(const unsigned int var_number, const double * value);
+
+  /**
+   * Extract user-specified parts of the NekRS CFD solution onto the mesh mirror
+   */
+  virtual void extractOutputs();
+
+  /**
+   * Get the parameters for the external variables to be added
+   * @return external variable parameters
+   */
+  virtual InputParameters getExternalVariableParameters();
+
   /// Whether the nekRS solution is performed in nondimensional scales
   const bool & _nondimensional;
 
@@ -109,6 +131,30 @@ protected:
   const Real & _Cp_0;
   //@}
 
+  /// Number of surface elements in the data transfer mesh, across all processes
+  int _n_surface_elems;
+
+  /// Number of vertices per surface element of the transfer mesh
+  int _n_vertices_per_surface;
+
+  /// Number of volume elements in the data transfer mesh, across all processes
+  int _n_volume_elems;
+
+  /// Number of vertices per volume element of the transfer mesh
+  int _n_vertices_per_volume;
+
+  /// Number of elements in the data transfer mesh, which depends on whether boundary/volume coupling
+  int _n_elems;
+
+  /// Number of vertices per element in the data transfer mesh, which depends on whether boundary/volume coupling
+  int _n_vertices_per_elem;
+
+  /// Boundary IDs through which to couple nekRS and MOOSE
+  const std::vector<int> * _boundary = nullptr;
+
+  /// Whether the mesh contains volume-based coupling
+  bool _volume;
+
   /// Start time of the simulation based on NekRS's .par file
   double _start_time;
 
@@ -126,4 +172,25 @@ protected:
 
   /// Underlying executioner
   Transient * _transient_executioner = nullptr;
+
+  /**
+   * Whether an interpolation needs to be performed on the nekRS temperature solution, or
+   * if we can just grab the solution at specified points
+   */
+  bool _needs_interpolation;
+
+  /// NekRS solution fields to output to the mesh mirror
+  const MultiMooseEnum * _outputs = nullptr;
+
+  /// Names of external variables when extracting the NekRS solution
+  std::vector<std::string> _var_names;
+
+  /// Numeric identifiers for the external variables
+  std::vector<unsigned int> _external_vars;
+
+  /// Scratch space to place external NekRS fields before writing into auxiliary variables
+  double * _external_data = nullptr;
+
+  /// Number of points for interpolated fields on the MOOSE mesh
+  int _n_points;
 };

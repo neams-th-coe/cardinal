@@ -25,6 +25,10 @@ validParams<NekRSProblemBase>()
   params.addRangeCheckedParam<Real>("L_ref", 1.0, "L_ref > 0.0", "Reference length scale value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("rho_0", 1.0, "rho_0 > 0.0", "Density parameter value for non-dimensional solution");
   params.addRangeCheckedParam<Real>("Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
+
+  MultiMooseEnum nek_outputs("temperature pressure velocity");
+  params.addParam<MultiMooseEnum>("output", nek_outputs, "Field(s) to output from NekRS onto the mesh mirror");
+
   return params;
 }
 
@@ -38,6 +42,10 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   _Cp_0(getParam<Real>("Cp_0")),
   _start_time(nekrs::startTime())
 {
+  // will be supported in the future, but it's just not implemented yet
+  if (nekrs::hasCHT())
+    mooseError("Cardinal does not yet support running NekRS inputs with conjugate heat transfer!");
+
   _nek_mesh = dynamic_cast<NekRSMesh*>(&mesh());
 
   if (!_nek_mesh)
@@ -78,6 +86,43 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
       "coupled MOOSE application!\n\nIf solving nekRS in nondimensional form, you must choose "
       "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L_ref' "
       "must match 'scaling' in 'NekRSMesh'.");
+
+  // boundary-specific data
+  _boundary = _nek_mesh->boundary();
+  _n_surface_elems = _nek_mesh->numSurfaceElems();
+  _n_vertices_per_surface = _nek_mesh->numVerticesPerSurface();
+
+  // volume-specific data
+  _volume = _nek_mesh->volume();
+  _n_volume_elems = _nek_mesh->numVolumeElems();
+  _n_vertices_per_volume = _nek_mesh->numVerticesPerVolume();
+
+  // generic data
+  _n_elems = _nek_mesh->numElems();
+  _n_vertices_per_elem = _nek_mesh->numVerticesPerElem();
+
+  if (_volume)
+    _n_points = _n_volume_elems * _n_vertices_per_volume;
+  else
+    _n_points = _n_surface_elems * _n_vertices_per_surface;
+
+  nekrs::initializeInterpolationMatrices(_nek_mesh->numQuadraturePoints1D());
+
+  // we can save some effort for the low-order situations where the interpolation
+  // matrix is the identity matrix (i.e. for which equi-spaced libMesh nodes are an
+  // exact subset of the nekRS GLL points). This will happen for any first-order mesh,
+  // and if a second-order mesh is used with a polynomial order of 2 in nekRS. Because
+  // we pretty much always use a polynomial order greater than 2 in nekRS, let's just
+  // check the first case because this will simplify our code in the nekrs::boundarySolution
+  // function. If you change this line, you MUST change the innermost if/else statement
+  // in nekrs::boundarySolution!
+  _needs_interpolation = _nek_mesh->numQuadraturePoints1D() > 2;
+
+  if (isParamValid("output"))
+  {
+    _outputs = &getParam<MultiMooseEnum>("output");
+    _external_data = (double*) calloc(_n_points, sizeof(double));
+  }
 }
 
 NekRSProblemBase::~NekRSProblemBase()
@@ -85,6 +130,48 @@ NekRSProblemBase::~NekRSProblemBase()
   // write nekRS solution to output if not already written for this step
   if (!_is_output_step)
     nekrs::outfld(_timestepper->nondimensionalDT(_time));
+
+  if (_external_data) free(_external_data);
+}
+
+void
+NekRSProblemBase::fillAuxVariable(const unsigned int var_number, const double * value)
+{
+  auto & solution = _aux->solution();
+  auto sys_number = _aux->number();
+  auto pid = _communicator.rank();
+
+  for (unsigned int e = 0; e < _n_elems; e++)
+  {
+    auto elem_ptr = _nek_mesh->queryElemPtr(e);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+    {
+      libmesh_assert(!_nek_mesh->getMesh().is_serial());
+      continue;
+    }
+
+    for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
+      // vertex is "owned" by the present MOOSE process.
+      if (node_ptr->processor_id() == pid)
+      {
+        int node_index = _nek_mesh->nodeIndex(n);
+        auto node_offset = e * _n_vertices_per_elem + node_index;
+
+        // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary system
+        auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
+        solution.set(dof_idx, value[node_offset]);
+      }
+    }
+  }
+
+  solution.close();
 }
 
 void
@@ -181,6 +268,24 @@ void NekRSProblemBase::externalSolve()
   _time += _dt;
 }
 
+void
+NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
+{
+  switch (direction)
+  {
+    case ExternalProblem::Direction::TO_EXTERNAL_APP:
+      return;
+    case ExternalProblem::Direction::FROM_EXTERNAL_APP:
+    {
+      // extract the NekRS solution onto the mesh mirror, if specified
+      extractOutputs();
+      return;
+    }
+    default:
+      mooseError("Unhandled Transfer::DIRECTION enum!");
+  }
+}
+
 bool
 NekRSProblemBase::isOutputStep() const
 {
@@ -200,4 +305,99 @@ NekRSProblemBase::isOutputStep() const
   // this routine does not check if we are on the last step - just whether we have
   // met the requested runtime or time step interval
   return nekrs::outputStep(_timestepper->nondimensionalDT(_time), _t_step);
+}
+
+void
+NekRSProblemBase::extractOutputs()
+{
+  if (_outputs)
+  {
+    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Interpolating NekRS solution onto mesh mirror");
+
+    for (std::size_t i = 0; i < _var_names.size(); ++i)
+    {
+      field::NekFieldEnum field_enum;
+
+      if (_var_names[i] == "temp")
+        field_enum = field::temperature;
+      else if (_var_names[i] == "pressure")
+        field_enum = field::pressure;
+      else if (_var_names[i] == "velocity_x")
+        field_enum = field::velocity_x;
+      else if (_var_names[i] == "velocity_y")
+        field_enum = field::velocity_y;
+      else if (_var_names[i] == "velocity_z")
+        field_enum = field::velocity_z;
+      else
+        mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
+
+      nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+      fillAuxVariable(_external_vars[i], _external_data);
+    }
+  }
+}
+
+InputParameters
+NekRSProblemBase::getExternalVariableParameters()
+{
+  InputParameters var_params = _factory.getValidParams("MooseVariable");
+  var_params.set<MooseEnum>("family") = "LAGRANGE";
+
+  switch (_nek_mesh->order())
+  {
+    case order::first:
+      var_params.set<MooseEnum>("order") = "FIRST";
+      break;
+    case order::second:
+      var_params.set<MooseEnum>("order") = "SECOND";
+      break;
+    default:
+      mooseError("Unhandled 'NekOrderEnum' in 'NekRSProblemBase'!");
+  }
+
+  return var_params;
+}
+
+void
+NekRSProblemBase::addExternalVariables()
+{
+  if (_outputs)
+  {
+    auto var_params = getExternalVariableParameters();
+
+    for (std::size_t i = 0; i < _outputs->size(); ++i)
+    {
+      std::string output = (*_outputs)[i];
+
+      if (output == "temperature")
+      {
+        if (!nekrs::hasTemperatureVariable())
+          mooseError("Cannot set 'output = temperature' for '" + type() + "' because "
+            "your Nek case files do not have a temperature variable!");
+
+        // For the special case of temperature, we want the variable name to be
+        // 'temp' instead of 'temperature' due to legacy reasons of what NekRSProblem
+        // chose to name the temperature variable. For everything else, we just use
+        // the name of the output parameter. We also need to check that temperature
+        // exists in the problem
+        _var_names.push_back("temp");
+      }
+      else if (output == "velocity")
+      {
+        // For the velocity, we need to explicitly output each component; Paraview
+        // will then combine the components together into a vector
+        _var_names.push_back(output + "_x");
+        _var_names.push_back(output + "_y");
+        _var_names.push_back(output + "_z");
+      }
+      else
+        _var_names.push_back(output);
+    }
+
+    for (const auto & name : _var_names)
+    {
+      addAuxVariable("MooseVariable", name, var_params);
+      _external_vars.push_back(_aux->getFieldVariable<Real>(0, name).number());
+    }
+  }
 }

@@ -62,40 +62,23 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
         "require that nekRS is receiving and sending data to a master application, but "
         "in your case nekRS is the master application.");
 
-  // boundary-specific data
-  _boundary = _nek_mesh->boundary();
-  _n_surface_elems = _nek_mesh->numSurfaceElems();
-  _n_vertices_per_surface = _nek_mesh->numVerticesPerSurface();
-
-  // volume-specific data
-  _volume = _nek_mesh->volume();
-  _n_volume_elems = _nek_mesh->numVolumeElems();
-  _n_vertices_per_volume = _nek_mesh->numVerticesPerVolume();
-
-  // generic data
-  _n_elems = _nek_mesh->numElems();
-  _n_vertices_per_elem = _nek_mesh->numVerticesPerElem();
-
   // Depending on the type of coupling, initialize various problem parameters
   if (_boundary && !_volume) // only boundary coupling
   {
     _incoming = "boundary heat flux";
     _outgoing = "boundary temperature";
-    _n_points = _n_surface_elems * _n_vertices_per_surface;
     _flux_face = (double *) calloc(_n_vertices_per_surface, sizeof(double));
   }
   else if (_volume && !_boundary) // only volume coupling
   {
     _incoming = "volume power density";
     _outgoing = "volume temperature";
-    _n_points = _n_volume_elems * _n_vertices_per_volume;
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
   else // both volume and boundary coupling
   {
     _incoming = "boundary heat flux and volume power density";
     _outgoing = "volume temperature";
-    _n_points = _n_volume_elems * _n_vertices_per_volume;
     _flux_elem = (double *) calloc(_n_vertices_per_volume, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
@@ -120,18 +103,6 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
 
   // regardless of the boundary/volume coupling, we will always exchange temperature
   _T = (double*) calloc(_n_points, sizeof(double));
-
-  nekrs::initializeInterpolationMatrices(_nek_mesh->numQuadraturePoints1D());
-
-  // we can save some effort for the low-order situations where the interpolation
-  // matrix is the identity matrix (i.e. for which equi-spaced libMesh nodes are an
-  // exact subset of the nekRS GLL points). This will happen for any first-order mesh,
-  // and if a second-order mesh is used with a polynomial order of 2 in nekRS. Because
-  // we pretty much always use a polynomial order greater than 2 in nekRS, let's just
-  // check the first case because this will simplify our code in the nekrs::boundarySolution
-  // function. If you change this line, you MUST change the innermost if/else statement
-  // in nekrs::boundarySolution!
-  _needs_interpolation = _nek_mesh->numQuadraturePoints1D() > 2;
 }
 
 NekRSProblem::~NekRSProblem()
@@ -572,46 +543,6 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 }
 
 void
-NekRSProblem::fillAuxVariable(const unsigned int var_number, const double * value)
-{
-  auto & solution = _aux->solution();
-  auto sys_number = _aux->number();
-  auto pid = _communicator.rank();
-
-  for (unsigned int e = 0; e < _n_elems; e++)
-  {
-    auto elem_ptr = _nek_mesh->queryElemPtr(e);
-
-    // Only work on elements we can find on our local chunk of a
-    // distributed mesh
-    if (!elem_ptr)
-      {
-        libmesh_assert(!_nek_mesh->getMesh().is_serial());
-        continue;
-      }
-
-    for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
-    {
-      auto node_ptr = elem_ptr->node_ptr(n);
-
-      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
-      // vertex is "owned" by the present MOOSE process.
-      if (node_ptr->processor_id() == pid)
-      {
-        int node_index = _nek_mesh->nodeIndex(n);
-        auto node_offset = e * _n_vertices_per_elem + node_index;
-
-        // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary system
-        auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
-        solution.set(dof_idx, value[node_offset]);
-      }
-    }
-  }
-
-  solution.close();
-}
-
-void
 NekRSProblem::getBoundaryTemperatureFromNek()
 {
   CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Extracting nekRS temperature from boundary " + Moose::stringify(*_boundary));
@@ -691,6 +622,13 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       _console << " Interpolated temperature min/max values: " <<
         minInterpolatedTemperature() << ", " << maxInterpolatedTemperature() << std::endl;
 
+      // extract all outputs (except temperature, which we did separately here). We could
+      // have simply called the base class NekRSProblemBase::syncSolutions to do this, but
+      // putting this here lets us use a consistent setting for the minimize transfers feature,
+      // if used (otherwise, the 'temp' variable could be extracted on a different frequency
+      // than other specifications, such as pressure or mu_t.
+      extractOutputs();
+
       break;
     }
     default:
@@ -723,29 +661,25 @@ NekRSProblem::minInterpolatedTemperature() const
 void
 NekRSProblem::addExternalVariables()
 {
-  auto var_params = _factory.getValidParams("MooseVariable");
-  var_params.set<MooseEnum>("family") = "LAGRANGE";
+  NekRSProblemBase::addExternalVariables();
+  auto var_params = getExternalVariableParameters();
 
-  switch (_nek_mesh->order())
+  // We always need to add temperature, but we might have already added it in the
+  // base class via the 'output' parameter. If the base class added temperature, then
+  // we need to get the number of that variable. Otherwise, we add temperature here.
+  bool base_added_temperature = _outputs ? std::count(_outputs->begin(), _outputs->end(), "temperature") : false;
+
+  if (base_added_temperature)
   {
-    case order::first:
-      var_params.set<MooseEnum>("order") = "FIRST";
-      break;
-    case order::second:
-      var_params.set<MooseEnum>("order") = "SECOND";
-      break;
-    default:
-      mooseError("Unhandled 'NekOrderEnum' in 'NekRSProblem'!");
+    for (std::size_t i = 0; i < _outputs->size(); ++i)
+      if ((*_outputs)[i] == "temperature")
+        _temp_var = _external_vars[i];
   }
-
-  // Because this temperature represents the reconstruction of nekRS's temperature
-  // onto the NekRSMesh, we set the order to match the desired order of the mesh.
-  // Note that this does _not_ imply anything about the order of the temperature
-  // variable in the MOOSE app (such as BISON) coupled to nekRS. This is just the
-  // variable that nekRS writes into, and then MOOSE's transfer classes can handle
-  // any additional interpolations needed from 'temp' into the receiving-app's fields.
-  addAuxVariable("MooseVariable", "temp", var_params);
-  _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
+  else
+  {
+    addAuxVariable("MooseVariable", "temp", var_params);
+    _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
+  }
 
   if (_boundary)
   {

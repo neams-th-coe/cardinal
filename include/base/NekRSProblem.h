@@ -55,13 +55,6 @@ public:
    */
   virtual void initialSetup() override;
 
-  /**
-   * Fill an outgoing auxiliary variable field with nekRS solution data
-   * \param[in] var_number auxiliary variable number
-   * \param[in] value nekRS solution data to fill the variable with
-   */
-  virtual void fillAuxVariable(const unsigned int var_number, const double * value);
-
   /// Send boundary heat flux to nekRS
   void sendBoundaryHeatFluxToNek();
 
@@ -241,42 +234,9 @@ protected:
   /// Descriptive string for data transfer coming from nekRS
   std::string _outgoing;
 
-  /// Number of points for interpolated fields (temperature, density) on the MOOSE mesh
-  int _n_points;
-
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
 
-  /// Number of surface elements in the data transfer mesh, across all processes
-  int _n_surface_elems;
-
-  /// Number of vertices per surface element of the transfer mesh
-  int _n_vertices_per_surface;
-
-  /// Number of volume elements in the data transfer mesh, across all processes
-  int _n_volume_elems;
-
-  /// Number of vertices per volume element of the transfer mesh
-  int _n_vertices_per_volume;
-
-  /// Number of elements in the data transfer mesh, which depends on whether boundary/volume coupling
-  int _n_elems;
-
-  /// Number of vertices per element in the data transfer mesh, which depends on whether boundary/volume coupling
-  int _n_vertices_per_elem;
-
-  /// Boundary IDs through which to couple nekRS and MOOSE
-  const std::vector<int> * _boundary = nullptr;
-
-  /// Whether the mesh contains volume-based coupling
-  bool _volume;
-
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
-
-  /**
-   * Whether an interpolation needs to be performed on the nekRS temperature solution, or
-   * if we can just grab the solution at specified points
-   */
-  bool _needs_interpolation;
 };
