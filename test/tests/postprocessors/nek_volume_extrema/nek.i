@@ -57,32 +57,32 @@
   []
   [max_x_velocity]
     type = NekVolumeExtremeValue
-    field = x_velocity
+    field = velocity_x
     value_type = max
   []
   [min_x_velocity]
     type = NekVolumeExtremeValue
-    field = x_velocity
+    field = velocity_x
     value_type = min
   []
   [max_y_velocity]
     type = NekVolumeExtremeValue
-    field = y_velocity
+    field = velocity_y
     value_type = max
   []
   [min_y_velocity]
     type = NekVolumeExtremeValue
-    field = y_velocity
+    field = velocity_y
     value_type = min
   []
   [max_z_velocity]
     type = NekVolumeExtremeValue
-    field = z_velocity
+    field = velocity_z
     value_type = max
   []
   [min_z_velocity]
     type = NekVolumeExtremeValue
-    field = z_velocity
+    field = velocity_z
     value_type = min
   []
 []

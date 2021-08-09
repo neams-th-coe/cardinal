@@ -18,7 +18,7 @@ NekMassFluxWeightedSideIntegral::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(),
-    "Field, multiplied by mass flux, to integrate; options: x_velocity, y_velocity, z_velocity, "
+    "Field, multiplied by mass flux, to integrate; options: velocity_x, velocity_y, velocity_z, "
     "velocity, temperature, pressure, unity");
   params.addClassDescription("Compute mass flux weighted integral of a field over a boundary of the NekRS mesh");
   return params;

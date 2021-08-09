@@ -1508,19 +1508,19 @@ namespace solution
     return 1.0;
   }
 
-  double x_velocity(const int id)
+  double velocity_x(const int id)
   {
     nrs_t * nrs = (nrs_t *) nrsPtr();
     return nrs->U[id + 0 * nrs->fieldOffset];
   }
 
-  double y_velocity(const int id)
+  double velocity_y(const int id)
   {
     nrs_t * nrs = (nrs_t *) nrsPtr();
     return nrs->U[id + 1 * nrs->fieldOffset];
   }
 
-  double z_velocity(const int id)
+  double velocity_z(const int id)
   {
     nrs_t * nrs = (nrs_t *) nrsPtr();
     return nrs->U[id + 2 * nrs->fieldOffset];
@@ -1573,14 +1573,14 @@ namespace solution
 
     switch (field)
     {
-      case field::x_velocity:
-        f = &solution::x_velocity;
+      case field::velocity_x:
+        f = &solution::velocity_x;
         break;
-      case field::y_velocity:
-        f = &solution::y_velocity;
+      case field::velocity_y:
+        f = &solution::velocity_y;
         break;
-      case field::z_velocity:
-        f = &solution::z_velocity;
+      case field::velocity_z:
+        f = &solution::velocity_z;
         break;
       case field::velocity:
         f = &solution::velocity;
@@ -1661,13 +1661,13 @@ namespace solution
   {
     switch (field)
     {
-      case field::x_velocity:
+      case field::velocity_x:
         value = value * scales.U_ref;
         break;
-      case field::y_velocity:
+      case field::velocity_y:
         value = value * scales.U_ref;
         break;
-      case field::z_velocity:
+      case field::velocity_z:
         value = value * scales.U_ref;
         break;
       case field::velocity:

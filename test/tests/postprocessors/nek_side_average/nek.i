@@ -147,122 +147,122 @@
   []
   [x_velocity_avg1]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '1'
   []
   [x_velocity_avg2]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '2'
   []
   [x_velocity_avg3]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '3'
   []
   [x_velocity_avg4]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '4'
   []
   [x_velocity_avg5]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '5'
   []
   [x_velocity_avg6]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '6'
   []
   [x_velocity_avg7]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '7'
   []
   [x_velocity_avg8]
     type = NekSideAverage
-    field = x_velocity
+    field = velocity_x
     boundary = '8'
   []
   [y_velocity_avg1]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '1'
   []
   [y_velocity_avg2]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '2'
   []
   [y_velocity_avg3]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '3'
   []
   [y_velocity_avg4]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '4'
   []
   [y_velocity_avg5]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '5'
   []
   [y_velocity_avg6]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '6'
   []
   [y_velocity_avg7]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '7'
   []
   [y_velocity_avg8]
     type = NekSideAverage
-    field = y_velocity
+    field = velocity_y
     boundary = '8'
   []
   [z_velocity_avg1]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '1'
   []
   [z_velocity_avg2]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '2'
   []
   [z_velocity_avg3]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '3'
   []
   [z_velocity_avg4]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '4'
   []
   [z_velocity_avg5]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '5'
   []
   [z_velocity_avg6]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '6'
   []
   [z_velocity_avg7]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '7'
   []
   [z_velocity_avg8]
     type = NekSideAverage
-    field = z_velocity
+    field = velocity_z
     boundary = '8'
   []
 []
