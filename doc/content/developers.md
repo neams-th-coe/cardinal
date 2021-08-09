@@ -35,9 +35,9 @@ don't necessarily set up during Cardinal's build process. In the Cardinal `Makef
 update the `NEKRS_VERSION`, `NEKRS_SUBVERSION`, and `GITCOMMITHASH` that are used to
 print the NekRS version at the start of the NekRS initialization. The two
 NekRS version macros can be found in the `build/nekrs/CMakeCache.txt` file that is created
-after compiling Cardinal. Set `NEKRS_VERSION` to the value of `CMAKE_PROJECT_VERSION_MAJOR`
+after configuring Cardinal. Set `NEKRS_VERSION` to the value of `CMAKE_PROJECT_VERSION_MAJOR`
 and set `NEKRS_SUBVERSION` to the value of `CMAKE_PROJECT_VERSION_MINOR`. Finally, set
-`GITCOMMITHASH` to the
+`GITCOMMITHASH` to the hash 
 of the main NekRS repository that you just updated to. All three of `NEKRS_VERSION`, `NEKRS_SUBVERSION`,
 and `GITCOMMITHASH` are added to `CXXFLAGS` in Cardinal's `Makefile`.
 
