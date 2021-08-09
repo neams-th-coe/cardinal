@@ -7,4 +7,12 @@
     requirement = "The system shall throw an error if trying to use temperature postprocessors for inputs "
                   "that don't have a temperature variable."
   [../]
+  [./invalid_output]
+    type = RunException
+    input = nek.i
+    expect_err = "Cannot set 'output = temperature' for 'NekRSStandaloneProblem' because your Nek case files "
+                 "do not have a temperature variable!"
+    requirement = "The system shall throw an error if trying to output temperature for inputs "
+                  "that don't have a temperature variable."
+  [../]
 []
