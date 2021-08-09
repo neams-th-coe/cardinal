@@ -17,9 +17,12 @@ InputParameters
 NekSideExtremeValue::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
-  params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to find the extreme value of");
+  params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(),
+    "Field to find the extreme value of; options: x_velocity, y_velocity, z_velocity, "
+    "velocity, temperature, pressure, unity");
   params.addParam<MooseEnum>("value_type", getOperationEnum(),
     "Whether to give the maximum or minimum extreme value; options: 'max' (default), 'min'");
+  params.addClassDescription("Compute the extreme value (max/min) of a field over a boundary of the NekRS mesh");
   return params;
 }
 
