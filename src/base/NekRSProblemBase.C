@@ -331,7 +331,12 @@ NekRSProblemBase::extractOutputs()
       else
         mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
 
-      nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+      if (!_volume)
+        nekrs::boundarySolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+
+      if (_volume)
+        nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+
       fillAuxVariable(_external_vars[i], _external_data);
     }
   }
