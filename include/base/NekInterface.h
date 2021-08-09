@@ -16,6 +16,12 @@ namespace nekrs
 {
 
 /**
+ * Whether nekRS's input file has CHT
+ * @return whether nekRS input files model CHT
+ */
+bool hasCHT();
+
+/**
  * Whether nekRS's input file indicates a moving mesh
  * @return whether nekRS's input file indicates a moving mesh
  */

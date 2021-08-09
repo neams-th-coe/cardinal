@@ -320,13 +320,13 @@ NekRSProblemBase::extractOutputs()
 
       if (_var_names[i] == "temp")
         field_enum = field::temperature;
-      else if (_var_names[i] == "pressure")
+      else if (_var_names[i] == "P")
         field_enum = field::pressure;
-      else if (_var_names[i] == "velocity_x")
+      else if (_var_names[i] == "vel_x")
         field_enum = field::velocity_x;
-      else if (_var_names[i] == "velocity_y")
+      else if (_var_names[i] == "vel_y")
         field_enum = field::velocity_y;
-      else if (_var_names[i] == "velocity_z")
+      else if (_var_names[i] == "vel_z")
         field_enum = field::velocity_z;
       else
         mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
@@ -386,12 +386,12 @@ NekRSProblemBase::addExternalVariables()
       {
         // For the velocity, we need to explicitly output each component; Paraview
         // will then combine the components together into a vector
-        _var_names.push_back(output + "_x");
-        _var_names.push_back(output + "_y");
-        _var_names.push_back(output + "_z");
+        _var_names.push_back("vel_x");
+        _var_names.push_back("vel_y");
+        _var_names.push_back("vel_z");
       }
-      else
-        _var_names.push_back(output);
+      else if (output == "pressure")
+        _var_names.push_back("P");
     }
 
     for (const auto & name : _var_names)

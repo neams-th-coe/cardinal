@@ -37,7 +37,7 @@
   []
   [max_Vx_output]
     type = NodalExtremeValue
-    variable = velocity_x
+    variable = vel_x
     value_type = max
   []
   [max_Vx_diff]
@@ -53,7 +53,7 @@
   []
   [min_Vx_output]
     type = NodalExtremeValue
-    variable = velocity_x
+    variable = vel_x
     value_type = min
   []
   [min_Vx_diff]
@@ -69,7 +69,7 @@
   []
   [max_Vy_output]
     type = NodalExtremeValue
-    variable = velocity_y
+    variable = vel_y
     value_type = max
   []
   [max_Vy_diff]
@@ -85,7 +85,7 @@
   []
   [min_Vy_output]
     type = NodalExtremeValue
-    variable = velocity_y
+    variable = vel_y
     value_type = min
   []
 
@@ -96,7 +96,7 @@
   []
   [max_p_output]
     type = NodalExtremeValue
-    variable = pressure
+    variable = P
     value_type = max
   []
   [max_p_diff]
@@ -112,7 +112,7 @@
   []
   [min_p_output]
     type = NodalExtremeValue
-    variable = pressure
+    variable = P
     value_type = min
   []
   [min_p_diff]
@@ -157,7 +157,7 @@
   []
   [max_Vx_side_output]
     type = NodalExtremeValue
-    variable = velocity_x
+    variable = vel_x
     value_type = max
     boundary = '1'
   []
@@ -175,7 +175,7 @@
   []
   [max_Vy_side_output]
     type = NodalExtremeValue
-    variable = velocity_y
+    variable = vel_y
     value_type = max
     boundary = '1'
   []
@@ -193,7 +193,7 @@
   []
   [min_Vx_side_output]
     type = NodalExtremeValue
-    variable = velocity_x
+    variable = vel_x
     value_type = min
     boundary = '1'
   []
@@ -211,7 +211,7 @@
   []
   [min_Vy_side_output]
     type = NodalExtremeValue
-    variable = velocity_y
+    variable = vel_y
     value_type = min
     boundary = '1'
   []
@@ -229,7 +229,7 @@
   []
   [max_p_side_output]
     type = NodalExtremeValue
-    variable = pressure
+    variable = P
     value_type = max
     boundary = '1'
   []
@@ -247,7 +247,7 @@
   []
   [min_p_side_output]
     type = NodalExtremeValue
-    variable = pressure
+    variable = P
     value_type = min
     boundary = '1'
   []
@@ -263,7 +263,7 @@
   []
   [avg_p_output]
     type = ElementAverageValue
-    variable = pressure
+    variable = P
   []
   [avg_p_diff]
     type = DifferencePostprocessor
@@ -277,7 +277,7 @@
   []
   [avg_Vx_output]
     type = ElementAverageValue
-    variable = velocity_x
+    variable = vel_x
   []
   [avg_Vx_diff]
     type = DifferencePostprocessor
@@ -291,7 +291,7 @@
   []
   [avg_Vy_output]
     type = ElementAverageValue
-    variable = velocity_y
+    variable = vel_y
   []
   [avg_Vy_diff]
     type = DifferencePostprocessor
@@ -306,7 +306,7 @@
   []
   [avg_Vx_side_output]
     type = SideAverageValue
-    variable = velocity_x
+    variable = vel_x
     boundary = '1'
   []
   [avg_Vx_side_diff]
@@ -322,7 +322,7 @@
   []
   [avg_Vy_side_output]
     type = SideAverageValue
-    variable = velocity_y
+    variable = vel_y
     boundary = '1'
   []
   [avg_Vy_side_diff]
@@ -338,7 +338,7 @@
   []
   [avg_p_side_output]
     type = SideAverageValue
-    variable = pressure
+    variable = P
     boundary = '1'
   []
   [avg_p_side_diff]

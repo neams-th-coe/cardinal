@@ -28,6 +28,11 @@ namespace nekrs
 constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
 
+bool hasCHT()
+{
+  return entireMesh()->cht;
+}
+
 bool hasMovingMesh()
 {
   return platform->options.compareArgs("MOVING MESH", "TRUE");
@@ -175,7 +180,7 @@ void interpolationMatrix(double * I, int starting_points, int ending_points)
 
 void initializeInterpolationMatrices(const int n_moost_pts)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   // determine the interpolation matrix for the outgoing transfer
   int starting_points = mesh->Nq;
@@ -258,8 +263,7 @@ void displacementAndCounts(const int * base_counts, int * counts, int * displace
 
 void volumeSolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t* mesh = temperatureMesh();
+  mesh_t* mesh = entireMesh();
 
   double (*f) (int);
   f = solution::solutionPointer(field);
@@ -335,7 +339,7 @@ void volumeSolution(const int order, const bool needs_interpolation, const field
 void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t* mesh = temperatureMesh();
+  mesh_t* mesh = entireMesh();
 
   double (*f) (int);
   f = solution::solutionPointer(field);
@@ -424,8 +428,7 @@ void boundarySolution(const int order, const bool needs_interpolation, const fie
 
 void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
   void (*write_solution) (int, dfloat);
   write_solution = solution::solutionPointer(field);
 
@@ -670,7 +673,7 @@ void copyScratchToDevice()
 
 void copyDeformationToDevice()
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
   mesh->o_x.copyFrom(mesh->x);
   mesh->o_y.copyFrom(mesh->y);
   mesh->o_z.copyFrom(mesh->z);
@@ -1088,7 +1091,7 @@ double heatFluxIntegral(const std::vector<int> & boundary_id)
 
 void gradient(const int offset, const double * f, double * grad_f)
 {
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   std::vector<std::vector<std::vector<double>>> s_P(mesh->Nq, std::vector<std::vector<double>>(mesh->Nq, std::vector<double>(mesh->Nq, 0)));
   std::vector<std::vector<double>> s_D(mesh->Nq, std::vector<double>(mesh->Nq, 0));
@@ -1348,7 +1351,7 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
   // here we can just use the already-loaded mesh because during mesh creation (that
   // differs from nrs->cds->mesh only in polynomial order), the assignment of elements to
   // processes is exactly the same.
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   // Save information regarding the surface mesh coupling in terms of the process-local
   // element IDs, the element-local face IDs, and the process ownership. We don't yet
@@ -1563,19 +1566,19 @@ namespace solution
 
   void x_displacement(const int id, const dfloat value)
   {
-    mesh_t * mesh = temperatureMesh();
+    mesh_t * mesh = entireMesh();
     mesh->x[id] = initial_mesh_x[id] + value;
   }
 
   void y_displacement(const int id, const dfloat value)
   {
-    mesh_t * mesh = temperatureMesh();
+    mesh_t * mesh = entireMesh();
     mesh->y[id] = initial_mesh_y[id] + value;
   }
 
   void z_displacement(const int id, const dfloat value)
   {
-    mesh_t * mesh = temperatureMesh();
+    mesh_t * mesh = entireMesh();
     mesh->z[id] = initial_mesh_z[id] + value;
   }
 
