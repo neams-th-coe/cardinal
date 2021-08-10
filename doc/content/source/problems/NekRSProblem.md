@@ -14,7 +14,7 @@ Therefore, we recommend first reading the documentation for `NekRSMesh` and
 The smallest possible MOOSE-wrapped input file that can be used to run NekRS
 is shown below. `casename` is the prefix describing the NekRS input files,
 i.e. this parameter would be `casename = 'fluid'` if the NekRS input files
-are `fluid.re2`, `fluid.par`, `fluid.udf`, and `fluid.udf`.
+are `fluid.re2`, `fluid.par`, `fluid.udf`, and `fluid.oudf`.
 The crux of a NekRS wrapping is in the `NekRSProblem`,
 [NekRSMesh](/mesh/NekRSMesh.md), and [NekTimeStepper](/timesteppers/NekTimeStepper.md)
 classes. `NekRSProblem` controls the program execution and data transfers,
@@ -133,7 +133,7 @@ This means that for *every* NekRS time step, data is sent to and from
 NekRS, even if NekRS runs with a smaller time step than the MOOSE application
 to which it is coupled (i.e. if the data going *into* NekRS hasn't changed since
 the last time it was sent to NekRS). A means by which to reduce some of these
-(technically) unnecessary data transfesr is described in [#min].
+(technically) unnecessary data transfers is described in [#min].
 
 ### Transfers to NekRS
 
@@ -218,7 +218,7 @@ If your case involves applying a heat source to NekRS from MOOSE, you can simply
 copy the [!ac](OCCA) kernel and `.udf` file build/load commands for your case - no
 modifications should be required. If needed,
 please consult the [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#setting-custom-source-terms)
-for more information on applying custom soruces.
+for more information on applying custom sources.
 
 !alert note
 If `NekRSMesh` has both boundary and volume coupling specified, then both the
@@ -284,7 +284,7 @@ may want to reduce as many of these communciations as possible.
 
 First, let's explain what MOOSE does in the usual master/sub coupling scheme, using
 boundary coupling with `subcycling = true` as an example.
-Suppose you has a master application with a time step size of 1 second, and run NekRS
+Suppose you have a master application with a time step size of 1 second, and run NekRS
 as a sub-application with a time step size of 0.4 seconds that executes at the end of
 the master application time step. The calculation procedure involves:
 
