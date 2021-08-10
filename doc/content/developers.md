@@ -7,12 +7,13 @@ select repository maintenance instructions for Cardinal developers.
 
 This section describes how to update the various submodule dependencies
 in Cardinal. All submodules in Cardinal point to the main repository remotes for
-each application *except* for the NekRS submnodule. For NekRS, we require special
-build instructions to allow the same HYPRE installation as used in MOOSE to be used
-with NekRS. Updating the other submodules is routine and does not require extra
-explanation; therefore, these instructions only apply to updating the NekRS submodule.
+each application *except* for the NekRS submodule. Updating the OpenMC and MOOSE
+submodules is routine, and does not require special instructions here.
 
-The NekRS submodule points to the `cardinal` branch on our
+### The NekRS Submodule
+
+For NekRS, we require special build instructions to allow the same HYPRE installation as used in MOOSE to be used
+with NekRS. Therefore, the NekRS submodule points to the `cardinal` branch on our
 [NekRS fork](https://github.com/neams-th-coe/NekRS). Assuming you have a separate repository checkout
 of NekRS in your filesystem, first merge the latest master branch into a new NekRS feature update branch.
 
@@ -37,9 +38,20 @@ print the NekRS version at the start of the NekRS initialization. The two
 NekRS version macros can be found in the `build/nekrs/CMakeCache.txt` file that is created
 after configuring Cardinal. Set `NEKRS_VERSION` to the value of `CMAKE_PROJECT_VERSION_MAJOR`
 and set `NEKRS_SUBVERSION` to the value of `CMAKE_PROJECT_VERSION_MINOR`. Finally, set
-`GITCOMMITHASH` to the hash 
+`GITCOMMITHASH` to the hash
 of the main NekRS repository that you just updated to. All three of `NEKRS_VERSION`, `NEKRS_SUBVERSION`,
 and `GITCOMMITHASH` are added to `CXXFLAGS` in Cardinal's `Makefile`.
+
+### The SAM Submodule
+
+While the SAM submodule points to the main repository, both SAM and Cardinal
+include a MOOSE submodule. Normally this does not cause any issues unless 1) you try
+to update to the latest MOOSE submodule in Cardinal and 2) SAM doesn't compile against
+this latest version. In this case, you should update the SAM submodule to the latest
+commit, but only update the MOOSE submodule in Cardinal to the commit that is compatible
+with SAM. You can find the latest MOOSE version used in SAM by looking at the
+[history](https://git-nse.egs.anl.gov/SAM/SAM/-/commits/devel/) in the SAM repository,
+nothing the git hash, and then only updating the MOOSE submodule to that point.
 
 ## Updating the Website
 
