@@ -7,13 +7,17 @@ of these instructions before attempting any of the [tutorials](tutorials/index.m
 
 To get access to Cardinal, please [contact](contact.md) a member of
 the Cardinal development team, with a description of your intended use case.
-After you have been granted access, simply clone the Cardinal repository:
+After you have been granted access, simply clone the Cardinal repository and
+`cd` into the repository (all further instructions on this page assume you
+are located in the root directory of the Cardinal repository).
 
 ```
 $ git clone https://github.com/neams-th-coe/cardinal.git
+$ cd cardinal
 ```
 
 ## Building
+  id=build
 
 This section describes how to build Cardinal. Please follow each task in the order it is
 presented:
@@ -36,7 +40,14 @@ for all dependencies. [table1] summarizes all the submodule dependencies in Card
 some of these dependencies are open source, while others require you to separately
 apply for code access from the organization that owns that application. For instance,
 if you want to use SAM (an optional, closed-source dependency) with Cardinal, you will
-first need to apply for SAM access with ANL. [table1] shows, for each dependency, whether
+first need to apply for SAM access with ANL.
+
+!alert warning
+Some of Cardinal's submodule are not open source. Do *not* use
+`git submodule update --init` to fetch all of the submodules unless you have
+been granted access for all the closed-source dependencies in [table1].
+
+[table1] shows, for each dependency, whether
 that dependency is open source, required to build Cardinal, and where you might request
 access to that dependency if it is not open source. Finally, the last column shows the
 git command used to fetch that submodule dependency.
@@ -48,12 +59,46 @@ git command used to fetch that submodule dependency.
 | OpenMC | yes | yes | `git submodule update --init --recursive contrib/openmc` |
 | NekRS | yes | yes | `git submodule udpate --init contrib/nekRS` |
 | SAM | no | no | `git submodule update --init contrib/SAM` |
+| Sockeye | no | no | `git submodule udpate --init contrib/sockeye` |
+| THM | no | no | `git submodule update --init contrib/thm` |
+| sodium | no | no | `git submodule update --init contrib/sodium` |
+| potassium | no | no | `git submodule update --init contrib/potassium` |
+| iapws95 | no | no | `git submodule update --init contrib/iapws95` |
 
-To get access to the optional SAM dependency, please contact the
-[SAM development team](https://www.anl.gov/nse/system-analysis-module).
+The optional dependencies are:
 
-To build Cardinal with only the open-source, freely-available dependencies,
-we next need to fetch the open source submodules.
+- SAM, a systems analysis tool for advanced non-light water reactor
+  safety analysis. To get access to SAM, please contact the
+  [SAM development team](https://www.anl.gov/nse/system-analysis-module).
+  Building with SAM does not require any additional submodules.
+- Sockeye, a tool for modeling of heat pipe systems. To get access
+  to Sockeye, please apply through the
+  [National Reactor Innovation Center](https://ncrcaims.inl.gov/Identity/Account/Login).
+  To build Sockeye, you will also require the THM, sodium, potassium, and
+  iapws95 submodules in Cardinal. THM is described in the next bullet point,
+  while sodium, potassium, and iapws95 provide liquid and vapor properties for
+  sodium, potassium, and water. You will automatically be granted acess
+  to these four additional submodules as part of the Sockeye licensing process.
+- THM, a tool for 1-D thermal-hydraulics analysis. To get access to THM,
+  please apply through the
+  [National Reactor Innovation Center](https://ncrcaims.inl.gov/Identity/Account/Login).
+  Building with THM does not require any additional submodules. As described in
+  the previous bullet point, if you
+  already have a license for Sockeye, but want to run THM calculations (separate
+  from Sockeye), you do not need to separately request access to THM.
+
+In order to fetch any submodules available through the [!ac](NRIC), you
+will first need to set up remote access to INL-HPC. Follow the instructions
+[here](https://mooseframework.inl.gov/help/inl/hpc_remote.html). Once you have an
+ssh tunnel to the INL-HPC environment, you will be able to fetch the closed-source MOOSE
+applications for which you have been granted access by [!ac](NRIC) using
+a two-factor authentication.
+
+##### Required Submodules
+
+To build Cardinal, you will always need to have MOOSE, OpenMC, and NekRS source
+code. Again, all necessary dependencies are open source. To fetch the open source
+submodules, use:
 
 ```
 $ git submodule update --init contrib/moose
@@ -61,14 +106,37 @@ $ git submodule update --init --recursive contrib/openmc
 $ git submodule udpate --init contrib/moose
 ```
 
+##### Optional Submodules
+
 If you also want to build with one of the optional dependencies, then you will
-also need to fetch that dependency. For instance, to get the SAM dependency, use:
+need to fetch that dependency (plus any additional submodules that the
+dependency requires - currently, this is only applicable to Sockeye since
+Sockeye requires four additional submodules). For instance, to get the SAM dependency, use:
 
 ```
 $ git submodule update --init contrib/SAM
 ```
 
 You will then be prompted to enter credentials to access ANL's gitlab site.
+To get the Sockeye dependency, use:
+
+```
+$ git submodule udpate --init contrib/sockeye
+$ git submodule udpate --init contrib/thm
+$ git submodule udpate --init contrib/sodium
+$ git submodule udpate --init contrib/potassium
+$ git submodule udpate --init contrib/iapws95
+```
+
+You will then be prompted to enter credentials to access INL's gitlab site.
+To get just the THM dependency, independent of Sockeye, use:
+
+```
+$ git submodule update --init contrib/thm
+```
+
+You will then be prompted to enter credentials to access INL's gitlab site.
+Other combinations of optional submodules follow the same pattern.
 
 #### Set Environment Variables
   id=env
@@ -78,7 +146,7 @@ NekRS root directory so that all needed include files are on your path.
 This will be the `install/` directory under the top-level Cardinal directory:
 
 ```
-$ export NEKRS_HOME=$(realpath install/)
+$ export NEKRS_HOME=`pwd`/install
 ```
 
 To run any problems using OpenMC, you will need to specify a path to
@@ -200,7 +268,7 @@ those two modes, not all three default builds.
 #### Compiling Cardinal
   id=compiling
 
-Finally, in the top-level directory, run `make`.
+Finally, run `make` in the top-level directory,
 
 ```
 $ make -j8
@@ -230,7 +298,9 @@ $ mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
 ```
 
 where `n` is the number of MPI ranks and `s` is the number of OpenMP threads.
-While MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,
+This command assumes that `cardinal-opt` is located on your `PATH`; otherwise,
+you need to provide the full path to `cardinal-opt` in the above command.
+Note that while MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,
 NekRS does not use shared memory parallelism.
 
 For the special case of running SAM as the master application, you also need to pass
@@ -253,10 +323,11 @@ nekRS. Subsequent runs will be much faster due to the use of cached build files.
 If your Python version is old, you may encounter errors in the `run_tests` command.
 To check if your installation is working, you can instead navigate to any of the
 tests in the `test/tests` directory and try running that test directly (i.e. outside
-the testing framework). For example, to run the test in the `test/tests/cht/sfr_pincell`
-directory, run
+the testing framework). For example, you can try to run a [!ac](CHT) for a
+[!ac](SFR) pincell with:
 
 ```
+$ cd test/tests/cht/sfr_pincell
 $ mpiexec -np 4 cardinal-opt -i nek_master.i
 ```
 
