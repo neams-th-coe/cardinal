@@ -1,5 +1,8 @@
 # This example models a representation of a heat pipe, using flow equations only.
 # A specified convective boundary condition is applied  to the evaporator and condenser regions.
+# This input file was simply copied from Sockeye in order to get a Sockeye
+# input - the physics are irrelevant, since we are only testing that Sockeye inputs
+# can be run within Cardinal.
 
 L_evap = 0.3
 L_adia = 1.0

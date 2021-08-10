@@ -16,16 +16,16 @@
   []
 []
 
-# We just want to check that Cardinal can run Sockeye as a sub-app.
+# We just want to check that Cardinal can run THM as a master-app with Cardinal as a sub-app.
 # We omit all transfers just to check that the code executes.
 [MultiApps]
-  [sockeye]
+  [thm]
     type = TransientMultiApp
-    app_type = SockeyeApp
-    input_files = 'flow_only_convection.i'
+    app_type = THMApp
+    input_files = 'sod_shock_tube.i'
     execute_on = timestep_end
 
-    # THM (a dependency of Sockeye) is currently limited to serial execution
+    # THM is currently limited to serial execution
     max_procs_per_app = 1
   []
 []
