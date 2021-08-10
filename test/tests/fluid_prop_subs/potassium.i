@@ -34,9 +34,11 @@
   []
 []
 
-[FluidProperties]
-  [sodium]
-    type = PotassiumLiquidFluidProperties
+[Modules]
+  [FluidProperties]
+    [sodium]
+      type = PotassiumLiquidFluidProperties
+    []
   []
 []
 
