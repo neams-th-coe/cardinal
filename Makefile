@@ -66,6 +66,23 @@ POTASSIUM_CONTENT     := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 IAPWS95_CONTENT     := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
+# We can check that if it looks like we're going to build Sockeye, that
+# all of its dependencies are there
+ifneq ($(SOCKEYE_CONTENT),)
+  ifeq ($(THM_CONTENT),)
+    $(error $n"THM dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that THM_DIR points to a location with the THM source.$n$nTo fetch the THM submodule, use 'git submodule update --init contrib/thm'")
+  endif
+  ifeq ($(SODIUM_CONTENT),)
+    $(error $n"Sodium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that SODIUM_DIR points to a location with the sodium source.$n$nTo fetch the sodium submodule, use 'git submodule update --init contrib/sodium'")
+  endif
+  ifeq ($(POTASSIUM_CONTENT),)
+    $(error $n"Potassium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that POTASSIUM_DIR points to a location with the potassium source.$n$nTo fetch the potassium submodule, use 'git submodule update --init contrib/potassium'")
+  endif
+  ifeq ($(IAPWS95_CONTENT),)
+    $(error $n"IAPWS95 dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
+  endif
+endif
+
 # Cannot currently build with both SAM and Sockeye due to a conflict in THM.
 # Someone might just build with THM (and not Sockeye), so we check both to be explicit.,
 ifneq ($(SOCKEYE_CONTENT),)
