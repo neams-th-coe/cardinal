@@ -164,9 +164,7 @@ initial_T = 1200
   scheme = bdf2
 
   dt = 0.1
-
-  steady_state_detection = true
-  steady_state_tolerance = 1e-8
+  num_steps = 10
 
   solve_type = NEWTON
   nl_abs_tol = 1e-8
@@ -195,7 +193,7 @@ initial_T = 1200
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app = CardinalApp
+    app_type = CardinalApp
     input_files = 'nek.i'
     execute_on = timestep_end
   []

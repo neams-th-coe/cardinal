@@ -54,15 +54,43 @@ validParams<CardinalApp>()
 
 CardinalApp::CardinalApp(InputParameters parameters) : MooseApp(parameters)
 {
+  ModulesApp::registerAll(_factory, _action_factory, _syntax);
   CardinalApp::registerAll(_factory, _action_factory, _syntax);
-}
 
-CardinalApp::~CardinalApp() {}
+#ifdef ENABLE_SAM_COUPLING
+  SamApp::registerApps();
+  SamApp::registerAll(_factory, _action_factory, _syntax);
+#endif
+
+#ifdef ENABLE_SOCKEYE_COUPLING
+  SockeyeApp::registerApps();
+  SockeyeApp::registerAll(_factory, _action_factory, _syntax);
+#endif
+
+#ifdef ENABLE_THM_COUPLING
+  THMApp::registerApps();
+  THMApp::registerAll(_factory, _action_factory, _syntax);
+#endif
+
+#ifdef ENABLE_SODIUM
+  SodiumApp::registerApps();
+  SodiumApp::registerAll(_factory, _action_factory, _syntax);
+#endif
+
+#ifdef ENABLE_POTASSIUM
+  PotassiumApp::registerApps();
+  PotassiumApp::registerAll(_factory, _action_factory, _syntax);
+#endif
+
+#ifdef ENABLE_IAPWS95
+  IAPWS95App::registerApps();
+  IAPWS95App::registerAll(_factory, _action_factory, _syntax);
+#endif
+}
 
 void
 CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
-  ModulesApp::registerAll(f, af, s);
   Registry::registerObjectsTo(f, {"CardinalApp"});
   Registry::registerActionsTo(af, {"CardinalApp"});
 
@@ -77,27 +105,27 @@ CardinalApp::registerApps()
   registerApp(CardinalApp);
 
 #ifdef ENABLE_SAM_COUPLING
-  registerApp(SamApp);
+  SamApp::registerApps();
 #endif
 
 #ifdef ENABLE_SOCKEYE_COUPLING
-  registerApp(SockeyeApp);
+  SockeyeApp::registerApps();
 #endif
 
 #ifdef ENABLE_THM_COUPLING
-  registerApp(THMApp);
+  THMApp::registerApps();
 #endif
 
 #ifdef ENABLE_SODIUM
-  registerApp(SodiumApp);
+  SodiumApp::registerApps();
 #endif
 
 #ifdef ENABLE_POTASSIUM
-  registerApp(PotassiumApp);
+  PotassiumApp::registerApps();
 #endif
 
 #ifdef ENABLE_IAPWS95
-  registerApp(IAPWS95App);
+  IAPWS95App::registerApps();
 #endif
 }
 
@@ -108,31 +136,8 @@ extern "C" void
 CardinalApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
   CardinalApp::registerAll(f, af, s);
-
-#ifdef ENABLE_SAM_COUPLING
-  SamApp::registerAll(f, af, s);
-#endif
-
-#ifdef ENABLE_SOCKEYE_COUPLING
-  SockeyeApp::registerAll(f, af, s);
-#endif
-
-#ifdef ENABLE_THM_COUPLING
-  THMApp::registerAll(f, af, s);
-#endif
-
-#ifdef ENABLE_SODIUM
-  SodiumApp::registerAll(f, af, s);
-#endif
-
-#ifdef ENABLE_POTASSIUM
-  PotassiumApp::registerAll(f, af, s);
-#endif
-
-#ifdef ENABLE_IAPWS95
-  IAPWS95App::registerAll(f, af, s);
-#endif
 }
+
 extern "C" void
 CardinalApp__registerApps()
 {

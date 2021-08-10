@@ -21,7 +21,7 @@
 [MultiApps]
   [sockeye]
     type = TransientMultiApp
-    app = SockeyeApp
+    app_type = SockeyeApp
     input_files = 'flow_only_convection.i'
     execute_on = timestep_end
   []

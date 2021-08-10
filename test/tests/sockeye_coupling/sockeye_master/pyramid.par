@@ -7,7 +7,7 @@
   dt = 0.2
   polynomialOrder = 1
   writeControl = timeStep
-  writeInterval = 2
+  writeInterval = 0
   extrapolation = subCycling
 
 [VELOCITY]
