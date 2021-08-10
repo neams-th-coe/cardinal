@@ -46,7 +46,7 @@ git command used to fetch that submodule dependency.
 | :- | :- | :- | :- |
 | MOOSE | yes | yes | `git submodule update --init contrib/moose` |
 | OpenMC | yes | yes | `git submodule update --init --recursive contrib/openmc` |
-| NekRS | yes | yes | `git submodule udpate --init contrib/moose` |
+| NekRS | yes | yes | `git submodule udpate --init contrib/nekRS` |
 | SAM | no | no | `git submodule update --init contrib/SAM` |
 
 To get access to the optional SAM dependency, please contact the
