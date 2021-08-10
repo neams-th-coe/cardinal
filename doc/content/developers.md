@@ -51,7 +51,7 @@ this latest version. In this case, you should update the SAM submodule to the la
 commit, but only update the MOOSE submodule in Cardinal to the commit that is compatible
 with SAM. You can find the latest MOOSE version used in SAM by looking at the
 [history](https://git-nse.egs.anl.gov/SAM/SAM/-/commits/devel/) in the SAM repository,
-nothing the git hash, and then only updating the MOOSE subdmodule to that point.
+nothing the git hash, and then only updating the MOOSE submodule to that point.
 
 ## Updating the Website
 
