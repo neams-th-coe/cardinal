@@ -10,6 +10,26 @@
 #include "SamApp.h"
 #endif
 
+#ifdef ENABLE_SOCKEYE_COUPLING
+#include "SockeyeApp.h"
+#endif
+
+#ifdef ENABLE_THM_COUPLING
+#include "THMApp.h"
+#endif
+
+#ifdef ENABLE_SODIUM
+#include "SodiumApp.h"
+#endif
+
+#ifdef ENABLE_POTASSIUM
+#include "PotassiumApp.h"
+#endif
+
+#ifdef ENABLE_IAPWS95
+#include "IAPWS95App.h"
+#endif
+
 registerKnownLabel("CardinalApp");
 
 template <>
@@ -59,6 +79,26 @@ CardinalApp::registerApps()
 #ifdef ENABLE_SAM_COUPLING
   registerApp(SamApp);
 #endif
+
+#ifdef ENABLE_SOCKEYE_COUPLING
+  registerApp(SockeyeApp);
+#endif
+
+#ifdef ENABLE_THM_COUPLING
+  registerApp(THMApp);
+#endif
+
+#ifdef ENABLE_SODIUM
+  registerApp(SodiumApp);
+#endif
+
+#ifdef ENABLE_POTASSIUM
+  registerApp(PotassiumApp);
+#endif
+
+#ifdef ENABLE_IAPWS95
+  registerApp(IAPWS95App);
+#endif
 }
 
 /***************************************************************************************************
@@ -71,6 +111,26 @@ CardinalApp__registerAll(Factory & f, ActionFactory & af, Syntax & s)
 
 #ifdef ENABLE_SAM_COUPLING
   SamApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_SOCKEYE_COUPLING
+  SockeyeApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_THM_COUPLING
+  THMApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_SODIUM
+  SodiumApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_POTASSIUM
+  PotassiumApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_IAPWS95
+  IAPWS95App::registerAll(f, af, s);
 #endif
 }
 extern "C" void
