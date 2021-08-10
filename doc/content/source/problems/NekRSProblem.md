@@ -262,61 +262,7 @@ described in this section.
 
 ### Nondimensional Solution
 
-NekRS is most often solved in nondimensional form, such that all solution variables
-are of order unity by normalizing by problem-specific characteristic scales. However,
-most other MOOSE applications use dimensional units; when transferring data to/from
-NekRS, it is important that all data transfers *out* of NekRS be properly dimensionalized
-before being used in another MOOSE application. Likewise, it is important that all
-data transfers *into* NekRS be properly nondimensionalized to match the nondimensional
-formulation. `NekRSProblem` automatically performs these scaling operations for you, as
-well as dimensionalizing the various Nek postpocessors in Cardinal.
-
-If your NekRS input files are in nondimensional form, you must set
-`nondimensional = true` and provide the various characteristic scales that were used to
-set up the NekRS inputs. Cardinal assumes that the NekRS inputs were nondimensionalized
-with the following:
-
-\begin{equation}
-\label{eq:u_ref}
-u_i^\dagger\equiv\frac{u_i}{u_{ref}}
-\end{equation}
-
-\begin{equation}
-\label{eq:p_ref}
-P^\dagger\equiv\frac{P}{\rho_0u_{ref}^2}
-\end{equation}
-
-\begin{equation}
-\label{eq:T_ref}
-T^\dagger\equiv\frac{T-T_{ref}}{\Delta T}
-\end{equation}
-
-\begin{equation}
-\label{eq:x_ref}
-x_i^\dagger\equiv\frac{x_i}{L_{ref}}
-\end{equation}
-
-\begin{equation}
-\label{eq:t_ref}
-t^\dagger\equiv\frac{t}{L_{ref}/u_{ref}}
-\end{equation}
-
-where $\dagger$ superscripts indicate nondimensional quantities.
-`U_ref` is used to specify $u_{ref}$, `T_ref` is used to specify $T_{ref}$,
-`dT_ref` is used to specify $\Delta T$, `L_ref` is used to specify $L_{ref}$,
-`rho_0` is used to specify $\rho_0$, and `Cp_0` is used to specify $C_{p,0}$
-(which does not appear above, but is necessary for scaling a volumetric heat source).
-Finally, the mesh mirror must be in the same units as used in the coupled MOOSE application,
-so the `scaling` parameter on [NekRSMesh](/mesh/NekRSMesh.md) must be set to
-dimensionalize the nondimensional `.re2` mesh. In other words,
-`scaling` must be set to $1/L_{ref}$.
-
-!alert warning
-These characteristic scales are used by Cardinal to scale the NekRS solution
-into the units that the coupled MOOSE application expects. *You* still need to properly
-non-dimensionalize the NekRS input files. That is, you cannot
-simply specify the non-dimensional scales in `NekRSProblem` and expect a *dimsensional*
-NekRS input specification to be converted to non-dimensional form.
+!include nondimensional_problem.md
 
 ### Reducing CPU/GPU Data Transfers
   id=min
