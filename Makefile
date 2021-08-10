@@ -25,6 +25,29 @@ LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
 HYPRE_DIR       ?= $(PETSC_DIR)/$(PETSC_ARCH)
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
+# First, we can check that the required submodules have been pulled in,
+# and print an error if we don't find them
+MOOSE_CONTENT    := $(shell ls $(MOOSE_DIR) 2> /dev/null)
+NEKRS_CONTENT    := $(shell ls $(NEKRS_DIR) 2> /dev/null)
+OPENMC_CONTENT   := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+
+define n
+
+
+endef
+
+ifeq ($(MOOSE_CONTENT),)
+  $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use 'git submodule update --init contrib/moose'")
+endif
+
+ifeq ($(NEKRS_CONTENT),)
+  $(error $n"NekRS does not seem to be available. Make sure that either the submodule is checked out$nor that NEKRS_DIR points to a location with the NekRS source.$n$nTo fetch the NekRS submodule, use 'git submodule update --init contrib/nekRS'")
+endif
+
+ifeq ($(OPENMC_CONTENT),)
+  $(error $n"OpenMC does not seem to be available. Make sure that either the submodule is checked out$nor that OPENMC_DIR points to a location with the OpenMC source.$n$nTo fetch the OpenMC submodule, use 'git submodule update --init --recursive contrib/openmc'")
+endif
+
 SAM_DIR         ?= $(CONTRIB_DIR)/SAM
 SAM_CONTENT     := $(shell ls $(SAM_DIR) 2> /dev/null)
 
@@ -42,6 +65,20 @@ POTASSIUM_CONTENT     := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
 
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 IAPWS95_CONTENT     := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
+
+# Cannot currently build with both SAM and Sockeye due to a conflict in THM.
+# Someone might just build with THM (and not Sockeye), so we check both to be explicit.,
+ifneq ($(SOCKEYE_CONTENT),)
+  ifneq ($(SAM_CONTENT),)
+    $(error Cannot build Cardinal with both SAM and Sockeye due to a conflict in THM)
+  endif
+endif
+
+ifneq ($(THM_CONTENT),)
+  ifneq ($(SAM_CONTENT),)
+    $(error Cannot build Cardinal with both SAM and THM due to a conflict in THM)
+  endif
+endif
 
 HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
