@@ -2,18 +2,16 @@
 # Cardinal Makefile
 # ======================================================================================
 #
-# Required environment Variables:
-# * NEK_CASEDIR : Dir with Nek5000 input deck (.usr, SIZE, and .rea files)
-# * NEK_CASENAME : Name of the Nek5000 .usr and .rea files
-#
 # Optional environment variables:
 # * CARDINAL_DIR : Top-level Cardinal src dir (default: this Makefile's dir)
 # * CONTRIB_DIR : Dir with third-party src (default: $(CARDINAL_DIR)/contrib)
 # * MOOSE_SUBMODULE : Top-level MOOSE src dir (default: $(CONTRIB_DIR)/moose)
-# * NEK5_DIR : Top-level Nek5000 src dir (default: $(CONTRIB_DIR)/Nek5000)
-# * LIBP_DIR : Top-level libparanumal src dir (default: $(CONTRIB_DIR)/libparanumal
-# * NEK_LIBP_DIR : Top-level nek-libp src dir (default: $(CONTRIB_DIR)/NekGPU/nek-libp
 # * SAM_DIR: Top-level SAM src dir (default: $(CONTRIB_DIR)/SAM)
+# * SOCKEYE_DIR: Top-level Sockeye src dir (default: $(CONTRIB_DIR)/sockeye)
+# * THM_DIR: Top-level THM src dir (default: $(CONTRIB_DIR)/thm)
+# * SODIUM_DIR: Top-level sodium src dir (default: $(CONTRIB_DIR)/sodium)
+# * POTASSIUM_DIR: Top-level potassium src dir (default: $(CONTRIB_DIR)/potassium)
+# * IAPWS95_DIR: Top-level iapws95 src dir (default: $(CONTRIB_DIR)/iapws95)
 # ======================================================================================
 
 CARDINAL_DIR    := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
@@ -29,6 +27,21 @@ CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
 SAM_DIR         ?= $(CONTRIB_DIR)/SAM
 SAM_CONTENT     := $(shell ls $(SAM_DIR) 2> /dev/null)
+
+SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
+SOCKEYE_CONTENT     := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
+
+THM_DIR         ?= $(CONTRIB_DIR)/thm
+THM_CONTENT     := $(shell ls $(THM_DIR) 2> /dev/null)
+
+SODIUM_DIR         ?= $(CONTRIB_DIR)/sodium
+SODIUM_CONTENT     := $(shell ls $(SODIUM_DIR) 2> /dev/null)
+
+POTASSIUM_DIR         ?= $(CONTRIB_DIR)/potassium
+POTASSIUM_CONTENT     := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
+
+IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+IAPWS95_CONTENT     := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
 HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
@@ -139,8 +152,50 @@ ifneq ($(SAM_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
   APPLICATION_DIR     := $(SAM_DIR)
   APPLICATION_NAME    := sam
-  TENSOR_MECHANICS    := yes
   include             $(FRAMEWORK_DIR)/app.mk
+endif
+
+# Sockeye submodule
+ifneq ($(SOCKEYE_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_SOCKEYE_COUPLING
+  APPLICATION_DIR     := $(SOCKEYE_DIR)
+  APPLICATION_NAME    := sockeye
+  include             $(FRAMEWORK_DIR)/app.mk
+endif
+
+# THM submodule
+ifneq ($(THM_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_THM_COUPLING
+  APPLICATION_DIR     := $(THM_DIR)
+  APPLICATION_NAME    := thm
+  include             $(FRAMEWORK_DIR)/app.mk
+endif
+
+# sodium submodule
+ifneq ($(SODIUM_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_SODIUM
+  APPLICATION_DIR     := $(SODIUM_DIR)
+  APPLICATION_NAME    := sodium
+  include             $(FRAMEWORK_DIR)/app.mk
+  include             $(SODIUM_DIR)/libSodium.mk
+endif
+
+# potassium submodule
+ifneq ($(POTASSIUM_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_POTASSIUM
+  APPLICATION_DIR     := $(POTASSIUM_DIR)
+  APPLICATION_NAME    := potassium
+  include             $(FRAMEWORK_DIR)/app.mk
+  include             $(POTASSIUM_DIR)/libPotassium.mk
+endif
+
+# iapws95 submodule
+ifneq ($(IAPWS95_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_IAPWS95
+  APPLICATION_DIR     := $(IAPWS95_DIR)
+  APPLICATION_NAME    := iapws95
+  include             $(FRAMEWORK_DIR)/app.mk
+  include             $(IAPWS95_DIR)/libSBTL.mk
 endif
 
 # ======================================================================================
