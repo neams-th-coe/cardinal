@@ -664,22 +664,8 @@ NekRSProblem::addExternalVariables()
   NekRSProblemBase::addExternalVariables();
   auto var_params = getExternalVariableParameters();
 
-  // We always need to add temperature, but we might have already added it in the
-  // base class via the 'output' parameter. If the base class added temperature, then
-  // we need to get the number of that variable. Otherwise, we add temperature here.
-  bool base_added_temperature = _outputs ? std::count(_outputs->begin(), _outputs->end(), "temperature") : false;
-
-  if (base_added_temperature)
-  {
-    for (std::size_t i = 0; i < _outputs->size(); ++i)
-      if ((*_outputs)[i] == "temperature")
-        _temp_var = _external_vars[i];
-  }
-  else
-  {
-    addAuxVariable("MooseVariable", "temp", var_params);
-    _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
-  }
+  addAuxVariable("MooseVariable", "temp", var_params);
+  _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
 
   if (_boundary)
   {

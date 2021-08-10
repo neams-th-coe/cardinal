@@ -84,6 +84,13 @@ protected:
    */
   virtual InputParameters getExternalVariableParameters();
 
+  /**
+   * Add a variable to represent the temperature of the NekRS solution.
+   * We allow this to be an entry point for derived classes because they
+   * might already be adding a temperature variable for coupling purposes.
+   */
+  virtual void addTemperatureVariable();
+
   /// Whether the nekRS solution is performed in nondimensional scales
   const bool & _nondimensional;
 
@@ -187,6 +194,9 @@ protected:
 
   /// Numeric identifiers for the external variables
   std::vector<unsigned int> _external_vars;
+
+  /// Descriptive string for the variables extracted from NekRS
+  std::string _var_string;
 
   /// Scratch space to place external NekRS fields before writing into auxiliary variables
   double * _external_data = nullptr;

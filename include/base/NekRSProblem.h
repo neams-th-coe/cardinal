@@ -107,6 +107,8 @@ public:
   virtual bool movingMesh() const override { return _moving_mesh; }
 
 protected:
+  virtual void addTemperatureVariable() override { return; }
+
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled

@@ -312,7 +312,7 @@ NekRSProblemBase::extractOutputs()
 {
   if (_outputs)
   {
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Interpolating NekRS solution onto mesh mirror");
+    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Interpolating" + _var_string + " NekRS solution onto mesh mirror");
 
     for (std::size_t i = 0; i < _var_names.size(); ++i)
     {
@@ -364,6 +364,20 @@ NekRSProblemBase::getExternalVariableParameters()
 }
 
 void
+NekRSProblemBase::addTemperatureVariable()
+{
+  if (!nekrs::hasTemperatureVariable())
+    mooseError("Cannot set 'output = temperature' for '" + type() + "' because "
+      "your Nek case files do not have a temperature variable!");
+
+  // For the special case of temperature, we want the variable name to be
+  // 'temp' instead of 'temperature' due to legacy reasons of what NekRSProblem
+  // chose to name the temperature variable. For everything else, we just use
+  // the name of the output parameter.
+  _var_names.push_back("temp");
+}
+
+void
 NekRSProblemBase::addExternalVariables()
 {
   if (_outputs)
@@ -375,18 +389,7 @@ NekRSProblemBase::addExternalVariables()
       std::string output = (*_outputs)[i];
 
       if (output == "temperature")
-      {
-        if (!nekrs::hasTemperatureVariable())
-          mooseError("Cannot set 'output = temperature' for '" + type() + "' because "
-            "your Nek case files do not have a temperature variable!");
-
-        // For the special case of temperature, we want the variable name to be
-        // 'temp' instead of 'temperature' due to legacy reasons of what NekRSProblem
-        // chose to name the temperature variable. For everything else, we just use
-        // the name of the output parameter. We also need to check that temperature
-        // exists in the problem
-        _var_names.push_back("temp");
-      }
+        addTemperatureVariable();
       else if (output == "velocity")
       {
         // For the velocity, we need to explicitly output each component; Paraview
@@ -399,10 +402,15 @@ NekRSProblemBase::addExternalVariables()
         _var_names.push_back("P");
     }
 
+    _var_string = "";
     for (const auto & name : _var_names)
     {
       addAuxVariable("MooseVariable", name, var_params);
       _external_vars.push_back(_aux->getFieldVariable<Real>(0, name).number());
+
+      _var_string += " " + name + ",";
     }
+
+    _var_string.erase(std::prev(_var_string.end()));
   }
 }
