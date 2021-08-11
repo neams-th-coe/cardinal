@@ -11,7 +11,7 @@ corresponding OpenMC cells, while field data in OpenMC is directly applied
 as `CONSTANT MONOMIAL` fields on the `MooseMesh`.
 
 The smallest possible MOOSE-wrapped input file that can be used to run OpenMC
-is shown below. The crus of an OpenMC wrapping is the `OpenMCCellAverageProblem`
+is shown below. The crux of an OpenMC wrapping is the `OpenMCCellAverageProblem`
 class, which controls program execution and data transfers to whatever mesh is
 supplied in the `[Mesh]` block.
 
@@ -34,7 +34,7 @@ First, `OpenMCCellAverageProblem` initializes [MooseVariables](https://moosefram
 to receive data necessary for multiphysics coupling. Depending on the settings
 for this class, the following variables will be added:
 
-- `heat_source`, the OpenMC fission heat source to be sent to MOOSE
+- `heat_source`, the OpenMC fission heat source to be sent to MOOSE based on a `kappa-fission` tally score
 - `temp`, the MOOSE temperature to be sent to OpenMC
 - `density`, the MOOSE density to be sent to OpenMC (fluid coupling)
 
@@ -172,11 +172,11 @@ at the lowest level to MOOSE. For instance, with [!ac](TRISO) fuel pebbles, it i
 desirable to apply temperature feedback to all the cells in a pebble at once
 (rather than separately to the thousands of [!ac](TRISO) particles). A second
 important consideration with feedback in geometries such as this arises from
-the simple pairing of each element to *one* OpenMC based on its centroid. You
-can imagine a situation where a [!ac](TRISO) pebble consists of 10000 distinct
+the simple pairing of each element to *one* OpenMC cell based on its centroid. You
+can imagine a situation where a [!ac](TRISO) pebble consists of 10,000 distinct
 cells, which is coupled to a sphere unstructured mesh with 300 elements. By mapping
 each element according to its centroid, a maximum of 300 OpenMC cells (out of the
-10000) could possibly receive feedback.
+10,000) could possibly receive feedback.
 
 For these reasons, the `fluid_cell_level` and `solid_cell_level` parameters
 indicate the coordinate level (relative to 0, the highest level in the geometry)
@@ -199,9 +199,10 @@ two options for tallying the fission power in OpenMC:
 The tally type is specified with the `tally_type` parameter.
 The fission tally is normalized according to the specified `power`. By default,
 the normalization is done against a global `kappa-fission` tally added over the entire
-OpenMC domain.
-By setting `normalize_by_global_tally` to false, however, the fission tally is instead
-normalized by the sum of the fission tally itself. To fully elaborate, consider an
+OpenMC domain. By setting `normalize_by_global_tally` to false, however, the fission tally is instead
+normalized by the sum of the fission tally itself. 
+
+To fully elaborate, consider an
 OpenMC problem consisting of 3 fuel pebbles that produce a total of 1 W. Suppose
 pebble 1 produces 0.3 W, pebble 2 produces 0.5 W, and pebble 3 produces 0.2 W. If your
 `[Mesh]` only overlaps spatially with the first two pebbles, then setting
@@ -221,7 +222,7 @@ in the `[Mesh]` should be tallied. Then, any OpenMC cells that mapped to those b
 are added to a cell tally that adds a bin for each unique cell ID/instance combination.
 The only requirement imposed is that:
 
-- An OpenMC cell cannot map to elements that are both in `tally_blocks` and not in
+- An instance of an OpenMC cell cannot map to elements that are both in `tally_blocks` and not in
   `tally_blocks` - otherwise, it is unclear if the cell should have a tally or not.
 
 ### Unstructured Mesh Tallies
@@ -230,7 +231,7 @@ The only requirement imposed is that:
 When using unstructured mesh tallies, the `tally_blocks` parameter is unused. Instead,
 a `mesh_template` is used to provide a path to an unstructured mesh that OpenMC
 will tally on. To translate the same mesh to multiple locations in the OpenMC geometry
-(while only taking up the memory needed to store the mesh template), or
+(while only taking up the memory needed to store a single mesh), or
 even simply to move a single mesh to a different location than where the mesh template
 is defined,
 you can set the `mesh_translations` or `mesh_translations_file` to provide a set
@@ -245,7 +246,7 @@ any translation coordinates must also be given in units of centimeters
 
 At present, unstructured mesh tallies are copied directly to the `[Mesh]` (without
 doing any type of nearest-node lookup). Therefore, there is an important limitation
-when using unstructured mesh tallies in Cardinal, that is best explained by example.
+when using unstructured mesh tallies in Cardinal that is best explained by example.
 Suppose the mesh template consists of a mesh for a pincell with $N$ elements
 that you have translated to 3 different locations, giving a total of $3N$ tally
 bins. Because a direct copy is used to transfer the mesh tally results to the `[Mesh]`,
@@ -303,7 +304,7 @@ a significant limitation.
 A simple way to guarantee equivalence between the `[Mesh]` and the mesh
 template is to:
 
-1. Create the `[Mesh]` block as desired.
+1. Create the `[Mesh]` block as desired for the tally region.
 2. Run the OpenMC-wrapped input file in "mesh only" mode, by passing `--mesh-only` to the run
    command, such as `cardinal-opt -i input.i --mesh-only`. This will produce an output file
    named `input_in.e` that contains the mesh specified in the `[Mesh]` block.
@@ -320,7 +321,7 @@ Data gets sent into OpenMC, OpenMC runs a "time step"
 !listing /framework/src/problems/ExternalProblem.C
   re=void\sExternalProblem::solve.*?^}
 
-Each of these functions is now described.
+Each of these functions will now be described.
 
 ### External Solve
   id=solve
@@ -351,7 +352,7 @@ element in the `[Mesh]`.
 
 ## Other Features
 
-This class mainly facilitates data transfers to and from OpenMC. A number of
+While this class mainly facilitates data transfers to and from OpenMC, a number of
 other features are implemented in order to enable more convenient input file
 setup. These are described in this section.
 
@@ -360,7 +361,7 @@ setup. These are described in this section.
 
 OpenMC always uses a length unit of centimeters, but a coupled MOOSE application
 often uses SI units (with a length unit of meters). When transferring field data
-to/from OpenMC, it is important for the OpenMC solution to match the length units
+to/from OpenMC, it is important for data transferred from OpenMC to match the length units
 of the coupled MOOSE application. This class contains a `scaling` parameter that
 is used to apply a multiplicative factor to the `[Mesh]` to get to units of
 centimeters assumed by OpenMC. This multiplicative factor is then applied in the:
