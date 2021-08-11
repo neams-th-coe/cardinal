@@ -329,8 +329,13 @@ Each of these functions will now be described.
 The actual solve of a "time step" by OpenMC is peformed within the
 `externalSolve` method, which performs the following.
 
-!listing /src/base/OpenMCCellAverageProblem.C
-  re=void\sOpenMCCellAverageProblem::externalSolve.*?^}
+!listing language=cpp
+void OpenMCCellAverageProblem::externalSolve()
+{
+  int err = openmc_run();
+  if (err)
+    mooseError(openmc_err_msg);
+}
 
 This function simply runs a $k$-eigenvalue OpenMC calculation.
 
