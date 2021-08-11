@@ -11,11 +11,13 @@
 [Variables]
   [temp]
     initial_condition = 600.0
+    order = SECOND
   []
 []
 
 [AuxVariables]
   [source_auxvar]
+    order = SECOND
   []
   [disp_x]
     order = SECOND
@@ -27,8 +29,10 @@
     order = SECOND
   []
   [temp_ansol]
+    order = SECOND
   []
   [difference]
+    order = SECOND
   []
 []
 
