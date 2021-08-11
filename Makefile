@@ -53,15 +53,20 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_DIR)/src/core \
 	-I$(NEKRS_DIR)/src/core/utils \
 	-I$(NEKRS_DIR)/src/elliptic \
-	-I$(NEKRS_DIR)/src/elliptic/parAlmond \
+	-I$(NEKRS_DIR)/src/elliptic/linearSolver \
+	-I$(NEKRS_DIR)/src/elliptic/amgSolver \
+	-I$(NEKRS_DIR)/src/elliptic/amgSolver/amgx \
+	-I$(NEKRS_DIR)/src/elliptic/amgSolver/hypre \
+	-I$(NEKRS_DIR)/src/elliptic/amgSolver/parAlmond \
+	-I$(NEKRS_DIR)/src/elliptic/amgSolver/parAlmond/agmgSetup \
 	-I$(NEKRS_DIR)/src/io \
 	-I$(NEKRS_DIR)/src/lib \
 	-I$(NEKRS_DIR)/src/linAlg \
-	-I$(NEKRS_DIR)/src/linearSolver \
 	-I$(NEKRS_DIR)/src/lns \
 	-I$(NEKRS_DIR)/src/mesh \
 	-I$(NEKRS_DIR)/src/nekInterface \
 	-I$(NEKRS_DIR)/src/plugins \
+	-I$(NEKRS_DIR)/src/regularization \
 	-I$(NEKRS_DIR)/src/timeStepper \
 	-I$(NEKRS_DIR)/src/udf \
 	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
@@ -155,7 +160,7 @@ export LIBS := $(libmesh_LIBS)
 
 CXXFLAGS += -DNEKRS_VERSION=21
 CXXFLAGS += -DNEKRS_SUBVERSION=1
-CXXFLAGS += -DGITCOMMITHASH=\"73b4f2ee2ab1e7dc9f154da33b8f0368854d50e2\"
+CXXFLAGS += -DGITCOMMITHASH=\"51d5bf5f2042e231d1770400c160d5623b19b4c8\"
 
 export CARDINAL_DIR
 

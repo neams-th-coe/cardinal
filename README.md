@@ -1,6 +1,6 @@
 # Cardinal
 
-Cardinal is a wrapping of the spectral element code [nekRS](https://github.com/Nek5000/nekRS) and
+Cardinal is a wrapping of the spectral element code [NekRS](https://github.com/Nek5000/nekRS) and
 the Monte Carlo code [OpenMC](https://github.com/openmc-dev/openmc) as a MOOSE application.
 Cardinal is intended for providing high-resolution thermal-hydraulics
 and particle transport feedback to MOOSE multiphysics simulations.
