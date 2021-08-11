@@ -21,7 +21,7 @@ If you use Cardinal for your work, please consider citing the following.
 ```tex
 @article{cardinal2021NT,
    title = {{Cardinal}: A Lower Length-Scale Multiphysics Simulator for Pebble-Bed Reactors},
-  author = {E. Merzari and H. Yuan and M. Min and D. Shaver and R. Rahaman and P. Shriwise and P. Romano and A. Talamo and Y. Lan and D. Gaston and R. Martineau and P. Fischer and Y. Hassan}
+  author = {E. Merzari and H. Yuan and M. Min and D. Shaver and R. Rahaman and P. Shriwise and P. Romano and A. Talamo and Y. Lan and D. Gaston and R. Martineau and P. Fischer and Y. Hassan},
     year = {2021},
  journal = {{Nuclear Technology}},
      DOI = {https://doi.org/10.1080/00295450.2020.1824471},
