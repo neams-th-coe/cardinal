@@ -113,6 +113,7 @@
 
 [Outputs]
   exodus = true
+  hide = 'source_integral'
 []
 
 [MultiApps]
@@ -126,11 +127,13 @@
 
 [Transfers]
   [heat_source_from_openmc]
-    type = MultiAppCopyTransfer
+    type = MultiAppMeshFunctionTransfer
     direction = from_multiapp
     multi_app = openmc
     variable = heat_source
     source_variable = heat_source
+    from_postprocessors_to_be_preserved = heat_source
+    to_postprocessors_to_be_preserved = source_integral
   []
   [temp_to_openmc]
     type = MultiAppMeshFunctionTransfer
@@ -145,5 +148,13 @@
     multi_app = openmc
     variable = density
     source_variable = density
+  []
+[]
+
+[Postprocessors]
+  [source_integral]
+    type = ElementIntegralVariablePostprocessor
+    variable = heat_source
+    execute_on = transfer
   []
 []

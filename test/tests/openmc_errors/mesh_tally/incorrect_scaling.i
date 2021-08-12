@@ -49,15 +49,6 @@
 [Executioner]
   type = Transient
   num_steps = 1
-
-  # we need this to match the quadrature used in the receiving MOOSE app
-  # (does not exist in this input file) so that the elem->volume() computed
-  # for normalization within OpenMCCellAverageProblem is the same as in the
-  # receiving MOOSE app.
-  [Quadrature]
-    type = GAUSS
-    order = THIRD
-  []
 []
 
 [Postprocessors]

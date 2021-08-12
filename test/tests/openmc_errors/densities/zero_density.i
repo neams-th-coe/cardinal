@@ -48,11 +48,6 @@
 [Executioner]
   type = Transient
   num_steps = 1
-
-  [Quadrature]
-    type = GAUSS
-    order = THIRD
-  []
 []
 
 [Outputs]
