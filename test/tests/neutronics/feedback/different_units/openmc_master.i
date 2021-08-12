@@ -87,6 +87,9 @@
 []
 
 [Transfers]
+
+  # For illustration, this cases uses a copy transfer because we use exactly the
+  # same mesh and quadrature order as in the coupled OpenMC wrapping
   [heat_source_from_openmc]
     type = MultiAppCopyTransfer
     direction = from_multiapp
