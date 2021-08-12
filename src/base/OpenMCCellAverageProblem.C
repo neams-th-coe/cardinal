@@ -14,6 +14,7 @@
 #include "openmc/material.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
+#include "openmc/geometry_aux.h"
 #include "openmc/message_passing.h"
 #include "openmc/settings.h"
 #include "openmc/summary.h"
@@ -660,6 +661,66 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
     // First, figure out the phase of each element according to the blocks defined by the user
     storeElementPhase();
+
+    std::vector<int32_t> mapped_cells;
+    for (unsigned int e = 0; e < _mesh.nElem(); ++e) {
+      const auto * elem = _mesh.elemPtr(e);
+
+      const Point & c = elem->centroid();
+      Real element_volume = elem->volume();
+
+      bool error = findCell(c);
+
+      // otherwise, this region may potentially map to OpenMC if we _also_ turned
+      // on coupling for this region; first, determine the phase of this element
+      // and store the information
+      int level;
+
+      switch (_elem_phase[e])
+      {
+        case coupling::density_and_temperature:
+        {
+          level = _fluid_cell_level;
+          n_mapped_fluid_elems++;
+          break;
+        }
+        case coupling::temperature:
+        {
+          level = _solid_cell_level;
+          n_mapped_solid_elems++;
+          break;
+        }
+       case coupling::none:
+       {
+         uncoupled_volume += element_volume;
+         n_mapped_none_elems++;
+
+         // we will succeed in finding a valid cell here; for uncoupled regions,
+         // cell_index and cell_instance are unused, so this is just to proceed with program logic
+         level = 0;
+         break;
+       }
+       default:
+         mooseError("Unhandled CouplingFields enum!");
+     }
+
+      if (level > _particle.n_coord() - 1)
+      {
+        std::string phase = _fluid_blocks.count(elem->subdomain_id()) ? "fluid" : "solid";
+        mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the " + phase +
+          " exceeds number of nested coordinate levels at (" + Moose::stringify(c(0)) + ", " +
+          Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + "): " +
+          Moose::stringify(_particle.n_coord()));
+      }
+
+        mapped_cells.push_back(_particle.coord(level).cell);
+    }
+
+    std::unique(mapped_cells.begin(), mapped_cells.end());
+
+    openmc::prepare_distribcell(&mapped_cells);
+    mapped_cells.clear();
+
     for (unsigned int e = 0; e < _mesh.nElem(); ++e)
     {
       const auto * elem = _mesh.elemPtr(e);
@@ -724,7 +785,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
       // TODO: this is the cell instance at the lowest level in the geometry, which does
       // not necessarily match the "level" supplied on the line above
-      auto cell_instance = _particle.cell_instance();
+      auto cell_instance = cell_instance_at_level(_particle, _solid_cell_level);
 
       cellInfo cell_info = {cell_index, cell_instance};
 
