@@ -45,16 +45,6 @@
 [Executioner]
   type = Transient
   num_steps = 1
-
-  # The quadrature rule used for integrating in 'heat_source' postprocessor
-  # doesnt match the order for the problem if theres no nonlinear variables,
-  # so we set the quadrature order here manually. Normally, OpenMCs heat source
-  # is sent to another MOOSE app, which via a conservative transfer can be used
-  # to ensure conservation.
-  [Quadrature]
-    type = GAUSS
-    order = THIRD
-  []
 []
 
 [Postprocessors]

@@ -2,6 +2,8 @@
 #include "DelimitedFileReader.h"
 #include "TimedPrint.h"
 #include "MooseUtils.h"
+#include "NonlinearSystemBase.h"
+#include "Conversion.h"
 
 #include "mpi.h"
 #include "OpenMCCellAverageProblem.h"
@@ -1401,4 +1403,59 @@ OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) co
   }
 
   return false;
+}
+
+void
+OpenMCCellAverageProblem::createQRules(QuadratureType type, Order order, Order volume_order, Order face_order, SubdomainID block)
+{
+  // start copy: Copied from base class's createQRules in order to retain the same default behavior
+  if (order == INVALID_ORDER)
+  {
+    order = getNonlinearSystemBase().getMinQuadratureOrder();
+    if (order < getAuxiliarySystem().getMinQuadratureOrder())
+      order = getAuxiliarySystem().getMinQuadratureOrder();
+  }
+
+  if (volume_order == INVALID_ORDER)
+    volume_order = order;
+
+  if (face_order == INVALID_ORDER)
+    face_order = order;
+  // end copy
+
+  // The approximations made in elem->volume() are only valid for Gauss and Monomial quadratures
+  // if they are second order or above
+  if (type == Moose::stringToEnum<QuadratureType>("GAUSS"))
+    setMinimumVolumeQRules(volume_order, "GAUSS");
+  if (type == Moose::stringToEnum<QuadratureType>("MONOMIAL"))
+    setMinimumVolumeQRules(volume_order, "MONOMIAL");
+  if (type == Moose::stringToEnum<QuadratureType>("GAUSS_LOBATTO"))
+    setMinimumVolumeQRules(volume_order, "GAUSS_LOBATTO");
+
+  // Some quadrature rules don't ever seem to give a matching elem->volume() with the MOOSE
+  // volume integrations
+  if (type == Moose::stringToEnum<QuadratureType>("GRID"))
+    mooseError("The GRID quadrature set will never match the '_current_elem_volume' used to compute\n"
+               "integrals in MOOSE. This means that the heat source computed by OpenMC is normalized by\n"
+               "a different volume than used for MOOSE volume integrations, such that the specified 'power'\n"
+               "would not be respected. Please switch to a different quadrature set.");
+
+  if (type == Moose::stringToEnum<QuadratureType>("TRAP"))
+    mooseError("The TRAP quadrature set will never match the '_current_elem_volume' used to compute\n"
+               "integrals in MOOSE. This means that the heat source computed by OpenMC is normalized by\n"
+               "a different volume than used for MOOSE volume integrations, such that the specified 'power'\n"
+               "would not be respected. Please switch to a different quadrature set.");
+
+  FEProblemBase::createQRules(type, order, volume_order, face_order, block);
+}
+
+void
+OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std::string & type)
+{
+  if (volume_order < Moose::stringToEnum<Order>("SECOND"))
+  {
+    _console << "Increasing " << type << " volume quadrature order from " << Moose::stringify(volume_order) << " to 2 "
+      "so that elem->volume() matches MOOSE integrations" << std::endl;
+    volume_order = SECOND;
+  }
 }
