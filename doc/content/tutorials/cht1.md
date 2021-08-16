@@ -13,7 +13,11 @@ This tutorial makes use of the following major Cardinal classes:
 - [NekRSProblem](/problems/NekRSProblem.md)
 
 We recommend quickly reading this documentation before proceeding
-with this tutorial.
+with this tutorial. This tutorial also requires you to download
+some mesh files and restart files from Box. Please download the files
+from the `fhr_reflector` folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
+and place these files within the same directory structure
+in `tutorials/fhr_reflector`.
 !alert-end!
 
 This tutorial provides a description of how to use Cardinal to perform
@@ -312,9 +316,7 @@ to create meshes in Exodus II format. The MOOSE framework accepts meshes in
 a wide range of formats that can be generated with many commercial and free
 meshing tools; Cubit is used for this example because the content creator
 is most familiar with this software, though similar meshes can be generated
-with your preferred meshing tool. The meshes for this tutorial can be
-downloaded from Box following the instructions
-[here](mesh_download.md) and placed into the `tutorials/fhr_reflector/meshes` directory.
+with your preferred meshing tool.
 
 ### Solid Mesh
   id=solid_mesh
@@ -868,10 +870,8 @@ file (by appending `+T` to the file name). We increase the polynomial order as w
 !listing /tutorials/fhr_reflector/cht/fluid.par
 
 The restart file required for this stage of the calculation is created as a result
-of the simulation in [#part1].
-If you only want to run this [!ac](CHT) stage of the overall
-calculation, you can download the restart file from Box following the instructions
-[here](mesh_download.md) and placing the restart file into the `tutorials/fhr_reflector/conduction` directory.
+of the simulation in [#part1], but is also available on Box as described at
+the beginning of this tutorial.
 
 In the `[VELOCITY]` block, the density is set to unity, because the solve is conducted
 in nondimensional form, such that
