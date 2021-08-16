@@ -1,0 +1,257 @@
+#!python
+
+# This is a mesh of 1/24th of the fluid in the outer reflector ring in the KP-FHR (there are 24
+# blocks per ring). Only the fluid phase is modeled.
+
+import math
+
+# multiplicative factor to apply to the gap width; the nominal gap width cited
+# in Shaver et. al (2019) corresponds to a gap amplification factor of 1.0.
+gap_amplification = 3
+
+# Path to the tutorials directory on your computer, if you want to run this script
+# this will need to be updated
+directory = '/Users/anovak/projects/cardinal/tutorials/'
+
+core_radius       = 2.6
+layer1_thickness  = 0.3
+layer2_thickness  = 0.4
+block_gap         = 0.002 * gap_amplification
+bypass_gap        = 0.02
+height            = 0.502
+barrel_thickness  = 0.022
+n_blocks_per_ring = 24
+angle             = 360 / n_blocks_per_ring
+
+barrel_outer_radius = core_radius + layer1_thickness + block_gap + layer2_thickness +\
+  bypass_gap + barrel_thickness
+barrel_inner_radius = barrel_outer_radius - barrel_thickness
+
+layer2_outer_radius = barrel_inner_radius - bypass_gap
+layer2_inner_radius = layer2_outer_radius - layer2_thickness
+
+layer1_outer_radius = layer2_inner_radius - block_gap
+layer1_inner_radius = layer1_outer_radius - layer1_thickness
+
+porous_outer_radius = layer1_inner_radius
+porous_inner_radius = porous_outer_radius - 3e-2
+
+cubit.cmd('create cylinder radius ' + str(layer2_outer_radius) + ' height ' + str(height))
+cubit.cmd('create cylinder radius ' + str(layer2_inner_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 2 from volume 1')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('create cylinder radius ' + str(layer1_outer_radius) + ' height ' + str(height))
+cubit.cmd('create cylinder radius ' + str(layer1_inner_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 3 from volume 2 keep')
+cubit.cmd('delete volume 2')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+# create the porous region
+cubit.cmd('create cylinder radius ' + str(porous_inner_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 4 from volume 2')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('create brick x ' + str(2.0 * barrel_outer_radius) + ' y ' + str(barrel_outer_radius) + ' z ' + str(height))
+cubit.cmd('move volume 4 y ' + str(-barrel_outer_radius / 2.0))
+cubit.cmd('subtract volume 4 from volume 1 3')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('create brick x ' + str(2.0 * barrel_outer_radius) + ' y ' + str(barrel_outer_radius) + ' z ' + str(height))
+cubit.cmd('move volume 4 y ' + str(barrel_outer_radius / 2.0))
+cubit.cmd('rotate volume 4 angle ' + str(angle) + ' about Z include_merged')
+cubit.cmd('subtract volume 4 from volume 1 3')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('create cylinder radius ' + str(barrel_outer_radius) + ' height ' + str(height))
+cubit.cmd('create cylinder radius ' + str(barrel_inner_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 5 from volume 4')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('rotate Volume 1 angle ' + str(-angle / 2.0) + ' about origin 0 0 0 direction 0 0 1')
+
+# create a block of fluid
+cubit.cmd('create cylinder radius ' + str(barrel_outer_radius) + ' height ' + str(height))
+cubit.cmd('create cylinder radius ' + str(layer1_inner_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 6 from volume 5')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+# size of gap between adjacent blocks in this model
+l = block_gap / 2.0
+cubit.cmd('create brick x ' + str(2.0 * barrel_outer_radius) + ' y ' + str(2.0 * barrel_outer_radius) + ' z ' + str(height))
+cubit.cmd('move volume 6 y ' + str(-barrel_outer_radius - l))
+cubit.cmd('subtract volume 6 from volume 2 4 5')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+theta = (90.0 - angle / 2.0) * math.pi / 180.
+cubit.cmd('create brick x ' + str(2.0 * barrel_outer_radius) + ' y ' + str(2.0 * barrel_outer_radius) + ' z ' + str(height))
+cubit.cmd('move volume 6 y ' + str(barrel_outer_radius))
+cubit.cmd('rotate volume 6 angle ' + str(angle / 2.0) + ' about Z include_merged')
+cubit.cmd('move volume 6 x ' + str(-l * math.cos(theta)) + ' y ' + str(l * math.sin(theta)) + ' about Z include_merged')
+cubit.cmd('subtract volume 6 from volume 2 4 5')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('subtract volume 1 3 4 from volume 5')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('subtract volume 2 from volume 1 imprint keep')
+cubit.cmd('merge all')
+cubit.cmd('compress all')
+cubit.cmd('delete volume 1')
+cubit.cmd('merge all')
+cubit.cmd('compress all')
+
+# now, create extra volumes just so that I have internal surfaces that I can
+# use to control boundary layers
+cubit.cmd('create brick x ' + str(2.0 * barrel_outer_radius) + ' y ' + str(2.0 * barrel_outer_radius) + ' z ' + str(height))
+cubit.cmd('move volume 3 y ' + str(-barrel_outer_radius))
+cubit.cmd('subtract volume 3 from volume 2 keep')
+cubit.cmd('delete volume 3')
+cubit.cmd('subtract volume 4 from volume 2 keep')
+cubit.cmd('delete volume 2')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('create cylinder radius ' + str(layer1_outer_radius) + ' height ' + str(height))
+cubit.cmd('create cylinder radius ' + str(layer1_inner_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 5 from volume 4')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('subtract volume 4 from volume 1 imprint keep')
+cubit.cmd('delete volume 4')
+cubit.cmd('subtract volume 5 from volume 1 imprint keep')
+cubit.cmd('delete volume 1')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+cubit.cmd('imprint volume 1 2 3 4')
+
+cubit.cmd('create cylinder radius ' + str(layer2_outer_radius) + ' height ' + str(height))
+cubit.cmd('create cylinder radius ' + str(layer2_inner_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 6 from volume 5')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+cubit.cmd('subtract volume 5 from volume 3 keep')
+cubit.cmd('delete volume 5')
+cubit.cmd('split body 6')
+cubit.cmd('subtract volume 6 7 from volume 3 keep')
+cubit.cmd('delete volume 3')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+cubit.cmd('imprint volume 1 2 3 4 5 6')
+
+cubit.cmd('create cylinder radius ' + str(layer2_inner_radius) + ' height ' + str(height))
+cubit.cmd('create cylinder radius ' + str(layer1_outer_radius) + ' height ' + str(height))
+cubit.cmd('subtract volume 8 from volume 7')
+cubit.cmd('create brick x ' + str(2.0 * barrel_outer_radius) + ' y ' + str(2.0 * barrel_outer_radius) + ' z ' + str(height))
+cubit.cmd('move volume 9 y ' + str(-barrel_outer_radius))
+cubit.cmd('subtract volume 9 from volume 7')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('create brick x ' + str(2.0 * barrel_outer_radius) + ' y ' + str(2.0 * barrel_outer_radius) + ' z ' + str(height))
+cubit.cmd('move volume 8 y ' + str(barrel_outer_radius))
+cubit.cmd('rotate volume 8 angle ' + str(angle / 2.0) + ' about Z include_merged')
+cubit.cmd('subtract volume 8 from volume 7 5 keep')
+cubit.cmd('delete volume 8')
+cubit.cmd('subtract volume 7 from volume 4 keep')
+cubit.cmd('delete volume 7')
+cubit.cmd('subtract volume 10 from volume 5 keep')
+cubit.cmd('subtract volume 9 from volume 4 keep')
+cubit.cmd('split body 13')
+cubit.cmd('delete volume 4 5 14')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+cubit.cmd('compress all')
+
+cubit.cmd('delete volume 1 2')
+cubit.cmd('merge all')
+cubit.cmd('compress all')
+
+cubit.cmd('block 1 volume 1 2 3 4 5 6 7')
+
+surfaces = ''
+for i in range(1, 36 + 1):
+  surfaces += str(i) + ' '
+
+cubit.cmd('surface ' + surfaces + ' size ' + str(block_gap))
+
+gap_layer1 = 2e-4
+
+# create boundary layers on all the surfaces - first, do the ones that naturally have corners
+cubit.cmd('create boundary_layer 1')
+cubit.cmd('modify boundary_layer 1 uniform height ' + str(gap_layer1) + ' growth 1.2 layers 4')
+cubit.cmd('modify boundary_layer 1 add surface 23 volume 4 surface 30 volume 6')
+
+cubit.cmd('create boundary_layer 2')
+cubit.cmd('modify boundary_layer 2 uniform height ' + str(gap_layer1) + ' growth 1.2 layers 4')
+cubit.cmd('modify boundary_layer 2 add surface 32 volume 6 surface 9 volume 2 surface 36 volume 7')
+
+cubit.cmd('create boundary_layer 3')
+cubit.cmd('modify boundary_layer 3 uniform height ' + str(gap_layer1) + ' growth 1.2 layers 4')
+cubit.cmd('modify boundary_layer 3 add surface 28 volume 5 surface 6 volume 1')
+
+# boundary layers on internal solid surfaces
+cubit.cmd('create boundary_layer 5')
+cubit.cmd('modify boundary_layer 5 uniform height ' + str(gap_layer1) + ' growth 1.2 layers 4')
+cubit.cmd('modify boundary_layer 5 add surface 21 volume 4 surface 7 volume 6 surface 19 volume 6 surface 12 volume 2  surface 13 volume 7 surface 10 volume 7 surface 17 volume 3 surface 25 volume 5 surface 33 volume 7 surface 15 volume 3 surface 2 volume 5 surface 16 volume 5 surface 5 volume 1 surface 1 volume 1')
+
+# "approach" boundary layers
+cubit.cmd('create boundary_layer 6')
+cubit.cmd('modify boundary_layer 6 uniform height ' + str(gap_layer1) + ' growth 1.6 layers ' + str(10 / uniform_refine))
+cubit.cmd('modify boundary_layer 6 add surface 19 volume 4 surface 7 volume 2 surface 10 volume 2 surface 13 volume 3 surface 16 volume 3 surface 2 volume 1')
+
+cubit.cmd('create boundary_layer 7')
+cubit.cmd('modify boundary_layer 7 uniform height ' + str(gap_layer1 * 2) + ' growth 1.6 layers ' + str(6 / uniform_refine))
+cubit.cmd('modify boundary_layer 7 add surface 4 volume 1 surface 11 volume 2 surface 18 volume 3 surface 20 volume 4 surface 26 volume 5 surface 31 volume 6 surface 34 volume 7')
+
+cubit.cmd('create boundary_layer 8')
+cubit.cmd('modify boundary_layer 8 uniform height ' + str(gap_layer1 * 2) + ' growth 1.6 layers ' + str(6 / uniform_refine))
+cubit.cmd('modify boundary_layer 8 add surface 3 volume 1 surface 8 volume 2 surface 14 volume 3 surface 24 volume 4 surface 27 volume 5 surface 29 volume 6 surface 35 volume 7')
+
+cubit.cmd('mesh volume 1 2 3 4 5 6 7')
+cubit.cmd('block 1 element type HEX20')
+
+# unite all the subblocks used just for the sake of controlling boundary layers
+cubit.cmd('unite volume 1 2 3 4 5 6 7 include_mesh')
+cubit.cmd('compress all')
+cubit.cmd('merge all')
+
+cubit.cmd('block 1 volume 1')
+
+cubit.cmd('sideset 1 surface 7 5 9')
+cubit.cmd('sideset 1 name "outer_block_surface"')
+
+cubit.cmd('sideset 2 surface 2 6')
+cubit.cmd('sideset 2 name "inner_block_surface"')
+
+cubit.cmd('sideset 3 surface 3 10')
+cubit.cmd('sideset 3 name "lower_symmetry"')
+
+cubit.cmd('sideset 4 surface 4')
+cubit.cmd('sideset 4 name "upper_symmetry"')
+
+cubit.cmd('sideset 5 surface 8')
+cubit.cmd('sideset 5 name "bottom_gaps"')
+
+cubit.cmd('sideset 6 surface 12')
+cubit.cmd('sideset 6 name "top_gaps"')
+
+cubit.cmd('sideset 7 surface 11')
+cubit.cmd('sideset 7 name "barrel_surface"')
+
+cubit.cmd('sideset 8 surface 1')
+cubit.cmd('sideset 8 name "porous_inner_surface"')
+
+cubit.cmd('set large exodus file on')
+cubit.cmd('export Genesis "' + directory + "fhr_reflector/meshes/" + 'fluid.exo" dimension 3 overwrite')

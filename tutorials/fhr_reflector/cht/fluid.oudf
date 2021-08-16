@@ -1,0 +1,21 @@
+void velocityDirichletConditions(bcData * bc)
+{
+  if (bc->id == 5)
+  {
+    bc->u = 0.0; // x-velocity
+    bc->v = 0.0; // y-velocity
+    bc->w = Vz;  // z-velocity
+  }
+}
+
+void scalarDirichletConditions(bcData * bc)
+{
+  if (bc->id == 5)
+    bc->s = inlet_T;
+}
+
+void scalarNeumannConditions(bcData * bc)
+{
+  if (bc->id == 1 || bc->id == 2 | bc->id == 7)
+    bc->flux = bc->wrk[bc->idM];
+}
