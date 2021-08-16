@@ -57,9 +57,9 @@ git command used to fetch that submodule dependency.
 | :- | :- | :- | :- |
 | MOOSE | yes | yes | `git submodule update --init contrib/moose` |
 | OpenMC | yes | yes | `git submodule update --init --recursive contrib/openmc` |
-| NekRS | yes | yes | `git submodule udpate --init contrib/nekRS` |
+| NekRS | yes | yes | `git submodule update --init contrib/nekRS` |
 | SAM | no | no | `git submodule update --init contrib/SAM` |
-| Sockeye | no | no | `git submodule udpate --init contrib/sockeye` |
+| Sockeye | no | no | `git submodule update --init contrib/sockeye` |
 | THM | no | no | `git submodule update --init contrib/thm` |
 | sodium | no | no | `git submodule update --init contrib/sodium` |
 | potassium | no | no | `git submodule update --init contrib/potassium` |
@@ -103,7 +103,7 @@ submodules, use:
 ```
 $ git submodule update --init contrib/moose
 $ git submodule update --init --recursive contrib/openmc
-$ git submodule udpate --init contrib/moose
+$ git submodule update --init contrib/moose
 ```
 
 ##### Optional Submodules
@@ -121,11 +121,11 @@ You will then be prompted to enter credentials to access ANL's gitlab site.
 To get the Sockeye dependency, use:
 
 ```
-$ git submodule udpate --init contrib/sockeye
-$ git submodule udpate --init contrib/thm
-$ git submodule udpate --init contrib/sodium
-$ git submodule udpate --init contrib/potassium
-$ git submodule udpate --init contrib/iapws95
+$ git submodule update --init contrib/sockeye
+$ git submodule update --init contrib/thm
+$ git submodule update --init contrib/sodium
+$ git submodule update --init contrib/potassium
+$ git submodule update --init contrib/iapws95
 ```
 
 You will then be prompted to enter credentials to access INL's gitlab site.
