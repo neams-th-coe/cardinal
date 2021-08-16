@@ -78,6 +78,33 @@ public:
   virtual bool converged() override { return true; }
 
   /**
+   * This class uses elem->volume() in order to normalize the fission power produced
+   * by OpenMC to conserve the specified power. However, as discussed on the MOOSE
+   * slack channel,
+   *
+   * "elem->volume() is expensive, so whenever we do integration in moose we set
+   *  _current_elem_volume to the volume as set by the sum of the quadrature weights"
+   *
+   * "The quadrature rule that we provide when you only have CONSTANT MONOMIALS is "
+   * "insufficient for exactly integrating the element Jacobian mapping type (which "
+   * "is FIRST LAGRANGE for a first order element), so you get an error relative to "
+   * "the libmesh volume computation"
+   *
+   * So, we need to make sure that a minimum order quadrature rule is used with this
+   * class so that the total heat source as computed by an
+   * ElementIntegralVariablePostprocessor actually matches the specified 'power'
+   * (for low quadrature orders, there can be an error up to about 5% or so in total
+   * power). This override simply forces the volume quadrature order to be 2 or higher
+   * when using Gauss (default), monomial, or Gauss-Lobatto quadrature.
+   *
+   * For other quadrature rules, the approximations made in elem->volume() are never
+   * going to match the volume integrations in MOOSE (unless the quadrature order is
+   * very very high). For these orders, we print an error message informing the user
+   * that they should switch to a different order.
+   */
+  virtual void createQRules(QuadratureType type, Order order, Order volume_order, Order face_order, SubdomainID block) override;
+
+  /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
    * value is the cell index, while the second is the cell instance.
    */
@@ -187,6 +214,13 @@ protected:
 
   /// Read the parameters for 'tally_blocks'
   void readTallyBlocks() { readBlockParameters("tally", _tally_blocks); }
+
+  /**
+   * Set a minimum order for a volume quadrature rule
+   * @param[in] volume_order order of the volume quadrature rule
+   * @param[in] type string type of quadrature rule for printing a console message
+   */
+  void setMinimumVolumeQRules(Order & volume_order, const std::string & type);
 
   /// For keeping the output neat when using verbose
   std::string printNewline() { if (_verbose) return "\n"; else return ""; }
