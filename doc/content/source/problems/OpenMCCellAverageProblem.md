@@ -140,12 +140,13 @@ cell-to-element mapping.
   id=openmc_mesh
   caption=Illustration of OpenMC particle transport geometry and the mapping of OpenMC cells to a user-supplied mesh (referred to as the "mesh mirror").
 
+#### Mapping Requirements
+
 There are no requirements on alignment of elements/cells or on preserving volumes -
 the OpenMC cells and mesh mirror elements do not need to be conformal. Elements
 that don't map to an OpenMC cell simply do not participate in the multiphysics
 coupling (and vice versa for the cells). This feature can be used to exclude regions
 such as reflectors from multiphysics feedback.
-
 The `fluid_blocks` and `solid_blocks` parameters are used to indicate which
 blocks in the mesh mirror correspond to fluid, and which to solid. All OpenMC
 cells that map to elements in the `fluid_blocks` will receive temperature and
@@ -161,6 +162,64 @@ The only requirements imposed here are:
   be relaxed in the future.
 - An OpenMC cell cannot map to elements in both the `fluid_blocks` and `solid_blocks` -
   otherwise, it is unclear if the cell should receive density feedback or not.
+
+Despite these limited requirements, the cell-to-element mapping should be established
+with care - there are two general behavior patterns that are typically undesirable
+in multiphysics calculations. In [openmc_coarser], consider the case where the
+`[Mesh]` has four equal-sized elements, each of volume $V$, while the OpenMC
+domain has three equal-sized cells. Assume also for illustration purposes that
+the power produced by each OpenMC cell is $Q$, so that the total power of the OpenMC
+domain is $3Q$. By nature of the centroid mapping, one OpenMC cell will map to
+a much larger region of space than the other two cells, and even though the fission
+power in each OpenMC cell is $Q$, the power density will differ by a factor of
+two among the cells because the mapped volumes differ significantly.
+
+!media openmc_coarser.png
+  id=openmc_coarser
+  caption=Illustration of potential element to cell mapping for OpenMC cells coarser than the `[Mesh]`
+  style=width:60%;margin-left:auto;margin-right:auto
+
+You can
+monitor this aspect of the mapping by checking the mesh volumes that each OpenMC cell maps to
+by setting `verbose = true`, which will print for each cell a message similar to:
+
+```
+cell   1, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+```
+
+If the "Mapped elems volume" differs significantly among cells that actually have
+the same volume, you may consider adjusting the `[Mesh]` and/or the OpenMC [!ac](CSG)
+geometry. You may also consider running an [OpenMC volume calculation](https://docs.openmc.org/en/latest/usersguide/volume.html)
+to compare the "Mapped elems volume" with a stochastic calculation of cell volumes
+to ensure a reasonable mapping.
+
+In [openmc_finer], consider the case where the `[Mesh]` has two equal-sized elements,
+while the OpenMC domain has three equal-sized cells. By nature of the centroid mapping,
+one OpenMC cell not participate in coupling because no elements in the `[Mesh]`
+had a centroid within the cell.
+
+!media openmc_finer.png
+  id=openmc_finer
+  caption=Illustration of potential element to cell mapping for OpenMC cells finer than the `[Mesh]`
+  style=width:60%;margin-left:auto;margin-right:auto
+
+If your OpenMC geometry consists of a single coordinate level, and any OpenMC cells
+are skipped in the coupling, this class prints a warning message like
+
+```
+*** Warning ***
+The following warning occurred in the object "MOOSE Problem", of type "OpenMCCellAverageProblem".
+
+Skipping multiphysics feedback for 3 OpenMC cells
+```
+
+Of course the situations shown in [openmc_coarser] and [openmc_finer] can occur even if the number
+of mesh elements exactly matches the number of OpenMC cells, depending on where
+the element centroids and cell boundaries are located. Therefore,
+we recommend using `verbose = true` when building a coupled model to ensure
+the desired multiphysics feedback resolution.
+
+#### Cell Levels
 
 There are two important parameters used in establishing the mapping from
 elements to cells - `fluid_cell_level` and `solid_cell_level`. These two parameters
