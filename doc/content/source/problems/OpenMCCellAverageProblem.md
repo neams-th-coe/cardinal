@@ -464,13 +464,20 @@ are available:
 
 - `batches`: the number of batches (inactive plus active)
 - `inactive_batches`: the number of inactive batches
+- `openmc_verbosity`: verbosity level in OpenMC
 - `particles`: the number of particles per batch
 
 For all of the above, a setting in the Cardinal input file will override
-any settings in the OpenMC XML files. For the `batches` parameter in particular,
-setting this value will also set the maximum number of batches (for cases
+any settings in the OpenMC XML files.
+
+Setting the `batches` parameter will also set the maximum number of batches (for cases
 that use triggers) and write a statepoint that includes the new total number
 of batches.
+
+For the `openmc_verbosity` parameter, because the verbosity setting
+is used in the call to `openmc_init` (at which point `OpenMCCellAverageProblem` doesn't
+exist yet), we cannot change the verbosity during initialization
+through the Cardinal input files.
 
 !syntax parameters /Problem/OpenMCCellAverageProblem
 

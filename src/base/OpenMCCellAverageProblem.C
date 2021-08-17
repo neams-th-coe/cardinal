@@ -69,6 +69,8 @@ validParams<OpenMCCellAverageProblem>()
     "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>("batches", "batches > 0",
     "Number of batches to run in OpenMC; this overrides the setting in the XML files.");
+  params.addRangeCheckedParam<unsigned int>("openmc_verbosity", "openmc_verbosity >= 1 & openmc_verbosity <= 10",
+    "OpenMC verbosity level");
 
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
@@ -112,6 +114,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     mooseWarning("libMesh communicator already set in OpenMC.");
 
   openmc::settings::libmesh_comm = &_mesh.comm();
+
+  if (isParamValid("openmc_verbosity"))
+    openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
 
   if (isParamValid("particles"))
     openmc::settings::n_particles = getParam<unsigned int>("particles");
