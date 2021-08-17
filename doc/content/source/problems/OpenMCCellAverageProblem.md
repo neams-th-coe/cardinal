@@ -22,6 +22,16 @@ supplied in the `[Mesh]` block.
 The remainder of this page describes how `OpenMCCellAverageProblem` wraps
 OpenMC as a MOOSE application.
 
+!alert warning
+OpenMC as a standalone application has several
+[command line parameters](https://docs.openmc.org/en/stable/usersguide/scripts.html). Because
+1) all of these settings can also be controlled through the XML files, and 2)
+most of OpenMC's command line parameters control features related to debugging,
+Cardinal does not propagate any OpenMC command line parameters to the OpenMC
+initialization stage when using the Cardinal executable. If you want to use
+any of OpenMC's command line features, we recommend running with the `openmc`
+executable built as part of Cardinal's compilation process.
+
 ## Initializing MOOSE-type Field Interfaces
 
 When initializing a coupling of OpenMC within the MOOSE framework, the first
@@ -445,6 +455,18 @@ specified in a unit 100.0 times larger than the OpenMC unit of centimeters.
 
 !listing test/tests/neutronics/feedback/different_units/openmc.i
   block=Problem
+
+### Controlling the OpenMC Settings
+
+This class provides minimal capabilities to control the OpenMC simulation
+settings directly from the Cardinal input file. The following parameters
+are available:
+
+- `particles`: the number of particles per batch
+
+For all of the above, a setting in the Cardinal input file will override
+any settings in the OpenMC XML files.
+
 
 !syntax parameters /Problem/OpenMCCellAverageProblem
 

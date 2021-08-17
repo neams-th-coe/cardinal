@@ -64,6 +64,8 @@ validParams<OpenMCCellAverageProblem>()
     "of the local tally (false)");
   params.addRangeCheckedParam<unsigned int>("particles", "particles > 0 ",
     "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
+  params.addRangeCheckedParam<unsigned int>("inactive_batches", "inactive_batches > 0",
+    "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
 
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
@@ -110,6 +112,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
   if (isParamValid("particles"))
     openmc::settings::n_particles = getParam<unsigned int>("particles");
+
+  if (isParamValid("inactive_batches"))
+    openmc::settings::n_inactive = getParam<unsigned int>("inactive_batches");
 
   // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
   // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred
