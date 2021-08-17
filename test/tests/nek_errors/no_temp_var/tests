@@ -1,5 +1,5 @@
 [Tests]
-  [./no_temperature_variable]
+  [no_temperature_variable]
     type = RunException
     input = nek.i
     expect_err = "To properly transfer temperature and heat flux between nekRS and MOOSE, "
@@ -7,5 +7,5 @@
       "TEMPERATURE block in the .par file?"
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS."
-  [../]
+  []
 []

@@ -1,5 +1,5 @@
 [Tests]
-  [./zero_power]
+  [zero_power]
     type = Exodiff
     input = openmc_master_zero.i
     exodiff = 'openmc_master_zero_out.e'
@@ -13,8 +13,8 @@
                   "simulation of the same problem with zero heat source. The gold file was "
                   "created with the zero_power.i input file, which does not have OpenMC as "
                   "a sub-app."
-  [../]
-  [./three_pebbles]
+  []
+  [three_pebbles]
     type = Exodiff
     input = openmc_master.i
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
@@ -25,12 +25,12 @@
     max_parallel = 6
     requirement = "A coupled OpenMC-MOOSE problem for three pebbles shall demonstrate "
                   "correct data transfers between OpenMC and heat conduction in the solid."
-  [../]
-  [./missing_pebble]
+  []
+  [missing_pebble]
     type = RunException
     input = openmc_missing_pebble.i
     min_parallel = 4
     min_threads = 2
     expect_err = "Heating tally kappa-fission does not match the global kappa-fission value"
-  [../]
+  []
 []

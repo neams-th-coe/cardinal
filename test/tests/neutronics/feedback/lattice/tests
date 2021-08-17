@@ -1,5 +1,5 @@
 [Tests]
-  [./pincell]
+  [pincell]
     type = Exodiff
     input = openmc_master.i
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
@@ -7,5 +7,5 @@
                   "and MOOSE and a solid pincell model when the model is set up with distributed cells. "
                   "The solution for temperature, density, and heat source show an exact agreement with "
                   "a case built without distributed cells in ../single_level."
-  [../]
+  []
 []

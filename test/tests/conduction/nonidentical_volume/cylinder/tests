@@ -1,5 +1,5 @@
 [Tests]
-  [./cylinder_heat_source]
+  [cylinder_heat_source]
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out_nek0.e'
@@ -16,5 +16,5 @@
                   "heat source 'computed' by some other app. The solution matches the standalone MOOSE "
                   "case very well - postprocessors for the volume-averaged and maximum temperature match the "
                   "MOOSE standalone case to within 0.1%."
-  [../]
+  []
 []

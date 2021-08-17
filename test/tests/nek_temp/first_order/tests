@@ -1,5 +1,5 @@
 [Tests]
-  [./first_order_temperature]
+  [first_order_temperature]
     type = Exodiff
     input = nek.i
     exodiff = nek_out.e
@@ -10,8 +10,8 @@
                   "for temperature on the nekRS side and then setting 'solver = none', we show "
                   "that the max/min error in that reconstructed temperature compared to a MOOSE "
                   "function of the same form is O(1e-16)."
-  [../]
-  [./first_order_volume_temperature]
+  []
+  [first_order_volume_temperature]
     type = Exodiff
     input = nek_volume.i
     exodiff = nek_volume_out.e
@@ -20,5 +20,5 @@
                   "for temperature on the nekRS side and then setting 'solver = none', we show "
                   "that the max/min error in that reconstructed temperature compared to a MOOSE "
                   "function of the same form is O(1e-16)."
-  [../]
+  []
 []

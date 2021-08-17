@@ -1,5 +1,5 @@
 [Tests]
-  [./invalid_transfer_pp]
+  [invalid_transfer_pp]
     type = RunException
     input = nek_master.i
     expect_err = "The default value for the 'transfer_in' postprocessor received by nekRS "
@@ -7,5 +7,5 @@
         "postprocessor is not zero."
     requirement = "When using the minimized transfers setting, the default value for the "
                   "postprocessor in the master application must not be zero."
-  [../]
+  []
 []

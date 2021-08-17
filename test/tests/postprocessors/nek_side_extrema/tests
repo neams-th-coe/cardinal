@@ -1,5 +1,5 @@
 [Tests]
-  [./nek_side_extrema]
+  [nek_side_extrema]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
@@ -9,5 +9,5 @@
                   "by running the moose.i input, which computes the same max/min operations using "
                   "existing MOOSE postprocessors on the same mesh on auxvariables that match "
                   "the functional form of the solution fields initialized in the pyramid.udf. "
-  [../]
+  []
 []

@@ -1,5 +1,5 @@
 [Tests]
-  [./one_mesh]
+  [one_mesh]
     type = Exodiff
     input = one_mesh.i
     exodiff = 'one_mesh_out.e'
@@ -10,8 +10,8 @@
                   "a local tally when a single mesh is used. "
                   "The gold file was created with the original OpenMCProblem, showing "
                   "that the mesh tally implementation is equivalent."
-  [../]
-  [./one_mesh_global]
+  []
+  [one_mesh_global]
     type = Exodiff
     input = one_mesh_global.i
     exodiff = 'one_mesh_global_out.e'
@@ -22,8 +22,8 @@
                   "a global tally when a single mesh is used. This test was run with successively finer "
                   "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
                   "approaches the value of a cell tally as the difference in volume decreases."
-  [../]
-  [./multiple_meshes]
+  []
+  [multiple_meshes]
     type = Exodiff
     input = multiple_meshes.i
     exodiff = 'multiple_meshes_out.e'
@@ -34,8 +34,8 @@
                   "a local tally when multiple identical meshes are used. "
                   "The gold file was created with the original OpenMCProblem, showing "
                   "that the mesh tally implementation is equivalent."
-  [../]
-  [./multiple_meshes_global]
+  []
+  [multiple_meshes_global]
     type = Exodiff
     input = multiple_meshes_global.i
     exodiff = 'multiple_meshes_global_out.e'
@@ -46,8 +46,8 @@
                   "a global tally when multiple identical meshes are used. This test was run with successively finer "
                   "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
                   "approaches the value of a cell tally as the difference in volume decreases."
-  [../]
-  [./different_units]
+  []
+  [different_units]
     type = Exodiff
     input = different_units.i
     exodiff = 'different_units_out.e'
@@ -56,5 +56,5 @@
     max_parallel = 32
     requirement = "The heat source shall be correctly projected onto a [Mesh] in units of meters "
                   "when the tally mesh template is in units of centimeters."
-  [../]
+  []
 []

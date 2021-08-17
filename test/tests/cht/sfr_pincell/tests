@@ -1,5 +1,5 @@
 [Tests]
-  [./sfr_pincell]
+  [sfr_pincell]
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out.e'
@@ -10,5 +10,5 @@
                   "(based on the power imposed in the solid) will not be observed because some heat flux "
                   "GLL points are also on Dirichlet boundaries, which win in boundary condition ties."
     max_time = 400
-  [../]
+  []
 []

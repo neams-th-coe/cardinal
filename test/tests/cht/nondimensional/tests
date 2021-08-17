@@ -1,5 +1,5 @@
 [Tests]
-  [./sfr_pincell]
+  [sfr_pincell]
     type = Exodiff
     input = nek_master.i
 
@@ -17,5 +17,5 @@
                   "and a 0.1% difference in temperatures (this is to be expected, though, because "
                   "the _solve_ is not exactly the same between a nondimensional and dimensional case - "
                   "the governing equation is the same, but not necessarily the number of iterations, etc."
-  [../]
+  []
 []

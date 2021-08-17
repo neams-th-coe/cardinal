@@ -1,9 +1,9 @@
 [Tests]
-  [./nondimensional_Re]
+  [nondimensional_Re]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
     cli_args = '--nekrs-setup brick'
     requirement = "The system shall correctly compute the Reynolds number for a nondimensional NekRS case."
-  [../]
+  []
 []

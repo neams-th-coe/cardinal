@@ -1,5 +1,5 @@
 [Tests]
-  [./deformed_conduction]
+  [deformed_conduction]
     type = Exodiff
     input = box-test.i
     exodiff = 'box-test_out_nek0.e'
@@ -14,5 +14,5 @@
                   "t*x*z*(2-z)*0.05 in y coordinates, and t*(y+1)*(y-1)*0.1 in z coordinates."
                   "The gold solution was verified by comparing it"
                   "to the analytic solution and a solution obtained by MOOSE's heat conduction solve."
-  [../]
+  []
 []

@@ -15,9 +15,9 @@
 [Executioner]
   type = Transient
 
-  [./TimeStepper]
+  [TimeStepper]
     type = NekTimeStepper
-  [../]
+  []
 []
 
 [Postprocessors]

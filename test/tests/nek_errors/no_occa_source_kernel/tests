@@ -1,5 +1,5 @@
 [Tests]
-  [./no_occa_source_kernel]
+  [no_occa_source_kernel]
     type = RunException
     input = nek.i
 
@@ -10,5 +10,5 @@
                  "for the source in the passive scalar equations!"
     requirement = "The system shall throw an error if there is no heat source kernel when "
                   "using volume coupling"
-  [../]
+  []
 []

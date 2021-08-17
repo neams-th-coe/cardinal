@@ -1,5 +1,5 @@
 [Tests]
-  [./no_temp_solve]
+  [no_temp_solve]
     type = RunException
     input = nek.i
 
@@ -12,5 +12,5 @@
     cli_args = '--error'
     requirement = "MOOSE shall throw a warning if there is no temperature passive scalar "
                   "solve in nekRS."
-  [../]
+  []
 []

@@ -1,8 +1,8 @@
 [Tests]
-  [./unmapped]
+  [unmapped]
     type = Exodiff
     input = openmc_master.i
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
     requirement = "OpenMC postprocessors shall evaluate to -1 for unmapped MOOSE elements."
-  [../]
+  []
 []

@@ -1,5 +1,5 @@
 [Tests]
-  [./k_eigenvalue]
+  [k_eigenvalue]
     type = CSVDiff
     input = openmc.i
     csvdiff = 'openmc_out.csv'
@@ -7,5 +7,5 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The k-eigenvalue shall be correctly retrieved from the OpenMC solution."
-  [../]
+  []
 []

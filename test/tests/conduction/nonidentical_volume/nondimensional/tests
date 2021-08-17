@@ -1,5 +1,5 @@
 [Tests]
-  [./cylinder_heat_source]
+  [cylinder_heat_source]
     type = Exodiff
     input = nek_master.i
 
@@ -16,5 +16,5 @@
                   "dimensional version in ../cylinder. This test also confirms that passing the "
                   "casename on the command line will override whatever is in the input file "
                   "(which here is provided as invalid value)."
-  [../]
+  []
 []

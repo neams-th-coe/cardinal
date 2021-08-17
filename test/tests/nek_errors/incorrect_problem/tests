@@ -1,5 +1,5 @@
 [Tests]
-  [./incorrect_problem]
+  [incorrect_problem]
     type = RunException
     input = nek.i
 
@@ -8,5 +8,5 @@
 
     expect_err = "Postprocessor with name 'nek_avg_temp' can only be used with NekRSProblem!"
     requirement = "The system shall error if a Nek postprocessor is not paired with the correct problem."
-  [../]
+  []
 []

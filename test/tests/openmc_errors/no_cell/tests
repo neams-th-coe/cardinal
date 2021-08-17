@@ -1,9 +1,9 @@
 [Tests]
-  [./no_cell]
+  [no_cell]
     type = RunException
     input = openmc.i
     expect_err = "Cannot find OpenMC cell at position \(x, y, z\) = \(10, 0, 0\)"
     requirement = "The system shall error if no cell exists at the specified position in the "
                   "OpenMC model"
-  [../]
+  []
 []
