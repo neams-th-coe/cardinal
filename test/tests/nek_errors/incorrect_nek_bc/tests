@@ -1,5 +1,5 @@
 [Tests]
-  [./missing_flux_bc]
+  [missing_flux_bc]
     type = RunException
     input = nek.i
 
@@ -11,5 +11,5 @@
                  "instead of 'fixedGradient'."
     requirement = "MOOSE shall throw an error if there is no receiving heat flux boundary condition "
                   "on the nekRS boundaries that are coupled to MOOSE."
-  [../]
+  []
 []

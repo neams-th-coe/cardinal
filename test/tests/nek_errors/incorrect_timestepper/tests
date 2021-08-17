@@ -1,5 +1,5 @@
 [Tests]
-  [./incorrect_timestepper]
+  [incorrect_timestepper]
     type = RunException
     input = nek.i
 
@@ -8,5 +8,5 @@
 
     expect_err = "The 'NekTimeStepper' stepper must be used with 'NekRSProblem'!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct time stepper."
-  [../]
+  []
 []

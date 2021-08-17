@@ -1,5 +1,5 @@
 [Tests]
-  [./overlap_all]
+  [overlap_all]
     type = Exodiff
     input = overlap_all.i
     exodiff = 'overlap_all_out.e'
@@ -8,8 +8,8 @@
     max_parallel = 8
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases."
-  [../]
-  [./overlap_solid]
+  []
+  [overlap_solid]
     type = Exodiff
     input = overlap_solid.i
     exodiff = 'overlap_solid_out.e'
@@ -19,8 +19,8 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases, but "
                   "heat source coupling only performed for the solid phase."
-  [../]
-  [./overlap_fluid]
+  []
+  [overlap_fluid]
     type = Exodiff
     input = overlap_fluid.i
     exodiff = 'overlap_fluid_out.e'
@@ -30,8 +30,8 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for perfect model overlap with fissile fluid and solid phases, but "
                   "heat source coupling only performed for the fluid phase."
-  [../]
-  [./partial_overlap_openmc_union]
+  []
+  [partial_overlap_openmc_union]
     type = Exodiff
     input = partial_overlap_openmc_union.i
     exodiff = 'partial_overlap_openmc_union_out.e'
@@ -41,16 +41,16 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for partial overlap of the OpenMC and MOOSE meshes, where all MOOSE "
                   "elements map to OpenMC cells, but some OpenMC cells are not mapped."
-  [../]
-  [./partial_overlap_moose_union_msg]
+  []
+  [partial_overlap_moose_union_msg]
     type = RunException
     input = partial_overlap_moose_union.i
     cli_args = '--error'
     expect_err = "The MOOSE mesh has 1024 solid elements, but only 768 got mapped to OpenMC cells."
     requirement = "A warning shall be printed if any portion of the MOOSE solid blocks did not "
                   "get mapped to OpenMC cells."
-  [../]
-  [./partial_overlap_moose_union]
+  []
+  [partial_overlap_moose_union]
     type = Exodiff
     input = partial_overlap_moose_union.i
     exodiff = 'partial_overlap_moose_union_out.e'
@@ -60,8 +60,8 @@
     requirement = "The heat source shall be extracted and normalized correctly from OpenMC "
                   "for partial overlap of the OpenMC and MOOSE meshes, where all OpenMC "
                   "cells map to MOOSE elements, but some MOOSE elements are not mapped."
-  [../]
-  [./default_tally_blocks]
+  []
+  [default_tally_blocks]
     type = Exodiff
     input = default_tally_blocks.i
     exodiff = 'default_tally_blocks_out.e'
@@ -71,5 +71,5 @@
     requirement = "For single-level geometries, tallies shall be added to all MOOSE blocks "
                   "if tally blocks are not specified. The gold file for this test is simply "
                   "a copy of overlap_all_out.e."
-  [../]
+  []
 []

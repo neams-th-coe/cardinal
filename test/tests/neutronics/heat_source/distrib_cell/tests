@@ -1,5 +1,5 @@
 [Tests]
-  [./solid]
+  [solid]
     type = Exodiff
     input = solid.i
     exodiff = 'solid_out.e'
@@ -8,8 +8,8 @@
     max_parallel = 4
     requirement = "The heat source shall be correctly mapped if the solid cell level is not "
                   "the highest level."
-  [../]
-  [./warn_zero_tallies]
+  []
+  [warn_zero_tallies]
     type = RunException
     input = warn_zero_tallies.i
     cli_args = '--error'
@@ -19,5 +19,5 @@
     expect_err = "Skipping tallies for"
     requirement = "A warning shall be printed if a material-fill cell does not contain any fissile material "
                   "but it was still added to the tally blocks."
-  [../]
+  []
 []

@@ -1,9 +1,9 @@
 [Tests]
-  [./incorrect_problem]
+  [incorrect_problem]
     type = RunException
     input = openmc.i
     expect_err = "Postprocessor with name 'max_tally_rel_err' can only be used with OpenMCCellAverageProblem!"
     requirement = "The system shall error if an OpenMC postprocessor is used without the correct "
                   "OpenMC wrapped problem."
-  [../]
+  []
 []

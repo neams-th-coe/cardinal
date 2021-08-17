@@ -1,5 +1,5 @@
 [Tests]
-  [./incorrect_mesh]
+  [incorrect_mesh]
     type = RunException
     input = nek.i
 
@@ -8,5 +8,5 @@
 
     expect_err = "Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct mesh type."
-  [../]
+  []
 []

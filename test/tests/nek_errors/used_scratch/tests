@@ -1,5 +1,5 @@
 [Tests]
-  [./occupied_scratch_space]
+  [occupied_scratch_space]
     type = RunException
     input = nek.i
     expect_err = "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are reserved in Cardinal for "
@@ -12,5 +12,5 @@
                   "reserved in Cardinal for facilitating the heat flux transfer and cannot be used "
                   "in their originally truly-flexible manner as they can in standalone nekRS."
     skip = "Waiting until all legacy inputs are updated to avoid breaking anyone's inputs"
-  [../]
+  []
 []

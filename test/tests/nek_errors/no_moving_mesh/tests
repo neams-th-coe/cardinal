@@ -1,5 +1,5 @@
 [Tests]
-  [./no_moving_mesh]
+  [no_moving_mesh]
     type = RunException
     input = nek_master.i
 
@@ -10,5 +10,5 @@
     requirement = "The system shall throw an error if a moving mesh is specified, but the appropriate "
                   "input file parameter is not also set in NekRS's input files (which would otherwise "
                   "result in some arrays not being allocated in NekRS)."
-  [../]
+  []
 []

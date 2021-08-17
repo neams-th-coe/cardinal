@@ -1,5 +1,5 @@
 [Tests]
-  [./nek_volume_average]
+  [nek_volume_average]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
@@ -14,5 +14,5 @@
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close. This input also "
                   "confirms that the case name can still be passed on the command line."
-  [../]
+  []
 []

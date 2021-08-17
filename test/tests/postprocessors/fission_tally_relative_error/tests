@@ -1,5 +1,5 @@
 [Tests]
-  [./fission_tally_relative_error]
+  [fission_tally_relative_error]
     type = CSVDiff
     input = openmc.i
     csvdiff = 'openmc_out.csv'
@@ -7,5 +7,5 @@
     # in the fission bank on a process
     max_parallel = 8
     requirement = "The maximum and minimum tally relative errors shall be correctly retrieved from the OpenMC solution."
-  [../]
+  []
 []

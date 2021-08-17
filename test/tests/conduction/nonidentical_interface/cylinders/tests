@@ -1,5 +1,5 @@
 [Tests]
-  [./cylinder_conduction]
+  [cylinder_conduction]
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out.e'
@@ -19,8 +19,8 @@
                   "used in this test, the errors in temperature are less than 0.5%."
                   "As the BISON mesh is refined, the error continually decreases until the temperatures "
                   "are very close to those predicted by the standalone MOOSE case."
-  [../]
-  [./cylinder_conduction_subcycle]
+  []
+  [cylinder_conduction_subcycle]
     type = CSVDiff
     input = nek_master_subcycle.i
     csvdiff = 'nek_master_subcycle_out.csv'
@@ -33,8 +33,8 @@
                   "1e-3 different from those for the cylinder_conduction case, so the simulation process "
                   "is equivalent. We don't use exactly the same CSV gold file because the number of time steps "
                   "differs, and would trigger a failure."
-  [../]
-  [./cylinder_conduction_reversed]
+  []
+  [cylinder_conduction_reversed]
     type = CSVDiff
     input = nek_master_reversed.i
     csvdiff = 'nek_master_reversed_out.csv'
@@ -44,8 +44,8 @@
                   "against those for the cylinder_conduction case, which match wo within 1e-5. We don't use "
                   "exactly the same CSV gold file because the number of time steps differ, and would trigger "
                   "a failure."
-  [../]
-  [./cylinder_conduction_mini]
+  []
+  [cylinder_conduction_mini]
     type = CSVDiff
     input = nek_master_mini.i
     csvdiff = 'nek_master_subcycle_out.csv'
@@ -54,5 +54,5 @@
     requirement = "The same solution shall be obtained when nekRS is run as a sub-app with minimized transfers "
                   "for in the incoming and outgoing data transfers. We compare against the same CSV file used "
                   "for the cylinder_conduction_subcycle case because the results should be exactly the same."
-  [../]
+  []
 []

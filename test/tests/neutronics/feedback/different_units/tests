@@ -1,5 +1,5 @@
 [Tests]
-  [./different_units]
+  [different_units]
     type = Exodiff
     input = openmc_master.i
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
@@ -8,5 +8,5 @@
                   "by ensuring exact agreement between two versions of the same problem - one with "
                   "a length scale of centimeters (openmc_master_cm.i), and the other with a length "
                   "scale of meters (openmc_master.i)."
-  [../]
+  []
 []
