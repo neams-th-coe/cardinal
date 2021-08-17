@@ -23,4 +23,16 @@
                   "the Cardinal input file, and compare the eigenvalue against a standalone OpenMC run "
                   "(with 20 inactive batches) to ensure correctness."
   []
+  [batches]
+    type = CSVDiff
+    input = batches.i
+    csvdiff = batches_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The number of batches shall optionally be set through the Cardinal input file. "
+                  "While the XML files set 50 batches, we change the number of batches to 60 in "
+                  "the Cardinal input file, and compare the eigenvalue against a standalone OpenMC run "
+                  "(with 60 batches) to ensure correctness."
+  []
 []
