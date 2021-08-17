@@ -62,6 +62,9 @@ validParams<OpenMCCellAverageProblem>()
   params.addParam<bool>("normalize_by_global_tally", true,
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
+  params.addRangeCheckedParam<unsigned int>("particles", "particles > 0 ",
+    "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
+
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
   params.addParam<std::string>("mesh_template", "Mesh tally template for OpenMC when using mesh tallies; "
@@ -104,6 +107,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     mooseWarning("libMesh communicator already set in OpenMC.");
 
   openmc::settings::libmesh_comm = &_mesh.comm();
+
+  if (isParamValid("particles"))
+    openmc::settings::n_particles = getParam<unsigned int>("particles");
 
   // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
   // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred

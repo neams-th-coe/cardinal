@@ -1,0 +1,14 @@
+[Tests]
+  [particles]
+    type = CSVDiff
+    input = particles.i
+    csvdiff = particles_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The number of particles shall optionally be set through the Cardinal input file. "
+                  "While the XML files set 100 particles, we change the number of particles to 200 in "
+                  "the Cardinal input file, and compare the eigenvalue against a standalone OpenMC run "
+                  "(with 'openmc --particles 200') to ensure correctness."
+  []
+[]
