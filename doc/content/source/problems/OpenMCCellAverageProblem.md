@@ -172,7 +172,7 @@ the power produced by each OpenMC cell is $Q$, so that the total power of the Op
 domain is $3Q$. By nature of the centroid mapping, one OpenMC cell will map to
 a much larger region of space than the other two cells, and even though the fission
 power in each OpenMC cell is $Q$, the power density will differ by a factor of
-two among the cells because the mapped volumes differ significantly.
+two once mapped to the `[Mesh]`.
 
 !media openmc_coarser.png
   id=openmc_coarser
@@ -196,7 +196,7 @@ to ensure a reasonable mapping.
 In [openmc_finer], consider the case where the `[Mesh]` has two equal-sized elements,
 while the OpenMC domain has three equal-sized cells. By nature of the centroid mapping,
 one OpenMC cell not participate in coupling because no elements in the `[Mesh]`
-had a centroid within the cell.
+have a centroid within the cell.
 
 !media openmc_finer.png
   id=openmc_finer
