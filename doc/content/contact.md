@@ -12,7 +12,9 @@ For questions, please contact the Cardinal development team.
 - Roy Stogner (INL)
 - Derek Gaston (INL)
 - Victor Coppo Leite (PSU)
+- Aaron Huxford (UM)
 - Anshuman Chaube (UIUC)
+- Andy Lau (Boise State)
 
 # Citing
 
