@@ -1,0 +1,709 @@
+# Tutorial 6A: LWR Pincell
+
+In this tutorial, you will learn how to:
+
+- Couple OpenMC via temperature and heat source feedback to MOOSE
+- Control the resolution of physics feedback received by OpenMC
+- Tally an OpenMC heat source on an unstructured mesh
+
+!alert! note
+This tutorial makes use of the following major Cardinal classes:
+
+- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+
+We recommend quickly reading this documentation before proceeding
+with this tutorial.
+!alert-end!
+
+This tutorial describes how to use Cardinal to perform temperature and heat
+source coupling of OpenMC to MOOSE for a [!ac](LWR) pincell.
+At a high level, Cardinal's wrapping of OpenMC consists of two major stages - first, establishing
+the mapping between OpenMC's geometry and the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+with which OpenMC communicates. This stage consists of:
+
+1. Mapping the elements in a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+  to OpenMC cells. The mapping does not place any requirements on geometry alignment.
+  The elements in the `[Mesh]` are mapped to OpenMC cells by identifying the OpenMC cell that resides at the
+  element's centroid.
+2. Identifying which MOOSE mesh blocks are "solid" and which are "fluid." The solid blocks will then
+  exchange temperature with OpenMC, while the fluid blocks will exchange both temperature and
+  density with OpenMC.
+3. If using cell tallies, identifying which MOOSE blocks should be tallied - tallies are then added to all OpenMC cells that
+  correspond to those elements.
+
+The second stage of the wrapping encompasses the actual multiphysics solve:
+
+1. Adding a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+  to represent OpenMC's heat source. In other words, if OpenMC stores the fission heating tally
+  as a `std::vector<double>` (it doesn't, but assume it does for pedagogical reasons), with each entry corresponding to a tally bin,
+  then a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+  is created that represents the same data, but mapped to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
+2. Writing multiphysics feedback fields in/out of OpenMC's internal cell and material representations.
+  So, if OpenMC represents cell temperature as `std::vector<double>` (it doesn't but assume it does for pedagogical reasons), this involves reading
+  from a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+  representing temperature and writing into OpenMC's internal vectors. A similar process occurs for
+  density feedback.
+
+Cardinal developers have an intimate knowledge of how OpenMC stores its tally results,
+temperatures, and densities, so this entire process is automated for you! OpenMC
+can communicate with any other MOOSE application via the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+and [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+systems in MOOSE. The same wrapping can be used for temperature, density, and heat source
+feedback with *any* MOOSE application that can compute temperature and density -
+including the NekRS wrapping in Cardinal. The MOOSE-wrapped version of OpenMC interacts
+with the MOOSE framework in a similar manner as natively-developed MOOSE applications,
+so the agnostic formulations of the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html) can be used
+to equivalently set a heat source in Pronghorn or NekRS, and extract temperature and density from
+BISON, NekRS, and Pronghorn.
+
+## Geometry and Computational Model
+
+This section describes the geometry for an [!ac](LWR) pincell. The relevant dimensions
+are summarized in [table1]. The geometry consists of a UO$_2$ pincell within a Zircaloy
+cladding; a helium gap separates the fuel from the cladding. Borated water
+is present outside the cladding.
+
+!table id=table1 caption=Geometric and operating conditions for an [!ac](LWR) pincell
+| Parameter | Value (cm) |
+| :- | :- |
+| Pellet outer radius | 0.39218 |
+| Clad inner radius | 0.40005 |
+| Clad outer radius | 0.45720 |
+| Pin pitch | 1.25984 |
+| Height | 300 |
+
+Heat is produced in the pellet region and is transferred by radiation and conduction across
+the pellet-clad gap to the cladding. A total core power of 3000 MWth is assumed uniformly
+distributed among 273 fuel bundles, each with 17$\times$17 pins (neglecting the effect
+of guide tubes on the average pin power). The tallies from OpenMC
+will therefore be normalized according to a pin-wise power of
+
+\begin{equation}
+\label{eq:1}
+q_{pin}=\frac{3000\text{\ MWth}}{n_bn_p}
+\end{equation}
+
+where $n_b=273$ is the number of fuel bundles and $n_p=289$ is the number of pins
+per bundle.
+
+## Boundary Conditions
+
+This section describes the boundary conditions imposed on the Monte Carlo particle transport model and
+the MOOSE heat conduction model.
+
+#### Neutronics Boundary Conditions
+
+For the neutronics physics, the top and bottom of the pincell are vacuum boundaries.
+The four later faces of the pincell are reflective.
+
+#### Solid Boundary Conditions
+
+Because heat transfer and fluid flow in the borated water is not modeled in this example,
+heat removal by the fluid is approximated by setting
+the outer surface of the cladding to a convection boundary
+condition,
+
+\begin{equation}
+\label{eq:2}
+q^{''}=h\left(T-T_\infty\right)
+\end{equation}
+
+where $h=1000$ W/m$^2$/K and $T_\infty$ is a function linearly increasing
+from $300$&deg;C at the bottom of the pincell to $350$&deg;C at the top
+of the pincell. The top and bottom of the solid pincell
+are assumed insulated.
+
+The gap region between the pellet and the cladding is unmeshed, and a quadrature-based
+thermal contact model is applied based on the sum of thermal conduction and thermal radiation
+(across a transparent medium).
+For a paired set of boundaries,
+each quadrature point on boundary $A$ is paired with the nearest quadrature point on boundary $B$.
+Then, the sum of the radiation and conduction heat fluxes imposed between
+quadrature point pairs is
+
+\begin{equation}
+\label{eq:3}
+q^{''}=\sigma\frac{T^4-T_{gap}^4}{\frac{1}{\sigma_A}+\frac{1}{\sigma_B}-1}+\frac{T-T_{gap}}{r_{th}}
+\end{equation}
+
+where $\sigma$ is the Stefan-Boltzmann constant, $T$ is the temperature at a quadrature
+point, $T_{gap}$ is the temperature of the nearest quadrature point across the gap,
+$\sigma_A$ and $\sigma_B$ are emissivities of boundaries $A$ and $B$, respectively, and
+$r_{th}$ is the conduction resistance. For cylindrical geometries, the conduction
+resistance is given as
+
+\begin{equation}
+\label{eq:4}
+r_{th}=\frac{ln{\left(\frac{r_2}{r_1}\right)}}{2\pi L k}
+\end{equation}
+
+where $r_2>r_1$ are the radial coordinates associated with the outer and inner radii
+of the cylindrical annulus, $L$ is the height of the annulus, and $k$ is the
+thermal conductivity of the annulus material.
+
+## Initial Conditions
+
+The initial temperature is 280&deg;C, while the initial heat source in the solid domain is zero.
+Because there is no density feedback in this example, the densities initially imposed
+in the OpenMC model remain fixed at the values set in the OpenMC input files.
+
+## Meshing
+
+This section describes the mesh used for the solid domain. MOOSE
+[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
+the solid mesh. [solid_mesh] shows the mesh with block IDs and sidesets.
+Because this mesh is generated using
+the [MeshGenerator](https://mooseframework.inl.gov/syntax/Mesh/)
+system in MOOSE, there is not a unified mesh file that describes the solid mesh.
+Instead, the mesh is created at runtime. You can view the solid mesh
+either by running the simulation (and viewing the mesh on which the results
+are displayed) or simply by running the solid input file in mesh generation mode:
+
+!listing
+$ cardinal-opt -i solid.i --mesh-only
+
+!media pincell_solid_mesh.png
+  id=solid_mesh
+  caption=Mesh for the solid portions of an [!ac](LWR) pincell; boundary IDs are shown to the right
+
+Different block IDs are used for the two hexahedral and prism elements
+in the pellet region because libMesh does not allow different element types
+to exist on the same block ID.
+
+## CSG Geometry
+
+This section describes the [!ac](CSG) model setup in OpenMC. All OpenMC geometries
+currently use [!ac](CSG) to describe the geometry, where cells are created
+from half-spaces of various common surfaces.
+Because this is a Cardinal
+tutorial, we assume you have some basic familiarity with OpenMC, so we only discuss the
+portions of the model setup relevant to multiphysics feedback -
+a detailed description of OpenMC model setup is available on the
+[OpenMC documentation website](https://docs.openmc.org/en/stable/).
+
+When creating the OpenMC
+geometry, there are three aspects that you must pay attention to when using Cardinal -
+
+1. The resolution of the temperature (and density, for fluid feedback) feedback to impose in OpenMC
+2. The "level" of the cells with which you want to perform feedback
+3. The manner in which temperature feedback is applied to the cross section data
+
+The temperature in OpenMC is stored on the [!ac](CSG) cells. One constant temperature
+can be set for each cell. Therefore, the resolution of the temperature feedback
+received from MOOSE is determined during the OpenMC model setup. Each
+OpenMC cell will receive a unique temperature, so the number of OpenMC cells dictates
+this feedback resolution.
+
+The second consideration is slightly more subtle, but allows great flexibility for
+imposing multiphysics feedback for very heterogeneous geometries, such as
+[!ac](TRISO) pebbles. The "level" of a [!ac](CSG) cell refers to the number of
+nested universes (relative to the root universe) at which you would like to impose
+feedback. If you construct your geometry without *filling* any OpenMC cells with
+other universes, then all your cells are at level zero - i.e. the highest level in
+the geometry. But if your model contains lattices or filled universes, the level that you want to perform
+multiphysics coupling on is most likely not the highest level in the geometry. For instance,
+[!ac](LWR) cores are comprised of hundreds of assemblies. Your approach to creating the
+geometry would probably be to make a single fuel assembly universe, then repeat that
+lattice several times throughout the geometry. If your assembly universe wasn't itself
+filled with any universes, then all your cells of interest are actually at level 1.
+However, in establishing a mapping to MOOSE, we do not simply use the *lowest*
+cell level in the geometry because it is often desirable to set the temperature/density
+for all cells *contained* in a particular cell.
+
+!alert note
+We *highly* recommend running Cardinal with `verbose = true` when setting up
+your OpenMC coupling. This setting will display the mapping of OpenMC cells to
+MOOSE elements and should help provide a grasp on the "level" concept.
+
+OpenMC's Python [!ac](API)
+is used to create the pincell model with the script shown below. First, we define
+materials for the various regions and create the geometry. We manually add
+40 cells to receive solid temperature feedback by dividing the entire axial
+height by 41 axial planes.
+Note that this particular choice of axial cells has *no* relationship to the solid mesh.
+That is, MOOSE elements can span more than one OpenMC cell; when mapping by centroid,
+however, each MOOSE element will then be associated with one OpenMC cell (which may be
+an imperfect alignment, but represents a form of discretization error in the MOOSE element refinement).
+However, for pedagogical purposes we select the same axial discretization in the
+OpenMC model as used in the `[Mesh]` - for an image depicting the use of
+different discretizations, see the documentation for
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md).
+The OpenMC geometry as produced via plots is shown in [pincell_openmc].
+
+!listing /tutorials/lwr_solid/make_openmc_model.py
+
+!media pincell_openmc.png
+  id=pincell_openmc
+  caption=OpenMC [!ac](CSG) geometry colored by cell ID shown on the $x$-$y$ and $x$-$z$ planes
+  style=width:60%;margin-left:auto;margin-right:auto
+
+Because we are not filling any universes with other universes or lattices,
+all of the cells in this problem are at the highest level of the geometry -
+i.e. the root universe. We will supply this information to
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) later in this tutorial.
+
+We use a
+linear-linear stochastic interpolation between the two cross section data sets nearest
+to the imposed temperature by setting the `method` parameter on
+`settings.temperature` to `interpolation`. Finally,
+when OpenMC is initialized, cross section data is only loaded for a range of temperatures to save on memory usage;
+this range is specified with the [temperature range](https://docs.openmc.org/en/latest/io_formats/settings.html#temperature-range-element)
+element. You should set the range to be larger than the temperature range you
+expect in your coupled multiphysics problem - otherwise, you will encounter
+a runtime error that data is not available at the requested temperatures.
+
+## Multiphysics Coupling
+  id=coupling
+
+In this section, OpenMC and MOOSE are coupled for heat source and temperature feedback
+for the solid regions of an [!ac](LWR) pincell. All input files are present in the
+`tutorials/lwr_solid` directory. The following sub-sections describe these files.
+
+### Solid Input Files
+
+The solid phase is solved with the MOOSE heat conduction module, and is
+described in the `solid.i` input. The solid mesh is set up using various
+mesh generators.
+
+!listing /tutorials/lwr_solid/solid.i
+  end=Variables
+
+!alert note
+OpenMC *always* has geometries set up in length units of centimeters. However,
+MOOSE is dimension-agnostic, and the same physics model can be set up in any
+length unit provided proper scalings are applied to material properties, source terms,
+and the mesh. In this example, we set up the solid input file in length units of centimeters.
+
+The heat conduction module will solve for temperature, which we define
+as a nonlinear variable and apply a simple uniform initial condition.
+
+!listing /tutorials/lwr_solid/solid.i
+  block=Variables
+
+The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+system in MOOSE is used to communicate variables across applications; a
+heat source will be computed by OpenMC and applied as a source term in MOOSE.
+In the opposite direction, MOOSE will compute a temperature that will be
+applied to the OpenMC geometry. Because we already solve for temperature, we
+simply need to add an auxiliary variable to receive the heat source from OpenMC.
+
+!listing /tutorials/lwr_solid/solid.i
+  block=AuxVariables
+
+The governing equation solved by MOOSE is specified in the `Kernels` block with the
+[HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
+and [CoupledForce](https://mooseframework.inl.gov/source/kernels/CoupledForce.html) kernels.
+The heat source provided by OpenMC is given by the receiver `heat_source` auxiliary variable.
+
+!listing /tutorials/lwr_solid/solid.i
+  block=Kernels
+
+We also set thermal conductivity values in the pellet and clad. Constant
+values are used for simplicity.
+
+!listing /tutorials/lwr_solid/solid.i
+  block=Materials
+
+Next, the boundary conditions on the solid are applied, including the thermal
+contact model between the pellet and the clad.
+
+!listing /tutorials/lwr_solid/solid.i
+  start=Functions
+  end=Materials
+
+In this example, the overall calculation workflow is as follows:
+
+1. Run MOOSE heat conduction with a given power distribution from OpenMC.
+2. Send temperature to OpenMC by modifying the temperature of OpenMC cells.
+  A volume average is performed over all the MOOSE elements that mapped to
+  a particular OpenMC cell.
+3. Run OpenMC with an updated temperature distribution.
+4. Extract the kappa-fission distribution (the recoverable fission energy)
+  computed by OpenMC and map in the opposite direction from OpenMC cells
+  to all the MOOSE elements that mapped to each cell.
+
+The above sequence is repeated until the desired convergence of the coupled domain.
+The [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+blocks describe the interaction between Cardinal and MOOSE. The MOOSE
+heat conduction application is here run as the master application, with the
+OpenMC wrapping run as the sub-application. We specify that MOOSE will run
+first on each time step.
+
+Two transfers are required to couple OpenMC and MOOSE for heat source and
+temperature feedback; the first is a transfer of heat source from Cardinal
+to MOOSE. The second is transfer of temperature from MOOSE to Cardinal.
+
+!listing /tutorials/lwr_solid/solid.i
+  start=MultiApps
+  end=Postprocessors
+
+For the heat source transfer from OpenMC, we ensure conservation by
+requiring that the integral of heat source computed by OpenMC
+(in the `heat_source` postprocessor) matches the integral of the heat
+source received by MOOSE (in the `source_integral` postprocessor).
+We also add a postprocessor to evaluate the maximum solid temperature.
+
+!listing /tutorials/lwr_solid/solid.i
+  block=Postprocessors
+
+Because we did not specify sub-cycling
+in the `[MultiApps]` block, this means that OpenMC will run for exactly the
+same number of time steps (but the actual time step size used by the OpenMC
+wrapping is of no consequence because OpenMC is run in $k$-eigenvalue mode).
+By setting a fixed number of time steps, this example
+will simply run a fixed number of Picard iterations.
+
+!listing /tutorials/lwr_solid/solid.i
+  start=Executioner
+  end=MultiApps
+
+### Neutronics Input Files
+
+The neutronics physics is solved over the entire domain using OpenMC.
+The OpenMC wrapping is described in the `openmc.i` input file. Although OpenMC
+does not track particles on a mesh, we begin by defining a mesh on which OpenMC
+will receive temperature from the coupled MOOSE application, and on which OpenMC
+will write the fission heat source. In this example, we use exactly the same solid
+mesh as the coupled MOOSE application, but this is not necessary.
+
+!listing /tutorials/lwr_solid/openmc.i
+  end=AuxVariables
+
+Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
+block describes all objects necessary for the actual physics solve. To replace
+MOOSE finite element calculations with OpenMC particle transport calculations,
+the [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class
+is used.
+
+!listing /tutorials/lwr_solid/openmc.i
+  block=Problem
+
+For this example, we specify the total fission power by which to normalize OpenMC's
+tally results (because OpenMC's tally results are in units of eV/source particle).
+Next, we indicate which blocks in the `[Mesh]` should be considered
+as "solid" (and therefore send temperatures into OpenMC) with the `solid_blocks` parameter.
+Here, we specify temperature feedback for the pellet (blocks 2 and 3) and the cladding
+(block 1). During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
+are "solid." Then when temperature is sent into OpenMC, that mapping is used to compute
+a volume-average temperature to apply to each OpenMC cell.
+
+!alert note
+While we use nomenclature
+like `solid_blocks`, that these blocks don't need to actually represent
+*solid* - we only use this parameter to note where OpenMC should receive temperature
+feedback, but *not* density feedback (which would require moving the cell boundaries
+for deforming solids to preserve mass).
+
+This example uses cell tallies, as indicated by the `tally_type` parameter.
+The `tally_blocks` is then used to indicate which OpenMC cells to add tallies to
+(as inferred from the mapping of MOOSE elements to OpenMC cells). If not specified,
+we add tallies to all OpenMC cells. But for this problem, we already know that the
+cladding doesn't have any fissile material, so we can save some effort with the
+tallies by skipping tallies in those regions by setting `tally_blocks = '2 3'`.
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
+automatically add the necessary tallies.
+Finally, we specify the level in the geometry on which the solid cells
+exist. Because we don't have any lattices or filled universes in our OpenMC model,
+the solid cell level is zero.
+
+Next, we add a series of auxiliary variables for solution visualization
+(these are not requried for coupling). To help with understanding
+how the OpenMC model maps to the mesh in the `[Mesh]` block, we add auxiliary
+variables to visualize OpenMC's cell ID ([CellIDAux](/auxkernels/CellIDAux.md)),
+cell instance ([CellInstanceAux](/auxkernels/CellInstanceAux.md)),
+and cell temperature ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md)) on
+the `[Mesh]`.
+
+!listing /tutorials/lwr_solid/openmc.i
+  start=AuxVariables
+  end=Problem
+
+Next, we specify an executioner and output settings. Even though OpenMC technically
+performs a criticality calculation (with no time dependence), we use the transient
+executioner so that *if* we wanted to run OpenMC more times than the coupled
+master application via subcycling, we would have a way to control that.
+
+!listing /tutorials/lwr_solid/openmc.i
+  start=Executioner
+  end=Postprocessors
+
+Finally, we add a postprocessor to evaluate the total heat source computed by OpenMC.
+We also include a [FissionTallyRelativeError](/postprocessors/FissionTallyRelativeError.md)
+postprocessor to evaluate the maximum relative error of the cell tally and a third postprocessor
+to evaluate the maximum heat source.
+
+!listing /tutorials/lwr_solid/openmc.i
+  block=Postprocessors
+
+You will likely notice that many of the always-included MOOSE blocks are not
+present in the `openmc.i` input. [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+automatically adds the `heat_source`, `temp`, and `density` (if density is coupled
+to OpenMC) variables in the `openmc.i` input, so these will never appear in the OpenMC
+wrapper file explicitly. It is as if the following is included in the input file:
+
+!listing
+[AuxVariables]
+  [heat_source]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [temp]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [density] # only present if fluid_blocks was provided (not this example)
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+Finally, we
+need to create the XML input files used to run OpenMC from the Python script shown earlier.
+These files are available in the `tutorials/lwr_solid` directory, or
+you can run the script to generate the input files with:
+
+```
+$ python make_openmc_model.py
+```
+
+## Execution and Postprocessing
+
+To run the coupled calculation, run the following from the command line.
+
+```
+$ mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
+```
+
+This will run both MOOSE and OpenMC with 8 [!ac](MPI) processes and 2 OpenMP threads.
+To run the simulation faster, you can increase the parallel processes/threads, or
+simply decrease the number of particles used in OpenMC.
+When the simulation has completed, you will have created a number of different output files:
+
+- `solid_out.e`, an Exodus II output file with the solid mesh and solution
+- `solid_out_openmc0.e`, an Exodus II output file with the OpenMC solution and the data
+  that was ultimately transferred in/out of OpenMC
+
+First, let's examine how the mapping between OpenMC and MOOSE was established.
+When we run with `verbose = true`, you will see the following mapping information displayed:
+
+```
+cell   1, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell   3, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell   5, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell   7, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell   9, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  11, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  13, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  15, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  17, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  19, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  21, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  23, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  25, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  27, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  29, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  31, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  33, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  35, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  37, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  39, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  41, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  43, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  45, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  47, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  49, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  51, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  53, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  55, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  57, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  59, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  61, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  63, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  65, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  67, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  69, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  71, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  73, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  75, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  77, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  79, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  81, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  83, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  85, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  87, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  89, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  91, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  93, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  95, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell  97, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell  99, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 101, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 103, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 105, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 107, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 109, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 111, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 113, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 115, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 117, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 119, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 121, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 123, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 125, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 127, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 129, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 131, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 133, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 135, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 137, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 139, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 141, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 143, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 145, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 147, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 149, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 151, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 153, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 155, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+cell 157, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
+cell 159, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+```
+
+This shows that a total of 80 OpenMC cells mapped to the MOOSE blocks (blocks 1, 2, and 3 -
+because that's what we specified for `solid_blocks`). Because the gap between the pellet
+and cladding is un-meshed, the helium gap in the OpenMC model does not participate in
+coupling.
+The above message also shows the
+volume that each OpenMC cell maps to. Because there are no distributed cells in this
+problem, each cell only has a single instance.
+
+[lwr_heat_source] shows the heat source computed by OpenMC (units of W/cm$^3$)
+and mapped to the MOOSE mesh;
+the block corresponding to the cladding is not shown.
+To the right is shown the heat source mapped along a line down the centerline of
+the rod. The heat source is slightly bottom-peaked due to the negative
+Doppler feedback from the fuel.
+
+!media lwr_heat_source.png
+  id=lwr_heat_source
+  caption=Heat source (W/cm$^3$) computed by OpenMC
+
+[lwr_solid_temp] shows the temperature computed by the MOOSE heat conduction
+module, while [lwr_solid_temp_mc] shows the temperature actually set in the OpenMC
+cells mapped to the MOOSE elements. Because a single cell was used to represent
+the cladding and fuel (at each axial layer), only one temperature is shown for the
+fuel and clad regions in the `cell_temperature` auxiliary variable. The temperatures
+set in OpenMC are volume averages of the temperature computed by MOOSE, i.e. the
+temperature shown in [lwr_solid_temp]. If you want to resolve the solid temperature
+with more detail in the OpenMC model, simply add OpenMC cells where finer feedback
+is desired.
+
+!media lwr_solid_temp.png
+  id=lwr_solid_temp
+  caption=Temperature computed by MOOSE, on the top of the pincell
+  style=width:55%;margin-left:auto;margin-right:auto
+
+!media lwr_solid_temp_openmc.png
+  id=lwr_solid_temp_mc
+  caption=Temperature set in OpenMC cells (shown in terms of the `[Mesh]`), on the top of the pincell
+  style=width:55%;margin-left:auto;margin-right:auto
+
+## Adding Mesh Tallies
+
+As the next part of this tutorial, we will replace the cell
+tallies with unstructured mesh tallies. That is, instead of setting `tally_blocks` and
+providing the MOOSE blocks to which the corresponding OpenMC cells should have tallies added,
+we will simply tally on an unstructured mesh. The inputs for this problem are largely the
+same as in [#coupling]; the files are now `solid_um.i` and `openmc_um.i`.
+For the solid, we simply need to swap out the sub-application to
+point to a different input file.
+
+!listing /tutorials/lwr_solid/solid_um.i
+  block=MultiApps
+
+Then, in `openmc_um.i`, we make small modifications to the settings for the
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md). We indicate that
+`tally_type = mesh` and provide the unstructured mesh that we want to tally as a file
+with the `mesh_template` parameter.
+
+!listing /tutorials/lwr_solid/openmc_um.i
+  block=Problem
+
+By default, Cardinal will normalize the OpenMC fission energy tally according
+to a global tally over the entire OpenMC problem. When using mesh tallies on
+curvilinear surfaces, an unstructured mesh often cannot perfectly represent the
+domain. In this problem, for instance, the faceted nature of the pincell mesh
+means that a (small) amount of the fission energy is omitted in the tally because
+some regions of the OpenMC [!ac](CSG) cell are *outside* any of the tally mesh
+elements (but still within the cylindrical pellet).
+In order to still obtain the specified `power`,
+we therefore change how the tallies are normalized. Instead of normalizing by a
+problem-wide tally (which includes the regions of the pellet that are outside
+the unstructured mesh but inside the pellet), we normalize instead by the sum of the mesh tally itself
+by setting `normalize_by_global_tally = false`. This ensures that the power we
+specify will be obtained when normalizing the OpenMC tally. In the limit of
+an extremely refined unstructured mesh, the error in normalizing by the global
+tally decreases to zero.
+
+Even though we set up the mesh with
+MOOSE's mesh generator system, we output the mesh template, `pincell.e` by running
+MOOSE in mesh-generation mode, which will output the mesh as an Exodus file.
+
+```
+$ cardinal-opt -i solid_um.i --mesh-only
+$ mv solid_um_in.e pincell.e
+```
+
+Note that because the mesh in the `[Mesh]` block contains elements that correspond
+to the cladding, we will technically be tallying in cladding regions, even though
+there isn't a heat source there.
+
+!alert warning
+There are several important limitations in the current implementation of mesh tallies
+in Cardinal - these will be relaxed in the future, but you must be aware of them with the
+current state of the repository. First, if the mesh provided by the `mesh_template`
+has $N$ elements, those elements must
+*exactly* match the first $N$ elements in the mesh in the `[Mesh]` block. The reason for this limitation is that
+the heat source tally is simply written to the corresponding mesh element in the
+`[Mesh]` by element index (as opposed to doing a nearest-element search). If the mesh in the
+`[Mesh]` block contains both solid and fluid elements, for instance, and you only want to
+tally on an unstructured mesh in the solid, all the solid elements in the `[Mesh]` should
+appear first in the total combined mesh. You can use a [CombinerGenerator](https://mooseframework.inl.gov/source/meshgenerators/CombinerGenerator.html)
+to achieve this if your fluid and solid meshes are saved in separate files
+or if you use separate mesh generators for the phases. We have
+checks in place to make sure you don't inadvertently bypass this requirement.
+Second,
+the `mesh_template` *must* be in units of centimeters.
+
+As some of the mesh tally bins are quite small, first increase the number
+of inactive batches from 500 to 1000 and the number of total batches from 1500
+to 10000. Then, to run the input using mesh tallies, use:
+
+```
+$ mpiexec -np 24 cardinal-opt -i solid_um.i --n-threads=2
+```
+
+[mesh_hs] shows the unstructured mesh heat source computed by OpenMC; the
+clad region is shown as solid gray. You can
+see the "rim effect" common in [!ac](LWR) fuels,
+where the highest power
+is observed near the very edge of the fuel pellet. Because the tally bins
+are quite small, further increases
+in the total number of particles simulated will reduce the azimuthal asymmetry
+in the tally results in this azimuthally-symmetric geometry.
+
+!media mesh_hs.png
+  id=mesh_hs
+  caption=Unstructured mesh heat source computed by OpenMC, shown on the midplane of the pincell, with 20000 particles per batch, 1000 inactive batches, and 10000 total batches
+  style=width:55%;margin-left:auto;margin-right:auto
+
+Note that adding unstructured mesh tallies only affects how the
+heat source is measured in OpenMC - the use of unstructured mesh tallies has no
+bearing on the temperature and density resolution going *into* OpenMC. For this
+example, the temperature will have the same resolution as shown in
+[lwr_solid_temp_mc], albeit with slightly different values because the use of
+unstructured mesh tallies changes the coupled solution from the case with cell
+tallies due to the different resolution of the heat source.
