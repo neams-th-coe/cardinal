@@ -48,7 +48,7 @@ the duct matches the nominal design. Relevant dimensions are summarized in
 | Core inlet temperature | 350&deg;C |
 
 Heat is produced in the pellet region and transfers by radiation and conduction across
-the pellet-glad gap to the cladding. Sodium flows around the pins to remove the fission heat.
+the pellet-clad gap to the cladding. Sodium flows around the pins to remove the fission heat.
 The total core power of 250 MWth is assumed uniformly distributed amongst the 54 fueled bundles,
 over the entire active axial heigth of 0.8 m. The power in the solid phase is therefore
 set to
@@ -405,7 +405,7 @@ for these input files is available on the
 [NekRS documentation website](https://nekrsdoc.readthedocs.io/en/latest/input_files.html).
 Because the purpose of this analysis is to demonstrate Cardinal's capabilties, only
 the aspects of NekRS required to understand the present case will be covered. First,
-begin with the `fluid.par` file, shown in entirety below.
+begin with the `sfr_7pin.par` file, shown in entirety below.
 
 !listing /tutorials/sfr_7pin/sfr_7pin.par
 
