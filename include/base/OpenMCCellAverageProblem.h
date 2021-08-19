@@ -326,6 +326,9 @@ protected:
   /// Set up the mapping from MOOSE elements to OpenMC cells
   void initializeElementToCellMapping();
 
+  /// Populate maps of MOOSE elements to OpenMC cells
+  void mapElemToCells();
+
   /// Add tallies for the fluid and/or solid cells
   void initializeTallies();
 
@@ -584,6 +587,21 @@ protected:
 
   /// Number of no-coupling elements in the MOOSE mesh
   int _n_moose_none_elems;
+
+  /// Number of solid elements mapped to OpenMC cells
+  int _n_mapped_solid_elems;
+
+  /// Number of fluid elements mapped to OpenMC cells
+  int _n_mapped_fluid_elems;
+
+  /// Number of no-coupling elements mapped to OpenMC cells
+  int _n_mapped_none_elems;
+
+  /// Total volume of uncoupled MOOSE mesh elements
+  Real _uncoupled_volume;
+
+  /// Whether non-material cells are mapped
+  bool _material_cells_only {true};
 
   /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs
   std::map<cellInfo, std::vector<unsigned int>> _cell_to_elem;
