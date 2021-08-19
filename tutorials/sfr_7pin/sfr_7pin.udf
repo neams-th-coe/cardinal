@@ -1,0 +1,65 @@
+#include "udf.hpp"
+
+float mass_flowrate()
+{
+  return 0.1;
+}
+
+float height()
+{
+  return 20.32e-2;
+}
+
+float inlet_temp()
+{
+  return 355 + 273.15;
+}
+
+float inlet_velocity(nrs_t * nrs)
+{
+  setupAide & options = platform->options;
+
+  // flow area (comes from Cubit area measurement)
+  float flow_area = 0.000245;
+
+  // get density from input file
+  float rho;
+  options.getArgs("DENSITY", rho);
+
+  return mass_flowrate() / flow_area / rho;
+}
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+  setupAide & options = platform->options;
+  occa::properties & kernelInfo = *nrs->kernelInfo;
+
+  // inlet axial velocity (assuming zero radial and azimuthal components)
+  kernelInfo["defines/Vz"] = inlet_velocity(nrs);
+
+  // inlet temperature
+  kernelInfo["defines/inlet_T"] = inlet_temp();
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  // set initial conditions for the velocity, temperature, and pressure
+  mesh_t * mesh = nrs->cds->mesh[0];
+
+  float inlet_vel = inlet_velocity(nrs);
+
+  // loop over all the GLL points and assign directly to the solution arrays by
+  // indexing according to the field offset necessary to hold the data for each
+  // solution component
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0;
+    nrs->U[n + 1 * nrs->fieldOffset] = 0.0;
+    nrs->U[n + 2 * nrs->fieldOffset] = inlet_vel;
+
+    nrs->P[n] = 0.0;
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = inlet_temp();
+  }
+}
