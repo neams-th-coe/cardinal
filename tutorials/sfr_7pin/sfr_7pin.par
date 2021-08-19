@@ -1,0 +1,28 @@
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 1000
+  dt = 5.0e-4
+  timeStepper = tombo2
+  writeControl = timeStep
+  writeInterval = 25
+  dealiasing = yes
+  polynomialOrder = 3
+
+[VELOCITY]
+  viscosity = 2.37e-4
+  density = 834.5
+  boundaryTypeMap = W, W, v, O
+  residualTol = 1.0e-6
+  residualProj = false
+
+[PRESSURE]
+  residualTol = 1.0e-6
+  residualProj = false
+  preconditioner = semg_amg
+
+[TEMPERATURE]
+  conductivity = 64.21
+  rhoCp = 1024766.0
+  boundaryTypeMap = f, f, t, O
+  residualTol = 1.0e-5
+  absoluteTol = 1.0e-5
