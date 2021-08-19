@@ -57,4 +57,16 @@
     requirement = "The heat source shall be correctly projected onto a [Mesh] in units of meters "
                   "when the tally mesh template is in units of centimeters."
   []
+  [different_units_and_translations]
+    type = Exodiff
+    input = different_units_and_translations.i
+    exodiff = 'different_units_and_translations_out.e'
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The heat source shall be correctly projected onto a [Mesh] in units of meters "
+                  "when the tally mesh template and translations are in units of centimeters. "
+                  "The output was compared against the multiple_meshes case, which used an input "
+                  "entirely specified in terms of centimeters."
+  []
 []
