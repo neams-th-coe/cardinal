@@ -1057,20 +1057,9 @@ void OpenMCCellAverageProblem::addExternalVariables()
 
 void OpenMCCellAverageProblem::externalSolve()
 {
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-    _console << printCell(cell_info) << " has temperature before solve of: " << cellTemperature(cell_info) << std::endl;
-  }
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
-
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-    _console << printCell(cell_info) << " has temperature after solve of: " << cellTemperature(cell_info) << std::endl;
-  }
 }
 
 void
@@ -1115,16 +1104,11 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
     if (err)
       mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
         Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
-
-    _console << printCell(cell_info) << " has temperature (K): " << cellTemperature(cell_info) << std::endl;
   }
 
   if (!_verbose)
     _console << "done. Sent cell-averaged min/max (K): " << minimum << ", " << maximum;
   _console << std::endl;
-
-  openmc_properties_export("properties.h5");
-
 }
 
 void
@@ -1358,11 +1342,6 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
       // to be setting the temperature of all of the cells in cell_to_elem - only for the density
       // transfer do we need to filter for the fluid cells
       sendTemperatureToOpenMC();
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-    _console << printCell(cell_info) << " has temperature after sendTemperatureToOpenMC of: " << cellTemperature(cell_info) << std::endl;
-  }
 
       if (_has_fluid_blocks)
         sendDensityToOpenMC();
@@ -1380,11 +1359,6 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
   }
 
   _first_transfer = false;
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-    _console << printCell(cell_info) << " has temperature at end of syncSolutions of: " << cellTemperature(cell_info) << std::endl;
-  }
 }
 
 void
