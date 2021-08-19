@@ -718,6 +718,13 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
     std::unique(mapped_cells.begin(), mapped_cells.end());
 
+    // ensure that any mapped cells have their distribcell indices generated in OpenMC
+
+    if (!openmc::settings::material_cell_offsets) {
+      mooseWarning("Distributed properties for material cells are disabled " +
+                   "in the OpenMC settings. Enabling...");
+      openmc::settings::material_cell_offsets = true;
+    }
     openmc::prepare_distribcell(&mapped_cells);
     mapped_cells.clear();
 
@@ -855,6 +862,8 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       int32_t cell_index = contained_cells.begin()->first;
       auto instances = contained_cells.begin()->second;
       int32_t cell_instance = instances[0];
+
+      _console << "Cell " << cell_info.first << " contains material cell " << cell_index << ", instance " << cell_instance << std::endl;
 
       _cell_to_contained_material_cell[cell_info] = {cell_index, cell_instance};
     }
@@ -1151,6 +1160,9 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
   if (!_verbose)
     _console << "done. Sent cell-averaged min/max (K): " << minimum << ", " << maximum;
   _console << std::endl;
+
+  openmc_properties_export("properties.h5");
+
 }
 
 void
