@@ -11,18 +11,20 @@ build/run on that system - only that no instructions have yet been documented fo
 Also please note that in addition to these provided module and environment settings,
 you must also follow the build instructions on the
 [Getting Started](start.md) page.
+For all of the instructions below, be sure to change the `NEKRS_HOME` variable
+as appropriate for your build location.
 
 ## LCRC at ANL (5/24/2021)
 
 The following `~/.bashrc` allows you to compile Cardinal on
-[LCRC](https://www.lcrc.anl.gov/systems/resources/) at ANL. Please
-change the `NEKRS_HOME` variable as appropriate for your build location.
+[LCRC](https://www.lcrc.anl.gov/systems/resources/) at ANL.
 
-```
+!listing! language=bash
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
 
+# Revise for your Cardinal repository location
 export NEKRS_HOME=$HOME/cardinal/install
 
 module purge
@@ -36,18 +38,18 @@ module load anaconda3
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
-```
+!listing-end!
 
 ## Sawtooth at INL (4/29/2021)
 
-The following `~/.bashrc` allows you to compile Cardinal on Sawtooth. Please
-change the `NEKRS_HOME` variable as appropriate for your build location.
+The following `~/.bashrc` allows you to compile Cardinal on Sawtooth.
 
-```
+!listing! language=bash
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
 
+# Revise for your Cardinal repository location
 export NEKRS_HOME=$HOME/cardinal/install
 
 module purge
@@ -58,15 +60,15 @@ module load hdf5/1.12.0_ucx1.9
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
-```
+!listing-end!
 
 ## Summit at ORNL (8/1/2021)
 
-The following `~/.bashrc` allows you to compile Cardinal on Summit. Please
-change the `NEKRS_HOME` variable as appropriate for your build location.
+The following `~/.bashrc` allows you to compile Cardinal on Summit.
 
-```
-module load gcc cmake cuda hdf5 python/3.7.0-anaconda3-5.3.0
-
+!listing! language=bash
+# Revise for your Cardinal repository location
 export NEKRS_HOME=/gpfs/alpine/csc404/proj-shared/novak/cardinal/install
-```
+
+module load gcc cmake cuda hdf5 python/3.7.0-anaconda3-5.3.0
+!listing-end!
