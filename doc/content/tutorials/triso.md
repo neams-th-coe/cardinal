@@ -114,7 +114,7 @@ three times in a lattice. Because we have one cell per pebble, each pebble will
 receive a single temperature from a coupled MOOSE application.
 Because we repeat the pebble universe three times in the geometry,
 the solid cell level is 1. If we were to specify level zero in the geometry, we would apply feedback
-to the `main_cell`, which would apply temperature feedback across the problem globally. We instead want to apply feedback to each pebble individually. The OpenMC geometry as produced via plots is shown in [mc_geom]..
+to the `main_cell`, which would apply temperature feedback across the problem globally. We instead want to apply feedback to each pebble individually. The OpenMC geometry as produced via plots is shown in [mc_geom].
 
 !listing /tutorials/pebbles/make_openmc_model.py
 
