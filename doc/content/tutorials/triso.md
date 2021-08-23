@@ -58,7 +58,7 @@ of 4$\times$4 cm and height of 12 cm. All boundaries of this box are reflecting.
 
 #### Solid Boundary Conditions
 
-Because heat transfera nd fluid flow in the FLiBe is not modeled in this example,
+Because heat transfer and fluid flow in the FLiBe is not modeled in this example,
 heat removal by the fluid is approximated by setting the outer surface of the
 pebble to a convection boundary condition,
 
@@ -100,22 +100,21 @@ we assume you have some basic familiarity with OpenMC, so we only discuss the po
 of the model setup relevant to multiphysics feedback - a detailed description of OpenMC
 model setup is available on the [OpenMC documentation website](https://docs.openmc.org/en/stable/).
 
-In this tutorial, we will build OpenMC"s geometry using *lattices*.
+In this tutorial, we will build OpenMC's geometry using *lattices*.
 A lattice is an ordered repetition
 of universes that is often used to simplify model setup.
-You might also have lattices in order to accelerate the geometric search.
+In some cases, lattices are used to accelerate geometric searches as particles travel through the model.
 Here, we create a repeatable universe consisting of a single pebble and surrounding FLiBe,
 and then we repeat it three times throughout the geometry.
 
-OpenMC's [!ac](API) is used to create the pebbles model with the script shown below.
+OpenMC's Python [!ac](API) is used to create the pebbles model with the script shown below.
 First, we define materials for the various regions and create the geometry.
 We create a universe consisting of a single pebble, and then repeat that universe
 three times in a lattice. Because we have one cell per pebble, each pebble will
 receive a single temperature from a coupled MOOSE application.
 Because we repeat the pebble universe three times in the geometry,
-the solid cell level is 1. On level zero in the geometry, we would apply feedback
-to the `main_cell`, which instead we want to apply feedback to each pebble.
-The OpenMC geometry as produced via plots is shown in [mc_geom]..
+the solid cell level is 1. If we were to specify level zero in the geometry, we would apply feedback
+to the `main_cell`, which would apply temperature feedback across the problem globally. We instead want to apply feedback to each pebble individually. The OpenMC geometry as produced via plots is shown in [mc_geom]..
 
 !listing /tutorials/pebbles/make_openmc_model.py
 
@@ -125,8 +124,7 @@ The OpenMC geometry as produced via plots is shown in [mc_geom]..
   style=width:15%;margin-left:auto;margin-right:auto
 
 As you can see, there
-are only two unique cell *IDs*. This problem is built using *distributed cells*, meaning that we repeat the same
-cell *ID* multiple times throughout the geometry; each time the cell is repeated, we assign
+are only two unique cell *IDs*. This problem is built using *distributed cells*, meaning a cell with the same *ID* appears multiple times in the geometry; each time the cell is repeated, we assign
 a new *instance* to that cell. So, the three pebbles are represented as:
 
 - Cell ID 1, instance 0
@@ -208,8 +206,7 @@ Because we want to tally separate fission powers for each pebble, we cannot have
 [tally filter](https://docs.openmc.org/en/stable/usersguide/tallies.html#filters). If we *did*
 use a cell-type filter, then we would tally all three pebbles as the same region in space,
 because all three pebbles have ID 1. Instead, we specify a `cell_instance` filter, which will
-add tallies for each unique cell ID$+$instance combination. Finally, because we have repeated
-lattices nested one level below the root universe, we set the `solid_cell_level = 1`.
+add tallies for each unique cell ID$+$instance combination. Finally, because the repeated pebble cells we'd like to tally in are repeated in the lattice nested one level below the root universe, we set the `solid_cell_level = 1`.
 
 !listing /tutorials/pebbles/openmc.i
   block=Problem
@@ -290,7 +287,7 @@ upon our model by using an unstructured mesh tally, with a single unstructured m
 translated multiple times throughout the OpenMC geometry. In other words, if the memory
 used to store an unstructured mesh of a single pebble is 500 kB, then an unstructured mesh
 tally of 300,000 pebbles still only requires a mesh storage of 500 kB (as opposed to generating
-a mesh of 300,000 pebbles). This stage of the tutorial also provides important explanations necessary
+a mesh of 300,000 pebbles that is ~150 GB). This stage of the tutorial also provides important explanations necessary
 when combining unstructured mesh tallies with a MOOSE application that uses a length scale
 other than centimeters.
 
@@ -303,8 +300,8 @@ input file. We also use a finer solid pebble mesh.
   block=MultiApps
 
 Let's begin with the OpenMC wrapping, in `openmc_coarse.i`. The only changes required are
-that we set a mesh tally type, provide a mesh template with the mesh, and specify a number of
-translations to apply to the mesh to move the mesh to the desired end positions in OpenMC's domain.
+that we set a mesh tally type, provide a mesh template with the mesh, and specify the
+translations to apply to replicate the mesh at the desired end positions in OpenMC's domain.
 
 !listing /tutorials/pebbles/openmc_um.i
   block=Problem
@@ -316,8 +313,8 @@ parameters are used directly in OpenMC (which is always in units of centimeters)
 
 Because our sphere mesh does not perfectly preserve the volume of the sphere
 [!ac](CSG) cells, we also set `normalize_by_global_tally` to false so that we normalize only
-by the sum of the mesh tally (otherwise, we would miss a small amount of power produced
-within the [!ac](CSG) spheres, but outside the faceted surface of the sphere mesh).
+by the sum of the mesh tally. Otherwise, we would miss a small amount of power produced
+within the [!ac](CSG) spheres, but slightly outside the faceted surface of the sphere mesh. Setting this parameter to false ensures that the tally normalization is correct in that the heat sources are normalized by a tally sum over the same tally domain in the OpenMC model.
 
 To run this input, enter the following in a command line.
 
