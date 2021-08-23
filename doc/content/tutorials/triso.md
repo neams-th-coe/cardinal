@@ -42,7 +42,7 @@ The first application in this tutorial will be to coupling OpenMC and MOOSE heat
 conduction for solid UO$_2$ spheres (i.e. homogeneous spheres). The geometry and
 computational model for this case consists of a vertical "stack"
 of three pebbles, each of 1.5 cm radius. The pebble centers
-are located at $(0, 0, 2)$, $(0, 0, 6)$, and $(0, 0, 10)$.
+are located at $(0, 0, 2)$ cm, $(0, 0, 6)$ cm, and $(0, 0, 10)$ cm.
 FLiBe coolant occupies the space around the pebbles. Heat is produced in the
 pebbles; we assume the total power is 1500 W.
 
@@ -101,7 +101,7 @@ of the model setup relevant to multiphysics feedback - a detailed description of
 model setup is available on the [OpenMC documentation website](https://docs.openmc.org/en/stable/).
 
 In this tutorial, we will build OpenMC's geometry using *lattices*.
-A lattice is an ordered repetition
+A lattice is a structured repetition
 of universes that is often used to simplify model setup.
 In some cases, lattices are used to accelerate geometric searches as particles travel through the model.
 Here, we create a repeatable universe consisting of a single pebble and surrounding FLiBe,
