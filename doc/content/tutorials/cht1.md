@@ -27,9 +27,16 @@ This tutorial was developed as part of the
 [!ac](VTB), a [!ac](NRIC) initiative aimed at facilitating the use of advanced modeling
 and simulation tools for reactor design and development. This tutorial has been modified slightly
 from the [!ac](VTB) tutorial to better fit the context of a Cardinal tutorial.
+
+!alert note
 Note that this example uses a fluid mesh with about 500,000 elements -
 depending on your system, you may require a few nodes in order to run
-this tutorial.
+this tutorial. [Tutorial 2B](cht2.md) covers similar [!ac](CHT)
+coupling (for a pin bundle application), but uses a much smaller mesh
+and will therefore run much faster. If your system resources are too small
+to run this case, you will be able to run [Tutorial 2B](cht2.md)
+(but please read this tutorial first, because it introduces many concepts
+taken as granted in later Nek coupling tutorials).
 
 At a high level, Cardinal's wrapping of NekRS consists of:
 
@@ -549,7 +556,12 @@ Next, postprocessors are used to compute the integral heat flux as a
 
 Next, the solution methodology is specified. Although the solid phase only
 includes time-independent kernels, the heat conduction is run as a transient because NekRS
-ultimately must be run as a transient (NekRS lacks a steady solver). A nonlinear tolerance
+ultimately must be run as a transient (NekRS lacks a steady solver). We choose
+to omit the time derivative in the solid energy equation because we will reach
+the converged steady state faster than if the solve had to also ramp up the solid
+temperature from the initial condition.
+
+A nonlinear tolerance
 of $10^{-6}$ is used for each solid time step, and the overall coupled simulation is considered
 converged once the relative change in the solution between steps is less than $5\times10^{-4}$.
 Finally, an output format of Exodus II is specified.
