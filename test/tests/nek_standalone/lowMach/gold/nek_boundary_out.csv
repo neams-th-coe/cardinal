@@ -1,0 +1,2 @@
+time,avg_T_side_diff,avg_Vx_side_diff,avg_p_side_diff,max_T_side_diff,max_Vx_side_diff,max_p_side_diff,min_T_side_diff,min_Vx_side_diff,min_p_side_diff
+0.3,4.4408920985006e-16,4.4408920985006e-16,1.8034285176327e-10,-1.3322676295502e-15,-1.3322676295502e-15,7.4062034283173e-11,0,0,-2.1762545099335e-09

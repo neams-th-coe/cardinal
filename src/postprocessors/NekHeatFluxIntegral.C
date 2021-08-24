@@ -8,6 +8,7 @@
 //* https://www.gnu.org/licenses/lgpl-2.1.html
 
 #include "NekHeatFluxIntegral.h"
+#include "CardinalEnums.h"
 
 registerMooseObject("CardinalApp", NekHeatFluxIntegral);
 
@@ -24,6 +25,9 @@ NekHeatFluxIntegral::validParams()
 NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters) :
   NekSidePostprocessor(parameters)
 {
+  // this postprocessor computes the gradient of temperature, so it requires
+  // the temperature field to exist
+  checkValidField(field::temperature);
 }
 
 Real

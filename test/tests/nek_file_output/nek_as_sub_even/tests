@@ -1,0 +1,9 @@
+[Tests]
+  [./nek_as_sub_even_output]
+    type = CheckFiles
+    input = nek_master.i
+    check_files = 'pyramid0.f00001 pyramid0.f00002'
+    requirement = "The correct output file writing sequence shall occur based on master executioner settings "
+                  "when NekRS is the sub application and when the time steps are evenly divisible."
+  [../]
+[]

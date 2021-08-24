@@ -16,6 +16,12 @@ namespace nekrs
 {
 
 /**
+ * Whether nekRS's input file has CHT
+ * @return whether nekRS input files model CHT
+ */
+bool hasCHT();
+
+/**
  * Whether nekRS's input file indicates a moving mesh
  * @return whether nekRS's input file indicates a moving mesh
  */
@@ -46,6 +52,20 @@ bool endControlNumSteps();
  * @return scalar field offset
  */
 int scalarFieldOffset();
+
+/**
+ * Get the "entire" NekRS mesh. For cases with a temperature scalar, this returns
+ * nrs->meshT, which will cover both the fluid and solid regions if CHT is present.
+ * For flow-only cases, this will return the flow mesh.
+ * @return entire NekRS mesh
+ */
+mesh_t * entireMesh();
+
+/**
+ * Get the mesh for the flow solve
+ * @return flow mesh
+ */
+mesh_t * flowMesh();
 
 /**
  * Get the mesh for the temperature scalar

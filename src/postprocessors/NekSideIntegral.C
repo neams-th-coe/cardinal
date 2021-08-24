@@ -28,6 +28,7 @@ NekSideIntegral::NekSideIntegral(const InputParameters & parameters) :
   NekSidePostprocessor(parameters),
   _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
 {
+  checkValidField(_field);
 }
 
 Real

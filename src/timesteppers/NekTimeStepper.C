@@ -68,7 +68,7 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
   // When using this time stepper, the user should not try to set any constantDT-type
   // time stepping parameters with the Transient executioner. These could potentially
   // interfere with what nekRS is trying to use.
-  std::vector<std::string> invalid_params = {"start_time", "end_time", "dt", "dtmin", "dtmax", "num_steps"};
+  std::vector<std::string> invalid_params = {"end_time", "dt", "dtmin", "dtmax", "num_steps"};
   for (const auto & s : invalid_params)
     if (_executioner.parameters().isParamSetByUser(s))
       mooseError("Parameter '" + s + "' is unused by the Executioner because it is " +

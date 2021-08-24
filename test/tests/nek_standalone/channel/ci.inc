@@ -1,0 +1,1 @@
+../../../../contrib/nekRS/examples/channel/ci.inc

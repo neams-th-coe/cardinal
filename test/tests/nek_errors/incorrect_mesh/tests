@@ -6,7 +6,7 @@
     # nekRS can't use more processors than elements
     max_parallel = 12
 
-    expect_err = "Mesh for a 'NekRSProblem' must be of type 'NekRSMesh'!"
+    expect_err = "Mesh for 'NekRSProblem' must be of type 'NekRSMesh', but you have specified a 'GeneratedMesh'!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct mesh type."
   []
 []
