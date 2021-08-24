@@ -266,6 +266,12 @@ each pebble is an average over the pebble.
 Due to the reflecting nature of the problem and the identical pebble material
 properties, the power of each pebble is nearly identical (the tally uncertainty
 contributes to small differences).
+Note that the range for the cell temperature only spans 0.02 K - that is,
+the small tally uncertainty results in un-equal pebble powers that also
+results in unequal pebble average temperatures. Small errors in the numerical
+finite element heat conduction solution (such as only converging the solid
+solution to a residual of $10^{-10}$) also result in an imperfect
+correspondence between pebble power and pebble average temperature.
 
 !media pbr_solution.png
   id=pbr_solution
@@ -331,6 +337,8 @@ are shown on a different color scale - the volumetric power density on the MOOSE
 lower than that on the OpenMC mesh elements have smaller volumes than the elements mapped
 to on the MOOSE mesh (and the conservative [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
 conserves total integrated power).
+Due to small statistical errors in the tallies, the pebble averaged temperatures
+differ by about 0.1 K.
 Finally, recall that adding unstructured mesh tallies does not affect the resolution of temperature and
 density feedback sent to OpenMC - this resolution is controlled by the cell definitions
 when constructing the OpenMC input.
