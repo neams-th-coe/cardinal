@@ -23,6 +23,7 @@ presented:
 3. [#occa]
 4. [#petsc_libmesh]
 5. [#compiling]
+6. [#openmc_python]
 
 #### Fetch Dependencies
   id=fetch
@@ -220,6 +221,15 @@ range-checking and consistency checks enabled).  If a non-default
 `METHODS` variable was used above, you may also have `devel` (slower
 than oprof, much faster than dbg) or `prof` (slightly slower than
 oprof, instrumented for tools like "gprof") available.
+
+#### Installing the OpenMC Python API (optional)
+  id=openmc_python
+
+If you will be using OpenMC's Python [!ac](API) to build OpenMC models, you
+will need to install OpenMC's Python [!ac](API). Please follow the
+instructions [here](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api).
+Note that the Python API is not strictly required in Cardinal
+if you plan to build any OpenMC models directly in XML format.
 
 ## Running
 
