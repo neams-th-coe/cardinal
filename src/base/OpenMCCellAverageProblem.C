@@ -1518,6 +1518,8 @@ OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std
       "so that elem->volume() matches MOOSE integrations" << std::endl;
     volume_order = SECOND;
   }
+}
+
 double
 OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
 {
