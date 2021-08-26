@@ -182,7 +182,6 @@ settings.temperature = {'default': 650.0 + 273.15,
                         'multipole': False,
                         'range': (300.0, 1500.0),
                         'tolerance': 1000.0}
-settings.material_cell_offsets = False
 
 # -------------- Plots --------------
 # Plot parameters
