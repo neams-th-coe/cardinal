@@ -327,7 +327,7 @@ protected:
   void initializeElementToCellMapping();
 
   /// Populate maps of MOOSE elements to OpenMC cells
-  void mapElemToCells();
+  void mapElemsToCells();
 
   /// Add tallies for the fluid and/or solid cells
   void initializeTallies();

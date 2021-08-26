@@ -659,7 +659,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     storeElementPhase();
 
     // perform element to cell mapping
-    mapElemToCells();
+    mapElemsToCells();
 
     if (!_material_cells_only) {
       // gather all cell indices from the initial mapping
@@ -671,7 +671,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       openmc::prepare_distribcell(&mapped_cells);
       mapped_cells.clear();
       // perform element to cell mapping again to get correct instances
-      mapElemToCells();
+      mapElemsToCells();
     }
   }
 
@@ -756,7 +756,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 }
 
 void
-OpenMCCellAverageProblem::mapElemToCells()
+OpenMCCellAverageProblem::mapElemsToCells()
 {
   // reset counters, flags
   _n_mapped_solid_elems = 0;
