@@ -468,6 +468,12 @@ protected:
    */
   const bool & _skip_first_incoming_transfer;
 
+  /**
+   * Whether OpenMC properties (temperature and density) should be exported
+   * after being updated in syncSolutions.
+   */
+  const bool & _export_properties;
+
   /// Whether a mesh scaling was specified by the user
   const bool _specified_scaling;
 

@@ -53,13 +53,15 @@ validParams<OpenMCCellAverageProblem>()
     "Whether to skip the very first density and temperature transfer into OpenMC; "
     "this can be used to allow whatever initial condition is set in OpenMC's XML "
     "files to be used in OpenMC's run the first time OpenMC is run");
+  params.addParam<bool>("export_properties", false,
+    "Whether to export OpenMC's temperature and density properties after updating "
+    "them in the syncSolutions call.");
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0",
     "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
     "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
   params.addParam<bool>("normalize_by_global_tally", true,
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
-
   params.addParam<MooseEnum>("tally_filter", getTallyCellFilterEnum(),
     "Type of filter to apply to the cell tally, options: cell, cell_instance (default). "
     "You will generally always want to use the cell_instance option to allow cases with "
@@ -90,6 +92,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
   _verbose(getParam<bool>("verbose")),
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
+  _export_properties(getParam<bool>("export_properties")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
@@ -1342,6 +1345,9 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
       // to be setting the temperature of all of the cells in cell_to_elem - only for the density
       // transfer do we need to filter for the fluid cells
       sendTemperatureToOpenMC();
+
+      if (_export_properties)
+      openmc_properties_export("properties.h5");
 
       if (_has_fluid_blocks)
         sendDensityToOpenMC();
