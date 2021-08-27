@@ -566,7 +566,6 @@ settings.temperature = {'default': 573.0,
                         'multipole': True,
                         'range': (300.0, 1500.0),
                         'tolerance': 1000.0}
-settings.material_cell_offsets = False
 
 # Fuel volume calculation
 volume_fuel = openmc.VolumeCalculation([m_fuel], 10000000, *c_pebble_central.bounding_box)
