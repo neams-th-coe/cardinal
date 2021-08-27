@@ -1,0 +1,21 @@
+[Tests]
+  [precompile]
+    type = RunApp
+    input = nek.i
+    cli_args = '"Postprocessors/active = \' \' Outputs/exodus=false Outputs/csv=false" --nekrs-buildonly 1'
+    # Precompiling with 1 rank will allow any number of ranks to be used in actual simulation
+    max_parallel = 1
+    requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
+  []
+  [two_channels]
+    type = Exodiff
+    input = nek_master.i
+    exodiff = 'nek_master_out.e nek_master_out_nek0.e nek_master_out_nek1.e'
+    # needs a unique communicator for each Nek app
+    min_parallel = 2
+    prereq = precompile
+    requirement = "The system shall be able to run multiple Nek simulations translated throughout "
+                  "a master app's domain. This test compares against a MOOSE standalone case, and "
+                  "gives less than 0.3% difference in various temperature metrics."
+  []
+[]

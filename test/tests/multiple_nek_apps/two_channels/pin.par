@@ -1,0 +1,30 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 2000
+  dt = 0.2
+  timeStepper = tombo2
+  writeControl = numSteps
+  writeInterval = 0
+  polynomialOrder = 1
+
+[VELOCITY]
+  solver = none
+  viscosity = 2.37e-4
+  density = 834.5
+  boundaryTypeMap = W, W, W
+  residualTol = 1.0e-6
+  residualProj = false
+
+[PRESSURE]
+  residualTol = 1.0e-6
+  residualProj = false
+  preconditioner = semg_amg
+
+[TEMPERATURE]
+  conductivity = 0.1
+  rhoCp = 1.0
+  boundaryTypeMap = f, t, I
+  residualTol = 1.0e-6

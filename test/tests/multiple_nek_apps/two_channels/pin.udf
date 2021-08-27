@@ -1,0 +1,25 @@
+#include "udf.hpp"
+
+static occa::kernel mooseHeatSourceKernel;
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+  mooseHeatSourceKernel = udfBuildKernel(nrs, "mooseHeatSource");
+}
+
+void userq(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
+{
+  auto mesh = nrs->cds->mesh[0];
+  mooseHeatSourceKernel(mesh->Nelements, nrs->cds->fieldOffset[0], nrs->o_usrwrk, o_FS);
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 700.0; // temperature
+
+  udf.sEqnSource = &userq;
+}
