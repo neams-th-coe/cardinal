@@ -41,7 +41,6 @@
   tally_blocks = '100'
   solid_cell_level = 0
   tally_type = cell
-  tally_filter = cell
   check_tally_sum = false
 
   # This turns off the density and temperature update on the first syncSolutions;

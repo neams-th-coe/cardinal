@@ -12,7 +12,6 @@
   tally_type = cell
   tally_blocks = '2'
 
-  tally_filter = cell_instance
   solid_cell_level = 1
 
   verbose = true

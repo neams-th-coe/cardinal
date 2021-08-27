@@ -62,10 +62,6 @@ validParams<OpenMCCellAverageProblem>()
   params.addParam<bool>("normalize_by_global_tally", true,
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
-  params.addParam<MooseEnum>("tally_filter", getTallyCellFilterEnum(),
-    "Type of filter to apply to the cell tally, options: cell, cell_instance (default). "
-    "You will generally always want to use the cell_instance option to allow cases with "
-    "distributed cells, but then you are limited to only material fills");
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
   params.addParam<std::string>("mesh_template", "Mesh tally template for OpenMC when using mesh tallies; "
@@ -86,7 +82,6 @@ validParams<OpenMCCellAverageProblem>()
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params) :
   ExternalProblem(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-  _tally_filter(getParam<MooseEnum>("tally_filter").getEnum<filter::CellFilterEnum>()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _power(getParam<Real>("power")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
@@ -145,11 +140,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     }
     case tally::mesh:
     {
-      std::vector<std::string> unused_pars = {"tally_filter", "tally_blocks"};
-
-      for (const auto & s : unused_pars)
-        if (params.isParamSetByUser(s))
-          mooseWarning("The '" + s + "' parameter is unused when using mesh tallies!");
+      if (params.isParamSetByUser("tally_blocks"))
+        mooseWarning("The 'tally_blocks' parameter is unused when using mesh tallies!");
 
       if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
         mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
@@ -661,15 +653,17 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     // perform element to cell mapping
     mapElemsToCells();
 
-    if (!_material_cells_only) {
+    if (!_material_cells_only)
+    {
       // gather all cell indices from the initial mapping
       std::vector<int32_t> mapped_cells;
-      for (const auto& item : _elem_to_cell) {
+      for (const auto& item : _elem_to_cell)
         mapped_cells.push_back(item.first);
-      }
+
       std::unique(mapped_cells.begin(), mapped_cells.end());
       openmc::prepare_distribcell(&mapped_cells);
       mapped_cells.clear();
+
       // perform element to cell mapping again to get correct instances
       mapElemsToCells();
     }
@@ -830,16 +824,12 @@ OpenMCCellAverageProblem::mapElemsToCells()
     }
 
     auto cell_index = _particle.coord(level).cell;
-
-    // TODO: this is the cell instance at the lowest level in the geometry, which does
-    // not necessarily match the "level" supplied on the line above
-    auto cell_instance = cell_instance_at_level(_particle, _solid_cell_level);
+    auto cell_instance = cell_instance_at_level(_particle, level);
 
     cellInfo cell_info = {cell_index, cell_instance};
 
-    if (openmc::model::cells[cell_index]->type_ != openmc::Fill::MATERIAL) {
+    if (openmc::model::cells[cell_index]->type_ != openmc::Fill::MATERIAL)
       _material_cells_only = false;
-    }
 
     _elem_to_cell.push_back(cell_info);
 
@@ -913,37 +903,16 @@ OpenMCCellAverageProblem::initializeTallies()
       CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
         Moose::stringify(_tally_cells.size()) + " cells");
 
-      switch (_tally_filter)
-      {
-        case filter::cell:
-        {
-          auto cell_filter = dynamic_cast<openmc::CellFilter *>(openmc::Filter::create("cell"));
+      auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
 
-          std::vector<int32_t> cell_ids;
-          for (const auto & c: _tally_cells)
-            cell_ids.push_back(c.first);
+      std::vector<openmc::CellInstance> cells;
+      for (const auto & c : _tally_cells)
+        cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
 
-          cell_filter->set_cells(cell_ids);
-          std::vector<openmc::Filter *> tally_filters = {cell_filter};
-          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
-          break;
-        }
-        case filter::cell_instance:
-        {
-          auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+      cell_filter->set_cell_instances(cells);
+      std::vector<openmc::Filter *> tally_filters = {cell_filter};
+      addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
 
-          std::vector<openmc::CellInstance> cells;
-          for (const auto & c : _tally_cells)
-            cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
-
-          cell_filter->set_cell_instances(cells);
-          std::vector<openmc::Filter *> tally_filters = {cell_filter};
-          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
-          break;
-        }
-        default:
-          mooseError("Unhandled 'CellFilterEnum' in 'OpenMCCellAverageProblem'!");
-      }
       break;
     }
     case tally::mesh:

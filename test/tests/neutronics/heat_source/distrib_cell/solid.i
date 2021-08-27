@@ -54,7 +54,6 @@
   fluid_blocks = '200'
   tally_blocks = '100 200'
   tally_type = cell
-  tally_filter = cell
   check_zero_tallies = false
 
   # This turns off the density and temperature update on the first syncSolutions;

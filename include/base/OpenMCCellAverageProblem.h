@@ -415,16 +415,6 @@ protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
-   * Type of filter to apply to extract kappa fission score from OpenMC;
-   * if you want to tally in distributed cells, use 'cell_filter'; however,
-   * this filter requires that those cells be filled with materials. Therefore,
-   * we keep as an option the 'cell' filter, which does not discriminate based
-   * on cell instance, but does allow non-material fills (you will just need to
-   * be careful about how you set up the problem if you want to use lattices).
-   */
-  const filter::CellFilterEnum _tally_filter;
-
-  /**
    * Type of tally to apply to extract kappa fission score from OpenMC;
    * if you want to tally in cells, use 'cell'. Otherwise, to tally on an
    * unstructured mesh, use 'mesh'. Currently, this implementation is limited

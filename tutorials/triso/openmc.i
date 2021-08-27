@@ -49,7 +49,6 @@
   solid_blocks = '0'
   tally_blocks = '0'
   tally_type = cell
-  tally_filter = cell
 
   solid_cell_level = 2
 
