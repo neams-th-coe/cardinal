@@ -729,7 +729,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     }
     else
     {
-      auto contained_cells = cell->get_contained_cells();
+      auto contained_cells = cell->get_contained_cells(cell_info.second);
       int32_t cell_index = contained_cells.begin()->first;
       auto instances = contained_cells.begin()->second;
       int32_t cell_instance = instances[0];
