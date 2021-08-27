@@ -150,6 +150,13 @@ public:
   int32_t cellToMaterialIndex(const cellInfo & cell_info) { return _cell_to_material[cell_info]; }
 
   /**
+   * Get the first material cell contained in the given cell
+   * @param[in] cell_info cell index, instance pair
+   * @return material cell index, instance pair
+   */
+  cellInfo containedMaterialCell(const cellInfo & cell_info) { return _cell_to_contained_material_cell[cell_info]; }
+
+  /**
    * Get the fields coupled for each cell; because we require that each cell map to a single phase,
    * we simply look up the coupled fields of the first element that this cell maps to. Note that
    * this function requires a valid instance, index pair for cellInfo - you cannot pass in an
@@ -194,6 +201,13 @@ public:
   const Real & densityConversionFactor() const { return _density_conversion_factor; }
 
   const std::vector<openmc::Tally *> & getLocalTally() const { return _local_tally; }
+
+  /**
+   * Get the temperature of a cell; for cells not filled with materials, this will return
+   * the temperature of the first material-type cell
+   * @param[in] cell info cell ID, instance
+   */
+  double cellTemperature(const cellInfo & cell_info);
 
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED {-1};
@@ -312,6 +326,9 @@ protected:
   /// Set up the mapping from MOOSE elements to OpenMC cells
   void initializeElementToCellMapping();
 
+  /// Populate maps of MOOSE elements to OpenMC cells
+  void mapElemsToCells();
+
   /// Add tallies for the fluid and/or solid cells
   void initializeTallies();
 
@@ -398,16 +415,6 @@ protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
-   * Type of filter to apply to extract kappa fission score from OpenMC;
-   * if you want to tally in distributed cells, use 'cell_filter'; however,
-   * this filter requires that those cells be filled with materials. Therefore,
-   * we keep as an option the 'cell' filter, which does not discriminate based
-   * on cell instance, but does allow non-material fills (you will just need to
-   * be careful about how you set up the problem if you want to use lattices).
-   */
-  const filter::CellFilterEnum _tally_filter;
-
-  /**
    * Type of tally to apply to extract kappa fission score from OpenMC;
    * if you want to tally in cells, use 'cell'. Otherwise, to tally on an
    * unstructured mesh, use 'mesh'. Currently, this implementation is limited
@@ -450,6 +457,12 @@ protected:
    * XML files rather than whatever is transferred into OpenMC from MOOSE.
    */
   const bool & _skip_first_incoming_transfer;
+
+  /**
+   * Whether OpenMC properties (temperature and density) should be exported
+   * after being updated in syncSolutions.
+   */
+  const bool & _export_properties;
 
   /// Whether a mesh scaling was specified by the user
   const bool _specified_scaling;
@@ -571,6 +584,21 @@ protected:
   /// Number of no-coupling elements in the MOOSE mesh
   int _n_moose_none_elems;
 
+  /// Number of solid elements mapped to OpenMC cells
+  int _n_mapped_solid_elems;
+
+  /// Number of fluid elements mapped to OpenMC cells
+  int _n_mapped_fluid_elems;
+
+  /// Number of no-coupling elements mapped to OpenMC cells
+  int _n_mapped_none_elems;
+
+  /// Total volume of uncoupled MOOSE mesh elements
+  Real _uncoupled_volume;
+
+  /// Whether non-material cells are mapped
+  bool _material_cells_only {true};
+
   /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs
   std::map<cellInfo, std::vector<unsigned int>> _cell_to_elem;
 
@@ -585,6 +613,13 @@ protected:
 
   /// Material filling each cell
   std::map<cellInfo, int32_t> _cell_to_material;
+
+  /**
+   * First material-type cell contained within the key (a cell info); this is
+   * used for identifying the temperature of a cell filled with many other cells
+   * (which we are allowed to do by nature of the 'set_contained = true' usage)
+   */
+  std::map<cellInfo, cellInfo> _cell_to_contained_material_cell;
 
   /// OpenMC cells to which a kappa fission tally is to be added
   std::vector<cellInfo> _tally_cells;

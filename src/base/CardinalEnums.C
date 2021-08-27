@@ -20,11 +20,6 @@ MooseEnum getTallyTypeEnum()
   return MooseEnum("cell mesh");
 }
 
-MooseEnum getTallyCellFilterEnum()
-{
-  return MooseEnum("cell cell_instance", "cell_instance");
-}
-
 MooseEnum getEigenvalueEnum()
 {
   return MooseEnum("collision absorption tracklength combined", "combined");

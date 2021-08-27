@@ -14,6 +14,7 @@
 #include "openmc/material.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
+#include "openmc/geometry_aux.h"
 #include "openmc/message_passing.h"
 #include "openmc/settings.h"
 #include "openmc/summary.h"
@@ -52,17 +53,15 @@ validParams<OpenMCCellAverageProblem>()
     "Whether to skip the very first density and temperature transfer into OpenMC; "
     "this can be used to allow whatever initial condition is set in OpenMC's XML "
     "files to be used in OpenMC's run the first time OpenMC is run");
+  params.addParam<bool>("export_properties", false,
+    "Whether to export OpenMC's temperature and density properties after updating "
+    "them in the syncSolutions call.");
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0",
     "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
     "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
   params.addParam<bool>("normalize_by_global_tally", true,
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
-
-  params.addParam<MooseEnum>("tally_filter", getTallyCellFilterEnum(),
-    "Type of filter to apply to the cell tally, options: cell, cell_instance (default). "
-    "You will generally always want to use the cell_instance option to allow cases with "
-    "distributed cells, but then you are limited to only material fills");
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
   params.addParam<std::string>("mesh_template", "Mesh tally template for OpenMC when using mesh tallies; "
@@ -83,12 +82,12 @@ validParams<OpenMCCellAverageProblem>()
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params) :
   ExternalProblem(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-  _tally_filter(getParam<MooseEnum>("tally_filter").getEnum<filter::CellFilterEnum>()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _power(getParam<Real>("power")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
   _verbose(getParam<bool>("verbose")),
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
+  _export_properties(getParam<bool>("export_properties")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
@@ -141,11 +140,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     }
     case tally::mesh:
     {
-      std::vector<std::string> unused_pars = {"tally_filter", "tally_blocks"};
-
-      for (const auto & s : unused_pars)
-        if (params.isParamSetByUser(s))
-          mooseWarning("The '" + s + "' parameter is unused when using mesh tallies!");
+      if (params.isParamSetByUser("tally_blocks"))
+        mooseWarning("The 'tally_blocks' parameter is unused when using mesh tallies!");
 
       if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
         mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
@@ -646,13 +642,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
    * would still try to set a cell filter based on no cells.
    */
 
-  // Find cell for each element in the mesh based on the element's centroid
-  int n_mapped_solid_elems = 0;
-  int n_mapped_fluid_elems = 0;
-  int n_mapped_none_elems = 0;
-
-  Real uncoupled_volume = 0.0;
-
   { // scope only exists for the timed print
     CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Initializing mapping between " + Moose::stringify(_mesh.nElem()) +
       " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
@@ -660,79 +649,21 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
     // First, figure out the phase of each element according to the blocks defined by the user
     storeElementPhase();
-    for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+
+    // perform element to cell mapping
+    mapElemsToCells();
+
+    if (!_material_cells_only)
     {
-      const auto * elem = _mesh.elemPtr(e);
+      // gather all cell indices from the initial mapping
+      std::vector<int32_t> mapped_cells;
+      for (const auto& item : _elem_to_cell)
+        mapped_cells.push_back(item.first);
 
-      const Point & c = elem->centroid();
-      Real element_volume = elem->volume();
-
-      bool error = findCell(c);
-
-      // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
-      if (error)
-      {
-        _elem_to_cell.push_back({UNMAPPED, UNMAPPED});
-        uncoupled_volume += element_volume;
-        n_mapped_none_elems++;
-        continue;
-      }
-
-      // otherwise, this region may potentially map to OpenMC if we _also_ turned
-      // on coupling for this region; first, determine the phase of this element
-      // and store the information
-      int level;
-
-      switch (_elem_phase[e])
-      {
-        case coupling::density_and_temperature:
-        {
-          level = _fluid_cell_level;
-          n_mapped_fluid_elems++;
-          break;
-        }
-        case coupling::temperature:
-        {
-          level = _solid_cell_level;
-          n_mapped_solid_elems++;
-          break;
-        }
-       case coupling::none:
-       {
-         uncoupled_volume += element_volume;
-         n_mapped_none_elems++;
-
-         // we will succeed in finding a valid cell here; for uncoupled regions,
-         // cell_index and cell_instance are unused, so this is just to proceed with program logic
-         level = 0;
-         break;
-       }
-       default:
-         mooseError("Unhandled CouplingFields enum!");
-     }
-
-      if (level > _particle.n_coord() - 1)
-      {
-        std::string phase = _fluid_blocks.count(elem->subdomain_id()) ? "fluid" : "solid";
-        mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the " + phase +
-          " exceeds number of nested coordinate levels at (" + Moose::stringify(c(0)) + ", " +
-          Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + "): " +
-          Moose::stringify(_particle.n_coord()));
-      }
-
-      auto cell_index = _particle.coord(level).cell;
-
-      // TODO: this is the cell instance at the lowest level in the geometry, which does
-      // not necessarily match the "level" supplied on the line above
-      auto cell_instance = _particle.cell_instance();
-
-      cellInfo cell_info = {cell_index, cell_instance};
-
-      _elem_to_cell.push_back(cell_info);
-
-      // store the map of cells to elements that will be coupled
-      if (_elem_phase[e] != coupling::none)
-        _cell_to_elem[cell_info].push_back(e);
+      std::unique(mapped_cells.begin(), mapped_cells.end());
+      openmc::prepare_distribcell(&mapped_cells);
+      // perform element to cell mapping again to get correct instances
+      mapElemsToCells();
     }
   }
 
@@ -740,9 +671,9 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
       "the specified blocks!");
 
-  int solid_digits = std::max(digits(_n_moose_solid_elems), digits(n_mapped_solid_elems));
-  int fluid_digits = std::max(digits(_n_moose_fluid_elems), digits(n_mapped_fluid_elems));
-  int none_digits = std::max(digits(_n_moose_none_elems), digits(n_mapped_none_elems));
+  int solid_digits = std::max(digits(_n_moose_solid_elems), digits(_n_mapped_solid_elems));
+  int fluid_digits = std::max(digits(_n_moose_fluid_elems), digits(_n_mapped_fluid_elems));
+  int none_digits = std::max(digits(_n_moose_none_elems), digits(_n_mapped_none_elems));
 
   std::stringstream msg;
   msg << " MOOSE mesh has:      " <<
@@ -750,23 +681,23 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     std::setw(fluid_digits) << Moose::stringify(_n_moose_fluid_elems) << " fluid elems  " <<
     std::setw(none_digits) << Moose::stringify(_n_moose_none_elems) << " uncoupled elems\n" <<
     " OpenMC cells map to: " <<
-    std::setw(solid_digits) << Moose::stringify(n_mapped_solid_elems) << " solid elems  " <<
-    std::setw(fluid_digits) << Moose::stringify(n_mapped_fluid_elems) << " fluid elems  " <<
-    std::setw(none_digits) << Moose::stringify(n_mapped_none_elems) << " uncoupled elems" << std::endl;
+    std::setw(solid_digits) << Moose::stringify(_n_mapped_solid_elems) << " solid elems  " <<
+    std::setw(fluid_digits) << Moose::stringify(_n_mapped_fluid_elems) << " fluid elems  " <<
+    std::setw(none_digits) << Moose::stringify(_n_mapped_none_elems) << " uncoupled elems" << std::endl;
 
   _console << msg.str() << std::endl;
 
-  if (_n_moose_solid_elems && (n_mapped_solid_elems != _n_moose_solid_elems))
+  if (_n_moose_solid_elems && (_n_mapped_solid_elems != _n_moose_solid_elems))
    mooseWarning("The MOOSE mesh has " + Moose::stringify(_n_moose_solid_elems) + " solid elements, "
-     "but only " + Moose::stringify(n_mapped_solid_elems) + " got mapped to OpenMC cells.");
+     "but only " + Moose::stringify(_n_mapped_solid_elems) + " got mapped to OpenMC cells.");
 
-  if (_n_moose_fluid_elems && (n_mapped_fluid_elems != _n_moose_fluid_elems))
+  if (_n_moose_fluid_elems && (_n_mapped_fluid_elems != _n_moose_fluid_elems))
    mooseWarning("The MOOSE mesh has " + Moose::stringify(_n_moose_fluid_elems) + " fluid elements, "
-     "but only " + Moose::stringify(n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
+     "but only " + Moose::stringify(_n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
 
-  if (n_mapped_none_elems)
-    mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_mapped_none_elems) + " MOOSE elements, " +
-      "which occupy a volume of (cm3): " + Moose::stringify(uncoupled_volume * _scaling * _scaling * _scaling));
+  if (_n_mapped_none_elems)
+    mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(_n_mapped_none_elems) + " MOOSE elements, " +
+      "which occupy a volume of (cm3): " + Moose::stringify(_uncoupled_volume * _scaling * _scaling * _scaling));
 
   // If there is a single coordinate level, we can print a helpful message if there are uncoupled
   // cells in the domain
@@ -775,6 +706,30 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     int n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
     if (n_uncoupled_cells)
       mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) + " OpenMC cells");
+  }
+
+  // For purposes of reading cell temperatures, we need to save the first contained material-type
+  // cell index, instance pair because calling get_contained_cells() is very slow for every quadrature point
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    const auto & cell = openmc::model::cells[cell_info.first];
+    if (cell->type_ == openmc::Fill::MATERIAL)
+    {
+      _cell_to_contained_material_cell[cell_info] = cell_info;
+    }
+    else
+    {
+      auto contained_cells = cell->get_contained_cells(cell_info.second);
+      int32_t cell_index = contained_cells.begin()->first;
+      auto instances = contained_cells.begin()->second;
+      int32_t cell_instance = instances[0];
+
+      _console << "Cell " << cell_info.first << " contains material cell " << cell_index << ", instance " << cell_instance << std::endl;
+
+      _cell_to_contained_material_cell[cell_info] = {cell_index, cell_instance};
+    }
   }
 
   // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
@@ -789,6 +744,96 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   {
     checkCellMappedSubdomains();
     storeTallyCells();
+  }
+}
+
+void
+OpenMCCellAverageProblem::mapElemsToCells()
+{
+  // reset counters, flags
+  _n_mapped_solid_elems = 0;
+  _n_mapped_fluid_elems = 0;
+  _n_mapped_none_elems = 0;
+  _uncoupled_volume = 0.0;
+  _material_cells_only = true;
+
+  // reset data structures
+  _elem_to_cell.clear();
+  _cell_to_elem.clear();
+
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    const auto * elem = _mesh.elemPtr(e);
+
+    const Point & c = elem->centroid();
+    Real element_volume = elem->volume();
+
+    bool error = findCell(c);
+
+    // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
+    if (error)
+    {
+      _elem_to_cell.push_back({UNMAPPED, UNMAPPED});
+      _uncoupled_volume += element_volume;
+      _n_mapped_none_elems++;
+      continue;
+    }
+
+    // otherwise, this region may potentially map to OpenMC if we _also_ turned
+    // on coupling for this region; first, determine the phase of this element
+    // and store the information
+    int level;
+
+    switch (_elem_phase[e])
+    {
+      case coupling::density_and_temperature:
+      {
+        level = _fluid_cell_level;
+        _n_mapped_fluid_elems++;
+        break;
+      }
+      case coupling::temperature:
+      {
+        level = _solid_cell_level;
+        _n_mapped_solid_elems++;
+        break;
+      }
+      case coupling::none:
+      {
+        _uncoupled_volume += element_volume;
+        _n_mapped_none_elems++;
+
+        // we will succeed in finding a valid cell here; for uncoupled regions,
+        // cell_index and cell_instance are unused, so this is just to proceed with program logic
+        level = 0;
+        break;
+      }
+      default:
+        mooseError("Unhandled CouplingFields enum!");
+    }
+
+    if (level > _particle.n_coord() - 1)
+    {
+      std::string phase = _fluid_blocks.count(elem->subdomain_id()) ? "fluid" : "solid";
+      mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the " + phase +
+        " exceeds number of nested coordinate levels at (" + Moose::stringify(c(0)) + ", " +
+        Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + "): " +
+        Moose::stringify(_particle.n_coord()));
+    }
+
+    auto cell_index = _particle.coord(level).cell;
+    auto cell_instance = cell_instance_at_level(_particle, level);
+
+    cellInfo cell_info = {cell_index, cell_instance};
+
+    if (openmc::model::cells[cell_index]->type_ != openmc::Fill::MATERIAL)
+      _material_cells_only = false;
+
+    _elem_to_cell.push_back(cell_info);
+
+    // store the map of cells to elements that will be coupled
+    if (_elem_phase[e] != coupling::none)
+      _cell_to_elem[cell_info].push_back(e);
   }
 }
 
@@ -856,37 +901,16 @@ OpenMCCellAverageProblem::initializeTallies()
       CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
         Moose::stringify(_tally_cells.size()) + " cells");
 
-      switch (_tally_filter)
-      {
-        case filter::cell:
-        {
-          auto cell_filter = dynamic_cast<openmc::CellFilter *>(openmc::Filter::create("cell"));
+      auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
 
-          std::vector<int32_t> cell_ids;
-          for (const auto & c: _tally_cells)
-            cell_ids.push_back(c.first);
+      std::vector<openmc::CellInstance> cells;
+      for (const auto & c : _tally_cells)
+        cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
 
-          cell_filter->set_cells(cell_ids);
-          std::vector<openmc::Filter *> tally_filters = {cell_filter};
-          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
-          break;
-        }
-        case filter::cell_instance:
-        {
-          auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+      cell_filter->set_cell_instances(cells);
+      std::vector<openmc::Filter *> tally_filters = {cell_filter};
+      addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
 
-          std::vector<openmc::CellInstance> cells;
-          for (const auto & c : _tally_cells)
-            cells.push_back({gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
-
-          cell_filter->set_cell_instances(cells);
-          std::vector<openmc::Filter *> tally_filters = {cell_filter};
-          addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
-          break;
-        }
-        default:
-          mooseError("Unhandled 'CellFilterEnum' in 'OpenMCCellAverageProblem'!");
-      }
       break;
     }
     case tally::mesh:
@@ -1289,6 +1313,9 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
       // transfer do we need to filter for the fluid cells
       sendTemperatureToOpenMC();
 
+      if (_export_properties)
+      openmc_properties_export("properties.h5");
+
       if (_has_fluid_blocks)
         sendDensityToOpenMC();
 
@@ -1458,4 +1485,19 @@ OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std
       "so that elem->volume() matches MOOSE integrations" << std::endl;
     volume_order = SECOND;
   }
+}
+
+double
+OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
+{
+  auto material_cell = containedMaterialCell(cell_info);
+
+  double T;
+  int err = openmc_cell_get_temperature(material_cell.first, &material_cell.second, &T);
+
+  if (err)
+    mooseError("In attempting to get temperature of " + printCell(cell_info) +
+      ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+  return T;
 }

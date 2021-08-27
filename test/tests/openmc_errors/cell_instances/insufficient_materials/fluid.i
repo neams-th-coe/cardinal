@@ -13,7 +13,6 @@
   tally_type = cell
   tally_blocks = '1'
   verbose = true
-  tally_filter = cell_instance
   solid_cell_level = 1
   fluid_cell_level = 1
 []

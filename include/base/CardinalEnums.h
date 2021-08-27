@@ -6,7 +6,6 @@ MooseEnum getNekOrderEnum();
 MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
-MooseEnum getTallyCellFilterEnum();
 MooseEnum getEigenvalueEnum();
 
 namespace order
@@ -61,16 +60,6 @@ namespace tally
   {
     cell,
     mesh
-  };
-}
-
-namespace filter
-{
-  /// Type of filter to use for cell-based coupling
-  enum CellFilterEnum
-  {
-    cell,
-    cell_instance
   };
 }
 

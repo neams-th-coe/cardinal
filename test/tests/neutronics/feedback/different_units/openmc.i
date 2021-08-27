@@ -26,8 +26,6 @@
     family = MONOMIAL
     order = CONSTANT
   []
-
-  parallel_type = replicated
 []
 
 [AuxKernels]
@@ -62,7 +60,6 @@
   tally_blocks = '1'
   verbose = true
   tally_type = cell
-  tally_filter = cell
   fluid_cell_level = 0
 
   scaling = 100.0

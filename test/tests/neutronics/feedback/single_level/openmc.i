@@ -60,7 +60,6 @@
   tally_blocks = '1'
   verbose = true
   tally_type = cell
-  tally_filter = cell
   solid_cell_level = 0
   fluid_cell_level = 0
 []
