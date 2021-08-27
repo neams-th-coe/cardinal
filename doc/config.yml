@@ -7,14 +7,28 @@ Content:
             - contrib/**
             - css/**
             - js/**
+            - media/**
 
 Renderer:
     type: MooseDocs.base.MaterializeRenderer
-    name: cardinal
 
 Extensions:
-    appsyntax:
-        type: MooseDocs.extensions.appsyntax
+    MooseDocs.extensions.navigation:
+        name: Cardinal
+        repo: https://github.com/neams-th-coe/cardinal
+        menu:
+            Getting Started: start.md
+            Tutorials: tutorials/index.md
+            HPC Systems: hpc.md
+            Source: source/index.md
+            Developer Guide: developers.md
+            Contact/Citing: contact.md
+    MooseDocs.extensions.appsyntax:
         executable: ${ROOT_DIR}
         includes:
             - include
+        active: true
+    MooseDocs.extensions.acronym:
+        acronyms:
+            moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
+            vtb: !include ${ROOT_DIR}/doc/acronyms.yml
