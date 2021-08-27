@@ -23,16 +23,16 @@ a subset of these tutorials. Within each category, we do recommend moving sequen
 but with the exception of the tutorials listed in [#multi], the OpenMC tutorials
 do not have the NekRS tutorials as pre-requisites, and vice versa.
 
-!alert note
+!alert! note
 These tutorials assume some familiarity with MOOSE, NekRS, and OpenMC as individual
 tools. Please consult the [MOOSE documentation](https://mooseframework.inl.gov/),
 [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/index.html), and
 [OpenMC documentation](https://docs.openmc.org/en/stable/) for code-specific
 documentation.
 
-!alert note
 Before embarking on any of these tutorials, please be sure to download the mesh files
 needed for the tutorials; follow the instructions [here](mesh_download.md).
+!alert-end!
 
 ## Tutorials for NekRS Wrapping
 
