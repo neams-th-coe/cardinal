@@ -45,7 +45,16 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   if (_boundary && _boundary->empty())
     paramError("boundary", "The length of 'boundary' must be greater than zero!");
 
-  if (_boundary)
+  // nekRS will only ever support 3-D meshes. Just to be sure that this remains
+  // the case for future Cardinal developers, throw an error if the mesh isn't 3-D
+  // (since this would affect how we construct the mesh here).
+  int dimension = nekrs::mesh::dim();
+  if (dimension != 3)
+    mooseError("'NekRSMesh' assumes that the nekRS mesh dimension is 3!\n\nYour mesh is "
+      "dimension " + std::to_string(dimension) + ".");
+
+  // if doing a JIT build, the boundary information does not exist yet
+  if (!nekrs::buildOnly() && _boundary)
   {
     const auto & filename = getMooseApp().getInputFileName();
     int first_invalid_id, n_boundaries;
@@ -57,23 +66,19 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
         "For this problem, nekRS has ", n_boundaries, " boundaries. "
         "Did you enter a valid 'boundary' in '" + filename + "'?");
   }
-
-  // nekRS will only ever support 3-D meshes. Just to be sure that this remains
-  // the case for future Cardinal developers, throw an error if the mesh isn't 3-D
-  // (since this would affect how we construct the mesh here).
-  int dimension = nekrs::mesh::dim();
-  if (dimension != 3)
-    mooseError("'NekRSMesh' assumes that the nekRS mesh dimension is 3!\n\nYour mesh is "
-      "dimension " + std::to_string(dimension) + ".");
 }
 
 NekRSMesh::~NekRSMesh()
 {
-  if (_x) free(_x);
-  if (_y) free(_y);
-  if (_z) free(_z);
+  // if doing a JIT build, these variables were never set
+  if (!nekrs::buildOnly())
+  {
+    if (_x) free(_x);
+    if (_y) free(_y);
+    if (_z) free(_z);
 
-  nekrs::mesh::freeMesh();
+    nekrs::mesh::freeMesh();
+  }
 }
 
 void
@@ -302,8 +307,36 @@ NekRSMesh::initializeMeshParams()
 }
 
 void
+NekRSMesh::buildDummyMesh()
+{
+  int e = 1;
+  auto elem = new Quad4;
+  elem->set_id() = e;
+  elem->processor_id() = 0;
+  _mesh->add_elem(elem);
+
+  Point pt1(0.0, 0.0, 0.0);
+  Point pt2(1.0, 0.0, 0.0);
+  Point pt3(1.0, 1.0, 0.0);
+  Point pt4(0.0, 1.0, 0.0);
+
+  elem->set_node(0) = _mesh->add_point(pt1);
+  elem->set_node(1) = _mesh->add_point(pt2);
+  elem->set_node(2) = _mesh->add_point(pt3);
+  elem->set_node(3) = _mesh->add_point(pt4);
+
+  _mesh->prepare_for_use();
+}
+
+void
 NekRSMesh::buildMesh()
 {
+  if (nekrs::buildOnly())
+  {
+    buildDummyMesh();
+    return;
+  }
+
   _nek_n_surface_elems = nekrs::mesh::NboundaryFaces();
   _nek_n_volume_elems = nekrs::mesh::Nelements();
 

@@ -53,8 +53,10 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
 
   // the Problem constructor is called right after building the mesh. In order
   // to have pretty screen output without conflicting with the timed print messages,
-  // print diagnostic info related to the mesh here
-  _nek_mesh->printMeshInfo();
+  // print diagnostic info related to the mesh here. If running in JIT mode, this
+  // diagnostic info was never set, so the numbers that would be printed are garbage.
+  if (!nekrs::buildOnly())
+    _nek_mesh->printMeshInfo();
 
   // if solving in nondimensional form, make sure that the user specified _all_ of the
   // necessary scaling quantities to prevent errors from forgetting one, which would take
@@ -228,6 +230,9 @@ NekRSProblemBase::initialSetup()
 
 void NekRSProblemBase::externalSolve()
 {
+  if (nekrs::buildOnly())
+    return;
+
   // _dt reflects the time step that MOOSE wants Nek to
   // take. For instance, if Nek is controlled by a master app and subcycling is used,
   // Nek must advance to the time interval taken by the master app. If the time step
@@ -271,6 +276,9 @@ void NekRSProblemBase::externalSolve()
 void
 NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 {
+  if (nekrs::buildOnly())
+    return;
+
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:

@@ -28,6 +28,16 @@ namespace nekrs
 constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
 
+void buildOnly(int buildOnly)
+{
+  build_only = buildOnly;
+}
+
+int buildOnly()
+{
+  return build_only;
+}
+
 bool hasCHT()
 {
   return entireMesh()->cht;

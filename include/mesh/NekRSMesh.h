@@ -156,6 +156,12 @@ public:
   virtual void buildMesh() override;
 
   /**
+   * If running NekRS in JIT mode, we still need to make a mesh based on requirements
+   * in MOOSE, so we just make a dummy mesh of a single Quad4 element
+   */
+  virtual void buildDummyMesh();
+
+  /**
    * For the case of surface coupling only (i.e. no volume coupling), we create a surface
    * mesh for the elements on the specified boundary IDs
    */

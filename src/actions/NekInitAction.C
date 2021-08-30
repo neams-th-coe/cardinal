@@ -24,7 +24,6 @@ NekInitAction::NekInitAction(const InputParameters & parameters)
   : MooseObjectAction(parameters),
     _casename_in_input_file(isParamValid("casename"))
 {
-
 }
 
 void
@@ -57,9 +56,9 @@ NekInitAction::act()
 
     int build_only = size_target > 0 ? 1: 0;
 
+    nekrs::buildOnly(build_only);
+
     MPI_Comm comm = *static_cast<const MPI_Comm *>(&_communicator.get());
-    int size;
-    MPI_Comm_size(comm, &size);
 
     // If this MPI communicator has already created one case, then we cannot also create a
     // second NekRS case. For instance, if you have 4 Nek sub-apps, but only 3 processes, then
@@ -69,11 +68,15 @@ NekInitAction::act()
     // The NekRS developers do not know the cause of this issue, so here we just provide an
     // error to inform Cardinal users that it's not their fault.
     if (_n_cases > 0)
+    {
+      int size;
+      MPI_Comm_size(comm, &size);
       mooseError("NekRS does not currently support setting up multiple cases with the same "
                  "MPI communicator.\nThat is, you need at least one MPI process in a master "
                  "application per Nek sub-application.\n\n"
                  "The MPI communicator has " + std::to_string(size) + " ranks and is trying to "
                  "construct " + std::to_string(_n_cases + 1) + "+ cases.");
+    }
 
     nekrs::setup(comm, build_only, size_target, ci_mode, cache_dir, setup_file,
       "" /* backend */, "" /* device ID */);
