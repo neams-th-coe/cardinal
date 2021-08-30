@@ -310,7 +310,7 @@ NekRSProblemBase::isOutputStep() const
 void
 NekRSProblemBase::extractOutputs()
 {
-  if (_outputs)
+  if (_outputs && _var_names.size())
   {
     CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Interpolating" + _var_string + " NekRS solution onto mesh mirror");
 
