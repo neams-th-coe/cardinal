@@ -1,0 +1,17 @@
+[Tests]
+  [too_few_mpi_ranks]
+    type = RunException
+    input = nek_master.i
+
+    # The error message we are checking is specific to the case where the MPI ranks are fewer
+    # than the number of Nek cases (3 for this example). This test will pass with 2 processes
+    # if you did precompilation, but because we can't do that easily on CIVET, we just restrict
+    # this test to 1 process.
+    max_parallel = 1
+    min_parallel = 1
+
+    expect_err = "NekRS does not currently support setting up multiple cases with the same MPI communicator.\n"
+                 "That is, you need at least one MPI process in a master application per Nek sub-application."
+    requirement = "The system shall error if the same MPI communicator is used to set up more than one Nek case."
+  []
+[]
