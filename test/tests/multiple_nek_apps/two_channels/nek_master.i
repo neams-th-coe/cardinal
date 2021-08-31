@@ -102,7 +102,7 @@ c = 450
     direction = from_multiapp
     multi_app = nek
     variable = nek_temp
-    #target_boundary = 'left_pin right_pin'
+    target_boundary = 'left_pin right_pin'
   []
   [flux]
     type = MultiAppNearestNodeTransfer
@@ -110,7 +110,7 @@ c = 450
     direction = to_multiapp
     multi_app = nek
     variable = avg_flux
-    #target_boundary = '1'
+    target_boundary = '1'
   []
   [flux_integral]
     type = MultiAppVectorPostprocessorTransfer
