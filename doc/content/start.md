@@ -83,16 +83,24 @@ $ export NEKRS_HOME=$(realpath install/)
 ```
 
 To run any problems using OpenMC, you will need to specify a path to
-cross section data. Cross section data is not needed to simply compile Cardinal -
-only to run an OpenMC case.
-A detailed description of how to specify cross section
-data can be found in the [OpenMC documentation](https://docs.openmc.org/en/stable/usersguide/cross_sections.html).
-Any cross section data set may be used when using OpenMC within Cardinal; however,
-the test suite assumes you are using the ENDF/B7-II.1 data set, which has data for temperatures
-between 250 K and 2500 K. Download this library from [here](https://openmc.org/official-data-libraries/)
-and then set the `OPENMC_CROSS_SECTIONS` environment variable to the location of the
+cross section data. Cross section data is not needed to simply *compile* Cardinal -
+only to run an OpenMC case. OpenMC supports many different HDF5-format cross section
+libraries. Cardinal's test suite assumes that you are using the ENDF/B7-II.1 data set,
+which has data for temperatures between 250 K and 2500 K.
+Because we need to download this test suite when we run our regression tests, you can
+also quickly get this cross section data set by running
+
+```
+$ ./scripts/download_openmc_cross_sections.sh
+```
+
+Alternatively, if you would prefer other libraries, please visit the
+[OpenMC cross section documentation](https://docs.openmc.org/en/stable/usersguide/cross_sections.html).
+Once you have cross section data available, you simply need to set the
+`OPENMC_CROSS_SECTIONS` environment variable to the location of the
 `cross_sections.xml` file. For example, if you placed the cross-section data in
-`${HOME}/cross_sections`, this environment variable would be set to:
+`${HOME}/cross_sections` (which is also where the
+`download_openmc_cross_sections.sh` script puts the downloaded data), this environment variable would be set to:
 
 ```
 $ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
