@@ -469,7 +469,6 @@ void flux(const int elem_id, const int order, double * flux_face)
   int end_1d = mesh->Nq;
   int start_1d = order + 2;
   int end_2d = end_1d * end_1d;
-  // int start_2d = start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
   if (commRank() == nek_boundary_coupling.processor_id(elem_id))
