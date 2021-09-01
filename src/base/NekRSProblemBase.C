@@ -29,6 +29,10 @@ validParams<NekRSProblemBase>()
   MultiMooseEnum nek_outputs("temperature pressure velocity");
   params.addParam<MultiMooseEnum>("output", nek_outputs, "Field(s) to output from NekRS onto the mesh mirror");
 
+  params.addParam<bool>("write_fld_files", false, "Whether to write NekRS field file output "
+    "from Cardinal. If true, this will disable any output writing by NekRS itself, and "
+    "instead produce output files with names a01...a99pin, b01...b99pin, etc.");
+
   return params;
 }
 
@@ -40,8 +44,15 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   _L_ref(getParam<Real>("L_ref")),
   _rho_0(getParam<Real>("rho_0")),
   _Cp_0(getParam<Real>("Cp_0")),
+  _write_fld_files(getParam<bool>("write_fld_files")),
   _start_time(nekrs::startTime())
 {
+  if (_app.isUltimateMaster() && _write_fld_files)
+    mooseError("The 'write_fld_files' setting should only be true when multiple Nek simulations "
+      "are run as sub-apps on a master app.\nYour input has Nek as the master app.");
+
+  _prefix = fieldFilePrefix(_app.multiAppNumber());
+
   // will be supported in the future, but it's just not implemented yet
   if (nekrs::hasCHT())
     mooseError("Cardinal does not yet support running NekRS inputs with conjugate heat transfer!");
@@ -131,9 +142,25 @@ NekRSProblemBase::~NekRSProblemBase()
 {
   // write nekRS solution to output if not already written for this step
   if (!_is_output_step)
-    nekrs::outfld(_timestepper->nondimensionalDT(_time));
+  {
+    if (_write_fld_files)
+      nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(_time));
+    else
+      nekrs::outfld(_timestepper->nondimensionalDT(_time));
+  }
 
   if (_external_data) free(_external_data);
+}
+
+std::string
+NekRSProblemBase::fieldFilePrefix(const int & number) const
+{
+  const std::string alphabet = "abcdefghijklmnopqrstuvwxyz";
+  int letter = number / 100;
+  int remainder = number % 100;
+  std::string s = remainder < 10 ? "0" : "";
+
+  return alphabet[letter] + s + std::to_string(remainder);
 }
 
 void
@@ -268,7 +295,12 @@ void NekRSProblemBase::externalSolve()
   _is_output_step = isOutputStep();
 
   if (_is_output_step)
-    nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
+  {
+    if (_write_fld_files)
+      nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(step_end_time));
+    else
+      nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
+  }
 
   _time += _dt;
 }

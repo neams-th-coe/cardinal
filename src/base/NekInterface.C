@@ -1,6 +1,7 @@
 #include "NekInterface.h"
 #include "nekrs.cpp"
 #include "bcMap.hpp"
+#include "io.hpp"
 
 static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
 static nekrs::mesh::volumeCoupling nek_volume_coupling;
@@ -27,6 +28,21 @@ namespace nekrs
 // various constants for controlling tolerances
 constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
+
+void write_field_file(const std::string & prefix, const dfloat time)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+
+  int Nscalar = 0;
+  occa::memory o_s;
+  if (nrs->Nscalar)
+  {
+    o_s = nrs->cds->o_S;
+    Nscalar = nrs->Nscalar;
+  }
+
+  writeFld(prefix.c_str(), time, 1 /* coords */, 1 /* FP64 */, &nrs->o_U, &nrs->o_P, &o_s, Nscalar);
+}
 
 void buildOnly(int buildOnly)
 {

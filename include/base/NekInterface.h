@@ -18,6 +18,13 @@ namespace nekrs
 static int build_only;
 
 /**
+ * Write a field file containing pressure, velocity, and scalars with given prefix
+ * @param[in] prefix three-character prefix
+ * @param[in] time time
+ */
+void write_field_file(const std::string & prefix, const dfloat time);
+
+/**
  * Indicate whether NekRS was run in build-only mode (this doesn't actually
  * cause NekRS to run in build-only mode, but only provides an interface to
  * this information elsewhere).

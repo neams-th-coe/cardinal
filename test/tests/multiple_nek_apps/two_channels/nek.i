@@ -7,6 +7,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'pin'
+  write_fld_files = true
 
   # this just helps us skip the heat source transfer into NekRS from MOOSE
   # (infrastructure that exists for coupling to neutronics) when we could

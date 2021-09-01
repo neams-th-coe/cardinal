@@ -65,8 +65,7 @@ NekInitAction::act()
     // NekRS doesn't like trying to set up a case with a communicator, then immediately try
     // to set up another case with the same communicator. If you un-comment this error message,
     // you'll get an error when reading the mesh file that is basically missing a "/".
-    // The NekRS developers do not know the cause of this issue, so here we just provide an
-    // error to inform Cardinal users that it's not their fault.
+    // This error is probably due to NekRS relying a lot on static variables.
     if (_n_cases > 0)
     {
       int size;
