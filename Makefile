@@ -206,6 +206,7 @@ ifneq ($(SAM_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
   APPLICATION_DIR     := $(SAM_DIR)
   APPLICATION_NAME    := sam
+  TENSOR_MECHANICS    := yes
   include             $(FRAMEWORK_DIR)/app.mk
 endif
 
