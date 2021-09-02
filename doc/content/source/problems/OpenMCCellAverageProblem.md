@@ -27,8 +27,11 @@ OpenMC as a standalone application has several
 [command line parameters](https://docs.openmc.org/en/stable/usersguide/scripts.html). Because
 1) all of these settings can also be controlled through the XML files, and 2)
 most of OpenMC's command line parameters control features related to debugging,
-Cardinal does not propagate any OpenMC command line parameters to the OpenMC
-initialization stage when using the Cardinal executable. If you want to use
+Cardinal does not propagate any *OpenMC* command line parameters to the OpenMC
+initialization stage when using the Cardinal executable. The only exception
+is that we specify the number of threads on the command line with
+`--n-threads=<threads>`, a MOOSE command line parameter (in other words, OpenMC's
+command line specification of threads with `-s <threads>` is ignored. If you want to use
 any of OpenMC's command line features, we recommend running with the `openmc`
 executable built as part of Cardinal's compilation process.
 
@@ -476,8 +479,12 @@ of batches.
 
 For the `openmc_verbosity` parameter, because the verbosity setting
 is used in the call to `openmc_init` (at which point `OpenMCCellAverageProblem` doesn't
-exist yet), we cannot change the verbosity during initialization
-through the Cardinal input files.
+exist yet), we cannot change the verbosity during *initialization*
+through the Cardinal input files. However, setting `openmc_verbosity` will affect the
+verbosity of all parts of OpenMC's simulation aside from initialization -
+transporting of particles, accumulating tallies, and so on. For a description of
+the meaning of the OpenMC verbosity settings, please consult the
+[OpenMC documentation website](https://docs.openmc.org/en/latest/io_formats/settings.html#verbosity).
 
 !syntax parameters /Problem/OpenMCCellAverageProblem
 
