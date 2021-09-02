@@ -29,9 +29,6 @@ tools. Please consult the [MOOSE documentation](https://mooseframework.inl.gov/)
 [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/index.html), and
 [OpenMC documentation](https://docs.openmc.org/en/stable/) for code-specific
 documentation.
-
-Before embarking on any of these tutorials, please be sure to download the mesh files
-needed for the tutorials; follow the instructions [here](mesh_download.md).
 !alert-end!
 
 ## Tutorials for NekRS Wrapping

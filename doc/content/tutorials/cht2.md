@@ -138,9 +138,6 @@ This section describes the meshes used for the fluid and solid phases. For both 
 the Cubit meshing software [!cite](cubit) is used to programmatically create the meshes.
 For the solid phase, a mesh for the duct is combined with [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html)
 to generate the mesh for the pellets and clad.
-The meshes for this tutorial can be downloaded from Box following the
-instructions [here](mesh_download.md) and placed into the
-`tutorials/sfr_7pin` directory.
 
 ### Solid Mesh
 
