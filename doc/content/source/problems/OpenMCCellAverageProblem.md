@@ -31,7 +31,7 @@ Cardinal does not propagate any *OpenMC* command line parameters to the OpenMC
 initialization stage when using the Cardinal executable. The only exception
 is that we specify the number of threads on the command line with
 `--n-threads=<threads>`, a MOOSE command line parameter (in other words, OpenMC's
-command line specification of threads with `-s <threads>` is ignored. If you want to use
+command line specification of threads with `-s <threads>` is ignored). If you want to use
 any of OpenMC's command line features, we recommend running with the `openmc`
 executable built as part of Cardinal's compilation process.
 
