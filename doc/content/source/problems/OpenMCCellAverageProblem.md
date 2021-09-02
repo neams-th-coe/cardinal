@@ -22,6 +22,19 @@ supplied in the `[Mesh]` block.
 The remainder of this page describes how `OpenMCCellAverageProblem` wraps
 OpenMC as a MOOSE application.
 
+!alert warning
+OpenMC as a standalone application has several
+[command line parameters](https://docs.openmc.org/en/stable/usersguide/scripts.html). Because
+1) all of these settings can also be controlled through the XML files, and 2)
+most of OpenMC's command line parameters control features related to debugging,
+Cardinal does not propagate any *OpenMC* command line parameters to the OpenMC
+initialization stage when using the Cardinal executable. The only exception
+is that we specify the number of threads on the command line with
+`--n-threads=<threads>`, a MOOSE command line parameter (in other words, OpenMC's
+command line specification of threads with `-s <threads>` is ignored). If you want to use
+any of OpenMC's command line features, we recommend running with the `openmc`
+executable built as part of Cardinal's compilation process.
+
 ## Initializing MOOSE-type Field Interfaces
 
 When initializing a coupling of OpenMC within the MOOSE framework, the first
@@ -274,7 +287,7 @@ by the local tally indicates that the `power` represents only the power of the
 regions that got mapped. This latter setting becomes the default when using
 mesh tallies; this will be described in more detail in [#um].
 
-### Cell Tallies
+#### Cell Tallies
 
 When using cell tallies, the `tally_blocks` parameter is used to specify which blocks
 in the `[Mesh]` should be tallied. Then, any OpenMC cells that mapped to those blocks
@@ -284,7 +297,7 @@ The only requirement imposed is that:
 - An instance of an OpenMC cell cannot map to elements that are both in `tally_blocks` and not in
   `tally_blocks` - otherwise, it is unclear if the cell should have a tally or not.
 
-### Unstructured Mesh Tallies
+#### Unstructured Mesh Tallies
   id=um
 
 When using unstructured mesh tallies, the `tally_blocks` parameter is unused. Instead,
@@ -382,7 +395,7 @@ Data gets sent into OpenMC, OpenMC runs a "time step"
 
 Each of these functions will now be described.
 
-### External Solve
+#### External Solve
   id=solve
 
 The actual solve of a "time step" by OpenMC is peformed within the
@@ -398,7 +411,7 @@ void OpenMCCellAverageProblem::externalSolve()
 
 This function simply runs a $k$-eigenvalue OpenMC calculation.
 
-### Transfers to OpenMC
+#### Transfers to OpenMC
 
 In the `TO_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
 are read from the `[Mesh]` and volume-averaged over all elements corresponding to cell
@@ -406,7 +419,7 @@ $i$ and then applied to cell $i$. Temperature is always communicated to
 all OpenMC cells that were mapped to MOOSE, while density is only communicated
 to those cells that mapped to elements on the `fluid_blocks`.
 
-### Transfers from OpenMC
+#### Transfers from OpenMC
 
 In the `FROM_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
 are written to on the `[Mesh]` by writing a heat source. For cell tallies,
@@ -420,7 +433,7 @@ While this class mainly facilitates data transfers to and from OpenMC, a number 
 other features are implemented in order to enable more convenient input file
 setup. These are described in this section.
 
-### Mesh Scaling
+#### Mesh Scaling
   id=scaling
 
 OpenMC always uses a length unit of centimeters, but a coupled MOOSE application
@@ -445,6 +458,33 @@ specified in a unit 100.0 times larger than the OpenMC unit of centimeters.
 
 !listing test/tests/neutronics/feedback/different_units/openmc.i
   block=Problem
+
+#### Controlling the OpenMC Settings
+
+This class provides minimal capabilities to control the OpenMC simulation
+settings directly from the Cardinal input file. The following parameters
+are available:
+
+- `batches`: the number of batches (inactive plus active)
+- `inactive_batches`: the number of inactive batches
+- `openmc_verbosity`: verbosity level in OpenMC
+- `particles`: the number of particles per batch
+
+For all of the above, a setting in the Cardinal input file will override
+any settings in the OpenMC XML files.
+
+Setting the `batches` parameter will also set the maximum number of batches (for cases
+that use triggers) and write a statepoint that includes the new total number
+of batches.
+
+For the `openmc_verbosity` parameter, because the verbosity setting
+is used in the call to `openmc_init` (at which point `OpenMCCellAverageProblem` doesn't
+exist yet), we cannot change the verbosity during *initialization*
+through the Cardinal input files. However, setting `openmc_verbosity` will affect the
+verbosity of all parts of OpenMC's simulation aside from initialization -
+transporting of particles, accumulating tallies, and so on. For a description of
+the meaning of the OpenMC verbosity settings, please consult the
+[OpenMC documentation website](https://docs.openmc.org/en/latest/io_formats/settings.html#verbosity).
 
 !syntax parameters /Problem/OpenMCCellAverageProblem
 
