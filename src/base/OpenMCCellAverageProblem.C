@@ -1030,6 +1030,10 @@ void OpenMCCellAverageProblem::externalSolve()
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
+
+  err = openmc_reset_timers();
+  if (err)
+    mooseError(openmc_err_msg);
 }
 
 void
