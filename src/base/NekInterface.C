@@ -1,6 +1,7 @@
 #include "NekInterface.h"
 #include "nekrs.cpp"
 #include "bcMap.hpp"
+#include "io.hpp"
 
 static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
 static nekrs::mesh::volumeCoupling nek_volume_coupling;
@@ -27,6 +28,31 @@ namespace nekrs
 // various constants for controlling tolerances
 constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
+
+void write_field_file(const std::string & prefix, const dfloat time)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+
+  int Nscalar = 0;
+  occa::memory o_s;
+  if (nrs->Nscalar)
+  {
+    o_s = nrs->cds->o_S;
+    Nscalar = nrs->Nscalar;
+  }
+
+  writeFld(prefix.c_str(), time, 1 /* coords */, 1 /* FP64 */, &nrs->o_U, &nrs->o_P, &o_s, Nscalar);
+}
+
+void buildOnly(int buildOnly)
+{
+  build_only = buildOnly;
+}
+
+int buildOnly()
+{
+  return build_only;
+}
 
 bool hasCHT()
 {
@@ -459,7 +485,6 @@ void flux(const int elem_id, const int order, double * flux_face)
   int end_1d = mesh->Nq;
   int start_1d = order + 2;
   int end_2d = end_1d * end_1d;
-  // int start_2d = start_1d * start_1d;
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
   if (commRank() == nek_boundary_coupling.processor_id(elem_id))

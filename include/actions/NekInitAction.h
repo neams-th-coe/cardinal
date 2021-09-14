@@ -19,4 +19,7 @@ public:
 protected:
   /// whether a casename was provided in the input file
   const bool _casename_in_input_file;
+
+  /// number of NekRS cases created
+  static int _n_cases;
 };

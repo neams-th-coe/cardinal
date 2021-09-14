@@ -122,6 +122,9 @@ NekRSProblem::~NekRSProblem()
 void
 NekRSProblem::initialSetup()
 {
+  if (nekrs::buildOnly())
+    return;
+
   NekRSProblemBase::initialSetup();
 
   // While we don't require nekRS to actually _solve_ for the temperature, we should
@@ -567,6 +570,9 @@ NekRSProblem::getVolumeTemperatureFromNek()
 
 void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 {
+  if (nekrs::buildOnly())
+    return;
+
   switch(direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:

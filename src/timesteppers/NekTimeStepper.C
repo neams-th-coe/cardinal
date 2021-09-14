@@ -65,6 +65,10 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
     // of numeric_max for both end_time and num_steps.
   }
 
+  // If running in JIT build mode, we don't want to do any time steps
+  if (nekrs::buildOnly())
+    forceNumSteps(0);
+
   // When using this time stepper, the user should not try to set any constantDT-type
   // time stepping parameters with the Transient executioner. These could potentially
   // interfere with what nekRS is trying to use.

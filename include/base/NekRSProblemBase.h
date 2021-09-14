@@ -91,6 +91,13 @@ protected:
    */
   virtual void addTemperatureVariable();
 
+  /**
+   * Get a three-character prefix for use in writing output files for repeated
+   * Nek sibling apps.
+   * @param[in] number multi-app number
+   */
+  std::string fieldFilePrefix(const int & number) const;
+
   /// Whether the nekRS solution is performed in nondimensional scales
   const bool & _nondimensional;
 
@@ -138,6 +145,22 @@ protected:
   const Real & _Cp_0;
   //@}
 
+  /**
+   * Whether to disable output file writing by NekRS and replace it by output
+   * file writing in Cardinal. Suppose the case name is 'channel'. If this parameter
+   * is false, then NekRS will write output files as usual, with names like
+   * channel0.f00001 for write step 1, channel0.f00002 for write step 2, and so on.
+   * If true, then NekRS itself does not output any files like this, and instead
+   * output files are written with names a01channel0.f00001, a01channel0.f00002 (for
+   * first Nek app), a02channel0.f00001, a02channel0.f00002 (for second Nek app),
+   * and so on. This feature should only be used when running repeated Nek sub
+   * apps so that the output from each app is retained. Otherwise, if running N
+   * repeated Nek sub apps, only a single output file is obtained because each app
+   * overwrites the output files of the other apps in the order that the apps
+   * reach the nekrs::outfld function.
+   */
+  const bool & _write_fld_files;
+
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
 
@@ -167,6 +190,9 @@ protected:
 
   /// Whether the most recent time step was an output file writing step
   bool _is_output_step;
+
+  /// Prefix to apply to field files when writing automatically from Cardinal
+  std::string _prefix;
 
   /**
    * Underlying mesh object on which NekRS exchanges fields with MOOSE

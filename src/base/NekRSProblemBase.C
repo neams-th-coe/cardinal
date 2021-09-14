@@ -29,6 +29,10 @@ validParams<NekRSProblemBase>()
   MultiMooseEnum nek_outputs("temperature pressure velocity");
   params.addParam<MultiMooseEnum>("output", nek_outputs, "Field(s) to output from NekRS onto the mesh mirror");
 
+  params.addParam<bool>("write_fld_files", false, "Whether to write NekRS field file output "
+    "from Cardinal. If true, this will disable any output writing by NekRS itself, and "
+    "instead produce output files with names a01...a99pin, b01...b99pin, etc.");
+
   return params;
 }
 
@@ -40,8 +44,15 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   _L_ref(getParam<Real>("L_ref")),
   _rho_0(getParam<Real>("rho_0")),
   _Cp_0(getParam<Real>("Cp_0")),
+  _write_fld_files(getParam<bool>("write_fld_files")),
   _start_time(nekrs::startTime())
 {
+  if (_app.isUltimateMaster() && _write_fld_files)
+    mooseError("The 'write_fld_files' setting should only be true when multiple Nek simulations "
+      "are run as sub-apps on a master app.\nYour input has Nek as the master app.");
+
+  _prefix = fieldFilePrefix(_app.multiAppNumber());
+
   // will be supported in the future, but it's just not implemented yet
   if (nekrs::hasCHT())
     mooseError("Cardinal does not yet support running NekRS inputs with conjugate heat transfer!");
@@ -53,8 +64,10 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
 
   // the Problem constructor is called right after building the mesh. In order
   // to have pretty screen output without conflicting with the timed print messages,
-  // print diagnostic info related to the mesh here
-  _nek_mesh->printMeshInfo();
+  // print diagnostic info related to the mesh here. If running in JIT mode, this
+  // diagnostic info was never set, so the numbers that would be printed are garbage.
+  if (!nekrs::buildOnly())
+    _nek_mesh->printMeshInfo();
 
   // if solving in nondimensional form, make sure that the user specified _all_ of the
   // necessary scaling quantities to prevent errors from forgetting one, which would take
@@ -129,9 +142,25 @@ NekRSProblemBase::~NekRSProblemBase()
 {
   // write nekRS solution to output if not already written for this step
   if (!_is_output_step)
-    nekrs::outfld(_timestepper->nondimensionalDT(_time));
+  {
+    if (_write_fld_files)
+      nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(_time));
+    else
+      nekrs::outfld(_timestepper->nondimensionalDT(_time));
+  }
 
   if (_external_data) free(_external_data);
+}
+
+std::string
+NekRSProblemBase::fieldFilePrefix(const int & number) const
+{
+  const std::string alphabet = "abcdefghijklmnopqrstuvwxyz";
+  int letter = number / 100;
+  int remainder = number % 100;
+  std::string s = remainder < 10 ? "0" : "";
+
+  return alphabet[letter] + s + std::to_string(remainder);
 }
 
 void
@@ -228,6 +257,9 @@ NekRSProblemBase::initialSetup()
 
 void NekRSProblemBase::externalSolve()
 {
+  if (nekrs::buildOnly())
+    return;
+
   // _dt reflects the time step that MOOSE wants Nek to
   // take. For instance, if Nek is controlled by a master app and subcycling is used,
   // Nek must advance to the time interval taken by the master app. If the time step
@@ -263,7 +295,12 @@ void NekRSProblemBase::externalSolve()
   _is_output_step = isOutputStep();
 
   if (_is_output_step)
-    nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
+  {
+    if (_write_fld_files)
+      nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(step_end_time));
+    else
+      nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
+  }
 
   _time += _dt;
 }
@@ -271,6 +308,9 @@ void NekRSProblemBase::externalSolve()
 void
 NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 {
+  if (nekrs::buildOnly())
+    return;
+
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
@@ -310,7 +350,7 @@ NekRSProblemBase::isOutputStep() const
 void
 NekRSProblemBase::extractOutputs()
 {
-  if (_outputs)
+  if (_outputs && _var_names.size())
   {
     CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Interpolating" + _var_string + " NekRS solution onto mesh mirror");
 
