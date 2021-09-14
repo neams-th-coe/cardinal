@@ -326,6 +326,9 @@ void OpenMCProblem::externalSolve()
 {
   int err = openmc_run();
   if (err) openmc::fatal_error(openmc_err_msg);
+
+  err = openmc_reset_timers();
+  if (err) openmc::fatal_error(openmc_err_msg);
 }
 
 void OpenMCProblem::syncSolutions(ExternalProblem::Direction direction)
