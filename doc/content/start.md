@@ -159,7 +159,7 @@ Because we need to download this test suite when we run our regression tests, yo
 also quickly get this cross section data set by running
 
 ```
-$ ./scripts/download_openmc_cross_sections.sh
+$ ./scripts/download-openmc-cross-sections.sh
 ```
 
 Alternatively, if you would prefer other libraries, please visit the
