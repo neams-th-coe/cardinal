@@ -104,7 +104,7 @@ submodules, use:
 ```
 $ git submodule update --init contrib/moose
 $ git submodule update --init --recursive contrib/openmc
-$ git submodule update --init contrib/moose
+$ git submodule update --init contrib/nekRS
 ```
 
 ##### Optional Submodules
