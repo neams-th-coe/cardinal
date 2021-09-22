@@ -1,0 +1,23 @@
+[Tests]
+  [three_rings]
+    type = Exodiff
+    input = three_rings.i
+    exodiff = three_rings_out.e
+    issues = '#434'
+    requirement = "The system shall be able to construct a triangular lattice mesh for three pin rings."
+  []
+  [two_rings]
+    type = Exodiff
+    input = two_rings.i
+    exodiff = two_rings_out.e
+    issues = '#434'
+    requirement = "The system shall be able to construct a triangular lattice mesh for two pin rings."
+  []
+  [one_ring]
+    type = Exodiff
+    input = one_ring.i
+    exodiff = one_ring_out.e
+    issues = '#434'
+    requirement = "The system shall be able to construct a triangular lattice mesh for one pin ring."
+  []
+[]

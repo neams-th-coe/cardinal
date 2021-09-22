@@ -7,6 +7,7 @@ MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getEigenvalueEnum();
+MooseEnum getChannelTypeEnum();
 
 namespace order
 {
@@ -83,5 +84,16 @@ namespace eigenvalue
     absorption,
     tracklength,
     combined
+  };
+}
+
+namespace channel_type
+{
+  /// Type of subchannel
+  enum ChannelTypeEnum
+  {
+    interior,
+    edge,
+    corner
   };
 }
