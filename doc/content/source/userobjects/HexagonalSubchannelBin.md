@@ -22,6 +22,8 @@ The value of the userobject is shown below; numbers superimposed over each
 channel are the channel indices for this 19-pin geometry.
 
 !media hex_subchannel_bin.png
+  id=fig1
+  style=width:60%;margin-left:auto;margin-right:auto
   caption=Subchannel bin indices for a 19-pin hexagonal geometry
 
 !syntax parameters /UserObjects/HexagonalSubchannelBin

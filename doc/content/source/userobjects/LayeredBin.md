@@ -19,6 +19,8 @@ of the three coordinate directions.
 The bins in the $x$ direction are shown below, colored by bin ID.
 
 !media layered_bin.png
+  id=fig1
+  style=width:60%;margin-left:auto;margin-right:auto
   caption=Layered bin indices in the $x$ direction
 
 !syntax parameters /UserObjects/LayeredBin
