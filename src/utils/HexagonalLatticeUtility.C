@@ -631,7 +631,8 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
   }
 
   mooseError("Point (" + std::to_string(point(0)) + ", " + std::to_string(point(1)) +
-    ", " + std::to_string(point(2)) + ") is not in any channel!\n\nThis can sometimes happen "
-    "due to small floating point errors - we recommend using a CONSTANT MONOMIAL variable "
+    ", " + std::to_string(point(2)) + ") is not in any channel! This can sometimes happen "
+    "due to:\n\n a) Points in the mesh actually being outside the domain specified with the "
+    "HexagonalLatticeUtility.\n b) Small floating point errors - we recommend using a CONSTANT MONOMIAL variable "
     "with all related objects.");
 }

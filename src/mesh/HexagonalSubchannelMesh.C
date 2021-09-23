@@ -23,9 +23,10 @@ HexagonalSubchannelMesh::validParams()
     "Pin outer diameter");
   params.addRequiredRangeCheckedParam<unsigned int>("n_rings", "n_rings >= 1",
     "Number of pin rings, including the centermost pin as a 'ring'");
-  params.addRangeCheckedParam<unsigned int>("axis", 2,
-    "axis >= 0 & axis < 3",
-    "vertical axis of the reactor (x = 0, y = 1, z = 2) along which pins are aligned");
+
+  MooseEnum directions("x y z", "z");
+  params.addParam<MooseEnum>("axis", directions,
+    "vertical axis of the reactor (x, y, or z) along which pins are aligned");
   params.addRequiredRangeCheckedParam<unsigned int>("n_axial", "n_axial > 0",
     "Number of axial cells");
   params.addRequiredRangeCheckedParam<Real>("height", "height > 0", "Height of assembly");
@@ -47,7 +48,7 @@ HexagonalSubchannelMesh::HexagonalSubchannelMesh(const InputParameters & paramet
     _pin_pitch(getParam<Real>("pin_pitch")),
     _pin_diameter(getParam<Real>("pin_diameter")),
     _n_rings(getParam<unsigned int>("n_rings")),
-    _axis(getParam<unsigned int>("axis")),
+    _axis(parameters.get<MooseEnum>("axis")),
     _theta_res(getParam<unsigned int>("theta_res")),
     _gap_res(getParam<unsigned int>("gap_res")),
     _n_axial(getParam<unsigned int>("n_axial")),
