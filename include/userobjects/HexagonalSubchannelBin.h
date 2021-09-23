@@ -32,7 +32,7 @@ protected:
   const unsigned int & _n_rings;
 
   /// Vertical axis of the bundle along which the pins are aligned
-  const unsigned int & _axis;
+  const unsigned int _axis;
 
   /// Underlying utility providing hexagonal lattice capabilities
   std::unique_ptr<HexagonalLatticeUtility> _hex_lattice;

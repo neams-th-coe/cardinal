@@ -130,7 +130,7 @@ protected:
   const unsigned int & _n_rings;
 
   /// Vertical axis of the bundle along which the pins are aligned
-  const unsigned int & _axis;
+  const unsigned int _axis;
 
   /// Number of nodes on each pin's quarter circumference
   const unsigned int & _theta_res;

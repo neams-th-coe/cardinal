@@ -14,9 +14,10 @@ HexagonalSubchannelBin::validParams()
     "Pin outer diameter");
   params.addRequiredRangeCheckedParam<unsigned int>("n_rings", "n_rings >= 1",
     "Number of pin rings, including the centermost pin as a 'ring'");
-  params.addRangeCheckedParam<unsigned int>("axis", 2,
-    "axis >= 0 & axis < 3",
-    "vertical axis of the reactor (x = 0, y = 1, z = 2) along which pins are aligned");
+
+  MooseEnum directions("x y z", "z");
+  params.addParam<MooseEnum>("axis", directions,
+    "vertical axis of the reactor (x, y, or z) along which pins are aligned");
   params.addClassDescription("Creates a unique spatial bin for each subchannel in a hexagonal lattice");
   return params;
 }
@@ -27,7 +28,7 @@ HexagonalSubchannelBin::HexagonalSubchannelBin(const InputParameters & parameter
   _pin_pitch(getParam<Real>("pin_pitch")),
   _pin_diameter(getParam<Real>("pin_diameter")),
   _n_rings(getParam<unsigned int>("n_rings")),
-  _axis(getParam<unsigned int>("axis"))
+  _axis(parameters.get<MooseEnum>("axis"))
 {
   _hex_lattice.reset(new HexagonalLatticeUtility(_bundle_pitch, _pin_pitch, _pin_diameter,
     0.0 /* wire diameter, unused */, 1.0 /* wire pitch, unused */, _n_rings, _axis));
