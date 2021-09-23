@@ -1,0 +1,8 @@
+[Tests]
+  [bin]
+    type = Exodiff
+    input = radial.i
+    exodiff = radial_out.e
+    requirement = "A radial bin shall divide space according to 1-D layers in the radial direction."
+  []
+[]

@@ -33,4 +33,12 @@ public:
    * @return total number of bins
    */
   virtual const unsigned int num_bins() const = 0;
+
+  /**
+   * Get the bin given a point in an array of bounding points between layers
+   * @param[in] pt point along axis of the bounding points
+   * @param[in] bounds vector of bounding points
+   * @return layer
+   */
+  unsigned int binFromBounds(const Real & pt, const std::vector<Real> & bounds) const;
 };
