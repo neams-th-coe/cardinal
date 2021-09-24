@@ -79,6 +79,12 @@ bool endControlNumSteps();
 int scalarFieldOffset();
 
 /**
+ * Offset increment for indexing into the velocity array
+ * @return velocity field offset
+ */
+int velocityFieldOffset();
+
+/**
  * Get the "entire" NekRS mesh. For cases with a temperature scalar, this returns
  * nrs->meshT, which will cover both the fluid and solid regions if CHT is present.
  * For flow-only cases, this will return the flow mesh.

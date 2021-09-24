@@ -101,6 +101,12 @@ int scalarFieldOffset()
   return nrs->cds->fieldOffset[0];
 }
 
+int velocityFieldOffset()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  return nrs->fieldOffset;
+}
+
 mesh_t * entireMesh()
 {
   if (hasTemperatureVariable())
@@ -1063,9 +1069,9 @@ double massFlowrate(const std::vector<int> & boundary_id)
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_velocity =
-            nrs->U[vol_id + 0 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
-            nrs->U[vol_id + 1 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
-            nrs->U[vol_id + 2 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NZID];
+            nrs->U[vol_id + 0 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
+            nrs->U[vol_id + 1 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
+            nrs->U[vol_id + 2 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NZID];
 
           integral += rho * normal_velocity * mesh->sgeo[surf_offset + WSJID];
         }
@@ -1108,12 +1114,10 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const 
         for (int v = 0; v < mesh->Nfp; ++v) {
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
-
           double normal_velocity =
-            nrs->U[vol_id + 0 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
-            nrs->U[vol_id + 1 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
-            nrs->U[vol_id + 2 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NZID];
-
+            nrs->U[vol_id + 0 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
+            nrs->U[vol_id + 1 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
+            nrs->U[vol_id + 2 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NZID];
           integral += f(vol_id) * rho * normal_velocity * mesh->sgeo[surf_offset + WSJID];
         }
       }
