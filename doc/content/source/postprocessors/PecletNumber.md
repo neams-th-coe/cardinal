@@ -21,7 +21,7 @@ This postprocessor computes [eq:re] as
 
 \begin{equation}
 \label{re2}
-Re=\frac{L_{ref}\int_\Gamma \rhoC_p \vec{V}\cdot\hat{n}d\Gamma}{k\int_\Gamma d\Gamma}
+Re=\frac{L_{ref}\int_\Gamma \rho C_p \vec{V}\cdot\hat{n}d\Gamma}{k\int_\Gamma d\Gamma}
 \end{equation}
 
 where $\Gamma$ is a boundary of the NekRS mesh specified with the `boundary` parameter
