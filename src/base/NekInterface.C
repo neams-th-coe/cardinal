@@ -841,6 +841,29 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
   return reduced_value;
 }
 
+libMesh::Point centroid(int local_elem_id)
+{
+  mesh_t * mesh = entireMesh();
+
+  double x_c = 0.0;
+  double y_c = 0.0;
+  double z_c = 0.0;
+  double mass = 0.0;
+
+  for (int v = 0; v < mesh->Np; ++v)
+  {
+    int id = local_elem_id * mesh->Np + v;
+    double mass_matrix = mesh->vgeo[local_elem_id * mesh->Np * mesh->Nvgeo + JWID * mesh->Np + v];
+    x_c += mesh->x[id] * mass_matrix;
+    y_c += mesh->y[id] * mass_matrix;
+    z_c += mesh->z[id] * mass_matrix;
+    mass += mass_matrix;
+  }
+
+  Point c(x_c, y_c, z_c);
+  return c / mass;
+}
+
 double volume()
 {
   mesh_t * mesh = entireMesh();
@@ -859,16 +882,80 @@ double volume()
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-  // scale the volume integral
-  total_integral *= scales.V_ref;
+  dimensionalizeVolumeIntegral(field::unity, total_integral);
 
   return total_integral;
+}
+
+void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, double & integral)
+{
+  // dimensionalize the field if needed
+  solution::dimensionalize(integrand, integral);
+
+  // scale the volume integral
+  integral *= scales.V_ref;
+
+  // if temperature, we need to add the reference temperature multiplied by the volume integral
+  if (integrand == field::temperature)
+    integral += scales.T_ref * volume();
+}
+
+void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std::vector<int> & boundary_id, double & integral)
+{
+  // dimensionalize the field if needed
+  solution::dimensionalize(integrand, integral);
+
+  // scale the boundary integral
+  integral *= scales.A_ref;
+
+  // if temperature, we need to add the reference temperature multiplied by the area integral
+  if (integrand == field::temperature)
+    integral += scales.T_ref * area(boundary_id);
+}
+
+void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
+  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  int n_bins, double * total_integral)
+{
+  mesh_t * mesh = entireMesh();
+  double * integral = (double *) calloc(n_bins, sizeof(double));
+
+  double (*f) (int);
+  f = solution::solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+    libMesh::Point p;
+
+    if (!map_space_by_qp)
+      p = centroid(k) * scales.L_ref;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      if (map_space_by_qp)
+      {
+        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
+        p *= scales.L_ref;
+      }
+
+      unsigned int bin = ((*uo).bin)(p);
+      integral[bin] += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  MPI_Allreduce(integral, total_integral, n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  for (unsigned int i = 0; i < n_bins; ++i)
+    dimensionalizeVolumeIntegral(integrand, total_integral[i]);
+
+  free(integral);
 }
 
 double volumeIntegral(const field::NekFieldEnum & integrand)
 {
   mesh_t * mesh = entireMesh();
-
   double integral = 0.0;
 
   double (*f) (int);
@@ -886,15 +973,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-  // dimensionalize the field if needed
-  solution::dimensionalize(integrand, total_integral);
-
-  // scale the volume integral
-  total_integral *= scales.V_ref;
-
-  // if temperature, we need to add the reference temperature multiplied by the volume integral
-  if (integrand == field::temperature)
-    total_integral += scales.T_ref * volume();
+  dimensionalizeVolumeIntegral(integrand, total_integral);
 
   return total_integral;
 }
@@ -923,8 +1002,7 @@ double area(const std::vector<int> & boundary_id)
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-  // scale the boundary integral
-  total_integral *= scales.A_ref;
+  dimensionalizeSideIntegral(field::unity, boundary_id, total_integral);
 
   return total_integral;
 }
@@ -956,15 +1034,7 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-  // dimensionalize the field if needed
-  solution::dimensionalize(integrand, total_integral);
-
-  // scale the boundary integral
-  total_integral *= scales.A_ref;
-
-  // if temperature, we need to add the reference temperature multiplied by the area integral
-  if (integrand == field::temperature)
-    total_integral += scales.T_ref * area(boundary_id);
+  dimensionalizeSideIntegral(integrand, boundary_id, total_integral);
 
   return total_integral;
 }
