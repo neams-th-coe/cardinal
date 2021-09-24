@@ -10,7 +10,7 @@
   [incorrect_problem_uo]
     type = RunException
     input = nek_uo.i
-    expect_err = "UserObject with name 'subchannel_binning' can only be used with wrapped Nek cases!\n"
+    expect_err = "UserObject with name 'vol_avg' can only be used with wrapped Nek cases!\n"
                  "You need to change the problem type from 'FEProblem' \(the default\) to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a Nek userobject is not paired with the correct problem."
