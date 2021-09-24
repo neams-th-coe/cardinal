@@ -1,0 +1,8 @@
+[Tests]
+  [dimensional_Re_Pe]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "The system shall correctly compute the Reynolds and Peclet numbers for a dimensional NekRS case."
+  []
+[]

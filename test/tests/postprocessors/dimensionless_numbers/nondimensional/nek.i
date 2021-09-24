@@ -1,5 +1,6 @@
 [Problem]
-  type = NekRSProblem
+  type = NekRSStandaloneProblem
+  casename = 'brick'
 
   nondimensional = true
   L_ref = 0.25
@@ -27,12 +28,15 @@
 [Outputs]
   [out]
     type = CSV
-    hide = 'flux_integral'
     execute_on = 'final'
   []
 []
 
 [Postprocessors]
+  [Pe]
+    type = PecletNumber
+    boundary = '1'
+  []
   [Re]
     type = ReynoldsNumber
     boundary = '1'

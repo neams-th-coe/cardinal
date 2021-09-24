@@ -12,10 +12,14 @@ void UDF_Setup(nrs_t *nrs)
   {
     nrs->U[n + 0 * nrs->fieldOffset] = 0.0;       // x-velocity
     nrs->U[n + 1 * nrs->fieldOffset] = 0.0;       // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 1.0;     // z-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = 0.001;     // z-velocity
 
     nrs->P[n] = 0.0; // pressure
   }
+
+  // we need this here if the temperature solve is off, because otherwise it's not set
+  platform->options.setArgs("SCALAR00 DENSITY", "1001400");
+  platform->options.setArgs("SCALAR00 DIFFUSIVITY", "2.34");
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
