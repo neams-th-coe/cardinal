@@ -185,10 +185,17 @@ Now, if we wanted to view the output of this averaging on the
 
 The result of the volume averaging operation is shown in [avg1].
 Because the NekRS mesh elements don't fall nicely into the specified bins,
-we actually can only see the bin averages that the mesh mirror elements "hit".
+we actually can only see the bin averages that the mesh mirror elements "hit"
+(according to their centroid). This is obviously non-ideal because the underlying
+form of the NekRS mesh is distorting the *visualization* of the volume average
+(even though the NekRS mesh element layout doesn't affect the actual averaging
+and the userobject stores the values of all 12 radial bins, even if they can't
+be seen).
 
-!media
-
+!media vol_avgs_master.png
+  id=avg1
+  caption=Representation of the `volume_averages` binned averaging on the NekRS mesh mirror
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 Instead, we can
 leverage MOOSE's [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
@@ -203,4 +210,16 @@ this input file only serves to receive data onto a different mesh.
 
 !listing /tutorials/standalone/sub.i
 
+Then we transfer the `volume_averages` user object to the sub-application.
 
+!listing /tutorials/standalone/nek.i
+  begin=MultiApps
+  end=Executioner
+
+The user object received on the sub-application is shown in [avg2],
+which exactly represents the 12 radial averaging bins.
+
+!media vol_avgs_sub.png
+  id=avg2
+  caption=Representation of the `volume_averages` binned exactly as computed by user object
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
