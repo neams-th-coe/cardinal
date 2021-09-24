@@ -1,4 +1,4 @@
-# Tutorial 1A: Running NekRS as a Standalone Application
+# Tutorial 1: Running NekRS as a Standalone Application
 
 In this tutorial, you will learn how to:
 
@@ -59,6 +59,8 @@ time-consuming to implement from scratch in NekRS. Instead of running a NekRS in
 with the `nekrs` executable, you can instead
 create a "thin" wrapper input file that essentially just runs NekRS as a MOOSE
 application (but allowing usage of the postprocessing and data I/O features of Cardinal).
+For wrapped applications, NekRS will continue to write its own field file output
+during the simulation as specified by settings in the `.par` file.
 
 For a thin wrapping of NekRS as a MOOSE application, without any physics coupling,
 Cardinal simply replaces calls to MOOSE solve methods with NekRS solve methods available
@@ -111,7 +113,13 @@ of the NekRS mesh), `Problem` (which replaces MOOSE finite element solves with
 NekRS solves), `Executioner` (which controls the time stepping according to the settings
 in the NekRS input files), and `Outputs` (which outputs any results that have been
 projected onto the [NekRSMesh](/mesh/NekRSMesh.md) to the specified format.
+This input file is run with:
 
+```
+$ mpiexec -np 8 cardinal-opt -i nek.i
+```
+
+which will run with 8 [!ac](MPI) ranks.
 In this tutorial, we will add a few postprocessing operations to illustrate
 the utility of wrapping NekRS simulations in Cardinal. First we add several
 postprocessors to compute the pressure drop and the mass flowrate. The pressure
@@ -180,7 +188,7 @@ Now, if we wanted to view the output of this averaging on the
 [SpatialUserObjectAux](https://mooseframework.inl.gov/source/auxkernels/SpatialUserObjectAux.html).
 
 !listing /tutorials/standalone/nek.i
-  begin=AuxVariables
+  start=AuxVariables
   end=MultiApps
 
 The result of the volume averaging operation is shown in [avg1].
@@ -213,7 +221,7 @@ this input file only serves to receive data onto a different mesh.
 Then we transfer the `volume_averages` user object to the sub-application.
 
 !listing /tutorials/standalone/nek.i
-  begin=MultiApps
+  start=MultiApps
   end=Executioner
 
 The user object received on the sub-application is shown in [avg2],
@@ -223,3 +231,6 @@ which exactly represents the 12 radial averaging bins.
   id=avg2
   caption=Representation of the `volume_averages` binned exactly as computed by user object
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
+
+When running this tutorial, the NekRS output file is the `nek_out.e` file,
+while the output of the sub-application is the `nek_out_sub0.e` file.
