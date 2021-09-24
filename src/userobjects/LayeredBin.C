@@ -26,24 +26,19 @@ LayeredBin::LayeredBin(const InputParameters & parameters)
   BoundingBox bounding_box = MeshTools::create_bounding_box(_layered_subproblem->mesh());
   _direction_min = bounding_box.min()(_direction);
   _direction_max = bounding_box.max()(_direction);
+
+  _layer_pts.resize(_num_layers + 1);
+  _layer_pts[0] = _direction_min;
+  Real dx = (_direction_max - _direction_min) / _num_layers;
+  for (unsigned int i = 1; i < _num_layers + 1; ++i)
+    _layer_pts[i] = _layer_pts[i - 1] + dx;
 }
 
 const unsigned int
 LayeredBin::bin(const Point & p) const
 {
   Real direction_x = p(_direction);
-
-  if (direction_x < _direction_min)
-    return 0;
-
-  unsigned int layer =
-      std::floor(((direction_x - _direction_min) / (_direction_max - _direction_min)) *
-                 static_cast<Real>(_num_layers));
-
-  if (layer >= _num_layers)
-    layer = _num_layers - 1;
-
-  return layer;
+  return binFromBounds(direction_x, _layer_pts);
 }
 
 const unsigned int

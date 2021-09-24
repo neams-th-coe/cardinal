@@ -1,14 +1,18 @@
 [Tests]
-  [incorrect_problem]
+  [incorrect_problem_pp]
     type = RunException
     input = nek.i
-
-    # nekRS can't use more processors than elements
-    max_parallel = 12
-
     expect_err = "Postprocessor with name 'nek_avg_temp' can only be used with wrapped Nek cases!\n"
                  "You need to change the problem type from 'FEProblem' \(the default\) to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a Nek postprocessor is not paired with the correct problem."
+  []
+  [incorrect_problem_uo]
+    type = RunException
+    input = nek.i
+    expect_err = "UserObject with name 'subchannel_binning' can only be used with wrapped Nek cases!\n"
+                 "You need to change the problem type from 'FEProblem' \(the default\) to a Nek-wrapped problem.\n\n"
+                 "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
+    requirement = "The system shall error if a Nek userobject is not paired with the correct problem."
   []
 []
