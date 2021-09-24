@@ -37,13 +37,13 @@ This postprocessor currently assumes that $\rho$ and $\mu$ are both constant.
 As an example for a dimensional NekRS case, the `Re` postprocessor will compute the Reynolds number according
 to the velocity through boundary 1 of the NekRS mesh.
 
-!listing test/tests/postprocessors/reynolds_number/dimensional/nek.i
+!listing test/tests/postprocessors/dimensionless_numbers/dimensional/nek.i
   block=Postprocessors
 
 As an example for a non-dimensional NekRS case, the `Re` postprocessor will compute the Reynolds number according
 to the velocity through boundary 1 of the NekRS mesh.
 
-!listing test/tests/postprocessors/reynolds_number/nondimensional/nek.i
+!listing test/tests/postprocessors/dimensionless_numbers/nondimensional/nek.i
   block=Postprocessors
 
 !syntax parameters /Postprocessors/ReynoldsNumber
