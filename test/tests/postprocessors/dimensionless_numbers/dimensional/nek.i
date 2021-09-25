@@ -1,5 +1,6 @@
 [Problem]
   type = NekRSProblem
+  casename = 'brick'
 []
 
 [Mesh]
@@ -26,6 +27,11 @@
 [Postprocessors]
   [Re]
     type = ReynoldsNumber
+    L_ref = 0.25
+    boundary = '1'
+  []
+  [Pe]
+    type = PecletNumber
     L_ref = 0.25
     boundary = '1'
   []

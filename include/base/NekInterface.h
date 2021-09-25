@@ -159,6 +159,13 @@ double characteristicLength();
  */
 double viscosity();
 
+/**
+ * Get the Prandtl number; note that for dimensional cases, this is only guaranteed
+ * to be correct if the density, viscosity, heat capacity, and conductivity are constant.
+ * @return constant Prandtl number
+ */
+double Pr();
+
 /// Copy the flux from host to device
 void copyScratchToDevice();
 

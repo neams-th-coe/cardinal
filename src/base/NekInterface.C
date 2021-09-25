@@ -205,6 +205,20 @@ double viscosity()
   return scales.rho_ref * scales.U_ref * scales.L_ref / Re;
 }
 
+double Pr()
+{
+  dfloat rho, rho_cp, k;
+  setupAide & options = platform->options;
+  options.getArgs("DENSITY", rho);
+  options.getArgs("SCALAR00 DENSITY", rho_cp);
+  options.getArgs("SCALAR00 DIFFUSIVITY", k);
+
+  dfloat Pe = 1.0 / k;
+  dfloat conductivity = scales.rho_ref * scales.U_ref * scales.Cp_ref * scales.L_ref / Pe;
+  dfloat Cp = rho_cp / rho * scales.Cp_ref;
+  return viscosity() * Cp / conductivity;
+}
+
 void interpolationMatrix(double * I, int starting_points, int ending_points)
 {
   DegreeRaiseMatrix1D(starting_points - 1, ending_points - 1, I);
