@@ -292,7 +292,7 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
 
       // because the mesh template and [Mesh] may be in different units, we need
       // to adjust the [Mesh] by the scaling factor before doing a comparison.
-      Point centroid_mesh = elem_ptr->centroid() * _scaling;
+      Point centroid_mesh = elem_ptr->vertex_average() * _scaling;
 
       // if the centroids are the same except for a factor of 'scaling', then we can
       // guess that the mesh_template is probably not in units of centimeters
@@ -795,7 +795,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
   {
     const auto * elem = _mesh.elemPtr(e);
 
-    const Point & c = elem->centroid();
+    const Point & c = elem->vertex_average();
     Real element_volume = elem->volume();
 
     bool error = findCell(c);
