@@ -1,0 +1,28 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  polynomialOrder = 7
+  stopAt = endTime
+  endTime = 20
+
+  dt = 6.0e-3
+  timeStepper = tombo2
+  extrapolation = subCycling
+  subCyclingSteps = 2
+
+  writeControl = numSteps
+  writeInterval = 100
+
+  filtering = hpfrt
+  filterWeight = 0.1/${dt}
+  filterModes = 1
+
+[PRESSURE]
+  residualTol = 1e-04
+
+[VELOCITY]
+  boundaryTypeMap = inlet, outlet, wall
+  density = 1.0
+  viscosity = -19000
+  residualTol = 1e-06

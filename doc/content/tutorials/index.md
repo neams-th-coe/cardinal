@@ -37,7 +37,7 @@ documentation.
 2. [Conjugate heat transfer coupling of NekRS and MOOSE heat conduction](tutorials/cht.md)
 3. [Volumetric heat source coupling of NekRS and MOOSE chemical species transport](tutorials/volumetric.md)
 4. [Multiscale coupling of NekRS and SAM for primary loop modeling](tutorials/sam_coupling.md)
-5. [Extracting the NekRS solution as auxiliary variables](tutorials/nekrs_outputs.md)
+5. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
 
 ## Tutorials for OpenMC Wrapping
 

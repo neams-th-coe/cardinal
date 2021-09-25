@@ -32,4 +32,7 @@ protected:
 
   /// Maxium coordinate in the direction
   Real _direction_max;
+
+  /// Bounds of the 1-D layering
+  std::vector<Real> _layer_pts;
 };

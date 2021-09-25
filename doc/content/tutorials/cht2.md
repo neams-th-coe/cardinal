@@ -406,7 +406,7 @@ begin with the `sfr_7pin.par` file, shown in entirety below.
 
 !listing /tutorials/sfr_7pin/sfr_7pin.par
 
-This input differs from the `.par` file in [Tutorial 1](cht1.md) in
+This input differs from the `.par` file in [Tutorial 2A](cht1.md) in
 that the input is in dimensional form. Because the geometry is different,
 the sidesets and boundary conditions also differ.
 Boundaries 1 and 2 will receive heat flux from MOOSE, so these two boundaries are set to

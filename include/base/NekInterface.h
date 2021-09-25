@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CardinalEnums.h"
+#include "NekSpatialBinUserObject.h"
+#include "libmesh/point.h"
 #include "mesh.h"
 #include <string>
 #include <vector>
@@ -75,6 +77,12 @@ bool endControlNumSteps();
  * @return scalar field offset
  */
 int scalarFieldOffset();
+
+/**
+ * Offset increment for indexing into the velocity array
+ * @return velocity field offset
+ */
+int velocityFieldOffset();
 
 /**
  * Get the "entire" NekRS mesh. For cases with a temperature scalar, this returns
@@ -193,6 +201,13 @@ void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, i
 void initializeInterpolationMatrices(const int n_moost_pts);
 
 /**
+ * Compute the centroid given a local element ID
+ * @param[in] local_elem_id local element ID on this rank
+ * @return centroid
+ */
+libMesh::Point centroid(int local_elem_id);
+
+/**
  * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
@@ -277,11 +292,39 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
 double volume();
 
 /**
+ * Dimensionalize a given integral of f over volume, i.e. fdV
+ * @param[in] integrand field to dimensionalize
+ * @param[in] integral integral to dimensionalize
+ */
+void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, double & integral);
+
+/**
+ * Dimensionalize a given integral of f over a side, i.e. fdS
+ * @param[in] integrand field to dimensionalize
+ * @param[in] boundary_id boundary IDs for the integral
+ * @param[in] integral integral to dimensionalize
+ */
+void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std::vector<int> & boundary_id, double & integral);
+
+/**
  * Compute the volume integral of a given integrand over the entire scalar mesh
  * @param[in] integrand field to integrate
  * @return volume integral of a field
  */
 double volumeIntegral(const field::NekFieldEnum & integrand);
+
+/**
+ * Compute a volume integral in spatial bins
+ * @param[in] integrand field to integrate
+ * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
+ * @param[in] bin pointer to function that returns a bin index given a point
+ * @param[in] uo user object providing the bin method
+ * @param[in] n_bins number of bins
+ * @param[out] total_integral volume integral for each bin, summed across ranks
+ */
+void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
+  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  int n_bins, double * total_integral);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs

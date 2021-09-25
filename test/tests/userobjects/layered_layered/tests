@@ -1,0 +1,9 @@
+[Tests]
+  [multiple_layers]
+    type = Exodiff
+    input = nek.i
+    exodiff = nek_out.e
+    requirement = "Multiple 1-D layered bins shall be combined to give a multi-dimensional binning "
+                  "and demonstrate correct results for volume integrals and averages."
+  []
+[]
