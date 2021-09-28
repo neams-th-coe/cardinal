@@ -32,6 +32,32 @@ HexagonalSubchannelBin::HexagonalSubchannelBin(const InputParameters & parameter
 {
   _hex_lattice.reset(new HexagonalLatticeUtility(_bundle_pitch, _pin_pitch, _pin_diameter,
     0.0 /* wire diameter, unused */, 1.0 /* wire pitch, unused */, _n_rings, _axis));
+
+  if (_axis == 0) // x vertical axis
+    _directions = {1, 2};
+  else if (_axis == 1) // y vertical axis
+    _directions = {0, 2};
+  else // z vertical axis
+    _directions = {0, 1};
+
+  // the bin centers are the channel centroids
+  for (unsigned int i = 0; i < _hex_lattice->nInteriorChannels(); ++i)
+  {
+    auto corners = _hex_lattice->interiorChannelCornerCoordinates(i);
+    _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
+  }
+
+  for (unsigned int i = 0; i < _hex_lattice->nEdgeChannels(); ++i)
+  {
+    auto corners = _hex_lattice->edgeChannelCornerCoordinates(i);
+    _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
+  }
+
+  for (unsigned int i = 0; i < _hex_lattice->nCornerChannels(); ++i)
+  {
+    auto corners = _hex_lattice->cornerChannelCornerCoordinates(i);
+    _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
+  }
 }
 
 const unsigned int
