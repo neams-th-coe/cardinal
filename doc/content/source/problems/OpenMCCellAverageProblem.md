@@ -204,7 +204,9 @@ If the "Mapped elems volume" differs significantly among cells that actually hav
 the same volume, you may consider adjusting the `[Mesh]` and/or the OpenMC [!ac](CSG)
 geometry. You may also consider running an [OpenMC volume calculation](https://docs.openmc.org/en/latest/usersguide/volume.html)
 to compare the "Mapped elems volume" with a stochastic calculation of cell volumes
-to ensure a reasonable mapping.
+to ensure a reasonable mapping. If all of the tallied OpenMC cells are actually
+the same volume, you can also use the `check_equal_mapped_tally_volumes`
+parameter to automatically check that the mapped volue for each tally bin is identical.
 
 In [openmc_finer], consider the case where the `[Mesh]` has two equal-sized elements,
 while the OpenMC domain has three equal-sized cells. By nature of the centroid mapping,
