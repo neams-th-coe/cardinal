@@ -49,10 +49,21 @@
   []
 []
 
+[VectorPostprocessors]
+  [avg_T]
+    type = SpatialUserObjectVectorPostprocessor
+    userobject = average_T
+  []
+[]
+
 [Executioner]
   type = Transient
 
   [TimeStepper]
     type = NekTimeStepper
   []
+[]
+
+[Outputs]
+  csv = true
 []
