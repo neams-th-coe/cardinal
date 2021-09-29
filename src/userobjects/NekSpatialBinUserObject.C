@@ -41,6 +41,44 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   _bin_values = (double *) calloc(num_bins(), sizeof(double));
 
   checkValidField(_field);
+
+  _has_direction = {false, false, false};
+  _bin_providing_direction.resize(3);
+  for (unsigned int b = 0; b < _bins.size(); ++b)
+  {
+    const auto & bin = _bins[b];
+
+    // directions provided by this bin
+    auto bin_directions = bin->directions();
+
+    for (const auto & d : bin_directions)
+    {
+      if (_has_direction[d])
+      {
+        const auto & bin_providing_d = _bins[_bin_providing_direction[d]];
+        mooseError("Cannot combine multiple distributions in the same coordinate direction!\n"
+          "Bin '" + bin->name() + "' conflicts with bin '" + bin_providing_d->name() + "'.");
+       }
+      else
+      {
+        _has_direction[d] = true;
+        _bin_providing_direction[d] = b;
+      }
+    }
+  }
+
+  // initialize all points to (0, 0, 0)
+  int n_bins = num_bins();
+  for (unsigned int i = 0; i < n_bins; ++i)
+    _points.push_back(Point(0.0, 0.0, 0.0));
+
+  // we will at most have 3 separate distributions
+  if (_bins.size() == 1)
+    computePoints1D();
+  else if (_bins.size() == 2)
+    computePoints2D();
+  else
+    computePoints3D();
 }
 
 NekSpatialBinUserObject::~NekSpatialBinUserObject()
@@ -78,4 +116,58 @@ NekSpatialBinUserObject::num_bins() const
     num_bins *= b->num_bins();
 
   return num_bins;
+}
+
+void
+NekSpatialBinUserObject::computePoints1D()
+{
+  for (unsigned int i = 0; i < _bins[0]->num_bins(); ++i)
+  {
+    std::vector<unsigned int> indices = {i};
+    fillCoordinates(indices, _points[i]);
+  }
+}
+
+void
+NekSpatialBinUserObject::computePoints2D()
+{
+  int p = 0;
+  for (unsigned int i = 0; i < _bins[0]->num_bins(); ++i)
+  {
+    for (unsigned int j = 0; j < _bins[1]->num_bins(); ++j, ++p)
+    {
+      std::vector<unsigned int> indices = {i, j};
+      fillCoordinates(indices, _points[p]);
+    }
+  }
+}
+
+void
+NekSpatialBinUserObject::computePoints3D()
+{
+  int p = 0;
+  for (unsigned int i = 0; i < _bins[0]->num_bins(); ++i)
+  {
+    for (unsigned int j = 0; j < _bins[1]->num_bins(); ++j)
+    {
+      for (unsigned int k = 0; k < _bins[2]->num_bins(); ++k, ++p)
+      {
+        std::vector<unsigned int> indices = {i, j, k};
+        fillCoordinates(indices, _points[p]);
+      }
+    }
+  }
+}
+
+void
+NekSpatialBinUserObject::fillCoordinates(const std::vector<unsigned int> & indices, Point & p) const
+{
+  for (unsigned int b = 0; b < _bins.size(); ++b)
+  {
+    const auto & bin = _bins[b];
+    const auto & centers = bin->getBinCenters();
+
+    for (const auto & d : bin->directions())
+      p(d) = centers[indices[b]](d);
+  }
 }

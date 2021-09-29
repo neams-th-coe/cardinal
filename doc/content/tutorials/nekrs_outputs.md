@@ -98,6 +98,11 @@ a bin according to its centroid (which for this particular example would result 
 some of the axial bins not mapping to any elements, since the NekRS mesh is coarser
 than the specified number of bins).
 
+The [SpatialUserObjectVectorPostprocessor](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html)
+outputs the bin values for the user object to the CSV format
+specified in the `[Outputs]` block. These values are ordered in the same manner
+that the bins are defined.
+
 We have stressed that the NekRS mesh does *not* respect the subchannel discretization,
 or the desired number of axial averaging layers. Therefore, if we want to properly
 visualize the results of the user object, we transfer the user object to a sub-application

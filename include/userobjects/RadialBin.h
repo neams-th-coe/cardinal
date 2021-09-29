@@ -17,6 +17,8 @@ public:
 
   virtual const unsigned int num_bins() const override;
 
+  virtual const std::vector<unsigned int> directions() const override { return _directions; }
+
 protected:
   /// Direction of the vertical axis (x, y, or z)
   const unsigned int _vertical_axis;
@@ -35,4 +37,7 @@ protected:
 
   /// Points defining the bounds of the radial regions
   std::vector<Real> _radial_pts;
+
+  /// Directions along which the bin defines points
+  std::vector<unsigned int> _directions;
 };

@@ -47,6 +47,20 @@ RadialBin::RadialBin(const InputParameters & parameters)
     Real dr = _growth_r * (_radial_pts[i - 1] - _radial_pts[i - 2]);
     _radial_pts[i] = _radial_pts[i - 1] + dr;
   }
+
+  if (_vertical_axis == 0) // x vertical axis
+    _directions = {1, 2};
+  else if (_vertical_axis == 1) // y vertical axis
+    _directions = {0, 2};
+  else // z vertical axis
+    _directions = {0, 1};
+
+  _bin_centers.resize(_nr);
+  for (unsigned int i = 0; i < _nr; ++i)
+  {
+    _bin_centers[i] = Point(0.0, 0.0, 0.0);
+    _bin_centers[i](_directions[0]) = 0.5 * (_radial_pts[i + 1] + _radial_pts[i]);
+  }
 }
 
 const unsigned int

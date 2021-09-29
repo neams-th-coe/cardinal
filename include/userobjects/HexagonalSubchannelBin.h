@@ -18,6 +18,8 @@ public:
 
   virtual const unsigned int num_bins() const override;
 
+  virtual const std::vector<unsigned int> directions() const override { return _directions; }
+
 protected:
   /// Bundle pitch
   const Real & _bundle_pitch;
@@ -36,4 +38,7 @@ protected:
 
   /// Underlying utility providing hexagonal lattice capabilities
   std::unique_ptr<HexagonalLatticeUtility> _hex_lattice;
+
+  /// Directions along which the bin defines points
+  std::vector<unsigned int> _directions;
 };

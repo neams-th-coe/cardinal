@@ -41,4 +41,21 @@ public:
    * @return layer
    */
   unsigned int binFromBounds(const Real & pt, const std::vector<Real> & bounds) const;
+
+  /**
+   * Get the bin centers
+   * @return bin centers
+   */
+  virtual const std::vector<Point> & getBinCenters() const { return _bin_centers; }
+
+  /**
+   * Get the coordinate directions (x, y, z) along which the bin distribution specifies
+   * the bins. For 1-D distributions, this will be just one of x, y, and z. For 2-D
+   * distributions, this will be a combination of x-y, y-z, or x-z.
+   */
+  virtual const std::vector<unsigned int> directions() const = 0;
+
+protected:
+  /// Center coordinates of the bins
+  std::vector<Point> _bin_centers;
 };

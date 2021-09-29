@@ -6,4 +6,23 @@
     requirement = "Multiple 1-D layered bins shall be combined to give a multi-dimensional binning "
                   "and demonstrate correct results for volume integrals and averages."
   []
+  [conflicting_bins]
+    type = RunException
+    input = duplicate_directions.i
+    expect_err = "Cannot combine multiple distributions in the same coordinate direction!\n"
+                 "Bin 'x_bins2' conflicts with bin 'x_bins'"
+    requirement = "System shall error if user attemps to combine multiple bins that specify the same coordinate direction."
+  []
+  [1d_output]
+    type = CSVDiff
+    input = 1d.i
+    csvdiff = 1d_out_from_uo_0002.csv
+    requirement = "The output points shall be automatically output for a 1-D Cartesian distribution."
+  []
+  [3d_output]
+    type = CSVDiff
+    input = 3d.i
+    csvdiff = 3d_out_from_uo_0002.csv
+    requirement = "The output points shall be automatically output for a 3-D Cartesian distribution."
+  []
 []

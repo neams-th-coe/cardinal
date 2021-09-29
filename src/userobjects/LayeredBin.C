@@ -32,6 +32,13 @@ LayeredBin::LayeredBin(const InputParameters & parameters)
   Real dx = (_direction_max - _direction_min) / _num_layers;
   for (unsigned int i = 1; i < _num_layers + 1; ++i)
     _layer_pts[i] = _layer_pts[i - 1] + dx;
+
+  _bin_centers.resize(_num_layers);
+  for (unsigned int i = 0; i < _num_layers; ++i)
+  {
+    _bin_centers[i] = Point(0.0, 0.0, 0.0);
+    _bin_centers[i](_direction) = 0.5 * (_layer_pts[i + 1] + _layer_pts[i]);
+  }
 }
 
 const unsigned int

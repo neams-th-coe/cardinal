@@ -19,4 +19,17 @@
     requirement = "A subchannel and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for volume integrals and averages."
   []
+  [conflicting_bins]
+    type = RunException
+    input = duplicate_directions.i
+    expect_err = "Cannot combine multiple distributions in the same coordinate direction!\n"
+                 "Bin 'x_bins' conflicts with bin 'subchannel_binning'"
+    requirement = "System shall error if user attemps to combine multiple bins that specify the same coordinate direction."
+  []
+  [1d_output]
+    type = CSVDiff
+    input = 1d.i
+    csvdiff = 1d_out_from_uo_0002.csv
+    requirement = "The output points shall be automatically output for a single-axis subchannel binning"
+  []
 []
