@@ -7,9 +7,6 @@
   type = NekRSMesh
   volume = true
   boundary = '2'
-
-  # set this to SECOND in order to see better agreement with the reference solution;
-  # this is just to keep the test faster
   order = FIRST
 []
 
