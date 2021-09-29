@@ -2,27 +2,26 @@
   [incorrect_scaling]
     type = RunException
     input = incorrect_scaling.i
-    expect_err = "The centroids of the 'mesh_template' \(assumed to be in units of cm\) differ from the centroids of the \[Mesh\]\n"
-                 "\(assumed to be in units of cm / 'scaling'\) by a factor of 100.\n\n"
-                 "Did you forget that the 'mesh_template' must be in units of centimeters, even when using the 'scaling' parameter?"
-    requirement = "The system shall error if the mesh template is not provided in units of centimeters by checking "
-                  "that the user doesn't assume the 'scaling' parameter also takes care of the mesh template units."
+    expect_err = "The centroids of the 'mesh_template' differ from the centroids of the \[Mesh\] "
+                 "by a factor of 0.01.\n"
+                 "Did you forget that the 'mesh_template' must be in the same units as the [Mesh]?"
+    requirement = "The system shall error if the mesh template is not provided in the same units as the [Mesh]."
   []
   [incorrect_order]
     type = RunException
     input = incorrect_order.i
-    expect_err = "Centroid for element 256 in the \[Mesh\]: \(0.896826, 0.189852, 4.60886\)\n"
-                 "does not match centroid for element 0 in 'mesh_template' 1: \(0.896826, 0.189852, 8.60886\)!\n\n"
-                 "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical \(except for a factor of 'scaling'\)."
+    expect_err = "Centroid for element 256 in the \[Mesh\] \(cm\): \(0.896826, 0.189852, 4.60886\)\n"
+                 "does not match centroid for element 0 in 'mesh_template' 1 \(cm\): \(0.896826, 0.189852, 8.60886\)!\n\n"
+                 "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "the order of mesh translations does not match the order of inputs in a CombinerGenerator."
   []
   [incorrect_file]
     type = RunException
     input = incorrect_file.i
-    expect_err = "Centroid for element 0 in the \[Mesh\]: \(0.896826, 0.189852, 0.608855\)\n"
-                 "does not match centroid for element 0 in 'mesh_template' 0: \(-0.0251736, -0.0667374, 0.0847458\)!\n\n"
-                 "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical \(except for a factor of 'scaling'\)."
+    expect_err = "Centroid for element 0 in the \[Mesh\] \(cm\): \(0.896826, 0.189852, 0.608855\)\n"
+                 "does not match centroid for element 0 in 'mesh_template' 0 \(cm\): \(-0.0251736, -0.0667374, 0.0847458\)!\n\n"
+                 "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "a totally different mesh is used (pincell versus pebbles)."
   []

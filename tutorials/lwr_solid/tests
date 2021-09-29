@@ -2,21 +2,17 @@
   [lwr_pincell]
     type = RunApp
     input = solid.i
-    check_input = true
     min_parallel = 4
-    cli_args = "Executioner/num_steps=1"
+    cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with cell tallies."
-    skip = "Un-skip after particles can be set from input file"
   []
   [lwr_pincell_mesh]
     type = RunApp
     input = solid_um.i
-    check_input = true
     min_parallel = 4
-    cli_args = "Executioner/num_steps=1"
+    cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with an unstructured mesh tally."
-    skip = "Un-skip after particles can be set from input file"
   []
 []

@@ -314,9 +314,8 @@ geometries that consist of many repeated geometry units, such as pebble bed and 
 systems.
 
 !alert note
-Because OpenMC solves in units of centimeters, both the `mesh_template` and
-any translation coordinates must also be given in units of centimeters
-(regardless of any scaling as described in [#scaling]).
+The `mesh_template` and the mesh translations must be in the same units as the
+`[Mesh]` block.
 
 At present, unstructured mesh tallies are copied directly to the `[Mesh]` (without
 doing any type of nearest-node lookup). Therefore, there is an important limitation
@@ -443,12 +442,14 @@ often uses SI units (with a length unit of meters). When transferring field data
 to/from OpenMC, it is important for data transferred from OpenMC to match the length units
 of the coupled MOOSE application. This class contains a `scaling` parameter that
 is used to apply a multiplicative factor to the `[Mesh]` to get to units of
-centimeters assumed by OpenMC. This multiplicative factor is then applied in the:
+centimeters assumed by OpenMC. This multiplicative factor is then applied to:
 
 - Find cell routines in OpenMC in order to correctly map a centimeters-based
   OpenMC geometry to a different length unit in the `[Mesh]`
 - Scale the fission power in OpenMC (units of W/cm$^3$) to a different volume
   unit in the `[Mesh]`
+- If an unstructured mesh tally is used, scale the `mesh_template` and
+  `mesh_translations`/`mesh_translations_file` to units of centimeters
 
 For instance, if the `[Mesh]` is specified in units of meters:
 
