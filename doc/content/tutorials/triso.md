@@ -34,7 +34,7 @@ fuel pebble model in the coarse-mesh thermal-hydraulic tool Pronghorn
 interior temperatures, which does not explicitly resolve the [!ac](TRISO) particles
 in the pebble. Before describing this homogenized temperature feedback, this tutorial
 first demonstrates multiphysics coupling for solid UO$_2$ spheres. The second part
-of this tutorial, in [#simplified], then addresses homogenized feedback.
+of this tutorial then addresses homogenized feedback.
 
 ## Geometry and Computational Model
 

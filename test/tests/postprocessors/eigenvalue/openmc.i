@@ -70,6 +70,22 @@
     type = KEigenvalue
     value_type = 'combined'
   []
+  [k_collision_std_dev]
+    type = KStandardDeviation
+    value_type = 'collision'
+  []
+  [k_absorption_std_dev]
+    type = KStandardDeviation
+    value_type = 'absorption'
+  []
+  [k_tracklength_std_dev]
+    type = KStandardDeviation
+    value_type = 'tracklength'
+  []
+  [k_combined_std_dev]
+    type = KStandardDeviation
+    value_type = 'combined'
+  []
 []
 
 [Outputs]
