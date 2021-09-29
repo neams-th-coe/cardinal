@@ -264,6 +264,34 @@ described in this section.
 
 !include nondimensional_problem.md
 
+### Outputting the NekRS Solution
+
+!include output_solution.md
+
+For example, consider a [!ac](CHT) simulation where NekRS is coupled to MOOSE
+through a boundary. Normally, the [NekRSMesh](/mesh/NekRSMesh.md) contains only the
+data that is used to couple NekRS to MOOSE - the NekRS wall temperature and the MOOSE
+heat flux. The input file below will interpolate the NekRS pressure and velocity
+solutions onto the mesh mirror. We set `volume = true` for the mesh mirror so that
+the pressure and velocity are represented over the volume for visualization. Because
+setting `volume = true` normally indicates that you want to couple NekRS to MOOSE by
+a volumetric heat source (which we don't just for visualization purposes), we set
+`has_heat_source = false` so that various error checks related to volume-based coupling
+to MOOSE are skipped.
+
+!listing test/tests/cht/pincell_p_v/nek.i
+
+For instance, [output_sfr] shows the velocity from the NekRS field files
+(left) and interpolated onto a second-order mesh mirror (right). Because this particular
+example runs NekRS in a higher order than can be represented on a second-order mesh
+mirror, the interpolated velocity is clearly not an exact representation of the NekRS
+solution - only an interpolated version of the NekRS solution.
+
+!media output_vel.png
+  id=output_sfr
+  caption=Velocity from the NekRS field files (left) and after interpolation onto a second order mesh mirror (right).
+  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+
 ### Reducing CPU/GPU Data Transfers
   id=min
 
