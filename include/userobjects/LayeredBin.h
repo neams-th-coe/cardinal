@@ -17,7 +17,7 @@ public:
 
   virtual const unsigned int num_bins() const override;
 
-  virtual const std::vector<unsigned int> directions() const { return {_direction}; }
+  virtual const std::vector<unsigned int> directions() const override { return {_direction}; }
 
 protected:
   /// Direction of the bins (x, y, or z)

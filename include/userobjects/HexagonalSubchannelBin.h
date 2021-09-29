@@ -18,7 +18,7 @@ public:
 
   virtual const unsigned int num_bins() const override;
 
-  virtual const std::vector<unsigned int> directions() const { return _directions; }
+  virtual const std::vector<unsigned int> directions() const override { return _directions; }
 
 protected:
   /// Bundle pitch
