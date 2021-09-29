@@ -84,6 +84,12 @@ validParams<OpenMCCellAverageProblem>()
     "File providing the coordinates to which each mesh template should be translated, if multiple "
     "unstructured meshes are desired.");
 
+  params.addParam<bool>("check_equal_mapped_tally_volumes", false,
+    "Whether to check if the tallied cells map to regions in the mesh of equal volume. "
+    "This can be helpful to ensure that the volume normalization of OpenMC's tallies doesn't "
+    "introduce any unintentional distortion just because the mapped volumes are different. "
+    "You should only set this to true if your OpenMC tally cells are all the same volume!");
+
   params.addParam<int>("solid_cell_level", "Coordinate level in OpenMC to stop at for identifying solid cells");
   params.addParam<int>("fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
   return params;
@@ -102,6 +108,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _scaling(getParam<Real>("scaling")),
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
   _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") : _normalize_by_global),
+  _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
@@ -178,6 +185,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
       if (!isParamValid("mesh_template"))
         paramError("mesh_template", "When using a mesh tally, a mesh template must be provided!");
+
+      if (_check_equal_mapped_tally_volumes)
+        mooseWarning("The 'check_equal_mapped_tally_volumes' parameter is unused when using mesh tallies!");
 
        _mesh_template_filename = getParam<std::string>("mesh_template");
 
@@ -873,6 +883,10 @@ OpenMCCellAverageProblem::storeTallyCells()
   std::stringstream warning;
   bool print_warning = false;
 
+  bool is_first_tally_cell = true;
+  cellInfo first_tally_cell;
+  Real mapped_tally_volume;
+
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -892,6 +906,27 @@ OpenMCCellAverageProblem::storeTallyCells()
       }
 
       _tally_cells.push_back(cell_info);
+
+      if (is_first_tally_cell)
+      {
+        is_first_tally_cell = false;
+        first_tally_cell = cell_info;
+        mapped_tally_volume = _cell_to_elem_volume[cell_info];
+      }
+
+      if (_check_equal_mapped_tally_volumes)
+        if (std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]) / mapped_tally_volume > 1e-3)
+          mooseError("Detected un-equal mapped tally volumes!\n " +
+            printCell(first_tally_cell) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[cell_info]) + " (cm3)\n " +
+            printCell(cell_info) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[cell_info]) + " (cm3).\n\n"
+            "If the tallied cells in your OpenMC model are of identical volumes, this means that you can get\n"
+            "distortion of the volumetric heat source output. For instance, suppose you have two equal-size OpenMC\n"
+            "cells which have the same volume - but each OpenMC cell maps to a MOOSE region of different volume\n"
+            "just due to the nature of the centroid mapping scheme. Even if those two tallies do actually have the\n"
+            "same value, the volumetric heat source will be different because you'll be dividing each tally by a\n"
+            "different mapped MOOSE volume.\n\n"
+            "We recommend re-creating the mesh mirror to have an equal volume mapping of MOOSE elements to each\n"
+            "OpenMC cell. Or, you can disable this check by setting 'check_equal_mapped_tally_volume = false'.");
     }
   }
 

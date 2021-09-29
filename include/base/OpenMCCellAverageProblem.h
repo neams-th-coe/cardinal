@@ -528,6 +528,19 @@ protected:
   const bool & _check_tally_sum;
 
   /**
+   * Whether to check that the [Mesh] volume each cell tally maps to is identical.
+   * This is a useful helper function for OpenMC models where each cell tally has the
+   * same volume (often the case for many reactor geometries). If the OpenMC model
+   * cell tallies all are of the same spatial size, it's still possible that they
+   * can map to different volumes in the MOOSE mesh if the MOOSE elements don't line
+   * up with the edges of the OpenMC cells. Different volumes then can distort the
+   * volume normalization that we do to convert the fission power to a volumetric
+   * power (in a perfect world, we would actually divide OpenMC's tallies by the
+   * results of a stochastic volume calculation in OpenMC, but that is too expensive).
+   */
+  const bool & _check_equal_mapped_tally_volumes;
+
+  /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */

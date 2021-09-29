@@ -63,4 +63,10 @@
     expect_err = "'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!"
     requirement = "The system shall error if the user sets fluid blocks, but none of the elements map to OpenMC"
   []
+  [unequal_volumes]
+    type = RunException
+    input = unequal_volumes.i
+    expect_err = "Detected un-equal mapped tally volumes!"
+    requirement = "The system shall error if the user enforces equal mapped tally volumes but the mapped volumes are not identical across tally bins"
+  []
 []
