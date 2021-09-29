@@ -3,7 +3,6 @@
     type = RunApp
     input = nek.i
     min_parallel = 4
-    abs_zero = 5e-7
     requirement = "Cardinal shall be able to run the ktauChannel NekRS example with a thin wrapper "
                   "when using a volume mesh mirror. "
   []

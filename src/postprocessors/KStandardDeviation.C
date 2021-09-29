@@ -2,7 +2,6 @@
 #include "openmc/eigenvalue.h"
 #include "openmc/math_functions.h"
 #include "openmc/constants.h"
-#include "openmc/output.h"
 
 registerMooseObject("CardinalApp", KStandardDeviation);
 
@@ -25,41 +24,44 @@ KStandardDeviation::KStandardDeviation(const InputParameters & parameters) :
 }
 
 Real
-KStandardDeviation::getValue()
+KStandardDeviation::stdev(const double & mean, const double & sum_sq) const
 {
   int n = openmc::simulation::n_realizations;
-  const auto & gt = openmc::simulation::global_tallies;
+  return n > 1 ? std::sqrt(std::max(0.0, (sum_sq / n - mean * mean) / (n - 1))) : 0.0;
+}
 
-  double mean, stdev;
-  double alpha, t_n1, t_n3;
+Real
+KStandardDeviation::getValue()
+{
+  const auto & gt = openmc::simulation::global_tallies;
+  int n = openmc::simulation::n_realizations;
+
+  double t_n1 = 1.0;
   if (openmc::settings::confidence_intervals)
   {
-    alpha = 1.0 - openmc::CONFIDENCE_LEVEL;
+    double alpha = 1.0 - openmc::CONFIDENCE_LEVEL;
     t_n1 = openmc::t_percentile(1.0 - alpha / 2.0, n - 1);
-    t_n3 = openmc::t_percentile(1.0 - alpha / 2.0, n - 3);
-  }
-  else
-  {
-    t_n1 = 1.0;
-    t_n3 = 1.0;
   }
 
   switch (_type)
   {
     case eigenvalue::collision:
     {
-      std::tie(mean, stdev) = openmc::mean_stdev(&gt(openmc::GlobalTally::K_COLLISION, 0), n);
-      return t_n1 * stdev;
+      double mean = gt(openmc::GlobalTally::K_COLLISION, openmc::TallyResult::SUM) / n;
+      double sum_sq = gt(openmc::GlobalTally::K_COLLISION, openmc::TallyResult::SUM_SQ);
+      return t_n1 * stdev(mean, sum_sq);
     }
     case eigenvalue::absorption:
     {
-      std::tie(mean, stdev) = openmc::mean_stdev(&gt(openmc::GlobalTally::K_ABSORPTION, 0), n);
-      return t_n1 * stdev;
+      double mean = gt(openmc::GlobalTally::K_ABSORPTION, openmc::TallyResult::SUM) / n;
+      double sum_sq = gt(openmc::GlobalTally::K_ABSORPTION, openmc::TallyResult::SUM_SQ);
+      return t_n1 * stdev(mean, sum_sq);
     }
     case eigenvalue::tracklength:
     {
-      std::tie(mean, stdev) = openmc::mean_stdev(&gt(openmc::GlobalTally::K_TRACKLENGTH, 0), n);
-      return t_n1 * stdev;
+      double mean = gt(openmc::GlobalTally::K_TRACKLENGTH, openmc::TallyResult::SUM) / n;
+      double sum_sq = gt(openmc::GlobalTally::K_TRACKLENGTH, openmc::TallyResult::SUM_SQ);
+      return t_n1 * stdev(mean, sum_sq);
     }
     case eigenvalue::combined:
     {
