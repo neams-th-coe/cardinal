@@ -264,6 +264,10 @@ OpenMCCellAverageProblem::fillMeshTranslations()
   }
   else
     _mesh_translations = {Point(0.0, 0.0, 0.0)};
+
+  // convert to appropriate units
+  for (auto & m : _mesh_translations)
+    m *= _scaling;
 }
 
 void
@@ -319,10 +323,10 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
         }
 
         if (incorrect_scaling)
-          mooseError("The centroids of the 'mesh_template' (assumed to be in units of cm) differ from the "
-            "centroids of the [Mesh]\n(assumed to be in units of cm / 'scaling') by a factor of " +
-            Moose::stringify(centroid_mesh(0) / centroid_template(0)) + ".\n\nDid you forget that the 'mesh_template' must be in "
-            "units of centimeters, even when using the 'scaling' parameter?");
+          mooseError("The centroids of the 'mesh_template' differ from the "
+            "centroids of the [Mesh] by a factor of " +
+            Moose::stringify(centroid_mesh(0) / centroid_template(0)) + ".\nDid you forget that the 'mesh_template' must be in "
+            "the same units as the [Mesh]?");
       }
 
       // check if centroids are the same
@@ -331,13 +335,13 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
         different_centroids = different_centroids || !MooseUtils::absoluteFuzzyEqual(centroid_mesh(j), centroid_template(j));
 
       if (different_centroids)
-        mooseError("Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh]: (" +
+        mooseError("Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh] (cm): (" +
           Moose::stringify(centroid_mesh(0)) + ", " + Moose::stringify(centroid_mesh(1)) + ", " +
           Moose::stringify(centroid_mesh(2)) + ")\ndoes not match centroid for element " + Moose::stringify(e) +
-          " in 'mesh_template' " + Moose::stringify(i) + ": (" +
+          " in 'mesh_template' " + Moose::stringify(i) + " (cm): (" +
           Moose::stringify(centroid_template(0)) + ", " + Moose::stringify(centroid_template(1)) + ", " +
           Moose::stringify(centroid_template(2)) + ")!\n\nThe copy transfer requires that the [Mesh] and " +
-          "'mesh_template' be identical (except for a factor of 'scaling').");
+          "'mesh_template' be identical.");
     }
 
     offset += filter->n_bins();
@@ -986,7 +990,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
         // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
         // next available ID
-        auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename);
+        auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
         mesh->set_id(-1);
         mesh->output_ = false;
 

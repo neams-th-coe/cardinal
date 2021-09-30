@@ -49,6 +49,8 @@ validParams<CardinalApp>()
   params.addCommandLineParam<int>(
     "nekrs_cimode",  "--nekrs-cimode [id]",
     "CI test ID for NekRS");
+
+  params.set<bool>("use_legacy_material_output") = false;
   return params;
 }
 

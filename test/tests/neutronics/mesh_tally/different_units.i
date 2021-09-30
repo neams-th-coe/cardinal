@@ -1,18 +1,12 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
+    file = ../meshes/sphere_in_m.e
   []
   [solid_ids]
     type = SubdomainIDGenerator
     input = sphere
     subdomain_id = '100'
-  []
-  [convert_to_m]
-    type = TransformGenerator
-    input = solid_ids
-    transform = scale
-    vector_value = '0.01 0.01 0.01'
   []
 
   parallel_type = replicated
@@ -44,11 +38,10 @@
   power = 100.0
   check_zero_tallies = false
 
-  # the [Mesh] is in units of meters - VERY IMPORTANT: the mesh template still must be in
-  # units of centimeters based on the constructors in OpenMC. We verify that this implementation
-  # is correct if the power integral is 100 W, because the [Mesh] is in units of meters.
+  # the [Mesh] is in units of meters, so the mesh_template must also be in units of meters
   scaling = 100.0
-  mesh_template = '../meshes/sphere.e'
+  mesh_template = '../meshes/sphere_in_m.e'
+
   normalize_by_global_tally = false
 []
 

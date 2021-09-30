@@ -54,10 +54,10 @@
   power = 1500.0
   solid_blocks = '0'
   tally_type = mesh
-  mesh_template = sphere_in_cm.e
-  mesh_translations = '0 0 2
-                       0 0 6
-                       0 0 10'
+  mesh_template = sphere_in_m.e
+  mesh_translations = '0 0 0.02
+                       0 0 0.06
+                       0 0 0.10'
   normalize_by_global_tally = false
   solid_cell_level = 1
   scaling = 100.0

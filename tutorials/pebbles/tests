@@ -1,0 +1,9 @@
+[Tests]
+  [solid]
+    type = RunApp
+    input = solid.i
+    cli_args = "openmc:Problem/particles=1000 openmc:Problem/batches=10 openmc:Problem/inactive_batches=5"
+    min_parallel = 8
+    requirement = "The system shall be able to run the pebble tutorial."
+  []
+[]

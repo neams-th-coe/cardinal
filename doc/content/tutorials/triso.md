@@ -313,9 +313,8 @@ translations to apply to replicate the mesh at the desired end positions in Open
   block=Problem
 
 !alert warning
-The mesh template and mesh translations must always be in units of centimeters,
-regardless of the units of the mesh in the `[Mesh]` block, because these two
-parameters are used directly in OpenMC (which is always in units of centimeters).
+The mesh template and mesh translations must always be in the same units as the
+`[Mesh]` block.
 
 Because our sphere mesh does not perfectly preserve the volume of the sphere
 [!ac](CSG) cells, we also set `normalize_by_global_tally` to false so that we normalize only

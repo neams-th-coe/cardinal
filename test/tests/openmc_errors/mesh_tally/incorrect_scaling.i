@@ -42,8 +42,8 @@
   scaling = 100.0
   normalize_by_global_tally = false
 
-  # We incorrectly provide a mesh in units of meters
-  mesh_template = '../../neutronics/meshes/sphere_in_m.e'
+  # We incorrectly provide a mesh in units of centimeters
+  mesh_template = '../../neutronics/meshes/sphere.e'
 []
 
 [Executioner]
