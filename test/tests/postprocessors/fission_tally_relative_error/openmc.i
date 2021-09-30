@@ -43,6 +43,9 @@
   tally_type = cell
   check_tally_sum = false
 
+  # this outputs the fission tally standard deviation in space
+  output = 'fission_tally_std_dev'
+
   # This turns off the density and temperature update on the first syncSolutions;
   # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   skip_first_incoming_transfer = true
@@ -61,6 +64,37 @@
   [min_rel_err]
     type = FissionTallyRelativeError
     value_type = min
+  []
+  [power_1]
+    type = PointValue
+    variable = heat_source
+    point = '0 0 0'
+  []
+  [power_2]
+    type = PointValue
+    variable = heat_source
+    point = '0 0 4'
+  []
+  [power_3]
+    type = PointValue
+    variable = heat_source
+    point = '0 0 8'
+  []
+
+  [std_dev_1]
+    type = PointValue
+    variable = fission_tally_std_dev
+    point = '0 0 0'
+  []
+  [std_dev_2]
+    type = PointValue
+    variable = fission_tally_std_dev
+    point = '0 0 4'
+  []
+  [std_dev_3]
+    type = PointValue
+    variable = fission_tally_std_dev
+    point = '0 0 8'
   []
 []
 

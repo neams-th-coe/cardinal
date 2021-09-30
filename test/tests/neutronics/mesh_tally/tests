@@ -69,4 +69,14 @@
                   "The output was compared against the multiple_meshes case, which used an input "
                   "entirely specified in terms of centimeters."
   []
+  [fission_tally_std_dev]
+    type = CSVDiff
+    input = fission_tally_std_dev.i
+    csvdiff = fission_tally_std_dev_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "The fission tally standard deviation shall be output correctly for unstructured "
+                  "mesh tallies."
+  []
 []
