@@ -92,6 +92,9 @@ validParams<OpenMCCellAverageProblem>()
 
   params.addParam<int>("solid_cell_level", "Coordinate level in OpenMC to stop at for identifying solid cells");
   params.addParam<int>("fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
+
+  MultiMooseEnum openmc_outputs("fission_tally_std_dev");
+  params.addParam<MultiMooseEnum>("output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
   return params;
 }
 
@@ -216,6 +219,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   // get the coordinate level to find cells on for each phase, and warn if invalid or not used
   getCellLevel("fluid", _fluid_cell_level);
   getCellLevel("solid", _solid_cell_level);
+
+  if (isParamValid("output"))
+    _outputs = &getParam<MultiMooseEnum>("output");
 
   initializeElementToCellMapping();
 
@@ -1092,6 +1098,17 @@ void OpenMCCellAverageProblem::addExternalVariables()
     addAuxVariable("MooseVariable", "density", var_params);
     _density_var = _aux->getFieldVariable<Real>(0, "density").number();
   }
+
+  if (_outputs)
+  {
+    for (std::size_t i = 0; i < _outputs->size(); ++i)
+    {
+      std::string out = (*_outputs)[i];
+      addAuxVariable("MooseVariable", out, var_params);
+      _external_vars.push_back(_aux->getFieldVariable<Real>(0, out).number());
+    }
+  }
+
 }
 
 void OpenMCCellAverageProblem::externalSolve()
@@ -1251,13 +1268,101 @@ OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
     return tally_result / _local_kappa_fission;
 }
 
+Real
+OpenMCCellAverageProblem::relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const
+{
+  Real mean = sum / n_realizations;
+  Real std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
+  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+}
+
 void
-OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
+OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
+{
+  switch (_tally_type)
+  {
+    case tally::cell:
+    {
+      auto tally = _local_tally.at(0);
+      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum_sq = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+
+      int i = 0;
+      for (const auto & c : _cell_to_elem)
+      {
+        auto cell_info = c.first;
+
+        // if this cell doesn't have any tallies, skip it
+        if (!_cell_has_tally[cell_info])
+          continue;
+
+        // we make sure we have the right units by multiplying the percent error by the
+        // volumetric power in this tally bin
+        Real local_power = normalizeLocalTally(sum(i)) * _power / _cell_to_elem_volume[cell_info];
+        Real std_dev = relativeError(sum(i), sum_sq(i), tally->n_realizations_) * local_power;
+        fillElementalAuxVariable(_external_vars[var_num], c.second, std_dev);
+        i++;
+      }
+      break;
+    }
+  case tally::mesh:
+  {
+    // TODO: this requires that the mesh exactly correspond to the mesh templates;
+    // for cases where they don't match, we'll need to do a nearest-node transfer or something
+
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
+    {
+      const auto * filter = _mesh_filters[i];
+
+      auto tally = _local_tally.at(i);
+      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum_sq = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+
+      for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
+      {
+        // we make sure we have the right units by multiplying the percent error by the
+        // volumetric power in this tally bin
+        Real local_power = normalizeLocalTally(sum(e)) * _power / _mesh_template->volume(e) *
+          _scaling * _scaling * _scaling;
+        Real std_dev = relativeError(sum(e), sum_sq(e), tally->n_realizations_) * local_power;
+        std::vector<unsigned int> elem_ids = {offset + e};
+        fillElementalAuxVariable(_external_vars[var_num], elem_ids, std_dev);
+      }
+
+      offset += filter->n_bins();
+    }
+
+    break;
+  }
+  default:
+    mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+  }
+}
+
+void
+OpenMCCellAverageProblem::fillElementalAuxVariable(const unsigned int & var_num,
+  const std::vector<unsigned int> & elem_ids, const Real & value)
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
   const auto & mesh = _mesh.getMesh();
 
+  // loop over all the elements and set the specified variable to the specified value
+  for (const auto & e : elem_ids)
+  {
+    auto elem_ptr = mesh.query_elem_ptr(e);
+    if (elem_ptr)
+    {
+      auto dof_idx = elem_ptr->dof_number(sys_number, var_num, 0);
+      solution.set(dof_idx, value);
+    }
+  }
+}
+
+void
+OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
+{
   _console << "Extracting OpenMC fission heat source... " << printNewline();
 
   // get the total kappa fission sources for normalization
@@ -1294,18 +1399,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         power_fraction_sum += power_fraction;
 
         checkZeroTally(power_fraction, printCell(cell_info));
-
-        // loop over all the elements that belong to this cell, and set the heat
-        // source to the computed value
-        for (const auto & e : c.second)
-        {
-          auto elem_ptr = mesh.query_elem_ptr(e);
-          if (elem_ptr)
-          {
-            auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-            solution.set(dof_idx, volumetric_power);
-          }
-        }
+        fillElementalAuxVariable(_heat_source_var, c.second, volumetric_power);
       }
       break;
     }
@@ -1322,25 +1416,20 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 
       for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
       {
-        auto elem_ptr = mesh.query_elem_ptr(offset + e);
+        Real power_fraction = normalizeLocalTally(mean_tally(e));
 
-        if (elem_ptr)
-        {
-          Real power_fraction = normalizeLocalTally(mean_tally(e));
+        // divide each tally by the volume that it corresponds to in MOOSE
+        // because we will apply it as a volumetric heat source (W/volume).
+        // Because we require that the mesh template has units of cm based on the
+        // mesh constructors in OpenMC, we need to adjust the division
+        Real volumetric_power = power_fraction * _power / _mesh_template->volume(e) *
+          _scaling * _scaling * _scaling;
+        power_fraction_sum += power_fraction;
 
-          // divide each tally by the volume that it corresponds to in MOOSE
-          // because we will apply it as a volumetric heat source (W/volume).
-          // Because we require that the mesh template has units of cm based on the
-          // mesh constructors in OpenMC, we need to adjust the division
-          Real volumetric_power = power_fraction * _power / _mesh_template->volume(e) *
-            _scaling * _scaling * _scaling;
-          power_fraction_sum += power_fraction;
+        checkZeroTally(power_fraction, "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
 
-          checkZeroTally(power_fraction, "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
-
-          auto dof_idx = elem_ptr->dof_number(sys_number, _heat_source_var, 0);
-          solution.set(dof_idx, volumetric_power);
-        }
+        std::vector<unsigned int> elem_ids = {offset + e};
+        fillElementalAuxVariable(_heat_source_var, elem_ids, volumetric_power);
       }
 
       offset += filter->n_bins();
@@ -1357,7 +1446,6 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
       mooseError("Tally normalization process failed! Total power fraction of " +
         Moose::stringify(power_fraction_sum) + " does not match 1.0!");
 
-  solution.close();
   _console << "done" << std::endl;
 }
 
@@ -1397,6 +1485,8 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
       getHeatSourceFromOpenMC();
+
+      extractOutputs();
 
       break;
     }
@@ -1573,4 +1663,19 @@ OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
       ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   return T;
+}
+
+void
+OpenMCCellAverageProblem::extractOutputs()
+{
+  if (_outputs)
+  {
+    for (std::size_t i = 0; i < _outputs->size(); ++i)
+    {
+      std::string out = (*_outputs)[i];
+
+      if (out == "fission_tally_std_dev")
+        getFissionTallyStandardDeviationFromOpenMC(i);
+    }
+  }
 }

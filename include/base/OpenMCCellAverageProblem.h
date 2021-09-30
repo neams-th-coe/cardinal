@@ -209,6 +209,14 @@ public:
    */
   double cellTemperature(const cellInfo & cell_info);
 
+  /**
+   * Compute relative error
+   * @param[in] sum sum of scores
+   * @param[in] sum_sq sum of scores squared
+   * @param[in] n_realizations number of realizations
+   */
+  Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED {-1};
 
@@ -362,6 +370,12 @@ protected:
   void getHeatSourceFromOpenMC();
 
   /**
+   * Get the fission tally standard deviation as a function of space and store into variable
+   * @param[in] var_num variable number to store the standard deviation in
+   */
+  void getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
+
+  /**
    * Normalize the local tally by either the global kappa fission tally, or the sum
    * of the local kappa fission tally
    * @param[in] tally_result value of tally result
@@ -411,6 +425,17 @@ protected:
    * @return whether cell contains fissile material
    */
   bool cellHasFissileMaterials(const cellInfo & cell_info) const;
+
+  /**
+   * Set an auxiliary elemental variable to a specified value
+   * @param[in] var_num variable number
+   * @param[in] elem_ids element IDs to set
+   * @param[in] value value to set
+   */
+  void fillElementalAuxVariable(const unsigned int & var_num, const std::vector<unsigned int> & elem_ids, const Real & value);
+
+  /// Extract user-specified additional output fields from OpenMC
+  void extractOutputs();
 
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
@@ -725,6 +750,12 @@ protected:
 
   /// OpenMC mesh filters for unstructured mesh tallies
   std::vector<const openmc::MeshFilter *> _mesh_filters;
+
+  /// OpenMC solution fields to output to the mesh mirror
+  const MultiMooseEnum * _outputs = nullptr;
+
+  /// Numeric identifiers for the external variables
+  std::vector<unsigned int> _external_vars;
 
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION {3};
