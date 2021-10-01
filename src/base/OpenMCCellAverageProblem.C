@@ -1495,6 +1495,7 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
   }
 
   _first_transfer = false;
+  solution.close();
 }
 
 void
