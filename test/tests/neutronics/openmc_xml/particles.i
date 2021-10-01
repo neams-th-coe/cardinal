@@ -25,7 +25,6 @@
   solid_blocks = '100'
   solid_cell_level = 0
   tally_type = cell
-  tally_filter = cell
   normalize_by_global_tally = false
   skip_first_incoming_transfer = true
 

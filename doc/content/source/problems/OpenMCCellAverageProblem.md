@@ -489,6 +489,16 @@ transporting of particles, accumulating tallies, and so on. For a description of
 the meaning of the OpenMC verbosity settings, please consult the
 [OpenMC documentation website](https://docs.openmc.org/en/latest/io_formats/settings.html#verbosity).
 
+#### Outputting the OpenMC Solution
+
+In addition to extracting the fission heat source, this class provides
+minimal capabilities to extract other aspects of the OpenMC solution directly
+onto the mesh mirror for postprocessing or visualization. A list of parameters to
+output is provided to the `output` parameter; available options are:
+
+- `fission_tally_std_dev`: fission tally standard deviation in units of volumetric
+  power density with length units that match the units of the `heat_source`
+
 !syntax parameters /Problem/OpenMCCellAverageProblem
 
 !syntax inputs /Problem/OpenMCCellAverageProblem

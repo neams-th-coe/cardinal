@@ -54,18 +54,15 @@ FissionTallyRelativeError::getValue()
   {
     auto sum = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
     auto sum_sq = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
-    int n = t->n_realizations_;
 
     for (int i = 0; i < t->n_filter_bins(); ++i)
     {
-      auto mean = sum(i) / n;
-      Real std_dev = std::sqrt((sum_sq(i) / n - mean * mean) / (n - 1));
-      Real rel_err = mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
-
       // tallies without any scores to them will have zero error, which doesn't really make
       // sense to compare against
-      if (MooseUtils::absoluteFuzzyEqual(mean, 0))
+      if (MooseUtils::absoluteFuzzyEqual(sum(i), 0))
         continue;
+
+      Real rel_err = _openmc_problem->relativeError(sum(i), sum_sq(i), t->n_realizations_);
 
       switch (_type)
       {
