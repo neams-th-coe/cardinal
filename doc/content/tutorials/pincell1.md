@@ -52,7 +52,7 @@ systems in MOOSE. The same wrapping can be used for temperature, density, and he
 feedback with *any* MOOSE application that can compute temperature and density -
 such as Pronghorn, BISON, and even the NekRS wrapping in Cardinal.
 
-## Geometry and Computational Model
+## Geometry and Computational Models
 
 This section describes the geometry for the present [!ac](LWR) pincell analysis. The relevant dimensions
 are summarized in [table1]. The geometry consists of a UO$_2$ pincell within a Zircaloy
@@ -82,56 +82,9 @@ q_{pin}=\frac{3000\text{\ MWth}}{n_bn_p}
 where $n_b=273$ is the number of fuel bundles and $n_p=289$ is the number of pins
 per bundle.
 
-## Boundary Conditions
+### MOOSE Heat Conduction Model
 
-This section describes the boundary conditions imposed on the Monte Carlo particle transport model and
-the MOOSE heat conduction model.
-
-#### Neutronics Boundary Conditions
-
-For the neutronics physics, the top and bottom of the pincell are vacuum boundaries.
-The four lateral faces of the pincell are reflective.
-
-#### Solid Boundary Conditions
-
-Because heat transfer and fluid flow in the borated water is not modeled in this example,
-heat removal by the fluid is approximated by setting
-the outer surface of the cladding to a convection boundary
-condition,
-
-\begin{equation}
-\label{eq:2}
-q^{''}=h\left(T-T_\infty\right)
-\end{equation}
-
-where $h=1000$ W/m$^2$/K and $T_\infty$ is a function linearly increasing
-from $300$&deg;C at the bottom of the pincell to $350$&deg;C at the top
-of the pincell. The top and bottom of the solid pincell
-are assumed insulated.
-
-The gap region between the pellet and the cladding is unmeshed, and a quadrature-based
-thermal contact model is applied based on the sum of thermal conduction and thermal radiation
-(across a transparent medium).
-!include radiation_gap.md
-For cylindrical geometries, the conduction
-resistance is given as
-
-\begin{equation}
-\label{eq:4}
-r_{th}=\frac{ln{\left(\frac{r_2}{r_1}\right)}}{2\pi L k}
-\end{equation}
-
-where $r_2>r_1$ are the radial coordinates associated with the outer and inner radii
-of the cylindrical annulus, $L$ is the height of the annulus, and $k$ is the
-thermal conductivity of the annulus material.
-
-## Initial Conditions
-
-The initial temperature is 280&deg;C, while the initial heat source in the solid domain is zero.
-Because there is no density feedback in this example, the densities initially imposed
-in the OpenMC model remain fixed at the values set in the OpenMC input files.
-
-## Meshing
+!include steady_hc.md
 
 MOOSE [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
 the solid mesh. [solid_mesh] shows the solid mesh with block IDs and sidesets.
@@ -150,11 +103,30 @@ $ cardinal-opt -i solid.i --mesh-only
   id=solid_mesh
   caption=Mesh for the solid portions of an [!ac](LWR) pincell; boundary IDs are shown to the right
 
-## CSG Geometry
+Because heat transfer and fluid flow in the borated water is not modeled in this example,
+heat removal by the fluid is approximated by setting
+the outer surface of the cladding to a convection boundary
+condition,
 
-This section describes the [!ac](CSG) model setup in OpenMC. All OpenMC geometries
-currently use [!ac](CSG) to describe the geometry, where cells are created
-from half-spaces of various common surfaces.
+\begin{equation}
+\label{eq:2}
+q^{''}=h\left(T-T_\infty\right)
+\end{equation}
+
+where $h=1000$ W/m$^2$/K and $T_\infty$ is a function linearly increasing
+from $300$&deg;C at the bottom of the pincell to $350$&deg;C at the top
+of the pincell. The top and bottom of the solid pincell
+are assumed insulated.
+
+!include radiation_gap.md
+
+In this example, the MOOSE heat conduction module will run first. The initial
+solid temperature is 280&deg;C and the initial power is zero.
+
+### OpenMC Model
+
+The OpenMC model is built using [!ac](CSG), which are cells created from regions
+of space formed by half-spaces of various common surfaces.
 When creating the OpenMC
 geometry, there are three aspects that you must pay attention to when using Cardinal -
 
@@ -212,6 +184,8 @@ The OpenMC geometry as produced via plots is shown in [pincell_openmc].
   caption=OpenMC [!ac](CSG) geometry colored by cell ID shown on the $x$-$y$ and $x$-$z$ planes
   style=width:60%;margin-left:auto;margin-right:auto
 
+The top and bottom of the pincell are vacuum boundaries.
+The four lateral faces of the pincell are reflective.
 Because we are not filling any universes with other universes or lattices,
 all of the cells in this problem are at the highest level of the geometry -
 i.e. the root universe.
@@ -226,6 +200,11 @@ element. You should set the range to be larger than the temperature range you
 expect in your coupled multiphysics problem - otherwise, you will encounter
 a runtime error that data is not available at the requested temperatures.
 
+Because OpenMC runs at the end of each timestep, the initial fluid temperature
+is seto to 280&deg;C. And as there is no density feedback in this example, the
+densities initially imposed
+in the OpenMC model remain fixed at the values set in the OpenMC input files.
+
 To generate the XML files needed to run OpenMC, you can run the following:
 
 ```
@@ -233,7 +212,6 @@ $ python make_openmc_model.py
 ```
 
 or simply use the XML files checked in to the `tutorials/lwr_solid` directory.
-
 
 ## Multiphysics Coupling
   id=coupling
