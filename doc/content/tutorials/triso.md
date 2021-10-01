@@ -28,26 +28,32 @@ pebbles so as to serve as a stepping stone to modeling heterogeneous
 important features of the OpenMC wrapping having to do with lattices
 and unstructured mesh tallies.
 
-## Geometry and Computational Model
+## Geometry and Computational Models
 
 The geometry and
 computational model for this case consists of a vertical "stack"
-of three pebbles, each of 1.5 cm radius. The pebble centers
+of three solid UO$_2$ pebbles, each of 1.5 cm radius. The pebble centers
 are located at $(0, 0, 2)$ cm, $(0, 0, 6)$ cm, and $(0, 0, 10)$ cm.
 FLiBe coolant occupies the space around the pebbles. Heat is produced in the
 pebbles; we assume the total power is 1500 W.
 
-## Boundary Conditions
+### Heat Conduction Model
 
-This section describes the boundary conditions imposed on the Monte Carlo particle transport model and
-the MOOSE heat conduction model.
+!include steady_hc.md
 
-#### Neutronics Boundary Conditions
+The solid mesh is shown in [solid_mesh].
+The only sideset in the domain is the surface of the pebbles, which is sideset 1.
+The MOOSE solid problem is set up with a length unit of meters,
+which is convenient
+for heat transfer applications because
+material properties for thermal-fluids physics are almost always given in SI units. Further,
+many MOOSE physics modules inherently assume SI units, such as the
+[fluid property module](https://mooseframework.inl.gov/modules/fluid_properties/index.html).
 
-For the neutronics physics, the pebbles are placed in a box with $x$-$y$ width
-of 4$\times$4 cm and height of 12 cm. All boundaries of this box are reflecting.
-
-#### Solid Boundary Conditions
+!media pebble_mesh.png
+  id=solid_mesh
+  caption=Mesh for solid domain
+  style=width:15%;margin-left:auto;margin-right:auto
 
 Because heat transfer and fluid flow in the FLiBe is not modeled in this example,
 heat removal by the fluid is approximated by setting the outer surface of the
@@ -59,35 +65,17 @@ q^{''}=h\left(T-T_\infty\right)
 \end{equation}
 
 where $h=1000$ W/m$^2$/K and $T_\infty$ is set to a function linearly ranging
-from 650&deg;C at $z=0$ cm to 750&deg;C at $z=10$ cm.
+from 650&deg;C at $z=0$ cm to 750&deg;C at $z=10$ cm. In this example, the MOOSE
+heat conduction module will be run first. The initial solid temperature is set to
+650&deg;C and the heat source to zero.
 
-## Initial Conditions
+### OpenMC Model
 
-The initial temperature is 650&deg;C, while the initial heat source in the solid is zero.
-Because there is no density feedback in this example, the densities initially imposed
-in the OpenMC model remain fixed at the values set in the OpenMC input files.
-
-## Meshing
-
-In this problem, we will solve MOOSE in units of meters, which is convenient
-for heat transfer applications because
-material properties for thermal-fluids physics are almost always given in SI units. Further,
-many MOOSE physics modules inherently assume SI units, such as the
-[fluid property module](https://mooseframework.inl.gov/modules/fluid_properties/index.html).
-The solid mesh (in a length unit of meters) is shown in [solid_mesh].
-The only sideset in the domain is the surface of the pebbles, which is sideset 1.
-
-!media pebble_mesh.png
-  id=solid_mesh
-  caption=Mesh for solid domain
-  style=width:15%;margin-left:auto;margin-right:auto
-
-## CSG Geometry
-
-The OpenMC model is built using [!ac](CSG) geometry; we will leverage the *lattice*
+The OpenMC model is built using [!ac](CSG); we will leverage the *lattice*
 feature in OpenMC to repeat a universe in a structured manner throughout the domain.
 Here, the universe consists of a single pebble and surrounding FLiBe, which is repeated
-three times throughout the geometry.
+three times throughout the geometry. The overall domain is enclosed in a box with
+$x$-$y$ width of 4$\times$4 cm and height of 12 cm. All boundaries of this box are reflecting.
 
 OpenMC's Python [!ac](API) is used to create the pebbles model with the script shown below.
 First, we define materials for the various regions and create the geometry.
@@ -121,6 +109,11 @@ and the FLiBe region is represented as:
 - Cell ID 2, instance 0
 - Cell ID 2, instance 1
 - Cell ID 2, instance 2
+
+Because OpenMC runs after the MOOSE heat conduction module, initial conditions are
+only required for the FLiBe temperature, which is set to 650&deg;C. Because there is
+no density feedback in this example, the densities initially imposed in the OpenMC
+model remain fixed at the values set in the OpenMC input files.
 
 To create the XML files required to run OpenMC, run the script:
 
