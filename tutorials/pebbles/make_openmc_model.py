@@ -53,8 +53,8 @@ model.geometry.export_to_xml()
 
 # Finally, define some run settings
 model.settings = openmc.Settings()
-model.settings.batches = 2000
-model.settings.inactive = 500
+model.settings.batches = 1000
+model.settings.inactive = 100
 model.settings.particles = 10000
 
 lower_left = (-L, -L, 0)

@@ -89,6 +89,10 @@ L = 300.0
   normalize_by_global_tally = false
   check_zero_tallies = false
   solid_cell_level = 0
+
+  particles = 20000
+  inactive_batches = 500
+  batches = 10000
 []
 
 [Executioner]

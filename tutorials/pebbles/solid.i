@@ -32,10 +32,17 @@ T_fluid = ${fparse 650.0 + 273.15}
   []
 []
 
+[Functions]
+  [T_fluid]
+    type = ParsedFunction
+    value = '${T_fluid}+z*1000'
+  []
+[]
+
 [BCs]
   [surface]
     type = ConvectiveFluxFunction
-    T_infinity = '${T_fluid}'
+    T_infinity = T_fluid
     coefficient = 1000.0
     variable = temp
     boundary = '1'
