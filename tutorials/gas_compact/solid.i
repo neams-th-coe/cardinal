@@ -39,23 +39,6 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
   file = solid_rotated.e
 []
 
-[AuxVariables]
-  [fluid_temp]
-  []
-  [power]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[ICs]
-  [fluid_temp]
-    type = FunctionIC
-    variable = fluid_temp
-    function = axial_fluid_temp
-  []
-[]
-
 [Variables]
   [T]
     initial_condition = ${inlet_T}
@@ -81,6 +64,23 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
     variable = T
     v = fluid_temp
     boundary = 'fluid_solid_interface'
+  []
+[]
+
+[AuxVariables]
+  [fluid_temp]
+  []
+  [power]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[ICs]
+  [fluid_temp]
+    type = FunctionIC
+    variable = fluid_temp
+    function = axial_fluid_temp
   []
 []
 
