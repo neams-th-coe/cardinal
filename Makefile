@@ -160,7 +160,11 @@ ADDITIONAL_CPPFLAGS := $(HDF5_INCLUDES) $(OPENMC_INCLUDES) $(NEKRS_INCLUDES)
 # ======================================================================================
 
 # Use compiler info discovered by PETSC
-include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
+ifeq ($(PETSC_ARCH),)
+	include $(PETSC_DIR)/$(PETSC_ARCH)/lib/petsc/conf/petscvariables
+else
+	include $(PETSC_DIR)/lib/petsc/conf/petscvariables
+endif
 
 # ======================================================================================
 # MOOSE core objects
