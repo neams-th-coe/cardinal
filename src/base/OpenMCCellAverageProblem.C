@@ -464,7 +464,16 @@ OpenMCCellAverageProblem::computeCellMappedVolumes()
 const coupling::CouplingFields
 OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
 {
-  return _elem_phase[_cell_to_elem[cell_info][0]];
+  // _cell_to_elem only holds cells that are coupled by feedback to the [Mesh] (for sake of
+  // efficiency in cell-based loops for updating temperatures, densities and
+  // extracting the heat source). But in some auxiliary kernels, we figure out
+  // an element's phase in terms of the cell that it maps to. For these cells that
+  // do *map* spatially, but just don't participate in coupling, _cell_to_elem doesn't
+  // have any notion of those elements
+  if (!_cell_to_elem.count(cell_info))
+    return coupling::none;
+  else
+    return _elem_phase[_cell_to_elem[cell_info][0]];
 }
 
 void
@@ -1475,7 +1484,7 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
       sendTemperatureToOpenMC();
 
       if (_export_properties)
-      openmc_properties_export("properties.h5");
+        openmc_properties_export("properties.h5");
 
       if (_has_fluid_blocks)
         sendDensityToOpenMC();
