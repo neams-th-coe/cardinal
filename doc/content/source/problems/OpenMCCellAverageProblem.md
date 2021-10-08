@@ -261,6 +261,25 @@ and to 3 in order to apply individual [!ac](TRISO) feedback (though the latter
 requires a very fine pebble mesh in the `[Mesh]` in order for all OpenMC cells
 in the pebble region to map to an element).
 
+In many cases, the coordinate levels on which you would like to couple OpenMC
+to MOOSE are not the same everywhere in the OpenMC geometry. For instance, consider
+the case of a reactor core constructed with lattices of fuel bundles, each of which
+it itself a lattice of pincells. To coupled temperatures, densities, and fission power
+on the pincell level to MOOSE, the `solid_cell_level` would be set to 2 (level 0 is
+the highest level, level 1 is the bundle lattice, and level 2 is the pincell lattice).
+However, other solid structures in the domain will generally not also be on level 2 unless
+the geometry is constructed in a very particular manner. The model might contain a reactor
+vessel on the highest level of the geometry that you would like to couple to MOOSE
+without having to double-nest it below the root universe. To allow coupling across multiple
+coordinate levels, use the `lowest_solid_cell_level` and/or `lowest_fluid_cell_level`
+parameters in place of the `solid_cell_level`/`fluid_cell_level` parameters. When set,
+these indicate that coupling should be performed on the specified level *except* in
+regions where there are no cells at that level. In other words, for the previous
+full core example, by setting `lowest_solid_cell_level = 2`, coupling will be done
+on coordinate level 2 unless there are no cells at that level. This means that in the
+vessel region, coupling will be performed on coordinate level 0 because that is the
+locally "deepest" coordinate level.
+
 ## Adding Tallies
 
 This class automatically creates `kappa-fission` tallies (recoverable energy release

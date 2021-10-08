@@ -188,6 +188,13 @@ public:
   std::string printCell(const cellInfo & cell_info) const;
 
   /**
+   * Print point coordinates with a neater formatting than the default libMesh
+   * point printing
+   * @return formatted point
+   */
+  std::string printPoint(const Point & p) const;
+
+  /**
    * Get a descriptive, formatted, string describing a material
    * @param[in] index material index
    * @return descriptive string
@@ -275,7 +282,7 @@ protected:
    * @param[in] name phase to read the cell level for
    * @param[out] cell_level cell coordinate level
    */
-  void getCellLevel(const std::string name, int & cell_level);
+  void getCellLevel(const std::string name, unsigned int & cell_level);
 
   /**
    * Loop over the elements in the MOOSE mesh and store whether that element corresponds
@@ -465,13 +472,31 @@ protected:
    * Coordinate level in the OpenMC domain that fluid cells are located on,
    * for the purpose of setting up a cell filter for the fluid phase.
    */
-  int _fluid_cell_level;
+  unsigned int _fluid_cell_level;
 
   /**
    * Coordinate level in the OpenMC domain that solid cells are located on,
    * for the purpose of setting up a cell filter for the solid phase.
    */
-  int _solid_cell_level;
+  unsigned int _solid_cell_level;
+
+  /**
+   * Whether the cell level should be taken as the lowest local level in the geometry
+   * in the case that the lowest local level is *higher* than the _solid_cell_level.
+   * In other words, if 'lowest_solid_cell' is specified, then in regions of the OpenMC
+   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_solid_cell' is set to 3,
+   * then the actual level used in mapping is the locally lowest cell level.
+   */
+  bool _using_lowest_solid_level;
+
+  /**
+   * Whether the cell level should be taken as the lowest local level in the geometry
+   * in the case that the lowest local level is *higher* than the _fluid_cell_level.
+   * In other words, if 'lowest_fluid_cell' is specified, then in regions of the OpenMC
+   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_fluid_cell' is set to 3,
+   * then the actual level used in mapping is the locally lowest cell level.
+   */
+  bool _using_lowest_fluid_level;
 
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
