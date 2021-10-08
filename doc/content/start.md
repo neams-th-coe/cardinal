@@ -1,7 +1,6 @@
 # Getting Started
 
-This page describes how to get started using Cardinal. Please complete all steps
-of these instructions before attempting any of the [tutorials](tutorials/index.md).
+This page describes how to get started using Cardinal.
 
 ## Access
 
@@ -41,8 +40,7 @@ for all dependencies; to fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 $ ./scripts/get-dependencies.sh
 ```
 
-which will check out the MOOSE, OpenMC, and NekRS submodules. Cardinal also supports
-*optional* coupling to the following codes:
+Cardinal also supports *optional* coupling to the following codes:
 
 - SAM, a systems analysis tool for advanced non-light water reactor
   safety analysis
@@ -64,7 +62,7 @@ THM submodule to Cardinal.
 !alert warning
 Some of Cardinal's submodule are not open source. Do *not* use
 `git submodule update --init` to fetch all of the submodules unless you have
-been granted access for all the closed-source dependencies in [table1].
+been granted access for all the closed-source dependencies.
 
 #### Set Environment Variables
   id=env
