@@ -90,8 +90,11 @@ validParams<OpenMCCellAverageProblem>()
     "introduce any unintentional distortion just because the mapped volumes are different. "
     "You should only set this to true if your OpenMC tally cells are all the same volume!");
 
-  params.addParam<unsigned int>("solid_cell_level", "Coordinate level in OpenMC to stop at for identifying *all* solid cells");
+  params.addParam<unsigned int>("solid_cell_level", "Coordinate level in OpenMC to use for identifying solid cells");
+  params.addParam<unsigned int>("lowest_solid_cell_level", "Lowest coordinate level in OpenMC to use for identifying solid cells");
+
   params.addParam<unsigned int>("fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
+  params.addParam<unsigned int>("lowest_fluid_cell_level", "Lowest coordinate level in OpenMC to use for identifying fluid cells");
 
   MultiMooseEnum openmc_outputs("fission_tally_std_dev");
   params.addParam<MultiMooseEnum>("output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
@@ -217,6 +220,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   checkBlockOverlap();
 
   // get the coordinate level to find cells on for each phase, and warn if invalid or not used
+  _using_lowest_solid_level = isParamValid("lowest_solid_cell_level");
+  _using_lowest_fluid_level = isParamValid("lowest_fluid_cell_level");
   getCellLevel("fluid", _fluid_cell_level);
   getCellLevel("solid", _solid_cell_level);
 
@@ -341,13 +346,10 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
         different_centroids = different_centroids || !MooseUtils::absoluteFuzzyEqual(centroid_mesh(j), centroid_template(j));
 
       if (different_centroids)
-        mooseError("Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh] (cm): (" +
-          Moose::stringify(centroid_mesh(0)) + ", " + Moose::stringify(centroid_mesh(1)) + ", " +
-          Moose::stringify(centroid_mesh(2)) + ")\ndoes not match centroid for element " + Moose::stringify(e) +
-          " in 'mesh_template' " + Moose::stringify(i) + " (cm): (" +
-          Moose::stringify(centroid_template(0)) + ", " + Moose::stringify(centroid_template(1)) + ", " +
-          Moose::stringify(centroid_template(2)) + ")!\n\nThe copy transfer requires that the [Mesh] and " +
-          "'mesh_template' be identical.");
+        mooseError("Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh] (cm): " +
+          printPoint(centroid_mesh) + "\ndoes not match centroid for element " + Moose::stringify(e) +
+          " in 'mesh_template' " + Moose::stringify(i) + " (cm): " + printPoint(centroid_template) +
+          "!\n\nThe copy transfer requires that the [Mesh] and 'mesh_template' be identical.");
     }
 
     offset += filter->n_bins();
@@ -384,21 +386,42 @@ void
 OpenMCCellAverageProblem::getCellLevel(const std::string name, unsigned int & cell_level)
 {
   std::string param_name = name + "_cell_level";
+  std::string lowest_param_name = "lowest_" + name + "_cell_level";
 
   if (isParamValid(name + "_blocks"))
   {
-    if (!isParamValid(param_name))
-      paramError(param_name, "When specifying " + name + " blocks for coupling, the "
-        "coordinate level must be specified!");
+    bool using_single_level = isParamValid(param_name);
+    bool using_lowest_level = isParamValid(lowest_param_name);
 
-    cell_level = getParam<unsigned int>(param_name);
+    if (using_single_level && using_lowest_level)
+      paramError(param_name, "When specifying " + name + " blocks for coupling, either '" + param_name +
+        "' or '" + lowest_param_name + "' must be specified. You have given either both or none.");
+
+    std::string selected_param;
+
+    if (using_single_level)
+    {
+      cell_level = getParam<unsigned int>(param_name);
+      selected_param = param_name;
+    }
+    else if (using_lowest_level)
+    {
+      cell_level = getParam<unsigned int>(lowest_param_name);
+      selected_param = lowest_param_name;
+    }
 
     if (cell_level >= openmc::model::n_coord_levels)
-      paramError(param_name, "Coordinate level for finding cells cannot be greater than total number "
+      paramError(selected_param, "Coordinate level for finding cells cannot be greater than total number "
         "of coordinate levels: " + Moose::stringify(openmc::model::n_coord_levels) + "!");
   }
-  else if (isParamValid(param_name))
-    mooseWarning("Without setting any '" + name + "_blocks', the '" + name + "_cell_level' parameter is unused!");
+  else
+  {
+    if (isParamValid(param_name))
+      mooseWarning("Without setting any '" + name + "_blocks', the '" + param_name + "' parameter is unused!");
+
+    if (isParamValid(lowest_param_name))
+      mooseWarning("Without setting any '" + name + "_blocks', the '" + lowest_param_name + "' parameter is unused!");
+  }
 }
 
 void
@@ -663,6 +686,16 @@ OpenMCCellAverageProblem::printCell(const cellInfo & cell_info) const
 }
 
 std::string
+OpenMCCellAverageProblem::printPoint(const Point & p) const
+{
+  std::stringstream msg;
+  msg << "(" << std::setprecision(6) << std::setw(7) << p(0) << ", " <<
+                std::setprecision(6) << std::setw(7) << p(1) << ", " <<
+                std::setprecision(6) << std::setw(7) << p(2) << ")";
+  return msg.str();
+}
+
+std::string
 OpenMCCellAverageProblem::printMaterial(const int32_t & index) const
 {
   int32_t id = materialID(index);
@@ -849,12 +882,32 @@ OpenMCCellAverageProblem::mapElemsToCells()
       {
         level = _fluid_cell_level;
         _n_mapped_fluid_elems++;
+
+        if (level > _particle.n_coord() - 1)
+        {
+          if (_using_lowest_fluid_level)
+            level = _particle.n_coord() - 1;
+          else
+            mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the fluid"
+              " exceeds number of nested coordinate levels at " + printPoint(c) + ": " +
+              Moose::stringify(_particle.n_coord()));
+        }
         break;
       }
       case coupling::temperature:
       {
         level = _solid_cell_level;
         _n_mapped_solid_elems++;
+
+        if (level > _particle.n_coord() - 1)
+        {
+          if (_using_lowest_solid_level)
+            level = _particle.n_coord() - 1;
+          else
+            mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the solid"
+              " exceeds number of nested coordinate levels at " + printPoint(c) + ": " +
+              Moose::stringify(_particle.n_coord()));
+        }
         break;
       }
       case coupling::none:
@@ -869,15 +922,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
       }
       default:
         mooseError("Unhandled CouplingFields enum!");
-    }
-
-    if (level > _particle.n_coord() - 1)
-    {
-      std::string phase = _fluid_blocks.count(elem->subdomain_id()) ? "fluid" : "solid";
-      mooseError("Requested coordinate level of " + Moose::stringify(level) + " for the " + phase +
-        " exceeds number of nested coordinate levels at (" + Moose::stringify(c(0)) + ", " +
-        Moose::stringify(c(1)) + ", " + Moose::stringify(c(2)) + "): " +
-        Moose::stringify(_particle.n_coord()));
     }
 
     auto cell_index = _particle.coord(level).cell;
@@ -1037,10 +1081,7 @@ OpenMCCellAverageProblem::initializeTallies()
           for (decltype(_local_tally.at(i)->n_filter_bins()) e = 0; e < _local_tally.at(i)->n_filter_bins(); ++e)
             volume += _mesh_template->volume(e);
 
-          _console << " Mesh translated to (" <<
-            std::setprecision(4) << std::setw(8) << translation(0) << ", " <<
-            std::setprecision(4) << std::setw(8) << translation(1) << ", " <<
-            std::setprecision(4) << std::setw(8) << translation(2) << "): " <<
+          _console << " Mesh translated to " << printPoint(translation) << ": " <<
             std::setw(6) << _local_tally.at(i)->n_filter_bins() << " elements  |  volume (cm3): " << std::setw(6) << volume << std::endl;
         }
       }
