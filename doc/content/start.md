@@ -32,112 +32,39 @@ presented:
 #### Fetch Dependencies
   id=fetch
 
-Cardinal contains a number of dependencies. However, you do not need to separately
-build/compile *any* of these dependencies - Cardinal's Makefile handles all compilation steps
-automatically.
+Cardinal contains MOOSE, OpenMC, and NekRS as dependencies. However, you do not need to separately
+build/compile *any* of these dependencies - Cardinal's Makefile handles all steps
+automatically. Cardinal uses [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
+for all dependencies; to fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 
-Cardinal uses [git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules)
-for all dependencies. [table1] summarizes all the submodule dependencies in Cardinal;
-some of these dependencies are open source, while others require you to separately
-apply for code access from the organization that owns that application. For instance,
-if you want to use SAM (an optional, closed-source dependency) with Cardinal, you will
-first need to apply for SAM access with ANL.
+```
+$ ./scripts/get-dependencies.sh
+```
+
+which will check out the MOOSE, OpenMC, and NekRS submodules. Cardinal also supports
+*optional* coupling to the following codes:
+
+- SAM, a systems analysis tool for advanced non-light water reactor
+  safety analysis
+- Sockeye, a tool for modeling of heat pipe systems
+- THM, a tool for 1-D thermal-hydraulics analysis
+
+!alert note title=Building with SAM?
+Follow [these instructions](sam_instructions.md) to obtain the required dependencies for adding the
+SAM submodule to Cardinal.
+
+!alert note title=Building with Sockeye?
+Follow [these instructions](sockeye_instructions.md) to obtain the required dependencies for adding the
+Sockeye submodule to Cardinal.
+
+!alert note title=Building with THM?
+Follow [these instructions](thm_instructions.md) to obtain the required dependencies for adding the
+THM submodule to Cardinal.
 
 !alert warning
 Some of Cardinal's submodule are not open source. Do *not* use
 `git submodule update --init` to fetch all of the submodules unless you have
 been granted access for all the closed-source dependencies in [table1].
-
-[table1] shows, for each dependency, whether
-that dependency is open source, required to build Cardinal, and where you might request
-access to that dependency if it is not open source. Finally, the last column shows the
-git command used to fetch that submodule dependency.
-
-!table id=table1 caption=Summary of all submodule dependencies in Cardinal
-| Dependency | Required? | Open Source? | git Command |
-| :- | :- | :- | :- |
-| MOOSE | yes | yes | `git submodule update --init contrib/moose` |
-| OpenMC | yes | yes | `git submodule update --init --recursive contrib/openmc` |
-| NekRS | yes | yes | `git submodule update --init contrib/nekRS` |
-| SAM | no | no | `git submodule update --init contrib/SAM` |
-| Sockeye | no | no | `git submodule update --init contrib/sockeye` |
-| THM | no | no | `git submodule update --init contrib/thm` |
-| sodium | no | no | `git submodule update --init contrib/sodium` |
-| potassium | no | no | `git submodule update --init contrib/potassium` |
-| iapws95 | no | no | `git submodule update --init contrib/iapws95` |
-
-The optional dependencies are:
-
-- SAM, a systems analysis tool for advanced non-light water reactor
-  safety analysis. To get access to SAM, please contact the
-  [SAM development team](https://www.anl.gov/nse/system-analysis-module).
-  Building with SAM does not require any additional submodules.
-- Sockeye, a tool for modeling of heat pipe systems. To get access
-  to Sockeye, please apply through the
-  [National Reactor Innovation Center](https://ncrcaims.inl.gov/Identity/Account/Login).
-  To build Sockeye, you will also require the THM, sodium, potassium, and
-  iapws95 submodules in Cardinal. THM is described in the next bullet point,
-  while sodium, potassium, and iapws95 provide liquid and vapor properties for
-  sodium, potassium, and water. You will automatically be granted acess
-  to these four additional submodules as part of the Sockeye licensing process.
-- THM, a tool for 1-D thermal-hydraulics analysis. To get access to THM,
-  please apply through the
-  [National Reactor Innovation Center](https://ncrcaims.inl.gov/Identity/Account/Login).
-  Building with THM does not require any additional submodules. As described in
-  the previous bullet point, if you
-  already have a license for Sockeye, but want to run THM calculations (separate
-  from Sockeye), you do not need to separately request access to THM.
-
-In order to fetch any submodules available through the [!ac](NRIC), you
-will first need to set up remote access to INL-HPC. Follow the instructions
-[here](https://mooseframework.inl.gov/help/inl/hpc_remote.html). Once you have an
-ssh tunnel to the INL-HPC environment, you will be able to fetch the closed-source MOOSE
-applications for which you have been granted access by [!ac](NRIC) using
-a two-factor authentication.
-
-##### Required Submodules
-
-To build Cardinal, you will always need to have MOOSE, OpenMC, and NekRS source
-code. Again, all necessary dependencies are open source. To fetch the open source
-submodules, use:
-
-```
-$ git submodule update --init contrib/moose
-$ git submodule update --init --recursive contrib/openmc
-$ git submodule update --init contrib/nekRS
-```
-
-##### Optional Submodules
-
-If you also want to build with one of the optional dependencies, then you will
-need to fetch that dependency (plus any additional submodules that the
-dependency requires - currently, this is only applicable to Sockeye since
-Sockeye requires four additional submodules). For instance, to get the SAM dependency, use:
-
-```
-$ git submodule update --init contrib/SAM
-```
-
-You will then be prompted to enter credentials to access ANL's gitlab site.
-To get the Sockeye dependency, use:
-
-```
-$ git submodule update --init contrib/sockeye
-$ git submodule update --init contrib/thm
-$ git submodule update --init contrib/sodium
-$ git submodule update --init contrib/potassium
-$ git submodule update --init contrib/iapws95
-```
-
-You will then be prompted to enter credentials to access INL's gitlab site.
-To get just the THM dependency, independent of Sockeye, use:
-
-```
-$ git submodule update --init contrib/thm
-```
-
-You will then be prompted to enter credentials to access INL's gitlab site.
-Other combinations of optional submodules follow the same pattern.
 
 #### Set Environment Variables
   id=env
