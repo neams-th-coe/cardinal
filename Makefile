@@ -41,7 +41,7 @@ ifeq ($(MOOSE_CONTENT),)
 endif
 
 ifeq ($(NEKRS_CONTENT),)
-  $(error $n"NekRS does not seem to be available. Make sure that either the submodule is checked out$nor that NEKRS_DIR points to a location with the NekRS source.$n$nTo fetch the NekRS submodule, use 'git submodule update --init contrib/nekRS'")
+  $(error $n"NekRS does not seem to be available. Make sure that either the submodule is checked out.$n$nTo fetch the NekRS submodule, use 'git submodule update --init contrib/nekRS'")
 endif
 
 ifeq ($(OPENMC_CONTENT),)
