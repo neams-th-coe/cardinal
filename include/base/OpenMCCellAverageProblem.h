@@ -275,7 +275,7 @@ protected:
    * @param[in] name phase to read the cell level for
    * @param[out] cell_level cell coordinate level
    */
-  void getCellLevel(const std::string name, int & cell_level);
+  void getCellLevel(const std::string name, unsigned int & cell_level);
 
   /**
    * Loop over the elements in the MOOSE mesh and store whether that element corresponds
@@ -465,13 +465,13 @@ protected:
    * Coordinate level in the OpenMC domain that fluid cells are located on,
    * for the purpose of setting up a cell filter for the fluid phase.
    */
-  int _fluid_cell_level;
+  unsigned int _fluid_cell_level;
 
   /**
    * Coordinate level in the OpenMC domain that solid cells are located on,
    * for the purpose of setting up a cell filter for the solid phase.
    */
-  int _solid_cell_level;
+  unsigned int _solid_cell_level;
 
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;

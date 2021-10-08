@@ -90,8 +90,8 @@ validParams<OpenMCCellAverageProblem>()
     "introduce any unintentional distortion just because the mapped volumes are different. "
     "You should only set this to true if your OpenMC tally cells are all the same volume!");
 
-  params.addParam<int>("solid_cell_level", "Coordinate level in OpenMC to stop at for identifying solid cells");
-  params.addParam<int>("fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
+  params.addParam<unsigned int>("solid_cell_level", "Coordinate level in OpenMC to stop at for identifying *all* solid cells");
+  params.addParam<unsigned int>("fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
 
   MultiMooseEnum openmc_outputs("fission_tally_std_dev");
   params.addParam<MultiMooseEnum>("output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
@@ -381,7 +381,7 @@ OpenMCCellAverageProblem::checkBlockOverlap()
 }
 
 void
-OpenMCCellAverageProblem::getCellLevel(const std::string name, int & cell_level)
+OpenMCCellAverageProblem::getCellLevel(const std::string name, unsigned int & cell_level)
 {
   std::string param_name = name + "_cell_level";
 
@@ -391,7 +391,7 @@ OpenMCCellAverageProblem::getCellLevel(const std::string name, int & cell_level)
       paramError(param_name, "When specifying " + name + " blocks for coupling, the "
         "coordinate level must be specified!");
 
-    cell_level = getParam<int>(param_name);
+    cell_level = getParam<unsigned int>(param_name);
 
     if (cell_level >= openmc::model::n_coord_levels)
       paramError(param_name, "Coordinate level for finding cells cannot be greater than total number "
