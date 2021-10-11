@@ -43,16 +43,41 @@ export HDF5_ROOT=/opt/moose/seacas
 export PETSC_DIR=$HOME/cardinal/contrib/moose/petsc
 !listing-end!
 
-!listing! language=bash caption=Sample job script to run Nek coupled to MOOSE on one node of the 32-core partition (`eddy32core`) id=e2
+!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one nore of the 32-core partition with 32 OpenMP threads id=e3
 #!/bin/bash
 #PBS -k o
-#PBS -l nodes=1:ppn=32,walltime=24:00:00
+#PBS -l nodes=1:ppn=32
+#PBS -l walltime=5:00
+#PBS -M email@address.gov
+#PBS -m ae
+#PBS -N lattice
+#PBS -j oe
+#PBS -q eddy32core
+
+module purge
+module load moose/.mpich-3.3_gcc-9.2.0
+module load miniconda moose-tools
+
+# Revise for your cross section data location
+export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
+
+# Revise for your input file and executable locations
+cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
+mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=32 > logfile
+!listing-end!
+
+!listing! language=bash caption=Sample job script to run Nek coupled to MOOSE on one node of the 32-core partition (`eddy32core`) with 32 MPI ranks id=e2
+#!/bin/bash
+#PBS -k o
+#PBS -l nodes=1:ppn=32
+#PBS -l walltime=5:00
 #PBS -M email@address.gov
 #PBS -m ae
 #PBS -N sfr_pin
 #PBS -j oe
 #PBS -q eddy32core
 
+module purge
 module load moose/.mpich-3.3_gcc-9.2.0
 module load miniconda moose-tools
 
@@ -61,7 +86,7 @@ export NEKRS_HOME=$HOME/cardinal/install
 
 # Revise for your input file and executable locations
 cd $HOME/cardinal/test/tests/cht/sfr_pincell
-mpirun -np 32 $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
+mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
 !listing-end!
 
 ## Bebop
@@ -123,7 +148,7 @@ export FC=mpif90
 #!/bin/bash
 #PBS -l select=1:ncpus=48:mpiprocs=2:ompthreads=24
 #PBS -l walltime=5:00
-#PBS -M anovak@anl.gov
+#PBS -M email@address.gov
 #PBS -m ae
 #PBS -N lattice
 #PBS -j oe
@@ -145,7 +170,7 @@ mpirun $HOME/projects/cardinal/cardinal-opt -i openmc_master.i --n-threads=24 > 
 #!/bin/bash
 #PBS -l select=1:ncpus=48:mpiprocs=48
 #PBS -l walltime=5:00
-#PBS -M anovak@anl.gov
+#PBS -M email@address.gov
 #PBS -m ae
 #PBS -N pebble
 #PBS -j oe
