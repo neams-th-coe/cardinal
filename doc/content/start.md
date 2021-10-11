@@ -59,6 +59,14 @@ Sockeye submodule to Cardinal.
 Follow [these instructions](thm_instructions.md) to obtain the required dependencies for adding the
 THM submodule to Cardinal.
 
+Your system will also require an [!ac](MPI) wrapper, the [HDF5 library](https://www.hdfgroup.org/solutions/hdf5/)
+for reading OpenMC's cross sections and writing OpenMC output files,
+and [CMake](https://cmake.org/) for compilation.
+
+!alert warning
+NekRS currently only supports the GNU compilers. If you are using the NekRS wrapping, be
+sure to use the GNU compilers.
+
 #### Set Environment Variables
   id=env
 

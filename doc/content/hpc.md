@@ -43,7 +43,7 @@ export HDF5_ROOT=/opt/moose/seacas
 export PETSC_DIR=$HOME/cardinal/contrib/moose/petsc
 !listing-end!
 
-!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one nore of the 32-core partition with 32 OpenMP threads id=e3
+!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node of the 32-core partition with 32 OpenMP threads id=e3
 #!/bin/bash
 #PBS -k o
 #PBS -l nodes=1:ppn=32
@@ -96,7 +96,7 @@ is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
 partition with 36 cores/node and a Intel Knights Landing partition with
 64 cores/node. Below is a bash script to build Cardinal (*last updated 5/24/2021*).
 
-!listing! language=bash caption=`~/.bashrc` to compile Cradinal id=bb1
+!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
