@@ -59,45 +59,16 @@ Sockeye submodule to Cardinal.
 Follow [these instructions](thm_instructions.md) to obtain the required dependencies for adding the
 THM submodule to Cardinal.
 
+Your system will also require an [!ac](MPI) wrapper, the [HDF5 library](https://www.hdfgroup.org/solutions/hdf5/)
+for reading OpenMC's cross sections and writing OpenMC output files,
+and [CMake](https://cmake.org/) for compilation.
+
 !alert warning
-Some of Cardinal's submodule are not open source. Do *not* use
-`git submodule update --init` to fetch all of the submodules unless you have
-been granted access for all the closed-source dependencies.
+NekRS currently only supports the GNU compilers. If you are using the NekRS wrapping, be
+sure to use the GNU compilers.
 
 #### Set Environment Variables
   id=env
-
-Next, you must set the environment variable `NEKRS_HOME` to be the location of the
-NekRS root directory so that all needed include files are on your path.
-This will be the `install/` directory under the top-level Cardinal directory:
-
-```
-$ export NEKRS_HOME=`pwd`/install
-```
-
-To run any problems using OpenMC, you will need to specify a path to
-cross section data. Cross section data is not needed to simply *compile* Cardinal -
-only to run an OpenMC case. OpenMC supports many different HDF5-format cross section
-libraries. Cardinal's test suite assumes that you are using the ENDF/B7-II.1 data set,
-which has data for temperatures between 250 K and 2500 K.
-Because we need to download this test suite when we run our regression tests, you can
-also quickly get this cross section data set by running
-
-```
-$ ./scripts/download-openmc-cross-sections.sh
-```
-
-Alternatively, if you would prefer other libraries, please visit the
-[OpenMC cross section documentation](https://docs.openmc.org/en/stable/usersguide/cross_sections.html).
-Once you have cross section data available, you simply need to set the
-`OPENMC_CROSS_SECTIONS` environment variable to the location of the
-`cross_sections.xml` file. For example, if you placed the cross-section data in
-`${HOME}/cross_sections` (which is also where the
-`download_openmc_cross_sections.sh` script puts the downloaded data), this environment variable would be set to:
-
-```
-$ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
-```
 
 If you don't already explicitly state in your `~/.bashrc` that you are using the MPI
 compilers wrappers, it's also a good idea to do so:
@@ -108,21 +79,49 @@ export CXX=mpicxx
 export FC=mpif90
 ```
 
+Next, you must set the environment variable `NEKRS_HOME` to be the location of the
+NekRS root directory so that all needed include files are on your path at runtime.
+This will be the `install/` directory under the top-level Cardinal directory:
+
+```
+$ export NEKRS_HOME=`pwd`/install
+```
+
+To run any problems using OpenMC, you will need to specify a path to
+cross section data. OpenMC supports many different HDF5-format cross section
+libraries. Cardinal's test suite assumes that you are using the ENDF/B7-II.1 data set,
+which has data for temperatures between 250 K and 2500 K.
+You can get this cross section data set by running
+
+```
+$ ./scripts/download-openmc-cross-sections.sh
+```
+
+If you would prefer other libraries, please visit the
+[OpenMC cross section documentation](https://docs.openmc.org/en/stable/usersguide/cross_sections.html).
+Once you have cross section data available, you simply need to set the
+`OPENMC_CROSS_SECTIONS` environment variable to the location of the
+`cross_sections.xml` file. For example, if you placed the cross-section data in
+`${HOME}/cross_sections`,
+this environment variable would be set to:
+
+```
+$ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
+```
+
 Additional optional environment variables that you may need to set in order
 to build Cardinal:
 
 - `HDF5_INCLUDE_DIR`: location of HDF5 headers. If `HDF5_ROOT` is specified, this
   defaults to `$HDF5_ROOT/include`; otherwise, this defaults to `/usr/include`
-- `HDF5_LIBDIR`: location of HDF5 libraries. If `$HDF5_ROOT` is specified, this
+- `HDF5_LIBDIR`: location of HDF5 libraries. If `HDF5_ROOT` is specified, this
   defaults to `$HDF5_ROOT/lib`; otherwise, this defaults to `/usr/lib`
 
 #### Set the OCCA Backend
   id=occa
 
 NekRS uses [OCCA](https://libocca.org/#/) to provide an API for device programming. Available
-backends in NekRS include CPU (i.e. MPI parallelism), CUDA, HIP, OpenCL, and OpenMP. Before
-building Cardinal, please set the type of backend you would like to use.
-
+backends in NekRS include CPU (i.e. MPI parallelism), CUDA, HIP, OpenCL, and OpenMP.
 There are several different ways that you can set the backend. We recommend setting the
 `NEKRS_OCCA_MODE_DEFAULT` environment variable to one of `CPU`, `CUDA`, `HIP`, `OPENCL`, or
 `OPENMP`. This will set the backend for all NekRS runs within Cardinal.
@@ -132,28 +131,15 @@ $ export NEKRS_OCCA_MODE_DEFAULT=CPU
 ```
 
 Alternatively, if you only want to control the backend
-for a particular case, you can explicitly set the backend in NekRS's `.par` file in the `[OCCA]` block:
+for a particular case, you can explicitly set the backend in the NekRS input files
+for your simulation. To do set, set the following in NekRS's `.par` file in the `[OCCA]` block:
 
 ```
 [OCCA]
   backend = CPU
 ```
 
-which will override any other settings. Finally,
-you can also set the default backend
-by changing the value of the `OCCA_MODE_DEFAULT` variable in `${NEKRS_HOME}/nekrs.conf`:
-
-```
-OCCA_MODE_DEFAULT = CPU
-```
-
-`nekrs.conf` is created as part of the build process, so if you are attempting to set the
-OCCA backend before actually building Cardinal, the `nekrs.conf` file won't exist. So, you would
-need to first complete all build steps up through and including [#compiling] before trying
-this approach (therefore, we don't recommend it).
-
-The order of precedence for these three options
-is `.par` file > `NEKRS_OCCA_MODE_DEFAULT` environment variable > `nekrs.conf`.
+which will override environment settings.
 
 If you plan to use a GPU  backend, you will also need to
 set the correct threading API in the `Makefile` by setting
@@ -229,18 +215,15 @@ oprof, instrumented for tools like "gprof") available.
 If you will be using OpenMC's Python [!ac](API) to build OpenMC models, you
 will need to install OpenMC's Python [!ac](API). Please follow the
 instructions [here](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api).
-Note that the Python API is not strictly required in Cardinal
-if you plan to build any OpenMC models directly in XML format.
 
 ## Running
 
-The command to run Cardinal is
+The command to run Cardinal with `<n>` MPI ranks and `<s>` OpenMP threads is:
 
 ```
 $ mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
 ```
 
-where `n` is the number of MPI ranks and `s` is the number of OpenMP threads.
 This command assumes that `cardinal-opt` is located on your `PATH`; otherwise,
 you need to provide the full path to `cardinal-opt` in the above command.
 Note that while MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,

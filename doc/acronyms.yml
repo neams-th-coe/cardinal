@@ -1,5 +1,6 @@
 ABTR: Advanced Burner Test Reactor
 ABR: Advanced Burner Reactor
+ANL: Argonne National Laboratory
 API: Application Programming Interface
 BC: Boundary Condition
 CFD: Computational Fluid Dynamics
@@ -17,6 +18,7 @@ MPI: Message Passing Interface
 NEAMS: Nuclear Energy Advanced Modeling and Simulation
 NRIC: National Reactor Innovation Center
 OCCA: Open Concurrent Compute Abstraction
+ORNL: Oak Ridge National Laboratory
 PB-FHR: Pebble Bed Fluoride-Salt-Cooled High-Temperature Reactor
 PBR: Pebble Bed Reactor
 PyC: Pyrolitic Carbon
