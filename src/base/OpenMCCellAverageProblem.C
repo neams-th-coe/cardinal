@@ -818,7 +818,8 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       auto instances = contained_cells.begin()->second;
       int32_t cell_instance = instances[0];
 
-      _console << "Cell " << cell_info.first << " contains material cell " << cell_index << ", instance " << cell_instance << std::endl;
+      if (_verbose)
+        _console << "Cell " << cell_info.first << " contains material cell " << cell_index << ", instance " << cell_instance << std::endl;
 
       _cell_to_contained_material_cell[cell_info] = {cell_index, cell_instance};
     }
@@ -980,7 +981,7 @@ OpenMCCellAverageProblem::storeTallyCells()
       if (_check_equal_mapped_tally_volumes)
         if (std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]) / mapped_tally_volume > 1e-3)
           mooseError("Detected un-equal mapped tally volumes!\n " +
-            printCell(first_tally_cell) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[cell_info]) + " (cm3)\n " +
+            printCell(first_tally_cell) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[first_tally_cell]) + " (cm3)\n " +
             printCell(cell_info) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[cell_info]) + " (cm3).\n\n"
             "If the tallied cells in your OpenMC model are of identical volumes, this means that you can get\n"
             "distortion of the volumetric heat source output. For instance, suppose you have two equal-size OpenMC\n"
