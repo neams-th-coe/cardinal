@@ -818,7 +818,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       auto instances = contained_cells.begin()->second;
       int32_t cell_instance = instances[0];
 
-      _console << "Cell " << cell_info.first << " contains material cell " << cell_index << ", instance " << cell_instance << std::endl;
+      //_console << "Cell " << cell_info.first << " contains material cell " << cell_index << ", instance " << cell_instance << std::endl;
 
       _cell_to_contained_material_cell[cell_info] = {cell_index, cell_instance};
     }
