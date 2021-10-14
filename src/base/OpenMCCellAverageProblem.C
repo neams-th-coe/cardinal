@@ -235,6 +235,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   initializeTallies();
 
   checkMeshTemplateAndTranslations();
+
+  // we do this last so that we can at least hit any other errors first before
+  // spending time on the costly filled cell caching
+  cacheContainedCells();
 }
 
 OpenMCCellAverageProblem::~OpenMCCellAverageProblem()
@@ -800,31 +804,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) + " OpenMC cells");
   }
 
-  // For purposes of reading cell temperatures, we need to save the first contained material-type
-  // cell index, instance pair because calling get_contained_cells() is very slow for every quadrature point
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-
-    const auto & cell = openmc::model::cells[cell_info.first];
-    if (cell->type_ == openmc::Fill::MATERIAL)
-    {
-      _cell_to_contained_material_cell[cell_info] = cell_info;
-    }
-    else
-    {
-      auto contained_cells = cell->get_contained_cells(cell_info.second);
-      int32_t cell_index = contained_cells.begin()->first;
-      auto instances = contained_cells.begin()->second;
-      int32_t cell_instance = instances[0];
-
-      if (_verbose)
-        _console << "Cell " << cell_info.first << " contains material cell " << cell_index << ", instance " << cell_instance << std::endl;
-
-      _cell_to_contained_material_cell[cell_info] = {cell_index, cell_instance};
-    }
-  }
-
   // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
   computeCellMappedVolumes();
 
@@ -837,6 +816,31 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   {
     checkCellMappedSubdomains();
     storeTallyCells();
+  }
+}
+
+void
+OpenMCCellAverageProblem::cacheContainedCells()
+{
+  // For purposes of reading cell temperatures, we need to save the first contained material-type
+  // cell index, instance pair because calling get_contained_cells() is very slow for every quadrature point
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    containedCells contained_cells;
+
+    const auto & cell = openmc::model::cells[cell_info.first];
+    if (cell->type_ == openmc::Fill::MATERIAL)
+    {
+      std::vector<int32_t> instances = {cell_info.second};
+      contained_cells[cell_info.first] = instances;
+    }
+    else
+    {
+      contained_cells = cell->get_contained_cells(cell_info.second);
+    }
+
+    _cell_to_contained_material_cells[cell_info] = contained_cells;
   }
 }
 
@@ -1159,7 +1163,6 @@ void OpenMCCellAverageProblem::addExternalVariables()
       _external_vars.push_back(_aux->getFieldVariable<Real>(0, out).number());
     }
   }
-
 }
 
 void OpenMCCellAverageProblem::externalSolve()
@@ -1208,18 +1211,41 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
     if (_verbose)
       _console << "Setting " << printCell(cell_info) << " to temperature (K): " << std::setw(4) << average_temp << std::endl;
 
-    int err = openmc_cell_set_temperature(cell_info.first, average_temp, &cell_info.second, true);
+    auto contained_cells = _cell_to_contained_material_cells[cell_info];
+    for (const auto & contained : contained_cells)
+    {
+      auto id = contained.first;
 
-    // TODO: could add the option to truncate temperatures if we exceed bounds?
+      for (const auto & instance : contained.second)
+      {
+        int err = openmc_cell_set_temperature(id, average_temp, &instance, false);
 
-    if (err)
-      mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
-        Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
+        if (err)
+          mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
+            Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
+      }
+    }
+
+    // old way
+    //int err = openmc_cell_set_temperature(cell_info.first, average_temp, &cell_info.second, true);
+
+    //if (err)
+    //  mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
+    //    Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
   }
 
   if (!_verbose)
     _console << "done. Sent cell-averaged min/max (K): " << minimum << ", " << maximum;
   _console << std::endl;
+}
+
+OpenMCCellAverageProblem::cellInfo
+OpenMCCellAverageProblem::containedMaterialCell(const cellInfo & cell_info)
+{
+  auto contained_cells = _cell_to_contained_material_cells[cell_info];
+  auto instances = contained_cells.begin()->second;
+  cellInfo first_cell = {contained_cells.begin()->first, instances[0]};
+  return first_cell;
 }
 
 void

@@ -111,6 +111,12 @@ public:
   typedef std::pair<int32_t, int32_t> cellInfo;
 
   /**
+   * Type definition for cells contained within a parent cell; the first value
+   * is the cell index, while the second is the set of cell instances
+   */
+  typedef std::unordered_map<int32_t, std::vector<int32_t>> containedCells;
+
+  /**
    * Get the cell index from the element ID; will return UNMAPPED for unmapped elements
    * @param[in] elem_id element ID
    * @return cell index
@@ -154,7 +160,7 @@ public:
    * @param[in] cell_info cell index, instance pair
    * @return material cell index, instance pair
    */
-  cellInfo containedMaterialCell(const cellInfo & cell_info) { return _cell_to_contained_material_cell[cell_info]; }
+  cellInfo containedMaterialCell(const cellInfo & cell_info);
 
   /**
    * Get the fields coupled for each cell; because we require that each cell map to a single phase,
@@ -243,6 +249,9 @@ protected:
 
   /// Read the parameters for 'tally_blocks'
   void readTallyBlocks() { readBlockParameters("tally", _tally_blocks); }
+
+  /// Cache the material cells contained within each coupling cell
+  void cacheContainedCells();
 
   /**
    * Set a minimum order for a volume quadrature rule
@@ -677,12 +686,8 @@ protected:
   /// Material filling each cell
   std::map<cellInfo, int32_t> _cell_to_material;
 
-  /**
-   * First material-type cell contained within the key (a cell info); this is
-   * used for identifying the temperature of a cell filled with many other cells
-   * (which we are allowed to do by nature of the 'set_contained = true' usage)
-   */
-  std::map<cellInfo, cellInfo> _cell_to_contained_material_cell;
+  /// Material-type cells contained within a cell
+  std::map<cellInfo, containedCells> _cell_to_contained_material_cells;
 
   /// OpenMC cells to which a kappa fission tally is to be added
   std::vector<cellInfo> _tally_cells;
