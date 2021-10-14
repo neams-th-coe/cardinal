@@ -70,7 +70,6 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     multi_app = solid
     variable = power
     source_variable = heat_source
-    fixed_meshes = true
     from_postprocessors_to_be_preserved = heat_source
     to_postprocessors_to_be_preserved = power
   []
@@ -80,7 +79,6 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     multi_app = solid
     variable = temp
     source_variable = T
-    fixed_meshes = true
   []
 []
 

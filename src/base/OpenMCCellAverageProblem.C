@@ -739,9 +739,9 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
    */
 
   { // scope only exists for the timed print
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Initializing mapping between " + Moose::stringify(_mesh.nElem()) +
+    _console << "Initializing mapping between " + Moose::stringify(_mesh.nElem()) +
       " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
-      Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels)");
+      Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels)..." << std::endl;
 
     // First, figure out the phase of each element according to the blocks defined by the user
     storeElementPhase();
@@ -772,11 +772,11 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   int none_digits = std::max(digits(_n_moose_none_elems), digits(_n_mapped_none_elems));
 
   std::stringstream msg;
-  msg << " MOOSE mesh has:      " <<
+  msg << "MOOSE mesh has:      " <<
     std::setw(solid_digits) << Moose::stringify(_n_moose_solid_elems) << " solid elems  " <<
     std::setw(fluid_digits) << Moose::stringify(_n_moose_fluid_elems) << " fluid elems  " <<
     std::setw(none_digits) << Moose::stringify(_n_moose_none_elems) << " uncoupled elems\n" <<
-    " OpenMC cells map to: " <<
+    "OpenMC cells map to: " <<
     std::setw(solid_digits) << Moose::stringify(_n_mapped_solid_elems) << " solid elems  " <<
     std::setw(fluid_digits) << Moose::stringify(_n_mapped_fluid_elems) << " fluid elems  " <<
     std::setw(none_digits) << Moose::stringify(_n_mapped_none_elems) << " uncoupled elems" << std::endl;
@@ -822,8 +822,8 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 void
 OpenMCCellAverageProblem::cacheContainedCells()
 {
-  // For purposes of reading cell temperatures, we need to save the first contained material-type
-  // cell index, instance pair because calling get_contained_cells() is very slow for every quadrature point
+  TIME_SECTION("cacheContainedCells", 3, "Caching Contained Cells", true);
+
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -1031,8 +1031,8 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     case tally::cell:
     {
-      CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
-        Moose::stringify(_tally_cells.size()) + " cells");
+      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
+        Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
       auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
 
@@ -1048,32 +1048,30 @@ OpenMCCellAverageProblem::initializeTallies()
     }
     case tally::mesh:
     {
-      { // scope only exists for the console timed print
-        CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Adding mesh tally based on " + _mesh_template_filename + " at " +
-          Moose::stringify(_mesh_translations.size()) + " locations");
+      _console << "Adding mesh tally based on " + _mesh_template_filename + " at " +
+        Moose::stringify(_mesh_translations.size()) + " locations..." << std::endl;
 
-        // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
-        // next available ID
-        auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
-        mesh->set_id(-1);
-        mesh->output_ = false;
+      // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
+      // next available ID
+      auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
+      mesh->set_id(-1);
+      mesh->output_ = false;
 
-        int32_t mesh_index = openmc::model::meshes.size();
+      int32_t mesh_index = openmc::model::meshes.size();
 
-        _mesh_template = mesh.get();
-        openmc::model::meshes.push_back(std::move(mesh));
+      _mesh_template = mesh.get();
+      openmc::model::meshes.push_back(std::move(mesh));
 
-        for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
-        {
-          const auto & translation = _mesh_translations[i];
-          auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
-          meshFilter->set_mesh(mesh_index);
-          meshFilter->set_translation({translation(0), translation(1), translation(2)});
+      for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
+      {
+        const auto & translation = _mesh_translations[i];
+        auto meshFilter = dynamic_cast<openmc::MeshFilter*>(openmc::Filter::create("mesh"));
+        meshFilter->set_mesh(mesh_index);
+        meshFilter->set_translation({translation(0), translation(1), translation(2)});
 
-          _mesh_filters.push_back(meshFilter);
-          std::vector<openmc::Filter *> tally_filters = {meshFilter};
-          addLocalTally(tally_filters, openmc::TallyEstimator::COLLISION);
-        }
+        _mesh_filters.push_back(meshFilter);
+        std::vector<openmc::Filter *> tally_filters = {meshFilter};
+        addLocalTally(tally_filters, openmc::TallyEstimator::COLLISION);
       }
 
       if (_verbose)
@@ -1108,7 +1106,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
   // if the tally sum check is turned off, write a message informing the user
   if (!_check_tally_sum)
-    _console << " Turned OFF tally sum check against global tally" << std::endl;
+    _console << "Turned OFF tally sum check against global tally" << std::endl;
 }
 
 bool
@@ -1167,6 +1165,8 @@ void OpenMCCellAverageProblem::addExternalVariables()
 
 void OpenMCCellAverageProblem::externalSolve()
 {
+  TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
+
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
@@ -1225,13 +1225,6 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
             Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
       }
     }
-
-    // old way
-    //int err = openmc_cell_set_temperature(cell_info.first, average_temp, &cell_info.second, true);
-
-    //if (err)
-    //  mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
-    //    Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
   }
 
   if (!_verbose)
@@ -1723,7 +1716,7 @@ OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std
   if (volume_order < Moose::stringToEnum<Order>("SECOND"))
   {
     _console << "Increasing " << type << " volume quadrature order from " << Moose::stringify(volume_order) << " to 2 "
-      "so that elem->volume() matches MOOSE integrations" << std::endl;
+      "to match MOOSE integrations" << std::endl;
     volume_order = SECOND;
   }
 }
