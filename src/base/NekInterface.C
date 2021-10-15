@@ -95,6 +95,12 @@ bool hasHeatSourceKernel()
   return udf.sEqnSource;
 }
 
+bool isInitialized()
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  return nrs;
+}
+
 int scalarFieldOffset()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();

@@ -45,6 +45,12 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   if (_boundary && _boundary->empty())
     paramError("boundary", "The length of 'boundary' must be greater than zero!");
 
+  // see if NekRS's mesh even exists
+  if (!nekrs::isInitialized())
+    mooseError("'NekRSMesh' can only be used with wrapped Nek cases!\n"
+      "You need to change the problem type to a Nek-wrapped problem.\n\n"
+      "options: 'NekRSProblem', 'NekRSStandaloneProblem'");
+
   // nekRS will only ever support 3-D meshes. Just to be sure that this remains
   // the case for future Cardinal developers, throw an error if the mesh isn't 3-D
   // (since this would affect how we construct the mesh here).

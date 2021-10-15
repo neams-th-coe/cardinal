@@ -20,6 +20,12 @@ namespace nekrs
 static int build_only;
 
 /**
+ * Whether NekRS itself has been initialized yet
+ * @return whether NekRS is initialized
+ */
+bool isInitialized();
+
+/**
  * Write a field file containing pressure, velocity, and scalars with given prefix
  * @param[in] prefix three-character prefix
  * @param[in] time time
