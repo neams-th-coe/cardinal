@@ -20,6 +20,8 @@ OpenMCInitAction::OpenMCInitAction(const InputParameters & parameters)
 void
 OpenMCInitAction::act()
 {
+  TIME_SECTION("initOpenMC", 1, "Initializing OpenMC", false);
+
   if (_type == "OpenMCCellAverageProblem" || _type == "OpenMCProblem")
   {
     int argc = 1;
