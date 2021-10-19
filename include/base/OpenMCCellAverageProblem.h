@@ -250,8 +250,30 @@ protected:
   /// Read the parameters for 'tally_blocks'
   void readTallyBlocks() { readBlockParameters("tally", _tally_blocks); }
 
-  /// Cache the material cells contained within each coupling cell
+  /**
+   * Cache the material cells contained within each coupling cell;
+   * depending on user settings, this may attempt to take shortcuts
+   * by assuming each tally cell has the same fills
+   */
   void cacheContainedCells();
+
+  /**
+   * Cache the material cells contained within each coupling cell
+   * @param[in] cell_info cell to find contained material cells for
+   * @param[out] map contained cell map
+   */
+  void setContainedCells(const cellInfo & cell_info, std::map<cellInfo, containedCells> & map);
+
+  /**
+   * Check that the structure of the contained material cells for two tally cells matches;
+   * i.e. this checks that the keys are the same and that the *number* of instances
+   * of each filling material cell match.
+   * @param[in] cell_info tally cell information for printing error messages
+   * @param[in] reference map we want to check against
+   * @param[in] compare map we want to check
+   */
+  void checkContainedCellsStructure(const cellInfo & cell_info, containedCells & reference,
+    containedCells & compare);
 
   /**
    * Set a minimum order for a volume quadrature rule
@@ -463,6 +485,17 @@ protected:
   /// Extract user-specified additional output fields from OpenMC
   void extractOutputs();
 
+  /**
+   * Checks that the contained material cells exactly match between a reference obtained
+   * by calling openmc::Cell::get_contained_cells for each tally cell and a shortcut
+   * approach that assumes all tally cells (which aren't simply just material fills)
+   * has exactly the same contained material cells.
+   * @param[in] reference reference map to compare against
+   * @param[in] compare shortcut map to compare
+   */
+  void compareContainedCells(std::map<cellInfo, containedCells> & reference,
+    std::map<cellInfo, containedCells> & compare);
+
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
@@ -619,6 +652,48 @@ protected:
   const Real & _relaxation_factor;
 
   /**
+   * If known a priori by the user, whether the tally cells (which are not simply material
+   * fills) have EXACTLY the same contained material cells. This is a big optimization for
+   * TRISO problems in setting up homogenized temperature/density feedback to OpenMC.
+   *
+   * The concept can best be explained with a pebble bed reactor.
+   * If every pebble is filled with an identical TRISO universe, then the material fills
+   * in each pebble are identical to one another except for a constant offset. This idea
+   * can be used to then skip all but the first two openmc::Cell::get_contained_cells
+   * calls (which are required in order to figure out the pattern by which pebble N is
+   * incremented relative to pebble 1).
+   *
+   * When using this parameter, we HIGHLY recommend setting 'check_identical_tally_cell_fills = true'
+   * the first time you run your model. This will figure out the material cell fills
+   * using a method that calls openmc::Cell::get_contained_cells for every tally cell,
+   * i.e. without assuming anything about repeated structure in your OpenMC model.
+   * Setting 'identical_tally_cell_fills = true' without also setting
+   * 'check_identical_tally_cell_fills = true' will result in SILENT errors!!! So it
+   * is essential to be sure you've removed any error sources before you turn the error
+   * check off to actually leverage the speedup.
+   *
+   * Note: for any tally cells that are just filled with a material, we use the approach
+   * where openmc::Cell::get_contained_cells is called in full.
+   *
+   * This optimization will not work (and 'check_identical_tally_cells = true' *will*
+   * catch these) for:
+   * - any situation where all tallied, non-material-fill pebbles have different fills
+   *   (such as if you have different TRISO lattices in each pebble)
+   * - any situation where there is a "gap" in the incrementing of the material fill
+   *   instances (such as if pebble 89 does not map to 'tally_blocks', then the instance
+   *   shift for pebble 90 relative to pebble 1 is 89, when it should have been 90).
+   */
+  const bool & _identical_tally_cell_fills;
+
+  /**
+   * Whether we should rigorously check that each tally cell has identical fills;
+   * this is SLOW for large TRISO problem, but is essential to ensure the accuracy of
+   * 'identical_tally_cell_fills = true'. Please set this parameter to 'true' at least
+   * once before running production cases to be sure the optimization can be applied.
+   */
+  const bool & _check_identical_tally_cell_fills;
+
+  /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */
@@ -749,9 +824,6 @@ protected:
    */
   const bool _single_coord_level;
 
-  /// Total number of OpenMC cells, across all coordinate levels
-  const int _n_openmc_cells;
-
   /**
    * Number of digits to use to display the cell ID for diagnostic messages; this is
    * estimated conservatively based on the total number of cells, even though there
@@ -765,6 +837,9 @@ protected:
    * tally_blocks to be all of the subdomains in the MOOSE mesh.
    */
   const bool _using_default_tally_blocks;
+
+  /// Total number of OpenMC cells, across all coordinate levels
+  int _n_openmc_cells;
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh

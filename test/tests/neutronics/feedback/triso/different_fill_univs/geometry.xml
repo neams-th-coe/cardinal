@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="3" region="-3" universe="5" />
+  <cell id="2" material="1" universe="1" />
+  <cell id="3" material="1" universe="2" />
+  <cell id="4" material="2" region="3" universe="5" />
+  <cell fill="2" id="5" region="-1" universe="3" />
+  <cell fill="1" id="6" region="-2" universe="4" />
+  <cell id="7" material="2" region="1" universe="3" />
+  <cell id="8" material="2" region="2" universe="4" />
+  <cell id="9" material="4" region="-4" universe="8" />
+  <cell id="10" material="2" region="3" universe="8" />
+  <cell fill="2" id="11" region="-1" universe="6" />
+  <cell fill="1" id="12" region="-2" universe="7" />
+  <cell id="13" material="2" region="1" universe="6" />
+  <cell id="14" material="2" region="2" universe="7" />
+  <cell id="15" material="5" region="-5" universe="11" />
+  <cell id="16" material="2" region="3" universe="11" />
+  <cell fill="2" id="17" region="-1" universe="9" />
+  <cell fill="1" id="18" region="-2" universe="10" />
+  <cell id="19" material="2" region="1" universe="9" />
+  <cell id="20" material="2" region="2" universe="10" />
+  <cell id="21" material="2" universe="13" />
+  <cell fill="12" id="22" region="-6 7 -8 9 10 -11 12 -15" universe="14" />
+  <hex_lattice id="12" n_axial="3" n_rings="2" name="Unit cell lattice" orientation="x">
+    <pitch>1.8800000000000001 3.3333333333333335</pitch>
+    <outer>13</outer>
+    <center>0.0 0.0 5.0</center>
+    <universes>
+ 3 4
+3 5 3
+ 3 3
+ 6 7
+6 8 6
+ 6 6
+  9   10
+9   11  9 
+  9   9 </universes>
+  </hex_lattice>
+  <surface coeffs="0.0 0.0 0.635" id="1" type="z-cylinder" />
+  <surface coeffs="0.0 0.0 0.635" id="2" type="z-cylinder" />
+  <surface coeffs="0.0 0.0 0.8" id="3" type="z-cylinder" />
+  <surface coeffs="0.0 0.0 0.8" id="4" type="z-cylinder" />
+  <surface coeffs="0.0 0.0 0.8" id="5" type="z-cylinder" />
+  <surface boundary="periodic" coeffs="1.6281277591147447" id="6" periodic_surface_id="7" type="y-plane" />
+  <surface boundary="periodic" coeffs="-1.6281277591147447" id="7" periodic_surface_id="6" type="y-plane" />
+  <surface boundary="periodic" coeffs="1.7320508075688772 1.0 0.0 3.2562555182294894" id="8" periodic_surface_id="10" type="plane" />
+  <surface boundary="periodic" coeffs="-1.7320508075688772 1.0 0.0 -3.2562555182294894" id="9" periodic_surface_id="11" type="plane" />
+  <surface boundary="periodic" coeffs="1.7320508075688772 1.0 0.0 -3.2562555182294894" id="10" periodic_surface_id="8" type="plane" />
+  <surface boundary="periodic" coeffs="-1.7320508075688772 1.0 0.0 3.2562555182294894" id="11" periodic_surface_id="9" type="plane" />
+  <surface boundary="reflective" coeffs="0.0" id="12" type="z-plane" />
+  <surface boundary="reflective" coeffs="10.0" id="15" type="z-plane" />
+</geometry>
