@@ -839,7 +839,7 @@ protected:
   const bool _using_default_tally_blocks;
 
   /// Total number of OpenMC cells, across all coordinate levels
-  int _n_openmc_cells;
+  long unsigned int _n_openmc_cells;
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
