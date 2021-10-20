@@ -19,6 +19,12 @@ for your particular setup are:
 - `OPENMC_CROSS_SECTIONS`: should point to the location of `cross_sections.xml`; this
    is only needed for inputs that run OpenMC
 
+!alert note
+NekRS can sometimes fail to correctly pre-compile its kernels on these [!ac](HPC)
+systems. We recommend precompiling NekRS (with the `nrspre` script) if you run into
+issues. See the [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/just_in_time_compilation.html)
+for more information.
+
 ## Eddy
 
 [Eddy](https://wiki.inside.anl.gov/ne/The_Eddy_Cluster) is a cluster at
@@ -115,6 +121,96 @@ module load anaconda3
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
+!listing-end!
+
+## Nek5k
+
+Nek5k is a cluster at [!ac](ANL) with 40 nodes, each with 40 cores.
+We use conda to set up a proper environment on Nek5k for running Cardinal.
+To use this environment, you will need to follow these steps *the first time*
+you use Nek5k:
+
+- The first time you log in, run from the command line:
+
+```
+$ module load openmpi/4.0.1/gcc/8.3.1 cmake openmpi/4.0.1/gcc/8.3.1-hdf5-1.10.6 anaconda3/anaconda3
+$ conda init
+```
+
+- Log out, then log back in
+- Add the following to your `~/.bashrc`:
+
+```
+module load openmpi/4.0.1/gcc/8.3.1 cmake openmpi/4.0.1/gcc/8.3.1-hdf5-1.10.6 anaconda3/anaconda3
+conda activate
+```
+
+- Log out, then log back in
+
+After following these steps, you should not require any further actions
+to run Cardinal on Nek5k. Your `~/.bashrc` should look something like
+below. The content within the `conda initialize` section is added
+automatically by conda when you perform the steps above.
+
+!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=n1
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+module load openmpi/4.0.1/gcc/8.3.1 cmake openmpi/4.0.1/gcc/8.3.1-hdf5-1.10.6 anaconda3/anaconda3
+
+conda activate
+
+# Update for your Cardinal repository location
+export NEKRS_HOME=$HOME/cardinal/install
+
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/shared/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/shared/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/shared/anaconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/shared/anaconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+!listing-end!
+
+Below are sample job scripts to run the NekRS and OpenMC
+wrappings (*last updated 10/20/2021*).
+
+!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node with 40 OpenMP threads id=n2
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=40
+#SBATCH --time=00:20:00
+#SBATCH --output=pincell.log
+#SBATCH -p compute
+
+# Revise for your cross section data location
+export OPENMC_CROSS_SECTIONS=/home/anovak/cross_sections/endfb71_hdf5/cross_sections.xml
+
+# Revise for your input file and executable locations
+cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
+mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=40 > logfile
+!listing-end!
+
+!listing! language=bash caption=Sample job script to run NekRS coupled to MOOSE on one node with 40 MPI processes id=n3
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=40
+#SBATCH --time=00:20:00
+#SBATCH --output=sfr.log
+#SBATCH -p compute
+
+# Revise for your input file and executable locations
+cd $HOME/cardinal/test/tests/cht/sfr_pincell
+mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
 !listing-end!
 
 ## Sawtooth
