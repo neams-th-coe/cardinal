@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<settings>
+  <run_mode>eigenvalue</run_mode>
+  <particles>10000</particles>
+  <batches>2500</batches>
+  <inactive>500</inactive>
+  <source strength="1.0">
+    <space type="fission">
+      <parameters>-21.013240397425623 -21.013240397425623 0.0 21.013240397425623 21.013240397425623 634.3</parameters>
+    </space>
+  </source>
+  <temperature_method>interpolation</temperature_method>
+  <temperature_range>294.0 1500.0</temperature_range>
+  <volume_calc>
+    <domain_type>cell</domain_type>
+    <domain_ids>42120</domain_ids>
+    <samples>100000000</samples>
+    <lower_left>-21.013240397425623 -21.013240397425623 0.0</lower_left>
+    <upper_right>21.013240397425623 21.013240397425623 634.3</upper_right>
+  </volume_calc>
+</settings>
