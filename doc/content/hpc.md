@@ -25,6 +25,34 @@ systems. We recommend precompiling NekRS (with the `nrspre` script) if you run i
 issues. See the [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/just_in_time_compilation.html)
 for more information.
 
+## Bebop
+
+[Bebop](https://www.lcrc.anl.gov/systems/resources/bebop/)
+is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
+partition with 36 cores/node and a Intel Knights Landing partition with
+64 cores/node. Below is a bash script to build Cardinal (*last updated 5/24/2021*).
+
+!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
+if [ -f /etc/bashrc ]; then
+        . /etc/bashrc
+fi
+
+# Revise for your Cardinal repository location
+export NEKRS_HOME=$HOME/cardinal/install
+
+module purge
+module load gcc/8.2.0-g7hppkz
+module load intel-mpi/2018.4.274-ozfo327
+module load intel-mkl/2018.4.274-2amycpi
+module load cmake/3.14.2-gvwazz3
+module load hdf5/1.8.16-mz7lmxh
+module load anaconda3
+
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+!listing-end!
+
 ## Eddy
 
 [Eddy](https://wiki.inside.anl.gov/ne/The_Eddy_Cluster) is a cluster at
@@ -93,34 +121,6 @@ export NEKRS_HOME=$HOME/cardinal/install
 # Revise for your input file and executable locations
 cd $HOME/cardinal/test/tests/cht/sfr_pincell
 mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
-!listing-end!
-
-## Bebop
-
-[Bebop](https://www.lcrc.anl.gov/systems/resources/bebop/)
-is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
-partition with 36 cores/node and a Intel Knights Landing partition with
-64 cores/node. Below is a bash script to build Cardinal (*last updated 5/24/2021*).
-
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
-if [ -f /etc/bashrc ]; then
-        . /etc/bashrc
-fi
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
-module purge
-module load gcc/8.2.0-g7hppkz
-module load intel-mpi/2018.4.274-ozfo327
-module load intel-mkl/2018.4.274-2amycpi
-module load cmake/3.14.2-gvwazz3
-module load hdf5/1.8.16-mz7lmxh
-module load anaconda3
-
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
 !listing-end!
 
 ## Nek5k
