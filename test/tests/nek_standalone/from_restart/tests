@@ -1,0 +1,11 @@
+[Tests]
+  [postprocess_from_restart]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "Postprocessing shall be possible directly on restart files without running "
+                  "a simulation. Here, we compare several postprocessors from a case restarted "
+                  "from a field file against the identical case where variables are instead "
+                  "initialized in the .udf from functions."
+  []
+[]
