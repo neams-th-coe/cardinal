@@ -258,7 +258,7 @@ protected:
   void cacheContainedCells();
 
   /**
-   * Cache the material cells contained within each coupling cell
+   * Fill the cached contained cells data structure for a given cell
    * @param[in] cell_info cell to find contained material cells for
    * @param[out] map contained cell map
    */
@@ -668,7 +668,7 @@ protected:
    * using a method that calls openmc::Cell::get_contained_cells for every tally cell,
    * i.e. without assuming anything about repeated structure in your OpenMC model.
    * Setting 'identical_tally_cell_fills = true' without also setting
-   * 'check_identical_tally_cell_fills = true' will result in SILENT errors!!! So it
+   * 'check_identical_tally_cell_fills = true' may result in SILENT errors!!! So it
    * is essential to be sure you've removed any error sources before you turn the error
    * check off to actually leverage the speedup.
    *
@@ -677,7 +677,7 @@ protected:
    *
    * This optimization will not work (and 'check_identical_tally_cells = true' *will*
    * catch these) for:
-   * - any situation where all tallied, non-material-fill pebbles have different fills
+   * - any situation where tallied, non-material-fill pebbles have different fills
    *   (such as if you have different TRISO lattices in each pebble)
    * - any situation where there is a "gap" in the incrementing of the material fill
    *   instances (such as if pebble 89 does not map to 'tally_blocks', then the instance
@@ -687,7 +687,7 @@ protected:
 
   /**
    * Whether we should rigorously check that each tally cell has identical fills;
-   * this is SLOW for large TRISO problem, but is essential to ensure the accuracy of
+   * this is SLOW for large TRISO problems, but is essential to ensure the accuracy of
    * 'identical_tally_cell_fills = true'. Please set this parameter to 'true' at least
    * once before running production cases to be sure the optimization can be applied.
    */

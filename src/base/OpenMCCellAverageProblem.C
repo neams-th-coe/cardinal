@@ -168,10 +168,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     mooseWarning("The 'relaxation_factor' parameter is unused when not using constant relaxation!");
 
   if (params.isParamSetByUser("check_identical_tally_cell_fills") && !_identical_tally_cell_fills)
-  {
     mooseWarning("The 'check_identical_tally_cell_fills' parameter is unused when 'identical_tally_cell_fills' "
       "is false");
-  }
 
   // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
   // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred
@@ -763,33 +761,31 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
    * would still try to set a cell filter based on no cells.
    */
 
-  { // scope only exists for the timed print
-    _n_openmc_cells = 0.0;
-    for (const auto & c : openmc::model::cells)
-      _n_openmc_cells += c->n_instances_;
+  _n_openmc_cells = 0.0;
+  for (const auto & c : openmc::model::cells)
+    _n_openmc_cells += c->n_instances_;
 
-    _console << "Initializing mapping between " + Moose::stringify(_mesh.nElem()) +
-      " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
-      Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels)..." << std::endl;
+  _console << "Initializing mapping between " + Moose::stringify(_mesh.nElem()) +
+    " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
+    Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels)..." << std::endl;
 
-    // First, figure out the phase of each element according to the blocks defined by the user
-    storeElementPhase();
+  // First, figure out the phase of each element according to the blocks defined by the user
+  storeElementPhase();
 
-    // perform element to cell mapping
+  // perform element to cell mapping
+  mapElemsToCells();
+
+  if (!_material_cells_only)
+  {
+    // gather all cell indices from the initial mapping
+    std::vector<int32_t> mapped_cells;
+    for (const auto& item : _elem_to_cell)
+      mapped_cells.push_back(item.first);
+
+    std::unique(mapped_cells.begin(), mapped_cells.end());
+    openmc::prepare_distribcell(&mapped_cells);
+    // perform element to cell mapping again to get correct instances
     mapElemsToCells();
-
-    if (!_material_cells_only)
-    {
-      // gather all cell indices from the initial mapping
-      std::vector<int32_t> mapped_cells;
-      for (const auto& item : _elem_to_cell)
-        mapped_cells.push_back(item.first);
-
-      std::unique(mapped_cells.begin(), mapped_cells.end());
-      openmc::prepare_distribcell(&mapped_cells);
-      // perform element to cell mapping again to get correct instances
-      mapElemsToCells();
-    }
   }
 
   if (_cell_to_elem.size() == 0)
@@ -899,10 +895,8 @@ OpenMCCellAverageProblem::cacheContainedCells()
       const auto & cell = openmc::model::cells[cell_info.first];
       if (cell->type_ == openmc::Fill::MATERIAL)
       {
-        std::vector<int32_t> instances = {cell_info.second};
-        containedCells contained_cells;
-        contained_cells[cell_info.first] = instances;
-        _cell_to_contained_material_cells[cell_info] = contained_cells;
+        // behavior is the same for material-filled cells
+        setContainedCells(cell_info, _cell_to_contained_material_cells);
       }
       else
       {
@@ -942,24 +936,6 @@ OpenMCCellAverageProblem::cacheContainedCells()
         else
         {
           n++;
-
-          //containedCells nth_tally_cell_first_contained_cell =
-          //  cell->get_contained_cells(cell_info.second, false /* skip full search */);
-
-          // we use an unordered map, so we need to note the ID we started with so that
-          // we properly index into the stored offsets
-          //int first_id = nth_tally_cell_first_contained_cell.begin()->first;
-
-          // make sure the reference map has this cell ID
-          //if (!first_tally_cell_cc.count(first_id))
-          //  mooseError("Not all tally cells contain cell ID " + Moose::stringify(cellID(first_id)) +
-          //    ". You must set 'identical_tally_cell_fills = false'!");
-
-          //int int_offset = (nth_tally_cell_first_contained_cell.begin()->second.front() -
-          //  first_tally_cell_cc[first_id].front()) / instance_offsets[first_id].front();
-
-          //if (int_offset != n)
-          //  mooseError("n: ", n, " offset: ", int_offset);
 
           int int_offset = n;
 
