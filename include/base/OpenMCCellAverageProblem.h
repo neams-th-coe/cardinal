@@ -400,6 +400,13 @@ protected:
    * @return normalized tally
    */
   Real normalizeLocalTally(const Real & tally_result) const;
+
+  /**
+   * Normalize the local tally by either the global kappa fission tally, or the sum
+   * of the local kappa fission tally
+   * @param[in] raw_tally value of tally result
+   * @return normalized tally
+   */
   xt::xtensor<double, 1> normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const;
 
   /**
@@ -817,8 +824,8 @@ protected:
    * is _previous_mean_tally, and PHI is the most-recently-computed tally result
    * (available locally in the heat source update function).
    */
-  xt::xtensor<double, 1> _current_mean_tally;
+  std::vector<xt::xtensor<double, 1>> _current_mean_tally;
 
   /// Previous fixed point iteration tally result (after relaxation)
-  xt::xtensor<double, 1> _previous_mean_tally;
+  std::vector<xt::xtensor<double, 1>> _previous_mean_tally;
 };

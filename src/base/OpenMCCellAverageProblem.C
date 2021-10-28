@@ -1045,6 +1045,9 @@ OpenMCCellAverageProblem::initializeTallies()
       _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
         Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
+      _current_mean_tally.resize(1);
+      _previous_mean_tally.resize(1);
+
       auto cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
 
       std::vector<openmc::CellInstance> cells;
@@ -1059,8 +1062,13 @@ OpenMCCellAverageProblem::initializeTallies()
     }
     case tally::mesh:
     {
+      int n_translations = _mesh_translations.size();
+
       _console << "Adding mesh tally based on " + _mesh_template_filename + " at " +
-        Moose::stringify(_mesh_translations.size()) + " locations..." << std::endl;
+        Moose::stringify(n_translations) + " locations..." << std::endl;
+
+      _current_mean_tally.resize(n_translations);
+      _previous_mean_tally.resize(n_translations);
 
       // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
       // next available ID
@@ -1331,10 +1339,6 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
 void
 OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction, const std::string & descriptor) const
 {
-  if (_verbose)
-    _console << " " << descriptor << " power fraction: " << std::setw(3) <<
-      Moose::stringify(power_fraction) << std::endl;
-
   if (_check_zero_tallies && power_fraction < 1e-12)
     mooseError("Heat source computed for " + descriptor + " is zero!\n\n" +
       "This may occur if there is no fissile material in this region, if you have very few particles, "
@@ -1460,21 +1464,21 @@ OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
   if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
   {
     auto mean_tally = xt::view(_local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-    _current_mean_tally = normalizeLocalTally(mean_tally);
-    _previous_mean_tally = normalizeLocalTally(mean_tally);
+    _current_mean_tally[t] = normalizeLocalTally(mean_tally);
+    _previous_mean_tally[t] = normalizeLocalTally(mean_tally);
     return;
   }
 
   // save the current tally (from the previous iteration) into the previous one
-  std::copy(_current_mean_tally.cbegin(), _current_mean_tally.cend(), _previous_mean_tally.begin());
+  std::copy(_current_mean_tally[t].cbegin(), _current_mean_tally[t].cend(), _previous_mean_tally[t].begin());
   auto mean_tally = xt::view(_local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
   switch (_relaxation)
   {
     case relaxation::constant:
     {
-      auto relaxed_tally = (1.0 - _relaxation_factor) * _previous_mean_tally + _relaxation_factor * normalizeLocalTally(mean_tally);
-      std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally.begin());
+      auto relaxed_tally = (1.0 - _relaxation_factor) * _previous_mean_tally[t] + _relaxation_factor * normalizeLocalTally(mean_tally);
+      std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally[t].begin());
       break;
     }
     default:
@@ -1513,12 +1517,16 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         if (!_cell_has_tally[cell_info])
           continue;
 
-        Real power_fraction = _current_mean_tally(i++);
+        Real power_fraction = _current_mean_tally[0](i++);
 
         // divide each tally value by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric heat source (W/volume).
         Real volumetric_power = power_fraction * _power / _cell_to_elem_volume[cell_info];
         power_fraction_sum += power_fraction;
+
+        if (_verbose)
+          _console << " " << printCell(cell_info) << " power fraction: " << std::setw(3) <<
+            Moose::stringify(power_fraction) << std::endl;
 
         checkZeroTally(power_fraction, printCell(cell_info));
         fillElementalAuxVariable(_heat_source_var, c.second, volumetric_power);
@@ -1535,10 +1543,11 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
     {
       const auto * filter = _mesh_filters[i];
       relaxAndNormalizeHeatSource(i);
+      Real template_power_fraction = 0.0;
 
       for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
       {
-        Real power_fraction = _current_mean_tally(e);
+        Real power_fraction = _current_mean_tally[i](e);
 
         // divide each tally by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric heat source (W/volume).
@@ -1547,12 +1556,17 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         Real volumetric_power = power_fraction * _power / _mesh_template->volume(e) *
           _scaling * _scaling * _scaling;
         power_fraction_sum += power_fraction;
+        template_power_fraction += power_fraction;
 
         checkZeroTally(power_fraction, "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
 
         std::vector<unsigned int> elem_ids = {offset + e};
         fillElementalAuxVariable(_heat_source_var, elem_ids, volumetric_power);
       }
+
+      if (_verbose)
+        _console << " mesh template " + Moose::stringify(i) << " power fraction: " << std::setw(3) <<
+          Moose::stringify(template_power_fraction) << std::endl;
 
       offset += filter->n_bins();
     }
