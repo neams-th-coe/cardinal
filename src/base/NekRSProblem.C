@@ -189,7 +189,7 @@ NekRSProblem::initialSetup()
   }
 
   // save initial mesh for moving mesh problems to match deformation in exodus output files
-  if (_moving_mesh)
+  if (_moving_mesh && !_disable_fld_file_output)
     nekrs::outfld(_timestepper->nondimensionalDT(_time));
 }
 

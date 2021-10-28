@@ -32,6 +32,7 @@ validParams<NekRSProblemBase>()
   params.addParam<bool>("write_fld_files", false, "Whether to write NekRS field file output "
     "from Cardinal. If true, this will disable any output writing by NekRS itself, and "
     "instead produce output files with names a01...a99pin, b01...b99pin, etc.");
+  params.addParam<bool>("disable_fld_file_output", false, "Whether to turn off all NekRS field file output writing");
 
   return params;
 }
@@ -45,8 +46,13 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   _rho_0(getParam<Real>("rho_0")),
   _Cp_0(getParam<Real>("Cp_0")),
   _write_fld_files(getParam<bool>("write_fld_files")),
+  _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
   _start_time(nekrs::startTime())
 {
+  if (_disable_fld_file_output && _write_fld_files)
+    mooseError("Cannot both disable all field file output and write custom field files!\n"
+      "'write_fld_files' and 'disable_fld_file_output' cannot both be true!");
+
   if (_app.isUltimateMaster() && _write_fld_files)
     mooseError("The 'write_fld_files' setting should only be true when multiple Nek simulations "
       "are run as sub-apps on a master app.\nYour input has Nek as the master app.");
@@ -141,7 +147,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
 NekRSProblemBase::~NekRSProblemBase()
 {
   // write nekRS solution to output if not already written for this step
-  if (!_is_output_step)
+  if (!_is_output_step && !_disable_fld_file_output)
   {
     if (_write_fld_files)
       nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(_time));
@@ -294,7 +300,7 @@ void NekRSProblemBase::externalSolve()
 
   _is_output_step = isOutputStep();
 
-  if (_is_output_step)
+  if (_is_output_step && !_disable_fld_file_output)
   {
     if (_write_fld_files)
       nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(step_end_time));

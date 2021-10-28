@@ -161,6 +161,9 @@ protected:
    */
   const bool & _write_fld_files;
 
+  /// Whether to turn off all field file writing
+  const bool & _disable_fld_file_output;
+
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
 
