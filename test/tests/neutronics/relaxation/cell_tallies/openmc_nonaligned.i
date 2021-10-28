@@ -54,6 +54,9 @@
   tally_type = cell
   solid_cell_level = 1
   scaling = 100.0
+
+  # our problem is missing overlap for fissile regions, so our local and global tallies
+  # wont match
   check_tally_sum = false
 []
 

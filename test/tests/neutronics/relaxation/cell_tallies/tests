@@ -1,36 +1,80 @@
 [Tests]
-  [global_with_alignment]
+  [global_with_alignment_unity_relax]
     type = Exodiff
     input = openmc.i
     exodiff = openmc_out.e
-    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with global tally "
-                  "normalization with identical alignment between the OpenMC model and the mesh mirror."
+    cli_args = "Problem/relaxation=constant Problem/relaxation_factor=1.0"
+    requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
+                  "globally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
   []
-  [local_with_alignment]
+  [global_with_alignment_relax]
     type = Exodiff
     input = openmc.i
-
-    # global and local tally normalization is the same if there's perfect alignment, so
-    # we can use the same gold file
-    exodiff = openmc_out.e
-
-    cli_args = "Problem/normalize_by_global_tally=false"
-    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with local tally "
-                  "normalization with identical alignment between the OpenMC model and the mesh mirror."
+    exodiff = alignment_with_relaxation.e
+    cli_args = "Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=alignment_with_relaxation"
+    requirement = "The wrapping shall apply constant relaxation for a case with globally-normalized cell tallies "
+                  "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
+                  "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
+                  "openmc.i run (without any command line parameter settings)."
   []
-  [global_without_alignment]
+
+  [local_with_alignment_unity_relax]
+    type = Exodiff
+    input = openmc.i
+    exodiff = openmc_out.e
+    cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=1.0"
+    requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
+                  "locally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
+  []
+  [local_with_alignment_relax]
+    type = Exodiff
+    input = openmc.i
+    exodiff = alignment_with_relaxation.e
+    cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=alignment_with_relaxation"
+    requirement = "The wrapping shall apply constant relaxation for a case with locally-normalized cell tallies "
+                  "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
+                  "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
+                  "openmc.i case with normalize_by_global_tally=false."
+  []
+
+  [global_without_alignment_unity_relax]
     type = Exodiff
     input = openmc_nonaligned.i
     exodiff = openmc_nonaligned_out.e
-    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with global tally "
-                  "normalization without perfect alignment between the OpenMC model and the mesh mirror."
+    cli_args = "Problem/relaxation=constant Problem/relaxation_factor=1.0"
+    requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
+                  "globally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the "
+                  "mesh mirror."
   []
-  [local_without_alignment]
+  [global_without_alignment_relax]
+    type = Exodiff
+    input = openmc_nonaligned.i
+    exodiff = nonalignment_with_relaxation.e
+    cli_args = "Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=nonalignment_with_relaxation"
+    requirement = "The wrapping shall apply constant relaxation for a case with globally-normalized cell tallies "
+                  "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
+                  "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
+                  "openmc_nonaligned.i case (without additional command line parameters)"
+  []
+
+  [local_without_alignment_unity_relax]
     type = Exodiff
     input = openmc_nonaligned.i
     exodiff = out.e
-    cli_args = "Problem/normalize_by_global_tally=false Outputs/file_base=out"
-    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with local tally "
-                  "normalization without perfect alignment between the OpenMC model and the mesh mirror."
+    cli_args = "Problem/normalize_by_global_tally=false Outputs/file_base=out Problem/relaxation=constant Problem/relaxation_factor=1.0"
+    min_parallel = 2
+    requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
+                  "locally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the mesh mirror"
+  []
+  [local_without_alignment_relax]
+    type = Exodiff
+    input = openmc_nonaligned.i
+    exodiff = nonalignment_relaxation_out.e
+    cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=nonalignment_relaxation_out"
+    min_parallel = 2
+    requirement = "The wrapping shall apply constant relaxation for a case with locally-normalized cell tallies "
+                  "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
+                  "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
+                  "openmc_nonaligned.i case with normalize_by_global_tally=false"
   []
 []
