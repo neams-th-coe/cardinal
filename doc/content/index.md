@@ -5,6 +5,9 @@
 !style halign=center fontsize=120%
 An open-source coupling of NekRS and OpenMC to MOOSE
 
+!media assembly_fluid_temp_fine.png
+  style=width:100%;margin-left:auto;margin-right:auto
+
 !col! small=12 medium=4 large=4 icon=flash_on
 
 ### Flexible Multiphysics class=center style=font-weight:200
@@ -47,6 +50,18 @@ also allows NekRS and OpenMC to be coupled to *any* MOOSE application, enabling
 a broad set of multiphysics capabilities. Simulations can also leverage combinations
 of MPI, OpenMP, and GPU resources.
 
+!gallery! large=6
+!card media/full_pbr.png title=Pebble Bed Reactors
+Full-core PBR simulations with NekRS [!cite](lan); MOOSE multiphysics feedback can be incorporated with NekRS and OpenMC simulations via Cardinal and have been applied to fully-coupled OpenMC-NekRS-MOOSE simulations with up to 127,000 pebbles [!cite](fischer_2021). Figure shows fluid velocity predicted by NekRS.
+
+!card media/sfr_fluid_planes.png title=Fast Reactors
+Multiphysics model of a 7-pin SFR fuel bundle using NekRS-OpenMC-MOOSE [!cite](novak2022); figure shows fluid temperature predicted by a momentum source NekRS model with solid duct temperature predicted by BISON.
+
+!card media/assembly_solid_temp_fine.png title=Prismatic Gas Reactors
+Multiphysics model of a prismatic hexagonal assembly with TRISO fuel using THM-OpenMC-MOOSE [!cite](novak_2021c); figure shows the solid temperature predicted by BISON.
+!gallery-end!
+
+
 !col! small=12 medium=4 large=4 icon=get_app
 
 ### Getting Started class=center style=font-weight:200
@@ -74,19 +89,6 @@ Find instructions for building on common
 [HPC systems](hpc.md) across the National Laboratories
 !col-end!
 
-!media full_pbr.png
-  id=full_pbr
-  caption=Full-core [!ac](PBR) simulations with NekRS [!cite](lan); MOOSE multiphysics feedback can be incorporated with NekRS and OpenMC simulations via Cardinal and have been applied to fully-coupled OpenMC-NekRS-MOOSE simulations with up to 127,000 pebbles
-  style=width:70%;margin-left:auto;margin-right:auto
 
-!media pbr_1568.png
-  id=pbr_1568
-  caption=Tightly-coupled NekRS-OpenMC-MOOSE simulations of a 1,568 pebble bed [!cite](cardinal2021NT)
-  style=width:70%;margin-left:auto;margin-right:auto
-
-!media sfr.png
-  id=sfr
-  caption=Tightly-coupled NekRS-OpenMC-MOOSE 7-pin [!ac](SFR) bundle simulations [!cite](novak2022)
-  style=width:70%;margin-left:auto;margin-right:auto
 
 !bibtex bibliography
