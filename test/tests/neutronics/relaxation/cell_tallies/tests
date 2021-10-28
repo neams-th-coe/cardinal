@@ -1,0 +1,36 @@
+[Tests]
+  [global_with_alignment]
+    type = Exodiff
+    input = openmc.i
+    exodiff = openmc_out.e
+    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with global tally "
+                  "normalization with identical alignment between the OpenMC model and the mesh mirror."
+  []
+  [local_with_alignment]
+    type = Exodiff
+    input = openmc.i
+
+    # global and local tally normalization is the same if there's perfect alignment, so
+    # we can use the same gold file
+    exodiff = openmc_out.e
+
+    cli_args = "Problem/normalize_by_global_tally=false"
+    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with local tally "
+                  "normalization with identical alignment between the OpenMC model and the mesh mirror."
+  []
+  [global_without_alignment]
+    type = Exodiff
+    input = openmc_nonaligned.i
+    exodiff = openmc_nonaligned_out.e
+    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with global tally "
+                  "normalization without perfect alignment between the OpenMC model and the mesh mirror."
+  []
+  [local_without_alignment]
+    type = Exodiff
+    input = openmc_nonaligned.i
+    exodiff = out.e
+    cli_args = "Problem/normalize_by_global_tally=false Outputs/file_base=out"
+    requirement = "The OpenMC wrapping shall perform transport with cell tallies on a model with local tally "
+                  "normalization without perfect alignment between the OpenMC model and the mesh mirror."
+  []
+[]
