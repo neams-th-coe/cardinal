@@ -98,6 +98,11 @@ validParams<OpenMCCellAverageProblem>()
 
   MultiMooseEnum openmc_outputs("fission_tally_std_dev");
   params.addParam<MultiMooseEnum>("output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
+
+  params.addParam<MooseEnum>("relaxation", getRelaxationEnum(),
+    "Type of relaxation to apply to the OpenMC solution, options: constant, none (default)");
+  params.addRangeCheckedParam<Real>("relaxation_factor", 0.5, "relaxation_factor > 0.0 & relaxation_factor < 2.0",
+    "Relaxation factor for use with constant relaxation");
   return params;
 }
 
@@ -105,6 +110,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   ExternalProblem(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
+  _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
   _power(getParam<Real>("power")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
   _verbose(getParam<bool>("verbose")),
@@ -115,13 +121,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
   _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") : _normalize_by_global),
   _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
+  _relaxation_factor(getParam<Real>("relaxation_factor")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
   _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_openmc_cells(openmc::model::cells.size()),
   _n_cell_digits(digits(_n_openmc_cells)),
-  _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks"))
+  _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
+  _fixed_point_iteration(-1)
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -147,6 +155,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
       mooseError("In attempting to set the number of batches, OpenMC reported:\n\n" +
         std::string(openmc_err_msg));
   }
+
+  if (params.isParamSetByUser("relaxation_factor") && _relaxation != relaxation::constant)
+    mooseWarning("The 'relaxation_factor' parameter is unused when not using constant relaxation!");
 
   // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
   // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred
@@ -1174,6 +1185,8 @@ void OpenMCCellAverageProblem::externalSolve()
   err = openmc_reset_timers();
   if (err)
     mooseError(openmc_err_msg);
+
+  _fixed_point_iteration += 1;
 }
 
 void
@@ -1338,6 +1351,15 @@ OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
     return tally_result / _local_kappa_fission;
 }
 
+xt::xtensor<double, 1>
+OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
+{
+  if (_normalize_by_global)
+    return raw_tally / _global_kappa_fission;
+  else
+    return raw_tally / _local_kappa_fission;
+}
+
 Real
 OpenMCCellAverageProblem::relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const
 {
@@ -1431,6 +1453,36 @@ OpenMCCellAverageProblem::fillElementalAuxVariable(const unsigned int & var_num,
 }
 
 void
+OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
+{
+  // if OpenMC has only run one time, or we don't have relaxation at all,
+  // then we don't have a "previous" with which to relax, so we just copy the mean tally in and return
+  if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
+  {
+    auto mean_tally = xt::view(_local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    _current_mean_tally = normalizeLocalTally(mean_tally);
+    _previous_mean_tally = normalizeLocalTally(mean_tally);
+    return;
+  }
+
+  // save the current tally (from the previous iteration) into the previous one
+  std::copy(_current_mean_tally.cbegin(), _current_mean_tally.cend(), _previous_mean_tally.begin());
+  auto mean_tally = xt::view(_local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+
+  switch (_relaxation)
+  {
+    case relaxation::constant:
+    {
+      auto relaxed_tally = (1.0 - _relaxation_factor) * _previous_mean_tally + _relaxation_factor * normalizeLocalTally(mean_tally);
+      std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally.begin());
+      break;
+    }
+    default:
+      mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
+  }
+}
+
+void
 OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 {
   _console << "Extracting OpenMC fission heat source... " << printNewline();
@@ -1450,7 +1502,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
   {
     case tally::cell:
     {
-      auto mean_tally = xt::view(_local_tally.at(0)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      relaxAndNormalizeHeatSource(0);
 
       int i = 0;
       for (const auto & c : _cell_to_elem)
@@ -1461,7 +1513,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         if (!_cell_has_tally[cell_info])
           continue;
 
-        Real power_fraction = normalizeLocalTally(mean_tally(i++));
+        Real power_fraction = _current_mean_tally(i++);
 
         // divide each tally value by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric heat source (W/volume).
@@ -1482,11 +1534,11 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
     for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
     {
       const auto * filter = _mesh_filters[i];
-      auto mean_tally = xt::view(_local_tally.at(i)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      relaxAndNormalizeHeatSource(i);
 
       for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
       {
-        Real power_fraction = normalizeLocalTally(mean_tally(e));
+        Real power_fraction = _current_mean_tally(e);
 
         // divide each tally by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric heat source (W/volume).

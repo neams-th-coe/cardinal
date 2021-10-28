@@ -8,6 +8,7 @@ MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getEigenvalueEnum();
 MooseEnum getChannelTypeEnum();
+MooseEnum getRelaxationEnum();
 
 namespace order
 {
@@ -95,5 +96,17 @@ namespace channel_type
     interior,
     edge,
     corner
+  };
+}
+
+namespace relaxation
+{
+  /// Type of relaxation
+  enum RelaxationEnum
+  {
+    constant,
+    robbins_monro,
+    dufek_gudowski,
+    none
   };
 }
