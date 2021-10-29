@@ -1,6 +1,6 @@
 [Mesh]
   [sphere]
-    type = FileMeshGenerator
+    type = FileMeshGeneratorfdhjsakfhj
     file = ../meshes/sphere.e
   []
   [solid]
