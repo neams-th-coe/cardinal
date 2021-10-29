@@ -509,6 +509,14 @@ are chosen with the `relaxation` parameter, which by default is set to `none`.
 Options include:
 
 - `constant`: choose a constant $\alpha$ and $s$
+- `robbins_monro`: $\alpha=\frac{1}{n+1}$ and constant $s$; applying the recursion
+  in [eq:fp1] shows that the solution at iteration $n+1$ is the average of the
+  previous $n$ Monte Carlo solutions
+
+\begin{equation}
+\label{eq:rm}
+\dot{q}^{n+1}=\frac{1}{n+1}\sum_{i=0}^n\Phi\left(\dot{q}^{i},s^i\right)
+\end{equation}
 
 #### Controlling the OpenMC Settings
 

@@ -32,5 +32,5 @@ MooseEnum getChannelTypeEnum()
 
 MooseEnum getRelaxationEnum()
 {
-  return MooseEnum("constant robbins-monro dufek-gudowski none", "none");
+  return MooseEnum("constant robbins_monro dufek_gudowski none", "none");
 }

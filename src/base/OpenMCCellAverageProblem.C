@@ -100,7 +100,7 @@ validParams<OpenMCCellAverageProblem>()
   params.addParam<MultiMooseEnum>("output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
 
   params.addParam<MooseEnum>("relaxation", getRelaxationEnum(),
-    "Type of relaxation to apply to the OpenMC solution, options: constant, none (default)");
+    "Type of relaxation to apply to the OpenMC solution, options: constant, robbins_monro, none (default)");
   params.addRangeCheckedParam<Real>("relaxation_factor", 0.5, "relaxation_factor > 0.0 & relaxation_factor < 2.0",
     "Relaxation factor for use with constant relaxation");
   return params;
@@ -1473,17 +1473,26 @@ OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
   std::copy(_current_mean_tally[t].cbegin(), _current_mean_tally[t].cend(), _previous_mean_tally[t].begin());
   auto mean_tally = xt::view(_local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
+  double alpha;
+
   switch (_relaxation)
   {
     case relaxation::constant:
     {
-      auto relaxed_tally = (1.0 - _relaxation_factor) * _previous_mean_tally[t] + _relaxation_factor * normalizeLocalTally(mean_tally);
-      std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally[t].begin());
+      alpha = _relaxation_factor;
+      break;
+    }
+    case relaxation::robbins_monro:
+    {
+      alpha = 1.0 / (_fixed_point_iteration + 1);
       break;
     }
     default:
       mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
   }
+
+  auto relaxed_tally = (1.0 - alpha) * _previous_mean_tally[t] + alpha * normalizeLocalTally(mean_tally);
+  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally[t].begin());
 }
 
 void

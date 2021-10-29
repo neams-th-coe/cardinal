@@ -17,6 +17,16 @@
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
   []
+  [global_with_alignment_rm_relax]
+    type = Exodiff
+    input = openmc.i
+    exodiff = rm_alignment_with_relaxation.e
+    cli_args = "Problem/relaxation=robbins_monro Outputs/file_base=rm_alignment_with_relaxation"
+    requirement = "The wrapping shall apply Robbins-Monro relaxation for a case with globally-normalized cell tallies "
+                  "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
+                  "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
+                  "openmc.i run (without any command line parameter settings)."
+  []
 
   [local_with_alignment_unity_relax]
     type = Exodiff
