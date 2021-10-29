@@ -117,6 +117,18 @@ public:
   typedef std::unordered_map<int32_t, std::vector<int32_t>> containedCells;
 
   /**
+   * Set the number of particles to run for a Monte Carlo calculation
+   * @param[in] n number of particles
+   */
+  void setParticles(const int64_t & n) const;
+
+  /**
+   * Get the number of particles used in the current Monte Carlo calculation
+   * @return number of particles
+   */
+  const int64_t & nParticles() const;
+
+  /**
    * Get the cell index from the element ID; will return UNMAPPED for unmapped elements
    * @param[in] elem_id element ID
    * @return cell index
@@ -816,6 +828,12 @@ protected:
    */
   unsigned int _fixed_point_iteration;
 
+  /// Total number of particles simulated
+  unsigned int _total_n_particles;
+
+  /// Number of particles simulated in the first iteration
+  unsigned int _n_particles_1;
+
   /**
    * Current fixed point iteration tally result; for instance, when using constant
    * relaxation, the heat source is updated as:
@@ -828,4 +846,10 @@ protected:
 
   /// Previous fixed point iteration tally result (after relaxation)
   std::vector<xt::xtensor<double, 1>> _previous_mean_tally;
+
+private:
+  /**
+   * Update the number of particles according to the Dufek-Gudowski relaxation scheme
+   */
+  void dufekGudowskiParticleUpdate();
 };

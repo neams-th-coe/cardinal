@@ -493,12 +493,14 @@ sum of the previous iterate and the most-recent Monte Carlo calculation:
 
 \begin{equation}
 \label{eq:fp1}
-\dot{q}^{n+1}=\left(1-\alpha^n\right)\dot{q}^n+\alpha^n\Phi\left(\dot{q}^n, s^n\right)
+\dot{q}^{n+1}=\left(1-\alpha^n\right)\dot{q}^n+\alpha^n\Phi^n
 \end{equation}
 
-where $\alpha$ is the weighting factor, $\Phi$ is a general operator indicating
-the Monte Carlo solve (which itself is a function of an operator representing the
-thermal-fluid solve), and $s$ is the number of samples. For $\alpha>1$, [eq:fp1]
+where $\alpha$ is the weighting factor, $\Phi^n$ is a general operator indicating
+the $n$-th Monte Carlo solve (which itself is a function of an operator representing the
+thermal-fluid solve) and the number of samples $s$. For the very first fixed point
+iteration, because there is no previous iterate, $\dot{q}^{1}=\Phi^0$.
+For $\alpha>1$, [eq:fp1]
 is referred to as "over-relaxation" because more than a full step is taken in
 the direction of the most recent iterate. Conversely, for $\alpha<1$, [eq:fp1] is
 referred to as "under-relaxation" because less than a full step is taken in the
@@ -515,7 +517,22 @@ Options include:
 
 \begin{equation}
 \label{eq:rm}
-\dot{q}^{n+1}=\frac{1}{n+1}\sum_{i=0}^n\Phi\left(\dot{q}^{i},s^i\right)
+\dot{q}^{n+1}=\frac{1}{n+1}\sum_{i=0}^n\Phi^n
+\end{equation}
+
+- `dufek_gudowski`: variable $\alpha$ and $s$; the step size is selected based
+  on the fraction of samples in the $n$-th Monte Carlo solve relative to the total
+  number of samples performed so far. The number of samples is then based on the notion
+  that the step size $\alpha$ should be proportional to the convergence rate of the
+  central limit theorem (inversely proportional to the square root of the total number
+  of simulated particles):
+
+\begin{equation}
+\begin{aligned}
+\label{eq:dg1}
+\alpha^n=&\ \frac{s^n}{\sum_{i=0}^ns^i}\\
+s^n=\frac{s^0+\sqrt{s^0s^0+4s^0\sum_{i=0}^{n-1}s^i}}{2}
+\end{aligned}
 \end{equation}
 
 #### Controlling the OpenMC Settings

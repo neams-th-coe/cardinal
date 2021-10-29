@@ -27,6 +27,16 @@
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
   []
+  [global_with_alignment_dg_relax]
+    type = Exodiff
+    input = dufek_gudowski.i
+    exodiff = dufek_gudowski_out.e
+    requirement = "The wrapping shall apply Dufek-Gudowski relaxation for a case with globally-normalized cell tallies "
+                  "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
+                  "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
+                  "same input file, but with the relaxation part commented out in the source code (so that we can compare "
+                  "directly against runs that only differ by changing the number of particles."
+  []
 
   [local_with_alignment_unity_relax]
     type = Exodiff
