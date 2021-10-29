@@ -312,6 +312,8 @@ protected:
    */
   double tallySum(std::vector<openmc::Tally *> tally) const;
 
+  void relaxAndNormalizeHeatSource(const int & t);
+
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
    * is mapped based on phase. This function is used to ensure that each OpenMC cell only maps
@@ -400,6 +402,14 @@ protected:
   Real normalizeLocalTally(const Real & tally_result) const;
 
   /**
+   * Normalize the local tally by either the global kappa fission tally, or the sum
+   * of the local kappa fission tally
+   * @param[in] raw_tally value of tally result
+   * @return normalized tally
+   */
+  xt::xtensor<double, 1> normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const;
+
+  /**
    * Add the local kappa-fission tally
    * @param[in] filters tally filters
    * @param[in] estimator estimator type
@@ -464,6 +474,12 @@ protected:
    * OpenMC geometry
    */
   const tally::TallyTypeEnum _tally_type;
+
+  /**
+   * Type of relaxation to apply to the OpenMC solution; relaxation is
+   * applied to the heat source tally.
+   */
+  const relaxation::RelaxationEnum _relaxation;
 
   /// Constant power for the entire OpenMC domain
   const Real & _power;
@@ -598,6 +614,9 @@ protected:
    * results of a stochastic volume calculation in OpenMC, but that is too expensive).
    */
   const bool & _check_equal_mapped_tally_volumes;
+
+  /// Constant relaxation factor
+  const Real & _relaxation_factor;
 
   /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
@@ -789,4 +808,24 @@ protected:
 
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION {3};
+
+  /**
+   * Fixed point iteration index used in relaxation; because we sometimes run OpenMC
+   * in a pseudo-transient coupling with NekRS, we simply increment this by 1 each
+   * time we call openmc::run()
+   */
+  unsigned int _fixed_point_iteration;
+
+  /**
+   * Current fixed point iteration tally result; for instance, when using constant
+   * relaxation, the heat source is updated as:
+   * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
+   * where q(n+1) is _current_mean_tally, a is the relaxation factor, q(n)
+   * is _previous_mean_tally, and PHI is the most-recently-computed tally result
+   * (available locally in the heat source update function).
+   */
+  std::vector<xt::xtensor<double, 1>> _current_mean_tally;
+
+  /// Previous fixed point iteration tally result (after relaxation)
+  std::vector<xt::xtensor<double, 1>> _previous_mean_tally;
 };

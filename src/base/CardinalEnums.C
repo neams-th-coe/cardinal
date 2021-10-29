@@ -29,3 +29,8 @@ MooseEnum getChannelTypeEnum()
 {
   return MooseEnum("interior edge corner");
 }
+
+MooseEnum getRelaxationEnum()
+{
+  return MooseEnum("constant robbins-monro dufek-gudowski none", "none");
+}

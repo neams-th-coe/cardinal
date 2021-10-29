@@ -451,7 +451,7 @@ element in the `[Mesh]`.
 
 While this class mainly facilitates data transfers to and from OpenMC, a number of
 other features are implemented in order to enable more convenient input file
-setup. These are described in this section.
+setup and achieve better iterative performance. These are described in this section.
 
 #### Mesh Scaling
   id=scaling
@@ -480,6 +480,35 @@ specified in a unit 100.0 times larger than the OpenMC unit of centimeters.
 
 !listing test/tests/neutronics/feedback/different_units/openmc.i
   block=Problem
+
+#### Relaxation
+
+OpenMC is coupled to MOOSE via fixed point iteration, also referred to
+as Picard iteration. For many problems, oscillations can exist between OpenMC
+and the coupled thermal-fluid physics. The OpenMC wrapping offers several
+options by which the heat source computed by OpenMC can be "relaxed" between
+iterations to effectively damp these oscillations. For all these relaxation schemes,
+the heat source that gets coupled to MOOSE for iteration $n+1$ is taken as a weighted
+sum of the previous iterate and the most-recent Monte Carlo calculation:
+
+\begin{equation}
+\label{eq:fp1}
+\dot{q}^{n+1}=\left(1-\alpha^n\right)\dot{q}^n+\alpha^n\Phi\left(\dot{q}^n, s^n\right)
+\end{equation}
+
+where $\alpha$ is the weighting factor, $\Phi$ is a general operator indicating
+the Monte Carlo solve (which itself is a function of an operator representing the
+thermal-fluid solve), and $s$ is the number of samples. For $\alpha>1$, [eq:fp1]
+is referred to as "over-relaxation" because more than a full step is taken in
+the direction of the most recent iterate. Conversely, for $\alpha<1$, [eq:fp1] is
+referred to as "under-relaxation" because less than a full step is taken in the
+direction of the most recent iterate.
+
+Several options are available in Cardinal for selecting $\alpha$ and $s$. These
+are chosen with the `relaxation` parameter, which by default is set to `none`.
+Options include:
+
+- `constant`: choose a constant $\alpha$ and $s$
 
 #### Controlling the OpenMC Settings
 
