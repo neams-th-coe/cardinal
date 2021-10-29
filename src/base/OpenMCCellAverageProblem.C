@@ -135,7 +135,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
   _single_coord_level(openmc::model::n_coord_levels == 1),
-  _n_cell_digits(digits(_n_openmc_cells)),
+  _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
   _fixed_point_iteration(-1)
 {
