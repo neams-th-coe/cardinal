@@ -5,12 +5,13 @@ outlet_P = 7.1e6                         # fluid outlet pressure (Pa)
 channel_diameter = 0.016                 # diameter of the coolant channels (m)
 height = 6.343                           # height of the assembly (m)
 
-num_layers_for_THM = 150
+num_layers_for_THM = 50                  # number of elements in the THM model; for the converged case,
+                                         # we set this to 150
 
 [GlobalParams]
   initial_p = ${outlet_P}
   initial_T = ${inlet_T}
-  initial_vel = ${fparse mdot / outlet_P / 8.3144598 * 4.0e-3 / inlet_T / (pi * channel_diameter**2 / 4.0)}
+  initial_vel = ${fparse mdot / outlet_P / 8.3144598 * 4.0e-3 / inlet_T / (pi * channel_diameter * channel_diameter / 4.0)}
 
   rdg_slope_reconstruction = full
   closures = none

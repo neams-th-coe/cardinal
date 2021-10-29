@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to:
 
 - Couple OpenMC via temperature and density to separate MOOSE applications
-  solving for the thermal in the solid and fluid
+  solving for the thermal physics in the solid and fluid
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Apply homogenized temperature feedback to heterogeneous OpenMC cells
 - Couple OpenMC to mixed-dimension feedback with 3-D heat conduction and 1-D fluid flow
@@ -15,10 +15,14 @@ This tutorial makes use of the following major Cardinal classes:
 
 We recommend quickly reading this documentation before proceeding
 with this tutorial. This tutorial also requires you to download a
-mesh file and a OpenMC XML file from Box. Please download the files from the
+mesh file and an OpenMC XML file from Box. Please download the files from the
 `gas_assembly` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within the same directory structure
 in `tutorials/gas_assembly`.
+
+To run these input files, you also must have access to [!ac](THM)
+and have built Cardinal with [!ac](THM). Please follow the instructions
+[here](thm_instructions.md) for more information.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module
@@ -29,17 +33,27 @@ the MOOSE heat conduction module (for the solid regions) and from [!ac](THM)
 (for the fluid regions). Density feedback will be provided by [!ac](THM)
 for the fluid regions.
 This tutorial models a full-height [!ac](TRISO)-fueled prismatic gas reactor
-fuel assembly. This application is
+fuel assembly, and is
 an extension of [Tutorial 6C](gas_compact.md), which coupled
 OpenMC and MOOSE heat conduction (i.e. without an application providing fluid
-feedback) for a unit cell version of a prismatic gas reactor assembly. In this
-tutorial, we add fluid feedback and describe several nuances associated with
+feedback) for a unit cell version of the same geometry. In this
+tutorial, we add fluid feedback and also describe several nuances associated with
 setting up feedback in OpenMC lattices.
 
 This tutorial was developed with support from the NEAMS Thermal Fluids Center
 of Excellence. A paper [!cite](novak_2021c)
 describing the physics models and mesh refinement studies provides additional
 context beyond the scope of this tutorial.
+
+!alert note
+Due to the tall height of the full
+assembly (about 6 meters), the converged results shown in [!cite](novak_2021c)
+and in the figures in this tutorial require a finer mesh and more particles
+than in the input files
+we set up for this tutorial - the input files in this tutorial still require
+parallel resources to run, but should be more tractable for pedagogical purposes.
+Parameters that have been set to coarser values than what was used for the plots
+in this tutorial and in [!cite](novak_2021c) are noted where applicable.
 
 ## Geometry and Computational Model
 
@@ -62,7 +76,7 @@ There are also graphite reflectors above and below the assembly.
   style=width:80%;margin-left:auto;margin-right:auto
 
 The [!ac](TRISO) particles use a conventional design that consists of a central
-fissil uranium oxycarbide kernel enclosed in a carbon buffer, an inner
+fissile uranium oxycarbide kernel enclosed in a carbon buffer, an inner
 [!ac](PyC) layer, a silicon carbide layer, and finally an outer
 [!ac](PyC) layer. The geometric specifications for the assembly
 dimensions are shown in [assembly], while dimensions for the
@@ -99,7 +113,7 @@ and pincell meshes.
 
 !media assembly_solid_mesh.png
   id=solid_mesh
-  caption=Mesh for the solid heat conduction model
+  caption=Converged mesh for the solid heat conduction model (with 300 axial layers); to make the tutorial run faster, our mesh will only use 100 axial layers
   style=width:80%;margin-left:auto;margin-right:auto
 
 The file used to generate the solid mesh is shown below. The mesh is created
@@ -116,16 +130,18 @@ You can create this mesh by running:
 cardinal-opt -i common_input.i solid_mesh.i --mesh-only
 ```
 
-which takes advantage of a MOOSE feature for combining input files together by placing
+which will create a mesh named `solid_mesh_in.e`.
+Alternatively, you can download this mesh from Box.
+Note that the above coommand
+takes advantage of a MOOSE feature for combining input files together by placing
 some common parameters used by the other applications into a file named `common_input.i`.
-Alternatively, you can download and unzip this mesh from Box.
 
 The temperature on the fluid-solid interface is provided by [!ac](THM),
 while the heat source is provided by OpenMC.
 Because MOOSE heat conduction will run first in the coupled case,
 the initial fluid temperature is
 set to an axial distribution given by bulk energy conservation ($q=\dot{m}C_{p,f}\left(T_f-T_{inlet}\right)$)
-given the inlet temperature $T_{inlet}$, mass flowrate $\dot{m}$, fluid
+given the inlet temperature $T_{inlet}$, mass flowrate $\dot{m}$, and fluid
 isobaric specific heat $C_{p,f}$. The initial heat source distribution is assumed
 uniform in the radial direction with a sinusoidal dependence in the axial direction.
 
@@ -137,24 +153,28 @@ OpenMC's Python [!ac](API) is
 used to create the model with the script shown below. First, we define materials
 for the various regions. Next, we create a single [!ac](TRISO) particle universe
 consisting of the five layers of the particle and an infinite extent of graphite
-filling all other space. We then pack pack uniform-radius spheres into a cylindrical
+filling all other space. We then pack uniform-radius spheres into a cylindrical
 region representing a fuel compact, setting each sphere to be filled with the
 [!ac](TRISO) universe.
 
 Next, we loop over 50 axial layers and create a unique hexagonal lattice for each layer.
 This hexagonal lattice defines the fuel assembly structure, and consists of four different
-universes: 1) a fuel pin plus surronding matrix (`f`), 2) a coolant channel plus surrounding matrix (`c`),
-3) a boron carbide poision pin plus surrounding matrix (`p`), and 4) a homogeneous graphite hexagonal pincell to fill
-the "boundaries" and centermost region (`g`). In each layer we set up the lattice
+universes:
+
+- A fuel pin plus surronding matrix (`f`),
+- A coolant channel plus surrounding matrix (`c`),
+- A boron carbide poision pin plus surrounding matrix (`p`), and
+- A homogeneous graphite hexagonal pincell to fill
+  the "boundaries" and centermost region (`g`).
+
+In each layer we set up the lattice
 structure by listing the universes in each "ring" of the lattice, with `ring0` being
-the centermost ring and `ring11` being the outermost ring. For example, `ring2` is the
-innermost ring of fuel and coolant pins in this example, which is an alternation
-of a fuel pin and a coolant pin.
+the centermost ring and `ring11` being the outermost ring.
 
 Recall that temperatures in OpenMC can be set directly on the cell, but that fluid densities
 can only be set on *materials*. For this reason, we need to create 108 unique coolant materials
 for each axial plane if we want to be able to set unique densities in each coolant channel
-region. Rather than creating 108 materials in a loop or through some other manual process,
+region. Rather than creating 108 materials in a loop,
 we use the `clone()` feature in OpenMC to clone an existing coolant material 108 times per layer.
 This duplicates the material properties (densities and isotopic compisition), but assigns
 a new ID that allows individual tracking of density. The Python script used to create the
@@ -197,7 +217,7 @@ OpenMC receives on each axial plane a total of 721 temperatures and 108 densitie
 The solid temperature is provided by the MOOSE heat conduction module,
 while the fluid temperature and density are provided by [!ac](THM).
 Because we will run OpenMC second, the initial fluid temperature is
-set to the same initial condition imposed in the MOOSE heat conduction model.
+set to the same initial condition that is imposed in the MOOSE heat conduction model.
 The fluid density is then set using the ideal gas [!ac](EOS) at a fixed pressure
 of 7.1 MPa given the imposed temperature, i.e. $\rho_f(P,T_f)$.
 
@@ -208,7 +228,7 @@ $ python assembly.py
 ```
 
 You can also use the XML files checked in to the `tutorials/gas_assembly` directory;
-if you use these already-existing files, be sure to download the `geometry.xml` file
+if you use these already-existing files, you will also need to download the `geometry.xml` file
 from Box; this file is large due to the saved [!ac](TRISO) geometry information.
 
 ### THM Model
@@ -227,23 +247,23 @@ from Box; this file is large due to the saved [!ac](TRISO) geometry information.
 
 \begin{equation}
 \label{eq:thm3}
-\frac{\partial}{\partial t}\left(A\rho_f E_f\right)+\frac{\partial}{\partial x}\left\lbrack Au\left(\rho_fE_f+P\right)\right\rbrack=-\tilde{P}\frac{\partial A}{\partial t}+H_wa_w\left(T_\text{wall}-T_\text{bulk}\right)A
+\frac{\partial}{\partial t}\left(A\rho_f E_f\right)+\frac{\partial}{\partial x}\left\lbrack Au\left(\rho_fE_f+P\right)\right\rbrack=H_wa_w\left(T_\text{wall}-T_\text{bulk}\right)A
 \end{equation}
 
 where $x$ is the coordinate along the flow length, $A$ is the channel cross-sectional area, $u$ is the $x$-component of velocity, $\tilde{P}$ is the average pressure on the curve boundary, $f$ is the friction factor, $H_w$ is the wall heat transfer coefficient, $a_w$ is the heat transfer area density, $T_\text{wall}$ is the wall temperature, and $T_\text{bulk}$ is the area average bulk fluid temperature. The Churchill correlation is used for $f$ and the Dittus-Boelter correlation is used for $H_w$ [!cite](relap7).
 
-The [!ac](THM) mesh for each flow channel is a 1-D mesh with 150 elements.
+The converged [!ac](THM) mesh for each flow channel contains 150 elements - for our tutorial,
+we will only use 50 elements.
 The mesh is constructed automatically within [!ac](THM).
 To simplify the specification of
 material properties, the fluid geometry uses a length unit of meters.
-The heat flux imposed in the 150 [!ac](THM) elements is obtained by area averaging the heat flux from
-the heat conduction model in $N$ layers along the fluid-solid interface. For the reverse transfer, the wall temperature
+The heat flux imposed in the [!ac](THM) elements is obtained by area averaging the heat flux from
+the heat conduction model in 50 layers along the fluid-solid interface. For the reverse transfer, the wall temperature
 sent to MOOSE heat conduction is set to a uniform value along the
 fluid-solid interface according to a nearest-node mapping to the [!ac](THM) elements.
 
 Because [!ac](THM) will run last in the coupled case, initial conditions are only required for pressure,
-fluid temperature, and velocity, which are set to uniform distributions. The pressure, temperature,
-and velocity are set to the inlet values.
+fluid temperature, and velocity, which are set to uniform distributions according to the inlet conditions.
 
 ## Multiphysics Coupling
 
@@ -275,14 +295,15 @@ conduction module will also receive a fluid wall temperature from [!ac](THM)
 as another [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
 which we name `thm_temp`. Finally, the MOOSE heat conduction module will send the heat
 flux to [!ac](THM), so we add a variable named `flux` that we will use to compute
-the heat flux.
+the heat flux using the [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)
+auxiliary kernel.
 
 !listing /tutorials/gas_assembly/solid.i
   start=AuxVariables
   end=Executioner
 
-We use functions to define the thermal conductivities. We compute the material
-properties for the [!ac](TRISO) compacts as volume averages of the various constituent
+We use functions to define the thermal conductivities. The material
+properties for the [!ac](TRISO) compacts are taken as volume averages of the various constituent
 materials. We will evaluate the thermal conductivity for the boron carbide as a
 function of temperature by using `t` (which *usually* is interpeted as time) as
 a variable to represent temperature. This is syntax supported
@@ -301,21 +322,21 @@ length in [#n1].
   block=Postprocessors
 
 For visualization purposes only, we add
-[NearestPointLayeredAverages](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredAverage.html)
+[LayeredAverages](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html)
 for the fuel and block temperatures. These will average the temperature in layers
 oriented in the $z$ direction, which we will use for plotting axial temperature
 distributions. We output the results of these userobjects to CSV using
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html) and by setting `csv = true` in the output. Note that the temperature
-sent to OpenMC comes from the `T` variable, and not from these user objects.
+[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html) and by setting `csv = true` in the output.
 
 !listing /tutorials/gas_assembly/solid.i
   start=UserObjects
 
 Finally, we specify a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
 executioner. Because there are no time-dependent kernels in this input file,
-this is equivalent in practice to use a [Steady](https://mooseframework.inl.gov/source/executioners/Steady.html)
-executioner, but allows extensions of this tutorial to sub-cycling of MOOSE heat conduction
-and [!ac](THM) with respect to OpenMC (such as if you wanted to converge the
+this is equivalent in practice to using a [Steady](https://mooseframework.inl.gov/source/executioners/Steady.html)
+executioner, but allows you to potentially sub-cycle the MOOSE heat conduction solve
+relative to the OpenMC solve
+(such as if you wanted to converge the
 [!ac](CHT) fully inbetween data exchanges with OpenMC).
 
 !listing /tutorials/gas_assembly/solid.i
@@ -328,16 +349,11 @@ This input file is built using syntax specific to [!ac](THM) - we will only brie
 cover this syntax, and instead refer users to the [!ac](THM) manuals for more information.
 First we define a number of constants at the beginning of the file and apply
 some global settings. We set the initial conditions for pressure, velocity,
-and temperature and indicate the fluid [!ac](EOS) object.
+and temperature and indicate the fluid [!ac](EOS) object
+using [IdealGasFluidProperties](https://mooseframework.inl.gov/source/userobjects/IdealGasFluidProperties.html).
 
 !listing /tutorials/gas_assembly/thm.i
-  end=FluidProperties
-
-Next, we set the fluid [!ac](EOS) using
-[IdealGasFluidProperties](https://mooseframework.inl.gov/source/userobjects/IdealGasFluidProperties.html).
-
-!listing /tutorials/gas_assembly/thm.i
-  block=FluidProperties
+  end=AuxVariables
 
 Next, we define the "components" in the domain. These components essentially consist
 of the physics equations and boundary conditions solved by [!ac](THM), but expressed
@@ -352,7 +368,7 @@ Associated with these components are a number of closures, defined as materials.
 We set up the Churchill correlation for the friction factor and the Dittus-Boelter
 correlation for the convective heat transfer coefficient. Additional materials are
 created to represent dimensionless numbers and other auxiliary terms, such as the
-wall temperature. Note that
+wall temperature. As can be seen here,
 the [Material](https://mooseframework.inl.gov/syntax/Materials/index.html) system
 is not always used to represent quantities traditionally thought of as "material properties."
 
@@ -371,7 +387,7 @@ Finally, we set the preconditioner, a [Transient](https://mooseframework.inl.gov
 executioner,
 and set an Exodus output. The `steady_state_detection` and `steady_state_tolerance`
 parameters will automatically terminate the [!ac](THM) solution once the relative
-change in the solution is smaller than $10^{-8}$.
+change in the solution is less than $10^{-8}$.
 
 !listing /tutorials/gas_assembly/thm.i
   start=Preconditioning
@@ -380,7 +396,7 @@ As you may notice, this [!ac](THM) input file only models a single coolant flow
 channel. We will leverage a feature in MOOSE that allows a single application to be
 repeated multiple times throughout a master application without having to
 merge input files or perform other transformations. We will run OpenMC as
-the master application; the syntax needed for this setup is covered next
+the master application; the syntax needed to achieve this setup is covered next
 in [#n1].
 
 ### Neutronics Input Files
@@ -427,9 +443,10 @@ model maps to the `[Mesh]`, we also include
 Next, we add a receiver
 `flux` variable that will hold the heat flux received from MOOSE (and sent
 to [!ac](THM)) and another receiver variable `thm_temp_wall` that will hold
-the wall temperature received from [!ac](THM) (and sent to MOOSE). In addition,
-recall that the OpenMC wrapping (discussed in more detail later when describing
-the [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)) automatically
+the wall temperature received from [!ac](THM) (and sent to MOOSE).
+
+In addition,
+recall that the OpenMC wrapping automatically
 adds auxiliary variables named `temp` and `density` when receiving feedback
 from coupled applications. Because the blocks in the OpenMC mesh mirror
 receive temperatures from different applications, we will need to:
@@ -485,7 +502,7 @@ of the possible effect of non-equal mapped vlumes, please see the
 
 We also set `identical_tally_cell_fills = true`. This is an optimization that greatly
 reduces the initialization time for large [!ac](TRISO) problems. During setup of an
-OpenMC wrapping, we need to cache all the cells contained with the [!ac](TRISO) compacts
+OpenMC wrapping, we need to cache all the cells contained within the [!ac](TRISO) compacts
 so that we know all the contained cells to set the temperatures for. This process can
 be quite time-consuming if the search needs to be repeated for every single [!ac](TRISO)
 compact cell (210 compacts times 50 axial layers = 10,500 contained cell searches).
@@ -524,16 +541,17 @@ We also require a number of transfers both for 1) sending necessary coupling dat
 the three applications and 2) visualizing the combined [!ac](THM) output. To couple OpenMC
 to MOOSE heat conduction, we use four transfers:
 
-- [MultiAppInterpolationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppInterpolationTransfer.html)
-  to send the solid temperature from MOOSE to OpenMC
+- [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppInterpolationTransfer.html)
+  to transfer:
+
+  - solid temperature from MOOSE to OpenMC
+  - power from OpenMC to MOOSE (with conservation of total power)
+  - wall temperature from OpenMC (which doesn't directly compute the wall temperature, but
+    instead receives it from [!ac](THM) through a separate transfer) to MOOSE
+
 - [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
   to transfer and conserve heat flux from MOOSE to OpenMC (which isn't used directly in OpenMC, but instead
   gets sent later to [!ac](THM) through a separate transfer)
-- [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
-  to transfer and conserve the power from OpenMC to MOOSE
-- [MultiAppInterpolationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppInterpolationTransfer.html)
-  to transfer the [!ac](THM) wall temperature from OpenMC (which doesn't directly compute the wall temperature, but
-  instead receives it from THM through a separate transfer) to MOOSE
 
 To couple OpenMC to [!ac](THM), we require three transfers:
 
@@ -541,10 +559,11 @@ To couple OpenMC to [!ac](THM), we require three transfers:
   to send the layer-averaged wall heat flux from OpenMC (which computes the layered-average heat flux from the heat
   flux received from MOOSE heat conduction) to [!ac](THM)
 - [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
-  to send the fluid wall temperature from [!ac](THM) to OpenMC (which isn't used directly in OpenMC, but instead
-  gets sent to MOOSE heat conduction in a separate transfer)
-- [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
-  to send the fluid bulk temperature from [!ac](THM) to OpenMC
+  to transfer:
+
+  - fluid wall temperature from [!ac](THM) to OpenMC (which isn't used directly in OpenMC, but instead
+    gets sent to MOOSE heat conduction in a separate transfer)
+  - fluid bulk temperature from [!ac](THM) to OpenMC
 
 For visualization purposes, we also send the pressure and velocity computed by
 [!ac](THM) to the OpenMC mesh mirror.
@@ -556,8 +575,9 @@ For visualization purposes, we also send the pressure and velocity computed by
 To compute the layer-averaged heat flux on the surface of each coolant channel
 (which is used as a boundary condition in [!ac](THM)), we use a
 [NearestPointLayeredSideAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredSideAverage.html)
-user object. We also add several
-[NearestPointLayeredAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredAverage.html)
+user object, where by providing the center points of each of the coolant channels,
+we can get a unique heat flux along each channel wall.  We also add several
+[LayeredAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredAverage.html)
 user objects in order to compute radially-averaged power, temperatures,
 pressures, and velocities that we will use later in making axial plots
 of the solution. We can automatically output these user objects into
@@ -566,7 +586,7 @@ CSV format by translating the user objects into
 
 !listing /tutorials/gas_assembly/openmc.i
   start=UserObjects
-  end=Output
+  end=Executioner
 
 Finally, we use a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
 executioner and specify Exodus and CSV output formats. Note that the time step size is
@@ -577,6 +597,7 @@ inconsequential in this case, but instead represents the Picard iteration. We wi
   start=Executioner
 
 ## Execution and Postprocessing
+  id=results
 
 To run the coupled calculation, run the following:
 
@@ -587,15 +608,13 @@ $ mpiexec -np 6 cardinal-opt -i common_input.i openmc.i --n-threads=12
 This will run with 6 [!ac](MPI) processes and 12 OpenMP threads (you may use other
 parallel configurations as needed). This tutorial uses quite large meshes due to the
 6 meter height of the domain - if you wish to run this tutorial with fewer computational
-resources, just edit the `height` in the `common_input.i` file and the `n_layers`
-local variable defining the axial mesh extrusions in `solid_mesh.i`, and re-run the following:
+resources, you can reduce the height and the various mesh parameters (number of extruded
+layers and elements in the [!ac](THM) domain) and then recreate the OpenMC model and meshes.
+Recall that all results shown in this section correspond to the same input files
+but with 300 extrusion layers in the solid, 150 [!ac](THM) elements per channel,
+and 2000 particles per active batch - to get a faster-running tutorial, we reduced all three
+of these parameters to coarser values.
 
-```
-$ python assembly.py
-$ cardinal-opt -i common_input.i solid_mesh.i --mesh-only
-```
-
-and then run the simulation.
 When the simulation has completed, you will have created a number of different output files:
 
 - `openmc_out.e`, an Exodus file with the OpenMC solution and the data that was
@@ -614,8 +633,6 @@ When the simulation has completed, you will have created a number of different o
   compact temperature at time step `<n>`
 - `openmc_out_fluid_avg_<n>.csv`, a CSV file with the layer-averaged fluid bulk
   temperature at time step `<n>`
-- `openmc_out_fluid_wall_avg_<n>.csv`, a CSV file with the layer-averaged fluid
-  wall temperature at time step `<n>`
 - `openmc_out_power_avg_<n>`.csv, a CSV file with the layer-averaged heat source
   at time step `<n>`
 - `openmc_out_pressure_avg_<n>`.csv, a CSV file with the layer-averaged pressure
@@ -636,7 +653,7 @@ in iteration $i$:
 
 - Iteration A$i$ represents a MOOSE heat conduction solve
   using the power and fluid-solid wall temperature from iteration $i-1$
-- Iteration B$i$ represents an OpenMC Monte Carlo solve using the solid temperature
+- Iteration B$i$ represents an OpenMC solve using the solid temperature
   from iteration $i$ and the fluid temperature and density from iteration $i-1$
 - Iteration C$i$ represents a [!ac](THM) solve using the fluid-solid wall heat
   flux from iteration $i$
@@ -647,7 +664,7 @@ in iteration $i$:
 
 [power_convergence] shows the radially-averaged power from OpenMC as a function
 of iteration number. There is essentially no change in the axial distribution beyond
-5 fixed point iterations, which further confirms that we have obtained a converged solution.
+6 fixed point iterations, which further confirms that we have obtained a converged solution.
 The remainder of the depicted results correpond to iteration 6.
 
 !media assembly_q_iteration.png
@@ -695,7 +712,7 @@ that are sufficiently close to the periphery to be affected by the lateral insul
   id=fluid_temp
   caption=Fluid temperature predicted by [!ac](THM) (tubes and inset) and solid temperature predicted by MOOSE (five slices). Note the use of three separate color scales.
 
-Finally, Fig. [assembly_averages] shows the radially-averaged fission distribution and fluid, compact, and graphite temperatures (left(;
+Finally, Fig. [assembly_averages] shows the radially-averaged fission distribution and fluid, compact, and graphite temperatures (left);
 and velocity and pressure (right) as a function of axial position. The negative
 temperature feedback results in a top-peaked power distribution. The fuel temperature
 peaks near the mid-plane due to the combined effects of the relatively high power

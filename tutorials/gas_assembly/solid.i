@@ -157,19 +157,17 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
 
 [UserObjects]
   [average_fuel_axial]
-    type = NearestPointLayeredAverage
+    type = LayeredAverage
     variable = T
     direction = z
     num_layers = ${num_layers_for_plots}
-    points = '0.0 0.0 0.0'
     block = 'compacts'
   []
   [average_block_axial]
-    type = NearestPointLayeredAverage
+    type = LayeredAverage
     variable = T
     direction = z
     num_layers = ${num_layers_for_plots}
-    points = '0.0 0.0 0.0'
     block = 'graphite'
   []
 []

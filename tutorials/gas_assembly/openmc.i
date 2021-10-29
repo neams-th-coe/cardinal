@@ -1,10 +1,5 @@
-# This input file runs coupled OpenMC Monte Carlo transport, MOOSE heat
-# conduction, and THM fluid flow and heat transfer.
-# This input should be run with:
-#
-# cardinal-opt -i common_input.i openmc.i
-
-num_layers_for_THM = 150
+num_layers_for_THM = 50      # number of elements in the THM model; for the converged
+                             # case, we set this to 150
 
 [Mesh]
   # mesh mirror for the solid regions
@@ -19,7 +14,7 @@ num_layers_for_THM = 150
   [coolant_face]
     type = AnnularMeshGenerator
     nr = 1
-    nt = 16
+    nt = 8
     rmin = 0.0
     rmax = ${fparse channel_diameter / 2.0}
   []
@@ -208,6 +203,10 @@ num_layers_for_THM = 150
 
   relaxation = constant
   relaxation_factor = 0.5
+
+  # to get a faster-running tutorial, we use only 1000 particles per batch; converged
+  # results are instead obtained by increasing this parameter to 10000
+  particles = 1000
 []
 
 [Postprocessors]
@@ -274,7 +273,6 @@ num_layers_for_THM = 150
     app_type = CardinalApp
     input_files = 'solid.i'
     execute_on = timestep_begin
-    sub_cycling = true
   []
   [thm]
     type = FullSolveMultiApp
@@ -290,7 +288,7 @@ num_layers_for_THM = 150
 
 [Transfers]
   [solid_temp_to_openmc]
-    type = MultiAppInterpolationTransfer
+    type = MultiAppMeshFunctionTransfer
     source_variable = T
     variable = solid_temp
     direction = from_multiapp
@@ -318,7 +316,7 @@ num_layers_for_THM = 150
     to_postprocessors_to_be_preserved = power
   []
   [thm_temp_to_bison]
-    type = MultiAppInterpolationTransfer
+    type = MultiAppMeshFunctionTransfer
     source_variable = thm_temp_wall
     variable = thm_temp
     direction = to_multiapp
@@ -384,43 +382,31 @@ num_layers_for_THM = 150
     direction_max = ${height}
   []
   [average_power_axial]
-    type = NearestPointLayeredAverage
+    type = LayeredAverage
     variable = heat_source
     direction = z
     num_layers = ${num_layers_for_plots}
-    points = '0.0 0.0 0.0'
     block = 'compacts'
   []
   [average_fluid_axial]
-    type = NearestPointLayeredAverage
+    type = LayeredAverage
     variable = thm_temp
     direction = z
     num_layers = ${num_layers_for_plots}
-    points = '0.0 0.0 0.0'
-    block = '101'
-  []
-  [average_wall_axial]
-    type = NearestPointLayeredAverage
-    variable = thm_temp_wall
-    direction = z
-    num_layers = ${num_layers_for_plots}
-    points = '0.0 0.0 0.0'
     block = '101'
   []
   [average_pressure]
-    type = NearestPointLayeredAverage
+    type = LayeredAverage
     variable = thm_pressure
     direction = z
     num_layers = ${num_layers_for_plots}
-    points = '0.0 0.0 0.0'
     block = '101'
   []
   [average_axial_velocity]
-    type = NearestPointLayeredAverage
+    type = LayeredAverage
     variable = thm_velocity
     direction = z
     num_layers = ${num_layers_for_plots}
-    points = '0.0 0.0 0.0'
     block = '101'
   []
 []
@@ -433,10 +419,6 @@ num_layers_for_THM = 150
   [fluid_avg]
     type = SpatialUserObjectVectorPostprocessor
     userobject = average_fluid_axial
-  []
-  [fluid_wall_avg]
-    type = SpatialUserObjectVectorPostprocessor
-    userobject = average_wall_axial
   []
   [pressure_avg]
     type = SpatialUserObjectVectorPostprocessor

@@ -1,9 +1,5 @@
-# This input file is used to create the mesh for the solid phase.
-# This should be run with:
-#
-# cardinal-opt -i common_input.i solid_mesh.i --mesh-only
-
-n_layers = 300
+n_layers = 100    # number of axial extrusion layers; for the converged case,
+                  # we set this to 300 to get a finer mesh
 
 [GlobalParams]
   quad_center_elements = true

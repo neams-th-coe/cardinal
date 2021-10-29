@@ -10,7 +10,6 @@
     <color id="4" rgb="255 255 0" />
     <color id="5" rgb="0 0 139" />
     <color id="7" rgb="135 206 250" />
-    <color id="8" rgb="255 0 0" />
     <color id="9" rgb="255 0 0" />
     <color id="10" rgb="255 0 0" />
     <color id="11" rgb="255 0 0" />
@@ -5410,5 +5409,6 @@
     <color id="5405" rgb="255 0 0" />
     <color id="5406" rgb="255 0 0" />
     <color id="5407" rgb="255 0 0" />
+    <color id="5408" rgb="255 0 0" />
   </plot>
 </plots>

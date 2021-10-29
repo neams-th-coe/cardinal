@@ -171,6 +171,19 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     m_b4c.add_element('C', carbon_mass / total_mass, 'wo')
     m_b4c.set_density('kg/m3', specs.B4C_density)
 
+    # reflector is 40 percent helium by volume (arbitrary assumption), with helium
+    # at the inlet conditions
+    rho = coolant_density(specs.inlet_T)
+    matrix_density = 1700
+    reflector_porosity = 0.40
+    n_helium = reflector_porosity * rho / 4.002602
+    n_carbon = (1.0 - reflector_porosity) * matrix_density / 12.0107
+    combined_density = rho * reflector_porosity + matrix_density * (1.0 - reflector_porosity)
+    m_reflector = openmc.Material(name='reflector')
+    m_reflector.add_element('He', n_helium / (n_helium + n_carbon))
+    m_reflector.add_element('C', n_carbon / (n_helium + n_carbon))
+    m_reflector.set_density('kg/m3', combined_density)
+
     # TRISO particle
     radius_pyc_outer   = specs.oPyC_radius * m
 
@@ -307,8 +320,8 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     bottom_refl_z = -bottom_reflector_height
     bottom_refl = openmc.ZPlane(z0=bottom_refl_z, boundary_type='vacuum')
 
-    top_refl_cell = openmc.Cell(region=hex_prism & +max_z & -top_refl, fill=m_graphite_matrix)
-    bottom_refl_cell = openmc.Cell(region=hex_prism & -min_z & +bottom_refl, fill=m_graphite_matrix)
+    top_refl_cell = openmc.Cell(region=hex_prism & +max_z & -top_refl, fill=m_reflector)
+    bottom_refl_cell = openmc.Cell(region=hex_prism & -min_z & +bottom_refl, fill=m_reflector)
     top_refl_cell.temperature = specs.inlet_T
     bottom_refl_cell.temperature = coolant_outlet_temp
 

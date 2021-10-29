@@ -37,10 +37,11 @@
     <nuclide name="B11" wo="0.004244322233308628" />
     <nuclide name="C0" wo="0.9937556777666914" />
   </material>
-  <material id="8" name="Helium coolant">
-    <density units="sum" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+  <material id="8" name="reflector">
+    <density units="kg/m3" value="1022.2531363721369" />
+    <nuclide ao="1.3169643080153398e-08" name="He3" />
+    <nuclide ao="0.006584808370433619" name="He4" />
+    <nuclide ao="0.9934151784599232" name="C0" />
   </material>
   <material id="9" name="Helium coolant">
     <density units="sum" />
@@ -27033,6 +27034,11 @@
     <nuclide ao="0.999998" name="He4" />
   </material>
   <material id="5407" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="5408" name="Helium coolant">
     <density units="sum" />
     <nuclide ao="2e-06" name="He3" />
     <nuclide ao="0.999998" name="He4" />
