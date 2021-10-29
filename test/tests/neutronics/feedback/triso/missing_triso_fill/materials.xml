@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1" name="fuel" temperature="300.0">
+    <density units="kg/m3" value="10820" />
+    <nuclide ao="0.0020301709666386285" name="U234" />
+    <nuclide ao="0.15666685722582877" name="U235" />
+    <nuclide ao="0.8413029718075326" name="U238" />
+    <nuclide ao="1.5" name="C0" />
+    <nuclide ao="0.4998105" name="O16" />
+    <nuclide ao="0.0001895" name="O17" />
+  </material>
+  <material id="2" name="water" temperature="300.0">
+    <density units="kg/m3" value="100.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+  </material>
+  <material id="3" name="Helium coolant" temperature="500.0">
+    <density units="kg/m3" value="1.0" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="4" name="Helium coolant" temperature="500.0">
+    <density units="kg/m3" value="1.0" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="5" name="Helium coolant" temperature="500.0">
+    <density units="kg/m3" value="1.0" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="6" name="Helium coolant" temperature="500.0">
+    <density units="kg/m3" value="1.0" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="7" name="Helium coolant" temperature="500.0">
+    <density units="kg/m3" value="1.0" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="8" name="Helium coolant" temperature="500.0">
+    <density units="kg/m3" value="1.0" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+</materials>
