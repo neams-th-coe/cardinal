@@ -16,6 +16,7 @@
 #include "openmc/geometry.h"
 #include "openmc/geometry_aux.h"
 #include "openmc/message_passing.h"
+#include "openmc/random_lcg.h"
 #include "openmc/settings.h"
 #include "openmc/summary.h"
 #include "xtensor/xarray.hpp"
@@ -63,7 +64,7 @@ validParams<OpenMCCellAverageProblem>()
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
 
-  params.addRangeCheckedParam<unsigned int>("particles", "particles > 0 ",
+  params.addRangeCheckedParam<int64_t>("particles", "particles > 0 ",
     "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>("inactive_batches", "inactive_batches > 0",
     "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
@@ -107,9 +108,12 @@ validParams<OpenMCCellAverageProblem>()
   params.addParam<MultiMooseEnum>("output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
 
   params.addParam<MooseEnum>("relaxation", getRelaxationEnum(),
-    "Type of relaxation to apply to the OpenMC solution, options: constant, none (default)");
+    "Type of relaxation to apply to the OpenMC solution, options: constant, robbins_monro, dufek_gudowski, none (default)");
   params.addRangeCheckedParam<Real>("relaxation_factor", 0.5, "relaxation_factor > 0.0 & relaxation_factor < 2.0",
     "Relaxation factor for use with constant relaxation");
+  params.addParam<int64_t>("first_iteration_particles", "Number of particles to use for first iteration "
+    "when using Dufek-Gudowski relaxation");
+
   return params;
 }
 
@@ -137,7 +141,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
-  _fixed_point_iteration(-1)
+  _fixed_point_iteration(-1),
+  _total_n_particles(0)
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -147,8 +152,27 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   if (isParamValid("openmc_verbosity"))
     openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
 
-  if (isParamValid("particles"))
-    openmc::settings::n_particles = getParam<unsigned int>("particles");
+  // determine the number of particles set either through XML or the wrapping
+  if (_relaxation == relaxation::dufek_gudowski)
+  {
+    if (!isParamValid("first_iteration_particles"))
+      mooseError("'first_iteration_particles' must be specified when using Dufek-Gudowski relaxation!");
+
+    if (isParamValid("particles") && _relaxation == relaxation::dufek_gudowski)
+      mooseWarning("The 'particles' parameter is unused when using Dufek-Gudowski relaxation!");
+
+    setParticles(getParam<int64_t>("first_iteration_particles"));
+  }
+  else
+  {
+    if (isParamValid("first_iteration_particles"))
+      mooseWarning("The 'first_iteration_particles' parameter is unused when not using Dufek-Gudowski relaxation!");
+
+    if (isParamValid("particles"))
+      setParticles(getParam<int64_t>("particles"));
+  }
+
+  _n_particles_1 = nParticles();
 
   if (isParamValid("inactive_batches"))
     openmc::settings::n_inactive = getParam<unsigned int>("inactive_batches");
@@ -262,6 +286,18 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   // we do this last so that we can at least hit any other errors first before
   // spending time on the costly filled cell caching
   cacheContainedCells();
+}
+
+void
+OpenMCCellAverageProblem::setParticles(const int64_t & n) const
+{
+  openmc::settings::n_particles = n;
+}
+
+const int64_t &
+OpenMCCellAverageProblem::nParticles() const
+{
+  return openmc::settings::n_particles;
 }
 
 OpenMCCellAverageProblem::~OpenMCCellAverageProblem()
@@ -1383,6 +1419,14 @@ void OpenMCCellAverageProblem::externalSolve()
 {
   TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
 
+  // if using Dufek-Gudowski acceleration and this is not the first iteration, update
+  // the number of particles; we put this here so that changing the number of particles
+  // doesn't intrude with any other postprocessing routines that happen outside this class's purview
+  if (_relaxation == relaxation::dufek_gudowski && _fixed_point_iteration >= 0)
+    dufekGudowskiParticleUpdate();
+
+  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
+
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
@@ -1392,6 +1436,7 @@ void OpenMCCellAverageProblem::externalSolve()
     mooseError(openmc_err_msg);
 
   _fixed_point_iteration += 1;
+  _total_n_particles += nParticles();
 }
 
 void
@@ -1670,17 +1715,37 @@ OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
   std::copy(_current_mean_tally[t].cbegin(), _current_mean_tally[t].cend(), _previous_mean_tally[t].begin());
   auto mean_tally = xt::view(_local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
 
+  double alpha;
   switch (_relaxation)
   {
     case relaxation::constant:
     {
-      auto relaxed_tally = (1.0 - _relaxation_factor) * _previous_mean_tally[t] + _relaxation_factor * normalizeLocalTally(mean_tally);
-      std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally[t].begin());
+      alpha = _relaxation_factor;
+      break;
+    }
+    case relaxation::robbins_monro:
+    {
+      alpha = 1.0 / (_fixed_point_iteration + 1);
+      break;
+    }
+    case relaxation::dufek_gudowski:
+    {
+      alpha = float(nParticles()) / float(_total_n_particles);
       break;
     }
     default:
       mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
   }
+
+  auto relaxed_tally = (1.0 - alpha) * _previous_mean_tally[t] + alpha * normalizeLocalTally(mean_tally);
+  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally[t].begin());
+}
+
+void
+OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
+{
+  int64_t n = (_n_particles_1 + std::sqrt(_n_particles_1 * _n_particles_1 + 4.0 * _n_particles_1 * _total_n_particles)) / 2.0;
+  setParticles(n);
 }
 
 void
