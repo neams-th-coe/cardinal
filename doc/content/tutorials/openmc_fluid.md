@@ -4,9 +4,9 @@ In this tutorial, you will learn how to:
 
 - Couple OpenMC via temperature and density to separate MOOSE applications
   solving for the thermal physics in the solid and fluid
+- Couple OpenMC to mixed-dimension feedback with 3-D heat conduction and 1-D fluid flow
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Apply homogenized temperature feedback to heterogeneous OpenMC cells
-- Couple OpenMC to mixed-dimension feedback with 3-D heat conduction and 1-D fluid flow
 
 !alert! note
 This tutorial makes use of the following major Cardinal classes:
@@ -51,7 +51,7 @@ assembly (about 6 meters), the converged results shown in [!cite](novak_2021c)
 and in the figures in this tutorial require a finer mesh and more particles
 than in the input files
 we set up for this tutorial - the input files in this tutorial still require
-parallel resources to run, but should be more tractable for pedagogical purposes.
+parallel resources to run, but should be faster-running.
 Parameters that have been set to coarser values than what was used for the plots
 in this tutorial and in [!cite](novak_2021c) are noted where applicable.
 
@@ -132,7 +132,7 @@ cardinal-opt -i common_input.i solid_mesh.i --mesh-only
 
 which will create a mesh named `solid_mesh_in.e`.
 Alternatively, you can download this mesh from Box.
-Note that the above coommand
+Note that the above command
 takes advantage of a MOOSE feature for combining input files together by placing
 some common parameters used by the other applications into a file named `common_input.i`.
 
@@ -176,7 +176,7 @@ can only be set on *materials*. For this reason, we need to create 108 unique co
 for each axial plane if we want to be able to set unique densities in each coolant channel
 region. Rather than creating 108 materials in a loop,
 we use the `clone()` feature in OpenMC to clone an existing coolant material 108 times per layer.
-This duplicates the material properties (densities and isotopic compisition), but assigns
+This duplicates the material properties (densities and isotopic composition), but assigns
 a new ID that allows individual tracking of density. The Python script used to create the
 OpenMC model is shown below.
 
@@ -217,7 +217,7 @@ OpenMC receives on each axial plane a total of 721 temperatures and 108 densitie
 The solid temperature is provided by the MOOSE heat conduction module,
 while the fluid temperature and density are provided by [!ac](THM).
 Because we will run OpenMC second, the initial fluid temperature is
-set to the same initial condition that is imposed in the MOOSE heat conduction model.
+set to the same initial condition that is imposed in the MOOSE solid model.
 The fluid density is then set using the ideal gas [!ac](EOS) at a fixed pressure
 of 7.1 MPa given the imposed temperature, i.e. $\rho_f(P,T_f)$.
 
@@ -250,7 +250,9 @@ from Box; this file is large due to the saved [!ac](TRISO) geometry information.
 \frac{\partial}{\partial t}\left(A\rho_f E_f\right)+\frac{\partial}{\partial x}\left\lbrack Au\left(\rho_fE_f+P\right)\right\rbrack=H_wa_w\left(T_\text{wall}-T_\text{bulk}\right)A
 \end{equation}
 
-where $x$ is the coordinate along the flow length, $A$ is the channel cross-sectional area, $u$ is the $x$-component of velocity, $\tilde{P}$ is the average pressure on the curve boundary, $f$ is the friction factor, $H_w$ is the wall heat transfer coefficient, $a_w$ is the heat transfer area density, $T_\text{wall}$ is the wall temperature, and $T_\text{bulk}$ is the area average bulk fluid temperature. The Churchill correlation is used for $f$ and the Dittus-Boelter correlation is used for $H_w$ [!cite](relap7).
+where $x$ is the coordinate along the flow length, $A$ is the channel cross-sectional area, $\rho_f$ is the fluid density,
+$u$ is the $x$-component of velocity, $\tilde{P}$ is the average pressure on the curve boundary, $E_f$ is the fluid total energy,
+$f$ is the friction factor, $H_w$ is the wall heat transfer coefficient, $a_w$ is the heat transfer area density, $T_\text{wall}$ is the wall temperature, and $T_\text{bulk}$ is the area average bulk fluid temperature. The Churchill correlation is used for $f$ and the Dittus-Boelter correlation is used for $H_w$ [!cite](relap7).
 
 The converged [!ac](THM) mesh for each flow channel contains 150 elements - for our tutorial,
 we will only use 50 elements.
@@ -263,13 +265,22 @@ sent to MOOSE heat conduction is set to a uniform value along the
 fluid-solid interface according to a nearest-node mapping to the [!ac](THM) elements.
 
 Because [!ac](THM) will run last in the coupled case, initial conditions are only required for pressure,
-fluid temperature, and velocity, which are set to uniform distributions according to the inlet conditions.
+fluid temperature, and velocity, which are set to uniform distributions.
 
 ## Multiphysics Coupling
 
-In this section, OpenMC, MOOSE, and [!ac](THM) are coupled for heat source
-and temperature feedback for the fluid and solid regions of a [!ac](TRISO)-fueled
-gas reactor assembly. All input files are present in the
+In this section, OpenMC, MOOSE, and [!ac](THM) are coupled for heat source,
+temperature, and density feedback for the fluid and solid regions of a [!ac](TRISO)-fueled
+gas reactor assembly. For this system, fluid density and temperature reactivity
+feedback is quite weak, but is included anyways to be comprehensive.
+A summary of the data transfers between the three applications is shown in
+[data_transfers]. The inset describes the 1-D/3-D data transfers with [!ac](THM).
+
+!media assembly_coupling.png
+  id=data_transfers
+  caption=Summary of data transfers between OpenMC, MOOSE, and [!ac](THM)
+
+All input files are present in the
 `tutorials/gas_assembly` directory. The following sub-sections describe these files.
 
 ### Solid Input Files
@@ -383,7 +394,7 @@ variable, we use the [ADMaterialRealAux](https://mooseframework.inl.gov/source/a
   start=AuxVariables
   end=Materials
 
-Finally, we set the preconditioner, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html),
+Finally, we set the preconditioner, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
 executioner,
 and set an Exodus output. The `steady_state_detection` and `steady_state_tolerance`
 parameters will automatically terminate the [!ac](THM) solution once the relative
@@ -396,8 +407,8 @@ As you may notice, this [!ac](THM) input file only models a single coolant flow
 channel. We will leverage a feature in MOOSE that allows a single application to be
 repeated multiple times throughout a master application without having to
 merge input files or perform other transformations. We will run OpenMC as
-the master application; the syntax needed to achieve this setup is covered next
-in [#n1].
+the master application; the syntax needed to achieve this setup is covered next.
+.
 
 ### Neutronics Input Files
   id=n1
@@ -421,12 +432,13 @@ Before progressing further, we first need to describe the multiapp structure
 connecting OpenMC, MOOSE heat conduction, and [!ac](THM). We set the master application
 to OpenMC, and will have both MOOSE heat conduction and [!ac](THM) as
 "sibling" sub-applications. At the time of writing, the MOOSE framework
-does not support "sibling" multiapp transfers, meaning that any data to be
-communicated between MOOSE heat conduction and [!ac](THM) must go "up a level"
+does not support "sibling" multiapp transfers, meaning that the data to be
+communicated between MOOSE heat conduction and [!ac](THM)
+(the heat flux and wall temperature data transfers in [data_transfers]) must go "up a level"
 to their common master application. Therefore, we will see in the OpenMC
 input file information related to data transfers between MOOSE heat
-conduction and [!ac](THM).
-Next, we define several auxiliary variables.
+conduction and [!ac](THM). The auxiliary variables defined for the OpenMC
+model are shown below.
 
 !listing /tutorials/gas_assembly/openmc.i
   start=AuxVariables
@@ -541,11 +553,15 @@ We also require a number of transfers both for 1) sending necessary coupling dat
 the three applications and 2) visualizing the combined [!ac](THM) output. To couple OpenMC
 to MOOSE heat conduction, we use four transfers:
 
-- [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppInterpolationTransfer.html)
+- [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
+  to transfer:
+
+  - power from OpenMC to MOOSE (with conservation of total power)
+
+- [MultiAppInterpolationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppInterpolationTransfer.html)
   to transfer:
 
   - solid temperature from MOOSE to OpenMC
-  - power from OpenMC to MOOSE (with conservation of total power)
   - wall temperature from OpenMC (which doesn't directly compute the wall temperature, but
     instead receives it from [!ac](THM) through a separate transfer) to MOOSE
 
@@ -612,7 +628,7 @@ resources, you can reduce the height and the various mesh parameters (number of 
 layers and elements in the [!ac](THM) domain) and then recreate the OpenMC model and meshes.
 Recall that all results shown in this section correspond to the same input files
 but with 300 extrusion layers in the solid, 150 [!ac](THM) elements per channel,
-and 2000 particles per active batch - to get a faster-running tutorial, we reduced all three
+2000 particles per batch, 500 inactive batches, and 2000 active batches - to get a faster-running tutorial, we reduced all
 of these parameters to coarser values.
 
 When the simulation has completed, you will have created a number of different output files:

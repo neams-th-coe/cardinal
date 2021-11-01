@@ -205,8 +205,12 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   relaxation_factor = 0.5
 
   # to get a faster-running tutorial, we use only 1000 particles per batch; converged
-  # results are instead obtained by increasing this parameter to 10000
+  # results are instead obtained by increasing this parameter to 10000. We also use fewer
+  # batches to speed things up; the converged results were obtained with 500 inactive batches
+  # and 2000 active batches
   particles = 1000
+  inactive_batches = 200
+  batches = 1000
 []
 
 [Postprocessors]
@@ -288,7 +292,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 
 [Transfers]
   [solid_temp_to_openmc]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppInterpolationTransfer
     source_variable = T
     variable = solid_temp
     direction = from_multiapp
@@ -316,7 +320,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     to_postprocessors_to_be_preserved = power
   []
   [thm_temp_to_bison]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppInterpolationTransfer
     source_variable = thm_temp_wall
     variable = thm_temp
     direction = to_multiapp

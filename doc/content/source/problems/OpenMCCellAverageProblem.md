@@ -531,7 +531,7 @@ Options include:
 \begin{aligned}
 \label{eq:dg1}
 \alpha^n=&\ \frac{s^n}{\sum_{i=0}^ns^i}\\
-s^n=\frac{s^0+\sqrt{s^0s^0+4s^0\sum_{i=0}^{n-1}s^i}}{2}
+s^n=&\ \frac{s^0+\sqrt{s^0s^0+4s^0\sum_{i=0}^{n-1}s^i}}{2}
 \end{aligned}
 \end{equation}
 
