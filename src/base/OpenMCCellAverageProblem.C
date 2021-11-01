@@ -1995,7 +1995,8 @@ OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) co
 }
 
 void
-OpenMCCellAverageProblem::createQRules(QuadratureType type, Order order, Order volume_order, Order face_order, SubdomainID block)
+OpenMCCellAverageProblem::createQRules(QuadratureType type, Order order, Order volume_order, Order face_order, SubdomainID block,
+  const bool allow_negative_qweights)
 {
   // start copy: Copied from base class's createQRules in order to retain the same default behavior
   if (order == INVALID_ORDER)
@@ -2035,7 +2036,7 @@ OpenMCCellAverageProblem::createQRules(QuadratureType type, Order order, Order v
                "a different volume than used for MOOSE volume integrations, such that the specified 'power'\n"
                "would not be respected. Please switch to a different quadrature set.");
 
-  FEProblemBase::createQRules(type, order, volume_order, face_order, block);
+  FEProblemBase::createQRules(type, order, volume_order, face_order, block, allow_negative_qweights);
 }
 
 void

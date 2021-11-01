@@ -102,7 +102,8 @@ public:
    * very very high). For these orders, we print an error message informing the user
    * that they should switch to a different order.
    */
-  virtual void createQRules(QuadratureType type, Order order, Order volume_order, Order face_order, SubdomainID block) override;
+  virtual void createQRules(QuadratureType type, Order order, Order volume_order, Order face_order, SubdomainID block,
+    bool allow_negative_weights = true) override;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
