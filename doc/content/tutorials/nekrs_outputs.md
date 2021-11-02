@@ -16,6 +16,79 @@ of NekRS via [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md) -
 however, all features shown here can also be used in a coupled sense via
 [NekRSProblem](/problems/NekRSProblem.md).
 
+## Loading a NekRS Time History into Exodus
+
+For applications with "one-way" coupling of NekRS to MOOSE, you may wish
+to use a time history of the NekRS solution as a boundary condition/source
+term in another MOOSE application without multiphysics coupling on each time
+step. For instance, for thermal striping applications, it is often a reasonable
+approximation to solve a NekRS CFD simulation as a standalone case, and then
+apply a time history of NekRS's wall temperature as a boundary condition to a tensor mechanics solve.
+Cardinal allows you to run NekRS wrapped as a MOOSE application and, for each time
+step, write the NekRS solution to an Exodus file that can then be loaded to provide
+a time history of the CFD solution to another application. An example showing
+this usage is shown in the `tutorials/load_from_exodus` directory; we use Cardinal
+to run the `ethier` example in NekRS with the `nek.i` input file:
+
+!listing /tutorials/load_from_exodus/nek.i
+
+We incidate that we want to output the NekRS temperature onto a volume mesh mirror
+of second order and output to Exodus format. Then, we simply use a
+[NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md)
+and [NekTimeStepper](/timesteppers/NekTimeStepper.md) to run the NekRS CFD
+calculation through the Cardinal wrapper. You can run this example with
+
+```
+$ mpiexec -np 4 cardinal-opt -i nek.i
+```
+
+which will create an output file named `nek_out.e`, which contains the time
+history of the NekRS temperature solution on the volume mesh mirror.
+
+In order to load the entire time history of the Nek solution, we need a separate
+input file that will essentailly act as the surrogate for performing the Nek solution
+(by instead loading from the Exodus file dumped earlier). This input file is
+the `load_nek.i` file. First, we use the dumped
+output file directly as the mesh:
+
+!listing /tutorials/load_from_exodus/load_nek.i
+  block=Mesh
+
+Because this run won't actually solve any physics (either with NekRS or with MOOSE),
+we next need to turn the solve off.
+
+!listing /tutorials/load_from_exodus/load_nek.i
+  block=Problem
+
+Then, to load the solution from the `nek_out.e`, we use a
+[SolutionUserObject](https://mooseframework.inl.gov/source/userobject/SolutionUserObject.html).
+This user object will read the `temp` variable from the provided `mesh` file
+(which we set to our output file from the NekRS run). We omit the `timestep` parameter
+that is sometimes provided to the
+[SolutionUserObject](https://mooseframework.inl.gov/source/userobject/SolutionUserObject.html)
+so that this user object will *interpolate* in time based on the time stepping specified
+in the `[Executioner]` block.
+
+This user object only loads the Exodus file into a user object - to then get that
+solution into an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
+appropriate for transferring to another application or using in other MOOSE objects,
+we simply convert the user object to an auxiliary variable using a
+[SolutionAux](https://mooseframework.inl.gov/source/auxkernels/SolutionAux.html).
+This will load the `temp` variable from the [SolutionUserObject](https://mooseframework.inl.gov/source/userobject/SolutionUserObject.html)
+and place it into the new variable we have named `nek_temp`.
+
+!listing /tutorials/load_from_exodus/load_nek.i
+  start=AuxVariables
+
+Finally, we "run" this application by specifying a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+executioner. The time stepping scheme we specify here just indicates at which time
+step the data in the `nek_out.e` file should be interpolated to. For instance, if you ran
+NekRS with a time step of 1e-3 seconds, but only want to couple NekRS's temperature to a
+tensor mechanics solve on a resolution of 1e-2 seconds, then simply set the time step size
+in this file to `dt = 1e-2`. Finally, we specify a Exodus output in this file, which you can
+use to see that the temperature from `nek_out.e` was correctly loaded (`nek_temp` in
+`load_nek_out.e` matches `temp` in `nek_out.e`).
+
 ## Binned Spatial Postprocessors
 
 Cardinal contains features for postprocessing the NekRS solution in spatial
