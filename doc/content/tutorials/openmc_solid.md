@@ -1,4 +1,4 @@
-# Solid Temperature Coupling of OpenMC and MOOSE
+# Solid Coupling of OpenMC and MOOSE
 
 This tutorial describes how to couple MOOSE and OpenMC for heat source
 and temperature feedback. Three examples are provided - a [!ac](LWR) pincell,
