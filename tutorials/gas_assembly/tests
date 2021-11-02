@@ -1,0 +1,40 @@
+[Tests]
+  [create_solid_mesh]
+    type = RunCommand
+    method = opt
+
+    # we need to use a RunCommand type test because MOOSE wont let us put common_input.i before solid_mesh.i
+    # with cli_args; we also copy the mesh output so that no one accidentally runs the test suite and then
+    # thinks the solid_mesh_in.e file created by this test is the mesh you should use to run the tutorial
+    command = '../../cardinal-opt -i common_input.i solid_mesh.i n_layers=1 --mesh-only; mv solid_mesh_in.e coarse_mesh.e'
+    requirement = "The MOOSE mesh generators shall be able to create the solid mesh for a TRISO gas compact."
+  []
+  [run_thm]
+    type = RunApp
+    input = thm.i
+    check_input = true
+    required_applications = 'THMApp'
+    cli_args = 'Outputs/exodus=false'
+    requirement = "THM shall be able to solve for fluid flow and heat transfer in a pipe."
+  []
+  [run_solid]
+    type = RunApp
+    input = solid.i
+    check_input = true
+    prereq = create_solid_mesh
+    cli_args = 'Executioner/num_steps=1 Mesh/file=coarse_mesh.e Outputs/exodus=false Outputs/csv=false'
+    requirement = "MOOSE shall be able to solve for heat conduction for a TRISO compact."
+  []
+  [run_openmc]
+    type = RunCommand
+    method = opt
+
+    # we need to use a RunCommand type test because MOOSE wont let us put common_input.i before openmc.i
+    # with cli_args; because this tutorial takes a long time to run, we also restrict this check to just a
+    # single time step, and turn off the coupling to THM and MOOSE heat conduction (we cover those input
+    # files in the other tests here).
+    command = '../../cardinal-opt -i common_input.i openmc.i Mesh/solid/file=coarse_mesh.e Problem/inactive_batches=5 Problem/batches=10 Outputs/exodus=false Outputs/csv=false MultiApps/active='' Transfers/active='' Executioner/num_steps=1 Problem/skip_first_incoming_transfer=true Problem/check_tally_sum=false'
+    prereq = create_solid_mesh
+    requirement = "Cardinal shall be able to solve OpenMC neutron transport for a TRISO compact."
+  []
+[]

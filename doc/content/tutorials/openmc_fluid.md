@@ -279,6 +279,7 @@ A summary of the data transfers between the three applications is shown in
 !media assembly_coupling.png
   id=data_transfers
   caption=Summary of data transfers between OpenMC, MOOSE, and [!ac](THM)
+  style=width:80%;margin-left:auto;margin-right:auto
 
 All input files are present in the
 `tutorials/gas_assembly` directory. The following sub-sections describe these files.
