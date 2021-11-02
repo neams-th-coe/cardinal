@@ -4,7 +4,10 @@
 [GENERAL]
   polynomialOrder = 7
   stopAt = endTime
-  endTime = 20
+
+  # we shorten the end time to 0.05 so that the test suite runs quickly;
+  # you can increase this in order to evolve the flow through the domain
+  endTime = 0.05
 
   dt = 6.0e-3
   timeStepper = tombo2
