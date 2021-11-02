@@ -1,4 +1,4 @@
-# Tutorial 6: Postprocessing/Extracting the NekRS solution
+# Tutorial 5: Postprocessing/Extracting the NekRS solution
 
 In this tutorial, you will learn how to:
 

@@ -5,6 +5,7 @@ In this tutorial, you will learn how to:
 - Run NekRS as a standalone application completely separate from Cardinal
 - Run a thinly-wrapped NekRS simulation without any physics coupling
 
+!alert! note
 This tutorial makes use of the following major Cardinal classes:
 
 - [NekRSMesh](/mesh/NekRSMesh.md)
