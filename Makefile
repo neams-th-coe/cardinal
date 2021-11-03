@@ -3,103 +3,59 @@
 # ======================================================================================
 #
 # Optional environment variables:
+#
 # * CARDINAL_DIR : Top-level Cardinal src dir (default: this Makefile's dir)
 # * CONTRIB_DIR : Dir with third-party src (default: $(CARDINAL_DIR)/contrib)
+# * HDF5_INCLUDE_DIR: Top-level HDF5 header dir (default: $(HDF5_ROOT)/include)
+# * HDF5_LIBDIR: Top-level HDF5 lib dir (default: $(HDF5_ROOT)/lib)
+# * HYPRE_DIR: Top-level HYPRE dir (default: $(PETSC_DIR)/$(PETSC_ARCH))
 # * MOOSE_SUBMODULE : Top-level MOOSE src dir (default: $(CONTRIB_DIR)/moose)
+# * NEKRS_DIR: Top-level NekRS src dir (default: $(CONTRIB_DIR)/nekRS)
+# * OPENMC_DIR: Top-level OpenMC src dir (default: $(CONTRIB_DIR)/openmc)
+# * PETSC_DIR: Top-levle PETSc src dir (default: $(MOOSE_SUBMODULE)/petsc)
+# * PETSC_ARCH: PETSc architecture (default: arch-moose)
 # * SAM_DIR: Top-level SAM src dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR: Top-level Sockeye src dir (default: $(CONTRIB_DIR)/sockeye)
 # * THM_DIR: Top-level THM src dir (default: $(CONTRIB_DIR)/thm)
 # * SODIUM_DIR: Top-level sodium src dir (default: $(CONTRIB_DIR)/sodium)
 # * POTASSIUM_DIR: Top-level potassium src dir (default: $(CONTRIB_DIR)/potassium)
 # * IAPWS95_DIR: Top-level iapws95 src dir (default: $(CONTRIB_DIR)/iapws95)
+#
 # ======================================================================================
 
-CARDINAL_DIR    := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
-CONTRIB_DIR     := $(CARDINAL_DIR)/contrib
-MOOSE_SUBMODULE ?= $(CONTRIB_DIR)/moose
-NEKRS_DIR       ?= $(CONTRIB_DIR)/nekRS
-OPENMC_DIR      ?= $(CONTRIB_DIR)/openmc
-PETSC_DIR       ?= $(MOOSE_SUBMODULE)/petsc
-PETSC_ARCH      ?= arch-moose
-LIBMESH_DIR     ?= $(MOOSE_SUBMODULE)/libmesh/installed/
-HYPRE_DIR       ?= $(PETSC_DIR)/$(PETSC_ARCH)
+CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
+CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
+HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
+HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
+MOOSE_SUBMODULE     ?= $(CONTRIB_DIR)/moose
+NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
+OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
+PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
+PETSC_ARCH          ?= arch-moose
+LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
+HYPRE_DIR           ?= $(PETSC_DIR)/$(PETSC_ARCH)
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
-
-# First, we can check that the required submodules have been pulled in,
-# and print an error if we don't find them
-MOOSE_CONTENT    := $(shell ls $(MOOSE_DIR) 2> /dev/null)
-NEKRS_CONTENT    := $(shell ls $(NEKRS_DIR) 2> /dev/null)
-OPENMC_CONTENT   := $(shell ls $(OPENMC_DIR) 2> /dev/null)
-
-define n
-
-
-endef
-
-ifeq ($(MOOSE_CONTENT),)
-  $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use 'git submodule update --init contrib/moose'")
-endif
-
-ifeq ($(NEKRS_CONTENT),)
-  $(error $n"NekRS does not seem to be available. Make sure that either the submodule is checked out.$n$nTo fetch the NekRS submodule, use 'git submodule update --init contrib/nekRS'")
-endif
-
-ifeq ($(OPENMC_CONTENT),)
-  $(error $n"OpenMC does not seem to be available. Make sure that either the submodule is checked out$nor that OPENMC_DIR points to a location with the OpenMC source.$n$nTo fetch the OpenMC submodule, use 'git submodule update --init --recursive contrib/openmc'")
-endif
-
-SAM_DIR         ?= $(CONTRIB_DIR)/SAM
-SAM_CONTENT     := $(shell ls $(SAM_DIR) 2> /dev/null)
-
+SAM_DIR             ?= $(CONTRIB_DIR)/SAM
 SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
-SOCKEYE_CONTENT     := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
-
-THM_DIR         ?= $(CONTRIB_DIR)/thm
-THM_CONTENT     := $(shell ls $(THM_DIR) 2> /dev/null)
-
-SODIUM_DIR         ?= $(CONTRIB_DIR)/sodium
-SODIUM_CONTENT     := $(shell ls $(SODIUM_DIR) 2> /dev/null)
-
-POTASSIUM_DIR         ?= $(CONTRIB_DIR)/potassium
-POTASSIUM_CONTENT     := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
-
+THM_DIR             ?= $(CONTRIB_DIR)/thm
+SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
+POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
-IAPWS95_CONTENT     := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
-# We can check that if it looks like we're going to build Sockeye, that
-# all of its dependencies are there
-ifneq ($(SOCKEYE_CONTENT),)
-  ifeq ($(THM_CONTENT),)
-    $(error $n"THM dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that THM_DIR points to a location with the THM source.$n$nTo fetch the THM submodule, use 'git submodule update --init contrib/thm'")
-  endif
-  ifeq ($(SODIUM_CONTENT),)
-    $(error $n"Sodium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that SODIUM_DIR points to a location with the sodium source.$n$nTo fetch the sodium submodule, use 'git submodule update --init contrib/sodium'")
-  endif
-  ifeq ($(POTASSIUM_CONTENT),)
-    $(error $n"Potassium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that POTASSIUM_DIR points to a location with the potassium source.$n$nTo fetch the potassium submodule, use 'git submodule update --init contrib/potassium'")
-  endif
-  ifeq ($(IAPWS95_CONTENT),)
-    $(error $n"IAPWS95 dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
-  endif
-endif
+# First, we can find which submodules have been pulled in
+MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
+NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
+OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
+SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
+THM_CONTENT       := $(shell ls $(THM_DIR) 2> /dev/null)
+SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
+POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
+IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
-# Cannot currently build with both SAM and Sockeye due to a conflict in THM.
-# Someone might just build with THM (and not Sockeye), so we check both to be explicit.,
-ifneq ($(SOCKEYE_CONTENT),)
-  ifneq ($(SAM_CONTENT),)
-    $(error Cannot build Cardinal with both SAM and Sockeye due to a conflict in THM)
-  endif
-endif
-
-ifneq ($(THM_CONTENT),)
-  ifneq ($(SAM_CONTENT),)
-    $(error Cannot build Cardinal with both SAM and THM due to a conflict in THM)
-  endif
-endif
-
-HDF5_INCLUDE_DIR ?= $(HDF5_ROOT)/include
-HDF5_LIBDIR ?= $(HDF5_ROOT)/lib
-HDF5_INCLUDES := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
+# Print errors if some submodules are missing or various pre-reqs for Sockeye,
+# SAM, and THM optional submodules are missing or conflict with one another
+include config/check_deps.mk
 
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
 ifeq ($(METHOD),dbg)
@@ -153,6 +109,7 @@ OPENMC_LIBDIR := $(OPENMC_INSTALL_DIR)/lib
 OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
 # This is used in $(FRAMEWORK_DIR)/build.mk
+HDF5_INCLUDES       := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
 ADDITIONAL_CPPFLAGS := $(HDF5_INCLUDES) $(OPENMC_INCLUDES) $(NEKRS_INCLUDES)
 
 # ======================================================================================
