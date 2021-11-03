@@ -122,6 +122,12 @@ initial_T = 1200
     htc_wall_vapor = 0
     P_hf = ${P_clad_i}
   []
+
+  [ht_adia]
+    type = HTHeatFlux3Phase
+    flow_channel = hp_adia
+    q_wall = 0
+  []
 []
 
 [Postprocessors]
@@ -137,7 +143,7 @@ initial_T = 1200
     execute_on = 'INITIAL TIMESTEP_END'
   []
   [power_adia]
-    type = HeatRateDirectFlowChannel
+    type = ADHeatRateDirectFlowChannel
     q_wall_prop = q_wall
     P_hf = ${P_clad_i}
     block = 'hp_adia'
