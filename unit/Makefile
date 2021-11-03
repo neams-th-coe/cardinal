@@ -131,7 +131,7 @@ endif
 ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
 	MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
 else
-	MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
+	MOOSE_DIR        ?= $(shell dirname `pwd`)/../moose
 endif
 
 # framework
@@ -152,58 +152,6 @@ REACTOR             := yes
 TENSOR_MECHANICS    := yes
 
 include $(MOOSE_DIR)/modules/modules.mk
-
-# SAM submodule
-ifneq ($(SAM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
-  APPLICATION_DIR     := $(SAM_DIR)
-  APPLICATION_NAME    := sam
-  TENSOR_MECHANICS    := yes
-  include             $(FRAMEWORK_DIR)/app.mk
-endif
-
-# Sockeye submodule
-ifneq ($(SOCKEYE_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_SOCKEYE_COUPLING
-  APPLICATION_DIR     := $(SOCKEYE_DIR)
-  APPLICATION_NAME    := sockeye
-  include             $(FRAMEWORK_DIR)/app.mk
-endif
-
-# THM submodule
-ifneq ($(THM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_THM_COUPLING
-  APPLICATION_DIR     := $(THM_DIR)
-  APPLICATION_NAME    := thm
-  include             $(FRAMEWORK_DIR)/app.mk
-endif
-
-# sodium submodule
-ifneq ($(SODIUM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_SODIUM
-  APPLICATION_DIR     := $(SODIUM_DIR)
-  APPLICATION_NAME    := sodium
-  include             $(FRAMEWORK_DIR)/app.mk
-  include             $(SODIUM_DIR)/libSodium.mk
-endif
-
-# potassium submodule
-ifneq ($(POTASSIUM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_POTASSIUM
-  APPLICATION_DIR     := $(POTASSIUM_DIR)
-  APPLICATION_NAME    := potassium
-  include             $(FRAMEWORK_DIR)/app.mk
-  include             $(POTASSIUM_DIR)/libPotassium.mk
-endif
-
-# iapws95 submodule
-ifneq ($(IAPWS95_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_IAPWS95
-  APPLICATION_DIR     := $(IAPWS95_DIR)
-  APPLICATION_NAME    := iapws95
-  include             $(FRAMEWORK_DIR)/app.mk
-  include             $(IAPWS95_DIR)/libSBTL.mk
-endif
 
 # ======================================================================================
 # External apps
@@ -258,7 +206,6 @@ include            $(FRAMEWORK_DIR)/app.mk
 
 # Extra stuff for GTEST
 ADDITIONAL_INCLUDES += -I$(FRAMEWORK_DIR)/contrib/gtest
-ADDITIONAL_CPPFLAGS += -I$(FRAMEWORK_DIR)/contrib/gtest
 ADDITIONAL_LIBS     += $(FRAMEWORK_DIR)/contrib/gtest/libgtest.la
 
 # app_objects are defined in moose.mk and built according to the rules in build.mk
