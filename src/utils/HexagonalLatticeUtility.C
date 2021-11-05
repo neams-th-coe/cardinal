@@ -49,6 +49,7 @@ HexagonalLatticeUtility::HexagonalLatticeUtility(const Real & bundle_inner_flat_
   computeHydraulicDiameters();
   computePinAndDuctCoordinates();
   computeChannelPinIndices();
+  computeGapIndices();
 
   if (_pin_bundle_spacing < _wire_diameter)
     mooseError("Specified bundle pitch " + std::to_string(_bundle_pitch) +
@@ -635,4 +636,131 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
     "due to:\n\n a) Points in the mesh actually being outside the domain specified with the "
     "HexagonalLatticeUtility.\n b) Small floating point errors - we recommend using a CONSTANT MONOMIAL variable "
     "with all related objects.");
+}
+
+void
+HexagonalLatticeUtility::computeGapIndices()
+{
+  std::set<std::pair<int, int>> indices;
+  for (const auto & pins : _interior_channel_pin_indices)
+  {
+    std::pair<int, int> gap0 = {std::min(pins[0], pins[1]), std::max(pins[0], pins[1])};
+    std::pair<int, int> gap1 = {std::min(pins[0], pins[2]), std::max(pins[0], pins[2])};
+    std::pair<int, int> gap2 = {std::min(pins[2], pins[1]), std::max(pins[2], pins[1])};
+
+    indices.insert(gap0);
+    indices.insert(gap1);
+    indices.insert(gap2);
+  }
+
+  for (std::set<std::pair<int, int>>::iterator it = indices.begin(); it != indices.end(); ++it)
+    _gap_indices.push_back({it->first, it->second});
+
+  _n_interior_gaps = _gap_indices.size();
+
+  // add the gaps along the peripheral channels; -1 indicates side 1, -2 indicates side 2,
+  // and so on
+  int n_edge_gaps = _n_rings;
+  int pin = totalPins(_n_rings - 1);
+  for (int i = 0; i < NUM_SIDES; ++i)
+  {
+    for (int j = 0; j < _n_rings; ++j)
+      _gap_indices.push_back({pin + j, -(i + 1)});
+
+    pin += n_edge_gaps - 1;
+  }
+
+  // fix the last gap to use the first pin
+  _gap_indices.back() = {totalPins(_n_rings - 1), -int(NUM_SIDES)};
+
+  // for each channel, determine which gaps are on that channel to find the local-to-global indexing
+  for (const auto & pins : _interior_channel_pin_indices)
+  {
+    std::pair<int, int> gap0 = {std::min(pins[0], pins[1]), std::max(pins[0], pins[1])};
+    std::pair<int, int> gap1 = {std::min(pins[1], pins[2]), std::max(pins[1], pins[2])};
+    std::pair<int, int> gap2 = {std::min(pins[2], pins[0]), std::max(pins[2], pins[0])};
+
+    int loc_gap0 = globalGapIndex(gap0);
+    int loc_gap1 = globalGapIndex(gap1);
+    int loc_gap2 = globalGapIndex(gap2);
+    _local_to_global_gaps.push_back({loc_gap0, loc_gap1, loc_gap2});
+  }
+
+  int gap = _gap_indices.size() - _n_rings * NUM_SIDES;
+  for (int i = 0; i < _n_edge_channels; ++i)
+  {
+    const auto & pins = _edge_channel_pin_indices[i];
+    std::pair<int, int> gap0 = {std::min(pins[0], pins[1]), std::max(pins[0], pins[1])};
+    int loc_gap0 = globalGapIndex(gap0);
+    _local_to_global_gaps.push_back({loc_gap0, gap + 1, gap});
+
+    if ((i + 1) % (_n_rings - 1) == 0 && i != 0)
+      gap += 2;
+    else
+      gap += 1;
+  }
+
+  int n_interior_gaps = _gap_indices.size() - _n_rings * NUM_SIDES - 1;
+  n_edge_gaps = _n_rings * NUM_SIDES;
+  _local_to_global_gaps.push_back({n_interior_gaps + n_edge_gaps, n_interior_gaps + 1});
+  gap = n_interior_gaps + _n_rings;
+  for (int i = 1; i < _n_corner_channels; ++i)
+  {
+    _local_to_global_gaps.push_back({gap, gap + 1});
+    gap += _n_rings;
+  }
+
+  // get the coefficients of the lines formed by all the gaps
+  for (int i = 0; i < _n_interior_channels; ++i)
+  {
+    const auto & gaps = _local_to_global_gaps[i];
+    for (int j = 0; j < gaps.size(); ++j)
+    {
+      const auto & pins = _gap_indices[j];
+      _gap_line_coeffs.push_back(getLineCoefficients(_pin_centers[pins.first], _pin_centers[pins.second]));
+    }
+  }
+}
+
+unsigned int
+HexagonalLatticeUtility::globalGapIndex(const std::pair<int, int> & local_gap) const
+{
+  for (int i = 0; i < _gap_indices.size(); ++i)
+  {
+    const auto gap = _gap_indices[i];
+    if (gap.first == local_gap.first && gap.second == local_gap.second)
+      return i;
+  }
+
+  mooseError("Failed to find local gap in global gap array!");
+}
+
+std::vector<Real>
+HexagonalLatticeUtility::getLineCoefficients(const Point & line0, const Point & line1) const
+{
+  std::vector<Real> l;
+  l.resize(3);
+
+  // vertical line needs special treatment
+  if (line1(0) == line0(0))
+  {
+    l[0] = 1.0;
+    l[1] = 0.0;
+    l[2] = -line1(0);
+  }
+  else
+  {
+    l[0] = (line1(1) - line0(1)) / (line1(0) - line0(0));
+    l[1] = -1.0;
+    l[2] = line1(1) - l[0] * line1(0);
+  }
+
+  return l;
+}
+
+Real
+HexagonalLatticeUtility::distanceFromLine(const Point & pt, const Point & line0, const Point & line1) const
+{
+  auto l = getLineCoefficients(line0, line1);
+  return std::abs(l[0] * pt(0) + l[1] * pt(1) + l[2]) / std::sqrt(l[0] * l[0] + l[1] * l[1]);
 }

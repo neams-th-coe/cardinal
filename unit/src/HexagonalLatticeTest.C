@@ -701,3 +701,379 @@ TEST_F(HexagonalLatticeTest, channel_index)
   EXPECT_EQ(hl.channelIndex(pt40 + Point(0.0, 0.0, 1.2)), 40);
   EXPECT_EQ(hl.channelIndex(pt41 + Point(0.0, 0.0, 1.2)), 41);
 }
+
+TEST_F(HexagonalLatticeTest, gaps)
+{
+  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+  const auto & gi = hl.gapIndices();
+  const auto & lg = hl.localToGlobalGaps();
+
+  int i = 0;
+  EXPECT_EQ(gi[i].first, 0);
+  EXPECT_EQ(gi[i++].second, 1);
+
+  EXPECT_EQ(gi[i].first, 0);
+  EXPECT_EQ(gi[i++].second, 2);
+
+  EXPECT_EQ(gi[i].first, 0);
+  EXPECT_EQ(gi[i++].second, 3);
+
+  EXPECT_EQ(gi[i].first, 0);
+  EXPECT_EQ(gi[i++].second, 4);
+
+  EXPECT_EQ(gi[i].first, 0);
+  EXPECT_EQ(gi[i++].second, 5);
+
+  EXPECT_EQ(gi[i].first, 0);
+  EXPECT_EQ(gi[i++].second, 6);
+
+  EXPECT_EQ(gi[i].first, 1);
+  EXPECT_EQ(gi[i++].second, 2);
+
+  EXPECT_EQ(gi[i].first, 1);
+  EXPECT_EQ(gi[i++].second, 6);
+
+  EXPECT_EQ(gi[i].first, 1);
+  EXPECT_EQ(gi[i++].second, 7);
+
+  EXPECT_EQ(gi[i].first, 1);
+  EXPECT_EQ(gi[i++].second, 8);
+
+  EXPECT_EQ(gi[i].first, 1);
+  EXPECT_EQ(gi[i++].second, 18);
+
+  EXPECT_EQ(gi[i].first, 2);
+  EXPECT_EQ(gi[i++].second, 3);
+
+  EXPECT_EQ(gi[i].first, 2);
+  EXPECT_EQ(gi[i++].second, 8);
+
+  EXPECT_EQ(gi[i].first, 2);
+  EXPECT_EQ(gi[i++].second, 9);
+
+  EXPECT_EQ(gi[i].first, 2);
+  EXPECT_EQ(gi[i++].second, 10);
+
+  EXPECT_EQ(gi[i].first, 3);
+  EXPECT_EQ(gi[i++].second, 4);
+
+  EXPECT_EQ(gi[i].first, 3);
+  EXPECT_EQ(gi[i++].second, 10);
+
+  EXPECT_EQ(gi[i].first, 3);
+  EXPECT_EQ(gi[i++].second, 11);
+
+  EXPECT_EQ(gi[i].first, 3);
+  EXPECT_EQ(gi[i++].second, 12);
+
+  EXPECT_EQ(gi[i].first, 4);
+  EXPECT_EQ(gi[i++].second, 5);
+
+  EXPECT_EQ(gi[i].first, 4);
+  EXPECT_EQ(gi[i++].second, 12);
+
+  EXPECT_EQ(gi[i].first, 4);
+  EXPECT_EQ(gi[i++].second, 13);
+
+  EXPECT_EQ(gi[i].first, 4);
+  EXPECT_EQ(gi[i++].second, 14);
+
+  EXPECT_EQ(gi[i].first, 5);
+  EXPECT_EQ(gi[i++].second, 6);
+
+  EXPECT_EQ(gi[i].first, 5);
+  EXPECT_EQ(gi[i++].second, 14);
+
+  EXPECT_EQ(gi[i].first, 5);
+  EXPECT_EQ(gi[i++].second, 15);
+
+  EXPECT_EQ(gi[i].first, 5);
+  EXPECT_EQ(gi[i++].second, 16);
+
+  EXPECT_EQ(gi[i].first, 6);
+  EXPECT_EQ(gi[i++].second, 16);
+
+  EXPECT_EQ(gi[i].first, 6);
+  EXPECT_EQ(gi[i++].second, 17);
+
+  EXPECT_EQ(gi[i].first, 6);
+  EXPECT_EQ(gi[i++].second, 18);
+
+  EXPECT_EQ(gi[i].first, 7);
+  EXPECT_EQ(gi[i++].second, 8);
+
+  EXPECT_EQ(gi[i].first, 7);
+  EXPECT_EQ(gi[i++].second, 18);
+
+  EXPECT_EQ(gi[i].first, 8);
+  EXPECT_EQ(gi[i++].second, 9);
+
+  EXPECT_EQ(gi[i].first, 9);
+  EXPECT_EQ(gi[i++].second, 10);
+
+  EXPECT_EQ(gi[i].first, 10);
+  EXPECT_EQ(gi[i++].second, 11);
+
+  EXPECT_EQ(gi[i].first, 11);
+  EXPECT_EQ(gi[i++].second, 12);
+
+  EXPECT_EQ(gi[i].first, 12);
+  EXPECT_EQ(gi[i++].second, 13);
+
+  EXPECT_EQ(gi[i].first, 13);
+  EXPECT_EQ(gi[i++].second, 14);
+
+  EXPECT_EQ(gi[i].first, 14);
+  EXPECT_EQ(gi[i++].second, 15);
+
+  EXPECT_EQ(gi[i].first, 15);
+  EXPECT_EQ(gi[i++].second, 16);
+
+  EXPECT_EQ(gi[i].first, 16);
+  EXPECT_EQ(gi[i++].second, 17);
+
+  EXPECT_EQ(gi[i].first, 17);
+  EXPECT_EQ(gi[i++].second, 18);
+
+  EXPECT_EQ(gi[i].first, 7);
+  EXPECT_EQ(gi[i++].second, -1);
+
+  EXPECT_EQ(gi[i].first, 8);
+  EXPECT_EQ(gi[i++].second, -1);
+
+  EXPECT_EQ(gi[i].first, 9);
+  EXPECT_EQ(gi[i++].second, -1);
+
+  EXPECT_EQ(gi[i].first, 9);
+  EXPECT_EQ(gi[i++].second, -2);
+
+  EXPECT_EQ(gi[i].first, 10);
+  EXPECT_EQ(gi[i++].second, -2);
+
+  EXPECT_EQ(gi[i].first, 11);
+  EXPECT_EQ(gi[i++].second, -2);
+
+  EXPECT_EQ(gi[i].first, 11);
+  EXPECT_EQ(gi[i++].second, -3);
+
+  EXPECT_EQ(gi[i].first, 12);
+  EXPECT_EQ(gi[i++].second, -3);
+
+  EXPECT_EQ(gi[i].first, 13);
+  EXPECT_EQ(gi[i++].second, -3);
+
+  EXPECT_EQ(gi[i].first, 13);
+  EXPECT_EQ(gi[i++].second, -4);
+
+  EXPECT_EQ(gi[i].first, 14);
+  EXPECT_EQ(gi[i++].second, -4);
+
+  EXPECT_EQ(gi[i].first, 15);
+  EXPECT_EQ(gi[i++].second, -4);
+
+  EXPECT_EQ(gi[i].first, 15);
+  EXPECT_EQ(gi[i++].second, -5);
+
+  EXPECT_EQ(gi[i].first, 16);
+  EXPECT_EQ(gi[i++].second, -5);
+
+  EXPECT_EQ(gi[i].first, 17);
+  EXPECT_EQ(gi[i++].second, -5);
+
+  EXPECT_EQ(gi[i].first, 17);
+  EXPECT_EQ(gi[i++].second, -6);
+
+  EXPECT_EQ(gi[i].first, 18);
+  EXPECT_EQ(gi[i++].second, -6);
+
+  EXPECT_EQ(gi[i].first, 7);
+  EXPECT_EQ(gi[i++].second, -6);
+
+  i = 0;
+  EXPECT_EQ(lg[i][0], 0);
+  EXPECT_EQ(lg[i][1], 6);
+  EXPECT_EQ(lg[i++][2], 1);
+
+  EXPECT_EQ(lg[i][0], 1);
+  EXPECT_EQ(lg[i][1], 11);
+  EXPECT_EQ(lg[i++][2], 2);
+
+  EXPECT_EQ(lg[i][0], 2);
+  EXPECT_EQ(lg[i][1], 15);
+  EXPECT_EQ(lg[i++][2], 3);
+
+  EXPECT_EQ(lg[i][0], 3);
+  EXPECT_EQ(lg[i][1], 19);
+  EXPECT_EQ(lg[i++][2], 4);
+
+  EXPECT_EQ(lg[i][0], 4);
+  EXPECT_EQ(lg[i][1], 23);
+  EXPECT_EQ(lg[i++][2], 5);
+
+  EXPECT_EQ(lg[i][0], 5);
+  EXPECT_EQ(lg[i][1], 7);
+  EXPECT_EQ(lg[i++][2], 0);
+
+  EXPECT_EQ(lg[i][0], 8);
+  EXPECT_EQ(lg[i][1], 30);
+  EXPECT_EQ(lg[i++][2], 9);
+
+  EXPECT_EQ(lg[i][0], 12);
+  EXPECT_EQ(lg[i][1], 6);
+  EXPECT_EQ(lg[i++][2], 9);
+
+  EXPECT_EQ(lg[i][0], 12);
+  EXPECT_EQ(lg[i][1], 32);
+  EXPECT_EQ(lg[i++][2], 13);
+
+  EXPECT_EQ(lg[i][0], 13);
+  EXPECT_EQ(lg[i][1], 33);
+  EXPECT_EQ(lg[i++][2], 14);
+
+  EXPECT_EQ(lg[i][0], 16);
+  EXPECT_EQ(lg[i][1], 11);
+  EXPECT_EQ(lg[i++][2], 14);
+
+  EXPECT_EQ(lg[i][0], 16);
+  EXPECT_EQ(lg[i][1], 34);
+  EXPECT_EQ(lg[i++][2], 17);
+
+  EXPECT_EQ(lg[i][0], 17);
+  EXPECT_EQ(lg[i][1], 35);
+  EXPECT_EQ(lg[i++][2], 18);
+
+  EXPECT_EQ(lg[i][0], 20);
+  EXPECT_EQ(lg[i][1], 15);
+  EXPECT_EQ(lg[i++][2], 18);
+
+  EXPECT_EQ(lg[i][0], 20);
+  EXPECT_EQ(lg[i][1], 36);
+  EXPECT_EQ(lg[i++][2], 21);
+
+  EXPECT_EQ(lg[i][0], 21);
+  EXPECT_EQ(lg[i][1], 37);
+  EXPECT_EQ(lg[i++][2], 22);
+
+  EXPECT_EQ(lg[i][0], 24);
+  EXPECT_EQ(lg[i][1], 19);
+  EXPECT_EQ(lg[i++][2], 22);
+
+  EXPECT_EQ(lg[i][0], 24);
+  EXPECT_EQ(lg[i][1], 38);
+  EXPECT_EQ(lg[i++][2], 25);
+
+  EXPECT_EQ(lg[i][0], 25);
+  EXPECT_EQ(lg[i][1], 39);
+  EXPECT_EQ(lg[i++][2], 26);
+
+  EXPECT_EQ(lg[i][0], 27);
+  EXPECT_EQ(lg[i][1], 23);
+  EXPECT_EQ(lg[i++][2], 26);
+
+  EXPECT_EQ(lg[i][0], 27);
+  EXPECT_EQ(lg[i][1], 40);
+  EXPECT_EQ(lg[i++][2], 28);
+
+  EXPECT_EQ(lg[i][0], 28);
+  EXPECT_EQ(lg[i][1], 41);
+  EXPECT_EQ(lg[i++][2], 29);
+
+  EXPECT_EQ(lg[i][0], 10);
+  EXPECT_EQ(lg[i][1], 7);
+  EXPECT_EQ(lg[i++][2], 29);
+
+  EXPECT_EQ(lg[i][0], 10);
+  EXPECT_EQ(lg[i][1], 31);
+  EXPECT_EQ(lg[i++][2], 8);
+
+  // edge channels
+  EXPECT_EQ(lg[i][0], 30);
+  EXPECT_EQ(lg[i][1], 43);
+  EXPECT_EQ(lg[i++][2], 42);
+
+  EXPECT_EQ(lg[i][0], 32);
+  EXPECT_EQ(lg[i][1], 44);
+  EXPECT_EQ(lg[i++][2], 43);
+
+  EXPECT_EQ(lg[i][0], 33);
+  EXPECT_EQ(lg[i][1], 46);
+  EXPECT_EQ(lg[i++][2], 45);
+
+  EXPECT_EQ(lg[i][0], 34);
+  EXPECT_EQ(lg[i][1], 47);
+  EXPECT_EQ(lg[i++][2], 46);
+
+  EXPECT_EQ(lg[i][0], 35);
+  EXPECT_EQ(lg[i][1], 49);
+  EXPECT_EQ(lg[i++][2], 48);
+
+  EXPECT_EQ(lg[i][0], 36);
+  EXPECT_EQ(lg[i][1], 50);
+  EXPECT_EQ(lg[i++][2], 49);
+
+  EXPECT_EQ(lg[i][0], 37);
+  EXPECT_EQ(lg[i][1], 52);
+  EXPECT_EQ(lg[i++][2], 51);
+
+  EXPECT_EQ(lg[i][0], 38);
+  EXPECT_EQ(lg[i][1], 53);
+  EXPECT_EQ(lg[i++][2], 52);
+
+  EXPECT_EQ(lg[i][0], 39);
+  EXPECT_EQ(lg[i][1], 55);
+  EXPECT_EQ(lg[i++][2], 54);
+
+  EXPECT_EQ(lg[i][0], 40);
+  EXPECT_EQ(lg[i][1], 56);
+  EXPECT_EQ(lg[i++][2], 55);
+
+  EXPECT_EQ(lg[i][0], 41);
+  EXPECT_EQ(lg[i][1], 58);
+  EXPECT_EQ(lg[i++][2], 57);
+
+  EXPECT_EQ(lg[i][0], 31);
+  EXPECT_EQ(lg[i][1], 59);
+  EXPECT_EQ(lg[i++][2], 58);
+
+  // corner channels
+  EXPECT_EQ(lg[i][0], 59);
+  EXPECT_EQ(lg[i++][1], 42);
+
+  EXPECT_EQ(lg[i][0], 44);
+  EXPECT_EQ(lg[i++][1], 45);
+
+  EXPECT_EQ(lg[i][0], 47);
+  EXPECT_EQ(lg[i++][1], 48);
+
+  EXPECT_EQ(lg[i][0], 50);
+  EXPECT_EQ(lg[i++][1], 51);
+
+  EXPECT_EQ(lg[i][0], 53);
+  EXPECT_EQ(lg[i++][1], 54);
+
+  EXPECT_EQ(lg[i][0], 56);
+  EXPECT_EQ(lg[i++][1], 57);
+}
+
+TEST_F(HexagonalLatticeTest, line_distance)
+{
+  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+
+  // horizontal line
+  Point p1(4.0, 5.0, 0.0);
+  Point l1(1.0, 3.0, 0.0);
+  Point l2(5.0, 3.0, 0.0);
+  EXPECT_DOUBLE_EQ(hl.distanceFromLine(p1, l1, l2), 2.0);
+
+  // vertical line
+  Point l4(1.0, 5.0, 0.0);
+  Point l3(1.0, 3.0, 0.0);
+  Point p2(3.0, 4.0, 0.0);
+  EXPECT_DOUBLE_EQ(hl.distanceFromLine(p2, l3, l4), 2.0);
+
+  // angled line
+  Point p3(2.0, 2.0, 0.0);
+  Point l5(1.0, 2.0, 0.0);
+  Point l6(2.0, 3.0, 0.0);
+  EXPECT_DOUBLE_EQ(hl.distanceFromLine(p3, l5, l6), std::sqrt(2.0) / 2.0);
+}
