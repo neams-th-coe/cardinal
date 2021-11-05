@@ -15,6 +15,13 @@ public:
     const Real & pin_diameter, const Real & wire_diameter, const Real & wire_pitch,
     const unsigned int & n_rings, const unsigned int & axis);
 
+  Real distanceFromGap(const Point & pt, const unsigned int & gap_index) const;
+
+  unsigned int gapIndex(const Point & point) const;
+
+  const Real sideTranslationX(const unsigned int & side) const { return _translation_x[side]; }
+  const Real sideTranslationY(const unsigned int & side) const { return _translation_y[side]; }
+
   /**
    * Compute the distance from a line, provided in terms of two points on the line
    * @param[in] pt point of interest
@@ -83,6 +90,12 @@ public:
    * @return number of gaps touching an interior channel
    */
   const unsigned int & nInteriorGaps() const { return _n_interior_gaps; }
+
+  /**
+   * Get the number of gaps
+   * @return number of gaps
+   */
+  const unsigned int & nGaps() const { return _n_gaps; }
 
   /**
    * Get the (pin) pitch-to-diameter ratio
@@ -646,12 +659,21 @@ protected:
   /// Number of gaps that touch an interior channel
   unsigned int _n_interior_gaps;
 
+  /// Total number of gaps
+  unsigned int _n_gaps;
+
   static const Real SIN60;
 
   static const Real COS60;
 
   /// Number of sides in a hexagon
   static const unsigned int NUM_SIDES;
+
+  /// (unitless) x-translations to apply to move from a center point to a side of a hexagon
+  std::vector<Real> _translation_x;
+
+  /// (unitless) y-translations to apply to move from a center point to a side of a hexagon
+  std::vector<Real> _translation_y;
 
 private:
   /// Determine the global gap indices, sorted first by lower pin ID and next by higher pin ID

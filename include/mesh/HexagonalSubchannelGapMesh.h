@@ -83,11 +83,4 @@ protected:
 
   /// Node ID
   int _node_id_counter;
-
-  static const Real SIN60;
-
-  static const Real COS60;
-
-  /// Number of sides in a hexagon
-  static const unsigned int NUM_SIDES;
 };

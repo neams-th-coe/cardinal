@@ -2,10 +2,6 @@
 #include "libmesh/face_quad4.h"
 #include "libmesh/unstructured_mesh.h"
 
-const Real HexagonalSubchannelGapMesh::COS60 = 0.5;
-const Real HexagonalSubchannelGapMesh::SIN60 = std::sqrt(3.0) / 2.0;
-const unsigned int HexagonalSubchannelGapMesh::NUM_SIDES = 6;
-
 registerMooseObject("CardinalApp", HexagonalSubchannelGapMesh);
 
 defineLegacyParams(HexagonalSubchannelGapMesh);
@@ -96,8 +92,6 @@ HexagonalSubchannelGapMesh::buildMesh()
     }
 
     Real d = _hex_lattice.pinBundleSpacing() + _hex_lattice.pinRadius();
-    Real translation_x [NUM_SIDES] = {0.0, -d * SIN60, -d * SIN60, 0.0, d * SIN60, d * SIN60};
-    Real translation_y [NUM_SIDES] = {d, d * COS60, -d * COS60, -d, -d * COS60, d * COS60};
 
     for (int i = _hex_lattice.nInteriorGaps(); i < _gap_indices.size(); ++i)
     {
@@ -105,7 +99,7 @@ HexagonalSubchannelGapMesh::buildMesh()
       int side = std::abs(pins.second) - 1;
 
       const auto & center1 = _pin_centers[pins.first];
-      const Point pt2 = center1 + Point(translation_x[side], translation_y[side], 0.0);
+      const Point pt2 = center1 + Point(d * _hex_lattice.sideTranslationX(side), d * _hex_lattice.sideTranslationY(side), 0.0);
       const Point pt1 = center1 + r * (pt2 - center1).unit();
 
       addQuadElem(pt1, pt2, zmin, zmax, _peripheral_id);
