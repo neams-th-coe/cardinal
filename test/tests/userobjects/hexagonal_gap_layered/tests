@@ -1,0 +1,22 @@
+[Tests]
+  [type_error]
+    type = RunException
+    input = type_error.i
+    expect_err = "'vol_avg' requires exactly one bin distribution to be a side distribution; you have specified: 0"
+    requirement = "The system shall error if the userobjects aren't derived from the correct base class."
+  []
+  [gap_layered]
+    type = Exodiff
+    input = nek.i
+    exodiff = 'nek_out_subchannel0.e'
+    requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
+                  "binning and demonstrate correct results for volume integrals and averages."
+  []
+  [bins_too_fine]
+    type = RunException
+    input = nek.i
+    cli_args = "UserObjects/axial_binning/num_layers=1000"
+    expect_err = "Failed to map any GLL points to bin 1!"
+    requirement = "The system shall error if there are zero contributions to a gap bin."
+  []
+[]

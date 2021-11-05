@@ -22,6 +22,33 @@ public:
   virtual Real spatialValue(const Point & p) const override;
 
   /**
+   * Whether this distribution has the distanceFromGap method defined; this
+   * check is needed for some side-volume bin combinations
+   * @return whether distanceFromGap is defined
+   */
+  virtual bool isSideBinning() const { return false; }
+
+  /**
+   * Distance between a point and a gap
+   * @param[in] point point
+   * @param[in] gap_index gap index
+   */
+  virtual const Real distanceFromGap(const Point & point, const unsigned int & gap_index) const
+  {
+    mooseError("'" + name() + "' does not support the 'distanceFromGap' interface!");
+  }
+
+  virtual unsigned int gapIndex(const Point & point) const
+  {
+    mooseError("'" + name() + "' does not support the 'gapIndex' interface!");
+  }
+
+  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const
+  {
+    mooseError("'" + name() + "' does not support the gapIndexAndDistance interface!");
+  }
+
+  /**
    * Get the bin index from a spatial point
    * @param[in] p point
    * @return bin index

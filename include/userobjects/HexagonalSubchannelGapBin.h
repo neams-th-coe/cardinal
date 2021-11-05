@@ -20,6 +20,16 @@ public:
 
   virtual const std::vector<unsigned int> directions() const override { return _directions; }
 
+  virtual bool isSideBinning() const override { return true; }
+
+  virtual const Real distanceFromGap(const Point & point, const unsigned int & gap_index) const {
+    return _hex_lattice->distanceFromGap(point, gap_index); }
+
+  virtual unsigned int gapIndex(const Point & point) const { return _hex_lattice->gapIndex(point); }
+
+  virtual void gapIndexAndDistance(const Point & point, unsigned int & index,
+    Real & distance) const { return _hex_lattice->gapIndexAndDistance(point, index, distance); }
+
 protected:
   /// Bundle pitch
   const Real & _bundle_pitch;

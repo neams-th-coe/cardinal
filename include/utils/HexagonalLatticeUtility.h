@@ -18,6 +18,7 @@ public:
   Real distanceFromGap(const Point & pt, const unsigned int & gap_index) const;
 
   unsigned int gapIndex(const Point & point) const;
+  void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const;
 
   const Real sideTranslationX(const unsigned int & side) const { return _translation_x[side]; }
   const Real sideTranslationY(const unsigned int & side) const { return _translation_y[side]; }

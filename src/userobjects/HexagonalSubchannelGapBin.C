@@ -43,10 +43,7 @@ HexagonalSubchannelGapBin::HexagonalSubchannelGapBin(const InputParameters & par
   // the bin centers are the gap centers
   const auto & gap_centers = _hex_lattice->gapCenters();
   for (const auto & gap : gap_centers)
-  {
-    std::cout << gap << std::endl;
     _bin_centers.push_back(gap);
-  }
 }
 
 const unsigned int

@@ -25,6 +25,12 @@ public:
 
   virtual const std::vector<Point> spatialPoints() const override { return _points; }
 
+  /// Compute the volume of each bin and check for zero contributions
+  virtual void computeBinVolumes() final;
+
+  /// Get the volume of each bin, used for normalizing in derived classes
+  virtual void getBinVolumes() = 0;
+
 protected:
   /// Get the output points for a single bin
   void computePoints1D();
@@ -54,6 +60,13 @@ protected:
    */
   const bool & _map_space_by_qp;
 
+  /**
+   * Whether to throw an error if no GLL points or elements map to each bin
+   * (which would indicate that the binning is probably way too fine relative
+   * to the NekRS solution)
+   */
+  const bool & _check_zero_contributions;
+
   /// Userobjects providing the bins
   std::vector<const SpatialBinUserObject *> _bins;
 
@@ -71,4 +84,13 @@ protected:
 
   /// points at which to output the user object to give unique values
   std::vector<Point> _points;
+
+  /// Volumes of each bin
+  double * _bin_volumes;
+
+  /**
+   * Number of GLL points (for 'map_space_by_qp = true') or elements (for
+   * 'map_space_by_qp = false') that contribute to each bin, for error checking
+   */
+  int * _bin_counts;
 };

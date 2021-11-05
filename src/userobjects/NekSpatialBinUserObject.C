@@ -11,6 +11,10 @@ NekSpatialBinUserObject::validParams()
   params.addParam<bool>("map_space_by_qp", false,
     "Whether to map the NekRS spatial domain to a bin according to the element centroids (true) "
     "or quadrature point locations (false).");
+  params.addParam<bool>("check_zero_contributions", true,
+    "Whether to throw an error if no GLL points in the NekRS mesh map to a spatial bin; this "
+    "can be used to ensure that the bins are sufficiently big to get at least one contributing "
+    "point from the NekRS mesh.");
   return params;
 }
 
@@ -18,7 +22,8 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   : NekUserObject(parameters),
     _bin_names(getParam<std::vector<UserObjectName>>("bins")),
     _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
-    _map_space_by_qp(getParam<bool>("map_space_by_qp"))
+    _map_space_by_qp(getParam<bool>("map_space_by_qp")),
+    _check_zero_contributions(getParam<bool>("check_zero_contributions"))
 {
   if (_bin_names.size() == 0)
     paramError("bins", "Length of vector must be greater than zero!");
@@ -33,12 +38,14 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     // then check that it's the right type
     if (!hasUserObjectByName<SpatialBinUserObject>(b))
       mooseError("Bin user object with name '" + b + "' must inherit from SpatialBinUserObject.\n\n"
-        "Options: HexagonalSubchannelBin, LayeredBin, RadialBin");
+        "Options: HexagonalSubchannelBin, HexagonalSubchannelGapBin, LayeredBin, RadialBin");
 
     _bins.push_back(&getUserObjectByName<SpatialBinUserObject>(b));
   }
 
   _bin_values = (double *) calloc(num_bins(), sizeof(double));
+  _bin_volumes = (double *) calloc(num_bins(), sizeof(double));
+  _bin_counts = (int *) calloc(num_bins(), sizeof(int));
 
   checkValidField(_field);
 
@@ -84,6 +91,29 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
 NekSpatialBinUserObject::~NekSpatialBinUserObject()
 {
   free(_bin_values);
+  free(_bin_volumes);
+  free(_bin_counts);
+}
+
+void
+NekSpatialBinUserObject::computeBinVolumes()
+{
+  getBinVolumes();
+
+  if (_check_zero_contributions)
+  {
+    for (unsigned int i = 0; i < num_bins(); ++i)
+    {
+      if (_bin_counts[i] == 0)
+      {
+        std::string map = _map_space_by_qp ? "GLL points" : "element centroids";
+        mooseError("Failed to map any " + map + " to bin " + Moose::stringify(i) + "!\n\n"
+          "This can happen if the bins are much finer than the NekRS mesh or if the bins are defined\n"
+          "in a way that results in bins entirely outside the NekRS domain. You can turn this error\n"
+          "off by setting 'check_zero_contributions = false'.");
+      }
+    }
+  }
 }
 
 Real

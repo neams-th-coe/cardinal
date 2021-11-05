@@ -693,7 +693,7 @@ HexagonalLatticeUtility::computeGapIndices()
     int loc_gap0 = globalGapIndex(gap0);
     _local_to_global_gaps.push_back({loc_gap0, gap + 1, gap});
 
-    if ((i + 1) % (_n_rings - 1) == 0 && i != 0)
+    if ((i + 1) % (_n_rings - 1) == 0)
       gap += 2;
     else
       gap += 1;
@@ -801,4 +801,23 @@ HexagonalLatticeUtility::gapIndex(const Point & point) const
   }
 
   return index;
+}
+
+void
+HexagonalLatticeUtility::gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const
+{
+  const auto & channel_index = channelIndex(point);
+  const auto & gap_indices = _local_to_global_gaps[channel_index];
+
+  distance = std::numeric_limits<Real>::max();
+  for (unsigned int i = 0; i < gap_indices.size(); ++i)
+  {
+    Real distance_from_gap = distanceFromGap(point, gap_indices[i]);
+
+    if (distance_from_gap < distance)
+    {
+      distance = distance_from_gap;
+      index = gap_indices[i];
+    }
+  }
 }
