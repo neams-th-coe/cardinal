@@ -75,6 +75,11 @@ public:
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
+  /**
+   * Whether the OpenMC solution is converged; convergence of a Monte Carlo application
+   * is related to the desired stochastic uncertainty, and is something that would be handled
+   * in OpenMC directly.
+   */
   virtual bool converged() override { return true; }
 
   /**
