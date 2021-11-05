@@ -1,0 +1,8 @@
+[Tests]
+  [bin]
+    type = Exodiff
+    input = subchannel.i
+    exodiff = subchannel_out.e
+    requirement = "A hexagonal subchannel bin shall divide space according to subchannel discretization in the gaps of a hexagonal lattice."
+  []
+[]

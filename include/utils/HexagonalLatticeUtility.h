@@ -92,6 +92,12 @@ public:
   const unsigned int & nInteriorGaps() const { return _n_interior_gaps; }
 
   /**
+   * Get the center coordinates of the gaps
+   * @return gap center coordinates
+   */
+  const std::vector<Point> & gapCenters() const { return _gap_centers; }
+
+  /**
    * Get the number of gaps
    * @return number of gaps
    */
@@ -674,6 +680,9 @@ protected:
 
   /// (unitless) y-translations to apply to move from a center point to a side of a hexagon
   std::vector<Real> _translation_y;
+
+  /// Center points of all the gaps
+  std::vector<Point> _gap_centers;
 
 private:
   /// Determine the global gap indices, sorted first by lower pin ID and next by higher pin ID

@@ -713,6 +713,7 @@ HexagonalLatticeUtility::computeGapIndices()
   for (int i = 0; i < _n_interior_gaps; ++i)
   {
     const auto & pins = _gap_indices[i];
+    _gap_centers.push_back(0.5 * (_pin_centers[pins.second] + _pin_centers[pins.first]));
     _gap_line_coeffs.push_back(getLineCoefficients(_pin_centers[pins.first], _pin_centers[pins.second]));
   }
 
@@ -724,6 +725,7 @@ HexagonalLatticeUtility::computeGapIndices()
 
     const auto & pt1 = _pin_centers[pins.first];
     const Point pt2 = pt1 + Point(d * _translation_x[side], d * _translation_y[side], 0.0);
+    _gap_centers.push_back(0.5 * (pt2 + pt1));
 
     _gap_line_coeffs.push_back(getLineCoefficients(pt1, pt2));
   }
