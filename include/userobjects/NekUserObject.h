@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ThreadedGeneralUserObject.h"
+#include "NekRSProblemBase.h"
 #include "CardinalEnums.h"
 
 /**
@@ -26,4 +27,8 @@ public:
    * @param[in] field field
    */
   virtual void checkValidField(const field::NekFieldEnum & field) const;
+
+protected:
+  /// Underlying problem object
+  const NekRSProblemBase * _nek_problem;
 };
