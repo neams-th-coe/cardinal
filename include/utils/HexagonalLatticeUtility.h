@@ -16,6 +16,24 @@ public:
     const unsigned int & n_rings, const unsigned int & axis);
 
   /**
+   * Compute the distance from a line, provided in terms of two points on the line
+   * @param[in] pt point of interest
+   * @param[in] line0 first point on line
+   * @param[in] line1 second point on line
+   * @return distance from line
+   */
+  Real distanceFromLine(const Point & pt, const Point & line0, const Point & line1) const;
+
+  /**
+   * Get the coefficients a, b, and c in ax + by + c = 0 for the line passing
+   * through the provided points
+   * @param[in] line0 first point on line
+   * @param[in] line1 second point on line
+   * @return coefficients of line
+   */
+  std::vector<Real> getLineCoefficients(const Point & line0, const Point & line1) const;
+
+  /**
    * If positive, point is on the positive side of the half space (and vice versa)
    * @param[in] pt1 point of interest
    * @param[in] pt2 one end point of line
@@ -59,6 +77,12 @@ public:
    * @reutrn number of interior channels
    */
   unsigned int interiorChannels(const unsigned int ring);
+
+  /**
+   * Get the number of gaps that touch an interior channel
+   * @return number of gaps touching an interior channel
+   */
+  const unsigned int & nInteriorGaps() const { return _n_interior_gaps; }
 
   /**
    * Get the (pin) pitch-to-diameter ratio
@@ -398,6 +422,18 @@ public:
   const std::vector<std::vector<unsigned int>> & cornerChannelPinIndices() const { return _corner_channel_pin_indices; }
 
   /**
+   * Get the pin and side indices on each gap
+   * @return pin and side indices on each gap
+   */
+  const std::vector<std::pair<int, int>> & gapIndices() const { return _gap_indices; }
+
+  /**
+   * For each subchannel, get the indices of the gaps that touch that subchannel
+   * @return indices of gaps touch each channel
+   */
+  const std::vector<std::vector<int>> & localToGlobalGaps() const { return _local_to_global_gaps; }
+
+  /**
    * Get the corner coordinates of an interior channel given an ID
    * (relative to the start of the interior channels)
    * @param[in] interior_channel_id ID of interior channel
@@ -441,7 +477,11 @@ public:
    */
   const unsigned int channelIndex(const Point & point) const;
 
+  std::pair<int, int> sortedGap(const int & id0, const int & id1) const;
+
 protected:
+  unsigned int globalGapIndex(const std::pair<int, int> & local_gap) const;
+
   /// Bundle pitch (distance across bundle measured flat-to-flat on the inside of the duct)
   const Real & _bundle_pitch;
 
@@ -594,6 +634,18 @@ protected:
   /// Pin indices forming one of the corners of each corner channel
   std::vector<std::vector<unsigned int>> _corner_channel_pin_indices;
 
+  /// Gap indices, connecting two pins or one pin and a side, ordered by global gap ID
+  std::vector<std::pair<int, int>> _gap_indices;
+
+  /// Local-to-global gap indexing, ordered by channel ID
+  std::vector<std::vector<int>> _local_to_global_gaps;
+
+  /// Coefficients forming the lines between each gap
+  std::vector<std::vector<Real>> _gap_line_coeffs;
+
+  /// Number of gaps that touch an interior channel
+  unsigned int _n_interior_gaps;
+
   static const Real SIN60;
 
   static const Real COS60;
@@ -602,6 +654,9 @@ protected:
   static const unsigned int NUM_SIDES;
 
 private:
+  /// Determine the global gap indices, sorted first by lower pin ID and next by higher pin ID
+  void computeGapIndices();
+
   /// Compute the number of pins and channels and their types for the lattice
   void computePinAndChannelTypes();
 

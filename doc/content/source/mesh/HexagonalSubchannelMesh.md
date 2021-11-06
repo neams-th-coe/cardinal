@@ -16,6 +16,11 @@ all interior, edge, and corner channels are by default set to a unique subdomain
 This behavior can be controlled by setting the `interior_id`, `edge_id`, and
 `corner_id` parameters to the desired subdomain IDs.
 
+!alert warning
+This class is intended *ONLY* for visualization purposes - node connectivity between
+elements is not obeyed, so you cannot use this mesh to solve any anything that requires
+connectivity information between elements (such as a finite element solve).
+
 ## Example Input syntax
 
 The following shows the mesh generated for a bundle with three rings of pins
