@@ -12,11 +12,5 @@ public:
 
   NekBinnedVolumeAverage(const InputParameters & parameters);
 
-  virtual ~NekBinnedVolumeAverage();
-
   virtual void execute() override;
-
-protected:
-  /// Volumes of each bin
-  double * _bin_volumes;
 };

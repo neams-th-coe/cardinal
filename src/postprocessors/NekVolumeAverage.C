@@ -24,13 +24,10 @@ NekVolumeAverage::validParams()
 NekVolumeAverage::NekVolumeAverage(const InputParameters & parameters) :
   NekVolumeIntegral(parameters)
 {
-  if (_fixed_mesh)
-    _volume = nekrs::volume();
 }
 
 Real
 NekVolumeAverage::getValue()
 {
-  Real volume = _fixed_mesh ? _volume : nekrs::volume();
-  return NekVolumeIntegral::getValue() / volume;
+  return NekVolumeIntegral::getValue() / _volume;
 }

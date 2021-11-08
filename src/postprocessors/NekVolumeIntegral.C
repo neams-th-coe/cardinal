@@ -29,10 +29,16 @@ NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters) :
   _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
 {
   checkValidField(_field);
+
+  if (_fixed_mesh)
+    _volume = nekrs::volume();
 }
 
 Real
 NekVolumeIntegral::getValue()
 {
-  return nekrs::volumeIntegral(_field);
+  if (!_fixed_mesh)
+    _volume = nekrs::volume();
+
+  return nekrs::volumeIntegral(_field, _volume);
 }
