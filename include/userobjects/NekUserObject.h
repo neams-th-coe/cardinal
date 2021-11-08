@@ -31,4 +31,7 @@ public:
 protected:
   /// Underlying problem object
   const NekRSProblemBase * _nek_problem;
+
+  /// Whether the mesh this userobject operates on is fixed, allowing caching of volumes and areas
+  bool _fixed_mesh;
 };

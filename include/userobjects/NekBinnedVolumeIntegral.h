@@ -12,5 +12,11 @@ public:
 
   NekBinnedVolumeIntegral(const InputParameters & parameters);
 
+  ~NekBinnedVolumeIntegral();
+
   virtual void execute() override;
+
+protected:
+  /// Volumes of each bin
+  double * _bin_volumes;
 };

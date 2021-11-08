@@ -40,4 +40,7 @@ public:
 protected:
   /// integrand of the surface integral
   const field::NekFieldEnum _field;
+
+  /// Volume by which to normalize
+  Real _volume;
 };

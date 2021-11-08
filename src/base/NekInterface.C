@@ -908,12 +908,12 @@ double volume()
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-  dimensionalizeVolumeIntegral(field::unity, total_integral);
+  total_integral *= scales.V_ref;
 
   return total_integral;
 }
 
-void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, double & integral)
+void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume, double & integral)
 {
   // dimensionalize the field if needed
   solution::dimensionalize(integrand, integral);
@@ -923,7 +923,7 @@ void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, double 
 
   // if temperature, we need to add the reference temperature multiplied by the volume integral
   if (integrand == field::temperature)
-    integral += scales.T_ref * volume();
+    integral += scales.T_ref * volume;
 }
 
 void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std::vector<int> & boundary_id, double & integral)
@@ -939,9 +939,47 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std
     integral += scales.T_ref * area(boundary_id);
 }
 
-void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
+void binnedVolume(const bool & map_space_by_qp,
   const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
   int n_bins, double * total_integral)
+{
+  mesh_t * mesh = entireMesh();
+  double * integral = (double *) calloc(n_bins, sizeof(double));
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+    libMesh::Point p;
+
+    if (!map_space_by_qp)
+      p = centroid(k) * scales.L_ref;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      if (map_space_by_qp)
+      {
+        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
+        p *= scales.L_ref;
+      }
+
+      unsigned int bin = ((*uo).bin)(p);
+      integral[bin] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  MPI_Allreduce(integral, total_integral, n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  // dimensionalize
+  for (unsigned int i = 0; i < n_bins; ++i)
+    total_integral[i] *= scales.V_ref;
+
+  free(integral);
+}
+
+void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
+  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  int n_bins, const double * bin_volumes, double * total_integral)
 {
   mesh_t * mesh = entireMesh();
   double * integral = (double *) calloc(n_bins, sizeof(double));
@@ -974,12 +1012,12 @@ void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & ma
   MPI_Allreduce(integral, total_integral, n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   for (unsigned int i = 0; i < n_bins; ++i)
-    dimensionalizeVolumeIntegral(integrand, total_integral[i]);
+    dimensionalizeVolumeIntegral(integrand, bin_volumes[i], total_integral[i]);
 
   free(integral);
 }
 
-double volumeIntegral(const field::NekFieldEnum & integrand)
+double volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume)
 {
   mesh_t * mesh = entireMesh();
   double integral = 0.0;
@@ -999,7 +1037,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand)
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-  dimensionalizeVolumeIntegral(integrand, total_integral);
+  dimensionalizeVolumeIntegral(integrand, volume, total_integral);
 
   return total_integral;
 }

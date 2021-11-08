@@ -32,8 +32,4 @@ public:
   NekVolumeAverage(const InputParameters & parameters);
 
   virtual Real getValue() override;
-
-protected:
-  /// Volume by which to normalize
-  Real _volume;
 };

@@ -307,9 +307,10 @@ double volume();
 /**
  * Dimensionalize a given integral of f over volume, i.e. fdV
  * @param[in] integrand field to dimensionalize
+ * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
  * @param[in] integral integral to dimensionalize
  */
-void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, double & integral);
+void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume, double & integral);
 
 /**
  * Dimensionalize a given integral of f over a side, i.e. fdS
@@ -322,9 +323,22 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std
 /**
  * Compute the volume integral of a given integrand over the entire scalar mesh
  * @param[in] integrand field to integrate
+ * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
  * @return volume integral of a field
  */
-double volumeIntegral(const field::NekFieldEnum & integrand);
+double volumeIntegral(const field::NekFieldEnum & integrand, const double & volume);
+
+/**
+ * Compute the volumes of spatial bins
+ * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
+ * @param[in] bin pointer to function that returns a bin index given a point
+ * @param[in] uo user object providing the bin method
+ * @param[in] n_bins number of bins
+ * @param[out] total_integral volume for each bin, summed across ranks
+ */
+void binnedVolume(const bool & map_space_by_qp,
+  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  int n_bins, double * total_integral);
 
 /**
  * Compute a volume integral in spatial bins
@@ -333,11 +347,12 @@ double volumeIntegral(const field::NekFieldEnum & integrand);
  * @param[in] bin pointer to function that returns a bin index given a point
  * @param[in] uo user object providing the bin method
  * @param[in] n_bins number of bins
+ * @param[in] bin_volumes volume of each bin, only used for dimensionalizing temperature
  * @param[out] total_integral volume integral for each bin, summed across ranks
  */
 void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
   const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
-  int n_bins, double * total_integral);
+  int n_bins, const double * bin_volumes, double * total_integral);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs

@@ -20,10 +20,6 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
     _map_space_by_qp(getParam<bool>("map_space_by_qp"))
 {
-  if (_nek_problem->nondimensional() && _field == field::temperature)
-    mooseError("Spatial bin user objects are not yet available for non-dimensional solutions with temperature! "
-      "Please change your MOOSE-wrapped input file to be in the same non-dimensional units as your NekRS case.");
-
   if (_bin_names.size() == 0)
     paramError("bins", "Length of vector must be greater than zero!");
 
