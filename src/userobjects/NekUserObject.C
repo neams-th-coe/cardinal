@@ -1,5 +1,4 @@
 #include "NekUserObject.h"
-#include "NekRSProblemBase.h"
 
 InputParameters
 NekUserObject::validParams()
@@ -11,8 +10,8 @@ NekUserObject::validParams()
 NekUserObject::NekUserObject(const InputParameters & parameters)
   : ThreadedGeneralUserObject(parameters)
 {
-  const NekRSProblemBase * nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
-  if (!nek_problem)
+  _nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
+  if (!_nek_problem)
   {
     std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
     mooseError("UserObject with name '" + name() + "' can only be used with wrapped Nek cases!\n"
