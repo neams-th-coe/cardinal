@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CardinalEnums.h"
-#include "NekSpatialBinUserObject.h"
+#include "NekVolumeSpatialBinUserObject.h"
 #include "NekSideSpatialBinUserObject.h"
 #include "libmesh/point.h"
 #include "mesh.h"
@@ -339,14 +339,14 @@ double volumeIntegral(const field::NekFieldEnum & integrand, const double & volu
  * @param[out] total_counts number of counts towards each bin
  */
 void binnedVolume(const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
   int n_bins, double * total_integral, int * total_counts);
 
 /**
  * Compute the volumes of gap spatial bins
  * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
  * @param[in] bin pointer to function that returns a bin index given a point
- * @param[in] uo user object providing the bin method
+ * @param[in] uo user object providing the combined bin method
  * @param[in] n_bins number of bins
  * @param[out] total_integral volume for each bin, summed across ranks
  * @param[out] total_counts number of counts towards each bin
@@ -386,7 +386,7 @@ void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_
  * @param[out] total_integral volume integral for each bin, summed across ranks
  */
 void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
   int n_bins, const double * bin_volumes, double * total_integral);
 
 /**

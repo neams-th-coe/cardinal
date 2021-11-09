@@ -1,11 +1,11 @@
 #pragma once
 
-#include "NekSpatialBinUserObject.h"
+#include "NekVolumeSpatialBinUserObject.h"
 
 /**
  * Compute a volume integral of the NekRS solution in spatial bins.
  */
-class NekBinnedVolumeIntegral : public NekSpatialBinUserObject
+class NekBinnedVolumeIntegral : public NekVolumeSpatialBinUserObject
 {
 public:
   static InputParameters validParams();

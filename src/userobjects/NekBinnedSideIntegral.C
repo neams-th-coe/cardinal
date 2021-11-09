@@ -21,7 +21,7 @@ NekBinnedSideIntegral::NekBinnedSideIntegral(const InputParameters & parameters)
 void
 NekBinnedSideIntegral::getBinVolumes()
 {
-  nekrs::binnedGapVolume(_map_space_by_qp, &NekSpatialBinUserObject::bin,
+  nekrs::binnedGapVolume(_map_space_by_qp, &NekSideSpatialBinUserObject::bin,
     &NekSideSpatialBinUserObject::gapIndexAndDistance,
     this, num_bins(), _gap_thickness, _bin_volumes, _bin_counts);
 }

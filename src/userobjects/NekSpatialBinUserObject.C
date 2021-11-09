@@ -38,7 +38,8 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     // then check that it's the right type
     if (!hasUserObjectByName<SpatialBinUserObject>(b))
       mooseError("Bin user object with name '" + b + "' must inherit from SpatialBinUserObject.\n\n"
-        "Options: HexagonalSubchannelBin, HexagonalSubchannelGapBin, LayeredBin, RadialBin");
+        "Volume options: HexagonalSubchannelBin, LayeredBin, RadialBin\n"
+        "Side options: HexagonalSubchannelGapBin");
 
     _bins.push_back(&getUserObjectByName<SpatialBinUserObject>(b));
   }

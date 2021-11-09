@@ -5,7 +5,7 @@ registerMooseObject("CardinalApp", HexagonalSubchannelGapBin);
 InputParameters
 HexagonalSubchannelGapBin::validParams()
 {
-  InputParameters params = SpatialBinUserObject::validParams();
+  InputParameters params = SideSpatialBinUserObject::validParams();
   params.addRequiredRangeCheckedParam<Real>("bundle_pitch", "bundle_pitch > 0",
     "Bundle pitch, or flat-to-flat distance across bundle");
   params.addRequiredRangeCheckedParam<Real>("pin_pitch", "pin_pitch > 0",
@@ -23,7 +23,7 @@ HexagonalSubchannelGapBin::validParams()
 }
 
 HexagonalSubchannelGapBin::HexagonalSubchannelGapBin(const InputParameters & parameters)
-  : SpatialBinUserObject(parameters),
+  : SideSpatialBinUserObject(parameters),
   _bundle_pitch(getParam<Real>("bundle_pitch")),
   _pin_pitch(getParam<Real>("pin_pitch")),
   _pin_diameter(getParam<Real>("pin_diameter")),
@@ -56,4 +56,22 @@ const unsigned int
 HexagonalSubchannelGapBin::num_bins() const
 {
   return _hex_lattice->nGaps();
+}
+
+Real
+HexagonalSubchannelGapBin::distanceFromGap(const Point & point, const unsigned int & gap_index) const
+{
+  return _hex_lattice->distanceFromGap(point, gap_index);
+}
+
+unsigned int
+HexagonalSubchannelGapBin::gapIndex(const Point & point) const
+{
+  return _hex_lattice->gapIndex(point);
+}
+
+void
+HexagonalSubchannelGapBin::gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const
+{
+  _hex_lattice->gapIndexAndDistance(point, index, distance);
 }

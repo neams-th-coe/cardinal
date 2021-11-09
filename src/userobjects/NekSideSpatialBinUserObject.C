@@ -18,12 +18,13 @@ NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters &
   // distributions defined in orthogonal directions don't ever overlap with one another
   unsigned int num_side_distributions = 0;
 
-  for (const auto & uo : _bins)
+  for (auto & uo : _bins)
   {
-    if (uo->isSideBinning())
+    const SideSpatialBinUserObject * side = dynamic_cast<const SideSpatialBinUserObject *>(uo);
+    if (side)
     {
       ++num_side_distributions;
-      _side_bin = uo;
+      _side_bin = side;
     }
   }
 
@@ -31,4 +32,22 @@ NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters &
     mooseError("'" + name() + "' requires exactly one bin distribution "
       "to be a side distribution; you have specified: " + Moose::stringify(num_side_distributions) +
       "\noptions: HexagonalSubchannelGapBin");
+}
+
+Real
+NekSideSpatialBinUserObject::distanceFromGap(const Point & point, const unsigned int & gap_index) const
+{
+  return _side_bin->distanceFromGap(point, gap_index);
+}
+
+unsigned int
+NekSideSpatialBinUserObject::gapIndex(const Point & point) const
+{
+  return _side_bin->gapIndex(point);
+}
+
+void
+NekSideSpatialBinUserObject::gapIndexAndDistance(const Point & point, unsigned int & index,  Real & distance) const
+{
+  _side_bin->gapIndexAndDistance(point, index, distance);
 }

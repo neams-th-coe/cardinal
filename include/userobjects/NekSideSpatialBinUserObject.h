@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NekSpatialBinUserObject.h"
+#include "SideSpatialBinUserObject.h"
 
 /**
  * Class that performs various postprocessing operations on the
@@ -15,18 +16,16 @@ public:
 
   NekSideSpatialBinUserObject(const InputParameters & parameters);
 
-  virtual const Real distanceFromGap(const Point & point, const unsigned int & gap_index) const
-    { return _side_bin->distanceFromGap(point, gap_index); }
+  virtual Real distanceFromGap(const Point & point, const unsigned int & gap_index) const;
 
-  virtual unsigned int gapIndex(const Point & point) const { return _side_bin->gapIndex(point); }
+  virtual unsigned int gapIndex(const Point & point) const;
 
-  virtual void gapIndexAndDistance(const Point & point, unsigned int & index,
-    Real & distance) const { return _side_bin->gapIndexAndDistance(point, index, distance); }
+  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const;
 
 protected:
   /// Width of region enclosing gap for which points contribute to gap integral
   const Real & _gap_thickness;
 
   /// The user object providing the side binning
-  const SpatialBinUserObject * _side_bin;
+  const SideSpatialBinUserObject * _side_bin;
 };

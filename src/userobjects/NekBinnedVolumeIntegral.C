@@ -6,13 +6,13 @@ registerMooseObject("CardinalApp", NekBinnedVolumeIntegral);
 InputParameters
 NekBinnedVolumeIntegral::validParams()
 {
-  InputParameters params = NekSpatialBinUserObject::validParams();
+  InputParameters params = NekVolumeSpatialBinUserObject::validParams();
   params.addClassDescription("Compute the spatially-binned volume integral of a field over the NekRS mesh");
   return params;
 }
 
 NekBinnedVolumeIntegral::NekBinnedVolumeIntegral(const InputParameters & parameters)
-  : NekSpatialBinUserObject(parameters)
+  : NekVolumeSpatialBinUserObject(parameters)
 {
   if (_fixed_mesh)
     computeBinVolumes();
@@ -21,7 +21,7 @@ NekBinnedVolumeIntegral::NekBinnedVolumeIntegral(const InputParameters & paramet
 void
 NekBinnedVolumeIntegral::getBinVolumes()
 {
-  nekrs::binnedVolume(_map_space_by_qp, &NekSpatialBinUserObject::bin, this, num_bins(), _bin_volumes, _bin_counts);
+  nekrs::binnedVolume(_map_space_by_qp, &NekVolumeSpatialBinUserObject::bin, this, num_bins(), _bin_volumes, _bin_counts);
 }
 
 void
@@ -31,6 +31,6 @@ NekBinnedVolumeIntegral::execute()
   if (!_fixed_mesh)
     computeBinVolumes();
 
-  nekrs::binnedVolumeIntegral(_field, _map_space_by_qp, &NekSpatialBinUserObject::bin,
+  nekrs::binnedVolumeIntegral(_field, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
     this, num_bins(), _bin_volumes, _bin_values);
 }

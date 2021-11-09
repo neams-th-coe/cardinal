@@ -1,13 +1,13 @@
 #pragma once
 
-#include "SpatialBinUserObject.h"
+#include "SideSpatialBinUserObject.h"
 #include "HexagonalLatticeUtility.h"
 
 /**
  * Class that bins spatial coordinates into a hexagonal subchannel gap discretization
  * with unique bins for each gap.
  */
-class HexagonalSubchannelGapBin : public SpatialBinUserObject
+class HexagonalSubchannelGapBin : public SideSpatialBinUserObject
 {
 public:
   static InputParameters validParams();
@@ -18,17 +18,11 @@ public:
 
   virtual const unsigned int num_bins() const override;
 
-  virtual const std::vector<unsigned int> directions() const override { return _directions; }
+  virtual Real distanceFromGap(const Point & point, const unsigned int & gap_index) const override;
 
-  virtual bool isSideBinning() const override { return true; }
+  virtual unsigned int gapIndex(const Point & point) const override;
 
-  virtual const Real distanceFromGap(const Point & point, const unsigned int & gap_index) const {
-    return _hex_lattice->distanceFromGap(point, gap_index); }
-
-  virtual unsigned int gapIndex(const Point & point) const { return _hex_lattice->gapIndex(point); }
-
-  virtual void gapIndexAndDistance(const Point & point, unsigned int & index,
-    Real & distance) const { return _hex_lattice->gapIndexAndDistance(point, index, distance); }
+  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const override;
 
 protected:
   /// Bundle pitch
@@ -48,7 +42,4 @@ protected:
 
   /// Underlying utility providing hexagonal lattice capabilities
   std::unique_ptr<HexagonalLatticeUtility> _hex_lattice;
-
-  /// Directions along which the bin defines points
-  std::vector<unsigned int> _directions;
 };

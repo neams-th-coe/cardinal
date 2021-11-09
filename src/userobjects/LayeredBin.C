@@ -27,6 +27,8 @@ LayeredBin::LayeredBin(const InputParameters & parameters)
   _direction_min = bounding_box.min()(_direction);
   _direction_max = bounding_box.max()(_direction);
 
+  _directions = {_direction};
+
   _layer_pts.resize(_num_layers + 1);
   _layer_pts[0] = _direction_min;
   Real dx = (_direction_max - _direction_min) / _num_layers;

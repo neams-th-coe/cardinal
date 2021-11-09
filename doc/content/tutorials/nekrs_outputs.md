@@ -240,7 +240,7 @@ from NekRS is shown in [sub], along with the result of the subchannel volume and
 because we transferred the user object to a sub-application with a mesh that respects
 our axial bins, we perfectly represent the channel-wise average temperatures.
 
-!media subchannel_avgs.png
+!media subchannel_avgs2.png
   id=sub
   caption=NekRS temperature (left), subchannel-averaged temperature (middle), and gap-averaged temperature (right) computed using Cardinal user objects
 

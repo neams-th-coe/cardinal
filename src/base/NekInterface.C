@@ -1056,7 +1056,7 @@ void binnedGapVolume(const bool & map_space_by_qp,
 }
 
 void binnedVolume(const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
   int n_bins, double * total_integral, int * total_counts)
 {
   mesh_t * mesh = entireMesh();
@@ -1098,7 +1098,7 @@ void binnedVolume(const bool & map_space_by_qp,
 }
 
 void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
   int n_bins, const double * bin_volumes, double * total_integral)
 {
   mesh_t * mesh = entireMesh();

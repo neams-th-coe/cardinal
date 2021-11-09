@@ -22,33 +22,6 @@ public:
   virtual Real spatialValue(const Point & p) const override;
 
   /**
-   * Whether this distribution has the distanceFromGap method defined; this
-   * check is needed for some side-volume bin combinations
-   * @return whether distanceFromGap is defined
-   */
-  virtual bool isSideBinning() const { return false; }
-
-  /**
-   * Distance between a point and a gap
-   * @param[in] point point
-   * @param[in] gap_index gap index
-   */
-  virtual const Real distanceFromGap(const Point & point, const unsigned int & gap_index) const
-  {
-    mooseError("'" + name() + "' does not support the 'distanceFromGap' interface!");
-  }
-
-  virtual unsigned int gapIndex(const Point & point) const
-  {
-    mooseError("'" + name() + "' does not support the 'gapIndex' interface!");
-  }
-
-  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const
-  {
-    mooseError("'" + name() + "' does not support the gapIndexAndDistance interface!");
-  }
-
-  /**
    * Get the bin index from a spatial point
    * @param[in] p point
    * @return bin index
@@ -80,9 +53,12 @@ public:
    * the bins. For 1-D distributions, this will be just one of x, y, and z. For 2-D
    * distributions, this will be a combination of x-y, y-z, or x-z.
    */
-  virtual const std::vector<unsigned int> directions() const = 0;
+  virtual const std::vector<unsigned int> directions() const { return _directions; }
 
 protected:
   /// Center coordinates of the bins
   std::vector<Point> _bin_centers;
+
+  /// Directions along which the bin defines points
+  std::vector<unsigned int> _directions;
 };
