@@ -94,6 +94,10 @@ use to see that the temperature from `nek_out.e` was correctly loaded (`nek_temp
 Cardinal contains features for postprocessing the NekRS solution in spatial
 "bins" using user objects. Available user objects include:
 
+- [NekBinnedSideIntegral](/userobjects/NekBinnedSideIntegral.md):
+  compute plane integrals over regions of space
+- [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md):
+  compute plane averages over regions of space
 - [NekBinnedVolumeIntegral](/userobjects/NekBinnedVolumeIntegral.md):
   compute volume integrals over regions of space
 - [NekBinnedVolumeAverage](/userobjects/NekBinnedVolumeAverage.md):
@@ -115,7 +119,7 @@ the `tutorials/subchannel` directory.
 
 The model consists of a 7-pin
 [!ac](SFR) fuel bundle; the mesh is shown in [bundle]. Our goal is to obtain
-subchannel-averaged temperatures on a mesh that reflects a subchannel discretization.
+subchannel-averaged and gap-averaged temperatures on a mesh that reflects a subchannel discretization.
 Note that the mesh does not have elements that
 align with the usual subchannel boundaries.
 
@@ -152,7 +156,10 @@ are conventional and have been described thoroughly in the preceding tutorials.
 
 !listing /tutorials/subchannel/nek.i
 
-Of note are the user objects, multiapps, and transfers. We will use a user object to
+Of note are the user objects, multiapps, and transfers. In this file, we will compute
+an average of temperature over the volumes of the subchannels and over the gaps between
+subchannels. First, we will describe the averages over the volumes of the subchannels.
+We will use a user object to
 conduct a binned spatial average of the NekRS temperature. We first form these bins
 as the product of unique indices for each subchannel with unique indices for each
 axial layer. The [HexagonalSubchannelBin](/userobjects/HexagonalSubchannelBin.md)
@@ -171,6 +178,18 @@ a bin according to its centroid (which for this particular example would result 
 some of the axial bins not mapping to any elements, since the NekRS mesh is coarser
 than the specified number of bins).
 
+For the gap average of temperature, we instead form the bins as the product of unique
+indices for each subchannel gap with unique indices for each axial layers.
+The [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
+object assigns a unique ID for each subchannel gap ID in a hexagonal fuel bundle. The
+[LayeredBin](/userobjects/LayeredBin.md) object then assigns a unique ID for equal-size
+layers in the axial direction; for simplicity, we reuse the same axial binning distribution
+that we selected for the volume averages. Finally, we compute the planar averages of the
+NekRS temperature with the [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md)
+object, which takes an arbitrary number of individual bin distributions (with the
+only requirement being that one and only one of these distribution is a "side" distribution, which
+for this example is the `HexagonalSubchannelGapBin`).
+
 The [SpatialUserObjectVectorPostprocessor](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html)
 outputs the bin values for the user object to the CSV format
 specified in the `[Outputs]` block. These values are ordered in the same manner
@@ -178,15 +197,30 @@ that the bins are defined.
 
 We have stressed that the NekRS mesh does *not* respect the subchannel discretization,
 or the desired number of axial averaging layers. Therefore, if we want to properly
-visualize the results of the user object, we transfer the user object to a sub-application
-that serves the sole purpose of user object visualization.
+visualize the results of the user object, we transfer the user object to two
+different sub-applications
+which serve the sole purpose of user object visualization. We use two different
+sub-applications because one sub-app will use a mesh that perfectly represents
+the *volumes* of the channels, while the second sub-app will use a mesh that perfectly
+represents the *gaps* between the channels.
 
-!listing /tutorials/subchannel/subchannel.i
-
+The application that will be used
+to view the volume results on the channels is shown below.
 This sub-application input
 file constructs a subchannel mesh with the [HexagonalSubchannelMesh](/mesh/HexagonalSubchannelMesh.md)
 to receive the user object into a variable named `average_T`. We set `solve = false` so that
 no physics solve occurs in this sub-application.
+
+!listing /tutorials/subchannel/subchannel.i
+
+The application that will be used to view the gap results is shown below.
+This sub-application input
+file constructs a subchannel mesh with the [HexagonalSubchannelGapMesh](/mesh/HexagonalSubchannelGapMesh.md)
+to receive the user object into a variable named `average_T`. We set `solve = false` so that
+no physics solve occurs in this sub-application.
+
+!listing /tutorials/subchannel/subchannel_gap.i
+
 This input can be run with
 
 ```
@@ -194,21 +228,26 @@ $ mpiexec -np 8 cardinal-opt -i nek.i
 ```
 
 which will run with 8 [!ac](MPI) ranks. Because we don't specify any output
-block in the Nek-wrapping input file itself, the only output file is the `nek_out_subchannel0.e`
-file (along with whatever field files NekRS writes itself).
+block in the Nek-wrapping input file itself, the only output files are:
+
+- `nek_out_subchannel0.e`, which shows the channel-averaged temperature on a subchannel
+  discretization
+- `nek_out_subchannel_gap0.e`, which shows the gap-averaged temperature on the
+  gaps in a subchannel discretization
 
 The temperature initial condition that we set
-from NekRS is shown in [sub], along with the result of the subchannel averaging. Note that
+from NekRS is shown in [sub], along with the result of the subchannel volume and gap averaging. Note that
 because we transferred the user object to a sub-application with a mesh that respects
 our axial bins, we perfectly represent the channel-wise average temperatures.
 
 !media subchannel_avgs.png
   id=sub
-  caption=NekRS temperature (left) and subchannel-averaged temperature (right) computed using Cardinal user objects
+  caption=NekRS temperature (left), subchannel-averaged temperature (middle), and gap-averaged temperature (right) computed using Cardinal user objects
 
 For other geometries, other binning strategies can be used.
 Available user objects for specifying spatial bins are:
 
+- [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
 - [HexagonalSubchannelBin](/userobjects/HexagonalSubchannelBin.md)
 - [LayeredBin](/userobjects/LayeredBin.md)
 - [RadialBin](/userobjects/RadialBin.md)
