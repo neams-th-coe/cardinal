@@ -265,4 +265,52 @@
     field = velocity_z
     boundary = '8'
   []
+  [velocity_comp1]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '1'
+  []
+  [velocity_comp2]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '2'
+  []
+  [velocity_comp3]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '3'
+  []
+  [velocity_comp4]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '4'
+  []
+  [velocity_comp5]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '5'
+  []
+  [velocity_comp6]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '6'
+  []
+  [velocity_comp7]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '7'
+  []
+  [velocity_comp8]
+    type = NekSideIntegral
+    field = velocity_component
+    velocity_direction = '0.1 -0.2 0.3'
+    boundary = '8'
+  []
 []

@@ -15,5 +15,5 @@ OpenMCPostprocessor::OpenMCPostprocessor(const InputParameters & parameters) :
   _openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(&_fe_problem);
 
   if (!_openmc_problem)
-    mooseError("Postprocessor with name '" + name() + "' can only be used with OpenMCCellAverageProblem!");
+    mooseError("This postprocessor can only be used with OpenMCCellAverageProblem!");
 }

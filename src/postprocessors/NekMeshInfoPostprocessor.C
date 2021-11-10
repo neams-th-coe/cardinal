@@ -28,7 +28,7 @@ NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & param
    _test_type(getParam<MooseEnum>("test_type"))
 {
   if (!_nek_mesh)
-    mooseError("'NekMeshInfoPostprocessor' is intended for testing the 'NekRSMesh' mesh, "
+    mooseError("This class is intended for testing the 'NekRSMesh' mesh, "
       "and cannot be used with other mesh types.");
 
   // For any of the node_x, node_y, and node_z settings, we need to grab an element ID
@@ -92,5 +92,5 @@ NekMeshInfoPostprocessor::getValue()
     return coord;
   }
   else
-    mooseError("Unhandled 'test_type' enum in 'NekMeshInfoPostprocessor'!");
+    mooseError("Unhandled 'test_type' enum!");
 }

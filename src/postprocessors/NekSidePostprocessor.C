@@ -22,7 +22,7 @@ NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters) :
   bool valid_ids = nekrs::mesh::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
 
   if (!valid_ids)
-    mooseError("Invalid 'boundary' entry specified for 'NekSidePostprocessor': ", first_invalid_id, "\n\n"
+    mooseError("Invalid 'boundary' entry: ", first_invalid_id, "\n\n"
       "nekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
       "For this problem, nekRS has ", n_boundaries, " boundaries. "
       "Did you enter a valid 'boundary' in '" + filename + "'?");

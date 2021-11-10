@@ -18,7 +18,8 @@ NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters) :
 {
   // this postprocessor computes the gradient of temperature, so it requires
   // the temperature field to exist
-  checkValidField(field::temperature);
+  if (!nekrs::hasTemperatureVariable())
+    mooseError("This postprocessor can only be used with NekRS problems that have a temperature variable!");
 }
 
 Real

@@ -29,7 +29,7 @@ ReynoldsNumber::ReynoldsNumber(const InputParameters & parameters) :
   }
 
   if (_nek_problem->nondimensional() && isParamValid("L_ref"))
-    mooseWarning("When NekRS solves in non-dimensional form, 'L_ref' is unused by 'ReynoldsNumber' "
+    mooseWarning("When NekRS solves in non-dimensional form, 'L_ref' is unused "
       "because the setting can be inferred from NekRSProblem");
 
   if (_fixed_mesh)
