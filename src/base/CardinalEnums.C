@@ -5,9 +5,14 @@ MooseEnum getNekOrderEnum()
   return MooseEnum("first second", "first");
 }
 
+MooseEnum getBinnedVelocityComponentEnum()
+{
+  return MooseEnum("normal user");
+}
+
 MooseEnum getNekFieldEnum()
 {
-  return MooseEnum("velocity_x velocity_y velocity_z velocity temperature pressure unity");
+  return MooseEnum("velocity_component velocity_x velocity_y velocity_z velocity temperature pressure unity");
 }
 
 MooseEnum getOperationEnum()
