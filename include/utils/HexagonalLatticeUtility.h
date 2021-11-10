@@ -15,12 +15,41 @@ public:
     const Real & pin_diameter, const Real & wire_diameter, const Real & wire_pitch,
     const unsigned int & n_rings, const unsigned int & axis);
 
+  /**
+   * Distance from a point and a gap
+   * @param[in] pt point
+   * @param[in] gap_index gap index
+   * @ return distance from gap
+   */
   Real distanceFromGap(const Point & pt, const unsigned int & gap_index) const;
 
+  /**
+   * Get the index for the gap closest to the point
+   * @param[in] point point
+   * @return index of closest gap
+   */
   unsigned int gapIndex(const Point & point) const;
+
+  /**
+   * Get the gap index and distance to that gap for a given point
+   * @param[in] point point
+   * @param[out] index index of closest gap
+   * @param[out] distance distance to closest gap
+   */
   void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const;
 
+  /**
+   * Get the unit vector translation to move a center point to a duct wall
+   * @param[in] side duct side
+   * @return x-component translation
+   */
   const Real sideTranslationX(const unsigned int & side) const { return _translation_x[side]; }
+
+  /**
+   * Get the unit vector translation to move a center point to a duct wall
+   * @param[in] side duct side
+   * @return y-component translation
+   */
   const Real sideTranslationY(const unsigned int & side) const { return _translation_y[side]; }
 
   /**
@@ -500,6 +529,11 @@ public:
   std::pair<int, int> sortedGap(const int & id0, const int & id1) const;
 
 protected:
+  /**
+   * Get the global gap index from the local gap index
+   * @param[in] local_gap local gap for a channel
+   * @return global gap index
+   */
   unsigned int globalGapIndex(const std::pair<int, int> & local_gap) const;
 
   /// Bundle pitch (distance across bundle measured flat-to-flat on the inside of the duct)

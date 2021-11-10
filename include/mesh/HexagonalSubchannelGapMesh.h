@@ -31,7 +31,6 @@ public:
   virtual void buildMesh() override;
 
 protected:
-
   /**
    * Add a QUAD4 element
    * @param[in] pt1 corner point on the z=0 plane

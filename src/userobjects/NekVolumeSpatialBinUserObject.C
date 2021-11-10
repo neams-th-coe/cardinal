@@ -22,7 +22,7 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
   }
 
   if (num_side_distributions != 0)
-    mooseError("'" + name() + "' requires all bins to be volume distributions; you have specified " +
+    mooseError("This user object requires all bins to be volume distributions; you have specified " +
       Moose::stringify(num_side_distributions) + " side distributions." +
       "\noptions: HexagonalSubchannelBin, LayeredBin, RadialBin");
 }
