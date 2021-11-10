@@ -1,7 +1,8 @@
 #pragma once
 
 #include "CardinalEnums.h"
-#include "NekSpatialBinUserObject.h"
+#include "NekVolumeSpatialBinUserObject.h"
+#include "NekSideSpatialBinUserObject.h"
 #include "libmesh/point.h"
 #include "mesh.h"
 #include <string>
@@ -335,10 +336,44 @@ double volumeIntegral(const field::NekFieldEnum & integrand, const double & volu
  * @param[in] uo user object providing the bin method
  * @param[in] n_bins number of bins
  * @param[out] total_integral volume for each bin, summed across ranks
+ * @param[out] total_counts number of counts towards each bin
  */
 void binnedVolume(const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
-  int n_bins, double * total_integral);
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
+  int n_bins, double * total_integral, int * total_counts);
+
+/**
+ * Compute the volumes of gap spatial bins
+ * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
+ * @param[in] bin pointer to function that returns a bin index given a point
+ * @param[in] uo user object providing the combined bin method
+ * @param[in] n_bins number of bins
+ * @param[out] total_integral volume for each bin, summed across ranks
+ * @param[out] total_counts number of counts towards each bin
+ */
+void binnedGapVolume(const bool & map_space_by_qp,
+  const unsigned int (NekSideSpatialBinUserObject::*bin)(const Point &) const,
+  void (NekSideSpatialBinUserObject::*gapIndexAndDistance)(const Point &, unsigned int &, Real &) const,
+  const NekSideSpatialBinUserObject * uo,
+  int n_bins, Real gap_thickness, double * total_integral, int * total_counts);
+
+/**
+ * Compute a side integral in spatial bins
+ * @param[in] integrand field to integrate
+ * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
+ * @param[in] bin pointer to function that returns a bin index given a point
+ * @param[in] gapIndexAndDistance pointer to function that returns the gap bin and distance to that gap given a point
+ * @param[in] uo user object providing the bin method
+ * @param[in] n_bins number of bins
+ * @param[in] gap_thickness width of region surrounding the gap to integrate over to approximate the 2-D gap integral
+ * @param[in] bin_volumes volume of each bin, only used for dimensionalizing temperature
+ * @param[out] total_integral volume integral for each bin, summed across ranks
+ */
+void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
+  const unsigned int (NekSideSpatialBinUserObject::*bin)(const Point &) const,
+  void (NekSideSpatialBinUserObject::*gapIndexAndDistance)(const Point &, unsigned int &, Real &) const,
+  const NekSideSpatialBinUserObject * uo,
+  int n_bins, Real gap_thickness, const double * bin_volumes, double * total_integral);
 
 /**
  * Compute a volume integral in spatial bins
@@ -351,7 +386,7 @@ void binnedVolume(const bool & map_space_by_qp,
  * @param[out] total_integral volume integral for each bin, summed across ranks
  */
 void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
   int n_bins, const double * bin_volumes, double * total_integral);
 
 /**

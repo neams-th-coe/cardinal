@@ -939,12 +939,129 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std
     integral += scales.T_ref * area(boundary_id);
 }
 
-void binnedVolume(const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
-  int n_bins, double * total_integral)
+void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
+  const unsigned int (NekSideSpatialBinUserObject::*bin)(const Point &) const,
+  void (NekSideSpatialBinUserObject::*gapIndexAndDistance)(const Point &, unsigned int &, Real &) const,
+  const NekSideSpatialBinUserObject * uo,
+  int n_bins, Real gap_thickness, const double * bin_volumes, double * total_integral)
 {
   mesh_t * mesh = entireMesh();
   double * integral = (double *) calloc(n_bins, sizeof(double));
+
+  double (*f) (int);
+  f = solution::solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+    libMesh::Point p;
+
+    if (!map_space_by_qp)
+      p = centroid(k) * scales.L_ref;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      if (map_space_by_qp)
+      {
+        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
+        p *= scales.L_ref;
+      }
+
+      // "tally" bin
+      unsigned int bin = ((*uo).bin)(p);
+
+      unsigned int gap_bin;
+      double distance;
+      ((*uo).gapIndexAndDistance)(p, gap_bin, distance);
+
+      if (distance < gap_thickness / 2.0)
+        integral[bin] += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  MPI_Allreduce(integral, total_integral, n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  for (unsigned int i = 0; i < n_bins; ++i)
+  {
+    // dividing by gap thickness here is necessary in order for our volume integrals
+    // to approximate area integrals; this assumes that the integrating volume is a rectangular
+    // prism, when in face it will follow any curvature of the mesh near the vicinity of the gap
+    total_integral[i] /= gap_thickness;
+
+    dimensionalizeVolumeIntegral(integrand, bin_volumes[i], total_integral[i]);
+  }
+
+  free(integral);
+}
+
+void binnedGapVolume(const bool & map_space_by_qp,
+  const unsigned int (NekSideSpatialBinUserObject::*bin)(const Point &) const,
+  void (NekSideSpatialBinUserObject::*gapIndexAndDistance)(const Point &, unsigned int &, Real &) const,
+  const NekSideSpatialBinUserObject * uo,
+  int n_bins, Real gap_thickness, double * total_integral, int * total_counts)
+{
+  mesh_t * mesh = entireMesh();
+  double * integral = (double *) calloc(n_bins, sizeof(double));
+  int * counts = (int *) calloc(n_bins, sizeof(int));
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+    libMesh::Point p;
+
+    if (!map_space_by_qp)
+      p = centroid(k) * scales.L_ref;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      if (map_space_by_qp)
+      {
+        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
+        p *= scales.L_ref;
+      }
+
+      // "tally" bin
+      unsigned int bin = ((*uo).bin)(p);
+
+      unsigned int gap_bin;
+      double distance;
+      ((*uo).gapIndexAndDistance)(p, gap_bin, distance);
+
+      if (distance < gap_thickness / 2.0)
+      {
+        integral[bin] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+        counts[bin]++;
+      }
+    }
+  }
+
+  // sum across all processes
+  MPI_Allreduce(integral, total_integral, n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(counts, total_counts, n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+
+  // dimensionalize and scale to an area
+  for (unsigned int i = 0; i < n_bins; ++i)
+  {
+    // dividing by gap thickness here is necessary in order for our volume integrals
+    // to approximate area integrals; this assumes that the integrating volume is a rectangular
+    // prism, when in face it will follow any curvature of the mesh near the vicinity of the gap
+    total_integral[i] /= gap_thickness;
+
+    total_integral[i] *= scales.V_ref;
+  }
+
+  free(integral);
+  free(counts);
+}
+
+void binnedVolume(const bool & map_space_by_qp,
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
+  int n_bins, double * total_integral, int * total_counts)
+{
+  mesh_t * mesh = entireMesh();
+  double * integral = (double *) calloc(n_bins, sizeof(double));
+  int * counts = (  int *) calloc(n_bins, sizeof(  int));
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
@@ -964,21 +1081,24 @@ void binnedVolume(const bool & map_space_by_qp,
 
       unsigned int bin = ((*uo).bin)(p);
       integral[bin] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      counts[bin]++;
     }
   }
 
   // sum across all processes
   MPI_Allreduce(integral, total_integral, n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(counts, total_counts, n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize
   for (unsigned int i = 0; i < n_bins; ++i)
     total_integral[i] *= scales.V_ref;
 
   free(integral);
+  free(counts);
 }
 
 void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
-  const unsigned int (NekSpatialBinUserObject::*bin)(const Point &) const, const NekSpatialBinUserObject * uo,
+  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
   int n_bins, const double * bin_volumes, double * total_integral)
 {
   mesh_t * mesh = entireMesh();

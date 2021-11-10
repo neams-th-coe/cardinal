@@ -31,7 +31,6 @@ public:
   virtual void buildMesh() override;
 
 protected:
-
   /**
    * Add a QUAD4 element
    * @param[in] pt1 corner point on the z=0 plane
@@ -83,11 +82,4 @@ protected:
 
   /// Node ID
   int _node_id_counter;
-
-  static const Real SIN60;
-
-  static const Real COS60;
-
-  /// Number of sides in a hexagon
-  static const unsigned int NUM_SIDES;
 };

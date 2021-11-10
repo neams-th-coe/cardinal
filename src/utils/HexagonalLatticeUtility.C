@@ -37,6 +37,9 @@ HexagonalLatticeUtility::HexagonalLatticeUtility(const Real & bundle_inner_flat_
     mooseError("Wire diameter of " + std::to_string(_wire_diameter) +
       " cannot fit between pin-pin space of " + std::to_string(_pin_pitch - _pin_diameter) + "!");
 
+  _translation_x = {0.0, -SIN60, -SIN60, 0.0, SIN60, SIN60};
+  _translation_y = {1.0, COS60, -COS60, -1.0, -COS60, COS60};
+
   // compute number of each pin and channe and channell type (interior, edge channel)
   computePinAndChannelTypes();
 
@@ -515,15 +518,13 @@ HexagonalLatticeUtility::edgeChannelCornerCoordinates(const unsigned int & edge_
   const Point & pin2 = _pin_centers[pin_indices[1]];
 
   Real d = pinBundleSpacing() + pinRadius();
-  Real translation_x [NUM_SIDES] = {0.0, -d * SIN60, -d * SIN60, 0.0, d * SIN60, d * SIN60};
-  Real translation_y [NUM_SIDES] = {d, d * COS60, -d * COS60, -d, -d * COS60, d * COS60};
 
   corners.push_back(pin1);
   corners.push_back(pin2);
 
   unsigned int sector = edge_channel_id / (_n_rings - 1);
-  corners.push_back(pin2 + Point(translation_x[sector], translation_y[sector], 0.0));
-  corners.push_back(pin1 + Point(translation_x[sector], translation_y[sector], 0.0));
+  corners.push_back(pin2 + Point(d * _translation_x[sector], d * _translation_y[sector], 0.0));
+  corners.push_back(pin1 + Point(d * _translation_x[sector], d * _translation_y[sector], 0.0));
 
   return corners;
 }
@@ -539,15 +540,12 @@ HexagonalLatticeUtility::cornerChannelCornerCoordinates(const unsigned int & cor
 
   Real d = pinBundleSpacing() + pinRadius();
 
-  Real translation_x [NUM_SIDES] = {0, -d * SIN60, -d * SIN60, 0, d * SIN60, d * SIN60};
-  Real translation_y [NUM_SIDES] = {d, d * COS60, -d * COS60, -d, -d * COS60, d * COS60};
-
   unsigned int side1 = corner_channel_id == 0 ? NUM_SIDES - 1 : corner_channel_id - 1;
   unsigned int side2 = corner_channel_id;
 
-  corners.push_back(pin + Point(translation_x[side1], translation_y[side1], 0.0));
+  corners.push_back(pin + Point(d * _translation_x[side1], d * _translation_y[side1], 0.0));
   corners.push_back(_duct_corners[corner_channel_id]);
-  corners.push_back(pin + Point(translation_x[side2], translation_y[side2], 0.0));
+  corners.push_back(pin + Point(d * _translation_x[side2], d * _translation_y[side2], 0.0));
 
   return corners;
 }
@@ -672,6 +670,7 @@ HexagonalLatticeUtility::computeGapIndices()
 
   // fix the last gap to use the first pin
   _gap_indices.back() = {totalPins(_n_rings - 1), -int(NUM_SIDES)};
+  _n_gaps = _gap_indices.size();
 
   // for each channel, determine which gaps are on that channel to find the local-to-global indexing
   for (const auto & pins : _interior_channel_pin_indices)
@@ -694,7 +693,7 @@ HexagonalLatticeUtility::computeGapIndices()
     int loc_gap0 = globalGapIndex(gap0);
     _local_to_global_gaps.push_back({loc_gap0, gap + 1, gap});
 
-    if ((i + 1) % (_n_rings - 1) == 0 && i != 0)
+    if ((i + 1) % (_n_rings - 1) == 0)
       gap += 2;
     else
       gap += 1;
@@ -711,14 +710,24 @@ HexagonalLatticeUtility::computeGapIndices()
   }
 
   // get the coefficients of the lines formed by all the gaps
-  for (int i = 0; i < _n_interior_channels; ++i)
+  for (int i = 0; i < _n_interior_gaps; ++i)
   {
-    const auto & gaps = _local_to_global_gaps[i];
-    for (int j = 0; j < gaps.size(); ++j)
-    {
-      const auto & pins = _gap_indices[j];
-      _gap_line_coeffs.push_back(getLineCoefficients(_pin_centers[pins.first], _pin_centers[pins.second]));
-    }
+    const auto & pins = _gap_indices[i];
+    _gap_centers.push_back(0.5 * (_pin_centers[pins.second] + _pin_centers[pins.first]));
+    _gap_line_coeffs.push_back(getLineCoefficients(_pin_centers[pins.first], _pin_centers[pins.second]));
+  }
+
+  Real d = _pin_bundle_spacing + pinRadius();
+  for (int i = _n_interior_gaps; i < _n_gaps; ++i)
+  {
+    const auto & pins = _gap_indices[i];
+    int side = std::abs(pins.second) - 1;
+
+    const auto & pt1 = _pin_centers[pins.first];
+    const Point pt2 = pt1 + Point(d * _translation_x[side], d * _translation_y[side], 0.0);
+    _gap_centers.push_back(0.5 * (pt2 + pt1));
+
+    _gap_line_coeffs.push_back(getLineCoefficients(pt1, pt2));
   }
 }
 
@@ -763,4 +772,52 @@ HexagonalLatticeUtility::distanceFromLine(const Point & pt, const Point & line0,
 {
   auto l = getLineCoefficients(line0, line1);
   return std::abs(l[0] * pt(0) + l[1] * pt(1) + l[2]) / std::sqrt(l[0] * l[0] + l[1] * l[1]);
+}
+
+Real
+HexagonalLatticeUtility::distanceFromGap(const Point & pt, const unsigned int & gap_index) const
+{
+  auto l = _gap_line_coeffs[gap_index];
+  return std::abs(l[0] * pt(0) + l[1] * pt(1) + l[2]) / std::sqrt(l[0] * l[0] + l[1] * l[1]);
+}
+
+unsigned int
+HexagonalLatticeUtility::gapIndex(const Point & point) const
+{
+  const auto & channel_index = channelIndex(point);
+  const auto & gap_indices = _local_to_global_gaps[channel_index];
+
+  Real distance = std::numeric_limits<Real>::max();
+  unsigned int index;
+  for (unsigned int i = 0; i < gap_indices.size(); ++i)
+  {
+    Real distance_from_gap = distanceFromGap(point, gap_indices[i]);
+
+    if (distance_from_gap < distance)
+    {
+      distance = distance_from_gap;
+      index = gap_indices[i];
+    }
+  }
+
+  return index;
+}
+
+void
+HexagonalLatticeUtility::gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const
+{
+  const auto & channel_index = channelIndex(point);
+  const auto & gap_indices = _local_to_global_gaps[channel_index];
+
+  distance = std::numeric_limits<Real>::max();
+  for (unsigned int i = 0; i < gap_indices.size(); ++i)
+  {
+    Real distance_from_gap = distanceFromGap(point, gap_indices[i]);
+
+    if (distance_from_gap < distance)
+    {
+      distance = distance_from_gap;
+      index = gap_indices[i];
+    }
+  }
 }

@@ -32,4 +32,10 @@
     csvdiff = 1d_out_from_uo_0002.csv
     requirement = "The output points shall be automatically output for a single-axis subchannel binning"
   []
+  [wrong_type]
+    type = RunException
+    input = wrong_type.i
+    expect_err = "This user object requires all bins to be volume distributions"
+    requirement = "System shall error if a side user object is provided to a volume binning user object."
+  []
 []

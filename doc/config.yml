@@ -20,7 +20,7 @@ Extensions:
             Getting Started: start.md
             Tutorials: tutorials/index.md
             HPC Systems: hpc.md
-            Source: source/index.md
+            Documentation: source/index.md
             Developer Guide: developers.md
             Contact/Citing: contact.md
     MooseDocs.extensions.appsyntax:

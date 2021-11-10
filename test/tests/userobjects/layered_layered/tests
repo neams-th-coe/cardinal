@@ -25,4 +25,11 @@
     csvdiff = 3d_out_from_uo_0002.csv
     requirement = "The output points shall be automatically output for a 3-D Cartesian distribution."
   []
+  [bins_too_fine]
+    type = RunException
+    input = nek.i
+    cli_args = 'UserObjects/z_bins/num_layers=1000'
+    expect_err = 'Failed to map any element centroids to bin 0!'
+    requirement = 'System shall error if no points map to a spatial bin'
+  []
 []
