@@ -5,7 +5,6 @@
   pin_diameter = 7.646e-3
   n_rings = 2
   n_axial = 7
-  theta_res = 8
   height = 0.008
 []
 
@@ -16,6 +15,24 @@
 
 [AuxVariables]
   [average_T]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [avg_gap_velocity]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+
+  # These are just for visualizing the average velocity component with Glyphs in paraview
+  [uo_x]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [uo_y]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [uo_z]
     family = MONOMIAL
     order = CONSTANT
   []

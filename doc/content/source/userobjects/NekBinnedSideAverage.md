@@ -28,6 +28,8 @@ Setting `field = unity` is equivalent to computing
 1, since the numerator will be exactly equal to the denominator (`unity` is
 of more use for other user objects).
 
+!include velocity_component.md
+
 !include /postprocessors/nondimensional.md
 
 The bins (which can be a combination of side and volume bins) are specified

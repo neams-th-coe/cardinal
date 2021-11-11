@@ -26,6 +26,8 @@ used for computation in NekRS.
 
 Setting `field = unity` is equivalent to computing the surface area.
 
+!include velocity_component.md
+
 !include /postprocessors/nondimensional.md
 
 The bins (which can be a combination of side and volume bins) are specified
