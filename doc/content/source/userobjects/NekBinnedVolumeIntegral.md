@@ -22,6 +22,8 @@ used for computation in NekRS.
 
 Setting `field = unity` is equivalent to computing the volume.
 
+!include velocity_component.md
+
 !include /postprocessors/nondimensional.md
 
 !include spatial_bins.md

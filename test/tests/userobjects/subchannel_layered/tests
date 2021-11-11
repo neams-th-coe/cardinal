@@ -52,4 +52,12 @@
     expect_err = "Setting 'velocity_component = normal' is not supported for volume bin user objects!"
     requirement = "System shall error if attempting to use a normal velocity component with a user object that does not have normals defined"
   []
+  [user_component]
+    type = Exodiff
+    input = user_component.i
+    exodiff = 'user_component_out_subchannel0.e'
+    requirement = "A subchannel and 1-D layered bin shall be combined to give a multi-dimensional "
+                  "binning and demonstrate correct results for volume averages of velocity projected "
+                  "along a constant direction."
+  []
 []

@@ -24,6 +24,13 @@ NekBinnedVolumeIntegral::getBinVolumes()
   nekrs::binnedVolume(_map_space_by_qp, &NekVolumeSpatialBinUserObject::bin, this, num_bins(), _bin_volumes, _bin_counts);
 }
 
+Real
+NekBinnedVolumeIntegral::spatialValue(const Point & p, const unsigned int & component) const
+{
+  const auto & i = bin(p);
+  return _bin_values[i] * _velocity_bin_directions[i](component);
+}
+
 void
 NekBinnedVolumeIntegral::execute()
 {
@@ -31,6 +38,24 @@ NekBinnedVolumeIntegral::execute()
   if (!_fixed_mesh)
     computeBinVolumes();
 
-  nekrs::binnedVolumeIntegral(_field, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
-    this, num_bins(), _bin_volumes, _bin_values);
+  if (_field == field::velocity_component)
+  {
+    nekrs::binnedVolumeIntegral(field::velocity_x, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
+      this, num_bins(), _bin_volumes, _bin_values_x);
+    nekrs::binnedVolumeIntegral(field::velocity_y, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
+      this, num_bins(), _bin_volumes, _bin_values_y);
+    nekrs::binnedVolumeIntegral(field::velocity_z, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
+      this, num_bins(), _bin_volumes, _bin_values_z);
+
+    for (unsigned int i = 0; i < num_bins(); ++i)
+    {
+      Point velocity(_bin_values_x[i], _bin_values_y[i], _bin_values_z[i]);
+      _bin_values[i] = _velocity_bin_directions[i] * velocity;
+    }
+  }
+  else
+  {
+    nekrs::binnedVolumeIntegral(_field, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
+      this, num_bins(), _bin_volumes, _bin_values);
+  }
 }
