@@ -1880,6 +1880,10 @@ namespace solution
       case field::velocity:
         f = &solution::velocity;
         break;
+      case field::velocity_component:
+        mooseError("The 'velocity_component' field is not compatible with the solutionPointer "
+          "interface!");
+        break;
       case field::temperature:
         f = &solution::temperature;
         break;
@@ -1967,6 +1971,9 @@ namespace solution
         break;
       case field::velocity:
         value = value * scales.U_ref;
+        break;
+      case field::velocity_component:
+        mooseError("The 'velocity_component' field is incompatible with the dimensionalize interface!");
         break;
       case field::temperature:
         value = value * scales.dT_ref;
