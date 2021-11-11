@@ -25,4 +25,8 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
     mooseError("This user object requires all bins to be volume distributions; you have specified " +
       Moose::stringify(num_side_distributions) + " side distributions." +
       "\noptions: HexagonalSubchannelBin, LayeredBin, RadialBin");
+
+  // the 'normal' velocity component direction does not apply to volume bins
+  if (_field == field::velocity_component && _velocity_component == component::normal)
+    mooseError("Setting 'velocity_component = normal' is not supported for volume bin user objects!");
 }

@@ -45,4 +45,11 @@
     expect_err = "The 'velocity_direction' vector cannot be the zero-vector!"
     requirement = "System shall error if direction vector has zero length."
   []
+  [invalid_component]
+    type = RunException
+    input = 1d.i
+    cli_args = "UserObjects/vol_avg/field=velocity_component UserObjects/vol_avg/velocity_component=normal"
+    expect_err = "Setting 'velocity_component = normal' is not supported for volume bin user objects!"
+    requirement = "System shall error if attempting to use a normal velocity component with a user object that does not have normals defined"
+  []
 []
