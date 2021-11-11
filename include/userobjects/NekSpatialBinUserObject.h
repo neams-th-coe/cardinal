@@ -19,6 +19,14 @@ public:
 
   virtual Real spatialValue(const Point & p) const override final;
 
+  /**
+   * When using 'field = velocity_component', get the spatial value for a
+   * particular component
+   * @param[in] component component
+   * @return value along direction of component
+   */
+  virtual Real spatialValue(const Point & p, const unsigned int & component) const = 0;
+
   virtual const unsigned int bin(const Point & p) const;
 
   virtual const unsigned int num_bins() const;
@@ -30,6 +38,19 @@ public:
 
   /// Get the volume of each bin, used for normalizing in derived classes
   virtual void getBinVolumes() = 0;
+
+  /**
+   * Get the individual bin indices given a total combined bin
+   * @param[in] total_bin_index total combined bin index
+   * @return indices into each of the individual bin distributions
+   */
+  const std::vector<unsigned int> unrolledBin(const unsigned int & total_bin_index) const;
+
+  /**
+   * Get the integrating field
+   * @return field
+   */
+  const field::NekFieldEnum & field() const { return _field; }
 
 protected:
   /// Get the output points for a single bin

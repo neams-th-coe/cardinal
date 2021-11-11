@@ -33,4 +33,10 @@ public:
    * @param[out] distance distance from point to the closest gap
    */
   virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const = 0;
+
+  /**
+   * Get the unit normals for each gap
+   * @return gap unit normals
+   */
+  virtual const std::vector<Point> & gapUnitNormals() const = 0;
 };

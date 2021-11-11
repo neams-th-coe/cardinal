@@ -173,6 +173,23 @@ NekSpatialBinUserObject::spatialValue(const Point & p) const
   return _bin_values[bin(p)];
 }
 
+const std::vector<unsigned int>
+NekSpatialBinUserObject::unrolledBin(const unsigned int & total_bin_index) const
+{
+  std::vector<unsigned int> local_bins;
+  local_bins.resize(_bins.size());
+
+  int running_index = total_bin_index;
+  for (int i = _bins.size() - 1; i >= 0; --i)
+  {
+    local_bins[i] = running_index % _bins[i]->num_bins();
+    running_index -= local_bins[i];
+    running_index /= _bins[i]->num_bins();
+  }
+
+  return local_bins;
+}
+
 const unsigned int
 NekSpatialBinUserObject::bin(const Point & p) const
 {
