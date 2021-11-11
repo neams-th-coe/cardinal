@@ -70,20 +70,35 @@ protected:
   /// Userobjects providing the bins
   std::vector<const SpatialBinUserObject *> _bins;
 
-  /// values of the userobject in each bin
-  double * _bin_values;
-
   /// For each x, y, z direction, whether the combined distribution covers that direction
   std::vector<bool> _has_direction;
 
   /// For each x, y, z direction, which bin provides that direction
   std::vector<unsigned int> _bin_providing_direction;
 
+  /**
+   * Direction in which to evaluate velocity, if using 'field = velocity_component'.
+   * Options: user (then provide a general vector direction with the 'velocity_direction' parameter
+   *          normal (normal to the gap planes, only valid for side bin user objects)
+   */
+  component::BinnedVelocityComponentEnum _velocity_component;
+
   /// total number of bins
   unsigned int _n_bins;
 
   /// points at which to output the user object to give unique values
   std::vector<Point> _points;
+
+  /// velocity direction to use for each bin
+  std::vector<Point> _velocity_bin_directions;
+
+  /// values of the userobject in each bin
+  double * _bin_values;
+
+  /// temporary storage space to hold the results of component-wise evaluations
+  double * _bin_values_x;
+  double * _bin_values_y;
+  double * _bin_values_z;
 
   /// Volumes of each bin
   double * _bin_volumes;
