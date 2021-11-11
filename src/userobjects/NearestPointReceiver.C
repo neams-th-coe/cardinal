@@ -58,7 +58,7 @@ void
 NearestPointReceiver::setValues(const std::vector<Real> & values)
 {
   if (values.size() != _data.size())
-    mooseError("Setting values must be the same size as the number of points in NearestPointReceiver");
+    mooseError("Setting values must be the same size as the number of points");
 
   _data = values;
 }
