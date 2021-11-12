@@ -1,0 +1,8 @@
+[Tests]
+  [postprocessing]
+    type = RunApp
+    input = nek.i
+    min_parallel = 4
+    requirement = "The NekRS wrapping shall provide subchannel postprocessing features."
+  []
+[]

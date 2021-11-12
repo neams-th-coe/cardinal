@@ -48,4 +48,9 @@
     type = NekVolumeAverage
     field = velocity_z
   []
+  [velocity_component]
+    type = NekVolumeAverage
+    field = velocity_component
+    velocity_direction = '0.1 0.2 -0.3'
+  []
 []

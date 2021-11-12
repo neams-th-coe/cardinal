@@ -3,6 +3,7 @@
 #include "MooseEnum.h"
 
 MooseEnum getNekOrderEnum();
+MooseEnum getBinnedVelocityComponentEnum();
 MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
@@ -20,11 +21,22 @@ namespace order
   };
 }
 
+namespace component
+{
+  /// Directions in which to evaluate velocity
+  enum BinnedVelocityComponentEnum
+  {
+    normal,
+    user
+  };
+}
+
 namespace field
 {
   /// Enumeration of possible fields to read from nekRS
   enum NekFieldEnum
   {
+    velocity_component,
     velocity_x,
     velocity_y,
     velocity_z,

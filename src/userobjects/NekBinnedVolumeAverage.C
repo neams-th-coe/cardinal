@@ -1,5 +1,4 @@
 #include "NekBinnedVolumeAverage.h"
-#include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekBinnedVolumeAverage);
 

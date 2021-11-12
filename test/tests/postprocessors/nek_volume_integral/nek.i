@@ -41,4 +41,9 @@
     type = NekVolumeIntegral
     field = velocity
   []
+  [velocity_component]
+    type = NekVolumeIntegral
+    field = velocity_component
+    velocity_direction = '0.1 0.2 0.3'
+  []
 []

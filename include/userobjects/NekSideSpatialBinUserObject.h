@@ -28,4 +28,7 @@ protected:
 
   /// The user object providing the side binning
   const SideSpatialBinUserObject * _side_bin;
+
+  /// The index into the _bins that represents the side bin object
+  unsigned int _side_index;
 };

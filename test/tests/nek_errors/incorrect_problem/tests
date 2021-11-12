@@ -2,7 +2,7 @@
   [incorrect_problem_pp]
     type = RunException
     input = nek.i
-    expect_err = "Postprocessor with name 'nek_avg_temp' can only be used with wrapped Nek cases!\n"
+    expect_err = "This postprocessor can only be used with wrapped Nek cases!\n"
                  "You need to change the problem type from 'FEProblem' \(the default\) to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a Nek postprocessor is not paired with the correct problem."
@@ -10,7 +10,7 @@
   [incorrect_problem_uo]
     type = RunException
     input = nek_uo.i
-    expect_err = "UserObject with name 'vol_avg' can only be used with wrapped Nek cases!\n"
+    expect_err = "This user object can only be used with wrapped Nek cases!\n"
                  "You need to change the problem type from 'FEProblem' \(the default\) to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a Nek userobject is not paired with the correct problem."
@@ -18,7 +18,7 @@
   [nek_mesh]
     type = RunException
     input = nek_mesh.i
-    expect_err = "'NekRSMesh' can only be used with wrapped Nek cases!\n"
+    expect_err = "This mesh can only be used with wrapped Nek cases!\n"
                  "You need to change the problem type to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a NekRSMesh is used without a corresponding Nek-wrapped"

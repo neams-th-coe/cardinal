@@ -7,6 +7,7 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'sfr_7pin'
+  output = 'temperature velocity'
 []
 
 [UserObjects]
@@ -42,6 +43,52 @@
     map_space_by_qp = true
     gap_thickness = ${fparse 0.05 * 7.646e-3}
   []
+  [avg_gap_velocity]
+    type = NekBinnedSideAverage
+    bins = 'subchannel_gap_binning axial_binning'
+    field = velocity_component
+    velocity_component = normal
+    map_space_by_qp = true
+    gap_thickness = ${fparse 0.05 * 7.646e-3}
+  []
+[]
+
+[AuxVariables]
+  # These are just for visualizing the average velocity component with Glyphs in paraview;
+  # the result of the 'avg_gap_velocity' user object will be represented as a vector "uo_" with 3 components
+  [uo_x]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [uo_y]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [uo_z]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[AuxKernels]
+  [uo_x]
+    type = NekSpatialBinComponentAux
+    variable = uo_x
+    user_object = avg_gap_velocity
+    component = 0
+  []
+  [uo_y]
+    type = NekSpatialBinComponentAux
+    variable = uo_y
+    user_object = avg_gap_velocity
+    component = 1
+  []
+  [uo_z]
+    type = NekSpatialBinComponentAux
+    variable = uo_z
+    user_object = avg_gap_velocity
+    component = 2
+  []
 []
 
 [MultiApps]
@@ -74,6 +121,27 @@
     multi_app = subchannel_gap
     variable = average_T
   []
+  [uo1_to_sub]
+    type = MultiAppUserObjectTransfer
+    user_object = avg_gap_velocity
+    direction = to_multiapp
+    multi_app = subchannel_gap
+    variable = avg_gap_velocity
+  []
+  [uox_to_sub]
+    type = MultiAppNearestNodeTransfer
+    direction = to_multiapp
+    multi_app = subchannel_gap
+    source_variable = uo_x
+    variable = uo_x
+  []
+  [uoy_to_sub]
+    type = MultiAppNearestNodeTransfer
+    direction = to_multiapp
+    multi_app = subchannel_gap
+    source_variable = uo_y
+    variable = uo_y
+  []
 []
 
 [VectorPostprocessors]
@@ -84,6 +152,10 @@
   [avg_T_gaps]
     type = SpatialUserObjectVectorPostprocessor
     userobject = average_T_gaps
+  []
+  [avg_v_gaps]
+    type = SpatialUserObjectVectorPostprocessor
+    userobject = avg_gap_velocity
   []
 []
 

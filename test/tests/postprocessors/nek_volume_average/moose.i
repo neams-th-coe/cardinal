@@ -16,6 +16,8 @@
   []
   [z_velocity_test]
   []
+  [velocity_component]
+  []
 []
 
 [ICs]
@@ -48,6 +50,11 @@
     type = FunctionIC
     variable = z_velocity_test
     function = z_velocity
+  []
+  [velocity_component]
+    type = FunctionIC
+    variable = velocity_component
+    function = velocity_component
   []
 []
 
@@ -97,6 +104,12 @@
     type = ParsedFunction
     value = 'exp(x*y*z)'
   []
+  [velocity_component] # velocity along some generic direction (0.1, 0.2, -0.3)
+    type = ParsedFunction
+    value = '(vel_x * 0.1 + vel_y * 0.2 + vel_z * -0.3) / sqrt(0.1*0.1 + 0.2*0.2 + 0.3*0.3)'
+    vars = 'vel_x vel_y vel_z'
+    vals = 'x_velocity y_velocity z_velocity'
+  []
 []
 
 [Executioner]
@@ -134,5 +147,9 @@
   [z_velocity_average]
     type = ElementAverageValue
     variable = z_velocity_test
+  []
+  [velocity_component]
+    type = ElementAverageValue
+    variable = velocity_component
   []
 []

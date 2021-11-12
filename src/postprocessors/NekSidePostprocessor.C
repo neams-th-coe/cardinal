@@ -1,12 +1,3 @@
-//* This file is part of the MOOSE framework
-//* https://www.mooseframework.org
-//*
-//* All rights reserved, see COPYRIGHT for full restrictions
-//* https://github.com/idaholab/moose/blob/master/COPYRIGHT
-//*
-//* Licensed under LGPL 2.1, please see LICENSE for details
-//* https://www.gnu.org/licenses/lgpl-2.1.html
-
 #include "NekSidePostprocessor.h"
 
 defineLegacyParams(NekSidePostprocessor);
@@ -31,7 +22,7 @@ NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters) :
   bool valid_ids = nekrs::mesh::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
 
   if (!valid_ids)
-    mooseError("Invalid 'boundary' entry specified for 'NekSidePostprocessor': ", first_invalid_id, "\n\n"
+    mooseError("Invalid 'boundary' entry: ", first_invalid_id, "\n\n"
       "nekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
       "For this problem, nekRS has ", n_boundaries, " boundaries. "
       "Did you enter a valid 'boundary' in '" + filename + "'?");

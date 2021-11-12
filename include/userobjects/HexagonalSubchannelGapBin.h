@@ -24,6 +24,8 @@ public:
 
   virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const override;
 
+  virtual const std::vector<Point> & gapUnitNormals() const override { return _hex_lattice->gapUnitNormals(); }
+
 protected:
   /// Bundle pitch
   const Real & _bundle_pitch;

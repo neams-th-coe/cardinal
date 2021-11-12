@@ -40,14 +40,14 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   _n_volume_elems(0)
 {
   if (!_boundary && !_volume)
-    mooseError("'NekRSMesh' requires at least 'volume = true' or a list of IDs in 'boundary'!");
+    mooseError("This mesh requires at least 'volume = true' or a list of IDs in 'boundary'!");
 
   if (_boundary && _boundary->empty())
     paramError("boundary", "The length of 'boundary' must be greater than zero!");
 
   // see if NekRS's mesh even exists
   if (!nekrs::isInitialized())
-    mooseError("'NekRSMesh' can only be used with wrapped Nek cases!\n"
+    mooseError("This mesh can only be used with wrapped Nek cases!\n"
       "You need to change the problem type to a Nek-wrapped problem.\n\n"
       "options: 'NekRSProblem', 'NekRSStandaloneProblem'");
 
@@ -56,7 +56,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   // (since this would affect how we construct the mesh here).
   int dimension = nekrs::mesh::dim();
   if (dimension != 3)
-    mooseError("'NekRSMesh' assumes that the nekRS mesh dimension is 3!\n\nYour mesh is "
+    mooseError("This mesh assumes that the nekRS mesh dimension is 3!\n\nYour mesh is "
       "dimension " + std::to_string(dimension) + ".");
 
   // if doing a JIT build, the boundary information does not exist yet
@@ -67,7 +67,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
     bool valid_ids = nekrs::mesh::validBoundaryIDs(*_boundary, first_invalid_id, n_boundaries);
 
     if (!valid_ids)
-      mooseError("Invalid 'boundary' entry specified for 'NekRSMesh': ", first_invalid_id, "\n\n"
+      mooseError("Invalid 'boundary' entry: ", first_invalid_id, "\n\n"
         "nekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
         "For this problem, nekRS has ", n_boundaries, " boundaries. "
         "Did you enter a valid 'boundary' in '" + filename + "'?");

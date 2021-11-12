@@ -10,6 +10,8 @@
   []
   [velocity_test]
   []
+  [velocity_component]
+  []
 []
 
 [ICs]
@@ -27,6 +29,11 @@
     type = FunctionIC
     variable = velocity_test
     function = velocity
+  []
+  [velocity_component]
+    type = FunctionIC
+    variable = velocity_component
+    function = velocity_component
   []
 []
 
@@ -63,6 +70,24 @@
   [velocity]
      type = ParsedFunction
      value = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
+  []
+  [velocity_x]
+    type = ParsedFunction
+    value = 'sin(x)'
+  []
+  [velocity_y]
+    type = ParsedFunction
+    value = 'y+1'
+  []
+  [velocity_z]
+    type = ParsedFunction
+    value = 'exp(x*y*z)'
+  []
+  [velocity_component] # velocity along some generic direction (0.1, -0.2, 0.3)
+    type = ParsedFunction
+    value = '(vel_x * 0.1 + vel_y *-0.2 + vel_z * 0.3) / sqrt(0.1*0.1 + 0.2*0.2 + 0.3*0.3)'
+    vars = 'vel_x vel_y vel_z'
+    vals = 'velocity_x velocity_y velocity_z'
   []
 []
 
@@ -228,6 +253,46 @@
   [velocity_avg8]
     type = SideIntegralVariablePostprocessor
     variable = velocity_test
+    boundary = '8'
+  []
+  [velocity_comp1]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
+    boundary = '1'
+  []
+  [velocity_comp2]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
+    boundary = '2'
+  []
+  [velocity_comp3]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
+    boundary = '3'
+  []
+  [velocity_comp4]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
+    boundary = '4'
+  []
+  [velocity_comp5]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
+    boundary = '5'
+  []
+  [velocity_comp6]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
+    boundary = '6'
+  []
+  [velocity_comp7]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
+    boundary = '7'
+  []
+  [velocity_comp8]
+    type = SideIntegralVariablePostprocessor
+    variable = velocity_component
     boundary = '8'
   []
 []

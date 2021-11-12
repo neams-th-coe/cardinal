@@ -714,7 +714,20 @@ HexagonalLatticeUtility::computeGapIndices()
   {
     const auto & pins = _gap_indices[i];
     _gap_centers.push_back(0.5 * (_pin_centers[pins.second] + _pin_centers[pins.first]));
-    _gap_line_coeffs.push_back(getLineCoefficients(_pin_centers[pins.first], _pin_centers[pins.second]));
+
+    Point pt1(_pin_centers[pins.first]);
+    Point pt2(_pin_centers[pins.second]);
+    _gap_line_coeffs.push_back(getLineCoefficients(pt1, pt2));
+
+    // for the last gap in the ring, we need to swap the ordering of pins
+    if (lastGapInRing(i))
+    {
+      Point tmp = pt1;
+      pt1 = pt2;
+      pt2 = tmp;
+    }
+
+    _gap_unit_normals.push_back(unitNormal(pt1, pt2));
   }
 
   Real d = _pin_bundle_spacing + pinRadius();
@@ -726,8 +739,30 @@ HexagonalLatticeUtility::computeGapIndices()
     const auto & pt1 = _pin_centers[pins.first];
     const Point pt2 = pt1 + Point(d * _translation_x[side], d * _translation_y[side], 0.0);
     _gap_centers.push_back(0.5 * (pt2 + pt1));
+    //std::cout << "gap " << i << " pt1: " << pt1 << " pt2: " << pt2 << " normal: " << unitNormal(pt1, pt2) << std::endl;
 
     _gap_line_coeffs.push_back(getLineCoefficients(pt1, pt2));
+
+    _gap_unit_normals.push_back(unitNormal(pt1, pt2));
+  }
+}
+
+Point
+HexagonalLatticeUtility::unitNormal(const Point & pt1, const Point & pt2) const
+{
+  Real dx = pt2(0) - pt1(0);
+  Real dy = pt2(1) - pt1(1);
+  Point normal = {dy, -dx, 0.0};
+  Point gap_line = pt2 - pt1;
+
+  auto cross_product = gap_line.cross(normal);
+
+  if (cross_product(2) > 0)
+    return normal.unit();
+  else
+  {
+    Point corrected_normal = {-dy, dx, 0.0};
+    return corrected_normal.unit();
   }
 }
 
@@ -820,4 +855,51 @@ HexagonalLatticeUtility::gapIndexAndDistance(const Point & point, unsigned int &
       index = gap_indices[i];
     }
   }
+}
+
+unsigned int
+HexagonalLatticeUtility::firstPinInRing(const unsigned int & ring) const
+{
+  if (ring == 1)
+    return 0;
+  else
+    return totalPins(ring - 1);
+}
+
+unsigned int
+HexagonalLatticeUtility::lastPinInRing(const unsigned int & ring) const
+{
+  if (ring == 1)
+    return 0;
+  else
+    return totalPins(ring) - 1;
+}
+
+bool
+HexagonalLatticeUtility::lastGapInRing(const unsigned int & gap_index) const
+{
+  if (gap_index >= _n_interior_gaps)
+    return false;
+
+  const auto & pins = _gap_indices[gap_index];
+
+  for (unsigned int i = 2; i <= _n_rings; ++i)
+  {
+    bool one_is_first_pin = false;
+    bool one_is_last_pin = false;
+
+    int first_pin = firstPinInRing(i);
+    int last_pin = lastPinInRing(i);
+
+    if (pins.first == first_pin || pins.second == first_pin)
+      one_is_first_pin = true;
+
+    if (pins.first == last_pin || pins.second == last_pin)
+      one_is_last_pin = true;
+
+    if (one_is_first_pin && one_is_last_pin)
+      return true;
+  }
+
+  return false;
 }

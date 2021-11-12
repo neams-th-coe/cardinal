@@ -16,6 +16,15 @@ public:
     const unsigned int & n_rings, const unsigned int & axis);
 
   /**
+   * Get the unit normal vector between two points, such that the cross product of
+   * the unit normal with the line from pt1 to pt2 has a positive 3rd-component
+   * @param[in] pt1 first point for line
+   * @param[in] pt2 second point for line
+   * @return unit normal
+   */
+  Point unitNormal(const Point & pt1, const Point & pt2) const;
+
+  /**
    * Distance from a point and a gap
    * @param[in] pt point
    * @param[in] gap_index gap index
@@ -51,6 +60,33 @@ public:
    * @return y-component translation
    */
   const Real sideTranslationY(const unsigned int & side) const { return _translation_y[side]; }
+
+  /**
+   * Get the index of the "first" pin in a ring
+   * @param[in] ring ring index
+   * @return first pin
+   */
+  unsigned int firstPinInRing(const unsigned int & ring) const;
+
+  /**
+   * Get the index of the "last" pin in a ring
+   * @param[in] ring ring index
+   * @return last pin
+   */
+  unsigned int lastPinInRing(const unsigned int & ring) const;
+
+  /**
+   * Whether this gap is the "last" in the ring, i.e. connecting the first and last pins of the ring
+   * @param[in] gap_index gap index
+   * @return whether this gap is the last in the ring
+   */
+  bool lastGapInRing(const unsigned int & gap_index) const;
+
+  /**
+   * Get the unit normals for all of the gaps
+   * @return gap unit normals
+   */
+  const std::vector<Point> & gapUnitNormals() const { return _gap_unit_normals; }
 
   /**
    * Compute the distance from a line, provided in terms of two points on the line
@@ -696,6 +732,9 @@ protected:
 
   /// Coefficients forming the lines between each gap
   std::vector<std::vector<Real>> _gap_line_coeffs;
+
+  /// Unit normal vectors for each gap
+  std::vector<Point> _gap_unit_normals;
 
   /// Number of gaps that touch an interior channel
   unsigned int _n_interior_gaps;

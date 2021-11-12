@@ -1,0 +1,10 @@
+[Tests]
+  [normal_component]
+    type = Exodiff
+    input = nek.i
+    exodiff = 'nek_out_subchannel0.e'
+    requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
+                  "binning and demonstrate correct results for side integrals and averages in directions "
+                  "normal to the gap planes."
+  []
+[]

@@ -15,4 +15,6 @@ public:
   virtual void execute() override;
 
   virtual void getBinVolumes() override;
+
+  Real spatialValue(const Point & p, const unsigned int & component) const override;
 };

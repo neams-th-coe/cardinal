@@ -9,4 +9,11 @@
                   "existing MOOSE postprocessors on the same mesh on auxvariables that match "
                   "the functional form of the solution fields initialized in the pyramid.udf. "
   []
+  [invalid_field]
+    type = RunException
+    input = nek.i
+    cli_args = "Postprocessors/max_temp/field=velocity_component Postprocessors/max_temp/velocity_direction='1 0 0'"
+    expect_err = "Setting 'field = velocity_component' is not yet implemented"
+    requirement = "System shall error if using an unsupported field with a volume extrema postprocessor."
+  []
 []
