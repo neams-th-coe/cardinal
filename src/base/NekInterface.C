@@ -1,7 +1,4 @@
 #include "NekInterface.h"
-#include "nekrs.cpp"
-#include "bcMap.hpp"
-#include "io.hpp"
 
 static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
 static nekrs::mesh::volumeCoupling nek_volume_coupling;
@@ -81,6 +78,7 @@ bool endControlNumSteps()
 
 bool hasTemperatureVariable()
 {
+  nrs_t * nrs = (nrs_t *) nrsPtr();
   return nrs->Nscalar ? platform->options.compareArgs("SCALAR00 IS TEMPERATURE", "TRUE") : false;
 }
 

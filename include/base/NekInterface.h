@@ -3,6 +3,11 @@
 #include "CardinalEnums.h"
 #include "NekVolumeSpatialBinUserObject.h"
 #include "NekSideSpatialBinUserObject.h"
+#include "nekrs.hpp"
+#include "bcMap.hpp"
+#include "io.hpp"
+#include "udf.hpp"
+#include "meshSetup.hpp"
 #include "libmesh/point.h"
 #include "mesh.h"
 #include <string>
