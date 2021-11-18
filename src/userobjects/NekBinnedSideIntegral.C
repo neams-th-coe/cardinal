@@ -1,5 +1,4 @@
 #include "NekBinnedSideIntegral.h"
-#include "CardinalUtils.h"
 #include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekBinnedSideIntegral);

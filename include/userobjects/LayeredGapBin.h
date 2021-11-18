@@ -35,7 +35,7 @@ protected:
   const SubProblem * _layered_subproblem;
 
   /// Number of bins
-  const unsigned int & _num_faces;
+  const unsigned int _num_faces;
 
   /// Minimum coordinate in the direction
   Real _direction_min;

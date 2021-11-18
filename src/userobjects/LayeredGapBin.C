@@ -48,10 +48,11 @@ LayeredGapBin::LayeredGapBin(const InputParameters & parameters)
   }
 
   _effective_layer_pts.resize(_num_layers + 2);
-  _effective_layer_pts[0] = _direction_min;
-  _effective_layer_pts[_num_layers + 1] = _direction_max;
+  _effective_layer_pts[0] = _direction_min - dx;
+  _effective_layer_pts[_num_layers + 1] = _direction_max + dx;
   for (unsigned int i = 1; i < _num_layers + 1; ++i)
     _effective_layer_pts[i] = 0.5 * (_layer_pts[i] + _layer_pts[i - 1]);
+
 }
 
 const unsigned int
@@ -83,6 +84,6 @@ LayeredGapBin::distanceFromGap(const Point & point, const unsigned int & gap_ind
 void
 LayeredGapBin::gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const
 {
-  index = gapIndex(point);
+  index = bin(point);
   distance = distanceFromGap(point, index);
 }

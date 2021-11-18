@@ -959,15 +959,17 @@ void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_
         p *= scales.L_ref;
       }
 
-      // "tally" bin
-      unsigned int bin = ((*uo).bin)(p);
-
       unsigned int gap_bin;
       double distance;
       ((*uo).gapIndexAndDistance)(p, gap_bin, distance);
 
       if (distance < gap_thickness / 2.0)
+      {
+        // "tally" bin
+        unsigned int bin = ((*uo).bin)(p);
+
         integral[bin] += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      }
     }
   }
 
@@ -1013,15 +1015,15 @@ void binnedGapVolume(const bool & map_space_by_qp,
         p *= scales.L_ref;
       }
 
-      // "tally" bin
-      unsigned int bin = ((*uo).bin)(p);
-
       unsigned int gap_bin;
       double distance;
       ((*uo).gapIndexAndDistance)(p, gap_bin, distance);
 
       if (distance < gap_thickness / 2.0)
       {
+        // "tally" bin
+        unsigned int bin = ((*uo).bin)(p);
+
         integral[bin] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
         counts[bin]++;
       }

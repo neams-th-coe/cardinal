@@ -96,8 +96,8 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   }
 
   // initialize all points to (0, 0, 0)
-  int n_bins = num_bins();
-  for (unsigned int i = 0; i < n_bins; ++i)
+  _n_bins = num_bins();
+  for (unsigned int i = 0; i < _n_bins; ++i)
     _points.push_back(Point(0.0, 0.0, 0.0));
 
   // we will at most have 3 separate distributions
@@ -132,7 +132,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     direction = direction.unit();
 
     // with a user-specified direction, the direction for each bin is the same
-    for (unsigned int i = 0; i < n_bins; ++i)
+    for (unsigned int i = 0; i < _n_bins; ++i)
       _velocity_bin_directions.push_back(direction);
   }
   else if (isParamValid("velocity_direction"))
