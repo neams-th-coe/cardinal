@@ -1,12 +1,3 @@
-//* This file is part of the MOOSE framework
-//* https://www.mooseframework.org
-//*
-//* All rights reserved, see COPYRIGHT for full restrictions
-//* https://github.com/idaholab/moose/blob/master/COPYRIGHT
-//*
-//* Licensed under LGPL 2.1, please see LICENSE for details
-//* https://www.gnu.org/licenses/lgpl-2.1.html
-
 #include "NekRSMesh.h"
 #include "NekInterface.h"
 #include "libmesh/face_quad4.h"
@@ -14,6 +5,7 @@
 #include "libmesh/cell_hex8.h"
 #include "libmesh/cell_hex27.h"
 #include "nekrs.hpp"
+#include "CardinalUtils.h"
 
 registerMooseObject("CardinalApp", NekRSMesh);
 
@@ -79,9 +71,9 @@ NekRSMesh::~NekRSMesh()
   // if doing a JIT build, these variables were never set
   if (!nekrs::buildOnly())
   {
-    if (_x) free(_x);
-    if (_y) free(_y);
-    if (_z) free(_z);
+    freePointer(_x);
+    freePointer(_y);
+    freePointer(_z);
 
     nekrs::mesh::freeMesh();
   }

@@ -1,5 +1,4 @@
 #include "NekBinnedSideAverage.h"
-#include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekBinnedSideAverage);
 

@@ -1,4 +1,5 @@
 #include "NekInterface.h"
+#include "CardinalUtils.h"
 
 static nekrs::mesh::boundaryCoupling nek_boundary_coupling;
 static nekrs::mesh::volumeCoupling nek_volume_coupling;
@@ -164,11 +165,7 @@ void initializeScratch()
   mesh_t * mesh = temperatureMesh();
 
   // clear them just to be sure
-  if (nrs->usrwrk)
-  {
-    nrs->o_usrwrk.free();
-    free(nrs->usrwrk);
-  }
+  freeScratch();
 
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
@@ -185,11 +182,8 @@ void freeScratch()
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
 
-  if (nrs->usrwrk)
-  {
-    free(nrs->usrwrk);
-    nrs->o_usrwrk.free();
-  }
+  freePointer(nrs->usrwrk);
+  nrs->o_usrwrk.free();
 }
 
 double characteristicLength()
@@ -276,8 +270,8 @@ void interpolateVolumeHex3D(const double * I, double * x, int N, double * Ix, in
         Ix[k * M * M + j * M + i] = tmp;
       }
 
-  free(Ix1);
-  free(Ix2);
+  freePointer(Ix1);
+  freePointer(Ix2);
 }
 
 void interpolateSurfaceFaceHex3D(double* scratch, const double* I, double* x, int N, double* Ix, int M)
@@ -380,10 +374,10 @@ void volumeSolution(const int order, const bool needs_interpolation, const field
   MPI_Allgatherv(Ttmp, recvCounts[commRank()], MPI_DOUBLE, T,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  free(recvCounts);
-  free(displacement);
-  free(Ttmp);
-  free(Telem);
+  freePointer(recvCounts);
+  freePointer(displacement);
+  freePointer(Ttmp);
+  freePointer(Telem);
 }
 
 void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
@@ -469,11 +463,11 @@ void boundarySolution(const int order, const bool needs_interpolation, const fie
   MPI_Allgatherv(Ttmp, recvCounts[commRank()], MPI_DOUBLE, T,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  free(recvCounts);
-  free(displacement);
-  free(Ttmp);
-  free(Tface);
-  free(scratch);
+  freePointer(recvCounts);
+  freePointer(displacement);
+  freePointer(Ttmp);
+  freePointer(Tface);
+  freePointer(scratch);
 }
 
 void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T)
@@ -497,7 +491,7 @@ void writeVolumeSolution(const int elem_id, const int order, const field::NekWri
     for (int v = 0; v < mesh->Np; ++v)
       write_solution(id + v, tmp[v]);
 
-    free(tmp);
+    freePointer(tmp);
   }
 }
 
@@ -528,8 +522,8 @@ void flux(const int elem_id, const int order, double * flux_face)
       nrs->usrwrk[id] = flux_tmp[i];
     }
 
-    free(scratch);
-    free(flux_tmp);
+    freePointer(scratch);
+    freePointer(flux_tmp);
   }
 }
 
@@ -990,7 +984,7 @@ void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_
     dimensionalizeVolumeIntegral(integrand, bin_volumes[i], total_integral[i]);
   }
 
-  free(integral);
+  freePointer(integral);
 }
 
 void binnedGapVolume(const bool & map_space_by_qp,
@@ -1049,8 +1043,8 @@ void binnedGapVolume(const bool & map_space_by_qp,
     total_integral[i] *= scales.V_ref;
   }
 
-  free(integral);
-  free(counts);
+  freePointer(integral);
+  freePointer(counts);
 }
 
 void binnedVolume(const bool & map_space_by_qp,
@@ -1091,8 +1085,8 @@ void binnedVolume(const bool & map_space_by_qp,
   for (unsigned int i = 0; i < n_bins; ++i)
     total_integral[i] *= scales.V_ref;
 
-  free(integral);
-  free(counts);
+  freePointer(integral);
+  freePointer(counts);
 }
 
 void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
@@ -1132,7 +1126,7 @@ void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & ma
   for (unsigned int i = 0; i < n_bins; ++i)
     dimensionalizeVolumeIntegral(integrand, bin_volumes[i], total_integral[i]);
 
-  free(integral);
+  freePointer(integral);
 }
 
 double volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume)
@@ -1354,7 +1348,7 @@ double heatFluxIntegral(const std::vector<int> & boundary_id)
     }
   }
 
-  free(grad_T);
+  freePointer(grad_T);
 
   // sum across all processes
   double total_integral;
@@ -1580,12 +1574,12 @@ void storeVolumeCoupling(int& N)
   MPI_Allgatherv(btmp, recvCounts[commRank()], MPI_INT, nek_volume_coupling.boundary,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  free(recvCounts);
-  free(displacement);
-  free(etmp);
-  free(ptmp);
-  free(ftmp);
-  free(btmp);
+  freePointer(recvCounts);
+  freePointer(displacement);
+  freePointer(etmp);
+  freePointer(ptmp);
+  freePointer(ftmp);
+  freePointer(btmp);
 }
 
 int facesOnBoundary(const int elem_id)
@@ -1619,8 +1613,8 @@ void volumeVertices(const int order, double* x, double* y, double* z)
   MPI_Allgatherv(mesh->z, recvCounts[commRank()], MPI_DOUBLE, z,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  free(recvCounts);
-  free(displacement);
+  freePointer(recvCounts);
+  freePointer(displacement);
 }
 
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
@@ -1696,12 +1690,12 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N)
   MPI_Allgatherv(btmp, recvCounts[commRank()], MPI_INT, nek_boundary_coupling.boundary_id,
     (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
 
-  free(recvCounts);
-  free(displacement);
-  free(etmp);
-  free(ftmp);
-  free(ptmp);
-  free(btmp);
+  freePointer(recvCounts);
+  freePointer(displacement);
+  freePointer(etmp);
+  freePointer(ftmp);
+  freePointer(ptmp);
+  freePointer(btmp);
 }
 
 void faceVertices(const int order, double* x, double* y, double* z)
@@ -1751,33 +1745,33 @@ void faceVertices(const int order, double* x, double* y, double* z)
   MPI_Allgatherv(ztmp, recvCounts[commRank()], MPI_DOUBLE, z,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
 
-  free(recvCounts);
-  free(displacement);
-  free(xtmp);
-  free(ytmp);
-  free(ztmp);
+  freePointer(recvCounts);
+  freePointer(displacement);
+  freePointer(xtmp);
+  freePointer(ytmp);
+  freePointer(ztmp);
 }
 
 void freeMesh()
 {
-  if (nek_boundary_coupling.element) free(nek_boundary_coupling.element);
-  if (nek_boundary_coupling.face) free(nek_boundary_coupling.face);
-  if (nek_boundary_coupling.process) free(nek_boundary_coupling.process);
-  if (nek_boundary_coupling.counts) free(nek_boundary_coupling.counts);
-  if (nek_boundary_coupling.boundary_id) free(nek_boundary_coupling.boundary_id);
+  freePointer(nek_boundary_coupling.element);
+  freePointer(nek_boundary_coupling.face);
+  freePointer(nek_boundary_coupling.process);
+  freePointer(nek_boundary_coupling.counts);
+  freePointer(nek_boundary_coupling.boundary_id);
 
-  if (nek_volume_coupling.element) free(nek_volume_coupling.element);
-  if (nek_volume_coupling.process) free(nek_volume_coupling.process);
-  if (nek_volume_coupling.counts) free(nek_volume_coupling.counts);
-  if (nek_volume_coupling.n_faces_on_boundary) free(nek_volume_coupling.n_faces_on_boundary);
-  if (nek_volume_coupling.boundary) free(nek_volume_coupling.boundary);
+  freePointer(nek_volume_coupling.element);
+  freePointer(nek_volume_coupling.process);
+  freePointer(nek_volume_coupling.counts);
+  freePointer(nek_volume_coupling.n_faces_on_boundary);
+  freePointer(nek_volume_coupling.boundary);
 
-  if (matrix.outgoing) free(matrix.outgoing);
-  if (matrix.incoming) free(matrix.incoming);
+  freePointer(matrix.outgoing);
+  freePointer(matrix.incoming);
 
-  if (initial_mesh_x) free(initial_mesh_x);
-  if (initial_mesh_y) free(initial_mesh_y);
-  if (initial_mesh_z) free(initial_mesh_z);
+  freePointer(initial_mesh_x);
+  freePointer(initial_mesh_y);
+  freePointer(initial_mesh_z);
 }
 
 } // end namespace mesh

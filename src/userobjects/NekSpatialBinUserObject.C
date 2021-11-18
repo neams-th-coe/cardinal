@@ -1,4 +1,5 @@
 #include "NekSpatialBinUserObject.h"
+#include "CardinalUtils.h"
 
 InputParameters
 NekSpatialBinUserObject::validParams()
@@ -29,7 +30,13 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_names(getParam<std::vector<UserObjectName>>("bins")),
     _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
     _map_space_by_qp(getParam<bool>("map_space_by_qp")),
-    _check_zero_contributions(getParam<bool>("check_zero_contributions"))
+    _check_zero_contributions(getParam<bool>("check_zero_contributions")),
+    _bin_values(nullptr),
+    _bin_values_x(nullptr),
+    _bin_values_y(nullptr),
+    _bin_values_z(nullptr),
+    _bin_volumes(nullptr),
+    _bin_counts(nullptr)
 {
   if (_bin_names.size() == 0)
     paramError("bins", "Length of vector must be greater than zero!");
@@ -134,16 +141,13 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
 
 NekSpatialBinUserObject::~NekSpatialBinUserObject()
 {
-  free(_bin_values);
-  free(_bin_volumes);
-  free(_bin_counts);
+  freePointer(_bin_values);
+  freePointer(_bin_volumes);
+  freePointer(_bin_counts);
 
-  if (_field == field::velocity_component)
-  {
-    free(_bin_values_x);
-    free(_bin_values_y);
-    free(_bin_values_z);
-  }
+  freePointer(_bin_values_x);
+  freePointer(_bin_values_y);
+  freePointer(_bin_values_z);
 }
 
 void
