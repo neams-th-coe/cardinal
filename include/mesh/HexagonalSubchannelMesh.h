@@ -46,54 +46,6 @@ protected:
   void getCornerPoints();
 
   /**
-   * Add the elements for an interior channel
-   * @param[in] centroid centroid for interior channel
-   * @param[in] zmin minimum z-coordinate for axial layer
-   * @param[in] zmax maximum z-coordinate for axial layer
-   * @param[in] rotation optional rotation to apply to elements
-   */
-  void addInteriorChannel(const Point & centroid, const Real & zmin, const Real & zmax, const Real & rotation);
-
-  /**
-   * Add the elements for an edge channel
-   * @param[in] centroid centroid for edge channel
-   * @param[in] zmin minimum z-coordinate for axial layer
-   * @param[in] zmax maximum z-coordinate for axial layer
-   * @param[in] rotation optional rotation to apply to elements
-   */
-  void addEdgeChannel(const Point & centroid, const Real & zmin, const Real & zmax, const Real & rotation);
-
-  /**
-   * Add the elements for a corner channel
-   * @param[in] centroid centroid for corner channel
-   * @param[in] zmin minimum z-coordinate for axial layer
-   * @param[in] zmax maximum z-coordinate for axial layer
-   * @param[in] rotation optional rotation to apply to elements
-   */
-  void addCornerChannel(const Point & centroid, const Real & zmin, const Real & zmax, const Real & rotation);
-
-  /**
-   * Add all interior channels in a given axial layer
-   * @param[in] zmin minimum z-coordinate for layer
-   * @param[in] zmax maximum z-coordinate for layer
-   */
-  void addInteriorChannels(const Real & zmin, const Real & zmax);
-
-  /**
-   * Add all edge channels in a given axial layer
-   * @param[in] zmin minimum z-coordinate for layer
-   * @param[in] zmax maximum z-coordinate for layer
-   */
-  void addEdgeChannels(const Real & zmin, const Real & zmax);
-
-  /**
-   * Add all corner channels in a given axial layer
-   * @param[in] zmin minimum z-coordinate for layer
-   * @param[in] zmax maximum z-coordinate for layer
-   */
-  void addCornerChannels(const Real & zmin, const Real & zmax);
-
-  /**
    * Add a prism6 element for given points in triangle and between two axial planes
    * @param[in] pt1 point in triangle
    * @param[in] pt2 point in triangle
@@ -104,6 +56,16 @@ protected:
    */
   void addPrismElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & zmin, const Real & zmax,
     const SubdomainID & id);
+
+  /**
+   * Add a tri3 element for given points in triangle on a given axial plane
+   * @param[in] pt1 point in triangle
+   * @param[in] pt2 point in triangle
+   * @param[in] pt3 point in triangle
+   * @param[in] z z-coordinate for layer
+   * @param[in] id subdomain ID
+   */
+  void addTriElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & z, const SubdomainID & id);
 
   /// Number of nodes on each pin's quarter circumference
   const unsigned int & _theta_res;
@@ -125,6 +87,12 @@ protected:
 
   /// Subdomain ID to set for the corner channels
   const SubdomainID & _corner_id;
+
+  /**
+   * Whether to create a volume mesh (such that the volumes of the subchannels are represented)
+   * or a surface mesh (which will create a 2-D mesh on n_axial + 1 planes through the assembly).
+   */
+  const bool & _volume_mesh;
 
   /// Node positions for a single upward-facing interior subchannel with a centroid at (0, 0, 0)
   std::vector<Point> _interior_points;
