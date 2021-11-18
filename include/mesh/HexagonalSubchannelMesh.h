@@ -1,7 +1,6 @@
 #pragma once
 
-#include "MooseMesh.h"
-#include "HexagonalLatticeUtility.h"
+#include "HexagonalSubchannelMeshBase.h"
 
 class HexagonalSubchannelMesh;
 
@@ -16,29 +15,18 @@ InputParameters validParams<HexagonalSubchannelMesh>();
  * pays no attention to normal physics requirements/recommendation, like resolving near
  * boundaries or using near-equal element sizes).
  */
-class HexagonalSubchannelMesh : public MooseMesh
+class HexagonalSubchannelMesh : public HexagonalSubchannelMeshBase
 {
 public:
   static InputParameters validParams();
 
   HexagonalSubchannelMesh(const InputParameters & parameters);
-  HexagonalSubchannelMesh(const HexagonalSubchannelMesh & /* other_mesh */) = default;
-
-  HexagonalSubchannelMesh & operator=(const HexagonalSubchannelMesh & other_mesh) = delete;
 
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
 
   virtual void buildMesh() override;
 
 protected:
-  /**
-   * Rotate a point counterclockwise about the z axis
-   * @param[in] p point
-   * @param[in] theta angle (radians) by which to rotate
-   * @return rotated point
-   */
-  const Point rotatePoint(const Point & p, const Real & theta) const;
-
   /**
    * Get the node positions for a single, upwards-facing, interior subchannel
    * with a centroid at (0, 0, 0)
@@ -117,21 +105,6 @@ protected:
   void addPrismElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & zmin, const Real & zmax,
     const SubdomainID & id);
 
-  /// Bundle pitch (distance across bundle measured flat-to-flat on the inside of the duct)
-  const Real & _bundle_pitch;
-
-  /// Pin pitch
-  const Real & _pin_pitch;
-
-  /// Pin diameter
-  const Real & _pin_diameter;
-
-  /// Total number of rings of pins
-  const unsigned int & _n_rings;
-
-  /// Vertical axis of the bundle along which the pins are aligned
-  const unsigned int _axis;
-
   /// Number of nodes on each pin's quarter circumference
   const unsigned int & _theta_res;
 
@@ -153,12 +126,6 @@ protected:
   /// Subdomain ID to set for the corner channels
   const SubdomainID & _corner_id;
 
-  /// Utility providing hexagonal lattice geometry calculations
-  HexagonalLatticeUtility _hex_lattice;
-
-  /// Coordinates for the pin centers
-  const std::vector<Point> & _pin_centers;
-
   /// Node positions for a single upward-facing interior subchannel with a centroid at (0, 0, 0)
   std::vector<Point> _interior_points;
 
@@ -176,20 +143,4 @@ protected:
 
   /// Number of elements per corner channel
   int _elems_per_corner;
-
-  /// Element ID
-  int _elem_id_counter;
-
-  /// Node ID
-  int _node_id_counter;
-
-  static const Real SIN30;
-
-  static const Real COS30;
-
-  /// Number of nodes per prism6 element
-  static const unsigned int NODES_PER_PRISM;
-
-  /// Number of sides in a hexagon
-  static const unsigned int NUM_SIDES;
 };

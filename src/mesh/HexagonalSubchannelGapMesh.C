@@ -9,19 +9,7 @@ defineLegacyParams(HexagonalSubchannelGapMesh);
 InputParameters
 HexagonalSubchannelGapMesh::validParams()
 {
-  InputParameters params = MooseMesh::validParams();
-  params.addRequiredRangeCheckedParam<Real>("bundle_pitch", "bundle_pitch > 0",
-    "Bundle pitch, or flat-to-flat distance across bundle");
-  params.addRequiredRangeCheckedParam<Real>("pin_pitch", "pin_pitch > 0",
-    "Pin pitch, or distance between pin centers");
-  params.addRequiredRangeCheckedParam<Real>("pin_diameter", "pin_diameter > 0",
-    "Pin outer diameter");
-  params.addRequiredRangeCheckedParam<unsigned int>("n_rings", "n_rings >= 1",
-    "Number of pin rings, including the centermost pin as a 'ring'");
-
-  MooseEnum directions("x y z", "z");
-  params.addParam<MooseEnum>("axis", directions,
-    "vertical axis of the reactor (x, y, or z) along which pins are aligned");
+  InputParameters params = HexagonalSubchannelMeshBase::validParams();
   params.addRequiredRangeCheckedParam<unsigned int>("n_axial", "n_axial > 0",
     "Number of axial cells");
   params.addRequiredRangeCheckedParam<Real>("height", "height > 0", "Height of assembly");
@@ -34,20 +22,11 @@ HexagonalSubchannelGapMesh::validParams()
 }
 
 HexagonalSubchannelGapMesh::HexagonalSubchannelGapMesh(const InputParameters & parameters)
-  : MooseMesh(parameters),
-    _bundle_pitch(getParam<Real>("bundle_pitch")),
-    _pin_pitch(getParam<Real>("pin_pitch")),
-    _pin_diameter(getParam<Real>("pin_diameter")),
-    _n_rings(getParam<unsigned int>("n_rings")),
-    _axis(parameters.get<MooseEnum>("axis")),
+  : HexagonalSubchannelMeshBase(parameters),
     _n_axial(getParam<unsigned int>("n_axial")),
     _height(getParam<Real>("height")),
     _interior_id(getParam<SubdomainID>("interior_id")),
     _peripheral_id(getParam<SubdomainID>("peripheral_id")),
-    _hex_lattice(HexagonalLatticeUtility(_bundle_pitch, _pin_pitch, _pin_diameter,
-      0.0 /* wire diameter not needed for subchannel mesh, use dummy value */,
-      1.0 /* wire pitch not needed for subchannel mesh, use dummy value */, _n_rings, _axis)),
-   _pin_centers(_hex_lattice.pinCenters()),
    _gap_indices(_hex_lattice.gapIndices())
 {
 }
