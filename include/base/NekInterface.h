@@ -319,6 +319,12 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
 double volume();
 
 /**
+ * Dimensionalize a volume
+ * @param[in] integral integral to dimensionalize
+ */
+void dimensionalizeVolume(double & integral);
+
+/**
  * Dimensionalize a given integral of f over volume, i.e. fdV
  * @param[in] integrand field to dimensionalize
  * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
@@ -341,19 +347,6 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std
  * @return volume integral of a field
  */
 double volumeIntegral(const field::NekFieldEnum & integrand, const double & volume);
-
-/**
- * Compute the volumes of spatial bins
- * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
- * @param[in] bin pointer to function that returns a bin index given a point
- * @param[in] uo user object providing the bin method
- * @param[in] n_bins number of bins
- * @param[out] total_integral volume for each bin, summed across ranks
- * @param[out] total_counts number of counts towards each bin
- */
-void binnedVolume(const bool & map_space_by_qp,
-  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
-  int n_bins, double * total_integral, int * total_counts);
 
 /**
  * Compute the volumes of gap spatial bins

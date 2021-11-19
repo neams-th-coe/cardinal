@@ -52,6 +52,14 @@ public:
    */
   const field::NekFieldEnum & field() const { return _field; }
 
+  /**
+   * Get the point at which to evaluate the user object
+   * @param[in] local_elem_id local element ID on the Nek rank
+   * @param[in] local_node_id local node ID on the element
+   * @return point, in dimensional form
+   */
+  Point nekPoint(const int & local_elem_id, const int & local_node_id) const;
+
 protected:
   /// Get the output points for a single bin
   void computePoints1D();

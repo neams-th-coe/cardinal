@@ -150,6 +150,15 @@ NekSpatialBinUserObject::~NekSpatialBinUserObject()
   freePointer(_bin_values_z);
 }
 
+Point
+NekSpatialBinUserObject::nekPoint(const int & local_elem_id, const int & local_node_id) const
+{
+  if (_map_space_by_qp)
+    return nekrs::gllPoint(local_elem_id, local_node_id);
+  else
+    return nekrs::centroid(local_elem_id);
+}
+
 void
 NekSpatialBinUserObject::computeBinVolumes()
 {

@@ -915,6 +915,11 @@ double volume()
   return total_integral;
 }
 
+void dimensionalizeVolume(double & integral)
+{
+  integral *= scales.V_ref;
+}
+
 void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume, double & integral)
 {
   // dimensionalize the field if needed
@@ -1048,45 +1053,6 @@ void binnedGapVolume(const bool & map_space_by_qp,
 
     total_integral[i] *= scales.V_ref;
   }
-
-  freePointer(integral);
-  freePointer(counts);
-}
-
-void binnedVolume(const bool & map_space_by_qp,
-  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
-  int n_bins, double * total_integral, int * total_counts)
-{
-  mesh_t * mesh = entireMesh();
-  double * integral = (double *) calloc(n_bins, sizeof(double));
-  int * counts = (  int *) calloc(n_bins, sizeof(  int));
-
-  for (int k = 0; k < mesh->Nelements; ++k)
-  {
-    int offset = k * mesh->Np;
-    libMesh::Point p;
-
-    if (!map_space_by_qp)
-      p = centroid(k);
-
-    for (int v = 0; v < mesh->Np; ++v)
-    {
-      if (map_space_by_qp)
-        p = gllPoint(k, v);
-
-      unsigned int bin = ((*uo).bin)(p);
-      integral[bin] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
-      counts[bin]++;
-    }
-  }
-
-  // sum across all processes
-  MPI_Allreduce(integral, total_integral, n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
-  MPI_Allreduce(counts, total_counts, n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
-
-  // dimensionalize
-  for (unsigned int i = 0; i < n_bins; ++i)
-    total_integral[i] *= scales.V_ref;
 
   freePointer(integral);
   freePointer(counts);

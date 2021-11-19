@@ -1,4 +1,5 @@
 #include "NekBinnedVolumeIntegral.h"
+#include "CardinalUtils.h"
 #include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekBinnedVolumeIntegral);
@@ -21,7 +22,34 @@ NekBinnedVolumeIntegral::NekBinnedVolumeIntegral(const InputParameters & paramet
 void
 NekBinnedVolumeIntegral::getBinVolumes()
 {
-  nekrs::binnedVolume(_map_space_by_qp, &NekVolumeSpatialBinUserObject::bin, this, num_bins(), _bin_volumes, _bin_counts);
+  mesh_t * mesh = nekrs::entireMesh();
+  double * integral = (double *) calloc(_n_bins, sizeof(double));
+  int * counts = (int *) calloc(_n_bins, sizeof(  int));
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+    libMesh::Point p;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      Point p = nekPoint(k, v);
+      unsigned int b = bin(p);
+      integral[b] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      counts[b]++;
+    }
+  }
+
+  // sum across all processes
+  MPI_Allreduce(integral, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+
+  // dimensionalize
+  for (unsigned int i = 0; i < _n_bins; ++i)
+    nekrs::dimensionalizeVolume(_bin_volumes[i]);
+
+  freePointer(integral);
+  freePointer(counts);
 }
 
 Real
