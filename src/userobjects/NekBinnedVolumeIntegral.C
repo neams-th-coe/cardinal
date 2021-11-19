@@ -22,34 +22,28 @@ NekBinnedVolumeIntegral::NekBinnedVolumeIntegral(const InputParameters & paramet
 void
 NekBinnedVolumeIntegral::getBinVolumes()
 {
-  mesh_t * mesh = nekrs::entireMesh();
-  double * integral = (double *) calloc(_n_bins, sizeof(double));
-  int * counts = (int *) calloc(_n_bins, sizeof(  int));
+  resetPartialStorage();
 
+  mesh_t * mesh = nekrs::entireMesh();
   for (int k = 0; k < mesh->Nelements; ++k)
   {
     int offset = k * mesh->Np;
-    libMesh::Point p;
-
     for (int v = 0; v < mesh->Np; ++v)
     {
       Point p = nekPoint(k, v);
       unsigned int b = bin(p);
-      integral[b] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
-      counts[b]++;
+      _bin_partial_values[b] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      _bin_partial_counts[b]++;
     }
   }
 
   // sum across all processes
-  MPI_Allreduce(integral, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
-  MPI_Allreduce(counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(_bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(_bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize
   for (unsigned int i = 0; i < _n_bins; ++i)
     nekrs::dimensionalizeVolume(_bin_volumes[i]);
-
-  freePointer(integral);
-  freePointer(counts);
 }
 
 Real
@@ -57,6 +51,32 @@ NekBinnedVolumeIntegral::spatialValue(const Point & p, const unsigned int & comp
 {
   const auto & i = bin(p);
   return _bin_values[i] * _velocity_bin_directions[i](component);
+}
+
+void
+NekBinnedVolumeIntegral::binnedVolumeIntegral(const field::NekFieldEnum & integrand, double * total_integral)
+{
+  resetPartialStorage();
+
+  mesh_t * mesh = nekrs::entireMesh();
+  double (*f) (int) = nekrs::solution::solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      Point p = nekPoint(k, v);
+      unsigned int b = bin(p);
+      _bin_partial_values[b] += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  MPI_Allreduce(_bin_partial_values, total_integral, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  for (unsigned int i = 0; i < _n_bins; ++i)
+    nekrs::dimensionalizeVolumeIntegral(integrand, _bin_volumes[i], total_integral[i]);
 }
 
 void
@@ -68,12 +88,9 @@ NekBinnedVolumeIntegral::execute()
 
   if (_field == field::velocity_component)
   {
-    nekrs::binnedVolumeIntegral(field::velocity_x, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
-      this, num_bins(), _bin_volumes, _bin_values_x);
-    nekrs::binnedVolumeIntegral(field::velocity_y, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
-      this, num_bins(), _bin_volumes, _bin_values_y);
-    nekrs::binnedVolumeIntegral(field::velocity_z, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
-      this, num_bins(), _bin_volumes, _bin_values_z);
+    binnedVolumeIntegral(field::velocity_x, _bin_values_x);
+    binnedVolumeIntegral(field::velocity_y, _bin_values_y);
+    binnedVolumeIntegral(field::velocity_z, _bin_values_z);
 
     for (unsigned int i = 0; i < num_bins(); ++i)
     {
@@ -82,8 +99,5 @@ NekBinnedVolumeIntegral::execute()
     }
   }
   else
-  {
-    nekrs::binnedVolumeIntegral(_field, _map_space_by_qp, &NekVolumeSpatialBinUserObject::bin,
-      this, num_bins(), _bin_volumes, _bin_values);
-  }
+    binnedVolumeIntegral(_field, _bin_values);
 }

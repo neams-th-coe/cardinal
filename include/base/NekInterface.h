@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CardinalEnums.h"
-#include "NekVolumeSpatialBinUserObject.h"
 #include "NekSideSpatialBinUserObject.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
@@ -380,20 +379,6 @@ void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_
   void (NekSideSpatialBinUserObject::*gapIndexAndDistance)(const Point &, unsigned int &, Real &) const,
   const NekSideSpatialBinUserObject * uo,
   int n_bins, Real gap_thickness, const double * bin_volumes, double * total_integral);
-
-/**
- * Compute a volume integral in spatial bins
- * @param[in] integrand field to integrate
- * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
- * @param[in] bin pointer to function that returns a bin index given a point
- * @param[in] uo user object providing the bin method
- * @param[in] n_bins number of bins
- * @param[in] bin_volumes volume of each bin, only used for dimensionalizing temperature
- * @param[out] total_integral volume integral for each bin, summed across ranks
- */
-void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
-  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
-  int n_bins, const double * bin_volumes, double * total_integral);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs

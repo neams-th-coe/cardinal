@@ -17,4 +17,11 @@ public:
   virtual void execute() override;
 
   virtual void getBinVolumes() override;
+
+  /**
+   * Compute a volume integral over the bins
+   * @param[in] integrand field to integrate
+   * @param[out] total_integral integrated values in each bin
+   */
+  virtual void binnedVolumeIntegral(const field::NekFieldEnum & integrand, double * total_integral);
 };

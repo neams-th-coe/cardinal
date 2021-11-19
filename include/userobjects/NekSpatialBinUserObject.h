@@ -70,6 +70,9 @@ protected:
   /// Get the output points for three combined bins
   void computePoints3D();
 
+  /// Reset the scratch space storage to zero values
+  void resetPartialStorage();
+
   /**
    * Get the coordinates for a point at the given indices for the bins
    * @param[in] indices indices of the bin distributions to combine
@@ -137,4 +140,10 @@ protected:
    * 'map_space_by_qp = false') that contribute to each bin, for error checking
    */
   int * _bin_counts;
+
+  /// Partial-sum of bin value per Nek rank
+  double * _bin_partial_values;
+
+  /// Partial-sum of bin count per Nek rank
+  int * _bin_partial_counts;
 };
