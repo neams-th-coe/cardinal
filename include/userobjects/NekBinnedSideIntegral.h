@@ -24,4 +24,9 @@ public:
    * @param[out] total_integral integral over each bin
    */
   virtual void binnedSideIntegral(const field::NekFieldEnum & integrand, double * total_integral);
+
+  /**
+   * Compute the integrals
+   */
+  virtual void computeIntegral();
 };

@@ -12,7 +12,8 @@ NekSideSpatialBinUserObject::validParams()
 
 NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters & parameters)
   : NekSpatialBinUserObject(parameters),
-    _gap_thickness(getParam<Real>("gap_thickness"))
+    _gap_thickness(getParam<Real>("gap_thickness")),
+    _nondimensional_gap_thickness(_gap_thickness / nekrs::solution::referenceLength())
 {
   // we need to enforce that there is only one side distribution, because side
   // distributions defined in orthogonal directions don't ever overlap with one another

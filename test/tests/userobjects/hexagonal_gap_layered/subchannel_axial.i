@@ -23,61 +23,40 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [temp]
+  [P]
   []
 []
 
 [Postprocessors]
-  # we can compare the areas computed on each block according to the binning
-  # with near-analytic results from the subchannel mesh
-  [area_interior_all]
-    type = VolumePostprocessor
-    block = '1'
-  []
-  [area_interior] # area per gap (12 interior, 6 axial slices)
-    type = LinearCombinationPostprocessor
-    pp_names = 'area_interior_all'
-    pp_coefs = '${fparse 1.0 / 12.0 / 6.0}'
-  []
-  [area_periph_all]
-    type = VolumePostprocessor
-    block = '2'
-  []
-  [area_periph] # area per gap (12 peripheral, 6 axial slices)
-    type = LinearCombinationPostprocessor
-    pp_names = 'area_periph_all'
-    pp_coefs = '${fparse 1.0 / 12.0 / 6.0}'
-  []
-
   # we can compare the average values computed on each block according to the binning
   # with near-analytic results from the subchannel mesh
   [avg_interior]
     type = ElementAverageValue
-    variable = temp
+    variable = P
     block = '1'
   []
-  [avg_periph]
+  [avg_edge]
     type = ElementAverageValue
-    variable = temp
+    variable = P
     block = '2'
+  []
+  [avg_corner]
+    type = ElementAverageValue
+    variable = P
+    block = '3'
   []
 
-  [area_interior_nek]
-    type = ElementAverageValue
-    variable = gap_area
-    block = '1'
-  []
-  [area_periph_nek]
-    type = ElementAverageValue
-    variable = gap_area
-    block = '2'
-  []
   [avg_interior_nek]
     type = ElementAverageValue
     variable = gap_avg
     block = '1'
   []
-  [avg_periph_nek]
+  [avg_edge_nek]
+    type = ElementAverageValue
+    variable = gap_avg
+    block = '2'
+  []
+  [avg_corner_nek]
     type = ElementAverageValue
     variable = gap_avg
     block = '2'
@@ -90,5 +69,4 @@
 
 [Outputs]
   exodus = true
-  hide = 'area_interior_all area_periph_all'
 []

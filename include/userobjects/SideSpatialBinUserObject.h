@@ -39,4 +39,11 @@ public:
    * @return gap unit normals
    */
   virtual const std::vector<Point> & gapUnitNormals() const = 0;
+
+  /**
+   * Apply an additional normalization factor to the bin value
+   * @param[in] bin bin index
+   * @return multiplicative value to apply
+   */
+  virtual Real adjustBinValue(const unsigned int & bin) const { return 1.0; }
 };

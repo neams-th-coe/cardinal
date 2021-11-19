@@ -809,6 +809,18 @@ double referenceFlux();
  */
 double referenceSource();
 
+/**
+ * Get the reference length scale
+ * @return reference length scale
+ */
+double referenceLength();
+
+/**
+ * Get the reference area scale
+ * @return reference area scale
+ */
+double referenceArea();
+
 } // end namespace solution
 
 } // end namespace nekrs

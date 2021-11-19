@@ -36,9 +36,9 @@ LayeredGapBin::LayeredGapBin(const InputParameters & parameters)
   for (unsigned int i = 1; i < _num_faces; ++i)
     _layer_pts[i] = _layer_pts[i - 1] + dx;
 
-  _bin_centers.resize(_num_layers);
-  _unit_normals.resize(_num_layers);
-  for (unsigned int i = 0; i < _num_layers; ++i)
+  _bin_centers.resize(_num_faces);
+  _unit_normals.resize(_num_faces);
+  for (unsigned int i = 0; i < _num_faces; ++i)
   {
     _bin_centers[i] = Point(0.0, 0.0, 0.0);
     _bin_centers[i](_direction) = _layer_pts[i];
@@ -86,4 +86,20 @@ LayeredGapBin::gapIndexAndDistance(const Point & point, unsigned int & index, Re
 {
   index = bin(point);
   distance = distanceFromGap(point, index);
+}
+
+Real
+LayeredGapBin::adjustBinValue(const unsigned int & i) const
+{
+  // This bin object gets _direction_min and _direction_max from a bounding box over the
+  // mesh. This means that the first and last planes are on the boundary of the domain,
+  // so the integrating volume is actually only half of _gap_thickness in
+  // NekBinnedSideIntegral/NekBinnedSideAverage. Therefore, to get correct area integrals,
+  // we divide each integral by _gap_thickness (in NekSideBinnedIntegral) except for the
+  // first and last bins, which we only divide by _gap_thickness / 2.0
+
+  if (i == 0 || i == (num_bins() - 1))
+    return 2.0;
+
+  return 1.0;
 }

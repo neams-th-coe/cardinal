@@ -1,4 +1,5 @@
 #include "NekBinnedSideIntegral.h"
+#include "CardinalUtils.h"
 #include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekBinnedSideIntegral);
@@ -47,13 +48,13 @@ NekBinnedSideIntegral::getBinVolumes()
   MPI_Allreduce(_bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
   MPI_Allreduce(_bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
 
-  // dimensionalize and scale to an area
   for (unsigned int i = 0; i < _n_bins; ++i)
   {
-    // dividing by gap thickness here is necessary in order for our volume integrals
-    // to approximate area integrals; this assumes that the integrating volume is a rectangular
-    // prism, when in face it will follow any curvature of the mesh near the vicinity of the gap
-    _bin_volumes[i] /= _gap_thickness;
+    // some bins require dividing by a different value, depending on the bin type
+    const auto local_bins = unrolledBin(i);
+    _bin_volumes[i] *= _side_bin->adjustBinValue(local_bins[_side_index]);
+
+    // dimensionalize
     nekrs::dimensionalizeVolume(_bin_volumes[i]);
   }
 }
@@ -90,10 +91,10 @@ NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand,
 
   for (unsigned int i = 0; i < _n_bins; ++i)
   {
-    // dividing by gap thickness here is necessary in order for our volume integrals
-    // to approximate area integrals; this assumes that the integrating volume is a rectangular
-    // prism, when in face it will follow any curvature of the mesh near the vicinity of the gap
-    total_integral[i] /= _gap_thickness;
+    // some bins require dividing by a different value, depending on the bin type
+    const auto local_bins = unrolledBin(i);
+    total_integral[i] *= _side_bin->adjustBinValue(local_bins[_side_index]);
+
     nekrs::dimensionalizeVolumeIntegral(integrand, _bin_volumes[i], total_integral[i]);
   }
 }
@@ -112,7 +113,7 @@ NekBinnedSideIntegral::spatialValue(const Point & p, const unsigned int & compon
 }
 
 void
-NekBinnedSideIntegral::execute()
+NekBinnedSideIntegral::computeIntegral()
 {
   // if the mesh is changing, re-compute the areas of the bins
   if (!_fixed_mesh)
@@ -135,4 +136,14 @@ NekBinnedSideIntegral::execute()
   }
   else
     binnedSideIntegral(_field, _bin_values);
+}
+
+void
+NekBinnedSideIntegral::execute()
+{
+  computeIntegral();
+
+  // correct the values to areas
+  for (unsigned int i = 0; i < _n_bins; ++i)
+    _bin_values[i] /= _gap_thickness;
 }

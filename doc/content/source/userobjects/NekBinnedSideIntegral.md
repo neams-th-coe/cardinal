@@ -13,6 +13,7 @@ as a volume integral over a prism with a face-normal thickness of
 `gap_thickness`, denoted here as $\Delta$:
 
 \begin{equation}
+[eq:1]
 p=\frac{\int_{x_0}^{x_1}\int_{y_0-\frac{\Delta}{2}}^{y_0+\frac{\Delta}{2}}\int_{z_0}^{z_1}f\ dxdydz}{\int_{y_0-\frac{\Delta}{2}}^{y_0+\frac{\Delta}{2}}dy}
 \end{equation}
 
@@ -21,6 +22,38 @@ $f$ is the specified field.
 To be clear, this user object is *not* evaluated on the
 [NekRSMesh](/mesh/NekRSMesh.md) mesh mirror, but instead on the mesh actually
 used for computation in NekRS.
+
+!alert! warning
+This user object can produce very inaccurate results due to the nature of the
+averaging performed in [eq:1]. The averaging in [eq:1] is essentially the same as applying
+a delta function that is unity at nodes within a small $\frac{\Delta}{2}$ distance
+of the face, and zero for all other nodes. *However*, this implementation is technically
+no different from a different selection of $\Delta$ which *does not change the number of GLL points "hit"*.
+For illustration, consider the setup shown in [fig1]. While [eq:1] shows that the normalization
+to an *area* is obtained by dividing by an integral, in implementation we do not have a means
+to directly compute this integral in the denominator. Instead, we divide the numerator in
+[eq:1] by the `gap_thickness`.
+
+!media side_integral.png
+  id=fig1
+  caption=Illustration of potential inaccuracies with this object; black lines show the connections between GLL points and the shaded red areas show the contributing volumes to a face
+  style=width:40%;margin-left:auto;margin-right:auto
+
+However, if the effective integrating volume does not
+"hit" GLL points that are $\frac{\Delta}{2}$ away from the gap, then the effective thickness
+of the integral is technically indistinguishable from other values of $\Delta$ that
+hit the same number of GLL points. Because the mesh may be unstructured and not be oriented
+in any convenient way with respect to the faces (unlike the structured depiction in [fig1]),
+there is no other value of `gap_thickness` by which we could divide [eq:1] to correctly
+obtain areas.
+
+Therefore, we recommend only using this class if you know that your mesh is structured
+and you have selected a `gap_thickness` such that for every bin, your GLL points would
+exactly lie on the surface of a rectangular prism of width $\Delta$. Instead, you should
+use the [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md) object to get an
+average over the face, and then multiply that value by the known area of the gap
+(i.e. don't use this object to try to calculate the gap area).
+!alert-end!
 
 !include /postprocessors/field_specs.md
 

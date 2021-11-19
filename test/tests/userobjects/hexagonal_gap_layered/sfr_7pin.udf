@@ -25,9 +25,9 @@ void UDF_Setup(nrs_t *nrs)
     nrs->U[n + 1 * nrs->fieldOffset] = y;
     nrs->U[n + 2 * nrs->fieldOffset] = exp(z);
 
-    nrs->P[n] = x+y+z;
-
     dfloat r = std::sqrt(x*x + y*y);
+
+    nrs->P[n] = exp(50*r)+300*z;
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(100*r)+200*z;
   }

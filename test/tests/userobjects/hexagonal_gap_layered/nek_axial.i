@@ -1,4 +1,4 @@
-gap_thickness = ${fparse 0.05 * 7.646e-3}
+gap_thickness = ${fparse 0.1 * 7.646e-3}
 
 [Mesh]
   type = NekRSMesh
@@ -9,7 +9,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'sfr_7pin'
-  output = 'temperature'
+  output = 'pressure'
 []
 
 [AuxVariables]
@@ -17,7 +17,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
     family = MONOMIAL
     order = CONSTANT
   []
-  [avg_temp]
+  [avg_p]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -29,9 +29,9 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
     variable = gap_bins
     user_object = subchannel_binning
   []
-  [avg_temp]
+  [avg_p]
     type = SpatialUserObjectAux
-    variable = avg_temp
+    variable = avg_p
     user_object = gap_avg
   []
 []
@@ -52,7 +52,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
   [gap_avg]
     type = NekBinnedSideAverage
     bins = 'subchannel_binning axial_binning'
-    field = temperature
+    field = pressure
     gap_thickness = ${gap_thickness}
     map_space_by_qp = true
   []
@@ -93,13 +93,13 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
     type = MultiAppNearestNodeTransfer
     direction = to_multiapp
     multi_app = subchannel
-    variable = temp
-    source_variable = temp
+    variable = P
+    source_variable = P
   []
 []
 
 [VectorPostprocessors]
-  [avg_temp]
+  [avg_p]
     type = SpatialUserObjectVectorPostprocessor
     userobject = gap_avg
   []

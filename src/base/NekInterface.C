@@ -1765,6 +1765,16 @@ namespace solution
     return scales.source_ref;
   }
 
+  double referenceLength()
+  {
+    return scales.L_ref;
+  }
+
+  double referenceArea()
+  {
+    return scales.A_ref;
+  }
+
   void dimensionalize(const field::NekFieldEnum & field, double & value)
   {
     switch (field)
