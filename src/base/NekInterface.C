@@ -859,7 +859,17 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
   return reduced_value;
 }
 
-libMesh::Point centroid(int local_elem_id)
+Point gllPoint(int local_elem_id, int local_node_id)
+{
+  mesh_t * mesh = entireMesh();
+
+  int id = local_elem_id * mesh->Np + local_node_id;
+  Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+  p *= scales.L_ref;
+  return p;
+}
+
+Point centroid(int local_elem_id)
 {
   mesh_t * mesh = entireMesh();
 
@@ -879,7 +889,7 @@ libMesh::Point centroid(int local_elem_id)
   }
 
   Point c(x_c, y_c, z_c);
-  return c / mass;
+  return c / mass * scales.L_ref;
 }
 
 double volume()
@@ -949,15 +959,12 @@ void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_
     libMesh::Point p;
 
     if (!map_space_by_qp)
-      p = centroid(k) * scales.L_ref;
+      p = centroid(k);
 
     for (int v = 0; v < mesh->Np; ++v)
     {
       if (map_space_by_qp)
-      {
-        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
-        p *= scales.L_ref;
-      }
+        p = gllPoint(k, v);
 
       unsigned int gap_bin;
       double distance;
@@ -1005,15 +1012,12 @@ void binnedGapVolume(const bool & map_space_by_qp,
     libMesh::Point p;
 
     if (!map_space_by_qp)
-      p = centroid(k) * scales.L_ref;
+      p = centroid(k);
 
     for (int v = 0; v < mesh->Np; ++v)
     {
       if (map_space_by_qp)
-      {
-        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
-        p *= scales.L_ref;
-      }
+        p = gllPoint(k, v);
 
       unsigned int gap_bin;
       double distance;
@@ -1063,15 +1067,12 @@ void binnedVolume(const bool & map_space_by_qp,
     libMesh::Point p;
 
     if (!map_space_by_qp)
-      p = centroid(k) * scales.L_ref;
+      p = centroid(k);
 
     for (int v = 0; v < mesh->Np; ++v)
     {
       if (map_space_by_qp)
-      {
-        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
-        p *= scales.L_ref;
-      }
+        p = gllPoint(k, v);
 
       unsigned int bin = ((*uo).bin)(p);
       integral[bin] += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
@@ -1107,15 +1108,12 @@ void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & ma
     libMesh::Point p;
 
     if (!map_space_by_qp)
-      p = centroid(k) * scales.L_ref;
+      p = centroid(k);
 
     for (int v = 0; v < mesh->Np; ++v)
     {
       if (map_space_by_qp)
-      {
-        p = {mesh->x[offset + v], mesh->y[offset + v], mesh->z[offset + v]};
-        p *= scales.L_ref;
-      }
+        p = gllPoint(k, v);
 
       unsigned int bin = ((*uo).bin)(p);
       integral[bin] += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];

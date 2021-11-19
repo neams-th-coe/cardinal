@@ -220,11 +220,19 @@ void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, i
 void initializeInterpolationMatrices(const int n_moost_pts);
 
 /**
- * Compute the centroid given a local element ID
+ * Compute the centroid given a local element ID (NOTE: returns in dimensional form)
  * @param[in] local_elem_id local element ID on this rank
  * @return centroid
  */
-libMesh::Point centroid(int local_elem_id);
+Point centroid(int local_elem_id);
+
+/**
+ * Get the coordinate given a local element ID and local node ID (NOTE: returns in dimensional form)
+ * @param[in] local_elem_id local element ID on this rank
+ * @param[in] local_node_id local node ID on this element
+ * @return point
+ */
+Point gllPoint(int local_elem_id, int local_node_id);
 
 /**
  * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
