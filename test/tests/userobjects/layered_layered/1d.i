@@ -39,9 +39,21 @@
     direction = x
     num_layers = 3
   []
+  [x_bins_gaps]
+    type = LayeredGapBin
+    direction = x
+    num_layers = 3
+  []
   [vol_integral]
     type = NekBinnedVolumeIntegral
     bins = 'x_bins'
+    field = pressure
+  []
+  [face_avg]
+    type = NekBinnedSideAverage
+    bins = 'x_bins_gaps'
+    gap_thickness = 0.1
+    map_space_by_qp = true
     field = pressure
   []
 []
@@ -58,6 +70,18 @@
     points = '-0.66666667 0.0 0.0
                0.0        0.0 0.0
                0.66666667 0.0 0.0'
+  []
+  [from_uo_gap]
+    type = SpatialUserObjectVectorPostprocessor
+    userobject = face_avg
+  []
+  [manually_provided_gap]
+    type = SpatialUserObjectVectorPostprocessor
+    userobject = face_avg
+    points = '-1.0     0.0 0.0
+              -0.33333 0.0 0.0
+               0.33333 0.0 0.0
+               1.0     0.0 0.0'
   []
 []
 

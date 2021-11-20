@@ -13,7 +13,7 @@ as a volume integral over a prism with a face-normal thickness of
 `gap_thickness`, denoted here as $\Delta$:
 
 \begin{equation}
-[eq:1]
+\label{eq:1}
 p=\frac{\int_{x_0}^{x_1}\int_{y_0-\frac{\Delta}{2}}^{y_0+\frac{\Delta}{2}}\int_{z_0}^{z_1}f\ dxdydz}{\int_{y_0-\frac{\Delta}{2}}^{y_0+\frac{\Delta}{2}}dy}
 \end{equation}
 
@@ -37,7 +37,7 @@ to directly compute this integral in the denominator. Instead, we divide the num
 !media side_integral.png
   id=fig1
   caption=Illustration of potential inaccuracies with this object; black lines show the connections between GLL points and the shaded red areas show the contributing volumes to a face
-  style=width:40%;margin-left:auto;margin-right:auto
+  style=width:60%;margin-left:auto;margin-right:auto
 
 However, if the effective integrating volume does not
 "hit" GLL points that are $\frac{\Delta}{2}$ away from the gap, then the effective thickness
@@ -69,6 +69,7 @@ requires providing one and only one "side" bin, which defines the planes over wh
 The available user objects for specifying *side* spatial bins are:
 
 - [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
+- [LayeredGapBin](/userobjects/LayeredGapBin.md)
 
 The side bins can then be combined with any number of "volume" bins to further subdivide
 the domain. Available user objects for specifying the volume spatial bins are:

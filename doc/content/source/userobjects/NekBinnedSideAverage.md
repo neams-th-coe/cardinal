@@ -38,6 +38,7 @@ requires providing one and only one "side" bin, which defines the planes over wh
 The available user objects for specifying *side* spatial bins are:
 
 - [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
+- [LayeredGapBin](/userobjects/LayeredGapBin.md)
 
 The side bins can then be combined with any number of "volume" bins to further subdivide
 the domain. Available user objects for specifying the volume spatial bins are:
