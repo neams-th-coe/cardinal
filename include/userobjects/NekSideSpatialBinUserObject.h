@@ -26,9 +26,6 @@ protected:
   /// Width of region enclosing gap for which points contribute to gap integral
   const Real & _gap_thickness;
 
-  /// Width of region enclosing gap, in nondimensional form
-  const Real _nondimensional_gap_thickness;
-
   /// The user object providing the side binning
   const SideSpatialBinUserObject * _side_bin;
 
