@@ -1,11 +1,7 @@
 #include "HexagonalSubchannelMesh.h"
 #include "libmesh/cell_prism6.h"
+#include "libmesh/face_tri3.h"
 #include "libmesh/unstructured_mesh.h"
-
-const Real HexagonalSubchannelMesh::COS30 = std::sqrt(3.0) / 2.0;
-const Real HexagonalSubchannelMesh::SIN30 = 0.5;
-const unsigned int HexagonalSubchannelMesh::NODES_PER_PRISM = 6;
-const unsigned int HexagonalSubchannelMesh::NUM_SIDES = 6;
 
 registerMooseObject("CardinalApp", HexagonalSubchannelMesh);
 
@@ -14,19 +10,7 @@ defineLegacyParams(HexagonalSubchannelMesh);
 InputParameters
 HexagonalSubchannelMesh::validParams()
 {
-  InputParameters params = MooseMesh::validParams();
-  params.addRequiredRangeCheckedParam<Real>("bundle_pitch", "bundle_pitch > 0",
-    "Bundle pitch, or flat-to-flat distance across bundle");
-  params.addRequiredRangeCheckedParam<Real>("pin_pitch", "pin_pitch > 0",
-    "Pin pitch, or distance between pin centers");
-  params.addRequiredRangeCheckedParam<Real>("pin_diameter", "pin_diameter > 0",
-    "Pin outer diameter");
-  params.addRequiredRangeCheckedParam<unsigned int>("n_rings", "n_rings >= 1",
-    "Number of pin rings, including the centermost pin as a 'ring'");
-
-  MooseEnum directions("x y z", "z");
-  params.addParam<MooseEnum>("axis", directions,
-    "vertical axis of the reactor (x, y, or z) along which pins are aligned");
+  InputParameters params = HexagonalSubchannelMeshBase::validParams();
   params.addRequiredRangeCheckedParam<unsigned int>("n_axial", "n_axial > 0",
     "Number of axial cells");
   params.addRequiredRangeCheckedParam<Real>("height", "height > 0", "Height of assembly");
@@ -38,17 +22,15 @@ HexagonalSubchannelMesh::validParams()
   params.addParam<SubdomainID>("edge_id", 2, "Block ID to set for the edge channels");
   params.addParam<SubdomainID>("corner_id", 3, "Block ID to set for the corner channels");
 
+  params.addParam<bool>("volume_mesh", true, "Whether to generate a volume mesh (true) "
+    "or just the surfaces between axial layers in the domain (false)");
+
   params.addClassDescription("Mesh respecting subchannel boundaries for a triangular lattice");
   return params;
 }
 
 HexagonalSubchannelMesh::HexagonalSubchannelMesh(const InputParameters & parameters)
-  : MooseMesh(parameters),
-    _bundle_pitch(getParam<Real>("bundle_pitch")),
-    _pin_pitch(getParam<Real>("pin_pitch")),
-    _pin_diameter(getParam<Real>("pin_diameter")),
-    _n_rings(getParam<unsigned int>("n_rings")),
-    _axis(parameters.get<MooseEnum>("axis")),
+  : HexagonalSubchannelMeshBase(parameters),
     _theta_res(getParam<unsigned int>("theta_res")),
     _gap_res(getParam<unsigned int>("gap_res")),
     _n_axial(getParam<unsigned int>("n_axial")),
@@ -56,10 +38,7 @@ HexagonalSubchannelMesh::HexagonalSubchannelMesh(const InputParameters & paramet
     _interior_id(getParam<SubdomainID>("interior_id")),
     _edge_id(getParam<SubdomainID>("edge_id")),
     _corner_id(getParam<SubdomainID>("corner_id")),
-    _hex_lattice(HexagonalLatticeUtility(_bundle_pitch, _pin_pitch, _pin_diameter,
-      0.0 /* wire diameter not needed for subchannel mesh, use dummy value */,
-      1.0 /* wire pitch not needed for subchannel mesh, use dummy value */, _n_rings, _axis)),
-    _pin_centers(_hex_lattice.pinCenters())
+    _volume_mesh(getParam<bool>("volume_mesh"))
 {
 }
 
@@ -74,8 +53,6 @@ HexagonalSubchannelMesh::buildMesh()
 {
   MeshBase & mesh = getMesh();
   mesh.clear();
-  mesh.set_mesh_dimension(3);
-  mesh.set_spatial_dimension(3);
 
   _elems_per_interior = 3 * (_theta_res - 1) + 3 * (_gap_res - 1);
   _elems_per_edge = 2 * (_theta_res - 1) + 4 * (_gap_res - 1);
@@ -85,67 +62,128 @@ HexagonalSubchannelMesh::buildMesh()
   _node_id_counter = 0;
 
   Real dz = _height / _n_axial;
-  for (int i = 0; i < _n_axial; ++i)
+
+  // Build arrays of points corresponding to the three channel types with a centroid
+  // at (0, 0, 0). These points are then shifted to form the actual channels
+  getInteriorPoints();
+  getEdgePoints();
+  getCornerPoints();
+
+  int nl = _volume_mesh ? _n_axial : _n_axial + 1;
+
+  mesh.set_mesh_dimension(3);
+  mesh.set_spatial_dimension(3);
+
+  for (int i = 0; i < nl; ++i)
   {
     Real zmin = i * dz;
     Real zmax = (i + 1) * dz;
 
+    // add the interior channels
     if (_hex_lattice.nInteriorChannels())
-      addInteriorChannels(zmin, zmax);
+    {
+      // Then add the elements for the interior channels
+      for (int i = 0; i < _hex_lattice.nInteriorChannels(); ++i)
+      {
+        Point centroid = _hex_lattice.channelCentroid(_hex_lattice.interiorChannelCornerCoordinates(i));
+        Real rotation = i % 2 == 0 ? M_PI : 0.0;
+
+        std::vector<Point> points;
+        for (const auto & i : _interior_points)
+          points.push_back(rotatePoint(i, rotation));
+
+        for (int j = 0; j < _elems_per_interior; ++j)
+        {
+          bool last_elem = (j == _elems_per_interior - 1);
+
+          Point pt1 = centroid + points[0];
+          Point pt2 = centroid + points[j + 1];
+          Point pt3 = last_elem ? centroid + points[1] : centroid + points[j + 2];
+
+          if (_volume_mesh)
+            addPrismElem(pt1, pt2, pt3, zmin, zmax, _interior_id);
+          else
+            addTriElem(pt1, pt2, pt3, zmin, _interior_id);
+        }
+      }
+    }
 
     if (_hex_lattice.nEdgeChannels())
-      addEdgeChannels(zmin, zmax);
+    {
+      Real rotation = 0.0;
+      for (int i = 0; i < _hex_lattice.nEdgeChannels(); ++i)
+      {
+        if (i >= (_n_rings - 1) && i % (_n_rings - 1) == 0)
+          rotation += 2 * M_PI / 6.0;
+
+        Point centroid = _hex_lattice.channelCentroid(_hex_lattice.edgeChannelCornerCoordinates(i));
+
+        std::vector<Point> points;
+        for (const auto & i : _edge_points)
+          points.push_back(rotatePoint(i, rotation));
+
+        for (int j = 0; j < _elems_per_edge; ++j)
+        {
+          bool last_elem = (j == _elems_per_edge - 1);
+
+          Point pt1 = centroid + points[0];
+          Point pt2 = centroid + points[j + 1];
+          Point pt3 = last_elem ? centroid + points[1] : centroid + points[j + 2];
+
+          if (_volume_mesh)
+            addPrismElem(pt1, pt2, pt3, zmin, zmax, _edge_id);
+          else
+            addTriElem(pt1, pt2, pt3, zmin, _edge_id);
+        }
+      }
+    }
 
     // there are always corner channels
-    addCornerChannels(zmin, zmax);
+    for (int i = 0; i < _hex_lattice.nCornerChannels(); ++i)
+    {
+      Point centroid = _hex_lattice.channelCentroid(_hex_lattice.cornerChannelCornerCoordinates(i));
+
+      std::vector<Point> points;
+      for (const auto & pt : _corner_points)
+        points.push_back(rotatePoint(pt, i * 2 * M_PI / NUM_SIDES));
+
+      for (int j = 0; j < _elems_per_corner; ++j)
+      {
+        bool last_elem = (j == _elems_per_corner - 1);
+
+        Point pt1 = centroid + points[0];
+        Point pt2 = centroid + points[j + 1];
+        Point pt3 = last_elem ? centroid + points[1] : centroid + points[j + 2];
+
+        if (_volume_mesh)
+          addPrismElem(pt1, pt2, pt3, zmin, zmax, _corner_id);
+        else
+          addTriElem(pt1, pt2, pt3, zmin, _corner_id);
+      }
+    }
   }
 
   mesh.prepare_for_use();
 }
 
 void
-HexagonalSubchannelMesh::addCornerChannels(const Real & zmin, const Real & zmax)
+HexagonalSubchannelMesh::addTriElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & z, const SubdomainID & id)
 {
-  // Build an array of points corresponding to a corner channel relative to a centroid of (0, 0, 0)
-  getCornerPoints();
+  auto elem = new Tri3;
+  elem->set_id(_elem_id_counter++);
+  _mesh->add_elem(elem);
 
-  for (int i = 0; i < _hex_lattice.nCornerChannels(); ++i)
-  {
-    Point centroid = _hex_lattice.channelCentroid(_hex_lattice.cornerChannelCornerCoordinates(i));
-    addCornerChannel(centroid, zmin, zmax, i * 2 * M_PI / NUM_SIDES);
-  }
-}
+  Point z0(0.0, 0.0, z);
 
-void
-HexagonalSubchannelMesh::addEdgeChannels(const Real & zmin, const Real & zmax)
-{
-  // Build an array of points corresponding to an edge channel relative to a centroid of (0, 0, 0)
-  getEdgePoints();
+  auto node_ptr0 = _mesh->add_point(pt1 + z0, _node_id_counter++);
+  auto node_ptr1 = _mesh->add_point(pt2 + z0, _node_id_counter++);
+  auto node_ptr2 = _mesh->add_point(pt3 + z0, _node_id_counter++);
 
-  Real rotation = 0.0;
-  for (int i = 0; i < _hex_lattice.nEdgeChannels(); ++i)
-  {
-    if (i >= (_n_rings - 1) && i % (_n_rings - 1) == 0)
-      rotation += 2 * M_PI / 6.0;
+  elem->set_node(0) = node_ptr0;
+  elem->set_node(1) = node_ptr1;
+  elem->set_node(2) = node_ptr2;
 
-    Point centroid = _hex_lattice.channelCentroid(_hex_lattice.edgeChannelCornerCoordinates(i));
-    addEdgeChannel(centroid, zmin, zmax, rotation);
-  }
-}
-
-void
-HexagonalSubchannelMesh::addInteriorChannels(const Real & zmin, const Real & zmax)
-{
-  // Build an array of points corresponding to an interior channel relative to a centroid of (0, 0, 0)
-  getInteriorPoints();
-
-  // Then add the elements for the interior channels
-  for (int i = 0; i < _hex_lattice.nInteriorChannels(); ++i)
-  {
-    Point centroid = _hex_lattice.channelCentroid(_hex_lattice.interiorChannelCornerCoordinates(i));
-    Real rotation = i % 2 == 0 ? M_PI : 0.0;
-    addInteriorChannel(centroid, zmin, zmax, rotation);
-  }
+  elem->subdomain_id() = id;
 }
 
 void
@@ -174,60 +212,6 @@ HexagonalSubchannelMesh::addPrismElem(const Point & pt1, const Point & pt2, cons
   elem->set_node(5) = node_ptr5;
 
   elem->subdomain_id() = id;
-}
-
-void
-HexagonalSubchannelMesh::addCornerChannel(const Point & centroid, const Real & zmin, const Real & zmax, const Real & rotation)
-{
-  std::vector<Point> points;
-  for (const auto & i : _corner_points)
-    points.push_back(rotatePoint(i, rotation));
-
-  for (int i = 0; i < _elems_per_corner; ++i)
-  {
-    bool last_elem = (i == _elems_per_corner - 1);
-
-    Point pt1 = centroid + points[0];
-    Point pt2 = centroid + points[i + 1];
-    Point pt3 = last_elem ? centroid + points[1] : centroid + points[i + 2];
-    addPrismElem(pt1, pt2, pt3, zmin, zmax, _corner_id);
-  }
-}
-
-void
-HexagonalSubchannelMesh::addEdgeChannel(const Point & centroid, const Real & zmin, const Real & zmax, const Real & rotation)
-{
-  std::vector<Point> points;
-  for (const auto & i : _edge_points)
-    points.push_back(rotatePoint(i, rotation));
-
-  for (int i = 0; i < _elems_per_edge; ++i)
-  {
-    bool last_elem = (i == _elems_per_edge - 1);
-
-    Point pt1 = centroid + points[0];
-    Point pt2 = centroid + points[i + 1];
-    Point pt3 = last_elem ? centroid + points[1] : centroid + points[i + 2];
-    addPrismElem(pt1, pt2, pt3, zmin, zmax, _edge_id);
-  }
-}
-
-void
-HexagonalSubchannelMesh::addInteriorChannel(const Point & centroid, const Real & zmin, const Real & zmax, const Real & rotation)
-{
-  std::vector<Point> points;
-  for (const auto & i : _interior_points)
-    points.push_back(rotatePoint(i, rotation));
-
-  for (int i = 0; i < _elems_per_interior; ++i)
-  {
-    bool last_elem = (i == _elems_per_interior - 1);
-
-    Point pt1 = centroid + points[0];
-    Point pt2 = centroid + points[i + 1];
-    Point pt3 = last_elem ? centroid + points[1] : centroid + points[i + 2];
-    addPrismElem(pt1, pt2, pt3, zmin, zmax, _interior_id);
-  }
 }
 
 void
@@ -389,13 +373,4 @@ HexagonalSubchannelMesh::getCornerPoints()
   wall = pts[3] - pts[2];
   for (int i = 0; i < _gap_res - 2; ++i)
     _corner_points[p++] = pts[2] + wall * (i + 1) / (_gap_res - 1.0);
-}
-
-const Point
-HexagonalSubchannelMesh::rotatePoint(const Point & p, const Real & theta) const
-{
-  Real x = p(0);
-  Real y = p(1);
-  Point rotation(x * std::cos(theta) - y * std::sin(theta), x * std::sin(theta) +y * std::cos(theta), 0.0);
-  return rotation;
 }

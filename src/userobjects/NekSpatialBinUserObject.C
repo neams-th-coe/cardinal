@@ -1,4 +1,5 @@
 #include "NekSpatialBinUserObject.h"
+#include "CardinalUtils.h"
 
 InputParameters
 NekSpatialBinUserObject::validParams()
@@ -29,7 +30,15 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_names(getParam<std::vector<UserObjectName>>("bins")),
     _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
     _map_space_by_qp(getParam<bool>("map_space_by_qp")),
-    _check_zero_contributions(getParam<bool>("check_zero_contributions"))
+    _check_zero_contributions(getParam<bool>("check_zero_contributions")),
+    _bin_values(nullptr),
+    _bin_values_x(nullptr),
+    _bin_values_y(nullptr),
+    _bin_values_z(nullptr),
+    _bin_volumes(nullptr),
+    _bin_counts(nullptr),
+    _bin_partial_values(nullptr),
+    _bin_partial_counts(nullptr)
 {
   if (_bin_names.size() == 0)
     paramError("bins", "Length of vector must be greater than zero!");
@@ -50,15 +59,19 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bins.push_back(&getUserObjectByName<SpatialBinUserObject>(b));
   }
 
-  _bin_values = (double *) calloc(num_bins(), sizeof(double));
-  _bin_volumes = (double *) calloc(num_bins(), sizeof(double));
-  _bin_counts = (int *) calloc(num_bins(), sizeof(int));
+  _n_bins = num_bins();
+
+  _bin_values = (double *) calloc(_n_bins, sizeof(double));
+  _bin_volumes = (double *) calloc(_n_bins, sizeof(double));
+  _bin_partial_values = (double *) calloc(_n_bins, sizeof(double));
+  _bin_counts = (int *) calloc(_n_bins, sizeof(int));
+  _bin_partial_counts = (int *) calloc(_n_bins, sizeof(int));
 
   if (_field == field::velocity_component)
   {
-    _bin_values_x = (double *) calloc(num_bins(), sizeof(double));
-    _bin_values_y = (double *) calloc(num_bins(), sizeof(double));
-    _bin_values_z = (double *) calloc(num_bins(), sizeof(double));
+    _bin_values_x = (double *) calloc(_n_bins, sizeof(double));
+    _bin_values_y = (double *) calloc(_n_bins, sizeof(double));
+    _bin_values_z = (double *) calloc(_n_bins, sizeof(double));
   }
 
   checkValidField(_field);
@@ -89,8 +102,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   }
 
   // initialize all points to (0, 0, 0)
-  int n_bins = num_bins();
-  for (unsigned int i = 0; i < n_bins; ++i)
+  for (unsigned int i = 0; i < _n_bins; ++i)
     _points.push_back(Point(0.0, 0.0, 0.0));
 
   // we will at most have 3 separate distributions
@@ -125,7 +137,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     direction = direction.unit();
 
     // with a user-specified direction, the direction for each bin is the same
-    for (unsigned int i = 0; i < n_bins; ++i)
+    for (unsigned int i = 0; i < _n_bins; ++i)
       _velocity_bin_directions.push_back(direction);
   }
   else if (isParamValid("velocity_direction"))
@@ -134,15 +146,33 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
 
 NekSpatialBinUserObject::~NekSpatialBinUserObject()
 {
-  free(_bin_values);
-  free(_bin_volumes);
-  free(_bin_counts);
+  freePointer(_bin_values);
+  freePointer(_bin_volumes);
+  freePointer(_bin_counts);
+  freePointer(_bin_partial_values);
+  freePointer(_bin_partial_counts);
 
-  if (_field == field::velocity_component)
+  freePointer(_bin_values_x);
+  freePointer(_bin_values_y);
+  freePointer(_bin_values_z);
+}
+
+Point
+NekSpatialBinUserObject::nekPoint(const int & local_elem_id, const int & local_node_id) const
+{
+  if (_map_space_by_qp)
+    return nekrs::gllPoint(local_elem_id, local_node_id);
+  else
+    return nekrs::centroid(local_elem_id);
+}
+
+void
+NekSpatialBinUserObject::resetPartialStorage()
+{
+  for (unsigned int i = 0; i < _n_bins; ++i)
   {
-    free(_bin_values_x);
-    free(_bin_values_y);
-    free(_bin_values_z);
+    _bin_partial_values[i] = 0.0;
+    _bin_partial_counts[i] = 0;
   }
 }
 
@@ -153,7 +183,7 @@ NekSpatialBinUserObject::computeBinVolumes()
 
   if (_check_zero_contributions)
   {
-    for (unsigned int i = 0; i < num_bins(); ++i)
+    for (unsigned int i = 0; i < _n_bins; ++i)
     {
       if (_bin_counts[i] == 0)
       {

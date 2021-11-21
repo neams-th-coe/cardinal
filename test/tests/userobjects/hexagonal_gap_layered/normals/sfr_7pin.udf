@@ -36,7 +36,7 @@ void UDF_Setup(nrs_t *nrs)
     dfloat Vt = 0.1 + 10.0 * r;
     nrs->U[n + 0 * nrs->fieldOffset] = Vr * std::cos(theta) - Vt * std::sin(theta);
     nrs->U[n + 1 * nrs->fieldOffset] = Vr * std::sin(theta) + Vt * std::cos(theta);
-    nrs->U[n + 2 * nrs->fieldOffset] = 0.0;
+    nrs->U[n + 2 * nrs->fieldOffset] = 2.0;
 
     nrs->P[n] = x+y+z;
 

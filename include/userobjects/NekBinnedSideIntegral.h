@@ -17,4 +17,16 @@ public:
   virtual void getBinVolumes() override;
 
   Real spatialValue(const Point & p, const unsigned int & component) const override;
+
+  /**
+   * Compute the integral over the side bins
+   * @param[in] integrand field to integrate
+   * @param[out] total_integral integral over each bin
+   */
+  virtual void binnedSideIntegral(const field::NekFieldEnum & integrand, double * total_integral);
+
+  /**
+   * Compute the integrals
+   */
+  virtual void computeIntegral();
 };

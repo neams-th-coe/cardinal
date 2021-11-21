@@ -276,4 +276,5 @@ Available user objects for specifying spatial bins are:
 - [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
 - [HexagonalSubchannelBin](/userobjects/HexagonalSubchannelBin.md)
 - [LayeredBin](/userobjects/LayeredBin.md)
+- [LayeredGapBin](/userobjects/LayeredGapBin.md)
 - [RadialBin](/userobjects/RadialBin.md)

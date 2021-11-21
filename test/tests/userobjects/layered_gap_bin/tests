@@ -1,0 +1,14 @@
+[Tests]
+  [bin]
+    type = Exodiff
+    input = layered.i
+    exodiff = layered_out.e
+    requirement = "A layered bin shall divide space according to 1-D layers in a given direction."
+  []
+  [axial_bin]
+    type = Exodiff
+    input = layered_mesh.i
+    exodiff = layered_mesh_out.e
+    requirement = "A layered bin shall divide space according to 1-D layers in a given direction."
+  []
+[]

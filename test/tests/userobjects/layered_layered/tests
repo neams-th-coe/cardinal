@@ -16,8 +16,9 @@
   [1d_output]
     type = CSVDiff
     input = 1d.i
-    csvdiff = 1d_out_from_uo_0002.csv
-    requirement = "The output points shall be automatically output for a 1-D Cartesian distribution."
+    csvdiff = '1d_out_from_uo_0002.csv 1d_out_from_uo_gap_0002.csv'
+    requirement = "The output points shall be automatically output for a 1-D Cartesian volume distribution "
+                  "and a 1-D Cartesian surface distribution."
   []
   [3d_output]
     type = CSVDiff

@@ -16,6 +16,11 @@ all interior, edge, and corner channels are by default set to a unique subdomain
 This behavior can be controlled by setting the `interior_id`, `edge_id`, and
 `corner_id` parameters to the desired subdomain IDs.
 
+By default, this class will create a volume mesh of a subchannel discretization
+(i.e. using 3-D elements). By setting `volume_mesh = false`, you can instead create
+2-D plane meshes (on planes perpendicular to `axis`), such as for visualizing results
+from a user object paired with a [LayeredGapBin](/userobjects/LayeredGapBin.md).
+
 !alert warning
 This class is intended *ONLY* for visualization purposes - node connectivity between
 elements is not obeyed, so you cannot use this mesh to solve any anything that requires
@@ -37,6 +42,20 @@ and all corner channels to block 3.
 !media media/tri_mesh.png
   id=tri_mesh
   caption=Mesh generated with three pin rings; elements are colored by block IDs
+  style=width:60%;margin-left:auto;margin-right:auto
+
+The following shows the mesh generated for a bundle with two rings
+of pins with two axial layers when `volume_mesh = false`.
+
+!listing test/tests/mesh/hexagonal_subchannel_mesh/two_rings_faces.i
+  block=Mesh
+
+An image of the generate mesh is shown in [tri_mesh_2]. The elements
+are again colored by block ID.
+
+!media media/tri_mesh_planes.png
+  id=tri_mesh_2
+  caption=Mesh generated with two pin rings with `volume_mesh = false`; elements are colored by block IDs
   style=width:60%;margin-left:auto;margin-right:auto
 
 !syntax parameters /Mesh/HexagonalSubchannelMesh

@@ -52,6 +52,14 @@ public:
    */
   const field::NekFieldEnum & field() const { return _field; }
 
+  /**
+   * Get the point at which to evaluate the user object
+   * @param[in] local_elem_id local element ID on the Nek rank
+   * @param[in] local_node_id local node ID on the element
+   * @return point, in dimensional form
+   */
+  Point nekPoint(const int & local_elem_id, const int & local_node_id) const;
+
 protected:
   /// Get the output points for a single bin
   void computePoints1D();
@@ -61,6 +69,9 @@ protected:
 
   /// Get the output points for three combined bins
   void computePoints3D();
+
+  /// Reset the scratch space storage to zero values
+  void resetPartialStorage();
 
   /**
    * Get the coordinates for a point at the given indices for the bins
@@ -129,4 +140,10 @@ protected:
    * 'map_space_by_qp = false') that contribute to each bin, for error checking
    */
   int * _bin_counts;
+
+  /// Partial-sum of bin value per Nek rank
+  double * _bin_partial_values;
+
+  /// Partial-sum of bin count per Nek rank
+  int * _bin_partial_counts;
 };

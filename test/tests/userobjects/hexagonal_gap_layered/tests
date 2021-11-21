@@ -12,6 +12,13 @@
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages."
   []
+  [gap_horizontal_layered]
+    type = Exodiff
+    input = nek_axial.i
+    exodiff = 'nek_axial_out_subchannel0.e'
+    requirement = "A layered gap and 2-D hexagonal subchannel bin shall be combined to give a multi-dimensional "
+                  "binning and demonstrate correct results for side integrals and averages."
+  []
   [bins_too_fine]
     type = RunException
     input = nek.i

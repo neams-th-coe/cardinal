@@ -5,6 +5,7 @@
 #include "NekInterface.h"
 #include "TimedPrint.h"
 #include "MooseUtils.h"
+#include "CardinalUtils.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -109,14 +110,14 @@ NekRSProblem::~NekRSProblem()
 {
   nekrs::freeScratch();
 
-  if (_T) free(_T);
-  if (_flux_face) free(_flux_face);
-  if (_source_elem) free(_source_elem);
-  if (_flux_elem) free(_flux_elem);
+  freePointer(_T);
+  freePointer(_flux_face);
+  freePointer(_source_elem);
+  freePointer(_flux_elem);
 
-  if (_displacement_x) free(_displacement_x);
-  if (_displacement_y) free(_displacement_y);
-  if (_displacement_z) free(_displacement_z);
+  freePointer(_displacement_x);
+  freePointer(_displacement_y);
+  freePointer(_displacement_z);
 }
 
 void

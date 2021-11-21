@@ -5,6 +5,7 @@
 #include "NekInterface.h"
 #include "TimedPrint.h"
 #include "MooseUtils.h"
+#include "CardinalUtils.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -155,7 +156,7 @@ NekRSProblemBase::~NekRSProblemBase()
       nekrs::outfld(_timestepper->nondimensionalDT(_time));
   }
 
-  if (_external_data) free(_external_data);
+  freePointer(_external_data);
 }
 
 std::string

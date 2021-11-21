@@ -1,8 +1,12 @@
 #pragma once
 
 #include "CardinalEnums.h"
-#include "NekVolumeSpatialBinUserObject.h"
 #include "NekSideSpatialBinUserObject.h"
+#include "nekrs.hpp"
+#include "bcMap.hpp"
+#include "io.hpp"
+#include "udf.hpp"
+#include "meshSetup.hpp"
 #include "libmesh/point.h"
 #include "mesh.h"
 #include <string>
@@ -215,11 +219,19 @@ void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, i
 void initializeInterpolationMatrices(const int n_moost_pts);
 
 /**
- * Compute the centroid given a local element ID
+ * Compute the centroid given a local element ID (NOTE: returns in dimensional form)
  * @param[in] local_elem_id local element ID on this rank
  * @return centroid
  */
-libMesh::Point centroid(int local_elem_id);
+Point centroid(int local_elem_id);
+
+/**
+ * Get the coordinate given a local element ID and local node ID (NOTE: returns in dimensional form)
+ * @param[in] local_elem_id local element ID on this rank
+ * @param[in] local_node_id local node ID on this element
+ * @return point
+ */
+Point gllPoint(int local_elem_id, int local_node_id);
 
 /**
  * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
@@ -306,6 +318,12 @@ double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldE
 double volume();
 
 /**
+ * Dimensionalize a volume
+ * @param[in] integral integral to dimensionalize
+ */
+void dimensionalizeVolume(double & integral);
+
+/**
  * Dimensionalize a given integral of f over volume, i.e. fdV
  * @param[in] integrand field to dimensionalize
  * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
@@ -328,66 +346,6 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std
  * @return volume integral of a field
  */
 double volumeIntegral(const field::NekFieldEnum & integrand, const double & volume);
-
-/**
- * Compute the volumes of spatial bins
- * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
- * @param[in] bin pointer to function that returns a bin index given a point
- * @param[in] uo user object providing the bin method
- * @param[in] n_bins number of bins
- * @param[out] total_integral volume for each bin, summed across ranks
- * @param[out] total_counts number of counts towards each bin
- */
-void binnedVolume(const bool & map_space_by_qp,
-  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
-  int n_bins, double * total_integral, int * total_counts);
-
-/**
- * Compute the volumes of gap spatial bins
- * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
- * @param[in] bin pointer to function that returns a bin index given a point
- * @param[in] uo user object providing the combined bin method
- * @param[in] n_bins number of bins
- * @param[out] total_integral volume for each bin, summed across ranks
- * @param[out] total_counts number of counts towards each bin
- */
-void binnedGapVolume(const bool & map_space_by_qp,
-  const unsigned int (NekSideSpatialBinUserObject::*bin)(const Point &) const,
-  void (NekSideSpatialBinUserObject::*gapIndexAndDistance)(const Point &, unsigned int &, Real &) const,
-  const NekSideSpatialBinUserObject * uo,
-  int n_bins, Real gap_thickness, double * total_integral, int * total_counts);
-
-/**
- * Compute a side integral in spatial bins
- * @param[in] integrand field to integrate
- * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
- * @param[in] bin pointer to function that returns a bin index given a point
- * @param[in] gapIndexAndDistance pointer to function that returns the gap bin and distance to that gap given a point
- * @param[in] uo user object providing the bin method
- * @param[in] n_bins number of bins
- * @param[in] gap_thickness width of region surrounding the gap to integrate over to approximate the 2-D gap integral
- * @param[in] bin_volumes volume of each bin, only used for dimensionalizing temperature
- * @param[out] total_integral volume integral for each bin, summed across ranks
- */
-void binnedSideIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
-  const unsigned int (NekSideSpatialBinUserObject::*bin)(const Point &) const,
-  void (NekSideSpatialBinUserObject::*gapIndexAndDistance)(const Point &, unsigned int &, Real &) const,
-  const NekSideSpatialBinUserObject * uo,
-  int n_bins, Real gap_thickness, const double * bin_volumes, double * total_integral);
-
-/**
- * Compute a volume integral in spatial bins
- * @param[in] integrand field to integrate
- * @param[in] map_space_by_qp whether to identify bin from element centroid (false) or quadrature point (true)
- * @param[in] bin pointer to function that returns a bin index given a point
- * @param[in] uo user object providing the bin method
- * @param[in] n_bins number of bins
- * @param[in] bin_volumes volume of each bin, only used for dimensionalizing temperature
- * @param[out] total_integral volume integral for each bin, summed across ranks
- */
-void binnedVolumeIntegral(const field::NekFieldEnum & integrand, const bool & map_space_by_qp,
-  const unsigned int (NekVolumeSpatialBinUserObject::*bin)(const Point &) const, const NekVolumeSpatialBinUserObject * uo,
-  int n_bins, const double * bin_volumes, double * total_integral);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs
@@ -850,6 +808,18 @@ double referenceFlux();
  * @return reference heat source scale
  */
 double referenceSource();
+
+/**
+ * Get the reference length scale
+ * @return reference length scale
+ */
+double referenceLength();
+
+/**
+ * Get the reference area scale
+ * @return reference area scale
+ */
+double referenceArea();
 
 } // end namespace solution
 

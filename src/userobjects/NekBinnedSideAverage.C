@@ -1,5 +1,4 @@
 #include "NekBinnedSideAverage.h"
-#include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekBinnedSideAverage);
 
@@ -19,7 +18,7 @@ NekBinnedSideAverage::NekBinnedSideAverage(const InputParameters & parameters)
 void
 NekBinnedSideAverage::execute()
 {
-  NekBinnedSideIntegral::execute();
+  computeIntegral();
 
   for (unsigned int i = 0; i < num_bins(); ++i)
     _bin_values[i] /= _bin_volumes[i];
