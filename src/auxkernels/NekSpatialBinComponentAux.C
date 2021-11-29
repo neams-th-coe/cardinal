@@ -3,8 +3,6 @@
 
 registerMooseObject("CardinalApp", NekSpatialBinComponentAux);
 
-defineLegacyParams(NekSpatialBinComponentAux);
-
 InputParameters
 NekSpatialBinComponentAux::validParams()
 {

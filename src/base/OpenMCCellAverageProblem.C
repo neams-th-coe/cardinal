@@ -26,11 +26,10 @@ registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 
 bool OpenMCCellAverageProblem::_first_transfer = true;
 
-template<>
 InputParameters
-validParams<OpenMCCellAverageProblem>()
+OpenMCCellAverageProblem::validParams()
 {
-  InputParameters params = validParams<ExternalProblem>();
+  InputParameters params = ExternalProblem::validParams();
   params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
     "Power (Watts) to normalize the OpenMC tallies; this is the power "
     "produced by the entire OpenMC problem.");

@@ -4,10 +4,9 @@
 
 registerMooseObject("CardinalApp", CellTemperatureAux);
 
-template<>
-InputParameters validParams<CellTemperatureAux>()
+InputParameters CellTemperatureAux::validParams()
 {
-  InputParameters params = validParams<OpenMCAuxKernel>();
+  InputParameters params = OpenMCAuxKernel::validParams();
   params.addClassDescription("Display the OpenMC cell temperature (K) at each MOOSE element");
   return params;
 }

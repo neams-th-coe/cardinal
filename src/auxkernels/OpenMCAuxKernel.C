@@ -1,9 +1,8 @@
 #include "OpenMCAuxKernel.h"
 
-template<>
-InputParameters validParams<OpenMCAuxKernel>()
+InputParameters OpenMCAuxKernel::validParams()
 {
-  InputParameters params = validParams<AuxKernel>();
+  InputParameters params = AuxKernel::validParams();
   return params;
 }
 

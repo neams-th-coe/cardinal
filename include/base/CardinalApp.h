@@ -10,15 +10,12 @@
 
 #include "MooseApp.h"
 
-class CardinalApp;
-
-template <>
-InputParameters validParams<CardinalApp>();
-
 class CardinalApp : public MooseApp
 {
 public:
   CardinalApp(InputParameters parameters);
+
+  static InputParameters validParams();
 
   static void registerApps();
   static void registerAll(Factory & f, ActionFactory & af, Syntax & s);

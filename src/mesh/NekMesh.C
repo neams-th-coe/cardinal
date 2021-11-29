@@ -17,11 +17,10 @@
 
 registerMooseObject("MooseApp", NekMesh);
 
-template <>
 InputParameters
-validParams<NekMesh>()
+NekMesh::validParams()
 {
-  InputParameters params = validParams<MooseMesh>();
+  InputParameters params = MooseMesh::validParams();
   return params;
 }
 

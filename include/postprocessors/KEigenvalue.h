@@ -12,11 +12,6 @@
 #include "OpenMCPostprocessor.h"
 #include "CardinalEnums.h"
 
-class KEigenvalue;
-
-template <>
-InputParameters validParams<KEigenvalue>();
-
 /**
  * Get the k-effective eigenvalue computed by OpenMC.
  */

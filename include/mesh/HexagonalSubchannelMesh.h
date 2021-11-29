@@ -2,11 +2,6 @@
 
 #include "HexagonalSubchannelMeshBase.h"
 
-class HexagonalSubchannelMesh;
-
-template <>
-InputParameters validParams<HexagonalSubchannelMesh>();
-
 /**
  * Mesh of a triangular lattice of pins enclosed in a hexagonal duct;
  * this mesh should ONLY be used for visualization purposes - there is no

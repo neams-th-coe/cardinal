@@ -5,8 +5,6 @@
 
 registerMooseObject("CardinalApp", KStandardDeviation);
 
-defineLegacyParams(KStandardDeviation);
-
 InputParameters
 KStandardDeviation::validParams()
 {

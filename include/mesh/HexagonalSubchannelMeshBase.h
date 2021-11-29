@@ -3,11 +3,6 @@
 #include "MooseMesh.h"
 #include "HexagonalLatticeUtility.h"
 
-class HexagonalSubchannelMeshBase;
-
-template <>
-InputParameters validParams<HexagonalSubchannelMeshBase>();
-
 /**
  * Base class for creating meshes related to subchannel discretizations
  * in a hexagonal lattice.

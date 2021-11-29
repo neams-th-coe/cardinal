@@ -1,7 +1,5 @@
 #include "NekPostprocessor.h"
 
-defineLegacyParams(NekPostprocessor);
-
 InputParameters
 NekPostprocessor::validParams()
 {

@@ -1,7 +1,5 @@
 #include "NekFieldPostprocessor.h"
 
-defineLegacyParams(NekFieldPostprocessor);
-
 InputParameters
 NekFieldPostprocessor::validParams()
 {

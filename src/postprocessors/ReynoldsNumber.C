@@ -3,8 +3,6 @@
 
 registerMooseObject("CardinalApp", ReynoldsNumber);
 
-defineLegacyParams(ReynoldsNumber);
-
 InputParameters
 ReynoldsNumber::validParams()
 {

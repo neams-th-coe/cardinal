@@ -2,8 +2,6 @@
 
 registerMooseObject("CardinalApp", NekSideExtremeValue);
 
-defineLegacyParams(NekSideExtremeValue);
-
 InputParameters
 NekSideExtremeValue::validParams()
 {

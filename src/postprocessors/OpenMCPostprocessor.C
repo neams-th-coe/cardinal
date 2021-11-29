@@ -1,7 +1,5 @@
 #include "OpenMCPostprocessor.h"
 
-defineLegacyParams(OpenMCPostprocessor);
-
 InputParameters
 OpenMCPostprocessor::validParams()
 {

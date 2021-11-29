@@ -14,11 +14,10 @@ registerMooseObject("CardinalApp", NekRSProblem);
 
 bool NekRSProblem::_first = true;
 
-template<>
 InputParameters
-validParams<NekRSProblem>()
+NekRSProblem::validParams()
 {
-  InputParameters params = validParams<NekRSProblemBase>();
+  InputParameters params = NekRSProblemBase::validParams();
   params.addParam<bool>("minimize_transfers_in", false, "Whether to only synchronize nekRS "
     "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
   params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "

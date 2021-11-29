@@ -2,11 +2,6 @@
 
 #include "NekFieldPostprocessor.h"
 
-class NekVolumeIntegral;
-
-template <>
-InputParameters validParams<NekVolumeIntegral>();
-
 /**
  * Compute the integral of a specified quantity over the scalar
  * nekRS mesh, \f$\int_\Omega f d\Omega\f$, where \f$f\f$ is the

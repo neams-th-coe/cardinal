@@ -11,11 +11,6 @@
 
 #include "NekMassFluxWeightedSideIntegral.h"
 
-class NekMassFluxWeightedSideAverage;
-
-template <>
-InputParameters validParams<NekMassFluxWeightedSideAverage>();
-
 /**
  * Compute the average of a specified quantity over the boundaries
  * in the nekRS mesh, weighted by the mass flux,

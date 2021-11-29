@@ -11,12 +11,6 @@
 
 #include "MultiAppTransfer.h"
 
-// Forward declarations
-class NearestPointReceiverTransfer;
-
-template <>
-InputParameters validParams<NearestPointReceiverTransfer>();
-
 /**
  * Copies the value of a Postprocessor from the Master to a MultiApp.
  */
@@ -24,6 +18,8 @@ class NearestPointReceiverTransfer : public MultiAppTransfer
 {
 public:
   NearestPointReceiverTransfer(const InputParameters & parameters);
+
+  static InputParameters validParams();
 
   virtual void execute() override;
 

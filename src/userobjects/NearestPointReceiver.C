@@ -2,11 +2,10 @@
 
 registerMooseObject("MooseApp", NearestPointReceiver);
 
-template <>
 InputParameters
-validParams<NearestPointReceiver>()
+NearestPointReceiver::validParams()
 {
-  auto params = validParams<GeneralUserObject>();
+  auto params = GeneralUserObject::validParams();
 
   params.addRequiredParam<std::vector<Point>>(
     "positions",

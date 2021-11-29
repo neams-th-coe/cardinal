@@ -2,11 +2,6 @@
 
 #include "NekVolumeIntegral.h"
 
-class NekVolumeAverage;
-
-template <>
-InputParameters validParams<NekVolumeAverage>();
-
 /**
  * Compute the average of a specified quantity over the volume of
  * the nekRS mesh, \f$\frac{\int_\Omega f d\Omega}{\int_\Omega d\Omega}\f$,

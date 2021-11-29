@@ -14,12 +14,6 @@
 
 #include "libmesh/point.h"
 
-// Forward Declarations
-class NearestPointReceiver;
-
-template <>
-InputParameters validParams<NearestPointReceiver>();
-
 /**
  * Allows for setting values that are associated with points in space.
  * The spatialValue() function will then return the nearest value.
@@ -28,6 +22,8 @@ class NearestPointReceiver : public GeneralUserObject
 {
 public:
   NearestPointReceiver(const InputParameters & parameters);
+  static InputParameters validParams();
+
   virtual ~NearestPointReceiver();
 
   virtual void initialize() override {}

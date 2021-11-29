@@ -2,11 +2,6 @@
 
 #include "NekSideIntegral.h"
 
-class NekSideAverage;
-
-template <>
-InputParameters validParams<NekSideAverage>();
-
 /**
  * Compute the average of a specified quantity over the boundaries
  * in the nekRS mesh, \f$\frac{\int_\Gamma f d\Gamma}{\int_\Gamma d\Gamma}\f$,

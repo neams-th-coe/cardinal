@@ -2,11 +2,6 @@
 
 #include "ReynoldsNumber.h"
 
-class PecletNumber;
-
-template <>
-InputParameters validParams<PecletNumber>();
-
 /**
  * Compute the Peclet number as
  * \f$Re\ Pr\f$, where $Re$ is the Reynolds number and \f$Pr\f$ is the

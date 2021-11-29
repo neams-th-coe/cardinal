@@ -12,11 +12,6 @@
 #include "GeneralPostprocessor.h"
 #include "OpenMCCellAverageProblem.h"
 
-class OpenMCPostprocessor;
-
-template <>
-InputParameters validParams<OpenMCPostprocessor>();
-
 /**
  * Base class for providing common information to postprocessors
  * operating directly on the OpenMC solution and geometry.

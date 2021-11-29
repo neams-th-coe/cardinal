@@ -7,11 +7,6 @@
 
 #include <memory>
 
-class NekRSProblemBase;
-
-template<>
-InputParameters validParams<NekRSProblemBase>();
-
 /**
  * Base class for all MOOSE wrappings of NekRS. This class is used to facilitate
  * common NekRS functionality shared by different types of wrappings, such as:
@@ -23,6 +18,8 @@ class NekRSProblemBase : public ExternalProblem
 {
 public:
   NekRSProblemBase(const InputParameters & params);
+
+  static InputParameters validParams();
 
   ~NekRSProblemBase();
 

@@ -11,11 +11,6 @@
 
 #include "NekPostprocessor.h"
 
-class NekSidePostprocessor;
-
-template <>
-InputParameters validParams<NekSidePostprocessor>();
-
 /**
  * Base class for performing sideset postprocessor operations within nekRS.
  * This class just checks that the boundary supplied by the user is a valid

@@ -10,11 +10,6 @@
 #include "openmc/tallies/tally.h"
 #include "CardinalEnums.h"
 
-class OpenMCCellAverageProblem;
-
-template<>
-InputParameters validParams<OpenMCCellAverageProblem>();
-
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
  * on solid cells and both temperature and density feedback on fluid cells. The
@@ -61,6 +56,8 @@ class OpenMCCellAverageProblem : public ExternalProblem
 {
 public:
   OpenMCCellAverageProblem(const InputParameters & params);
+  static InputParameters validParams();
+
   virtual ~OpenMCCellAverageProblem() override;
 
   /**

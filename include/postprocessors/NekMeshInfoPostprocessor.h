@@ -2,11 +2,6 @@
 
 #include "NekPostprocessor.h"
 
-class NekMeshInfoPostprocessor;
-
-template <>
-InputParameters validParams<NekMeshInfoPostprocessor>();
-
 /**
  * This postprocessor is used strictly for testing the construction
  * of NekRSMesh in terms of the number of elements constructed and the
@@ -22,6 +17,8 @@ class NekMeshInfoPostprocessor : public NekPostprocessor
 {
 public:
   NekMeshInfoPostprocessor(const InputParameters & parameters);
+
+  static InputParameters validParams();
 
   virtual void initialize() override {}
   virtual void execute() override {}

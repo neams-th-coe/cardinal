@@ -2,8 +2,6 @@
 
 registerMooseObject("CardinalApp", NekSideAverage);
 
-defineLegacyParams(NekSideAverage);
-
 InputParameters
 NekSideAverage::validParams()
 {

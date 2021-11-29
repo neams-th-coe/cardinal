@@ -11,11 +11,6 @@
 
 #include "NekSidePostprocessor.h"
 
-class ReynoldsNumber;
-
-template <>
-InputParameters validParams<ReynoldsNumber>();
-
 /**
  * Compute the Reynolds number as
  * \f$\frac{\dot{m}L}{A\mu}\f$, where $\dot{m}$ is the mass flowrate,

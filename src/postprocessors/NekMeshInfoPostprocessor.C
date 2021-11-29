@@ -5,11 +5,10 @@
 
 registerMooseObject("CardinalApp", NekMeshInfoPostprocessor);
 
-template <>
 InputParameters
-validParams<NekMeshInfoPostprocessor>()
+NekMeshInfoPostprocessor::validParams()
 {
-  InputParameters params = validParams<NekPostprocessor>();
+  InputParameters params = NekPostprocessor::validParams();
 
   MooseEnum test_type("num_elems num_nodes node_x node_y node_z");
   params.addRequiredParam<MooseEnum>("test_type", test_type, "The type of info to fetch; "

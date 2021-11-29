@@ -2,11 +2,6 @@
 
 #include "OpenMCAuxKernel.h"
 
-class CellTemperatureAux;
-
-template<>
-InputParameters validParams<CellTemperatureAux>();
-
 /**
  * Auxkernel to display the mapping of OpenMC cell temperatures to elements.
  */
@@ -14,6 +9,8 @@ class CellTemperatureAux : public OpenMCAuxKernel
 {
 public:
   CellTemperatureAux(const InputParameters & parameters);
+
+  static InputParameters validParams();
 
 protected:
   virtual Real computeValue();

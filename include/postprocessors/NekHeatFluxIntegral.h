@@ -12,11 +12,6 @@
 #include "NekSidePostprocessor.h"
 #include "CardinalEnums.h"
 
-class NekHeatFluxIntegral;
-
-template <>
-InputParameters validParams<NekHeatFluxIntegral>();
-
 /**
  * Compute the integral of the heat flux over a boundary
  * in the nekRS mesh, \f$\int_\Gamma -k\nabla T\cdot\hat{n} d\Gamma\f$, where \f$T\f$ is the

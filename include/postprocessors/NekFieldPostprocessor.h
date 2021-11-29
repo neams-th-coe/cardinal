@@ -3,11 +3,6 @@
 #include "NekPostprocessor.h"
 #include "CardinalEnums.h"
 
-class NekFieldPostprocessor;
-
-template <>
-InputParameters validParams<NekFieldPostprocessor>();
-
 /**
  * Base class for NekRS postprocessors that operate on fields,
  * such as for taking averages of a field variable.

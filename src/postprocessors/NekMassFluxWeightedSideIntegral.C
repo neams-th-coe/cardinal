@@ -2,8 +2,6 @@
 
 registerMooseObject("CardinalApp", NekMassFluxWeightedSideIntegral);
 
-defineLegacyParams(NekMassFluxWeightedSideIntegral);
-
 InputParameters
 NekMassFluxWeightedSideIntegral::validParams()
 {

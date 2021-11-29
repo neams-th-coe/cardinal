@@ -3,8 +3,6 @@
 
 registerMooseObject("CardinalApp", NekHeatFluxIntegral);
 
-defineLegacyParams(NekHeatFluxIntegral);
-
 InputParameters
 NekHeatFluxIntegral::validParams()
 {

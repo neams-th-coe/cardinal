@@ -3,11 +3,6 @@
 #include "NekSideFieldPostprocessor.h"
 #include "CardinalEnums.h"
 
-class NekSideExtremeValue;
-
-template <>
-InputParameters validParams<NekSideExtremeValue>();
-
 /**
  * Compute the extreme value of a specified quantity over the boundaries
  * in the nekRS mesh.

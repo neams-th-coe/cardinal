@@ -3,10 +3,9 @@
 
 registerMooseObject("CardinalApp", CellMaterialIDAux);
 
-template<>
-InputParameters validParams<CellMaterialIDAux>()
+InputParameters CellMaterialIDAux::validParams()
 {
-  InputParameters params = validParams<OpenMCAuxKernel>();
+  InputParameters params = OpenMCAuxKernel::validParams();
   params.addClassDescription("Display the OpenMC fluid material ID mapped to each MOOSE element");
   return params;
 }
