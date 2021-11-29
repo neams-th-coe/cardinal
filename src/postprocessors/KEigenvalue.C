@@ -3,8 +3,6 @@
 
 registerMooseObject("CardinalApp", KEigenvalue);
 
-defineLegacyParams(KEigenvalue);
-
 InputParameters
 KEigenvalue::validParams()
 {

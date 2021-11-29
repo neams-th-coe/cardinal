@@ -3,11 +3,10 @@
 
 registerMooseObject("CardinalApp", NekRSStandaloneProblem);
 
-template<>
 InputParameters
-validParams<NekRSStandaloneProblem>()
+NekRSStandaloneProblem::validParams()
 {
-  InputParameters params = validParams<NekRSProblemBase>();
+  InputParameters params = NekRSProblemBase::validParams();
   return params;
 }
 

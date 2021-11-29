@@ -3,11 +3,6 @@
 #include "NekFieldPostprocessor.h"
 #include "CardinalEnums.h"
 
-class NekVolumeExtremeValue;
-
-template <>
-InputParameters validParams<NekVolumeExtremeValue>();
-
 /**
  * Compute the extreme value of a specified quantity over the entire volume
  * of the nekRS mesh.

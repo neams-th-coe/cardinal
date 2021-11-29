@@ -10,15 +10,12 @@
 #include "openmc/tallies/tally.h"
 #include "CardinalEnums.h"
 
-class OpenMCProblem;
-
-template<>
-InputParameters validParams<OpenMCProblem>();
-
 class OpenMCProblem : public ExternalProblem
 {
 public:
   OpenMCProblem(const InputParameters & params);
+  static InputParameters validParams();
+
   virtual ~OpenMCProblem() override;
 
   virtual void addExternalVariables() override;

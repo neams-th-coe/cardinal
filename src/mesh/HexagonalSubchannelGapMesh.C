@@ -4,8 +4,6 @@
 
 registerMooseObject("CardinalApp", HexagonalSubchannelGapMesh);
 
-defineLegacyParams(HexagonalSubchannelGapMesh);
-
 InputParameters
 HexagonalSubchannelGapMesh::validParams()
 {

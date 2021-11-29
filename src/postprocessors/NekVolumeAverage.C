@@ -2,8 +2,6 @@
 
 registerMooseObject("CardinalApp", NekVolumeAverage);
 
-defineLegacyParams(NekVolumeAverage);
-
 InputParameters
 NekVolumeAverage::validParams()
 {

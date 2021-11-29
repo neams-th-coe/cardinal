@@ -1,7 +1,5 @@
 #include "NekSidePostprocessor.h"
 
-defineLegacyParams(NekSidePostprocessor);
-
 InputParameters
 NekSidePostprocessor::validParams()
 {

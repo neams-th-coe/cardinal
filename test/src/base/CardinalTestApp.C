@@ -13,11 +13,10 @@
 #include "MooseSyntax.h"
 #include "ModulesApp.h"
 
-template <>
 InputParameters
-validParams<CardinalTestApp>()
+CardinalTestApp::validParams()
 {
-  InputParameters params = validParams<CardinalApp>();
+  InputParameters params = CardinalApp::validParams();
   return params;
 }
 

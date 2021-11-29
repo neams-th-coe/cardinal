@@ -6,10 +6,9 @@
 
 registerMooseObject("CardinalApp", NekTimeStepper);
 
-template<>
-InputParameters validParams<NekTimeStepper>()
+InputParameters NekTimeStepper::validParams()
 {
-  InputParameters params = validParams<TimeStepper>();
+  InputParameters params = TimeStepper::validParams();
   params.addParam<Real>("min_dt", 1e-6, "Minimum time step size to allow MOOSE to set in nekRS");
   params.addClassDescription("Select time step size based on NekRS time stepping schemes");
   return params;

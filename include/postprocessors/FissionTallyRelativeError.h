@@ -12,11 +12,6 @@
 #include "OpenMCPostprocessor.h"
 #include "CardinalEnums.h"
 
-class FissionTallyRelativeError;
-
-template <>
-InputParameters validParams<FissionTallyRelativeError>();
-
 /**
  * Compute the max/min relative error of the kappa fission tally
  * added to extract the heat source from OpenMC.

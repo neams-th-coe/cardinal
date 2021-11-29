@@ -15,11 +15,6 @@
 #include "NekRSProblemBase.h"
 #include "CardinalEnums.h"
 
-class NekPostprocessor;
-
-template <>
-InputParameters validParams<NekPostprocessor>();
-
 /**
  * Base class for providing common information to postprocessors
  * operating directly on the nekRS solution and mesh.

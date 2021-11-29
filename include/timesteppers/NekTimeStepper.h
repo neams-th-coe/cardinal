@@ -2,11 +2,6 @@
 
 #include "TimeStepper.h"
 
-class NekTimeStepper;
-
-template<>
-InputParameters validParams<NekTimeStepper>();
-
 /**
  * \brief Time stepper that reads time step information directly from nekRS
  *
@@ -25,6 +20,8 @@ class NekTimeStepper : public TimeStepper
 {
 public:
   NekTimeStepper(const InputParameters & parameters);
+
+  static InputParameters validParams();
 
   virtual Real minDT() const;
 

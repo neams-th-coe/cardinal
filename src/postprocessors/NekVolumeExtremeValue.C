@@ -3,8 +3,6 @@
 
 registerMooseObject("CardinalApp", NekVolumeExtremeValue);
 
-defineLegacyParams(NekVolumeExtremeValue);
-
 InputParameters
 NekVolumeExtremeValue::validParams()
 {

@@ -22,11 +22,10 @@
 
 registerMooseObject("MooseApp", NearestPointReceiverTransfer);
 
-template <>
 InputParameters
-validParams<NearestPointReceiverTransfer>()
+NearestPointReceiverTransfer::validParams()
 {
-  InputParameters params = validParams<MultiAppTransfer>();
+  InputParameters params = MultiAppTransfer::validParams();
 
   params.addRequiredParam<UserObjectName>(
       "from_uo",

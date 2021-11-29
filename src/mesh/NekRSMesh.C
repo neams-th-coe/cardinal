@@ -9,11 +9,10 @@
 
 registerMooseObject("CardinalApp", NekRSMesh);
 
-template <>
 InputParameters
-validParams<NekRSMesh>()
+NekRSMesh::validParams()
 {
-  InputParameters params = validParams<MooseMesh>();
+  InputParameters params = MooseMesh::validParams();
   params.addParam<std::vector<int>>("boundary", "Boundary ID(s) through which nekRS will be coupled to MOOSE");
   params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
   params.addParam<MooseEnum>("order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");

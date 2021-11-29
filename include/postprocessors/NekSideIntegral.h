@@ -2,11 +2,6 @@
 
 #include "NekSideFieldPostprocessor.h"
 
-class NekSideIntegral;
-
-template <>
-InputParameters validParams<NekSideIntegral>();
-
 /**
  * Compute the integral of a specified quantity over the boundaries
  * in the nekRS mesh, \f$\int_\Gamma f d\Gamma\f$, where \f$f\f$ is the

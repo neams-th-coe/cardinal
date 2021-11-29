@@ -22,11 +22,10 @@
 
 registerMooseObject("CardinalApp", OpenMCProblem);
 
-template<>
 InputParameters
-validParams<OpenMCProblem>()
+OpenMCProblem::validParams()
 {
-  InputParameters params = validParams<ExternalProblem>();
+  InputParameters params = ExternalProblem::validParams();
   params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
     "specified power for normalizing OpenMC kappa fission tally");
 

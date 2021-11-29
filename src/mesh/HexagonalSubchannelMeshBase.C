@@ -5,8 +5,6 @@ const Real HexagonalSubchannelMeshBase::SIN30 = 0.5;
 const unsigned int HexagonalSubchannelMeshBase::NODES_PER_PRISM = 6;
 const unsigned int HexagonalSubchannelMeshBase::NUM_SIDES = 6;
 
-defineLegacyParams(HexagonalSubchannelMeshBase);
-
 InputParameters
 HexagonalSubchannelMeshBase::validParams()
 {

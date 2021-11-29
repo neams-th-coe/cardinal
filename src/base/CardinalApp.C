@@ -32,11 +32,10 @@
 
 registerKnownLabel("CardinalApp");
 
-template <>
 InputParameters
-validParams<CardinalApp>()
+CardinalApp::validParams()
 {
-  InputParameters params = validParams<MooseApp>();
+  InputParameters params = MooseApp::validParams();
 
   // only used for Nek wrappings - if used with another application (OpenMC wrapping
   // or just plain MOOSE-type apps), these are unused

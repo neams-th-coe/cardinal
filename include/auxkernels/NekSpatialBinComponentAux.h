@@ -3,11 +3,6 @@
 #include "SpatialUserObjectAux.h"
 #include "NekSpatialBinUserObject.h"
 
-class NekSpatialBinComponentAux;
-
-template <>
-InputParameters validParams<NekSpatialBinComponentAux>();
-
 /**
  * Extracts a single component of a multi-component (i.e. velocity vector)
  * Nek binned user object. This is very helpful for displaying glyphs in many

@@ -2,10 +2,9 @@
 
 registerMooseObject("CardinalApp", CellIDAux);
 
-template<>
-InputParameters validParams<CellIDAux>()
+InputParameters CellIDAux::validParams()
 {
-  InputParameters params = validParams<OpenMCAuxKernel>();
+  InputParameters params = OpenMCAuxKernel::validParams();
   params.addClassDescription("Display the OpenMC cell ID mapped to each MOOSE element");
   return params;
 }

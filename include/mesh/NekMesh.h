@@ -13,11 +13,6 @@
 #include "MooseMesh.h"
 #include "MooseApp.h"
 
-class NekMesh;
-
-template <>
-InputParameters validParams<NekMesh>();
-
 /**
  * Mesh generated from parameters
  */
@@ -25,6 +20,8 @@ class NekMesh : public MooseMesh
 {
 public:
   NekMesh(const InputParameters & parameters);
+  static InputParameters validParams();
+
   NekMesh(const NekMesh & /* other_mesh */) = default;
 
   // No copy

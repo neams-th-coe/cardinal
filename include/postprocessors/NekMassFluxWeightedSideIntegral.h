@@ -12,11 +12,6 @@
 #include "NekSideIntegral.h"
 #include "CardinalEnums.h"
 
-class NekMassFluxWeightedSideIntegral;
-
-template <>
-InputParameters validParams<NekMassFluxWeightedSideIntegral>();
-
 /**
  * Compute the integral of a specified quantity over the boundaries
  * in the nekRS mesh, weighted by the mass flux,

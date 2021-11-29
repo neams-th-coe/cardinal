@@ -4,8 +4,6 @@
 
 registerMooseObject("CardinalApp", FissionTallyRelativeError);
 
-defineLegacyParams(FissionTallyRelativeError);
-
 InputParameters
 FissionTallyRelativeError::validParams()
 {

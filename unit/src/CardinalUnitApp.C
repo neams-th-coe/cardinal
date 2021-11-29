@@ -1,10 +1,9 @@
 #include "CardinalUnitApp.h"
 #include "Moose.h"
 
-template<>
-InputParameters validParams<CardinalUnitApp>()
+InputParameters CardinalUnitApp::validParams()
 {
-  InputParameters params = validParams<CardinalApp>();
+  InputParameters params = CardinalApp::validParams();
   return params;
 }
 

@@ -5,15 +5,12 @@
 
 #include <memory>
 
-class NekProblem;
-
-template<>
-InputParameters validParams<NekProblem>();
-
 class NekProblem : public ExternalProblem
 {
 public:
   NekProblem(const InputParameters & params);
+
+  static InputParameters validParams();
 
   /**
    * \brief Write nekRS's solution at the last output step

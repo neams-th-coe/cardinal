@@ -7,11 +7,6 @@
 
 #include <memory>
 
-class NekRSProblem;
-
-template<>
-InputParameters validParams<NekRSProblem>();
-
 /**
  * \brief Solve nekRS wrapped as a MOOSE app.
  *
@@ -34,6 +29,8 @@ class NekRSProblem : public NekRSProblemBase
 {
 public:
   NekRSProblem(const InputParameters & params);
+
+  static InputParameters validParams();
 
   /**
    * \brief Write nekRS's solution at the last output step

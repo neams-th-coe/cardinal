@@ -3,8 +3,6 @@
 
 registerMooseObject("CardinalApp", PecletNumber);
 
-defineLegacyParams(PecletNumber);
-
 InputParameters
 PecletNumber::validParams()
 {

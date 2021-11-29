@@ -2,8 +2,6 @@
 
 registerMooseObject("CardinalApp", NekVolumeIntegral);
 
-defineLegacyParams(NekVolumeIntegral);
-
 InputParameters
 NekVolumeIntegral::validParams()
 {

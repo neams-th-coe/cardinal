@@ -2,8 +2,6 @@
 
 registerMooseObject("CardinalApp", NekSideIntegral);
 
-defineLegacyParams(NekSideIntegral);
-
 InputParameters
 NekSideIntegral::validParams()
 {

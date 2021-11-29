@@ -3,10 +3,9 @@
 
 registerMooseObject("CardinalApp", CellDensityAux);
 
-template<>
-InputParameters validParams<CellDensityAux>()
+InputParameters CellDensityAux::validParams()
 {
-  InputParameters params = validParams<OpenMCAuxKernel>();
+  InputParameters params = OpenMCAuxKernel::validParams();
   params.addClassDescription("Display the OpenMC fluid density (kg/m3) mapped to each MOOSE element");
   return params;
 }

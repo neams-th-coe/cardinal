@@ -3,11 +3,6 @@
 #include "OpenMCPostprocessor.h"
 #include "CardinalEnums.h"
 
-class KStandardDeviation;
-
-template <>
-InputParameters validParams<KStandardDeviation>();
-
 /**
  * Get the k-effective eigenvalue standard deviation computed by OpenMC.
  */

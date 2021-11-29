@@ -13,11 +13,6 @@
 #include "MooseApp.h"
 #include "CardinalEnums.h"
 
-class NekRSMesh;
-
-template <>
-InputParameters validParams<NekRSMesh>();
-
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
  * constructed by interpolating from the surface Gauss-Lobatto-Legendre points
@@ -43,6 +38,8 @@ class NekRSMesh : public MooseMesh
 {
 public:
   NekRSMesh(const InputParameters & parameters);
+  static InputParameters validParams();
+
   NekRSMesh(const NekRSMesh & /* other_mesh */) = default;
   ~NekRSMesh();
 

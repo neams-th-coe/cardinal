@@ -2,12 +2,11 @@
 
 registerMooseObject("MooseApp", CardinalNearestPointAverage);
 
-template <>
 InputParameters
-validParams<CardinalNearestPointAverage>()
+CardinalNearestPointAverage::validParams()
 {
-  InputParameters params = nearestPointBaseValidParams<ElementAverageValue,
-                                                       ElementVariableVectorPostprocessor>();
+  InputParameters params = NearestPointBase<ElementAverageValue,
+                                            ElementVariableVectorPostprocessor>::validParams();
 
   params.addClassDescription(
       "Compute element variable integrals for nearest-point based subdomains");
