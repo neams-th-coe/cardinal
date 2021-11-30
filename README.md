@@ -12,3 +12,5 @@ will find:
 - [Shell environment settings](https://cardinal.cels.anl.gov/hpc.html) for running on a number of HPC systems
 - [Source code documentation](https://cardinal.cels.anl.gov/source/index.html)
 - [Tutorials](https://cardinal.cels.anl.gov/tutorials/index.html)
+
+For help, please post on our [Discussions](https://github.com/neams-th-coe/cardinal/discussions) page.
