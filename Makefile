@@ -20,7 +20,6 @@
 # * SODIUM_DIR: Top-level sodium src dir (default: $(CONTRIB_DIR)/sodium)
 # * POTASSIUM_DIR: Top-level potassium src dir (default: $(CONTRIB_DIR)/potassium)
 # * IAPWS95_DIR: Top-level iapws95 src dir (default: $(CONTRIB_DIR)/iapws95)
-#
 # ======================================================================================
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
