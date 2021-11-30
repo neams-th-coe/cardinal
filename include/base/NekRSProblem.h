@@ -29,8 +29,7 @@
  * \brief Solve nekRS wrapped as a MOOSE app.
  *
  * This object controls all of the execution of and data transfers to/from nekRS,
- * fully abstracted from the Nek5000 backend approach adopted in the similar, but
- * more limited, 'NekProblem' class.
+ * fully abstracted from the Nek5000 backend.
  *
  * The nekRS temperature solution is interpolated onto the NekRSMesh by multiplying the
  * nekRS temperature by an interpolation matrix. In the opposite direction, the flux

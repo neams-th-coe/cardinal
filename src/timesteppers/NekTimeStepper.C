@@ -56,7 +56,7 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
       "'stopAt' to either 'numSteps' or 'endTime' in your .par file.");
 
   // The NekTimeStepper will take the end simulation control from the nekRS .par file,
-  // unless NekProblem is a sub-app to a higher-up master app. In that case,
+  // unless NekRSProblem is a sub-app to a higher-up master app. In that case,
   // we will use whatever end control is specified by the controlling app.
   MooseApp& app = getMooseApp();
   if (app.isUltimateMaster())

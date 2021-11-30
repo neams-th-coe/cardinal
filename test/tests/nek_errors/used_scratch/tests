@@ -2,15 +2,8 @@
   [occupied_scratch_space]
     type = RunException
     input = nek.i
-    expect_err = "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are reserved in Cardinal for "
-                 "transferring the heat flux fom MOOSE to nekRS!\n\nThis memory allocation is "
-                 "done automatically, but you have already initialized these arrays, perhaps "
-                 "for a different purpose than transferring flux. Please remove any UDF usage "
-                 "of these arrays to continue."
-    requirement = "MOOSE shall throw an error if the user attempts to use the scratch space arrays "
-                  "on the convection-diffusion passive scalar solver, since these arrays are "
-                  "reserved in Cardinal for facilitating the heat flux transfer and cannot be used "
-                  "in their originally truly-flexible manner as they can in standalone nekRS."
-    skip = "Waiting until all legacy inputs are updated to avoid breaking anyone's inputs"
+    expect_err = "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal!"
+    requirement = "MOOSE shall throw an error if the user attempts to allocate the scratch space "
+                  "arrays in NekRS, since they are automatically allocated by Cardinal."
   []
 []
