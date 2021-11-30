@@ -1,10 +1,7 @@
 [Tests]
   [precompile]
-    type = RunApp
-    input = nek.i
-    cli_args = '"Postprocessors/active = \' \' Outputs/exodus=false Outputs/csv=false Problem/write_fld_files=false" --nekrs-buildonly 1'
-    # Precompiling with 1 rank will allow any number of ranks to be used in actual simulation
-    max_parallel = 1
+    type = RunCommand
+    command = '${NEKRS_HOME}/bin/nrspre pin 1'
     requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
   []
   [invalid_write_fld]
