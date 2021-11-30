@@ -3,7 +3,6 @@
   order = SECOND
   volume = true
   parallel_type = replicated
-  use_displaced_mesh = true
   displacements = 'disp_x disp_y disp_z'
 []
 

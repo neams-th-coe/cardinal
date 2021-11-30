@@ -1,0 +1,13 @@
+[Tests]
+  [missing_displacements]
+    type = RunException
+    input = box-test.i
+    required_objects = 'NekRSProblem'
+
+    # nekRS can't use more processors than elements
+    max_parallel = 64
+
+    expect_err = "Moving mesh problems require displacements in the \[Mesh\] block!"
+    requirement = "The system shall error if NekRSMesh is not paired with displacements for moving mesh problems."
+  []
+[]
