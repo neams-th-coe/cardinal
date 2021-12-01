@@ -21,6 +21,7 @@ Extensions:
             Tutorials: tutorials/index.md
             HPC Systems: hpc.md
             Documentation: source/index.md
+            Contributing: contributing.md
             Developer Guide: developers.md
             Contact/Citing: contact.md
     MooseDocs.extensions.appsyntax:
