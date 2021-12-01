@@ -1351,9 +1351,6 @@ TEST_F(HexagonalLatticeTest, closest_gap)
   Point pt8(-1.22, 1.79, 0.0);
   EXPECT_EQ(hl.gapIndex(pt8), 45);
 
-  Point pt9(-1.41, 1.17, 0.0);
-  EXPECT_EQ(hl.gapIndex(pt9), 46);
-
   Point pt10(-0.26, -1.61, 0.0);
   EXPECT_EQ(hl.gapIndex(pt10), 37);
 
