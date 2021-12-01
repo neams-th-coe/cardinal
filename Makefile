@@ -2,6 +2,7 @@
 # Cardinal Makefile
 # ======================================================================================
 # test comment 123
+# new test comment 1030
 #
 # Optional environment variables:
 #
