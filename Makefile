@@ -2,6 +2,7 @@
 # Cardinal Makefile
 # ======================================================================================
 # new dummy commment testing PR
+# another test comment
 #
 # Optional environment variables:
 #
