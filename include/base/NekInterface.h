@@ -808,7 +808,7 @@ void initializeDimensionalScales(const double U_ref, const double T_ref, const d
  * by a scalar, i.e. \f$f^\dagger=\frac{f}{f_ref}\f$, where \f$f^\dagger\f$ is the nondimensional
  * form and \f$f_{ref}\f$ is a reference scale with form particular to the interpretation of the
  * field. Note that for temperature in particular, there are still additional steps to
- * dimensionalize, because we do not define a nondimensional temperature simply as \f$T^\dagger=\frac{T}{\DeltaT_{ref}}\f$.
+ * dimensionalize, because we do not define a nondimensional temperature simply as \f$T^\dagger=\frac{T}{\Delta T_{ref}}\f$.
  * But, this function just treats the characteristic scale that would appear in the denominator.
  * @param[in] field physical interpretation of value to dimensionalize
  * @param[out] value value to dimensionalize
