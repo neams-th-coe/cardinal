@@ -33,19 +33,18 @@ documentation.
 
 ## Tutorials for NekRS Wrapping
 
-1. [Running NekRS as a standalone application](tutorials/nekrs_standalone.md)
-2. [Conjugate heat transfer coupling of NekRS and MOOSE heat conduction](tutorials/cht.md)
-3. [Volumetric heat source coupling of NekRS and MOOSE chemical species transport](tutorials/volumetric.md)
-4. [Multiscale coupling of NekRS and SAM for primary loop modeling](tutorials/sam_coupling.md)
+1. [Running as a standalone application](tutorials/nekrs_standalone.md)
+2. [Conjugate heat transfer coupling to MOOSE](tutorials/cht.md)
+3. [Volumetric heat source coupling to chemical species transport](tutorials/volumetric.md)
+4. [Multiscale coupling to SAM for primary loop modeling](tutorials/sam_coupling.md)
 5. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
 
 ## Tutorials for OpenMC Wrapping
 
-6. [Solid coupling of OpenMC and MOOSE heat conduction](tutorials/openmc_solid.md)
-7. [Solid and fluid coupling of OpenMC, MOOSE heat conduction, and THM thermal-fluids](tutorials/openmc_fluid.md)
-8. [Running OpenMC as a standalone application](tutorials/openmc_standalone.md)
+6. [Solid coupling to MOOSE heat conduction](tutorials/openmc_solid.md)
+7. [Solid and fluid coupling of to MOOSE and THM thermal-fluids](tutorials/openmc_fluid.md)
 
 ## Tutorials for Combined NekRS and OpenMC Multiphysics
   id=multi
 
-9. [Multiphysics coupling of NekRS, OpenMC, and MOOSE heat conduction](tutorials/coupled.md)
+8. [Multiphysics coupling of NekRS, OpenMC, and MOOSE heat conduction](tutorials/coupled.md)

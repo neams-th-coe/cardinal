@@ -266,7 +266,7 @@ NekRSProblemBase::initialSetup()
   {
     mooseWarning("The start time set on the executioner: " + Moose::stringify(moose_start_time) +
       " does not match the start time set in NekRS's .par file: " + Moose::stringify(_timestepper->dimensionalDT(_start_time)) + ". "
-      "This may happen if you are using a restart file in NekRS.\n\n" +
+      "\nThis may happen if you are using a restart file in NekRS.\n\n" +
       "Setting start time for '" + type() + "' to: " + Moose::stringify(moose_start_time));
     _start_time = moose_start_time;
   }
