@@ -376,7 +376,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
     }
   }
 
-  // Because the NekMesh may be quite different from that used in the app solving for
+  // Because the NekRSMesh may be quite different from that used in the app solving for
   // the heat flux, we will need to normalize the total flux on the nekRS side by the
   // total flux computed by the coupled MOOSE app. For this and the next check of the
   // flux integral, we need to scale the integral back up again to the dimensional form
@@ -523,7 +523,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
     }
   }
 
-  // Because the NekMesh may be quite different from that used in the app solving for
+  // Because the NekRSMesh may be quite different from that used in the app solving for
   // the heat source, we will need to normalize the total source on the nekRS side by the
   // total source computed by the coupled MOOSE app.
   const Real scale_cubed = _nek_mesh->scaling() * _nek_mesh->scaling() * _nek_mesh->scaling();

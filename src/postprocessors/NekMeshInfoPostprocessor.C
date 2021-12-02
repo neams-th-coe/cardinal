@@ -19,7 +19,6 @@
 #include "NekMeshInfoPostprocessor.h"
 #include "SubProblem.h"
 #include "MooseMesh.h"
-#include "NekMesh.h"
 
 registerMooseObject("CardinalApp", NekMeshInfoPostprocessor);
 
