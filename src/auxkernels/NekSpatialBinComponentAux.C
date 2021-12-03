@@ -41,8 +41,7 @@ NekSpatialBinComponentAux::NekSpatialBinComponentAux(const InputParameters & par
 
   if (!_bin_uo)
     mooseError("This auxkernel can only be combined with NekSpatialBinUserObject-derived classes!\n"
-      "You have specified the '" + _user_object.type() + "' user object instead.\n\n"
-      "Options: NekBinnedPlaneIntegral, NekBinnedPlaneAverage, NekBinnedVolumeIntegral, NekBinnedVolumeAverage");
+      "You have specified the '" + _user_object.type() + "' user object instead.");
 
   if (_bin_uo->field() != field::velocity_component)
     mooseError("This auxkernel can only be used with a binning user object that sets "
