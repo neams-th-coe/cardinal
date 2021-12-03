@@ -46,5 +46,5 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
 
   // the 'normal' velocity component direction does not apply to volume bins
   if (_field == field::velocity_component && _velocity_component == component::normal)
-    mooseError("Setting 'velocity_component = normal' is not supported for volume bin user objects!");
+    mooseError("Setting 'velocity_component = normal' is not supported for the '" + name() + "' user object!");
 }

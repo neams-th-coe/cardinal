@@ -22,14 +22,14 @@
 InputParameters
 NekSideSpatialBinUserObject::validParams()
 {
-  InputParameters params = NekSpatialBinUserObject::validParams();
+  InputParameters params = NekVolumeSpatialBinUserObject::validParams();
   params.addRequiredParam<std::vector<int>>("boundary",
     "Boundary ID(s) over which to compute the bin values");
   return params;
 }
 
 NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters & parameters)
-  : NekSpatialBinUserObject(parameters),
+  : NekVolumeSpatialBinUserObject(parameters),
     _boundary(getParam<std::vector<int>>("boundary"))
 {
   int first_invalid_id, n_boundaries;
@@ -40,23 +40,6 @@ NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters &
       "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
       "For this problem, NekRS has ", n_boundaries, " boundaries.\n"
       "Did you enter a valid 'boundary' for '" + name() + "'?");
-
-  // we need to enforce that there are only volume distributions
-  unsigned int num_non_volume = 0;
-
-  for (auto & uo : _bins)
-    if (dynamic_cast<const PlaneSpatialBinUserObject *>(uo))
-      ++num_non_volume;
-
-  if (num_non_volume)
-    mooseError("This user object requires all bins to be volume distributions; you have specified " +
-      Moose::stringify(num_non_volume) + " non-volume distributions." +
-      "\noptions: HexagonalSubchannelBin, LayeredBin, RadialBin");
-
-  // the 'normal' velocity component direction does not apply to volume bins
-  if (_field == field::velocity_component && _velocity_component == component::normal)
-    mooseError("Setting 'velocity_component = normal' is not supported for side bin user objects!\n"
-      "This is not a fundamental limitation, just not yet implemented");
 }
 
 Point

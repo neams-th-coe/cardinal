@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "NekSpatialBinUserObject.h"
+#include "NekVolumeSpatialBinUserObject.h"
 
 /**
  * Class that performs various postprocessing operations on the
  * NekRS solution with a spatial binning formed as the product of
  * various volume bins with a boundary in the NekRS mesh
  */
-class NekSideSpatialBinUserObject : public NekSpatialBinUserObject
+class NekSideSpatialBinUserObject : public NekVolumeSpatialBinUserObject
 {
 public:
   static InputParameters validParams();
