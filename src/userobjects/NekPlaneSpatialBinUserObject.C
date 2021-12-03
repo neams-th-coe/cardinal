@@ -16,10 +16,10 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "NekSideSpatialBinUserObject.h"
+#include "NekPlaneSpatialBinUserObject.h"
 
 InputParameters
-NekSideSpatialBinUserObject::validParams()
+NekPlaneSpatialBinUserObject::validParams()
 {
   InputParameters params = NekSpatialBinUserObject::validParams();
   params.addRequiredRangeCheckedParam<Real>("gap_thickness", "gap_thickness > 0.0",
@@ -28,7 +28,7 @@ NekSideSpatialBinUserObject::validParams()
   return params;
 }
 
-NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters & parameters)
+NekPlaneSpatialBinUserObject::NekPlaneSpatialBinUserObject(const InputParameters & parameters)
   : NekSpatialBinUserObject(parameters),
     _gap_thickness(getParam<Real>("gap_thickness"))
 {
@@ -39,7 +39,7 @@ NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters &
   for (unsigned int i = 0; i < _bins.size(); ++i)
   {
     auto & uo = _bins[i];
-    const SideSpatialBinUserObject * side = dynamic_cast<const SideSpatialBinUserObject *>(uo);
+    const PlaneSpatialBinUserObject * side = dynamic_cast<const PlaneSpatialBinUserObject *>(uo);
     if (side)
     {
       ++num_side_distributions;
@@ -65,19 +65,19 @@ NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters &
 }
 
 Real
-NekSideSpatialBinUserObject::distanceFromGap(const Point & point, const unsigned int & gap_index) const
+NekPlaneSpatialBinUserObject::distanceFromGap(const Point & point, const unsigned int & gap_index) const
 {
   return _side_bin->distanceFromGap(point, gap_index);
 }
 
 unsigned int
-NekSideSpatialBinUserObject::gapIndex(const Point & point) const
+NekPlaneSpatialBinUserObject::gapIndex(const Point & point) const
 {
   return _side_bin->gapIndex(point);
 }
 
 void
-NekSideSpatialBinUserObject::gapIndexAndDistance(const Point & point, unsigned int & index,  Real & distance) const
+NekPlaneSpatialBinUserObject::gapIndexAndDistance(const Point & point, unsigned int & index,  Real & distance) const
 {
   _side_bin->gapIndexAndDistance(point, index, distance);
 }

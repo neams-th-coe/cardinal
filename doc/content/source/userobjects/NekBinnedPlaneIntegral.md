@@ -1,6 +1,6 @@
-# NekBinnedSideIntegral
+# NekBinnedPlaneIntegral
 
-!syntax description /UserObjects/NekBinnedSideIntegral
+!syntax description /UserObjects/NekBinnedPlaneIntegral
 
 ## Description
 
@@ -50,7 +50,7 @@ obtain areas.
 Therefore, we recommend only using this class if you know that your mesh is structured
 and you have selected a `gap_thickness` such that for every bin, your GLL points would
 exactly lie on the surface of a rectangular prism of width $\Delta$. Instead, you should
-use the [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md) object to get an
+use the [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md) object to get an
 average over the face, and then multiply that value by the known area of the gap
 (i.e. don't use this object to try to calculate the gap area).
 !alert-end!
@@ -98,8 +98,8 @@ integrals over the gap planes in `num_layers` axial segments.
 The result of the user object can then be visualized with a
 [SpatialUserObjectAux](https://mooseframework.inl.gov/source/auxkernels/SpatialUserObjectAux.html).
 
-!syntax parameters /UserObjects/NekBinnedSideIntegral
+!syntax parameters /UserObjects/NekBinnedPlaneIntegral
 
-!syntax inputs /UserObjects/NekBinnedSideIntegral
+!syntax inputs /UserObjects/NekBinnedPlaneIntegral
 
-!syntax children /UserObjects/NekBinnedSideIntegral
+!syntax children /UserObjects/NekBinnedPlaneIntegral

@@ -72,7 +72,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     if (!hasUserObjectByName<SpatialBinUserObject>(b))
       mooseError("Bin user object with name '" + b + "' must inherit from SpatialBinUserObject.\n\n"
         "Volume options: HexagonalSubchannelBin, LayeredBin, RadialBin\n"
-        "Side options: HexagonalSubchannelGapBin");
+        "Side options: HexagonalSubchannelGapBin, LayeredGapBin");
 
     _bins.push_back(&getUserObjectByName<SpatialBinUserObject>(b));
   }

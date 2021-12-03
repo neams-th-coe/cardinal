@@ -17,7 +17,7 @@
 /********************************************************************/
 
 #include "NekVolumeSpatialBinUserObject.h"
-#include "SideSpatialBinUserObject.h"
+#include "PlaneSpatialBinUserObject.h"
 
 InputParameters
 NekVolumeSpatialBinUserObject::validParams()
@@ -34,7 +34,7 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
 
   for (auto & uo : _bins)
   {
-    const SideSpatialBinUserObject * side_bin = dynamic_cast<const SideSpatialBinUserObject *>(uo);
+    const PlaneSpatialBinUserObject * side_bin = dynamic_cast<const PlaneSpatialBinUserObject *>(uo);
     if (side_bin)
       ++num_side_distributions;
   }

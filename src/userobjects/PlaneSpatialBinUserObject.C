@@ -16,19 +16,16 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#include "PlaneSpatialBinUserObject.h"
 
-#include "NekBinnedSideIntegral.h"
-
-/**
- * Compute a side average of the NekRS solution in spatial bins.
- */
-class NekBinnedSideAverage : public NekBinnedSideIntegral
+InputParameters
+PlaneSpatialBinUserObject::validParams()
 {
-public:
-  static InputParameters validParams();
+  InputParameters params = SpatialBinUserObject::validParams();
+  return params;
+}
 
-  NekBinnedSideAverage(const InputParameters & parameters);
-
-  virtual void execute() override;
-};
+PlaneSpatialBinUserObject::PlaneSpatialBinUserObject(const InputParameters & parameters)
+  : SpatialBinUserObject(parameters)
+{
+}

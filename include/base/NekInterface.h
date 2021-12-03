@@ -19,7 +19,7 @@
 #pragma once
 
 #include "CardinalEnums.h"
-#include "NekSideSpatialBinUserObject.h"
+#include "MooseTypes.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
 #include "io.hpp"

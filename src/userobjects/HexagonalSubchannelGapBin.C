@@ -23,7 +23,7 @@ registerMooseObject("CardinalApp", HexagonalSubchannelGapBin);
 InputParameters
 HexagonalSubchannelGapBin::validParams()
 {
-  InputParameters params = SideSpatialBinUserObject::validParams();
+  InputParameters params = PlaneSpatialBinUserObject::validParams();
   params.addRequiredRangeCheckedParam<Real>("bundle_pitch", "bundle_pitch > 0",
     "Bundle pitch, or flat-to-flat distance across bundle");
   params.addRequiredRangeCheckedParam<Real>("pin_pitch", "pin_pitch > 0",
@@ -41,7 +41,7 @@ HexagonalSubchannelGapBin::validParams()
 }
 
 HexagonalSubchannelGapBin::HexagonalSubchannelGapBin(const InputParameters & parameters)
-  : SideSpatialBinUserObject(parameters),
+  : PlaneSpatialBinUserObject(parameters),
   _bundle_pitch(getParam<Real>("bundle_pitch")),
   _pin_pitch(getParam<Real>("pin_pitch")),
   _pin_diameter(getParam<Real>("pin_diameter")),

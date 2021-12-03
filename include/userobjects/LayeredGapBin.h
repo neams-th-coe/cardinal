@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "SideSpatialBinUserObject.h"
+#include "PlaneSpatialBinUserObject.h"
 
 /**
  * Class that bins spatial coordinates into planes oriented in a particular direction.
  */
-class LayeredGapBin : public SideSpatialBinUserObject
+class LayeredGapBin : public PlaneSpatialBinUserObject
 {
 public:
   static InputParameters validParams();

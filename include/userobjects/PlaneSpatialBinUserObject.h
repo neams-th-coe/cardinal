@@ -23,12 +23,12 @@
 /**
  * Class that provides a side bin index given a spatial coordinate
  */
-class SideSpatialBinUserObject : public SpatialBinUserObject
+class PlaneSpatialBinUserObject : public SpatialBinUserObject
 {
 public:
   static InputParameters validParams();
 
-  SideSpatialBinUserObject(const InputParameters & parameters);
+  PlaneSpatialBinUserObject(const InputParameters & parameters);
 
   /**
    * Distance between a point and a gap

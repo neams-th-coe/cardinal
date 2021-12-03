@@ -74,7 +74,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
     num_layers = 6
   []
   [avg_velocity_component]
-    type = NekBinnedSideAverage
+    type = NekBinnedPlaneAverage
     bins = 'subchannel_binning axial_binning'
     field = velocity_component
     velocity_component = user

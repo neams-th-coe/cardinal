@@ -16,16 +16,35 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "SideSpatialBinUserObject.h"
+#pragma once
 
-InputParameters
-SideSpatialBinUserObject::validParams()
-{
-  InputParameters params = SpatialBinUserObject::validParams();
-  return params;
-}
+#include "NekPlaneSpatialBinUserObject.h"
 
-SideSpatialBinUserObject::SideSpatialBinUserObject(const InputParameters & parameters)
-  : SpatialBinUserObject(parameters)
+/**
+ * Compute a side integral of the NekRS solution in spatial bins.
+ */
+class NekBinnedPlaneIntegral : public NekPlaneSpatialBinUserObject
 {
-}
+public:
+  static InputParameters validParams();
+
+  NekBinnedPlaneIntegral(const InputParameters & parameters);
+
+  virtual void execute() override;
+
+  virtual void getBinVolumes() override;
+
+  Real spatialValue(const Point & p, const unsigned int & component) const override;
+
+  /**
+   * Compute the integral over the side bins
+   * @param[in] integrand field to integrate
+   * @param[out] total_integral integral over each bin
+   */
+  virtual void binnedPlaneIntegral(const field::NekFieldEnum & integrand, double * total_integral);
+
+  /**
+   * Compute the integrals
+   */
+  virtual void computeIntegral();
+};

@@ -37,14 +37,14 @@
     map_space_by_qp = true
   []
   [average_T_gaps]
-    type = NekBinnedSideAverage
+    type = NekBinnedPlaneAverage
     bins = 'subchannel_gap_binning axial_binning'
     field = temperature
     map_space_by_qp = true
     gap_thickness = ${fparse 0.05 * 7.646e-3}
   []
   [avg_gap_velocity]
-    type = NekBinnedSideAverage
+    type = NekBinnedPlaneAverage
     bins = 'subchannel_gap_binning axial_binning'
     field = velocity_component
     velocity_component = normal

@@ -1,6 +1,6 @@
-# NekBinnedSideAverage
+# NekBinnedPlaneAverage
 
-!syntax description /UserObjects/NekBinnedSideAverage
+!syntax description /UserObjects/NekBinnedPlaneAverage
 
 ## Description
 
@@ -67,8 +67,8 @@ averages over the gap planes in `num_layers` axial segments.
 The result of the user object can then be visualized with a
 [SpatialUserObjectAux](https://mooseframework.inl.gov/source/auxkernels/SpatialUserObjectAux.html).
 
-!syntax parameters /UserObjects/NekBinnedSideAverage
+!syntax parameters /UserObjects/NekBinnedPlaneAverage
 
-!syntax inputs /UserObjects/NekBinnedSideAverage
+!syntax inputs /UserObjects/NekBinnedPlaneAverage
 
-!syntax children /UserObjects/NekBinnedSideAverage
+!syntax children /UserObjects/NekBinnedPlaneAverage

@@ -18,33 +18,35 @@
 
 #pragma once
 
-#include "NekSideSpatialBinUserObject.h"
+#include "NekSpatialBinUserObject.h"
+#include "PlaneSpatialBinUserObject.h"
 
 /**
- * Compute a side integral of the NekRS solution in spatial bins.
+ * Class that performs various postprocessing operations on the
+ * NekRS solution with a spatial binning formed as the product
+ * of two bin distributions, one a surface distribution and the other
+ * a volume distribution.
  */
-class NekBinnedSideIntegral : public NekSideSpatialBinUserObject
+class NekPlaneSpatialBinUserObject : public NekSpatialBinUserObject
 {
 public:
   static InputParameters validParams();
 
-  NekBinnedSideIntegral(const InputParameters & parameters);
+  NekPlaneSpatialBinUserObject(const InputParameters & parameters);
 
-  virtual void execute() override;
+  virtual Real distanceFromGap(const Point & point, const unsigned int & gap_index) const;
 
-  virtual void getBinVolumes() override;
+  virtual unsigned int gapIndex(const Point & point) const;
 
-  Real spatialValue(const Point & p, const unsigned int & component) const override;
+  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const;
 
-  /**
-   * Compute the integral over the side bins
-   * @param[in] integrand field to integrate
-   * @param[out] total_integral integral over each bin
-   */
-  virtual void binnedSideIntegral(const field::NekFieldEnum & integrand, double * total_integral);
+protected:
+  /// Width of region enclosing gap for which points contribute to gap integral
+  const Real & _gap_thickness;
 
-  /**
-   * Compute the integrals
-   */
-  virtual void computeIntegral();
+  /// The user object providing the side binning
+  const PlaneSpatialBinUserObject * _side_bin;
+
+  /// The index into the _bins that represents the side bin object
+  unsigned int _side_index;
 };

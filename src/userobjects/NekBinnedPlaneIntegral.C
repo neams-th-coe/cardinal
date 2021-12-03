@@ -16,29 +16,29 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "NekBinnedSideIntegral.h"
+#include "NekBinnedPlaneIntegral.h"
 #include "CardinalUtils.h"
 #include "NekInterface.h"
 
-registerMooseObject("CardinalApp", NekBinnedSideIntegral);
+registerMooseObject("CardinalApp", NekBinnedPlaneIntegral);
 
 InputParameters
-NekBinnedSideIntegral::validParams()
+NekBinnedPlaneIntegral::validParams()
 {
-  InputParameters params = NekSideSpatialBinUserObject::validParams();
+  InputParameters params = NekPlaneSpatialBinUserObject::validParams();
   params.addClassDescription("Compute the spatially-binned side integral of a field over the NekRS mesh");
   return params;
 }
 
-NekBinnedSideIntegral::NekBinnedSideIntegral(const InputParameters & parameters)
-  : NekSideSpatialBinUserObject(parameters)
+NekBinnedPlaneIntegral::NekBinnedPlaneIntegral(const InputParameters & parameters)
+  : NekPlaneSpatialBinUserObject(parameters)
 {
   if (_fixed_mesh)
     computeBinVolumes();
 }
 
 void
-NekBinnedSideIntegral::getBinVolumes()
+NekBinnedPlaneIntegral::getBinVolumes()
 {
   resetPartialStorage();
   mesh_t * mesh = nekrs::entireMesh();
@@ -78,7 +78,7 @@ NekBinnedSideIntegral::getBinVolumes()
 }
 
 void
-NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand, double * total_integral)
+NekBinnedPlaneIntegral::binnedPlaneIntegral(const field::NekFieldEnum & integrand, double * total_integral)
 {
   resetPartialStorage();
 
@@ -118,7 +118,7 @@ NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand,
 }
 
 Real
-NekBinnedSideIntegral::spatialValue(const Point & p, const unsigned int & component) const
+NekBinnedPlaneIntegral::spatialValue(const Point & p, const unsigned int & component) const
 {
   // total bin index
   const auto & i = bin(p);
@@ -131,7 +131,7 @@ NekBinnedSideIntegral::spatialValue(const Point & p, const unsigned int & compon
 }
 
 void
-NekBinnedSideIntegral::computeIntegral()
+NekBinnedPlaneIntegral::computeIntegral()
 {
   // if the mesh is changing, re-compute the areas of the bins
   if (!_fixed_mesh)
@@ -139,9 +139,9 @@ NekBinnedSideIntegral::computeIntegral()
 
   if (_field == field::velocity_component)
   {
-    binnedSideIntegral(field::velocity_x, _bin_values_x);
-    binnedSideIntegral(field::velocity_y, _bin_values_y);
-    binnedSideIntegral(field::velocity_z, _bin_values_z);
+    binnedPlaneIntegral(field::velocity_x, _bin_values_x);
+    binnedPlaneIntegral(field::velocity_y, _bin_values_y);
+    binnedPlaneIntegral(field::velocity_z, _bin_values_z);
 
     for (unsigned int i = 0; i < num_bins(); ++i)
     {
@@ -153,11 +153,11 @@ NekBinnedSideIntegral::computeIntegral()
     }
   }
   else
-    binnedSideIntegral(_field, _bin_values);
+    binnedPlaneIntegral(_field, _bin_values);
 }
 
 void
-NekBinnedSideIntegral::execute()
+NekBinnedPlaneIntegral::execute()
 {
   computeIntegral();
 
