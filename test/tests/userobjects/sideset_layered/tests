@@ -1,0 +1,26 @@
+[Tests]
+  [invalid_boundary]
+    type = RunException
+    input = invalid_boundary.i
+    expect_err = "Invalid 'boundary' entry: 5"
+    requirement = "The system shall error if an invalid boundary ID is specified"
+  []
+  [z_bins]
+    type = Exodiff
+    input = z_bins.i
+    exodiff = z_bins_out.e
+    requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the quadrature point"
+  []
+  [z_bins_by_centroid]
+    type = Exodiff
+    input = z_bins_by_centroid.i
+    exodiff = z_bins_by_centroid_out.e
+    requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the face centroid"
+  []
+  [side_average]
+    type = Exodiff
+    input = side_average.i
+    exodiff = side_average_out.e
+    requirement = "The system shall correctly average over a sideset in the NekRS domain"
+  []
+[]

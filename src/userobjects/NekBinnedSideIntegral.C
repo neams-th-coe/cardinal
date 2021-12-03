@@ -108,7 +108,6 @@ NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand,
 Real
 NekBinnedSideIntegral::spatialValue(const Point & p, const unsigned int & component) const
 {
-  // total bin index
   const auto & i = bin(p);
   return _bin_values[i] * _velocity_bin_directions[i](component);
 }
