@@ -887,6 +887,41 @@ Point gllPoint(int local_elem_id, int local_node_id)
   return p;
 }
 
+Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id)
+{
+  mesh_t * mesh = entireMesh();
+  int face_id = mesh->EToB[local_elem_id * mesh->Nfaces + local_face_id];
+  int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
+  int id = mesh->vmapM[offset + local_node_id];
+  Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+  p *= scales.L_ref;
+  return p;
+}
+
+Point centroidFace(int local_elem_id, int local_face_id)
+{
+  mesh_t * mesh = entireMesh();
+
+  double x_c = 0.0;
+  double y_c = 0.0;
+  double z_c = 0.0;
+  double mass = 0.0;
+
+  int offset = local_elem_id * mesh->Nfaces * mesh->Nfp + local_face_id * mesh->Nfp;
+  for (int v = 0; v < mesh->Np; ++v)
+  {
+    int id = mesh->vmapM[offset + v];
+    double mass_matrix = mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+    x_c += mesh->x[id] * mass_matrix;
+    y_c += mesh->y[id] * mass_matrix;
+    z_c += mesh->z[id] * mass_matrix;
+    mass += mass_matrix;
+  }
+
+  Point c(x_c, y_c, z_c);
+  return c / mass * scales.L_ref;
+}
+
 Point centroid(int local_elem_id)
 {
   mesh_t * mesh = entireMesh();
@@ -938,6 +973,11 @@ void dimensionalizeVolume(double & integral)
   integral *= scales.V_ref;
 }
 
+void dimensionalizeArea(double & integral)
+{
+  integral *= scales.A_ref;
+}
+
 void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume, double & integral)
 {
   // dimensionalize the field if needed
@@ -949,6 +989,19 @@ void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const R
   // if temperature, we need to add the reference temperature multiplied by the volume integral
   if (integrand == field::temperature)
     integral += scales.T_ref * volume;
+}
+
+void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const Real & area, double & integral)
+{
+  // dimensionalize the field if needed
+  solution::dimensionalize(integrand, integral);
+
+  // scale the boundary integral
+  integral *= scales.A_ref;
+
+  // if temperature, we need to add the reference temperature multiplied by the area integral
+  if (integrand == field::temperature)
+    integral += scales.T_ref * area;
 }
 
 void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std::vector<int> & boundary_id, double & integral)

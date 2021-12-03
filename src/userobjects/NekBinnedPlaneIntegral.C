@@ -17,7 +17,6 @@
 /********************************************************************/
 
 #include "NekBinnedPlaneIntegral.h"
-#include "CardinalUtils.h"
 #include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekBinnedPlaneIntegral);
