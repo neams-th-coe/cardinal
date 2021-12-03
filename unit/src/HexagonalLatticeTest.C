@@ -1660,3 +1660,57 @@ TEST_F(HexagonalLatticeTest, normals3)
   EXPECT_DOUBLE_EQ(normals[59](0), -0.5);
   EXPECT_DOUBLE_EQ(normals[59](1), sin60);
 }
+
+TEST_F(HexagonalLatticeTest, pin_corners)
+{
+  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+  const auto & pin_corners = hl.pinCenteredCornerCoordinates();
+  Real sin60 = std::sqrt(3.0) / 2.0;
+  Real cos60 = 0.5;
+
+  // center pin
+  double side = 0.46188021535170065;
+  const auto & pin0 = pin_corners[0];
+  EXPECT_DOUBLE_EQ(pin0[0](0), 0.0);
+  EXPECT_DOUBLE_EQ(pin0[0](1), side);
+
+  EXPECT_DOUBLE_EQ(pin0[1](0), -side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[1](1), side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin0[2](0), -side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[2](1), -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin0[3](0), 0);
+  EXPECT_DOUBLE_EQ(pin0[3](1), -side);
+
+  EXPECT_DOUBLE_EQ(pin0[4](0), side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[4](1), -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin0[5](0), side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[5](1), side * cos60);
+
+  // second pin
+  const auto & pin_centers = hl.pinCenters();
+  const auto & pin1 = pin_corners[1];
+  double x = pin_centers[1](0);
+  double y = pin_centers[1](1);
+
+  EXPECT_DOUBLE_EQ(pin1[0](0), x + 0.0);
+  EXPECT_DOUBLE_EQ(pin1[0](1), y + side);
+
+  EXPECT_DOUBLE_EQ(pin1[1](0), x + -side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[1](1), y + side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin1[2](0), x + -side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[2](1), y + -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin1[3](0), x + 0);
+  EXPECT_DOUBLE_EQ(pin1[3](1), y + -side);
+
+  EXPECT_DOUBLE_EQ(pin1[4](0), x + side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[4](1), y + -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin1[5](0), x + side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[5](1), y + side * cos60);
+}
+
