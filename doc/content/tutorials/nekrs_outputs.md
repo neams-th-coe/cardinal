@@ -98,6 +98,10 @@ Cardinal contains features for postprocessing the NekRS solution in spatial
   compute plane integrals over regions of space
 - [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md):
   compute plane averages over regions of space
+- [NekBinnedSideIntegral](/userobjects/NekBinnedSideIntegral.md):
+  compute integrals over sidesets with subdivisions in space
+- [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md):
+  compute averages over sidesets with subdivisions in space
 - [NekBinnedVolumeIntegral](/userobjects/NekBinnedVolumeIntegral.md):
   compute volume integrals over regions of space
 - [NekBinnedVolumeAverage](/userobjects/NekBinnedVolumeAverage.md):
