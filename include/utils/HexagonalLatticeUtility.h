@@ -582,6 +582,13 @@ public:
   const Point channelCentroid(const std::vector<Point> & corners) const;
 
   /**
+   * Get the pin index given a point
+   * @param[in] point point
+   * @return pin index
+   */
+  const int pinIndex(const Point & point) const;
+
+  /**
    * Get the channel index given a point
    * @param[in] point point
    * @return channel index
@@ -777,6 +784,9 @@ protected:
 
   /// Number of sides in a hexagon
   static const unsigned int NUM_SIDES;
+
+  /// Unmapped key
+  static const int UNMAPPED = -1;
 
   /// (unitless) x-translations to apply to move from a center point to a side of a hexagon
   std::vector<Real> _translation_x;

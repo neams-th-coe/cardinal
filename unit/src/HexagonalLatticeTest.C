@@ -1712,5 +1712,34 @@ TEST_F(HexagonalLatticeTest, pin_corners)
 
   EXPECT_DOUBLE_EQ(pin1[5](0), x + side * sin60);
   EXPECT_DOUBLE_EQ(pin1[5](1), y + side * cos60);
+
+  // check for bin indexing
+  Point p(0.07, 0.195, 0.0);
+  EXPECT_EQ(hl.pinIndex(p), 0);
+
+  p = {0.02, 0.42, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 0);
+
+  p = {0.74, 0.46, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 1);
+
+  p = {-0.206, 0.668, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 2);
+
+  p = {-0.99, 0.313, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 3);
+
+  p = {-0.257, -0.67, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 4);
+
+  p = {0.67, -0.79, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 5);
+
+  p = {0.43, 0.0206, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 6);
+
+  p = {0.85, 0.51, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), -1);
 }
+
 

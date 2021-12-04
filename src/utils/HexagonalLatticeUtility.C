@@ -619,6 +619,32 @@ HexagonalLatticeUtility::pointInPolygon(const Point & point, const std::vector<P
   return !(negative && positive);
 }
 
+const int
+HexagonalLatticeUtility::pinIndex(const Point & point) const
+{
+  auto side = hexagonSide(_pin_pitch);
+
+  for (unsigned int i = 0; i < _n_pins; ++i)
+  {
+    const auto & center = _pin_centers[i];
+    Real dx = center(0) - point(0);
+    Real dy = center(1) - point(1);
+    Real distance_from_pin = std::sqrt(dx * dx + dy * dy);
+
+    // if we're outside the circumference of the hexagon, we're certain not to
+    // be within the hexagon for this pin
+    if (distance_from_pin > side)
+      continue;
+
+    auto corners = _pin_centered_corner_coordinates[i];
+    if (pointInPolygon(point, corners))
+      return i;
+  }
+
+  // if not in any bin, return an unmapped ID
+  return UNMAPPED;
+}
+
 const unsigned int
 HexagonalLatticeUtility::channelIndex(const Point & point) const
 {

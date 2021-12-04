@@ -52,6 +52,9 @@ protected:
   /// Vertical axis of the bundle along which the pins are aligned
   const unsigned int _axis;
 
+  /// Whether the bins should be pin-centered (as opposed to channel-centered)
+  const bool & _pin_centered_bins;
+
   /// Underlying utility providing hexagonal lattice capabilities
   std::unique_ptr<HexagonalLatticeUtility> _hex_lattice;
 };
