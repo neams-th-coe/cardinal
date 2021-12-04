@@ -398,6 +398,14 @@ public:
   const std::vector<Point> & pinCenters() const { return _pin_centers; }
 
   /**
+   * Get the corner coordinates of a hexagon surrounding each pin
+   * @return pin center coordinates
+   */
+  const std::vector<std::vector<Point>> & pinCenteredCornerCoordinates() const {
+    return _pin_centered_corner_coordinates;
+  }
+
+  /**
    * Get the pin surface area per wire pitch
    * @return pin surface area per wire pitch
    */
@@ -574,6 +582,13 @@ public:
   const Point channelCentroid(const std::vector<Point> & corners) const;
 
   /**
+   * Get the pin index given a point
+   * @param[in] point point
+   * @return pin index
+   */
+  const unsigned int pinIndex(const Point & point) const;
+
+  /**
    * Get the channel index given a point
    * @param[in] point point
    * @return channel index
@@ -721,6 +736,9 @@ protected:
 
   /// Pin center coordinates
   std::vector<Point> _pin_centers;
+
+  /// Corner coordinates of a hexagon surrounding each pin
+  std::vector<std::vector<Point>> _pin_centered_corner_coordinates;
 
   /// Six corner coordinates for the ducts
   std::vector<Point> _duct_corners;

@@ -1660,3 +1660,84 @@ TEST_F(HexagonalLatticeTest, normals3)
   EXPECT_DOUBLE_EQ(normals[59](0), -0.5);
   EXPECT_DOUBLE_EQ(normals[59](1), sin60);
 }
+
+TEST_F(HexagonalLatticeTest, pin_corners)
+{
+  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+  const auto & pin_corners = hl.pinCenteredCornerCoordinates();
+  Real sin60 = std::sqrt(3.0) / 2.0;
+  Real cos60 = 0.5;
+
+  // center pin
+  double side = 0.46188021535170065;
+  const auto & pin0 = pin_corners[0];
+  EXPECT_DOUBLE_EQ(pin0[0](0), 0.0);
+  EXPECT_DOUBLE_EQ(pin0[0](1), side);
+
+  EXPECT_DOUBLE_EQ(pin0[1](0), -side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[1](1), side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin0[2](0), -side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[2](1), -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin0[3](0), 0);
+  EXPECT_DOUBLE_EQ(pin0[3](1), -side);
+
+  EXPECT_DOUBLE_EQ(pin0[4](0), side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[4](1), -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin0[5](0), side * sin60);
+  EXPECT_DOUBLE_EQ(pin0[5](1), side * cos60);
+
+  // second pin
+  const auto & pin_centers = hl.pinCenters();
+  const auto & pin1 = pin_corners[1];
+  double x = pin_centers[1](0);
+  double y = pin_centers[1](1);
+
+  EXPECT_DOUBLE_EQ(pin1[0](0), x + 0.0);
+  EXPECT_DOUBLE_EQ(pin1[0](1), y + side);
+
+  EXPECT_DOUBLE_EQ(pin1[1](0), x + -side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[1](1), y + side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin1[2](0), x + -side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[2](1), y + -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin1[3](0), x + 0);
+  EXPECT_DOUBLE_EQ(pin1[3](1), y + -side);
+
+  EXPECT_DOUBLE_EQ(pin1[4](0), x + side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[4](1), y + -side * cos60);
+
+  EXPECT_DOUBLE_EQ(pin1[5](0), x + side * sin60);
+  EXPECT_DOUBLE_EQ(pin1[5](1), y + side * cos60);
+
+  // check for bin indexing
+  Point p(0.07, 0.195, 0.0);
+  EXPECT_EQ(hl.pinIndex(p), 0);
+
+  p = {0.02, 0.42, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 0);
+
+  p = {0.74, 0.46, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 1);
+
+  p = {-0.206, 0.668, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 2);
+
+  p = {-0.99, 0.313, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 3);
+
+  p = {-0.257, -0.67, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 4);
+
+  p = {0.67, -0.79, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 5);
+
+  p = {0.43, 0.0206, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 6);
+
+  p = {0.85, 0.51, 0.0};
+  EXPECT_EQ(hl.pinIndex(p), 7);
+}

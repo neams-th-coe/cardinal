@@ -32,6 +32,8 @@ HexagonalSubchannelBin::validParams()
     "Pin outer diameter");
   params.addRequiredRangeCheckedParam<unsigned int>("n_rings", "n_rings >= 1",
     "Number of pin rings, including the centermost pin as a 'ring'");
+  params.addParam<bool>("pin_centered_bins", false,
+    "Whether the bins should be channel-centered (false) or pin-centered (true)");
 
   MooseEnum directions("x y z", "z");
   params.addParam<MooseEnum>("axis", directions,
@@ -46,7 +48,8 @@ HexagonalSubchannelBin::HexagonalSubchannelBin(const InputParameters & parameter
   _pin_pitch(getParam<Real>("pin_pitch")),
   _pin_diameter(getParam<Real>("pin_diameter")),
   _n_rings(getParam<unsigned int>("n_rings")),
-  _axis(parameters.get<MooseEnum>("axis"))
+  _axis(parameters.get<MooseEnum>("axis")),
+  _pin_centered_bins(getParam<bool>("pin_centered_bins"))
 {
   _hex_lattice.reset(new HexagonalLatticeUtility(_bundle_pitch, _pin_pitch, _pin_diameter,
     0.0 /* wire diameter, unused */, 1.0 /* wire pitch, unused */, _n_rings, _axis));
@@ -58,34 +61,60 @@ HexagonalSubchannelBin::HexagonalSubchannelBin(const InputParameters & parameter
   else // z vertical axis
     _directions = {0, 1};
 
-  // the bin centers are the channel centroids
-  for (unsigned int i = 0; i < _hex_lattice->nInteriorChannels(); ++i)
+  if (_pin_centered_bins)
   {
-    auto corners = _hex_lattice->interiorChannelCornerCoordinates(i);
-    _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
-  }
+    // the bin centers are the pin centroids
+    for (const auto & p : _hex_lattice->pinCenters())
+      _bin_centers.push_back(p);
 
-  for (unsigned int i = 0; i < _hex_lattice->nEdgeChannels(); ++i)
-  {
-    auto corners = _hex_lattice->edgeChannelCornerCoordinates(i);
-    _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
-  }
+    // except for the last bin, which is just the enclosing region; we
+    // just pick one point in this region
+    Real x;
+    if (_n_rings % 2 == 0)
+      x = 0.0;
+    else
+      x = 0.5 * _hex_lattice->pinPitch();
 
-  for (unsigned int i = 0; i < _hex_lattice->nCornerChannels(); ++i)
+    Point leftover(x, _bundle_pitch / 2.0 - _hex_lattice->pinBundleSpacing() / 2.0, 0.0);
+    _bin_centers.push_back(leftover);
+  }
+  else
   {
-    auto corners = _hex_lattice->cornerChannelCornerCoordinates(i);
-    _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
+    // the bin centers are the channel centroids
+    for (unsigned int i = 0; i < _hex_lattice->nInteriorChannels(); ++i)
+    {
+      auto corners = _hex_lattice->interiorChannelCornerCoordinates(i);
+      _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
+    }
+
+    for (unsigned int i = 0; i < _hex_lattice->nEdgeChannels(); ++i)
+    {
+      auto corners = _hex_lattice->edgeChannelCornerCoordinates(i);
+      _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
+    }
+
+    for (unsigned int i = 0; i < _hex_lattice->nCornerChannels(); ++i)
+    {
+      auto corners = _hex_lattice->cornerChannelCornerCoordinates(i);
+      _bin_centers.push_back(_hex_lattice->channelCentroid(corners));
+    }
   }
 }
 
 const unsigned int
 HexagonalSubchannelBin::bin(const Point & p) const
 {
-  return _hex_lattice->channelIndex(p);
+  if (_pin_centered_bins)
+    return _hex_lattice->pinIndex(p);
+  else
+    return _hex_lattice->channelIndex(p);
 }
 
 const unsigned int
 HexagonalSubchannelBin::num_bins() const
 {
-  return _hex_lattice->nChannels();
+  if (_pin_centered_bins)
+    return _hex_lattice->nPins() + 1;
+  else
+    return _hex_lattice->nChannels();
 }

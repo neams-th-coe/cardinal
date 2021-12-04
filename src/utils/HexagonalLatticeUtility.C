@@ -301,6 +301,19 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
     }
   }
 
+  // compute corners of the hexagonal prisms that enclose each pin
+  _pin_centered_corner_coordinates.resize(_n_pins);
+  auto side = hexagonSide(_pin_pitch);
+  for (unsigned int pin = 0; pin < _n_pins; ++pin)
+  {
+    for (unsigned int i = 0; i < NUM_SIDES; ++i)
+    {
+      Point translation(_translation_x[i] * side, _translation_y[i] * side, 0.0);
+      Point pin_center = _pin_centers[pin];
+      _pin_centered_corner_coordinates[pin].push_back(translation + pin_center);
+    }
+  }
+
   // compute coordinates of duct corners relative to the bundle's center
   Real l = triangleSide(_bundle_pitch / 2.0);
 
@@ -607,6 +620,31 @@ HexagonalLatticeUtility::pointInPolygon(const Point & point, const std::vector<P
 }
 
 const unsigned int
+HexagonalLatticeUtility::pinIndex(const Point & point) const
+{
+  auto side = hexagonSide(_pin_pitch);
+
+  for (unsigned int i = 0; i < _n_pins; ++i)
+  {
+    const auto & center = _pin_centers[i];
+    Real dx = center(0) - point(0);
+    Real dy = center(1) - point(1);
+    Real distance_from_pin = std::sqrt(dx * dx + dy * dy);
+
+    // if we're outside the circumference of the hexagon, we're certain not to
+    // be within the hexagon for this pin
+    if (distance_from_pin > side)
+      continue;
+
+    auto corners = _pin_centered_corner_coordinates[i];
+    if (pointInPolygon(point, corners))
+      return i;
+  }
+
+  return _n_pins;
+}
+
+const unsigned int
 HexagonalLatticeUtility::channelIndex(const Point & point) const
 {
   auto channel = channelType(point);
@@ -757,7 +795,6 @@ HexagonalLatticeUtility::computeGapIndices()
     const auto & pt1 = _pin_centers[pins.first];
     const Point pt2 = pt1 + Point(d * _translation_x[side], d * _translation_y[side], 0.0);
     _gap_centers.push_back(0.5 * (pt2 + pt1));
-    //std::cout << "gap " << i << " pt1: " << pt1 << " pt2: " << pt2 << " normal: " << unitNormal(pt1, pt2) << std::endl;
 
     _gap_line_coeffs.push_back(getLineCoefficients(pt1, pt2));
 

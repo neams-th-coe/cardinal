@@ -5,4 +5,16 @@
     exodiff = subchannel_out.e
     requirement = "A hexagonal subchannel bin shall divide space according to subchannel discretization in a hexagonal lattice."
   []
+  [pin_centered]
+    type = Exodiff
+    input = pin_centered.i
+    exodiff = pin_centered_out.e
+    requirement = "A hexagonal subchannel bin shall divide space according to a pin-centered subcannel discretization in a hexagonal lattice with two pin rings."
+  []
+  [pin_centered_3]
+    type = Exodiff
+    input = pin_centered_3.i
+    exodiff = pin_centered_3_out.e
+    requirement = "A hexagonal subchannel bin shall divide space according to a pin-centered subcannel discretization in a hexagonal lattice with three pin rings."
+  []
 []
