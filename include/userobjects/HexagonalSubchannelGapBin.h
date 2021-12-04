@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "SideSpatialBinUserObject.h"
+#include "PlaneSpatialBinUserObject.h"
 #include "HexagonalLatticeUtility.h"
 
 /**
  * Class that bins spatial coordinates into a hexagonal subchannel gap discretization
  * with unique bins for each gap.
  */
-class HexagonalSubchannelGapBin : public SideSpatialBinUserObject
+class HexagonalSubchannelGapBin : public PlaneSpatialBinUserObject
 {
 public:
   static InputParameters validParams();

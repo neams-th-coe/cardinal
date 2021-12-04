@@ -19,7 +19,7 @@
 #pragma once
 
 #include "CardinalEnums.h"
-#include "NekSideSpatialBinUserObject.h"
+#include "MooseTypes.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
 #include "io.hpp"
@@ -237,6 +237,14 @@ void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, i
 void initializeInterpolationMatrices(const int n_moost_pts);
 
 /**
+ * Compute the face centroid given a local element ID and face ID (NOTE: returns in dimensional form)
+ * @param[in] local_elem_id local element ID on this rank
+ * @param[in] local_face_id local face ID on the element
+ * @return centroid
+ */
+Point centroidFace(int local_elem_id, int local_face_id);
+
+/**
  * Compute the centroid given a local element ID (NOTE: returns in dimensional form)
  * @param[in] local_elem_id local element ID on this rank
  * @return centroid
@@ -250,6 +258,15 @@ Point centroid(int local_elem_id);
  * @return point
  */
 Point gllPoint(int local_elem_id, int local_node_id);
+
+/**
+ * Get the coordinate given a local element ID, a local face ID, and local node ID (NOTE: returns in dimensional form)
+ * @param[in] local_elem_id local element ID on this rank
+ * @param[in] local_face_id local face ID on this element
+ * @param[in] local_node_id local node ID on this element
+ * @return point
+ */
+Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
  * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
@@ -342,12 +359,26 @@ double volume();
 void dimensionalizeVolume(double & integral);
 
 /**
+ * Dimensionalize an area
+ * @param[in] integral integral to dimensionalize
+ */
+void dimensionalizeArea(double & integral);
+
+/**
  * Dimensionalize a given integral of f over volume, i.e. fdV
  * @param[in] integrand field to dimensionalize
  * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
  * @param[in] integral integral to dimensionalize
  */
 void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume, double & integral);
+
+/**
+ * Dimensionalize a given integral of f over a side, i.e. fdS
+ * @param[in] integrand field to dimensionalize
+ * @param[in] area area of the boundary
+ * @param[in] integral integral to dimensionalize
+ */
+void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const Real & area, double & integral);
 
 /**
  * Dimensionalize a given integral of f over a side, i.e. fdS

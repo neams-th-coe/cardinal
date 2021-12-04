@@ -23,7 +23,7 @@ registerMooseObject("CardinalApp", LayeredGapBin);
 InputParameters
 LayeredGapBin::validParams()
 {
-  InputParameters params = SideSpatialBinUserObject::validParams();
+  InputParameters params = PlaneSpatialBinUserObject::validParams();
   MooseEnum directions("x y z");
 
   params.addRequiredParam<MooseEnum>("direction", directions,
@@ -36,7 +36,7 @@ LayeredGapBin::validParams()
 }
 
 LayeredGapBin::LayeredGapBin(const InputParameters & parameters)
-  : SideSpatialBinUserObject(parameters),
+  : PlaneSpatialBinUserObject(parameters),
   _direction(parameters.get<MooseEnum>("direction")),
   _num_layers(getParam<unsigned int>("num_layers")),
   _layered_subproblem(parameters.getCheckedPointerParam<SubProblem *>("_subproblem")),
@@ -112,7 +112,7 @@ LayeredGapBin::adjustBinValue(const unsigned int & i) const
   // This bin object gets _direction_min and _direction_max from a bounding box over the
   // mesh. This means that the first and last planes are on the boundary of the domain,
   // so the integrating volume is actually only half of _gap_thickness in
-  // NekBinnedSideIntegral/NekBinnedSideAverage. Therefore, to get correct area integrals,
+  // NekBinnedPlaneIntegral/NekBinnedPlaneAverage. Therefore, to get correct area integrals,
   // we divide each integral by _gap_thickness (in NekSideBinnedIntegral) except for the
   // first and last bins, which we only divide by _gap_thickness / 2.0
 

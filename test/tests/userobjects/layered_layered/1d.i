@@ -50,7 +50,7 @@
     field = pressure
   []
   [face_avg]
-    type = NekBinnedSideAverage
+    type = NekBinnedPlaneAverage
     bins = 'x_bins_gaps'
     gap_thickness = 0.1
     map_space_by_qp = true

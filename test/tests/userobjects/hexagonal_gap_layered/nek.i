@@ -50,14 +50,14 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
     num_layers = 6
   []
   [gap_avg]
-    type = NekBinnedSideAverage
+    type = NekBinnedPlaneAverage
     bins = 'subchannel_binning axial_binning'
     field = temperature
     gap_thickness = ${gap_thickness}
     map_space_by_qp = true
   []
   [gap_area]
-    type = NekBinnedSideIntegral
+    type = NekBinnedPlaneIntegral
     bins = 'subchannel_binning axial_binning'
     field = unity
     gap_thickness = ${gap_thickness}

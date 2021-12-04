@@ -1,0 +1,42 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  // set initial conditions for the velocity, temperature, and pressure. Because
+  // we turn off the solves, we're just doing postprocessing of whatever we set
+  // for the initial conditions
+  mesh_t * mesh = nrs->cds->mesh[0];
+
+  // loop over all the GLL points and assign directly to the solution arrays by
+  // indexing according to the field offset necessary to hold the data for each
+  // solution component
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    // mesh is in non-dimensional coordinates
+    dfloat x = mesh->x[n];
+    dfloat y = mesh->y[n];
+    dfloat z = mesh->z[n];
+
+    dfloat Lref = 7.646e-3;
+
+    dfloat xdim = x * Lref;
+    dfloat ydim = y * Lref;
+    dfloat zdim = z * Lref;
+
+    // same ICs as in ../dimensional, except that we've non-dimensionalized
+    // with some arbitrary characteristic scales
+    nrs->U[n + 0 * nrs->fieldOffset] = xdim / 2.0;
+    nrs->U[n + 1 * nrs->fieldOffset] = ydim / 2.0;
+    nrs->U[n + 2 * nrs->fieldOffset] = exp(zdim) / 2.0;
+
+    dfloat kp = 834.5 * 2.0 * 2.0;
+    nrs->P[n] = (xdim+ydim+zdim) / kp;
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = (xdim+ydim+zdim - 100.0) / 50.0;
+  }
+}

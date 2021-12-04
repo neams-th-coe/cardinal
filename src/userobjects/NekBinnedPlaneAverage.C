@@ -16,19 +16,28 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#include "NekBinnedPlaneAverage.h"
 
-#include "NekBinnedSideIntegral.h"
+registerMooseObject("CardinalApp", NekBinnedPlaneAverage);
 
-/**
- * Compute an average of the NekRS solution in spatial bins on a sideset
- */
-class NekBinnedSideAverage : public NekBinnedSideIntegral
+InputParameters
+NekBinnedPlaneAverage::validParams()
 {
-public:
-  static InputParameters validParams();
+  InputParameters params = NekPlaneSpatialBinUserObject::validParams();
+  params.addClassDescription("Compute the spatially-binned side average of a field over the NekRS mesh");
+  return params;
+}
 
-  NekBinnedSideAverage(const InputParameters & parameters);
+NekBinnedPlaneAverage::NekBinnedPlaneAverage(const InputParameters & parameters)
+  : NekBinnedPlaneIntegral(parameters)
+{
+}
 
-  virtual void execute() override;
-};
+void
+NekBinnedPlaneAverage::execute()
+{
+  computeIntegral();
+
+  for (unsigned int i = 0; i < num_bins(); ++i)
+    _bin_values[i] /= _bin_volumes[i];
+}

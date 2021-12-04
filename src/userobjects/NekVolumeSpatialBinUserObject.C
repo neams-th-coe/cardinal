@@ -17,7 +17,7 @@
 /********************************************************************/
 
 #include "NekVolumeSpatialBinUserObject.h"
-#include "SideSpatialBinUserObject.h"
+#include "PlaneSpatialBinUserObject.h"
 
 InputParameters
 NekVolumeSpatialBinUserObject::validParams()
@@ -34,7 +34,7 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
 
   for (auto & uo : _bins)
   {
-    const SideSpatialBinUserObject * side_bin = dynamic_cast<const SideSpatialBinUserObject *>(uo);
+    const PlaneSpatialBinUserObject * side_bin = dynamic_cast<const PlaneSpatialBinUserObject *>(uo);
     if (side_bin)
       ++num_side_distributions;
   }
@@ -46,5 +46,5 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
 
   // the 'normal' velocity component direction does not apply to volume bins
   if (_field == field::velocity_component && _velocity_component == component::normal)
-    mooseError("Setting 'velocity_component = normal' is not supported for volume bin user objects!");
+    mooseError("Setting 'velocity_component = normal' is not supported for the '" + name() + "' user object!");
 }

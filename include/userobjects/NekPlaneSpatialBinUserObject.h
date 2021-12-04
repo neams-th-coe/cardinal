@@ -18,17 +18,35 @@
 
 #pragma once
 
-#include "NekBinnedSideIntegral.h"
+#include "NekSpatialBinUserObject.h"
+#include "PlaneSpatialBinUserObject.h"
 
 /**
- * Compute an average of the NekRS solution in spatial bins on a sideset
+ * Class that performs various postprocessing operations on the
+ * NekRS solution with a spatial binning formed as the product
+ * of two bin distributions, one a surface distribution and the other
+ * a volume distribution.
  */
-class NekBinnedSideAverage : public NekBinnedSideIntegral
+class NekPlaneSpatialBinUserObject : public NekSpatialBinUserObject
 {
 public:
   static InputParameters validParams();
 
-  NekBinnedSideAverage(const InputParameters & parameters);
+  NekPlaneSpatialBinUserObject(const InputParameters & parameters);
 
-  virtual void execute() override;
+  virtual Real distanceFromGap(const Point & point, const unsigned int & gap_index) const;
+
+  virtual unsigned int gapIndex(const Point & point) const;
+
+  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const;
+
+protected:
+  /// Width of region enclosing gap for which points contribute to gap integral
+  const Real & _gap_thickness;
+
+  /// The user object providing the side binning
+  const PlaneSpatialBinUserObject * _side_bin;
+
+  /// The index into the _bins that represents the side bin object
+  unsigned int _side_index;
 };

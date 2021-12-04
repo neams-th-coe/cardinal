@@ -17,67 +17,36 @@
 /********************************************************************/
 
 #include "NekSideSpatialBinUserObject.h"
+#include "PlaneSpatialBinUserObject.h"
 
 InputParameters
 NekSideSpatialBinUserObject::validParams()
 {
-  InputParameters params = NekSpatialBinUserObject::validParams();
-  params.addRequiredRangeCheckedParam<Real>("gap_thickness", "gap_thickness > 0.0",
-    "thickness of gap region for which to accept contributions to the side integral over "
-    "the gap, expressed in the same units as the mesh.");
+  InputParameters params = NekVolumeSpatialBinUserObject::validParams();
+  params.addRequiredParam<std::vector<int>>("boundary",
+    "Boundary ID(s) over which to compute the bin values");
   return params;
 }
 
 NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters & parameters)
-  : NekSpatialBinUserObject(parameters),
-    _gap_thickness(getParam<Real>("gap_thickness"))
+  : NekVolumeSpatialBinUserObject(parameters),
+    _boundary(getParam<std::vector<int>>("boundary"))
 {
-  // we need to enforce that there is only one side distribution, because side
-  // distributions defined in orthogonal directions don't ever overlap with one another
-  unsigned int num_side_distributions = 0;
+  int first_invalid_id, n_boundaries;
+  bool valid_ids = nekrs::mesh::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
 
-  for (unsigned int i = 0; i < _bins.size(); ++i)
-  {
-    auto & uo = _bins[i];
-    const SideSpatialBinUserObject * side = dynamic_cast<const SideSpatialBinUserObject *>(uo);
-    if (side)
-    {
-      ++num_side_distributions;
-      _side_bin = side;
-      _side_index = i;
-    }
-  }
-
-  if (num_side_distributions != 1)
-    mooseError("This user object requires exactly one bin distribution "
-      "to be a side distribution; you have specified: " + Moose::stringify(num_side_distributions) +
-      "\noptions: HexagonalSubchannelGapBin");
-
-  if (_field == field::velocity_component && _velocity_component == component::normal)
-  {
-    if (!_fixed_mesh)
-      mooseError("The gap unit normals assume the NekRS domain is not moving; with a moving "
-        "mesh, the 'velocity_component = normal' setting is unavailable unless internal methods "
-        "are updated to recompute normals following a change in geometry.");
-
-    _velocity_bin_directions = _side_bin->gapUnitNormals();
-  }
+  if (!valid_ids)
+    mooseError("Invalid 'boundary' entry: ", first_invalid_id, "\n\n"
+      "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
+      "For this problem, NekRS has ", n_boundaries, " boundaries.\n"
+      "Did you enter a valid 'boundary' for '" + name() + "'?");
 }
 
-Real
-NekSideSpatialBinUserObject::distanceFromGap(const Point & point, const unsigned int & gap_index) const
+Point
+NekSideSpatialBinUserObject::nekPoint(const int & local_elem_id, const int & local_face_id, const int & local_node_id) const
 {
-  return _side_bin->distanceFromGap(point, gap_index);
-}
-
-unsigned int
-NekSideSpatialBinUserObject::gapIndex(const Point & point) const
-{
-  return _side_bin->gapIndex(point);
-}
-
-void
-NekSideSpatialBinUserObject::gapIndexAndDistance(const Point & point, unsigned int & index,  Real & distance) const
-{
-  _side_bin->gapIndexAndDistance(point, index, distance);
+  if (_map_space_by_qp)
+    return nekrs::gllPointFace(local_elem_id, local_face_id, local_node_id);
+  else
+    return nekrs::centroidFace(local_elem_id, local_face_id);
 }

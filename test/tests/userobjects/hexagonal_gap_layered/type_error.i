@@ -32,7 +32,7 @@
     num_layers = 6
   []
   [vol_avg]
-    type = NekBinnedSideIntegral
+    type = NekBinnedPlaneIntegral
     bins = 'axial_binning'
     field = unity
     gap_thickness = 0.01

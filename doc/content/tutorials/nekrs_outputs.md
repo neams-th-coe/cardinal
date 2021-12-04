@@ -94,10 +94,14 @@ use to see that the temperature from `nek_out.e` was correctly loaded (`nek_temp
 Cardinal contains features for postprocessing the NekRS solution in spatial
 "bins" using user objects. Available user objects include:
 
-- [NekBinnedSideIntegral](/userobjects/NekBinnedSideIntegral.md):
+- [NekBinnedPlaneIntegral](/userobjects/NekBinnedPlaneIntegral.md):
   compute plane integrals over regions of space
-- [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md):
+- [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md):
   compute plane averages over regions of space
+- [NekBinnedSideIntegral](/userobjects/NekBinnedSideIntegral.md):
+  compute integrals over sidesets with subdivisions in space
+- [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md):
+  compute averages over sidesets with subdivisions in space
 - [NekBinnedVolumeIntegral](/userobjects/NekBinnedVolumeIntegral.md):
   compute volume integrals over regions of space
 - [NekBinnedVolumeAverage](/userobjects/NekBinnedVolumeAverage.md):
@@ -195,13 +199,13 @@ object assigns a unique ID for each subchannel gap ID in a hexagonal fuel bundle
 [LayeredBin](/userobjects/LayeredBin.md) object then assigns a unique ID for equal-size
 layers in the axial direction; for simplicity, we reuse the same axial binning distribution
 that we selected for the volume averages. Finally, we compute the planar averages of the
-NekRS temperature with the [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md)
+NekRS temperature with the [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md)
 object, which takes an arbitrary number of individual bin distributions (with the
 only requirement being that one and only one of these distribution is a "side" distribution, which
 for this example is the `HexagonalSubchannelGapBin`).
 
 For the gap average of the normal velocity, we reuse the same previous bins, but set
-`field = velocity_component` for a [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md).
+`field = velocity_component` for a [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md).
 
 The [SpatialUserObjectVectorPostprocessor](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html)
 outputs the bin values for the user object to the CSV format

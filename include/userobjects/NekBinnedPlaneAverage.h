@@ -18,17 +18,17 @@
 
 #pragma once
 
-#include "NekBinnedSideIntegral.h"
+#include "NekBinnedPlaneIntegral.h"
 
 /**
- * Compute an average of the NekRS solution in spatial bins on a sideset
+ * Compute a side average of the NekRS solution in spatial bins.
  */
-class NekBinnedSideAverage : public NekBinnedSideIntegral
+class NekBinnedPlaneAverage : public NekBinnedPlaneIntegral
 {
 public:
   static InputParameters validParams();
 
-  NekBinnedSideAverage(const InputParameters & parameters);
+  NekBinnedPlaneAverage(const InputParameters & parameters);
 
   virtual void execute() override;
 };
