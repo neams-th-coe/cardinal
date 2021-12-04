@@ -1739,7 +1739,5 @@ TEST_F(HexagonalLatticeTest, pin_corners)
   EXPECT_EQ(hl.pinIndex(p), 6);
 
   p = {0.85, 0.51, 0.0};
-  EXPECT_EQ(hl.pinIndex(p), -1);
+  EXPECT_EQ(hl.pinIndex(p), 7);
 }
-
-

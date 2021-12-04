@@ -619,7 +619,7 @@ HexagonalLatticeUtility::pointInPolygon(const Point & point, const std::vector<P
   return !(negative && positive);
 }
 
-const int
+const unsigned int
 HexagonalLatticeUtility::pinIndex(const Point & point) const
 {
   auto side = hexagonSide(_pin_pitch);
@@ -641,8 +641,7 @@ HexagonalLatticeUtility::pinIndex(const Point & point) const
       return i;
   }
 
-  // if not in any bin, return an unmapped ID
-  return UNMAPPED;
+  return _n_pins;
 }
 
 const unsigned int
