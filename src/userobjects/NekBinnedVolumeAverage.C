@@ -38,6 +38,9 @@ NekBinnedVolumeAverage::execute()
 {
   NekBinnedVolumeIntegral::execute();
 
+  // divide by the bin volume if accessible; otherwise, we know that there weren't any counts,
+  // and the bin value will remain zero
   for (unsigned int i = 0; i < num_bins(); ++i)
-    _bin_values[i] /= _bin_volumes[i];
+    if (_bin_volumes[i] > 0.0)
+      _bin_values[i] /= _bin_volumes[i];
 }

@@ -60,4 +60,10 @@
                   "binning and demonstrate correct results for volume averages of velocity projected "
                   "along a constant direction."
   []
+  [pin_1d]
+    type = CSVDiff
+    input = pin_1d.i
+    csvdiff = pin_1d_out_from_uo_0002.csv
+    requirement = "A pin-centered subchannel bin shall give correct results for side averages of temperature."
+  []
 []
