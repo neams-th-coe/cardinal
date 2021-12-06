@@ -1,0 +1,61 @@
+#include "udf.hpp"
+
+dfloat inlet_velocity(nrs_t * nrs)
+{
+  setupAide & options = platform->options;
+
+  // specify the Reynolds number, which we'll use to set all other parameters.
+  // This is a small value to make solution easier, since this is just a test.
+  dfloat Re = 500;
+
+  // flow area and wetted perimeter (comes from Cubit measurements)
+  dfloat pin_outer_radius = 0.4E-2;
+  dfloat pin_pitch = 0.908e-2;
+
+  // from NekSideIntegral
+  dfloat flow_area = 2.11354E-5;
+
+  dfloat wetted_perimeter = 6 * pin_pitch / std::sqrt(3.0) + M_PI * 2.0 * pin_outer_radius;
+  dfloat hydraulic_d = 4 * flow_area / wetted_perimeter;
+
+  // get the density and viscosity from the input file
+  dfloat mu;
+  dfloat rho;
+  options.getArgs("VISCOSITY", mu);
+  options.getArgs("DENSITY", rho);
+
+  return Re * mu / hydraulic_d / rho;
+}
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+  setupAide & options = platform->options;
+  occa::properties & kernelInfo = *nrs->kernelInfo;
+
+  kernelInfo["defines/Vz"] = inlet_velocity(nrs);
+
+  // inlet temperature
+  kernelInfo["defines/inlet_T"] = 628.15;
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+
+  dfloat inlet_Vz = inlet_velocity(nrs);
+
+  // loop over all the GLL points and assign directly to the solution arrays by
+  // indexing according to the field offset necessary to hold the data for each
+  // solution component
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = inlet_Vz; // z-velocity
+
+    nrs->P[n] = 0.0; // pressure
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 628.15; // temperature
+  }
+}

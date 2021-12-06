@@ -1,0 +1,21 @@
+[Tests]
+  [pyramid_conduction]
+    type = Exodiff
+    input = nek_master.i
+    exodiff = 'nek_master_out.e'
+    min_parallel = 6
+    requirement = "A coupled MOOSE-nekRS two-region pyramid heat conduction problem shall predict "
+                  "the correct interface and volume temperatures that are obtained from a standalone "
+                  "MOOSE heat conduction simulation in the `moose.i` file of both pyramid blocks. "
+                  "Because only a constant heat flux is passed for each element during the data transfer "
+                  "from MOOSE to nekRS, we do not expect the results to match perfectly with the MOOSE "
+                  "standalone case (which represents the heat flux internally as a continuous function "
+                  "(as opposed to elementwise-constant). We compare extrema temperature values on the "
+                  "two pyramid blocks with the MOOSE solution, and see that (1) the overall temperature "
+                  "distribution matches qualitatively, and (2) the difference between the Cardinal case "
+                  "and the MOOSE standalone case decreases as the mesh is refined (i.e. as the effect of "
+                  "the constant monomial surface heat flux is lowered). Even with the fairly coarse mesh "
+                  "used in this test, the errors in temperature are less than 1% of the total temperature "
+                  "range in the problem (but can locally be high relative differences)."
+  []
+[]

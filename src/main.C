@@ -1,19 +1,26 @@
-//* This file is part of the MOOSE framework
-//* https://www.mooseframework.org
-//*
-//* All rights reserved, see COPYRIGHT for full restrictions
-//* https://github.com/idaholab/moose/blob/master/COPYRIGHT
-//*
-//* Licensed under LGPL 2.1, please see LICENSE for details
-//* https://www.gnu.org/licenses/lgpl-2.1.html
-//#include "cardinalTestApp.h"
+/********************************************************************/
+/*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
+/*                             Cardinal                             */
+/*                                                                  */
+/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                        ALL RIGHTS RESERVED                       */
+/*                                                                  */
+/*                 Prepared by UChicago Argonne, LLC                */
+/*               Under Contract No. DE-AC02-06CH11357               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*             Prepared by Battelle Energy Alliance, LLC            */
+/*               Under Contract No. DE-AC07-05ID14517               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*                 See LICENSE for full restrictions                */
+/********************************************************************/
+
 #include "MooseInit.h"
 #include "Moose.h"
 #include "MooseApp.h"
 #include "AppFactory.h"
 #include "CommandLine.h"
-#include "OpenMCApp.h"
-#include "NekApp.h"
 #include "CardinalApp.h"
 
 // Create a performance log
@@ -35,15 +42,21 @@ main(int argc, char *argv[])
   std::string which_app;
   cmds.search("which_app", which_app);
 
-  OpenMCApp::registerApps();
-  NekApp::registerApps();
   CardinalApp::registerApps();
 
   std::string app_class_name;
   if (which_app == "openmc")
-    app_class_name = "OpenMCApp";
-  else if (which_app == "nek5000" or which_app == "nek")
-    app_class_name = "NekApp";
+    mooseError("You no longer need to specify '--app openmc' for wrapped OpenMC inputs.\n"
+      "The correct app is now inferred from the [Problem] block in the input file.\n"
+      "Please simply remove the '--app openmc' from your run command.");
+
+  if (which_app == "nek5000" or which_app == "nek")
+    mooseError("You no longer need to specify '--app nek' or '--app nek5000' for wrapped Nek inputs.\n"
+      "The correct app is now inferred from the [Problem] block in the input file.\n"
+      "Please simply remove the '--app nek'/'--app nek5000' from your run command.");
+
+  if (which_app == "sam")
+    app_class_name = "SamApp";
   else
     app_class_name = "CardinalApp";
 

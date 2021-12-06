@@ -1,20 +1,27 @@
-[submodule "moose"]
-	path = contrib/moose
-	url = https://github.com/idaholab/moose.git
-	branch = master
-[submodule "contrib/Nek5000"]
-	path = contrib/Nek5000
-	url = https://github.com/RonRahaman/Nek5000.git
-  branch = cardinal
 [submodule "contrib/openmc"]
 	path = contrib/openmc
 	url = https://github.com/openmc-dev/openmc.git
-  branch = develop
-[submodule "contrib/gslib"]
-	path = contrib/gslib
-	url = https://github.com/gslib/gslib.git
-  branch = v1.0.3
-[submodule "problems/large-problems"]
-	path = problems/large-problems
-	url = https://xgitlab.cels.anl.gov/neams-th-coe/large-problems.git
-  branch = master
+[submodule "contrib/nekRS"]
+	path = contrib/nekRS
+	url = https://github.com/neams-th-coe/nekRS.git
+[submodule "contrib/moose"]
+	path = contrib/moose
+	url = https://github.com/idaholab/moose.git
+[submodule "contrib/SAM"]
+	path = contrib/SAM
+	url = https://git-nse.egs.anl.gov/SAM/SAM.git
+[submodule "contrib/sockeye"]
+	path = contrib/sockeye
+	url = git@hpcgitlab.hpc.inl.gov:idaholab/sockeye.git
+[submodule "contrib/thm"]
+	path = contrib/thm
+	url = git@hpcgitlab.hpc.inl.gov:idaholab/thm.git
+[submodule "contrib/sodium"]
+	path = contrib/sodium
+	url = git@hpcgitlab.hpc.inl.gov:idaholab/sodium.git
+[submodule "contrib/potassium"]
+	path = contrib/potassium
+	url = git@hpcgitlab.hpc.inl.gov:idaholab/potassium.git
+[submodule "contrib/iapws95"]
+	path = contrib/iapws95
+	url = git@hpcgitlab.hpc.inl.gov:idaholab/iapws95.git

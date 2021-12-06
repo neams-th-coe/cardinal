@@ -1,0 +1,11 @@
+void scalarDirichletConditions(bcData * bc)
+{
+  if (bc->id == 5)
+    bc->s = 0.0;
+}
+
+void scalarNeumannConditions(bcData * bc)
+{
+  if (bc->id == 1 || bc->id == 2 || bc->id == 7)
+    bc->flux = bc->wrk[bc->idM];
+}

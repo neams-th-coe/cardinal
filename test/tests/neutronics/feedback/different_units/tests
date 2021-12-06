@@ -1,0 +1,12 @@
+[Tests]
+  [different_units]
+    type = Exodiff
+    input = openmc_master.i
+    exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
+    requirement = "The system shall allow coupling of an OpenMC model with a length scale of "
+                  "centimeters to an applications with a length scale of meters. This is verified "
+                  "by ensuring exact agreement between two versions of the same problem - one with "
+                  "a length scale of centimeters (openmc_master_cm.i), and the other with a length "
+                  "scale of meters (openmc_master.i)."
+  []
+[]

@@ -1,0 +1,12 @@
+[Tests]
+  [./nonzero_start_time]
+    type = RunException
+    input = nek.i
+
+    # nekRS can't use more processors than elements
+    max_parallel = 12
+
+    expect_err = "You specified a start time of 2, but a non-zero start time is not yet supported for 'NekRSProblem'!"
+    requirement = "The system shall error if a nonzero start time is specified on the Executioner"
+  [../]
+[]

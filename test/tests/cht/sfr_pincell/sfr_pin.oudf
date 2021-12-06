@@ -1,0 +1,34 @@
+/**
+ * Here, we set all of the various boundary conditions. These are "device" functions
+ * because all of the solution occurs on the device (including the application of
+ * boundary conditions). nekRS gives you ultimate flexibility in how to set boundary
+ * conditions - here, we apply the conditions based on the sideset ID and, for the scalars,
+ * the scalar ID. In some places we use kernel variables defined in the `.udf` file.
+ *
+ * Each of the functions here is only called on the boundaries that use that condition,
+ * according to what is set in the boundaryTypeMap in the .par file. However, we want
+ * to be sure that this file matches what the .par file suggests, so we perform some
+ * extra checks on validity here.
+ **/
+
+void velocityDirichletConditions(bcData * bc)
+{
+  if (bc->id == 3)
+  {
+    bc->u = 0.0; // x-velocity
+    bc->v = 0.0; // y-velocity
+    bc->w = Vz;  // z-velocity
+  }
+}
+
+void scalarDirichletConditions(bcData * bc)
+{
+  if (bc->id == 3)
+    bc->s = inlet_T;
+}
+
+void scalarNeumannConditions(bcData * bc)
+{
+  if (bc->id == 1)
+    bc->flux = bc->wrk[bc->idM];
+}

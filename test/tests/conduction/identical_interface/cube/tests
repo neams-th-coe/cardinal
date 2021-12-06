@@ -1,0 +1,18 @@
+[Tests]
+  [slab_conduction]
+    type = Exodiff
+    input = nek_master.i
+    exodiff = 'nek_master_out.e'
+    min_parallel = 6
+    custom_cmp = 'exodiff.cmp'
+    requirement = "A coupled MOOSE-nekRS slab heat conduction problem shall predict "
+                  "the correct interface and volume temperatures based on an analytic solution. "
+                  "The MOOSE portion of the domain (the left half) is compared against an exodiff "
+                  "with this test, while the nekRS portion of the domain (the right half) has been "
+                  "compared off-line at the time of the generation of this test to the known "
+                  "analytic solution via line plot in Paraview (this has to be done offline because "
+                  "the 'visnek' script needs to be run to get the nekRS output results into the "
+                  "exodus format. A heat conduction simulation performed with MOOSE over the combined nekRS-MOOSE "
+                  "domain in the 'moose.i' input file also matches the coupled results very well."
+  []
+[]

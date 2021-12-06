@@ -1,9 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<plots>
-  <plot basis="xy" color_by="cell" id="9" type="slice">
-    <origin>0.0 0.0 0.0</origin>
-    <width>3.06 3.06</width>
-    <pixels>500 500</pixels>
-    <background>0 0 0</background>
-  </plot>
-</plots>

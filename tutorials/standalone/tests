@@ -1,0 +1,9 @@
+[Tests]
+  [standalone]
+    type = RunApp
+    input = nek.i
+    cli_args = "MultiApps/active='' Transfers/active=''"
+    min_parallel = 8
+    requirement = 'Cardinal shall be able to run a NekRS standalone simulation.'
+  []
+[]

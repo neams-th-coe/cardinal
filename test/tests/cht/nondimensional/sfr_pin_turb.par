@@ -1,0 +1,61 @@
+# Model of single SFR pincell, fluid region only. All units are nondimensional.
+# The following reference scales are selected:
+#
+# L = 0.908e-2
+# rho = 834.5
+# Pr = 0.004532565021024762
+# U = 0.0950466                 inlet velocity from ../sfr_pincell
+# T0 = 628.15                   inlet temperature from ../sfr_pincell
+#
+# The particular length scale selected is based on dividing the mesh in
+# ../sfr_pincell by a factor of 0.908e-2 (the pin pitch)
+
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 2000
+  dt = 1e-2
+  variableDT = no
+  timeStepper = tombo2
+  writeControl = numSteps
+  writeInterval = 1
+  polynomialOrder = 4
+
+[PROBLEMTYPE]
+  stressFormulation = true
+
+[VELOCITY]
+
+  # for constant properties, this is 1/Re. For non-constant properties, it is 1/Re * mu/mu_ref
+  viscosity = -3038.7881869873413
+
+  density = 1.0
+  boundaryTypeMap = W, W, v, O
+  residualTol = 1.0e-6
+  residualProj = false
+
+[PRESSURE]
+  residualTol = 1.0e-6
+  preconditioner = semg_amg
+
+[TEMPERATURE]
+  # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref
+  conductivity = -13.773505042642078
+
+  rhoCp = 1.0
+  boundaryTypeMap = f, I, t, O
+  residualTol = 1.0e-5
+
+[SCALAR01] # turbulent kinetic energy
+  boundaryTypeMap = t, t, t, I
+  residualTol = 1e-6
+  rho = 1.0
+  diffusivity = -3038.7881869873413
+
+[SCALAR02] # tau
+  boundaryTypeMap = t, t, t, I
+  residualTol = 1e-6
+  rho = 1.0
+  diffusivity = -3038.7881869873413

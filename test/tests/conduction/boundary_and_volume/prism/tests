@@ -1,0 +1,14 @@
+[Tests]
+  [pyramid]
+    type = Exodiff
+    input = openmc.i
+    exodiff = 'openmc_out.e'
+    min_parallel = 8
+    custom_cmp = 'exodiff.cmp'
+    requirement = "A coupled MOOSE-nekRS heat conduction problem shall produce the correct temperature "
+                  "distribution when (1) a heat source is applied in the nekRS volume and (2) a heat "
+                  "flux is imposed in nekRS through a boundary. The same problem is created in a standalone "
+                  "MOOSE simulation, in moose.i. Temperatures agree to within 0.2% degrees, and the agreement "
+                  "can be made better by using finer meshes in the coupled Cardinal case."
+  []
+[]

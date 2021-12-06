@@ -1,0 +1,14 @@
+[Tests]
+  [no_occa_source_kernel]
+    type = RunException
+    input = nek.i
+
+    # nekRS can't use more processors than elements
+    max_parallel = 8
+
+    expect_err = "In order to send a heat source to nekRS, you must have an OCCA kernel "
+                 "for the source in the passive scalar equations!"
+    requirement = "The system shall throw an error if there is no heat source kernel when "
+                  "using volume coupling"
+  []
+[]

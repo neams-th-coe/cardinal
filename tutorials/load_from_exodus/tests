@@ -1,0 +1,16 @@
+[Tests]
+  [run_nek]
+    type = RunApp
+    input = nek.i
+    min_parallel = 4
+    requirement = "Cardinal shall be able to run NekRS and output a time history of its solution "
+                  "onto a mesh mirror."
+  []
+  [load_nek]
+    type = Exodiff
+    input = load_nek.i
+    exodiff = load_nek_out.e
+    prereq = run_nek
+    requirement = "Cardinal shall be able to load a time history of a NekRS solution."
+  []
+[]

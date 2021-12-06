@@ -1,0 +1,34 @@
+# Model of single SFR pincell, fluid region only. All units are in SI.
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 2000
+  dt = 5e-3
+  variableDT = no
+  timeStepper = tombo2
+  writeControl = numSteps
+  writeInterval = 100
+  polynomialOrder = 4
+
+[PROBLEMTYPE]
+  stressFormulation = true
+
+[VELOCITY]
+  viscosity = 2.37e-4
+  density = 834.5
+  boundaryTypeMap = W, W, v, O
+  residualTol = 1.0e-6
+  residualProj = false
+
+[PRESSURE]
+  residualTol = 1.0e-6
+  residualProj = false
+  preconditioner = semg_amg
+
+[TEMPERATURE]
+  conductivity = 64.21
+  rhoCp = 1024766.0
+  boundaryTypeMap = f, I, t, O
+  residualTol = 1.0e-3

@@ -1,0 +1,13 @@
+#include "udf.hpp"
+
+void UDF_Setup(nrs_t *nrs)
+{
+  mesh_t * mesh = nrs->cds->mesh[0];
+
+  // loop over all the GLL points and assign directly to the solution arrays by
+  // indexing according to the field offset necessary to hold the data for each
+  // solution component
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+    nrs->cds->S[n] = 0;
+}

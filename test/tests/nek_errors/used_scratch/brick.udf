@@ -1,0 +1,16 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+  nrs->usrwrk = (double*) calloc(mesh->Nelements * mesh->Np, sizeof(double));
+  nrs->o_usrwrk = platform->device.malloc(mesh->Nelements * mesh->Np * sizeof(double), nrs->usrwrk);
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+}

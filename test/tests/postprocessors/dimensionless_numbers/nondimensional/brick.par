@@ -1,0 +1,28 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 1
+  dt = 5.0e-4
+  polynomialOrder = 7
+  writeControl = timeStep
+  writeInterval = 2
+  extrapolation = subCycling
+
+[VELOCITY]
+  viscosity = -880.2742616033756
+  density = 1.0
+  residualTol = 1.0e-6
+  residualProj = false
+  boundaryTypeMap = inlet, outlet, wall
+
+[PRESSURE]
+  residualTol = 1.0e-5
+  residualProj = false
+
+[TEMPERATURE]
+  solver = none
+  residualTol = 1.0e-5
+  residualProj  = false
+  boundaryTypeMap = t, t, t

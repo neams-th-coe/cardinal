@@ -1,16 +1,24 @@
-//* This file is part of the MOOSE framework
-//* https://www.mooseframework.org
-//*
-//* All rights reserved, see COPYRIGHT for full restrictions
-//* https://github.com/idaholab/moose/blob/master/COPYRIGHT
-//*
-//* Licensed under LGPL 2.1, please see LICENSE for details
-//* https://www.gnu.org/licenses/lgpl-2.1.html
+/********************************************************************/
+/*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
+/*                             Cardinal                             */
+/*                                                                  */
+/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                        ALL RIGHTS RESERVED                       */
+/*                                                                  */
+/*                 Prepared by UChicago Argonne, LLC                */
+/*               Under Contract No. DE-AC02-06CH11357               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*             Prepared by Battelle Energy Alliance, LLC            */
+/*               Under Contract No. DE-AC07-05ID14517               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*                 See LICENSE for full restrictions                */
+/********************************************************************/
 
-#include "cardinalApp.h"
+#include "CardinalUnitApp.h"
 #include "gtest/gtest.h"
 
-// Moose includes
 #include "Moose.h"
 #include "MooseInit.h"
 #include "AppFactory.h"
@@ -27,7 +35,7 @@ main(int argc, char ** argv)
   testing::InitGoogleTest(&argc, argv);
 
   MooseInit init(argc, argv);
-  registerApp(cardinalApp);
+  registerApp(CardinalUnitApp);
   Moose::_throw_on_error = true;
 
   return RUN_ALL_TESTS();

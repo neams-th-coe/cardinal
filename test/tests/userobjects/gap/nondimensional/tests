@@ -1,0 +1,10 @@
+[Tests]
+  [nondim]
+    type = Exodiff
+    input = nek.i
+    exodiff = nek_out_subchannel0.e
+    requirement = "Spatially-binned volume integrals and averages shall be correctly dimensionalized for "
+                  "nondimensional cases. An equivalent setup with a dimensional problem is available at "
+                  "../dimensional. The user object averages/integrals computed here exactly match."
+  []
+[]

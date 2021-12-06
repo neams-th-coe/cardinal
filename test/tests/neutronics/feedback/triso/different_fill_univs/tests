@@ -1,0 +1,9 @@
+[Tests]
+  [different_fill_universes]
+    type = RunException
+    input = openmc.i
+    expect_err = "Not all tally cells contain cell ID 2."
+    requirement = "The system shall error if trying to utilize identical tally cell fills "
+                  "but the filling cell IDs are not identical among the tally cells"
+  []
+[]

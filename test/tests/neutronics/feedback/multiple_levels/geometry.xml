@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="1" name="Fuel" region="-2" universe="1" />
+  <cell id="2" material="3" name="Clad" region="2 -1" universe="1" />
+  <cell id="3" material="2" name="Outside" universe="2" />
+  <cell fill="3" id="4" region="-3 5 -4" universe="4" />
+  <cell id="5" material="2" name="Water" region="3 6 -7 8 -9 5 -4" universe="4" />
+  <lattice id="3">
+    <pitch>1.28 1.28 1.0</pitch>
+    <outer>2</outer>
+    <dimension>1 1 10</dimension>
+    <lower_left>-0.64 -0.64 0</lower_left>
+    <universes>
+1 
+
+1 
+
+1 
+
+1 
+
+1 
+
+1 
+
+1 
+
+1 
+
+1 
+
+1 </universes>
+  </lattice>
+  <surface coeffs="0.0 0.0 0.485" id="1" name="Pincell outer radius" type="z-cylinder" />
+  <surface coeffs="0.0 0.0 0.4125" id="2" name="Pellet outer radius" type="z-cylinder" />
+  <surface coeffs="0.0 0.0 0.485" id="3" type="z-cylinder" />
+  <surface boundary="vacuum" coeffs="10.0" id="4" type="z-plane" />
+  <surface boundary="vacuum" coeffs="0.0" id="5" type="z-plane" />
+  <surface boundary="white" coeffs="-0.64" id="6" name="minimum x" type="x-plane" />
+  <surface boundary="white" coeffs="0.64" id="7" name="maximum x" type="x-plane" />
+  <surface boundary="white" coeffs="-0.64" id="8" name="minimum y" type="y-plane" />
+  <surface boundary="white" coeffs="0.64" id="9" name="maximum y" type="y-plane" />
+</geometry>

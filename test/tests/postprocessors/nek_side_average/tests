@@ -1,0 +1,23 @@
+[Tests]
+  [nek_side_average]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    rel_err = 1e-2
+    requirement = "NekSideAverage shall correctly compute "
+                  "area-averaged temperatures on the nekRS mesh. The gold file was created "
+                  "by running the moose.i input, which computes the same averages using "
+                  "existing MOOSE postprocessors on the same mesh on auxvariables that match "
+                  "the functional form of the solution fields initialized in the pyramid.udf. "
+                  "Perfect agreement is not to be expected, since the underlying basis functions "
+                  "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
+                  "variables - we just require that they are reasonably close."
+  []
+  [zero_direction_vector]
+    type = RunException
+    input = nek.i
+    cli_args = "Postprocessors/velocity_comp1/velocity_direction='0.0 0.0 0.0'"
+    expect_err = "The 'velocity_direction' vector cannot be the zero-vector!"
+    requirement = "System shall error if direction vector has zero length."
+  []
+[]

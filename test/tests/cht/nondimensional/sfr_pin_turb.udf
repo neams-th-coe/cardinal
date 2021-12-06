@@ -1,0 +1,245 @@
+#include "udf.hpp"
+#include "plugins/RANSktau.hpp"
+
+static dfloat COS60 = 0.5;
+static dfloat SIN60 = std::sqrt(3.0) / 2.0;
+
+// define the pin diameter and pitch in nondimensional form, as well as other
+// parameters used for computing the wall distance
+static dfloat pin_diameter = 0.8e-2 / 0.908e-2;
+static dfloat pin_pitch = 0.908e-2 / 0.908e-2;
+static dfloat bundle_pitch = pin_pitch;
+static int n_rings = 1;
+
+static std::vector<std::vector<dfloat>> duct_coeffs;
+static std::vector<std::vector<dfloat>> pin_centers;
+
+int pins(const int n)
+{
+  if (n <= 0)
+    return 0;
+  else if (n == 1)
+    return 1;
+  else
+    return 6 * (n - 1);
+}
+
+int totalPins(const int n)
+{
+  int total = 0;
+  for (int i = 1; i <= n; ++i)
+    total += pins(i);
+
+  return total;
+}
+
+void computePinCoordinates()
+{
+  int n_pins = totalPins(n_rings);
+
+  dfloat corner_shiftx [] = {COS60, -COS60, -1, -COS60, COS60, 1};
+  dfloat corner_shifty [] = {SIN60, SIN60, 0, -SIN60, -SIN60, 0};
+
+  dfloat edge_shiftx [] = {-1, -COS60, COS60, 1, COS60, -COS60};
+  dfloat edge_shifty [] = {0, -SIN60, -SIN60, 0, SIN60, SIN60};
+
+  // center of the bundle is assumed to be at (0, 0, 0)
+  pin_centers.push_back({0, 0, 0});
+
+  for (int i = 2; i <= n_rings; ++i)
+  {
+     int n_total_in_ring = pins(i);
+     int increment = i - 1;
+
+     int d = 0;
+
+     for (int j = 0; j < n_total_in_ring; ++j)
+     {
+       int side = j / increment;
+
+       if (d == increment)
+         d = 0;
+
+       // it is assumed that the pins are aligned parallel to the z-axis
+       std::vector<dfloat> center = {corner_shiftx[side] * pin_pitch * (i - 1),
+                            corner_shifty[side] * pin_pitch * (i - 1),
+                            0.0};
+
+       // additional shift for the edge sides
+       if (d != 0)
+       {
+         center[0] += edge_shiftx[side] * pin_pitch * d;
+         center[1] += edge_shifty[side] * pin_pitch * d;
+       }
+
+       pin_centers.push_back(center);
+
+       d += 1;
+    }
+  }
+}
+
+void computeDuctCoefficients()
+{
+  dfloat corner_shiftx [] = {COS60, -COS60, -1, -COS60, COS60, 1};
+  dfloat corner_shifty [] = {SIN60, SIN60, 0, -SIN60, -SIN60, 0};
+
+  std::vector<std::vector<dfloat>> duct_corners;
+
+  dfloat l = bundle_pitch / 2 / SIN60;
+  for (int i = 0; i < 6; ++i)
+  {
+    std::vector<dfloat> corner = {corner_shiftx[i] * l, corner_shifty[i] * l, 0.0};
+    duct_corners.push_back(corner);
+  }
+
+  for (int i = 0; i < 6; ++i)
+  {
+    int c = i;
+    int n = i == 5 ? 0 : i + 1;
+    dfloat slope = (duct_corners[n][1] - duct_corners[c][1]) /
+      (duct_corners[n][0] - duct_corners[c][0]);
+    std::vector<dfloat> coeffs = {-slope, 1.0, slope * duct_corners[c][0] - duct_corners[c][1]};
+    duct_coeffs.push_back(coeffs);
+  }
+}
+
+dfloat minPinDistance(dfloat x, dfloat y, dfloat z, int vertical_axis)
+{
+  dfloat distance = std::numeric_limits<dfloat>::max();
+  dfloat vertical_pt;
+
+  if (vertical_axis == 0)
+    vertical_pt = x;
+  if (vertical_axis == 1)
+    vertical_pt = y;
+  if (vertical_axis == 2)
+    vertical_pt = z;
+
+  for (int i = 0; i < pin_centers.size(); ++i)
+  {
+    const std::vector<dfloat> & p = pin_centers[i];
+
+    dfloat dx = x - p[0];
+    dfloat dy = y - p[1];
+    dfloat dz = z - p[2];
+    dfloat vertical_correction = vertical_pt - p[vertical_axis];
+    dfloat distance_to_pin = std::sqrt(dx * dx + dy * dy + dz * dz - vertical_correction * vertical_correction) - pin_diameter / 2.0;
+    distance = std::min(distance, distance_to_pin);
+  }
+
+  return distance;
+}
+
+dfloat minDuctWallDistance(dfloat x, dfloat y, dfloat z)
+{
+  dfloat distance = std::numeric_limits<dfloat>::max();
+  for (int i = 0; i < 6; ++i)
+  {
+    dfloat a = duct_coeffs[i][0];
+    dfloat b = duct_coeffs[i][1];
+    dfloat c = duct_coeffs[i][2];
+
+    dfloat d = std::abs(a * x + b * y + c) / std::sqrt(a * a + b * b);
+    distance = std::min(d, distance);
+  }
+
+  return distance;
+}
+
+void turbulent_props(nrs_t * nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+  occa::memory o_UProp, occa::memory o_SProp)
+{
+  RANSktau::updateProperties();
+
+  // also add the turbulent Prandtl number contribution to temperature equation
+  dfloat k_laminar;
+  nrs->options.getArgs("SCALAR00 DIFFUSIVITY", k_laminar);
+
+  const dfloat Pr_T = 0.9;
+  occa::memory o_mu_T = RANSktau::o_mue_t();
+  occa::memory o_mu = nrs->cds->o_diff + 0 * nrs->cds->fieldOffset * sizeof(dfloat);
+  nrs->scalarScaledAddKernel(nrs->Nlocal, k_laminar, 1.0 / Pr_T, o_mu_T, o_mu);
+}
+
+void turbulent_sources(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
+{
+  RANSktau::updateSourceTerms();
+}
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+  setupAide & options = nrs->options;
+  occa::properties & kernelInfo = *nrs->kernelInfo;
+
+  // in non-dimensional form, U^+ = U/U_ref, where we chose the reference
+  // velocity to be the inlet velocity
+  kernelInfo["defines/Vz"] = 1.0;
+
+  // in non-dimensional form, T^+ = (T-T_0) / dT, where we chose T_0 as the
+  // inlet temperature and dT as 50 (arbitrary - I could pick it based on the
+  // actual nominal temperature rise, but I'm lazy)
+  kernelInfo["defines/inlet_T"] = 0.0;
+
+  RANSktau::buildKernel(nrs);
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh;
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
+
+    nrs->P[n] = 0.0; // pressure
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset] = 0.0; // temperature
+  }
+
+  udf.properties = &turbulent_props;
+  udf.sEqnSource = &turbulent_sources;
+
+  const int scalarFieldStart = 1;
+  dfloat mu_laminar, rho;
+  nrs->options.getArgs("VISCOSITY", mu_laminar);
+  nrs->options.getArgs("DENSITY", rho);
+  RANSktau::setup(nrs, mu_laminar, rho, scalarFieldStart);
+}
+
+void UDF_ExecuteStep(nrs_t * nrs, dfloat time, int tstep)
+{
+  std::cout << "Calling UDF_ExecuteStep for tstep: " << tstep << std::endl;
+  // For just the first time step, compute the distance to the wall (it will
+  // not change with time for this case).
+  //if (tstep == 0)
+  //{
+  //  computePinCoordinates();
+  //  computeDuctCoefficients();
+
+  //  auto mesh = nrs->cds->mesh;
+  //  dfloat * wall_distance = (dfloat *) calloc(nrs->cds->fieldOffset, sizeof(dfloat));
+
+  //  for (int i = 0; i < mesh->Nelements * mesh->Np; ++i)
+  //  {
+  //    dfloat x = mesh->x[i];
+  //    dfloat y = mesh->y[i];
+  //    dfloat z = mesh->z[i];
+  //    wall_distance[i] = std::min(minPinDistance(x, y, z, 2), minDuctWallDistance(x, y, z));
+  //  }
+
+  //  occa::memory o_wd = nrs->o_usrwrk.slice(2 * nrs->cds->fieldOffset * sizeof(dfloat));
+  //  o_wd.copyFrom(wall_distance);
+  //  //occa::memory o_wd = mesh->device.malloc(nrs->cds->fieldOffset * sizeof(dfloat), wall_distance);
+  //}
+
+  // uncomment to write the wall distance to a file
+  //if (nrs->isOutputStep)
+  //{
+  //  occa::memory o_null;
+  //  writeFld("usr", time, true, true, &o_null, &o_null, &o_wd, 1);
+  //}
+}

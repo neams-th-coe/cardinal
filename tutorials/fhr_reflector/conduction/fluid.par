@@ -1,0 +1,42 @@
+# Input of solid conduction through FLiBe in the outer reflector block fluid region.
+# Material properties are taken for FLiBe at 650 C.
+
+# The problem is run in nondimensional form with the following characteristic scales:
+# L_ref  = 0.006    (the width of the smallest block-block gap)
+# V_ref  = 0.0575   (velocity needed to get the specified Reynolds number)
+# T_ref  = 923.15   (the inlet temperature)
+# dT_ref = 10.0     (arbitrary temperature range value)
+# t_ref  = 0.1043   (reference time scale)
+# rho_0  = 1962.13
+# mu_0   = 6.77e-3
+# Cp_0   = 2416
+# k_0    = 1.09
+# Pr     = 15.005
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 2000
+  dt = 0.025
+  timeStepper = tombo2
+  writeControl = numSteps
+  writeInterval = 100
+  polynomialOrder = 2
+
+[VELOCITY]
+  solver = none
+  viscosity = -100.0
+  density = 1.0
+  residualTol = 1.0e-8
+  residualProj = false
+  boundaryTypeMap = W, W, symy, W, v, o, W, W
+
+[PRESSURE]
+  residualTol = 1.0e-8
+  residualProj = false
+  preconditioner = semg_amg
+
+[TEMPERATURE]
+  conductivity = -1500.5
+  rhoCp = 1.0
+  residualTol = 1.0e-8
+  boundaryTypeMap = f, f, I, I, t, o, f, I

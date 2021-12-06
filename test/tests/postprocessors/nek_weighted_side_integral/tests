@@ -1,0 +1,23 @@
+[Tests]
+  [nek_weighted_side_integral]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    rel_err = 5e-5
+    requirement = "NekMassFluxWeightedSideIntegral shall correctly compute a mass flux weighted"
+                  "area integral of temperatures on the nekRS mesh. The gold file was created "
+                  "by running the moose.i input, which computes the same integrals using "
+                  "existing MOOSE postprocessors on the same mesh on auxvariables that match "
+                  "the functional form of the solution fields initialized in the brick.udf. "
+                  "Perfect agreement is not to be expected, since the underlying basis functions "
+                  "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
+                  "variables - we just require that they are reasonably close."
+  []
+  [invalid_field]
+    type = RunException
+    input = nek.i
+    cli_args = "Postprocessors/weighted_T_side1/field=velocity_component Postprocessors/weighted_T_side1/velocity_direction='1 0 0'"
+    expect_err = "This class does not support 'field = velocity_component'"
+    requirement = "System shall error if using an unsupported field with a mass flux weighted postprocessor."
+  []
+[]

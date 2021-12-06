@@ -1,4 +1,2 @@
 app_name = cardinal
-allow_warnings = false
-allow_unused = false
-allow_override = false
+allow_warnings = true
