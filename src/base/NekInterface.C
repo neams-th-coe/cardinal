@@ -45,6 +45,14 @@ namespace nekrs
 constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
 
+std::vector<int> cornerGLLIndices(const int & n)
+{
+  int back_corner = (n + 1) * (n + 1) * n;
+  std::vector<int> corner_indices = {0, n, (n + 1) * n, (n + 1) * (n + 1) - 1,
+    back_corner, back_corner + n, back_corner + (n + 1) * n, back_corner + (n + 1) * (n + 1) - 1};
+  return corner_indices;
+}
+
 void write_field_file(const std::string & prefix, const dfloat time)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
@@ -1590,15 +1598,31 @@ void faceVertices(const int order, double* x, double* y, double* z)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
 
-  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
-  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-  mesh_t * mesh = createMesh(platform->comm.mpiComm, order + 1, 1 /* dummy, not used by 'faceVertices' */,
-    nrs->cht, *(nrs->kernelInfo));
+  mesh_t * mesh;
+  int Nfp_mirror;
+  auto corner_indices = cornerGLLIndices(entireMesh()->N);
+
+  if (order == 0)
+  {
+    // For a first-order mesh mirror, we can take a shortcut and instead just fetch the
+    // corner nodes. In this case, 'mesh' is no longer a custom-build mesh copy, but the
+    // actual mesh for computation
+    mesh = entireMesh();
+    Nfp_mirror = 4;
+  }
+  else
+  {
+    // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
+    // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
+    mesh = createMesh(platform->comm.mpiComm, order + 1, 1 /* dummy */,
+      nrs->cht, *(nrs->kernelInfo));
+    Nfp_mirror = mesh->Nfp;
+  }
 
   // Allocate space for the coordinates that are on this rank
-  double* xtmp = (double*) malloc(nek_boundary_coupling.n_faces * mesh->Nfp * sizeof(double));
-  double* ytmp = (double*) malloc(nek_boundary_coupling.n_faces * mesh->Nfp * sizeof(double));
-  double* ztmp = (double*) malloc(nek_boundary_coupling.n_faces * mesh->Nfp * sizeof(double));
+  double* xtmp = (double*) malloc(nek_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
+  double* ytmp = (double*) malloc(nek_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
+  double* ztmp = (double*) malloc(nek_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
 
   int c = 0;
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
@@ -1609,9 +1633,15 @@ void faceVertices(const int order, double* x, double* y, double* z)
       int j = nek_boundary_coupling.face[k];
       int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
 
-      for (int v = 0; v < mesh->Nfp; ++v, ++c)
+      for (int v = 0; v < Nfp_mirror; ++v, ++c)
       {
-        int id = mesh->vmapM[offset + v];
+        int id;
+
+        if (order == 0)
+          id = mesh->vmapM[offset + corner_indices[v]];
+        else
+          id = mesh->vmapM[offset + v];
+
         xtmp[c] = mesh->x[id];
         ytmp[c] = mesh->y[id];
         ztmp[c] = mesh->z[id];
@@ -1622,7 +1652,7 @@ void faceVertices(const int order, double* x, double* y, double* z)
   // compute the counts and displacement based on the GLL points
   int* recvCounts = (int *) calloc(commSize(), sizeof(int));
   int* displacement = (int *) calloc(commSize(), sizeof(int));
-  displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement, mesh->Nfp);
+  displacementAndCounts(nek_boundary_coupling.counts, recvCounts, displacement, Nfp_mirror);
 
   MPI_Allgatherv(xtmp, recvCounts[commRank()], MPI_DOUBLE, x,
     (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);

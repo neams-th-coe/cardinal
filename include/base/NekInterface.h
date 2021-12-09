@@ -164,6 +164,13 @@ bool hasTemperatureSolve();
 bool hasHeatSourceKernel();
 
 /**
+ * Get the corner indices for each element
+ * @param[in] n order of mesh (0 = first-order, 1 = second-order)
+ * @return corner indices of the HEX20 elements
+ */
+std::vector<int> cornerGLLIndices(const int & n);
+
+/**
  * Whether the scratch space has already been allocated by the user
  * @return whether scratch space is already allocated
  */
