@@ -303,6 +303,18 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   // we do this last so that we can at least hit any other errors first before
   // spending time on the costly filled cell caching
   cacheContainedCells();
+
+  // save the number of contained cells for printing in every transfer if verbose
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    int32_t n_contained = 0;
+
+    for (const auto & cc : _cell_to_contained_material_cells[cell_info])
+      n_contained += cc.second.size();
+
+    _cell_to_n_contained[cell_info] = n_contained;
+  }
 }
 
 void
@@ -877,7 +889,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // cells in the domain
   if (_single_coord_level)
   {
-    int n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
+    auto n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
     if (n_uncoupled_cells)
       mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) + " OpenMC cells");
   }
@@ -1489,7 +1501,8 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
     maximum = std::max(maximum, average_temp);
 
     if (_verbose)
-      _console << "Setting " << printCell(cell_info) << " to temperature (K): " << std::setw(4) << average_temp << std::endl;
+      _console << "Setting " << printCell(cell_info) << " [" << _cell_to_n_contained[cell_info] <<
+        " contained cells] to temperature (K): " << std::setw(4) << average_temp << std::endl;
 
     auto contained_cells = _cell_to_contained_material_cells[cell_info];
     for (const auto & contained : contained_cells)

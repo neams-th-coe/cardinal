@@ -811,6 +811,9 @@ protected:
   /// Material-type cells contained within a cell
   std::map<cellInfo, containedCells> _cell_to_contained_material_cells;
 
+  /// Number of material-type cells contained within a cell
+  std::map<cellInfo, int32_t> _cell_to_n_contained;
+
   /// OpenMC cells to which a kappa fission tally is to be added
   std::vector<cellInfo> _tally_cells;
 
