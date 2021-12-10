@@ -30,27 +30,85 @@ for more information.
 [Bebop](https://www.lcrc.anl.gov/systems/resources/bebop/)
 is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
 partition with 36 cores/node and a Intel Knights Landing partition with
-64 cores/node. Below is a bash script to build Cardinal (*last updated 5/24/2021*).
+64 cores/node. Below are a bash script and sample job scripts to build
+Cardinal and run the NekRS and OpenMC wrappings (*last updated 12/10/2021*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
-if [ -f /etc/bashrc ]; then
-        . /etc/bashrc
-fi
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
 module purge
 module load gcc/8.2.0-g7hppkz
-module load intel-mpi/2018.4.274-ozfo327
-module load intel-mkl/2018.4.274-2amycpi
+module load openmpi/3.1.4
 module load cmake/3.14.2-gvwazz3
 module load hdf5/1.8.16-mz7lmxh
-module load anaconda3
+module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
+
+# Revise for your Cardinal repository location
+export NEKRS_HOME=$HOME/cardinal/install
+!listing-end!
+
+!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node of the 64-core partition id=bb2
+#!/bin/bash
+
+#SBATCH --job-name=lattice
+#SBATCH --account=startup
+#SBATCH --partition=knlall
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=64
+#SBATCH --output=run.out
+#SBATCH --error=run.error
+#SBATCH --time=00:05:00
+
+module purge
+module load gcc/8.2.0-g7hppkz
+module load openmpi/3.1.4
+module load cmake/3.14.2-gvwazz3
+module load hdf5/1.8.16-mz7lmxh
+module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
+
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+
+# Revise for your cross section data location
+export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
+
+# Revise for your input file and executable locations
+cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
+mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=64 > logfile
+!listing-end!
+
+!listing! language=bash caption=Sample job script to run NekRS coupled to MOOSE on one node of the 36-core partition id=bb3
+#!/bin/bash
+
+#SBATCH --job-name=cht
+#SBATCH --account=startup
+#SBATCH --partition=bdwall
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=36
+#SBATCH --output=run.out
+#SBATCH --error=run.error
+#SBATCH --time=00:05:00
+
+module purge
+module load gcc/8.2.0-g7hppkz
+module load openmpi/3.1.4
+module load cmake/3.14.2-gvwazz3
+module load hdf5/1.8.16-mz7lmxh
+module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
+
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+
+# Revise for your Cardinal repository location
+export NEKRS_HOME=$HOME/cardinal/install
+
+# Revise for your input file and executable locations
+cd $HOME/cardinal/test/tests/cht/sfr_pincell
+mpiexec -np 36 $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
 !listing-end!
 
 ## Eddy
@@ -193,7 +251,7 @@ wrappings (*last updated 10/20/2021*).
 #SBATCH -p compute
 
 # Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=/home/anovak/cross_sections/endfb71_hdf5/cross_sections.xml
+export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
 
 # Revise for your input file and executable locations
 cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
