@@ -48,11 +48,6 @@ MooseEnum getEigenvalueEnum()
   return MooseEnum("collision absorption tracklength combined", "combined");
 }
 
-MooseEnum getChannelTypeEnum()
-{
-  return MooseEnum("interior edge corner");
-}
-
 MooseEnum getRelaxationEnum()
 {
   return MooseEnum("constant robbins_monro dufek_gudowski none", "none");

@@ -33,12 +33,8 @@ public:
 
   NekUserObject(const InputParameters & parameters);
 
-  virtual void execute() {}
   virtual void initialize() {}
   virtual void finalize() {}
-
-  virtual void threadJoin(const UserObject &) final {}
-  virtual void subdomainSetup() final {}
 
   /**
    * Check whether a provided field is valid for this postprocessor
