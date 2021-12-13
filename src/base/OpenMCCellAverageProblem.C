@@ -1304,8 +1304,12 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     case tally::cell:
     {
-      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
-        Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
+      if (_tally_cells.size() == 0)
+        _console << "Skipping cell tallies for blocks " + Moose::stringify(_tally_blocks) +
+          " because no fissile material is present" << std::endl;
+      else
+        _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
+          Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
       _current_mean_tally.resize(1);
       _previous_mean_tally.resize(1);

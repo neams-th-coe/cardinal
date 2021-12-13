@@ -34,9 +34,6 @@ public:
   virtual void initialize() final {}
   virtual void finalize() final {}
 
-  virtual void threadJoin(const UserObject &) final {}
-  virtual void subdomainSetup() final {}
-
   virtual Real spatialValue(const Point & p) const override;
 
   /**

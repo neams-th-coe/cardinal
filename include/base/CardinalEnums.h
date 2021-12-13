@@ -26,7 +26,6 @@ MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getEigenvalueEnum();
-MooseEnum getChannelTypeEnum();
 MooseEnum getRelaxationEnum();
 
 namespace order
