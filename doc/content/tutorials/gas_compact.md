@@ -52,7 +52,7 @@ are arranged around the coolant channel in a triangular
 lattice; the distance between the compact and coolant channel centers
 is $p_{cf}$. The diameter of the fuel compact cylinders is $d_f$.
 The [!ac](TRISO) particles use a conventional design that consists of a central
-fissil uranium oxycarbide kernel enclosed in a carbon buffer, an inner
+fissile uranium oxycarbide kernel enclosed in a carbon buffer, an inner
 [!ac](PyC) layer, a silicon carbide layer, and finally an outer
 [!ac](PyC) layer. The geometric specifications are summarized in [table1].
 Heat is produced in the [!ac](TRISO) particles to yield a total power of 30 kW.
