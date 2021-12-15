@@ -1,10 +1,9 @@
-# This input models conjugate heat transfer between MOOSE and NekRS for
+# This input models conjugate heat transfer between MOOSE and THM for
 # a single coolant channel. This input file should be run with:
 #
-# cardinal-opt -i common_input.i solid_nek.i
+# cardinal-opt -i common_input.i solid_thm.i
 
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
-unit_cell_mdot = ${fparse mdot / (n_bundles * n_coolant_channels_per_block)}
 
 # compute the volume fraction of each TRISO layer in a TRISO particle
 # for use in computing average thermophysical properties
@@ -16,9 +15,6 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
 
 # multiplicative factor on assumed heat source distribution to get correct magnitude
 q0 = ${fparse unit_cell_power / (4.0 * unit_cell_height * compact_diameter * compact_diameter / 4.0)}
-
-# Time step interval on which to exchange data between NekRS and MOOSE
-N = 50
 
 [Mesh]
   type = FileMesh
@@ -108,12 +104,6 @@ N = 50
 []
 
 [Postprocessors]
-  [flux_integral] # evaluate the total heat flux for normalization
-    type = SideDiffusiveFluxIntegral
-    diffusivity = thermal_conductivity
-    variable = T
-    boundary = 'fluid_solid_interface'
-  []
   [max_fuel_T]
     type = ElementExtremeValue
     variable = T
@@ -126,14 +116,6 @@ N = 50
     value_type = max
     block = 'graphite'
   []
-  [max_flux]
-    type = ElementExtremeValue
-    variable = flux
-  []
-  [synchronization_to_nek]
-    type = Receiver
-    default = 1.0
-  []
 
   [power]
     type = ElementIntegralVariablePostprocessor
@@ -142,12 +124,36 @@ N = 50
   []
 []
 
+[MultiApps]
+  [thm]
+    type = FullSolveMultiApp
+    input_files = 'thm.i'
+    execute_on = timestep_end
+    max_procs_per_app = 1
+    bounding_box_padding = '0.1 0.1 0'
+  []
+[]
+
+[Transfers]
+  [q_wall_to_thm]
+    type = MultiAppUserObjectTransfer
+    variable = q_wall
+    direction = to_multiapp
+    multi_app = thm
+    user_object = q_wall_avg
+  []
+  [T_wall_from_thm]
+    type = MultiAppNearestNodeTransfer
+    source_variable = T_wall
+    direction = from_multiapp
+    multi_app = thm
+    variable = fluid_temp
+    fixed_meshes = true
+  []
+[]
+
 [AuxVariables]
   [fluid_temp]
-  []
-  [flux]
-    family = MONOMIAL
-    order = CONSTANT
   []
   [power]
     family = MONOMIAL
@@ -155,71 +161,9 @@ N = 50
   []
 []
 
-[AuxKernels]
-  [flux]
-    type = DiffusionFluxAux
-    diffusion_variable = T
-    component = normal
-    diffusivity = thermal_conductivity
-    variable = flux
-    boundary = 'fluid_solid_interface'
-  []
-[]
-
-[MultiApps]
-  [nek]
-    type = TransientMultiApp
-    app_type = CardinalApp
-    input_files = 'nek.i'
-    sub_cycling = true
-    execute_on = timestep_end
-  []
-[]
-
-[Transfers]
-  [heat_flux_to_nek]
-    type = MultiAppNearestNodeTransfer
-    source_variable = flux
-    variable = avg_flux
-    source_boundary = 'fluid_solid_interface'
-    target_boundary = '3'
-    direction = to_multiapp
-    multi_app = nek
-    fixed_meshes = true
-  []
-  [flux_integral_to_nek]
-    type = MultiAppPostprocessorTransfer
-    to_postprocessor = flux_integral
-    from_postprocessor = flux_integral
-    direction = to_multiapp
-    multi_app = nek
-  []
-  [temperature_to_bison]
-    type = MultiAppNearestNodeTransfer
-    source_variable = temp
-    variable = fluid_temp
-    source_boundary = '3'
-    target_boundary = 'fluid_solid_interface'
-    direction = from_multiapp
-    multi_app = nek
-    fixed_meshes = true
-  []
-  [synchronization_to_nek]
-    type = MultiAppPostprocessorTransfer
-    direction = to_multiapp
-    to_postprocessor = transfer_in
-    from_postprocessor = synchronization_to_nek
-    multi_app = nek
-  []
-[]
-
-U_ref = ${fparse mdot / (n_bundles * n_coolant_channels_per_block) / fluid_density / (pi * channel_diameter * channel_diameter / 4.0)}
-t0 = ${fparse channel_diameter / U_ref}
-nek_dt = 6e-3
-
 [Executioner]
   type = Transient
-  dt = ${fparse N * nek_dt * t0}
+  dt = 5e-3
 
   nl_abs_tol = 1e-5
   nl_rel_tol = 1e-16
@@ -227,7 +171,7 @@ nek_dt = 6e-3
   petsc_options_iname = '-pc_type -pc_hypre_type'
 
   steady_state_detection = true
-  steady_state_tolerance = 1e-1
+  steady_state_tolerance = 1e-03
 []
 
 [UserObjects]
@@ -245,12 +189,14 @@ nek_dt = 6e-3
     num_layers = ${num_layers_for_plots}
     block = 'graphite'
   []
-  [average_flux_axial]
-    type = LayeredSideAverage
-    variable = flux
+  [q_wall_avg]
+    type = LayeredSideDiffusiveFluxAverage
+    boundary = fluid_solid_interface
     direction = z
-    num_layers = ${num_layers_for_plots}
-    boundary = 'fluid_solid_interface'
+    variable = T
+    diffusivity = thermal_conductivity
+    # Note: make this to match the num_elems in the channel
+    num_layers = 50
   []
 []
 
@@ -263,19 +209,15 @@ nek_dt = 6e-3
     type = SpatialUserObjectVectorPostprocessor
     userobject = average_block_axial
   []
-  [flux_axial_avg]
-    type = SpatialUserObjectVectorPostprocessor
-    userobject = average_flux_axial
-  []
 []
 
 [Outputs]
   exodus = true
   print_linear_residuals = false
-  hide = 'synchronization_to_nek'
+  perf_graph = true
 
   [csv]
-    file_base = 'csv/solid_nek'
     type = CSV
+    file_base = 'csv/solid_thm'
   []
 []

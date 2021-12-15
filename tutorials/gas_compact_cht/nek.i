@@ -88,12 +88,6 @@ active = '' # simply comment out this line to evaluate these user objects
     num_layers = ${num_layers_for_plots}
     direction = z
   []
-  [avg_vz]
-    type = NekBinnedVolumeAverage
-    bins = 'layered_bin'
-    field = velocity_z
-    map_space_by_qp = true
-  []
   [wall_temp]
     type = NekBinnedSideAverage
     bins = 'layered_bin'
@@ -111,10 +105,6 @@ active = '' # simply comment out this line to evaluate these user objects
 
 [VectorPostprocessors]
 active = '' # simply comment out this line to evaluate these user objects
-  [vz]
-    type = SpatialUserObjectVectorPostprocessor
-    userobject = avg_vz
-  []
   [wall]
     type = SpatialUserObjectVectorPostprocessor
     userobject = wall_temp
