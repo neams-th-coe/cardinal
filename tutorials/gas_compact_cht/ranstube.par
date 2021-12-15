@@ -1,0 +1,65 @@
+# Model of a turbulent channel flow.
+#
+# L_ref = 0.016 m          coolant channel diameter
+# T_ref = 598 K            coolant inlet temperature
+# dT_ref = 82.89 K         coolant nominal temperature rise in the unit cell
+# U_ref = 81.089           coolant inlet velocity
+# length = 1.6 m           coolant channel flow length
+#
+# rho_0 = 5.5508 kg/m3     coolant density
+# mu_0 = 3.22639e-5 Pa-s   coolant dynamic viscosity
+# Cp_0 = 5189 J/kg/K       coolant isobaric heat capacity
+# k_0 = 0.2556 W/m/K       coolant thermal conductivity
+#
+# Re = 223214
+# Pr = 0.655
+# Pe = 146205
+
+[GENERAL]
+  startFrom = periodic_flow_solve.f00001
+
+  polynomialOrder = 7
+  dt = 6e-3
+  timeStepper = BDF2
+
+  stopAt = numSteps
+  numSteps = 1000
+
+  # write an output file every specified time steps
+  writeControl = timeStep
+  writeInterval = 1000
+
+[PROBLEMTYPE]
+  stressFormulation = true
+
+[PRESSURE]
+  residualTol = 1e-04
+  residualProj = true
+
+[VELOCITY]
+  solver = none
+  viscosity = -223214
+  density = 1.0
+  boundaryTypeMap = v, o, W
+  residualTol = 1e-06
+  residualProj = true
+
+[TEMPERATURE]
+  rhoCp = 1.0
+  conductivity = -146205
+  boundaryTypeMap = t, o, f
+  residualTol = 1e-06
+
+[SCALAR01] # k
+  solver = none
+  boundaryTypeMap = t, I, o
+  residualTol = 1e-06
+  rho = 1.0
+  diffusivity = -223214
+
+[SCALAR02] # tau
+  solver = none
+  boundaryTypeMap = t, I, o
+  residualTol = 1e-06
+  rho = 1.0
+  diffusivity = -223214
