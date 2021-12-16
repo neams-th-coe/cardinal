@@ -769,6 +769,9 @@ protected:
    */
   std::vector<coupling::CouplingFields> _elem_phase {};
 
+  /// Maximum number of contained cells in the coupling
+  int _max_n_contained;
+
   /// Number of solid elements in the MOOSE mesh
   int _n_moose_solid_elems;
 

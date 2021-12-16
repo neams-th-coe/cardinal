@@ -299,22 +299,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   initializeTallies();
 
   checkMeshTemplateAndTranslations();
-
-  // we do this last so that we can at least hit any other errors first before
-  // spending time on the costly filled cell caching
-  cacheContainedCells();
-
-  // save the number of contained cells for printing in every transfer if verbose
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-    int32_t n_contained = 0;
-
-    for (const auto & cc : _cell_to_contained_material_cells[cell_info])
-      n_contained += cc.second.size();
-
-    _cell_to_n_contained[cell_info] = n_contained;
-  }
 }
 
 void
@@ -627,10 +611,11 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     }
 
     std::stringstream msg;
-      msg << printCell(cell_info) << ": " << std::setw(digits(_n_moose_solid_elems)) << Moose::stringify(n_solid) <<
-      " solid elems  " << std::setw(digits(_n_moose_fluid_elems)) << Moose::stringify(n_fluid) <<
-      " fluid elems  " << std::setw(digits(_n_moose_none_elems)) << Moose::stringify(n_none) <<
-      " uncoupled elems  |  Mapped elems volume (cm3): " << std::setw(8) <<
+      msg << printCell(cell_info) << " [" << std::setw(digits(_max_n_contained)) << _cell_to_n_contained[cell_info] <<
+        " contained]: " << std::setw(digits(_n_moose_solid_elems)) << Moose::stringify(n_solid) <<
+      " solid  " << std::setw(digits(_n_moose_fluid_elems)) << Moose::stringify(n_fluid) <<
+      " fluid  " << std::setw(digits(_n_moose_none_elems)) << Moose::stringify(n_none) <<
+      " uncoupled  |  Mapped volume (cm3): " << std::setw(8) <<
       Moose::stringify(_cell_to_elem_volume[cell_info] * _scaling * _scaling * _scaling);
 
     std::vector<bool> conditions = {n_fluid > 0, n_solid > 0, n_none > 0};
@@ -853,6 +838,22 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     openmc::prepare_distribcell(&mapped_cells);
     // perform element to cell mapping again to get correct instances
     mapElemsToCells();
+  }
+
+  cacheContainedCells();
+
+  // save the number of contained cells for printing in every transfer if verbose
+  _max_n_contained = std::numeric_limits<int>::min();
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    int32_t n_contained = 0;
+
+    for (const auto & cc : _cell_to_contained_material_cells[cell_info])
+      n_contained += cc.second.size();
+
+    _cell_to_n_contained[cell_info] = n_contained;
+    _max_n_contained = std::max(_max_n_contained, n_contained);
   }
 
   if (_cell_to_elem.size() == 0)
@@ -1507,8 +1508,8 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
     maximum = std::max(maximum, average_temp);
 
     if (_verbose)
-      _console << "Setting " << printCell(cell_info) << " [" << _cell_to_n_contained[cell_info] <<
-        " contained cells] to temperature (K): " << std::setw(4) << average_temp << std::endl;
+      _console << "Setting " << printCell(cell_info) <<
+        " to temperature (K): " << std::setw(4) << average_temp << std::endl;
 
     auto contained_cells = _cell_to_contained_material_cells[cell_info];
     for (const auto & contained : contained_cells)
