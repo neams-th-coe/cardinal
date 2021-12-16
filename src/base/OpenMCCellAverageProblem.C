@@ -51,13 +51,13 @@ OpenMCCellAverageProblem::validParams()
   params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
     "Power (Watts) to normalize the OpenMC tallies; this is the power "
     "produced by the entire OpenMC problem.");
-  params.addParam<std::vector<SubdomainID>>("fluid_blocks",
+  params.addParam<std::vector<SubdomainName>>("fluid_blocks",
     "Subdomain ID(s) corresponding to the fluid phase, "
     "for which both density and temperature will be sent to OpenMC");
-  params.addParam<std::vector<SubdomainID>>("solid_blocks",
+  params.addParam<std::vector<SubdomainName>>("solid_blocks",
     "Subdomain ID(s) corresponding to the solid phase, "
     "for which temperature will be sent to OpenMC");
-  params.addParam<std::vector<SubdomainID>>("tally_blocks",
+  params.addParam<std::vector<SubdomainName>>("tally_blocks",
     "Subdomain ID(s) for which to add tallies in the OpenMC model; "
     "only used with cell tallies");
   params.addParam<bool>("check_tally_sum",
@@ -523,10 +523,12 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name, std::unord
 
   if (isParamValid(param_name))
   {
-    std::vector<SubdomainID> b = getParam<std::vector<SubdomainID>>(param_name);
+    std::vector<SubdomainName> b = getParam<std::vector<SubdomainName>>(param_name);
     checkEmptyVector(b, param_name);
 
-    std::copy(b.begin(), b.end(), std::inserter(blocks, blocks.end()));
+    auto b_ids = _mesh.getSubdomainIDs(b);
+
+    std::copy(b_ids.begin(), b_ids.end(), std::inserter(blocks, blocks.end()));
 
     const auto & subdomains = _mesh.meshSubdomains();
     for (const auto & b : blocks)
