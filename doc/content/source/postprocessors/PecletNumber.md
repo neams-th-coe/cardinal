@@ -8,7 +8,7 @@ This postprocessor computes the Peclet number $Pe$ as
 
 \begin{equation}
 \label{eq:re}
-Re=\frac{\rho C_pu_{ref}L_{ref}}{k}
+Pe=\frac{\rho C_pu_{ref}L_{ref}}{k}
 \end{equation}
 
 where $\rho$ is the fluid density, $C_p$ is the fluid isobaric specific
@@ -21,7 +21,7 @@ This postprocessor computes [eq:re] as
 
 \begin{equation}
 \label{re2}
-Re=\frac{L_{ref}\int_\Gamma \rho C_p \vec{V}\cdot\hat{n}d\Gamma}{k\int_\Gamma d\Gamma}
+Pe=\frac{L_{ref}\int_\Gamma \rho C_p \vec{V}\cdot\hat{n}d\Gamma}{k\int_\Gamma d\Gamma}
 \end{equation}
 
 where $\Gamma$ is a boundary of the NekRS mesh specified with the `boundary` parameter
