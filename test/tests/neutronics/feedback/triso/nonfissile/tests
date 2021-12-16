@@ -1,0 +1,9 @@
+[Tests]
+  [nonfissile_fill]
+    type = RunException
+    input = openmc.i
+    cli_args = '--error'
+    expect_err = 'Skipping tallies for:'
+    requirement = 'The system shall show a warning if non-fissile non-material cells attempt to add tallies'
+  []
+[]

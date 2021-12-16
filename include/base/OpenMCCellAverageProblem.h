@@ -500,7 +500,7 @@ protected:
    * @param[in] cell_info cell ID, instance
    * @return whether cell contains fissile material
    */
-  bool cellHasFissileMaterials(const cellInfo & cell_info) const;
+  bool cellHasFissileMaterials(const cellInfo & cell_info);
 
   /**
    * Set an auxiliary elemental variable to a specified value

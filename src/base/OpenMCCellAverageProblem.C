@@ -2004,26 +2004,32 @@ OpenMCCellAverageProblem::cellFill(const cellInfo & cell_info, int & fill_type) 
 }
 
 bool
-OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) const
+OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info)
 {
-  int fill_type;
-  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
+  auto contained_cells = _cell_to_contained_material_cells[cell_info];
 
-  // TODO: for cells with non-material fills, we need to implement something that recurses
-  // into the cell/universe fills to see if there's anything fissile; until then, just assume
-  // that the cell has something fissile
-  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
-    return true;
-
-  // for each material fill, check whether it is fissionable
-  for (const auto & index : material_indices)
+  for (const auto & contained: contained_cells)
   {
-    // We know void cells certainly aren't fissionable; if not void, check if fissionable
-    if (index != MATERIAL_VOID)
+    auto id = contained.first;
+
+    for (const auto & instance : contained.second)
     {
-      const auto & material = openmc::model::materials[index];
-      if (material->fissionable_)
-        return true;
+      cellInfo c = {id, instance};
+
+      int fill_type;
+      std::vector<int32_t> material_indices = cellFill(c, fill_type);
+
+      // for each material fill, check whether it is fissionable
+      for (const auto & index : material_indices)
+      {
+        // We know void cells certainly aren't fissionable; if not void, check if fissionable
+        if (index != MATERIAL_VOID)
+        {
+          const auto & material = openmc::model::materials[index];
+          if (material->fissionable_)
+            return true;
+        }
+      }
     }
   }
 
