@@ -19,4 +19,16 @@
     exodiff = sinusoidal_z_out.e
     requirement = 'The system shall be able to apply a normalized sinusoidal initial condition.'
   []
+  [missing_paired_action]
+    type = RunException
+    input = no_heat_source.i
+    expect_err = "To use the 'BulkEnergyConservation' action syntax, you must also have a 'VolumetricHeatSource' action!"
+    requirement = 'The system shall error if the pairing heat source action is missing'
+  []
+  [action]
+    type = Exodiff
+    input = action.i
+    exodiff = sinusoidal_z_out.e
+    requirement = 'The system shall be able to apply a normalized sinusoidal initial condition with a convenient action syntax.'
+  []
 []
