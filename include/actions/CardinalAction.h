@@ -43,4 +43,4 @@ protected:
 
   /// subdomains to which this action applies
   std::vector<SubdomainName> _blocks;
-;
+};
