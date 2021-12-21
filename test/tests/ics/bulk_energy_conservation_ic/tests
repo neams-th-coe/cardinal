@@ -1,0 +1,22 @@
+[Tests]
+  [missing_initial]
+    type = RunException
+    input = sinusoidal_z.i
+    expect_err = "The 'execute_on' parameter for the 'vol' postprocessor must include 'initial'!"
+    cli_args = 'Postprocessors/vol/execute_on=final'
+    requirement = 'The volume postprocessor must have execute_on initial'
+  []
+  [invalid_mdot_cp]
+    type = RunException
+    input = sinusoidal_z.i
+    cli_args = "ICs/fluid_temp/mass_flowrate=0.0"
+    expect_err = "Product of mass flowrate and specific heat cannot be zero!"
+    requirement = 'The system shall error if invalid parameters are provided'
+  []
+  [sinusoidal]
+    type = Exodiff
+    input = sinusoidal_z.i
+    exodiff = sinusoidal_z_out.e
+    requirement = 'The system shall be able to apply a normalized sinusoidal initial condition.'
+  []
+[]
