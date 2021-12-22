@@ -18,9 +18,7 @@
 
 #pragma once
 
-#define LIBMESH
-
-#include "ExternalProblem.h"
+#include "OpenMCProblemBase.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_cell_instance.h"
 #include "openmc/tallies/filter_mesh.h"
@@ -70,13 +68,11 @@
  *  - You will get some extra error checking at your disposal if your OpenMC geometry consists
  *    of a single coordinate level.
  */
-class OpenMCCellAverageProblem : public ExternalProblem
+class OpenMCCellAverageProblem : public OpenMCProblemBase
 {
 public:
   OpenMCCellAverageProblem(const InputParameters & params);
   static InputParameters validParams();
-
-  virtual ~OpenMCCellAverageProblem() override;
 
   /**
    * Add 'heat_source', 'temp', and, if any fluid blocks are specified, a
@@ -89,8 +85,6 @@ public:
   virtual void externalSolve() override;
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
-
-  virtual bool converged() override { return true; }
 
   /**
    * This class uses elem->volume() in order to normalize the fission power produced
@@ -131,18 +125,6 @@ public:
    * is the cell index, while the second is the set of cell instances
    */
   typedef std::unordered_map<int32_t, std::vector<int32_t>> containedCells;
-
-  /**
-   * Set the number of particles to run for a Monte Carlo calculation
-   * @param[in] n number of particles
-   */
-  void setParticles(const int64_t & n) const;
-
-  /**
-   * Get the number of particles used in the current Monte Carlo calculation
-   * @return number of particles
-   */
-  const int64_t & nParticles() const;
 
   /**
    * Get the cell index from the element ID; will return UNMAPPED for unmapped elements
@@ -201,18 +183,12 @@ public:
   const coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info);
 
   /**
-   * Get the cell ID
-   * @param[in] index cell index
-   * @return cell ID
+   * Check whether a vector extracted with getParam is empty
+   * @param[in] vector vector
+   * @param[in] name name to use for printing error if empty
    */
-  int32_t cellID(const int32_t index) const;
-
-  /**
-   * Get the material ID
-   * @param[in] index material index
-   * @return cell material ID
-   */
-  int32_t materialID(const int32_t index) const;
+  template <typename T> void checkEmptyVector(const std::vector<T> & vector,
+    const std::string & name) const;
 
   /**
    * Get a descriptive, formatted, string describing a cell
@@ -220,20 +196,6 @@ public:
    * @return descriptive string
    */
   std::string printCell(const cellInfo & cell_info) const;
-
-  /**
-   * Print point coordinates with a neater formatting than the default libMesh
-   * point printing
-   * @return formatted point
-   */
-  std::string printPoint(const Point & p) const;
-
-  /**
-   * Get a descriptive, formatted, string describing a material
-   * @param[in] index material index
-   * @return descriptive string
-   */
-  std::string printMaterial(const int32_t & index) const;
 
   /**
    * Get the density conversion factor (multiplicative factor)
@@ -249,14 +211,6 @@ public:
    * @param[in] cell info cell ID, instance
    */
   double cellTemperature(const cellInfo & cell_info);
-
-  /**
-   * Compute relative error
-   * @param[in] sum sum of scores
-   * @param[in] sum_sq sum of scores squared
-   * @param[in] n_realizations number of realizations
-   */
-  Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
 
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED {-1};
@@ -314,14 +268,6 @@ protected:
   std::string printNewline() { if (_verbose) return "\n"; else return ""; }
 
   /**
-   * Check whether a vector extracted with getParam is empty
-   * @param[in] vector vector
-   * @param[in] name name to use for printing error if empty
-   */
-  template <typename T> void checkEmptyVector(const std::vector<T> & vector,
-    const std::string & name) const;
-
-  /**
    * Read the mesh translations from file data
    * @param[in] data
    */
@@ -350,18 +296,9 @@ protected:
   void storeElementPhase();
 
   /**
-   * Compute the number of digits required to display an integer
-   * @param[in] number number to display
+   * Relax the heat source and normalize to specified power
+   * @param[in] t tally index
    */
-  int digits(const int & number) const;
-
-  /**
-   * Compute the mean value of a tally
-   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
-   * @return mean value
-   */
-  double tallySum(std::vector<openmc::Tally *> tally) const;
-
   void relaxAndNormalizeHeatSource(const int & t);
 
   /**
@@ -502,14 +439,6 @@ protected:
    */
   bool cellHasFissileMaterials(const cellInfo & cell_info) const;
 
-  /**
-   * Set an auxiliary elemental variable to a specified value
-   * @param[in] var_num variable number
-   * @param[in] elem_ids element IDs to set
-   * @param[in] value value to set
-   */
-  void fillElementalAuxVariable(const unsigned int & var_num, const std::vector<unsigned int> & elem_ids, const Real & value);
-
   /// Extract user-specified additional output fields from OpenMC
   void extractOutputs();
 
@@ -524,15 +453,10 @@ protected:
   void compareContainedCells(std::map<cellInfo, containedCells> & reference,
     std::map<cellInfo, containedCells> & compare);
 
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
-
   /**
    * Type of tally to apply to extract kappa fission score from OpenMC;
    * if you want to tally in cells, use 'cell'. Otherwise, to tally on an
-   * unstructured mesh, use 'mesh'. Currently, this implementation is limited
-   * to a single mesh in the OpenMC geometry.
-   * TODO: allow the same mesh to be repeated several times throughout the
-   * OpenMC geometry
+   * unstructured mesh, use 'mesh'.
    */
   const tally::TallyTypeEnum _tally_type;
 
@@ -541,9 +465,6 @@ protected:
    * applied to the heat source tally.
    */
   const relaxation::RelaxationEnum _relaxation;
-
-  /// Constant power for the entire OpenMC domain
-  const Real & _power;
 
   /**
    * Whether to check if any of the tallies evaluate to zero; if set to true,
@@ -583,9 +504,6 @@ protected:
    * then the actual level used in mapping is the locally lowest cell level.
    */
   bool _using_lowest_fluid_level;
-
-  /// Whether to print diagnostic information about model setup and the transfers
-  const bool & _verbose;
 
   /**
    * Whether to skip the first density and temperature transfer into OpenMC; this
@@ -848,29 +766,10 @@ protected:
   static constexpr Real _density_conversion_factor {0.001};
 
   /**
-   * Whether the OpenMC model consists of a single coordinate level; we track this so
-   * that we can provide some helpful error messages for this case. If there is more
-   * than one coordinate level, however, the error checking becomes too difficult,
-   * because cells can be filled with universes, lattices, etc.
-   */
-  const bool _single_coord_level;
-
-  /**
-   * Number of digits to use to display the cell ID for diagnostic messages; this is
-   * estimated conservatively based on the total number of cells, even though there
-   * may be distributed cells such that the maximum cell ID is far smaller than the
-   * total number of cells.
-   */
-  const int _n_cell_digits;
-
-  /**
    * For OpenMC geometries with a single coordinate level, we define default behavior for
    * tally_blocks to be all of the subdomains in the MOOSE mesh.
    */
   const bool _using_default_tally_blocks;
-
-  /// Total number of OpenMC cells, across all coordinate levels
-  long unsigned int _n_openmc_cells;
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
