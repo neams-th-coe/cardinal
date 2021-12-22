@@ -16,18 +16,26 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#include "CardinalAction.h"
 
-#include "MooseApp.h"
-
-class CardinalApp : public MooseApp
+InputParameters
+CardinalAction::validParams()
 {
-public:
-  CardinalApp(InputParameters parameters);
+  InputParameters params = Action::validParams();
+  params.addParam<std::vector<SubdomainName>>("block",
+    "The list of block ids (SubdomainID) to which this action will be applied");
+  return params;
+}
 
-  static InputParameters validParams();
+CardinalAction::CardinalAction(const InputParameters & parameters)
+  : Action(parameters),
+    _blocks(getParam<std::vector<SubdomainName>>("block"))
+{
+}
 
-  static void registerApps();
-  static void registerAll(Factory & f, ActionFactory & af, Syntax & s);
-  static void associateSyntaxInner(Syntax & syntax, ActionFactory & action_factory);
-};
+void
+CardinalAction::setObjectBlocks(InputParameters & params, const std::vector<SubdomainName> & blocks)
+{
+  for (const auto & id: blocks)
+    params.set<std::vector<SubdomainName>>("block").push_back(Moose::stringify(id));
+}
