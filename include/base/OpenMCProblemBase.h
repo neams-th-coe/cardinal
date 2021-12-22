@@ -41,6 +41,20 @@ public:
   virtual bool converged() override { return true; }
 
   /**
+   * Type definition for storing the relevant aspects of the OpenMC geometry; the first
+   * value is the cell index, while the second is the cell instance.
+   */
+  typedef std::pair<int32_t, int32_t> cellInfo;
+
+  /**
+   * Get the number of elements (in a distributed-mesh-friendly implementation)
+   * that exist on a specified set of blocks
+   * @param[in] blocks blocks to count elements for
+   * @return number of elements
+   */
+  int elemsInBlock(const std::unordered_set<SubdomainID> & blocks) const;
+
+  /**
    * Get the cell ID
    * @param[in] index cell index
    * @return cell ID
@@ -91,6 +105,13 @@ public:
 
 protected:
   /**
+   * Get the cell ID, instance combination at the _particle's position and level
+   * @param[in] level coordinate level
+   * @return cell ID, instance combination
+   */
+  cellInfo particleCell(const int & level) const;
+
+  /**
    * Set an auxiliary elemental variable to a specified value
    * @param[in] var_num variable number
    * @param[in] elem_ids element IDs to set
@@ -137,4 +158,7 @@ protected:
 
   /// Total number of OpenMC cells, across all coordinate levels
   long unsigned int _n_openmc_cells;
+
+  /// Dummy particle to reduce number of allocations of particles for cell lookup routines
+  openmc::Particle _particle;
 };

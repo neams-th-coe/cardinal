@@ -77,9 +77,6 @@ OpenMCCellAverageProblem::validParams()
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
 
-  params.addRangeCheckedParam<int64_t>("particles", "particles > 0 ",
-    "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
-
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
   params.addParam<std::string>("mesh_template", "Mesh tally template for OpenMC when using mesh tallies; "
@@ -155,16 +152,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     if (isParamValid("particles") && _relaxation == relaxation::dufek_gudowski)
       mooseWarning("The 'particles' parameter is unused when using Dufek-Gudowski relaxation!");
 
+    // this will override any setting of particles done in the base class
     setParticles(getParam<int64_t>("first_iteration_particles"));
   }
-  else
-  {
-    if (isParamValid("first_iteration_particles"))
+  else if (isParamValid("first_iteration_particles"))
       mooseWarning("The 'first_iteration_particles' parameter is unused when not using Dufek-Gudowski relaxation!");
-
-    if (isParamValid("particles"))
-      setParticles(getParam<int64_t>("particles"));
-  }
 
   _n_particles_1 = nParticles();
 
@@ -491,9 +483,9 @@ OpenMCCellAverageProblem::storeElementPhase()
       _elem_phase.push_back(coupling::none);
   }
 
-  _n_moose_solid_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::temperature);
-  _n_moose_fluid_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::density_and_temperature);
-  _n_moose_none_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::none);
+  _n_moose_solid_elems = elemsInBlock(_solid_blocks);
+  _n_moose_fluid_elems = elemsInBlock(_fluid_blocks);
+  _n_moose_none_elems = _mesh.nElem() - _n_moose_solid_elems - _n_moose_fluid_elems;
 }
 
 void
@@ -1084,12 +1076,9 @@ OpenMCCellAverageProblem::mapElemsToCells()
         mooseError("Unhandled CouplingFields enum!");
     }
 
-    auto cell_index = _particle.coord(level).cell;
-    auto cell_instance = cell_instance_at_level(_particle, level);
+    auto cell_info = particleCell(level);
 
-    cellInfo cell_info = {cell_index, cell_instance};
-
-    if (openmc::model::cells[cell_index]->type_ != openmc::Fill::MATERIAL)
+    if (openmc::model::cells[cell_info.first]->type_ != openmc::Fill::MATERIAL)
       _material_cells_only = false;
 
     _elem_to_cell.push_back(cell_info);

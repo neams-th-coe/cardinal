@@ -42,6 +42,8 @@ OpenMCProblemBase::validParams()
   params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
     "Power (Watts) to normalize the OpenMC tallies");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
+  params.addRangeCheckedParam<int64_t>("particles", "particles > 0 ",
+    "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>("inactive_batches", "inactive_batches > 0",
     "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>("batches", "batches > 0",
@@ -81,6 +83,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
 
   if (isParamValid("openmc_verbosity"))
     openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
+
+  if (isParamValid("particles"))
+    setParticles(getParam<int64_t>("particles"));
 
   // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
   // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred
@@ -205,4 +210,33 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
       solution.set(dof_idx, value);
     }
   }
+}
+
+OpenMCProblemBase::cellInfo
+OpenMCProblemBase::particleCell(const int & level) const
+{
+  return {_particle.coord(level).cell, openmc::cell_instance_at_level(_particle, level)};
+}
+
+int
+OpenMCProblemBase::elemsInBlock(const std::unordered_set<SubdomainID> & blocks) const
+{
+  // number of elements in the blocks on this rank
+  int n_elems = 0;
+
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    auto elem_ptr = _mesh_base.query_elem_ptr(e);
+    if (elem_ptr)
+    {
+      auto subdomain_id = elem_ptr->subdomain_id();
+      if (blocks.count(subdomain_id))
+        n_elems++;
+    }
+  }
+
+  // sum across all ranks that contribute to the block
+  int n_total_elems;
+  MPI_Allreduce(&n_elems, &n_total_elems, 1, MPI_INT, MPI_SUM, _communicator.get());
+  return n_total_elems;
 }

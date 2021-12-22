@@ -115,12 +115,6 @@ public:
     bool allow_negative_weights = true) override;
 
   /**
-   * Type definition for storing the relevant aspects of the OpenMC geometry; the first
-   * value is the cell index, while the second is the cell instance.
-   */
-  typedef std::pair<int32_t, int32_t> cellInfo;
-
-  /**
    * Type definition for cells contained within a parent cell; the first value
    * is the cell index, while the second is the set of cell instances
    */
@@ -791,9 +785,6 @@ protected:
 
   /// ID used by OpenMC to indicate that a material fill is VOID
   static constexpr int MATERIAL_VOID {-1};
-
-  /// Dummy particle to reduce number of allocations of particles for cell lookup routines
-  openmc::Particle _particle;
 
   /**
    * Translations to apply to the mesh template, in the event that the mesh should be
