@@ -116,6 +116,8 @@ CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   /* register custom execute flags, action syntax, etc. here */
   OpenMC::associateSyntax(s, af);
   Nek::associateSyntax(s, af);
+
+  associateSyntaxInner(s, af);
 }
 
 void
@@ -146,6 +148,25 @@ CardinalApp::registerApps()
 #ifdef ENABLE_IAPWS95
   IAPWS95App::registerApps();
 #endif
+}
+
+void
+CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_factory */)
+{
+  registerSyntax("VolumetricHeatSourceICAction", "Cardinal/ICs/VolumetricHeatSource");
+  registerSyntax("BulkEnergyConservationICAction", "Cardinal/ICs/BulkEnergyConservation");
+
+  registerTask("add_heat_source_ic", false /* is required */);
+  addTaskDependency("add_heat_source_ic", "add_ic");
+
+  registerTask("add_heat_source_postprocessor", false /* is required */);
+  addTaskDependency("add_heat_source_postprocessor", "add_postprocessor");
+
+  registerTask("add_bulk_fluid_temperature_ic", false /* is required */);
+  addTaskDependency("add_bulk_fluid_temperature_ic", "add_bulk_fluid_temperature_user_object");
+
+  registerTask("add_bulk_fluid_temperature_user_object", false /* is required */);
+  addTaskDependency("add_bulk_fluid_temperature_user_object", "add_heat_source_ic");
 }
 
 /***************************************************************************************************

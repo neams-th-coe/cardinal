@@ -226,7 +226,7 @@ void NekRSProblem::adjustNekSolution()
 
   if (limit_temperature)
   {
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, msg);
+    _console << msg << std::endl;
     nekrs::limitTemperature(_min_T, _max_T);
   }
 }
@@ -289,7 +289,8 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   auto & mesh = _nek_mesh->getMesh();
 
   {
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Sending heat flux to nekRS boundary " + Moose::stringify(*_boundary));
+    _console << "Sending heat flux to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
+
     if (!_volume)
     {
       for (unsigned int e = 0; e < _n_surface_elems; e++)
@@ -299,10 +300,10 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
         // Only work on elements we can find on our local chunk of a
         // distributed mesh
         if (!elem_ptr)
-          {
-            libmesh_assert(!mesh.is_serial());
-            continue;
-          }
+        {
+          libmesh_assert(!mesh.is_serial());
+          continue;
+        }
 
         for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
         {
@@ -391,13 +392,10 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   double normalized_nek_flux = 0.0;
   bool successful_normalization;
 
-  {
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0,
-      "Normalizing total nekRS flux of " + Moose::stringify(nek_flux * nek_flux_print_mult) +
-      " to the conserved MOOSE value of " + Moose::stringify(moose_flux));
+  _console << "Normalizing total NekRS flux of " << Moose::stringify(nek_flux * nek_flux_print_mult) <<
+    " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
 
-    successful_normalization = nekrs::normalizeFlux(moose_flux, nek_flux, normalized_nek_flux);
-  }
+  successful_normalization = nekrs::normalizeFlux(moose_flux, nek_flux, normalized_nek_flux);
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,
@@ -431,7 +429,7 @@ NekRSProblem::sendVolumeDeformationToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Sending volume deformation to nekRS");
+  _console << "Sending volume deformation to NekRS" << std::endl;
 
   for (unsigned int e = 0; e < _n_volume_elems; e++)
   {
@@ -488,7 +486,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   auto & mesh = _nek_mesh->getMesh();
 
   {
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Sending heat source to nekRs volume");
+    _console << "Sending volumetric heat source to NekRS" << std::endl;
 
     for (unsigned int e = 0; e < _n_volume_elems; e++)
     {
@@ -536,16 +534,13 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   double normalized_nek_source = 0.0;
   bool successful_normalization;
 
-  {
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0,
-      "Normalizing total nekRS heat source of " + Moose::stringify(nek_source * nek_source_print_mult) +
-      " to the conserved MOOSE value of " + Moose::stringify(moose_source));
+  _console << "Normalizing total NekRS heat source of " << Moose::stringify(nek_source * nek_source_print_mult) <<
+    " to the conserved MOOSE value of " + Moose::stringify(moose_source) << std::endl;
 
-    // Any unit changes (for DIMENSIONAL nekRS runs) are automatically accounted for
-    // here because moose_source is an integral on the MOOSE mesh, while nek_source is
-    // an integral on the nek mesh
-    successful_normalization = nekrs::normalizeHeatSource(moose_source, nek_source, normalized_nek_source);
-  }
+  // Any unit changes (for DIMENSIONAL nekRS runs) are automatically accounted for
+  // here because moose_source is an integral on the MOOSE mesh, while nek_source is
+  // an integral on the nek mesh
+  successful_normalization = nekrs::normalizeHeatSource(moose_source, nek_source, normalized_nek_source);
 
   // If before normalization, there is a large difference between the nekRS imposed source
   // and the MOOSE source, this could mean that there is a poor match between the domains,
@@ -566,7 +561,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 void
 NekRSProblem::getBoundaryTemperatureFromNek()
 {
-  CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Extracting nekRS temperature from boundary " + Moose::stringify(*_boundary));
+  _console << "Extracting NekRS temperature from boundary " << Moose::stringify(*_boundary) << std::endl;
 
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the boundary temperature information. That is,
@@ -577,7 +572,7 @@ NekRSProblem::getBoundaryTemperatureFromNek()
 void
 NekRSProblem::getVolumeTemperatureFromNek()
 {
-  CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Extracting nekRS temperature from volume");
+  _console << "Extracting NekRS temperature volume" << std::endl;
 
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the volume temperature information. In

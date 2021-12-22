@@ -1,0 +1,8 @@
+[Tests]
+  [sinusoidal]
+    type = Exodiff
+    input = 'sinusoidal_z.i'
+    exodiff = 'sinusoidal_z_out.e'
+    requirement = 'The system shall be able to apply a normalized sinusoidal initial condition.'
+  []
+[]

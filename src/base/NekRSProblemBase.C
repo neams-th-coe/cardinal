@@ -376,7 +376,7 @@ NekRSProblemBase::extractOutputs()
 {
   if (_outputs && _var_names.size())
   {
-    CONTROLLED_CONSOLE_TIMED_PRINT(0.0, 1.0, "Interpolating" + _var_string + " NekRS solution onto mesh mirror");
+    _console << "Interpolating" + _var_string + " NekRS solution onto mesh mirror" << std::endl;
 
     for (std::size_t i = 0; i < _var_names.size(); ++i)
     {
