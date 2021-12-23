@@ -704,7 +704,7 @@ OpenMCCellAverageProblem::checkCellMappedSubdomains()
     const auto cell_info = c.first;
 
     if (at_least_one_in_tallies && at_least_one_not_in_tallies)
-      mooseError(printCell(cell_info) + " maps to blocks with different tally settings!\n"
+      mooseError("cell " + printCell(cell_info) + " maps to blocks with different tally settings!\n"
         "Block " + Moose::stringify(block_in_tallies) + " is in 'tally_blocks', but "
         "block " + Moose::stringify(block_not_in_tallies) + " is not.");
 
@@ -1055,7 +1055,7 @@ OpenMCCellAverageProblem::checkContainedCellsStructure(const cellInfo & cell_inf
 {
   // make sure the number of keys is the same
   if (reference.size() != compare.size())
-    mooseError("The cell caching failed to identify identical number of cell IDs filling " + printCell(cell_info) +
+    mooseError("The cell caching failed to identify identical number of cell IDs filling cell " + printCell(cell_info) +
       "\nYou must set 'identical_tally_cell_fills' to false");
 
   for (const auto & entry : reference)
@@ -1065,7 +1065,7 @@ OpenMCCellAverageProblem::checkContainedCellsStructure(const cellInfo & cell_inf
     // check that each key exists
     if (!compare.count(key))
       mooseError("Not all tally cells contain cell ID " + Moose::stringify(cellID(key)) +
-        ". The offender is: " + printCell(cell_info) +
+        ". The offender is: cell " + printCell(cell_info) +
         ".\nYou must set 'identical_tally_cell_fills' to false!");
 
     // for each int32_t key, compare the std::vector<int32_t> map
@@ -1097,7 +1097,7 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
 
     // make sure the key exists
     if (!compare.count(cell_info))
-      mooseError("The cell caching failed to map " + printCell(cell_info));
+      mooseError("The cell caching failed to map cell " + printCell(cell_info));
 
     // for each cellInfo key, compare the contained cells map
     auto reference_map = reference[cell_info];
@@ -1118,7 +1118,7 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
       // and the instances should exactly match
       if (reference_instances != compare_instances)
         mooseError("The cell caching failed to get correct instances for material cell ID " +
-          Moose::stringify(cellID(nested_entry.first)) + " within " + printCell(cell_info) +
+          Moose::stringify(cellID(nested_entry.first)) + " within cell " + printCell(cell_info) +
           ".\nYou must set 'identical_tally_cell_fills' to false!" +
           "\n\nThis error might appear if there are OpenMC cells filled with the same universe/lattice "
           "\nfilling the tally cells, but that don't have tallies added to them.");
@@ -1252,7 +1252,7 @@ OpenMCCellAverageProblem::storeTallyCells()
 
         // otherwise, warn the user that they've specified tallies for some non-fissile cells
         print_warning = true;
-        warning << "\n  " << printCell(cell_info);
+        warning << "\n  cell " << printCell(cell_info);
       }
 
       _tally_cells.push_back(cell_info);
@@ -1266,8 +1266,8 @@ OpenMCCellAverageProblem::storeTallyCells()
 
       if (_check_equal_mapped_tally_volumes)
         if (std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]) / mapped_tally_volume > 1e-3)
-          mooseError("Detected un-equal mapped tally volumes!\n " +
-            printCell(first_tally_cell) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[first_tally_cell]) + " (cm3)\n " +
+          mooseError("Detected un-equal mapped tally volumes!\n cell " +
+            printCell(first_tally_cell) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[first_tally_cell]) + " (cm3)\n cell " +
             printCell(cell_info) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[cell_info]) + " (cm3).\n\n"
             "If the tallied cells in your OpenMC model are of identical volumes, this means that you can get\n"
             "distortion of the volumetric heat source output. For instance, suppose you have two equal-size OpenMC\n"
@@ -1524,7 +1524,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
         int err = openmc_cell_set_temperature(id, average_temp, &instance, false);
 
         if (err)
-          mooseError("In attempting to set " + printCell(cell_info) + " to temperature " +
+          mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
             Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" + std::string(openmc_err_msg));
       }
     }
@@ -1585,7 +1585,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     // because it could be a very common mistake to forget to set an initial condition
     // for density if OpenMC runs first
     if (average_density <= 0.0)
-      mooseError("Densities less than or equal to zero cannot be set in the OpenMC model!\n " + printCell(cell_info) +
+      mooseError("Densities less than or equal to zero cannot be set in the OpenMC model!\n cell " + printCell(cell_info) +
         " set to density " + Moose::stringify(average_density) + " (kg/m3)");
 
     if (_verbose)
@@ -1597,7 +1597,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     // throw a special error if the cell is void, because the OpenMC error isn't very
     // clear what the mistake is
     if (material_indices[0] == MATERIAL_VOID)
-      mooseError("Cannot set density for " + printCell(cell_info) +
+      mooseError("Cannot set density for cell " + printCell(cell_info) +
         " because this cell is void (vacuum)!");
 
     if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
@@ -1830,7 +1830,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
           _console << " cell " << printCell(cell_info) << " power fraction: " << std::setw(3) <<
             Moose::stringify(power_fraction) << std::endl;
 
-        checkZeroTally(power_fraction, printCell(cell_info));
+        checkZeroTally(power_fraction, "cell " + printCell(cell_info));
         fillElementalAuxVariable(_heat_source_var, c.second, volumetric_power);
       }
       break;
@@ -1999,7 +1999,7 @@ OpenMCCellAverageProblem::cellFill(const cellInfo & cell_info, int & fill_type) 
   int err = openmc_cell_get_fill(cell_info.first, &fill_type, &materials, &n_materials);
 
   if (err)
-    mooseError("In attempting to get fill of " + printCell(cell_info) +
+    mooseError("In attempting to get fill of cell " + printCell(cell_info) +
       ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   std::vector<int32_t> material_indices;
@@ -2099,7 +2099,7 @@ OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
   int err = openmc_cell_get_temperature(material_cell.first, &material_cell.second, &T);
 
   if (err)
-    mooseError("In attempting to get temperature of " + printCell(cell_info) +
+    mooseError("In attempting to get temperature of cell " + printCell(cell_info) +
       ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   return T;
