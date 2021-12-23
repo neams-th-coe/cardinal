@@ -244,12 +244,6 @@ protected:
  /// volumetric heat source variable read from by nekRS
   unsigned int _heat_source_var;
 
-  /// Descriptive string for data transfer going in to nekRS
-  std::string _incoming;
-
-  /// Descriptive string for data transfer coming from nekRS
-  std::string _outgoing;
-
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
 

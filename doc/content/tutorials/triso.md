@@ -233,9 +233,14 @@ First, let's examine how the mapping between OpenMC and MOOSE was established.
 When we run with `verbose = true`, you will see the following mapping information displayed:
 
 ```
-cell 1, instance 0 (of 3): 256 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  13.2213
-cell 1, instance 1 (of 3): 256 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  13.2213
-cell 1, instance 2 (of 3): 256 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  13.2213
+Mapping of OpenMC cells to MOOSE mesh elements:
+-----------------------------------------------------------------------------
+|          Cell           | # Solid | # Fluid | # Uncoupled | Mapped Volume |
+-----------------------------------------------------------------------------
+| id 1, instance 0 (of 3) |     256 |       0 |           0 |  1.322128e-05 |
+| id 1, instance 1 (of 3) |     256 |       0 |           0 |  1.322128e-05 |
+| id 1, instance 2 (of 3) |     256 |       0 |           0 |  1.322128e-05 |
+-----------------------------------------------------------------------------
 ```
 
 The three cells representing the pebbles are mapped to the corresponding MOOSE elements for each pebble.

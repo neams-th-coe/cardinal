@@ -445,86 +445,91 @@ First, let's examine how the mapping between OpenMC and MOOSE was established.
 When we run with `verbose = true`, you will see the following mapping information displayed:
 
 ```
-cell   1, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell   3, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell   5, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell   7, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell   9, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  11, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  13, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  15, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  17, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  19, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  21, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  23, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  25, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  27, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  29, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  31, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  33, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  35, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  37, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  39, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  41, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  43, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  45, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  47, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  49, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  51, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  53, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  55, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  57, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  59, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  61, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  63, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  65, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  67, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  69, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  71, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  73, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  75, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  77, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  79, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  81, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  83, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  85, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  87, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  89, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  91, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  93, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  95, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell  97, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell  99, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 101, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 103, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 105, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 107, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 109, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 111, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 113, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 115, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 117, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 119, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 121, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 123, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 125, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 127, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 129, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 131, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 133, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 135, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 137, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 139, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 141, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 143, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 145, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 147, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 149, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 151, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 153, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 155, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
-cell 157, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  3.56463
-cell 159, instance   0 (of   1):    60 solid elems  0 fluid elems  0 uncoupled elems  |  Mapped elems volume (cm3):  1.13545
+Mapping of OpenMC cells to MOOSE mesh elements:
+-----------------------------------------------------------------------------------
+|             Cell              | # Solid | # Fluid | # Uncoupled | Mapped Volume |
+-----------------------------------------------------------------------------------
+| id   1, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id   3, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id   5, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id   7, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id   9, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  11, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  13, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  15, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  17, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  19, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  21, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  23, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  25, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  27, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  29, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  31, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  33, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  35, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  37, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  39, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  41, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  43, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  45, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  47, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  49, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  51, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  53, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  55, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  57, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  59, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  61, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  63, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  65, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  67, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  69, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  71, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  73, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  75, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  77, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  79, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  81, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  83, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  85, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  87, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  89, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  91, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  93, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  95, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id  97, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id  99, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 101, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 103, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 105, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 107, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 109, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 111, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 113, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 115, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 117, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 119, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 121, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 123, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 125, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 127, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 129, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 131, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 133, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 135, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 137, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 139, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 141, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 143, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 145, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 147, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 149, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 151, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 153, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 155, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+| id 157, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
+| id 159, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
+-----------------------------------------------------------------------------------
 ```
 
 This shows that a total of 80 OpenMC cells mapped to the MOOSE blocks (blocks 1, 2, and 3 -

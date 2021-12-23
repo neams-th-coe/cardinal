@@ -24,6 +24,7 @@
 #include "libmesh/cell_hex27.h"
 #include "nekrs.hpp"
 #include "CardinalUtils.h"
+#include "VariadicTable.h"
 
 registerMooseObject("CardinalApp", NekRSMesh);
 
@@ -99,22 +100,21 @@ NekRSMesh::~NekRSMesh()
 void
 NekRSMesh::printMeshInfo() const
 {
-  _console << " NekRS mesh converted to order " << (_order + 1) << " MooseMesh" << std::endl;
+  _console << "\nNekRS mesh mapping to MOOSE:" << std::endl;
+  VariadicTable<std::string, int, std::string, int, int> vt({"", "Order", "Boundaries", "# Side Elems", "# Volume Elems"});
 
-  if (_scaling != 1.0)
-  {
-    std::string size = _scaling > 1.0 ? "larger" : "smaller";
-    _console << " Data transfers will be done with a mesh " << Moose::stringify(_scaling) <<
-      " times " << size << " than nekRS's mesh" << std::endl;
-  }
+  std::vector<int> nek_bids;
+  for (int i = 1; i <= nekrs::mesh::NboundaryID(); ++i)
+    nek_bids.push_back(i);
 
-  if (_boundary && !_volume)
-    _console << " Boundary " << Moose::stringify(*_boundary) << " contains " << _n_surface_elems <<
-      " of the total of " << _nek_n_surface_elems << " nekRS surface elements" << std::endl;
+  vt.addRow("NekRS mesh", nekrs::mesh::polynomialOrder(), Moose::stringify(nek_bids), _nek_n_surface_elems, _nek_n_volume_elems);
 
-  if (_volume)
-    _console << " Volume contains " << _n_volume_elems <<
-      " of the total of " << _nek_n_volume_elems << " nekRS volume elements" << std::endl;
+  std::string boundaries = "";
+  if (_boundary)
+    boundaries = Moose::stringify(*_boundary);
+  vt.addRow("NekRS mirror", _order + 1, boundaries, _n_surface_elems, _n_volume_elems);
+
+  vt.print(_console);
 }
 
 std::unique_ptr<MooseMesh>
