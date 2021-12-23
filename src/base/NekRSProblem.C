@@ -82,29 +82,17 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
 
   // Depending on the type of coupling, initialize various problem parameters
   if (_boundary && !_volume) // only boundary coupling
-  {
-    _incoming = "boundary heat flux";
-    _outgoing = "boundary temperature";
     _flux_face = (double *) calloc(_n_vertices_per_surface, sizeof(double));
-  }
   else if (_volume && !_boundary) // only volume coupling
-  {
-    _incoming = "volume power density";
-    _outgoing = "volume temperature";
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
-  }
   else // both volume and boundary coupling
   {
-    _incoming = "boundary heat flux and volume power density";
-    _outgoing = "volume temperature";
     _flux_elem = (double *) calloc(_n_vertices_per_volume, sizeof(double));
     _source_elem = (double*) calloc(_n_vertices_per_volume, sizeof(double));
   }
 
   if (_moving_mesh)
   {
-    _incoming += " and mesh displacement";
-
     if (_boundary)
     {
       mooseError("Mesh displacement not supported in boundary coupling!");
@@ -591,10 +579,7 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       if (!synchronizeIn())
-      {
-        _console << "Skipping " << _incoming << " transfer to nekRS, not at synchronization step" << std::endl;
         return;
-      }
 
       if (_boundary)
         sendBoundaryHeatFluxToNek();
@@ -622,10 +607,7 @@ void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
       if (!synchronizeOut())
-      {
-        _console << "Skipping " << _outgoing << " transfer out of nekRS, not at synchronization step" << std::endl;
         return;
-      }
 
       if (!_volume)
         getBoundaryTemperatureFromNek();
@@ -730,6 +712,7 @@ NekRSProblem::addExternalVariables()
   if (_minimize_transfers_in)
   {
     auto pp_params = _factory.getValidParams("Receiver");
+    pp_params.set<std::vector<OutputName>>("outputs") = {"none"};
     addPostprocessor("Receiver", "transfer_in", pp_params);
   }
 }

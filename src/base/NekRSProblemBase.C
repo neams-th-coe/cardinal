@@ -24,6 +24,7 @@
 #include "TimedPrint.h"
 #include "MooseUtils.h"
 #include "CardinalUtils.h"
+#include "VariadicTable.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -111,9 +112,18 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   nekrs::solution::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
 
   if (_nondimensional)
-    _console << "The NekRS model uses the following non-dimensional scales: " <<
-      "\n length: " << _L_ref << "\n velocity: " << _U_ref << "\n temperature: " << _T_ref <<
-      "\n temperature increment: " << _dT_ref << std::endl;
+  {
+    VariadicTable<Real, Real, Real, Real> vt({"Length      ", "Velocity    ", "Temperature ", "d(Temperature)"});
+    vt.setColumnFormat({VariadicTableColumnFormat::SCIENTIFIC,
+      VariadicTableColumnFormat::SCIENTIFIC,
+      VariadicTableColumnFormat::SCIENTIFIC,
+      VariadicTableColumnFormat::SCIENTIFIC});
+
+    vt.addRow(_L_ref, _U_ref, _T_ref, _dT_ref);
+    _console << "\nNekRS characteristic scales:" << std::endl;
+    vt.print(_console);
+    _console << std::endl;
+  }
 
   // It's too complicated to make sure that the dimensional form _also_ works when our
   // reference coordinates are different from what MOOSE is expecting, so just throw an error

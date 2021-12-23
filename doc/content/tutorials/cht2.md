@@ -438,19 +438,8 @@ $ mpiexec -np 12 cardinal-opt -i solid.i
 
 By using the `minimize_transfers_in` feature, you will see in the screen output
 that the data transfers into NekRS only occur on synchronization points with the
-master application - all other time steps display a message like
-
-```
-Skipping boundary heat flux transfer to nekRS, not at synchronization step
-```
-
-Likewise, by using the `minimize_transfers_out` feature, you will see in the
-screen output that the data transfers out of NekRS only occur on synchronization
-points with the master application - all other time steps display a message like
-
-```
-Skipping boundary temperature transfer out of nekRS, not at synchronization step
-```
+master application - all other time steps will omit the messages about normalizing
+heat flux and extracting temperatures from NekRS.
 
 After converting the NekRS output files to a format viewable in Paraview
 (see instructions [here](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#visualizing-output-files)),
