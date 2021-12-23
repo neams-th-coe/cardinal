@@ -47,7 +47,7 @@
   [multiple_phases]
     type = RunException
     input = multiple_phases.i
-    expect_err = "cell 4, instance 0 \(of 1\):  16 solid elems  3486 fluid elems  0 uncoupled elems  |  Mapped elems volume:  264.336\n\n"
+    expect_err = "Cell id 4, instance 0 (of 1) mapped to 16 solid elements, 3486 fluid elements, and 0 uncoupled elements.\n"
                  "Each OpenMC cell, instance pair must map to elements of the same phase."
     requirement = "The system shall error if one OpenMC cell maps to more than one phase"
   []
