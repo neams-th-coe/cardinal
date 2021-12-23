@@ -48,3 +48,7 @@ documentation.
   id=multi
 
 8. [Multiphysics coupling of NekRS, OpenMC, and MOOSE heat conduction](tutorials/coupled.md)
+
+## Miscellaneous
+
+9. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)

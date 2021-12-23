@@ -89,12 +89,12 @@ We recommend putting these in your `~/.bashrc`:
 # [REQUIRED] you must set the location of the root directory of the NekRS install;
 # this will be the 'install' directory at the top level of the Cardinal repository.
 # Be sure to adjust this to wherever you have cloned the Cardinal repository
-export NEKRS_HOME = $HOME/cardinal/install
+export NEKRS_HOME=$HOME/cardinal/install
 
 # [REQUIRED IF USING MOOSE CONDA ENV] you must set the location of the HYPRE
 # libraries (so that a libHYPRE.so or something similar is located at
 # HYPRE_DIR/lib). This is needed because NekRS uses the same HYPRE built with MOOSE
-export HYPRE_DIR = $CONDA_PREFIX
+export HYPRE_DIR=$CONDA_PREFIX
 
 # [OPTIONAL] it's a good idea to explicitly note that you are using MPI compiler wrappers
 export CC=mpicc
