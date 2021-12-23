@@ -47,14 +47,14 @@
   [multiple_phases]
     type = RunException
     input = multiple_phases.i
-    expect_err = "cell 4, instance 0 \(of 1\):  16 solid elems  3486 fluid elems  0 uncoupled elems  |  Mapped elems volume:  264.336\n\n"
+    expect_err = "Cell id 4, instance 0 \(of 1\) mapped to 16 solid elements, 3486 fluid elements, and 0 uncoupled elements.\n"
                  "Each OpenMC cell, instance pair must map to elements of the same phase."
     requirement = "The system shall error if one OpenMC cell maps to more than one phase"
   []
   [multiple_tally_settings]
     type = RunException
     input = multiple_tally_settings.i
-    expect_err = "cell 4, instance 0 \(of 1\) maps to blocks with different tally settings!\nBlock 100 is in 'tally_blocks', but block 200 is not."
+    expect_err = "cell id 4, instance 0 \(of 1\) maps to blocks with different tally settings!\nBlock 100 is in 'tally_blocks', but block 200 is not."
     requirement = "The system shall error if one OpenMC cell maps to multiple subdomains that don't all have the same tally setting"
   []
   [absent_block]
