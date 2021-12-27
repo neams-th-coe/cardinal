@@ -819,10 +819,6 @@ OpenMCCellAverageProblem::printMaterial(const int32_t & index) const
 void
 OpenMCCellAverageProblem::initializeElementToCellMapping()
 {
-  if (_specified_scaling)
-    _console << "Multiplying mesh coordinates by " + Moose::stringify(_scaling) +
-      " to convert to OpenMC's length scale of centimeters" << std::endl;
-
   /* We consider five different cases here based on how the MOOSE and OpenMC
    * domains might overlap in space:
    *
@@ -850,10 +846,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   for (const auto & c : openmc::model::cells)
     _n_openmc_cells += c->n_instances_;
 
-  _console << "\nMapping between " + Moose::stringify(_mesh.nElem()) +
-    " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
-    Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels):" << std::endl;
-
   // First, figure out the phase of each element according to the blocks defined by the user
   storeElementPhase();
 
@@ -877,10 +869,15 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
       "the specified blocks!");
 
-  VariadicTable<std::string, int, int, int> vt({"", "# Solid Elems", "# Fluid Elems", "# Uncoupled Elems"});
-  vt.addRow("MOOSE mesh", _n_moose_solid_elems, _n_moose_fluid_elems, _n_moose_none_elems);
-  vt.addRow("OpenMC cells", _n_mapped_solid_elems, _n_mapped_fluid_elems, _n_mapped_none_elems);
+  _console << "\nMapping between " + Moose::stringify(_mesh.nElem()) +
+    " MOOSE elements and " + Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
+    Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels):" << std::endl;
+
+  VariadicTable<std::string, int, int, int, Real> vt({"", "# Solid Elems", "# Fluid Elems", "# Uncoupled Elems", "Length x"});
+  vt.addRow("MOOSE mesh", _n_moose_solid_elems, _n_moose_fluid_elems, _n_moose_none_elems, 1.0);
+  vt.addRow("OpenMC cells", _n_mapped_solid_elems, _n_mapped_fluid_elems, _n_mapped_none_elems, _scaling);
   vt.print(_console);
+  _console << std::endl;
 
   if (_n_moose_solid_elems && (_n_mapped_solid_elems != _n_moose_solid_elems))
    mooseWarning("The MOOSE mesh has " + Moose::stringify(_n_moose_solid_elems) + " solid elements, "
