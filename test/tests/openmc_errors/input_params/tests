@@ -6,4 +6,11 @@
                  "Number of active batches must be greater than zero."
     requirement = "The system shall error if attempting to set a negative number of active batches"
   []
+  [invalid_max_batches]
+    type = RunException
+    input = invalid_max_batches.i
+    expect_err = "In attempting to set the maximum number of batches, OpenMC reported:\n\n"
+                 "Number of active batches must be greater than zero."
+    requirement = "The system shall error if attempting to set a negative number of active batches"
+  []
 []
