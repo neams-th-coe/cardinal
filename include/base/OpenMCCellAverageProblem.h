@@ -263,6 +263,12 @@ public:
 
 protected:
   /**
+   * Read the parameters needed for triggers
+   * @param[in] params input parameters
+   */
+  void getTallyTriggerParameters(const InputParameters & params);
+
+  /**
    * Read the block parameters and tally information based on user settings
    * @param[in] name phase that these blocks will be mapped to
    * @param[in] blocks list of block ids to write
@@ -541,6 +547,22 @@ protected:
    * applied to the heat source tally.
    */
   const relaxation::RelaxationEnum _relaxation;
+
+  /**
+   * Type of trigger to apply to OpenMC kappa-fission tallies to indicate when
+   * the simulation is complete. These can be used to on-the-fly adjust the number
+   * of active batches in order to reach some desired criteria (which is specified
+   * by this parameter).
+   */
+  const tally::TallyTriggerTypeEnum _tally_trigger;
+
+  /**
+   * Type of trigger to apply to k eigenvalue to indicate when
+   * the simulation is complete. These can be used to on-the-fly adjust the number
+   * of active batches in order to reach some desired criteria (which is specified
+   * by this parameter).
+   */
+  const tally::TallyTriggerTypeEnum _k_trigger;
 
   /// Constant power for the entire OpenMC domain
   const Real & _power;
@@ -927,6 +949,9 @@ protected:
 
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;
+
+  /// Threshold to use for accepting tallies when using triggers
+  Real _tally_trigger_threshold;
 
   /**
    * Current fixed point iteration tally result; for instance, when using constant

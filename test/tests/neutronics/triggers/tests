@@ -30,4 +30,18 @@
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k relative error."
   []
+  [tally_rel_err]
+    type = CSVDiff
+    input = tally_rel_err.i
+    csvdiff = tally_rel_err_out.csv
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "tally relative error with cell tallies."
+  []
+  [mesh_tally_rel_err]
+    type = CSVDiff
+    input = mesh_tally_rel_err.i
+    csvdiff = mesh_tally_rel_err_out.csv
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "tally relative error with mesh tallies."
+  []
 []
