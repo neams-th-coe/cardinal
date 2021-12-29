@@ -1,0 +1,47 @@
+[Tests]
+  [k_std_dev]
+    type = CSVDiff
+    input = k_std_dev.i
+    csvdiff = k_std_dev_out.csv
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "k standard deviation."
+  []
+  [k_std_dev_cutoff]
+    type = CSVDiff
+    input = k_std_dev.i
+    cli_args = 'Problem/max_batches=60 Outputs/file_base=k_std_dev_cutoff_out'
+    csvdiff = k_std_dev_cutoff_out.csv
+    requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
+      "k standard deviation unless first reaching a maximum number of batches."
+  []
+  [k_variance]
+    type = CSVDiff
+    input = k_std_dev.i
+    cli_args = 'Problem/k_trigger=variance Outputs/file_base=k_variance_out Problem/k_trigger_threshold=2e-4'
+    csvdiff = k_variance_out.csv
+    requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
+      "k variance."
+  []
+  [k_rel_err]
+    type = CSVDiff
+    input = k_std_dev.i
+    cli_args = 'Problem/k_trigger=rel_err Outputs/file_base=k_rel_err_out Problem/k_trigger_threshold=1.3e-2'
+    csvdiff = k_rel_err_out.csv
+    requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
+      "k relative error."
+  []
+  [tally_rel_err]
+    type = CSVDiff
+    input = tally_rel_err.i
+    csvdiff = tally_rel_err_out.csv
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "tally relative error with cell tallies."
+  []
+  [mesh_tally_rel_err]
+    type = CSVDiff
+    input = mesh_tally_rel_err.i
+    csvdiff = mesh_tally_rel_err_out.csv
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "tally relative error with mesh tallies."
+  []
+[]

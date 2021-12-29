@@ -27,6 +27,7 @@ MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getEigenvalueEnum();
 MooseEnum getRelaxationEnum();
+MooseEnum getTallyTriggerEnum();
 
 namespace order
 {
@@ -91,6 +92,15 @@ namespace tally
   {
     cell,
     mesh
+  };
+
+  /// Type of trigger to apply
+  enum TallyTriggerTypeEnum
+  {
+    variance,
+    std_dev,
+    rel_err,
+    none
   };
 }
 
