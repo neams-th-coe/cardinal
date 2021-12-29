@@ -38,6 +38,7 @@
 #include "openmc/random_lcg.h"
 #include "openmc/settings.h"
 #include "openmc/summary.h"
+#include "openmc/tallies/trigger.h"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
@@ -103,6 +104,21 @@ OpenMCCellAverageProblem::validParams()
     "File providing the coordinates to which each mesh template should be translated, if multiple "
     "unstructured meshes are desired.");
 
+  params.addParam<MooseEnum>("tally_trigger", getTallyTriggerEnum(),
+    "Trigger criterion to determine when OpenMC simulation is complete based on tallies; options: "
+    "variance, std_dev, rel_err, none (default)");
+  params.addRangeCheckedParam<Real>("tally_trigger_threshold", "tally_trigger_threshold > 0",
+    "Threshold for the tally trigger");
+  params.addParam<MooseEnum>("k_trigger", getTallyTriggerEnum(),
+    "Trigger criterion to determine when OpenMC simulation is complete based on k; options: "
+    "variance, std_dev, rel_err, none (default)");
+  params.addRangeCheckedParam<Real>("k_trigger_threshold", "k_trigger_threshold > 0",
+    "Threshold for the k trigger");
+  params.addRangeCheckedParam<unsigned int>("max_batches", "max_batches > 0",
+    "Maximum number of batches, when using triggers");
+  params.addRangeCheckedParam<unsigned int>("batch_interval", 1, "batch_interval > 0",
+    "Trigger batch interval");
+
   params.addParam<bool>("check_equal_mapped_tally_volumes", false,
     "Whether to check if the tallied cells map to regions in the mesh of equal volume. "
     "This can be helpful to ensure that the volume normalization of OpenMC's tallies doesn't "
@@ -140,6 +156,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
+  _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
+  _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
   _power(getParam<Real>("power")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
   _verbose(getParam<bool>("verbose")),
@@ -197,14 +215,20 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
   if (isParamValid("batches"))
   {
+    // we set the number of batches (total and maximum) before reading
+    // any of the trigger information; if there are triggers, then we will
+    // change the maximum number of batches
     int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
-      true /* set the max batches if triggers are used */,
+      true /* set the max batches */,
       true /* add the last batch for statepoint writing */);
 
     if (err)
       mooseError("In attempting to set the number of batches, OpenMC reported:\n\n" +
         std::string(openmc_err_msg));
   }
+
+  // set the parameters needed for tally triggers
+  getTallyTriggerParameters(params);
 
   if (params.isParamSetByUser("relaxation_factor") && _relaxation != relaxation::constant)
     mooseWarning("The 'relaxation_factor' parameter is unused when not using constant relaxation!");
@@ -315,6 +339,65 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
       n_contained += cc.second.size();
 
     _cell_to_n_contained[cell_info] = n_contained;
+  }
+}
+
+void
+OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & parameters)
+{
+  // parameters needed for tally triggers
+  if (_tally_trigger != tally::none)
+  {
+    if (_tally_trigger == tally::std_dev || _tally_trigger == tally::variance)
+      mooseError("Standard deviation and variance tally triggers are not yet supported!\n"
+        "There is not a mechanism for OpenMC to use a different threshold for the different\n"
+        "bins in the tallies, which would be needed in order to set thresholds in the same\n"
+        "units as in the Cardinal input file.");
+
+    if (!isParamValid("tally_trigger_threshold"))
+      paramError("tally_trigger_threshold", "This parameter must be provided when using a tally trigger!");
+
+    _tally_trigger_threshold = getParam<Real>("tally_trigger_threshold");
+  }
+  else if (isParamValid("tally_trigger_threshold"))
+    paramWarning("tally_trigger_threshold", "This parameter is unused when 'tally_trigger = none'!");
+
+  // parameters needed for k triggers
+  if (_k_trigger != tally::none)
+  {
+    if (!isParamValid("k_trigger_threshold"))
+      paramError("k_trigger_threshold", "This parameter must be provided when using a k trigger!");
+
+    openmc::settings::keff_trigger.threshold = getParam<Real>("k_trigger_threshold");
+  }
+  else if (isParamValid("k_trigger_threshold"))
+    paramWarning("k_trigger_threshold", "This parameter is unused when 'k_trigger = none'!");
+
+  if (_k_trigger != tally::none || _tally_trigger != tally::none) // at least one trigger
+  {
+    openmc::settings::trigger_on = true;
+
+    if (!isParamValid("max_batches"))
+      paramError("max_batches", "This parameter must be provided when using a trigger!");
+
+    int err = openmc_set_n_batches(getParam<unsigned int>("max_batches"),
+      true /* set the max batches */,
+      true /* add the last batch for statepoint writing */);
+
+    if (err)
+      mooseError("In attempting to set the maximum number of batches, OpenMC reported:\n\n" +
+        std::string(openmc_err_msg));
+
+    openmc::settings::trigger_batch_interval = getParam<unsigned int>("batch_interval");
+  }
+
+  if (_k_trigger == tally::none && _tally_trigger == tally::none) // no triggers
+  {
+    if (isParamValid("max_batches"))
+      paramWarning("max_batches", "This parameter is unused when 'tally_trigger' and 'k_trigger' are 'none'!");
+
+    if (parameters.isParamSetByUser("batch_interval"))
+      paramWarning("batch_interval", "This parameter is unused when 'tally_trigger' and 'k_trigger' are 'none'!");
   }
 }
 
@@ -748,7 +831,7 @@ OpenMCCellAverageProblem::getMaterialFills()
         "with this material.");
   }
 
-  if (_verbose)
+  if (_verbose && _has_fluid_blocks)
   {
     _console << "\nMaterials in each OpenMC fluid cell:" << std::endl;
     vt.print(_console);
@@ -1295,6 +1378,24 @@ OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters,
 void
 OpenMCCellAverageProblem::initializeTallies()
 {
+  // add trigger information for k, if present
+  switch (_k_trigger)
+  {
+    case tally::variance:
+      openmc::settings::keff_trigger.metric = openmc::TriggerMetric::variance;
+      break;
+    case tally::std_dev:
+      openmc::settings::keff_trigger.metric = openmc::TriggerMetric::standard_deviation;
+      break;
+    case tally::rel_err:
+      openmc::settings::keff_trigger.metric = openmc::TriggerMetric::relative_error;
+      break;
+    case tally::none:
+      break;
+    default:
+      mooseError("Unhandled TallyTriggerTypeEnum!");
+  }
+
   // create the global tally for normalization
   if (_needs_global_tally)
   {
@@ -1333,8 +1434,18 @@ OpenMCCellAverageProblem::initializeTallies()
     {
       int n_translations = _mesh_translations.size();
 
-      _console << "Adding mesh tally based on " + _mesh_template_filename + " at " +
-        Moose::stringify(n_translations) + " locations..." << std::endl;
+      _console << "\nAdding mesh tally based on " + _mesh_template_filename + " at " +
+        Moose::stringify(n_translations) + " locations" << std::endl;
+
+      VariadicTable<int, int, Real, Real, Real, Real> vt({"Mesh template",
+        "# Elems", "           x", "           y", "           z", "      Volume"});
+      vt.setColumnFormat({
+        VariadicTableColumnFormat::AUTO,
+        VariadicTableColumnFormat::AUTO,
+        VariadicTableColumnFormat::SCIENTIFIC,
+        VariadicTableColumnFormat::SCIENTIFIC,
+        VariadicTableColumnFormat::SCIENTIFIC,
+        VariadicTableColumnFormat::SCIENTIFIC});
 
       _current_mean_tally.resize(n_translations);
       _previous_mean_tally.resize(n_translations);
@@ -1372,9 +1483,12 @@ OpenMCCellAverageProblem::initializeTallies()
           for (decltype(_local_tally.at(i)->n_filter_bins()) e = 0; e < _local_tally.at(i)->n_filter_bins(); ++e)
             volume += _mesh_template->volume(e);
 
-          _console << " Mesh translated to " << printPoint(translation) << ": " <<
-            std::setw(6) << _local_tally.at(i)->n_filter_bins() << " elements  |  volume (cm3): " << std::setw(6) << volume << std::endl;
+          vt.addRow(i, _local_tally.at(i)->n_filter_bins(), translation(0), translation(1),
+            translation(2), volume);
         }
+
+        vt.print(_console);
+        _console << std::endl;
       }
 
       // TODO: can add the assume_separate setting for a bit of additional performance
@@ -1390,6 +1504,28 @@ OpenMCCellAverageProblem::initializeTallies()
     }
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+  }
+
+  // add trigger information, if present; for each tally, we only have a single score
+  // (kappa-fission), so i_score is always set to 0
+  for (auto & t : _local_tally)
+  {
+    switch (_tally_trigger)
+    {
+      case tally::variance:
+        t->triggers_.push_back({openmc::TriggerMetric::variance, _tally_trigger_threshold, 0});
+        break;
+      case tally::std_dev:
+        t->triggers_.push_back({openmc::TriggerMetric::standard_deviation, _tally_trigger_threshold, 0});
+        break;
+      case tally::rel_err:
+        t->triggers_.push_back({openmc::TriggerMetric::relative_error, _tally_trigger_threshold, 0});
+        break;
+      case tally::none:
+        break;
+      default:
+        mooseError("Unhandled TallyTriggerTypeEnum!");
+    }
   }
 
   // if the tally sum check is turned off, write a message informing the user
