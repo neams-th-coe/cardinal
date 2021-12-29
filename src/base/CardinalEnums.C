@@ -52,3 +52,8 @@ MooseEnum getRelaxationEnum()
 {
   return MooseEnum("constant robbins_monro dufek_gudowski none", "none");
 }
+
+MooseEnum getTallyTriggerEnum()
+{
+  return MooseEnum("variance std_dev rel_err none", "none");
+}
