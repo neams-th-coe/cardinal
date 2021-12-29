@@ -535,6 +535,25 @@ s^n=&\ \frac{s^0+\sqrt{s^0s^0+4s^0\sum_{i=0}^{n-1}s^i}}{2}
 \end{aligned}
 \end{equation}
 
+#### Controlling OpenMC Termination
+
+This class provides an interface to OpenMC's [tally triggers](https://docs.openmc.org/en/latest/pythonapi/generated/openmc.Trigger.html?highlight=trigger).
+Tally triggers allow OpenMC to automatically end its active batches
+once reaching certain criteria in $k$ and/or the tally uncertainties.
+This class currently allows you to terminate the OpenMC solution once
+reaching a specified `threshold` in the following uncertainties:
+
+- $k$ standard deviation
+- $k$ variance
+- $k$ relative error
+- kappa-fission relative error
+
+Set the `k_trigger` parameter to activate a trigger based on $k$, and set
+`tally_trigger` to activate a trigger based on the kappa-fission tally created
+automatically as part of the wrapping setup. Then, the desired convergence
+threshold is specified with the `k_trigger_threshold` and `tally_trigger_threshold`
+parameters, respectively. Both $k$ and tally triggers can be used simultaneously.
+
 #### Controlling the OpenMC Settings
 
 This class provides minimal capabilities to control the OpenMC simulation
