@@ -36,7 +36,7 @@
 # Whether to use saved statepoint files to just generate plots, skipping transport solves
 use_saved_statepoints = False
 
-# Number of axial layers to consider
+# Number of cell layers to consider
 n_layers = [5, 10]
 
 # Number of inactive batches to run
@@ -74,7 +74,6 @@ ap.add_argument('-input', dest='input_file', type=str,
 args = ap.parse_args()
 
 input_file = args.input_file
-
 script_name = args.script_name + ".py"
 file_path = os.path.realpath(__file__)
 file_dir, file_name = os.path.split(file_path)
