@@ -1,13 +1,32 @@
+#********************************************************************/
+#*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
+#*                             Cardinal                             */
+#*                                                                  */
+#*                  (c) 2021 UChicago Argonne, LLC                  */
+#*                        ALL RIGHTS RESERVED                       */
+#*                                                                  */
+#*                 Prepared by UChicago Argonne, LLC                */
+#*               Under Contract No. DE-AC02-06CH11357               */
+#*                With the U. S. Department of Energy               */
+#*                                                                  */
+#*             Prepared by Battelle Energy Alliance, LLC            */
+#*               Under Contract No. DE-AC07-05ID14517               */
+#*                With the U. S. Department of Energy               */
+#*                                                                  */
+#*                 See LICENSE for full restrictions                */
+#********************************************************************/
+
 # This script runs the OpenMC wrapping for a number of axial layer discretizations
 # in order to determine how many inactive cycles are needed to converge both the
 # Shannon entropy and k. This script is run with:
 #
-# python inactive_study.py -i <script_name> [-n-threads <n_threads>]
+# python inactive_study.py -i <script_name> -input <file_name> [-n-threads <n_threads>]
 #
 # - the script used to create the OpenMC model is named <script_name>.py;
 #   this script MUST accept '-s' as an argument to add a Shannon entropy mesh
 #   AND '-n' to set the number of layers; please consult the tutorials for
 #   examples if you're unsure of how to do this
+# - the Cardinal input file to run is named <file_name>
 # - by default, the number of threads is taken as the maximum on your system;
 #   otherwise, you can set it by providing -n-threads <n_threads>
 #
@@ -16,9 +35,6 @@
 
 # Whether to use saved statepoint files to just generate plots, skipping transport solves
 use_saved_statepoints = False
-
-# Input files to run, in the order that you'd usually pass them to Cardinal's executable
-input_file = 'common_input.i openmc.i'
 
 # Number of axial layers to consider
 n_layers = [5, 10]
@@ -52,8 +68,12 @@ ap.add_argument('-i', dest='script_name', type=str,
                 help='Name of the OpenMC python script to run (without .py extension)')
 ap.add_argument('-n-threads', dest='n_threads', type=int,
                 default=multiprocessing.cpu_count(), help='Number of threads to run Cardinal with')
+ap.add_argument('-input', dest='input_file', type=str,
+                help='Name of the Cardinal input file to run')
 
 args = ap.parse_args()
+
+input_file = args.input_file
 
 script_name = args.script_name + ".py"
 file_path = os.path.realpath(__file__)
@@ -100,6 +120,7 @@ for n in n_layers:
             " Problem/inactive_batches=" + str(n_inactive) + \
             " Problem/batches=" + str(n_batches) + \
             " Problem/max_batches=" + str(n_batches) + \
+            " MultiApps/active='' Transfers/active='' Executioner/num_steps=1" + \
             " --n-threads=" + str(args.n_threads))
 
         # Copy the statepoint to a separate file for later plotting
