@@ -52,3 +52,4 @@ documentation.
 ## Miscellaneous
 
 9. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
+10. [Assessing convergence](tutorials/convergence.md)
