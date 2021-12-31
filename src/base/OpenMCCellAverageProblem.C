@@ -186,7 +186,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
   _fixed_point_iteration(-1),
-  _total_n_particles(0)
+  _total_n_particles(0),
+  _temperature_vars(nullptr),
+  _temperature_blocks(nullptr)
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -1618,15 +1620,22 @@ void OpenMCCellAverageProblem::addExternalVariables()
   }
 
   // if collating temperature from multiple variables, add the necessary
-  // auxiliary kernels to do so
+  // auxiliary kernels and variables to do so
   if (_temperature_vars)
   {
     std::map<std::string, std::vector<SubdomainName>> vars_to_blocks;
+    std::set<SubdomainName> blocks;
     for (int i = 0; i < _temperature_vars->size(); ++i)
     {
       auto var = (*_temperature_vars)[i];
       auto block = (*_temperature_blocks)[i];
       vars_to_blocks[var].push_back(block);
+
+      bool already_in_set = blocks.find(block) != blocks.end();
+      blocks.insert(block);
+      if (already_in_set)
+        mooseError("Block " + Moose::stringify(block) + " can only point to a single variable name "
+          "in 'temperature_variables'!");
     }
 
     // create the variables that will be used to temporarily store temperature;
