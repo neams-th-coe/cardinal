@@ -11,6 +11,13 @@
     expect_err = "'temperature_variables' and 'temperature_blocks' must be the same length!"
     requirement = "The system shall error if the blocks and variables are not the same length"
   []
+  [block_already_used]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/temperature_blocks="1 2 2"'
+    expect_err = "Block 2 can only point to a single variable name in 'temperature_variables'!"
+    requirement = "The system shall error if trying to collate multiple temperature variables onto the same block due to undefined behavior"
+  []
   [collate_temps]
     type = Exodiff
     input = openmc.i

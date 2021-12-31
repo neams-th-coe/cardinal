@@ -189,3 +189,23 @@ the simulations, will be available in a directory named `layers_study`. Below
 are shown example images of these quantities as a function of the cell
 discretization. You would then select the cell discretization scheme to be the
 point at which the changes in power and $k$ are sufficiently converged.
+
+!media unit_cell_k_layers.png
+  id=k1
+  caption=Example plot that is generated as part of the cell discretization study, showing $k$ as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
+
+!media unit_cell_layers_q.png
+  id=k2
+  caption=Example plot that is generated as part of the cell discretization study, showing the radially-averaged power distribution as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
+
+!media unit_cell_max_power_layers.png
+  id=k3
+  caption=Example plot that is generated as part of the cell discretization study, showing the maximum power as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
+
+!media unit_cell_min_power_layers.png
+  id=k4
+  caption=Example plot that is generated as part of the cell discretization study, showing the minimum power as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center

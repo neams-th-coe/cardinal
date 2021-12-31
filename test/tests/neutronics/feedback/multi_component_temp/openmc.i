@@ -17,6 +17,8 @@
   []
 []
 
+solid_blocks = '1 3'
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
@@ -29,7 +31,7 @@
   skip_first_incoming_transfer = true
 
   temperature_variables = 'solid_temp solid_temp fluid_temp'
-  temperature_blocks = '1 3 2'
+  temperature_blocks = '${solid_blocks} 2'
 []
 
 [Executioner]

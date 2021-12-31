@@ -40,11 +40,13 @@
 # script to determine which objects you need in your input file:
 # https://cardinal.cels.anl.gov/tutorials/convergence.html
 
+import math
+
 # Whether to use saved statepoint files to just generate plots, skipping transport solves
 use_saved_statepoints = False
 
 # Number of cell layers to consider
-n_layers = [5, 10, 15, 25, 50, 75]
+n_layers = [10, 20, 30, 40, 50]
 
 # Number of inactive batches to run
 n_inactive = 25
@@ -56,10 +58,15 @@ n_active = 5
 n_max_active = 1000
 
 # Interval with which to check the triggers
-batch_interval = 20
+batch_interval = 2
 
 # Height of the domain, to be used for plotting the averaged heat source
 h = 1.6
+
+# Average power density, for displaying percent changes in power in terms of
+# the average (otherwise, large changes in low-power nodes can distort the sense
+# of convergence)
+average_power_density = 9.605e7
 
 # ------------------------------------------------------------------------------ #
 
@@ -157,6 +164,8 @@ for i in range(1, nl):
     print('Layers: ' + str(n) + ':')
     print('\tPercent change in max power: ' + str(abs(max_power[i] - max_power[i - 1]) / max_power[i - 1] * 100))
     print('\tPercent change in min power: ' + str(abs(min_power[i] - min_power[i - 1]) / min_power[i - 1] * 100))
+    print('\tPercent change in max power (rel. to avg.): ' + str(abs(max_power[i] - max_power[i - 1]) / average_power_density * 100))
+    print('\tPercent change in min power (rel. to avg.): ' + str(abs(min_power[i] - min_power[i - 1]) / average_power_density * 100))
 
 fig, ax = plt.subplots()
 plt.errorbar(n_layers, max_power, yerr=max_power_std_dev, fmt='.r', capsize=3.0, marker='o', linestyle='-', color='r')
@@ -198,7 +207,7 @@ for l in range(nl):
     z = np.linspace(dz / 2.0, h - dz / 2.0, i)
     plt.plot(z, q, label='{} layers'.format(i), color=colors[l], marker='o', markersize=2.0)
 
-plt.xlabel('Axial Position (m)')
+plt.xlabel('Distance from Inlet (m)')
 plt.ylabel('Power (W/m$^3$)')
 plt.grid()
 plt.legend(loc='lower center', ncol=2)
