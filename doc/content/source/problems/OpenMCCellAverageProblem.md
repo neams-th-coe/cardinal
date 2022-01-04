@@ -591,6 +591,63 @@ output is provided to the `output` parameter; available options are:
 - `fission_tally_std_dev`: fission tally standard deviation in units of volumetric
   power density with length units that match the units of the `heat_source`
 
+#### Collating Temperatures from Multiple Apps
+
+OpenMC is often coupled to multiple MOOSE applications providing temperature -
+fluid temperature might be provided by NekRS (wrapped via Cardinal), while the solid
+temperature might be provided by BISON. In all situations, OpenMC always reads temperatures
+from the `temp` variable. However, if you have multiple applications that are trying
+to write into the same `temp` variable, because many of MOOSE's transfers are not
+block-restricted, the temperature from one application can overwrite that of another
+application. To get around this, you could use several [SelfAux](https://mooseframework.inl.gov/source/auxkernels/SelfAux.html)
+auxiliary kernels. Suppose fluid temperature is written by NekRS into a variable named
+`nek_temp`, while the solid temperature is written by BISON into a variable named
+`bison_temp` - a proper collation of temperatures into a single `temp` variable could
+be achieved with:
+
+```
+[AuxVariables]
+  [nek_temp]
+    block = '1'
+  []
+  [bison_temp]
+    block = '2 3'
+  []
+[]
+
+[AuxKernels]
+  [assign_fluid_temps]
+    type = SelfAux
+    variable = temp
+    v = nek_temp
+    block = '1'
+  []
+  [assign_solid_temps]
+    type = SelfAux
+    variable = temp
+    v = bison_temp
+    block = '2 3'
+  []
+[]
+```
+
+This class conveniently has shortcut syntax to do all of the above:
+
+```
+[Problem]
+  type = OpenMCCellAverageProblem
+
+  temperature_variables = 'nek_temp bison_temp bison_temp'
+  temperature_blocks = '1 2 3'
+[]
+```
+
+In other words, Cardinal will create the variables specified with the
+`temperature_variables` parameter and then also set up the
+[SelfAux](https://mooseframework.inl.gov/source/auxkernels/SelfAux.html)
+auxiliary kernels to assign those variables into the `temp` variable that OpenMC
+reads from.
+
 !syntax parameters /Problem/OpenMCCellAverageProblem
 
 !syntax inputs /Problem/OpenMCCellAverageProblem

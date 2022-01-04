@@ -3,6 +3,8 @@ clad_ir = 0.40005
 clad_or = 0.45720
 L = 300.0
 
+num_layers = 40
+
 [Mesh]
   [clad] # This makes a circular annulus that will represent the clad
     type = AnnularMeshGenerator
@@ -17,7 +19,7 @@ L = 300.0
     type = FancyExtruderGenerator
     input = clad
     heights = '${L}'
-    num_layers = '40'
+    num_layers = '${num_layers}'
     direction = '0 0 1'
   []
   [rename_clad] # this renames some sidesets on the clad to avoid name clashes
@@ -40,7 +42,7 @@ L = 300.0
     type = FancyExtruderGenerator
     input = fuel
     heights = '${L}'
-    num_layers = '40'
+    num_layers = '${num_layers}'
     direction = '0 0 1'
   []
   [combine]
@@ -86,7 +88,6 @@ L = 300.0
   solid_blocks = '1 2 3'
   tally_blocks = '2 3'
   tally_type = cell
-  tally_filter = cell
   solid_cell_level = 0
 []
 

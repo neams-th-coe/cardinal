@@ -85,3 +85,127 @@ reach stationarity.
   id=k
   caption=Example plots that are generated as part of the inactive study, showing $k$ as a function of inactive batch and number of cell divisions; the horizontal line shows the average of $k$ over the last 100 cycles
   style=width:80%;margin-left:auto;margin-right:auto;halign:center
+
+### Cell Discretization
+
+To determine an appropriate cell discretization, you can use the
+`scripts/layers_study.py` script. To run this script, you need:
+
+- A Python script that creates your OpenMC for you; this Python script
+  *must* take `-n <layers>` to indicate the number of cell divisions
+  to create
+- A Cardinal input file that runs your OpenMC model given some imposed
+  temperature and density distribution
+
+In addition, your Cardinal input file must contain a number of postprocessors,
+user objects, and vector postprocessors to process the solution to extract
+the various scalar and averaged quantities used in the convergence study.
+In the `[Problem]` block, you must set `outputs = 'fission_tally_std_dev'`.
+You will also need to copy and paste the following into your input file:
+
+```
+[Postprocessors]
+  [max_tally_rel_err]
+    type = FissionTallyRelativeError
+    value_type = max
+  []
+  [k]
+    type = KEigenvalue
+  []
+  [k_std_dev]
+    type = KStandardDeviation
+  []
+  [max_power]
+    type = ElementExtremeValue
+    variable = heat_source
+    value_type = max
+    block = 2
+  []
+  [min_power]
+    type = ElementExtremeValue
+    variable = heat_source
+    value_type = min
+    block = 2
+  []
+
+  [proxy_max_power_std_dev]
+    type = ElementExtremeValue
+    variable = fission_tally_std_dev
+    proxy_variable = heat_source
+    value_type = max
+    block = 2
+  []
+  [proxy_min_power_std_dev]
+    type = ElementExtremeValue
+    variable = fission_tally_std_dev
+    proxy_variable = heat_source
+    value_type = min
+    block = 2
+  []
+[]
+
+[UserObjects]
+  [average_power_axial]
+    type = LayeredAverage
+    variable = heat_source
+    direction = z
+    block = 2
+  []
+[]
+
+[VectorPostprocessors]
+  [power_avg]
+    type = SpatialUserObjectVectorPostprocessor
+    userobject = average_power_axial
+  []
+[]
+```
+
+!alert warning
+When copying the above into your input file, be sure to update the `block` for the
+various power postprocessors and user objects
+to be the blocks on which the heat source is defined, as well as the `direction`
+for the [LayeredAverage](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html).
+
+For example, to run a cell discretization study for the model developed
+for [Tutorial 6C](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
+we would run:
+
+```
+$ cd tutorials/gas_compact
+$ python ../../scripts/layers_study.py -i unit_cell -input openmc.i
+```
+
+since the Python script used to generate the OpenMC model is named
+`unit_cell.py` and our Cardinal input file is named `openmc.i`. You should edit
+the beginning of the `layers_study.py` script to select the number
+of cell layers, number of inactive cycles, and maxium number of active cycles:
+
+!listing /scripts/layers_study.py language=python
+
+When the script finishes running, plots of the maximum power, minimum power,
+$k$, and the axial power distribution, along with the saved CSV output from
+the simulations, will be available in a directory named `layers_study`. Below
+are shown example images of these quantities as a function of the cell
+discretization. You would then select the cell discretization scheme to be the
+point at which the changes in power and $k$ are sufficiently converged.
+
+!media unit_cell_k_layers.png
+  id=k1
+  caption=Example plot that is generated as part of the cell discretization study, showing $k$ as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
+
+!media unit_cell_layers_q.png
+  id=k2
+  caption=Example plot that is generated as part of the cell discretization study, showing the radially-averaged power distribution as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
+
+!media unit_cell_max_power_layers.png
+  id=k3
+  caption=Example plot that is generated as part of the cell discretization study, showing the maximum power as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
+
+!media unit_cell_min_power_layers.png
+  id=k4
+  caption=Example plot that is generated as part of the cell discretization study, showing the minimum power as a function of the cell discretization
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
