@@ -36,7 +36,7 @@
 # Whether to use saved statepoint files to just generate plots, skipping transport solves
 use_saved_statepoints = False
 
-# Number of axial layers to consider
+# Number of cell layers to consider
 n_layers = [5, 10]
 
 # Number of inactive batches to run
@@ -74,7 +74,6 @@ ap.add_argument('-input', dest='input_file', type=str,
 args = ap.parse_args()
 
 input_file = args.input_file
-
 script_name = args.script_name + ".py"
 file_path = os.path.realpath(__file__)
 file_dir, file_name = os.path.split(file_path)
@@ -137,13 +136,14 @@ for n in n_layers:
         averaging_k = sp.k_generation[(n_inactive - averaging_batches):n_inactive]
         k_generation_avg.append(sum(averaging_k) / len(averaging_k))
 
+entropy_range = max_entropy - min_entropy
 for i in range(len(n_layers)):
     nl = n_layers[i]
     fig, ax = plt.subplots()
     ax.plot(entropy[i][:n_inactive][:], label='{0:.0f} layers'.format(nl), color=colors[i])
     ax.set_xlabel('Inactive Batch')
     ax.set_ylabel('Shannon Entropy')
-    ax.set_ylim([min_entropy, max_entropy])
+    ax.set_ylim([min_entropy - 0.05 * entropy_range, max_entropy + 0.05 * entropy_range])
     plt.grid()
     plt.legend(loc='upper right')
     plt.savefig('inactive_study/' + args.script_name + '_entropy' + str(nl) + '.pdf', bbox_inches='tight')
@@ -159,6 +159,6 @@ for i in range(len(n_layers)):
     ax.set_ylabel('$k$')
     ax.set_ylim([min_k, max_k])
     plt.grid()
-    plt.legend(loc='upper right')
+    plt.legend(loc='lower right')
     plt.savefig('inactive_study/' + args.script_name + '_k' + str(nl) + '.pdf', bbox_inches='tight')
     plt.close()

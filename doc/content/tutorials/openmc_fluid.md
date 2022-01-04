@@ -437,23 +437,12 @@ Next, we add a receiver
 `flux` variable that will hold the heat flux received from MOOSE (and sent
 to [!ac](THM)) and another receiver variable `thm_temp_wall` that will hold
 the wall temperature received from [!ac](THM) (and sent to MOOSE).
-
 In addition,
 recall that the OpenMC wrapping automatically
 adds auxiliary variables named `temp` and `density` when receiving feedback
-from coupled applications. Because the blocks in the OpenMC mesh mirror
-receive temperatures from different applications, we will need to:
+from coupled applications.
 
-- Add receiver variables for the temperature from each application
-  (`solid_temp` for the solid temperature and `thm_temp` for the bulk
-  fluid temperature)
-- Combine those received variables together into the `temp` variable
-  so that the OpenMC wrapping can read from a single variable
-
-We combine the `solid_temp` and `thm_temp` variables using two
-[ParsedAux](https://mooseframework.inl.gov/source/auxkernels/ParsedAux.html)
-auxiliary kernels to set equality between `temp` and each of these received
-variables in the appropriate mesh blocks. Finally, to reduce the number
+Finally, to reduce the number
 of transfers from [!ac](THM), we will receive fluid temperature from
 [!ac](THM), but re-compute the density locally in the OpenMC wrapping
 using a [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html)
@@ -510,6 +499,17 @@ When first using this optimization for a new problem, we recommend setting
 against the "rigorous" approach to be sure that your problem setup has the necessary
 prerequisites to use this feature. After you verify that no errors are thrown during
 setup, set `check_identical_tally_cell_fills` to `false` to use this initialization speedup feature.
+
+Because the blocks in the OpenMC mesh mirror
+receive temperatures from different applications, we use the
+`temperature_variables` and `temperature_blocks` parameters of
+[OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html)
+to automatically create separate variables to hold the temperatures from
+THM and MOOSE (`thm_temp`, `solid_temp`) and create several
+[SelfAux](https://mooseframework.inl.gov/source/auxkernels/SelfAux.html)
+auxiliary kernels to write into `temp`. The `temperature_blocks` and
+`temperature_variables` parameters simply allow shorter input syntax by creating
+the variables and their auxiliary kernels for you.
 
 Finally, we apply a constant relaxation model to the heat source. A constant
 relaxation will compute the heat source in iteration $i+1$ as an average

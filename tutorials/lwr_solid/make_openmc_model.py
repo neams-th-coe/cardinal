@@ -18,9 +18,17 @@
 
 import openmc
 import numpy as np
+from argparse import ArgumentParser
 
-N = 40          # Number of axial cells to build in the solid to receive feedback
-height = 300.0  # Total height of pincell
+ap = ArgumentParser()
+ap.add_argument('-n', dest='n_axial', type=int, default=40,
+                help='Number of axial cell divisions')
+ap.add_argument('-s', '--entropy', action='store_true',
+                help='Whether to add a Shannon entropy mesh')
+args = ap.parse_args()
+
+N = args.n_axial # Number of axial cells to build in the solid to receive feedback
+height = 300.0   # Total height of pincell
 
 ###############################################################################
 # Create materials for the problem
@@ -108,6 +116,13 @@ lower_left = (-pitch/2, -pitch/2, 0.0)
 upper_right = (pitch/2, pitch/2, height)
 uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
 settings.source = openmc.source.Source(space=uniform_dist)
+
+if (args.entropy):
+  entropy_mesh = openmc.RegularMesh()
+  entropy_mesh.lower_left = lower_left
+  entropy_mesh.upper_right = upper_right
+  entropy_mesh.dimension = (10, 10, 20)
+  settings.entropy_mesh = entropy_mesh
 
 settings.temperature = {'default': 280.0 + 273.15,
                         'method': 'interpolation',

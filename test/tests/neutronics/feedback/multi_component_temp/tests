@@ -1,0 +1,27 @@
+[Tests]
+  [missing_one]
+    type = RunException
+    input = openmc_missing.i
+    expect_err = "When assembling temperature from multiple variables, both 'temperature_variables' and 'temperature_blocks' must be provided. You have only specified one"
+    requirement = "The system shall error if one multi-component temperature setting is specified but not both"
+  []
+  [wrong_length]
+    type = RunException
+    input = openmc_incorrect_length.i
+    expect_err = "'temperature_variables' and 'temperature_blocks' must be the same length!"
+    requirement = "The system shall error if the blocks and variables are not the same length"
+  []
+  [block_already_used]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/temperature_blocks="1 2 2"'
+    expect_err = "Block 2 can only point to a single variable name in 'temperature_variables'!"
+    requirement = "The system shall error if trying to collate multiple temperature variables onto the same block due to undefined behavior"
+  []
+  [collate_temps]
+    type = Exodiff
+    input = openmc.i
+    exodiff = openmc_out.e
+    requirement = "The system shall collate temperatures from multiple MOOSE applications with convenient syntax."
+  []
+[]

@@ -67,12 +67,6 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     family = MONOMIAL
     order = CONSTANT
   []
-  [solid_temp]
-    block = 'graphite compacts poison'
-  []
-  [thm_temp]
-    block = '101'
-  []
   [thm_temp_wall]
     block = '101'
   []
@@ -120,22 +114,6 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     p = ${outlet_P}
     T = temp
     fp = helium
-    execute_on = 'timestep_begin linear'
-  []
-  [temp_in_solids]
-    type = ParsedAux
-    variable = temp
-    block = 'graphite compacts poison'
-    function = 'solid_temp'
-    args = 'solid_temp'
-    execute_on = 'timestep_begin linear'
-  []
-  [temp_in_fluid]
-    type = ParsedAux
-    variable = temp
-    block = '101'
-    function = 'thm_temp'
-    args = 'thm_temp'
     execute_on = 'timestep_begin linear'
   []
   [z]
@@ -211,6 +189,12 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   particles = 1000
   inactive_batches = 200
   batches = 1000
+
+  # we will collate temperature from THM (for the fluid) and MOOSE (for the solid)
+  # into variables we name as 'solid_temp' and 'thm_temp'. This syntax will automatically
+  # create those variabes for us
+  temperature_variables = 'solid_temp solid_temp solid_temp thm_temp'
+  temperature_blocks = 'graphite compacts poison 101'
 []
 
 [Postprocessors]

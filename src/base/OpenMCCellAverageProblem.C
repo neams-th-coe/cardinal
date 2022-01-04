@@ -119,6 +119,14 @@ OpenMCCellAverageProblem::validParams()
   params.addRangeCheckedParam<unsigned int>("batch_interval", 1, "batch_interval > 0",
     "Trigger batch interval");
 
+  params.addParam<std::vector<std::string>>("temperature_variables",
+    "Vector of variable names corresponding to the temperatures that should be assembled into "
+    "the 'temp' variable from which OpenMC reads cell temperatures. You may use this if "
+    "multiple applications are providing temperature to OpenMC, which need to be collated "
+    "together into a single variable");
+  params.addParam<std::vector<SubdomainName>>("temperature_blocks",
+    "Blocks corresponding to each of the 'temperature_variables'");
+
   params.addParam<bool>("check_equal_mapped_tally_volumes", false,
     "Whether to check if the tallied cells map to regions in the mesh of equal volume. "
     "This can be helpful to ensure that the volume normalization of OpenMC's tallies doesn't "
@@ -178,7 +186,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
   _fixed_point_iteration(-1),
-  _total_n_particles(0)
+  _total_n_particles(0),
+  _temperature_vars(nullptr),
+  _temperature_blocks(nullptr)
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -215,12 +225,19 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
   if (isParamValid("batches"))
   {
+    auto xml_n_batches = openmc::settings::n_batches;
+
     // we set the number of batches (total and maximum) before reading
     // any of the trigger information; if there are triggers, then we will
     // change the maximum number of batches
     int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
       true /* set the max batches */,
       true /* add the last batch for statepoint writing */);
+
+    // if we set the batches from Cardinal, remove whatever statepoint file was
+    // created for the #batches set in the XML files; this is just to reduce the
+    // number of statepoint files by removing an unnecessary point
+    openmc::settings::statepoint_batch.erase(xml_n_batches);
 
     if (err)
       mooseError("In attempting to set the number of batches, OpenMC reported:\n\n" +
@@ -244,6 +261,22 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   // settings will force OpenMC to have materials on every block, when that's not actually needed. So
   // we can turn that check off.
   setMaterialCoverageCheck(false);
+
+  if (isParamValid("temperature_variables") != isParamValid("temperature_blocks"))
+    mooseError("When assembling temperature from multiple variables, both 'temperature_variables' "
+      "and 'temperature_blocks' must be provided. You have only specified one");
+
+  if (isParamValid("temperature_variables"))
+  {
+    _temperature_vars = &getParam<std::vector<std::string>>("temperature_variables");
+    _temperature_blocks = &getParam<std::vector<SubdomainName>>("temperature_blocks");
+
+    checkEmptyVector(*_temperature_vars, "temperature_variables");
+    checkEmptyVector(*_temperature_blocks, "temperature_blocks");
+
+    if (_temperature_vars->size() != _temperature_blocks->size())
+      mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
+  }
 
   switch (_tally_type)
   {
@@ -1583,6 +1616,47 @@ void OpenMCCellAverageProblem::addExternalVariables()
       std::string out = (*_outputs)[i];
       addAuxVariable("MooseVariable", out, var_params);
       _external_vars.push_back(_aux->getFieldVariable<Real>(0, out).number());
+    }
+  }
+
+  // if collating temperature from multiple variables, add the necessary
+  // auxiliary kernels and variables to do so
+  if (_temperature_vars)
+  {
+    std::map<std::string, std::vector<SubdomainName>> vars_to_blocks;
+    std::set<SubdomainName> blocks;
+    for (int i = 0; i < _temperature_vars->size(); ++i)
+    {
+      auto var = (*_temperature_vars)[i];
+      auto block = (*_temperature_blocks)[i];
+      vars_to_blocks[var].push_back(block);
+
+      bool already_in_set = blocks.find(block) != blocks.end();
+      blocks.insert(block);
+      if (already_in_set)
+        mooseError("Block " + Moose::stringify(block) + " can only point to a single variable name "
+          "in 'temperature_variables'!");
+    }
+
+    // create the variables that will be used to temporarily store temperature;
+    // TODO: could allow the order and family to be user-specified
+    for (const auto & v : vars_to_blocks)
+    {
+      auto var_params = _factory.getValidParams("MooseVariable");
+      var_params.set<MooseEnum>("family") = "LAGRANGE";
+      var_params.set<MooseEnum>("order") = "FIRST";
+      var_params.set<std::vector<SubdomainName>>("block") = v.second;
+      addAuxVariable("MooseVariable", v.first, var_params);
+    }
+
+    for (const auto & v : vars_to_blocks)
+    {
+      auto params = _factory.getValidParams("SelfAux");
+      params.set<AuxVariableName>("variable") = "temp";
+      params.set<std::vector<SubdomainName>>("block") = v.second;
+      params.set<std::vector<VariableName>>("v") = {v.first};
+      params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_TIMESTEP_BEGIN};
+      addAuxKernel("SelfAux", "collated_temp_from_" + v.first, params);
     }
   }
 }

@@ -966,6 +966,18 @@ protected:
   /// Previous fixed point iteration tally result (after relaxation)
   std::vector<xt::xtensor<double, 1>> _previous_mean_tally;
 
+  /**
+   * Variables to "collate" together (presumably from separate MOOSE apps)
+   * together into the 'temp' variable that OpenMC reads from
+   */
+  const std::vector<std::string> * _temperature_vars;
+
+  /**
+   * Blocks of temperature to "collate" together (presumably from separate MOOSE apps)
+   * together into the 'temp' variable that OpenMC reads from
+   */
+  const std::vector<SubdomainName> * _temperature_blocks;
+
 private:
   /**
    * Update the number of particles according to the Dufek-Gudowski relaxation scheme
