@@ -211,7 +211,6 @@ nek_dt = 6e-3
     type = Receiver
     default = 1.0
   []
-
   [power]
     type = ElementIntegralVariablePostprocessor
     variable = power
@@ -278,7 +277,6 @@ nek_dt = 6e-3
 [Executioner]
   type = Transient
   dt = ${fparse N * nek_dt * t0}
-
   nl_abs_tol = 1e-5
   nl_rel_tol = 1e-16
   petsc_options_value = 'hypre boomeramg'
