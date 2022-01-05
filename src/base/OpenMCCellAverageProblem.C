@@ -50,9 +50,6 @@ InputParameters
 OpenMCCellAverageProblem::validParams()
 {
   InputParameters params = OpenMCProblemBase::validParams();
-  params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
-    "Power (Watts) to normalize the OpenMC tallies; this is the power "
-    "produced by the entire OpenMC problem.");
   params.addParam<std::vector<SubdomainName>>("fluid_blocks",
     "Subdomain ID(s) corresponding to the fluid phase, "
     "for which both density and temperature will be sent to OpenMC");
@@ -68,7 +65,6 @@ OpenMCCellAverageProblem::validParams()
     "Whether to throw an error if any tallies from OpenMC evaluate to zero; "
     "this can be helpful in reducing the number of tallies if you inadvertently add tallies "
     "to a non-fissile region, or for catching geomtery setup errors");
-  params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
   params.addParam<bool>("skip_first_incoming_transfer", false,
     "Whether to skip the very first density and temperature transfer into OpenMC; "
     "this can be used to allow whatever initial condition is set in OpenMC's XML "
@@ -166,9 +162,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
   _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
   _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
-  _power(getParam<Real>("power")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
-  _verbose(getParam<bool>("verbose")),
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _export_properties(getParam<bool>("export_properties")),
   _specified_scaling(params.isParamSetByUser("scaling")),

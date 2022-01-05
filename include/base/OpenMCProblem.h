@@ -20,14 +20,14 @@
 
 #define LIBMESH
 
-#include "ExternalProblem.h"
+#include "OpenMCProblemBase.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/mesh.h"
 #include "openmc/tallies/tally.h"
 #include "CardinalEnums.h"
 
-class OpenMCProblem : public ExternalProblem
+class OpenMCProblem : public OpenMCProblemBase
 {
 public:
   OpenMCProblem(const InputParameters & params);
@@ -72,9 +72,6 @@ public:
 protected:
   /// coordinate level of the pebble cells in the OpenMC model
   const int & _pebble_cell_level;
-
-  /// Total power for normalizing the heat source
-  const Real & _power;
 
   /// Cell volumes at the locations of the pebble centers
   std::vector<Real> _volumes;

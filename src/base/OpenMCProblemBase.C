@@ -22,11 +22,16 @@ InputParameters
 OpenMCProblemBase::validParams()
 {
   InputParameters params = ExternalProblem::validParams();
+  params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
+    "Power (Watts) to normalize the OpenMC tallies");
+  params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
   return params;
 }
 
 OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
-  ExternalProblem(params)
+  ExternalProblem(params),
+  _power(getParam<Real>("power")),
+  _verbose(getParam<bool>("verbose"))
 {
 }
 

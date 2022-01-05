@@ -564,9 +564,6 @@ protected:
    */
   const tally::TallyTriggerTypeEnum _k_trigger;
 
-  /// Constant power for the entire OpenMC domain
-  const Real & _power;
-
   /**
    * Whether to check if any of the tallies evaluate to zero; if set to true,
    * and a tally is zero, an error is thrown. This can be helpful in identifying
@@ -605,9 +602,6 @@ protected:
    * then the actual level used in mapping is the locally lowest cell level.
    */
   bool _using_lowest_fluid_level;
-
-  /// Whether to print diagnostic information about model setup and the transfers
-  const bool & _verbose;
 
   /**
    * Whether to skip the first density and temperature transfer into OpenMC; this

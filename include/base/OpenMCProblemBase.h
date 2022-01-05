@@ -33,4 +33,9 @@ public:
   ~OpenMCProblemBase();
 
 protected:
+  /// Power by which to normalize the OpenMC results
+  const Real & _power;
+
+  /// Whether to print diagnostic information about model setup and the transfers
+  const bool & _verbose;
 };
