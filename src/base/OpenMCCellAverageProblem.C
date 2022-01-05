@@ -1872,26 +1872,6 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
 }
 
 void
-OpenMCCellAverageProblem::fillElementalAuxVariable(const unsigned int & var_num,
-  const std::vector<unsigned int> & elem_ids, const Real & value)
-{
-  auto & solution = _aux->solution();
-  auto sys_number = _aux->number();
-  const auto & mesh = _mesh.getMesh();
-
-  // loop over all the elements and set the specified variable to the specified value
-  for (const auto & e : elem_ids)
-  {
-    auto elem_ptr = mesh.query_elem_ptr(e);
-    if (elem_ptr)
-    {
-      auto dof_idx = elem_ptr->dof_number(sys_number, var_num, 0);
-      solution.set(dof_idx, value);
-    }
-  }
-}
-
-void
 OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
 {
   // if OpenMC has only run one time, or we don't have relaxation at all,

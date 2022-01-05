@@ -502,14 +502,6 @@ protected:
    */
   bool cellHasFissileMaterials(const cellInfo & cell_info) const;
 
-  /**
-   * Set an auxiliary elemental variable to a specified value
-   * @param[in] var_num variable number
-   * @param[in] elem_ids element IDs to set
-   * @param[in] value value to set
-   */
-  void fillElementalAuxVariable(const unsigned int & var_num, const std::vector<unsigned int> & elem_ids, const Real & value);
-
   /// Extract user-specified additional output fields from OpenMC
   void extractOutputs();
 
