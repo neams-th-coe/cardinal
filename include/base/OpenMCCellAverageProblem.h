@@ -20,7 +20,7 @@
 
 #define LIBMESH
 
-#include "ExternalProblem.h"
+#include "OpenMCProblemBase.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_cell_instance.h"
 #include "openmc/tallies/filter_mesh.h"
@@ -70,7 +70,7 @@
  *  - You will get some extra error checking at your disposal if your OpenMC geometry consists
  *    of a single coordinate level.
  */
-class OpenMCCellAverageProblem : public ExternalProblem
+class OpenMCCellAverageProblem : public OpenMCProblemBase
 {
 public:
   OpenMCCellAverageProblem(const InputParameters & params);

@@ -16,10 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-//
-// Created by Ronald Rahaman on 2019-01-23.
-//
-
 #include "NearestPointReceiver.h"
 #include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"

@@ -49,7 +49,7 @@ bool OpenMCCellAverageProblem::_first_transfer = true;
 InputParameters
 OpenMCCellAverageProblem::validParams()
 {
-  InputParameters params = ExternalProblem::validParams();
+  InputParameters params = OpenMCProblemBase::validParams();
   params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
     "Power (Watts) to normalize the OpenMC tallies; this is the power "
     "produced by the entire OpenMC problem.");
@@ -160,7 +160,7 @@ OpenMCCellAverageProblem::validParams()
 }
 
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params) :
-  ExternalProblem(params),
+  OpenMCProblemBase(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
