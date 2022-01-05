@@ -133,12 +133,6 @@ public:
   typedef std::unordered_map<int32_t, std::vector<int32_t>> containedCells;
 
   /**
-   * Set the number of particles to run for a Monte Carlo calculation
-   * @param[in] n number of particles
-   */
-  void setParticles(const int64_t & n) const;
-
-  /**
    * Get the number of particles used in the current Monte Carlo calculation
    * @return number of particles
    */

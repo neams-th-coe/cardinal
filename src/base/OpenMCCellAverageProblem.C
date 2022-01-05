@@ -79,15 +79,6 @@ OpenMCCellAverageProblem::validParams()
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
 
-  params.addRangeCheckedParam<int64_t>("particles", "particles > 0 ",
-    "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("inactive_batches", "inactive_batches > 0",
-    "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("batches", "batches > 0",
-    "Number of batches to run in OpenMC; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("openmc_verbosity", "openmc_verbosity >= 1 & openmc_verbosity <= 10",
-    "OpenMC verbosity level");
-
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
   params.addParam<std::string>("mesh_template", "Mesh tally template for OpenMC when using mesh tallies; "
@@ -189,9 +180,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
   openmc::settings::libmesh_comm = &_mesh.comm();
 
-  if (isParamValid("openmc_verbosity"))
-    openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
-
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
   {
@@ -201,42 +189,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     if (isParamValid("particles") && _relaxation == relaxation::dufek_gudowski)
       mooseWarning("The 'particles' parameter is unused when using Dufek-Gudowski relaxation!");
 
-    setParticles(getParam<int64_t>("first_iteration_particles"));
+    openmc::settings::n_particles = getParam<int64_t>("first_iteration_particles");
   }
-  else
-  {
-    if (isParamValid("first_iteration_particles"))
-      mooseWarning("The 'first_iteration_particles' parameter is unused when not using Dufek-Gudowski relaxation!");
-
-    if (isParamValid("particles"))
-      setParticles(getParam<int64_t>("particles"));
-  }
+  else if (isParamValid("first_iteration_particles"))
+    mooseWarning("The 'first_iteration_particles' parameter is unused when not using Dufek-Gudowski relaxation!");
 
   _n_particles_1 = nParticles();
-
-  if (isParamValid("inactive_batches"))
-    openmc::settings::n_inactive = getParam<unsigned int>("inactive_batches");
-
-  if (isParamValid("batches"))
-  {
-    auto xml_n_batches = openmc::settings::n_batches;
-
-    // we set the number of batches (total and maximum) before reading
-    // any of the trigger information; if there are triggers, then we will
-    // change the maximum number of batches
-    int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
-      true /* set the max batches */,
-      true /* add the last batch for statepoint writing */);
-
-    // if we set the batches from Cardinal, remove whatever statepoint file was
-    // created for the #batches set in the XML files; this is just to reduce the
-    // number of statepoint files by removing an unnecessary point
-    openmc::settings::statepoint_batch.erase(xml_n_batches);
-
-    if (err)
-      mooseError("In attempting to set the number of batches, OpenMC reported:\n\n" +
-        std::string(openmc_err_msg));
-  }
 
   // set the parameters needed for tally triggers
   getTallyTriggerParameters(params);
@@ -426,12 +384,6 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     if (parameters.isParamSetByUser("batch_interval"))
       paramWarning("batch_interval", "This parameter is unused when 'tally_trigger' and 'k_trigger' are 'none'!");
   }
-}
-
-void
-OpenMCCellAverageProblem::setParticles(const int64_t & n) const
-{
-  openmc::settings::n_particles = n;
 }
 
 const int64_t &
@@ -1986,7 +1938,7 @@ void
 OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 {
   int64_t n = (_n_particles_1 + std::sqrt(_n_particles_1 * _n_particles_1 + 4.0 * _n_particles_1 * _total_n_particles)) / 2.0;
-  setParticles(n);
+  openmc::settings::n_particles = n;
 }
 
 void
