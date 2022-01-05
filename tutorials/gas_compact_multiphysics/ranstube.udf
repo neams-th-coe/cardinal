@@ -1,0 +1,57 @@
+#include <math.h>
+#include "udf.hpp"
+
+occa::memory o_mu_t_from_restart;
+
+#define length 100.0    // non-dimensional channel length
+#define Pr_T 0.91       // turbulent Prandtl number
+
+static occa::kernel scalarScaledAddKernel;
+
+void turbulent_props(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+            occa::memory o_UProp, occa::memory o_SProp)
+{
+  // fetch the laminar thermal conductivity and specify the desired turbulent Pr
+  dfloat k_laminar;
+  platform->options.getArgs("SCALAR00 DIFFUSIVITY", k_laminar);
+
+  // o_diff is the turbulent conductivity for all passive scalars, so we grab the first
+  // slice, since temperature is the first passive scalar
+  occa::memory o_mu = nrs->cds->o_diff + 0 * nrs->cds->fieldOffset[0] * sizeof(dfloat);
+
+  scalarScaledAddKernel(0, nrs->cds->mesh[0]->Nlocal, k_laminar, 1.0 / Pr_T,
+    o_mu_t_from_restart /* turbulent viscosity */, o_mu /* laminar viscosity */);
+}
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+  setupAide & options = platform->options;
+  occa::properties & kernelInfo = *nrs->kernelInfo;
+
+  scalarScaledAddKernel = udfBuildKernel(nrs, "scalarScaledAdd");
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  mesh_t *mesh = nrs->cds->mesh[0];
+  int n_gll_points = mesh->Np * mesh->Nelements;
+
+  // allocate space for the k and tau that we will read from the file
+  dfloat * mu_t = (dfloat *) calloc(n_gll_points, sizeof(dfloat));
+
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    // fetch the restart value of mu_T, which is equal to k * tau, the second and third
+    // passive scalars
+    mu_t[n] = nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] *
+              nrs->cds->S[n + 2 * nrs->cds->fieldOffset[0]];
+  }
+
+  o_mu_t_from_restart = platform->device.malloc(n_gll_points * sizeof(dfloat), mu_t);
+
+  udf.properties = &turbulent_props;
+}
+
+void UDF_ExecuteStep(nrs_t * nrs, dfloat time, int tstep)
+{
+}
