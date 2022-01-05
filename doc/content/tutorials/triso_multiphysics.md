@@ -836,3 +836,13 @@ the maximum power due to the combined effects of convective heat transfer and th
   id=unit_cell_fluid_temp
   caption=Fluid temperature predicted for the multiphysics simulations for NekRS-MOOSE-OpenMC and THM-MOOSE-OpenMC.
   style=width:100%;margin-left:auto;margin-right:auto
+
+[unit_cell_coupled_axial_T] shows the radially-averaged temperatures for the two
+thermal-fluid feedback options.
+As already shown, the solid and fluid temperatures match very well between the two thermal-fluid feedback options. The fluid bulk temperature increases along the flow direction, with a faster rate of increase where the power density is highest.
+
+!media unit_cell_coupled_axial_T.png
+  id=unit_cell_coupled_axial_T
+  caption=Radially-averaged temperatures for the NekRS-MOOSE-OpenMC and THM-MOOSE-OpenMC simulations.
+  style=width:50%;margin-left:auto;margin-right:auto
+
