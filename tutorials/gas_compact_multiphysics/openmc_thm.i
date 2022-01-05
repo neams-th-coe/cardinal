@@ -151,7 +151,10 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 
 [Executioner]
   type = Transient
-  num_steps = 4
+
+  steady_state_detection = true
+  check_aux = true
+  steady_state_tolerance = 1e-2
 []
 
 [MultiApps]

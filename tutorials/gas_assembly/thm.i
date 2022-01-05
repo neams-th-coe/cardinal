@@ -18,6 +18,12 @@ num_layers_for_THM = 50                  # number of elements in the THM model; 
   fp = helium
 []
 
+[Closures]
+  [none]
+    type = Closures1PhaseNone
+  []
+[]
+
 [FluidProperties]
   [helium]
     type = IdealGasFluidProperties
