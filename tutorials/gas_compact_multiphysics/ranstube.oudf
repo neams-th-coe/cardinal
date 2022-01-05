@@ -1,0 +1,25 @@
+@kernel void scalarScaledAdd(const dlong offset, const dlong N,
+                             const dfloat a,
+                             const dfloat b,
+                             @restrict const dfloat* X,
+                             @restrict dfloat* Y)
+{
+  for (dlong n = 0; n < N; ++n; @tile(256,@outer,@inner))
+    if (n < N)
+      Y[n] = a + b * X[n + offset];
+}
+
+// Boundary conditions are only needed for temperature, since the solves of pressure,
+// velocity, k, and tau are all frozen
+
+void scalarDirichletConditions(bcData *bc)
+{
+  // inlet temperature
+  bc->s = 0.0;
+}
+
+void scalarNeumannConditions(bcData *bc)
+{
+  // wall temperature
+  bc->flux = bc->wrk[bc->idM];
+}
