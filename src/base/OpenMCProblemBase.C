@@ -19,8 +19,11 @@
 #include "OpenMCProblemBase.h"
 #include "AuxiliarySystem.h"
 
+#include "mpi.h"
 #include "openmc/capi.h"
-#include "openmc/error.h"
+#include "openmc/cell.h"
+#include "openmc/geometry.h"
+#include "openmc/mesh.h"
 #include "openmc/settings.h"
 
 InputParameters
@@ -47,8 +50,14 @@ OpenMCProblemBase::validParams()
 OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
   ExternalProblem(params),
   _power(getParam<Real>("power")),
-  _verbose(getParam<bool>("verbose"))
+  _verbose(getParam<bool>("verbose")),
+  _single_coord_level(openmc::model::n_coord_levels == 1)
 {
+  if (openmc::settings::libmesh_comm)
+    mooseWarning("libMesh communicator already set in OpenMC.");
+
+  openmc::settings::libmesh_comm = &_mesh.comm();
+
   if (isParamValid("openmc_verbosity"))
     openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
 
@@ -75,6 +84,14 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
     // number of statepoint files by removing an unnecessary point
     openmc::settings::statepoint_batch.erase(xml_n_batches);
   }
+
+  // The OpenMC wrapping doesn't require material properties itself, but we might
+  // define them on some blocks of the domain for other auxiliary kernel purposes
+  setMaterialCoverageCheck(false);
+
+  _n_openmc_cells = 0.0;
+  for (const auto & c : openmc::model::cells)
+    _n_openmc_cells += c->n_instances_;
 }
 
 void
@@ -95,4 +112,58 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
       solution.set(dof_idx, value);
     }
   }
+}
+
+const int64_t &
+OpenMCProblemBase::nParticles() const
+{
+  return openmc::settings::n_particles;
+}
+
+int32_t
+OpenMCProblemBase::cellID(const int32_t index) const
+{
+  int32_t id;
+  int err = openmc_cell_get_id(index, &id);
+
+  if (err)
+    mooseError("In attempting to get ID for cell with index " + Moose::stringify(index) +
+      " , OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+  return id;
+}
+
+int32_t
+OpenMCProblemBase::materialID(const int32_t index) const
+{
+  int32_t id;
+  int err = openmc_material_get_id(index, &id);
+
+  if (err)
+  {
+    std::stringstream msg;
+    msg << "In attempting to get ID for material with index " + Moose::stringify(index) +
+      ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
+  }
+
+  return id;
+}
+
+std::string
+OpenMCProblemBase::printMaterial(const int32_t & index) const
+{
+  int32_t id = materialID(index);
+  std::stringstream msg;
+  msg << "material " << id;
+  return msg.str();
+}
+
+std::string
+OpenMCProblemBase::printPoint(const Point & p) const
+{
+  std::stringstream msg;
+  msg << "(" << std::setprecision(6) << std::setw(7) << p(0) << ", " <<
+                std::setprecision(6) << std::setw(7) << p(1) << ", " <<
+                std::setprecision(6) << std::setw(7) << p(2) << ")";
+  return msg.str();
 }

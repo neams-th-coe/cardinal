@@ -18,8 +18,6 @@
 
 #pragma once
 
-#define LIBMESH
-
 #include "OpenMCProblemBase.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_cell_instance.h"
@@ -121,22 +119,10 @@ public:
     bool allow_negative_weights = true) override;
 
   /**
-   * Type definition for storing the relevant aspects of the OpenMC geometry; the first
-   * value is the cell index, while the second is the cell instance.
-   */
-  typedef std::pair<int32_t, int32_t> cellInfo;
-
-  /**
    * Type definition for cells contained within a parent cell; the first value
    * is the cell index, while the second is the set of cell instances
    */
   typedef std::unordered_map<int32_t, std::vector<int32_t>> containedCells;
-
-  /**
-   * Get the number of particles used in the current Monte Carlo calculation
-   * @return number of particles
-   */
-  const int64_t & nParticles() const;
 
   /**
    * Get the cell index from the element ID; will return UNMAPPED for unmapped elements
@@ -195,39 +181,11 @@ public:
   const coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info);
 
   /**
-   * Get the cell ID
-   * @param[in] index cell index
-   * @return cell ID
-   */
-  int32_t cellID(const int32_t index) const;
-
-  /**
-   * Get the material ID
-   * @param[in] index material index
-   * @return cell material ID
-   */
-  int32_t materialID(const int32_t index) const;
-
-  /**
    * Get a descriptive, formatted, string describing a cell
    * @param[in] cell_info cell index, instance pair
-   * @return descriptive string
+   * @return descriptive string describing cell
    */
   std::string printCell(const cellInfo & cell_info) const;
-
-  /**
-   * Print point coordinates with a neater formatting than the default libMesh
-   * point printing
-   * @return formatted point
-   */
-  std::string printPoint(const Point & p) const;
-
-  /**
-   * Get a descriptive, formatted, string describing a material
-   * @param[in] index material index
-   * @return descriptive string
-   */
-  std::string printMaterial(const int32_t & index) const;
 
   /**
    * Get the density conversion factor (multiplicative factor)
@@ -850,14 +808,6 @@ protected:
   static constexpr Real _density_conversion_factor {0.001};
 
   /**
-   * Whether the OpenMC model consists of a single coordinate level; we track this so
-   * that we can provide some helpful error messages for this case. If there is more
-   * than one coordinate level, however, the error checking becomes too difficult,
-   * because cells can be filled with universes, lattices, etc.
-   */
-  const bool _single_coord_level;
-
-  /**
    * Number of digits to use to display the cell ID for diagnostic messages; this is
    * estimated conservatively based on the total number of cells, even though there
    * may be distributed cells such that the maximum cell ID is far smaller than the
@@ -870,9 +820,6 @@ protected:
    * tally_blocks to be all of the subdomains in the MOOSE mesh.
    */
   const bool _using_default_tally_blocks;
-
-  /// Total number of OpenMC cells, across all coordinate levels
-  long unsigned int _n_openmc_cells;
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh

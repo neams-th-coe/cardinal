@@ -16,6 +16,7 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#include "OpenMCCellAverageProblem.h"
 #include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"
 #include "TimedPrint.h"
@@ -25,7 +26,6 @@
 #include "VariadicTable.h"
 
 #include "mpi.h"
-#include "OpenMCCellAverageProblem.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/constants.h"
@@ -167,7 +167,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
-  _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
   _fixed_point_iteration(-1),
@@ -175,11 +174,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _temperature_vars(nullptr),
   _temperature_blocks(nullptr)
 {
-  if (openmc::settings::libmesh_comm)
-    mooseWarning("libMesh communicator already set in OpenMC.");
-
-  openmc::settings::libmesh_comm = &_mesh.comm();
-
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
   {
@@ -205,14 +199,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   if (params.isParamSetByUser("check_identical_tally_cell_fills") && !_identical_tally_cell_fills)
     mooseWarning("The 'check_identical_tally_cell_fills' parameter is unused when 'identical_tally_cell_fills' "
       "is false");
-
-  // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
-  // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred
-  // temperature (as opposed to the solid app sending both temperature and heat flux). Temperature is always
-  // transferred. Because we need a material property to represent thermal conductivity, MOOSE's default
-  // settings will force OpenMC to have materials on every block, when that's not actually needed. So
-  // we can turn that check off.
-  setMaterialCoverageCheck(false);
 
   if (isParamValid("temperature_variables") != isParamValid("temperature_blocks"))
     mooseError("When assembling temperature from multiple variables, both 'temperature_variables' "
@@ -384,12 +370,6 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     if (parameters.isParamSetByUser("batch_interval"))
       paramWarning("batch_interval", "This parameter is unused when 'tally_trigger' and 'k_trigger' are 'none'!");
   }
-}
-
-const int64_t &
-OpenMCCellAverageProblem::nParticles() const
-{
-  return openmc::settings::n_particles;
 }
 
 OpenMCCellAverageProblem::~OpenMCCellAverageProblem()
@@ -817,35 +797,6 @@ OpenMCCellAverageProblem::getMaterialFills()
   }
 }
 
-int32_t
-OpenMCCellAverageProblem::cellID(const int32_t index) const
-{
-  int32_t id;
-  int err = openmc_cell_get_id(index, &id);
-
-  if (err)
-    mooseError("In attempting to get ID for cell with index " + Moose::stringify(index) +
-      " , OpenMC reported:\n\n" + std::string(openmc_err_msg));
-
-  return id;
-}
-
-int32_t
-OpenMCCellAverageProblem::materialID(const int32_t index) const
-{
-  int32_t id;
-  int err = openmc_material_get_id(index, &id);
-
-  if (err)
-  {
-    std::stringstream msg;
-    msg << "In attempting to get ID for material with index " + Moose::stringify(index) +
-      ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
-  }
-
-  return id;
-}
-
 std::string
 OpenMCCellAverageProblem::printCell(const cellInfo & cell_info) const
 {
@@ -856,25 +807,6 @@ OpenMCCellAverageProblem::printCell(const cellInfo & cell_info) const
    ", instance " << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) <<
    " (of " << std::setw(_n_cell_digits) << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
 
-  return msg.str();
-}
-
-std::string
-OpenMCCellAverageProblem::printPoint(const Point & p) const
-{
-  std::stringstream msg;
-  msg << "(" << std::setprecision(6) << std::setw(7) << p(0) << ", " <<
-                std::setprecision(6) << std::setw(7) << p(1) << ", " <<
-                std::setprecision(6) << std::setw(7) << p(2) << ")";
-  return msg.str();
-}
-
-std::string
-OpenMCCellAverageProblem::printMaterial(const int32_t & index) const
-{
-  int32_t id = materialID(index);
-  std::stringstream msg;
-  msg << "material " << id;
   return msg.str();
 }
 
@@ -903,10 +835,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
    * We need to error here before getting to OpenMC where we don't map to any cells but
    * would still try to set a cell filter based on no cells.
    */
-
-  _n_openmc_cells = 0.0;
-  for (const auto & c : openmc::model::cells)
-    _n_openmc_cells += c->n_instances_;
 
   // First, figure out the phase of each element according to the blocks defined by the user
   storeElementPhase();

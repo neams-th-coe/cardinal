@@ -18,8 +18,6 @@
 
 #pragma once
 
-#define LIBMESH
-
 #include "OpenMCProblemBase.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_mesh.h"
