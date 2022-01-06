@@ -16,10 +16,6 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-//
-// Created by Ronald Rahaman on 2019-01-23.
-//
-
 #include "NearestPointReceiver.h"
 #include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"
@@ -43,10 +39,7 @@ registerMooseObject("CardinalApp", OpenMCProblem);
 InputParameters
 OpenMCProblem::validParams()
 {
-  InputParameters params = ExternalProblem::validParams();
-  params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
-    "specified power for normalizing OpenMC kappa fission tally");
-
+  InputParameters params = OpenMCProblemBase::validParams();
   params.addParam<std::vector<Point>>("centers", "Coordinates of cell centers to transfer data with");
   params.addParam<std::vector<FileName>>("centers_file", "Alternative way to provide the coordinates of cells "
     "to transfer data with");
@@ -60,9 +53,8 @@ OpenMCProblem::validParams()
 }
 
 OpenMCProblem::OpenMCProblem(const InputParameters &params) :
-  ExternalProblem(params),
+  OpenMCProblemBase(params),
   _pebble_cell_level(getParam<int>("pebble_cell_level")),
-  _power(getParam<Real>("power")),
   _volumes(getParam<std::vector<Real>>("volumes")),
   _tallyType(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _check_tally_sum(getParam<bool>("check_tally_sum"))
@@ -109,11 +101,6 @@ OpenMCProblem::OpenMCProblem(const InputParameters &params) :
   }
 
   auto& m = mesh().getMesh();
-
-  if (openmc::settings::libmesh_comm)
-    mooseWarning("libMesh communicator already set in OpenMC.");
-
-  openmc::settings::libmesh_comm = &m.comm();
 
   // Find cell for each pebble center
   for (const auto & c : _centers)
@@ -333,7 +320,7 @@ void OpenMCProblem::addExternalVariables()
 void
 OpenMCProblem::initialSetup()
 {
-  ExternalProblem::initialSetup();
+  OpenMCProblemBase::initialSetup();
 
   int n_centers = _centers.size();
   _console << "Initializing OpenMC problem with " << Moose::stringify(n_centers) << " coupling points..." << std::endl;
