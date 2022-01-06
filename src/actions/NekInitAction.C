@@ -47,7 +47,7 @@ NekInitAction::NekInitAction(const InputParameters & parameters)
 void
 NekInitAction::act()
 {
-  if (_type == "NekRSProblem" || _type == "NekRSStandaloneProblem")
+  if (_type == "NekRSProblem" || _type == "NekRSStandaloneProblem" || _type == "SAMNekRSProblem")
   {
     std::shared_ptr<CommandLine> cl = _app.commandLine();
     bool casename_on_command_line = cl->search("nekrs_setup");
