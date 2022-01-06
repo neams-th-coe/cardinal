@@ -16,6 +16,7 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#include "OpenMCCellAverageProblem.h"
 #include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"
 #include "TimedPrint.h"
@@ -25,7 +26,6 @@
 #include "VariadicTable.h"
 
 #include "mpi.h"
-#include "OpenMCCellAverageProblem.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/constants.h"
@@ -49,10 +49,7 @@ bool OpenMCCellAverageProblem::_first_transfer = true;
 InputParameters
 OpenMCCellAverageProblem::validParams()
 {
-  InputParameters params = ExternalProblem::validParams();
-  params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
-    "Power (Watts) to normalize the OpenMC tallies; this is the power "
-    "produced by the entire OpenMC problem.");
+  InputParameters params = OpenMCProblemBase::validParams();
   params.addParam<std::vector<SubdomainName>>("fluid_blocks",
     "Subdomain ID(s) corresponding to the fluid phase, "
     "for which both density and temperature will be sent to OpenMC");
@@ -68,7 +65,6 @@ OpenMCCellAverageProblem::validParams()
     "Whether to throw an error if any tallies from OpenMC evaluate to zero; "
     "this can be helpful in reducing the number of tallies if you inadvertently add tallies "
     "to a non-fissile region, or for catching geomtery setup errors");
-  params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
   params.addParam<bool>("skip_first_incoming_transfer", false,
     "Whether to skip the very first density and temperature transfer into OpenMC; "
     "this can be used to allow whatever initial condition is set in OpenMC's XML "
@@ -82,15 +78,6 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>("normalize_by_global_tally", true,
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
-
-  params.addRangeCheckedParam<int64_t>("particles", "particles > 0 ",
-    "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("inactive_batches", "inactive_batches > 0",
-    "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("batches", "batches > 0",
-    "Number of batches to run in OpenMC; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("openmc_verbosity", "openmc_verbosity >= 1 & openmc_verbosity <= 10",
-    "OpenMC verbosity level");
 
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
@@ -160,15 +147,13 @@ OpenMCCellAverageProblem::validParams()
 }
 
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params) :
-  ExternalProblem(params),
+  OpenMCProblemBase(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
   _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
   _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
   _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
-  _power(getParam<Real>("power")),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
-  _verbose(getParam<bool>("verbose")),
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _export_properties(getParam<bool>("export_properties")),
   _specified_scaling(params.isParamSetByUser("scaling")),
@@ -182,7 +167,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
-  _single_coord_level(openmc::model::n_coord_levels == 1),
   _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
   _fixed_point_iteration(-1),
@@ -190,14 +174,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _temperature_vars(nullptr),
   _temperature_blocks(nullptr)
 {
-  if (openmc::settings::libmesh_comm)
-    mooseWarning("libMesh communicator already set in OpenMC.");
-
-  openmc::settings::libmesh_comm = &_mesh.comm();
-
-  if (isParamValid("openmc_verbosity"))
-    openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
-
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
   {
@@ -207,42 +183,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     if (isParamValid("particles") && _relaxation == relaxation::dufek_gudowski)
       mooseWarning("The 'particles' parameter is unused when using Dufek-Gudowski relaxation!");
 
-    setParticles(getParam<int64_t>("first_iteration_particles"));
+    openmc::settings::n_particles = getParam<int64_t>("first_iteration_particles");
   }
-  else
-  {
-    if (isParamValid("first_iteration_particles"))
-      mooseWarning("The 'first_iteration_particles' parameter is unused when not using Dufek-Gudowski relaxation!");
-
-    if (isParamValid("particles"))
-      setParticles(getParam<int64_t>("particles"));
-  }
+  else if (isParamValid("first_iteration_particles"))
+    mooseWarning("The 'first_iteration_particles' parameter is unused when not using Dufek-Gudowski relaxation!");
 
   _n_particles_1 = nParticles();
-
-  if (isParamValid("inactive_batches"))
-    openmc::settings::n_inactive = getParam<unsigned int>("inactive_batches");
-
-  if (isParamValid("batches"))
-  {
-    auto xml_n_batches = openmc::settings::n_batches;
-
-    // we set the number of batches (total and maximum) before reading
-    // any of the trigger information; if there are triggers, then we will
-    // change the maximum number of batches
-    int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
-      true /* set the max batches */,
-      true /* add the last batch for statepoint writing */);
-
-    // if we set the batches from Cardinal, remove whatever statepoint file was
-    // created for the #batches set in the XML files; this is just to reduce the
-    // number of statepoint files by removing an unnecessary point
-    openmc::settings::statepoint_batch.erase(xml_n_batches);
-
-    if (err)
-      mooseError("In attempting to set the number of batches, OpenMC reported:\n\n" +
-        std::string(openmc_err_msg));
-  }
 
   // set the parameters needed for tally triggers
   getTallyTriggerParameters(params);
@@ -253,14 +199,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   if (params.isParamSetByUser("check_identical_tally_cell_fills") && !_identical_tally_cell_fills)
     mooseWarning("The 'check_identical_tally_cell_fills' parameter is unused when 'identical_tally_cell_fills' "
       "is false");
-
-  // for cases where OpenMC is the master app and we have two sub-apps that represent (1) fluid region,
-  // and (2) solid region, we can save on one transfer if OpenMC computes the heat flux from a transferred
-  // temperature (as opposed to the solid app sending both temperature and heat flux). Temperature is always
-  // transferred. Because we need a material property to represent thermal conductivity, MOOSE's default
-  // settings will force OpenMC to have materials on every block, when that's not actually needed. So
-  // we can turn that check off.
-  setMaterialCoverageCheck(false);
 
   if (isParamValid("temperature_variables") != isParamValid("temperature_blocks"))
     mooseError("When assembling temperature from multiple variables, both 'temperature_variables' "
@@ -432,18 +370,6 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     if (parameters.isParamSetByUser("batch_interval"))
       paramWarning("batch_interval", "This parameter is unused when 'tally_trigger' and 'k_trigger' are 'none'!");
   }
-}
-
-void
-OpenMCCellAverageProblem::setParticles(const int64_t & n) const
-{
-  openmc::settings::n_particles = n;
-}
-
-const int64_t &
-OpenMCCellAverageProblem::nParticles() const
-{
-  return openmc::settings::n_particles;
 }
 
 OpenMCCellAverageProblem::~OpenMCCellAverageProblem()
@@ -871,35 +797,6 @@ OpenMCCellAverageProblem::getMaterialFills()
   }
 }
 
-int32_t
-OpenMCCellAverageProblem::cellID(const int32_t index) const
-{
-  int32_t id;
-  int err = openmc_cell_get_id(index, &id);
-
-  if (err)
-    mooseError("In attempting to get ID for cell with index " + Moose::stringify(index) +
-      " , OpenMC reported:\n\n" + std::string(openmc_err_msg));
-
-  return id;
-}
-
-int32_t
-OpenMCCellAverageProblem::materialID(const int32_t index) const
-{
-  int32_t id;
-  int err = openmc_material_get_id(index, &id);
-
-  if (err)
-  {
-    std::stringstream msg;
-    msg << "In attempting to get ID for material with index " + Moose::stringify(index) +
-      ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
-  }
-
-  return id;
-}
-
 std::string
 OpenMCCellAverageProblem::printCell(const cellInfo & cell_info) const
 {
@@ -910,25 +807,6 @@ OpenMCCellAverageProblem::printCell(const cellInfo & cell_info) const
    ", instance " << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) <<
    " (of " << std::setw(_n_cell_digits) << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
 
-  return msg.str();
-}
-
-std::string
-OpenMCCellAverageProblem::printPoint(const Point & p) const
-{
-  std::stringstream msg;
-  msg << "(" << std::setprecision(6) << std::setw(7) << p(0) << ", " <<
-                std::setprecision(6) << std::setw(7) << p(1) << ", " <<
-                std::setprecision(6) << std::setw(7) << p(2) << ")";
-  return msg.str();
-}
-
-std::string
-OpenMCCellAverageProblem::printMaterial(const int32_t & index) const
-{
-  int32_t id = materialID(index);
-  std::stringstream msg;
-  msg << "material " << id;
   return msg.str();
 }
 
@@ -957,10 +835,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
    * We need to error here before getting to OpenMC where we don't map to any cells but
    * would still try to set a cell filter based on no cells.
    */
-
-  _n_openmc_cells = 0.0;
-  for (const auto & c : openmc::model::cells)
-    _n_openmc_cells += c->n_instances_;
 
   // First, figure out the phase of each element according to the blocks defined by the user
   storeElementPhase();
@@ -1926,26 +1800,6 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
 }
 
 void
-OpenMCCellAverageProblem::fillElementalAuxVariable(const unsigned int & var_num,
-  const std::vector<unsigned int> & elem_ids, const Real & value)
-{
-  auto & solution = _aux->solution();
-  auto sys_number = _aux->number();
-  const auto & mesh = _mesh.getMesh();
-
-  // loop over all the elements and set the specified variable to the specified value
-  for (const auto & e : elem_ids)
-  {
-    auto elem_ptr = mesh.query_elem_ptr(e);
-    if (elem_ptr)
-    {
-      auto dof_idx = elem_ptr->dof_number(sys_number, var_num, 0);
-      solution.set(dof_idx, value);
-    }
-  }
-}
-
-void
 OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
 {
   // if OpenMC has only run one time, or we don't have relaxation at all,
@@ -1992,7 +1846,7 @@ void
 OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 {
   int64_t n = (_n_particles_1 + std::sqrt(_n_particles_1 * _n_particles_1 + 4.0 * _n_particles_1 * _total_n_particles)) / 2.0;
-  setParticles(n);
+  openmc::settings::n_particles = n;
 }
 
 void
