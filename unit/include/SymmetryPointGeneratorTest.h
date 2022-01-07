@@ -18,49 +18,11 @@
 
 #pragma once
 
-#include "Moose.h"
-#include "MooseTypes.h"
-#include "libmesh/point.h"
+#include "SymmetryPointGenerator.h"
+#include "MooseObjectUnitTest.h"
 
-/**
- * Class that rotates/reflects a point about symmetry planes
- */
-class SymmetryPointGenerator
+class SymmetryPointGeneratorTest : public MooseObjectUnitTest
 {
 public:
-  SymmetryPointGenerator(const Point & point, const Point & normal);
-
-  /**
-   * Whether point is on the positive side of a plane; points exactly on plane return false
-   * @param[in] p point
-   * @return whether on positive side of plane
-   */
-  bool onPositiveSideOfPlane(const Point & p) const;
-
-  Point reflectPointAcrossPlane(const Point & p) const;
-
-protected:
-  /// Point defining the plane
-  const Point & _point;
-
-  /// Normal defining the plane
-  const Point & _normal;
-
-  /// Unit normal defining the plane
-  Point _unit_normal;
-
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _a;
-
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _b;
-
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _c;
-
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _d;
-
-  /// a*a + b*b + c*c, saved here for faster evaluations
-  Real _denominator;
+  SymmetryPointGeneratorTest() : MooseObjectUnitTest("CardinalUnitApp") {  }
 };

@@ -19,21 +19,15 @@
 #include "SymmetryPointGenerator.h"
 #include "MooseUtils.h"
 
-SymmetryPointGenerator::SymmetryPointGenerator(const Point & point, const Point & normal, const Real & angle) :
+SymmetryPointGenerator::SymmetryPointGenerator(const Point & point, const Point & normal) :
   _point(point),
-  _normal(normal),
-  _angle(angle * M_PI / 90.0),
-  _n_sectors(int(2.0 * M_PI / _angle))
+  _normal(normal)
 {
   Point zero(0.0, 0.0, 0.0);
   if (_normal.absolute_fuzzy_equals(zero))
     mooseError("Symmetry plane normal cannot have zero norm!");
 
   _unit_normal = _normal / _normal.norm();
-
-  // The unit circle should be evenly divisible by the specified angle
-  if (_n_sectors != 2.0 * M_PI / _angle)
-    mooseError("The 'symmetry_angle' must be an integer division of the unit circle!");
 
   // equation of plane is ax + by + cz = d
   _a = _unit_normal(0);

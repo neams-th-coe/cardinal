@@ -1,0 +1,377 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1" name="fuel">
+    <density units="kg/m3" value="10820" />
+    <nuclide ao="0.0020301709666386285" name="U234" />
+    <nuclide ao="0.15666685722582877" name="U235" />
+    <nuclide ao="0.8413029718075326" name="U238" />
+    <nuclide ao="1.5" name="C0" />
+    <nuclide ao="0.4998105" name="O16" />
+    <nuclide ao="0.0001895" name="O17" />
+  </material>
+  <material id="5" name="graphite moderator">
+    <density units="kg/m3" value="1700" />
+    <nuclide ao="1.0" name="C0" />
+    <sab name="c_Graphite" />
+  </material>
+  <material id="7" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="8" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="9" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="10" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="11" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="12" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="13" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="14" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="15" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="16" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="17" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="18" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="19" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="20" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="21" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="22" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="23" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="24" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="25" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="26" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="27" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="28" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="29" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="30" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="31" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="32" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="33" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="34" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="35" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="36" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="37" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="38" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="39" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="40" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="41" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="42" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="43" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="44" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="45" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="46" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="47" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="48" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="49" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="50" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="51" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="52" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="53" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="54" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="55" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="56" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="57" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="58" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="59" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="60" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="61" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="62" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="63" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="64" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="65" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="66" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="67" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="68" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="69" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="70" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="71" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="72" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="73" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="74" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="75" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="76" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="77" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+  <material id="78" name="Helium coolant">
+    <density units="sum" />
+    <nuclide ao="2e-06" name="He3" />
+    <nuclide ao="0.999998" name="He4" />
+  </material>
+</materials>

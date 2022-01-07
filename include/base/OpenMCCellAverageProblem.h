@@ -25,6 +25,7 @@
 #include "openmc/mesh.h"
 #include "openmc/tallies/tally.h"
 #include "CardinalEnums.h"
+#include "SymmetryPointGenerator.h"
 
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
@@ -904,6 +905,9 @@ protected:
    * together into the 'temp' variable that OpenMC reads from
    */
   const std::vector<SubdomainName> * _temperature_blocks;
+
+  /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
+  std::unique_ptr<SymmetryPointGenerator> _symmetry;
 
 private:
   /**

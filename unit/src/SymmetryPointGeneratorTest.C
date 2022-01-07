@@ -24,7 +24,7 @@ TEST_F(SymmetryPointGeneratorTest, errors)
   {
     Point pt1(0.0, 0.0, 0.0);
     Point n1(0.0, 0.0, 0.0);
-    SymmetryPointGenerator invalid_norm(pt1, n1, 90.0);
+    SymmetryPointGenerator invalid_norm(pt1, n1);
   }
   catch (const std::exception & e)
   {
@@ -37,7 +37,7 @@ TEST_F(SymmetryPointGeneratorTest, errors)
   {
     Point pt1(0.0, 0.0, 0.0);
     Point n1(1.0, 0.0, 0.0);
-    SymmetryPointGenerator invalid_length(pt1, n1, 23.0);
+    SymmetryPointGenerator invalid_length(pt1, n1);
   }
   catch (const std::exception & e)
   {
@@ -51,7 +51,7 @@ TEST_F(SymmetryPointGeneratorTest, reflect_axis)
 {
   Point pt(0.0, 0.0, 0.0);
   Point n(1.0, 0.0, 0.0);
-  SymmetryPointGenerator sg(pt, n, 90.0);
+  SymmetryPointGenerator sg(pt, n);
 
   // point already on the negative side of the plane
   Point pt1(-1, -1, 0.0);
@@ -72,7 +72,7 @@ TEST_F(SymmetryPointGeneratorTest, reflect)
 {
   Point pt(0.0, 0.0, 0.0);
   Point n(-1.0, 1.0, 0.0);
-  SymmetryPointGenerator sg(pt, n, 90.0);
+  SymmetryPointGenerator sg(pt, n);
 
   // point already on the negative side of the plane
   Point pt1(1, -0.1, 0.0);
