@@ -43,6 +43,7 @@ SAMNekRSProblem::validParams()
   params.addParam<bool>("moving_mesh", false, "Moving mesh");
   params.addParam<bool>("SAMtoNekRS_boundary", false, "SAM -> NekRS boundary");
   params.addParam<bool>("NekRStoSAM_boundary", false, "NekRS -> SAM boundary");
+  params.addParam<bool>("SAMtoNekRS_temperature", false, "SAM -> NekRS temperature transfer");
   return params;
 }
 
@@ -52,7 +53,8 @@ SAMNekRSProblem::SAMNekRSProblem(const InputParameters &params) : NekRSProblemBa
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _SAMtoNekRS(getParam<bool>("SAMtoNekRS_boundary")),
-    _NekRStoSAM(getParam<bool>("NekRStoSAM_boundary"))
+    _NekRStoSAM(getParam<bool>("NekRStoSAM_boundary")),
+    _SAMtoNekRS_temperature(getParam<bool>("SAMtoNekRS_temperature"))
 {
 }
 
@@ -81,6 +83,9 @@ SAMNekRSProblem::initialSetup()
   if (_SAMtoNekRS)
     _SAMtoNekRS_velocity = &getPostprocessorValueByName("SAMtoNekRS_velocity");
 
+  if (_SAMtoNekRS_temperature)
+    _SAMtoNekRS_temp = &getPostprocessorValueByName("SAMtoNekRS_temperature");
+
 }
 
 void SAMNekRSProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -97,6 +102,9 @@ void SAMNekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       if (_SAMtoNekRS)
         sendBoundaryVelocityToNek();
+
+      if (_SAMtoNekRS_temperature)
+        sendBoundaryTemperatureToNek();
 
       // copy scratch to device
       nekrs::copyScratchToDevice();
@@ -188,10 +196,40 @@ SAMNekRSProblem::sendBoundaryVelocityToNek()
 }
 
 void
+SAMNekRSProblem::sendBoundaryTemperatureToNek()
+{
+  auto & solution = _aux->solution();
+  auto sys_number = _aux->number();
+
+  if (_first)
+  {
+    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
+    _first = false;
+  }
+
+  solution.localize(*_serialized_solution);
+
+  auto & mesh = _nek_mesh->getMesh();
+
+  _console << "Sending temperature to NekRS for first boundary of " << Moose::stringify(*_boundary) << std::endl;
+
+  for (unsigned int e = 0; e < _n_surface_elems; e++)
+    {
+      nekrs::temperature(e, _nek_mesh->order(), _SAMtoNekRS_temp);
+    }
+
+  _console << "done" << std::endl;
+}
+
+void
 SAMNekRSProblem::addExternalVariables()
 {
   NekRSProblemBase::addExternalVariables();
   auto var_params = getExternalVariableParameters();
+
+//  if (_SAMtoNekRS)
+//  {
+//  }
 
 }
 

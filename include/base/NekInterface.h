@@ -309,6 +309,14 @@ void volumeSolution(const int order, const bool needs_interpolation, const field
  */
  void velocity(const int elem_id, const int order, const double* velocity_SAM);
 
+/**
+ * Send temperature from SAM to the nekRS mesh
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
+ * @param[in] temperature_SAM is SAM boundary temperature
+ */
+ void temperature(const int elem_id, const int order, const double* temperature_SAM);
+
 void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
 
 /**

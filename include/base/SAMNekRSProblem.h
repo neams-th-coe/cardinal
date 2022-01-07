@@ -61,6 +61,9 @@ public:
   /// Send boundary velocity to nekRS
   void sendBoundaryVelocityToNek();
 
+  /// Send boundary temperature to nekRS
+  void sendBoundaryTemperatureToNek();
+
 //  /// Get boundary temperature from nekRS
 //  void getBoundaryTemperatureFromNek();
 
@@ -100,10 +103,13 @@ protected:
   /// Specify type of boundary/boundaries present for SAM-NekRS coupling 
   const bool & _SAMtoNekRS;
   const bool & _NekRStoSAM;
+  const bool & _SAMtoNekRS_temperature;
 
   /// Velocity boundary condition coming from SAM to NekRS
   const PostprocessorValue * _SAMtoNekRS_velocity = nullptr;
 
+  /// Temperature boundary condition coming from SAM to NekRS
+  const PostprocessorValue * _SAMtoNekRS_temp = nullptr;
 
 
 //  /**
