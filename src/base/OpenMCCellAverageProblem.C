@@ -174,7 +174,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
   _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
-  _fixed_point_iteration(-1),
   _total_n_particles(0),
   _temperature_vars(nullptr),
   _temperature_blocks(nullptr),
@@ -1574,25 +1573,14 @@ void OpenMCCellAverageProblem::addExternalVariables()
 
 void OpenMCCellAverageProblem::externalSolve()
 {
-  TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
-
   // if using Dufek-Gudowski acceleration and this is not the first iteration, update
   // the number of particles; we put this here so that changing the number of particles
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
   if (_relaxation == relaxation::dufek_gudowski && _fixed_point_iteration >= 0)
     dufekGudowskiParticleUpdate();
 
-  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
+  OpenMCProblemBase::externalSolve();
 
-  int err = openmc_run();
-  if (err)
-    mooseError(openmc_err_msg);
-
-  err = openmc_reset_timers();
-  if (err)
-    mooseError(openmc_err_msg);
-
-  _fixed_point_iteration += 1;
   _total_n_particles += nParticles();
 }
 

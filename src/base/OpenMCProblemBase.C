@@ -51,7 +51,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
   ExternalProblem(params),
   _power(getParam<Real>("power")),
   _verbose(getParam<bool>("verbose")),
-  _single_coord_level(openmc::model::n_coord_levels == 1)
+  _single_coord_level(openmc::model::n_coord_levels == 1),
+  _fixed_point_iteration(-1)
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -166,4 +167,21 @@ OpenMCProblemBase::printPoint(const Point & p) const
                 std::setprecision(6) << std::setw(7) << p(1) << ", " <<
                 std::setprecision(6) << std::setw(7) << p(2) << ")";
   return msg.str();
+}
+
+void
+OpenMCProblemBase::externalSolve()
+{
+  TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
+  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
+
+  int err = openmc_run();
+  if (err)
+    mooseError(openmc_err_msg);
+
+  err = openmc_reset_timers();
+  if (err)
+    mooseError(openmc_err_msg);
+
+  _fixed_point_iteration += 1;
 }

@@ -32,6 +32,9 @@ public:
 
   static InputParameters validParams();
 
+  /// Run a k-eigenvalue OpenMC simulation
+  void externalSolve() override;
+
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
    * value is the cell index, while the second is the cell instance.
@@ -95,4 +98,12 @@ protected:
 
   /// Total number of unique OpenMC cell IDs + instances combinations
   long unsigned int _n_openmc_cells;
+
+  /**
+   * Fixed point iteration index used in relaxation; because we sometimes run OpenMC
+   * in a pseudo-transient coupling with NekRS, we simply increment this by 1 each
+   * time we call openmc::run(). This uses a zero indexing, so after the first iteration,
+   * we have finished iteration 0, and so on.
+   */
+  unsigned int _fixed_point_iteration;
 };
