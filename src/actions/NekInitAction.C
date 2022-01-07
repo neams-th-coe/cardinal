@@ -102,7 +102,7 @@ NekInitAction::act()
   }
 
   // setup actions only needed if coupling with MOOSE
-  if (_type == "NekRSProblem")
+  if (_type == "NekRSProblem" || _type == "SAMNekRSProblem")
   {
     // First check we should do is that a temperature variable exists, or else many
     // of our indexes into `nrs->cds` would give seg faults

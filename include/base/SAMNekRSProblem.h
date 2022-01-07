@@ -58,19 +58,53 @@ public:
    */
   virtual void initialSetup() override;
 
-//  /// Send boundary heat flux to nekRS
-//  void sendBoundaryHeatFluxToNek();
+  /// Send boundary velocity to nekRS
+  void sendBoundaryVelocityToNek();
 
 //  /// Get boundary temperature from nekRS
 //  void getBoundaryTemperatureFromNek();
+
+  virtual void syncSolutions(ExternalProblem::Direction direction) override;
+
+  virtual void addExternalVariables() override;
+
+  /**
+ * Whether data should be synchronized in to nekRS
+ * \return whether inward data synchronization should occur
+ */
+  virtual bool synchronizeIn();
+
+  /**
+ * Whether data should be synchronized out of nekRS
+ * \return whether outward data synchronization should occur
+ */
+  virtual bool synchronizeOut();
+
+
 
   virtual bool movingMesh() const override { return _moving_mesh; }
 
 protected:
 //  virtual void addTemperatureVariable() override { return; }
 
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+
   /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
   const bool & _moving_mesh;
+
+  const bool & _minimize_transfers_in;
+
+  const bool & _minimize_transfers_out;
+
+
+  /// Specify type of boundary/boundaries present for SAM-NekRS coupling 
+  const bool & _SAMtoNekRS;
+  const bool & _NekRStoSAM;
+
+  /// Velocity boundary condition coming from SAM to NekRS
+  const PostprocessorValue * _SAMtoNekRS_velocity = nullptr;
+
+
 
 //  /**
 //   * \brief Total surface-integrated flux coming from the coupled MOOSE app.
@@ -85,6 +119,9 @@ protected:
 
 //  /// MOOSE flux interpolated onto the (boundary) data transfer mesh
 //  double * _flux_face = nullptr;
+
+  /// Postprocessor containing the signal of when a synchronization has occurred
+  const PostprocessorValue * _transfer_in = nullptr;
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;

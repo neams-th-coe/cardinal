@@ -274,6 +274,14 @@ Point gllPoint(int local_elem_id, int local_node_id);
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
+ * Send velocity from SAM to the nekRS mesh
+ * @param[in] elem_id global element ID
+ * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
+ * @param[in] velocity_SAM is SAM boundary velocity
+ */
+ void velocity(const int elem_id, const int order, const double* velocity_SAM);
+
+/**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
  * @param[in] nek_boundary_coupling data structure holding boundary coupling info
  * @return boundary integrated flux
