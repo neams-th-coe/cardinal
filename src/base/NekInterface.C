@@ -553,6 +553,31 @@ void flux(const int elem_id, const int order, double * flux_face)
   }
 }
 
+void velocity(const int elem_id, const int order, const double* velocity_SAM)
+{
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  mesh_t * mesh = entireMesh();
+
+  int end_1d = mesh->Nq;
+  int start_1d = order + 2;
+  int end_2d = end_1d * end_1d;
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (commRank() == nek_boundary_coupling.processor_id(elem_id))
+  {
+    int e = nek_boundary_coupling.element[elem_id];
+    int f = nek_boundary_coupling.face[elem_id];
+
+    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
+    for (int i = 0; i < end_2d; ++i)
+    {
+      int id = mesh->vmapM[offset + i];
+      nrs->usrwrk[id] = * velocity_SAM; // send single velocity value to NekRS
+    }
+
+  }
+}
+
 void save_initial_mesh()
 {
   mesh_t * mesh = entireMesh();
