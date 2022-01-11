@@ -8,7 +8,7 @@
   [symmetry_plane]
     type = Exodiff
     input = openmc.i
-    csvdiff = openmc_out.e
+    exodiff = openmc_out.e
     prereq = generate_mesh
     requirement = "The system shall correctly reflect points about a symmetry plane"
   []
