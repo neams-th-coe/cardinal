@@ -560,6 +560,12 @@ protected:
    */
   const bool & _export_properties;
 
+  /**
+   * Whether OpenMC properties (temperature and density) should be imported
+   * before starting the run.
+   */
+  const bool & _import_properties;
+
   /// Whether a mesh scaling was specified by the user
   const bool _specified_scaling;
 

@@ -72,6 +72,9 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>("export_properties", false,
     "Whether to export OpenMC's temperature and density properties after updating "
     "them in the syncSolutions call.");
+  params.addParam<bool>("import_properties", false,
+     "Whether to export OpenMC's temperature and density properties before starting "
+     "the first OpenMC transport step.");
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0",
     "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
     "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
@@ -161,6 +164,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
   _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _export_properties(getParam<bool>("export_properties")),
+  _import_properties(getParam<bool>("import_properties")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
@@ -326,6 +330,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
     _cell_to_n_contained[cell_info] = n_contained;
   }
+
+  if (_import_properties) {
+    openmc_properties_import("properties.h5");
+  }
+
 }
 
 void
