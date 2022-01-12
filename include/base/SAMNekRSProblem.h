@@ -98,6 +98,7 @@ protected:
   const bool & _SAMtoNekRS;
   const bool & _SAMtoNekRS_temperature;
   const bool & _NekRStoSAM;
+  const bool & _NekRStoSAM_temperature;
 
   /// Boundary ID through which to couple Nek to SAM
   const std::vector<int> * _NekRStoSAM_boundary;
