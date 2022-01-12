@@ -1,0 +1,15 @@
+[Tests]
+  [generate_mesh]
+    type = RunApp
+    input = solid_mesh.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall create the mesh mirror for later steps of these tests"
+  []
+  [symmetry_plane]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    prereq = generate_mesh
+    requirement = "The system shall correctly reflect points about a symmetry plane"
+  []
+[]

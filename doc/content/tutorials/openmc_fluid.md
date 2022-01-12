@@ -122,7 +122,7 @@ and a graphite "pin" (to represent the central graphite region). The pin
 meshes are then combined together into a bundle pattern and extruded into the $z$
 direction.
 
-!listing solid_mesh.i
+!listing /tutorials/gas_assembly/solid_mesh.i
 
 You can create this mesh by running:
 

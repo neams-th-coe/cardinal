@@ -34,7 +34,6 @@ public:
   virtual ~OpenMCProblem() override;
 
   virtual void addExternalVariables() override;
-  virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
   virtual void initialSetup() override;
