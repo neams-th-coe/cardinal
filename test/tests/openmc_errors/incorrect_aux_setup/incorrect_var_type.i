@@ -39,7 +39,7 @@
   tally_type = cell
   tally_blocks = '100'
   solid_cell_level = 0
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 []
 
 [Executioner]

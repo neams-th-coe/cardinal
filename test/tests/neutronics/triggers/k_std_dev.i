@@ -26,7 +26,7 @@
   solid_cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   k_trigger = std_dev
   k_trigger_threshold = 1.2e-2
