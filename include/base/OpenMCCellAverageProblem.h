@@ -25,6 +25,7 @@
 #include "openmc/mesh.h"
 #include "openmc/tallies/tally.h"
 #include "CardinalEnums.h"
+#include "SymmetryPointGenerator.h"
 
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
@@ -83,7 +84,6 @@ public:
    */
   virtual void addExternalVariables() override;
 
-  /// Run a k-eigenvalue OpenMC simulation
   virtual void externalSolve() override;
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
@@ -864,13 +864,6 @@ protected:
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION {3};
 
-  /**
-   * Fixed point iteration index used in relaxation; because we sometimes run OpenMC
-   * in a pseudo-transient coupling with NekRS, we simply increment this by 1 each
-   * time we call openmc::run()
-   */
-  unsigned int _fixed_point_iteration;
-
   /// Total number of particles simulated
   unsigned int _total_n_particles;
 
@@ -904,6 +897,9 @@ protected:
    * together into the 'temp' variable that OpenMC reads from
    */
   const std::vector<SubdomainName> * _temperature_blocks;
+
+  /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
+  std::unique_ptr<SymmetryPointGenerator> _symmetry;
 
 private:
   /**

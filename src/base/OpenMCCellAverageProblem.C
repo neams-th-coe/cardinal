@@ -143,6 +143,11 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<int64_t>("first_iteration_particles", "Number of particles to use for first iteration "
     "when using Dufek-Gudowski relaxation");
 
+  params.addParam<Point>("symmetry_plane_point", Point(0.0, 0.0, 0.0),
+    "Point that defines one of the symmetry plane(s) in the OpenMC model");
+  params.addParam<Point>("symmetry_plane_normal",
+    "Normal that defines one of the symmetry plane(s) in the OpenMC model");
+
   return params;
 }
 
@@ -169,11 +174,21 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
   _n_cell_digits(digits(openmc::model::cells.size())),
   _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level && !isParamValid("tally_blocks")),
-  _fixed_point_iteration(-1),
   _total_n_particles(0),
   _temperature_vars(nullptr),
-  _temperature_blocks(nullptr)
+  _temperature_blocks(nullptr),
+  _symmetry(nullptr)
 {
+  if (isParamValid("symmetry_plane_normal"))
+  {
+    const auto & point = getParam<Point>("symmetry_plane_point");
+    const auto & normal = getParam<Point>("symmetry_plane_normal");
+    _symmetry.reset(new SymmetryPointGenerator(point, normal));
+  }
+  else if (params.isParamSetByUser("symmetry_plane_point"))
+      mooseWarning("Without setting a 'symmetry_plane_normal', the 'symmetry_plane_point' "
+        "parameter is unused!");
+
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
   {
@@ -1252,18 +1267,34 @@ OpenMCCellAverageProblem::storeTallyCells()
       }
 
       if (_check_equal_mapped_tally_volumes)
+      {
         if (std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]) / mapped_tally_volume > 1e-3)
-          mooseError("Detected un-equal mapped tally volumes!\n cell " +
-            printCell(first_tally_cell) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[first_tally_cell]) + " (cm3)\n cell " +
-            printCell(cell_info) + " maps to a volume of " + Moose::stringify(_cell_to_elem_volume[cell_info]) + " (cm3).\n\n"
+        {
+          std::stringstream msg;
+          msg << "Detected un-equal mapped tally volumes!\n cell " <<
+            printCell(first_tally_cell) << " maps to a volume of " <<
+            Moose::stringify(_cell_to_elem_volume[first_tally_cell]) << " (cm3)\n cell " <<
+            printCell(cell_info) << " maps to a volume of " <<
+            Moose::stringify(_cell_to_elem_volume[cell_info]) << " (cm3).\n\n"
             "If the tallied cells in your OpenMC model are of identical volumes, this means that you can get\n"
             "distortion of the volumetric heat source output. For instance, suppose you have two equal-size OpenMC\n"
             "cells which have the same volume - but each OpenMC cell maps to a MOOSE region of different volume\n"
             "just due to the nature of the centroid mapping scheme. Even if those two tallies do actually have the\n"
             "same value, the volumetric heat source will be different because you'll be dividing each tally by a\n"
-            "different mapped MOOSE volume.\n\n"
-            "We recommend re-creating the mesh mirror to have an equal volume mapping of MOOSE elements to each\n"
-            "OpenMC cell. Or, you can disable this check by setting 'check_equal_mapped_tally_volume = false'.");
+            "different mapped MOOSE volume.\n\n";
+
+          if (_symmetry)
+            msg << "NOTE: You have imposed symmetry, which means that you'll hit this error if any of your tally\n"
+              "cells are cut by symmetry planes. If your tally cells would otherwise be the same volume if NOT\n"
+              "imposing symmetry, or if your tally cells are not the same volume regardless, you need to set\n"
+              "'check_equal_mapped_tally_volumes = false'.";
+          else
+            msg << "We recommend re-creating the mesh mirror to have an equal volume mapping of MOOSE elements to each\n"
+              "OpenMC cell. Or, you can disable this check by setting 'check_equal_mapped_tally_volumes = false'.";
+
+          mooseError(msg.str());
+        }
+      }
     }
   }
 
@@ -1444,9 +1475,14 @@ bool
 OpenMCCellAverageProblem::findCell(const Point & point)
 {
   _particle.clear();
-  _particle.r() = {point(0) * _scaling, point(1) * _scaling, point(2) * _scaling};
   _particle.u() = {0., 0., 1.};
 
+  Point pt = point;
+
+  if (_symmetry)
+    pt = _symmetry->reflectPointAcrossPlane(pt);
+
+  _particle.r() = {pt(0) * _scaling, pt(1) * _scaling, pt(2) * _scaling};
   return !openmc::exhaustive_find_cell(_particle);
 }
 
@@ -1537,25 +1573,14 @@ void OpenMCCellAverageProblem::addExternalVariables()
 
 void OpenMCCellAverageProblem::externalSolve()
 {
-  TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
-
   // if using Dufek-Gudowski acceleration and this is not the first iteration, update
   // the number of particles; we put this here so that changing the number of particles
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
   if (_relaxation == relaxation::dufek_gudowski && _fixed_point_iteration >= 0)
     dufekGudowskiParticleUpdate();
 
-  _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
+  OpenMCProblemBase::externalSolve();
 
-  int err = openmc_run();
-  if (err)
-    mooseError(openmc_err_msg);
-
-  err = openmc_reset_timers();
-  if (err)
-    mooseError(openmc_err_msg);
-
-  _fixed_point_iteration += 1;
   _total_n_particles += nParticles();
 }
 
