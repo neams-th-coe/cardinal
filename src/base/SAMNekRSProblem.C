@@ -42,8 +42,9 @@ SAMNekRSProblem::validParams()
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
   params.addParam<bool>("moving_mesh", false, "Moving mesh");
   params.addParam<bool>("SAMtoNekRS_interface", false, "SAM -> NekRS interface present?");
-  params.addParam<bool>("SAMtoNekRS_temperature", false, "SAM -> NekRS temperature transfer");
+  params.addParam<bool>("SAMtoNekRS_temperature", false, "SAM -> NekRS temperature transfer?");
   params.addParam<bool>("NekRStoSAM_interface", false, "NekRS -> SAM interface present?");
+  params.addParam<bool>("NekRStoSAM_temperature", false, "NekRS -> SAM temperature transfer?");
   params.addParam<std::vector<int>>("NekRStoSAM_boundary", "Boundary ID through which nekRS will be coupled to SAM");
 
   return params;
@@ -57,6 +58,7 @@ SAMNekRSProblem::SAMNekRSProblem(const InputParameters &params) : NekRSProblemBa
     _SAMtoNekRS(getParam<bool>("SAMtoNekRS_interface")),
     _SAMtoNekRS_temperature(getParam<bool>("SAMtoNekRS_temperature")),
     _NekRStoSAM(getParam<bool>("NekRStoSAM_interface")),
+    _NekRStoSAM_temperature(getParam<bool>("NekRStoSAM_temperature")),
     _NekRStoSAM_boundary(isParamValid("NekRStoSAM_boundary") ? &getParam<std::vector<int>>("NekRStoSAM_boundary") : nullptr)
 {
 }
@@ -230,85 +232,20 @@ SAMNekRSProblem::addExternalVariables()
   {
     auto pp_params = _factory.getValidParams("NekSideAverage");
     pp_params.set<MooseEnum>("field")= "velocity"; 
-//    vector<int> bound;
-//    bound.push_back(2); //TODO pull boundary from user input
-//    pp_params.set<std::vector<int>>("boundary") = bound;
- 
-   pp_params.set<std::vector<int>>("boundary") = *_NekRStoSAM_boundary;
+    pp_params.set<std::vector<int>>("boundary") = *_NekRStoSAM_boundary;
     pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
 
     addPostprocessor("NekSideAverage", "NekRStoSAM_velocity", pp_params);
-
   }
 
+  if (_NekRStoSAM_temperature)
+  {
+    auto pp_params = _factory.getValidParams("NekSideAverage");
+    pp_params.set<MooseEnum>("field")= "temperature"; 
+    pp_params.set<std::vector<int>>("boundary") = *_NekRStoSAM_boundary;
+    pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+
+    addPostprocessor("NekSideAverage", "NekRStoSAM_temperature", pp_params);
+  }
 
 }
-
-//void
-//SAMNekRSProblem::getBoundaryTemperatureFromNek()
-//{
-//  _console << "Extracting NekRS temperature from boundary " << Moose::stringify(*_boundary) << std::endl;
-//
-//  // Get the temperature solution from nekRS. Note that nekRS performs a global communication
-//  // here such that each nekRS process has all the boundary temperature information. That is,
-//  // every process knows the full boundary temperature solution
-//  nekrs::boundarySolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
-//}
-
-//void
-//SAMNekRSProblem::addExternalVariables()
-//{
-//  NekRSProblemBase::addExternalVariables();
-//  auto var_params = getExternalVariableParameters();
-//
-//  addAuxVariable("MooseVariable", "temp", var_params);
-//  _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
-//
-//  if (_boundary)
-//  {
-//    // Likewise, because this flux represents the reconstruction of the flux variable
-//    // that becomes a boundary condition in the nekRS model, we set the order to match
-//    // the desired order of the surface. Note that this does _not_ imply anything
-//    // about the order of the surface flux in the MOOSE app (such as BISON) coupled
-//    // to nekRS. This is just the variable that nekRS reads from - MOOSE's transfer
-//    // classes handle any additional interpolations needed from the flux on the
-//    // sending app (such as BISON) into 'avg_flux'.
-//    addAuxVariable("MooseVariable", "avg_flux", var_params);
-//    _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
-//
-//    // add the postprocessor that receives the flux integral for normalization
-//    auto pp_params = _factory.getValidParams("Receiver");
-//    addPostprocessor("Receiver", "flux_integral", pp_params);
-//  }
-//
-//  if (_volume && _has_heat_source)
-//  {
-//    addAuxVariable("MooseVariable", "heat_source", var_params);
-//    _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
-//
-//    // add the postprocessor that receives the source integral for normalization
-//    auto pp_params = _factory.getValidParams("Receiver");
-//    addPostprocessor("Receiver", "source_integral", pp_params);
-//  }
-//
-//  // add the displacement aux variables from the solid mechanics solver; these will
-//  // be needed regardless of whether the displacement is boundary- or volume-based
-//  if (_moving_mesh)
-//  {
-//    addAuxVariable("MooseVariable", "disp_x", var_params);
-//    _disp_x_var = _aux->getFieldVariable<Real>(0, "disp_x").number();
-//
-//    addAuxVariable("MooseVariable", "disp_y", var_params);
-//    _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
-//
-//    addAuxVariable("MooseVariable", "disp_z", var_params);
-//    _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
-//  }
-//
-//  if (_minimize_transfers_in)
-//  {
-//    auto pp_params = _factory.getValidParams("Receiver");
-//    pp_params.set<std::vector<OutputName>>("outputs") = {"none"};
-//    addPostprocessor("Receiver", "transfer_in", pp_params);
-//  }
-//}
