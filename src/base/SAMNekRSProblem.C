@@ -41,9 +41,11 @@ SAMNekRSProblem::validParams()
   params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
     "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
   params.addParam<bool>("moving_mesh", false, "Moving mesh");
-  params.addParam<bool>("SAMtoNekRS_boundary", false, "SAM -> NekRS boundary");
-  params.addParam<bool>("NekRStoSAM_boundary", false, "NekRS -> SAM boundary");
+  params.addParam<bool>("SAMtoNekRS_interface", false, "SAM -> NekRS interface present?");
   params.addParam<bool>("SAMtoNekRS_temperature", false, "SAM -> NekRS temperature transfer");
+  params.addParam<bool>("NekRStoSAM_interface", false, "NekRS -> SAM interface present?");
+  params.addParam<std::vector<int>>("NekRStoSAM_boundary", "Boundary ID through which nekRS will be coupled to SAM");
+
   return params;
 }
 
@@ -52,9 +54,10 @@ SAMNekRSProblem::SAMNekRSProblem(const InputParameters &params) : NekRSProblemBa
     _moving_mesh(getParam<bool>("moving_mesh")),
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
-    _SAMtoNekRS(getParam<bool>("SAMtoNekRS_boundary")),
-    _NekRStoSAM(getParam<bool>("NekRStoSAM_boundary")),
-    _SAMtoNekRS_temperature(getParam<bool>("SAMtoNekRS_temperature"))
+    _SAMtoNekRS(getParam<bool>("SAMtoNekRS_interface")),
+    _SAMtoNekRS_temperature(getParam<bool>("SAMtoNekRS_temperature")),
+    _NekRStoSAM(getParam<bool>("NekRStoSAM_interface")),
+    _NekRStoSAM_boundary(isParamValid("NekRStoSAM_boundary") ? &getParam<std::vector<int>>("NekRStoSAM_boundary") : nullptr)
 {
 }
 
@@ -77,8 +80,8 @@ SAMNekRSProblem::initialSetup()
  
   if (!_SAMtoNekRS && !_NekRStoSAM)
     mooseError("SAMNekRSProblem requires specification of how data\n",
-    "is being sent between SAM and NekRS, atleast one of SAMtoNekRS_boundary \n", 
-    "or NekRStoSAM_boundary must be set to true\n");
+    "is being sent between SAM and NekRS, atleast one of SAMtoNekRS_interface \n", 
+    "or NekRStoSAM_interface must be set to true\n");
 
   if (_SAMtoNekRS)
     _SAMtoNekRS_velocity = &getPostprocessorValueByName("SAMtoNekRS_velocity");
@@ -116,10 +119,6 @@ void SAMNekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       if (!synchronizeOut())
         return;
-
-        // get velocity from Nek to SAM 
-//      if (_boundary)
-//        getBoundaryVelocityNek();
 
       extractOutputs();
 
@@ -227,9 +226,21 @@ SAMNekRSProblem::addExternalVariables()
   NekRSProblemBase::addExternalVariables();
   auto var_params = getExternalVariableParameters();
 
-//  if (_SAMtoNekRS)
-//  {
-//  }
+  if (_NekRStoSAM)
+  {
+    auto pp_params = _factory.getValidParams("NekSideAverage");
+    pp_params.set<MooseEnum>("field")= "velocity"; 
+//    vector<int> bound;
+//    bound.push_back(2); //TODO pull boundary from user input
+//    pp_params.set<std::vector<int>>("boundary") = bound;
+ 
+   pp_params.set<std::vector<int>>("boundary") = *_NekRStoSAM_boundary;
+    pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+
+    addPostprocessor("NekSideAverage", "NekRStoSAM_velocity", pp_params);
+
+  }
+
 
 }
 

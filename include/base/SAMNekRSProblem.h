@@ -64,9 +64,6 @@ public:
   /// Send boundary temperature to nekRS
   void sendBoundaryTemperatureToNek();
 
-//  /// Get boundary temperature from nekRS
-//  void getBoundaryTemperatureFromNek();
-
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
   virtual void addExternalVariables() override;
@@ -88,8 +85,6 @@ public:
   virtual bool movingMesh() const override { return _moving_mesh; }
 
 protected:
-//  virtual void addTemperatureVariable() override { return; }
-
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
@@ -99,11 +94,13 @@ protected:
 
   const bool & _minimize_transfers_out;
 
-
-  /// Specify type of boundary/boundaries present for SAM-NekRS coupling 
+  /// Specify type of interfaces present for SAM-NekRS coupling 
   const bool & _SAMtoNekRS;
-  const bool & _NekRStoSAM;
   const bool & _SAMtoNekRS_temperature;
+  const bool & _NekRStoSAM;
+
+  /// Boundary ID through which to couple Nek to SAM
+  const std::vector<int> * _NekRStoSAM_boundary;
 
   /// Velocity boundary condition coming from SAM to NekRS
   const PostprocessorValue * _SAMtoNekRS_velocity = nullptr;
@@ -111,20 +108,6 @@ protected:
   /// Temperature boundary condition coming from SAM to NekRS
   const PostprocessorValue * _SAMtoNekRS_temp = nullptr;
 
-
-//  /**
-//   * \brief Total surface-integrated flux coming from the coupled MOOSE app.
-//   *
-//   * The mesh used for the MOOSE app may be very different from the mesh used by nekRS.
-//   * Elements may be much finer/coarser, and one element on the MOOSE app may not be a
-//   * clear subset/superset of the elements on the nekRS mesh. Therefore, to ensure
-//   * conservation of energy, we send the total flux integral to nekRS for internal
-//   * normalization of the heat flux applied on the nekRS mesh.
-//   */
-//  const PostprocessorValue * _flux_integral = nullptr;
-
-//  /// MOOSE flux interpolated onto the (boundary) data transfer mesh
-//  double * _flux_face = nullptr;
 
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
