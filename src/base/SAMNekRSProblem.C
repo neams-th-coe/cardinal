@@ -46,6 +46,7 @@ SAMNekRSProblem::validParams()
   params.addParam<bool>("NekRStoSAM_interface", false, "NekRS -> SAM interface present?");
   params.addParam<bool>("NekRStoSAM_temperature", false, "NekRS -> SAM temperature transfer?");
   params.addParam<std::vector<int>>("NekRStoSAM_boundary", "Boundary ID through which nekRS will be coupled to SAM");
+  params.addParam<std::vector<int>>("NekRS_inlet_boundary", "NekRS Boundary ID for Pressure drop calculation");
 
   return params;
 }
@@ -59,7 +60,8 @@ SAMNekRSProblem::SAMNekRSProblem(const InputParameters &params) : NekRSProblemBa
     _SAMtoNekRS_temperature(getParam<bool>("SAMtoNekRS_temperature")),
     _NekRStoSAM(getParam<bool>("NekRStoSAM_interface")),
     _NekRStoSAM_temperature(getParam<bool>("NekRStoSAM_temperature")),
-    _NekRStoSAM_boundary(isParamValid("NekRStoSAM_boundary") ? &getParam<std::vector<int>>("NekRStoSAM_boundary") : nullptr)
+    _NekRStoSAM_boundary(isParamValid("NekRStoSAM_boundary") ? &getParam<std::vector<int>>("NekRStoSAM_boundary") : nullptr),
+    _NekRS_inlet_boundary(isParamValid("NekRS_inlet_boundary") ? &getParam<std::vector<int>>("NekRS_inlet_boundary") : nullptr)
 {
 }
 
@@ -227,6 +229,16 @@ SAMNekRSProblem::addExternalVariables()
 {
   NekRSProblemBase::addExternalVariables();
   auto var_params = getExternalVariableParameters();
+
+  if (_NekRStoSAM || _SAMtoNekRS)
+  {
+    auto pp_params = _factory.getValidParams("NekSideAverage");
+    pp_params.set<MooseEnum>("field")= "pressure"; 
+    pp_params.set<std::vector<int>>("boundary") = *_NekRS_inlet_boundary;
+    pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+
+    addPostprocessor("NekSideAverage", "NekRS_pressureDrop", pp_params);
+  }
 
   if (_NekRStoSAM)
   {
