@@ -69,12 +69,13 @@ OpenMCCellAverageProblem::validParams()
     "Whether to skip the very first density and temperature transfer into OpenMC; "
     "this can be used to allow whatever initial condition is set in OpenMC's XML "
     "files to be used in OpenMC's run the first time OpenMC is run");
+  params.addParam<MooseEnum>("initial_properties", getInitialPropertiesEnum(),
+    "Where to read the temperature and density initial conditions for the OpenMC mdoel; "
+    "options: hdf5, moose (default), or xml.");
+
   params.addParam<bool>("export_properties", false,
     "Whether to export OpenMC's temperature and density properties after updating "
     "them in the syncSolutions call.");
-  params.addParam<bool>("import_properties", false,
-     "Whether to export OpenMC's temperature and density properties before starting "
-     "the first OpenMC transport step.");
   params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0",
     "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
     "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
@@ -158,13 +159,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   OpenMCProblemBase(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
+  _initial_condition(getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
   _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
   _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
   _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
-  _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _export_properties(getParam<bool>("export_properties")),
-  _import_properties(getParam<bool>("import_properties")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
   _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
@@ -192,6 +192,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   else if (params.isParamSetByUser("symmetry_plane_point"))
       mooseWarning("Without setting a 'symmetry_plane_normal', the 'symmetry_plane_point' "
         "parameter is unused!");
+
+  if (params.isParamSetByUser("skip_first_incoming_transfer"))
+    mooseError("The 'skip_first_incoming_transfer' parameter is deprecated and has been replaced "
+      "by the 'initial_properties' parameter!");
 
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
@@ -330,11 +334,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 
     _cell_to_n_contained[cell_info] = n_contained;
   }
-
-  if (_import_properties) {
-    openmc_properties_import("properties.h5");
-  }
-
 }
 
 void
@@ -1995,11 +1994,35 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      if (_first_transfer && _skip_first_incoming_transfer)
+      if (_first_transfer)
       {
-        std::string incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
-        _console << "Skipping " << incoming_transfer << " transfer into OpenMC" << std::endl;
-        return;
+        switch (_initial_condition)
+        {
+          case coupling::hdf5:
+          {
+            _console << "Reading temperature and density from properties.h5" << std::endl;
+
+            int err = openmc_properties_import("properties.h5");
+            if (err)
+              mooseError("In attempting to load temperature and density from a properties.h5 file, "
+                "OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+            return;
+          }
+          case coupling::moose:
+          {
+            // transfer will happen from MOOSE - proceed normally
+            break;
+          }
+          case coupling::xml:
+          {
+            std::string incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
+            _console << "Skipping " << incoming_transfer << " transfer into OpenMC" << std::endl;
+            return;
+          }
+          default:
+            mooseError ("Unhandled OpenMCInitialConditionEnum!");
+        }
       }
 
       // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
