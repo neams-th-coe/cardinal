@@ -103,6 +103,9 @@ protected:
   /// Boundary ID through which to couple Nek to SAM
   const std::vector<int> * _NekRStoSAM_boundary;
 
+  /// Boundary ID for NekRS inlet
+  const std::vector<int> * _NekRS_inlet_boundary;
+
   /// Velocity boundary condition coming from SAM to NekRS
   const PostprocessorValue * _SAMtoNekRS_velocity = nullptr;
 
