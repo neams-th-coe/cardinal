@@ -87,11 +87,74 @@ SAMNekRSProblem::initialSetup()
     "is being sent between SAM and NekRS, atleast one of SAMtoNekRS_interface \n", 
     "or NekRStoSAM_interface must be set to true\n");
 
+  if (_SAMtoNekRS || _NekRStoSAM)
+  {
+    // create Transfer since MultiApp exists by this point
+    auto poly_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
+    poly_params.set<MultiAppName>("multi_app") = "SAM"; //TODO pull name from input file somehow?
+    poly_params.set<MultiMooseEnum>("direction") = "to_multiapp";
+    poly_params.set<PostprocessorName>("from_postprocessor") = "NekRS_pressureDrop"; // requires this PP in SAM input file
+    poly_params.set<PostprocessorName>("to_postprocessor") = "NekRS_pressureDrop";
+
+    addTransfer("MultiAppPostprocessorTransfer", "NekRS_pressureDrop_trans", poly_params);
+  }
+
+
   if (_SAMtoNekRS)
+  {
     _SAMtoNekRS_velocity = &getPostprocessorValueByName("SAMtoNekRS_velocity");
 
+    // create Transfer since MultiApp exists by this point
+    auto poly_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
+    poly_params.set<MultiAppName>("multi_app") = "SAM"; //TODO pull name from input file somehow?
+    poly_params.set<MultiMooseEnum>("direction") = "from_multiapp";
+    poly_params.set<MooseEnum>("reduction_type") = "average";
+    poly_params.set<PostprocessorName>("from_postprocessor") = "SAMtoNekRS_velocity"; // requires this PP in SAM input file
+    poly_params.set<PostprocessorName>("to_postprocessor") = "SAMtoNekRS_velocity";
+
+    addTransfer("MultiAppPostprocessorTransfer", "SAMtoNekRS_velocity_trans", poly_params);
+  }
+
   if (_SAMtoNekRS_temperature)
+  {
     _SAMtoNekRS_temp = &getPostprocessorValueByName("SAMtoNekRS_temperature");
+
+    // create Transfer since MultiApp exists by this point
+    auto poly_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
+    poly_params.set<MultiAppName>("multi_app") = "SAM"; //TODO pull name from input file somehow?
+    poly_params.set<MultiMooseEnum>("direction") = "from_multiapp";
+    poly_params.set<MooseEnum>("reduction_type") = "average";
+    poly_params.set<PostprocessorName>("from_postprocessor") = "SAMtoNekRS_temperature"; // requires this PP in SAM input file
+    poly_params.set<PostprocessorName>("to_postprocessor") = "SAMtoNekRS_temperature";
+
+    addTransfer("MultiAppPostprocessorTransfer", "SAMtoNekRS_temperature_trans", poly_params);
+  }
+
+  if (_NekRStoSAM)
+  {
+    // create Transfer since MultiApp exists by this point
+    auto poly_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
+    poly_params.set<MultiAppName>("multi_app") = "SAM"; //TODO pull name from input file somehow?
+    poly_params.set<MultiMooseEnum>("direction") = "to_multiapp";
+    poly_params.set<MooseEnum>("reduction_type") = "average";
+    poly_params.set<PostprocessorName>("from_postprocessor") = "NekRStoSAM_velocity";
+    poly_params.set<PostprocessorName>("to_postprocessor") = "NekRStoSAM_velocity";  // requires this PP in SAM input file
+
+    addTransfer("MultiAppPostprocessorTransfer", "NekRStoSAM_velocity_trans", poly_params);
+  }
+
+  if (_NekRStoSAM_temperature)
+  {
+    // create Transfer since MultiApp exists by this point
+    auto poly_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
+    poly_params.set<MultiAppName>("multi_app") = "SAM"; //TODO pull name from input file somehow?
+    poly_params.set<MultiMooseEnum>("direction") = "to_multiapp";
+    poly_params.set<PostprocessorName>("from_postprocessor") = "NekRStoSAM_temperature";
+    poly_params.set<PostprocessorName>("to_postprocessor") = "NekRStoSAM_temperature";  // requires this PP in SAM input file
+
+    addTransfer("MultiAppPostprocessorTransfer", "NekRStoSAM_temperature_trans", poly_params);
+  }
+
 
 }
 
@@ -188,7 +251,7 @@ SAMNekRSProblem::sendBoundaryVelocityToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  _console << "Sending velocity to NekRS for first boundary of " << Moose::stringify(*_boundary) << std::endl;
+  _console << "Sending velocity to NekRS for boundary " << Moose::stringify(*_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
@@ -214,7 +277,7 @@ SAMNekRSProblem::sendBoundaryTemperatureToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  _console << "Sending temperature to NekRS for first boundary of " << Moose::stringify(*_boundary) << std::endl;
+  _console << "Sending temperature to NekRS for boundary " << Moose::stringify(*_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
@@ -259,5 +322,22 @@ SAMNekRSProblem::addExternalVariables()
 
     addPostprocessor("NekSideAverage", "NekRStoSAM_temperature", pp_params);
   }
+
+  // Automate receiver post processors
+  if (_SAMtoNekRS)
+  {
+    auto pp_params = _factory.getValidParams("Receiver");
+    addPostprocessor("Receiver", "SAMtoNekRS_velocity", pp_params);
+
+  }
+
+  if (_SAMtoNekRS_temperature)
+  {
+    auto pp_params = _factory.getValidParams("Receiver");
+    addPostprocessor("Receiver", "SAMtoNekRS_temperature", pp_params);
+  }
+
+
+
 
 }
