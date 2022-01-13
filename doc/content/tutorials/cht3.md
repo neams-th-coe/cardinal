@@ -96,7 +96,7 @@ material properties, the solid geometry uses a length unit of meters.
   caption=Mesh for the solid heat conduction model
   style=width:60%;margin-left:auto;margin-right:auto
 
-The volumetric power density $\dot{q}_q$ is set to a sinusoidal function of $z$,
+The volumetric power density $\dot{q}_s$ is set to a sinusoidal function of $z$,
 
 \begin{equation}
 \dot{q}_s=q_0\sin{\left(\frac{\pi z}{H}\right)}
@@ -205,7 +205,7 @@ the `.udf` file) to adjust the total diffusion coefficient on temperature to
 $k_f+k_T$ according to [eq:PrT]. This adjustment must happen on device, in a new GPU kernel we name
 `scalarScaledAddKernel`. This kernel will be defined in the `.oudf` file; we
 instruct the JIT compilation to compile this new kernel by calling
-`udfBuidlKernel`.
+`udfBuildKernel`.
 
 Then, in `UDF_Setup` we set an initial condition for fluid
 temperature (the first scalar in the `nrs->cds->S` array that holds all the

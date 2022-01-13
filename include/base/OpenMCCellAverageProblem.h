@@ -18,15 +18,14 @@
 
 #pragma once
 
-#define LIBMESH
-
-#include "ExternalProblem.h"
+#include "OpenMCProblemBase.h"
 #include "openmc/tallies/filter_cell.h"
 #include "openmc/tallies/filter_cell_instance.h"
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/mesh.h"
 #include "openmc/tallies/tally.h"
 #include "CardinalEnums.h"
+#include "SymmetryPointGenerator.h"
 
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
@@ -70,7 +69,7 @@
  *  - You will get some extra error checking at your disposal if your OpenMC geometry consists
  *    of a single coordinate level.
  */
-class OpenMCCellAverageProblem : public ExternalProblem
+class OpenMCCellAverageProblem : public OpenMCProblemBase
 {
 public:
   OpenMCCellAverageProblem(const InputParameters & params);
@@ -85,7 +84,6 @@ public:
    */
   virtual void addExternalVariables() override;
 
-  /// Run a k-eigenvalue OpenMC simulation
   virtual void externalSolve() override;
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
@@ -121,28 +119,10 @@ public:
     bool allow_negative_weights = true) override;
 
   /**
-   * Type definition for storing the relevant aspects of the OpenMC geometry; the first
-   * value is the cell index, while the second is the cell instance.
-   */
-  typedef std::pair<int32_t, int32_t> cellInfo;
-
-  /**
    * Type definition for cells contained within a parent cell; the first value
    * is the cell index, while the second is the set of cell instances
    */
   typedef std::unordered_map<int32_t, std::vector<int32_t>> containedCells;
-
-  /**
-   * Set the number of particles to run for a Monte Carlo calculation
-   * @param[in] n number of particles
-   */
-  void setParticles(const int64_t & n) const;
-
-  /**
-   * Get the number of particles used in the current Monte Carlo calculation
-   * @return number of particles
-   */
-  const int64_t & nParticles() const;
 
   /**
    * Get the cell index from the element ID; will return UNMAPPED for unmapped elements
@@ -201,39 +181,11 @@ public:
   const coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info);
 
   /**
-   * Get the cell ID
-   * @param[in] index cell index
-   * @return cell ID
-   */
-  int32_t cellID(const int32_t index) const;
-
-  /**
-   * Get the material ID
-   * @param[in] index material index
-   * @return cell material ID
-   */
-  int32_t materialID(const int32_t index) const;
-
-  /**
    * Get a descriptive, formatted, string describing a cell
    * @param[in] cell_info cell index, instance pair
-   * @return descriptive string
+   * @return descriptive string describing cell
    */
   std::string printCell(const cellInfo & cell_info) const;
-
-  /**
-   * Print point coordinates with a neater formatting than the default libMesh
-   * point printing
-   * @return formatted point
-   */
-  std::string printPoint(const Point & p) const;
-
-  /**
-   * Get a descriptive, formatted, string describing a material
-   * @param[in] index material index
-   * @return descriptive string
-   */
-  std::string printMaterial(const int32_t & index) const;
 
   /**
    * Get the density conversion factor (multiplicative factor)
@@ -508,14 +460,6 @@ protected:
    */
   bool cellHasFissileMaterials(const cellInfo & cell_info) const;
 
-  /**
-   * Set an auxiliary elemental variable to a specified value
-   * @param[in] var_num variable number
-   * @param[in] elem_ids element IDs to set
-   * @param[in] value value to set
-   */
-  void fillElementalAuxVariable(const unsigned int & var_num, const std::vector<unsigned int> & elem_ids, const Real & value);
-
   /// Extract user-specified additional output fields from OpenMC
   void extractOutputs();
 
@@ -564,9 +508,6 @@ protected:
    */
   const tally::TallyTriggerTypeEnum _k_trigger;
 
-  /// Constant power for the entire OpenMC domain
-  const Real & _power;
-
   /**
    * Whether to check if any of the tallies evaluate to zero; if set to true,
    * and a tally is zero, an error is thrown. This can be helpful in identifying
@@ -605,9 +546,6 @@ protected:
    * then the actual level used in mapping is the locally lowest cell level.
    */
   bool _using_lowest_fluid_level;
-
-  /// Whether to print diagnostic information about model setup and the transfers
-  const bool & _verbose;
 
   /**
    * Whether to skip the first density and temperature transfer into OpenMC; this
@@ -870,14 +808,6 @@ protected:
   static constexpr Real _density_conversion_factor {0.001};
 
   /**
-   * Whether the OpenMC model consists of a single coordinate level; we track this so
-   * that we can provide some helpful error messages for this case. If there is more
-   * than one coordinate level, however, the error checking becomes too difficult,
-   * because cells can be filled with universes, lattices, etc.
-   */
-  const bool _single_coord_level;
-
-  /**
    * Number of digits to use to display the cell ID for diagnostic messages; this is
    * estimated conservatively based on the total number of cells, even though there
    * may be distributed cells such that the maximum cell ID is far smaller than the
@@ -890,9 +820,6 @@ protected:
    * tally_blocks to be all of the subdomains in the MOOSE mesh.
    */
   const bool _using_default_tally_blocks;
-
-  /// Total number of OpenMC cells, across all coordinate levels
-  long unsigned int _n_openmc_cells;
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
@@ -937,13 +864,6 @@ protected:
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION {3};
 
-  /**
-   * Fixed point iteration index used in relaxation; because we sometimes run OpenMC
-   * in a pseudo-transient coupling with NekRS, we simply increment this by 1 each
-   * time we call openmc::run()
-   */
-  unsigned int _fixed_point_iteration;
-
   /// Total number of particles simulated
   unsigned int _total_n_particles;
 
@@ -977,6 +897,9 @@ protected:
    * together into the 'temp' variable that OpenMC reads from
    */
   const std::vector<SubdomainName> * _temperature_blocks;
+
+  /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
+  std::unique_ptr<SymmetryPointGenerator> _symmetry;
 
 private:
   /**

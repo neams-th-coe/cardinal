@@ -160,7 +160,7 @@ To create the XML files required to run OpenMC, run the script:
 $ python unit_cell.py
 ```
 
-You can also use the XML files checked in to the `tutorials/gas_compact` directory
+You can also use the XML files checked in to the `tutorials/gas_compact` directory.
 
 ## Multiphysics Coupling
 

@@ -648,6 +648,27 @@ In other words, Cardinal will create the variables specified with the
 auxiliary kernels to assign those variables into the `temp` variable that OpenMC
 reads from.
 
+#### Symmetric Data Transfers
+
+Many neutronics problems are symmetric - such as half-core or quarter-core symmetry in
+LWRs. However, some MOOSE mesh generators (such as those used in the
+[Reactor module](https://mooseframework.inl.gov/modules/reactor/index.html) don't currently
+support generating symmetric geometries by slicing along arbitrary planes. Therefore,
+this class allows you to have a half-symmetric OpenMC model transfer data to/from
+the full-domain `[Mesh]`. The `symmetry_plane_point` parameter should be used to
+provide a point on the plane, and the `symmetry_plane_normal` parameter provides the
+normal vector for the plane. Then, any points in the `[Mesh]` that are on the "positive"
+side of the plane (the direction in which the normal points) are reflected across
+the plane before they are mapped to OpenMC cells.
+For example, [symmetry] shows a half-symmetric OpenMC model of a fuel assembly
+and the mesh to which data is sent. Of course, if asymmetries exist in whatever
+physics OpenMC is coupled to, they will be averaged on both sides of the plane
+before sending temperatures and densities to OpenMC.
+
+!media symmetry_transfers.png
+  id=symmetry
+  caption=Illustration of symmetric data transfers to/from OpenMC
+
 !syntax parameters /Problem/OpenMCCellAverageProblem
 
 !syntax inputs /Problem/OpenMCCellAverageProblem

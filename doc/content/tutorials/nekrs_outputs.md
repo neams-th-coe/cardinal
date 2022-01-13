@@ -78,7 +78,7 @@ This will load the `temp` variable from the [SolutionUserObject](https://moosefr
 and place it into the new variable we have named `nek_temp`.
 
 !listing /tutorials/load_from_exodus/load_nek.i
-  start=AuxVariables
+  start=UserObjects
 
 Finally, we "run" this application by specifying a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
 executioner. The time stepping scheme we specify here just indicates at which time

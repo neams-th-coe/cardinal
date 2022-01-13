@@ -1,7 +1,7 @@
-# Tutorial 8A: Multiphysics Coupling for an SFR Pin Bundle
+# Tutorial 8B: Multiphysics Coupling for an SFR Pin Bundle
 
 !alert note
-This tutorial is under construction and should be available by January 1.
+This tutorial is under construction and should be available in early 2022.
 
 In this tutorial, you will learn how to:
 
