@@ -100,6 +100,9 @@ protected:
   const bool & _NekRStoSAM;
   const bool & _NekRStoSAM_temperature;
 
+  /// SAM file name
+  const std::vector<FileName> _SAM_filename;
+
   /// Boundary ID through which to couple Nek to SAM
   const std::vector<int> * _NekRStoSAM_boundary;
 
