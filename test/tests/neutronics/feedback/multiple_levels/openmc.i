@@ -65,7 +65,7 @@
   # to 450, and the exterior temperature to 300. Checking that the temperatures obtained with
   # CellTemperatureAux match these values will confirm that the correct cell level is
   # fetched in the exterior region, which is at a level of 0 (greater than the lowest_solid_cell_level).
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   # block 5 should map to an OpenMC region on level 0 in the geometry; by setting
   # the lowest cell level, we will just map to level 0 in this region instead of 1.

@@ -62,7 +62,7 @@
 
   # This turns off the density and temperature update on the first syncSolutions;
   # this uses whatever temperature and densities are set in OpenMCs XML files for first step
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   # We are skipping some feedback with fissile regions, so we need to turn off the check
   check_tally_sum = false

@@ -30,7 +30,7 @@
 [Problem]
   type = OpenMCCellAverageProblem
   solid_blocks = '100'
-  skip_first_incoming_transfer = true
+  initial_properties = xml
   verbose = true
   solid_cell_level = 0
   normalize_by_global_tally = false

@@ -31,7 +31,7 @@
                        0 0 4
                        0 0 8'
   normalize_by_global_tally = false
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   tally_trigger = rel_err
   tally_trigger_threshold = 5e-1
