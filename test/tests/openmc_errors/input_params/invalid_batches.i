@@ -19,7 +19,7 @@
   solid_cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   # there are only 10 inactive batches, so we should error
   batches = 8

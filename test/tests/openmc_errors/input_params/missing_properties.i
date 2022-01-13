@@ -1,18 +1,11 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../meshes/sphere.e
-  []
-  [solid]
-    type = CombinerGenerator
-    inputs = sphere
-    positions = '0 0 0
-                 0 0 4
-                 0 0 8'
+    file = ../../neutronics/meshes/sphere.e
   []
   [solid_ids]
     type = SubdomainIDGenerator
-    input = solid
+    input = sphere
     subdomain_id = '100'
   []
 
@@ -26,21 +19,12 @@
   solid_cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
-  initial_properties = xml
-
-  # In the XML files, we set 50 total batches, but here change it to 60
-  batches = 60
+  initial_properties = hdf5
 []
 
 [Executioner]
   type = Transient
   num_steps = 1
-[]
-
-[Postprocessors]
-  [k]
-    type = KEigenvalue
-  []
 []
 
 [Outputs]

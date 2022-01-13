@@ -28,6 +28,7 @@ MooseEnum getTallyTypeEnum();
 MooseEnum getEigenvalueEnum();
 MooseEnum getRelaxationEnum();
 MooseEnum getTallyTriggerEnum();
+MooseEnum getInitialPropertiesEnum();
 
 namespace order
 {
@@ -112,6 +113,14 @@ namespace coupling
     temperature,
     density_and_temperature,
     none
+  };
+
+  /// Where to get the initial temperature and density settings for OpenMC
+  enum OpenMCInitialCondition
+  {
+    hdf5,
+    moose,
+    xml
   };
 }
 

@@ -28,7 +28,7 @@ solid_blocks = '1 3'
   tally_type = cell
   solid_cell_level = 1
   fluid_cell_level = 1
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   temperature_variables = 'solid_temp solid_temp fluid_temp'
   temperature_blocks = '${solid_blocks} 2'
