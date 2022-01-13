@@ -64,7 +64,7 @@ height = 6.343                           # height of the full core (m)
 
 [Problem]
   type = OpenMCCellAverageProblem
-  skip_first_incoming_transfer = true
+  initial_properties = 'xml'
 
   power = 1000.0
   scaling = 100.0
