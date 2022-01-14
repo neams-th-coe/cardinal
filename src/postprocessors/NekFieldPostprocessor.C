@@ -17,6 +17,7 @@
 /********************************************************************/
 
 #include "NekFieldPostprocessor.h"
+#include "UserErrorChecking.h"
 
 InputParameters
 NekFieldPostprocessor::validParams()
@@ -39,8 +40,7 @@ NekFieldPostprocessor::NekFieldPostprocessor(const InputParameters & parameters)
 
   if (_field == field::velocity_component)
   {
-    if (!isParamValid("velocity_direction"))
-      mooseError("The 'velocity_direction' must be provided when using 'field = velocity_component'!");
+    checkRequiredParam(parameters, "velocity_direction", "using 'field = velocity_component'");
 
     // get direction and convert to unit vector if not already a unit vector
     _velocity_direction = getParam<Point>("velocity_direction");
@@ -51,6 +51,6 @@ NekFieldPostprocessor::NekFieldPostprocessor(const InputParameters & parameters)
 
     _velocity_direction = _velocity_direction.unit();
   }
-  else if (isParamValid("velocity_direction"))
-      mooseWarning("The 'velocity_direction' parameter is unused unless 'field = velocity_component'!");
+  else
+    checkUnusedParam(parameters, "velocity_direction", "not using 'field = velocity_component'");
 }

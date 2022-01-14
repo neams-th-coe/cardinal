@@ -18,6 +18,7 @@
 
 #include "ReynoldsNumber.h"
 #include "NekInterface.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", ReynoldsNumber);
 
@@ -37,16 +38,11 @@ ReynoldsNumber::ReynoldsNumber(const InputParameters & parameters) :
   // because there's no way to infer it
   if (!_nek_problem->nondimensional())
   {
-    if (!isParamValid("L_ref"))
-      paramError("L_ref", "When running NekRS in dimensional form, you must provide the "
-        "characteristic length manually!");
-
+    checkRequiredParam(parameters, "L_ref", "running NekRS in dimensional form");
     _L_ref = &getParam<Real>("L_ref");
   }
-
-  if (_nek_problem->nondimensional() && isParamValid("L_ref"))
-    mooseWarning("When NekRS solves in non-dimensional form, 'L_ref' is unused "
-      "because the setting can be inferred from NekRSProblem");
+  else
+    checkUnusedParam(parameters, "L_ref", "running NekRS in non-dimensional form");
 
   if (_fixed_mesh)
     _area = nekrs::area(_boundary);
