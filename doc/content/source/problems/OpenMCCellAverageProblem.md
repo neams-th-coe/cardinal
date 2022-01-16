@@ -697,7 +697,7 @@ Again, you specify the `symmetry_plane_normal` to define *one*
 of the planes bounding the symmetric region. Then, you must also provide a
 `symmetry_axis` about which to rotate, and a `symmetry_angle` (in degrees) to indicate
 the angle of the symmetry sector (sweeping clockwise from the vector $\hat{n}\times\hat{m}$, where $\hat{m}$
-is the `symmetry_axis`). For example, [symmetryb] shows a 1/6th symmetric OpenMC model
+is the `symmetry_axis`). For example, [symmetry_b] shows a 1/6th symmetric OpenMC model
 of a fuel assembly and the mesh to which data is sent. The `symmetry_plane_normal` is
 shown as $\hat{n}$. For this case, the `symmetry_axis` is set to the positive $z$ axis,
 pointing out of the picture. The `symmetry_angle` is then 60 degrees.
