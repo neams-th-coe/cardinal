@@ -148,11 +148,12 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<int64_t>("first_iteration_particles", "Number of particles to use for first iteration "
     "when using Dufek-Gudowski relaxation");
 
-  params.addParam<Point>("symmetry_plane_point", Point(0.0, 0.0, 0.0),
-    "Point that defines one of the symmetry plane(s) in the OpenMC model");
   params.addParam<Point>("symmetry_plane_normal",
-    "Normal that defines one of the symmetry plane(s) in the OpenMC model");
-
+    "Normal that defines a symmetry plane in the OpenMC model");
+  params.addParam<Point>("symmetry_axis",
+    "Axis about which to rotate for angle-symmetric OpenMC models");
+  params.addRangeCheckedParam<Real>("symmetry_angle", "symmetry_angle > 0 & symmetry_angle < 180",
+    "Angle (degrees) from symmetry plane for which OpenMC model is symmetric");
   return params;
 }
 
@@ -186,14 +187,23 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 {
   if (isParamValid("symmetry_plane_normal"))
   {
-    const auto & point = getParam<Point>("symmetry_plane_point");
     const auto & normal = getParam<Point>("symmetry_plane_normal");
-    _symmetry.reset(new SymmetryPointGenerator(point, normal));
+    _symmetry.reset(new SymmetryPointGenerator(normal));
+
+    checkJointParams(params, {"symmetry_axis", "symmetry_angle"}, "specifying angular symmetry");
+
+    if (isParamValid("symmetry_axis"))
+    {
+      const auto & axis = getParam<Point>("symmetry_axis");
+      const auto & angle = getParam<Real>("symmetry_angle");
+      _symmetry->initializeAngularSymmetry(axis, angle);
+    }
   }
   else
   {
-    checkUnusedParam(params, "symmetry_plane_point", "not setting a symmetry plane");
     checkUnusedParam(params, "symmetry_plane_normal", "not setting a symmetry plane");
+    checkUnusedParam(params, "symmetry_axis", "not setting a symmetry plane");
+    checkUnusedParam(params, "symmetry_angle", "not setting a symmetry plane");
   }
 
   if (params.isParamSetByUser("skip_first_incoming_transfer"))
@@ -1471,7 +1481,7 @@ OpenMCCellAverageProblem::findCell(const Point & point)
   Point pt = point;
 
   if (_symmetry)
-    pt = _symmetry->reflectPointAcrossPlane(pt);
+    pt = _symmetry->transformPoint(pt);
 
   _particle.r() = {pt(0) * _scaling, pt(1) * _scaling, pt(2) * _scaling};
   return !openmc::exhaustive_find_cell(_particle);

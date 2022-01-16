@@ -91,6 +91,18 @@ public:
   virtual bool converged() override { return true; }
 
   /**
+   * Whether transformations are applied to the [Mesh] points when mapping to OpenMC
+   * @return whether transformations are applied
+   */
+  virtual bool hasPointTransformations() const { return _symmetry != nullptr; }
+
+  /**
+   * Apply transformations to point
+   * @param[in] point
+   */
+  virtual Point transformPoint(const Point & pt) const { return _symmetry->transformPoint(pt); }
+
+  /**
    * This class uses elem->volume() in order to normalize the fission power produced
    * by OpenMC to conserve the specified power. However, as discussed on the MOOSE
    * slack channel,
