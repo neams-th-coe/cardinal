@@ -2,7 +2,7 @@
   [missing_one]
     type = RunException
     input = openmc_missing.i
-    expect_err = "When assembling temperature from multiple variables, both 'temperature_variables' and 'temperature_blocks' must be provided. You have only specified one"
+    expect_err = "When assembling temperature from multiple variables, the 'temperature_variables', 'temperature_blocks' parameters\nmust either ALL be specified or ALL omitted; you have only provided a subset of parameters!"
     requirement = "The system shall error if one multi-component temperature setting is specified but not both"
   []
   [wrong_length]

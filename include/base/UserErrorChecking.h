@@ -20,3 +20,13 @@ checkUnusedParam(const InputParameters & p, const std::string & name, const std:
  */
 void
 checkRequiredParam(const InputParameters & p, const std::string & name, const std::string & explanation);
+
+/**
+ * Checks whether a set of parameters are all jointly provided or jointly not provided
+ * @param p input parameters object
+ * @param name name of the input parameter
+ * @param explanation short explanation of the reason why parameter is required
+ */
+void
+checkJointParams(const InputParameters & p, const std::vector<std::string> & name,
+  const std::string & explanation);

@@ -221,9 +221,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   if (!_identical_tally_cell_fills)
     checkUnusedParam(params, "check_identical_tally_cell_fills", "'identical_tally_cell_fills' is false");
 
-  if (isParamValid("temperature_variables") != isParamValid("temperature_blocks"))
-    mooseError("When assembling temperature from multiple variables, both 'temperature_variables' "
-      "and 'temperature_blocks' must be provided. You have only specified one");
+  checkJointParams(params, {"temperature_variables", "temperature_blocks"},
+    "assembling temperature from multiple variables");
 
   if (isParamValid("temperature_variables"))
   {
