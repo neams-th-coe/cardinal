@@ -5,6 +5,7 @@ In this tutorial, you will learn how to:
 - Couple OpenMC, NekRS/THM, and MOOSE together for multiphysics Monte Carlo transport and thermal-fluid analysis
 - Use two different MultiApp hierarchies to achieve different data transfers
 - Use triggers to automatically terminate the OpenMC active batches once reaching the desired statistical uncertainty
+- Automatically detect steady state
 
 !alert! note
 This tutorial makes use of the following major Cardinal classes:
@@ -387,7 +388,10 @@ Next, we define a transient executioner - while OpenMC is technically solving
 a steady $k$-eigenvalue problem, using a time-dependent executioner with the notion
 of a "time step" will allow us to control the frequency with which OpenMC sends data
 to/from it's sub-app (MOOSE heat conduction). Here, we set the time step to be 1000 times
-the NekRS fluid time step.
+the NekRS fluid time step. We will terminate the solution once reaching the specified
+`steady_state_tolerance`, which by setting `check_aux = true` will terminate the entire
+solution once reaching less than 1% change in all auxiliary variables in the OpenMC
+input file (which includes temperatures and power).
 
 !listing /tutorials/gas_compact_multiphysics/openmc_nek.i
   block=Executioner
@@ -820,7 +824,7 @@ each cell according to the mesh mirror element centroid mappings to OpenMC's cel
 
 !media unit_cell_openmc_temp.png
   id=unit_cell_openmc_temp
-  caption=Solid temperature predicted by the MOOSE heat conduction module with physics feedback from OpenMC-NekRS and the solid temperature actually imposed in OpenMC.
+  caption=Solid temperature predicted by the MOOSE heat conduction module with physics feedback from OpenMC-NekRS and the solid temperature actually imposed in OpenMC for a half-height portion of the unit cell
   style=width:100%;margin-left:auto;margin-right:auto
 
 [unit_cell_fluid_temp] shows the fluid temperature predicted by NekRS and THM,

@@ -142,8 +142,11 @@ N = 1000
 
 [Executioner]
   type = Transient
-  num_steps = 4
   dt = ${fparse N * nek_dt * t0}
+
+  steady_state_detection = true
+  check_aux = true
+  steady_state_tolerance = 1e-2
 []
 
 [MultiApps]

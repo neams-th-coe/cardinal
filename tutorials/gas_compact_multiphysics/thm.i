@@ -17,6 +17,12 @@ num_layers_for_THM = 150
   fp = helium
 []
 
+[Closures]
+  [none]
+    type = Closures1PhaseNone
+  []
+[]
+
 [FluidProperties]
   [helium]
     type = IdealGasFluidProperties
