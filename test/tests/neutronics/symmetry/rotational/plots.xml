@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plots>
+  <plot basis="xy" color_by="material" filename="plot2" id="2" type="slice">
+    <origin>0.0 0.0 158.575</origin>
+    <width>42.6 42.6</width>
+    <pixels>14000 14000</pixels>
+    <color id="1" rgb="152 251 152" />
+    <color id="5" rgb="0 0 139" />
+    <color id="7" rgb="255 0 0" />
+    <color id="8" rgb="255 0 0" />
+    <color id="9" rgb="255 0 0" />
+    <color id="10" rgb="255 0 0" />
+    <color id="11" rgb="255 0 0" />
+    <color id="12" rgb="255 0 0" />
+    <color id="13" rgb="255 0 0" />
+    <color id="14" rgb="255 0 0" />
+    <color id="15" rgb="255 0 0" />
+    <color id="16" rgb="255 0 0" />
+    <color id="17" rgb="255 0 0" />
+    <color id="18" rgb="255 0 0" />
+    <color id="19" rgb="255 0 0" />
+    <color id="20" rgb="255 0 0" />
+    <color id="21" rgb="255 0 0" />
+    <color id="22" rgb="255 0 0" />
+    <color id="23" rgb="255 0 0" />
+    <color id="24" rgb="255 0 0" />
+    <color id="25" rgb="255 0 0" />
+    <color id="26" rgb="255 0 0" />
+    <color id="27" rgb="255 0 0" />
+    <color id="28" rgb="255 0 0" />
+    <color id="29" rgb="255 0 0" />
+    <color id="30" rgb="255 0 0" />
+    <color id="31" rgb="255 0 0" />
+    <color id="32" rgb="255 0 0" />
+    <color id="33" rgb="255 0 0" />
+    <color id="34" rgb="255 0 0" />
+    <color id="35" rgb="255 0 0" />
+    <color id="36" rgb="255 0 0" />
+    <color id="37" rgb="255 0 0" />
+    <color id="38" rgb="255 0 0" />
+    <color id="39" rgb="255 0 0" />
+    <color id="40" rgb="255 0 0" />
+    <color id="41" rgb="255 0 0" />
+    <color id="42" rgb="255 0 0" />
+    <color id="43" rgb="255 0 0" />
+    <color id="44" rgb="255 0 0" />
+    <color id="45" rgb="255 0 0" />
+    <color id="46" rgb="255 0 0" />
+    <color id="47" rgb="255 0 0" />
+    <color id="48" rgb="255 0 0" />
+    <color id="49" rgb="255 0 0" />
+    <color id="50" rgb="255 0 0" />
+    <color id="51" rgb="255 0 0" />
+    <color id="52" rgb="255 0 0" />
+    <color id="53" rgb="255 0 0" />
+    <color id="54" rgb="255 0 0" />
+    <color id="55" rgb="255 0 0" />
+    <color id="56" rgb="255 0 0" />
+    <color id="57" rgb="255 0 0" />
+    <color id="58" rgb="255 0 0" />
+    <color id="59" rgb="255 0 0" />
+    <color id="60" rgb="255 0 0" />
+    <color id="61" rgb="255 0 0" />
+    <color id="62" rgb="255 0 0" />
+    <color id="63" rgb="255 0 0" />
+    <color id="64" rgb="255 0 0" />
+    <color id="65" rgb="255 0 0" />
+    <color id="66" rgb="255 0 0" />
+    <color id="67" rgb="255 0 0" />
+    <color id="68" rgb="255 0 0" />
+    <color id="69" rgb="255 0 0" />
+    <color id="70" rgb="255 0 0" />
+    <color id="71" rgb="255 0 0" />
+    <color id="72" rgb="255 0 0" />
+    <color id="73" rgb="255 0 0" />
+    <color id="74" rgb="255 0 0" />
+    <color id="75" rgb="255 0 0" />
+    <color id="76" rgb="255 0 0" />
+    <color id="77" rgb="255 0 0" />
+    <color id="78" rgb="255 0 0" />
+  </plot>
+</plots>

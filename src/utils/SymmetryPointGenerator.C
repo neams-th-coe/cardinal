@@ -18,42 +18,127 @@
 
 #include "SymmetryPointGenerator.h"
 #include "MooseUtils.h"
+#include "math.h"
 
-SymmetryPointGenerator::SymmetryPointGenerator(const Point & point, const Point & normal) :
-  _point(point),
-  _normal(normal)
+SymmetryPointGenerator::SymmetryPointGenerator(const Point & normal) :
+  _rotational_symmetry(false)
 {
   Point zero(0.0, 0.0, 0.0);
-  if (_normal.absolute_fuzzy_equals(zero))
-    mooseError("Symmetry plane normal cannot have zero norm!");
+  if (normal.absolute_fuzzy_equals(zero))
+    mooseError("The 'symmetry_plane_normal' cannot have zero norm!");
 
-  _unit_normal = _normal / _normal.norm();
+  _normal = normal / normal.norm();
+}
 
-  // equation of plane is ax + by + cz = d
-  _a = _unit_normal(0);
-  _b = _unit_normal(1);
-  _c = _unit_normal(2);
-  _d = _a * _point(0) + _b * _point(1) + _c * _point(2);
-  _denominator = _a * _a + _b * _b + _c * _c;
+void
+SymmetryPointGenerator::initializeAngularSymmetry(const Point & axis, const Real & angle)
+{
+  _rotational_symmetry = true;
+
+  // symmetry axis cannot be zero norm
+  Point zero(0.0, 0.0, 0.0);
+  if (axis.absolute_fuzzy_equals(zero))
+    mooseError("The 'symmetry_axis' cannot have zero norm!");
+
+  // the symmetry axis needs to be perpendicular to the plane normal
+  if (!MooseUtils::absoluteFuzzyEqual(axis * _normal, 0.0))
+    mooseError("The 'symmetry_axis' must be perpendicular to the 'symmetry_plane_normal'!");
+
+  _rotational_axis = axis / axis.norm();
+
+  // unit circle must be divisible by angle
+  if (!MooseUtils::absoluteFuzzyEqual(fmod(360.0, angle), 0))
+    mooseError("The unit circle must be divisible by the 'symmetry_angle'!");
+
+  _angle = angle * M_PI / 180.0;
+
+  _zero_theta = _normal.cross(_rotational_axis);
+  _zero_theta = _zero_theta / _zero_theta.norm();
+
+  _reflection_normal = rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
+  _reflection_normal = _reflection_normal / _reflection_normal.norm();
 }
 
 bool
-SymmetryPointGenerator::onPositiveSideOfPlane(const Point & p) const
+SymmetryPointGenerator::onPositiveSideOfPlane(const Point & p, const Point & normal) const
 {
-  auto vector_from_plane_point = p - _point;
-  return vector_from_plane_point * _normal > 0;
+  return p * normal > 0;
 }
 
 Point
-SymmetryPointGenerator::reflectPointAcrossPlane(const Point & p) const
+SymmetryPointGenerator::reflectPointAcrossPlane(const Point & p, const Point & normal) const
 {
-  if (onPositiveSideOfPlane(p))
+  Real coeff = -normal * p;
+  return p + 2.0 * coeff * normal;
+}
+
+Point
+SymmetryPointGenerator::rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis) const
+{
+  Real cos_theta = cos(angle);
+  Real sin_theta = sin(angle);
+
+  Point pt;
+  Real xy = axis(0) * axis(1);
+  Real xz = axis(0) * axis(2);
+  Real yz = axis(1) * axis(2);
+
+  Point x_op(cos_theta + axis(0) * axis(0) * (1.0 - cos_theta),
+             xy * (1.0 - cos_theta) - axis(2) * sin_theta,
+             xz * (1.0 - cos_theta) + axis(1) * sin_theta);
+
+  Point y_op(xy * (1.0 - cos_theta) + axis(2) * sin_theta,
+             cos_theta + axis(1) * axis(1) * (1.0 - cos_theta),
+             yz * (1.0 - cos_theta) - axis(0) * sin_theta);
+
+  Point z_op(xz * (1.0 - cos_theta) - axis(1) * sin_theta,
+             yz * (1.0 - cos_theta) + axis(0) * sin_theta,
+             cos_theta + axis(2) * axis(2) * (1.0 - cos_theta));
+
+  pt(0) = x_op * p;
+  pt(1) = y_op * p;
+  pt(2) = z_op * p;
+  return pt;
+}
+
+int
+SymmetryPointGenerator::sector(const Point & p) const
+{
+  Real theta = acos(p * _zero_theta / p.norm());
+  if (onPositiveSideOfPlane(p, _normal))
+    theta = 2.0 * M_PI - theta;
+
+  return theta / _angle;
+}
+
+Point
+SymmetryPointGenerator::transformPoint(const Point & p) const
+{
+  Point pt = p;
+
+  if (_rotational_symmetry)
   {
-    // reflect onto the negative side of the plane - first, find the closest
-    // point on the plane
-    Real coeff = (_d - _unit_normal * p) / _denominator;
-    return p + 2.0 * coeff * _unit_normal;
+    // first, find the closest point on the plane
+    Real coeff = - _rotational_axis * p;
+    Point vec_to_pt = p + coeff * _rotational_axis;
+
+    // get the sector - we only need to do a transformation if not in the first sector
+    int s = sector(vec_to_pt);
+    if (s != 0)
+    {
+      pt = rotatePointAboutAxis(p, s * _angle, _rotational_axis);
+
+      // if the sector was odd, we also need to reflect the point about an axis
+      // halfway between the symmetry plane and the zero-theta line
+      if (s % 2 != 0)
+        pt = reflectPointAcrossPlane(pt, _reflection_normal);
+    }
   }
   else
-    return p;
+  {
+    if (onPositiveSideOfPlane(pt, _normal))
+      pt = reflectPointAcrossPlane(pt, _normal);
+  }
+
+  return pt;
 }
