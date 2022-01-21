@@ -24,6 +24,7 @@
 #include "NonlinearSystemBase.h"
 #include "Conversion.h"
 #include "VariadicTable.h"
+#include "UserErrorChecking.h"
 
 #include "mpi.h"
 #include "openmc/capi.h"
@@ -69,6 +70,10 @@ OpenMCCellAverageProblem::validParams()
     "Whether to skip the very first density and temperature transfer into OpenMC; "
     "this can be used to allow whatever initial condition is set in OpenMC's XML "
     "files to be used in OpenMC's run the first time OpenMC is run");
+  params.addParam<MooseEnum>("initial_properties", getInitialPropertiesEnum(),
+    "Where to read the temperature and density initial conditions for the OpenMC mdoel; "
+    "options: hdf5, moose (default), or xml.");
+
   params.addParam<bool>("export_properties", false,
     "Whether to export OpenMC's temperature and density properties after updating "
     "them in the syncSolutions call.");
@@ -143,11 +148,12 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<int64_t>("first_iteration_particles", "Number of particles to use for first iteration "
     "when using Dufek-Gudowski relaxation");
 
-  params.addParam<Point>("symmetry_plane_point", Point(0.0, 0.0, 0.0),
-    "Point that defines one of the symmetry plane(s) in the OpenMC model");
   params.addParam<Point>("symmetry_plane_normal",
-    "Normal that defines one of the symmetry plane(s) in the OpenMC model");
-
+    "Normal that defines a symmetry plane in the OpenMC model");
+  params.addParam<Point>("symmetry_axis",
+    "Axis about which to rotate for angle-symmetric OpenMC models");
+  params.addRangeCheckedParam<Real>("symmetry_angle", "symmetry_angle > 0 & symmetry_angle < 180",
+    "Angle (degrees) from symmetry plane for which OpenMC model is symmetric");
   return params;
 }
 
@@ -155,11 +161,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   OpenMCProblemBase(params),
   _serialized_solution(NumericVector<Number>::build(_communicator).release()),
   _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
+  _initial_condition(getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
   _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
   _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
   _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
   _check_zero_tallies(getParam<bool>("check_zero_tallies")),
-  _skip_first_incoming_transfer(getParam<bool>("skip_first_incoming_transfer")),
   _export_properties(getParam<bool>("export_properties")),
   _specified_scaling(params.isParamSetByUser("scaling")),
   _scaling(getParam<Real>("scaling")),
@@ -181,43 +187,52 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
 {
   if (isParamValid("symmetry_plane_normal"))
   {
-    const auto & point = getParam<Point>("symmetry_plane_point");
     const auto & normal = getParam<Point>("symmetry_plane_normal");
-    _symmetry.reset(new SymmetryPointGenerator(point, normal));
+    _symmetry.reset(new SymmetryPointGenerator(normal));
+
+    checkJointParams(params, {"symmetry_axis", "symmetry_angle"}, "specifying angular symmetry");
+
+    if (isParamValid("symmetry_axis"))
+    {
+      const auto & axis = getParam<Point>("symmetry_axis");
+      const auto & angle = getParam<Real>("symmetry_angle");
+      _symmetry->initializeAngularSymmetry(axis, angle);
+    }
   }
-  else if (params.isParamSetByUser("symmetry_plane_point"))
-      mooseWarning("Without setting a 'symmetry_plane_normal', the 'symmetry_plane_point' "
-        "parameter is unused!");
+  else
+  {
+    checkUnusedParam(params, "symmetry_plane_normal", "not setting a symmetry plane");
+    checkUnusedParam(params, "symmetry_axis", "not setting a symmetry plane");
+    checkUnusedParam(params, "symmetry_angle", "not setting a symmetry plane");
+  }
+
+  if (params.isParamSetByUser("skip_first_incoming_transfer"))
+    mooseError("The 'skip_first_incoming_transfer' parameter is deprecated and has been replaced "
+      "by the 'initial_properties' parameter!");
 
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
   {
-    if (!isParamValid("first_iteration_particles"))
-      mooseError("'first_iteration_particles' must be specified when using Dufek-Gudowski relaxation!");
-
-    if (isParamValid("particles") && _relaxation == relaxation::dufek_gudowski)
-      mooseWarning("The 'particles' parameter is unused when using Dufek-Gudowski relaxation!");
-
+    checkUnusedParam(params, "particles", "using Dufek-Gudowski relaxation");
+    checkRequiredParam(params, "first_iteration_particles", "using Dufek-Gudowski relaxation");
     openmc::settings::n_particles = getParam<int64_t>("first_iteration_particles");
   }
-  else if (isParamValid("first_iteration_particles"))
-    mooseWarning("The 'first_iteration_particles' parameter is unused when not using Dufek-Gudowski relaxation!");
+  else
+    checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
   _n_particles_1 = nParticles();
 
   // set the parameters needed for tally triggers
   getTallyTriggerParameters(params);
 
-  if (params.isParamSetByUser("relaxation_factor") && _relaxation != relaxation::constant)
-    mooseWarning("The 'relaxation_factor' parameter is unused when not using constant relaxation!");
+  if (_relaxation != relaxation::constant)
+    checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
-  if (params.isParamSetByUser("check_identical_tally_cell_fills") && !_identical_tally_cell_fills)
-    mooseWarning("The 'check_identical_tally_cell_fills' parameter is unused when 'identical_tally_cell_fills' "
-      "is false");
+  if (!_identical_tally_cell_fills)
+    checkUnusedParam(params, "check_identical_tally_cell_fills", "'identical_tally_cell_fills' is false");
 
-  if (isParamValid("temperature_variables") != isParamValid("temperature_blocks"))
-    mooseError("When assembling temperature from multiple variables, both 'temperature_variables' "
-      "and 'temperature_blocks' must be provided. You have only specified one");
+  checkJointParams(params, {"temperature_variables", "temperature_blocks"},
+    "assembling temperature from multiple variables");
 
   if (isParamValid("temperature_variables"))
   {
@@ -235,16 +250,13 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   {
     case tally::cell:
     {
-      std::vector<std::string> unused_pars = {"mesh_template", "mesh_translations", "mesh_translations_file"};
-
-      for (const auto & s : unused_pars)
-        if (params.isParamSetByUser(s))
-          mooseWarning("The '" + s + "' parameter is unused when using cell tallies!");
+      checkUnusedParam(params, "mesh_template", "using cell tallies");
+      checkUnusedParam(params, "mesh_translations", "using cell tallies");
+      checkUnusedParam(params, "mesh_translations_file", "using cell tallies");
 
       // tally_blocks is optional if the OpenMC geometry has a single coordinate level
-      if (!_single_coord_level && !isParamValid("tally_blocks"))
-        paramError("tally_blocks", "List of tally blocks must be specified for OpenMC geometries with "
-          "more than one coordinate level");
+      if (!_single_coord_level)
+        checkRequiredParam(params, "tally_blocks", "OpenMC geometries have more than one coordinate level");
 
       readTallyBlocks();
 
@@ -258,14 +270,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     }
     case tally::mesh:
     {
-      if (params.isParamSetByUser("tally_blocks"))
-        mooseWarning("The 'tally_blocks' parameter is unused when using mesh tallies!");
+      checkRequiredParam(params, "mesh_template", "using a mesh tally");
+      checkUnusedParam(params, "tally_blocks", "using mesh tallies");
 
       if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
         mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
-
-      if (!isParamValid("mesh_template"))
-        paramError("mesh_template", "When using a mesh tally, a mesh template must be provided!");
 
       if (_check_equal_mapped_tally_volumes)
         mooseWarning("The 'check_equal_mapped_tally_volumes' parameter is unused when using mesh tallies!");
@@ -340,31 +349,26 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
         "bins in the tallies, which would be needed in order to set thresholds in the same\n"
         "units as in the Cardinal input file.");
 
-    if (!isParamValid("tally_trigger_threshold"))
-      paramError("tally_trigger_threshold", "This parameter must be provided when using a tally trigger!");
+    checkRequiredParam(parameters, "tally_trigger_threshold", "using tally triggers");
 
     _tally_trigger_threshold = getParam<Real>("tally_trigger_threshold");
   }
-  else if (isParamValid("tally_trigger_threshold"))
-    paramWarning("tally_trigger_threshold", "This parameter is unused when 'tally_trigger = none'!");
+  else
+    checkUnusedParam(parameters, "tally_trigger_threshold", "not using tally triggers");
 
   // parameters needed for k triggers
   if (_k_trigger != tally::none)
   {
-    if (!isParamValid("k_trigger_threshold"))
-      paramError("k_trigger_threshold", "This parameter must be provided when using a k trigger!");
-
+    checkRequiredParam(parameters, "k_trigger_threshold", "using a k trigger");
     openmc::settings::keff_trigger.threshold = getParam<Real>("k_trigger_threshold");
   }
-  else if (isParamValid("k_trigger_threshold"))
-    paramWarning("k_trigger_threshold", "This parameter is unused when 'k_trigger = none'!");
+  else
+    checkUnusedParam(parameters, "k_trigger_threshold", "not using a k trigger");
 
   if (_k_trigger != tally::none || _tally_trigger != tally::none) // at least one trigger
   {
     openmc::settings::trigger_on = true;
-
-    if (!isParamValid("max_batches"))
-      paramError("max_batches", "This parameter must be provided when using a trigger!");
+    checkRequiredParam(parameters, "max_batches", "using triggers");
 
     int err = openmc_set_n_batches(getParam<unsigned int>("max_batches"),
       true /* set the max batches */,
@@ -379,11 +383,8 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
 
   if (_k_trigger == tally::none && _tally_trigger == tally::none) // no triggers
   {
-    if (isParamValid("max_batches"))
-      paramWarning("max_batches", "This parameter is unused when 'tally_trigger' and 'k_trigger' are 'none'!");
-
-    if (parameters.isParamSetByUser("batch_interval"))
-      paramWarning("batch_interval", "This parameter is unused when 'tally_trigger' and 'k_trigger' are 'none'!");
+    checkUnusedParam(parameters, "max_batches", "not using triggers");
+    checkUnusedParam(parameters, "batch_interval", "not using triggers");
   }
 }
 
@@ -1480,7 +1481,7 @@ OpenMCCellAverageProblem::findCell(const Point & point)
   Point pt = point;
 
   if (_symmetry)
-    pt = _symmetry->reflectPointAcrossPlane(pt);
+    pt = _symmetry->transformPoint(pt);
 
   _particle.r() = {pt(0) * _scaling, pt(1) * _scaling, pt(2) * _scaling};
   return !openmc::exhaustive_find_cell(_particle);
@@ -1986,11 +1987,35 @@ void OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction directio
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      if (_first_transfer && _skip_first_incoming_transfer)
+      if (_first_transfer)
       {
-        std::string incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
-        _console << "Skipping " << incoming_transfer << " transfer into OpenMC" << std::endl;
-        return;
+        switch (_initial_condition)
+        {
+          case coupling::hdf5:
+          {
+            _console << "Reading temperature and density from properties.h5" << std::endl;
+
+            int err = openmc_properties_import("properties.h5");
+            if (err)
+              mooseError("In attempting to load temperature and density from a properties.h5 file, "
+                "OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+            return;
+          }
+          case coupling::moose:
+          {
+            // transfer will happen from MOOSE - proceed normally
+            break;
+          }
+          case coupling::xml:
+          {
+            std::string incoming_transfer = _has_fluid_blocks ? "temperature and density" : "temperature";
+            _console << "Skipping " << incoming_transfer << " transfer into OpenMC" << std::endl;
+            return;
+          }
+          default:
+            mooseError ("Unhandled OpenMCInitialConditionEnum!");
+        }
       }
 
       // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed

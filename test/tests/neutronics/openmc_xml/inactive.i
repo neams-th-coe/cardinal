@@ -26,7 +26,7 @@
   solid_cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   # In the XML files, we set 10 inactive batches, but here we change it to 20
   inactive_batches = 20

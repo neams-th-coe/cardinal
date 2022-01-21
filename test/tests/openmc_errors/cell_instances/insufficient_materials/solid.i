@@ -17,7 +17,7 @@
   verbose = true
   check_tally_sum = false
   check_zero_tallies = false
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 []
 
 [Executioner]

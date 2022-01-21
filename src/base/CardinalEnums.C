@@ -57,3 +57,8 @@ MooseEnum getTallyTriggerEnum()
 {
   return MooseEnum("variance std_dev rel_err none", "none");
 }
+
+MooseEnum getInitialPropertiesEnum()
+{
+  return MooseEnum("hdf5 moose xml", "moose");
+}

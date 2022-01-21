@@ -23,44 +23,76 @@
 #include "libmesh/point.h"
 
 /**
- * Class that rotates/reflects a point about symmetry planes
+ * Class that rotates/reflects a point about symmetry planes; the origin
+ * for reflection and rotation is (0.0, 0.0, 0.0)
  */
 class SymmetryPointGenerator
 {
 public:
-  SymmetryPointGenerator(const Point & point, const Point & normal);
+  SymmetryPointGenerator(const Point & normal);
+
+  /**
+   * Initialize information needed to transform points with angular symmetry
+   * @param[in] axis axis of symmetry
+   * @param[in] angle angular sector width for symmetry
+   */
+  void initializeAngularSymmetry(const Point & axis, const Real & angle);
 
   /**
    * Whether point is on the positive side of a plane; points exactly on plane return false
    * @param[in] p point
+   * @param[in] normal unit normal defining the plane
    * @return whether on positive side of plane
    */
-  bool onPositiveSideOfPlane(const Point & p) const;
+  bool onPositiveSideOfPlane(const Point & p, const Point & normal) const;
 
-  Point reflectPointAcrossPlane(const Point & p) const;
+  /**
+   * Reflect point across a plane
+   * @param[in] p point
+   * @param[in] normal unit normal defining the plane
+   * @return reflected point
+   */
+  Point reflectPointAcrossPlane(const Point & p, const Point & normal) const;
+
+  /**
+   * Rotate point about an axis
+   * @param[in] p point
+   * @param[in] angle angle to rotate (radians)
+   * @param[in] axis axis expressed as vector
+   * @return rotated point
+   */
+  Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis) const;
+
+  /**
+   * Transform point coordinates according to class settings
+   * @param[in] p point
+   * @return transformed point
+   */
+  Point transformPoint(const Point & p) const;
+
+  /**
+   * Sector of point
+   * @param[in] p point
+   * @return sector
+   */
+  int sector(const Point & p) const;
 
 protected:
-  /// Point defining the plane
-  const Point & _point;
+  /// Normal defining the first symmetry plane
+  Point _normal;
 
-  /// Normal defining the plane
-  const Point & _normal;
+  /// Axis of angular rotation symmetry
+  Point _rotational_axis;
 
-  /// Unit normal defining the plane
-  Point _unit_normal;
+  /// Rotation angle
+  Real _angle;
 
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _a;
+  /// Line defining the "zero-theta" line for rotational symmetry
+  Point _zero_theta;
 
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _b;
+  /// Normal defining the reflection plane, for odd-numbered sectors
+  Point _reflection_normal;
 
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _c;
-
-  /// Coefficient defining plane, ax + by + cz = d
-  Real _d;
-
-  /// a*a + b*b + c*c, saved here for faster evaluations
-  Real _denominator;
+  /// Whether rotational symmetry is applied
+  bool _rotational_symmetry;
 };

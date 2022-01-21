@@ -26,7 +26,7 @@
   solid_cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   # In the XML files, we set 50 total batches, but here change it to 60
   batches = 60

@@ -30,7 +30,7 @@
 
   # skip the data transfer of temperature into OpenMC for the first time step
   # so that we can just use the ICs set in OpenMCs XML files
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   solid_cell_level = 1
 []

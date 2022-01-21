@@ -58,7 +58,7 @@
 
   # This turns off the density and temperature update on the first syncSolutions;
   # this uses whatever temperature and densities are set in OpenMCs XML files for first step
-  skip_first_incoming_transfer = true
+  initial_properties = xml
 
   verbose = true
   fluid_cell_level = 0

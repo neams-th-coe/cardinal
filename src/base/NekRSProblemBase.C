@@ -25,6 +25,7 @@
 #include "MooseUtils.h"
 #include "CardinalUtils.h"
 #include "VariadicTable.h"
+#include "UserErrorChecking.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -98,14 +99,12 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   // necessary scaling quantities to prevent errors from forgetting one, which would take
   // a non-scaled default otherwise
   std::vector<std::string> scales = {"U_ref", "T_ref", "dT_ref", "L_ref", "rho_0", "Cp_0"};
-  std::vector<std::string> descriptions = {"velocity", "temperature", "temperature range", "length",
-    "density", "heat capacity"};
-  for (std::size_t n = 0; n < scales.size(); ++n)
+  for (const auto & s : scales)
   {
-    if (_nondimensional && !params.isParamSetByUser(scales[n]))
-      paramError(scales[n], "When NekRS solves in non-dimensional form, a characterstic " + descriptions[n] + " must be provided!");
-    else if (!_nondimensional && params.isParamSetByUser(scales[n]))
-      mooseWarning("When NekRS solves in dimensional form, " + descriptions[n] + " is unused!");
+    if (_nondimensional)
+      checkRequiredParam(params, s, "solving in non-dimensional form");
+    else
+      checkUnusedParam(params, s, "solving in dimensional form");
   }
 
   // inform NekRS of the scaling that we are using if solving in non-dimensional form

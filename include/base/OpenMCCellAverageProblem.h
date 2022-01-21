@@ -91,6 +91,18 @@ public:
   virtual bool converged() override { return true; }
 
   /**
+   * Whether transformations are applied to the [Mesh] points when mapping to OpenMC
+   * @return whether transformations are applied
+   */
+  virtual bool hasPointTransformations() const { return _symmetry != nullptr; }
+
+  /**
+   * Apply transformations to point
+   * @param[in] point
+   */
+  virtual Point transformPoint(const Point & pt) const { return _symmetry->transformPoint(pt); }
+
+  /**
    * This class uses elem->volume() in order to normalize the fission power produced
    * by OpenMC to conserve the specified power. However, as discussed on the MOOSE
    * slack channel,
@@ -487,6 +499,14 @@ protected:
   const tally::TallyTypeEnum _tally_type;
 
   /**
+   * Where to get the initial OpenMC temperatures and densities from;
+   * can be either hdf5 (from a properties.h5 file), xml (whatever is already
+   * set in the XML files), or moose (meaning whatever ICs are set on the
+   * 'temp' and 'density' variables).
+   */
+  const coupling::OpenMCInitialCondition _initial_condition;
+
+  /**
    * Type of relaxation to apply to the OpenMC solution; relaxation is
    * applied to the heat source tally.
    */
@@ -546,13 +566,6 @@ protected:
    * then the actual level used in mapping is the locally lowest cell level.
    */
   bool _using_lowest_fluid_level;
-
-  /**
-   * Whether to skip the first density and temperature transfer into OpenMC; this
-   * can be used to apply OpenMC's initial values for density and temperature in its
-   * XML files rather than whatever is transferred into OpenMC from MOOSE.
-   */
-  const bool & _skip_first_incoming_transfer;
 
   /**
    * Whether OpenMC properties (temperature and density) should be exported
