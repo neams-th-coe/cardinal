@@ -65,6 +65,22 @@ SAMNekRSProblem::SAMNekRSProblem(const InputParameters &params) : NekRSProblemBa
     _NekRStoSAM_boundary(isParamValid("NekRStoSAM_boundary") ? &getParam<std::vector<int>>("NekRStoSAM_boundary") : nullptr),
     _NekRS_inlet_boundary(isParamValid("NekRS_inlet_boundary") ? &getParam<std::vector<int>>("NekRS_inlet_boundary") : nullptr)
 {
+
+  if (!_SAMtoNekRS && !_NekRStoSAM)
+    mooseError("This problem type needs atleast one of SAMtoNekRS_interface \n", 
+    "or NekRStoSAM_interface to be set to true\n");
+
+  if (_NekRStoSAM)
+    {
+    if (_NekRStoSAM_boundary->size() != 1)
+      mooseError("NekRStoSAM_boundary can only have a single ID listed \n",
+      "but NekRStoSAM_boundary has " + std::to_string(_NekRStoSAM_boundary->size()) + " IDs listed.");
+    }
+
+  if (_NekRS_inlet_boundary->size() != 1)
+    mooseError("NekRS_inlet_boundary can only have a single ID listed \n",
+    "but NekRS_inlet_boundary has " + std::to_string(_NekRS_inlet_boundary->size()) + " IDs listed.");
+
 }
 
 SAMNekRSProblem::~SAMNekRSProblem()
@@ -83,11 +99,6 @@ SAMNekRSProblem::initialSetup()
 
   if (_minimize_transfers_in)
     _transfer_in = &getPostprocessorValueByName("transfer_in");
- 
-  if (!_SAMtoNekRS && !_NekRStoSAM)
-    mooseError("SAMNekRSProblem requires specification of how data\n",
-    "is being sent between SAM and NekRS, atleast one of SAMtoNekRS_interface \n", 
-    "or NekRStoSAM_interface must be set to true\n");
 
   if (_SAMtoNekRS)
     _SAMtoNekRS_velocity = &getPostprocessorValueByName("SAMtoNekRS_velocity");
@@ -191,7 +202,7 @@ SAMNekRSProblem::sendBoundaryVelocityToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  _console << "Sending velocity to NekRS for boundary " << Moose::stringify(*_boundary) << std::endl;
+  _console << "Sending velocity to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
@@ -217,7 +228,7 @@ SAMNekRSProblem::sendBoundaryTemperatureToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  _console << "Sending temperature to NekRS for boundary " << Moose::stringify(*_boundary) << std::endl;
+  _console << "Sending temperature to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
@@ -231,7 +242,7 @@ void
 SAMNekRSProblem::addExternalVariables()
 {
   NekRSProblemBase::addExternalVariables();
-  auto var_params = getExternalVariableParameters();
+  auto var_params = getExternalVariableParameters(); //not needed?
 
   // create MultiApp for SAM
   auto multiapp_params = _factory.getValidParams("TransientMultiApp");
