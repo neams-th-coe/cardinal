@@ -31,10 +31,10 @@
  * ...
  * 
  */
-class SAMNekRSProblem : public NekRSProblemBase
+class NekRSSeparateDomainProblem : public NekRSProblemBase
 {
 public:
-  SAMNekRSProblem(const InputParameters & params);
+  NekRSSeparateDomainProblem(const InputParameters & params);
 
   static InputParameters validParams();
 
@@ -47,7 +47,7 @@ public:
    * actual last time step, because Nek may not know when that last time step is.
    * Therefore, here we can force nekRS to write its output.
    **/
-  ~SAMNekRSProblem();
+  ~NekRSSeparateDomainProblem();
 
   /**
    * \brief Perform some sanity checks on the problem setup
@@ -94,26 +94,26 @@ protected:
 
   const bool & _minimize_transfers_out;
 
-  /// Specify type of interfaces present for SAM-NekRS coupling 
-  const bool & _SAMtoNekRS;
-  const bool & _SAMtoNekRS_temperature;
-  const bool & _NekRStoSAM;
-  const bool & _NekRStoSAM_temperature;
+  /// Specify type of interfaces present for ExternalApp-NekRS coupling 
+  const bool & _toNekRS;
+  const bool & _toNekRS_temperature;
+  const bool & _fromNekRS;
+  const bool & _fromNekRS_temperature;
 
-  /// SAM file name
-  const std::vector<FileName> _SAM_filename;
+  /// External app file name
+  const std::vector<FileName> _ExternalApp_filename;
 
-  /// Boundary ID through which to couple Nek to SAM
-  const std::vector<int> * _NekRStoSAM_boundary;
+  /// Boundary ID through which to couple NekRS to external app
+  const std::vector<int> * _fromNekRS_boundary;
 
   /// Boundary ID for NekRS inlet
   const std::vector<int> * _NekRS_inlet_boundary;
 
-  /// Velocity boundary condition coming from SAM to NekRS
-  const PostprocessorValue * _SAMtoNekRS_velocity = nullptr;
+  /// Velocity boundary condition coming from external App to NekRS
+  const PostprocessorValue * _toNekRS_velocity = nullptr;
 
-  /// Temperature boundary condition coming from SAM to NekRS
-  const PostprocessorValue * _SAMtoNekRS_temp = nullptr;
+  /// Temperature boundary condition coming from external App to NekRS
+  const PostprocessorValue * _toNekRS_temp = nullptr;
 
 
   /// Postprocessor containing the signal of when a synchronization has occurred
