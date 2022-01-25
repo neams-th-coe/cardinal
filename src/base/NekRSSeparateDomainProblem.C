@@ -46,6 +46,8 @@ NekRSSeparateDomainProblem::validParams()
   params.addParam<bool>("fromNekRS_interface", false, "NekRS -> external app interface present?");
   params.addParam<bool>("fromNekRS_temperature", false, "NekRS -> external app temperature transfer?");
   params.addRequiredParam<std::vector<FileName>>("ExternalApp_filename", "External app input file name");
+  MooseEnum app_type("SamApp THMApp");
+  params.addRequiredParam<MooseEnum>("ExternalApp_type", app_type, "External app type");
   params.addParam<std::vector<int>>("fromNekRS_boundary", "Boundary ID through which nekRS will be coupled to external app");
   params.addParam<std::vector<int>>("NekRS_inlet_boundary", "NekRS Boundary ID for Pressure drop calculation");
 
@@ -62,6 +64,7 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &pa
     _fromNekRS(getParam<bool>("fromNekRS_interface")),
     _fromNekRS_temperature(getParam<bool>("fromNekRS_temperature")),
     _ExternalApp_filename(getParam<std::vector<FileName>>("ExternalApp_filename")),
+    _ExternalApp_type(getParam<MooseEnum>("ExternalApp_type")),
     _fromNekRS_boundary(isParamValid("fromNekRS_boundary") ? &getParam<std::vector<int>>("fromNekRS_boundary") : nullptr),
     _NekRS_inlet_boundary(isParamValid("NekRS_inlet_boundary") ? &getParam<std::vector<int>>("NekRS_inlet_boundary") : nullptr)
 {
@@ -246,7 +249,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
 
   // create MultiApp for external app
   auto multiapp_params = _factory.getValidParams("TransientMultiApp");
-  multiapp_params.set<MooseEnum>("app_type") = "SamApp";
+  multiapp_params.set<MooseEnum>("app_type") = _ExternalApp_type;
   multiapp_params.set<std::vector<FileName>>("input_files") = _ExternalApp_filename;
   multiapp_params.set<unsigned int>("max_procs_per_app") = 1; // only let external app run with one processor
   multiapp_params.set<ExecFlagEnum>("execute_on") = EXEC_TIMESTEP_BEGIN; // run external app first

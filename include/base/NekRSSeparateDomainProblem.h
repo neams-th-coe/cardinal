@@ -102,6 +102,7 @@ protected:
 
   /// External app file name
   const std::vector<FileName> _ExternalApp_filename;
+  const MooseEnum _ExternalApp_type;
 
   /// Boundary ID through which to couple NekRS to external app
   const std::vector<int> * _fromNekRS_boundary;
