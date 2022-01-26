@@ -54,6 +54,10 @@ NekRSProblemBase::validParams()
     "instead produce output files with names a01...a99pin, b01...b99pin, etc.");
   params.addParam<bool>("disable_fld_file_output", false, "Whether to turn off all NekRS field file output writing");
 
+  params.addParam<bool>("minimize_transfers_in", false, "Whether to only synchronize nekRS "
+    "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
+  params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
+    "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
   return params;
 }
 
@@ -67,8 +71,20 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   _Cp_0(getParam<Real>("Cp_0")),
   _write_fld_files(getParam<bool>("write_fld_files")),
   _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
+  _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
+  _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
   _start_time(nekrs::startTime())
 {
+  // the way the data transfers are detected depend on nekRS being a sub-application,
+  // so these settings are not invalid if nekRS is the master app (though you could
+  // relax this in the future by reversing the synchronization step identification
+  // from the nekRS-subapp case to the nekRS-master app case - it's just not implemented yet).
+  if (_app.isUltimateMaster())
+    if (_minimize_transfers_in || _minimize_transfers_out)
+      mooseError("The 'minimize_transfers_in' and 'minimize_transfers_out' capabilities "
+        "require that nekRS is receiving and sending data to a master application, but "
+        "in your case nekRS is the master application.");
+
   if (_disable_fld_file_output && _write_fld_files)
     mooseError("Cannot both disable all field file output and write custom field files!\n"
       "'write_fld_files' and 'disable_fld_file_output' cannot both be true!");
@@ -280,6 +296,9 @@ NekRSProblemBase::initialSetup()
     _start_time = moose_start_time;
   }
 
+  if (_minimize_transfers_in)
+    _transfer_in = &getPostprocessorValueByName("transfer_in");
+
   // Then, dimensionalize the NekRS time so that all occurrences of _dt here are
   // in dimensional form
   _timestepper->dimensionalizeDT();
@@ -347,9 +366,17 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
+    {
+      if (!synchronizeIn())
+        return;
+
       return;
+    }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
+      if (!synchronizeOut())
+        return;
+
       // extract the NekRS solution onto the mesh mirror, if specified
       extractOutputs();
       return;
@@ -357,6 +384,47 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
     default:
       mooseError("Unhandled Transfer::DIRECTION enum!");
   }
+}
+
+bool
+NekRSProblemBase::synchronizeIn()
+{
+  bool synchronize = true;
+  static bool first = true;
+
+  if (_minimize_transfers_in)
+  {
+    // For the minimized incoming synchronization to work correctly, the value
+    // of the incoming postprocessor must not be zero. We only need to check this for the very
+    // first time we evaluate this function. This ensures that you don't accidentally set a
+    // zero value as a default in the master application's postprocessor.
+    if (first && *_transfer_in == false)
+      mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
+        "must not be false! Make sure that the master application's "
+        "postprocessor is not zero.");
+
+    if (*_transfer_in == false)
+      synchronize = false;
+    else
+      setPostprocessorValueByName("transfer_in", false, 0);
+  }
+
+  first = false;
+  return synchronize;
+}
+
+bool
+NekRSProblemBase::synchronizeOut()
+{
+  bool synchronize = true;
+
+  if (_minimize_transfers_out)
+  {
+    if (std::abs(_time - _dt - _transient_executioner->getTargetTime()) > _transient_executioner->timestepTol())
+      synchronize = false;
+  }
+
+  return synchronize;
 }
 
 bool
@@ -485,5 +553,12 @@ NekRSProblemBase::addExternalVariables()
     }
 
     _var_string.erase(std::prev(_var_string.end()));
+  }
+
+  if (_minimize_transfers_in)
+  {
+    auto pp_params = _factory.getValidParams("Receiver");
+    pp_params.set<std::vector<OutputName>>("outputs") = {"none"};
+    addPostprocessor("Receiver", "transfer_in", pp_params);
   }
 }
