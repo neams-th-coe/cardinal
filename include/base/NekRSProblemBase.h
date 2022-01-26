@@ -80,6 +80,18 @@ public:
    */
   virtual bool movingMesh() const = 0;
 
+  /**
+   * Whether data should be synchronized in to nekRS
+   * \return whether inward data synchronization should occur
+   */
+  virtual bool synchronizeIn();
+
+  /**
+   * Whether data should be synchronized out of nekRS
+   * \return whether outward data synchronization should occur
+   */
+  virtual bool synchronizeOut();
+
 protected:
   /**
    * Fill an outgoing auxiliary variable field with nekRS solution data
@@ -179,6 +191,52 @@ protected:
   /// Whether to turn off all field file writing
   const bool & _disable_fld_file_output;
 
+  /**
+   * \brief Whether to only send data to nekRS on the multiapp synchronization steps
+   *
+   * nekRS is often subcycled relative to the application controlling it -
+   * that is, nekRS may be run with a time step 10x smaller than a conduction MOOSE app.
+   * The NekRSProblemBase interface in MOOSE, however, currently synchronizes (i.e. sends
+   * data to/from nekRS) on _every_ nekRS time step. If 'interpolate_transfers = false'
+   * in the master application, then the data going into nekRS is fixed for each
+   * of the subcycled time steps it takes, so these extra data transfers are
+   * completely unnecssary. This flag indicates whether a somewhat hacky postprocessor
+   * data transfer should be used for nekRS to figure out whether each time step is
+   * the first immediately following a transfer from it's master application, and
+   * then only send data into nekRS's arrays if the data from MOOSE is new.
+   *
+   * NOTE: if 'interpolate_transfers = true' in the master application, then the data
+   * coming into nekRS is _unique_ on each subcycled time step, so setting this to
+   * true will in effect override `interpolate_transfers` to be false. For the best
+   * performance, you should set `interpolate_transfers` to false so that you don't
+   * even bother computing the interpolated data, since it's not used if this parameter
+   * is set to true.
+   */
+  const bool & _minimize_transfers_in;
+
+  /**
+   * \brief Whether to only get data from nekRS on the multiapp synchronization steps
+   *
+   * nekRS is often subcycled relative to the application controlling it -
+   * that is, nekRS may be run with a time step 10x smaller than a conduction MOOSE app.
+   * The NekRSProblemBase interface in MOOSE, however, currently synchronizes (i.e. sends
+   * data to/from nekRS) on _every_ nekRS time step. If 'interpolate_transfers = false'
+   * in the master application, then the data coming from nekRS is fixed
+   * (from the master's perspective) for each
+   * of the subcycled time steps it takes, so these extra data transfers are
+   * completely unnecssary. This flag indicates whether the coincidence of the
+   * simulation time with the 'target_time' should be used to only transfer data out
+   * of nekRS on the synchronization steps when that data will actually be used.
+   *
+   * NOTE: if 'interpolate_transfers = true' in the master application, then the data
+   * sent from nekRS is _unique_ on each subcycled time step, so setting this to
+   * true will in effect override `interpolate_transfers` to be false. For the best
+   * performance, you should set `interpolate_transfers` to false so that you don't
+   * even bother computing the interpolated data, since it's not used if this parameter
+   * is set to true.
+   */
+  const bool & _minimize_transfers_out;
+
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
 
@@ -247,4 +305,7 @@ protected:
 
   /// Number of points for interpolated fields on the MOOSE mesh
   int _n_points;
+
+  /// Postprocessor containing the signal of when a synchronization has occurred
+  const PostprocessorValue * _transfer_in = nullptr;
 };
