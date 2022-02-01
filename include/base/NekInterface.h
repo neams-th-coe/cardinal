@@ -209,6 +209,9 @@ void copyScratchToDevice();
 /// Copy volume deformation of mesh from host to device for moving-mesh problems
 void copyDeformationToDevice();
 
+template <typename T>
+void allgatherv(const int * base_counts, const T * input, T * output, const int multiplier = 1);
+
 /**
  * Determine the receiving counts and displacements for all gather routines
  * @param[in] base_counts unit-wise receiving counts for each process
@@ -829,5 +832,30 @@ double referenceLength();
 double referenceArea();
 
 } // end namespace solution
+
+// useful concept from Stack Overflow for templating MPI calls
+template <typename T>
+MPI_Datatype resolveType();
+
+/**
+ * Helper function for MPI_Allgatherv of results in NekRS
+ * @param[in] base_counts once multiplied by 'multiplier', the number of counts on each rank
+ * @param[in] input rank-local data
+ * @param[out] output collected result
+ * @param[in] multiplier constant multiplier to set on each count indicator
+ */
+template <typename T>
+void allgatherv(const int * base_counts, const T * input, T * output, const int multiplier)
+{
+  int * recvCounts   = (int *) calloc(commSize(), sizeof(int));
+  int * displacement = (int *) calloc(commSize(), sizeof(int));
+  displacementAndCounts(base_counts, recvCounts, displacement, multiplier);
+
+  MPI_Allgatherv(input, recvCounts[commRank()], resolveType<T>(), output,
+    (const int*)recvCounts, (const int*)displacement, resolveType<T>(), platform->comm.mpiComm);
+
+  free(recvCounts);
+  free(displacement);
+}
 
 } // end namespace nekrs

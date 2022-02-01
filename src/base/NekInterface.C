@@ -1741,4 +1741,16 @@ namespace solution
   }
 } // end namespace solution
 
+template <>
+MPI_Datatype resolveType<double>()
+{
+  return MPI_DOUBLE;
+}
+
+template <>
+MPI_Datatype resolveType<int>()
+{
+  return MPI_INT;
+}
+
 } // end namespace nekrs

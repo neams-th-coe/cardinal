@@ -413,17 +413,10 @@ NekRSMesh::storeBoundaryCoupling()
 
   _boundary_coupling.offset = displacement[rank];
 
-  MPI_Allgatherv(etmp, recvCounts[rank], MPI_INT, _boundary_coupling.element,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
-
-  MPI_Allgatherv(ftmp, recvCounts[rank], MPI_INT, _boundary_coupling.face,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
-
-  MPI_Allgatherv(ptmp, recvCounts[rank], MPI_INT, _boundary_coupling.process,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
-
-  MPI_Allgatherv(btmp, recvCounts[rank], MPI_INT, _boundary_coupling.boundary_id,
-    (const int*)recvCounts, (const int*)displacement, MPI_INT, platform->comm.mpiComm);
+  nekrs::allgatherv(_boundary_coupling.counts, etmp, _boundary_coupling.element);
+  nekrs::allgatherv(_boundary_coupling.counts, ftmp, _boundary_coupling.face);
+  nekrs::allgatherv(_boundary_coupling.counts, ptmp, _boundary_coupling.process);
+  nekrs::allgatherv(_boundary_coupling.counts, btmp, _boundary_coupling.boundary_id);
 
   freePointer(recvCounts);
   freePointer(displacement);
@@ -595,22 +588,10 @@ NekRSMesh::faceVertices()
     }
   }
 
-  // compute the counts and displacement based on the GLL points
-  int* recvCounts = (int *) calloc(nekrs::commSize(), sizeof(int));
-  int* displacement = (int *) calloc(nekrs::commSize(), sizeof(int));
-  nekrs::displacementAndCounts(_boundary_coupling.counts, recvCounts, displacement, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.counts, xtmp, _x, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.counts, ytmp, _y, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.counts, ztmp, _z, Nfp_mirror);
 
-  MPI_Allgatherv(xtmp, recvCounts[rank], MPI_DOUBLE, _x,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
-
-  MPI_Allgatherv(ytmp, recvCounts[rank], MPI_DOUBLE, _y,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
-
-  MPI_Allgatherv(ztmp, recvCounts[rank], MPI_DOUBLE, _z,
-    (const int*)recvCounts, (const int*)displacement, MPI_DOUBLE, platform->comm.mpiComm);
-
-  freePointer(recvCounts);
-  freePointer(displacement);
   freePointer(xtmp);
   freePointer(ytmp);
   freePointer(ztmp);
