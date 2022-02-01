@@ -22,6 +22,7 @@
 #include "MooseApp.h"
 #include "CardinalEnums.h"
 #include "NekBoundaryCoupling.h"
+#include "NekVolumeCoupling.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -57,6 +58,8 @@ public:
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
 
   const NekBoundaryCoupling & boundaryCoupling() const { return _boundary_coupling; }
+
+  const NekVolumeCoupling & volumeCoupling() const { return _volume_coupling; }
 
   /// Add all the elements in the mesh to the MOOSE data structures
   virtual void addElems();
@@ -204,16 +207,51 @@ public:
   /// Print diagnostic information related to the mesh
   virtual void printMeshInfo() const;
 
+  /**
+   * Processor id (rank) owning the given boundary element
+   * @return processor id
+   */
   int boundaryElemProcessorID(const int elem_id);
 
+  /**
+   * Processor id (rank) owning the given volume element
+   * @return processor id
+   */
+  int volumeElemProcessorID(const int elem_id);
+
+  /**
+   * Get the number of faces of this global element that are on a coupling boundary
+   * @param[in] elem_id global element ID
+   * @return number of faces on a coupling boundary
+   */
+  int facesOnBoundary(const int elem_id) const;
+
 protected:
+  /// Store the rank-local element and rank ownership for volume coupling
+  void storeVolumeCoupling();
+
+  /// Store the rank-local element and rank ownership for boundary coupling
   void storeBoundaryCoupling();
+
+  /**
+   * Sideset ID corresponding to a given volume element with give local face ID
+   * @param[in] elem_id element local rank ID
+   * @param[in] face_id element-local face ID
+   * @return sideset ID (-1 means not one a boundary)
+   */
+  int boundary_id(const int elem_id, const int face_id);
 
   /**
    * Get the vertices defining the surface mesh interpolation from the
    * stored coupling information and store in _x, _y, and _z
    */
   void faceVertices();
+
+  /**
+   * Get the vertices defining the volume mesh interpolation from the
+   * stored coupling information and store in _x, _y, and _z
+   */
+  void volumeVertices();
 
   /// Initialize members for the mesh and determine the GLL-to-node mapping
   void initializeMeshParams();
@@ -339,4 +377,6 @@ protected:
   Elem * (NekRSMesh::*_new_elem)() const;
 
   NekBoundaryCoupling _boundary_coupling;
+
+  NekVolumeCoupling _volume_coupling;
 };

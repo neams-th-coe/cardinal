@@ -476,7 +476,7 @@ NekRSProblemBase::extractOutputs()
         nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
 
       if (_volume)
-        nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+        nekrs::volumeSolution(_nek_mesh->volumeCoupling(), _nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
 
       fillAuxVariable(_external_vars[i], _external_data);
     }

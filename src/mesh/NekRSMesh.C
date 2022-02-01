@@ -93,12 +93,6 @@ NekRSMesh::~NekRSMesh()
     freePointer(_y);
     freePointer(_z);
 
-    freePointer(_boundary_coupling.element);
-    freePointer(_boundary_coupling.face);
-    freePointer(_boundary_coupling.process);
-    freePointer(_boundary_coupling.counts);
-    freePointer(_boundary_coupling.boundary_id);
-
     nekrs::mesh::freeMesh();
   }
 }
@@ -409,7 +403,7 @@ NekRSMesh::storeBoundaryCoupling()
   // compute the counts and displacements for face-based data exchange
   int* recvCounts = (int *) calloc(nekrs::commSize(), sizeof(int));
   int* displacement = (int *) calloc(nekrs::commSize(), sizeof(int));
-  nekrs::displacementAndCounts(_boundary_coupling.counts, recvCounts, displacement, 1.0);
+  nekrs::displacementAndCounts(_boundary_coupling.counts, recvCounts, displacement, 1);
 
   _boundary_coupling.offset = displacement[rank];
 
@@ -423,6 +417,64 @@ NekRSMesh::storeBoundaryCoupling()
   freePointer(etmp);
   freePointer(ftmp);
   freePointer(ptmp);
+  freePointer(btmp);
+}
+
+void
+NekRSMesh::storeVolumeCoupling()
+{
+  int rank = nekrs::commRank();
+  mesh_t * mesh = nekrs::entireMesh();
+
+  _volume_coupling.n_elems = mesh->Nelements;
+  MPI_Allreduce(&_volume_coupling.n_elems, &_n_volume_elems, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+  _volume_coupling.total_n_elems = _n_volume_elems;
+
+  _volume_coupling.counts = (int *) calloc(nekrs::commSize(), sizeof(int));
+  MPI_Allgather(&_volume_coupling.n_elems, 1, MPI_INT, _volume_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
+
+  // Save information regarding the volume mesh coupling in terms of the process-local
+  // element IDs and process ownership
+  int * etmp = (int *) malloc(_n_volume_elems * sizeof(int));
+  int * ptmp = (int *) malloc(_n_volume_elems * sizeof(int));
+  int * btmp = (int *) malloc(_n_volume_elems * mesh->Nfaces * sizeof(int));
+
+  _volume_coupling.element  = (int *) malloc(_n_volume_elems * sizeof(int));
+  _volume_coupling.process  = (int *) malloc(_n_volume_elems * sizeof(int));
+  _volume_coupling.boundary = (int *) malloc(_n_volume_elems * mesh->Nfaces * sizeof(int));
+
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    etmp[i] = i;
+    ptmp[i] = rank;
+
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int id = i * mesh->Nfaces + j;
+      btmp[id] = mesh->EToB[id];
+    }
+  }
+
+  nekrs::allgatherv(_volume_coupling.counts, etmp, _volume_coupling.element, 1);
+  nekrs::allgatherv(_volume_coupling.counts, ptmp, _volume_coupling.process, 1);
+
+  int * ftmp = (int *) calloc(_n_volume_elems, sizeof(int));
+
+  _volume_coupling.n_faces_on_boundary = (int *) calloc(_n_volume_elems, sizeof(int));
+
+  int b_start = _boundary_coupling.offset;
+  for (int i = 0; i < _boundary_coupling.n_faces; ++i)
+  {
+    int e = _boundary_coupling.element[b_start + i];
+    ftmp[e] += 1;
+  }
+
+  nekrs::allgatherv(_volume_coupling.counts, ftmp, _volume_coupling.n_faces_on_boundary, 1);
+  nekrs::allgatherv(_volume_coupling.counts, btmp, _volume_coupling.boundary, mesh->Nfaces);
+
+  freePointer(etmp);
+  freePointer(ptmp);
+  freePointer(ftmp);
   freePointer(btmp);
 }
 
@@ -449,11 +501,11 @@ NekRSMesh::buildMesh()
   if (_boundary)
     storeBoundaryCoupling();
 
-  // Loop through the mesh to establish a data structure (nek_volume_coupling)
+  // Loop through the mesh to establish a data structure (_volume_coupling)
   // that holds the rank-local element ID and owning rank.
   // This data structure is used internally by nekRS during the transfer portion.
   if (_volume)
-    nekrs::mesh::storeVolumeCoupling(_boundary_coupling, _n_volume_elems);
+    storeVolumeCoupling();
 
   if (_boundary && !_volume)
     extractSurfaceMesh();
@@ -519,7 +571,7 @@ NekRSMesh::addElems()
     {
       for (int f = 0; f < nekrs::mesh::Nfaces(); ++f)
       {
-        int b_id = nekrs::mesh::boundary_id(e, f);
+        int b_id = boundary_id(e, f);
         if (b_id != -1 /* NekRS's setting to indicate not on a sideset */)
           boundary_info.add_side(elem, _side_index[f], b_id);
       }
@@ -598,6 +650,30 @@ NekRSMesh::faceVertices()
 }
 
 void
+NekRSMesh::volumeVertices()
+{
+  // nekRS has already performed a global operation such that all processes know the
+  // toal number of volume elements.
+  _x = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  _y = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  _z = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+
+  nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+
+  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
+  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
+  mesh_t * mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy, not used */,
+    nrs->cht, *(nrs->kernelInfo));
+
+  _volume_coupling.counts = (int *) calloc(nekrs::commSize(), sizeof(int));
+  MPI_Allgather(&_volume_coupling.n_elems, 1, MPI_INT, _volume_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
+
+  nekrs::allgatherv(_volume_coupling.counts, mesh->x, _x, mesh->Np);
+  nekrs::allgatherv(_volume_coupling.counts, mesh->y, _y, mesh->Np);
+  nekrs::allgatherv(_volume_coupling.counts, mesh->z, _z, mesh->Np);
+}
+
+void
 NekRSMesh::extractSurfaceMesh()
 {
   // Find the global vertex IDs that are on the _boundary. Note that nekRS performs a
@@ -615,22 +691,16 @@ NekRSMesh::extractSurfaceMesh()
 void
 NekRSMesh::extractVolumeMesh()
 {
-  // nekRS has already performed a global operation such that all processes know the
-  // toal number of volume elements.
-  _x = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  _y = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  _z = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-
   // Find the global vertex IDs in the volume. Note that nekRS performs a
   // global communciation here such that each nekRS process has knowledge of all the
   // volume information.
-  nekrs::mesh::volumeVertices(_order, _x, _y, _z);
+  volumeVertices();
 
   _new_elem = &NekRSMesh::volumeElem;
   _n_elems = _n_volume_elems;
   _n_vertices_per_elem = _n_vertices_per_volume;
   _node_index = &_vol_node_index;
-  //_elem_processor_id = &nekrs::mesh::VolumeElemProcessorID;
+  _elem_processor_id = &NekRSMesh::volumeElemProcessorID;
 }
 
 Elem *
@@ -669,4 +739,23 @@ int
 NekRSMesh::boundaryElemProcessorID(const int elem_id)
 {
   return _boundary_coupling.processor_id(elem_id);
+}
+
+int
+NekRSMesh::volumeElemProcessorID(const int elem_id)
+{
+  return _volume_coupling.processor_id(elem_id);
+}
+
+int
+NekRSMesh::boundary_id(const int elem_id, const int face_id)
+{
+  mesh_t * mesh = nekrs::entireMesh();
+  return _volume_coupling.boundary[elem_id * mesh->Nfaces + face_id];
+}
+
+int
+NekRSMesh::facesOnBoundary(const int elem_id) const
+{
+  return _volume_coupling.n_faces_on_boundary[elem_id];
 }
