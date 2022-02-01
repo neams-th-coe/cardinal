@@ -250,7 +250,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 
         // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
         // onto the nekRS GLL points
-        nekrs::flux(e, _nek_mesh->order(), _flux_face);
+        nekrs::flux(_nek_mesh->boundaryCoupling(), e, _nek_mesh->order(), _flux_face);
       }
     }
     else if (_volume)
@@ -312,7 +312,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   // flux integral, we need to scale the integral back up again to the dimensional form
   // for the sake of comparison.
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux = nekrs::fluxIntegral();
+  const double nek_flux = nekrs::fluxIntegral(_nek_mesh->boundaryCoupling());
   const double moose_flux = *_flux_integral;
 
   // For the sake of printing diagnostics to the screen regarding the flux normalization,
@@ -324,7 +324,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   _console << "Normalizing total NekRS flux of " << Moose::stringify(nek_flux * nek_flux_print_mult) <<
     " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
 
-  successful_normalization = nekrs::normalizeFlux(moose_flux, nek_flux, normalized_nek_flux);
+  successful_normalization = nekrs::normalizeFlux(_nek_mesh->boundaryCoupling(), moose_flux, nek_flux, normalized_nek_flux);
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,
@@ -495,7 +495,7 @@ NekRSProblem::getBoundaryTemperatureFromNek()
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the boundary temperature information. That is,
   // every process knows the full boundary temperature solution
-  nekrs::boundarySolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
+  nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _nek_mesh->order(), _needs_interpolation, field::temperature, _T);
 }
 
 void

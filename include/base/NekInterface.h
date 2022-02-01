@@ -20,6 +20,7 @@
 
 #include "CardinalEnums.h"
 #include "MooseTypes.h"
+#include "NekBoundaryCoupling.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
 #include "io.hpp"
@@ -282,7 +283,7 @@ Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
  * @param[in] f field to interpolate
  * @param[out] T interpolated boundary value
  */
-void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
+void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
  * Interpolate the nekRS volume solution onto the volume data transfer mesh
@@ -299,7 +300,7 @@ void volumeSolution(const int order, const bool needs_interpolation, const field
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[in] flux_face flux at the libMesh nodes
  */
- void flux(const int elem_id, const int order, double * flux_face);
+ void flux(const NekBoundaryCoupling & nek_boundary_coupling, const int elem_id, const int order, double * flux_face);
 
 void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
 
@@ -312,7 +313,7 @@ void save_initial_mesh();
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
  * @return boundary integrated flux
  */
-double fluxIntegral();
+double fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling);
 
 /**
  * Integrate the interpolated heat source over the volume of the data transfer mesh
@@ -327,7 +328,7 @@ double sourceIntegral();
  * @param[out] normalized_nek_integral final normalized nek flux integral
  * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
-bool normalizeFlux(const double moose_integral, double nek_integral, double & normalized_nek_integral);
+bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling, const double moose_integral, double nek_integral, double & normalized_nek_integral);
 
 /**
  * Normalize the heat source sent to nekRS to conserve the total heat source
@@ -524,41 +525,6 @@ struct volumeCoupling
   int processor_id(const int elem_id) { return process[elem_id]; }
 };
 
-/// Store the geometry and parallel information related to the surface mesh coupling
-struct boundaryCoupling
-{
-  // process-local element IDS on the boundary of interest (for all ranks)
-  int * element;
-
-  // element-local face IDs on the boundary of interest (for all ranks)
-  int * face;
-
-  // problem-global boundary ID for each element (for all ranks)
-  int * boundary_id;
-
-  // process owning each face (for all faces)
-  int * process;
-
-  // number of faces owned by each process
-  int * counts;
-
-  // number of coupling elements owned by this process
-  int n_faces;
-
-  // total number of coupling elements
-  int total_n_faces;
-
-  // offset into the element, face, and process arrays where this rank's data begins
-  int offset;
-
-  /**
-   * nekRS process owning the global element in the data transfer mesh
-   * @param[in] elem_id element ID
-   * @return nekRS process ID
-   */
-  int processor_id(const int elem_id) { return process[elem_id]; }
-};
-
 /**
  * Sideset ID corresponding to a given volume element with give local face ID
  * @param[in] elem_id element local rank ID
@@ -649,12 +615,6 @@ bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_
 int VolumeElemProcessorID(const int elem_id);
 
 /**
- * Processor id (rank) owning the given boundary element
- * @return processor id
- */
-int BoundaryElemProcessorID(const int elem_id);
-
-/**
  * Store the rank-local element, element-local face, and rank ownership for boundary coupling
  * @param[in] boundary_id boundaries through which nekRS will be coupled
  * @param[out] N total number of surface elements
@@ -662,19 +622,10 @@ int BoundaryElemProcessorID(const int elem_id);
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N);
 
 /**
- * \brief Get the vertices defining the surface mesh interpolation from the stored coupling information
- * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
- * @param[out] x Array of \f$x\f$-coordinates for face vertices
- * @param[out] y Array of \f$y\f$-coordinates for face vertices
- * @param[out] z Array of \f$z\f$-coordinates for face vertices
- */
-void faceVertices(const int order, double* x, double* y, double* z);
-
-/**
  * Store the rank-local element and rank ownership for volume coupling
  * @param[out] N total number of volume elements
  */
-void storeVolumeCoupling(int& N);
+void storeVolumeCoupling(NekBoundaryCoupling & nek_boundary_coupling, int& N);
 
 /**
  * \brief Get the vertices defining the volume mesh interpolation and store mesh coupling information

@@ -21,6 +21,7 @@
 #include "MooseMesh.h"
 #include "MooseApp.h"
 #include "CardinalEnums.h"
+#include "NekBoundaryCoupling.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -53,8 +54,9 @@ public:
   ~NekRSMesh();
 
   NekRSMesh & operator=(const NekRSMesh & other_mesh) = delete;
-
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
+
+  const NekBoundaryCoupling & boundaryCoupling() const { return _boundary_coupling; }
 
   /// Add all the elements in the mesh to the MOOSE data structures
   virtual void addElems();
@@ -202,7 +204,17 @@ public:
   /// Print diagnostic information related to the mesh
   virtual void printMeshInfo() const;
 
+  int boundaryElemProcessorID(const int elem_id);
+
 protected:
+  void storeBoundaryCoupling();
+
+  /**
+   * Get the vertices defining the surface mesh interpolation from the
+   * stored coupling information and store in _x, _y, and _z
+   */
+  void faceVertices();
+
   /// Initialize members for the mesh and determine the GLL-to-node mapping
   void initializeMeshParams();
 
@@ -265,7 +277,7 @@ protected:
   int _n_elems;
 
   /// Function returning the processor id which should own each element
-  int (*_elem_processor_id)(const int elem_id);
+  int (NekRSMesh::*_elem_processor_id)(const int elem_id);
 
   /// Number of vertices per element, which depends on whether building a boundary/volume mesh
   int _n_vertices_per_elem;
@@ -286,9 +298,9 @@ protected:
    * This is ordered according to nekRS's internal geometry layout, and is indexed
    * first by the element and then by the node.
    **/
-  double* _x;
-  double* _y;
-  double* _z;
+  double * _x;
+  double * _y;
+  double * _z;
   ///@}
 
   /**
@@ -325,4 +337,6 @@ protected:
 
   /// Function pointer to the type of new element to add
   Elem * (NekRSMesh::*_new_elem)() const;
+
+  NekBoundaryCoupling _boundary_coupling;
 };

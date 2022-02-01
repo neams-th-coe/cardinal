@@ -473,7 +473,7 @@ NekRSProblemBase::extractOutputs()
         mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
 
       if (!_volume)
-        nekrs::boundarySolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+        nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
 
       if (_volume)
         nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
