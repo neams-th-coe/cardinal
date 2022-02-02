@@ -53,7 +53,6 @@ public:
   static InputParameters validParams();
 
   NekRSMesh(const NekRSMesh & /* other_mesh */) = default;
-  ~NekRSMesh();
 
   NekRSMesh & operator=(const NekRSMesh & other_mesh) = delete;
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
@@ -366,9 +365,9 @@ protected:
    * This is ordered according to nekRS's internal geometry layout, and is indexed
    * first by the element and then by the node.
    **/
-  double * _x = nullptr;
-  double * _y = nullptr;
-  double * _z = nullptr;
+  std::vector<double> _x;
+  std::vector<double> _y;
+  std::vector<double> _z;
   ///@}
 
   ///@{

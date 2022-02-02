@@ -98,13 +98,6 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   }
 }
 
-NekRSMesh::~NekRSMesh()
-{
-  freePointer(_x);
-  freePointer(_y);
-  freePointer(_z);
-}
-
 void
 NekRSMesh::printMeshInfo() const
 {
@@ -602,9 +595,9 @@ NekRSMesh::addElems()
 void
 NekRSMesh::faceVertices()
 {
-  _x = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  _y = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  _z = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  double * x = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  double * y = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  double * z = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
 
   nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
   int rank = nekrs::commRank();
@@ -660,10 +653,20 @@ NekRSMesh::faceVertices()
     }
   }
 
-  nekrs::allgatherv(_boundary_coupling.counts, xtmp, _x, Nfp_mirror);
-  nekrs::allgatherv(_boundary_coupling.counts, ytmp, _y, Nfp_mirror);
-  nekrs::allgatherv(_boundary_coupling.counts, ztmp, _z, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.counts, xtmp, x, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.counts, ytmp, y, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.counts, ztmp, z, Nfp_mirror);
 
+  for (int i = 0; i < _n_surface_elems * _n_vertices_per_surface; ++i)
+  {
+    _x.push_back(x[i]);
+    _y.push_back(y[i]);
+    _z.push_back(z[i]);
+  }
+
+  freePointer(x);
+  freePointer(y);
+  freePointer(z);
   freePointer(xtmp);
   freePointer(ytmp);
   freePointer(ztmp);
@@ -674,9 +677,9 @@ NekRSMesh::volumeVertices()
 {
   // nekRS has already performed a global operation such that all processes know the
   // toal number of volume elements.
-  _x = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  _y = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  _z = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  double * x = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  double * y = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  double * z = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
 
   nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
 
@@ -685,9 +688,20 @@ NekRSMesh::volumeVertices()
   mesh_t * mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy, not used */,
     nrs->cht, *(nrs->kernelInfo));
 
-  nekrs::allgatherv(_volume_coupling.counts, mesh->x, _x, mesh->Np);
-  nekrs::allgatherv(_volume_coupling.counts, mesh->y, _y, mesh->Np);
-  nekrs::allgatherv(_volume_coupling.counts, mesh->z, _z, mesh->Np);
+  nekrs::allgatherv(_volume_coupling.counts, mesh->x, x, mesh->Np);
+  nekrs::allgatherv(_volume_coupling.counts, mesh->y, y, mesh->Np);
+  nekrs::allgatherv(_volume_coupling.counts, mesh->z, z, mesh->Np);
+
+  for (int i = 0; i < _n_volume_elems * _n_vertices_per_volume; ++i)
+  {
+    _x.push_back(x[i]);
+    _y.push_back(y[i]);
+    _z.push_back(z[i]);
+  }
+
+  freePointer(x);
+  freePointer(y);
+  freePointer(z);
 }
 
 void
