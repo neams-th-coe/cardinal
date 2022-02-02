@@ -243,12 +243,6 @@ void interpolationMatrix(double * I, int starting_points, int ending_points);
 void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, int N, double* Ix, int M);
 
 /**
- * Initialize interpolation matrices for transfers in/out of nekRS
- * @param[in] n_moose_pts number of MOOSE quadrature points in 1-D
- */
-void initializeInterpolationMatrices(const int n_moost_pts);
-
-/**
  * Compute the face centroid given a local element ID and face ID (NOTE: returns in dimensional form)
  * @param[in] local_elem_id local element ID on this rank
  * @param[in] local_face_id local face ID on the element
@@ -287,7 +281,7 @@ Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
  * @param[in] f field to interpolate
  * @param[out] T interpolated boundary value
  */
-void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
+void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
  * Interpolate the nekRS volume solution onto the volume data transfer mesh
@@ -296,7 +290,7 @@ void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const i
  * @param[in] f field to interpolate
  * @param[out] T interpolated volume value
  */
-void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
+void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const double * I, const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
  * Interpolate the MOOSE flux onto the nekRS mesh
@@ -304,9 +298,9 @@ void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const int ord
  * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
  * @param[in] flux_face flux at the libMesh nodes
  */
- void flux(const NekBoundaryCoupling & nek_boundary_coupling, const int elem_id, const int order, double * flux_face);
+ void flux(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int elem_id, const int order, double * flux_face);
 
-void writeVolumeSolution(const NekVolumeCoupling & nek_volume_coupling, const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
+void writeVolumeSolution(const NekVolumeCoupling & nek_volume_coupling, const double * I, const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
 
 /**
  * Save the initial mesh in nekRS for moving mesh problems
@@ -477,26 +471,6 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
 namespace mesh
 {
-struct interpolationMatrix
-{
-  /**
-   * \brief Interpolation matrix to interpolate _from_ a MOOSE mesh to the nekRS mesh
-   *
-   * This interpolation matrix is used to interpolate boundary heat flux (for boundary
-   * coupling) or volume power density (for volume coupling) from a MOOSE mesh to nekRS's mesh.
-   */
-  double * incoming;
-
-  /**
-   * \brief Interpolation matrix to interpolate _from_ a nekRS mesh to a MOOSE mesh
-   *
-   * This interpolation matrix is used to interpolate boundary temperature (for boundary
-   * coupling) or volume temperatures and densities (for volume coupling) from nekRS's mesh
-   * to a MOOSE mesh.
-   */
-  double * outgoing;
-};
-
 /**
  * Number of faces per element; because NekRS only supports HEX20, this should be 6
  * @return number of faces per mesh element

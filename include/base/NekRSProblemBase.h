@@ -93,6 +93,9 @@ public:
   virtual bool synchronizeOut();
 
 protected:
+  /// Initialize interpolation matrices for transfers in/out of nekRS
+  void initializeInterpolationMatrices();
+
   /**
    * Fill an outgoing auxiliary variable field with nekRS solution data
    * \param[in] var_number auxiliary variable number
@@ -308,4 +311,10 @@ protected:
 
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
+
+  /// Vandermonde interpolation matrix (for outgoing transfers)
+  double * _interpolation_outgoing = nullptr;
+
+  /// Vandermonde interpolation matrix (for incoming transfers)
+  double * _interpolation_incoming = nullptr;
 };

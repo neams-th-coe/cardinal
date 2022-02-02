@@ -168,7 +168,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   else
     _n_points = _n_surface_elems * _n_vertices_per_surface;
 
-  nekrs::initializeInterpolationMatrices(_nek_mesh->numQuadraturePoints1D());
+  initializeInterpolationMatrices();
 
   // we can save some effort for the low-order situations where the interpolation
   // matrix is the identity matrix (i.e. for which equi-spaced libMesh nodes are an
@@ -199,6 +199,25 @@ NekRSProblemBase::~NekRSProblemBase()
   }
 
   freePointer(_external_data);
+  freePointer(_interpolation_outgoing);
+  freePointer(_interpolation_incoming);
+}
+
+void
+NekRSProblemBase::initializeInterpolationMatrices()
+{
+  mesh_t * mesh = nekrs::entireMesh();
+
+  // determine the interpolation matrix for the outgoing transfer
+  int starting_points = mesh->Nq;
+  int ending_points = _nek_mesh->numQuadraturePoints1D();
+  _interpolation_outgoing = (double *) calloc(starting_points * ending_points, sizeof(double));
+  nekrs::interpolationMatrix(_interpolation_outgoing, starting_points, ending_points);
+
+  // determine the interpolation matrix for the incoming transfer
+  std::swap(starting_points, ending_points);
+  _interpolation_incoming = (double *) calloc(starting_points * ending_points, sizeof(double));
+  nekrs::interpolationMatrix(_interpolation_incoming, starting_points, ending_points);
 }
 
 std::string
@@ -473,10 +492,10 @@ NekRSProblemBase::extractOutputs()
         mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
 
       if (!_volume)
-        nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+        nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _interpolation_outgoing, _nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
 
       if (_volume)
-        nekrs::volumeSolution(_nek_mesh->volumeCoupling(), _nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+        nekrs::volumeSolution(_nek_mesh->volumeCoupling(), _interpolation_outgoing, _nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
 
       fillAuxVariable(_external_vars[i], _external_data);
     }

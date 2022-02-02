@@ -19,7 +19,6 @@
 #include "NekInterface.h"
 #include "CardinalUtils.h"
 
-static nekrs::mesh::interpolationMatrix matrix;
 static nekrs::solution::characteristicScales scales;
 // Initial nekRS mesh coordinates saved to apply time-dependent volume deformation to the initial
 // nekRS mesh in order to make the deformation congruent to MOOSE-applied deformation
@@ -246,22 +245,6 @@ void interpolationMatrix(double * I, int starting_points, int ending_points)
   DegreeRaiseMatrix1D(starting_points - 1, ending_points - 1, I);
 }
 
-void initializeInterpolationMatrices(const int n_moost_pts)
-{
-  mesh_t * mesh = entireMesh();
-
-  // determine the interpolation matrix for the outgoing transfer
-  int starting_points = mesh->Nq;
-  int ending_points = n_moost_pts;
-  matrix.outgoing = (double *) calloc(starting_points * ending_points, sizeof(double));
-  interpolationMatrix(matrix.outgoing, starting_points, ending_points);
-
-  // determine the interpolation matrix for the incoming transfer
-  std::swap(starting_points, ending_points);
-  matrix.incoming = (double *) calloc(starting_points * ending_points, sizeof(double));
-  interpolationMatrix(matrix.incoming, starting_points, ending_points);
-}
-
 void interpolateVolumeHex3D(const double * I, double * x, int N, double * Ix, int M)
 {
   double* Ix1 = (dfloat*) calloc(N * N * M, sizeof(double));
@@ -329,7 +312,7 @@ void displacementAndCounts(const int * base_counts, int * counts, int * displace
     displacement[i] = displacement[i - 1] + counts[i - 1];
 }
 
-void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
+void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const double * I, const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
 {
   mesh_t* mesh = entireMesh();
 
@@ -366,7 +349,7 @@ void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const int ord
         Telem[v] = f(offset + v);
 
       // and then interpolate it
-      interpolateVolumeHex3D(matrix.outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
+      interpolateVolumeHex3D(I, Telem, start_1d, &(Ttmp[c]), end_1d);
       c += end_3d;
     }
     else
@@ -397,7 +380,7 @@ void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const int ord
   freePointer(Telem);
 }
 
-void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
+void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int order, const bool needs_interpolation, const field::NekFieldEnum & field, double * T)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t* mesh = entireMesh();
@@ -444,7 +427,7 @@ void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const i
         }
 
         // and then interpolate it
-        interpolateSurfaceFaceHex3D(scratch, matrix.outgoing, Tface, start_1d, &(Ttmp[c]), end_1d);
+        interpolateSurfaceFaceHex3D(scratch, I, Tface, start_1d, &(Ttmp[c]), end_1d);
         c += end_2d;
       }
       else
@@ -480,7 +463,7 @@ void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const i
   freePointer(scratch);
 }
 
-void writeVolumeSolution(const NekVolumeCoupling & nek_volume_coupling, const int elem_id, const int order, const field::NekWriteEnum & field, double * T)
+void writeVolumeSolution(const NekVolumeCoupling & nek_volume_coupling, const double * I, const int elem_id, const int order, const field::NekWriteEnum & field, double * T)
 {
   mesh_t * mesh = entireMesh();
   void (*write_solution) (int, dfloat);
@@ -495,7 +478,7 @@ void writeVolumeSolution(const NekVolumeCoupling & nek_volume_coupling, const in
     int e = nek_volume_coupling.element[elem_id];
     double * tmp = (double*) calloc(mesh->Np, sizeof(double));
 
-    interpolateVolumeHex3D(matrix.incoming, T, start_1d, tmp, end_1d);
+    interpolateVolumeHex3D(I, T, start_1d, tmp, end_1d);
 
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
@@ -505,7 +488,7 @@ void writeVolumeSolution(const NekVolumeCoupling & nek_volume_coupling, const in
   }
 }
 
-void flux(const NekBoundaryCoupling & nek_boundary_coupling, const int elem_id, const int order, double * flux_face)
+void flux(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int elem_id, const int order, double * flux_face)
 {
   nrs_t * nrs = (nrs_t *) nrsPtr();
   mesh_t * mesh = temperatureMesh();
@@ -523,7 +506,7 @@ void flux(const NekBoundaryCoupling & nek_boundary_coupling, const int elem_id, 
     double * scratch = (double*) calloc(start_1d * end_1d, sizeof(double));
     double * flux_tmp = (double*) calloc(end_2d, sizeof(double));
 
-    interpolateSurfaceFaceHex3D(scratch, matrix.incoming, flux_face, start_1d, flux_tmp, end_1d);
+    interpolateSurfaceFaceHex3D(scratch, I, flux_face, start_1d, flux_tmp, end_1d);
 
     int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
     for (int i = 0; i < end_2d; ++i)
@@ -1377,9 +1360,6 @@ bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_
 
 void freeMesh()
 {
-  freePointer(matrix.outgoing);
-  freePointer(matrix.incoming);
-
   freePointer(initial_mesh_x);
   freePointer(initial_mesh_y);
   freePointer(initial_mesh_z);

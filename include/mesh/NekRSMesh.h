@@ -376,7 +376,9 @@ protected:
   /// Function pointer to the type of new element to add
   Elem * (NekRSMesh::*_new_elem)() const;
 
+  /// Data structure holding mapping information for boundary coupling
   NekBoundaryCoupling _boundary_coupling;
 
+  /// Data structure holding mapping information for volume coupling
   NekVolumeCoupling _volume_coupling;
 };

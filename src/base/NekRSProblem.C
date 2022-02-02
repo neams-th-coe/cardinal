@@ -250,7 +250,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 
         // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
         // onto the nekRS GLL points
-        nekrs::flux(_nek_mesh->boundaryCoupling(), e, _nek_mesh->order(), _flux_face);
+        nekrs::flux(_nek_mesh->boundaryCoupling(), _interpolation_incoming, e, _nek_mesh->order(), _flux_face);
       }
     }
     else if (_volume)
@@ -300,7 +300,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 
           // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
           // onto the nekRS GLL points
-          nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), e, _nek_mesh->order(), field::flux, _flux_elem);
+          nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), _interpolation_incoming, e, _nek_mesh->order(), field::flux, _flux_elem);
         }
       }
     }
@@ -392,9 +392,9 @@ NekRSProblem::sendVolumeDeformationToNek()
 
     // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
     // onto the nekRS GLL points
-    nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), e, _nek_mesh->order(), field::x_displacement, _displacement_x);
-    nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), e, _nek_mesh->order(), field::y_displacement, _displacement_y);
-    nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), e, _nek_mesh->order(), field::z_displacement, _displacement_z);
+    nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), _interpolation_incoming, e, _nek_mesh->order(), field::x_displacement, _displacement_x);
+    nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), _interpolation_incoming, e, _nek_mesh->order(), field::y_displacement, _displacement_y);
+    nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), _interpolation_incoming, e, _nek_mesh->order(), field::z_displacement, _displacement_z);
   }
 }
 
@@ -446,7 +446,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 
       // Now that we have the heat source at the nodes of the NekRSMesh, we can interpolate them
       // onto the nekRS GLL points
-      nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), e, _nek_mesh->order(), field::heat_source, _source_elem);
+      nekrs::writeVolumeSolution(_nek_mesh->volumeCoupling(), _interpolation_incoming, e, _nek_mesh->order(), field::heat_source, _source_elem);
     }
   }
 
@@ -495,7 +495,7 @@ NekRSProblem::getBoundaryTemperatureFromNek()
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the boundary temperature information. That is,
   // every process knows the full boundary temperature solution
-  nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _nek_mesh->order(), _needs_interpolation, field::temperature, _T);
+  nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _interpolation_outgoing, _nek_mesh->order(), _needs_interpolation, field::temperature, _T);
 }
 
 void
@@ -507,7 +507,7 @@ NekRSProblem::getVolumeTemperatureFromNek()
   // here such that each nekRS process has all the volume temperature information. In
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature in the volume.
-  nekrs::volumeSolution(_nek_mesh->volumeCoupling(), _nek_mesh->order(), _needs_interpolation, field::temperature, _T);
+  nekrs::volumeSolution(_nek_mesh->volumeCoupling(), _interpolation_outgoing, _nek_mesh->order(), _needs_interpolation, field::temperature, _T);
 }
 
 void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
