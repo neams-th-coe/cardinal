@@ -23,6 +23,7 @@
 #include "CardinalEnums.h"
 #include "NekBoundaryCoupling.h"
 #include "NekVolumeCoupling.h"
+#include "NekInterface.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -230,7 +231,10 @@ protected:
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
 
-  /// Store the rank-local element and rank ownership for boundary coupling
+  /**
+   * Store the rank-local element and rank ownership for boundary coupling;
+   * this loops over the NekRS mesh and fetches relevant information on the boundaries
+   */
   void storeBoundaryCoupling();
 
   /**
@@ -381,4 +385,7 @@ protected:
 
   /// Data structure holding mapping information for volume coupling
   NekVolumeCoupling _volume_coupling;
+
+  /// Pointer to NekRS's internal mesh data structure
+  mesh_t * _nek_internal_mesh = nullptr;
 };

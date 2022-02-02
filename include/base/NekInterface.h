@@ -281,8 +281,6 @@ Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
  */
  void flux(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int elem_id, const int order, double * flux_face);
 
-void writeVolumeSolution(const NekVolumeCoupling & nek_volume_coupling, const double * I, const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
-
 /**
  * Save the initial mesh in nekRS for moving mesh problems
  */

@@ -17,7 +17,6 @@
 /********************************************************************/
 
 #include "NekRSMesh.h"
-#include "NekInterface.h"
 #include "libmesh/face_quad4.h"
 #include "libmesh/face_quad9.h"
 #include "libmesh/cell_hex8.h"
@@ -60,6 +59,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
     mooseError("This mesh can only be used with wrapped Nek cases!\n"
       "You need to change the problem type to a Nek-wrapped problem.\n\n"
       "options: 'NekRSProblem', 'NekRSStandaloneProblem'");
+
+  _nek_internal_mesh = nekrs::entireMesh();
 
   // nekRS will only ever support 3-D meshes. Just to be sure that this remains
   // the case for future Cardinal developers, throw an error if the mesh isn't 3-D
@@ -347,36 +348,24 @@ void
 NekRSMesh::storeBoundaryCoupling()
 {
   int rank = nekrs::commRank();
+  int max_possible_surfaces = _nek_internal_mesh->NboundaryFaces;
 
-  // while nekrs::faceVertices creates a new mesh on which the data will be transferred,
-  // here we can just use the already-loaded mesh because during mesh creation (that
-  // differs from nrs->cds->mesh only in polynomial order), the assignment of elements to
-  // processes is exactly the same.
-  mesh_t * mesh = nekrs::entireMesh();
-
-  // Save information regarding the surface mesh coupling in terms of the process-local
-  // element IDs, the element-local face IDs, and the process ownership. We don't yet
-  // know how many surface faces are owned by each process, and which of those sidesets
-  // we're exchanging fields through, so just allocate the maximum space, which would occur
-  // if every nekRS surface were coupled to MOOSE.
-  int max_possible_surfaces = mesh->NboundaryFaces;
   int* etmp = (int *) malloc(max_possible_surfaces * sizeof(int));
   int* ftmp = (int *) malloc(max_possible_surfaces * sizeof(int));
   int* ptmp = (int *) malloc(max_possible_surfaces * sizeof(int));
   int* btmp = (int *) malloc(max_possible_surfaces * sizeof(int));
-
-  int * element     = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int * face        = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int * process     = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * element = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * face = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * process = (int *) malloc(max_possible_surfaces * sizeof(int));
   int * boundary_id = (int *) malloc(max_possible_surfaces * sizeof(int));
 
   // number of faces on boundary of interest for this process
   int Nfaces = 0;
 
   int d = 0;
-  for (int i = 0; i < mesh->Nelements; ++i) {
-    for (int j = 0; j < mesh->Nfaces; ++j) {
-      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+  for (int i = 0; i < _nek_internal_mesh->Nelements; ++i) {
+    for (int j = 0; j < _nek_internal_mesh->Nfaces; ++j) {
+      int face_id = _nek_internal_mesh->EToB[i * _nek_internal_mesh->Nfaces + j];
 
       if (std::find(_boundary->begin(), _boundary->end(), face_id) != _boundary->end())
       {
@@ -436,9 +425,8 @@ void
 NekRSMesh::storeVolumeCoupling()
 {
   int rank = nekrs::commRank();
-  mesh_t * mesh = nekrs::entireMesh();
 
-  _volume_coupling.n_elems = mesh->Nelements;
+  _volume_coupling.n_elems = _nek_internal_mesh->Nelements;
   MPI_Allreduce(&_volume_coupling.n_elems, &_n_volume_elems, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   _volume_coupling.total_n_elems = _n_volume_elems;
 
@@ -450,20 +438,20 @@ NekRSMesh::storeVolumeCoupling()
   // while the other arrays hold the result of the allgatherv
   int * etmp = (int *) malloc(_n_volume_elems * sizeof(int));
   int * ptmp = (int *) malloc(_n_volume_elems * sizeof(int));
-  int * btmp = (int *) malloc(_n_volume_elems * mesh->Nfaces * sizeof(int));
+  int * btmp = (int *) malloc(_n_volume_elems * _nek_internal_mesh->Nfaces * sizeof(int));
   int * element  = (int *) malloc(_n_volume_elems * sizeof(int));
   int * process  = (int *) malloc(_n_volume_elems * sizeof(int));
-  int * boundary = (int *) malloc(_n_volume_elems * mesh->Nfaces * sizeof(int));
+  int * boundary = (int *) malloc(_n_volume_elems * _nek_internal_mesh->Nfaces * sizeof(int));
 
-  for (int i = 0; i < mesh->Nelements; ++i)
+  for (int i = 0; i < _nek_internal_mesh->Nelements; ++i)
   {
     etmp[i] = i;
     ptmp[i] = rank;
 
-    for (int j = 0; j < mesh->Nfaces; ++j)
+    for (int j = 0; j < _nek_internal_mesh->Nfaces; ++j)
     {
-      int id = i * mesh->Nfaces + j;
-      btmp[id] = mesh->EToB[id];
+      int id = i * _nek_internal_mesh->Nfaces + j;
+      btmp[id] = _nek_internal_mesh->EToB[id];
     }
   }
 
@@ -481,9 +469,9 @@ NekRSMesh::storeVolumeCoupling()
   }
 
   nekrs::allgatherv(_volume_coupling.counts, ftmp, n_faces_on_boundary, 1);
-  nekrs::allgatherv(_volume_coupling.counts, btmp, boundary, mesh->Nfaces);
+  nekrs::allgatherv(_volume_coupling.counts, btmp, boundary, _nek_internal_mesh->Nfaces);
 
-  for (int i = 0; i < _n_volume_elems * mesh->Nfaces; ++i)
+  for (int i = 0; i < _n_volume_elems * _nek_internal_mesh->Nfaces; ++i)
     _volume_coupling.boundary.push_back(boundary[i]);
 
   for (int i = 0; i < _n_volume_elems; ++i)
@@ -623,7 +611,7 @@ NekRSMesh::faceVertices()
     // For a first-order mesh mirror, we can take a shortcut and instead just fetch the
     // corner nodes. In this case, 'mesh' is no longer a custom-build mesh copy, but the
     // actual mesh for computation
-    mesh = nekrs::entireMesh();
+    mesh = _nek_internal_mesh;
     Nfp_mirror = 4;
   }
   else
@@ -772,8 +760,7 @@ NekRSMesh::volumeElemProcessorID(const int elem_id)
 int
 NekRSMesh::boundary_id(const int elem_id, const int face_id)
 {
-  mesh_t * mesh = nekrs::entireMesh();
-  return _volume_coupling.boundary[elem_id * mesh->Nfaces + face_id];
+  return _volume_coupling.boundary[elem_id * _nek_internal_mesh->Nfaces + face_id];
 }
 
 int

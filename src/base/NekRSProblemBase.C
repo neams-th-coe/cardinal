@@ -724,3 +724,31 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
   freePointer(Tface);
   freePointer(scratch);
 }
+
+void
+NekRSProblemBase::writeVolumeSolution(const int elem_id, const field::NekWriteEnum & field, double * T)
+{
+  auto vc = _nek_mesh->volumeCoupling();
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (nekrs::commRank() == vc.processor_id(elem_id))
+  {
+    mesh_t * mesh = nekrs::entireMesh();
+    void (*write_solution) (int, dfloat);
+    write_solution = nekrs::solution::solutionPointer(field);
+
+    int end_1d = mesh->Nq;
+    int start_1d = _nek_mesh->order() + 2;
+
+    int e = vc.element[elem_id];
+    double * tmp = (double*) calloc(mesh->Np, sizeof(double));
+
+    nekrs::interpolateVolumeHex3D(_interpolation_incoming, T, start_1d, tmp, end_1d);
+
+    int id = e * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+      write_solution(id + v, tmp[v]);
+
+    freePointer(tmp);
+  }
+}

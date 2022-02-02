@@ -100,6 +100,14 @@ public:
 
 protected:
   /**
+   * Write into the NekRS solution space
+   * @param[in] elem_id element ID
+   * @param[in] field field to write
+   * @param[in] T solution values to write for the field for the given element
+   */
+  void writeVolumeSolution(const int elem_id, const field::NekWriteEnum & field, double * T);
+
+  /**
    * Interpolate the nekRS volume solution onto the volume data transfer mesh
    * @param[in] f field to interpolate
    * @param[out] T interpolated volume value
