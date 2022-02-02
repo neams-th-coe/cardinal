@@ -92,7 +92,27 @@ public:
    */
   virtual bool synchronizeOut();
 
+  /**
+   * Get the characteristic length
+   * @return characteristic length
+   */
+  double L_ref() const { return _L_ref; }
+
 protected:
+  /**
+   * Interpolate the nekRS volume solution onto the volume data transfer mesh
+   * @param[in] f field to interpolate
+   * @param[out] T interpolated volume value
+   */
+  void volumeSolution(const field::NekFieldEnum & f, double * T);
+
+  /**
+   * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
+   * @param[in] f field to interpolate
+   * @param[out] T interpolated boundary value
+   */
+  void boundarySolution(const field::NekFieldEnum & f, double * T);
+
   /// Initialize interpolation matrices for transfers in/out of nekRS
   void initializeInterpolationMatrices();
 

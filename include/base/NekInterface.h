@@ -72,6 +72,11 @@ void buildOnly(int buildOnly);
 int buildOnly();
 
 /**
+ * Interpolate a volume between NekRS's GLL points and a given-order receiving/sending mesh
+ */
+void interpolateVolumeHex3D(const double * I, double * x, int N, double * Ix, int M);
+
+/**
  * Whether nekRS's input file has CHT
  * @return whether nekRS input files model CHT
  */
@@ -185,12 +190,6 @@ void initializeScratch();
 void freeScratch();
 
 /**
- * Get the characteristic length (only valid for nondimensional formulations)
- * @return characteristic length
- */
-double characteristicLength();
-
-/**
  * Get the viscosity used in the definition of the Reynolds number; note that
  * for dimensional cases, this is only guaranteed to be correct if the viscosity is constant.
  * @return constant dynamic viscosity
@@ -273,24 +272,6 @@ Point gllPoint(int local_elem_id, int local_node_id);
  * @return point
  */
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
-
-/**
- * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
- * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
- * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[in] f field to interpolate
- * @param[out] T interpolated boundary value
- */
-void boundarySolution(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
-
-/**
- * Interpolate the nekRS volume solution onto the volume data transfer mesh
- * @param[in] order enumeration of the mesh order (0 = first, 1 = second, etc.)
- * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[in] f field to interpolate
- * @param[out] T interpolated volume value
- */
-void volumeSolution(const NekVolumeCoupling & nek_volume_coupling, const double * I, const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
 
 /**
  * Interpolate the MOOSE flux onto the nekRS mesh

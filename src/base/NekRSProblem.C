@@ -495,7 +495,7 @@ NekRSProblem::getBoundaryTemperatureFromNek()
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the boundary temperature information. That is,
   // every process knows the full boundary temperature solution
-  nekrs::boundarySolution(_nek_mesh->boundaryCoupling(), _interpolation_outgoing, _nek_mesh->order(), _needs_interpolation, field::temperature, _T);
+  boundarySolution(field::temperature, _T);
 }
 
 void
@@ -507,7 +507,7 @@ NekRSProblem::getVolumeTemperatureFromNek()
   // here such that each nekRS process has all the volume temperature information. In
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature in the volume.
-  nekrs::volumeSolution(_nek_mesh->volumeCoupling(), _interpolation_outgoing, _nek_mesh->order(), _needs_interpolation, field::temperature, _T);
+  volumeSolution(field::temperature, _T);
 }
 
 void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
