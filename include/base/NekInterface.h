@@ -274,11 +274,6 @@ Point gllPoint(int local_elem_id, int local_node_id);
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
- * Save the initial mesh in nekRS for moving mesh problems
- */
-void save_initial_mesh();
-
-/**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
  * @param[in] nek_boundary_coupling data structure holding boundary coupling info
  * @return boundary integrated flux
@@ -527,9 +522,6 @@ bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_
  * @param[out] N total number of surface elements
  */
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N);
-
-/// Free dynamically allocated memory related to the surface mesh interpolation
-void freeMesh();
 
 } // end namespace mesh
 

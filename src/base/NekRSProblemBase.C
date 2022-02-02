@@ -749,7 +749,7 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id, const field::NekWriteEn
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
     {
-      double extra = (add == nullptr) ? 0.0 : (*add)[v];
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
       write_solution(id + v, tmp[v] + extra);
     }
 

@@ -78,13 +78,9 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
   if (_moving_mesh)
   {
     if (_boundary)
-    {
       mooseError("Mesh displacement not supported in boundary coupling!");
-      // pending release of mesh solver in nekRS...
-    }
     else if (_volume)
     {
-      nekrs::save_initial_mesh();
       _displacement_x = (double *) calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_y = (double *) calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_z = (double *) calloc(_n_vertices_per_volume, sizeof(double));
@@ -367,10 +363,10 @@ NekRSProblem::sendVolumeDeformationToNek()
     // Only work on elements we can find on our local chunk of a
     // distributed mesh
     if (!elem_ptr)
-      {
-        libmesh_assert(!mesh.is_serial());
-        continue;
-      }
+    {
+      libmesh_assert(!mesh.is_serial());
+      continue;
+    }
 
     for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
     {
@@ -392,9 +388,9 @@ NekRSProblem::sendVolumeDeformationToNek()
 
     // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
     // onto the nekRS GLL points
-    writeVolumeSolution(e, field::x_displacement, _displacement_x);
-    writeVolumeSolution(e, field::y_displacement, _displacement_y);
-    writeVolumeSolution(e, field::z_displacement, _displacement_z);
+    writeVolumeSolution(e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
+    writeVolumeSolution(e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
+    writeVolumeSolution(e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
   }
 }
 

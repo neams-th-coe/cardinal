@@ -20,11 +20,6 @@
 #include "CardinalUtils.h"
 
 static nekrs::solution::characteristicScales scales;
-// Initial nekRS mesh coordinates saved to apply time-dependent volume deformation to the initial
-// nekRS mesh in order to make the deformation congruent to MOOSE-applied deformation
-static double * initial_mesh_x = nullptr;
-static double * initial_mesh_y = nullptr;
-static double * initial_mesh_z = nullptr;
 
 // Maximum number of fields that we pre-allocate in the scratch space array.
 // The first two are *always* reserved for the heat flux BC and the volumetric
@@ -305,20 +300,6 @@ void displacementAndCounts(const std::vector<int> & base_counts, int * counts, i
   displacement[0] = 0;
   for(int i = 1; i < commSize(); i++)
     displacement[i] = displacement[i - 1] + counts[i - 1];
-}
-
-void save_initial_mesh()
-{
-  mesh_t * mesh = entireMesh();
-  double no_of_nodes = mesh->Nelements * mesh->Np;
-
-  initial_mesh_x = (double* ) calloc(no_of_nodes, sizeof(double));
-  initial_mesh_y = (double* ) calloc(no_of_nodes, sizeof(double));
-  initial_mesh_z = (double* ) calloc(no_of_nodes, sizeof(double));
-
-  std::memcpy(initial_mesh_x,mesh->x,sizeof(double)*no_of_nodes);
-  std::memcpy(initial_mesh_y,mesh->y,sizeof(double)*no_of_nodes);
-  std::memcpy(initial_mesh_z,mesh->z,sizeof(double)*no_of_nodes);
 }
 
 double sourceIntegral(const NekVolumeCoupling & nek_volume_coupling)
@@ -1145,13 +1126,6 @@ bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_
   return valid_boundary_ids;
 }
 
-void freeMesh()
-{
-  freePointer(initial_mesh_x);
-  freePointer(initial_mesh_y);
-  freePointer(initial_mesh_z);
-}
-
 } // end namespace mesh
 
 namespace solution
@@ -1217,19 +1191,19 @@ namespace solution
   void x_displacement(const int id, const dfloat value)
   {
     mesh_t * mesh = entireMesh();
-    mesh->x[id] = initial_mesh_x[id] + value;
+    mesh->x[id] = value;
   }
 
   void y_displacement(const int id, const dfloat value)
   {
     mesh_t * mesh = entireMesh();
-    mesh->y[id] = initial_mesh_y[id] + value;
+    mesh->y[id] = value;
   }
 
   void z_displacement(const int id, const dfloat value)
   {
     mesh_t * mesh = entireMesh();
-    mesh->z[id] = initial_mesh_z[id] + value;
+    mesh->z[id] = value;
   }
 
   double (*solutionPointer(const field::NekFieldEnum & field))(int)

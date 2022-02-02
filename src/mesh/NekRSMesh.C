@@ -83,19 +83,26 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
         "For this problem, nekRS has ", n_boundaries, " boundaries. "
         "Did you enter a valid 'boundary' in '" + filename + "'?");
   }
+
+  // save the initial mesh structure in case we are applying displacements
+  // (which are additive to the initial mesh structure)
+  for (int k = 0; k < _nek_internal_mesh->Nelements; ++k)
+  {
+    int offset = k * _nek_internal_mesh->Np;
+    for (int v = 0; v < _nek_internal_mesh->Np; ++v)
+    {
+      _initial_x.push_back(_nek_internal_mesh->x[offset + v]);
+      _initial_y.push_back(_nek_internal_mesh->y[offset + v]);
+      _initial_z.push_back(_nek_internal_mesh->z[offset + v]);
+    }
+  }
 }
 
 NekRSMesh::~NekRSMesh()
 {
-  // if doing a JIT build, these variables were never set
-  if (!nekrs::buildOnly())
-  {
-    freePointer(_x);
-    freePointer(_y);
-    freePointer(_z);
-
-    nekrs::mesh::freeMesh();
-  }
+  freePointer(_x);
+  freePointer(_y);
+  freePointer(_z);
 }
 
 void

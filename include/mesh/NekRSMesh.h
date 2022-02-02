@@ -58,8 +58,34 @@ public:
   NekRSMesh & operator=(const NekRSMesh & other_mesh) = delete;
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
 
+  /**
+   * Get the initial mesh x coordinates
+   * @return initial mesh x coordinates
+   */
+  const std::vector<double> & nek_initial_x() const { return _initial_x; }
+
+  /**
+   * Get the initial mesh y coordinates
+   * @return initial mesh y coordinates
+   */
+  const std::vector<double> & nek_initial_y() const { return _initial_y; }
+
+  /**
+   * Get the initial mesh z coordinates
+   * @return initial mesh z coordinates
+   */
+  const std::vector<double> & nek_initial_z() const { return _initial_z; }
+
+  /**
+   * Get the boundary coupling data structure
+   * @return boundary coupling data structure
+   */
   const NekBoundaryCoupling & boundaryCoupling() const { return _boundary_coupling; }
 
+  /**
+   * Get the volume coupling data structure
+   * @return volume coupling data structure
+   */
   const NekVolumeCoupling & volumeCoupling() const { return _volume_coupling; }
 
   /// Add all the elements in the mesh to the MOOSE data structures
@@ -335,14 +361,24 @@ protected:
 
   ///@{
   /**
-   * \brief \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the nodes on the boundary
+   * \brief \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the nodes
    *
    * This is ordered according to nekRS's internal geometry layout, and is indexed
    * first by the element and then by the node.
    **/
-  double * _x;
-  double * _y;
-  double * _z;
+  double * _x = nullptr;
+  double * _y = nullptr;
+  double * _z = nullptr;
+  ///@}
+
+  ///@{
+  /**
+   * \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the initial GLL points
+   * in the mesh, for this rank
+   **/
+  std::vector<double> _initial_x;
+  std::vector<double> _initial_y;
+  std::vector<double> _initial_z;
   ///@}
 
   /**
