@@ -210,7 +210,7 @@ void copyScratchToDevice();
 void copyDeformationToDevice();
 
 template <typename T>
-void allgatherv(const int * base_counts, const T * input, T * output, const int multiplier = 1);
+void allgatherv(const std::vector<int> & base_counts, const T * input, T * output, const int multiplier = 1);
 
 /**
  * Determine the receiving counts and displacements for all gather routines
@@ -219,7 +219,7 @@ void allgatherv(const int * base_counts, const T * input, T * output, const int 
  * @param[out] displacement displacement for each process's counts
  * @param[in] multiplier optional multiplier on the face-based data
  */
-void displacementAndCounts(const int * base_counts, int * counts, int * displacement, const int multiplier);
+void displacementAndCounts(const std::vector<int> & base_counts, int * counts, int * displacement, const int multiplier);
 
 /**
  * Form the 2-D interpolation matrix from a starting GLL quadrature rule to an ending
@@ -733,7 +733,7 @@ MPI_Datatype resolveType();
  * @param[in] multiplier constant multiplier to set on each count indicator
  */
 template <typename T>
-void allgatherv(const int * base_counts, const T * input, T * output, const int multiplier)
+void allgatherv(const std::vector<int> & base_counts, const T * input, T * output, const int multiplier)
 {
   int * recvCounts   = (int *) calloc(commSize(), sizeof(int));
   int * displacement = (int *) calloc(commSize(), sizeof(int));

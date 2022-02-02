@@ -297,7 +297,7 @@ void interpolateSurfaceFaceHex3D(double* scratch, const double* I, double* x, in
     }
 }
 
-void displacementAndCounts(const int * base_counts, int * counts, int * displacement, const int multiplier = 1.0)
+void displacementAndCounts(const std::vector<int> & base_counts, int * counts, int * displacement, const int multiplier = 1.0)
 {
   for (int i = 0; i < commSize(); ++i)
     counts[i] = base_counts[i] * multiplier;

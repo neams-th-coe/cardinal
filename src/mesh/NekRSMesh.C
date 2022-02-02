@@ -365,10 +365,10 @@ NekRSMesh::storeBoundaryCoupling()
   int* ptmp = (int *) malloc(max_possible_surfaces * sizeof(int));
   int* btmp = (int *) malloc(max_possible_surfaces * sizeof(int));
 
-  _boundary_coupling.element     = (int *) malloc(max_possible_surfaces * sizeof(int));
-  _boundary_coupling.face        = (int *) malloc(max_possible_surfaces * sizeof(int));
-  _boundary_coupling.process     = (int *) malloc(max_possible_surfaces * sizeof(int));
-  _boundary_coupling.boundary_id = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * element     = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * face        = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * process     = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * boundary_id = (int *) malloc(max_possible_surfaces * sizeof(int));
 
   // number of faces on boundary of interest for this process
   int Nfaces = 0;
@@ -397,8 +397,11 @@ NekRSMesh::storeBoundaryCoupling()
   _boundary_coupling.total_n_faces = _n_surface_elems;
 
   // make available to all processes the number of faces owned by each process
-  _boundary_coupling.counts = (int *) calloc(nekrs::commSize(), sizeof(int));
-  MPI_Allgather(&Nfaces, 1, MPI_INT, _boundary_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
+  int * counts = (int *) calloc(nekrs::commSize(), sizeof(int));
+  MPI_Allgather(&Nfaces, 1, MPI_INT, counts, 1, MPI_INT, platform->comm.mpiComm);
+
+  for (int i = 0; i < nekrs::commSize(); ++i)
+    _boundary_coupling.counts.push_back(counts[i]);
 
   // compute the counts and displacements for face-based data exchange
   int* recvCounts = (int *) calloc(nekrs::commSize(), sizeof(int));
@@ -407,10 +410,18 @@ NekRSMesh::storeBoundaryCoupling()
 
   _boundary_coupling.offset = displacement[rank];
 
-  nekrs::allgatherv(_boundary_coupling.counts, etmp, _boundary_coupling.element);
-  nekrs::allgatherv(_boundary_coupling.counts, ftmp, _boundary_coupling.face);
-  nekrs::allgatherv(_boundary_coupling.counts, ptmp, _boundary_coupling.process);
-  nekrs::allgatherv(_boundary_coupling.counts, btmp, _boundary_coupling.boundary_id);
+  nekrs::allgatherv(_boundary_coupling.counts, etmp, element);
+  nekrs::allgatherv(_boundary_coupling.counts, ftmp, face);
+  nekrs::allgatherv(_boundary_coupling.counts, ptmp, process);
+  nekrs::allgatherv(_boundary_coupling.counts, btmp, boundary_id);
+
+  for (int i = 0; i < max_possible_surfaces; ++i)
+  {
+    _boundary_coupling.element.push_back(element[i]);
+    _boundary_coupling.face.push_back(face[i]);
+    _boundary_coupling.process.push_back(process[i]);
+    _boundary_coupling.boundary_id.push_back(boundary_id[i]);
+  }
 
   freePointer(recvCounts);
   freePointer(displacement);
@@ -418,6 +429,11 @@ NekRSMesh::storeBoundaryCoupling()
   freePointer(ftmp);
   freePointer(ptmp);
   freePointer(btmp);
+  freePointer(element);
+  freePointer(face);
+  freePointer(process);
+  freePointer(boundary_id);
+  freePointer(counts);
 }
 
 void
@@ -430,8 +446,11 @@ NekRSMesh::storeVolumeCoupling()
   MPI_Allreduce(&_volume_coupling.n_elems, &_n_volume_elems, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   _volume_coupling.total_n_elems = _n_volume_elems;
 
-  _volume_coupling.counts = (int *) calloc(nekrs::commSize(), sizeof(int));
-  MPI_Allgather(&_volume_coupling.n_elems, 1, MPI_INT, _volume_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
+  int * counts = (int *) calloc(nekrs::commSize(), sizeof(int));
+  MPI_Allgather(&_volume_coupling.n_elems, 1, MPI_INT, counts, 1, MPI_INT, platform->comm.mpiComm);
+
+  for (int i = 0; i < nekrs::commSize(); ++i)
+    _volume_coupling.counts.push_back(counts[i]);
 
   // Save information regarding the volume mesh coupling in terms of the process-local
   // element IDs and process ownership
@@ -439,9 +458,9 @@ NekRSMesh::storeVolumeCoupling()
   int * ptmp = (int *) malloc(_n_volume_elems * sizeof(int));
   int * btmp = (int *) malloc(_n_volume_elems * mesh->Nfaces * sizeof(int));
 
-  _volume_coupling.element  = (int *) malloc(_n_volume_elems * sizeof(int));
-  _volume_coupling.process  = (int *) malloc(_n_volume_elems * sizeof(int));
-  _volume_coupling.boundary = (int *) malloc(_n_volume_elems * mesh->Nfaces * sizeof(int));
+  int * element  = (int *) malloc(_n_volume_elems * sizeof(int));
+  int * process  = (int *) malloc(_n_volume_elems * sizeof(int));
+  int * boundary = (int *) malloc(_n_volume_elems * mesh->Nfaces * sizeof(int));
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -455,12 +474,17 @@ NekRSMesh::storeVolumeCoupling()
     }
   }
 
-  nekrs::allgatherv(_volume_coupling.counts, etmp, _volume_coupling.element, 1);
-  nekrs::allgatherv(_volume_coupling.counts, ptmp, _volume_coupling.process, 1);
+  nekrs::allgatherv(_volume_coupling.counts, etmp, element, 1);
+  nekrs::allgatherv(_volume_coupling.counts, ptmp, process, 1);
+
+  for (int i = 0; i < _n_volume_elems; ++i)
+  {
+    _volume_coupling.element.push_back(element[i]);
+    _volume_coupling.process.push_back(process[i]);
+  }
 
   int * ftmp = (int *) calloc(_n_volume_elems, sizeof(int));
-
-  _volume_coupling.n_faces_on_boundary = (int *) calloc(_n_volume_elems, sizeof(int));
+  int * n_faces_on_boundary = (int *) calloc(_n_volume_elems, sizeof(int));
 
   int b_start = _boundary_coupling.offset;
   for (int i = 0; i < _boundary_coupling.n_faces; ++i)
@@ -469,13 +493,24 @@ NekRSMesh::storeVolumeCoupling()
     ftmp[e] += 1;
   }
 
-  nekrs::allgatherv(_volume_coupling.counts, ftmp, _volume_coupling.n_faces_on_boundary, 1);
-  nekrs::allgatherv(_volume_coupling.counts, btmp, _volume_coupling.boundary, mesh->Nfaces);
+  nekrs::allgatherv(_volume_coupling.counts, ftmp, n_faces_on_boundary, 1);
+  nekrs::allgatherv(_volume_coupling.counts, btmp, boundary, mesh->Nfaces);
+
+  for (int i = 0; i < _n_volume_elems * mesh->Nfaces; ++i)
+    _volume_coupling.boundary.push_back(boundary[i]);
+
+  for (int i = 0; i < _n_volume_elems; ++i)
+    _volume_coupling.n_faces_on_boundary.push_back(n_faces_on_boundary[i]);
 
   freePointer(etmp);
   freePointer(ptmp);
   freePointer(ftmp);
   freePointer(btmp);
+  freePointer(element);
+  freePointer(process);
+  freePointer(boundary);
+  freePointer(n_faces_on_boundary);
+  freePointer(counts);
 }
 
 void
@@ -665,12 +700,17 @@ NekRSMesh::volumeVertices()
   mesh_t * mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy, not used */,
     nrs->cht, *(nrs->kernelInfo));
 
-  _volume_coupling.counts = (int *) calloc(nekrs::commSize(), sizeof(int));
-  MPI_Allgather(&_volume_coupling.n_elems, 1, MPI_INT, _volume_coupling.counts, 1, MPI_INT, platform->comm.mpiComm);
+  int * counts = (int *) calloc(nekrs::commSize(), sizeof(int));
+  MPI_Allgather(&_volume_coupling.n_elems, 1, MPI_INT, counts, 1, MPI_INT, platform->comm.mpiComm);
+
+  for (int i = 0; i < nekrs::commSize(); ++i)
+    _volume_coupling.counts.push_back(counts[i]);
 
   nekrs::allgatherv(_volume_coupling.counts, mesh->x, _x, mesh->Np);
   nekrs::allgatherv(_volume_coupling.counts, mesh->y, _y, mesh->Np);
   nekrs::allgatherv(_volume_coupling.counts, mesh->z, _z, mesh->Np);
+
+  freePointer(counts);
 }
 
 void

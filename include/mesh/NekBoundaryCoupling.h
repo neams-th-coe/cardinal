@@ -6,15 +6,6 @@
 class NekBoundaryCoupling
 {
 public:
-  ~NekBoundaryCoupling()
-  {
-    freePointer(element);
-    freePointer(face);
-    freePointer(boundary_id);
-    freePointer(process);
-    freePointer(counts);
-  }
-
   /**
    * nekRS process owning the global element in the data transfer mesh
    * @param[in] elem_id element ID
@@ -23,19 +14,19 @@ public:
   int processor_id(const int elem_id) const { return process[elem_id]; }
 
   // process-local element IDS on the boundary of interest (for all ranks)
-  int * element = nullptr;
+  std::vector<int> element;
 
   // element-local face IDs on the boundary of interest (for all ranks)
-  int * face = nullptr;
+  std::vector<int> face;
 
   // problem-global boundary ID for each element (for all ranks)
-  int * boundary_id = nullptr;
+  std::vector<int> boundary_id;
 
   // process owning each face (for all faces)
-  int * process = nullptr;
+  std::vector<int> process;
 
   // number of faces owned by each process
-  int * counts = nullptr;
+  std::vector<int> counts;
 
   // number of coupling elements owned by this process
   int n_faces = 0;
