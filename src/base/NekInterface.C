@@ -307,38 +307,6 @@ void displacementAndCounts(const std::vector<int> & base_counts, int * counts, i
     displacement[i] = displacement[i - 1] + counts[i - 1];
 }
 
-void flux(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int elem_id, const int order, double * flux_face)
-{
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  int end_1d = mesh->Nq;
-  int start_1d = order + 2;
-  int end_2d = end_1d * end_1d;
-
-  // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (commRank() == nek_boundary_coupling.processor_id(elem_id))
-  {
-    int e = nek_boundary_coupling.element[elem_id];
-    int f = nek_boundary_coupling.face[elem_id];
-
-    double * scratch = (double*) calloc(start_1d * end_1d, sizeof(double));
-    double * flux_tmp = (double*) calloc(end_2d, sizeof(double));
-
-    interpolateSurfaceFaceHex3D(scratch, I, flux_face, start_1d, flux_tmp, end_1d);
-
-    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
-    for (int i = 0; i < end_2d; ++i)
-    {
-      int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id] = flux_tmp[i];
-    }
-
-    freePointer(scratch);
-    freePointer(flux_tmp);
-  }
-}
-
 void save_initial_mesh()
 {
   mesh_t * mesh = entireMesh();

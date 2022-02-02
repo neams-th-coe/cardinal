@@ -274,14 +274,6 @@ Point gllPoint(int local_elem_id, int local_node_id);
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
- * Interpolate the MOOSE flux onto the nekRS mesh
- * @param[in] elem_id global element ID
- * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
- * @param[in] flux_face flux at the libMesh nodes
- */
- void flux(const NekBoundaryCoupling & nek_boundary_coupling, const double * I, const int elem_id, const int order, double * flux_face);
-
-/**
  * Save the initial mesh in nekRS for moving mesh problems
  */
 void save_initial_mesh();
