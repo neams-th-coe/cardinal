@@ -726,7 +726,8 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
 }
 
 void
-NekRSProblemBase::writeVolumeSolution(const int elem_id, const field::NekWriteEnum & field, double * T)
+NekRSProblemBase::writeVolumeSolution(const int elem_id, const field::NekWriteEnum & field, double * T,
+  const std::vector<double> * add)
 {
   auto vc = _nek_mesh->volumeCoupling();
 
@@ -747,7 +748,10 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id, const field::NekWriteEn
 
     int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
-      write_solution(id + v, tmp[v]);
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[v];
+      write_solution(id + v, tmp[v] + extra);
+    }
 
     freePointer(tmp);
   }

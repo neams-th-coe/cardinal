@@ -388,4 +388,6 @@ protected:
 
   /// Pointer to NekRS's internal mesh data structure
   mesh_t * _nek_internal_mesh = nullptr;
+
+  /// Initial x,y,z coordinates of the internal NekRS mesh
 };
