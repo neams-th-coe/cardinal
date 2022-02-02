@@ -280,18 +280,21 @@ void save_initial_mesh();
 
 /**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
+ * @param[in] nek_boundary_coupling data structure holding boundary coupling info
  * @return boundary integrated flux
  */
 double fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling);
 
 /**
  * Integrate the interpolated heat source over the volume of the data transfer mesh
+ * @param[in] nek_volume_coupling data structure holding volume coupling info
  * @return volume integrated heat source
  */
 double sourceIntegral(const NekVolumeCoupling & nek_volume_coupling);
 
 /**
  * Normalize the flux sent to nekRS to conserve the total flux
+ * @param[in] nek_boundary_coupling data structure holding boundary coupling info
  * @param[in] moose_integral total integrated flux from MOOSE to conserve
  * @param[in] nek_integral total integrated flux in nekRS to adjust
  * @param[out] normalized_nek_integral final normalized nek flux integral
@@ -301,6 +304,7 @@ bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling, const doub
 
 /**
  * Normalize the heat source sent to nekRS to conserve the total heat source
+ * @param[in] nek_volume_coupling data structure holding volume coupling info
  * @param[in] moose_integral total integrated heat source from MOOSE to conserve
  * @param[in] nek_integral total integrated heat source in nekRS to adjust
  * @param[out] normalized_nek_integral final normalized nek source integral
