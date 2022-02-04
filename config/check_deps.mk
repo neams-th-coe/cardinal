@@ -19,7 +19,7 @@ endif
 # all of its dependencies are there
 ifneq ($(SOCKEYE_CONTENT),)
   ifeq ($(THM_CONTENT),)
-    $(error $n"THM dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that THM_DIR points to a location with the THM source.$n$nTo fetch the THM submodule, use 'git submodule update --init contrib/thm'")
+    $(error $n"Thermal Hydraulics Module dependency for Sockeye does not seem to be available.$n$nMake sure that 'THERMAL_HYDRAULICS := yes' is set in Cardinal's Makefile.")
   endif
   ifeq ($(SODIUM_CONTENT),)
     $(error $n"Sodium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that SODIUM_DIR points to a location with the sodium source.$n$nTo fetch the sodium submodule, use 'git submodule update --init contrib/sodium'")
@@ -33,15 +33,15 @@ ifneq ($(SOCKEYE_CONTENT),)
 endif
 
 # Cannot currently build with both SAM and Sockeye due to a conflict in THM.
-# Someone might just build with THM (and not Sockeye), so we check both to be explicit.,
+# Someone might just build with THM (and not Sockeye), so we check both to be explicit.
 ifneq ($(SOCKEYE_CONTENT),)
   ifneq ($(SAM_CONTENT),)
-    $(error Cannot build Cardinal with both SAM and Sockeye due to a conflict in THM)
+    $(error Cannot build Cardinal with both SAM and Sockeye due to a conflict)
   endif
 endif
 
 ifneq ($(THM_CONTENT),)
   ifneq ($(SAM_CONTENT),)
-    $(error Cannot build Cardinal with both SAM and THM due to a conflict in THM)
+    $(error Cannot build Cardinal with both SAM and the Thermal Hydraulic Module due to a conflict. To build with SAM, you must set 'THERMAL_HYDRAULICS := no' in Cardinal's Makefile)
   endif
 endif
