@@ -16,7 +16,7 @@ num_layers_for_plots = 50
   fp = helium
 []
 
-[FluidProperties]
+[Modules/FluidProperties]
   [helium]
     type = IdealGasFluidProperties
     molar_mass = 4e-3

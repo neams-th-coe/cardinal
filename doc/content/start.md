@@ -58,7 +58,6 @@ Cardinal supports *optional* coupling to the following codes:
 - *SAM*, a tool for systems analysis of advanced non-light water reactors
   safety analysis
 - *Sockeye*, a tool for modeling of heat pipe systems
-- *THM*, a tool for 1-D thermal-hydraulics analysis
 
 !alert! note title=Building with an optional dependency?
 
@@ -66,8 +65,6 @@ Cardinal supports *optional* coupling to the following codes:
   SAM submodule.
 - *Sockeye*: Follow [these instructions](sockeye_instructions.md) to obtain the required dependencies for adding the
   Sockeye submodule.
-- *THM*: Follow [these instructions](thm_instructions.md) to obtain the required dependencies for adding the
-  THM submodule.
 !alert-end!
 
 !alert! note title=Running with OpenMC?

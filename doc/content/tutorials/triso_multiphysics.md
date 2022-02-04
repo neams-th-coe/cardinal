@@ -21,15 +21,11 @@ This tutorial also requires you to download mesh files and a NekRS
 restart file from Box. Please download the files from the `gas_compact_multiphysics`
 folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89) and place
 these within the same directory structure in `tutorials/gas_compact_multiphysics`.
-
-To run the THM input files, you must also have access to THM and have built Cardinal
-with THM. Please follow the instructions [here](https://cardinal.cels.anl.gov/thm_instructions.html)
-for more information.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module, with fluid
-feedback provided by *either* NekRS or THM, a 1-D systems level thermal-fluids
-code based on MOOSE. With NekRS, we will solve the wall-resolved $k$-$\tau$
+feedback provided by *either* NekRS or THM, a set of 1-D systems level thermal-fluids
+kernels in the MOOSE framework. With NekRS, we will solve the wall-resolved $k$-$\tau$
 [!ac](RANS) equations, while THM will solve the 1-D area-averaged Navier-Stokes
 equations [!cite](relap7). Two different multiapp hierarchies will be used in order
 to demonstrate both the flexibility of the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
