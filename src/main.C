@@ -56,7 +56,7 @@ main(int argc, char *argv[])
       "Please simply remove the '--app nek'/'--app nek5000' from your run command.");
 
   if (which_app == "sam")
-    app_class_name = "SamApp";
+    mooseError("To run SAM, you now need to pass '--app SamApp' instead of '--app sam'!");
   else
     app_class_name = "CardinalApp";
 
