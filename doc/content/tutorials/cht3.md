@@ -31,7 +31,7 @@ fluid domain, depending on the desired resolution:
 
 - NekRS, which will solve the wall-resolved $k$-$\tau$ model
 - THM, which will solve the 1-D area-averaged Navier-Stokes equations; THM is
-  a 1-D systems level code based on MOOSE that essentially contains
+  a set of 1-D systems level thermal-fluid kernels in the MOOSE framework that essentially contain
   all the single-phase physics in RELAP-7 [!cite](relap7)
 
 This tutorial will demonstrate how Cardinal can be used to generate

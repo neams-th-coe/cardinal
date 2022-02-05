@@ -42,7 +42,7 @@ documentation.
 ## Tutorials for OpenMC Wrapping
 
 6. [Solid coupling to MOOSE heat conduction](tutorials/openmc_solid.md)
-7. [Solid and fluid coupling of to MOOSE and THM thermal-fluids](tutorials/openmc_fluid.md)
+7. [Solid and fluid coupling to MOOSE heat conduction and thermal-fluids](tutorials/openmc_fluid.md)
 
 ## Tutorials for Combined NekRS and OpenMC Multiphysics
   id=multi

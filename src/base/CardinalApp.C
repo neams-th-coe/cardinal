@@ -33,7 +33,7 @@
 #endif
 
 #ifdef ENABLE_THM_COUPLING
-#include "THMApp.h"
+#include "ThermalHydraulicsApp.h"
 #endif
 
 #ifdef ENABLE_SODIUM
@@ -87,8 +87,8 @@ CardinalApp::CardinalApp(InputParameters parameters) : MooseApp(parameters)
 #endif
 
 #ifdef ENABLE_THM_COUPLING
-  THMApp::registerApps();
-  THMApp::registerAll(_factory, _action_factory, _syntax);
+  ThermalHydraulicsApp::registerApps();
+  ThermalHydraulicsApp::registerAll(_factory, _action_factory, _syntax);
 #endif
 
 #ifdef ENABLE_SODIUM
@@ -131,10 +131,6 @@ CardinalApp::registerApps()
 
 #ifdef ENABLE_SOCKEYE_COUPLING
   SockeyeApp::registerApps();
-#endif
-
-#ifdef ENABLE_THM_COUPLING
-  THMApp::registerApps();
 #endif
 
 #ifdef ENABLE_SODIUM
