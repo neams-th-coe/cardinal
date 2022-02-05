@@ -21,7 +21,7 @@
 [MultiApps]
   [thm]
     type = TransientMultiApp
-    app_type = THMApp
+    app_type = ThermalHydraulicsApp
     input_files = 'sod_shock_tube.i'
     execute_on = timestep_end
 

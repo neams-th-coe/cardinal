@@ -58,7 +58,6 @@ Cardinal supports *optional* coupling to the following codes:
 - *SAM*, a tool for systems analysis of advanced non-light water reactors
   safety analysis
 - *Sockeye*, a tool for modeling of heat pipe systems
-- *THM*, a tool for 1-D thermal-hydraulics analysis
 
 !alert! note title=Building with an optional dependency?
 
@@ -66,8 +65,6 @@ Cardinal supports *optional* coupling to the following codes:
   SAM submodule.
 - *Sockeye*: Follow [these instructions](sockeye_instructions.md) to obtain the required dependencies for adding the
   Sockeye submodule.
-- *THM*: Follow [these instructions](thm_instructions.md) to obtain the required dependencies for adding the
-  THM submodule.
 !alert-end!
 
 !alert! note title=Running with OpenMC?
@@ -222,7 +219,7 @@ Note that while MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP
 NekRS does not use shared memory parallelism.
 
 For the special case of running SAM as the master application, you also need to pass
-`--app sam` on the command line to instruct Cardinal to build a `SamApp`.
+`--app SamApp` on the command line to instruct Cardinal to build a `SamApp`.
 
 ## Testing
 

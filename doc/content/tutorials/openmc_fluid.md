@@ -19,16 +19,12 @@ mesh file and an OpenMC XML file from Box. Please download the files from the
 `gas_assembly` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within the same directory structure
 in `tutorials/gas_assembly`.
-
-To run these input files, you also must have access to [!ac](THM)
-and have built Cardinal with [!ac](THM). Please follow the instructions
-[here](thm_instructions.md) for more information.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module
-and [!ac](THM), a 1-D systems level thermal-fluids code based on
-MOOSE. [!ac](THM) essentially contains all the single-phase physics in
-RELAP-7 [!cite](relap7). OpenMC will receive temperature feedback from both
+and the MOOSE [!ac](THM), a set of 1-D systems-level thermal-hydraulics kernels in MOOSE
+[!cite](relap7).
+OpenMC will receive temperature feedback from both
 the MOOSE heat conduction module (for the solid regions) and from [!ac](THM)
 (for the fluid regions). Density feedback will be provided by [!ac](THM)
 for the fluid regions.

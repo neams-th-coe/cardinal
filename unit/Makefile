@@ -16,7 +16,6 @@
 # * PETSC_ARCH: PETSc architecture (default: arch-moose)
 # * SAM_DIR: Top-level SAM src dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR: Top-level Sockeye src dir (default: $(CONTRIB_DIR)/sockeye)
-# * THM_DIR: Top-level THM src dir (default: $(CONTRIB_DIR)/thm)
 # * SODIUM_DIR: Top-level sodium src dir (default: $(CONTRIB_DIR)/sodium)
 # * POTASSIUM_DIR: Top-level potassium src dir (default: $(CONTRIB_DIR)/potassium)
 # * IAPWS95_DIR: Top-level iapws95 src dir (default: $(CONTRIB_DIR)/iapws95)
@@ -37,10 +36,19 @@ HYPRE_DIR           ?= $(PETSC_DIR)/$(PETSC_ARCH)
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 SAM_DIR             ?= $(CONTRIB_DIR)/SAM
 SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
-THM_DIR             ?= $(CONTRIB_DIR)/thm
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+
+ALL_MODULES         := no
+
+FLUID_PROPERTIES    := yes
+HEAT_CONDUCTION     := yes
+NAVIER_STOKES       := yes
+REACTOR             := yes
+STOCHASTIC_TOOLS    := yes
+TENSOR_MECHANICS    := yes
+THERMAL_HYDRAULICS  := yes
 
 # First, we can find which submodules have been pulled in
 MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
@@ -48,7 +56,11 @@ NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
 OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
 SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
-THM_CONTENT       := $(shell ls $(THM_DIR) 2> /dev/null)
+
+ifeq ($(THERMAL_HYDRAULICS), yes)
+  THM_CONTENT     := true
+endif
+
 SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
 POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
 IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
@@ -143,14 +155,6 @@ include $(FRAMEWORK_DIR)/moose.mk
 # MOOSE modules
 # ======================================================================================
 
-ALL_MODULES         := no
-
-FLUID_PROPERTIES    := yes
-HEAT_CONDUCTION     := yes
-NAVIER_STOKES       := yes
-REACTOR             := yes
-TENSOR_MECHANICS    := yes
-
 include $(MOOSE_DIR)/modules/modules.mk
 
 # SAM submodule
@@ -173,9 +177,6 @@ endif
 # THM submodule
 ifneq ($(THM_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_THM_COUPLING
-  APPLICATION_DIR     := $(THM_DIR)
-  APPLICATION_NAME    := thm
-  include             $(FRAMEWORK_DIR)/app.mk
 endif
 
 # sodium submodule
