@@ -20,6 +20,8 @@
 
 #include "CardinalEnums.h"
 #include "MooseTypes.h"
+#include "NekBoundaryCoupling.h"
+#include "NekVolumeCoupling.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
 #include "io.hpp"
@@ -68,6 +70,11 @@ void buildOnly(int buildOnly);
  * @return whether NekRS was run in build-only mode
  */
 int buildOnly();
+
+/**
+ * Interpolate a volume between NekRS's GLL points and a given-order receiving/sending mesh
+ */
+void interpolateVolumeHex3D(const double * I, double * x, int N, double * Ix, int M);
 
 /**
  * Whether nekRS's input file has CHT
@@ -183,12 +190,6 @@ void initializeScratch();
 void freeScratch();
 
 /**
- * Get the characteristic length (only valid for nondimensional formulations)
- * @return characteristic length
- */
-double characteristicLength();
-
-/**
  * Get the viscosity used in the definition of the Reynolds number; note that
  * for dimensional cases, this is only guaranteed to be correct if the viscosity is constant.
  * @return constant dynamic viscosity
@@ -208,6 +209,9 @@ void copyScratchToDevice();
 /// Copy volume deformation of mesh from host to device for moving-mesh problems
 void copyDeformationToDevice();
 
+template <typename T>
+void allgatherv(const std::vector<int> & base_counts, const T * input, T * output, const int multiplier = 1);
+
 /**
  * Determine the receiving counts and displacements for all gather routines
  * @param[in] base_counts unit-wise receiving counts for each process
@@ -215,7 +219,7 @@ void copyDeformationToDevice();
  * @param[out] displacement displacement for each process's counts
  * @param[in] multiplier optional multiplier on the face-based data
  */
-void displacementAndCounts(const int * base_counts, int * counts, int * displacement, const int multiplier);
+void displacementAndCounts(const std::vector<int> & base_counts, int * counts, int * displacement, const int multiplier);
 
 /**
  * Form the 2-D interpolation matrix from a starting GLL quadrature rule to an ending
@@ -236,12 +240,6 @@ void interpolationMatrix(double * I, int starting_points, int ending_points);
  * @param[in] M resulting number of interpolated points in 1-D
  */
 void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, int N, double* Ix, int M);
-
-/**
- * Initialize interpolation matrices for transfers in/out of nekRS
- * @param[in] n_moose_pts number of MOOSE quadrature points in 1-D
- */
-void initializeInterpolationMatrices(const int n_moost_pts);
 
 /**
  * Compute the face centroid given a local element ID and face ID (NOTE: returns in dimensional form)
@@ -276,67 +274,38 @@ Point gllPoint(int local_elem_id, int local_node_id);
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
- * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
- * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
- * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[in] f field to interpolate
- * @param[out] T interpolated boundary value
- */
-void boundarySolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
-
-/**
- * Interpolate the nekRS volume solution onto the volume data transfer mesh
- * @param[in] order enumeration of the mesh order (0 = first, 1 = second, etc.)
- * @param[in] needs_interpolation whether an interpolation matrix needs to be used to figure out the interpolation
- * @param[in] f field to interpolate
- * @param[out] T interpolated volume value
- */
-void volumeSolution(const int order, const bool needs_interpolation, const field::NekFieldEnum & f, double* T);
-
-/**
- * Interpolate the MOOSE flux onto the nekRS mesh
- * @param[in] elem_id global element ID
- * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
- * @param[in] flux_face flux at the libMesh nodes
- */
- void flux(const int elem_id, const int order, double * flux_face);
-
-void writeVolumeSolution(const int elem_id, const int order, const field::NekWriteEnum & field, double * T);
-
-/**
- * Save the initial mesh in nekRS for moving mesh problems
- */
-void save_initial_mesh();
-
-/**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
+ * @param[in] nek_boundary_coupling data structure holding boundary coupling info
  * @return boundary integrated flux
  */
-double fluxIntegral();
+double fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling);
 
 /**
  * Integrate the interpolated heat source over the volume of the data transfer mesh
+ * @param[in] nek_volume_coupling data structure holding volume coupling info
  * @return volume integrated heat source
  */
-double sourceIntegral();
+double sourceIntegral(const NekVolumeCoupling & nek_volume_coupling);
 
 /**
  * Normalize the flux sent to nekRS to conserve the total flux
+ * @param[in] nek_boundary_coupling data structure holding boundary coupling info
  * @param[in] moose_integral total integrated flux from MOOSE to conserve
  * @param[in] nek_integral total integrated flux in nekRS to adjust
  * @param[out] normalized_nek_integral final normalized nek flux integral
  * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
-bool normalizeFlux(const double moose_integral, double nek_integral, double & normalized_nek_integral);
+bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling, const double moose_integral, double nek_integral, double & normalized_nek_integral);
 
 /**
  * Normalize the heat source sent to nekRS to conserve the total heat source
+ * @param[in] nek_volume_coupling data structure holding volume coupling info
  * @param[in] moose_integral total integrated heat source from MOOSE to conserve
  * @param[in] nek_integral total integrated heat source in nekRS to adjust
  * @param[out] normalized_nek_integral final normalized nek source integral
  * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
-bool normalizeHeatSource(const double moose_integral, const double nek_integral, double & normalized_nek_integral);
+bool normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling, const double moose_integral, const double nek_integral, double & normalized_nek_integral);
 
 /**
  * Compute the area of a set of boundary IDs
@@ -472,101 +441,6 @@ double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldE
 
 namespace mesh
 {
-struct interpolationMatrix
-{
-  /**
-   * \brief Interpolation matrix to interpolate _from_ a MOOSE mesh to the nekRS mesh
-   *
-   * This interpolation matrix is used to interpolate boundary heat flux (for boundary
-   * coupling) or volume power density (for volume coupling) from a MOOSE mesh to nekRS's mesh.
-   */
-  double * incoming;
-
-  /**
-   * \brief Interpolation matrix to interpolate _from_ a nekRS mesh to a MOOSE mesh
-   *
-   * This interpolation matrix is used to interpolate boundary temperature (for boundary
-   * coupling) or volume temperatures and densities (for volume coupling) from nekRS's mesh
-   * to a MOOSE mesh.
-   */
-  double * outgoing;
-};
-
-/// Store the geometry and parallel information related to the volume mesh coupling
-struct volumeCoupling
-{
-  // process-local element IDS (for all elements)
-  int * element;
-
-  // process owning each element (for all elements)
-  int * process;
-
-  // sideset IDs corresponding to the faces of each element (for all elements)
-  int * boundary;
-
-  // number of elements owned by each process
-  int * counts;
-
-  // number of faces on a boundary of interest for each element
-  int * n_faces_on_boundary;
-
-  // number of coupling elements owned by this process
-  int n_elems;
-
-  // total number of coupling elements
-  int total_n_elems;
-
-  /**
-   * nekRS process owning the global element in the data transfer mesh
-   * @param[in] elem_id element ID
-   * @return nekRS process ID
-   */
-  int processor_id(const int elem_id) { return process[elem_id]; }
-};
-
-/// Store the geometry and parallel information related to the surface mesh coupling
-struct boundaryCoupling
-{
-  // process-local element IDS on the boundary of interest (for all ranks)
-  int * element;
-
-  // element-local face IDs on the boundary of interest (for all ranks)
-  int * face;
-
-  // problem-global boundary ID for each element (for all ranks)
-  int * boundary_id;
-
-  // process owning each face (for all faces)
-  int * process;
-
-  // number of faces owned by each process
-  int * counts;
-
-  // number of coupling elements owned by this process
-  int n_faces;
-
-  // total number of coupling elements
-  int total_n_faces;
-
-  // offset into the element, face, and process arrays where this rank's data begins
-  int offset;
-
-  /**
-   * nekRS process owning the global element in the data transfer mesh
-   * @param[in] elem_id element ID
-   * @return nekRS process ID
-   */
-  int processor_id(const int elem_id) { return process[elem_id]; }
-};
-
-/**
- * Sideset ID corresponding to a given volume element with give local face ID
- * @param[in] elem_id element local rank ID
- * @param[in] face_id element-local face ID
- * @return sideset ID (-1 means not one a boundary)
- */
-int boundary_id(const int elem_id, const int face_id);
-
 /**
  * Number of faces per element; because NekRS only supports HEX20, this should be 6
  * @return number of faces per mesh element
@@ -643,57 +517,11 @@ int NboundaryID();
 bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, int & n_boundaries);
 
 /**
- * Processor id (rank) owning the given volume element
- * @return processor id
- */
-int VolumeElemProcessorID(const int elem_id);
-
-/**
- * Processor id (rank) owning the given boundary element
- * @return processor id
- */
-int BoundaryElemProcessorID(const int elem_id);
-
-/**
  * Store the rank-local element, element-local face, and rank ownership for boundary coupling
  * @param[in] boundary_id boundaries through which nekRS will be coupled
  * @param[out] N total number of surface elements
  */
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N);
-
-/**
- * \brief Get the vertices defining the surface mesh interpolation from the stored coupling information
- * @param[in] order enumeration of the surface mesh order (0 = first, 1 = second, etc.)
- * @param[out] x Array of \f$x\f$-coordinates for face vertices
- * @param[out] y Array of \f$y\f$-coordinates for face vertices
- * @param[out] z Array of \f$z\f$-coordinates for face vertices
- */
-void faceVertices(const int order, double* x, double* y, double* z);
-
-/**
- * Store the rank-local element and rank ownership for volume coupling
- * @param[out] N total number of volume elements
- */
-void storeVolumeCoupling(int& N);
-
-/**
- * \brief Get the vertices defining the volume mesh interpolation and store mesh coupling information
- * @param[in] order enumeration of the volume mesh order (0 = first, 1 = second, etc.)
- * @param[out] x Array of \f$x\f$-coordinates for element vertices
- * @param[out] y Array of \f$y\f$-coordinates for element vertices
- * @param[out] z Array of \f$z\f$-coordinates for element vertices
- */
-void volumeVertices(const int order, double* x, double* y, double* z);
-
-/**
- * Get the number of faces of this global element that are on a coupling boundary
- * @param[in] elem_id global element ID
- * @return number of faces on a couling boundary
- */
-int facesOnBoundary(const int elem_id);
-
-/// Free dynamically allocated memory related to the surface mesh interpolation
-void freeMesh();
 
 } // end namespace mesh
 
@@ -878,5 +706,30 @@ double referenceLength();
 double referenceArea();
 
 } // end namespace solution
+
+// useful concept from Stack Overflow for templating MPI calls
+template <typename T>
+MPI_Datatype resolveType();
+
+/**
+ * Helper function for MPI_Allgatherv of results in NekRS
+ * @param[in] base_counts once multiplied by 'multiplier', the number of counts on each rank
+ * @param[in] input rank-local data
+ * @param[out] output collected result
+ * @param[in] multiplier constant multiplier to set on each count indicator
+ */
+template <typename T>
+void allgatherv(const std::vector<int> & base_counts, const T * input, T * output, const int multiplier)
+{
+  int * recvCounts   = (int *) calloc(commSize(), sizeof(int));
+  int * displacement = (int *) calloc(commSize(), sizeof(int));
+  displacementAndCounts(base_counts, recvCounts, displacement, multiplier);
+
+  MPI_Allgatherv(input, recvCounts[commRank()], resolveType<T>(), output,
+    (const int*)recvCounts, (const int*)displacement, resolveType<T>(), platform->comm.mpiComm);
+
+  free(recvCounts);
+  free(displacement);
+}
 
 } // end namespace nekrs

@@ -92,7 +92,43 @@ public:
    */
   virtual bool synchronizeOut();
 
+  /**
+   * Get the characteristic length
+   * @return characteristic length
+   */
+  double L_ref() const { return _L_ref; }
+
 protected:
+  /**
+   * Write into the NekRS solution space; for setting a mesh position in terms of a
+   * displacement, we need to add the displacement to the initial mesh coordinates. For
+   * this, the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order,
+   * i.e. the re2 order) to add.
+   * @param[in] elem_id element ID
+   * @param[in] field field to write
+   * @param[in] T solution values to write for the field for the given element
+   * @param[in] add optional vector of values to add to each value set on the NekRS end
+   */
+  void writeVolumeSolution(const int elem_id, const field::NekWriteEnum & field, double * T,
+    const std::vector<double> * add = nullptr);
+
+  /**
+   * Interpolate the nekRS volume solution onto the volume data transfer mesh
+   * @param[in] f field to interpolate
+   * @param[out] T interpolated volume value
+   */
+  void volumeSolution(const field::NekFieldEnum & f, double * T);
+
+  /**
+   * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
+   * @param[in] f field to interpolate
+   * @param[out] T interpolated boundary value
+   */
+  void boundarySolution(const field::NekFieldEnum & f, double * T);
+
+  /// Initialize interpolation matrices for transfers in/out of nekRS
+  void initializeInterpolationMatrices();
+
   /**
    * Fill an outgoing auxiliary variable field with nekRS solution data
    * \param[in] var_number auxiliary variable number
@@ -308,4 +344,10 @@ protected:
 
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
+
+  /// Vandermonde interpolation matrix (for outgoing transfers)
+  double * _interpolation_outgoing = nullptr;
+
+  /// Vandermonde interpolation matrix (for incoming transfers)
+  double * _interpolation_incoming = nullptr;
 };

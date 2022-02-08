@@ -168,7 +168,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters &params) : ExternalProb
   else
     _n_points = _n_surface_elems * _n_vertices_per_surface;
 
-  nekrs::initializeInterpolationMatrices(_nek_mesh->numQuadraturePoints1D());
+  initializeInterpolationMatrices();
 
   // we can save some effort for the low-order situations where the interpolation
   // matrix is the identity matrix (i.e. for which equi-spaced libMesh nodes are an
@@ -199,6 +199,25 @@ NekRSProblemBase::~NekRSProblemBase()
   }
 
   freePointer(_external_data);
+  freePointer(_interpolation_outgoing);
+  freePointer(_interpolation_incoming);
+}
+
+void
+NekRSProblemBase::initializeInterpolationMatrices()
+{
+  mesh_t * mesh = nekrs::entireMesh();
+
+  // determine the interpolation matrix for the outgoing transfer
+  int starting_points = mesh->Nq;
+  int ending_points = _nek_mesh->numQuadraturePoints1D();
+  _interpolation_outgoing = (double *) calloc(starting_points * ending_points, sizeof(double));
+  nekrs::interpolationMatrix(_interpolation_outgoing, starting_points, ending_points);
+
+  // determine the interpolation matrix for the incoming transfer
+  std::swap(starting_points, ending_points);
+  _interpolation_incoming = (double *) calloc(starting_points * ending_points, sizeof(double));
+  nekrs::interpolationMatrix(_interpolation_incoming, starting_points, ending_points);
 }
 
 std::string
@@ -473,10 +492,10 @@ NekRSProblemBase::extractOutputs()
         mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
 
       if (!_volume)
-        nekrs::boundarySolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+        boundarySolution(field_enum, _external_data);
 
       if (_volume)
-        nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field_enum, _external_data);
+        volumeSolution(field_enum, _external_data);
 
       fillAuxVariable(_external_vars[i], _external_data);
     }
@@ -560,5 +579,180 @@ NekRSProblemBase::addExternalVariables()
     auto pp_params = _factory.getValidParams("Receiver");
     pp_params.set<std::vector<OutputName>>("outputs") = {"none"};
     addPostprocessor("Receiver", "transfer_in", pp_params);
+  }
+}
+
+void
+NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
+{
+  mesh_t* mesh = nekrs::entireMesh();
+  auto vc = _nek_mesh->volumeCoupling();
+
+  double (*f) (int);
+  f = nekrs::solution::solutionPointer(field);
+
+  int start_1d = mesh->Nq;
+  int end_1d = _nek_mesh->order() + 2;
+  int start_3d = start_1d * start_1d * start_1d;
+  int end_3d = end_1d * end_1d * end_1d;
+
+  // allocate temporary space to hold the results of the search for each process
+  double* Ttmp = (double*) calloc(vc.n_elems * end_3d, sizeof(double));
+  double* Telem = (double*) calloc(start_3d, sizeof(double));
+
+  // if we apply the shortcut for first-order interpolations, just hard-code those
+  // indices that we'll grab for a volume hex element
+  int start_2d = start_1d * start_1d;
+  int indices [] = {0, start_1d - 1, start_2d - start_1d, start_2d - 1,
+                    start_3d - start_2d, start_3d - start_2d + start_1d - 1, start_3d - start_1d, start_3d - 1};
+
+  int c = 0;
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * start_3d;
+
+    if (_needs_interpolation)
+    {
+      // get the solution on the element
+      for (int v = 0; v < start_3d; ++v)
+        Telem[v] = f(offset + v);
+
+      // and then interpolate it
+      nekrs::interpolateVolumeHex3D(_interpolation_outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
+      c += end_3d;
+    }
+    else
+    {
+      // get the solution on the element - no need to interpolate
+      for (int v = 0; v < end_3d; ++v, ++c)
+        Ttmp[c] = f(offset + indices[v]);
+    }
+  }
+
+  // dimensionalize the solution if needed
+  int Nlocal = vc.n_elems * end_3d;
+  for (int v = 0; v < Nlocal; ++v)
+  {
+    nekrs::solution::dimensionalize(field, Ttmp[v]);
+
+    // if temperature, we need to add the reference temperature
+    if (field == field::temperature)
+      Ttmp[v] += _T_ref;
+  }
+
+  nekrs::allgatherv(vc.counts, Ttmp, T, end_3d);
+
+  freePointer(Ttmp);
+  freePointer(Telem);
+}
+
+void
+NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T)
+{
+  mesh_t* mesh = nekrs::entireMesh();
+
+  auto bc = _nek_mesh->boundaryCoupling();
+
+  double (*f) (int);
+  f = nekrs::solution::solutionPointer(field);
+
+  int start_1d = mesh->Nq;
+  int end_1d = _nek_mesh->order() + 2;
+  int start_2d = start_1d * start_1d;
+  int end_2d = end_1d * end_1d;
+
+  // allocate temporary space:
+  // - Ttmp: results of the search for each process
+  // - Tface: scratch space for face solution to avoid reallocating a bunch
+  // - scratch: scratch for the interpolatino process to avoid reallocating a bunch
+  double* Ttmp = (double*) calloc(bc.n_faces * end_2d, sizeof(double));
+  double* Tface = (double*) calloc(start_2d, sizeof(double));
+  double* scratch = (double*) calloc(start_1d * end_1d, sizeof(double));
+
+  // if we apply the shortcut for first-order interpolations, just hard-code those
+  // indices that we'll grab for a surface hex element
+  int indices [] = {0, start_1d - 1, start_2d - start_1d, start_2d - 1};
+
+  int c = 0;
+  for (int k = 0; k < bc.total_n_faces; ++k)
+  {
+    if (bc.process[k] == nekrs::commRank())
+    {
+      int i = bc.element[k];
+      int j = bc.face[k];
+      int offset = i * mesh->Nfaces * start_2d + j * start_2d;
+
+      if (_needs_interpolation)
+      {
+        // get the solution on the face
+        for (int v = 0; v < start_2d; ++v)
+        {
+          int id = mesh->vmapM[offset + v];
+          Tface[v] = f(id);
+        }
+
+        // and then interpolate it
+        nekrs::interpolateSurfaceFaceHex3D(scratch, _interpolation_outgoing, Tface, start_1d, &(Ttmp[c]), end_1d);
+        c += end_2d;
+      }
+      else
+      {
+        // get the solution on the face - no need to interpolate
+        for (int v = 0; v < end_2d; ++v, ++c)
+        {
+          int id = mesh->vmapM[offset + indices[v]];
+          Ttmp[c] = f(id);
+        }
+      }
+    }
+  }
+
+  // dimensionalize the solution if needed
+  int Nlocal = bc.n_faces * end_2d;
+  for (int v = 0; v < Nlocal; ++v)
+  {
+    nekrs::solution::dimensionalize(field, Ttmp[v]);
+
+    // if temperature, we need to add the reference temperature
+    if (field == field::temperature)
+      Ttmp[v] += _T_ref;
+  }
+
+  nekrs::allgatherv(bc.counts, Ttmp, T, end_2d);
+
+  freePointer(Ttmp);
+  freePointer(Tface);
+  freePointer(scratch);
+}
+
+void
+NekRSProblemBase::writeVolumeSolution(const int elem_id, const field::NekWriteEnum & field, double * T,
+  const std::vector<double> * add)
+{
+  auto vc = _nek_mesh->volumeCoupling();
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (nekrs::commRank() == vc.processor_id(elem_id))
+  {
+    mesh_t * mesh = nekrs::entireMesh();
+    void (*write_solution) (int, dfloat);
+    write_solution = nekrs::solution::solutionPointer(field);
+
+    int end_1d = mesh->Nq;
+    int start_1d = _nek_mesh->order() + 2;
+
+    int e = vc.element[elem_id];
+    double * tmp = (double*) calloc(mesh->Np, sizeof(double));
+
+    nekrs::interpolateVolumeHex3D(_interpolation_incoming, T, start_1d, tmp, end_1d);
+
+    int id = e * mesh->Np;
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      write_solution(id + v, tmp[v] + extra);
+    }
+
+    freePointer(tmp);
   }
 }

@@ -21,6 +21,9 @@
 #include "MooseMesh.h"
 #include "MooseApp.h"
 #include "CardinalEnums.h"
+#include "NekBoundaryCoupling.h"
+#include "NekVolumeCoupling.h"
+#include "NekInterface.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -50,11 +53,39 @@ public:
   static InputParameters validParams();
 
   NekRSMesh(const NekRSMesh & /* other_mesh */) = default;
-  ~NekRSMesh();
 
   NekRSMesh & operator=(const NekRSMesh & other_mesh) = delete;
-
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
+
+  /**
+   * Get the initial mesh x coordinates
+   * @return initial mesh x coordinates
+   */
+  const std::vector<double> & nek_initial_x() const { return _initial_x; }
+
+  /**
+   * Get the initial mesh y coordinates
+   * @return initial mesh y coordinates
+   */
+  const std::vector<double> & nek_initial_y() const { return _initial_y; }
+
+  /**
+   * Get the initial mesh z coordinates
+   * @return initial mesh z coordinates
+   */
+  const std::vector<double> & nek_initial_z() const { return _initial_z; }
+
+  /**
+   * Get the boundary coupling data structure
+   * @return boundary coupling data structure
+   */
+  const NekBoundaryCoupling & boundaryCoupling() const { return _boundary_coupling; }
+
+  /**
+   * Get the volume coupling data structure
+   * @return volume coupling data structure
+   */
+  const NekVolumeCoupling & volumeCoupling() const { return _volume_coupling; }
 
   /// Add all the elements in the mesh to the MOOSE data structures
   virtual void addElems();
@@ -202,7 +233,55 @@ public:
   /// Print diagnostic information related to the mesh
   virtual void printMeshInfo() const;
 
+  /**
+   * Processor id (rank) owning the given boundary element
+   * @return processor id
+   */
+  int boundaryElemProcessorID(const int elem_id);
+
+  /**
+   * Processor id (rank) owning the given volume element
+   * @return processor id
+   */
+  int volumeElemProcessorID(const int elem_id);
+
+  /**
+   * Get the number of faces of this global element that are on a coupling boundary
+   * @param[in] elem_id global element ID
+   * @return number of faces on a coupling boundary
+   */
+  int facesOnBoundary(const int elem_id) const;
+
 protected:
+  /// Store the rank-local element and rank ownership for volume coupling
+  void storeVolumeCoupling();
+
+  /**
+   * Store the rank-local element and rank ownership for boundary coupling;
+   * this loops over the NekRS mesh and fetches relevant information on the boundaries
+   */
+  void storeBoundaryCoupling();
+
+  /**
+   * Sideset ID corresponding to a given volume element with give local face ID
+   * @param[in] elem_id element local rank ID
+   * @param[in] face_id element-local face ID
+   * @return sideset ID (-1 means not one a boundary)
+   */
+  int boundary_id(const int elem_id, const int face_id);
+
+  /**
+   * Get the vertices defining the surface mesh interpolation from the
+   * stored coupling information and store in _x, _y, and _z
+   */
+  void faceVertices();
+
+  /**
+   * Get the vertices defining the volume mesh interpolation from the
+   * stored coupling information and store in _x, _y, and _z
+   */
+  void volumeVertices();
+
   /// Initialize members for the mesh and determine the GLL-to-node mapping
   void initializeMeshParams();
 
@@ -265,7 +344,7 @@ protected:
   int _n_elems;
 
   /// Function returning the processor id which should own each element
-  int (*_elem_processor_id)(const int elem_id);
+  int (NekRSMesh::*_elem_processor_id)(const int elem_id);
 
   /// Number of vertices per element, which depends on whether building a boundary/volume mesh
   int _n_vertices_per_elem;
@@ -281,14 +360,24 @@ protected:
 
   ///@{
   /**
-   * \brief \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the nodes on the boundary
+   * \brief \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the nodes
    *
    * This is ordered according to nekRS's internal geometry layout, and is indexed
    * first by the element and then by the node.
    **/
-  double* _x;
-  double* _y;
-  double* _z;
+  std::vector<double> _x;
+  std::vector<double> _y;
+  std::vector<double> _z;
+  ///@}
+
+  ///@{
+  /**
+   * \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the initial GLL points
+   * in the mesh, for this rank
+   **/
+  std::vector<double> _initial_x;
+  std::vector<double> _initial_y;
+  std::vector<double> _initial_z;
   ///@}
 
   /**
@@ -325,4 +414,15 @@ protected:
 
   /// Function pointer to the type of new element to add
   Elem * (NekRSMesh::*_new_elem)() const;
+
+  /// Data structure holding mapping information for boundary coupling
+  NekBoundaryCoupling _boundary_coupling;
+
+  /// Data structure holding mapping information for volume coupling
+  NekVolumeCoupling _volume_coupling;
+
+  /// Pointer to NekRS's internal mesh data structure
+  mesh_t * _nek_internal_mesh = nullptr;
+
+  /// Initial x,y,z coordinates of the internal NekRS mesh
 };
