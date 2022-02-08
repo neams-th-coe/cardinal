@@ -54,7 +54,7 @@ ReynoldsNumber::getValue()
   Real area = _fixed_mesh ? _area : nekrs::area(_boundary);
   Real mdot = std::abs(nekrs::sideMassFluxWeightedIntegral(_boundary, field::unity));
   Real mu = nekrs::viscosity();
-  Real L  = _nek_problem->nondimensional() ? nekrs::characteristicLength() : *_L_ref;
+  Real L  = _nek_problem->nondimensional() ? _nek_problem->L_ref() : *_L_ref;
 
   return mdot * L / (area * mu);
 }

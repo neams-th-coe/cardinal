@@ -111,6 +111,13 @@ public:
 protected:
   virtual void addTemperatureVariable() override { return; }
 
+  /**
+   * Interpolate the MOOSE flux onto the nekRS mesh
+   * @param[in] elem_id global element ID
+   * @param[in] flux_face flux at the libMesh nodes
+   */
+  void flux(const int elem_id, double * flux_face);
+
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled

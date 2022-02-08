@@ -78,13 +78,9 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
   if (_moving_mesh)
   {
     if (_boundary)
-    {
       mooseError("Mesh displacement not supported in boundary coupling!");
-      // pending release of mesh solver in nekRS...
-    }
     else if (_volume)
     {
-      nekrs::save_initial_mesh();
       _displacement_x = (double *) calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_y = (double *) calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_z = (double *) calloc(_n_vertices_per_volume, sizeof(double));
@@ -250,7 +246,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 
         // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
         // onto the nekRS GLL points
-        nekrs::flux(e, _nek_mesh->order(), _flux_face);
+        flux(e, _flux_face);
       }
     }
     else if (_volume)
@@ -265,7 +261,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
       // expense occurs in the MOOSE transfer system, not these transfers internally to nekRS.
       for (unsigned int e = 0; e < _n_volume_elems; ++e)
       {
-        int n_faces_on_boundary = nekrs::mesh::facesOnBoundary(e);
+        int n_faces_on_boundary = _nek_mesh->facesOnBoundary(e);
 
         auto elem_ptr = mesh.query_elem_ptr(e);
 
@@ -300,7 +296,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 
           // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
           // onto the nekRS GLL points
-          nekrs::writeVolumeSolution(e, _nek_mesh->order(), field::flux, _flux_elem);
+          writeVolumeSolution(e, field::flux, _flux_elem);
         }
       }
     }
@@ -312,7 +308,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   // flux integral, we need to scale the integral back up again to the dimensional form
   // for the sake of comparison.
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux = nekrs::fluxIntegral();
+  const double nek_flux = nekrs::fluxIntegral(_nek_mesh->boundaryCoupling());
   const double moose_flux = *_flux_integral;
 
   // For the sake of printing diagnostics to the screen regarding the flux normalization,
@@ -324,7 +320,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   _console << "Normalizing total NekRS flux of " << Moose::stringify(nek_flux * nek_flux_print_mult) <<
     " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
 
-  successful_normalization = nekrs::normalizeFlux(moose_flux, nek_flux, normalized_nek_flux);
+  successful_normalization = nekrs::normalizeFlux(_nek_mesh->boundaryCoupling(), moose_flux, nek_flux, normalized_nek_flux);
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,
@@ -367,10 +363,10 @@ NekRSProblem::sendVolumeDeformationToNek()
     // Only work on elements we can find on our local chunk of a
     // distributed mesh
     if (!elem_ptr)
-      {
-        libmesh_assert(!mesh.is_serial());
-        continue;
-      }
+    {
+      libmesh_assert(!mesh.is_serial());
+      continue;
+    }
 
     for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
     {
@@ -392,9 +388,9 @@ NekRSProblem::sendVolumeDeformationToNek()
 
     // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
     // onto the nekRS GLL points
-    nekrs::writeVolumeSolution(e, _nek_mesh->order(), field::x_displacement, _displacement_x);
-    nekrs::writeVolumeSolution(e, _nek_mesh->order(), field::y_displacement, _displacement_y);
-    nekrs::writeVolumeSolution(e, _nek_mesh->order(), field::z_displacement, _displacement_z);
+    writeVolumeSolution(e, field::x_displacement, _displacement_x, &(_nek_mesh->nek_initial_x()));
+    writeVolumeSolution(e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
+    writeVolumeSolution(e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
   }
 }
 
@@ -446,7 +442,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 
       // Now that we have the heat source at the nodes of the NekRSMesh, we can interpolate them
       // onto the nekRS GLL points
-      nekrs::writeVolumeSolution(e, _nek_mesh->order(), field::heat_source, _source_elem);
+      writeVolumeSolution(e, field::heat_source, _source_elem);
     }
   }
 
@@ -454,7 +450,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   // the heat source, we will need to normalize the total source on the nekRS side by the
   // total source computed by the coupled MOOSE app.
   const Real scale_cubed = _nek_mesh->scaling() * _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_source = nekrs::sourceIntegral();
+  const double nek_source = nekrs::sourceIntegral(_nek_mesh->volumeCoupling());
   const double moose_source = *_source_integral;
 
   // For the sake of printing diagnostics to the screen regarding source normalization,
@@ -469,7 +465,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   // Any unit changes (for DIMENSIONAL nekRS runs) are automatically accounted for
   // here because moose_source is an integral on the MOOSE mesh, while nek_source is
   // an integral on the nek mesh
-  successful_normalization = nekrs::normalizeHeatSource(moose_source, nek_source, normalized_nek_source);
+  successful_normalization = nekrs::normalizeHeatSource(_nek_mesh->volumeCoupling(), moose_source, nek_source, normalized_nek_source);
 
   // If before normalization, there is a large difference between the nekRS imposed source
   // and the MOOSE source, this could mean that there is a poor match between the domains,
@@ -495,7 +491,7 @@ NekRSProblem::getBoundaryTemperatureFromNek()
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the boundary temperature information. That is,
   // every process knows the full boundary temperature solution
-  nekrs::boundarySolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
+  boundarySolution(field::temperature, _T);
 }
 
 void
@@ -507,7 +503,7 @@ NekRSProblem::getVolumeTemperatureFromNek()
   // here such that each nekRS process has all the volume temperature information. In
   // other words, regardless of which elements a nek rank owns, after calling nekrs::temperature,
   // every process knows the temperature in the volume.
-  nekrs::volumeSolution(_nek_mesh->order(), _needs_interpolation, field::temperature, _T);
+  volumeSolution(field::temperature, _T);
 }
 
 void NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -650,3 +646,39 @@ NekRSProblem::addExternalVariables()
     _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
   }
 }
+
+void
+NekRSProblem::flux(const int elem_id, double * flux_face)
+{
+  const auto & bc = _nek_mesh->boundaryCoupling();
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (nekrs::commRank() == bc.processor_id(elem_id))
+  {
+    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    mesh_t * mesh = nekrs::temperatureMesh();
+
+    int end_1d = mesh->Nq;
+    int start_1d = _nek_mesh->order() + 2;
+    int end_2d = end_1d * end_1d;
+
+    int e = bc.element[elem_id];
+    int f = bc.face[elem_id];
+
+    double * scratch = (double*) calloc(start_1d * end_1d, sizeof(double));
+    double * flux_tmp = (double*) calloc(end_2d, sizeof(double));
+
+    nekrs::interpolateSurfaceFaceHex3D(scratch, _interpolation_incoming, flux_face, start_1d, flux_tmp, end_1d);
+
+    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
+    for (int i = 0; i < end_2d; ++i)
+    {
+      int id = mesh->vmapM[offset + i];
+      nrs->usrwrk[id] = flux_tmp[i];
+    }
+
+    freePointer(scratch);
+    freePointer(flux_tmp);
+  }
+}
+
