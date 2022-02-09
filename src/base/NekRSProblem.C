@@ -149,7 +149,8 @@ NekRSProblem::initialSetup()
   if (_nek_mesh->volume() && _has_heat_source)
     if (has_temperature_solve && !nekrs::hasHeatSourceKernel())
       mooseError("In order to send a heat source to nekRS, you must have an OCCA kernel "
-        "for the source in the passive scalar equations!");
+        "for the source\nin the passive scalar equations! If you don't have an energy source\n"
+        "in your NekRS domain, you can disable this error with 'has_heat_source = false'.");
 
   if (_moving_mesh && !nekrs::hasMovingMesh())
     mooseError("In order for MOOSE to compute a mesh deformation in NekRS, you "
