@@ -209,7 +209,7 @@ NekRSSeparateDomainProblem::sendBoundaryVelocityToNek()
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
-      nekrs::velocity(e, _nek_mesh->order(), _toNekRS_velocity);
+//      nekrs::velocity(e, _nek_mesh->order(), _toNekRS_velocity);
     }
 
   _console << "done" << std::endl;
@@ -235,7 +235,7 @@ NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek()
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
-      nekrs::temperature(e, _nek_mesh->order(), _toNekRS_temp);
+//      nekrs::temperature(e, _nek_mesh->order(), _toNekRS_temp);
     }
 
   _console << "done" << std::endl;
