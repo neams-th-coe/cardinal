@@ -24,6 +24,7 @@
 #include "TimedPrint.h"
 #include "MooseUtils.h"
 #include "CardinalUtils.h"
+#include "DisplacedProblem.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -393,6 +394,7 @@ NekRSProblem::sendVolumeDeformationToNek()
     writeVolumeSolution(e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
     writeVolumeSolution(e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
   }
+  _displaced_problem->updateMesh();
 }
 
 void
