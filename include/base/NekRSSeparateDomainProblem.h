@@ -26,10 +26,11 @@
 #include <memory>
 
 /**
- * \brief TODO description.
+ * \brief Solve NekRS coupled to 1d thermal hydraulic code
  *
- * ...
- * 
+ * This object controls all of the execution of and data transfers to/from NekRS,
+ * for coupling NekRS to a 1d thermal hydraulic code, such as SAM THM or RELAP7.
+ *
  */
 class NekRSSeparateDomainProblem : public NekRSProblemBase
 {
@@ -94,28 +95,37 @@ protected:
 
   const bool & _minimize_transfers_out;
 
+  /**
+   * Send velocity from 1d system code to the nekRS mesh
+   * @param[in] elem_id global element ID
+   * @param[in] velocity_1dCode 1dCode's boundary velocity
+   */
+  void velocity(const int elem_id, const double velocity_1dCode);
+
+  /**
+   * Send temperature from 1d system code to the nekRS mesh
+   * @param[in] elem_id global element ID
+   * @param[in] temperature_1dCode 1dCode's boundary temperature
+   */
+  void temperature(const int elem_id, const double temperature_1dCode);
+
   /// Specify type of interfaces present for ExternalApp-NekRS coupling 
   const bool & _toNekRS;
   const bool & _toNekRS_temperature;
   const bool & _fromNekRS;
   const bool & _fromNekRS_temperature;
 
-  /// External app file name
-  const std::vector<FileName> _ExternalApp_filename;
-  const MooseEnum _ExternalApp_type;
-
-  /// Boundary ID through which to couple NekRS to external app
-  const std::vector<int> * _fromNekRS_boundary;
+  /// Boundary ID for NekRS outlet
+  const std::vector<int> * _outlet_boundary;
 
   /// Boundary ID for NekRS inlet
-  const std::vector<int> * _NekRS_inlet_boundary;
+  const std::vector<int> * _inlet_boundary;
 
   /// Velocity boundary condition coming from external App to NekRS
   const PostprocessorValue * _toNekRS_velocity = nullptr;
 
   /// Temperature boundary condition coming from external App to NekRS
   const PostprocessorValue * _toNekRS_temp = nullptr;
-
 
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;

@@ -45,11 +45,8 @@ NekRSSeparateDomainProblem::validParams()
   params.addParam<bool>("toNekRS_temperature", false, "External app -> NekRS temperature transfer?");
   params.addParam<bool>("fromNekRS_interface", false, "NekRS -> external app interface present?");
   params.addParam<bool>("fromNekRS_temperature", false, "NekRS -> external app temperature transfer?");
-  params.addRequiredParam<std::vector<FileName>>("ExternalApp_filename", "External app input file name");
-  MooseEnum app_type("SamApp THMApp");
-  params.addRequiredParam<MooseEnum>("ExternalApp_type", app_type, "External app type");
-  params.addParam<std::vector<int>>("fromNekRS_boundary", "Boundary ID through which nekRS will be coupled to external app");
-  params.addParam<std::vector<int>>("NekRS_inlet_boundary", "NekRS Boundary ID for Pressure drop calculation");
+  params.addRequiredParam<std::vector<int>>("outlet_boundary", "NekRS outlet boundary ID");
+  params.addRequiredParam<std::vector<int>>("inlet_boundary", "NekRS inlet boundary ID");
 
   return params;
 }
@@ -63,26 +60,50 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &pa
     _toNekRS_temperature(getParam<bool>("toNekRS_temperature")),
     _fromNekRS(getParam<bool>("fromNekRS_interface")),
     _fromNekRS_temperature(getParam<bool>("fromNekRS_temperature")),
-    _ExternalApp_filename(getParam<std::vector<FileName>>("ExternalApp_filename")),
-    _ExternalApp_type(getParam<MooseEnum>("ExternalApp_type")),
-    _fromNekRS_boundary(isParamValid("fromNekRS_boundary") ? &getParam<std::vector<int>>("fromNekRS_boundary") : nullptr),
-    _NekRS_inlet_boundary(isParamValid("NekRS_inlet_boundary") ? &getParam<std::vector<int>>("NekRS_inlet_boundary") : nullptr)
+    _outlet_boundary(&getParam<std::vector<int>>("outlet_boundary")),
+    _inlet_boundary(&getParam<std::vector<int>>("inlet_boundary"))
 {
 
   if (!_toNekRS && !_fromNekRS)
-    mooseError("This problem type needs atleast one of toNekRS_interface \n", 
-    "or fromNekRS_interface to be set to true\n");
+    mooseError("This problem type needs atleast one of 'toNekRS_interface' \n", 
+    "or 'fromNekRS_interface' to be set to true.");
 
-  if (_fromNekRS)
-    {
-    if (_fromNekRS_boundary->size() != 1)
-      mooseError("fromNekRS_boundary can only have a single ID listed \n",
-      "but fromNekRS_boundary has " + std::to_string(_fromNekRS_boundary->size()) + " IDs listed.");
-    }
+  // check outlet boundary supplied
+  if (_outlet_boundary->size() != 1)
+    mooseError("'outlet_boundary' can only have a single ID listed \n",
+    "but 'outlet_boundary' has " + std::to_string(_outlet_boundary->size()) + " IDs listed.");
 
-  if (_NekRS_inlet_boundary->size() != 1)
-    mooseError("NekRS_inlet_boundary can only have a single ID listed \n",
-    "but NekRS_inlet_boundary has " + std::to_string(_NekRS_inlet_boundary->size()) + " IDs listed.");
+  else {
+    int invalid_id, n_boundaries;
+    bool valid_ids = nekrs::mesh::validBoundaryIDs(*_outlet_boundary, invalid_id, n_boundaries);
+  
+    if (!valid_ids)
+      mooseError("Invalid 'outlet_boundary' entry: ", invalid_id, "\n\n"
+        "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
+        "For this problem, NekRS has ", n_boundaries, " boundaries. "
+        "Did you enter a valid 'outlet_boundary'?");
+  }
+
+  // check inlet boundary supplied
+  if (_inlet_boundary->size() != 1)
+    mooseError("'inlet_boundary' can only have a single ID listed \n",
+    "but 'inlet_boundary' has " + std::to_string(_inlet_boundary->size()) + " IDs listed.");
+
+  else {
+    int invalid_id, n_boundaries;
+    bool valid_ids = nekrs::mesh::validBoundaryIDs(*_inlet_boundary, invalid_id, n_boundaries);
+  
+    if (!valid_ids)
+      mooseError("Invalid 'inlet_boundary' entry: ", invalid_id, "\n\n"
+        "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
+        "For this problem, NekRS has ", n_boundaries, " boundaries. "
+        "Did you enter a valid 'inlet_boundary'?");
+  }
+
+  // make sure that inlet boundary is in NekRSMesh boundary IDs provided
+  if( std::find(_boundary->begin(), _boundary->end(), _inlet_boundary->front()) == _boundary->end() )
+      mooseError("Invalid 'inlet_boundary' entry: " + Moose::stringify(*_inlet_boundary) + " \n",
+      "'inlet_boundary' must be in 'boundary' supplied to NekRSMesh, but 'boundary' = " + Moose::stringify(*_boundary) + ".");
 
 }
 
@@ -104,10 +125,10 @@ NekRSSeparateDomainProblem::initialSetup()
     _transfer_in = &getPostprocessorValueByName("transfer_in");
 
   if (_toNekRS)
-    _toNekRS_velocity = &getPostprocessorValueByName("toNekRS_velocity");
+    _toNekRS_velocity = &getPostprocessorValueByName("inlet_V");
 
   if (_toNekRS_temperature)
-    _toNekRS_temp = &getPostprocessorValueByName("toNekRS_temperature");
+    _toNekRS_temp = &getPostprocessorValueByName("inlet_T");
 
 
 }
@@ -209,7 +230,7 @@ NekRSSeparateDomainProblem::sendBoundaryVelocityToNek()
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
-//      nekrs::velocity(e, _nek_mesh->order(), _toNekRS_velocity);
+      velocity(e, *_toNekRS_velocity);
     }
 
   _console << "done" << std::endl;
@@ -235,7 +256,7 @@ NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek()
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
-//      nekrs::temperature(e, _nek_mesh->order(), _toNekRS_temp);
+      temperature(e, *_toNekRS_temp);
     }
 
   _console << "done" << std::endl;
@@ -247,97 +268,116 @@ NekRSSeparateDomainProblem::addExternalVariables()
   NekRSProblemBase::addExternalVariables();
   auto var_params = getExternalVariableParameters(); //not needed?
 
-  // create MultiApp for external app
-  auto multiapp_params = _factory.getValidParams("TransientMultiApp");
-  multiapp_params.set<MooseEnum>("app_type") = _ExternalApp_type;
-  multiapp_params.set<std::vector<FileName>>("input_files") = _ExternalApp_filename;
-  multiapp_params.set<unsigned int>("max_procs_per_app") = 1; // only let external app run with one processor
-  multiapp_params.set<ExecFlagEnum>("execute_on") = EXEC_TIMESTEP_BEGIN; // run external app first
-  addMultiApp("TransientMultiApp", "ExternalApp", multiapp_params);
-
-  // create NekRS pressure drop postprocessor
+  // inlet NekRS pressure
   auto pp_params = _factory.getValidParams("NekSideAverage");
   pp_params.set<MooseEnum>("field")= "pressure"; 
-  pp_params.set<std::vector<int>>("boundary") = *_NekRS_inlet_boundary;
+  pp_params.set<std::vector<int>>("boundary") = *_inlet_boundary;
   pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
-  addPostprocessor("NekSideAverage", "NekRS_pressureDrop", pp_params);
+  addPostprocessor("NekSideAverage", "inlet_P", pp_params);
 
-  // create Transfer for NekRS pressure drop to external app
-  auto trans_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
-  trans_params.set<MultiAppName>("multi_app") = "ExternalApp";
-  trans_params.set<MultiMooseEnum>("direction") = "to_multiapp";
-  trans_params.set<PostprocessorName>("from_postprocessor") = "NekRS_pressureDrop";
-  trans_params.set<PostprocessorName>("to_postprocessor") = "NekRS_pressureDrop"; // requires this PP in external app input file
-  addTransfer("MultiAppPostprocessorTransfer", "NekRS_pressureDrop_trans", trans_params);
+  // outlet NekRS pressure
+  pp_params = _factory.getValidParams("NekSideAverage");
+  pp_params.set<MooseEnum>("field")= "pressure"; 
+  pp_params.set<std::vector<int>>("boundary") = *_outlet_boundary;
+  pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+  addPostprocessor("NekSideAverage", "outlet_P", pp_params);
 
+  // calculate pressure drop over NekRS
+  pp_params = _factory.getValidParams("ParsedPostprocessor");
+  pp_params.set<std::string>("function") = "outlet_P + inlet_P";
+  pp_params.set<std::vector<PostprocessorName>>("pp_names") = {"outlet_P", "inlet_P"};
+  pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+  addPostprocessor("ParsedPostprocessor", "dP", pp_params);
 
-  // NekRS -> external app interface
+  // NekRS -> 1d code, velocity interface
   if (_fromNekRS)
   {
     auto pp_params = _factory.getValidParams("NekSideAverage");
     pp_params.set<MooseEnum>("field")= "velocity"; 
-    pp_params.set<std::vector<int>>("boundary") = *_fromNekRS_boundary;
+    pp_params.set<std::vector<int>>("boundary") = *_outlet_boundary;
     pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
-    addPostprocessor("NekSideAverage", "fromNekRS_velocity", pp_params);
-
-    // create Transfer for NekRS velocity to external app
-    auto trans_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
-    trans_params.set<MultiAppName>("multi_app") = "ExternalApp";
-    trans_params.set<MultiMooseEnum>("direction") = "to_multiapp";
-    trans_params.set<PostprocessorName>("from_postprocessor") = "fromNekRS_velocity";
-    trans_params.set<PostprocessorName>("to_postprocessor") = "fromNekRS_velocity";  // requires this PP in external app input file
-    addTransfer("MultiAppPostprocessorTransfer", "fromNekRS_velocity_trans", trans_params);
+    addPostprocessor("NekSideAverage", "outlet_V", pp_params);
   }
 
-  // NekRS -> external app temperature interface
+  // NekRS -> 1d code, temperature interface
   if (_fromNekRS_temperature)
   {
     auto pp_params = _factory.getValidParams("NekSideAverage");
     pp_params.set<MooseEnum>("field")= "temperature"; 
-    pp_params.set<std::vector<int>>("boundary") = *_fromNekRS_boundary;
+    pp_params.set<std::vector<int>>("boundary") = *_outlet_boundary;
     pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
-    addPostprocessor("NekSideAverage", "fromNekRS_temperature", pp_params);
-
-    // create Transfer for NekRS temperature to external app
-    auto trans_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
-    trans_params.set<MultiAppName>("multi_app") = "ExternalApp";
-    trans_params.set<MultiMooseEnum>("direction") = "to_multiapp";
-    trans_params.set<PostprocessorName>("from_postprocessor") = "fromNekRS_temperature";
-    trans_params.set<PostprocessorName>("to_postprocessor") = "fromNekRS_temperature";  // requires this PP in external app input file
-    addTransfer("MultiAppPostprocessorTransfer", "fromNekRS_temperature_trans", trans_params);
+    addPostprocessor("NekSideAverage", "outlet_T", pp_params);
   }
 
-  // external app -> NekRS interface
+  // 1d code -> NekRS, velocity interface
   if (_toNekRS)
   {
     auto pp_params = _factory.getValidParams("Receiver");
-    addPostprocessor("Receiver", "toNekRS_velocity", pp_params);
-
-    // create Transfer for external app velocity to NekRS
-    auto trans_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
-    trans_params.set<MultiAppName>("multi_app") = "ExternalApp";
-    trans_params.set<MultiMooseEnum>("direction") = "from_multiapp";
-    trans_params.set<MooseEnum>("reduction_type") = "average";
-    trans_params.set<PostprocessorName>("from_postprocessor") = "toNekRS_velocity"; // requires this PP in external app input file
-    trans_params.set<PostprocessorName>("to_postprocessor") = "toNekRS_velocity";
-    addTransfer("MultiAppPostprocessorTransfer", "toNekRS_velocity_trans", trans_params);
-
+    addPostprocessor("Receiver", "inlet_V", pp_params);
   }
 
-  // external app -> NekRS temperature interface
+  // 1d code -> NekRS, temperature interface
   if (_toNekRS_temperature)
   {
     auto pp_params = _factory.getValidParams("Receiver");
-    addPostprocessor("Receiver", "toNekRS_temperature", pp_params);
-
-    // create Transfer for external app temperature to NekRS
-    auto trans_params = _factory.getValidParams("MultiAppPostprocessorTransfer");
-    trans_params.set<MultiAppName>("multi_app") = "ExternalApp";
-    trans_params.set<MultiMooseEnum>("direction") = "from_multiapp";
-    trans_params.set<MooseEnum>("reduction_type") = "average";
-    trans_params.set<PostprocessorName>("from_postprocessor") = "toNekRS_temperature"; // requires this PP in external app input file
-    trans_params.set<PostprocessorName>("to_postprocessor") = "toNekRS_temperature";
-    addTransfer("MultiAppPostprocessorTransfer", "toNekRS_temperature_trans", trans_params);
+    addPostprocessor("Receiver", "inlet_T", pp_params);
   }
+}
 
+void
+NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity_1dCode)
+{
+
+  const auto & bc = _nek_mesh->boundaryCoupling();
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (nekrs::commRank() == bc.processor_id(elem_id))
+  {
+    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    mesh_t * mesh = nekrs::entireMesh();
+
+    int end_1d = mesh->Nq;
+    int start_1d = _nek_mesh->order() + 2;
+    int end_2d = end_1d * end_1d;
+
+    int e = bc.element[elem_id];
+    int f = bc.face[elem_id];
+
+    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
+    for (int i = 0; i < end_2d; ++i)
+    {
+      int id = mesh->vmapM[offset + i];
+      nrs->usrwrk[id] = velocity_1dCode; // send single velocity value to NekRS
+    }
+  }
+}
+
+void
+NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperature_1dCode)
+{
+
+  const auto & bc = _nek_mesh->boundaryCoupling();
+
+  // We can only write into the nekRS scratch space if that face is "owned" by the current process
+  if (nekrs::commRank() == bc.processor_id(elem_id))
+  {
+    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    mesh_t * mesh = nekrs::temperatureMesh();
+
+    int scalarFieldOffset = nekrs::scalarFieldOffset();
+
+    int end_1d = mesh->Nq;
+    int start_1d = _nek_mesh->order() + 2;
+    int end_2d = end_1d * end_1d;
+
+    int e = bc.element[elem_id];
+    int f = bc.face[elem_id];
+
+    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
+    for (int i = 0; i < end_2d; ++i)
+    {
+      int id = mesh->vmapM[offset + i];
+      nrs->usrwrk[id + scalarFieldOffset] = temperature_1dCode; // send single temperature value to NekRS
+    }
+  }
 }

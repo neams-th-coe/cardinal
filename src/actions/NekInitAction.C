@@ -102,7 +102,7 @@ NekInitAction::act()
   }
 
   // setup actions only needed if coupling with MOOSE
-  if (_type == "NekRSProblem" || _type == "NekRSSeparateDomainProblem")
+  if (_type == "NekRSProblem")
   {
     // First check we should do is that a temperature variable exists, or else many
     // of our indexes into `nrs->cds` would give seg faults
@@ -111,7 +111,11 @@ NekInitAction::act()
         "your nekRS model must include a solution for temperature.\n\nDid you forget the "
         "TEMPERATURE block in the .par file?\nNote: you can set 'solver = none' in the .par file "
         "if you don't want to solve for temperature.");
+  }
 
+  // setup actions only if couling with MOOSE or 1d thermal hydraulic code
+  if (_type == "NekRSProblem" || _type == "NekRSSeparateDomainProblem")
+  {
     // Throw an error if the user tries to allocate the scratch separately in the user files
     bool scratch_available = nekrs::scratchAvailable();
 
