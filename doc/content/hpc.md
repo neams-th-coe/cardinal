@@ -75,6 +75,9 @@ export FC=mpif90
 # Revise for your cross section data location
 export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
 
+# Revise for your Cardinal repository location
+export NEKRS_HOME=$HOME/cardinal/install
+
 # Revise for your input file and executable locations
 cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
 mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=64 > logfile
