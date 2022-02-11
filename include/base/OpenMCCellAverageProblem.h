@@ -695,6 +695,15 @@ protected:
   const bool & _check_identical_tally_cell_fills;
 
   /**
+   * Whether it can be assumed that all of the tallies (both those set by the user
+   * in the XML file, as well as those created automatically by Cardinal) are
+   * spatially separate. This means that once a particle scores to one tally bin, it wouldn't
+   * score to ANY other tally bins. This can dramatically increase tracking rates
+   * for problems with many tallies.
+   */
+  const bool & _assume_separate_tallies;
+
+  /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */

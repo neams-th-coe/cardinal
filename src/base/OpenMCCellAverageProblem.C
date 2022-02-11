@@ -83,6 +83,9 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>("normalize_by_global_tally", true,
     "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
     "of the local tally (false)");
+  params.addParam<bool>("assume_separate_tallies", false,
+    "Whether to assume that all tallies added by in the XML files and automatically "
+    "by Cardinal are spatially separate. This is a performance optimization");
 
   params.addRequiredParam<MooseEnum>("tally_type", getTallyTypeEnum(),
     "Type of tally to use in OpenMC, options: cell, mesh");
@@ -175,6 +178,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
   _relaxation_factor(getParam<Real>("relaxation_factor")),
   _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
   _check_identical_tally_cell_fills(getParam<bool>("check_identical_tally_cell_fills")),
+  _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
   _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
   _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
   _needs_global_tally(_check_tally_sum || _normalize_by_global),
@@ -205,6 +209,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters &params
     checkUnusedParam(params, "symmetry_axis", "not setting a symmetry plane");
     checkUnusedParam(params, "symmetry_angle", "not setting a symmetry plane");
   }
+
+  if (_assume_separate_tallies && _needs_global_tally)
+    paramError("assume_separate_tallies", "Cannot assume separate tallies when either of 'check_tally_sum' or"
+      "'normalize_by_global_tally' is true!");
 
   if (params.isParamSetByUser("skip_first_incoming_transfer"))
     mooseError("The 'skip_first_incoming_transfer' parameter is deprecated and has been replaced "
@@ -1430,9 +1438,6 @@ OpenMCCellAverageProblem::initializeTallies()
         _console << std::endl;
       }
 
-      // TODO: can add the assume_separate setting for a bit of additional performance
-      // if we find that we need it
-
       // if using a mesh tally, we are restricted to collision estimators; therefore,
       // because we are going to use this global tally for normalization, we need to make
       // sure it also uses a collision estimator
@@ -1444,6 +1449,9 @@ OpenMCCellAverageProblem::initializeTallies()
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
+
+  if (_assume_separate_tallies)
+    openmc::settings::assume_separate = true;
 
   // add trigger information, if present; for each tally, we only have a single score
   // (kappa-fission), so i_score is always set to 0
