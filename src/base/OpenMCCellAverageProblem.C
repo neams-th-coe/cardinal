@@ -977,7 +977,6 @@ OpenMCCellAverageProblem::cacheContainedCells()
     const auto* elem = _mesh.elemPtr(c.second[0]);
     // use an element position to speed up openmc::Cell::get_contained_cells calls
     Point hint = transformPointToOpenMC(elem->vertex_average());
-    openmc::Position openmc_hint{hint(0), hint(1), hint(2)};
 
     // if the cell doesn't have a tally, default to normal behavior
     if (!_cell_has_tally[cell_info])
@@ -994,17 +993,16 @@ OpenMCCellAverageProblem::cacheContainedCells()
       {
         if (first_tally_cell)
         {
-          first_tally_cell_cc = cell->get_contained_cells(cell_info.second, &openmc_hint);
-          _cell_to_contained_material_cells[cell_info] = first_tally_cell_cc;
+          setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
+          first_tally_cell_cc = _cell_to_contained_material_cells[cell_info];
           first_tally_cell = false;
           second_tally_cell = true;
         }
         else if (second_tally_cell)
         {
           n++;
-
-          second_tally_cell_cc = cell->get_contained_cells(cell_info.second, &openmc_hint);
-          _cell_to_contained_material_cells[cell_info] = second_tally_cell_cc;
+          setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
+          second_tally_cell_cc = _cell_to_contained_material_cells[cell_info];
           second_tally_cell = false;
 
           // we will check for equivalence in the end mapping later; but here we still need
