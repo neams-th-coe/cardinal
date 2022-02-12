@@ -481,6 +481,28 @@ specified in a unit 100.0 times larger than the OpenMC unit of centimeters.
 !listing test/tests/neutronics/feedback/different_units/openmc.i
   block=Problem
 
+#### Tally Optimizations
+
+"Spatially separate" tallies are tallies where a particle can only score to one
+bin for a given event - for instance, a tally with one bin per fuel pebble is a
+spatially separate tally because a particle scoring to fission in pebble $A$ cannot
+also score to fission in pebble $B$. For situations like this, OpenMC allows you
+to specify that tallies are [spatially separate](https://docs.openmc.org/en/latest/io_formats/tallies.html#assume-separate-element), which can offer a big performance improvement. If you know
+that your problem satisfies all of the following criteria, you can set
+`assume_separate_tallies = true` to greatly speed up the particle tracking rate:
+
+- `check_tally_sum = true`; when you set this parameter to true, Cardinal
+  automatically adds a **global** `kappa-fission` tally to check that your local
+  tally that couples to MOOSE didn't "miss" any fissile regions. However, when
+  you add a global tally like this, any other tallies are no longer spatially
+  separate.
+- `normalize_by_global_tally = true`; when you set this parameter to true,
+  Cardinal will again automatically add a **global** `kappa-fission` tally in order
+  to normalize the local `kappa-fission` tally that is coupled to MOOSE.
+  For the same reasons as above, your tallies will no longer be spatially separate.
+- Your `tallies.xml` file does not contain any other tallies that would fail
+  to be spatially separate from the tallies automatically added by Cardinal.
+
 #### Relaxation
 
 OpenMC is coupled to MOOSE via fixed point iteration, also referred to
