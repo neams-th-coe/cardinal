@@ -25,9 +25,6 @@
 #include "MooseUtils.h"
 #include "CardinalUtils.h"
 
-#include "nekrs.hpp"
-#include "nekInterface/nekInterfaceAdapter.hpp"
-
 registerMooseObject("CardinalApp", NekRSSeparateDomainProblem);
 
 bool NekRSSeparateDomainProblem::_first = true;
@@ -96,7 +93,7 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &pa
   }
 
   // make sure that inlet boundary is in NekRSMesh boundary IDs provided
-  if( std::find(_boundary->begin(), _boundary->end(), _inlet_boundary->front()) == _boundary->end() )
+  if (std::find(_boundary->begin(), _boundary->end(), _inlet_boundary->front()) == _boundary->end())
       mooseError("Invalid 'inlet_boundary' entry: " + Moose::stringify(*_inlet_boundary) + " \n",
       "'inlet_boundary' must be in 'boundary' supplied to NekRSMesh, but 'boundary' = " + Moose::stringify(*_boundary) + ".");
 }
@@ -141,7 +138,7 @@ void NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direct
 
       // copy scratch to device
       nekrs::copyScratchToDevice();
-      
+
       break;
     }
 
@@ -175,14 +172,11 @@ NekRSSeparateDomainProblem::sendBoundaryVelocityToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  _console << "Sending velocity to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
+  _console << "Sending velocity of " << *_toNekRS_velocity << " m/s to NekRS boundary " <<
+    Moose::stringify(*_inlet_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
-    {
-      velocity(e, *_toNekRS_velocity);
-    }
-
-  _console << "done" << std::endl;
+    velocity(e, *_toNekRS_velocity);
 }
 
 void
@@ -201,21 +195,17 @@ NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  _console << "Sending temperature to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
+  _console << "Sending temperature of " << *_toNekRS_temp << " K to NekRS boundary " <<
+    Moose::stringify(*_inlet_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
-    {
-      temperature(e, *_toNekRS_temp);
-    }
-
-  _console << "done" << std::endl;
+    temperature(e, *_toNekRS_temp);
 }
 
 void
 NekRSSeparateDomainProblem::addExternalVariables()
 {
   NekRSProblemBase::addExternalVariables();
-  auto var_params = getExternalVariableParameters(); //not needed?
 
   // inlet NekRS pressure
   auto pp_params = _factory.getValidParams("NekSideAverage");
@@ -274,7 +264,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
 }
 
 void
-NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity_1dCode)
+NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity)
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
@@ -285,7 +275,6 @@ NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity_1d
     mesh_t * mesh = nekrs::entireMesh();
 
     int end_1d = mesh->Nq;
-    int start_1d = _nek_mesh->order() + 2;
     int end_2d = end_1d * end_1d;
 
     int e = bc.element[elem_id];
@@ -295,13 +284,13 @@ NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity_1d
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id] = velocity_1dCode; // send single velocity value to NekRS
+      nrs->usrwrk[id] = velocity; // send single velocity value to NekRS
     }
   }
 }
 
 void
-NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperature_1dCode)
+NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperature)
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
@@ -314,7 +303,6 @@ NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperat
     int scalarFieldOffset = nekrs::scalarFieldOffset();
 
     int end_1d = mesh->Nq;
-    int start_1d = _nek_mesh->order() + 2;
     int end_2d = end_1d * end_1d;
 
     int e = bc.element[elem_id];
@@ -324,7 +312,7 @@ NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperat
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id + scalarFieldOffset] = temperature_1dCode; // send single temperature value to NekRS
+      nrs->usrwrk[id + scalarFieldOffset] = temperature; // send single temperature value to NekRS
     }
   }
 }

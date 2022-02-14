@@ -29,7 +29,7 @@
  * \brief Solve NekRS coupled to 1d thermal hydraulic code
  *
  * This object controls all of the execution of and data transfers to/from NekRS,
- * for coupling NekRS to a 1d thermal hydraulic code, such as SAM THM or RELAP7.
+ * for coupling NekRS to a 1d thermal hydraulic code, such as SAM, THM, or RELAP7.
  *
  */
 class NekRSSeparateDomainProblem : public NekRSProblemBase
@@ -39,24 +39,8 @@ public:
 
   static InputParameters validParams();
 
-  /**
-   * \brief Write nekRS's solution at the last output step
-   *
-   * If Nek is not the master app, the number of time steps it takes is
-   * controlled by the master app. Depending on the settings in the `.par` file,
-   * it becomes possible that nekRS may not write an output file on the simulation's
-   * actual last time step, because Nek may not know when that last time step is.
-   * Therefore, here we can force nekRS to write its output.
-   **/
   ~NekRSSeparateDomainProblem();
 
-  /**
-   * \brief Perform some sanity checks on the problem setup
-   *
-   * This function performs checks like making sure that a transient executioner is
-   * used to wrap nekRS, that no time shift has been requested to the start of nekRS,
-   * that the correct NekTimeStepper is used, etc.
-   */
   virtual void initialSetup() override;
 
   /// Send boundary velocity to nekRS
@@ -69,29 +53,24 @@ public:
 
   virtual void addExternalVariables() override;
 
-  virtual bool movingMesh() const override { return _moving_mesh; }
-
 protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
-
-  /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
-  const bool & _moving_mesh;
 
   /**
    * Send velocity from 1d system code to the nekRS mesh
    * @param[in] elem_id global element ID
-   * @param[in] velocity_1dCode 1dCode's boundary velocity
+   * @param[in] velocity boundary velocity
    */
-  void velocity(const int elem_id, const double velocity_1dCode);
+  void velocity(const int elem_id, const double velocity);
 
   /**
    * Send temperature from 1d system code to the nekRS mesh
    * @param[in] elem_id global element ID
-   * @param[in] temperature_1dCode 1dCode's boundary temperature
+   * @param[in] temperature boundary temperature
    */
-  void temperature(const int elem_id, const double temperature_1dCode);
+  void temperature(const int elem_id, const double temperature);
 
-  /// Specify type of interfaces present for ExternalApp-NekRS coupling 
+  /// Specify type of interfaces present for ExternalApp-NekRS coupling
   const bool & _toNekRS;
   const bool & _toNekRS_temperature;
   const bool & _fromNekRS;
