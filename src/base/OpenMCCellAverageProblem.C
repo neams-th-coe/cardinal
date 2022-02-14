@@ -155,7 +155,7 @@ OpenMCCellAverageProblem::validParams()
     "Normal that defines a symmetry plane in the OpenMC model");
   params.addParam<Point>("symmetry_axis",
     "Axis about which to rotate for angle-symmetric OpenMC models");
-  params.addRangeCheckedParam<Real>("symmetry_angle", "symmetry_angle > 0 & symmetry_angle < 180",
+  params.addRangeCheckedParam<Real>("symmetry_angle", "symmetry_angle > 0 & symmetry_angle <= 180",
     "Angle (degrees) from symmetry plane for which OpenMC model is symmetric");
   return params;
 }

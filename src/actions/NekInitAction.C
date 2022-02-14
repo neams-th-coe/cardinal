@@ -47,7 +47,7 @@ NekInitAction::NekInitAction(const InputParameters & parameters)
 void
 NekInitAction::act()
 {
-  if (_type == "NekRSProblem" || _type == "NekRSStandaloneProblem")
+  if (_type == "NekRSProblem" || _type == "NekRSStandaloneProblem" || _type == "NekRSSeparateDomainProblem")
   {
     std::shared_ptr<CommandLine> cl = _app.commandLine();
     bool casename_on_command_line = cl->search("nekrs_setup");
@@ -111,7 +111,11 @@ NekInitAction::act()
         "your nekRS model must include a solution for temperature.\n\nDid you forget the "
         "TEMPERATURE block in the .par file?\nNote: you can set 'solver = none' in the .par file "
         "if you don't want to solve for temperature.");
+  }
 
+  // setup actions only if couling with MOOSE or 1d thermal hydraulic code
+  if (_type == "NekRSProblem" || _type == "NekRSSeparateDomainProblem")
+  {
     // Throw an error if the user tries to allocate the scratch separately in the user files
     bool scratch_available = nekrs::scratchAvailable();
 
