@@ -77,10 +77,10 @@ protected:
   const bool & _fromNekRS_temperature;
 
   /// Boundary ID for NekRS outlet
-  const std::vector<int> * _outlet_boundary;
+  const std::vector<int> & _outlet_boundary;
 
   /// Boundary ID for NekRS inlet
-  const std::vector<int> * _inlet_boundary;
+  const std::vector<int> & _inlet_boundary;
 
   /// Velocity boundary condition coming from external App to NekRS
   const PostprocessorValue * _toNekRS_velocity = nullptr;
