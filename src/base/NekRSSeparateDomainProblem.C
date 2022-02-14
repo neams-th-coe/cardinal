@@ -36,11 +36,6 @@ InputParameters
 NekRSSeparateDomainProblem::validParams()
 {
   InputParameters params = NekRSProblemBase::validParams();
-  params.addParam<bool>("minimize_transfers_in", false, "Whether to only synchronize nekRS "
-    "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
-  params.addParam<bool>("minimize_transfers_out", false, "Whether to only synchronize nekRS "
-    "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
-  params.addParam<bool>("moving_mesh", false, "Moving mesh");
   params.addParam<bool>("toNekRS_interface", false, "External app -> NekRS interface present?");
   params.addParam<bool>("toNekRS_temperature", false, "External app -> NekRS temperature transfer?");
   params.addParam<bool>("fromNekRS_interface", false, "NekRS -> external app interface present?");
@@ -52,10 +47,7 @@ NekRSSeparateDomainProblem::validParams()
 }
 
 NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &params) : NekRSProblemBase(params),
-    _serialized_solution(NumericVector<Number>::build(_communicator).release()), 
-    _moving_mesh(getParam<bool>("moving_mesh")),
-    _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
-    _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
+    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _toNekRS(getParam<bool>("toNekRS_interface")),
     _toNekRS_temperature(getParam<bool>("toNekRS_temperature")),
     _fromNekRS(getParam<bool>("fromNekRS_interface")),
@@ -63,20 +55,21 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &pa
     _outlet_boundary(&getParam<std::vector<int>>("outlet_boundary")),
     _inlet_boundary(&getParam<std::vector<int>>("inlet_boundary"))
 {
-
   if (!_toNekRS && !_fromNekRS)
-    mooseError("This problem type needs atleast one of 'toNekRS_interface' \n", 
+    mooseError("This problem type needs atleast one of 'toNekRS_interface' \n",
     "or 'fromNekRS_interface' to be set to true.");
 
   // check outlet boundary supplied
   if (_outlet_boundary->size() != 1)
+  {
     mooseError("'outlet_boundary' can only have a single ID listed \n",
     "but 'outlet_boundary' has " + std::to_string(_outlet_boundary->size()) + " IDs listed.");
-
-  else {
+  }
+  else
+  {
     int invalid_id, n_boundaries;
     bool valid_ids = nekrs::mesh::validBoundaryIDs(*_outlet_boundary, invalid_id, n_boundaries);
-  
+
     if (!valid_ids)
       mooseError("Invalid 'outlet_boundary' entry: ", invalid_id, "\n\n"
         "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
@@ -86,13 +79,15 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &pa
 
   // check inlet boundary supplied
   if (_inlet_boundary->size() != 1)
+  {
     mooseError("'inlet_boundary' can only have a single ID listed \n",
     "but 'inlet_boundary' has " + std::to_string(_inlet_boundary->size()) + " IDs listed.");
-
-  else {
+  }
+  else
+  {
     int invalid_id, n_boundaries;
     bool valid_ids = nekrs::mesh::validBoundaryIDs(*_inlet_boundary, invalid_id, n_boundaries);
-  
+
     if (!valid_ids)
       mooseError("Invalid 'inlet_boundary' entry: ", invalid_id, "\n\n"
         "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
@@ -104,13 +99,11 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &pa
   if( std::find(_boundary->begin(), _boundary->end(), _inlet_boundary->front()) == _boundary->end() )
       mooseError("Invalid 'inlet_boundary' entry: " + Moose::stringify(*_inlet_boundary) + " \n",
       "'inlet_boundary' must be in 'boundary' supplied to NekRSMesh, but 'boundary' = " + Moose::stringify(*_boundary) + ".");
-
 }
 
 NekRSSeparateDomainProblem::~NekRSSeparateDomainProblem()
 {
   nekrs::freeScratch();
-
 }
 
 void
@@ -121,16 +114,11 @@ NekRSSeparateDomainProblem::initialSetup()
 
   NekRSProblemBase::initialSetup();
 
-  if (_minimize_transfers_in)
-    _transfer_in = &getPostprocessorValueByName("transfer_in");
-
   if (_toNekRS)
     _toNekRS_velocity = &getPostprocessorValueByName("inlet_V");
 
   if (_toNekRS_temperature)
     _toNekRS_temp = &getPostprocessorValueByName("inlet_T");
-
-
 }
 
 void NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -170,45 +158,6 @@ void NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direct
       mooseError("Unhandled 'Transfer::DIRECTION' enum!");
   }
 }
-
-bool
-NekRSSeparateDomainProblem::synchronizeIn()
-{
-  bool synchronize = true;
-  static bool first = true;
-
-  if (_minimize_transfers_in)
-  {
-    // comments from NekRSProblem
-    if (first && *_transfer_in == false)
-      mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
-        "must not be false! Make sure that the master application's "
-        "postprocessor is not zero.");
-
-    if (*_transfer_in == false)
-      synchronize = false;
-    else
-      setPostprocessorValueByName("transfer_in", false, 0);
-  }
-
-  first = false;
-  return synchronize;
-}
-
-bool
-NekRSSeparateDomainProblem::synchronizeOut()
-{
-  bool synchronize = true;
-
-  if (_minimize_transfers_out)
-  {
-    if (std::abs(_time - _dt - _transient_executioner->getTargetTime()) > _transient_executioner->timestepTol())
-      synchronize = false;
-  }
-
-  return synchronize;
-}
-
 
 void
 NekRSSeparateDomainProblem::sendBoundaryVelocityToNek()
@@ -270,14 +219,14 @@ NekRSSeparateDomainProblem::addExternalVariables()
 
   // inlet NekRS pressure
   auto pp_params = _factory.getValidParams("NekSideAverage");
-  pp_params.set<MooseEnum>("field")= "pressure"; 
+  pp_params.set<MooseEnum>("field")= "pressure";
   pp_params.set<std::vector<int>>("boundary") = *_inlet_boundary;
   pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
   addPostprocessor("NekSideAverage", "inlet_P", pp_params);
 
   // outlet NekRS pressure
   pp_params = _factory.getValidParams("NekSideAverage");
-  pp_params.set<MooseEnum>("field")= "pressure"; 
+  pp_params.set<MooseEnum>("field")= "pressure";
   pp_params.set<std::vector<int>>("boundary") = *_outlet_boundary;
   pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
   addPostprocessor("NekSideAverage", "outlet_P", pp_params);
@@ -293,7 +242,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
   if (_fromNekRS)
   {
     auto pp_params = _factory.getValidParams("NekSideAverage");
-    pp_params.set<MooseEnum>("field")= "velocity"; 
+    pp_params.set<MooseEnum>("field")= "velocity";
     pp_params.set<std::vector<int>>("boundary") = *_outlet_boundary;
     pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
     addPostprocessor("NekSideAverage", "outlet_V", pp_params);
@@ -303,7 +252,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
   if (_fromNekRS_temperature)
   {
     auto pp_params = _factory.getValidParams("NekSideAverage");
-    pp_params.set<MooseEnum>("field")= "temperature"; 
+    pp_params.set<MooseEnum>("field")= "temperature";
     pp_params.set<std::vector<int>>("boundary") = *_outlet_boundary;
     pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
     addPostprocessor("NekSideAverage", "outlet_T", pp_params);
@@ -327,7 +276,6 @@ NekRSSeparateDomainProblem::addExternalVariables()
 void
 NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity_1dCode)
 {
-
   const auto & bc = _nek_mesh->boundaryCoupling();
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
@@ -355,7 +303,6 @@ NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity_1d
 void
 NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperature_1dCode)
 {
-
   const auto & bc = _nek_mesh->boundaryCoupling();
 
   // We can only write into the nekRS scratch space if that face is "owned" by the current process

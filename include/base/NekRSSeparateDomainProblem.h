@@ -69,20 +69,6 @@ public:
 
   virtual void addExternalVariables() override;
 
-  /**
- * Whether data should be synchronized in to nekRS
- * \return whether inward data synchronization should occur
- */
-  virtual bool synchronizeIn();
-
-  /**
- * Whether data should be synchronized out of nekRS
- * \return whether outward data synchronization should occur
- */
-  virtual bool synchronizeOut();
-
-
-
   virtual bool movingMesh() const override { return _moving_mesh; }
 
 protected:
@@ -90,10 +76,6 @@ protected:
 
   /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
   const bool & _moving_mesh;
-
-  const bool & _minimize_transfers_in;
-
-  const bool & _minimize_transfers_out;
 
   /**
    * Send velocity from 1d system code to the nekRS mesh

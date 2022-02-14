@@ -78,7 +78,7 @@ public:
    * Whether the mesh is moving
    * @return whether the mesh is moving
    */
-  virtual bool movingMesh() const = 0;
+  virtual bool movingMesh() const { return false; }
 
   /**
    * Whether data should be synchronized in to nekRS
