@@ -33,28 +33,29 @@ InputParameters
 NekRSSeparateDomainProblem::validParams()
 {
   InputParameters params = NekRSProblemBase::validParams();
-  params.addParam<bool>("toNekRS_interface", false, "External app -> NekRS interface present?");
-  params.addParam<bool>("toNekRS_temperature", false, "External app -> NekRS temperature transfer?");
-  params.addParam<bool>("fromNekRS_interface", false, "NekRS -> external app interface present?");
-  params.addParam<bool>("fromNekRS_temperature", false, "NekRS -> external app temperature transfer?");
+
+  MultiMooseEnum coupling_types("inlet outlet");
+  params.addRequiredParam<MultiMooseEnum>("coupling_type", coupling_types,
+    "NekRS boundary types to couple to a 1-D T/H code");
+
   params.addRequiredParam<std::vector<int>>("outlet_boundary", "NekRS outlet boundary ID");
   params.addRequiredParam<std::vector<int>>("inlet_boundary", "NekRS inlet boundary ID");
-
   return params;
 }
 
 NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters &params) : NekRSProblemBase(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _toNekRS(getParam<bool>("toNekRS_interface")),
-    _toNekRS_temperature(getParam<bool>("toNekRS_temperature")),
-    _fromNekRS(getParam<bool>("fromNekRS_interface")),
-    _fromNekRS_temperature(getParam<bool>("fromNekRS_temperature")),
+    _coupling_type(getParam<MultiMooseEnum>("coupling_type")),
     _outlet_boundary(getParam<std::vector<int>>("outlet_boundary")),
     _inlet_boundary(getParam<std::vector<int>>("inlet_boundary"))
 {
-  if (!_toNekRS && !_fromNekRS)
-    mooseError("This problem type needs atleast one of 'toNekRS_interface' \n",
-    "or 'fromNekRS_interface' to be set to true.");
+  for (const auto & c : _coupling_type)
+  {
+    if (c == "inlet")
+      _inlet_coupling = true;
+    if (c == "outlet")
+      _outlet_coupling = true;
+  }
 
   // check outlet boundary supplied
   if (_outlet_boundary.size() != 1)
@@ -111,11 +112,13 @@ NekRSSeparateDomainProblem::initialSetup()
 
   NekRSProblemBase::initialSetup();
 
-  if (_toNekRS)
+  if (_inlet_coupling)
+  {
     _toNekRS_velocity = &getPostprocessorValueByName("inlet_V");
 
-  if (_toNekRS_temperature)
-    _toNekRS_temp = &getPostprocessorValueByName("inlet_T");
+    if (nekrs::hasTemperatureSolve())
+      _toNekRS_temp = &getPostprocessorValueByName("inlet_T");
+  }
 }
 
 void NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -130,11 +133,13 @@ void NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direct
       if (!synchronizeIn())
         return;
 
-      if (_toNekRS)
+      if (_inlet_coupling)
+      {
         sendBoundaryVelocityToNek();
 
-      if (_toNekRS_temperature)
-        sendBoundaryTemperatureToNek();
+        if (nekrs::hasTemperatureSolve())
+          sendBoundaryTemperatureToNek();
+      }
 
       // copy scratch to device
       nekrs::copyScratchToDevice();
@@ -229,37 +234,34 @@ NekRSSeparateDomainProblem::addExternalVariables()
   addPostprocessor("ParsedPostprocessor", "dP", pp_params);
 
   // NekRS -> 1d code, velocity interface
-  if (_fromNekRS)
+  if (_outlet_coupling)
   {
     auto pp_params = _factory.getValidParams("NekSideAverage");
     pp_params.set<MooseEnum>("field")= "velocity";
     pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
     pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
     addPostprocessor("NekSideAverage", "outlet_V", pp_params);
-  }
 
-  // NekRS -> 1d code, temperature interface
-  if (_fromNekRS_temperature)
-  {
-    auto pp_params = _factory.getValidParams("NekSideAverage");
-    pp_params.set<MooseEnum>("field")= "temperature";
-    pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
-    pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
-    addPostprocessor("NekSideAverage", "outlet_T", pp_params);
+    // NekRS -> 1d code, temperature interface
+    if (nekrs::hasTemperatureSolve())
+    {
+      auto pp_params = _factory.getValidParams("NekSideAverage");
+      pp_params.set<MooseEnum>("field")= "temperature";
+      pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
+      pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+      addPostprocessor("NekSideAverage", "outlet_T", pp_params);
+    }
   }
 
   // 1d code -> NekRS, velocity interface
-  if (_toNekRS)
+  if (_inlet_coupling)
   {
     auto pp_params = _factory.getValidParams("Receiver");
     addPostprocessor("Receiver", "inlet_V", pp_params);
-  }
 
-  // 1d code -> NekRS, temperature interface
-  if (_toNekRS_temperature)
-  {
-    auto pp_params = _factory.getValidParams("Receiver");
-    addPostprocessor("Receiver", "inlet_T", pp_params);
+    // 1d code -> NekRS, temperature interface
+    if (nekrs::hasTemperatureSolve())
+      addPostprocessor("Receiver", "inlet_T", pp_params);
   }
 }
 

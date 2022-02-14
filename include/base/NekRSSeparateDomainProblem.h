@@ -70,17 +70,20 @@ protected:
    */
   void temperature(const int elem_id, const double temperature);
 
-  /// Specify type of interfaces present for ExternalApp-NekRS coupling
-  const bool & _toNekRS;
-  const bool & _toNekRS_temperature;
-  const bool & _fromNekRS;
-  const bool & _fromNekRS_temperature;
+  /// Type of coupling to apply to NekRS
+  const MultiMooseEnum _coupling_type;
 
   /// Boundary ID for NekRS outlet
   const std::vector<int> & _outlet_boundary;
 
   /// Boundary ID for NekRS inlet
   const std::vector<int> & _inlet_boundary;
+
+  /// Whether the NekRS inlet boundary is fed BCs from a coupled MOOSE app
+  bool _inlet_coupling;
+
+  /// Whether the NekRS outlet boundary feeds BCs to a coupled MOOSE app
+  bool _outlet_coupling;
 
   /// Velocity boundary condition coming from external App to NekRS
   const PostprocessorValue * _toNekRS_velocity = nullptr;
