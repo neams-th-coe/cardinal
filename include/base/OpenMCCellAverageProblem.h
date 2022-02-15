@@ -101,7 +101,7 @@ public:
    * @param[in] point
    * @return transformed point
    */
-  virtual Point transformPoint(const Point & pt, bool scale=false) const {
+  virtual Point transformPoint(const Point & pt) const {
     return this->hasPointTransformations() ? _symmetry->transformPoint(pt) : pt;
   }
 
