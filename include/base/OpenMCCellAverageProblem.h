@@ -99,8 +99,25 @@ public:
   /**
    * Apply transformations to point
    * @param[in] point
+   * @return transformed point
    */
-  virtual Point transformPoint(const Point & pt) const { return _symmetry->transformPoint(pt); }
+  virtual Point transformPoint(const Point & pt) const {
+    return this->hasPointTransformations() ? _symmetry->transformPoint(pt) : pt;
+  }
+
+  /**
+   * Apply transformations and scale point from MOOSE into the OpenMC domain
+   * @param[in] point
+   * @return transformed point
+   */
+  Point transformPointToOpenMC(const Point & pt) const {
+    Point pnt_out = transformPoint(pt);
+
+    // scale point to OpenMC domain
+    pnt_out *= _scaling;
+
+    return pnt_out;
+  }
 
   /**
    * This class uses elem->volume() in order to normalize the fission power produced
@@ -258,9 +275,10 @@ protected:
   /**
    * Fill the cached contained cells data structure for a given cell
    * @param[in] cell_info cell to find contained material cells for
+   * @param[in] hint location hint used to accelerate the search
    * @param[out] map contained cell map
    */
-  void setContainedCells(const cellInfo & cell_info, std::map<cellInfo, containedCells> & map);
+  void setContainedCells(const cellInfo & cell_info, const Point& hint, std::map<cellInfo, containedCells> & map);
 
   /**
    * Check that the structure of the contained material cells for two tally cells matches;
