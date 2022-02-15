@@ -930,9 +930,11 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 }
 
 void
-OpenMCCellAverageProblem::setContainedCells(const cellInfo & cell_info, std::map<cellInfo, containedCells> & map)
+OpenMCCellAverageProblem::setContainedCells(const cellInfo & cell_info, const Point& hint, std::map<cellInfo, containedCells> & map)
 {
   containedCells contained_cells;
+
+  openmc::Position p{hint(0), hint(1), hint(2)};
 
   const auto & cell = openmc::model::cells[cell_info.first];
   if (cell->type_ == openmc::Fill::MATERIAL)
@@ -941,7 +943,7 @@ OpenMCCellAverageProblem::setContainedCells(const cellInfo & cell_info, std::map
     contained_cells[cell_info.first] = instances;
   }
   else
-    contained_cells = cell->get_contained_cells(cell_info.second);
+    contained_cells = cell->get_contained_cells(cell_info.second, &p);
 
   map[cell_info] = contained_cells;
 }
@@ -955,9 +957,10 @@ OpenMCCellAverageProblem::cacheContainedCells()
   // just compute and then exit
   if (!_identical_tally_cell_fills)
   {
-    for (const auto & c : _cell_to_elem)
-      setContainedCells(c.first, _cell_to_contained_material_cells);
-
+    for (const auto & c : _cell_to_elem) {
+      const Point& p = _mesh.elemPtr(c.second[0])->vertex_average();
+      setContainedCells(c.first, transformPointToOpenMC(p), _cell_to_contained_material_cells);
+    }
     return;
   }
 
@@ -971,33 +974,35 @@ OpenMCCellAverageProblem::cacheContainedCells()
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
+    const auto* elem = _mesh.elemPtr(c.second[0]);
+    // use an element position to speed up openmc::Cell::get_contained_cells calls
+    Point hint = transformPointToOpenMC(elem->vertex_average());
 
     // if the cell doesn't have a tally, default to normal behavior
     if (!_cell_has_tally[cell_info])
-      setContainedCells(cell_info, _cell_to_contained_material_cells);
+      setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
     else
     {
       const auto & cell = openmc::model::cells[cell_info.first];
       if (cell->type_ == openmc::Fill::MATERIAL)
       {
         // behavior is the same for material-filled cells
-        setContainedCells(cell_info, _cell_to_contained_material_cells);
+        setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
       }
       else
       {
         if (first_tally_cell)
         {
-          first_tally_cell_cc = cell->get_contained_cells(cell_info.second);
-          _cell_to_contained_material_cells[cell_info] = first_tally_cell_cc;
+          setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
+          first_tally_cell_cc = _cell_to_contained_material_cells[cell_info];
           first_tally_cell = false;
           second_tally_cell = true;
         }
         else if (second_tally_cell)
         {
           n++;
-
-          second_tally_cell_cc = cell->get_contained_cells(cell_info.second);
-          _cell_to_contained_material_cells[cell_info] = second_tally_cell_cc;
+          setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
+          second_tally_cell_cc = _cell_to_contained_material_cells[cell_info];
           second_tally_cell = false;
 
           // we will check for equivalence in the end mapping later; but here we still need
@@ -1051,8 +1056,10 @@ OpenMCCellAverageProblem::cacheContainedCells()
     TIME_SECTION("verifyCacheContainedCells", 4, "Verifying Cached Contained Cells", true);
 
     std::map<cellInfo, containedCells> checking_cell_fills;
-    for (const auto & c : _cell_to_elem)
-      setContainedCells(c.first, checking_cell_fills);
+    for (const auto & c : _cell_to_elem) {
+      const Point& p = _mesh.elemPtr(c.second[0])->vertex_average();
+      setContainedCells(c.first, transformPointToOpenMC(p), checking_cell_fills);
+    }
 
     std::map<cellInfo, containedCells> ordered_reference(checking_cell_fills.begin(), checking_cell_fills.end());
     std::map<cellInfo, containedCells> ordered(_cell_to_contained_material_cells.begin(), _cell_to_contained_material_cells.end());
@@ -1486,12 +1493,9 @@ OpenMCCellAverageProblem::findCell(const Point & point)
   _particle.clear();
   _particle.u() = {0., 0., 1.};
 
-  Point pt = point;
+  Point pt = transformPointToOpenMC(point);
 
-  if (_symmetry)
-    pt = _symmetry->transformPoint(pt);
-
-  _particle.r() = {pt(0) * _scaling, pt(1) * _scaling, pt(2) * _scaling};
+  _particle.r() = {pt(0), pt(1), pt(2)};
   return !openmc::exhaustive_find_cell(_particle);
 }
 
