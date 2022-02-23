@@ -167,13 +167,6 @@ N = 1000
     direction = from_multiapp
     multi_app = bison
   []
-  [fluid_temp_to_openmc]
-    type = MultiAppInterpolationTransfer
-    source_variable = nek_bulk_temp
-    variable = nek_temp
-    direction = from_multiapp
-    multi_app = bison
-  []
   [source_to_bison]
     type = MultiAppMeshFunctionTransfer
     source_variable = heat_source
@@ -183,7 +176,6 @@ N = 1000
     from_postprocessors_to_be_preserved = heat_source
     to_postprocessors_to_be_preserved = power
   []
-
   [temp_from_nek]
     type = MultiAppMeshFunctionTransfer
     source_variable = nek_bulk_temp
