@@ -23,8 +23,11 @@
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/geometry.h"
+#include "openmc/hdf5_interface.h"
 #include "openmc/mesh.h"
 #include "openmc/settings.h"
+#include "openmc/source.h"
+#include "openmc/state_point.h"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -44,6 +47,9 @@ OpenMCProblemBase::validParams()
     "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>("batches", "batches > 0",
     "Number of batches to run in OpenMC; this overrides the setting in the XML files.");
+
+  params.addParam<bool>("reuse_source", false, "Whether to take the initial fission source "
+    "for interation n to be the converged source bank from iteration n-1");
   return params;
 }
 
@@ -51,8 +57,10 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
   ExternalProblem(params),
   _power(getParam<Real>("power")),
   _verbose(getParam<bool>("verbose")),
+  _reuse_source(getParam<bool>("reuse_source")),
   _single_coord_level(openmc::model::n_coord_levels == 1),
-  _fixed_point_iteration(-1)
+  _fixed_point_iteration(-1),
+  _path_output(openmc::settings::path_output)
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -175,6 +183,15 @@ OpenMCProblemBase::externalSolve()
   TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
   _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
+  bool first_iteration = _fixed_point_iteration < 0;
+
+  // apply a new starting fission source
+  if (_reuse_source && !first_iteration)
+  {
+    openmc::free_memory_source();
+    openmc::model::external_sources.push_back(std::make_unique<openmc::FileSource>(sourceBankFileName()));
+  }
+
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
@@ -184,4 +201,17 @@ OpenMCProblemBase::externalSolve()
     mooseError(openmc_err_msg);
 
   _fixed_point_iteration += 1;
+
+  // save the latest fission source for re-use in the next iteration
+  if (_reuse_source)
+    writeSourceBank(sourceBankFileName());
+}
+
+void
+OpenMCProblemBase::writeSourceBank(const std::string & filename)
+{
+  hid_t file_id = openmc::file_open(filename, 'w', true);
+  openmc::write_attribute(file_id, "filetype", "source");
+  openmc::write_source_bank(file_id, false);
+  openmc::file_close(file_id);
 }

@@ -1586,10 +1586,12 @@ void OpenMCCellAverageProblem::addExternalVariables()
 
 void OpenMCCellAverageProblem::externalSolve()
 {
+  bool first_iteration = _fixed_point_iteration < 0;
+
   // if using Dufek-Gudowski acceleration and this is not the first iteration, update
   // the number of particles; we put this here so that changing the number of particles
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
-  if (_relaxation == relaxation::dufek_gudowski && _fixed_point_iteration >= 0)
+  if (_relaxation == relaxation::dufek_gudowski && !first_iteration)
     dufekGudowskiParticleUpdate();
 
   OpenMCProblemBase::externalSolve();
