@@ -6,6 +6,7 @@
                  "by a factor of 0.01.\n"
                  "Did you forget that the 'mesh_template' must be in the same units as the [Mesh]?"
     requirement = "The system shall error if the mesh template is not provided in the same units as the [Mesh]."
+    required_objects = 'OpenMCProblemBase'
   []
   [incorrect_order]
     type = RunException
@@ -15,6 +16,7 @@
                  "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "the order of mesh translations does not match the order of inputs in a CombinerGenerator."
+    required_objects = 'OpenMCProblemBase'
   []
   [incorrect_file]
     type = RunException
@@ -24,5 +26,6 @@
                  "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "a totally different mesh is used (pincell versus pebbles)."
+    required_objects = 'OpenMCProblemBase'
   []
 []

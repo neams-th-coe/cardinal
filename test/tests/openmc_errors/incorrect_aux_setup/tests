@@ -5,6 +5,7 @@
     expect_err = "This auxkernel can only be used with problems of type 'OpenMCCellAverageProblem'!"
     requirement = "The system shall error if an auxkernel that queries OpenMC data structures is not used "
                   "with the correct problem type."
+    required_objects = 'OpenMCProblemBase'
   []
   [incorrect_var_type]
     type = RunException
@@ -12,5 +13,6 @@
     expect_err = "This auxkernel can only be used with elemental variables!"
     requirement = "The system shall error if an auxkernel that queries OpenMC data structures is not used "
                   "with the correct auxvariable type."
+    required_objects = 'OpenMCProblemBase'
   []
 []

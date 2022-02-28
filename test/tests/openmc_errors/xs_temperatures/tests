@@ -6,6 +6,7 @@
                  "Temperature is below minimum temperature at which data is available."
     requirement = "The system shall error if we attempt to set a temperature in OpenMC below the "
                   "lower bound of available data when using the interpolation method."
+    required_objects = 'OpenMCProblemBase'
   []
   [interpolation_max]
     type = RunException
@@ -14,5 +15,6 @@
                  "Temperature is above maximum temperature at which data is available."
     requirement = "The system shall error if we attempt to set a temperature in OpenMC above the "
                   "upper bound of available data when using the interpolation method."
+    required_objects = 'OpenMCProblemBase'
   []
 []
