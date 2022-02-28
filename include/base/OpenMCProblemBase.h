@@ -80,6 +80,12 @@ public:
    */
   void writeSourceBank(const std::string & filename);
 
+  /**
+   * Get the path output
+   * @return path output
+   */
+  std::string pathOutput() const { return _path_output; }
+
 protected:
   /**
    * Set an auxiliary elemental variable to a specified value

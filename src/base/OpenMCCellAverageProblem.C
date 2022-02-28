@@ -1284,7 +1284,10 @@ OpenMCCellAverageProblem::storeTallyCells()
 
       if (_check_equal_mapped_tally_volumes)
       {
-        if (std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]) / mapped_tally_volume > 1e-3)
+        Real diff = std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]);
+        bool absolute_diff = diff > 1e-6;
+        bool relative_diff = diff / mapped_tally_volume > 1e-3;
+        if (absolute_diff && relative_diff)
         {
           std::stringstream msg;
           msg << "Detected un-equal mapped tally volumes!\n cell " <<
