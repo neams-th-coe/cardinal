@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekUserObject.h"
 
 InputParameters
@@ -47,3 +49,5 @@ NekUserObject::checkValidField(const field::NekFieldEnum & field) const
     mooseError("This user object cannot set 'field = temperature' "
       "because your Nek case files do not have a temperature variable!");
 }
+
+#endif

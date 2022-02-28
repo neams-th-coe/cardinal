@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekRSSeparateDomainProblem.h"
 #include "Moose.h"
 #include "AuxiliarySystem.h"
@@ -318,3 +320,5 @@ NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperat
     }
   }
 }
+
+#endif

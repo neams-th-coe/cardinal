@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekMeshInfoPostprocessor.h"
 #include "SubProblem.h"
 #include "MooseMesh.h"
@@ -110,3 +112,5 @@ NekMeshInfoPostprocessor::getValue()
   else
     mooseError("Unhandled 'test_type' enum!");
 }
+
+#endif

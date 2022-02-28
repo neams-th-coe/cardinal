@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekRSProblemBase.h"
 #include "Moose.h"
 #include "AuxiliarySystem.h"
@@ -756,3 +758,5 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id, const field::NekWriteEn
     freePointer(tmp);
   }
 }
+
+#endif

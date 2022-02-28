@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekBinnedPlaneIntegral.h"
 #include "NekInterface.h"
 
@@ -164,3 +166,5 @@ NekBinnedPlaneIntegral::execute()
   for (unsigned int i = 0; i < _n_bins; ++i)
     _bin_values[i] /= _gap_thickness;
 }
+
+#endif

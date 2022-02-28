@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekInterface.h"
 #include "CardinalUtils.h"
 
@@ -1357,3 +1359,5 @@ MPI_Datatype resolveType<int>()
 }
 
 } // end namespace nekrs
+
+#endif

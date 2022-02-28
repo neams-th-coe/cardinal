@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekVolumeIntegral.h"
 
 registerMooseObject("CardinalApp", NekVolumeIntegral);
@@ -52,3 +54,5 @@ NekVolumeIntegral::getValue()
 
   return nekrs::volumeIntegral(_field, _volume);
 }
+
+#endif

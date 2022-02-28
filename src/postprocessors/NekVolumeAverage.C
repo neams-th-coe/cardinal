@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekVolumeAverage.h"
 
 registerMooseObject("CardinalApp", NekVolumeAverage);
@@ -38,3 +40,5 @@ NekVolumeAverage::getValue()
 {
   return NekVolumeIntegral::getValue() / _volume;
 }
+
+#endif

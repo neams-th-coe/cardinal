@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekBinnedSideIntegral.h"
 #include "NekInterface.h"
 
@@ -140,3 +142,5 @@ NekBinnedSideIntegral::execute()
 {
   computeIntegral();
 }
+
+#endif

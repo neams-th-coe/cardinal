@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekVolumeExtremeValue.h"
 #include "NekInterface.h"
 
@@ -54,3 +56,5 @@ NekVolumeExtremeValue::getValue()
       mooseError("Unhandled 'OperationEnum'!");
   }
 }
+
+#endif

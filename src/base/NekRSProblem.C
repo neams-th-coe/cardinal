@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekRSProblem.h"
 #include "Moose.h"
 #include "AuxiliarySystem.h"
@@ -685,3 +687,4 @@ NekRSProblem::flux(const int elem_id, double * flux_face)
   }
 }
 
+#endif

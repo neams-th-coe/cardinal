@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSideIntegral.h"
 
 registerMooseObject("CardinalApp", NekSideIntegral);
@@ -47,3 +49,5 @@ NekSideIntegral::getValue()
 
   return nekrs::sideIntegral(_boundary, _field);
 }
+
+#endif

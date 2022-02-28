@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSyntax.h"
 #include "ActionFactory.h"
 #include "Syntax.h"
@@ -31,3 +33,5 @@ associateSyntax(Syntax & syntax, ActionFactory & /*action_factory*/)
 }
 
 }
+
+#endif

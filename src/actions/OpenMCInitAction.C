@@ -20,6 +20,7 @@
 #include "openmc/capi.h"
 #include "openmc/settings.h"
 #include "openmc/geometry_aux.h"
+
 registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 
 InputParameters

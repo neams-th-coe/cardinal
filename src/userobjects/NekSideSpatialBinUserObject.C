@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSideSpatialBinUserObject.h"
 #include "PlaneSpatialBinUserObject.h"
 
@@ -50,3 +52,5 @@ NekSideSpatialBinUserObject::nekPoint(const int & local_elem_id, const int & loc
   else
     return nekrs::centroidFace(local_elem_id, local_face_id);
 }
+
+#endif

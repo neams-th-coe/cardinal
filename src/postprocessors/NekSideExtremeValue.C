@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSideExtremeValue.h"
 
 registerMooseObject("CardinalApp", NekSideExtremeValue);
@@ -53,3 +55,5 @@ NekSideExtremeValue::getValue()
       mooseError("Unhandled 'OperationEnum'!");
   }
 }
+
+#endif

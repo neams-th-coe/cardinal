@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSideAverage.h"
 
 registerMooseObject("CardinalApp", NekSideAverage);
@@ -41,3 +43,5 @@ NekSideAverage::getValue()
   Real area = _fixed_mesh ? _area : nekrs::area(_boundary);
   return NekSideIntegral::getValue() / area;
 }
+
+#endif
