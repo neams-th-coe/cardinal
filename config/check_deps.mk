@@ -13,8 +13,10 @@ ifeq ($(ENABLE_NEK), yes)
   endif
 endif
 
-ifeq ($(OPENMC_CONTENT),)
-  $(error $n"OpenMC does not seem to be available. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts-get-dependencies.sh")
+ifeq ($(ENABLE_OPENMC), yes)
+  ifeq ($(OPENMC_CONTENT),)
+    $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts-get-dependencies.sh")
+  endif
 endif
 
 # We can check that if it looks like we're going to build Sockeye, that
