@@ -1,5 +1,5 @@
 [Tests]
-  [./nonzero_start_time]
+  [nonzero_start_time]
     type = RunException
     input = nek.i
 
@@ -8,5 +8,6 @@
 
     expect_err = "You specified a start time of 2, but a non-zero start time is not yet supported for 'NekRSProblem'!"
     requirement = "The system shall error if a nonzero start time is specified on the Executioner"
-  [../]
+    required_objects = 'NekRSProblemBase'
+  []
 []

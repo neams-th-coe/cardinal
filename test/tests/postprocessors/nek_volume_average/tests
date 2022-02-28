@@ -14,6 +14,7 @@
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close. This input also "
                   "confirms that the case name can still be passed on the command line."
+    required_objects = 'NekRSProblemBase'
   []
   [zero_direction_vector]
     type = RunException
@@ -21,5 +22,6 @@
     cli_args = "Postprocessors/velocity_component/velocity_direction='0.0 0.0 0.0' --nekrs-setup pyramid "
     expect_err = "The 'velocity_direction' vector cannot be the zero-vector!"
     requirement = "System shall error if direction vector has zero length."
+    required_objects = 'NekRSProblemBase'
   []
 []
