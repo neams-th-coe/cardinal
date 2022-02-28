@@ -22,9 +22,9 @@
 #
 # ======================================================================================
 
-# Whether you want to build with NekRS; if not set to 'yes', then you will only
-# build the OpenMC wrapping portion of Cardinal
-ENABLE_NEK        := yes
+# Whether you want to build with NekRS; if not set to 'yes', then you will skip
+# the Nek part of Cardinal
+ENABLE_NEK        ?= yes
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
