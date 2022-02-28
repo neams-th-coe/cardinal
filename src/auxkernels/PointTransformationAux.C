@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "PointTransformationAux.h"
 
 registerMooseObject("CardinalApp", PointTransformationAux);
@@ -50,3 +52,5 @@ PointTransformationAux::computeValue()
 
   return pt(_d);
 }
+
+#endif

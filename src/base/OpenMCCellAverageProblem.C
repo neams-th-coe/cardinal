@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "OpenMCCellAverageProblem.h"
 #include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"
@@ -2242,3 +2244,5 @@ OpenMCCellAverageProblem::extractOutputs()
     }
   }
 }
+
+#endif

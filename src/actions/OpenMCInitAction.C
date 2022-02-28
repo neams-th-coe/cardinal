@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "OpenMCInitAction.h"
 #include "openmc/capi.h"
 #include "openmc/settings.h"
@@ -57,3 +59,5 @@ OpenMCInitAction::act()
     }
   }
 }
+
+#endif

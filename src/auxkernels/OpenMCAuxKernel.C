@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "OpenMCAuxKernel.h"
 
 InputParameters OpenMCAuxKernel::validParams()
@@ -42,3 +44,5 @@ OpenMCAuxKernel::mappedElement()
   OpenMCCellAverageProblem::cellInfo cell_info = _openmc_problem->elemToCellInfo(_current_elem->id());
   return !(cell_info.first == OpenMCCellAverageProblem::UNMAPPED);
 }
+
+#endif
