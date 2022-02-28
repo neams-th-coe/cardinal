@@ -7,8 +7,10 @@ ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
 endif
 
-ifeq ($(NEKRS_CONTENT),)
-  $(error $n"NekRS does not seem to be available. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
+ifeq ($(ENABLE_NEK), yes)
+  ifeq ($(NEKRS_CONTENT),)
+    $(error $n"NekRS does not seem to be available, but ENABLE_NEK is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
+  endif
 endif
 
 ifeq ($(OPENMC_CONTENT),)

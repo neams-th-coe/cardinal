@@ -5,6 +5,7 @@
     min_parallel = 4
     requirement = "Cardinal shall be able to run NekRS and output a time history of its solution "
                   "onto a mesh mirror."
+    required_objects = 'NekRSProblemBase'
   []
   [load_nek]
     type = Exodiff
@@ -12,5 +13,6 @@
     exodiff = load_nek_out.e
     prereq = run_nek
     requirement = "Cardinal shall be able to load a time history of a NekRS solution."
+    required_objects = 'NekRSProblemBase'
   []
 []

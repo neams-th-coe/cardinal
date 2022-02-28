@@ -5,7 +5,6 @@
     expect_err = "Invalid 'boundary' entry: 5"
     requirement = "The system shall error if an invalid boundary ID is specified"
     required_objects = 'NekRSProblemBase'
-    required_objects = 'NekRSProblemBase'
   []
   [z_bins]
     type = Exodiff

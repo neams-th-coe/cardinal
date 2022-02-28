@@ -22,6 +22,10 @@
 #
 # ======================================================================================
 
+# Whether you want to build with NekRS; if not set to 'yes', then you will only
+# build the OpenMC wrapping portion of Cardinal
+ENABLE_NEK        := yes
+
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
 HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
@@ -122,7 +126,12 @@ OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
 # This is used in $(FRAMEWORK_DIR)/build.mk
 HDF5_INCLUDES       := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
-ADDITIONAL_CPPFLAGS := $(HDF5_INCLUDES) $(OPENMC_INCLUDES) $(NEKRS_INCLUDES)
+ADDITIONAL_CPPFLAGS := $(HDF5_INCLUDES) $(OPENMC_INCLUDES)
+
+ifeq ($(ENABLE_NEK), yes)
+  ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
+  libmesh_CXXFLAGS    += -DENABLE_NEK_COUPLING
+endif
 
 # ======================================================================================
 # PETSc
@@ -233,7 +242,15 @@ BUILD_EXEC         := yes
 GEN_REVISION       := no
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 
-include            $(CARDINAL_DIR)/config/nekrs.mk
+ifeq ($(ENABLE_NEK), yes)
+  include            $(CARDINAL_DIR)/config/nekrs.mk
+else
+
+build_nekrs:
+	echo "Skipping Nek build because ENABLE_NEK is not set to 'yes'"
+
+endif
+
 include            $(CARDINAL_DIR)/config/openmc.mk
 
 # ======================================================================================
@@ -244,15 +261,18 @@ include            $(CARDINAL_DIR)/config/openmc.mk
 # CC_LINKER_SLFLAG is from petscvariables
 ADDITIONAL_LIBS := \
 	-L$(CARDINAL_DIR)/lib \
-	-L$(NEKRS_LIBDIR) \
 	-L$(OPENMC_LIBDIR) \
-	-lnekrs \
 	-lopenmc \
-	-locca \
 	-lhdf5_hl \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
-	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
 	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+
+ifeq ($(ENABLE_NEK), yes)
+  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) \
+                     -lnekrs \
+	                   -locca \
+                     $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+endif
 
 include            $(FRAMEWORK_DIR)/app.mk
 
@@ -263,17 +283,20 @@ $(test_objects): build_nekrs build_openmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \
-	-L$(NEKRS_LIBDIR) \
 	-L$(OPENMC_LIBDIR) \
 	-L$(HDF5_LIBDIR) \
-	-lnekrs \
 	-lopenmc \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
-	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
 	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	$(CC_LINKER_SLFLAG)$(HDF5_LIBDIR) \
 	$(BLASLAPACK_LIB) \
 	$(PETSC_EXTERNAL_LIB_BASIC)
+
+ifeq ($(ENABLE_NEK), yes)
+  CARDINAL_EXTERNAL_FLAGS += -L$(NEKRS_LIBDIR) \
+                             -lnekrs \
+                             $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+endif
 
 # EXTERNAL_FLAGS are for rules in app.mk
 $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
