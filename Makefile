@@ -128,17 +128,6 @@ OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
 # This is used in $(FRAMEWORK_DIR)/build.mk
 HDF5_INCLUDES       := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
-ADDITIONAL_CPPFLAGS :=
-
-ifeq ($(ENABLE_NEK), yes)
-  ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
-  libmesh_CXXFLAGS    += -DENABLE_NEK_COUPLING
-endif
-
-ifeq ($(ENABLE_OPENMC), yes)
-  ADDITIONAL_CPPFLAGS += $(HDF5_INCLUDES) $(OPENMC_INCLUDES)
-  libmesh_CXXFLAGS    += -DENABLE_OPENMC_COUPLING
-endif
 
 # ======================================================================================
 # PETSc
@@ -222,6 +211,18 @@ ifneq ($(IAPWS95_CONTENT),)
   include             $(IAPWS95_DIR)/libSBTL.mk
 endif
 
+ADDITIONAL_CPPFLAGS :=
+
+ifeq ($(ENABLE_NEK), yes)
+  ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
+  libmesh_CXXFLAGS    += -DENABLE_NEK_COUPLING
+endif
+
+ifeq ($(ENABLE_OPENMC), yes)
+  ADDITIONAL_CPPFLAGS += $(HDF5_INCLUDES) $(OPENMC_INCLUDES)
+  libmesh_CXXFLAGS    += -DENABLE_OPENMC_COUPLING
+endif
+
 # ======================================================================================
 # External apps
 # ======================================================================================
@@ -273,22 +274,14 @@ endif
 
 # ADDITIONAL_LIBS are used for linking in app.mk
 # CC_LINKER_SLFLAG is from petscvariables
-ADDITIONAL_LIBS := \
-	-L$(CARDINAL_DIR)/lib \
-	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib
+ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib
 
 ifeq ($(ENABLE_NEK), yes)
-  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) \
-                     -lnekrs \
-	                   -locca \
-                     $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) -lnekrs -locca $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
-  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) \
-                     -lopenmc \
-                     -lhdf5_hl \
-                     $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 endif
 
 include            $(FRAMEWORK_DIR)/app.mk
@@ -305,15 +298,11 @@ CARDINAL_EXTERNAL_FLAGS := \
 	$(PETSC_EXTERNAL_LIB_BASIC)
 
 ifeq ($(ENABLE_NEK), yes)
-  CARDINAL_EXTERNAL_FLAGS += -L$(NEKRS_LIBDIR) \
-                             -lnekrs \
-                             $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+  CARDINAL_EXTERNAL_FLAGS += -L$(NEKRS_LIBDIR) -lnekrs $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
-  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) \
-	                           -L$(HDF5_LIBDIR) \
-	                           -lopenmc \
+  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc \
 	                           $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
 endif

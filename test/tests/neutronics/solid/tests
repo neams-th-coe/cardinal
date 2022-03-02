@@ -13,7 +13,7 @@
                   "simulation of the same problem with zero heat source. The gold file was "
                   "created with the zero_power.i input file, which does not have OpenMC as "
                   "a sub-app."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [three_pebbles]
     type = Exodiff
@@ -26,7 +26,7 @@
     max_parallel = 6
     requirement = "A coupled OpenMC-MOOSE problem for three pebbles shall demonstrate "
                   "correct data transfers between OpenMC and heat conduction in the solid."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [missing_pebble]
     type = RunException
@@ -34,6 +34,6 @@
     min_parallel = 4
     min_threads = 2
     expect_err = "Heating tally kappa-fission does not match the global kappa-fission value"
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

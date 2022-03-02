@@ -8,6 +8,6 @@
     requirement = "The system shall print a warning if both volume and boundary mesh mirror information "
                   "is set on NekRSStandaloneProblem, since the combined specification of these quantities "
                   "for NekRSMesh is exclusively used for CHT coupling + volume coupling."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
 []

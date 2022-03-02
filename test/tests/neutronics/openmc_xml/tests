@@ -10,7 +10,7 @@
                   "While the XML files set 100 particles, we change the number of particles to 200 in "
                   "the Cardinal input file, and compare the eigenvalue against a standalone OpenMC run "
                   "(with 'openmc --particles 200') to ensure correctness."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [inactive]
     type = CSVDiff
@@ -23,7 +23,7 @@
                   "While the XML files set 10 inactive batches, we change the number of inactive batches to 20 in "
                   "the Cardinal input file, and compare the eigenvalue against a standalone OpenMC run "
                   "(with 20 inactive batches) to ensure correctness."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [batches]
     type = CSVDiff
@@ -36,6 +36,6 @@
                   "While the XML files set 50 batches, we change the number of batches to 60 in "
                   "the Cardinal input file, and compare the eigenvalue against a standalone OpenMC run "
                   "(with 60 batches) to ensure correctness."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

@@ -7,6 +7,6 @@
                   "and MOOSE and a solid pincell model when the model is set up with distributed cells. "
                   "The solution for temperature, density, and heat source show an exact agreement with "
                   "a case built without distributed cells in ../single_level."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

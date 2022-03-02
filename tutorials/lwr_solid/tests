@@ -6,7 +6,7 @@
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with cell tallies."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [lwr_pincell_mesh]
     type = RunApp
@@ -15,6 +15,6 @@
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with an unstructured mesh tally."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

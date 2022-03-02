@@ -5,6 +5,6 @@
     requirement = "Cardinal shall be able to run THM as a sub-application without any data transfers. "
                   "This test just ensures correct setup of THM as a submodule with app registration."
     required_applications = 'ThermalHydraulicsApp'
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
 []

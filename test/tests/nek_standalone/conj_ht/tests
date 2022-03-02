@@ -5,6 +5,6 @@
     expect_err = "Cardinal does not yet support running NekRS inputs with conjugate heat transfer!"
     requirement = "The system shall print an error if the NekRS inputs have conjugate heat transfer "
                   "until this capability is available."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
 []

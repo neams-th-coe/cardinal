@@ -10,7 +10,7 @@
                   "a local tally when a single mesh is used. "
                   "The gold file was created with the original OpenMCProblem, showing "
                   "that the mesh tally implementation is equivalent."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [one_mesh_global]
     type = Exodiff
@@ -23,7 +23,7 @@
                   "a global tally when a single mesh is used. This test was run with successively finer "
                   "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
                   "approaches the value of a cell tally as the difference in volume decreases."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_meshes]
     type = Exodiff
@@ -36,7 +36,7 @@
                   "a local tally when multiple identical meshes are used. "
                   "The gold file was created with the original OpenMCProblem, showing "
                   "that the mesh tally implementation is equivalent."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_meshes_global]
     type = Exodiff
@@ -49,7 +49,7 @@
                   "a global tally when multiple identical meshes are used. This test was run with successively finer "
                   "meshes (from 256 elements to 94k elements) to show that the power of the mesh tally "
                   "approaches the value of a cell tally as the difference in volume decreases."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [different_units]
     type = Exodiff
@@ -60,7 +60,7 @@
     max_parallel = 32
     requirement = "The heat source shall be correctly projected onto a [Mesh] in units of meters "
                   "when the tally mesh template is in units of centimeters."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [different_units_and_translations]
     type = Exodiff
@@ -73,7 +73,7 @@
                   "when the tally mesh template and translations are in units of centimeters. "
                   "The output was compared against the multiple_meshes case, which used an input "
                   "entirely specified in terms of centimeters."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [fission_tally_std_dev]
     type = CSVDiff
@@ -84,6 +84,6 @@
     max_parallel = 32
     requirement = "The fission tally standard deviation shall be output correctly for unstructured "
                   "mesh tallies."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

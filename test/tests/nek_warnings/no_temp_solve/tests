@@ -12,6 +12,6 @@
     cli_args = '--error'
     requirement = "MOOSE shall throw a warning if there is no temperature passive scalar "
                   "solve in nekRS."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
 []

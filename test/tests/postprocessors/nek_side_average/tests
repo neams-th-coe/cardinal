@@ -12,7 +12,7 @@
                   "Perfect agreement is not to be expected, since the underlying basis functions "
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
   [zero_direction_vector]
     type = RunException
@@ -20,6 +20,6 @@
     cli_args = "Postprocessors/velocity_comp1/velocity_direction='0.0 0.0 0.0'"
     expect_err = "The 'velocity_direction' vector cannot be the zero-vector!"
     requirement = "System shall error if direction vector has zero length."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
 []

@@ -5,6 +5,6 @@
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
     requirement = "Temperatures, densities, and a heat source shall be coupled between OpenMC "
                   "and MOOSE and a solid pincell model."
-    required_objects = 'OpenMCProblemBase'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

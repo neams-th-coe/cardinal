@@ -3,7 +3,7 @@
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre pin 1'
     requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
   [invalid_write_fld]
     type = RunException
@@ -15,7 +15,7 @@
                  "are run as sub-apps on a master app.\n"
                  "Your input has Nek as the master app."
     requirement = "The system shall error if trying to write output files for a Nek input without sibling apps"
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
   [two_channels]
     type = Exodiff
@@ -27,7 +27,7 @@
     requirement = "The system shall be able to run multiple Nek simulations translated throughout "
                   "a master app's domain. This test compares against a MOOSE standalone case, and "
                   "gives less than 0.3% difference in various temperature metrics."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
   [app_outputs]
     type = CheckFiles
@@ -38,6 +38,6 @@
     prereq = precompile
     requirement = "The correct output files shall be written when writing separate output files for repeated "
                   "Nek simulation instances."
-    required_objects = 'NekRSProblemBase'
+    required_objects = 'NekRSProblem'
   []
 []
