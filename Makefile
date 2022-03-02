@@ -211,8 +211,6 @@ ifneq ($(IAPWS95_CONTENT),)
   include             $(IAPWS95_DIR)/libSBTL.mk
 endif
 
-ADDITIONAL_CPPFLAGS :=
-
 ifeq ($(ENABLE_NEK), yes)
   ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
   libmesh_CXXFLAGS    += -DENABLE_NEK_COUPLING
