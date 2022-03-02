@@ -21,8 +21,14 @@
 #include "AppFactory.h"
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
+
+#ifdef ENABLE_OPENMC_COUPLING
 #include "OpenMCSyntax.h"
+#endif
+
+#ifdef ENABLE_NEK_COUPLING
 #include "NekSyntax.h"
+#endif
 
 #ifdef ENABLE_SAM_COUPLING
 #include "SamApp.h"
@@ -114,8 +120,12 @@ CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
   Registry::registerActionsTo(af, {"CardinalApp"});
 
   /* register custom execute flags, action syntax, etc. here */
+#ifdef ENABLE_OPENMC_COUPLING
   OpenMC::associateSyntax(s, af);
+#endif
+#ifdef ENABLE_NEK_COUPLING
   Nek::associateSyntax(s, af);
+#endif
 
   associateSyntaxInner(s, af);
 }

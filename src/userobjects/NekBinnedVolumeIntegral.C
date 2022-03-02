@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekBinnedVolumeIntegral.h"
 #include "CardinalUtils.h"
 #include "NekInterface.h"
@@ -119,3 +121,5 @@ NekBinnedVolumeIntegral::execute()
   else
     binnedVolumeIntegral(_field, _bin_values);
 }
+
+#endif

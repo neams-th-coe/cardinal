@@ -8,5 +8,6 @@
 
     expect_err = "Mesh for 'NekRSProblem' must be of type 'NekRSMesh', but you have specified a 'GeneratedMesh'!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct mesh type."
+    required_objects = 'NekRSProblem'
   []
 []

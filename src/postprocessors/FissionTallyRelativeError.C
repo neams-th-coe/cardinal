@@ -16,8 +16,9 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "FissionTallyRelativeError.h"
-#include "MooseUtils.h"
 #include "xtensor/xview.hpp"
 
 registerMooseObject("CardinalApp", FissionTallyRelativeError);
@@ -87,3 +88,5 @@ FissionTallyRelativeError::getValue()
 
   return extreme_value;
 }
+
+#endif

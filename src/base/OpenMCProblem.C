@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "NearestPointReceiver.h"
 #include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"
@@ -564,3 +566,5 @@ double OpenMCProblem::getCellVolume(int cellIndex) {
   }
   return vol;
 }
+
+#endif

@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekBinnedPlaneAverage.h"
 
 registerMooseObject("CardinalApp", NekBinnedPlaneAverage);
@@ -44,3 +46,5 @@ NekBinnedPlaneAverage::execute()
     if (_bin_volumes[i] > 0.0)
       _bin_values[i] /= _bin_volumes[i];
 }
+
+#endif

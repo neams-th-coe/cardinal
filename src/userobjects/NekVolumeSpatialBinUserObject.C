@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekVolumeSpatialBinUserObject.h"
 #include "PlaneSpatialBinUserObject.h"
 
@@ -48,3 +50,5 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
   if (_field == field::velocity_component && _velocity_component == component::normal)
     mooseError("Setting 'velocity_component = normal' is not supported for the '" + name() + "' user object!");
 }
+
+#endif

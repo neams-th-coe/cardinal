@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekFieldPostprocessor.h"
 #include "UserErrorChecking.h"
 
@@ -54,3 +56,5 @@ NekFieldPostprocessor::NekFieldPostprocessor(const InputParameters & parameters)
   else
     checkUnusedParam(parameters, "velocity_direction", "not using 'field = velocity_component'");
 }
+
+#endif

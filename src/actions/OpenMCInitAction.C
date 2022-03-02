@@ -16,10 +16,13 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "OpenMCInitAction.h"
 #include "openmc/capi.h"
 #include "openmc/settings.h"
 #include "openmc/geometry_aux.h"
+
 registerMooseAction("CardinalApp", OpenMCInitAction, "openmc_init");
 
 InputParameters
@@ -56,3 +59,5 @@ OpenMCInitAction::act()
     }
   }
 }
+
+#endif

@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSidePostprocessor.h"
 
 InputParameters
@@ -43,3 +45,5 @@ NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters) :
       "For this problem, nekRS has ", n_boundaries, " boundaries. "
       "Did you enter a valid 'boundary' in '" + filename + "'?");
 }
+
+#endif

@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "CellMaterialIDAux.h"
 #include "CardinalEnums.h"
 
@@ -53,3 +55,5 @@ CellMaterialIDAux::computeValue()
 
   return id;
 }
+
+#endif

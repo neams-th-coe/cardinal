@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSpatialBinUserObject.h"
 #include "CardinalUtils.h"
 
@@ -317,3 +319,5 @@ NekSpatialBinUserObject::fillCoordinates(const std::vector<unsigned int> & indic
       p(d) = centers[indices[b]](d);
   }
 }
+
+#endif

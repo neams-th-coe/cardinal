@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekSpatialBinComponentAux.h"
 #include "CardinalEnums.h"
 
@@ -56,3 +58,5 @@ NekSpatialBinComponentAux::computeValue()
   else
     return _bin_uo->spatialValue(_current_elem->vertex_average(), _component);
 }
+
+#endif

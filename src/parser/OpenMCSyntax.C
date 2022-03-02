@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "OpenMCSyntax.h"
 #include "ActionFactory.h"
 #include "Syntax.h"
@@ -31,3 +33,5 @@ associateSyntax(Syntax & syntax, ActionFactory & /*action_factory*/)
 }
 
 }
+
+#endif

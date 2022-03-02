@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "OpenMCPostprocessor.h"
 
 InputParameters
@@ -33,3 +35,5 @@ OpenMCPostprocessor::OpenMCPostprocessor(const InputParameters & parameters) :
   if (!_openmc_problem)
     mooseError("This postprocessor can only be used with OpenMCCellAverageProblem!");
 }
+
+#endif

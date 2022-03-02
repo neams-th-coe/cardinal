@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "OpenMCProblemBase.h"
 #include "AuxiliarySystem.h"
 
@@ -185,3 +187,5 @@ OpenMCProblemBase::externalSolve()
 
   _fixed_point_iteration += 1;
 }
+
+#endif

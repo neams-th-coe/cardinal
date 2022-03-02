@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "PecletNumber.h"
 #include "NekInterface.h"
 
@@ -46,3 +48,5 @@ PecletNumber::getValue()
 {
   return ReynoldsNumber::getValue() * nekrs::Pr();
 }
+
+#endif

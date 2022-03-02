@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "CellDensityAux.h"
 #include "CardinalEnums.h"
 
@@ -61,3 +63,5 @@ CellDensityAux::computeValue()
 
   return density / _openmc_problem->densityConversionFactor();
 }
+
+#endif

@@ -7,5 +7,6 @@
       "TEMPERATURE block in the .par file?"
     requirement = "MOOSE shall throw an error if there is no temperature passive scalar "
                   "variable initialized in nekRS."
+    required_objects = 'NekRSProblem'
   []
 []

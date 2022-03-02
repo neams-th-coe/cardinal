@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekRSMesh.h"
 #include "libmesh/face_quad4.h"
 #include "libmesh/face_quad9.h"
@@ -789,3 +791,5 @@ NekRSMesh::facesOnBoundary(const int elem_id) const
 {
   return _volume_coupling.n_faces_on_boundary[elem_id];
 }
+
+#endif

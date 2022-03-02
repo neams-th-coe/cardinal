@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "CellIDAux.h"
 
 registerMooseObject("CardinalApp", CellIDAux);
@@ -43,3 +45,5 @@ CellIDAux::computeValue()
 
   return _openmc_problem->elemToCellID(_current_elem->id());
 }
+
+#endif

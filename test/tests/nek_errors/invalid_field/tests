@@ -6,6 +6,7 @@
                  "do not have a temperature variable!"
     requirement = "The system shall throw an error if trying to use temperature postprocessors for inputs "
                   "that don't have a temperature variable."
+    required_objects = 'NekRSProblem'
   []
   [invalid_output]
     type = RunException
@@ -14,6 +15,7 @@
                  "do not have a temperature variable!"
     requirement = "The system shall throw an error if trying to output temperature for inputs "
                   "that don't have a temperature variable."
+    required_objects = 'NekRSProblem'
   []
   [invalid_field_uo]
     type = RunException
@@ -22,5 +24,6 @@
                  "do not have a temperature variable!"
     requirement = "The system shall throw an error if trying to use temperature userobjects for inputs "
                   "that don't have a temperature variable."
+    required_objects = 'NekRSProblem'
   []
 []
