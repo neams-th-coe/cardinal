@@ -65,6 +65,9 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
 
     if (!_nek_mesh->getMesh().is_replicated())
       mooseError("Distributed mesh features are not yet implemented for moving mesh cases!");
+
+    if (!_app.actionWarehouse().displacedMesh())
+      mooseError("Moving mesh problems require displacements in the [Mesh] block!");
   }
 
   // Depending on the type of coupling, initialize various problem parameters
