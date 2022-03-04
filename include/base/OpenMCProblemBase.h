@@ -75,7 +75,7 @@ public:
   std::string printMaterial(const int32_t & index) const;
 
   /**
-   * Write the source bank to HDF5 for postprocessing or using in subsequent solves
+   * Write the source bank to HDF5 for postprocessing or for use in subsequent solves
    * @param[in] filename file name
    */
   void writeSourceBank(const std::string & filename);
