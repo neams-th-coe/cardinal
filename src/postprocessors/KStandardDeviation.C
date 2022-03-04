@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "KStandardDeviation.h"
 #include "openmc/eigenvalue.h"
 #include "openmc/math_functions.h"
@@ -92,3 +94,5 @@ KStandardDeviation::getValue()
       mooseError("Unhandled StandardDeviationEnum in KStandardDeviation!");
   }
 }
+
+#endif

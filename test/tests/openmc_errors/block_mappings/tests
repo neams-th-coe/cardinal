@@ -5,30 +5,35 @@
     expect_err = "Block 200 cannot be present in both the 'fluid_blocks' and 'solid_blocks'!"
     requirement = "The system shall error if the same block IDs are specified as both "
                   "fluid and solid phases"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [nonexistent_block]
     type = RunException
     input = nonexistent_block.i
     expect_err = "Block 500 specified in 'tally_blocks' not found in mesh!"
     requirement = "The system shall error if the user specifies a block ID for coupling that does not exist."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [no_blocks]
     type = RunException
     input = no_blocks.i
     expect_err = "At least one of 'fluid_blocks' and 'solid_blocks' must be specified to establish the mapping from MOOSE to OpenMC."
     requirement = "The system shall error if no blocks are specified for coupling"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [empty_block]
     type = RunException
     input = empty_block.i
     expect_err = "Vector cannot be empty!"
     requirement = "The system shall error if an empty vector is provided for the blocks"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [no_overlap]
     type = RunException
     input = no_overlap.i
     expect_err = "Did not find any overlap between MOOSE elements and OpenMC cells for the specified blocks!"
     requirement = "The system shall error if the MOOSE blocks and OpenMC cells don't overlap"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [skipping_moose_feedback]
     type = RunException
@@ -36,6 +41,7 @@
     cli_args = '--error'
     expect_err = "The MOOSE mesh has 1024 solid elements, but only 768 got mapped to OpenMC cells."
     requirement = "The system shall print a warning if some MOOSE elements are unmapped"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [skipping_openmc_feedback]
     type = RunException
@@ -43,6 +49,7 @@
     cli_args = '--error'
     expect_err = "Skipping multiphysics feedback for 2 OpenMC cells"
     requirement = "The system shall print a warning if some OpenMC cells are unmapped"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_phases]
     type = RunException
@@ -50,23 +57,27 @@
     expect_err = "Cell id 4, instance 0 \(of 1\) mapped to 16 solid elements, 3486 fluid elements, and 0 uncoupled elements.\n"
                  "Each OpenMC cell, instance pair must map to elements of the same phase."
     requirement = "The system shall error if one OpenMC cell maps to more than one phase"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_tally_settings]
     type = RunException
     input = multiple_tally_settings.i
     expect_err = "cell id 4, instance 0 \(of 1\) maps to blocks with different tally settings!\nBlock 100 is in 'tally_blocks', but block 200 is not."
     requirement = "The system shall error if one OpenMC cell maps to multiple subdomains that don't all have the same tally setting"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [absent_block]
     type = RunException
     input = absent_block.i
     expect_err = "'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!"
     requirement = "The system shall error if the user sets fluid blocks, but none of the elements map to OpenMC"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [unequal_volumes]
     type = RunException
     input = unequal_volumes.i
     expect_err = "Detected un-equal mapped tally volumes!"
     requirement = "The system shall error if the user enforces equal mapped tally volumes but the mapped volumes are not identical across tally bins"
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

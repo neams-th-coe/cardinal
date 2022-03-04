@@ -6,11 +6,13 @@
     requirement = "A hexagonal gap and 1-D layered bin shall be combined to give a multi-dimensional "
                   "binning and demonstrate correct results for side integrals and averages in directions "
                   "normal to the gap planes."
+    required_objects = 'NekRSProblem'
   []
   [normal_component_aux]
     type = Exodiff
     input = nek_axial.i
     exodiff = 'nek_axial_out_subchannel0.e'
     requirement = "The correct unit normals shall be formed for a layered Cartesian gap bin."
+    required_objects = 'NekRSProblem'
   []
 []

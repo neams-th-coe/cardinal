@@ -53,6 +53,23 @@ these dependencies will already be available to you. Note that at
 this time, NekRS only supports
 the GNU compilers.
 
+!alert! tip title=Don't want both NekRS and OpenMC?
+If you are only interested in using *either* of the NekRS or OpenMC wrappings,
+you can build Cardinal with only the dependencies that you want. If you do *not*
+want to build the NekRS-part of Cardinal, you can set the following environment variable:
+
+```
+$ export ENABLE_NEK=false
+```
+
+Likewise, if you do *not* want to build with the OpenMC-part of Cardinal, you can
+set the following environment variable:
+
+```
+$ export ENABLE_OPENMC=false
+```
+!alert-end!
+
 Cardinal supports *optional* coupling to the following codes:
 
 - *SAM*, a tool for systems analysis of advanced non-light water reactors

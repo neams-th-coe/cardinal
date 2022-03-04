@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekRSStandaloneProblem.h"
 #include "NekInterface.h"
 
@@ -44,3 +46,5 @@ NekRSStandaloneProblem::movingMesh() const
 {
   return nekrs::hasMovingMesh();
 }
+
+#endif

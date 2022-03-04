@@ -5,6 +5,7 @@
     csvdiff = k_std_dev_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "k standard deviation."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [k_std_dev_cutoff]
     type = CSVDiff
@@ -13,6 +14,7 @@
     csvdiff = k_std_dev_cutoff_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k standard deviation unless first reaching a maximum number of batches."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [k_variance]
     type = CSVDiff
@@ -21,6 +23,7 @@
     csvdiff = k_variance_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k variance."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [k_rel_err]
     type = CSVDiff
@@ -29,6 +32,7 @@
     csvdiff = k_rel_err_out.csv
     requirement = "The system shall terminate the OpenMC simulation once reaching a desired "
       "k relative error."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [tally_rel_err]
     type = CSVDiff
@@ -36,6 +40,7 @@
     csvdiff = tally_rel_err_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error with cell tallies."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [mesh_tally_rel_err]
     type = CSVDiff
@@ -43,5 +48,6 @@
     csvdiff = mesh_tally_rel_err_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error with mesh tallies."
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

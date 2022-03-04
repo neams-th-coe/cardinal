@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "KEigenvalue.h"
 #include "openmc/eigenvalue.h"
 
@@ -64,3 +66,5 @@ KEigenvalue::getValue()
       mooseError("Unhandled EigenvalueEnum in KEigenvalue!");
   }
 }
+
+#endif

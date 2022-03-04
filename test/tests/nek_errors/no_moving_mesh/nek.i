@@ -8,6 +8,7 @@
   type = NekRSMesh
   volume = true
   parallel_type = replicated
+  displacements = 'disp_x disp_y disp_z'
 []
 
 [Executioner]

@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekPlaneSpatialBinUserObject.h"
 
 InputParameters
@@ -81,3 +83,5 @@ NekPlaneSpatialBinUserObject::gapIndexAndDistance(const Point & point, unsigned 
 {
   _side_bin->gapIndexAndDistance(point, index, distance);
 }
+
+#endif

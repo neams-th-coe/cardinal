@@ -22,6 +22,12 @@
 #
 # ======================================================================================
 
+# Whether you want to build with NekRS; set to anything except 'yes' to skip
+ENABLE_NEK          ?= yes
+
+# Whether you want to build with OpenMC; set to anything except 'yes' to skip
+ENABLE_OPENMC       ?= yes
+
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
 HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
@@ -122,7 +128,6 @@ OPENMC_LIB := $(OPENMC_LIBDIR)/libopenmc.so
 
 # This is used in $(FRAMEWORK_DIR)/build.mk
 HDF5_INCLUDES       := -I$(HDF5_INCLUDE_DIR) -I$(HDF5_ROOT)/include
-ADDITIONAL_CPPFLAGS := $(HDF5_INCLUDES) $(OPENMC_INCLUDES) $(NEKRS_INCLUDES)
 
 # ======================================================================================
 # PETSc
@@ -206,6 +211,16 @@ ifneq ($(IAPWS95_CONTENT),)
   include             $(IAPWS95_DIR)/libSBTL.mk
 endif
 
+ifeq ($(ENABLE_NEK), yes)
+  ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
+  libmesh_CXXFLAGS    += -DENABLE_NEK_COUPLING
+endif
+
+ifeq ($(ENABLE_OPENMC), yes)
+  ADDITIONAL_CPPFLAGS += $(HDF5_INCLUDES) $(OPENMC_INCLUDES)
+  libmesh_CXXFLAGS    += -DENABLE_OPENMC_COUPLING
+endif
+
 # ======================================================================================
 # External apps
 # ======================================================================================
@@ -233,8 +248,23 @@ BUILD_EXEC         := yes
 GEN_REVISION       := no
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 
-include            $(CARDINAL_DIR)/config/nekrs.mk
-include            $(CARDINAL_DIR)/config/openmc.mk
+ifeq ($(ENABLE_NEK), yes)
+  include            $(CARDINAL_DIR)/config/nekrs.mk
+else
+
+build_nekrs:
+	$(info Skipping Nek build because ENABLE_NEK is not set to 'yes')
+
+endif
+
+ifeq ($(ENABLE_OPENMC), yes)
+  include            $(CARDINAL_DIR)/config/openmc.mk
+else
+
+build_openmc:
+	$(info Skipping OpenMC build because ENABLE_OPENMC is not set to 'yes')
+
+endif
 
 # ======================================================================================
 # Building app objects defined in app.mk
@@ -242,17 +272,15 @@ include            $(CARDINAL_DIR)/config/openmc.mk
 
 # ADDITIONAL_LIBS are used for linking in app.mk
 # CC_LINKER_SLFLAG is from petscvariables
-ADDITIONAL_LIBS := \
-	-L$(CARDINAL_DIR)/lib \
-	-L$(NEKRS_LIBDIR) \
-	-L$(OPENMC_LIBDIR) \
-	-lnekrs \
-	-lopenmc \
-	-locca \
-	-lhdf5_hl \
-	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
-	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
-	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib
+
+ifeq ($(ENABLE_NEK), yes)
+  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) -lnekrs -locca $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+endif
+
+ifeq ($(ENABLE_OPENMC), yes)
+  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+endif
 
 include            $(FRAMEWORK_DIR)/app.mk
 
@@ -263,17 +291,19 @@ $(test_objects): build_nekrs build_openmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \
-	-L$(NEKRS_LIBDIR) \
-	-L$(OPENMC_LIBDIR) \
-	-L$(HDF5_LIBDIR) \
-	-lnekrs \
-	-lopenmc \
 	$(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib \
-	$(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR) \
-	$(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
-	$(CC_LINKER_SLFLAG)$(HDF5_LIBDIR) \
 	$(BLASLAPACK_LIB) \
 	$(PETSC_EXTERNAL_LIB_BASIC)
+
+ifeq ($(ENABLE_NEK), yes)
+  CARDINAL_EXTERNAL_FLAGS += -L$(NEKRS_LIBDIR) -lnekrs $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+endif
+
+ifeq ($(ENABLE_OPENMC), yes)
+  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc \
+	                           $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
+	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
+endif
 
 # EXTERNAL_FLAGS are for rules in app.mk
 $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)

@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "CellTemperatureAux.h"
 #include "openmc/cell.h"
 #include "openmc/error.h"
@@ -46,3 +48,5 @@ CellTemperatureAux::computeValue()
 
   return _openmc_problem->cellTemperature(cell_info);
 }
+
+#endif

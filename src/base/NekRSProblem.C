@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekRSProblem.h"
 #include "Moose.h"
 #include "AuxiliarySystem.h"
@@ -63,6 +65,9 @@ NekRSProblem::NekRSProblem(const InputParameters &params) : NekRSProblemBase(par
 
     if (!_nek_mesh->getMesh().is_replicated())
       mooseError("Distributed mesh features are not yet implemented for moving mesh cases!");
+
+    if (!_app.actionWarehouse().displacedMesh())
+      mooseError("Moving mesh problems require displacements in the [Mesh] block!");
   }
 
   // Depending on the type of coupling, initialize various problem parameters
@@ -685,3 +690,4 @@ NekRSProblem::flux(const int elem_id, double * flux_face)
   }
 }
 
+#endif

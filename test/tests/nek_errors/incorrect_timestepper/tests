@@ -9,5 +9,6 @@
     expect_err = "The 'NekTimeStepper' stepper must be used with 'NekRSProblem', "
                  "but you have specified the 'ConstantDT' time stepper!"
     requirement = "The system shall error if NekRSProblem is not paired with the correct time stepper."
+    required_objects = 'NekRSProblem'
   []
 []

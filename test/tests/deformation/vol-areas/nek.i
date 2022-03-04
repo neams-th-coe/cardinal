@@ -4,7 +4,6 @@
   volume = true
   parallel_type = replicated
   displacements = 'disp_x disp_y disp_z'
-  use_displaced_mesh = true
 []
 
 [Problem]

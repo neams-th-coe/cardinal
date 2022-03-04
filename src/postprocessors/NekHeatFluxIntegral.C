@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekHeatFluxIntegral.h"
 #include "CardinalEnums.h"
 
@@ -43,3 +45,5 @@ NekHeatFluxIntegral::getValue()
 {
   return nekrs::heatFluxIntegral(_boundary);
 }
+
+#endif

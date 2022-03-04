@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "ReynoldsNumber.h"
 #include "NekInterface.h"
 #include "UserErrorChecking.h"
@@ -58,3 +60,5 @@ ReynoldsNumber::getValue()
 
   return mdot * L / (area * mu);
 }
+
+#endif

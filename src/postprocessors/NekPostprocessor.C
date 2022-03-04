@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekPostprocessor.h"
 
 InputParameters
@@ -52,3 +54,5 @@ NekPostprocessor::checkValidField(const field::NekFieldEnum & field) const
     mooseError("This postprocessor cannot set 'field = temperature' "
       "because your Nek case files do not have a temperature variable!");
 }
+
+#endif

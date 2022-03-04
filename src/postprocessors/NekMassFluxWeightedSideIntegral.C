@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekMassFluxWeightedSideIntegral.h"
 
 registerMooseObject("CardinalApp", NekMassFluxWeightedSideIntegral);
@@ -41,3 +43,5 @@ NekMassFluxWeightedSideIntegral::getValue()
 {
   return nekrs::sideMassFluxWeightedIntegral(_boundary, _field);
 }
+
+#endif

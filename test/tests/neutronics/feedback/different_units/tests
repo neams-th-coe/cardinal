@@ -8,5 +8,6 @@
                   "by ensuring exact agreement between two versions of the same problem - one with "
                   "a length scale of centimeters (openmc_master_cm.i), and the other with a length "
                   "scale of meters (openmc_master.i)."
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

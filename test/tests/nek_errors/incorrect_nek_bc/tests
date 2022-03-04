@@ -11,5 +11,6 @@
                  "instead of 'fixedGradient'."
     requirement = "MOOSE shall throw an error if there is no receiving heat flux boundary condition "
                   "on the nekRS boundaries that are coupled to MOOSE."
+    required_objects = 'NekRSProblem'
   []
 []

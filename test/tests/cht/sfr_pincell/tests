@@ -10,5 +10,6 @@
                   "conservation of energy and realistic thermal solutions. Exact conservation of energy "
                   "(based on the power imposed in the solid) will not be observed because some heat flux "
                   "GLL points are also on Dirichlet boundaries, which win in boundary condition ties."
+    required_objects = 'NekRSProblem'
   []
 []

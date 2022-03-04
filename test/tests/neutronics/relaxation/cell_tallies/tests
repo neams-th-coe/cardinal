@@ -6,6 +6,7 @@
     cli_args = "Problem/relaxation=constant Problem/relaxation_factor=1.0"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "globally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [global_with_alignment_relax]
     type = Exodiff
@@ -16,6 +17,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [global_with_alignment_rm_relax]
     type = Exodiff
@@ -26,6 +28,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i run (without any command line parameter settings)."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [global_with_alignment_dg_relax]
     type = Exodiff
@@ -36,6 +39,7 @@
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "same input file, but with the relaxation part commented out in the source code (so that we can compare "
                   "directly against runs that only differ by changing the number of particles."
+    required_objects = 'OpenMCCellAverageProblem'
   []
 
   [local_with_alignment_unity_relax]
@@ -45,6 +49,7 @@
     cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=1.0"
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalzed cell tallies on a model with perfect alignment between OpenMC model and the mesh mirror"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [local_with_alignment_relax]
     type = Exodiff
@@ -55,6 +60,7 @@
                   "with perfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc.i case with normalize_by_global_tally=false."
+    required_objects = 'OpenMCCellAverageProblem'
   []
 
   [global_without_alignment_unity_relax]
@@ -65,6 +71,7 @@
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "globally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the "
                   "mesh mirror."
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [global_without_alignment_relax]
     type = Exodiff
@@ -75,6 +82,7 @@
                   "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc_nonaligned.i case (without additional command line parameters)"
+    required_objects = 'OpenMCCellAverageProblem'
   []
 
   [local_without_alignment_unity_relax]
@@ -85,6 +93,7 @@
     min_parallel = 2
     requirement = "A unity relaxation factor shall be equivalent to an unrelaxed case with "
                   "locally-normalzed cell tallies on a model with imperfect alignment between OpenMC model and the mesh mirror"
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [local_without_alignment_relax]
     type = Exodiff
@@ -96,5 +105,6 @@
                   "with imperfect alignment between the OpenMC model and the mesh mirror. This test is verified by "
                   "comparing the heat source computed via relaxation with the un-relaxed iterations from the "
                   "openmc_nonaligned.i case with normalize_by_global_tally=false"
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []

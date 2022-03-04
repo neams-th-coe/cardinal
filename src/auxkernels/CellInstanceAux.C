@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_OPENMC_COUPLING
+
 #include "CellInstanceAux.h"
 
 registerMooseObject("CardinalApp", CellInstanceAux);
@@ -39,3 +41,5 @@ CellInstanceAux::computeValue()
   // returns -1 for UNMAPPED elements
   return _openmc_problem->elemToCellInstance(_current_elem->id());
 }
+
+#endif

@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekTimeStepper.h"
 #include "MooseApp.h"
 #include "Transient.h"
@@ -146,3 +148,5 @@ NekTimeStepper::nondimensionalDT(const Real & dimensional_dt) const
 {
   return dimensional_dt / _t_ref;
 }
+
+#endif

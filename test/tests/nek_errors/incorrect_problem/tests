@@ -6,6 +6,7 @@
                  "You need to change the problem type from 'FEProblem' \(the default\) to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a Nek postprocessor is not paired with the correct problem."
+    required_objects = 'NekRSProblem'
   []
   [incorrect_problem_uo]
     type = RunException
@@ -14,6 +15,7 @@
                  "You need to change the problem type from 'FEProblem' \(the default\) to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a Nek userobject is not paired with the correct problem."
+    required_objects = 'NekRSProblem'
   []
   [nek_mesh]
     type = RunException
@@ -23,5 +25,6 @@
                  "options: 'NekRSProblem', 'NekRSStandaloneProblem'"
     requirement = "The system shall error if a NekRSMesh is used without a corresponding Nek-wrapped"
                   "problem."
+    required_objects = 'NekRSProblem'
   []
 []

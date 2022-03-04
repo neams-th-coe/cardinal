@@ -1,5 +1,5 @@
 [Tests]
-  [./thm_master]
+  [thm_master]
     type = RunApp
     input = sod_shock_tube.i
 
@@ -9,5 +9,6 @@
     requirement = "Cardinal shall be able to run THM as a master-application without any data transfers. "
                   "This test just ensures correct setup of THM as a submodule with app registration."
     required_applications = 'ThermalHydraulicsApp'
-  [../]
+    required_objects = 'NekRSProblem'
+  []
 []

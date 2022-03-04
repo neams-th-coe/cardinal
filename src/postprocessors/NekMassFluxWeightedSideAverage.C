@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekMassFluxWeightedSideAverage.h"
 
 registerMooseObject("CardinalApp", NekMassFluxWeightedSideAverage);
@@ -38,3 +40,5 @@ NekMassFluxWeightedSideAverage::getValue()
 {
   return NekMassFluxWeightedSideIntegral::getValue() / nekrs::massFlowrate(_boundary);
 }
+
+#endif

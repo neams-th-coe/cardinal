@@ -16,6 +16,8 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekInitAction.h"
 #include "NekInterface.h"
 #include "nekrs.hpp"
@@ -145,3 +147,5 @@ NekInitAction::act()
       1.0 /* dT_ref */, 1.0 /* L_ref */, 1.0 /* rho_ref */, 1.0 /* Cp_ref */);
   }
 }
+
+#endif

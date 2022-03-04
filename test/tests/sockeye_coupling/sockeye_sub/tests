@@ -1,9 +1,10 @@
 [Tests]
-  [./sockeye_sub]
+  [sockeye_sub]
     type = RunApp
     input = nek.i
     requirement = "Cardinal shall be able to run Sockeye as a sub-application without any data transfers. "
                   "This test just ensures correct setup of Sockeye as a submodule with app registration."
     required_applications = 'SockeyeApp'
-  [../]
+    required_objects = 'NekRSProblem'
+  []
 []
