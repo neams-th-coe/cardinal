@@ -82,7 +82,7 @@ num_layers_for_THM = 150
     type = ADParsedMaterial
     block = channel
     # Dittus-Boelter
-    function = '0.021 * pow(max(1e-3, Re), 0.8) * pow(Pr, 0.4)'
+    function = '0.021 * pow(Re, 0.8) * pow(Pr, 0.4)'
     f_name = 'Nu'
     material_property_names = 'Re Pr'
   []
