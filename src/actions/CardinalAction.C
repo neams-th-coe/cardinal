@@ -22,20 +22,19 @@ InputParameters
 CardinalAction::validParams()
 {
   InputParameters params = Action::validParams();
-  params.addParam<std::vector<SubdomainName>>("block",
-    "The list of block ids (SubdomainID) to which this action will be applied");
+  params.addParam<std::vector<SubdomainName>>(
+      "block", "The list of block ids (SubdomainID) to which this action will be applied");
   return params;
 }
 
 CardinalAction::CardinalAction(const InputParameters & parameters)
-  : Action(parameters),
-    _blocks(getParam<std::vector<SubdomainName>>("block"))
+  : Action(parameters), _blocks(getParam<std::vector<SubdomainName>>("block"))
 {
 }
 
 void
 CardinalAction::setObjectBlocks(InputParameters & params, const std::vector<SubdomainName> & blocks)
 {
-  for (const auto & id: blocks)
+  for (const auto & id : blocks)
     params.set<std::vector<SubdomainName>>("block").push_back(Moose::stringify(id));
 }

@@ -27,15 +27,16 @@ InputParameters
 NekSpatialBinComponentAux::validParams()
 {
   InputParameters params = SpatialUserObjectAux::validParams();
-  params.addRequiredRangeCheckedParam<unsigned int>("component", "component < 3", "Component of user object");
-  params.addClassDescription("Populates an auxiliary variable with a component-wise spatial value returned from a "
-                             "UserObject spatialValue method.");
+  params.addRequiredRangeCheckedParam<unsigned int>(
+      "component", "component < 3", "Component of user object");
+  params.addClassDescription(
+      "Populates an auxiliary variable with a component-wise spatial value returned from a "
+      "UserObject spatialValue method.");
   return params;
 }
 
 NekSpatialBinComponentAux::NekSpatialBinComponentAux(const InputParameters & parameters)
-  : SpatialUserObjectAux(parameters),
-    _component(getParam<unsigned int>("component"))
+  : SpatialUserObjectAux(parameters), _component(getParam<unsigned int>("component"))
 {
   // by requiring this userobject, we automatically ensure correct NekRSProblemBase-type problems
   // because the NekUserObject checks for compatibility
@@ -43,11 +44,12 @@ NekSpatialBinComponentAux::NekSpatialBinComponentAux(const InputParameters & par
 
   if (!_bin_uo)
     mooseError("This auxkernel can only be combined with NekSpatialBinUserObject-derived classes!\n"
-      "You have specified the '" + _user_object.type() + "' user object instead.");
+               "You have specified the '" +
+               _user_object.type() + "' user object instead.");
 
   if (_bin_uo->field() != field::velocity_component)
     mooseError("This auxkernel can only be used with a binning user object that sets "
-      "'field = velocity_component'!");
+               "'field = velocity_component'!");
 }
 
 Real

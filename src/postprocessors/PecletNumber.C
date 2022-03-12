@@ -31,8 +31,7 @@ PecletNumber::validParams()
   return params;
 }
 
-PecletNumber::PecletNumber(const InputParameters & parameters) :
-  ReynoldsNumber(parameters)
+PecletNumber::PecletNumber(const InputParameters & parameters) : ReynoldsNumber(parameters)
 {
   // rhoCp and k don't get initialized if the temperature solve is turned off,
   // even if the temperature variable exists. Because the user could technically still
@@ -40,7 +39,7 @@ PecletNumber::PecletNumber(const InputParameters & parameters) :
   // for testing), just throw an error if temperature doesn't exist at all
   if (!nekrs::hasTemperatureVariable())
     mooseError("This postprocessor cannot be used in NekRS problems "
-      "without a temperature variable!");
+               "without a temperature variable!");
 }
 
 Real

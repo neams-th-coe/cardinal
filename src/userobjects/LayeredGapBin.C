@@ -26,21 +26,23 @@ LayeredGapBin::validParams()
   InputParameters params = PlaneSpatialBinUserObject::validParams();
   MooseEnum directions("x y z");
 
-  params.addRequiredParam<MooseEnum>("direction", directions,
-    "The direction of the layers (x, y, or z)");
-  params.addRequiredRangeCheckedParam<unsigned int>("num_layers", "num_layers > 0",
-    "The number of layers between the bounding box of the domain; this will "
-    "create num_layers + 1 side bins");
+  params.addRequiredParam<MooseEnum>(
+      "direction", directions, "The direction of the layers (x, y, or z)");
+  params.addRequiredRangeCheckedParam<unsigned int>(
+      "num_layers",
+      "num_layers > 0",
+      "The number of layers between the bounding box of the domain; this will "
+      "create num_layers + 1 side bins");
   params.addClassDescription("Creates a unique spatial bin for layers in a specified direction");
   return params;
 }
 
 LayeredGapBin::LayeredGapBin(const InputParameters & parameters)
   : PlaneSpatialBinUserObject(parameters),
-  _direction(parameters.get<MooseEnum>("direction")),
-  _num_layers(getParam<unsigned int>("num_layers")),
-  _layered_subproblem(parameters.getCheckedPointerParam<SubProblem *>("_subproblem")),
-  _num_faces(_num_layers + 1)
+    _direction(parameters.get<MooseEnum>("direction")),
+    _num_layers(getParam<unsigned int>("num_layers")),
+    _layered_subproblem(parameters.getCheckedPointerParam<SubProblem *>("_subproblem")),
+    _num_faces(_num_layers + 1)
 {
   BoundingBox bounding_box = MeshTools::create_bounding_box(_layered_subproblem->mesh());
   _direction_min = bounding_box.min()(_direction);
@@ -70,7 +72,6 @@ LayeredGapBin::LayeredGapBin(const InputParameters & parameters)
   _effective_layer_pts[_num_layers + 1] = _direction_max + dx;
   for (unsigned int i = 1; i < _num_layers + 1; ++i)
     _effective_layer_pts[i] = 0.5 * (_layer_pts[i] + _layer_pts[i - 1]);
-
 }
 
 const unsigned int

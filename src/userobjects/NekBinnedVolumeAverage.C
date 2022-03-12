@@ -26,7 +26,8 @@ InputParameters
 NekBinnedVolumeAverage::validParams()
 {
   InputParameters params = NekBinnedVolumeIntegral::validParams();
-  params.addClassDescription("Compute the spatially-binned volume average of a field over the NekRS mesh");
+  params.addClassDescription(
+      "Compute the spatially-binned volume average of a field over the NekRS mesh");
   return params;
 }
 

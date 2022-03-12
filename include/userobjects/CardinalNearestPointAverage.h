@@ -27,8 +27,7 @@
  * closest to each one of those points.
  */
 class CardinalNearestPointAverage
-  : public NearestPointBase<ElementAverageValue,
-                            ElementVariableVectorPostprocessor>
+  : public NearestPointBase<ElementAverageValue, ElementVariableVectorPostprocessor>
 {
 public:
   CardinalNearestPointAverage(const InputParameters & parameters);

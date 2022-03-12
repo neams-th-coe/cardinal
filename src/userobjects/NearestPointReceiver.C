@@ -25,22 +25,25 @@ NearestPointReceiver::validParams()
 {
   auto params = GeneralUserObject::validParams();
 
-  params.addRequiredParam<std::vector<Point>>(
-    "positions",
-    "The positions the data will be associated with");
+  params.addRequiredParam<std::vector<Point>>("positions",
+                                              "The positions the data will be associated with");
 
-  params.addParam<std::vector<Real>>("default_data", "The default values of the data.  The number of entries must be the same as the number of positions");
+  params.addParam<std::vector<Real>>("default_data",
+                                     "The default values of the data.  The number of entries must "
+                                     "be the same as the number of positions");
 
   return params;
 }
 
 NearestPointReceiver::NearestPointReceiver(const InputParameters & parameters)
-    : GeneralUserObject(parameters),
-      _positions(getParam<std::vector<Point>>("positions")),
-      _data(getParam<std::vector<Real>>("default_data"))
+  : GeneralUserObject(parameters),
+    _positions(getParam<std::vector<Point>>("positions")),
+    _data(getParam<std::vector<Real>>("default_data"))
 {
   if (_data.size() && (_data.size() != _positions.size()))
-    paramError("default_data", "If default_data is specified then it should be the same length as the number of positions.");
+    paramError("default_data",
+               "If default_data is specified then it should be the same length as the number of "
+               "positions.");
 
   // Resize the data
   if (_data.empty())

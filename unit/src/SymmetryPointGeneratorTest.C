@@ -28,8 +28,8 @@ TEST_F(SymmetryPointGeneratorTest, errors)
   catch (const std::exception & e)
   {
     std::string msg(e.what());
-    ASSERT_NE(msg.find("The 'symmetry_plane_normal' cannot have zero norm!"),
-      std::string::npos) << "failed with unexpected error: " << msg;
+    ASSERT_NE(msg.find("The 'symmetry_plane_normal' cannot have zero norm!"), std::string::npos)
+        << "failed with unexpected error: " << msg;
   }
 
   try
@@ -44,7 +44,8 @@ TEST_F(SymmetryPointGeneratorTest, errors)
   {
     std::string msg(e.what());
     ASSERT_NE(msg.find("The 'symmetry_axis' must be perpendicular to the 'symmetry_plane_normal'!"),
-      std::string::npos) << "failed with unexpected error: " << msg;
+              std::string::npos)
+        << "failed with unexpected error: " << msg;
   }
 
   try
@@ -58,8 +59,8 @@ TEST_F(SymmetryPointGeneratorTest, errors)
   catch (const std::exception & e)
   {
     std::string msg(e.what());
-    ASSERT_NE(msg.find("The 'symmetry_axis' cannot have zero norm!"),
-      std::string::npos) << "failed with unexpected error: " << msg;
+    ASSERT_NE(msg.find("The 'symmetry_axis' cannot have zero norm!"), std::string::npos)
+        << "failed with unexpected error: " << msg;
   }
 
   try
@@ -74,7 +75,8 @@ TEST_F(SymmetryPointGeneratorTest, errors)
   {
     std::string msg(e.what());
     ASSERT_NE(msg.find("The unit circle must be divisible by the 'symmetry_angle'!"),
-      std::string::npos) << "failed with unexpected error: " << msg;
+              std::string::npos)
+        << "failed with unexpected error: " << msg;
   }
 }
 
@@ -94,7 +96,7 @@ TEST_F(SymmetryPointGeneratorTest, reflect_y_axis)
   Point pt2(1.0, 1.0, -2.0);
   Point pt2_r = sg.transformPoint(pt2);
   EXPECT_DOUBLE_EQ(pt2_r(0), -1.0);
-  EXPECT_DOUBLE_EQ(pt2_r(1),  1.0);
+  EXPECT_DOUBLE_EQ(pt2_r(1), 1.0);
   EXPECT_DOUBLE_EQ(pt2_r(2), -2.0);
 }
 
@@ -114,15 +116,15 @@ TEST_F(SymmetryPointGeneratorTest, reflect_xy_plane)
   // points on the positive side of the plane
   Point pt2(0.0, 1.0, -2.0);
   Point pt2_r = sg.transformPoint(pt2);
-  EXPECT_DOUBLE_EQ(pt2_r(0),  1.0);
-  EXPECT_LE(abs(pt2_r(1) - 0.0),  5e-16);
+  EXPECT_DOUBLE_EQ(pt2_r(0), 1.0);
+  EXPECT_LE(abs(pt2_r(1) - 0.0), 5e-16);
   EXPECT_DOUBLE_EQ(pt2_r(2), -2.0);
 
   Point pt3(-1.0, 2.0, 2.0);
   Point pt3_r = sg.transformPoint(pt3);
-  EXPECT_DOUBLE_EQ(pt3_r(0),  2.0);
+  EXPECT_DOUBLE_EQ(pt3_r(0), 2.0);
   EXPECT_DOUBLE_EQ(pt3_r(1), -1.0);
-  EXPECT_DOUBLE_EQ(pt3_r(2),  2.0);
+  EXPECT_DOUBLE_EQ(pt3_r(2), 2.0);
 }
 
 TEST_F(SymmetryPointGeneratorTest, reflect_general_plane)
@@ -134,9 +136,9 @@ TEST_F(SymmetryPointGeneratorTest, reflect_general_plane)
   Point pt1(-1.0, -3.0, -4.0);
 
   Point pt1r = sg.transformPoint(pt1);
-  EXPECT_LE(abs(pt1r(0)- -3.42857142857), 1e-8);
-  EXPECT_LE(abs(pt1r(1)-  1.85714285714), 1e-8);
-  EXPECT_LE(abs(pt1r(2)-  3.28571428571), 1e-8);
+  EXPECT_LE(abs(pt1r(0) - -3.42857142857), 1e-8);
+  EXPECT_LE(abs(pt1r(1) - 1.85714285714), 1e-8);
+  EXPECT_LE(abs(pt1r(2) - 3.28571428571), 1e-8);
 }
 
 TEST_F(SymmetryPointGeneratorTest, rotate_about_z)
@@ -150,49 +152,49 @@ TEST_F(SymmetryPointGeneratorTest, rotate_about_z)
   Point ptr = sg.transformPoint(pt);
   EXPECT_DOUBLE_EQ(ptr(0), -2.0);
   EXPECT_DOUBLE_EQ(ptr(1), -3.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 
   Point pt1(3.0, 2.0, 5.0);
   ptr = sg.transformPoint(pt1);
   EXPECT_DOUBLE_EQ(ptr(0), -3.0);
   EXPECT_DOUBLE_EQ(ptr(1), -2.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 
   Point pt2(-2.0, 3.0, 5.0);
   ptr = sg.transformPoint(pt2);
   EXPECT_DOUBLE_EQ(ptr(0), -2.0);
   EXPECT_DOUBLE_EQ(ptr(1), -3.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 
   Point pt3(-3.0, 2.0, 5.0);
   ptr = sg.transformPoint(pt3);
   EXPECT_DOUBLE_EQ(ptr(0), -3.0);
   EXPECT_DOUBLE_EQ(ptr(1), -2.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 
   Point pt4(-2.0, -3.0, 5.0);
   ptr = sg.transformPoint(pt4);
   EXPECT_DOUBLE_EQ(ptr(0), -2.0);
   EXPECT_DOUBLE_EQ(ptr(1), -3.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 
   Point pt5(-3.0, -2.0, 5.0);
   ptr = sg.transformPoint(pt5);
   EXPECT_DOUBLE_EQ(ptr(0), -3.0);
   EXPECT_DOUBLE_EQ(ptr(1), -2.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 
   Point pt6(2.0, -3.0, 5.0);
   ptr = sg.transformPoint(pt6);
   EXPECT_DOUBLE_EQ(ptr(0), -2.0);
   EXPECT_DOUBLE_EQ(ptr(1), -3.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 
   Point pt7(3.0, 2.0, 5.0);
   ptr = sg.transformPoint(pt7);
   EXPECT_DOUBLE_EQ(ptr(0), -3.0);
   EXPECT_DOUBLE_EQ(ptr(1), -2.0);
-  EXPECT_DOUBLE_EQ(ptr(2),  5.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 5.0);
 }
 
 TEST_F(SymmetryPointGeneratorTest, rotate_about_x)
@@ -283,4 +285,3 @@ TEST_F(SymmetryPointGeneratorTest, sector_5)
   Point p6(19.0, 1.0, 0.0);
   EXPECT_EQ(sg.sector(p6), 4);
 }
-

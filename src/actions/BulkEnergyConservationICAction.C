@@ -21,24 +21,30 @@
 #include "FEProblem.h"
 
 registerMooseAction("CardinalApp", BulkEnergyConservationICAction, "add_bulk_fluid_temperature_ic");
-registerMooseAction("CardinalApp", BulkEnergyConservationICAction, "add_bulk_fluid_temperature_user_object");
+registerMooseAction("CardinalApp",
+                    BulkEnergyConservationICAction,
+                    "add_bulk_fluid_temperature_user_object");
 
 InputParameters
 BulkEnergyConservationICAction::validParams()
 {
   InputParameters params = CardinalAction::validParams();
-  params.addRequiredParam<std::vector<VariableName>>("variable", "Name(s) of the fluid temperature variable(s)");
-  params.addRequiredParam<unsigned int>("num_layers", "Number of layers to use for integrating the heat source");
+  params.addRequiredParam<std::vector<VariableName>>(
+      "variable", "Name(s) of the fluid temperature variable(s)");
+  params.addRequiredParam<unsigned int>("num_layers",
+                                        "Number of layers to use for integrating the heat source");
 
   MooseEnum directions("x y z");
-  params.addRequiredParam<MooseEnum>("flow_direction", directions,
-    "The flow direction along which to integrate the heat source");
-  params.addParam<bool>("positive_flow_direction", true,
-    "Whether the flow is along the positive 'direction' or negative 'direction'");
+  params.addRequiredParam<MooseEnum>(
+      "flow_direction", directions, "The flow direction along which to integrate the heat source");
+  params.addParam<bool>(
+      "positive_flow_direction",
+      true,
+      "Whether the flow is along the positive 'direction' or negative 'direction'");
   params.addParam<Real>("direction_min",
-    "Minimum coordinate along 'direction' that bounds the layers");
+                        "Minimum coordinate along 'direction' that bounds the layers");
   params.addParam<Real>("direction_max",
-    "Maximum coordinate along 'direction' that bounds the layers");
+                        "Maximum coordinate along 'direction' that bounds the layers");
 
   params.addRequiredParam<Real>("mass_flowrate", "Mass flowrate of the fluid");
   params.addRequiredParam<Real>("cp", "Fluid isobaric specific heat capacity");
@@ -70,17 +76,19 @@ BulkEnergyConservationICAction::act()
   const auto & ic_warehouse = _problem->getInitialConditionWarehouse();
 
   if (!ic_warehouse.hasActiveObject("cardinal_heat_source_ic"))
-    mooseError("To use the 'BulkEnergyConservation' action syntax, you must also have "
-      "a 'VolumetricHeatSource' action!\nYour input file should contain a section like:\n\n"
-      "  [Cardinal]\n"
-      "    [ICs]\n"
-      "      type = VolumetricHeatSource\n"
-      "      ...\n"
-      "    []\n"
-      "  []");
+    mooseError(
+        "To use the 'BulkEnergyConservation' action syntax, you must also have "
+        "a 'VolumetricHeatSource' action!\nYour input file should contain a section like:\n\n"
+        "  [Cardinal]\n"
+        "    [ICs]\n"
+        "      type = VolumetricHeatSource\n"
+        "      ...\n"
+        "    []\n"
+        "  []");
 
   std::shared_ptr<InitialConditionBase> prereq = ic_warehouse.getObject("cardinal_heat_source_ic");
-  std::shared_ptr<IntegralPreservingFunctionIC> ic = std::dynamic_pointer_cast<IntegralPreservingFunctionIC>(prereq);
+  std::shared_ptr<IntegralPreservingFunctionIC> ic =
+      std::dynamic_pointer_cast<IntegralPreservingFunctionIC>(prereq);
   const auto & heat_source_blocks = ic->blocks();
 
   if (_current_task == "add_bulk_fluid_temperature_ic")
@@ -100,7 +108,8 @@ BulkEnergyConservationICAction::act()
 
       setObjectBlocks(params, _blocks);
 
-      _problem->addInitialCondition(ic_type, "cardinal_fluid_temp_ic_" + Moose::stringify(i), params);
+      _problem->addInitialCondition(
+          ic_type, "cardinal_fluid_temp_ic_" + Moose::stringify(i), params);
     }
   }
 
@@ -118,7 +127,7 @@ BulkEnergyConservationICAction::act()
       params.set<Real>("direction_min") = *_direction_min;
 
     if (_has_direction_max)
-       params.set<Real>("direction_max") = *_direction_max;
+      params.set<Real>("direction_max") = *_direction_max;
 
     // we need to set the blocks of the heat source for integrating the heat source,
     // not the blocks that the initial condition is applied for the fluid

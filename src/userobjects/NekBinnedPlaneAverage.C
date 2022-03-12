@@ -26,7 +26,8 @@ InputParameters
 NekBinnedPlaneAverage::validParams()
 {
   InputParameters params = NekPlaneSpatialBinUserObject::validParams();
-  params.addClassDescription("Compute the spatially-binned side average of a field over the NekRS mesh");
+  params.addClassDescription(
+      "Compute the spatially-binned side average of a field over the NekRS mesh");
   return params;
 }
 

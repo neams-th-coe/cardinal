@@ -24,15 +24,16 @@ InputParameters
 BulkEnergyConservationIC::validParams()
 {
   InputParameters params = InitialCondition::validParams();
-  params.addRequiredParam<UserObjectName>("layered_integral",
-    "User object providing the cumulative integral of the heat source in layers "
-    "in the direction of fluid flow");
+  params.addRequiredParam<UserObjectName>(
+      "layered_integral",
+      "User object providing the cumulative integral of the heat source in layers "
+      "in the direction of fluid flow");
   params.addRequiredParam<Real>("mass_flowrate", "Mass flowrate of the fluid");
   params.addRequiredParam<Real>("cp", "Fluid isobaric specific heat capacity");
   params.addRequiredRangeCheckedParam<Real>("inlet_T", "inlet_T >= 0.0", "Inlet temperature");
 
-  params.addRequiredParam<PostprocessorName>("integral",
-    "Postprocessor providing the integral of the heat source, for normalization");
+  params.addRequiredParam<PostprocessorName>(
+      "integral", "Postprocessor providing the integral of the heat source, for normalization");
   params.addRequiredParam<Real>("magnitude", "Magnitude of the heat source");
   return params;
 }

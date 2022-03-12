@@ -30,8 +30,8 @@ NekVolumeAverage::validParams()
   return params;
 }
 
-NekVolumeAverage::NekVolumeAverage(const InputParameters & parameters) :
-  NekVolumeIntegral(parameters)
+NekVolumeAverage::NekVolumeAverage(const InputParameters & parameters)
+  : NekVolumeIntegral(parameters)
 {
 }
 

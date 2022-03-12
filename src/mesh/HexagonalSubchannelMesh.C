@@ -27,19 +27,23 @@ InputParameters
 HexagonalSubchannelMesh::validParams()
 {
   InputParameters params = HexagonalSubchannelMeshBase::validParams();
-  params.addRequiredRangeCheckedParam<unsigned int>("n_axial", "n_axial > 0",
-    "Number of axial cells");
+  params.addRequiredRangeCheckedParam<unsigned int>(
+      "n_axial", "n_axial > 0", "Number of axial cells");
   params.addRequiredRangeCheckedParam<Real>("height", "height > 0", "Height of assembly");
 
-  params.addRangeCheckedParam<unsigned int>("theta_res", 6, "theta_res >= 2", "Number of nodes on each pin's arc length with a channel");
-  params.addRangeCheckedParam<unsigned int>("gap_res", 2, "gap_res >= 2", "Number of nodes on each gap");
+  params.addRangeCheckedParam<unsigned int>(
+      "theta_res", 6, "theta_res >= 2", "Number of nodes on each pin's arc length with a channel");
+  params.addRangeCheckedParam<unsigned int>(
+      "gap_res", 2, "gap_res >= 2", "Number of nodes on each gap");
 
   params.addParam<SubdomainID>("interior_id", 1, "Block ID to set for the interior channels");
   params.addParam<SubdomainID>("edge_id", 2, "Block ID to set for the edge channels");
   params.addParam<SubdomainID>("corner_id", 3, "Block ID to set for the corner channels");
 
-  params.addParam<bool>("volume_mesh", true, "Whether to generate a volume mesh (true) "
-    "or just the surfaces between axial layers in the domain (false)");
+  params.addParam<bool>("volume_mesh",
+                        true,
+                        "Whether to generate a volume mesh (true) "
+                        "or just the surfaces between axial layers in the domain (false)");
 
   params.addClassDescription("Mesh respecting subchannel boundaries for a triangular lattice");
   return params;
@@ -101,7 +105,8 @@ HexagonalSubchannelMesh::buildMesh()
       // Then add the elements for the interior channels
       for (int i = 0; i < _hex_lattice.nInteriorChannels(); ++i)
       {
-        Point centroid = _hex_lattice.channelCentroid(_hex_lattice.interiorChannelCornerCoordinates(i));
+        Point centroid =
+            _hex_lattice.channelCentroid(_hex_lattice.interiorChannelCornerCoordinates(i));
         Real rotation = i % 2 == 0 ? M_PI : 0.0;
 
         std::vector<Point> points;
@@ -183,7 +188,8 @@ HexagonalSubchannelMesh::buildMesh()
 }
 
 void
-HexagonalSubchannelMesh::addTriElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & z, const SubdomainID & id)
+HexagonalSubchannelMesh::addTriElem(
+    const Point & pt1, const Point & pt2, const Point & pt3, const Real & z, const SubdomainID & id)
 {
   auto elem = new Tri3;
   elem->set_id(_elem_id_counter++);
@@ -203,8 +209,12 @@ HexagonalSubchannelMesh::addTriElem(const Point & pt1, const Point & pt2, const 
 }
 
 void
-HexagonalSubchannelMesh::addPrismElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & zmin, const Real & zmax,
-  const SubdomainID & id)
+HexagonalSubchannelMesh::addPrismElem(const Point & pt1,
+                                      const Point & pt2,
+                                      const Point & pt3,
+                                      const Real & zmin,
+                                      const Real & zmax,
+                                      const SubdomainID & id)
 {
   auto elem = new Prism6;
   elem->set_id(_elem_id_counter++);
@@ -258,7 +268,8 @@ HexagonalSubchannelMesh::getInteriorPoints()
   // Add the points on the first gap
   Point start1 = _interior_points[_theta_res];
   for (int i = 0; i < _gap_res - 2; ++i)
-    _interior_points[p++] = start1 + Point(-gap_dx * (i + 1) * SIN30, -gap_dx * (i + 1) * COS30, 0.0);
+    _interior_points[p++] =
+        start1 + Point(-gap_dx * (i + 1) * SIN30, -gap_dx * (i + 1) * COS30, 0.0);
 
   // Add the points on the second pin
   for (int i = 0; i < _theta_res; ++i)
@@ -282,7 +293,8 @@ HexagonalSubchannelMesh::getInteriorPoints()
   // Add points on the third gap
   Point start3 = _interior_points[3 * _theta_res + 2 * (_gap_res - 2)];
   for (int i = 0; i < _gap_res - 2; ++i)
-    _interior_points[p++] = start3 + Point(-gap_dx * (i + 1) * SIN30, gap_dx * (i + 1) * COS30, 0.0);
+    _interior_points[p++] =
+        start3 + Point(-gap_dx * (i + 1) * SIN30, gap_dx * (i + 1) * COS30, 0.0);
 }
 
 void
@@ -378,7 +390,8 @@ HexagonalSubchannelMesh::getCornerPoints()
   for (int i = 0; i < _gap_res - 1; ++i)
   {
     Real dx = (i + 1) * gap_arc_length;
-    _corner_points[p++] = _corner_points[_theta_res + _gap_res - 1] + Point(dx * COS30, dx * SIN30, 0.0);
+    _corner_points[p++] =
+        _corner_points[_theta_res + _gap_res - 1] + Point(dx * COS30, dx * SIN30, 0.0);
   }
 
   // Add the points on the duct

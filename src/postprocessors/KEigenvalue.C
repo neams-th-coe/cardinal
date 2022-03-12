@@ -27,15 +27,17 @@ InputParameters
 KEigenvalue::validParams()
 {
   InputParameters params = OpenMCPostprocessor::validParams();
-  params.addParam<MooseEnum>("value_type", getEigenvalueEnum(),
-    "Type of eigenvalue global tally to report; options: collision, absorption, tracklength, combined (default)");
+  params.addParam<MooseEnum>("value_type",
+                             getEigenvalueEnum(),
+                             "Type of eigenvalue global tally to report; options: collision, "
+                             "absorption, tracklength, combined (default)");
   params.addClassDescription("Extract the k eigenvalue computed by OpenMC");
   return params;
 }
 
-KEigenvalue::KEigenvalue(const InputParameters & parameters) :
-  OpenMCPostprocessor(parameters),
-  _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>())
+KEigenvalue::KEigenvalue(const InputParameters & parameters)
+  : OpenMCPostprocessor(parameters),
+    _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>())
 {
 }
 

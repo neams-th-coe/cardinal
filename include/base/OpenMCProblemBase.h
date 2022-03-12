@@ -94,14 +94,17 @@ protected:
    * @param[in] value value to set
    */
   void fillElementalAuxVariable(const unsigned int & var_num,
-    const std::vector<unsigned int> & elem_ids, const Real & value);
+                                const std::vector<unsigned int> & elem_ids,
+                                const Real & value);
 
   /**
    * Get name of source bank file to write
    * @param[out] file name
    */
-  std::string sourceBankFileName() const { return
-    _path_output + "initial_source_" + std::to_string(_fixed_point_iteration) + ".h5"; }
+  std::string sourceBankFileName() const
+  {
+    return _path_output + "initial_source_" + std::to_string(_fixed_point_iteration) + ".h5";
+  }
 
   /// Power by which to normalize the OpenMC results
   const Real & _power;

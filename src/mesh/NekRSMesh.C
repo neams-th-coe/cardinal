@@ -33,22 +33,26 @@ InputParameters
 NekRSMesh::validParams()
 {
   InputParameters params = MooseMesh::validParams();
-  params.addParam<std::vector<int>>("boundary", "Boundary ID(s) through which nekRS will be coupled to MOOSE");
+  params.addParam<std::vector<int>>("boundary",
+                                    "Boundary ID(s) through which nekRS will be coupled to MOOSE");
   params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
-  params.addParam<MooseEnum>("order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
-  params.addRangeCheckedParam<Real>("scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
-  params.addClassDescription("Construct a mirror of the NekRS mesh in boundary and/or volume format");
+  params.addParam<MooseEnum>(
+      "order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
+  params.addRangeCheckedParam<Real>(
+      "scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
+  params.addClassDescription(
+      "Construct a mirror of the NekRS mesh in boundary and/or volume format");
   return params;
 }
 
-NekRSMesh::NekRSMesh(const InputParameters & parameters) :
-  MooseMesh(parameters),
-  _volume(getParam<bool>("volume")),
-  _boundary(isParamValid("boundary") ? &getParam<std::vector<int>>("boundary") : nullptr),
-  _order(getParam<MooseEnum>("order").getEnum<order::NekOrderEnum>()),
-  _scaling(getParam<Real>("scaling")),
-  _n_surface_elems(0),
-  _n_volume_elems(0)
+NekRSMesh::NekRSMesh(const InputParameters & parameters)
+  : MooseMesh(parameters),
+    _volume(getParam<bool>("volume")),
+    _boundary(isParamValid("boundary") ? &getParam<std::vector<int>>("boundary") : nullptr),
+    _order(getParam<MooseEnum>("order").getEnum<order::NekOrderEnum>()),
+    _scaling(getParam<Real>("scaling")),
+    _n_surface_elems(0),
+    _n_volume_elems(0)
 {
   if (!_boundary && !_volume)
     mooseError("This mesh requires at least 'volume = true' or a list of IDs in 'boundary'!");
@@ -59,8 +63,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   // see if NekRS's mesh even exists
   if (!nekrs::isInitialized())
     mooseError("This mesh can only be used with wrapped Nek cases!\n"
-      "You need to change the problem type to a Nek-wrapped problem.\n\n"
-      "options: 'NekRSProblem', 'NekRSStandaloneProblem'");
+               "You need to change the problem type to a Nek-wrapped problem.\n\n"
+               "options: 'NekRSProblem', 'NekRSStandaloneProblem'");
 
   _nek_internal_mesh = nekrs::entireMesh();
 
@@ -70,7 +74,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
   int dimension = nekrs::mesh::dim();
   if (dimension != 3)
     mooseError("This mesh assumes that the nekRS mesh dimension is 3!\n\nYour mesh is "
-      "dimension " + std::to_string(dimension) + ".");
+               "dimension " +
+               std::to_string(dimension) + ".");
 
   // if doing a JIT build, the boundary information does not exist yet
   if (!nekrs::buildOnly() && _boundary)
@@ -80,10 +85,15 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters) :
     bool valid_ids = nekrs::mesh::validBoundaryIDs(*_boundary, first_invalid_id, n_boundaries);
 
     if (!valid_ids)
-      mooseError("Invalid 'boundary' entry: ", first_invalid_id, "\n\n"
-        "nekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
-        "For this problem, nekRS has ", n_boundaries, " boundaries. "
-        "Did you enter a valid 'boundary' in '" + filename + "'?");
+      mooseError("Invalid 'boundary' entry: ",
+                 first_invalid_id,
+                 "\n\n"
+                 "nekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
+                 "For this problem, nekRS has ",
+                 n_boundaries,
+                 " boundaries. "
+                 "Did you enter a valid 'boundary' in '" +
+                     filename + "'?");
   }
 
   // save the initial mesh structure in case we are applying displacements
@@ -104,13 +114,18 @@ void
 NekRSMesh::printMeshInfo() const
 {
   _console << "\nNekRS mesh mapping to MOOSE:" << std::endl;
-  VariadicTable<std::string, int, std::string, int, int> vt({"", "Order", "Boundaries", "# Side Elems", "# Volume Elems"});
+  VariadicTable<std::string, int, std::string, int, int> vt(
+      {"", "Order", "Boundaries", "# Side Elems", "# Volume Elems"});
 
   std::vector<int> nek_bids;
   for (int i = 1; i <= nekrs::mesh::NboundaryID(); ++i)
     nek_bids.push_back(i);
 
-  vt.addRow("NekRS mesh", nekrs::mesh::polynomialOrder(), Moose::stringify(nek_bids), _nek_n_surface_elems, _nek_n_volume_elems);
+  vt.addRow("NekRS mesh",
+            nekrs::mesh::polynomialOrder(),
+            Moose::stringify(nek_bids),
+            _nek_n_surface_elems,
+            _nek_n_volume_elems);
 
   std::string boundaries = "";
   if (_boundary)
@@ -230,7 +245,7 @@ NekRSMesh::initializeMeshParams()
        *     o--------o
        *     0        1
        */
-       _vol_node_index = {2, 3, 7, 6, 0, 1, 5, 4};
+      _vol_node_index = {2, 3, 7, 6, 0, 1, 5, 4};
 
       break;
     case order::second:
@@ -316,7 +331,8 @@ NekRSMesh::initializeMeshParams()
        *    o--------------o--------------o
        *    0              1              2
        */
-       _vol_node_index = {6, 8, 26, 24, 0, 2, 20, 18, 7, 17, 25, 15, 3, 5, 23, 21, 1, 11, 19, 9, 16, 4, 14, 22, 12, 10, 13};
+      _vol_node_index = {6,  8,  26, 24, 0,  2, 20, 18, 7,  17, 25, 15, 3, 5,
+                         23, 21, 1,  11, 19, 9, 16, 4,  14, 22, 12, 10, 13};
 
       break;
     default:
@@ -352,21 +368,23 @@ NekRSMesh::storeBoundaryCoupling()
   int rank = nekrs::commRank();
   int max_possible_surfaces = _nek_internal_mesh->NboundaryFaces;
 
-  int* etmp = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int* ftmp = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int* ptmp = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int* btmp = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int * element = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int * face = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int * process = (int *) malloc(max_possible_surfaces * sizeof(int));
-  int * boundary_id = (int *) malloc(max_possible_surfaces * sizeof(int));
+  int * etmp = (int *)malloc(max_possible_surfaces * sizeof(int));
+  int * ftmp = (int *)malloc(max_possible_surfaces * sizeof(int));
+  int * ptmp = (int *)malloc(max_possible_surfaces * sizeof(int));
+  int * btmp = (int *)malloc(max_possible_surfaces * sizeof(int));
+  int * element = (int *)malloc(max_possible_surfaces * sizeof(int));
+  int * face = (int *)malloc(max_possible_surfaces * sizeof(int));
+  int * process = (int *)malloc(max_possible_surfaces * sizeof(int));
+  int * boundary_id = (int *)malloc(max_possible_surfaces * sizeof(int));
 
   // number of faces on boundary of interest for this process
   int Nfaces = 0;
 
   int d = 0;
-  for (int i = 0; i < _nek_internal_mesh->Nelements; ++i) {
-    for (int j = 0; j < _nek_internal_mesh->Nfaces; ++j) {
+  for (int i = 0; i < _nek_internal_mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < _nek_internal_mesh->Nfaces; ++j)
+    {
       int face_id = _nek_internal_mesh->EToB[i * _nek_internal_mesh->Nfaces + j];
 
       if (std::find(_boundary->begin(), _boundary->end(), face_id) != _boundary->end())
@@ -389,11 +407,12 @@ NekRSMesh::storeBoundaryCoupling()
 
   // make available to all processes the number of faces owned by each process
   _boundary_coupling.counts.resize(nekrs::commSize());
-  MPI_Allgather(&Nfaces, 1, MPI_INT, &_boundary_coupling.counts[0], 1, MPI_INT, platform->comm.mpiComm);
+  MPI_Allgather(
+      &Nfaces, 1, MPI_INT, &_boundary_coupling.counts[0], 1, MPI_INT, platform->comm.mpiComm);
 
   // compute the counts and displacements for face-based data exchange
-  int* recvCounts = (int *) calloc(nekrs::commSize(), sizeof(int));
-  int* displacement = (int *) calloc(nekrs::commSize(), sizeof(int));
+  int * recvCounts = (int *)calloc(nekrs::commSize(), sizeof(int));
+  int * displacement = (int *)calloc(nekrs::commSize(), sizeof(int));
   nekrs::displacementAndCounts(_boundary_coupling.counts, recvCounts, displacement, 1);
 
   _boundary_coupling.offset = displacement[rank];
@@ -429,21 +448,28 @@ NekRSMesh::storeVolumeCoupling()
   int rank = nekrs::commRank();
 
   _volume_coupling.n_elems = _nek_internal_mesh->Nelements;
-  MPI_Allreduce(&_volume_coupling.n_elems, &_n_volume_elems, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(
+      &_volume_coupling.n_elems, &_n_volume_elems, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
   _volume_coupling.total_n_elems = _n_volume_elems;
 
   _volume_coupling.counts.resize(nekrs::commSize());
-  MPI_Allgather(&_volume_coupling.n_elems, 1, MPI_INT, &_volume_coupling.counts[0], 1, MPI_INT, platform->comm.mpiComm);
+  MPI_Allgather(&_volume_coupling.n_elems,
+                1,
+                MPI_INT,
+                &_volume_coupling.counts[0],
+                1,
+                MPI_INT,
+                platform->comm.mpiComm);
 
   // Save information regarding the volume mesh coupling in terms of the process-local
   // element IDs and process ownership; the 'tmp' arrays hold the rank-local data,
   // while the other arrays hold the result of the allgatherv
-  int * etmp = (int *) malloc(_n_volume_elems * sizeof(int));
-  int * ptmp = (int *) malloc(_n_volume_elems * sizeof(int));
-  int * btmp = (int *) malloc(_n_volume_elems * _nek_internal_mesh->Nfaces * sizeof(int));
-  int * element  = (int *) malloc(_n_volume_elems * sizeof(int));
-  int * process  = (int *) malloc(_n_volume_elems * sizeof(int));
-  int * boundary = (int *) malloc(_n_volume_elems * _nek_internal_mesh->Nfaces * sizeof(int));
+  int * etmp = (int *)malloc(_n_volume_elems * sizeof(int));
+  int * ptmp = (int *)malloc(_n_volume_elems * sizeof(int));
+  int * btmp = (int *)malloc(_n_volume_elems * _nek_internal_mesh->Nfaces * sizeof(int));
+  int * element = (int *)malloc(_n_volume_elems * sizeof(int));
+  int * process = (int *)malloc(_n_volume_elems * sizeof(int));
+  int * boundary = (int *)malloc(_n_volume_elems * _nek_internal_mesh->Nfaces * sizeof(int));
 
   for (int i = 0; i < _nek_internal_mesh->Nelements; ++i)
   {
@@ -460,8 +486,8 @@ NekRSMesh::storeVolumeCoupling()
   nekrs::allgatherv(_volume_coupling.counts, etmp, element, 1);
   nekrs::allgatherv(_volume_coupling.counts, ptmp, process, 1);
 
-  int * ftmp = (int *) calloc(_n_volume_elems, sizeof(int));
-  int * n_faces_on_boundary = (int *) calloc(_n_volume_elems, sizeof(int));
+  int * ftmp = (int *)calloc(_n_volume_elems, sizeof(int));
+  int * n_faces_on_boundary = (int *)calloc(_n_volume_elems, sizeof(int));
 
   int b_start = _boundary_coupling.offset;
   for (int i = 0; i < _boundary_coupling.n_faces; ++i)
@@ -536,21 +562,21 @@ NekRSMesh::buildMesh()
 
   // If we have a DistributedMesh then:
   if (!_mesh->is_replicated())
-    {
-      // we've already partitioned the elements to match the nekrs
-      // mesh, and libMesh shouldn't try to improve on that.  We won't
-      // ever be doing any element deletion or coarsening, so we don't
-      // even need libMesh's "critical" partitioning.
-      _mesh->skip_partitioning(true);
+  {
+    // we've already partitioned the elements to match the nekrs
+    // mesh, and libMesh shouldn't try to improve on that.  We won't
+    // ever be doing any element deletion or coarsening, so we don't
+    // even need libMesh's "critical" partitioning.
+    _mesh->skip_partitioning(true);
 
-      // But that means we have to update the partitioning metadata
-      // ourselves
-      _mesh->recalculate_n_partitions();
+    // But that means we have to update the partitioning metadata
+    // ourselves
+    _mesh->recalculate_n_partitions();
 
-      // But, we haven't yet partitioned nodes, and if we tell libMesh
-      // not to do that automatically then we need to do it manually
-      libMesh::Partitioner::set_node_processor_ids(*_mesh);
-    }
+    // But, we haven't yet partitioned nodes, and if we tell libMesh
+    // not to do that automatically then we need to do it manually
+    libMesh::Partitioner::set_node_processor_ids(*_mesh);
+  }
 
   _mesh->prepare_for_use();
 }
@@ -597,11 +623,11 @@ NekRSMesh::addElems()
 void
 NekRSMesh::faceVertices()
 {
-  double * x = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  double * y = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  double * z = (double*) malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  double * x = (double *)malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  double * y = (double *)malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  double * z = (double *)malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
 
-  nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
@@ -618,17 +644,18 @@ NekRSMesh::faceVertices()
   }
   else
   {
-    // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
-    // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-    mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */,
-      nrs->cht, *(nrs->kernelInfo));
+    // Create a duplicate of the solution mesh, but with the desired order of the mesh
+    // interpolation. Then we can just read the coordinates of the GLL points to find the libMesh
+    // node positions.
+    mesh =
+        createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
     Nfp_mirror = mesh->Nfp;
   }
 
   // Allocate space for the coordinates that are on this rank
-  double* xtmp = (double*) malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
-  double* ytmp = (double*) malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
-  double* ztmp = (double*) malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
+  double * xtmp = (double *)malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
+  double * ytmp = (double *)malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
+  double * ztmp = (double *)malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
 
   int c = 0;
   for (int k = 0; k < _boundary_coupling.total_n_faces; ++k)
@@ -679,16 +706,16 @@ NekRSMesh::volumeVertices()
 {
   // nekRS has already performed a global operation such that all processes know the
   // toal number of volume elements.
-  double * x = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  double * y = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  double * z = (double*) malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  double * x = (double *)malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  double * y = (double *)malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  double * z = (double *)malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
 
-  nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
 
   // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
   // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-  mesh_t * mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy, not used */,
-    nrs->cht, *(nrs->kernelInfo));
+  mesh_t * mesh = createMesh(
+      platform->comm.mpiComm, _order + 1, 1 /* dummy, not used */, nrs->cht, *(nrs->kernelInfo));
 
   nekrs::allgatherv(_volume_coupling.counts, mesh->x, x, mesh->Np);
   nekrs::allgatherv(_volume_coupling.counts, mesh->y, y, mesh->Np);

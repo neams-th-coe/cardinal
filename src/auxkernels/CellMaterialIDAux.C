@@ -23,15 +23,16 @@
 
 registerMooseObject("CardinalApp", CellMaterialIDAux);
 
-InputParameters CellMaterialIDAux::validParams()
+InputParameters
+CellMaterialIDAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
   params.addClassDescription("Display the OpenMC fluid material ID mapped to each MOOSE element");
   return params;
 }
 
-CellMaterialIDAux::CellMaterialIDAux(const InputParameters & parameters) :
-    OpenMCAuxKernel(parameters)
+CellMaterialIDAux::CellMaterialIDAux(const InputParameters & parameters)
+  : OpenMCAuxKernel(parameters)
 {
 }
 
@@ -46,7 +47,8 @@ CellMaterialIDAux::computeValue()
 
   // we only extract the material information for fluid cells, because otherwise we don't
   // need to know the material info. So, set a value of -1 for non-fluid cells.
-  OpenMCCellAverageProblem::cellInfo cell_info = _openmc_problem->elemToCellInfo(_current_elem->id());
+  OpenMCCellAverageProblem::cellInfo cell_info =
+      _openmc_problem->elemToCellInfo(_current_elem->id());
   if (_openmc_problem->cellCouplingFields(cell_info) != coupling::density_and_temperature)
     return -1;
 

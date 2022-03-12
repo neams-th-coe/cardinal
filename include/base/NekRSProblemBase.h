@@ -109,8 +109,10 @@ protected:
    * @param[in] T solution values to write for the field for the given element
    * @param[in] add optional vector of values to add to each value set on the NekRS end
    */
-  void writeVolumeSolution(const int elem_id, const field::NekWriteEnum & field, double * T,
-    const std::vector<double> * add = nullptr);
+  void writeVolumeSolution(const int elem_id,
+                           const field::NekWriteEnum & field,
+                           double * T,
+                           const std::vector<double> * add = nullptr);
 
   /**
    * Interpolate the nekRS volume solution onto the volume data transfer mesh
@@ -184,8 +186,8 @@ protected:
    * In terms of heat flux boundary conditions, the entire energy conservation equation
    * in nekRS is multiplied by \f$\frac{L_{ref}}{\rho_{0}C_{p,0}U_{ref}\Delta T_{ref}}\f$
    * in order to clear the coefficient on the convective. Therefore, the heat source in
-   * nekRS is expressed in nondimensional form as \f$q^\dagger=\frac{q}{\rho_{0}C_{p,0}U_{ref}\Delta T_{ref}}\f$.
-   * Here, 'Cp_0' is the specific heat capacity scale.
+   * nekRS is expressed in nondimensional form as \f$q^\dagger=\frac{q}{\rho_{0}C_{p,0}U_{ref}\Delta
+   * T_{ref}}\f$. Here, 'Cp_0' is the specific heat capacity scale.
    *
    * Unfortunately, there is no systematic way to get these reference
    * scales from nekRS, so we need to inform MOOSE of any possible scaling so that we

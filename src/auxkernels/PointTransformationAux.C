@@ -22,21 +22,21 @@
 
 registerMooseObject("CardinalApp", PointTransformationAux);
 
-InputParameters PointTransformationAux::validParams()
+InputParameters
+PointTransformationAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
   MooseEnum direction("x y z");
-  params.addRequiredParam<MooseEnum>("component", direction,
-    "Component to visualize with this auxiliary kernel");
+  params.addRequiredParam<MooseEnum>(
+      "component", direction, "Component to visualize with this auxiliary kernel");
 
   params.addClassDescription("Auxkernel to visualize the point transformations "
-    "used in OpenMC");
+                             "used in OpenMC");
   return params;
 }
 
-PointTransformationAux::PointTransformationAux(const InputParameters & parameters) :
-    OpenMCAuxKernel(parameters),
-    _d(getParam<MooseEnum>("component"))
+PointTransformationAux::PointTransformationAux(const InputParameters & parameters)
+  : OpenMCAuxKernel(parameters), _d(getParam<MooseEnum>("component"))
 {
 }
 
