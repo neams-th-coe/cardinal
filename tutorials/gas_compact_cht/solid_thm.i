@@ -3,6 +3,7 @@
 #
 # cardinal-opt -i common_input.i solid_thm.i
 
+unit_cell_mdot = ${fparse mdot / (n_bundles * n_coolant_channels_per_block)}
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
 
 # compute the volume fraction of each TRISO layer in a TRISO particle

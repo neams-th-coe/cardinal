@@ -16,6 +16,12 @@ num_layers_for_plots = 50
   fp = helium
 []
 
+[Closures]
+  [none]
+    type = Closures1PhaseNone
+  []
+[]
+
 [Modules/FluidProperties]
   [helium]
     type = IdealGasFluidProperties
@@ -75,7 +81,7 @@ num_layers_for_plots = 50
     type = ADParsedMaterial
     block = channel
     # Dittus-Boelter
-    function = '0.023 * pow(max(1e-3, Re), 0.8) * pow(Pr, 0.4)'
+    function = '0.023 * pow(Re, 0.8) * pow(Pr, 0.4)'
     f_name = 'Nu'
     material_property_names = 'Re Pr'
   []
