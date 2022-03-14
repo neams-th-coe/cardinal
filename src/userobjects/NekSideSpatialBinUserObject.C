@@ -26,26 +26,32 @@ NekSideSpatialBinUserObject::validParams()
 {
   InputParameters params = NekVolumeSpatialBinUserObject::validParams();
   params.addRequiredParam<std::vector<int>>("boundary",
-    "Boundary ID(s) over which to compute the bin values");
+                                            "Boundary ID(s) over which to compute the bin values");
   return params;
 }
 
 NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters & parameters)
-  : NekVolumeSpatialBinUserObject(parameters),
-    _boundary(getParam<std::vector<int>>("boundary"))
+  : NekVolumeSpatialBinUserObject(parameters), _boundary(getParam<std::vector<int>>("boundary"))
 {
   int first_invalid_id, n_boundaries;
   bool valid_ids = nekrs::mesh::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
 
   if (!valid_ids)
-    mooseError("Invalid 'boundary' entry: ", first_invalid_id, "\n\n"
-      "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
-      "For this problem, NekRS has ", n_boundaries, " boundaries.\n"
-      "Did you enter a valid 'boundary' for '" + name() + "'?");
+    mooseError("Invalid 'boundary' entry: ",
+               first_invalid_id,
+               "\n\n"
+               "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
+               "For this problem, NekRS has ",
+               n_boundaries,
+               " boundaries.\n"
+               "Did you enter a valid 'boundary' for '" +
+                   name() + "'?");
 }
 
 Point
-NekSideSpatialBinUserObject::nekPoint(const int & local_elem_id, const int & local_face_id, const int & local_node_id) const
+NekSideSpatialBinUserObject::nekPoint(const int & local_elem_id,
+                                      const int & local_face_id,
+                                      const int & local_node_id) const
 {
   if (_map_space_by_qp)
     return nekrs::gllPointFace(local_elem_id, local_face_id, local_node_id);

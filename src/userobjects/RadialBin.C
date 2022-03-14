@@ -26,16 +26,23 @@ RadialBin::validParams()
   InputParameters params = SpatialBinUserObject::validParams();
   MooseEnum directions("x y z");
 
-  params.addRequiredParam<MooseEnum>("vertical_axis", directions,
-    "The vertical axis about which to compute the radial coordinate (x, y, or z)");
-  params.addRangeCheckedParam<Real>("rmin", 0.0, "rmin >= 0.0",
-    "Inner radius. Setting 'rmin = 0' corresponds to a cross-section of a circle");
+  params.addRequiredParam<MooseEnum>(
+      "vertical_axis",
+      directions,
+      "The vertical axis about which to compute the radial coordinate (x, y, or z)");
+  params.addRangeCheckedParam<Real>(
+      "rmin",
+      0.0,
+      "rmin >= 0.0",
+      "Inner radius. Setting 'rmin = 0' corresponds to a cross-section of a circle");
   params.addRequiredRangeCheckedParam<Real>("rmax", "rmax > 0.0", "Outer radius");
 
-  params.addRequiredRangeCheckedParam<unsigned int>("nr", "nr > 0",
-    "The number of layers in the radial direction");
-  params.addRangeCheckedParam<Real>("growth_r", 1.0, "growth_r > 0.0",
-    "The ratio of radial sizes of successive rings of elements");
+  params.addRequiredRangeCheckedParam<unsigned int>(
+      "nr", "nr > 0", "The number of layers in the radial direction");
+  params.addRangeCheckedParam<Real>("growth_r",
+                                    1.0,
+                                    "growth_r > 0.0",
+                                    "The ratio of radial sizes of successive rings of elements");
 
   params.addClassDescription("Creates spatial bins for layers in the radial direction");
   return params;
@@ -51,10 +58,11 @@ RadialBin::RadialBin(const InputParameters & parameters)
 {
   if (_rmax <= _rmin)
     mooseError("Maximum radial coordinate 'rmax' must be greater than the minimum radial "
-      "coordinate 'rmin'!");
+               "coordinate 'rmin'!");
 
-  Real first_width = _growth_r == 1.0 ? (_rmax - _rmin) / _nr :
-    (_rmax - _rmin) * (1.0 - std::abs(_growth_r)) / (1.0 - std::pow(std::abs(_growth_r), _nr));
+  Real first_width = _growth_r == 1.0 ? (_rmax - _rmin) / _nr
+                                      : (_rmax - _rmin) * (1.0 - std::abs(_growth_r)) /
+                                            (1.0 - std::pow(std::abs(_growth_r), _nr));
 
   _radial_pts.resize(_nr + 1);
   _radial_pts[0] = _rmin;

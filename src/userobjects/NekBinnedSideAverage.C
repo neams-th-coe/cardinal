@@ -26,7 +26,8 @@ InputParameters
 NekBinnedSideAverage::validParams()
 {
   InputParameters params = NekBinnedSideIntegral::validParams();
-  params.addClassDescription("Compute the spatially-binned average of a field over a sideset of the NekRS mesh");
+  params.addClassDescription(
+      "Compute the spatially-binned average of a field over a sideset of the NekRS mesh");
   return params;
 }
 

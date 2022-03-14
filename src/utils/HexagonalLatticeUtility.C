@@ -23,37 +23,42 @@ const Real HexagonalLatticeUtility::COS60 = 0.5;
 const Real HexagonalLatticeUtility::SIN60 = std::sqrt(3.0) / 2.0;
 const unsigned int HexagonalLatticeUtility::NUM_SIDES = 6;
 
-HexagonalLatticeUtility::HexagonalLatticeUtility(const Real & bundle_inner_flat_to_flat, const Real & pin_pitch,
-  const Real & pin_diameter, const Real & wire_diameter, const Real & wire_pitch,
-  const unsigned int & n_rings, const unsigned int & axis):
-  _bundle_pitch(bundle_inner_flat_to_flat),
-  _pin_pitch(pin_pitch),
-  _pin_diameter(pin_diameter),
-  _wire_diameter(wire_diameter),
-  _wire_pitch(wire_pitch),
-  _n_rings(n_rings),
-  _axis(axis),
-  _bundle_side_length(hexagonSide(_bundle_pitch)),
-  _pin_area(M_PI * _pin_diameter * _pin_diameter / 4.0),
-  _pin_circumference(M_PI * _pin_diameter),
-  _wire_area(M_PI * _wire_diameter * _wire_diameter / 4.0),
-  _wire_circumference(M_PI * _wire_diameter),
-  _pin_surface_area_per_pitch(M_PI * _pin_diameter * _wire_pitch),
-  _pin_volume_per_pitch(_pin_area * _wire_pitch),
-  _P_over_D(_pin_pitch / _pin_diameter),
-  _L_over_D(_wire_pitch / _pin_diameter)
+HexagonalLatticeUtility::HexagonalLatticeUtility(const Real & bundle_inner_flat_to_flat,
+                                                 const Real & pin_pitch,
+                                                 const Real & pin_diameter,
+                                                 const Real & wire_diameter,
+                                                 const Real & wire_pitch,
+                                                 const unsigned int & n_rings,
+                                                 const unsigned int & axis)
+  : _bundle_pitch(bundle_inner_flat_to_flat),
+    _pin_pitch(pin_pitch),
+    _pin_diameter(pin_diameter),
+    _wire_diameter(wire_diameter),
+    _wire_pitch(wire_pitch),
+    _n_rings(n_rings),
+    _axis(axis),
+    _bundle_side_length(hexagonSide(_bundle_pitch)),
+    _pin_area(M_PI * _pin_diameter * _pin_diameter / 4.0),
+    _pin_circumference(M_PI * _pin_diameter),
+    _wire_area(M_PI * _wire_diameter * _wire_diameter / 4.0),
+    _wire_circumference(M_PI * _wire_diameter),
+    _pin_surface_area_per_pitch(M_PI * _pin_diameter * _wire_pitch),
+    _pin_volume_per_pitch(_pin_area * _wire_pitch),
+    _P_over_D(_pin_pitch / _pin_diameter),
+    _L_over_D(_wire_pitch / _pin_diameter)
 {
   // object is not tested and probably won't work if axis != 2
   if (_axis != 2)
     mooseError("The HexagonalLatticeUtility is currently limited to 'axis = 2'!");
 
   if (_pin_pitch < _pin_diameter)
-    mooseError("Pin pitch of " + std::to_string(_pin_pitch) +
-      " cannot fit pins of diameter " + std::to_string(_pin_diameter) + "!");
+    mooseError("Pin pitch of " + std::to_string(_pin_pitch) + " cannot fit pins of diameter " +
+               std::to_string(_pin_diameter) + "!");
 
   if (_pin_pitch - _pin_diameter < _wire_diameter)
     mooseError("Wire diameter of " + std::to_string(_wire_diameter) +
-      " cannot fit between pin-pin space of " + std::to_string(_pin_pitch - _pin_diameter) + "!");
+               " cannot fit between pin-pin space of " +
+               std::to_string(_pin_pitch - _pin_diameter) + "!");
 
   _translation_x = {0.0, -SIN60, -SIN60, 0.0, SIN60, SIN60};
   _translation_y = {1.0, COS60, -COS60, -1.0, -COS60, COS60};
@@ -74,7 +79,7 @@ HexagonalLatticeUtility::HexagonalLatticeUtility(const Real & bundle_inner_flat_
 
   if (_pin_bundle_spacing < _wire_diameter)
     mooseError("Specified bundle pitch " + std::to_string(_bundle_pitch) +
-      " is too small to fit the given pins and wire wrap!");
+               " is too small to fit the given pins and wire wrap!");
 }
 
 const unsigned int
@@ -111,7 +116,8 @@ HexagonalLatticeUtility::rings(const unsigned int n) const
   }
 
   if (n != totalPins(i))
-    mooseError("Number of pins " + std::to_string(n) + " not evenly divisible in a hexagonal lattice!");
+    mooseError("Number of pins " + std::to_string(n) +
+               " not evenly divisible in a hexagonal lattice!");
 
   return i;
 }
@@ -193,7 +199,8 @@ HexagonalLatticeUtility::channelType(const Point & p) const
 }
 
 const Real
-HexagonalLatticeUtility::channelSpecificSurfaceArea(const channel_type::ChannelTypeEnum & channel) const
+HexagonalLatticeUtility::channelSpecificSurfaceArea(
+    const channel_type::ChannelTypeEnum & channel) const
 {
   switch (channel)
   {
@@ -209,7 +216,8 @@ HexagonalLatticeUtility::channelSpecificSurfaceArea(const channel_type::ChannelT
 }
 
 const Real &
-HexagonalLatticeUtility::channelHydraulicDiameter(const channel_type::ChannelTypeEnum & channel) const
+HexagonalLatticeUtility::channelHydraulicDiameter(
+    const channel_type::ChannelTypeEnum & channel) const
 {
   switch (channel)
   {
@@ -259,11 +267,11 @@ HexagonalLatticeUtility::minDuctCornerDistance(const Point & p) const
 void
 HexagonalLatticeUtility::computePinAndDuctCoordinates()
 {
-  Real corner_shiftx [] = {COS60, -COS60, -1, -COS60, COS60, 1};
-  Real corner_shifty [] = {SIN60, SIN60, 0, -SIN60, -SIN60, 0};
+  Real corner_shiftx[] = {COS60, -COS60, -1, -COS60, COS60, 1};
+  Real corner_shifty[] = {SIN60, SIN60, 0, -SIN60, -SIN60, 0};
 
-  Real edge_shiftx [] = {-1, -COS60, COS60, 1, COS60, -COS60};
-  Real edge_shifty [] = {0, -SIN60, -SIN60, 0, SIN60, SIN60};
+  Real edge_shiftx[] = {-1, -COS60, COS60, 1, COS60, -COS60};
+  Real edge_shifty[] = {0, -SIN60, -SIN60, 0, SIN60, SIN60};
 
   // compute coordinates of the pin centers relative to the bundle's center
   Point center(0, 0, 0);
@@ -271,33 +279,33 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
 
   for (unsigned int i = 2; i <= _n_rings; ++i)
   {
-     auto n_total_in_ring = pins(i);
-     auto increment = i - 1;
+    auto n_total_in_ring = pins(i);
+    auto increment = i - 1;
 
-     unsigned int d = 0;
+    unsigned int d = 0;
 
-     for (unsigned int j = 0; j < n_total_in_ring; ++j)
-     {
-       unsigned int side = j / increment;
+    for (unsigned int j = 0; j < n_total_in_ring; ++j)
+    {
+      unsigned int side = j / increment;
 
-       if (d == increment)
-         d = 0;
+      if (d == increment)
+        d = 0;
 
-       // it is assumed that the pins are aligned parallel to the z-axis
-       Point center(corner_shiftx[side] * _pin_pitch * (i - 1),
-                    corner_shifty[side] * _pin_pitch * (i - 1),
-                    0.0);
+      // it is assumed that the pins are aligned parallel to the z-axis
+      Point center(corner_shiftx[side] * _pin_pitch * (i - 1),
+                   corner_shifty[side] * _pin_pitch * (i - 1),
+                   0.0);
 
-       // additional shift for the edge sides
-       if (d != 0)
-       {
-         center(0) += edge_shiftx[side] * _pin_pitch * d;
-         center(1) += edge_shifty[side] * _pin_pitch * d;
-       }
+      // additional shift for the edge sides
+      if (d != 0)
+      {
+        center(0) += edge_shiftx[side] * _pin_pitch * d;
+        center(1) += edge_shifty[side] * _pin_pitch * d;
+      }
 
-       _pin_centers.push_back(center);
+      _pin_centers.push_back(center);
 
-       d += 1;
+      d += 1;
     }
   }
 
@@ -328,8 +336,8 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
   {
     auto c = i;
     unsigned int n = i == 5 ? 0 : i + 1;
-    Real slope = (_duct_corners[n](1) - _duct_corners[c](1)) /
-      (_duct_corners[n](0) - _duct_corners[c](0));
+    Real slope =
+        (_duct_corners[n](1) - _duct_corners[c](1)) / (_duct_corners[n](0) - _duct_corners[c](0));
     std::vector<Real> coeffs = {-slope, 1.0, slope * _duct_corners[c](0) - _duct_corners[c](1)};
     _duct_coeffs.push_back(coeffs);
   }
@@ -432,7 +440,8 @@ void
 HexagonalLatticeUtility::computeWireVolumeAndAreaPerPitch()
 {
   unsigned int n_wire_coils = 1;
-  Real wire_length_per_coil = std::sqrt(_wire_pitch * _wire_pitch + std::pow(M_PI * (_pin_diameter + _wire_diameter), 2.0));
+  Real wire_length_per_coil =
+      std::sqrt(_wire_pitch * _wire_pitch + std::pow(M_PI * (_pin_diameter + _wire_diameter), 2.0));
   Real wire_length = wire_length_per_coil * n_wire_coils;
   _wire_volume_per_pitch = _wire_area * wire_length;
   _wire_surface_area_per_pitch = _wire_circumference * wire_length;
@@ -524,11 +533,13 @@ HexagonalLatticeUtility::computeChannelPinIndices()
   }
 
   for (unsigned int i = 0; i < _n_corner_channels; ++i)
-    _corner_channel_pin_indices[i][0] = totalPins(_n_rings - 1) + i * (_n_edge_channels / NUM_SIDES);
+    _corner_channel_pin_indices[i][0] =
+        totalPins(_n_rings - 1) + i * (_n_edge_channels / NUM_SIDES);
 }
 
 const std::vector<Point>
-HexagonalLatticeUtility::interiorChannelCornerCoordinates(const unsigned int & interior_channel_id) const
+HexagonalLatticeUtility::interiorChannelCornerCoordinates(
+    const unsigned int & interior_channel_id) const
 {
   std::vector<Point> corners;
   auto pin_indices = _interior_channel_pin_indices[interior_channel_id];
@@ -561,7 +572,8 @@ HexagonalLatticeUtility::edgeChannelCornerCoordinates(const unsigned int & edge_
 }
 
 const std::vector<Point>
-HexagonalLatticeUtility::cornerChannelCornerCoordinates(const unsigned int & corner_channel_id) const
+HexagonalLatticeUtility::cornerChannelCornerCoordinates(
+    const unsigned int & corner_channel_id) const
 {
   std::vector<Point> corners;
 
@@ -593,13 +605,16 @@ HexagonalLatticeUtility::channelCentroid(const std::vector<Point> & pins) const
 }
 
 const Real
-HexagonalLatticeUtility::lineHalfSpace(const Point & pt1, const Point & pt2, const Point & pt3) const
+HexagonalLatticeUtility::lineHalfSpace(const Point & pt1,
+                                       const Point & pt2,
+                                       const Point & pt3) const
 {
   return (pt1(0) - pt3(0)) * (pt2(1) - pt3(1)) - (pt2(0) - pt3(0)) * (pt1(1) - pt3(1));
 }
 
 const bool
-HexagonalLatticeUtility::pointInPolygon(const Point & point, const std::vector<Point> & corners) const
+HexagonalLatticeUtility::pointInPolygon(const Point & point,
+                                        const std::vector<Point> & corners) const
 {
   auto n_pts = corners.size();
 
@@ -613,8 +628,10 @@ HexagonalLatticeUtility::pointInPolygon(const Point & point, const std::vector<P
     positive_half_space.push_back(half > 0);
   }
 
-  bool negative = std::find(negative_half_space.begin(), negative_half_space.end(), true) != negative_half_space.end();
-  bool positive = std::find(positive_half_space.begin(), positive_half_space.end(), true) != positive_half_space.end();
+  bool negative = std::find(negative_half_space.begin(), negative_half_space.end(), true) !=
+                  negative_half_space.end();
+  bool positive = std::find(positive_half_space.begin(), positive_half_space.end(), true) !=
+                  positive_half_space.end();
 
   return !(negative && positive);
 }
@@ -685,11 +702,14 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       mooseError("Unhandled ChannelTypeEnum!");
   }
 
-  mooseError("Point (" + std::to_string(point(0)) + ", " + std::to_string(point(1)) +
-    ", " + std::to_string(point(2)) + ") is not in any channel! This can sometimes happen "
-    "due to:\n\n a) Points in the mesh actually being outside the domain specified with the "
-    "HexagonalLatticeUtility.\n b) Small floating point errors - we recommend using a CONSTANT MONOMIAL variable "
-    "with all related objects.");
+  mooseError(
+      "Point (" + std::to_string(point(0)) + ", " + std::to_string(point(1)) + ", " +
+      std::to_string(point(2)) +
+      ") is not in any channel! This can sometimes happen "
+      "due to:\n\n a) Points in the mesh actually being outside the domain specified with the "
+      "HexagonalLatticeUtility.\n b) Small floating point errors - we recommend using a CONSTANT "
+      "MONOMIAL variable "
+      "with all related objects.");
 }
 
 void
@@ -858,7 +878,9 @@ HexagonalLatticeUtility::getLineCoefficients(const Point & line0, const Point & 
 }
 
 Real
-HexagonalLatticeUtility::distanceFromLine(const Point & pt, const Point & line0, const Point & line1) const
+HexagonalLatticeUtility::distanceFromLine(const Point & pt,
+                                          const Point & line0,
+                                          const Point & line1) const
 {
   auto l = getLineCoefficients(line0, line1);
   return std::abs(l[0] * pt(0) + l[1] * pt(1) + l[2]) / std::sqrt(l[0] * l[0] + l[1] * l[1]);
@@ -894,7 +916,9 @@ HexagonalLatticeUtility::gapIndex(const Point & point) const
 }
 
 void
-HexagonalLatticeUtility::gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const
+HexagonalLatticeUtility::gapIndexAndDistance(const Point & point,
+                                             unsigned int & index,
+                                             Real & distance) const
 {
   const auto & channel_index = channelIndex(point);
   const auto & gap_indices = _local_to_global_gaps[channel_index];

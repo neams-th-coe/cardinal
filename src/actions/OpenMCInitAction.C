@@ -47,11 +47,12 @@ OpenMCInitAction::act()
   {
     int argc = 1;
     char openmc[] = "openmc";
-    char * argv[1] = { openmc };
+    char * argv[1] = {openmc};
 
     openmc_init(argc, argv, &_communicator.get());
     // ensure that any mapped cells have their distribcell indices generated in OpenMC
-    if (!openmc::settings::material_cell_offsets) {
+    if (!openmc::settings::material_cell_offsets)
+    {
       mooseWarning("Distributed properties for material cells are disabled "
                    "in the OpenMC settings. Enabling...");
       openmc::settings::material_cell_offsets = true;

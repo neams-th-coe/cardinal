@@ -40,4 +40,3 @@ protected:
   /// Direction in which to evaluate velocity, when field = velocity_component
   Point _velocity_direction;
 };
-

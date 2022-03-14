@@ -31,13 +31,14 @@ NekHeatFluxIntegral::validParams()
   return params;
 }
 
-NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters) :
-  NekSidePostprocessor(parameters)
+NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters)
+  : NekSidePostprocessor(parameters)
 {
   // this postprocessor computes the gradient of temperature, so it requires
   // the temperature field to exist
   if (!nekrs::hasTemperatureVariable())
-    mooseError("This postprocessor can only be used with NekRS problems that have a temperature variable!");
+    mooseError("This postprocessor can only be used with NekRS problems that have a temperature "
+               "variable!");
 }
 
 Real

@@ -24,5 +24,5 @@
 class HexagonalLatticeTest : public MooseObjectUnitTest
 {
 public:
-  HexagonalLatticeTest() : MooseObjectUnitTest("CardinalUnitApp") {  }
+  HexagonalLatticeTest() : MooseObjectUnitTest("CardinalUnitApp") {}
 };

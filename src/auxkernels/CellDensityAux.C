@@ -23,17 +23,16 @@
 
 registerMooseObject("CardinalApp", CellDensityAux);
 
-InputParameters CellDensityAux::validParams()
+InputParameters
+CellDensityAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("Display the OpenMC fluid density (kg/m3) mapped to each MOOSE element");
+  params.addClassDescription(
+      "Display the OpenMC fluid density (kg/m3) mapped to each MOOSE element");
   return params;
 }
 
-CellDensityAux::CellDensityAux(const InputParameters & parameters) :
-    OpenMCAuxKernel(parameters)
-{
-}
+CellDensityAux::CellDensityAux(const InputParameters & parameters) : OpenMCAuxKernel(parameters) {}
 
 Real
 CellDensityAux::computeValue()
@@ -45,7 +44,8 @@ CellDensityAux::computeValue()
   if (!mappedElement())
     return OpenMCCellAverageProblem::UNMAPPED;
 
-  OpenMCCellAverageProblem::cellInfo cell_info = _openmc_problem->elemToCellInfo(_current_elem->id());
+  OpenMCCellAverageProblem::cellInfo cell_info =
+      _openmc_problem->elemToCellInfo(_current_elem->id());
 
   // we only extract the material information for fluid cells, because otherwise we don't
   // need to know the material info. So, set a value of -1 for non-fluid cells.
@@ -58,8 +58,8 @@ CellDensityAux::computeValue()
   int err = openmc_material_get_density(index, &density);
 
   if (err)
-    mooseError("In attempting to get density for " + _openmc_problem->printMaterial(index)
-      + ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+    mooseError("In attempting to get density for " + _openmc_problem->printMaterial(index) +
+               ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   return density / _openmc_problem->densityConversionFactor();
 }

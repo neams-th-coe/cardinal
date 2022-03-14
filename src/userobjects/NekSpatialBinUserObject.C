@@ -25,23 +25,35 @@ InputParameters
 NekSpatialBinUserObject::validParams()
 {
   InputParameters params = NekUserObject::validParams();
-  params.addRequiredParam<std::vector<UserObjectName>>("bins", "Userobjects providing a spatial bin given a point");
-  params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to postprocess; "
-    "options: velocity_x, velocity_y, velocity_z, "
-    "velocity_component, velocity, temperature, pressure, unity");
-  params.addParam<bool>("map_space_by_qp", false,
-    "Whether to map the NekRS spatial domain to a bin according to the element centroids (true) "
-    "or quadrature point locations (false).");
-  params.addParam<bool>("check_zero_contributions", true,
-    "Whether to throw an error if no GLL points/element centroids in the NekRS mesh map to a spatial bin; this "
-    "can be used to ensure that the bins are sufficiently big to get at least one contributing "
-    "point from the NekRS mesh.");
-  params.addParam<MooseEnum>("velocity_component", getBinnedVelocityComponentEnum(),
-    "Direction with which to evaluate velocity when 'field = velocity_component.' "
-    "Options: user (specify a direction with 'velocity_direction'), normal (normal to side bins)");
-  params.addParam<Point>("velocity_direction",
-    "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
-    "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
+  params.addRequiredParam<std::vector<UserObjectName>>(
+      "bins", "Userobjects providing a spatial bin given a point");
+  params.addRequiredParam<MooseEnum>("field",
+                                     getNekFieldEnum(),
+                                     "Field to postprocess; "
+                                     "options: velocity_x, velocity_y, velocity_z, "
+                                     "velocity_component, velocity, temperature, pressure, unity");
+  params.addParam<bool>(
+      "map_space_by_qp",
+      false,
+      "Whether to map the NekRS spatial domain to a bin according to the element centroids (true) "
+      "or quadrature point locations (false).");
+  params.addParam<bool>(
+      "check_zero_contributions",
+      true,
+      "Whether to throw an error if no GLL points/element centroids in the NekRS mesh map to a "
+      "spatial bin; this "
+      "can be used to ensure that the bins are sufficiently big to get at least one contributing "
+      "point from the NekRS mesh.");
+  params.addParam<MooseEnum>(
+      "velocity_component",
+      getBinnedVelocityComponentEnum(),
+      "Direction with which to evaluate velocity when 'field = velocity_component.' "
+      "Options: user (specify a direction with 'velocity_direction'), normal (normal to side "
+      "bins)");
+  params.addParam<Point>(
+      "velocity_direction",
+      "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
+      "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
   return params;
 }
 
@@ -67,31 +79,34 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   {
     // first check that the user object exists
     if (!hasUserObjectByName<UserObject>(b))
-      mooseError("Bin user object with name '" + b + "' not found in problem.\nThe user objects "
-        "in 'bins' must be listed before the '" + name() + "' user object.");
+      mooseError("Bin user object with name '" + b +
+                 "' not found in problem.\nThe user objects "
+                 "in 'bins' must be listed before the '" +
+                 name() + "' user object.");
 
     // then check that it's the right type
     if (!hasUserObjectByName<SpatialBinUserObject>(b))
-      mooseError("Bin user object with name '" + b + "' must inherit from SpatialBinUserObject.\n\n"
-        "Volume options: HexagonalSubchannelBin, LayeredBin, RadialBin\n"
-        "Side options: HexagonalSubchannelGapBin, LayeredGapBin");
+      mooseError("Bin user object with name '" + b +
+                 "' must inherit from SpatialBinUserObject.\n\n"
+                 "Volume options: HexagonalSubchannelBin, LayeredBin, RadialBin\n"
+                 "Side options: HexagonalSubchannelGapBin, LayeredGapBin");
 
     _bins.push_back(&getUserObjectByName<SpatialBinUserObject>(b));
   }
 
   _n_bins = num_bins();
 
-  _bin_values = (double *) calloc(_n_bins, sizeof(double));
-  _bin_volumes = (double *) calloc(_n_bins, sizeof(double));
-  _bin_partial_values = (double *) calloc(_n_bins, sizeof(double));
-  _bin_counts = (int *) calloc(_n_bins, sizeof(int));
-  _bin_partial_counts = (int *) calloc(_n_bins, sizeof(int));
+  _bin_values = (double *)calloc(_n_bins, sizeof(double));
+  _bin_volumes = (double *)calloc(_n_bins, sizeof(double));
+  _bin_partial_values = (double *)calloc(_n_bins, sizeof(double));
+  _bin_counts = (int *)calloc(_n_bins, sizeof(int));
+  _bin_partial_counts = (int *)calloc(_n_bins, sizeof(int));
 
   if (_field == field::velocity_component)
   {
-    _bin_values_x = (double *) calloc(_n_bins, sizeof(double));
-    _bin_values_y = (double *) calloc(_n_bins, sizeof(double));
-    _bin_values_z = (double *) calloc(_n_bins, sizeof(double));
+    _bin_values_x = (double *)calloc(_n_bins, sizeof(double));
+    _bin_values_y = (double *)calloc(_n_bins, sizeof(double));
+    _bin_values_z = (double *)calloc(_n_bins, sizeof(double));
   }
 
   checkValidField(_field);
@@ -111,8 +126,9 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
       {
         const auto & bin_providing_d = _bins[_bin_providing_direction[d]];
         mooseError("Cannot combine multiple distributions in the same coordinate direction!\n"
-          "Bin '" + bin->name() + "' conflicts with bin '" + bin_providing_d->name() + "'.");
-       }
+                   "Bin '" +
+                   bin->name() + "' conflicts with bin '" + bin_providing_d->name() + "'.");
+      }
       else
       {
         _has_direction[d] = true;
@@ -136,17 +152,21 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   if (_field == field::velocity_component)
   {
     if (!isParamValid("velocity_component"))
-      mooseError("The 'velocity_component' parameter must be provided when using 'field = velocity_component'!");
+      mooseError("The 'velocity_component' parameter must be provided when using 'field = "
+                 "velocity_component'!");
 
-    _velocity_component = getParam<MooseEnum>("velocity_component").getEnum<component::BinnedVelocityComponentEnum>();
+    _velocity_component =
+        getParam<MooseEnum>("velocity_component").getEnum<component::BinnedVelocityComponentEnum>();
   }
   else if (isParamValid("velocity_component"))
-      mooseWarning("The 'velocity_component' parameter is unused unless 'field = velocity_component'!");
+    mooseWarning(
+        "The 'velocity_component' parameter is unused unless 'field = velocity_component'!");
 
   if (_field == field::velocity_component && _velocity_component == component::user)
   {
     if (!isParamValid("velocity_direction"))
-      mooseError("The 'velocity_direction' parameter must be provided when using 'velocity_component = user'!");
+      mooseError("The 'velocity_direction' parameter must be provided when using "
+                 "'velocity_component = user'!");
 
     Point direction = getParam<Point>("velocity_direction");
 
@@ -161,7 +181,8 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
       _velocity_bin_directions.push_back(direction);
   }
   else if (isParamValid("velocity_direction"))
-    mooseWarning("The 'velocity_direction' parameter is unused unless 'velocity_component = user'!");
+    mooseWarning(
+        "The 'velocity_direction' parameter is unused unless 'velocity_component = user'!");
 }
 
 NekSpatialBinUserObject::~NekSpatialBinUserObject()
@@ -208,10 +229,13 @@ NekSpatialBinUserObject::computeBinVolumes()
       if (_bin_counts[i] == 0)
       {
         std::string map = _map_space_by_qp ? "GLL points" : "element centroids";
-        mooseError("Failed to map any " + map + " to bin " + Moose::stringify(i) + "!\n\n"
-          "This can happen if the bins are much finer than the NekRS mesh or if the bins are defined\n"
-          "in a way that results in bins entirely outside the NekRS domain. You can turn this error\n"
-          "off by setting 'check_zero_contributions = false'.");
+        mooseError("Failed to map any " + map + " to bin " + Moose::stringify(i) +
+                   "!\n\n"
+                   "This can happen if the bins are much finer than the NekRS mesh or if the bins "
+                   "are defined\n"
+                   "in a way that results in bins entirely outside the NekRS domain. You can turn "
+                   "this error\n"
+                   "off by setting 'check_zero_contributions = false'.");
       }
     }
   }

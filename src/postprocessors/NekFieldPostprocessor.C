@@ -25,18 +25,21 @@ InputParameters
 NekFieldPostprocessor::validParams()
 {
   InputParameters params = NekPostprocessor::validParams();
-  params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to integrate; "
-    "options: velocity_x, velocity_y, velocity_z, "
-    "velocity_component, velocity, temperature, pressure, unity");
-  params.addParam<Point>("velocity_direction",
-    "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
-    "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
+  params.addRequiredParam<MooseEnum>("field",
+                                     getNekFieldEnum(),
+                                     "Field to integrate; "
+                                     "options: velocity_x, velocity_y, velocity_z, "
+                                     "velocity_component, velocity, temperature, pressure, unity");
+  params.addParam<Point>(
+      "velocity_direction",
+      "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
+      "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
   return params;
 }
 
-NekFieldPostprocessor::NekFieldPostprocessor(const InputParameters & parameters) :
-  NekPostprocessor(parameters),
-  _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
+NekFieldPostprocessor::NekFieldPostprocessor(const InputParameters & parameters)
+  : NekPostprocessor(parameters),
+    _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
 {
   checkValidField(_field);
 

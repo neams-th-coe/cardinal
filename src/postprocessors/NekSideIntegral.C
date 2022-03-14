@@ -30,8 +30,8 @@ NekSideIntegral::validParams()
   return params;
 }
 
-NekSideIntegral::NekSideIntegral(const InputParameters & parameters) :
-  NekSideFieldPostprocessor(parameters)
+NekSideIntegral::NekSideIntegral(const InputParameters & parameters)
+  : NekSideFieldPostprocessor(parameters)
 {
 }
 
@@ -44,7 +44,8 @@ NekSideIntegral::getValue()
     Real vy = nekrs::sideIntegral(_boundary, field::velocity_y);
     Real vz = nekrs::sideIntegral(_boundary, field::velocity_z);
     Point velocity(vx, vy, vz);
-    return _velocity_direction * velocity;;
+    return _velocity_direction * velocity;
+    ;
   }
 
   return nekrs::sideIntegral(_boundary, _field);

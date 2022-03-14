@@ -190,7 +190,7 @@ protected:
   /// z-displacment transfer variable read from for moving mesh problems
   unsigned int _disp_z_var;
 
- /// volumetric heat source variable read from by nekRS
+  /// volumetric heat source variable read from by nekRS
   unsigned int _heat_source_var;
 
   /// flag to indicate whether this is the first pass to serialize the solution

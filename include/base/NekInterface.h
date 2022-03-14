@@ -210,7 +210,10 @@ void copyScratchToDevice();
 void copyDeformationToDevice();
 
 template <typename T>
-void allgatherv(const std::vector<int> & base_counts, const T * input, T * output, const int multiplier = 1);
+void allgatherv(const std::vector<int> & base_counts,
+                const T * input,
+                T * output,
+                const int multiplier = 1);
 
 /**
  * Determine the receiving counts and displacements for all gather routines
@@ -219,7 +222,10 @@ void allgatherv(const std::vector<int> & base_counts, const T * input, T * outpu
  * @param[out] displacement displacement for each process's counts
  * @param[in] multiplier optional multiplier on the face-based data
  */
-void displacementAndCounts(const std::vector<int> & base_counts, int * counts, int * displacement, const int multiplier);
+void displacementAndCounts(const std::vector<int> & base_counts,
+                           int * counts,
+                           int * displacement,
+                           const int multiplier);
 
 /**
  * Form the 2-D interpolation matrix from a starting GLL quadrature rule to an ending
@@ -239,10 +245,12 @@ void interpolationMatrix(double * I, int starting_points, int ending_points);
  * @param[out] Ix interpolated data
  * @param[in] M resulting number of interpolated points in 1-D
  */
-void interpolateSurfaceFaceHex3D(double * scratch, const double* I, double* x, int N, double* Ix, int M);
+void interpolateSurfaceFaceHex3D(
+    double * scratch, const double * I, double * x, int N, double * Ix, int M);
 
 /**
- * Compute the face centroid given a local element ID and face ID (NOTE: returns in dimensional form)
+ * Compute the face centroid given a local element ID and face ID (NOTE: returns in dimensional
+ * form)
  * @param[in] local_elem_id local element ID on this rank
  * @param[in] local_face_id local face ID on the element
  * @return centroid
@@ -265,7 +273,8 @@ Point centroid(int local_elem_id);
 Point gllPoint(int local_elem_id, int local_node_id);
 
 /**
- * Get the coordinate given a local element ID, a local face ID, and local node ID (NOTE: returns in dimensional form)
+ * Get the coordinate given a local element ID, a local face ID, and local node ID (NOTE: returns in
+ * dimensional form)
  * @param[in] local_elem_id local element ID on this rank
  * @param[in] local_face_id local face ID on this element
  * @param[in] local_node_id local node ID on this element
@@ -295,7 +304,10 @@ double sourceIntegral(const NekVolumeCoupling & nek_volume_coupling);
  * @param[out] normalized_nek_integral final normalized nek flux integral
  * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
-bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling, const double moose_integral, double nek_integral, double & normalized_nek_integral);
+bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
+                   const double moose_integral,
+                   double nek_integral,
+                   double & normalized_nek_integral);
 
 /**
  * Normalize the heat source sent to nekRS to conserve the total heat source
@@ -305,7 +317,10 @@ bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling, const doub
  * @param[out] normalized_nek_integral final normalized nek source integral
  * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
-bool normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling, const double moose_integral, const double nek_integral, double & normalized_nek_integral);
+bool normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling,
+                         const double moose_integral,
+                         const double nek_integral,
+                         double & normalized_nek_integral);
 
 /**
  * Compute the area of a set of boundary IDs
@@ -346,7 +361,9 @@ void dimensionalizeArea(double & integral);
  * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
  * @param[in] integral integral to dimensionalize
  */
-void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const Real & volume, double & integral);
+void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand,
+                                  const Real & volume,
+                                  double & integral);
 
 /**
  * Dimensionalize a given integral of f over a side, i.e. fdS
@@ -354,7 +371,9 @@ void dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand, const R
  * @param[in] area area of the boundary
  * @param[in] integral integral to dimensionalize
  */
-void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const Real & area, double & integral);
+void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
+                                const Real & area,
+                                double & integral);
 
 /**
  * Dimensionalize a given integral of f over a side, i.e. fdS
@@ -362,7 +381,9 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const Rea
  * @param[in] boundary_id boundary IDs for the integral
  * @param[in] integral integral to dimensionalize
  */
-void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand, const std::vector<int> & boundary_id, double & integral);
+void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
+                                const std::vector<int> & boundary_id,
+                                double & integral);
 
 /**
  * Compute the volume integral of a given integrand over the entire scalar mesh
@@ -385,7 +406,8 @@ double massFlowrate(const std::vector<int> & boundary_id);
  * @param[in] integrand field to integrate and weight by mass flux
  * @return mass flux weighted area average of a field
  */
-double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand);
+double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
+                                    const field::NekFieldEnum & integrand);
 
 /**
  * Compute the heat flux over a set of boundary IDs
@@ -514,14 +536,15 @@ int NboundaryID();
  * @param[out] n_boundaries maximum valid boundary ID for printing an error on the MOOSE side
  * @return whether all boundaries are valid
  */
-bool validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, int & n_boundaries);
+bool
+validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, int & n_boundaries);
 
 /**
  * Store the rank-local element, element-local face, and rank ownership for boundary coupling
  * @param[in] boundary_id boundaries through which nekRS will be coupled
  * @param[out] N total number of surface elements
  */
-void storeBoundaryCoupling(const std::vector<int> & boundary_id, int& N);
+void storeBoundaryCoupling(const std::vector<int> & boundary_id, int & N);
 
 } // end namespace mesh
 
@@ -664,8 +687,12 @@ void z_displacement(const int id, const dfloat value);
  * @param[in] rho_ref reference density
  * @param[in] Cp_ref reference heat capacity
  */
-void initializeDimensionalScales(const double U_ref, const double T_ref, const double dT_ref,
-  const double L_ref, const double rho_ref, const double Cp_ref);
+void initializeDimensionalScales(const double U_ref,
+                                 const double T_ref,
+                                 const double dT_ref,
+                                 const double L_ref,
+                                 const double rho_ref,
+                                 const double Cp_ref);
 
 /**
  * \brief Dimensionalize a field by multiplying the nondimensional form by the reference
@@ -674,8 +701,9 @@ void initializeDimensionalScales(const double U_ref, const double T_ref, const d
  * by a scalar, i.e. \f$f^\dagger=\frac{f}{f_ref}\f$, where \f$f^\dagger\f$ is the nondimensional
  * form and \f$f_{ref}\f$ is a reference scale with form particular to the interpretation of the
  * field. Note that for temperature in particular, there are still additional steps to
- * dimensionalize, because we do not define a nondimensional temperature simply as \f$T^\dagger=\frac{T}{\Delta T_{ref}}\f$.
- * But, this function just treats the characteristic scale that would appear in the denominator.
+ * dimensionalize, because we do not define a nondimensional temperature simply as
+ * \f$T^\dagger=\frac{T}{\Delta T_{ref}}\f$. But, this function just treats the characteristic scale
+ * that would appear in the denominator.
  * @param[in] field physical interpretation of value to dimensionalize
  * @param[out] value value to dimensionalize
  */
@@ -719,14 +747,21 @@ MPI_Datatype resolveType();
  * @param[in] multiplier constant multiplier to set on each count indicator
  */
 template <typename T>
-void allgatherv(const std::vector<int> & base_counts, const T * input, T * output, const int multiplier)
+void
+allgatherv(const std::vector<int> & base_counts, const T * input, T * output, const int multiplier)
 {
-  int * recvCounts   = (int *) calloc(commSize(), sizeof(int));
-  int * displacement = (int *) calloc(commSize(), sizeof(int));
+  int * recvCounts = (int *)calloc(commSize(), sizeof(int));
+  int * displacement = (int *)calloc(commSize(), sizeof(int));
   displacementAndCounts(base_counts, recvCounts, displacement, multiplier);
 
-  MPI_Allgatherv(input, recvCounts[commRank()], resolveType<T>(), output,
-    (const int*)recvCounts, (const int*)displacement, resolveType<T>(), platform->comm.mpiComm);
+  MPI_Allgatherv(input,
+                 recvCounts[commRank()],
+                 resolveType<T>(),
+                 output,
+                 (const int *)recvCounts,
+                 (const int *)displacement,
+                 resolveType<T>(),
+                 platform->comm.mpiComm);
 
   free(recvCounts);
   free(displacement);

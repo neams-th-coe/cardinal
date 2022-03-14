@@ -36,4 +36,3 @@ protected:
   /// boundary IDs of the nekRS mesh over which to find the extreme value
   const std::vector<int> & _boundary;
 };
-

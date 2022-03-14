@@ -101,7 +101,8 @@ public:
    * @param[in] point
    * @return transformed point
    */
-  virtual Point transformPoint(const Point & pt) const {
+  virtual Point transformPoint(const Point & pt) const
+  {
     return this->hasPointTransformations() ? _symmetry->transformPoint(pt) : pt;
   }
 
@@ -110,7 +111,8 @@ public:
    * @param[in] point
    * @return transformed point
    */
-  Point transformPointToOpenMC(const Point & pt) const {
+  Point transformPointToOpenMC(const Point & pt) const
+  {
     Point pnt_out = transformPoint(pt);
 
     // scale point to OpenMC domain
@@ -144,8 +146,12 @@ public:
    * very very high). For these orders, we print an error message informing the user
    * that they should switch to a different order.
    */
-  virtual void createQRules(QuadratureType type, Order order, Order volume_order, Order face_order, SubdomainID block,
-    bool allow_negative_weights = true) override;
+  virtual void createQRules(QuadratureType type,
+                            Order order,
+                            Order volume_order,
+                            Order face_order,
+                            SubdomainID block,
+                            bool allow_negative_weights = true) override;
 
   /**
    * Type definition for cells contained within a parent cell; the first value
@@ -240,7 +246,7 @@ public:
   Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
 
   /// Constant flag to indicate that a cell/element was unmapped
-  static constexpr int32_t UNMAPPED {-1};
+  static constexpr int32_t UNMAPPED{-1};
 
 protected:
   /**
@@ -278,7 +284,9 @@ protected:
    * @param[in] hint location hint used to accelerate the search
    * @param[out] map contained cell map
    */
-  void setContainedCells(const cellInfo & cell_info, const Point& hint, std::map<cellInfo, containedCells> & map);
+  void setContainedCells(const cellInfo & cell_info,
+                         const Point & hint,
+                         std::map<cellInfo, containedCells> & map);
 
   /**
    * Check that the structure of the contained material cells for two tally cells matches;
@@ -288,8 +296,9 @@ protected:
    * @param[in] reference map we want to check against
    * @param[in] compare map we want to check
    */
-  void checkContainedCellsStructure(const cellInfo & cell_info, containedCells & reference,
-    containedCells & compare);
+  void checkContainedCellsStructure(const cellInfo & cell_info,
+                                    containedCells & reference,
+                                    containedCells & compare);
 
   /**
    * Set a minimum order for a volume quadrature rule
@@ -299,15 +308,21 @@ protected:
   void setMinimumVolumeQRules(Order & volume_order, const std::string & type);
 
   /// For keeping the output neat when using verbose
-  std::string printNewline() { if (_verbose) return "\n"; else return ""; }
+  std::string printNewline()
+  {
+    if (_verbose)
+      return "\n";
+    else
+      return "";
+  }
 
   /**
    * Check whether a vector extracted with getParam is empty
    * @param[in] vector vector
    * @param[in] name name to use for printing error if empty
    */
-  template <typename T> void checkEmptyVector(const std::vector<T> & vector,
-    const std::string & name) const;
+  template <typename T>
+  void checkEmptyVector(const std::vector<T> & vector, const std::string & name) const;
 
   /**
    * Read the mesh translations from file data
@@ -368,9 +383,9 @@ protected:
   void storeTallyCells();
 
   /**
-   * Check that the same MOOSE block ID doesn't apepar in both the 'fluid_blocks' and 'solid_blocks',
-   * or else it's not clear whether that block should exchange temperature and density with MOOSE
-   * or just temperature alone.
+   * Check that the same MOOSE block ID doesn't apepar in both the 'fluid_blocks' and
+   * 'solid_blocks', or else it's not clear whether that block should exchange temperature and
+   * density with MOOSE or just temperature alone.
    */
   void checkBlockOverlap();
 
@@ -452,7 +467,8 @@ protected:
    * @param[in] filters tally filters
    * @param[in] estimator estimator type
    */
-  void addLocalTally(std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator estimator);
+  void addLocalTally(std::vector<openmc::Filter *> & filters,
+                     const openmc::TallyEstimator estimator);
 
   /**
    * Check the sum of the fluid and solid tallies (if present) against the global
@@ -502,7 +518,7 @@ protected:
    * @param[in] compare shortcut map to compare
    */
   void compareContainedCells(std::map<cellInfo, containedCells> & reference,
-    std::map<cellInfo, containedCells> & compare);
+                             std::map<cellInfo, containedCells> & compare);
 
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
@@ -571,8 +587,8 @@ protected:
    * Whether the cell level should be taken as the lowest local level in the geometry
    * in the case that the lowest local level is *higher* than the _solid_cell_level.
    * In other words, if 'lowest_solid_cell' is specified, then in regions of the OpenMC
-   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_solid_cell' is set to 3,
-   * then the actual level used in mapping is the locally lowest cell level.
+   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_solid_cell'
+   * is set to 3, then the actual level used in mapping is the locally lowest cell level.
    */
   bool _using_lowest_solid_level;
 
@@ -580,8 +596,8 @@ protected:
    * Whether the cell level should be taken as the lowest local level in the geometry
    * in the case that the lowest local level is *higher* than the _fluid_cell_level.
    * In other words, if 'lowest_fluid_cell' is specified, then in regions of the OpenMC
-   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_fluid_cell' is set to 3,
-   * then the actual level used in mapping is the locally lowest cell level.
+   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_fluid_cell'
+   * is set to 3, then the actual level used in mapping is the locally lowest cell level.
    */
   bool _using_lowest_fluid_level;
 
@@ -682,14 +698,13 @@ protected:
    * calls (which are required in order to figure out the pattern by which pebble N is
    * incremented relative to pebble 1).
    *
-   * When using this parameter, we HIGHLY recommend setting 'check_identical_tally_cell_fills = true'
-   * the first time you run your model. This will figure out the material cell fills
-   * using a method that calls openmc::Cell::get_contained_cells for every tally cell,
-   * i.e. without assuming anything about repeated structure in your OpenMC model.
-   * Setting 'identical_tally_cell_fills = true' without also setting
-   * 'check_identical_tally_cell_fills = true' may result in SILENT errors!!! So it
-   * is essential to be sure you've removed any error sources before you turn the error
-   * check off to actually leverage the speedup.
+   * When using this parameter, we HIGHLY recommend setting 'check_identical_tally_cell_fills =
+   * true' the first time you run your model. This will figure out the material cell fills using a
+   * method that calls openmc::Cell::get_contained_cells for every tally cell, i.e. without assuming
+   * anything about repeated structure in your OpenMC model. Setting 'identical_tally_cell_fills =
+   * true' without also setting 'check_identical_tally_cell_fills = true' may result in SILENT
+   * errors!!! So it is essential to be sure you've removed any error sources before you turn the
+   * error check off to actually leverage the speedup.
    *
    * Note: for any tally cells that are just filled with a material, we use the approach
    * where openmc::Cell::get_contained_cells is called in full.
@@ -761,13 +776,13 @@ protected:
   std::unordered_set<SubdomainID> _tally_blocks;
 
   /// Mapping of MOOSE elements to the OpenMC cell they map to (if any)
-  std::vector<cellInfo> _elem_to_cell {};
+  std::vector<cellInfo> _elem_to_cell{};
 
   /**
    * Phase of each element in the MOOSE mesh according to settings in the 'fluid_blocks'
    * and 'solid_blocks' parameters.
    */
-  std::vector<coupling::CouplingFields> _elem_phase {};
+  std::vector<coupling::CouplingFields> _elem_phase{};
 
   /// Number of solid elements in the MOOSE mesh
   int _n_moose_solid_elems;
@@ -791,7 +806,7 @@ protected:
   Real _uncoupled_volume;
 
   /// Whether non-material cells are mapped
-  bool _material_cells_only {true};
+  bool _material_cells_only{true};
 
   /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs
   std::map<cellInfo, std::vector<unsigned int>> _cell_to_elem;
@@ -818,7 +833,7 @@ protected:
   std::vector<cellInfo> _tally_cells;
 
   /// Global kappa fission tally
-  openmc::Tally * _global_tally {nullptr};
+  openmc::Tally * _global_tally{nullptr};
 
   /**
    * Local kappa fission tallies; multiple tallies will only exist when
@@ -845,7 +860,7 @@ protected:
   Real _local_kappa_fission;
 
   /// Conversion unit to transfer between kg/m3 and g/cm3
-  static constexpr Real _density_conversion_factor {0.001};
+  static constexpr Real _density_conversion_factor{0.001};
 
   /**
    * Number of digits to use to display the cell ID for diagnostic messages; this is
@@ -880,7 +895,7 @@ protected:
   static bool _first_transfer;
 
   /// ID used by OpenMC to indicate that a material fill is VOID
-  static constexpr int MATERIAL_VOID {-1};
+  static constexpr int MATERIAL_VOID{-1};
 
   /// Dummy particle to reduce number of allocations of particles for cell lookup routines
   openmc::Particle _particle;
@@ -902,7 +917,7 @@ protected:
   std::vector<unsigned int> _external_vars;
 
   /// Spatial dimension of the Monte Carlo problem
-  static constexpr int DIMENSION {3};
+  static constexpr int DIMENSION{3};
 
   /// Total number of particles simulated
   unsigned int _total_n_particles;

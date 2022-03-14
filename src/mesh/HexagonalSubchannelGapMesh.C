@@ -26,12 +26,13 @@ InputParameters
 HexagonalSubchannelGapMesh::validParams()
 {
   InputParameters params = HexagonalSubchannelMeshBase::validParams();
-  params.addRequiredRangeCheckedParam<unsigned int>("n_axial", "n_axial > 0",
-    "Number of axial cells");
+  params.addRequiredRangeCheckedParam<unsigned int>(
+      "n_axial", "n_axial > 0", "Number of axial cells");
   params.addRequiredRangeCheckedParam<Real>("height", "height > 0", "Height of assembly");
 
   params.addParam<SubdomainID>("interior_id", 1, "Sideset ID to set for the interior channel gaps");
-  params.addParam<SubdomainID>("peripheral_id", 2, "Block ID to set for the peripheral channel gaps");
+  params.addParam<SubdomainID>(
+      "peripheral_id", 2, "Block ID to set for the peripheral channel gaps");
 
   params.addClassDescription("Mesh respecting subchannel gaps for a triangular lattice");
   return params;
@@ -43,7 +44,7 @@ HexagonalSubchannelGapMesh::HexagonalSubchannelGapMesh(const InputParameters & p
     _height(getParam<Real>("height")),
     _interior_id(getParam<SubdomainID>("interior_id")),
     _peripheral_id(getParam<SubdomainID>("peripheral_id")),
-   _gap_indices(_hex_lattice.gapIndices())
+    _gap_indices(_hex_lattice.gapIndices())
 {
 }
 
@@ -94,7 +95,9 @@ HexagonalSubchannelGapMesh::buildMesh()
       int side = std::abs(pins.second) - 1;
 
       const auto & center1 = _pin_centers[pins.first];
-      const Point pt2 = center1 + Point(d * _hex_lattice.sideTranslationX(side), d * _hex_lattice.sideTranslationY(side), 0.0);
+      const Point pt2 = center1 + Point(d * _hex_lattice.sideTranslationX(side),
+                                        d * _hex_lattice.sideTranslationY(side),
+                                        0.0);
       const Point pt1 = center1 + r * (pt2 - center1).unit();
 
       addQuadElem(pt1, pt2, zmin, zmax, _peripheral_id);
@@ -105,8 +108,11 @@ HexagonalSubchannelGapMesh::buildMesh()
 }
 
 void
-HexagonalSubchannelGapMesh::addQuadElem(const Point & pt1, const Point & pt2, const Real & zmin, const Real & zmax,
-  const unsigned int & id)
+HexagonalSubchannelGapMesh::addQuadElem(const Point & pt1,
+                                        const Point & pt2,
+                                        const Real & zmin,
+                                        const Real & zmax,
+                                        const unsigned int & id)
 {
   auto elem = new Quad4;
   elem->set_id(_elem_id_counter++);

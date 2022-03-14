@@ -29,15 +29,17 @@ InputParameters
 KStandardDeviation::validParams()
 {
   InputParameters params = OpenMCPostprocessor::validParams();
-  params.addParam<MooseEnum>("value_type", getEigenvalueEnum(),
-    "Type of eigenvalue global tally to report; options: collision, absorption, tracklength, combined (default)");
+  params.addParam<MooseEnum>("value_type",
+                             getEigenvalueEnum(),
+                             "Type of eigenvalue global tally to report; options: collision, "
+                             "absorption, tracklength, combined (default)");
   params.addClassDescription("Extract the k standard deviation computed by OpenMC");
   return params;
 }
 
-KStandardDeviation::KStandardDeviation(const InputParameters & parameters) :
-  OpenMCPostprocessor(parameters),
-  _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>())
+KStandardDeviation::KStandardDeviation(const InputParameters & parameters)
+  : OpenMCPostprocessor(parameters),
+    _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>())
 {
 }
 
@@ -84,7 +86,8 @@ KStandardDeviation::getValue()
     case eigenvalue::combined:
     {
       if (n <= 3)
-        mooseError("Cannot compute combined k-effective standard deviation with fewer than 4 realizations!");
+        mooseError("Cannot compute combined k-effective standard deviation with fewer than 4 "
+                   "realizations!");
 
       double k_eff[2];
       openmc::openmc_get_keff(k_eff);

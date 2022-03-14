@@ -29,9 +29,13 @@
 class HexagonalLatticeUtility
 {
 public:
-  HexagonalLatticeUtility(const Real & bundle_inner_flat_to_flat, const Real & pin_pitch,
-    const Real & pin_diameter, const Real & wire_diameter, const Real & wire_pitch,
-    const unsigned int & n_rings, const unsigned int & axis);
+  HexagonalLatticeUtility(const Real & bundle_inner_flat_to_flat,
+                          const Real & pin_pitch,
+                          const Real & pin_diameter,
+                          const Real & wire_diameter,
+                          const Real & wire_pitch,
+                          const unsigned int & n_rings,
+                          const unsigned int & axis);
 
   /**
    * Get the unit normal vector between two points, such that the cross product of
@@ -367,7 +371,7 @@ public:
    */
   const unsigned int & nInteriorChannels() const { return _n_interior_channels; }
 
- /**
+  /**
    * Get the number of edge channels
    * @return number of edge channels
    */
@@ -401,7 +405,8 @@ public:
    * Get the corner coordinates of a hexagon surrounding each pin
    * @return pin center coordinates
    */
-  const std::vector<std::vector<Point>> & pinCenteredCornerCoordinates() const {
+  const std::vector<std::vector<Point>> & pinCenteredCornerCoordinates() const
+  {
     return _pin_centered_corner_coordinates;
   }
 
@@ -518,19 +523,28 @@ public:
    * Get the pin indices forming the corners of all interior channels
    * @return pin indices forming the corners of all interior channels
    */
-  const std::vector<std::vector<unsigned int>> & interiorChannelPinIndices() const { return _interior_channel_pin_indices; }
+  const std::vector<std::vector<unsigned int>> & interiorChannelPinIndices() const
+  {
+    return _interior_channel_pin_indices;
+  }
 
   /**
    * Get the pin indices forming two of the corners of all edge channels
    * @return pin indices forming two of the corners of all edge channels
    */
-  const std::vector<std::vector<unsigned int>> & edgeChannelPinIndices() const { return _edge_channel_pin_indices; }
+  const std::vector<std::vector<unsigned int>> & edgeChannelPinIndices() const
+  {
+    return _edge_channel_pin_indices;
+  }
 
   /**
    * Get the pin indices forming one of the corners of all corner channels
    * @return pin indices forming one of the corners of all corner channels
    */
-  const std::vector<std::vector<unsigned int>> & cornerChannelPinIndices() const { return _corner_channel_pin_indices; }
+  const std::vector<std::vector<unsigned int>> & cornerChannelPinIndices() const
+  {
+    return _corner_channel_pin_indices;
+  }
 
   /**
    * Get the pin and side indices on each gap
@@ -550,7 +564,8 @@ public:
    * @param[in] interior_channel_id ID of interior channel
    * @return corner coordinates of channel
    */
-  const std::vector<Point> interiorChannelCornerCoordinates(const unsigned int & interior_channel_id) const;
+  const std::vector<Point>
+  interiorChannelCornerCoordinates(const unsigned int & interior_channel_id) const;
 
   /**
    * Get the corner coordinates of an edge channel given an ID
@@ -566,7 +581,8 @@ public:
    * @param[in] corner_channel_id ID of corner channel
    * @return corner coordinates of channel
    */
-  const std::vector<Point> cornerChannelCornerCoordinates(const unsigned int & corner_channel_id) const;
+  const std::vector<Point>
+  cornerChannelCornerCoordinates(const unsigned int & corner_channel_id) const;
 
   /**
    * Get the duct corner coordinates

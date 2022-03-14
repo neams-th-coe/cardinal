@@ -30,8 +30,8 @@ NekVolumeIntegral::validParams()
   return params;
 }
 
-NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters) :
-  NekFieldPostprocessor(parameters)
+NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
+  : NekFieldPostprocessor(parameters)
 {
   if (_fixed_mesh)
     _volume = nekrs::volume();
