@@ -107,4 +107,11 @@
                   "openmc_nonaligned.i case with normalize_by_global_tally=false"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [output_fission_tally_cell]
+    type = Exodiff
+    input = output_fission_tally.i
+    exodiff = output_fission_tally_out.e
+    requirement = "The wrapping shall allow output of the unrelaxed heat source for cell tallies"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

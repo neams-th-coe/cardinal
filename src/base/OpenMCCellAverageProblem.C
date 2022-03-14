@@ -184,7 +184,7 @@ OpenMCCellAverageProblem::validParams()
       "Whether to check that your model does indeed have identical tally cell fills, allowing "
       "you to set 'identical_tally_cell_fills = true' to speed up initialization");
 
-  MultiMooseEnum openmc_outputs("fission_tally_std_dev");
+  MultiMooseEnum openmc_outputs("fission_tally_std_dev fission_tally");
   params.addParam<MultiMooseEnum>(
       "output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
 
@@ -1930,6 +1930,63 @@ OpenMCCellAverageProblem::relativeError(const Real & sum,
 }
 
 void
+OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num)
+{
+  switch (_tally_type)
+  {
+    case tally::cell:
+    {
+      auto tally = _local_tally.at(0);
+      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+
+      int i = 0;
+      for (const auto & c : _cell_to_elem)
+      {
+        auto cell_info = c.first;
+
+        // if this cell doesn't have any tallies, skip it
+        if (!_cell_has_tally[cell_info])
+          continue;
+
+        Real local_power = normalizeLocalTally(sum(i)) * _power / _cell_to_elem_volume[cell_info];
+        fillElementalAuxVariable(_external_vars[var_num], c.second, local_power);
+        i++;
+      }
+      break;
+    }
+  case tally::mesh:
+  {
+    // TODO: this requires that the mesh exactly correspond to the mesh templates;
+    // for cases where they don't match, we'll need to do a nearest-node transfer or something
+
+    unsigned int offset = 0;
+    for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
+    {
+      const auto * filter = _mesh_filters[i];
+
+      auto tally = _local_tally.at(i);
+      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+
+      for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
+      {
+        Real local_power = normalizeLocalTally(sum(e)) * _power / _mesh_template->volume(e) *
+          _scaling * _scaling * _scaling;
+        std::vector<unsigned int> elem_ids = {offset + e};
+        fillElementalAuxVariable(_external_vars[var_num], elem_ids, local_power);
+      }
+
+      offset += filter->n_bins();
+    }
+
+    break;
+  }
+  default:
+    mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+  }
+}
+
+
+void
 OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
 {
   switch (_tally_type)
@@ -2431,6 +2488,8 @@ OpenMCCellAverageProblem::extractOutputs()
 
       if (out == "fission_tally_std_dev")
         getFissionTallyStandardDeviationFromOpenMC(i);
+      if (out == "fission_tally")
+        getFissionTallyFromOpenMC(i);
     }
   }
 }
