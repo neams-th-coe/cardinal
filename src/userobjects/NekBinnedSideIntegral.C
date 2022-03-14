@@ -27,7 +27,8 @@ InputParameters
 NekBinnedSideIntegral::validParams()
 {
   InputParameters params = NekSideSpatialBinUserObject::validParams();
-  params.addClassDescription("Compute the spatially-binned side integral of a field over a boundary of the NekRS mesh");
+  params.addClassDescription(
+      "Compute the spatially-binned side integral of a field over a boundary of the NekRS mesh");
   return params;
 }
 
@@ -65,8 +66,10 @@ NekBinnedSideIntegral::getBinVolumes()
   }
 
   // sum across all processes
-  MPI_Allreduce(_bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
-  MPI_Allreduce(_bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(
+      _bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(
+      _bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize
   for (unsigned int i = 0; i < _n_bins; ++i)
@@ -74,12 +77,13 @@ NekBinnedSideIntegral::getBinVolumes()
 }
 
 void
-NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand, double * total_integral)
+NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand,
+                                          double * total_integral)
 {
   resetPartialStorage();
 
   mesh_t * mesh = nekrs::entireMesh();
-  double (*f) (int) = nekrs::solution::solutionPointer(integrand);
+  double (*f)(int) = nekrs::solution::solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -93,14 +97,16 @@ NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand,
         {
           Point p = nekPoint(i, j, v);
           unsigned int b = bin(p);
-          _bin_partial_values[b] += f(mesh->vmapM[offset + v]) * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          _bin_partial_values[b] +=
+              f(mesh->vmapM[offset + v]) * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
         }
       }
     }
   }
 
   // sum across all processes
-  MPI_Allreduce(_bin_partial_values, total_integral, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(
+      _bin_partial_values, total_integral, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize
   for (unsigned int i = 0; i < _n_bins; ++i)

@@ -35,34 +35,43 @@ InputParameters
 OpenMCProblemBase::validParams()
 {
   InputParameters params = ExternalProblem::validParams();
-  params.addRequiredRangeCheckedParam<Real>("power", "power >= 0.0",
-    "Power (Watts) to normalize the OpenMC tallies");
+  params.addRequiredRangeCheckedParam<Real>(
+      "power", "power >= 0.0", "Power (Watts) to normalize the OpenMC tallies");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
   // interfaces to directly set some OpenMC parameters
-  params.addRangeCheckedParam<unsigned int>("openmc_verbosity",
-    "openmc_verbosity >= 1 & openmc_verbosity <= 10",
-    "OpenMC verbosity level; this overrides the setting in the XML files");
-  params.addRangeCheckedParam<unsigned int>("inactive_batches", "inactive_batches > 0",
-    "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<int64_t>("particles", "particles > 0 ",
-    "Number of particles to run in each OpenMC batch; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<unsigned int>("batches", "batches > 0",
-    "Number of batches to run in OpenMC; this overrides the setting in the XML files.");
+  params.addRangeCheckedParam<unsigned int>(
+      "openmc_verbosity",
+      "openmc_verbosity >= 1 & openmc_verbosity <= 10",
+      "OpenMC verbosity level; this overrides the setting in the XML files");
+  params.addRangeCheckedParam<unsigned int>(
+      "inactive_batches",
+      "inactive_batches > 0",
+      "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
+  params.addRangeCheckedParam<int64_t>("particles",
+                                       "particles > 0 ",
+                                       "Number of particles to run in each OpenMC batch; this "
+                                       "overrides the setting in the XML files.");
+  params.addRangeCheckedParam<unsigned int>(
+      "batches",
+      "batches > 0",
+      "Number of batches to run in OpenMC; this overrides the setting in the XML files.");
 
-  params.addParam<bool>("reuse_source", false, "Whether to take the initial fission source "
-    "for interation n to be the converged source bank from iteration n-1");
+  params.addParam<bool>("reuse_source",
+                        false,
+                        "Whether to take the initial fission source "
+                        "for interation n to be the converged source bank from iteration n-1");
   return params;
 }
 
-OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
-  ExternalProblem(params),
-  _power(getParam<Real>("power")),
-  _verbose(getParam<bool>("verbose")),
-  _reuse_source(getParam<bool>("reuse_source")),
-  _single_coord_level(openmc::model::n_coord_levels == 1),
-  _fixed_point_iteration(-1),
-  _path_output(openmc::settings::path_output)
+OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
+  : ExternalProblem(params),
+    _power(getParam<Real>("power")),
+    _verbose(getParam<bool>("verbose")),
+    _reuse_source(getParam<bool>("reuse_source")),
+    _single_coord_level(openmc::model::n_coord_levels == 1),
+    _fixed_point_iteration(-1),
+    _path_output(openmc::settings::path_output)
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -83,12 +92,12 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
     auto xml_n_batches = openmc::settings::n_batches;
 
     int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
-      true /* set the max batches */,
-      true /* add the last batch for statepoint writing */);
+                                   true /* set the max batches */,
+                                   true /* add the last batch for statepoint writing */);
 
     if (err)
       mooseError("In attempting to set the number of batches, OpenMC reported:\n\n" +
-        std::string(openmc_err_msg));
+                 std::string(openmc_err_msg));
 
     // if we set the batches from Cardinal, remove whatever statepoint file was
     // created for the #batches set in the XML files; this is just to reduce the
@@ -107,7 +116,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters &params) :
 
 void
 OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
-  const std::vector<unsigned int> & elem_ids, const Real & value)
+                                            const std::vector<unsigned int> & elem_ids,
+                                            const Real & value)
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -139,7 +149,7 @@ OpenMCProblemBase::cellID(const int32_t index) const
 
   if (err)
     mooseError("In attempting to get ID for cell with index " + Moose::stringify(index) +
-      " , OpenMC reported:\n\n" + std::string(openmc_err_msg));
+               " , OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   return id;
 }
@@ -154,7 +164,7 @@ OpenMCProblemBase::materialID(const int32_t index) const
   {
     std::stringstream msg;
     msg << "In attempting to get ID for material with index " + Moose::stringify(index) +
-      ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
+               ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
   }
 
   return id;
@@ -173,9 +183,8 @@ std::string
 OpenMCProblemBase::printPoint(const Point & p) const
 {
   std::stringstream msg;
-  msg << "(" << std::setprecision(6) << std::setw(7) << p(0) << ", " <<
-                std::setprecision(6) << std::setw(7) << p(1) << ", " <<
-                std::setprecision(6) << std::setw(7) << p(2) << ")";
+  msg << "(" << std::setprecision(6) << std::setw(7) << p(0) << ", " << std::setprecision(6)
+      << std::setw(7) << p(1) << ", " << std::setprecision(6) << std::setw(7) << p(2) << ")";
   return msg.str();
 }
 
@@ -191,7 +200,8 @@ OpenMCProblemBase::externalSolve()
   if (_reuse_source && !first_iteration)
   {
     openmc::free_memory_source();
-    openmc::model::external_sources.push_back(std::make_unique<openmc::FileSource>(sourceBankFileName()));
+    openmc::model::external_sources.push_back(
+        std::make_unique<openmc::FileSource>(sourceBankFileName()));
   }
 
   int err = openmc_run();

@@ -20,14 +20,14 @@
 
 #include "OpenMCAuxKernel.h"
 
-InputParameters OpenMCAuxKernel::validParams()
+InputParameters
+OpenMCAuxKernel::validParams()
 {
   InputParameters params = AuxKernel::validParams();
   return params;
 }
 
-OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) :
-    AuxKernel(parameters)
+OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) : AuxKernel(parameters)
 {
   _openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(&_subproblem);
 
@@ -41,7 +41,8 @@ OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) :
 bool
 OpenMCAuxKernel::mappedElement()
 {
-  OpenMCCellAverageProblem::cellInfo cell_info = _openmc_problem->elemToCellInfo(_current_elem->id());
+  OpenMCCellAverageProblem::cellInfo cell_info =
+      _openmc_problem->elemToCellInfo(_current_elem->id());
   return !(cell_info.first == OpenMCCellAverageProblem::UNMAPPED);
 }
 

@@ -41,4 +41,3 @@ protected:
   /// type of extrema operation
   const operation::OperationEnum _type;
 };
-

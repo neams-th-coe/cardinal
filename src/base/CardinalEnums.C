@@ -18,47 +18,57 @@
 
 #include "CardinalEnums.h"
 
-MooseEnum getNekOrderEnum()
+MooseEnum
+getNekOrderEnum()
 {
   return MooseEnum("first second", "first");
 }
 
-MooseEnum getBinnedVelocityComponentEnum()
+MooseEnum
+getBinnedVelocityComponentEnum()
 {
   return MooseEnum("normal user");
 }
 
-MooseEnum getNekFieldEnum()
+MooseEnum
+getNekFieldEnum()
 {
-  return MooseEnum("velocity_component velocity_x velocity_y velocity_z velocity temperature pressure unity");
+  return MooseEnum(
+      "velocity_component velocity_x velocity_y velocity_z velocity temperature pressure unity");
 }
 
-MooseEnum getOperationEnum()
+MooseEnum
+getOperationEnum()
 {
   return MooseEnum("max min", "max");
 }
 
-MooseEnum getTallyTypeEnum()
+MooseEnum
+getTallyTypeEnum()
 {
   return MooseEnum("cell mesh");
 }
 
-MooseEnum getEigenvalueEnum()
+MooseEnum
+getEigenvalueEnum()
 {
   return MooseEnum("collision absorption tracklength combined", "combined");
 }
 
-MooseEnum getRelaxationEnum()
+MooseEnum
+getRelaxationEnum()
 {
   return MooseEnum("constant robbins_monro dufek_gudowski none", "none");
 }
 
-MooseEnum getTallyTriggerEnum()
+MooseEnum
+getTallyTriggerEnum()
 {
   return MooseEnum("variance std_dev rel_err none", "none");
 }
 
-MooseEnum getInitialPropertiesEnum()
+MooseEnum
+getInitialPropertiesEnum()
 {
   return MooseEnum("hdf5 moose xml", "moose");
 }

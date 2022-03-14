@@ -24,15 +24,16 @@ InputParameters
 NekPlaneSpatialBinUserObject::validParams()
 {
   InputParameters params = NekSpatialBinUserObject::validParams();
-  params.addRequiredRangeCheckedParam<Real>("gap_thickness", "gap_thickness > 0.0",
-    "thickness of gap region for which to accept contributions to the side integral over "
-    "the gap, expressed in the same units as the mesh.");
+  params.addRequiredRangeCheckedParam<Real>(
+      "gap_thickness",
+      "gap_thickness > 0.0",
+      "thickness of gap region for which to accept contributions to the side integral over "
+      "the gap, expressed in the same units as the mesh.");
   return params;
 }
 
 NekPlaneSpatialBinUserObject::NekPlaneSpatialBinUserObject(const InputParameters & parameters)
-  : NekSpatialBinUserObject(parameters),
-    _gap_thickness(getParam<Real>("gap_thickness"))
+  : NekSpatialBinUserObject(parameters), _gap_thickness(getParam<Real>("gap_thickness"))
 {
   // we need to enforce that there is only one side distribution, because side
   // distributions defined in orthogonal directions don't ever overlap with one another
@@ -52,22 +53,24 @@ NekPlaneSpatialBinUserObject::NekPlaneSpatialBinUserObject(const InputParameters
 
   if (num_side_distributions != 1)
     mooseError("This user object requires exactly one bin distribution "
-      "to be a side distribution; you have specified: " + Moose::stringify(num_side_distributions) +
-      "\noptions: HexagonalSubchannelGapBin");
+               "to be a side distribution; you have specified: " +
+               Moose::stringify(num_side_distributions) + "\noptions: HexagonalSubchannelGapBin");
 
   if (_field == field::velocity_component && _velocity_component == component::normal)
   {
     if (!_fixed_mesh)
-      mooseError("The gap unit normals assume the NekRS domain is not moving; with a moving "
-        "mesh, the 'velocity_component = normal' setting is unavailable unless internal methods "
-        "are updated to recompute normals following a change in geometry.");
+      mooseError(
+          "The gap unit normals assume the NekRS domain is not moving; with a moving "
+          "mesh, the 'velocity_component = normal' setting is unavailable unless internal methods "
+          "are updated to recompute normals following a change in geometry.");
 
     _velocity_bin_directions = _side_bin->gapUnitNormals();
   }
 }
 
 Real
-NekPlaneSpatialBinUserObject::distanceFromGap(const Point & point, const unsigned int & gap_index) const
+NekPlaneSpatialBinUserObject::distanceFromGap(const Point & point,
+                                              const unsigned int & gap_index) const
 {
   return _side_bin->distanceFromGap(point, gap_index);
 }
@@ -79,7 +82,9 @@ NekPlaneSpatialBinUserObject::gapIndex(const Point & point) const
 }
 
 void
-NekPlaneSpatialBinUserObject::gapIndexAndDistance(const Point & point, unsigned int & index,  Real & distance) const
+NekPlaneSpatialBinUserObject::gapIndexAndDistance(const Point & point,
+                                                  unsigned int & index,
+                                                  Real & distance) const
 {
   _side_bin->gapIndexAndDistance(point, index, distance);
 }

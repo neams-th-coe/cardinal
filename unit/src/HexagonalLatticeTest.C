@@ -36,10 +36,10 @@ TEST_F(HexagonalLatticeTest, rings_and_pins)
   catch (const std::exception & e)
   {
     std::string msg(e.what());
-    ASSERT_NE(msg.find("Number of pins 100 not evenly divisible in a hexagonal lattice!"), std::string::npos)
-      << "failed with unexpected error: " << msg;
+    ASSERT_NE(msg.find("Number of pins 100 not evenly divisible in a hexagonal lattice!"),
+              std::string::npos)
+        << "failed with unexpected error: " << msg;
   }
-
 
   // Test number of pins in given ring
   EXPECT_EQ(hl1.pins(1), 1);
@@ -285,95 +285,95 @@ TEST_F(HexagonalLatticeTest, hydraulic_diameters)
   // individual channel by requiring that the n-channel-weighted sum equals the
   // bundle-wide values for volume and areas, since we can verify that easily.
   EXPECT_DOUBLE_EQ(hl9.hydraulicDiameter(), 4.196872851813099);
-  n_interior    = hl9.nInteriorChannels();
-  n_edge        = hl9.nEdgeChannels();
-  n_corner      = hl9.nCornerChannels();
+  n_interior = hl9.nInteriorChannels();
+  n_edge = hl9.nEdgeChannels();
+  n_corner = hl9.nCornerChannels();
   flow_interior = hl9.interiorFlowVolume();
-  flow_edge     = hl9.edgeFlowVolume();
-  flow_corner   = hl9.cornerFlowVolume();
+  flow_edge = hl9.edgeFlowVolume();
+  flow_corner = hl9.cornerFlowVolume();
   area_interior = hl9.interiorWettedArea();
-  area_edge     = hl9.edgeWettedArea();
-  area_corner   = hl9.cornerWettedArea();
-  EXPECT_DOUBLE_EQ(hl9.flowVolume(), n_interior * flow_interior +
-    n_edge * flow_edge + n_corner * flow_corner);
-  EXPECT_DOUBLE_EQ(hl9.wettedArea(), n_interior * area_interior +
-    n_edge * area_edge + n_corner * area_corner);
+  area_edge = hl9.edgeWettedArea();
+  area_corner = hl9.cornerWettedArea();
+  EXPECT_DOUBLE_EQ(hl9.flowVolume(),
+                   n_interior * flow_interior + n_edge * flow_edge + n_corner * flow_corner);
+  EXPECT_DOUBLE_EQ(hl9.wettedArea(),
+                   n_interior * area_interior + n_edge * area_edge + n_corner * area_corner);
 
   EXPECT_DOUBLE_EQ(hl10.hydraulicDiameter(), 1.948158075579034);
-  n_interior    = hl10.nInteriorChannels();
-  n_edge        = hl10.nEdgeChannels();
-  n_corner      = hl10.nCornerChannels();
+  n_interior = hl10.nInteriorChannels();
+  n_edge = hl10.nEdgeChannels();
+  n_corner = hl10.nCornerChannels();
   flow_interior = hl10.interiorFlowVolume();
-  flow_edge     = hl10.edgeFlowVolume();
-  flow_corner   = hl10.cornerFlowVolume();
+  flow_edge = hl10.edgeFlowVolume();
+  flow_corner = hl10.cornerFlowVolume();
   area_interior = hl10.interiorWettedArea();
-  area_edge     = hl10.edgeWettedArea();
-  area_corner   = hl10.cornerWettedArea();
-  EXPECT_DOUBLE_EQ(hl10.flowVolume(), n_interior * flow_interior +
-    n_edge * flow_edge + n_corner * flow_corner);
-  EXPECT_DOUBLE_EQ(hl10.wettedArea(), n_interior * area_interior +
-    n_edge * area_edge + n_corner * area_corner);
+  area_edge = hl10.edgeWettedArea();
+  area_corner = hl10.cornerWettedArea();
+  EXPECT_DOUBLE_EQ(hl10.flowVolume(),
+                   n_interior * flow_interior + n_edge * flow_edge + n_corner * flow_corner);
+  EXPECT_DOUBLE_EQ(hl10.wettedArea(),
+                   n_interior * area_interior + n_edge * area_edge + n_corner * area_corner);
 
   EXPECT_DOUBLE_EQ(hl11.hydraulicDiameter(), 0.6727946134052672);
-  n_interior    = hl11.nInteriorChannels();
-  n_edge        = hl11.nEdgeChannels();
-  n_corner      = hl11.nCornerChannels();
+  n_interior = hl11.nInteriorChannels();
+  n_edge = hl11.nEdgeChannels();
+  n_corner = hl11.nCornerChannels();
   flow_interior = hl11.interiorFlowVolume();
-  flow_edge     = hl11.edgeFlowVolume();
-  flow_corner   = hl11.cornerFlowVolume();
+  flow_edge = hl11.edgeFlowVolume();
+  flow_corner = hl11.cornerFlowVolume();
   area_interior = hl11.interiorWettedArea();
-  area_edge     = hl11.edgeWettedArea();
-  area_corner   = hl11.cornerWettedArea();
-  EXPECT_DOUBLE_EQ(hl11.flowVolume(), n_interior * flow_interior +
-    n_edge * flow_edge + n_corner * flow_corner);
-  EXPECT_DOUBLE_EQ(hl11.wettedArea(), n_interior * area_interior +
-    n_edge * area_edge + n_corner * area_corner);
+  area_edge = hl11.edgeWettedArea();
+  area_corner = hl11.cornerWettedArea();
+  EXPECT_DOUBLE_EQ(hl11.flowVolume(),
+                   n_interior * flow_interior + n_edge * flow_edge + n_corner * flow_corner);
+  EXPECT_DOUBLE_EQ(hl11.wettedArea(),
+                   n_interior * area_interior + n_edge * area_edge + n_corner * area_corner);
 
   // bare bundles
   EXPECT_DOUBLE_EQ(hl12.hydraulicDiameter(), 4.2650423521483205);
-  n_interior    = hl12.nInteriorChannels();
-  n_edge        = hl12.nEdgeChannels();
-  n_corner      = hl12.nCornerChannels();
+  n_interior = hl12.nInteriorChannels();
+  n_edge = hl12.nEdgeChannels();
+  n_corner = hl12.nCornerChannels();
   flow_interior = hl12.interiorFlowVolume();
-  flow_edge     = hl12.edgeFlowVolume();
-  flow_corner   = hl12.cornerFlowVolume();
+  flow_edge = hl12.edgeFlowVolume();
+  flow_corner = hl12.cornerFlowVolume();
   area_interior = hl12.interiorWettedArea();
-  area_edge     = hl12.edgeWettedArea();
-  area_corner   = hl12.cornerWettedArea();
-  EXPECT_DOUBLE_EQ(hl12.flowVolume(), n_interior * flow_interior +
-    n_edge * flow_edge + n_corner * flow_corner);
-  EXPECT_DOUBLE_EQ(hl12.wettedArea(), n_interior * area_interior +
-    n_edge * area_edge + n_corner * area_corner);
+  area_edge = hl12.edgeWettedArea();
+  area_corner = hl12.cornerWettedArea();
+  EXPECT_DOUBLE_EQ(hl12.flowVolume(),
+                   n_interior * flow_interior + n_edge * flow_edge + n_corner * flow_corner);
+  EXPECT_DOUBLE_EQ(hl12.wettedArea(),
+                   n_interior * area_interior + n_edge * area_edge + n_corner * area_corner);
 
   EXPECT_DOUBLE_EQ(hl13.hydraulicDiameter(), 2.077372852104904);
-  n_interior    = hl13.nInteriorChannels();
-  n_edge        = hl13.nEdgeChannels();
-  n_corner      = hl13.nCornerChannels();
+  n_interior = hl13.nInteriorChannels();
+  n_edge = hl13.nEdgeChannels();
+  n_corner = hl13.nCornerChannels();
   flow_interior = hl13.interiorFlowVolume();
-  flow_edge     = hl13.edgeFlowVolume();
-  flow_corner   = hl13.cornerFlowVolume();
+  flow_edge = hl13.edgeFlowVolume();
+  flow_corner = hl13.cornerFlowVolume();
   area_interior = hl13.interiorWettedArea();
-  area_edge     = hl13.edgeWettedArea();
-  area_corner   = hl13.cornerWettedArea();
-  EXPECT_DOUBLE_EQ(hl13.flowVolume(), n_interior * flow_interior +
-    n_edge * flow_edge + n_corner * flow_corner);
-  EXPECT_DOUBLE_EQ(hl13.wettedArea(), n_interior * area_interior +
-    n_edge * area_edge + n_corner * area_corner);
+  area_edge = hl13.edgeWettedArea();
+  area_corner = hl13.cornerWettedArea();
+  EXPECT_DOUBLE_EQ(hl13.flowVolume(),
+                   n_interior * flow_interior + n_edge * flow_edge + n_corner * flow_corner);
+  EXPECT_DOUBLE_EQ(hl13.wettedArea(),
+                   n_interior * area_interior + n_edge * area_edge + n_corner * area_corner);
 
   EXPECT_DOUBLE_EQ(hl14.hydraulicDiameter(), 0.7437951937590452);
-  n_interior    = hl14.nInteriorChannels();
-  n_edge        = hl14.nEdgeChannels();
-  n_corner      = hl14.nCornerChannels();
+  n_interior = hl14.nInteriorChannels();
+  n_edge = hl14.nEdgeChannels();
+  n_corner = hl14.nCornerChannels();
   flow_interior = hl14.interiorFlowVolume();
-  flow_edge     = hl14.edgeFlowVolume();
-  flow_corner   = hl14.cornerFlowVolume();
+  flow_edge = hl14.edgeFlowVolume();
+  flow_corner = hl14.cornerFlowVolume();
   area_interior = hl14.interiorWettedArea();
-  area_edge     = hl14.edgeWettedArea();
-  area_corner   = hl14.cornerWettedArea();
-  EXPECT_DOUBLE_EQ(hl14.flowVolume(), n_interior * flow_interior +
-    n_edge * flow_edge + n_corner * flow_corner);
-  EXPECT_DOUBLE_EQ(hl14.wettedArea(), n_interior * area_interior +
-    n_edge * area_edge + n_corner * area_corner);
+  area_edge = hl14.edgeWettedArea();
+  area_corner = hl14.cornerWettedArea();
+  EXPECT_DOUBLE_EQ(hl14.flowVolume(),
+                   n_interior * flow_interior + n_edge * flow_edge + n_corner * flow_corner);
+  EXPECT_DOUBLE_EQ(hl14.wettedArea(),
+                   n_interior * area_interior + n_edge * area_edge + n_corner * area_corner);
 }
 
 TEST_F(HexagonalLatticeTest, pin_centers)
@@ -431,29 +431,29 @@ TEST_F(HexagonalLatticeTest, pin_centers)
   EXPECT_DOUBLE_EQ(centers3[6](1), 0);
 
   EXPECT_DOUBLE_EQ(centers3[7](0), p);
-  EXPECT_DOUBLE_EQ(centers3[7](1), 2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers3[7](1), 2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers3[8](0), 0);
-  EXPECT_DOUBLE_EQ(centers3[8](1), 2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers3[8](1), 2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers3[9](0), -p);
-  EXPECT_DOUBLE_EQ(centers3[9](1), 2*p*sin60);
-  EXPECT_DOUBLE_EQ(centers3[10](0), -p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers3[10](1), p*sin60);
-  EXPECT_DOUBLE_EQ(centers3[11](0), -2*p);
+  EXPECT_DOUBLE_EQ(centers3[9](1), 2 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers3[10](0), -p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers3[10](1), p * sin60);
+  EXPECT_DOUBLE_EQ(centers3[11](0), -2 * p);
   EXPECT_DOUBLE_EQ(centers3[11](1), 0);
-  EXPECT_DOUBLE_EQ(centers3[12](0), -p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers3[12](1), -p*sin60);
+  EXPECT_DOUBLE_EQ(centers3[12](0), -p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers3[12](1), -p * sin60);
   EXPECT_DOUBLE_EQ(centers3[13](0), -p);
-  EXPECT_DOUBLE_EQ(centers3[13](1), -2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers3[13](1), -2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers3[14](0), 0);
-  EXPECT_DOUBLE_EQ(centers3[14](1), -2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers3[14](1), -2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers3[15](0), p);
-  EXPECT_DOUBLE_EQ(centers3[15](1), -2*p*sin60);
-  EXPECT_DOUBLE_EQ(centers3[16](0), p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers3[16](1), -p*sin60);
-  EXPECT_DOUBLE_EQ(centers3[17](0), 2*p);
+  EXPECT_DOUBLE_EQ(centers3[15](1), -2 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers3[16](0), p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers3[16](1), -p * sin60);
+  EXPECT_DOUBLE_EQ(centers3[17](0), 2 * p);
   EXPECT_DOUBLE_EQ(centers3[17](1), 0.0);
-  EXPECT_DOUBLE_EQ(centers3[18](0), p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers3[18](1), p*sin60);
+  EXPECT_DOUBLE_EQ(centers3[18](0), p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers3[18](1), p * sin60);
 
   for (int i = 0; i < hl14.nPins(); ++i)
     EXPECT_DOUBLE_EQ(centers3[i](2), 0.0);
@@ -476,66 +476,66 @@ TEST_F(HexagonalLatticeTest, pin_centers)
   EXPECT_DOUBLE_EQ(centers4[6](1), 0);
 
   EXPECT_DOUBLE_EQ(centers4[7](0), p);
-  EXPECT_DOUBLE_EQ(centers4[7](1), 2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers4[7](1), 2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers4[8](0), 0);
-  EXPECT_DOUBLE_EQ(centers4[8](1), 2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers4[8](1), 2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers4[9](0), -p);
-  EXPECT_DOUBLE_EQ(centers4[9](1), 2*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[10](0), -p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[10](1), p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[11](0), -2*p);
+  EXPECT_DOUBLE_EQ(centers4[9](1), 2 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[10](0), -p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[10](1), p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[11](0), -2 * p);
   EXPECT_DOUBLE_EQ(centers4[11](1), 0);
-  EXPECT_DOUBLE_EQ(centers4[12](0), -p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[12](1), -p*sin60);
+  EXPECT_DOUBLE_EQ(centers4[12](0), -p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[12](1), -p * sin60);
   EXPECT_DOUBLE_EQ(centers4[13](0), -p);
-  EXPECT_DOUBLE_EQ(centers4[13](1), -2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers4[13](1), -2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers4[14](0), 0);
-  EXPECT_DOUBLE_EQ(centers4[14](1), -2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers4[14](1), -2 * p * sin60);
   EXPECT_DOUBLE_EQ(centers4[15](0), p);
-  EXPECT_DOUBLE_EQ(centers4[15](1), -2*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[16](0), p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[16](1), -p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[17](0), 2*p);
+  EXPECT_DOUBLE_EQ(centers4[15](1), -2 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[16](0), p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[16](1), -p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[17](0), 2 * p);
   EXPECT_DOUBLE_EQ(centers4[17](1), 0.0);
-  EXPECT_DOUBLE_EQ(centers4[18](0), p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[18](1), p*sin60);
+  EXPECT_DOUBLE_EQ(centers4[18](0), p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[18](1), p * sin60);
 
-  EXPECT_DOUBLE_EQ(centers4[19](0), p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[19](1), 3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[20](0), p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[20](1), 3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[21](0), -p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[21](1), 3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[22](0), -p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[22](1), 3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[23](0), -2*p);
-  EXPECT_DOUBLE_EQ(centers4[23](1), 2*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[24](0), -2*p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[24](1), p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[25](0), -3*p);
+  EXPECT_DOUBLE_EQ(centers4[19](0), p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[19](1), 3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[20](0), p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[20](1), 3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[21](0), -p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[21](1), 3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[22](0), -p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[22](1), 3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[23](0), -2 * p);
+  EXPECT_DOUBLE_EQ(centers4[23](1), 2 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[24](0), -2 * p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[24](1), p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[25](0), -3 * p);
   EXPECT_DOUBLE_EQ(centers4[25](1), 0);
-  EXPECT_DOUBLE_EQ(centers4[26](0), -2*p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[26](1), -p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[27](0), -2*p);
-  EXPECT_DOUBLE_EQ(centers4[27](1), -2*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[28](0), -p-p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[28](1), -3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[29](0), -p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[29](1), -3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[30](0), p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[30](1), -3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[31](0), p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[31](1), -3*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[32](0), 2*p);
-  EXPECT_DOUBLE_EQ(centers4[32](1), -2*p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[33](0), 2*p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[33](1), -p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[34](0), 3*p);
+  EXPECT_DOUBLE_EQ(centers4[26](0), -2 * p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[26](1), -p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[27](0), -2 * p);
+  EXPECT_DOUBLE_EQ(centers4[27](1), -2 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[28](0), -p - p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[28](1), -3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[29](0), -p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[29](1), -3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[30](0), p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[30](1), -3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[31](0), p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[31](1), -3 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[32](0), 2 * p);
+  EXPECT_DOUBLE_EQ(centers4[32](1), -2 * p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[33](0), 2 * p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[33](1), -p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[34](0), 3 * p);
   EXPECT_DOUBLE_EQ(centers4[34](1), 0);
-  EXPECT_DOUBLE_EQ(centers4[35](0), 2*p+p*cos60);
-  EXPECT_DOUBLE_EQ(centers4[35](1), p*sin60);
-  EXPECT_DOUBLE_EQ(centers4[36](0), 2*p);
-  EXPECT_DOUBLE_EQ(centers4[36](1), 2*p*sin60);
+  EXPECT_DOUBLE_EQ(centers4[35](0), 2 * p + p * cos60);
+  EXPECT_DOUBLE_EQ(centers4[35](1), p * sin60);
+  EXPECT_DOUBLE_EQ(centers4[36](0), 2 * p);
+  EXPECT_DOUBLE_EQ(centers4[36](1), 2 * p * sin60);
 
   for (int i = 0; i < hl17.nPins(); ++i)
     EXPECT_DOUBLE_EQ(centers4[i](2), 0.0);
@@ -1323,153 +1323,153 @@ TEST_F(HexagonalLatticeTest, line_distance)
   EXPECT_DOUBLE_EQ(hl.distanceFromLine(p3, l5, l6), std::sqrt(2.0) / 2.0);
 }
 
-//TEST_F(HexagonalLatticeTest, closest_gap)
+// TEST_F(HexagonalLatticeTest, closest_gap)
 //{
-//  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+//   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
 //
-//  Point pt1(0.23, 0.27, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt1), 0);
+//   Point pt1(0.23, 0.27, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt1), 0);
 //
-//  Point pt2(-0.5, 0.29, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt2), 11);
+//   Point pt2(-0.5, 0.29, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt2), 11);
 //
-//  Point pt3(1.14, 0.275, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt3), 29);
+//   Point pt3(1.14, 0.275, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt3), 29);
 //
-//  Point pt4(-0.77, 1.015, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt4), 13);
+//   Point pt4(-0.77, 1.015, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt4), 13);
 //
-//  Point pt5(-0.84, 0.445, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt5), 16);
+//   Point pt5(-0.84, 0.445, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt5), 16);
 //
-//  Point pt6(-0.47, 1.55, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt6), 32);
+//   Point pt6(-0.47, 1.55, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt6), 32);
 //
-//  Point pt7(-0.069, 1.94, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt7), 43);
+//   Point pt7(-0.069, 1.94, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt7), 43);
 //
-//  Point pt8(-1.22, 1.79, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt8), 45);
+//   Point pt8(-1.22, 1.79, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt8), 45);
 //
-//  Point pt10(-0.26, -1.61, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt10), 37);
+//   Point pt10(-0.26, -1.61, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt10), 37);
 //
-//  Point pt11(2.23, 0.03, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt11), 57);
+//   Point pt11(2.23, 0.03, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt11), 57);
 //
-//  Point pt12(-1.77, -0.70, 0.0);
-//  EXPECT_EQ(hl.gapIndex(pt12), 49);
-//}
+//   Point pt12(-1.77, -0.70, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt12), 49);
+// }
 //
-//TEST_F(HexagonalLatticeTest, normals1)
+// TEST_F(HexagonalLatticeTest, normals1)
 //{
-//  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 1, 2);
-//  const auto & normals = hl.gapUnitNormals();
-//  Real sin60 = std::sqrt(3.0) / 2.0;
+//   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 1, 2);
+//   const auto & normals = hl.gapUnitNormals();
+//   Real sin60 = std::sqrt(3.0) / 2.0;
 //
-//  for (const auto & n : normals)
-//    EXPECT_DOUBLE_EQ(n(2), 0.0);
+//   for (const auto & n : normals)
+//     EXPECT_DOUBLE_EQ(n(2), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[0](0), -1.0);
-//  EXPECT_DOUBLE_EQ(normals[0](1), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[0](0), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[0](1), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[1](0), -0.5);
-//  EXPECT_DOUBLE_EQ(normals[1](1), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[1](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[1](1), -sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[2](0), 0.5);
-//  EXPECT_DOUBLE_EQ(normals[2](1), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[2](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[2](1), -sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[3](0), 1.0);
-//  EXPECT_DOUBLE_EQ(normals[3](1), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[3](0), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[3](1), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[4](0), 0.5);
-//  EXPECT_DOUBLE_EQ(normals[4](1), sin60);
+//   EXPECT_DOUBLE_EQ(normals[4](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[4](1), sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[5](0), -0.5);
-//  EXPECT_DOUBLE_EQ(normals[5](1), sin60);
-//}
+//   EXPECT_DOUBLE_EQ(normals[5](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[5](1), sin60);
+// }
 //
-//TEST_F(HexagonalLatticeTest, normals2)
+// TEST_F(HexagonalLatticeTest, normals2)
 //{
-//  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
-//  const auto & normals = hl.gapUnitNormals();
-//  Real sin60 = std::sqrt(3.0) / 2.0;
+//   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+//   const auto & normals = hl.gapUnitNormals();
+//   Real sin60 = std::sqrt(3.0) / 2.0;
 //
-//  for (const auto & n : normals)
-//    EXPECT_DOUBLE_EQ(n(2), 0.0);
+//   for (const auto & n : normals)
+//     EXPECT_DOUBLE_EQ(n(2), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[0](0), -sin60);
-//  EXPECT_DOUBLE_EQ(normals[0](1), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[0](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[0](1), 0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[1](0), -sin60);
-//  EXPECT_DOUBLE_EQ(normals[1](1), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[1](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[1](1), -0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[2](0), 0.0);
-//  EXPECT_DOUBLE_EQ(normals[2](1), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[2](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[2](1), -1.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[3](0), sin60);
-//  EXPECT_DOUBLE_EQ(normals[3](1), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[3](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[3](1), -0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[4](0), sin60);
-//  EXPECT_DOUBLE_EQ(normals[4](1), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[4](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[4](1), 0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[5](0), 0.0);
-//  EXPECT_DOUBLE_EQ(normals[5](1), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[5](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[5](1), 1.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[6](0), 0.0);
-//  EXPECT_DOUBLE_EQ(normals[6](1), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[6](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[6](1), -1.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[7](0), -sin60);
-//  EXPECT_DOUBLE_EQ(normals[7](1), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[7](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[7](1), -0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[8](0), sin60);
-//  EXPECT_DOUBLE_EQ(normals[8](1), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[8](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[8](1), -0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[9](0), sin60);
-//  EXPECT_DOUBLE_EQ(normals[9](1), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[9](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[9](1), 0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[10](0), 0.0);
-//  EXPECT_DOUBLE_EQ(normals[10](1), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[10](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[10](1), 1.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[11](0), -sin60);
-//  EXPECT_DOUBLE_EQ(normals[11](1), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[11](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[11](1), 0.5);
 //
-//  EXPECT_DOUBLE_EQ(normals[12](0), -1.0);
-//  EXPECT_DOUBLE_EQ(normals[12](1), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[12](0), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[12](1), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[13](0), -1.0);
-//  EXPECT_DOUBLE_EQ(normals[13](1), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[13](0), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[13](1), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[14](0), -0.5);
-//  EXPECT_DOUBLE_EQ(normals[14](1), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[14](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[14](1), -sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[15](0), -0.5);
-//  EXPECT_DOUBLE_EQ(normals[15](1), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[15](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[15](1), -sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[16](0), 0.5);
-//  EXPECT_DOUBLE_EQ(normals[16](1), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[16](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[16](1), -sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[17](0), 0.5);
-//  EXPECT_DOUBLE_EQ(normals[17](1), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[17](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[17](1), -sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[18](0), 1.0);
-//  EXPECT_DOUBLE_EQ(normals[18](1), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[18](0), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[18](1), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[19](0), 1.0);
-//  EXPECT_DOUBLE_EQ(normals[19](1), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[19](0), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[19](1), 0.0);
 //
-//  EXPECT_DOUBLE_EQ(normals[20](0), 0.5);
-//  EXPECT_DOUBLE_EQ(normals[20](1), sin60);
+//   EXPECT_DOUBLE_EQ(normals[20](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[20](1), sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[21](0), 0.5);
-//  EXPECT_DOUBLE_EQ(normals[21](1), sin60);
+//   EXPECT_DOUBLE_EQ(normals[21](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[21](1), sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[22](0), -0.5);
-//  EXPECT_DOUBLE_EQ(normals[22](1), sin60);
+//   EXPECT_DOUBLE_EQ(normals[22](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[22](1), sin60);
 //
-//  EXPECT_DOUBLE_EQ(normals[23](0), -0.5);
-//  EXPECT_DOUBLE_EQ(normals[23](1), sin60);
-//}
+//   EXPECT_DOUBLE_EQ(normals[23](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[23](1), sin60);
+// }
 
 TEST_F(HexagonalLatticeTest, normals3)
 {

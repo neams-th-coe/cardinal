@@ -26,15 +26,18 @@ InputParameters
 NekSideExtremeValue::validParams()
 {
   InputParameters params = NekSideFieldPostprocessor::validParams();
-  params.addParam<MooseEnum>("value_type", getOperationEnum(),
-    "Whether to give the maximum or minimum extreme value; options: 'max' (default), 'min'");
-  params.addClassDescription("Compute the extreme value (max/min) of a field over a boundary of the NekRS mesh");
+  params.addParam<MooseEnum>(
+      "value_type",
+      getOperationEnum(),
+      "Whether to give the maximum or minimum extreme value; options: 'max' (default), 'min'");
+  params.addClassDescription(
+      "Compute the extreme value (max/min) of a field over a boundary of the NekRS mesh");
   return params;
 }
 
-NekSideExtremeValue::NekSideExtremeValue(const InputParameters & parameters) :
-  NekSideFieldPostprocessor(parameters),
-  _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
+NekSideExtremeValue::NekSideExtremeValue(const InputParameters & parameters)
+  : NekSideFieldPostprocessor(parameters),
+    _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
   if (_field == field::velocity_component)
     mooseError("Setting 'field = velocity_component' is not yet implemented!");

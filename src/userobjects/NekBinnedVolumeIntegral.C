@@ -28,7 +28,8 @@ InputParameters
 NekBinnedVolumeIntegral::validParams()
 {
   InputParameters params = NekVolumeSpatialBinUserObject::validParams();
-  params.addClassDescription("Compute the spatially-binned volume integral of a field over the NekRS mesh");
+  params.addClassDescription(
+      "Compute the spatially-binned volume integral of a field over the NekRS mesh");
   return params;
 }
 
@@ -58,8 +59,10 @@ NekBinnedVolumeIntegral::getBinVolumes()
   }
 
   // sum across all processes
-  MPI_Allreduce(_bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
-  MPI_Allreduce(_bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(
+      _bin_partial_values, _bin_volumes, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(
+      _bin_partial_counts, _bin_counts, _n_bins, MPI_INT, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize
   for (unsigned int i = 0; i < _n_bins; ++i)
@@ -74,12 +77,13 @@ NekBinnedVolumeIntegral::spatialValue(const Point & p, const unsigned int & comp
 }
 
 void
-NekBinnedVolumeIntegral::binnedVolumeIntegral(const field::NekFieldEnum & integrand, double * total_integral)
+NekBinnedVolumeIntegral::binnedVolumeIntegral(const field::NekFieldEnum & integrand,
+                                              double * total_integral)
 {
   resetPartialStorage();
 
   mesh_t * mesh = nekrs::entireMesh();
-  double (*f) (int) = nekrs::solution::solutionPointer(integrand);
+  double (*f)(int) = nekrs::solution::solutionPointer(integrand);
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
@@ -88,12 +92,14 @@ NekBinnedVolumeIntegral::binnedVolumeIntegral(const field::NekFieldEnum & integr
     {
       Point p = nekPoint(k, v);
       unsigned int b = bin(p);
-      _bin_partial_values[b] += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      _bin_partial_values[b] +=
+          f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
   // sum across all processes
-  MPI_Allreduce(_bin_partial_values, total_integral, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  MPI_Allreduce(
+      _bin_partial_values, total_integral, _n_bins, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   for (unsigned int i = 0; i < _n_bins; ++i)
     nekrs::dimensionalizeVolumeIntegral(integrand, _bin_volumes[i], total_integral[i]);

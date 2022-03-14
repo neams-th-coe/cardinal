@@ -20,8 +20,7 @@
 #include "MooseUtils.h"
 #include "math.h"
 
-SymmetryPointGenerator::SymmetryPointGenerator(const Point & normal) :
-  _rotational_symmetry(false)
+SymmetryPointGenerator::SymmetryPointGenerator(const Point & normal) : _rotational_symmetry(false)
 {
   Point zero(0.0, 0.0, 0.0);
   if (normal.absolute_fuzzy_equals(zero))
@@ -73,7 +72,9 @@ SymmetryPointGenerator::reflectPointAcrossPlane(const Point & p, const Point & n
 }
 
 Point
-SymmetryPointGenerator::rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis) const
+SymmetryPointGenerator::rotatePointAboutAxis(const Point & p,
+                                             const Real & angle,
+                                             const Point & axis) const
 {
   Real cos_theta = cos(angle);
   Real sin_theta = sin(angle);
@@ -119,7 +120,7 @@ SymmetryPointGenerator::transformPoint(const Point & p) const
   if (_rotational_symmetry)
   {
     // first, find the closest point on the plane
-    Real coeff = - _rotational_axis * p;
+    Real coeff = -_rotational_axis * p;
     Point vec_to_pt = p + coeff * _rotational_axis;
 
     // get the sector - we only need to do a transformation if not in the first sector

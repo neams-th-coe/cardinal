@@ -32,6 +32,6 @@ associateSyntax(Syntax & syntax, ActionFactory & /*action_factory*/)
   registerSyntax("OpenMCInitAction", "Problem");
 }
 
-}
+} // namespace OpenMC
 
 #endif

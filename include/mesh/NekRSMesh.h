@@ -97,8 +97,8 @@ public:
   const order::NekOrderEnum & order() const { return _order; }
 
   /**
-   * Get the number of quadrature points per coordinate direction in MOOSE's representation of nekRS's mesh
-   * \return number of quadrature points per coordinate direction
+   * Get the number of quadrature points per coordinate direction in MOOSE's representation of
+   * nekRS's mesh \return number of quadrature points per coordinate direction
    */
   int numQuadraturePoints1D() const;
 

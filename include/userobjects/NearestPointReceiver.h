@@ -54,4 +54,3 @@ protected:
 
   std::vector<Real> _data;
 };
-

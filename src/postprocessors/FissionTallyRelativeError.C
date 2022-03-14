@@ -27,15 +27,17 @@ InputParameters
 FissionTallyRelativeError::validParams()
 {
   InputParameters params = OpenMCPostprocessor::validParams();
-  params.addParam<MooseEnum>("value_type", getOperationEnum(),
-    "Whether to give the maximum or minimum tally relative error; options: 'max' (default), 'min'");
+  params.addParam<MooseEnum>("value_type",
+                             getOperationEnum(),
+                             "Whether to give the maximum or minimum tally relative error; "
+                             "options: 'max' (default), 'min'");
   params.addClassDescription("Extract the maximum/minimum fission tally relative error");
   return params;
 }
 
-FissionTallyRelativeError::FissionTallyRelativeError(const InputParameters & parameters) :
-  OpenMCPostprocessor(parameters),
-  _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
+FissionTallyRelativeError::FissionTallyRelativeError(const InputParameters & parameters)
+  : OpenMCPostprocessor(parameters),
+    _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
 }
 
@@ -61,7 +63,8 @@ FissionTallyRelativeError::getValue()
   for (const auto & t : tally)
   {
     auto sum = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-    auto sum_sq = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+    auto sum_sq =
+        xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
     for (int i = 0; i < t->n_filter_bins(); ++i)
     {

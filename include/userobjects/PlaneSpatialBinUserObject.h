@@ -50,7 +50,8 @@ public:
    * @param[out] index index of the gap that the point is closest to
    * @param[out] distance distance from point to the closest gap
    */
-  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const = 0;
+  virtual void
+  gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const = 0;
 
   /**
    * Get the unit normals for each gap

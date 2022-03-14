@@ -23,8 +23,8 @@ registerMooseObject("MooseApp", CardinalNearestPointAverage);
 InputParameters
 CardinalNearestPointAverage::validParams()
 {
-  InputParameters params = NearestPointBase<ElementAverageValue,
-                                            ElementVariableVectorPostprocessor>::validParams();
+  InputParameters params =
+      NearestPointBase<ElementAverageValue, ElementVariableVectorPostprocessor>::validParams();
 
   params.addClassDescription(
       "Compute element variable integrals for nearest-point based subdomains");
@@ -32,10 +32,8 @@ CardinalNearestPointAverage::validParams()
   return params;
 }
 
-CardinalNearestPointAverage::CardinalNearestPointAverage(
-    const InputParameters & parameters)
-  : NearestPointBase<ElementAverageValue, ElementVariableVectorPostprocessor>(
-        parameters),
+CardinalNearestPointAverage::CardinalNearestPointAverage(const InputParameters & parameters)
+  : NearestPointBase<ElementAverageValue, ElementVariableVectorPostprocessor>(parameters),
     _np_post_processor_values(declareVector("np_post_processor_values"))
 {
   _np_post_processor_values.resize(_user_objects.size());

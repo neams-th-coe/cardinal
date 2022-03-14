@@ -27,8 +27,8 @@ OpenMCPostprocessor::validParams()
   return params;
 }
 
-OpenMCPostprocessor::OpenMCPostprocessor(const InputParameters & parameters) :
-  GeneralPostprocessor(parameters)
+OpenMCPostprocessor::OpenMCPostprocessor(const InputParameters & parameters)
+  : GeneralPostprocessor(parameters)
 {
   _openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(&_fe_problem);
 

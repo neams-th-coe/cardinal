@@ -30,24 +30,26 @@ NekMeshInfoPostprocessor::validParams()
   InputParameters params = NekPostprocessor::validParams();
 
   MooseEnum test_type("num_elems num_nodes node_x node_y node_z");
-  params.addRequiredParam<MooseEnum>("test_type", test_type, "The type of info to fetch; "
-    "this is used to toggle between many different tests to avoid creating tons of source files.");
+  params.addRequiredParam<MooseEnum>("test_type",
+                                     test_type,
+                                     "The type of info to fetch; "
+                                     "this is used to toggle between many different tests to avoid "
+                                     "creating tons of source files.");
 
   params.addParam<libMesh::dof_id_type>("node", "Element-local node ID");
   params.addParam<Point>("point", "Point used to locate element");
 
   params.addClassDescription("Perform various tests on the construction of a nekRS mesh on "
-    "a particular boundary to give a surface mesh.");
+                             "a particular boundary to give a surface mesh.");
   return params;
 }
 
 NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & parameters)
-  : NekPostprocessor(parameters),
-   _test_type(getParam<MooseEnum>("test_type"))
+  : NekPostprocessor(parameters), _test_type(getParam<MooseEnum>("test_type"))
 {
   if (!_nek_mesh)
     mooseError("This class is intended for testing the 'NekRSMesh' mesh, "
-      "and cannot be used with other mesh types.");
+               "and cannot be used with other mesh types.");
 
   // For any of the node_x, node_y, and node_z settings, we need to grab an element ID
   // and an element-local node ID
@@ -59,8 +61,9 @@ NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & param
       paramError("point", "When using a node test, a point must be specified to locate an element");
 
     if (!isParamValid("node"))
-      paramError("node", "A 'node' must be specified when the 'test_type' is "
-        "'node_x', 'node_y', or 'node_z'.");
+      paramError("node",
+                 "A 'node' must be specified when the 'test_type' is "
+                 "'node_x', 'node_y', or 'node_z'.");
 
     const Point & p = getParam<Point>("point");
     _element = (*locator)(p);

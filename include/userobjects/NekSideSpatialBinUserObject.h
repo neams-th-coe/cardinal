@@ -38,7 +38,8 @@ public:
    * @param[in] local_node_id local node ID on the element
    * @return point, in dimensional form
    */
-  Point nekPoint(const int & local_elem_id, const int & local_face_id, const int & local_node_id) const;
+  Point
+  nekPoint(const int & local_elem_id, const int & local_face_id, const int & local_node_id) const;
 
 protected:
   /// Boundaries over which to evaluate the user object, on the NekRS mesh

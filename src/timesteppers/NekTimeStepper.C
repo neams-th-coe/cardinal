@@ -26,7 +26,8 @@
 
 registerMooseObject("CardinalApp", NekTimeStepper);
 
-InputParameters NekTimeStepper::validParams()
+InputParameters
+NekTimeStepper::validParams()
 {
   InputParameters params = TimeStepper::validParams();
   params.addParam<Real>("min_dt", 1e-6, "Minimum time step size to allow MOOSE to set in nekRS");
@@ -34,9 +35,8 @@ InputParameters NekTimeStepper::validParams()
   return params;
 }
 
-NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
-    TimeStepper(parameters),
-    _min_dt(getParam<Real>("min_dt"))
+NekTimeStepper::NekTimeStepper(const InputParameters & parameters)
+  : TimeStepper(parameters), _min_dt(getParam<Real>("min_dt"))
 {
   // Set a higher value for the timestep tolerance with which time steps are
   // compared between nekRS and other MOOSE apps in a multiapp hierarchy. For some reason,
@@ -53,14 +53,15 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
   // time to determine when to end the simulation, because other objects in the
   // MOOSE input file would consume that wall time.
   if (nekrs::endControlElapsedTime())
-    mooseError("A wall time cannot be used to control the end of the nekRS simulation "
-      "when other applications (i.e. MOOSE) are consuming the same wall time.\n\nPlease set "
-      "'stopAt' to either 'numSteps' or 'endTime' in your .par file.");
+    mooseError(
+        "A wall time cannot be used to control the end of the nekRS simulation "
+        "when other applications (i.e. MOOSE) are consuming the same wall time.\n\nPlease set "
+        "'stopAt' to either 'numSteps' or 'endTime' in your .par file.");
 
   // The NekTimeStepper will take the end simulation control from the nekRS .par file,
   // unless NekRSProblem is a sub-app to a higher-up master app. In that case,
   // we will use whatever end control is specified by the controlling app.
-  MooseApp& app = getMooseApp();
+  MooseApp & app = getMooseApp();
   if (app.isUltimateMaster())
   {
     // The MOOSE Transient executioner will end the simulation if _either_ the number
@@ -95,7 +96,7 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters) :
   for (const auto & s : invalid_params)
     if (_executioner.parameters().isParamSetByUser(s))
       mooseError("Parameter '" + s + "' is unused by the Executioner because it is " +
-        "already specified by 'NekTimeStepper'!");
+                 "already specified by 'NekTimeStepper'!");
 
   // nekRS is currently limited to fixed time stepping. We would need to add a call to
   // a routine like nekrs::computeDT() which computes the time step based on the CFL condition,

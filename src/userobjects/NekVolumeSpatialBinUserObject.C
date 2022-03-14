@@ -36,19 +36,22 @@ NekVolumeSpatialBinUserObject::NekVolumeSpatialBinUserObject(const InputParamete
 
   for (auto & uo : _bins)
   {
-    const PlaneSpatialBinUserObject * side_bin = dynamic_cast<const PlaneSpatialBinUserObject *>(uo);
+    const PlaneSpatialBinUserObject * side_bin =
+        dynamic_cast<const PlaneSpatialBinUserObject *>(uo);
     if (side_bin)
       ++num_side_distributions;
   }
 
   if (num_side_distributions != 0)
-    mooseError("This user object requires all bins to be volume distributions; you have specified " +
-      Moose::stringify(num_side_distributions) + " side distributions." +
-      "\noptions: HexagonalSubchannelBin, LayeredBin, RadialBin");
+    mooseError(
+        "This user object requires all bins to be volume distributions; you have specified " +
+        Moose::stringify(num_side_distributions) + " side distributions." +
+        "\noptions: HexagonalSubchannelBin, LayeredBin, RadialBin");
 
   // the 'normal' velocity component direction does not apply to volume bins
   if (_field == field::velocity_component && _velocity_component == component::normal)
-    mooseError("Setting 'velocity_component = normal' is not supported for the '" + name() + "' user object!");
+    mooseError("Setting 'velocity_component = normal' is not supported for the '" + name() +
+               "' user object!");
 }
 
 #endif

@@ -38,7 +38,8 @@ public:
 
   virtual unsigned int gapIndex(const Point & point) const;
 
-  virtual void gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const;
+  virtual void
+  gapIndexAndDistance(const Point & point, unsigned int & index, Real & distance) const;
 
 protected:
   /// Width of region enclosing gap for which points contribute to gap integral

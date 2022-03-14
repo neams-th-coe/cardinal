@@ -26,16 +26,17 @@ InputParameters
 NekMassFluxWeightedSideIntegral::validParams()
 {
   InputParameters params = NekSideIntegral::validParams();
-  params.addClassDescription("Compute mass flux weighted integral of a field over a boundary of the NekRS mesh");
+  params.addClassDescription(
+      "Compute mass flux weighted integral of a field over a boundary of the NekRS mesh");
   return params;
 }
 
-NekMassFluxWeightedSideIntegral::NekMassFluxWeightedSideIntegral(const InputParameters & parameters) :
-  NekSideIntegral(parameters)
+NekMassFluxWeightedSideIntegral::NekMassFluxWeightedSideIntegral(const InputParameters & parameters)
+  : NekSideIntegral(parameters)
 {
   if (_field == field::velocity_component)
     mooseError("This class does not support 'field = velocity_component' because the "
-      "velocity component normal to the sideset is used!");
+               "velocity component normal to the sideset is used!");
 }
 
 Real

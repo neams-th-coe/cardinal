@@ -48,7 +48,11 @@ protected:
    * @param[in] zmax upper z coordinate for the element
    * @param[in] id element subdomain ID
    */
-  void addQuadElem(const Point & pt1, const Point & pt2, const Real & zmin, const Real & zmax, const unsigned int & id);
+  void addQuadElem(const Point & pt1,
+                   const Point & pt2,
+                   const Real & zmin,
+                   const Real & zmax,
+                   const unsigned int & id);
 
   /// Number of axial cells to build
   const unsigned int & _n_axial;

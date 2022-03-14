@@ -67,8 +67,12 @@ protected:
    * @param[in] zmax maximum z-coordinate for layer
    * @param[in] id subdomain ID
    */
-  void addPrismElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & zmin, const Real & zmax,
-    const SubdomainID & id);
+  void addPrismElem(const Point & pt1,
+                    const Point & pt2,
+                    const Point & pt3,
+                    const Real & zmin,
+                    const Real & zmax,
+                    const SubdomainID & id);
 
   /**
    * Add a tri3 element for given points in triangle on a given axial plane
@@ -78,7 +82,11 @@ protected:
    * @param[in] z z-coordinate for layer
    * @param[in] id subdomain ID
    */
-  void addTriElem(const Point & pt1, const Point & pt2, const Point & pt3, const Real & z, const SubdomainID & id);
+  void addTriElem(const Point & pt1,
+                  const Point & pt2,
+                  const Point & pt3,
+                  const Real & z,
+                  const SubdomainID & id);
 
   /// Number of nodes on each pin's quarter circumference
   const unsigned int & _theta_res;

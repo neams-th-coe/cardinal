@@ -36,13 +36,11 @@ NearestPointReceiverTransfer::validParams()
 {
   InputParameters params = MultiAppTransfer::validParams();
 
-  params.addRequiredParam<UserObjectName>(
-      "from_uo",
-      "The name of the UserObject to transfer the value from.");
+  params.addRequiredParam<UserObjectName>("from_uo",
+                                          "The name of the UserObject to transfer the value from.");
 
   params.addRequiredParam<UserObjectName>(
-      "to_uo",
-      "The name of the NearestPointReceiver to transfer the value to. ");
+      "to_uo", "The name of the NearestPointReceiver to transfer the value to. ");
 
   return params;
 }
@@ -72,7 +70,8 @@ NearestPointReceiverTransfer::execute()
         {
           values.clear();
 
-          auto & receiver = _multi_app->appProblemBase(i).getUserObject<NearestPointReceiver>(_to_uo_name);
+          auto & receiver =
+              _multi_app->appProblemBase(i).getUserObject<NearestPointReceiver>(_to_uo_name);
           const auto & points = receiver.positions();
 
           values.reserve(points.size());

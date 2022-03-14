@@ -24,5 +24,5 @@
 class SymmetryPointGeneratorTest : public MooseObjectUnitTest
 {
 public:
-  SymmetryPointGeneratorTest() : MooseObjectUnitTest("CardinalUnitApp") {  }
+  SymmetryPointGeneratorTest() : MooseObjectUnitTest("CardinalUnitApp") {}
 };

@@ -9,8 +9,9 @@
  * @param name name of the input parameter
  * @param explanation short explanation of the reason why parameter is unused
  */
-void
-checkUnusedParam(const InputParameters & p, const std::string & name, const std::string & explanation);
+void checkUnusedParam(const InputParameters & p,
+                      const std::string & name,
+                      const std::string & explanation);
 
 /**
  * Checks whether the user has specified an input parameter is set
@@ -18,8 +19,9 @@ checkUnusedParam(const InputParameters & p, const std::string & name, const std:
  * @param name name of the input parameter
  * @param explanation short explanation of the reason why parameter is required
  */
-void
-checkRequiredParam(const InputParameters & p, const std::string & name, const std::string & explanation);
+void checkRequiredParam(const InputParameters & p,
+                        const std::string & name,
+                        const std::string & explanation);
 
 /**
  * Checks whether a set of parameters are all jointly provided or jointly not provided
@@ -27,6 +29,6 @@ checkRequiredParam(const InputParameters & p, const std::string & name, const st
  * @param name name of the input parameter
  * @param explanation short explanation of the reason why parameter is required
  */
-void
-checkJointParams(const InputParameters & p, const std::vector<std::string> & name,
-  const std::string & explanation);
+void checkJointParams(const InputParameters & p,
+                      const std::vector<std::string> & name,
+                      const std::string & explanation);

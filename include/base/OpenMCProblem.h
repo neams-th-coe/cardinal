@@ -77,25 +77,26 @@ protected:
   const tally::TallyTypeEnum _tallyType;
 
   /// Conversion factor from electron volts to Joules
-  const double JOULE_PER_EV {1.6021766208e-19};
+  const double JOULE_PER_EV{1.6021766208e-19};
 
   /// Spatial dimension of the Monte Carlo problem
-  const int DIMENSION {3};
+  const int DIMENSION{3};
 
   unsigned int _heat_source_var; //! heat source variable number
 
-  std::vector<Point> _centers;       //! Locations of the pebble centers
-  std::string _meshTemplateFilename; //! Filename of the mesh template to use in the unstructured mesh tally
+  std::vector<Point> _centers; //! Locations of the pebble centers
+  std::string
+      _meshTemplateFilename; //! Filename of the mesh template to use in the unstructured mesh tally
 
-  std::vector<int32_t> _cellIndices {};   //! OpenMC cell indices corresponding to the pebble centers
-  std::vector<int32_t> _cellInstances {}; //! OpenMC cell instances corresponding to the pebble centers
+  std::vector<int32_t> _cellIndices{}; //! OpenMC cell indices corresponding to the pebble centers
+  std::vector<int32_t>
+      _cellInstances{}; //! OpenMC cell instances corresponding to the pebble centers
 
   bool _check_tally_sum; //! Check tally consistency during transfers
 
-  const openmc::LibMesh* _meshTemplate;                //! OpenMC unstructured mesh instance
-  std::vector<const openmc::CellFilter*> _cellFilters; //! OpenMC cell filters
-  std::vector<const openmc::MeshFilter*> _meshFilters; //! OpenMC mesh filters
-  std::vector<const openmc::Tally*> _tallies;          //! OpenMC tally instances
-  const openmc::Tally* _kappa_fission_tally {nullptr}; //! Global kappa-fission tally
+  const openmc::LibMesh * _meshTemplate;                //! OpenMC unstructured mesh instance
+  std::vector<const openmc::CellFilter *> _cellFilters; //! OpenMC cell filters
+  std::vector<const openmc::MeshFilter *> _meshFilters; //! OpenMC mesh filters
+  std::vector<const openmc::Tally *> _tallies;          //! OpenMC tally instances
+  const openmc::Tally * _kappa_fission_tally{nullptr};  //! Global kappa-fission tally
 };
-
