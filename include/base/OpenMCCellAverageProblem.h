@@ -447,6 +447,13 @@ protected:
   void getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
 
   /**
+   * Get the fission tally (i.e. raw, unrelaxed output from OpenMC)
+   *  as a function of space and store into variable
+   * @param[in] var_num variable number to store the tally in
+   */
+  void getFissionTallyFromOpenMC(const unsigned int & var_num);
+
+  /**
    * Normalize the local tally by either the global kappa fission tally, or the sum
    * of the local kappa fission tally
    * @param[in] tally_result value of tally result

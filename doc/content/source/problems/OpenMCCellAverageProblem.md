@@ -610,6 +610,7 @@ minimal capabilities to extract other aspects of the OpenMC solution directly
 onto the mesh mirror for postprocessing or visualization. A list of parameters to
 output is provided to the `output` parameter; available options are:
 
+- `fission_tally`: unrelaxed fission tally in units of volumetric power density
 - `fission_tally_std_dev`: fission tally standard deviation in units of volumetric
   power density with length units that match the units of the `heat_source`
 
