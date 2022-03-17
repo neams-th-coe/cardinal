@@ -43,7 +43,7 @@ public:
 
   virtual const std::vector<Point> & gapUnitNormals() const override { return _unit_normals; }
 
-  virtual Real adjustBinValue(const unsigned int & i) const;
+  virtual Real adjustBinValue(const unsigned int & i) const override;
 
 protected:
   /// Direction of the bins (x, y, or z)
