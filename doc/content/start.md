@@ -255,9 +255,24 @@ The first time
 you run the test suite, the runtime will be very long due to the just-in-time compilation of
 NekRS. Subsequent runs will be much faster due to the use of cached build files.
 
-If your Python version is old, you may encounter errors in the `run_tests` command.
-To check if your installation is working, you can instead navigate to any of the
-tests in the `test/tests` directory and try running that test directly (i.e. outside
+!alert! note
+Do you get an error like the following when running the test suite?
+
+```
+Traceback (most recent call last):
+  File "/Users/anovak/projects/cardinal/./run_tests", line 11, in <module>
+    from TestHarness import TestHarness
+ModuleNotFoundError: No module named 'TestHarness'
+```
+
+This means that you need to:
+
+- Be sure that your Python is version 3 (`python --version` will show you the version)
+- Add `cardinal/contrib/moose/python` to your `PYTHONPATH` to be sure Python can find `TestHarness`
+
+!alert-end!
+
+You can also try running the various test input files directly (i.e. outside
 the testing framework). For example, you can try to run a [!ac](CHT) for a
 [!ac](SFR) pincell with:
 
