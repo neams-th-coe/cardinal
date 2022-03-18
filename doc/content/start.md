@@ -18,6 +18,41 @@ $ git clone https://github.com/neams-th-coe/cardinal.git
 $ cd cardinal
 ```
 
+## Prerequisites
+
+Before building, first decide whether you want *both* NekRS and OpenMC, just one,
+or neither. You can build Cardinal with only the dependencies that you want (which reduces
+the software stack prerequisites). If you do *not*
+want to build the NekRS-part of Cardinal, set the following environment variable:
+
+```
+$ export ENABLE_NEK=false
+```
+
+Likewise, if you do *not* want to build the OpenMC-part of Cardinal,
+set the following environment variable:
+
+```
+$ export ENABLE_OPENMC=false
+```
+
+You can also edit both of these variables in Cardinal's `Makefile`. Then, the prerequisites
+for building Cardinal are summarized in [prereq_table].
+
+!table id=prereq_table caption=Summary of prerequisites needed for Cardinal.
+|    | Building with NekRS | Building with OpenMC | Both |
+| :- | :- | :- | :- |
+| CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+| GNU compilers | $\checkmark$ | &nbsp; | $\checkmark$  |
+| HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
+| MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+
+!alert note
+If you use [MOOSE's conda environment](https://mooseframework.inl.gov/getting_started/installation/conda.html)
+ on Linux, all of these requirements will automatically
+be available to you. If you are on MacOS, MOOSE's conda environment only contains the
+clang compiler, so you will separately need to obtain the GNU compilers.
+
 ## Building
   id=build
 
@@ -30,11 +65,6 @@ presented:
 4. [#petsc_libmesh]
 5. [#compiling]
 
-!alert note
-Cardinal can be built with or without [MOOSE's conda environment](https://mooseframework.inl.gov/getting_started/installation/conda.html).
-Any differences in the build process that depend on whether you are using the conda environment
-are noted where applicable.
-
 #### Fetch Dependencies
   id=fetch
 
@@ -45,30 +75,6 @@ automatically. To fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 ```
 $ ./scripts/get-dependencies.sh
 ```
-
-Your system will also require an [!ac](MPI) wrapper, the [HDF5 library](https://www.hdfgroup.org/solutions/hdf5/)
-for reading OpenMC's cross sections and writing OpenMC output files,
-and [CMake](https://cmake.org/) for compilation. If you use MOOSE's conda environment,
-these dependencies will already be available to you. Note that at
-this time, NekRS only supports
-the GNU compilers.
-
-!alert! tip title=Don't want both NekRS and OpenMC?
-If you are only interested in using *either* of the NekRS or OpenMC wrappings,
-you can build Cardinal with only the dependencies that you want. If you do *not*
-want to build the NekRS-part of Cardinal, you can set the following environment variable:
-
-```
-$ export ENABLE_NEK=false
-```
-
-Likewise, if you do *not* want to build with the OpenMC-part of Cardinal, you can
-set the following environment variable:
-
-```
-$ export ENABLE_OPENMC=false
-```
-!alert-end!
 
 Cardinal supports *optional* coupling to the following codes:
 
@@ -255,9 +261,24 @@ The first time
 you run the test suite, the runtime will be very long due to the just-in-time compilation of
 NekRS. Subsequent runs will be much faster due to the use of cached build files.
 
-If your Python version is old, you may encounter errors in the `run_tests` command.
-To check if your installation is working, you can instead navigate to any of the
-tests in the `test/tests` directory and try running that test directly (i.e. outside
+!alert! note
+Do you get an error like the following when running the test suite?
+
+```
+Traceback (most recent call last):
+  File "/Users/anovak/projects/cardinal/./run_tests", line 11, in <module>
+    from TestHarness import TestHarness
+ModuleNotFoundError: No module named 'TestHarness'
+```
+
+This means that you need to:
+
+- Be sure that your Python is version 3 (`python --version` will show you the version)
+- Add `cardinal/contrib/moose/python` to your `PYTHONPATH` to be sure Python can find `TestHarness`
+
+!alert-end!
+
+You can also try running the various test input files directly (i.e. outside
 the testing framework). For example, you can try to run a [!ac](CHT) for a
 [!ac](SFR) pincell with:
 
