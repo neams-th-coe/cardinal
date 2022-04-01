@@ -32,6 +32,9 @@ void UDF_LoadKernels(occa::properties& kernelInfo)
 void UDF_Setup(nrs_t *nrs)
 {
   udf.properties = &uservp;
+  nrs->p0th[0] = 1.0;
+  nrs->p0th[1] = 1.0;
+  nrs->p0th[2] = 1.0;
 
   mesh_t* mesh = nrs->_mesh;
   int num_quadrature_points = mesh->Np * mesh->Nelements;
@@ -43,7 +46,8 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->U[n + 0 * nrs->fieldOffset] = 0;
     nrs->U[n + 1 * nrs->fieldOffset] = 0;
-    nrs->U[n + 2 * nrs->fieldOffset] = 0;
+    nrs->U[n + 2 * nrs->fieldOffset] = 0;//(4.0*xx*xx)+(4.0*yy*yy);
+
     nrs->P[n] = 1.0;
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 0.0;

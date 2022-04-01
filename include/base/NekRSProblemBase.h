@@ -89,10 +89,10 @@ public:
   virtual bool nondimensional() const { return _nondimensional; }
 
   /**
-   * Whether the mesh is moving
-   * @return whether the mesh is moving
-   */
-  virtual bool movingMesh() const { return false; }
+  * Whether the mesh is moving
+  * @return whether the mesh is moving
+  */
+  virtual const bool hasMovingNekMesh() const { return false; }
 
   /**
    * Whether data should be synchronized in to nekRS
@@ -379,7 +379,7 @@ protected:
    * Underlying mesh object on which NekRS exchanges fields with MOOSE
    * or extracts NekRS's solution for I/O features
    */
-  const NekRSMesh * _nek_mesh;
+  NekRSMesh * _nek_mesh;
 
   /// The time stepper used for selection of time step size
   NekTimeStepper * _timestepper = nullptr;

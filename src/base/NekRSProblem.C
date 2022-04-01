@@ -41,7 +41,6 @@ InputParameters
 NekRSProblem::validParams()
 {
   InputParameters params = NekRSProblemBase::validParams();
-  params.addParam<bool>("moving_mesh", false, "Whether we have a moving mesh problem or not");
 
   params.addParam<bool>("has_heat_source",
                         true,
@@ -76,10 +75,9 @@ NekRSProblem::validParams()
 NekRSProblem::NekRSProblem(const InputParameters & params)
   : NekRSProblemBase(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _moving_mesh(getParam<bool>("moving_mesh")),
     _has_heat_source(getParam<bool>("has_heat_source")),
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
-    _usrwrk_indices(MultiMooseEnum("flux heat_source x_displacement y_displacement z_displacement unused"))
+    _usrwrk_indices(MultiMooseEnum("flux heat_source mesh_velocity_x mesh_velocity_y mesh_velocity_z unused"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
@@ -90,22 +88,22 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   // Determine an appropriate default usrwrk indexing; the ordering will always be
   //   0: flux             (if _boundary is true)
   //   1: heat_source      (if _volume is true and _has_heat_source is true)
-  //   2: x_displacement   (if _moving_mesh is true)
-  //   3: y_displacement   (if _moving_mesh is true)
-  //   4: z_displacement   (if _moving_mesh is true)
+  //   2: mesh_velocity_x   (if nekrs::hasElasticitySolver() is true)
+  //   3: mesh_velocity_y   (if nekrs::hasElasticitySolver() is true)
+  //   4: mesh_velocity_z   (if nekrs::hasElasticitySolver() is true)
   //
   // The most we will do is skip allocating terms at the end of this ordering if we
   // don't need them. We never change the ordering of "earlier" terms.
   std::vector<std::string> str_indices =
-    {"flux", "heat_source", "x_displacement", "y_displacement", "z_displacement"};
+    {"flux", "heat_source", "mesh_velocity_x", "mesh_velocity_y", "mesh_velocity_z"};
   indices.flux = 0 * nekrs::scalarFieldOffset();
   indices.heat_source = 1 * nekrs::scalarFieldOffset();
-  indices.x_displacement = 2 * nekrs::scalarFieldOffset();
-  indices.y_displacement = 3 * nekrs::scalarFieldOffset();
-  indices.z_displacement = 4 * nekrs::scalarFieldOffset();
+  indices.mesh_velocity_x = 2 * nekrs::scalarFieldOffset();
+  indices.mesh_velocity_y = 3 * nekrs::scalarFieldOffset();
+  indices.mesh_velocity_z = 4 * nekrs::scalarFieldOffset();
 
   // progressively erase terms from the back if we don't need them
-  if (!_moving_mesh)
+  if (!nekrs::hasElasticitySolver())
   {
     str_indices.erase(str_indices.begin() + 2, str_indices.end());
 
@@ -126,18 +124,17 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
 
   printScratchSpaceInfo(_usrwrk_indices);
 
-  // will be implemented soon
-  if (_moving_mesh)
+  if (nekrs::hasMovingMesh())
   {
-    if (_nondimensional)
-      mooseError("Moving mesh features are not yet implemented for a non-dimensional nekRS case!");
-
+    // will be implemented soon
     if (!_nek_mesh->getMesh().is_replicated())
       mooseError("Distributed mesh features are not yet implemented for moving mesh cases!");
 
     if (!_app.actionWarehouse().displacedMesh())
       mooseError("Moving mesh problems require displacements in the [Mesh] block!");
   }
+  if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
+      mooseWarning("Your Cardinal NekRSMesh object has displacements, but your nekRS .par file does not have a solver in the [MESH] block!");
 
   // Depending on the type of coupling, initialize various problem parameters
   if (_boundary && !_volume) // only boundary coupling
@@ -150,16 +147,23 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _source_elem = (double *)calloc(_n_vertices_per_volume, sizeof(double));
   }
 
-  if (_moving_mesh)
+  if (nekrs::hasMovingMesh())
   {
-    if (_boundary)
-      mooseError("Mesh displacement not supported in boundary coupling!");
+    if (!_volume)
+    {
+      _displacement_x = (double *)calloc(_n_vertices_per_surface, sizeof(double));
+      _displacement_y = (double *)calloc(_n_vertices_per_surface, sizeof(double));
+      _displacement_z = (double *)calloc(_n_vertices_per_surface, sizeof(double));
+    }
     else if (_volume)
     {
       _displacement_x = (double *)calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_y = (double *)calloc(_n_vertices_per_volume, sizeof(double));
       _displacement_z = (double *)calloc(_n_vertices_per_volume, sizeof(double));
     }
+
+    if (nekrs::hasElasticitySolver())
+      _mesh_velocity_elem = (double *)calloc((_nek_mesh->order() + 2)*(_nek_mesh->order() + 2), sizeof(double));
   }
 
   // regardless of the boundary/volume coupling, we will always exchange temperature
@@ -178,6 +182,7 @@ NekRSProblem::~NekRSProblem()
   freePointer(_displacement_x);
   freePointer(_displacement_y);
   freePointer(_displacement_z);
+  freePointer(_mesh_velocity_elem);
 }
 
 void
@@ -218,6 +223,23 @@ NekRSProblem::initialSetup()
       }
   }
 
+  if (boundary && nekrs::hasMovingMesh() && nekrs::hasElasticitySolver())
+  {
+    bool has_one_mv_bc = false;
+    for (const auto & b : *boundary)
+    {
+      if(nekrs::mesh::isMovingMeshBoundary(b))
+        {
+          has_one_mv_bc = true;
+          break;
+        }
+    }
+    if (!has_one_mv_bc)
+      mooseError("For boundary-coupled moving mesh problems, you need at least one "
+                 "boundary in the 'NekRS' .par file to be of the type 'fixedValue'"
+                 " in the [MESH] block.");
+  }
+
   // For volume-based coupling, we should check that there is a udf function providing
   // the source for the passive scalar equations (this is the analogue of the boundary
   // condition check for boundary-based coupling). NOTE: This check is imperfect, because
@@ -230,9 +252,9 @@ NekRSProblem::initialSetup()
           "for the source\nin the passive scalar equations! If you don't have an energy source\n"
           "in your NekRS domain, you can disable this error with 'has_heat_source = false'.");
 
-  if (_moving_mesh && !nekrs::hasMovingMesh())
-    mooseError("In order for MOOSE to compute a mesh deformation in NekRS, you "
-               "must have 'solver = user' in the [MESH] block!");
+  if (!_volume && nekrs::hasUserMeshSolver())
+    mooseError("Your nekRS .par file has 'solver = user' in the [MESH] block. Please enable "
+               "volume coupling for NekRSMesh or switch to another mesh solver in your .par file."  );
 
   if (_boundary)
   {
@@ -258,8 +280,14 @@ NekRSProblem::initialSetup()
   }
 
   // save initial mesh for moving mesh problems to match deformation in exodus output files
-  if (_moving_mesh && !_disable_fld_file_output)
+  if (nekrs::hasMovingMesh() && !_disable_fld_file_output)
     nekrs::outfld(_timestepper->nondimensionalDT(_time), _t_step);
+
+  if (nekrs::hasElasticitySolver())
+    _nek_mesh->initializePreviousDisplacements();
+
+  if (nekrs::hasUserMeshSolver())
+    _nek_mesh->saveInitialVolMesh();
 }
 
 void
@@ -281,6 +309,135 @@ NekRSProblem::adjustNekSolution()
     _console << msg << std::endl;
     nekrs::limitTemperature(_min_T, _max_T);
   }
+}
+
+void
+NekRSProblem::sendBoundaryDeformationToNek()
+{
+  auto & solution = _aux->solution();
+  auto sys_number = _aux->number();
+
+  if (_first)
+  {
+    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
+    _first = false;
+  }
+
+  solution.localize(*_serialized_solution);
+
+  auto & mesh = _nek_mesh->getMesh();
+
+  _console << "Sending boundary deformation to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
+
+  if (!_volume)
+  {
+    for (unsigned int e = 0; e < _n_surface_elems; e++)
+    {
+      // We can only write into the nekRS scratch space if that face is "owned" by the current process
+      if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
+        continue;
+
+      auto elem_ptr = mesh.query_elem_ptr(e);
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+      {
+        libmesh_assert(!mesh.is_serial());
+        continue;
+      }
+
+      for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
+
+        // For each face, get the boundary displacement at the libMesh nodes. This will be passed into
+        // nekRS AS MESH VELOCITY, which will interpolate onto its GLL points. Because we are looping over
+        // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+        // determine the offset in the nekRS arrays.
+        int node_index = _nek_mesh->boundaryNodeIndex(n);
+        auto dof_idx1 = node_ptr->dof_number(sys_number, _disp_x_var, 0);
+        auto dof_idx2 = node_ptr->dof_number(sys_number, _disp_y_var, 0);
+        auto dof_idx3 = node_ptr->dof_number(sys_number, _disp_z_var, 0);
+        _displacement_x[node_index] = (*_serialized_solution)(dof_idx1);
+        _displacement_y[node_index] = (*_serialized_solution)(dof_idx2);
+        _displacement_z[node_index] = (*_serialized_solution)(dof_idx3);
+      }
+      // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
+      // onto the nekRS GLL points
+      calculateMeshVelocity(e, field::mesh_velocity_x);
+      writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
+
+      calculateMeshVelocity(e, field::mesh_velocity_y);
+      writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
+
+      calculateMeshVelocity(e, field::mesh_velocity_z);
+      writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
+    }
+  }
+  else if (_volume)
+  {
+    // For the case of a boundary-only coupling, we could just loop over the elements on
+    // the boundary of interest and write (carefully) into the volume nrs-usrwrk array. Now,
+    // our mesh velocity variables are defined over the entire volume (maybe the MOOSE transfer only sent
+    // meaningful values to the coupling boundaries), so we need to do a volume interpolation
+    // of the mesh velocity into nrs->usrwrk, rather than a face interpolation. This could definitely be
+    // optimized in the future to truly only just write the boundary values into the nekRS
+    // scratch space rather than the volume values, but it looks right now that our biggest
+    // expense occurs in the MOOSE transfer system, not these transfers internally to nekRS.
+    for (unsigned int e = 0; e < _n_volume_elems; ++e)
+    {
+      // We can only write into the nekRS scratch space if that face is "owned" by the current process
+      if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
+        continue;
+
+      int n_faces_on_boundary = _nek_mesh->facesOnBoundary(e);
+
+      // though the mesh velocity is a volume field, the only meaningful values are on the coupling
+      // boundaries, so we can just skip this interpolation if this volume element isn't on
+      // a coupling boundary, because that mesh velocity data isn't used anyways
+      if (n_faces_on_boundary > 0)
+      {
+        auto elem_ptr = mesh.query_elem_ptr(e);
+
+        // Only work on elements we can find on our local chunk of a
+        // distributed mesh
+        if (!elem_ptr)
+        {
+          libmesh_assert(!mesh.is_serial());
+          continue;
+        }
+
+        for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
+        {
+          auto node_ptr = elem_ptr->node_ptr(n);
+
+          // For each element, get the  at the libMesh nodes. This will be passed into
+          // nekRS, which will interpolate onto its GLL points. Because we are looping over
+          // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+          // determine the offset in the nekRS arrays.
+          int node_index = _nek_mesh->volumeNodeIndex(n);
+          auto dof_idx1 = node_ptr->dof_number(sys_number, _disp_x_var, 0);
+          auto dof_idx2 = node_ptr->dof_number(sys_number, _disp_y_var, 0);
+          auto dof_idx3 = node_ptr->dof_number(sys_number, _disp_z_var, 0);
+          _displacement_x[node_index] = (*_serialized_solution)(dof_idx1);
+          _displacement_y[node_index] = (*_serialized_solution)(dof_idx2);
+          _displacement_z[node_index] = (*_serialized_solution)(dof_idx3);
+        }
+
+        // Now that we have the mesh velocity at the nodes of the NekRSMesh, we can interpolate them
+        // onto the nekRS GLL points
+        calculateMeshVelocity(e, field::mesh_velocity_x);
+        writeVolumeSolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
+
+        calculateMeshVelocity(e, field::mesh_velocity_y);
+        writeVolumeSolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
+
+        calculateMeshVelocity(e, field::mesh_velocity_z);
+        writeVolumeSolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
+      }
+    }
+  }
+  _displaced_problem->updateMesh();
 }
 
 void
@@ -531,9 +688,9 @@ NekRSProblem::sendVolumeDeformationToNek()
       auto dof_idx1 = node_ptr->dof_number(sys_number, _disp_x_var, 0);
       auto dof_idx2 = node_ptr->dof_number(sys_number, _disp_y_var, 0);
       auto dof_idx3 = node_ptr->dof_number(sys_number, _disp_z_var, 0);
-      _displacement_x[node_index] = (*_serialized_solution)(dof_idx1);
-      _displacement_y[node_index] = (*_serialized_solution)(dof_idx2);
-      _displacement_z[node_index] = (*_serialized_solution)(dof_idx3);
+      _displacement_x[node_index] = (*_serialized_solution)(dof_idx1)/_L_ref;
+      _displacement_y[node_index] = (*_serialized_solution)(dof_idx2)/_L_ref;
+      _displacement_z[node_index] = (*_serialized_solution)(dof_idx3)/_L_ref;
     }
 
     // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
@@ -694,20 +851,23 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       if (_volume && _has_heat_source)
         sendVolumeHeatSourceToNek();
 
-      // copy the boundary heat flux and/or volume heat source in the scratch space to device
-      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
 
-      if (_moving_mesh)
+      if (nekrs::hasUserMeshSolver() && _volume)
       {
-        if (_volume)
-        {
-          sendVolumeDeformationToNek();
-          nekrs::copyDeformationToDevice();
-        }
-
-        // no boundary-based mesh movement available in nekRS yet
+        sendVolumeDeformationToNek();
+      }
+      else if (nekrs::hasElasticitySolver())
+      {
+        sendBoundaryDeformationToNek();
       }
 
+      // copy the boundary heat flux and/or volume heat source in the scratch space to device
+      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
+      if (nekrs::hasMovingMesh())
+      {
+      // update geometric factors and the mesh on the device
+        nekrs::copyDeformationToDevice();
+      }
       break;
     }
 
@@ -820,7 +980,7 @@ NekRSProblem::addExternalVariables()
 
   // add the displacement aux variables from the solid mechanics solver; these will
   // be needed regardless of whether the displacement is boundary- or volume-based
-  if (_moving_mesh)
+  if (nekrs::hasMovingMesh())
   {
     checkDuplicateVariableName("disp_x");
     addAuxVariable("MooseVariable", "disp_x", var_params);
@@ -836,4 +996,40 @@ NekRSProblem::addExternalVariables()
   }
 }
 
+void
+NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
+{
+  int len = _nek_mesh->order() + 2;
+  double dt = _timestepper->getCurrentDT();
+
+  switch (field)
+  {
+    case field::mesh_velocity_x:
+      for (int i=0; i <len * len; i++)
+      {
+        _mesh_velocity_elem[i] = ( _displacement_x[i]-_nek_mesh->prev_disp_x().at((e*len*len) + i))
+                           /dt/_U_ref;
+      }
+      _nek_mesh->updateDisplacement(e, _displacement_x, field::x_displacement);
+      break;
+    case field::mesh_velocity_y:
+      for (int i=0; i <len * len; i++)
+      {
+        _mesh_velocity_elem[i] = ( _displacement_y[i]-_nek_mesh->prev_disp_y().at((e*len*len) + i))
+                           /dt/_U_ref;
+      }
+      _nek_mesh->updateDisplacement(e, _displacement_y, field::y_displacement);
+      break;
+    case field::mesh_velocity_z:
+      for (int i=0; i <len * len; i++)
+      {
+        _mesh_velocity_elem[i] = ( _displacement_z[i]-_nek_mesh->prev_disp_z().at((e*len*len) + i))
+                           /dt/_U_ref;
+      }
+      _nek_mesh->updateDisplacement(e, _displacement_z, field::z_displacement);
+      break;
+    default:
+      mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
+  }
+}
 #endif

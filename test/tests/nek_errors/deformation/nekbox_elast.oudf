@@ -1,0 +1,31 @@
+// Boundary conditions
+void velocityDirichletConditions(bcData *bc)
+{
+  const dfloat pi = M_PI;
+  const dfloat amp = 0.0;
+
+  const dfloat xx = bc->x;
+  const dfloat yy = bc->y;
+  const dfloat zz = bc->z;
+
+  if(bc->id==1)
+  {
+    bc->u = 0.0;
+    bc->v = 0.0;
+    bc->w = 0.0;
+  }
+}
+
+void meshVelocityDirichletConditions(bcData *bc)
+{
+  if(bc->id==2)
+  {
+    bc->meshu = bc->wrk[bc->idM + 2*bc->fieldOffset];
+    bc->meshv = bc->wrk[bc->idM + 3*bc->fieldOffset];
+    bc->meshw = bc->wrk[bc->idM + 4*bc->fieldOffset];
+  }
+}
+
+void pressureDirichletConditions(bcData *bc)
+{
+}

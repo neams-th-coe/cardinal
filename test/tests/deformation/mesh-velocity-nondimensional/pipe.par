@@ -1,0 +1,28 @@
+[GENERAL]
+polynomialOrder = 2
+stopAt = numSteps
+numSteps = 100
+dt = 1e-1
+timeStepper = tombo2
+writeInterval = 100
+
+[MESH]
+boundaryTypeMap = zeroValue,fixedValue,zeroValue
+solver = elasticity
+
+[PROBLEMTYPE]
+stressFormulation = true
+
+[PRESSURE]
+residualTol = 1e-4
+preconditioner = multigrid
+initialGuess = previous
+
+[VELOCITY]
+density = 1.0
+viscosity = -100.0
+boundaryTypeMap = fixedValue,fixedValue,zeroGradient
+residualTol = 1e-5
+
+[TEMPERATURE]
+solver = none

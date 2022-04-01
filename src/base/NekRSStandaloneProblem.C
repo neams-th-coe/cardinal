@@ -49,11 +49,4 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
       "problem through Cardinal");
   _n_usrwrk_slots = 0;
 }
-
-bool
-NekRSStandaloneProblem::movingMesh() const
-{
-  return nekrs::hasMovingMesh();
-}
-
 #endif

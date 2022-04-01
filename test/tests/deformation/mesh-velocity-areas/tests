@@ -1,0 +1,32 @@
+[Tests]
+  [mesh_velocity_areas]
+    type = CSVDiff
+    input = pipe.i
+    csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
+    min_parallel = 4
+    abs_zero = 1e-6
+    requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
+                  "in the sub-app equivalently at each time-step. The displacement is"
+                  "transferred across a boundary mesh mirror in the form of mesh velocities."
+                  "This shall be verified by comparing the areas of each sideset in both the"
+                  "main and the sub-app. The domain is a cylinder centred on the origin,"
+                  "with diameter = 1 and length = 4."
+    required_objects = 'NekRSProblem'
+  []
+  [mesh_velocity_areas_with_vol]
+    type = CSVDiff
+    input = pipe.i
+    cli_args = "MultiApps/cli_args='Mesh/volume=true'"
+    csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
+    min_parallel = 4
+    abs_zero = 1e-6
+    requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
+                  "in the sub-app equivalently at each time-step while having the volume mesh"
+                  "mirror enabled at the same time as the elasticity solver in nekRS. The displacement is"
+                  "transferred across a boundary mesh mirror in the form of mesh velocities."
+                  "This shall be verified by comparing the areas of each sideset in both the"
+                  "main and the sub-app. The domain is a cylinder centred on the origin,"
+                  "with diameter = 1 and length = 4."
+    required_objects = 'NekRSProblem'
+  []
+[]

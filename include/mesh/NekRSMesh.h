@@ -58,6 +58,12 @@ public:
   NekRSMesh & operator=(const NekRSMesh & other_mesh) = delete;
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
 
+  /// Save the initial volumetric mesh for volume mirror-based moving mesh problems
+  void saveInitialVolMesh();
+
+  /// Initialize previous displacement values to zero for boundary mirror-based moving mesh problems
+  void initializePreviousDisplacements();
+
   /**
    * NekRS mesh polynomial order
    * @return NekRS polynomial order
@@ -93,6 +99,24 @@ public:
    * @return initial mesh z coordinates
    */
   const std::vector<double> & nek_initial_z() const { return _initial_z; }
+
+  /**
+   * Get the previous x displacement
+   * @return previous x displacement values
+   */
+  std::vector<double> & prev_disp_x() { return _prev_disp_x; }
+
+  /**
+   * Get the previous y displacement
+   * @return previous y displacement values
+   */
+  std::vector<double> & prev_disp_y() { return _prev_disp_y; }
+
+  /**
+   * Get the previous z displacement
+   * @return previous z displacement values
+   */
+  std::vector<double> & prev_disp_z() { return _prev_disp_z; }
 
   /**
    * Get the boundary coupling data structure
@@ -288,6 +312,14 @@ public:
    * @return MOOSE elements built for each NekRS element
    */
   int nMoosePerNek() const { return _n_moose_per_nek; }
+
+  /**
+   * Copy a new boundary displacement value for a given element's face
+   * @param[in] src the source displacement at element e and face f
+   * @param[in] e the element to which src belongs
+   * @param[in] field the displacement field we are updating
+   */
+  void updateDisplacement (const int e, const double *src, const field::NekWriteEnum field);
 
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
@@ -485,6 +517,15 @@ protected:
    */
   std::vector<double> _initial_z;
 
+  ///@{
+  /**
+   * \f$x\f$, \f$y\f$, \f$z\f$ displacements of the boundary mesh mirror
+   * for calculating displacement, in this rank
+   **/
+  std::vector<double> _prev_disp_x;
+  std::vector<double> _prev_disp_y;
+  std::vector<double> _prev_disp_z;
+  ///@}
   /**
    * \brief Mapping of boundary GLL indices to MooseMesh node indices
    *
