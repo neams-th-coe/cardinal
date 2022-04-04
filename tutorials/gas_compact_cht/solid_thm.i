@@ -139,15 +139,13 @@ q0 = ${fparse unit_cell_power / (4.0 * unit_cell_height * compact_diameter * com
   [q_wall_to_thm]
     type = MultiAppUserObjectTransfer
     variable = q_wall
-    direction = to_multiapp
-    multi_app = thm
+    to_multi_app = thm
     user_object = q_wall_avg
   []
   [T_wall_from_thm]
     type = MultiAppNearestNodeTransfer
     source_variable = T_wall
-    direction = from_multiapp
-    multi_app = thm
+    from_multi_app = thm
     variable = fluid_temp
     fixed_meshes = true
   []

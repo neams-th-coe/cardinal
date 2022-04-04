@@ -224,32 +224,28 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
   [nek_temp] # grabs temperature from nekRS and stores it in nek_temp
     type = MultiAppNearestNodeTransfer
     source_variable = temp
-    direction = from_multiapp
-    multi_app = nek
+    from_multi_app = nek
     variable = nek_temp
     fixed_meshes = true
   []
   [avg_flux] # sends heat flux in avg_flux to nekRS
     type = MultiAppNearestNodeTransfer
     source_variable = avg_flux
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
     variable = avg_flux
     fixed_meshes = true
   []
   [flux_integral_to_nek] # sends the heat flux integral (for normalization) to nekRS
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
-    direction = to_multiapp
     from_postprocessor = flux_integral
-    multi_app = nek
+    to_multi_app = nek
   []
   [synchronize_in]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = transfer_in
-    direction = to_multiapp
     from_postprocessor = synchronize
-    multi_app = nek
+    to_multi_app = nek
   []
 []
 

@@ -183,16 +183,14 @@ N = 50
     variable = avg_flux
     source_boundary = 'fluid_solid_interface'
     target_boundary = '3'
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
     fixed_meshes = true
   []
   [flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
     from_postprocessor = flux_integral
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
   []
   [temperature_to_bison]
     type = MultiAppNearestNodeTransfer
@@ -200,16 +198,14 @@ N = 50
     variable = fluid_temp
     source_boundary = '3'
     target_boundary = 'fluid_solid_interface'
-    direction = from_multiapp
-    multi_app = nek
+    from_multi_app = nek
     fixed_meshes = true
   []
   [synchronization_to_nek]
     type = MultiAppPostprocessorTransfer
-    direction = to_multiapp
     to_postprocessor = transfer_in
     from_postprocessor = synchronization_to_nek
-    multi_app = nek
+    to_multi_app = nek
   []
 []
 

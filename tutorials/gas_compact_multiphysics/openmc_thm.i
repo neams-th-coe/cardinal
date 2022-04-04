@@ -179,16 +179,14 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = MultiAppInterpolationTransfer
     source_variable = T
     variable = solid_temp
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
   []
   [heat_flux_to_openmc]
     type = MultiAppNearestNodeTransfer
     fixed_meshes = true
     source_variable = flux
     variable = flux
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
     source_boundary = 'fluid_solid_interface'
     target_boundary = 'fluid_solid_interface'
     from_postprocessors_to_be_preserved = flux_integral
@@ -198,8 +196,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = MultiAppMeshFunctionTransfer
     source_variable = heat_source
     variable = power
-    direction = to_multiapp
-    multi_app = bison
+    to_multi_app = bison
     from_postprocessors_to_be_preserved = heat_source
     to_postprocessors_to_be_preserved = power
   []
@@ -207,30 +204,26 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = MultiAppInterpolationTransfer
     source_variable = thm_temp_wall
     variable = fluid_temp
-    direction = to_multiapp
-    multi_app = bison
+    to_multi_app = bison
   []
 
   [q_wall_to_thm]
     type = MultiAppUserObjectTransfer
     variable = q_wall
-    direction = to_multiapp
-    multi_app = thm
+    to_multi_app = thm
     user_object = q_wall_avg
   []
   [T_wall_from_thm]
     type = MultiAppNearestNodeTransfer
     source_variable = T_wall
-    direction = from_multiapp
-    multi_app = thm
+    from_multi_app = thm
     variable = thm_temp_wall
     fixed_meshes = true
   []
   [T_bulk_from_thm]
     type = MultiAppNearestNodeTransfer
     source_variable = T
-    direction = from_multiapp
-    multi_app = thm
+    from_multi_app = thm
     variable = thm_temp
     fixed_meshes = true
   []
