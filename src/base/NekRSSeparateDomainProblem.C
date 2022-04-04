@@ -52,6 +52,11 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     _outlet_boundary(getParam<std::vector<int>>("outlet_boundary")),
     _inlet_boundary(getParam<std::vector<int>>("inlet_boundary"))
 {
+
+  // check coupling_type provided
+  _inlet_coupling = false;
+  _outlet_coupling = false;
+
   for (const auto & c : _coupling_type)
   {
     if (c == "inlet")
@@ -240,7 +245,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
 
   // calculate pressure drop over NekRS
   pp_params = _factory.getValidParams("ParsedPostprocessor");
-  pp_params.set<std::string>("function") = "outlet_P + inlet_P";
+  pp_params.set<std::string>("function") = "inlet_P - outlet_P";
   pp_params.set<std::vector<PostprocessorName>>("pp_names") = {"outlet_P", "inlet_P"};
   pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
   addPostprocessor("ParsedPostprocessor", "dP", pp_params);
