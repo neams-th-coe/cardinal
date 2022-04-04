@@ -85,31 +85,27 @@
   [temperature]
     type = MultiAppNearestNodeTransfer
     source_variable = temp
-    direction = from_multiapp
-    multi_app = nek
+    from_multi_app = nek
     variable = nek_temp
   []
   [flux]
     type = MultiAppNearestNodeTransfer
     source_variable = flux
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
     variable = avg_flux
     source_boundary = '1'
   []
   [flux_integral]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
-    direction = to_multiapp
     from_postprocessor = flux_integral
-    multi_app = nek
+    to_multi_app = nek
   []
   [synchronization]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = transfer_in
-    direction = to_multiapp
     from_postprocessor = synchronization_in
-    multi_app = nek
+    to_multi_app = nek
   []
 []
 

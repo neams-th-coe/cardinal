@@ -131,15 +131,13 @@
 [Transfers]
   [./average_f_to_sub]
     type = NearestPointReceiverTransfer
-    direction = to_multiapp
-    multi_app = sub
+    to_multi_app = sub
     from_uo = average_f_master
     to_uo = average_f_sub
   []
   [./average_g_from_sub]
     type = NearestPointReceiverTransfer
-    direction = from_multiapp
-    multi_app = sub
+    from_multi_app = sub
     from_uo = average_g_sub
     to_uo = average_g_master
   []

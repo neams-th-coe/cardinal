@@ -85,22 +85,19 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 [Transfers]
   [uox_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     source_variable = uo_x
     variable = uo_x
   []
   [uoy_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     source_variable = uo_y
     variable = uo_y
   []
   [uoz_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     source_variable = uo_z
     variable = uo_z
   []

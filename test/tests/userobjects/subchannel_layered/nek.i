@@ -108,15 +108,13 @@
   [uo1_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = vol_avg
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = vol_avg
   []
   [uo2_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = vol_integral
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = vol_integral
   []
 []

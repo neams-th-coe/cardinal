@@ -97,35 +97,30 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
   [uo1_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = avg_velocity_component
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = avg_velocity_component
   []
   [uox_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     source_variable = uo_x
     variable = uo_x
   []
   [uoy_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     source_variable = uo_y
     variable = uo_y
   []
   [uoz_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     source_variable = uo_z
     variable = uo_z
   []
   [actual_velocity_component]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     source_variable = velocity_component
     variable = velocity_component
   []

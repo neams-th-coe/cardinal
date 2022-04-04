@@ -157,51 +157,44 @@
    [analytic_sol_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = temp_ansol
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = temp_ansol
    []
    [source_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = source_auxvar
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = heat_source
    []
    [source_integral_to_nek]
      type = MultiAppPostprocessorTransfer
      from_postprocessor = source_integral_m
      to_postprocessor = source_integral
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
    []
    [disp_x_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_x_o
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = disp_x
    []
    [disp_y_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_y_o
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = disp_y
    []
    [disp_z_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_z_o
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = disp_z
    []
    [synchronize]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = transfer_in
-    direction = to_multiapp
     from_postprocessor = synchronize
-    multi_app = nek
+    to_multi_app = nek
   []
 []
 

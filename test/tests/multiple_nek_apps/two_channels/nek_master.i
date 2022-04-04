@@ -99,23 +99,20 @@ c = 450
   [temperature]
     type = MultiAppNearestNodeTransfer
     source_variable = temp
-    direction = from_multiapp
-    multi_app = nek
+    from_multi_app = nek
     variable = nek_temp
     target_boundary = 'left_pin right_pin'
   []
   [flux]
     type = MultiAppNearestNodeTransfer
     source_variable = flux
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
     variable = avg_flux
     target_boundary = '1'
   []
   [flux_integral]
     type = MultiAppVectorPostprocessorTransfer
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
     postprocessor = flux_integral
     vector_postprocessor = flux
     vector_name = flux

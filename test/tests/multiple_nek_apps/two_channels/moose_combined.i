@@ -96,16 +96,14 @@ c = 450
   [temperature]
     type = MultiAppNearestNodeTransfer
     source_variable = temperature
-    direction = from_multiapp
-    multi_app = sub
+    from_multi_app = sub
     variable = sub_temp
     target_boundary = 'left_pin right_pin'
   []
   [flux]
     type = MultiAppNearestNodeTransfer
     source_variable = flux
-    direction = to_multiapp
-    multi_app = sub
+    to_multi_app = sub
     variable = avg_flux
     from_postprocessors_to_be_preserved = flux_integral
     to_postprocessors_to_be_preserved = flux_integral
