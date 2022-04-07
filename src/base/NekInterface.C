@@ -1263,6 +1263,28 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 
 namespace solution
 {
+
+double
+scalar01(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->cds->S[id + 1 * nrs->cds->fieldOffset[0]];
+}
+
+double
+scalar02(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->cds->S[id + 2 * nrs->cds->fieldOffset[0]];
+}
+
+double
+scalar03(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->cds->S[id + 3 * nrs->cds->fieldOffset[0]];
+}
+
 double
 temperature(const int id)
 {
@@ -1378,6 +1400,15 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
     case field::pressure:
       f = &solution::pressure;
       break;
+    case field::scalar01:
+      f = &solution::scalar01;
+      break;
+    case field::scalar02:
+      f = &solution::scalar02;
+      break;
+    case field::scalar03:
+      f = &solution::scalar03;
+      break;
     case field::unity:
       f = &solution::unity;
       break;
@@ -1489,6 +1520,15 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       break;
     case field::pressure:
       value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::scalar01:
+      // no dimensionalization needed
+      break;
+    case field::scalar02:
+      // no dimensionalization needed
+      break;
+    case field::scalar03:
+      // no dimensionalization needed
       break;
     case field::unity:
       // no dimensionalization needed
