@@ -591,6 +591,29 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int);
 void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat);
 
 /**
+ * \brief Get the scalar01 solution at given GLL index
+ *
+ * @param[in] id GLL index
+ * @return scalar01 value at index
+ */
+double scalar01(const int id);
+/**
+ * \brief Get the scalar02 solution at given GLL index
+ *
+ * @param[in] id GLL index
+ * @return scalar02 value at index
+ */
+double scalar02(const int id);
+
+/**
+ * \brief Get the scalar03 solution at given GLL index
+ *
+ * @param[in] id GLL index
+ * @return scalar03 value at index
+ */
+double scalar03(const int id);
+
+/**
  * \brief Get the temperature solution at given GLL index
  *
  * Because nekRS stores all the passive scalars together in one flat array, this routine
