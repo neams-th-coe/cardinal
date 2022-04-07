@@ -49,6 +49,11 @@ public:
   /// Send boundary temperature to nekRS
   void sendBoundaryTemperatureToNek();
 
+  /// Send boundary scalar01-03 to nekRS
+  void sendBoundaryScalar01ToNek();
+  void sendBoundaryScalar02ToNek();
+  void sendBoundaryScalar03ToNek();
+
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
   virtual void addExternalVariables() override;
@@ -70,6 +75,27 @@ protected:
    */
   void temperature(const int elem_id, const double temperature);
 
+  /**
+   * Send scalar01 from 1d system code to the nekRS mesh
+   * @param[in] elem_id global element ID
+   * @param[in] scalar boundary scalar value
+   */
+  void scalar01(const int elem_id, const double scalar);
+
+  /**
+   * Send scalar02 from 1d system code to the nekRS mesh
+   * @param[in] elem_id global element ID
+   * @param[in] scalar boundary scalar value
+   */
+  void scalar02(const int elem_id, const double scalar);
+
+  /**
+   * Send scalar03 from 1d system code to the nekRS mesh
+   * @param[in] elem_id global element ID
+   * @param[in] scalar boundary scalar value
+   */
+  void scalar03(const int elem_id, const double scalar);
+
   /// Type of coupling to apply to NekRS
   const MultiMooseEnum _coupling_type;
 
@@ -85,11 +111,24 @@ protected:
   /// Whether the NekRS outlet boundary feeds BCs to a coupled MOOSE app
   bool _outlet_coupling;
 
+  /// Scalars coupled to NekRS
+  const MultiMooseEnum _coupled_scalars;
+
+  /// Whether the NekRS scalar01-03 are coupled to MOOSE app
+  bool _scalar01_coupling;
+  bool _scalar02_coupling;
+  bool _scalar03_coupling;
+
   /// Velocity boundary condition coming from external App to NekRS
   const PostprocessorValue * _toNekRS_velocity = nullptr;
 
   /// Temperature boundary condition coming from external App to NekRS
   const PostprocessorValue * _toNekRS_temp = nullptr;
+
+  /// Scalar01-03 boundary condition coming from external App to NekRS
+  const PostprocessorValue * _toNekRS_scalar01 = nullptr;
+  const PostprocessorValue * _toNekRS_scalar02 = nullptr;
+  const PostprocessorValue * _toNekRS_scalar03 = nullptr;
 
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
