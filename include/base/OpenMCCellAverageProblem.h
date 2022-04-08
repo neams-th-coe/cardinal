@@ -792,11 +792,8 @@ protected:
   /// Mapping of MOOSE elements to the OpenMC cell they map to (if any)
   std::vector<cellInfo> _elem_to_cell{};
 
-  /**
-   * Phase of each element in the MOOSE mesh according to settings in the 'fluid_blocks'
-   * and 'solid_blocks' parameters.
-   */
-  std::vector<coupling::CouplingFields> _elem_phase{};
+  /// Phase of each cell
+  std::map<cellInfo, coupling::CouplingFields> _cell_phase;
 
   /// Number of solid elements in the MOOSE mesh
   int _n_moose_solid_elems;
