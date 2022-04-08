@@ -127,6 +127,14 @@ hasTemperatureSolve()
 }
 
 bool
+hasScalarVariable(int scalarID)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  int NscalarID = scalarID + 1;
+  return (NscalarID <= nrs->Nscalar);
+}
+
+bool
 hasHeatSourceKernel()
 {
   return udf.sEqnSource;
