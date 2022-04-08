@@ -2463,6 +2463,12 @@ OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std
 }
 
 double
+OpenMCCellAverageProblem::cellMappedVolume(const cellInfo & cell_info)
+{
+  return _cell_to_elem_volume[cell_info];
+}
+
+double
 OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
 {
   auto material_cell = containedMaterialCell(cell_info);
