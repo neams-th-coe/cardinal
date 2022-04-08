@@ -165,6 +165,13 @@ bool hasTemperatureVariable();
 bool hasTemperatureSolve();
 
 /**
+ * Whether nekRS's input file indicates that the problem has a scalar0(scalarID) variable
+ * @param[in] scalarID scalar number, i.e. for scalar03 scalarId=3
+ * @return whether the nekRS problem includes the scalar0(scalarID) variable
+ */
+bool hasScalarVariable(int scalarID);
+
+/**
  * Whether nekRS contains an OCCA kernel to apply a source to the passive scalar equations
  * @return whether nekRS has an OCCA kernel for apply a passive scalar source
  */
