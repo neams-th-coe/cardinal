@@ -688,6 +688,17 @@ OpenMCCellAverageProblem::digits(const int & number) const
 }
 
 void
+OpenMCCellAverageProblem::getPointInCell()
+{
+  for (const auto & c : _cell_to_elem)
+  {
+    const Elem * elem = _mesh.queryElemPtr(c.second[0]);
+
+    _cell_to_point[c.first] = elem->vertex_average();
+  }
+}
+
+void
 OpenMCCellAverageProblem::storeElementPhase()
 {
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
@@ -963,6 +974,9 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mapElemsToCells();
   }
 
+  // For each cell, get one point inside it to speed up the particle search
+  getPointInCell();
+
   if (_cell_to_elem.size() == 0)
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
@@ -1053,10 +1067,7 @@ OpenMCCellAverageProblem::cacheContainedCells()
   if (!_identical_tally_cell_fills)
   {
     for (const auto & c : _cell_to_elem)
-    {
-      const Point & p = _mesh.elemPtr(c.second[0])->vertex_average();
-      setContainedCells(c.first, transformPointToOpenMC(p), _cell_to_contained_material_cells);
-    }
+      setContainedCells(c.first, _cell_to_point[c.first], _cell_to_contained_material_cells);
     return;
   }
 
@@ -1070,9 +1081,7 @@ OpenMCCellAverageProblem::cacheContainedCells()
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
-    const auto * elem = _mesh.elemPtr(c.second[0]);
-    // use an element position to speed up openmc::Cell::get_contained_cells calls
-    Point hint = transformPointToOpenMC(elem->vertex_average());
+    Point hint = transformPointToOpenMC(_cell_to_point[cell_info]);
 
     // if the cell doesn't have a tally, default to normal behavior
     if (!_cell_has_tally[cell_info])
