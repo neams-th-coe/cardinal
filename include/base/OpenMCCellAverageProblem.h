@@ -250,6 +250,13 @@ public:
 
 protected:
   /**
+   * Get the element coupling phase
+   * @param[in] elem
+   * @return coupling phase
+   */
+  const coupling::CouplingFields elemPhase(const Elem * elem) const;
+
+  /**
    * Read the parameters needed for triggers
    * @param[in] params input parameters
    */

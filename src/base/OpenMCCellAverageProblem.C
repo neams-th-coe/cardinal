@@ -687,26 +687,37 @@ OpenMCCellAverageProblem::digits(const int & number) const
   return std::to_string(number).length();
 }
 
+const coupling::CouplingFields
+OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
+{
+  auto id = elem->subdomain_id();
+
+  if (_fluid_blocks.count(id))
+    return coupling::density_and_temperature;
+  else if (_solid_blocks.count(id))
+    return coupling::temperature;
+  else
+    return coupling::none;
+}
+
 void
 OpenMCCellAverageProblem::storeElementPhase()
 {
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
   {
     const auto * elem = _mesh.elemPtr(e);
-    auto subdomain_id = elem->subdomain_id();
-
-    if (_fluid_blocks.count(subdomain_id))
-      _elem_phase.push_back(coupling::density_and_temperature);
-    else if (_solid_blocks.count(subdomain_id))
-      _elem_phase.push_back(coupling::temperature);
-    else
-      _elem_phase.push_back(coupling::none);
+    _elem_phase.push_back(elemPhase(elem));
   }
 
-  _n_moose_solid_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::temperature);
-  _n_moose_fluid_elems =
-      std::count(_elem_phase.begin(), _elem_phase.end(), coupling::density_and_temperature);
-  _n_moose_none_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::none);
+  _n_moose_fluid_elems = 0;
+  for (const auto & f : _fluid_blocks)
+    _n_moose_fluid_elems += numElemsInSubdomain(f);
+
+  _n_moose_solid_elems = 0;
+  for (const auto & s : _solid_blocks)
+    _n_moose_solid_elems += numElemsInSubdomain(s);
+
+  _n_moose_none_elems = _mesh.nElem() - _n_moose_fluid_elems - _n_moose_solid_elems;
 }
 
 void
