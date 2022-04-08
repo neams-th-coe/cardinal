@@ -1004,7 +1004,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     auto n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
     if (n_uncoupled_cells)
       mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) +
-                   " OpenMC cells");
+                   " OpenMC cells!");
   }
 
   // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
@@ -2460,6 +2460,12 @@ OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std
              << std::endl;
     volume_order = SECOND;
   }
+}
+
+double
+OpenMCCellAverageProblem::cellMappedVolume(const cellInfo & cell_info)
+{
+  return _cell_to_elem_volume[cell_info];
 }
 
 double

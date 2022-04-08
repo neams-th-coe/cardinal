@@ -233,9 +233,15 @@ public:
   /**
    * Get the temperature of a cell; for cells not filled with materials, this will return
    * the temperature of the first material-type cell
-   * @param[in] cell info cell ID, instance
+   * @param[in] cell_info cell ID, instance
    */
   double cellTemperature(const cellInfo & cell_info);
+
+  /**
+   * Get the volume that each OpenMC cell mapped to
+   * param[in] cell_info cell ID, instance
+   */
+  double cellMappedVolume(const cellInfo & cell_info);
 
   /**
    * Compute relative error

@@ -47,7 +47,7 @@
     type = RunException
     input = skipping_openmc_feedback.i
     cli_args = '--error'
-    expect_err = "Skipping multiphysics feedback for 2 OpenMC cells"
+    expect_err = "Skipping multiphysics feedback for 2 OpenMC cells!"
     requirement = "The system shall print a warning if some OpenMC cells are unmapped"
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -66,17 +66,26 @@
     requirement = "The system shall error if one OpenMC cell maps to multiple subdomains that don't all have the same tally setting"
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [absent_block]
+  [absent_fluid_block]
     type = RunException
     input = absent_block.i
     expect_err = "'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!"
     requirement = "The system shall error if the user sets fluid blocks, but none of the elements map to OpenMC"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [absent_solid_block]
+    type = RunException
+    input = absent_solid_block.i
+    expect_err = "'solid_blocks' was specified, but no solid elements mapped to OpenMC cells!"
+    requirement = "The system shall error if the user sets solid blocks, but none of the elements map to OpenMC"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [unequal_volumes]
     type = RunException
     input = unequal_volumes.i
-    expect_err = "Detected un-equal mapped tally volumes!"
+    expect_err = "Detected un-equal mapped tally volumes!\n"
+                 " cell id 1, instance 0 \(of 1\) maps to a volume of 13.2213 \(cm3\)\n"
+                 " cell id 2, instance 0 \(of 1\) maps to a volume of 10.6346 \(cm3\)."
     requirement = "The system shall error if the user enforces equal mapped tally volumes but the mapped volumes are not identical across tally bins"
     required_objects = 'OpenMCCellAverageProblem'
   []
