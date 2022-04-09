@@ -428,6 +428,12 @@ protected:
   void getMaterialFills();
 
   /**
+   * Get one point inside each cell, for accelerating the particle search routine.
+   * This function will get the centroid of the first global element in the cell.
+   */
+  void getPointInCell();
+
+  /**
    * Check whether the power in a particular tally bin is zero, which will throw
    * an error if 'check_zero_tallies = true'.
    * @param[in] power_fraction fractional power of the bin
@@ -827,6 +833,12 @@ protected:
 
   /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs
   std::map<cellInfo, std::vector<unsigned int>> _cell_to_elem;
+
+  /**
+   * A point inside the cell, taken simply as the centroid of the first global
+   * element inside the cell. This is stored to accelerate the particle search.
+   */
+  std::map<cellInfo, Point> _cell_to_point;
 
   /// Whether a cell index, instance pair should be added to the tally filter
   std::map<cellInfo, bool> _cell_has_tally;
