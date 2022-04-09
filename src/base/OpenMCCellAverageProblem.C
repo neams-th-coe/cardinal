@@ -687,26 +687,31 @@ OpenMCCellAverageProblem::digits(const int & number) const
   return std::to_string(number).length();
 }
 
+const coupling::CouplingFields
+OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
+{
+  auto id = elem->subdomain_id();
+
+  if (_fluid_blocks.count(id))
+    return coupling::density_and_temperature;
+  else if (_solid_blocks.count(id))
+    return coupling::temperature;
+  else
+    return coupling::none;
+}
+
 void
 OpenMCCellAverageProblem::storeElementPhase()
 {
-  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
-  {
-    const auto * elem = _mesh.elemPtr(e);
-    auto subdomain_id = elem->subdomain_id();
+  _n_moose_fluid_elems = 0;
+  for (const auto & f : _fluid_blocks)
+    _n_moose_fluid_elems += numElemsInSubdomain(f);
 
-    if (_fluid_blocks.count(subdomain_id))
-      _elem_phase.push_back(coupling::density_and_temperature);
-    else if (_solid_blocks.count(subdomain_id))
-      _elem_phase.push_back(coupling::temperature);
-    else
-      _elem_phase.push_back(coupling::none);
-  }
+  _n_moose_solid_elems = 0;
+  for (const auto & s : _solid_blocks)
+    _n_moose_solid_elems += numElemsInSubdomain(s);
 
-  _n_moose_solid_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::temperature);
-  _n_moose_fluid_elems =
-      std::count(_elem_phase.begin(), _elem_phase.end(), coupling::density_and_temperature);
-  _n_moose_none_elems = std::count(_elem_phase.begin(), _elem_phase.end(), coupling::none);
+  _n_moose_none_elems = _mesh.nElem() - _n_moose_fluid_elems - _n_moose_solid_elems;
 }
 
 void
@@ -732,10 +737,10 @@ OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
   // an element's phase in terms of the cell that it maps to. For these cells that
   // do *map* spatially, but just don't participate in coupling, _cell_to_elem doesn't
   // have any notion of those elements
-  if (!_cell_to_elem.count(cell_info))
+  if (!_cell_phase.count(cell_info))
     return coupling::none;
   else
-    return _elem_phase[_cell_to_elem[cell_info][0]];
+    return _cell_phase[cell_info];
 }
 
 void
@@ -762,7 +767,12 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
     for (const auto & e : c.second)
     {
-      switch (_elem_phase[e])
+      const Elem * elem = _mesh.queryElemPtr(e);
+
+      if (!isLocalElem(elem))
+        continue;
+
+      switch (elemPhase(elem))
       {
         case coupling::temperature:
           has_solid_cells = true;
@@ -792,6 +802,13 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
              "Each OpenMC cell, instance pair must map to elements of the same phase.";
       mooseError(msg.str());
     }
+
+    if (n_solid)
+      _cell_phase[cell_info] = coupling::temperature;
+    else if (n_fluid)
+      _cell_phase[cell_info] = coupling::density_and_temperature;
+    else
+      _cell_phase[cell_info] = coupling::none;
   }
 
   if (_verbose)
@@ -1265,7 +1282,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
 
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
   {
-    const auto * elem = _mesh.elemPtr(e);
+    const auto * elem = _mesh.queryElemPtr(e);
 
     const Point & c = elem->vertex_average();
     Real element_volume = elem->volume();
@@ -1286,7 +1303,9 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // and store the information
     int level;
 
-    switch (_elem_phase[e])
+    auto phase = elemPhase(elem);
+
+    switch (phase)
     {
       case coupling::density_and_temperature:
       {
@@ -1347,7 +1366,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
     _elem_to_cell.push_back(cell_info);
 
     // store the map of cells to elements that will be coupled
-    if (_elem_phase[e] != coupling::none)
+    if (phase != coupling::none)
       _cell_to_elem[cell_info].push_back(e);
   }
 }
