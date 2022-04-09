@@ -86,6 +86,20 @@ public:
    */
   std::string pathOutput() const { return _path_output; }
 
+  /**
+   * Get the total (i.e. summed across all ranks, if distributed)
+   * number of elements in a given block
+   * @param[in] block_id subdomainID
+   * return number of elements in block
+   */
+  unsigned int numElemsInSubdomain(const SubdomainID & id) const;
+
+  /**
+   * Whether the element is owned by this rank
+   * @return whether element is owned by this rank
+   */
+  bool isLocalElem(const Elem * elem) const;
+
 protected:
   /**
    * Set an auxiliary elemental variable to a specified value
