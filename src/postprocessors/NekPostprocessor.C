@@ -54,6 +54,18 @@ NekPostprocessor::checkValidField(const field::NekFieldEnum & field) const
   if (!nekrs::hasTemperatureVariable() && field == field::temperature)
     mooseError("This postprocessor cannot set 'field = temperature' "
                "because your Nek case files do not have a temperature variable!");
+
+  if (!nekrs::hasScalarVariable(1) && field == field::scalar01)
+    mooseError("This postprocessor cannot set 'field = scalar01' "
+               "because your Nek case files do not have a scalar01 variable!");
+
+  if (!nekrs::hasScalarVariable(2) && field == field::scalar02)
+    mooseError("This postprocessor cannot set 'field = scalar02' "
+               "because your Nek case files do not have a scalar02 variable!");
+
+  if (!nekrs::hasScalarVariable(3) && field == field::scalar03)
+    mooseError("This postprocessor cannot set 'field = scalar03' "
+               "because your Nek case files do not have a scalar03 variable!");
 }
 
 #endif
