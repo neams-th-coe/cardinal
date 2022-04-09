@@ -1301,7 +1301,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
     if (error)
     {
-      _elem_to_cell.push_back({UNMAPPED, UNMAPPED});
       _uncoupled_volume += element_volume;
       _n_mapped_none_elems++;
       continue;
@@ -1372,11 +1371,19 @@ OpenMCCellAverageProblem::mapElemsToCells()
     if (openmc::model::cells[cell_index]->type_ != openmc::Fill::MATERIAL)
       _material_cells_only = false;
 
-    _elem_to_cell.push_back(cell_info);
-
     // store the map of cells to elements that will be coupled
     if (phase != coupling::none)
       _cell_to_elem[cell_info].push_back(e);
+  }
+
+  _elem_to_cell.resize(_mesh.nElem());
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+    _elem_to_cell[e] = {UNMAPPED, UNMAPPED};
+
+  for (const auto & c : _cell_to_elem)
+  {
+    for (const auto & e : c.second)
+      _elem_to_cell[e] = c.first;
   }
 }
 
