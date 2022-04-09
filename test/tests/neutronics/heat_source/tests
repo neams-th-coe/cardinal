@@ -79,4 +79,14 @@
                   "a copy of overlap_all_out.e."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [cell_volumes]
+    type = Exodiff
+    input = cell_volumes.i
+    exodiff = 'cell_volumes_out.e'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The mapped cell volumes shall be correctly computed by the wrapping."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

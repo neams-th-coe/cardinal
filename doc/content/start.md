@@ -132,9 +132,9 @@ Cardinal:
 
 - `HDF5_INCLUDE_DIR`: location of HDF5 headers
 - `HDF5_LIBDIR`: location of HDF5 libraries
-- `METHOD`: optimization method to use for executable; multiple executables with
-   different settings will be built if specifying more than one method, such as wth
-  `METHOD='opt dbg'`. Options are:
+- `METHODS`: optimization method(s) to use for building Cardinal's libMesh dependency.
+   Multiple libMesh libraries with different settings will be built if specifying more than one method, such as wth
+  `METHODS='opt dbg'`. Options are:
 
   - `opt`: optimized mode, for production runs
   - `oprof`: very slightly slower, instrumented for performance analysis with tools
@@ -142,6 +142,12 @@ Cardinal:
   - `dbg`: debugging mode, much slower, with debugging symbols, optimization disabled, slow
      internal assertions enabled, and very slow libstdc++ range-checking and consistency
      checks enabled
+
+- `METHOD`: optimization method to use when building Cardinal. MOOSE currently only supports
+  building one Cardinal executable at a time, such as via
+  `METHOD='opt'`. If you want to build multiple Cardinal executables with
+  different optimization methods, you will need to run `make` multiple times with different
+  `METHOD` values.
 
 #### Set the OCCA Backend
   id=occa

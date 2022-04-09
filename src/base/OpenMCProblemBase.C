@@ -228,4 +228,41 @@ OpenMCProblemBase::writeSourceBank(const std::string & filename)
   openmc::file_close(file_id);
 }
 
+unsigned int
+OpenMCProblemBase::numElemsInSubdomain(const SubdomainID & id) const
+{
+  unsigned int n = 0;
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    const auto * elem = _mesh.queryElemPtr(e);
+
+    if (!isLocalElem(elem))
+      continue;
+
+    const auto subdomain_id = elem->subdomain_id();
+    if (id == subdomain_id)
+      n += 1;
+  }
+
+  _communicator.sum(n);
+
+  return n;
+}
+
+bool
+OpenMCProblemBase::isLocalElem(const Elem * elem) const
+{
+  if (!elem)
+  {
+    // we should only not be able to find an element if the mesh is distributed
+    libmesh_assert(!_mesh.is_serial());
+    return false;
+  }
+
+  if (elem->processor_id() == _communicator.rank())
+    return true;
+
+  return false;
+}
+
 #endif
