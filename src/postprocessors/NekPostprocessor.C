@@ -48,12 +48,4 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
   _nek_mesh = dynamic_cast<const NekRSMesh *>(&_mesh);
 }
 
-void
-NekPostprocessor::checkValidField(const field::NekFieldEnum & field) const
-{
-  if (!nekrs::hasTemperatureVariable() && field == field::temperature)
-    mooseError("This postprocessor cannot set 'field = temperature' "
-               "because your Nek case files do not have a temperature variable!");
-}
-
 #endif
