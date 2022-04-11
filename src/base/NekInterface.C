@@ -1403,18 +1403,30 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
                  "interface!");
       break;
     case field::temperature:
+      if (!nekrs::hasTemperatureVariable())
+        mooseError("Cardinal cannot find 'temperature' "
+                   "because your Nek case files do not have a temperature variable!");
       f = &solution::temperature;
       break;
     case field::pressure:
       f = &solution::pressure;
       break;
     case field::scalar01:
+      if (!hasScalarVariable(1))
+        mooseError("Cardinal cannot find 'scalar01' "
+                   "because your Nek case files do not have a scalar01 variable!");
       f = &solution::scalar01;
       break;
     case field::scalar02:
+      if (!hasScalarVariable(2))
+        mooseError("Cardinal cannot find 'scalar02' "
+                   "because your Nek case files do not have a scalar02 variable!");
       f = &solution::scalar02;
       break;
     case field::scalar03:
+      if (!hasScalarVariable(3))
+        mooseError("Cardinal cannot find 'scalar03' "
+                   "because your Nek case files do not have a scalar03 variable!");
       f = &solution::scalar03;
       break;
     case field::unity:
