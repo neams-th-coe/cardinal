@@ -110,8 +110,6 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_values_z = (double *)calloc(_n_bins, sizeof(double));
   }
 
-  checkValidField(_field);
-
   _has_direction = {false, false, false};
   _bin_providing_direction.resize(3);
   for (unsigned int b = 0; b < _bins.size(); ++b)

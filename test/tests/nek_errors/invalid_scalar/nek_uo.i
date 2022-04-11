@@ -19,10 +19,10 @@
 [UserObjects]
   [subchannel_binning]
     type = HexagonalSubchannelBin
-    bundle_pitch = 0.02583914354890463
-    pin_pitch = 0.0089656996
-    pin_diameter = 7.646e-3
-    n_rings = 2
+    bundle_pitch = 10
+    pin_pitch = 1
+    pin_diameter = 1
+    n_rings = 1
   []
   [vol_avg]
     type = NekBinnedVolumeAverage

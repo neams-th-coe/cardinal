@@ -42,8 +42,6 @@ NekSideFieldPostprocessor::NekSideFieldPostprocessor(const InputParameters & par
   : NekSidePostprocessor(parameters),
     _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
 {
-  checkValidField(_field);
-
   if (_field == field::velocity_component)
   {
     checkRequiredParam(parameters, "velocity_direction", "using 'field = velocity_component'");
