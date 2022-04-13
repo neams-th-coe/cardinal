@@ -165,11 +165,11 @@ bool hasTemperatureVariable();
 bool hasTemperatureSolve();
 
 /**
- * Whether nekRS's input file indicates that the problem has a scalar0(scalarID) variable
- * @param[in] scalarID scalar number, i.e. for scalar03 scalarId=3
- * @return whether the nekRS problem includes the scalar0(scalarID) variable
+ * Whether nekRS's input file indicates that the problem has a scalar0(scalarId) variable
+ * @param[in] scalarId scalar number, i.e. for scalar03 scalarId=3
+ * @return whether the nekRS problem includes the scalar0(scalarId) variable
  */
-bool hasScalarVariable(int scalarID);
+bool hasScalarVariable(int scalarId);
 
 /**
  * Whether nekRS contains an OCCA kernel to apply a source to the passive scalar equations
@@ -604,6 +604,7 @@ void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat);
  * @return scalar01 value at index
  */
 double scalar01(const int id);
+
 /**
  * \brief Get the scalar02 solution at given GLL index
  *

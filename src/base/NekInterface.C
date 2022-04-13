@@ -127,11 +127,10 @@ hasTemperatureSolve()
 }
 
 bool
-hasScalarVariable(int scalarID)
+hasScalarVariable(int scalarId)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  int NscalarID = scalarID + 1;
-  return (NscalarID <= nrs->Nscalar);
+  return (scalarId < nrs->Nscalar);
 }
 
 bool
@@ -1276,21 +1275,21 @@ double
 scalar01(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->S[id + 1 * nrs->cds->fieldOffset[0]];
+  return nrs->cds->S[id + 1 * scalarFieldOffset()];
 }
 
 double
 scalar02(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->S[id + 2 * nrs->cds->fieldOffset[0]];
+  return nrs->cds->S[id + 2 * scalarFieldOffset()];
 }
 
 double
 scalar03(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return nrs->cds->S[id + 3 * nrs->cds->fieldOffset[0]];
+  return nrs->cds->S[id + 3 * scalarFieldOffset()];
 }
 
 double
