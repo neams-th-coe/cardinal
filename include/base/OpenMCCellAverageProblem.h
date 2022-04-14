@@ -997,4 +997,10 @@ private:
    * Update the number of particles according to the Dufek-Gudowski relaxation scheme
    */
   void dufekGudowskiParticleUpdate();
+
+  /// Flattened cell IDs collected after parallel communication
+  std::vector<int32_t> _flattened_ids;
+
+  /// Flattened cell instancess collected after parallel communication
+  std::vector<int32_t> _flattened_instances;
 };

@@ -734,23 +734,10 @@ OpenMCCellAverageProblem::computeCellMappedVolumes()
 
   _communicator.allgather(volumes);
 
-  // flatten the cell IDs and instances
-  std::vector<int32_t> ids;
-  std::vector<int32_t> instances;
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-    ids.push_back(cell_info.first);
-    instances.push_back(cell_info.second);
-  }
-
-  _communicator.allgather(ids);
-  _communicator.allgather(instances);
-
   _cell_to_elem_volume.clear();
-  for (unsigned int i = 0; i < ids.size(); ++i)
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
   {
-    cellInfo cell_info = {ids[i], instances[i]};
+    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
 
     if (_cell_to_elem_volume.count(cell_info))
       _cell_to_elem_volume[cell_info] += volumes[i];
@@ -1300,6 +1287,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // reset data structures
   _elem_to_cell.clear();
   _cell_to_elem.clear();
+  _flattened_ids.clear();
+  _flattened_instances.clear();
 
   int local_elem = -1;
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
@@ -1401,6 +1390,17 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // if ANY rank finds a non-material cell, they will hold 0 (false)
   _communicator.min(_material_cells_only);
 
+  // flatten the cell IDs and instances
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    _flattened_ids.push_back(cell_info.first);
+    _flattened_instances.push_back(cell_info.second);
+  }
+
+  _communicator.allgather(_flattened_ids);
+  _communicator.allgather(_flattened_instances);
+
   // For each cell, get one point inside it to speed up the particle search; we do this
   // here while _cell_to_elem is still a local quantity
   getPointInCell();
@@ -1445,24 +1445,11 @@ OpenMCCellAverageProblem::getPointInCell()
   _communicator.allgather(y);
   _communicator.allgather(z);
 
-  // flatten the cell IDs and instances
-  std::vector<int32_t> ids;
-  std::vector<int32_t> instances;
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-    ids.push_back(cell_info.first);
-    instances.push_back(cell_info.second);
-  }
-
-  _communicator.allgather(ids);
-  _communicator.allgather(instances);
-
   // this will get a point from the lowest rank in each cell
   _cell_to_point.clear();
-  for (unsigned int i = 0; i < ids.size(); ++i)
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
   {
-    cellInfo cell_info = {ids[i], instances[i]};
+    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
     if (!_cell_to_point.count(cell_info))
       _cell_to_point[cell_info] = Point(x[i], y[i], z[i]);
   }
@@ -2622,13 +2609,9 @@ OpenMCCellAverageProblem::gatherCellToElem()
   // flatten the element IDs, cell IDs, and cell instances
   std::vector<int> n_elems;
   std::vector<int> elems;
-  std::vector<int32_t> ids;
-  std::vector<int32_t> instances;
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
-    ids.push_back(cell_info.first);
-    instances.push_back(cell_info.second);
     n_elems.push_back(c.second.size());
 
     for (const auto & e : c.second)
@@ -2637,8 +2620,6 @@ OpenMCCellAverageProblem::gatherCellToElem()
 
   _communicator.allgather(n_elems);
   _communicator.allgather(elems);
-  _communicator.allgather(ids);
-  _communicator.allgather(instances);
 
   // now that all the mapping information is on all ranks, re-populate the _cell_to_elem
   // data structure so that it holds the global information (up until this point it held
@@ -2646,13 +2627,13 @@ OpenMCCellAverageProblem::gatherCellToElem()
   _cell_to_elem.clear();
 
   int e = 0;
-  for (unsigned int i = 0; i < ids.size(); ++i)
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
   {
     if (_communicator.rank() == 0) std::cout << "elements from " << e << " to " << e + n_elems[i] - 1 << std::endl;
 
     for (unsigned int j = e; j < e + n_elems[i]; ++j)
     {
-      cellInfo cell_info = {ids[i], instances[i]};
+      cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
       _cell_to_elem[cell_info].push_back(elems[j]);
     }
 
