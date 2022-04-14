@@ -701,17 +701,6 @@ OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
 }
 
 void
-OpenMCCellAverageProblem::getPointInCell()
-{
-  for (const auto & c : _cell_to_elem)
-  {
-    const Elem * elem = _mesh.queryElemPtr(c.second[0]);
-
-    _cell_to_point[c.first] = elem->vertex_average();
-  }
-}
-
-void
 OpenMCCellAverageProblem::storeElementPhase()
 {
   _n_moose_fluid_elems = 0;
@@ -984,12 +973,10 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
     std::unique(mapped_cells.begin(), mapped_cells.end());
     openmc::prepare_distribcell(&mapped_cells);
+
     // perform element to cell mapping again to get correct instances
     mapElemsToCells();
   }
-
-  // For each cell, get one point inside it to speed up the particle search
-  getPointInCell();
 
   if (_cell_to_elem.size() == 0)
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
@@ -1386,6 +1373,10 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // if ANY rank finds a non-material cell, they will hold 0 (false)
   _communicator.min(_material_cells_only);
 
+  // For each cell, get one point inside it to speed up the particle search; we do this
+  // here while _cell_to_elem is still a local quantity
+  getPointInCell();
+
   // collect the _cell_to_elem onto all ranks
   gatherCellToElem();
 
@@ -1398,6 +1389,49 @@ OpenMCCellAverageProblem::mapElemsToCells()
   {
     for (const auto & e : c.second)
       _elem_to_cell[e] = c.first;
+  }
+}
+
+void
+OpenMCCellAverageProblem::getPointInCell()
+{
+  std::vector<Real> x;
+  std::vector<Real> y;
+  std::vector<Real> z;
+  for (const auto & c : _cell_to_elem)
+  {
+    // we are only dealing with local elements here, no need to check for nullptr
+    const Elem * elem = _mesh.queryElemPtr(globalElemID(c.second[0]));
+    const Point & p = elem->vertex_average();
+
+    x.push_back(p(0));
+    y.push_back(p(1));
+    z.push_back(p(2));
+  }
+
+  _communicator.allgather(x);
+  _communicator.allgather(y);
+  _communicator.allgather(z);
+
+  // flatten the cell IDs and instances
+  std::vector<int32_t> ids;
+  std::vector<int32_t> instances;
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    ids.push_back(cell_info.first);
+    instances.push_back(cell_info.second);
+  }
+
+  _communicator.allgather(ids);
+  _communicator.allgather(instances);
+
+  // this will get a point from the lowest rank in each cell
+  for (unsigned int i = 0; i < ids.size(); ++i)
+  {
+    cellInfo cell_info = {ids[i], instances[i]};
+    if (!_cell_to_point.count(cell_info))
+      _cell_to_point[cell_info] = Point(x[i], y[i], z[i]);
   }
 }
 

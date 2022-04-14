@@ -435,7 +435,8 @@ protected:
 
   /**
    * Get one point inside each cell, for accelerating the particle search routine.
-   * This function will get the centroid of the first global element in the cell.
+   * This function will get the centroid of the first global element in the lowest
+   * rank in the cell.
    */
   void getPointInCell();
 
