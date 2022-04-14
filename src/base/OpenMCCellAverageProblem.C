@@ -1289,9 +1289,15 @@ OpenMCCellAverageProblem::mapElemsToCells()
   _elem_to_cell.clear();
   _cell_to_elem.clear();
 
+  int local_elem = -1;
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
   {
     const auto * elem = _mesh.queryElemPtr(e);
+
+    if (!isLocalElem(elem))
+      continue;
+
+    local_elem++;
 
     const Point & c = elem->vertex_average();
     Real element_volume = elem->volume();
@@ -1310,7 +1316,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // on coupling for this region; first, determine the phase of this element
     // and store the information
     int level;
-
     auto phase = elemPhase(elem);
 
     switch (phase)
@@ -1373,9 +1378,21 @@ OpenMCCellAverageProblem::mapElemsToCells()
 
     // store the map of cells to elements that will be coupled
     if (phase != coupling::none)
-      _cell_to_elem[cell_info].push_back(e);
+      _cell_to_elem[cell_info].push_back(local_elem);
   }
 
+  _communicator.sum(_n_mapped_solid_elems);
+  _communicator.sum(_n_mapped_fluid_elems);
+  _communicator.sum(_n_mapped_none_elems);
+  _communicator.sum(_uncoupled_volume);
+
+  // if ANY rank finds a non-material cell, they will hold 0 (false)
+  _communicator.min(_material_cells_only);
+
+  // collect the _cell_to_elem onto all ranks
+  gatherCellToElem();
+
+  // fill out the elem_to_cell structure
   _elem_to_cell.resize(_mesh.nElem());
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
     _elem_to_cell[e] = {UNMAPPED, UNMAPPED};
@@ -2532,6 +2549,50 @@ OpenMCCellAverageProblem::extractOutputs()
       if (out == "fission_tally")
         getFissionTallyFromOpenMC(i);
     }
+  }
+}
+
+void
+OpenMCCellAverageProblem::gatherCellToElem()
+{
+  // flatten the element IDs, cell IDs, and cell instances
+  std::vector<int> n_elems;
+  std::vector<int> elems;
+  std::vector<int32_t> ids;
+  std::vector<int32_t> instances;
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    ids.push_back(cell_info.first);
+    instances.push_back(cell_info.second);
+    n_elems.push_back(c.second.size());
+
+    for (const auto & e : c.second)
+      elems.push_back(_local_to_global_elem[e]);
+  }
+
+  _communicator.allgather(n_elems);
+  _communicator.allgather(elems);
+  _communicator.allgather(ids);
+  _communicator.allgather(instances);
+
+  // now that all the mapping information is on all ranks, re-populate the _cell_to_elem
+  // data structure so that it holds the global information (up until this point it held
+  // LOCAL element IDs on each rank. Now we change that so it holds GLOBAL element IDs.
+  _cell_to_elem.clear();
+
+  int e = 0;
+  for (unsigned int i = 0; i < ids.size(); ++i)
+  {
+    if (_communicator.rank() == 0) std::cout << "elements from " << e << " to " << e + n_elems[i] - 1 << std::endl;
+
+    for (unsigned int j = e; j < e + n_elems[i]; ++j)
+    {
+      cellInfo cell_info = {ids[i], instances[i]};
+      _cell_to_elem[cell_info].push_back(elems[j]);
+    }
+
+    e += n_elems[i];
   }
 }
 

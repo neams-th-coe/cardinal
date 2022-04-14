@@ -256,6 +256,12 @@ public:
 
 protected:
   /**
+   * Gather the _cell_to_elem structure distributed across ranks so that all information
+   * on the cell mapping is available to all ranks.
+   */
+  void gatherCellToElem();
+
+  /**
    * Get the element coupling phase
    * @param[in] elem
    * @return coupling phase
