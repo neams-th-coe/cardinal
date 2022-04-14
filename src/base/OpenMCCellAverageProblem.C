@@ -780,9 +780,6 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     {
       const Elem * elem = _mesh.queryElemPtr(e);
 
-      if (!isLocalElem(elem))
-        continue;
-
       switch (elemPhase(elem))
       {
         case coupling::temperature:
