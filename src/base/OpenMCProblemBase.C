@@ -112,6 +112,16 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   _n_openmc_cells = 0.0;
   for (const auto & c : openmc::model::cells)
     _n_openmc_cells += c->n_instances_;
+
+  // establish the local -> global element mapping for convenience
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    const auto * elem = _mesh.queryElemPtr(e);
+    if (!isLocalElem(elem))
+      continue;
+
+    _local_to_global_elem.push_back(e);
+  }
 }
 
 void

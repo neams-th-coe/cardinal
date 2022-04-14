@@ -100,6 +100,13 @@ public:
    */
   bool isLocalElem(const Elem * elem) const;
 
+  /**
+   * Get the global element ID from the local element ID
+   * @param[in] id local element ID
+   * @return global element ID
+   */
+  unsigned int globalElemID(const unsigned int & id) const { return _local_to_global_elem[id]; }
+
 protected:
   /**
    * Set an auxiliary elemental variable to a specified value
@@ -154,4 +161,7 @@ protected:
 
   /// Directory where OpenMC output files are written
   std::string _path_output;
+
+  /// Mapping from local element indices to global element indices for this rank
+  std::vector<unsigned int> _local_to_global_elem;
 };
