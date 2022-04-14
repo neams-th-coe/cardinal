@@ -717,14 +717,45 @@ OpenMCCellAverageProblem::storeElementPhase()
 void
 OpenMCCellAverageProblem::computeCellMappedVolumes()
 {
+  std::vector<Real> volumes;
+
+  for (const auto & c : _cell_to_elem)
+  {
+    Real vol = 0.0;
+    for (const auto & e : c.second)
+    {
+      // we are looping over local elements, so no need to check for nullptr
+      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      vol += elem->volume();
+    }
+
+    volumes.push_back(vol);
+  }
+
+  _communicator.allgather(volumes);
+
+  // flatten the cell IDs and instances
+  std::vector<int32_t> ids;
+  std::vector<int32_t> instances;
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
+    ids.push_back(cell_info.first);
+    instances.push_back(cell_info.second);
+  }
 
-    _cell_to_elem_volume[cell_info] = 0.0;
+  _communicator.allgather(ids);
+  _communicator.allgather(instances);
 
-    for (const auto & e : c.second)
-      _cell_to_elem_volume[cell_info] += _mesh.elemPtr(e)->volume();
+  _cell_to_elem_volume.clear();
+  for (unsigned int i = 0; i < ids.size(); ++i)
+  {
+    cellInfo cell_info = {ids[i], instances[i]};
+
+    if (_cell_to_elem_volume.count(cell_info))
+      _cell_to_elem_volume[cell_info] += volumes[i];
+    else
+      _cell_to_elem_volume[cell_info] = volumes[i];
   }
 }
 
@@ -1021,9 +1052,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) +
                    " OpenMC cells!");
   }
-
-  // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
-  computeCellMappedVolumes();
 
   // Check that each cell maps to a single phase
   checkCellMappedPhase();
@@ -1377,6 +1405,10 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // here while _cell_to_elem is still a local quantity
   getPointInCell();
 
+  // Compute the volume that each OpenMC cell maps to in the MOOSE mesh; we do this
+  // here while _cell_to_elem is still a local quantity
+  computeCellMappedVolumes();
+
   // collect the _cell_to_elem onto all ranks
   gatherCellToElem();
 
@@ -1427,6 +1459,7 @@ OpenMCCellAverageProblem::getPointInCell()
   _communicator.allgather(instances);
 
   // this will get a point from the lowest rank in each cell
+  _cell_to_point.clear();
   for (unsigned int i = 0; i < ids.size(); ++i)
   {
     cellInfo cell_info = {ids[i], instances[i]};
