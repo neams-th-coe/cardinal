@@ -49,10 +49,8 @@ public:
   /// Send boundary temperature to nekRS
   void sendBoundaryTemperatureToNek();
 
-  /// Send boundary scalar01-03 to nekRS
-  void sendBoundaryScalar01ToNek();
-  void sendBoundaryScalar02ToNek();
-  void sendBoundaryScalar03ToNek();
+  ///Send scalar to NekRS
+  void sendBoundaryScalarToNek(const int scalarId);
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
@@ -76,25 +74,12 @@ protected:
   void temperature(const int elem_id, const double temperature);
 
   /**
-   * Send scalar01 from 1d system code to the nekRS mesh
+   * Send scalar from 1d system code to the nekRS mesh
    * @param[in] elem_id global element ID
-   * @param[in] scalar boundary scalar value
+   * @param[in] scalarId corresponding NekRS scalar ID
+   * @param[in] scalarValue boundary scalar value
    */
-  void scalar01(const int elem_id, const double scalar);
-
-  /**
-   * Send scalar02 from 1d system code to the nekRS mesh
-   * @param[in] elem_id global element ID
-   * @param[in] scalar boundary scalar value
-   */
-  void scalar02(const int elem_id, const double scalar);
-
-  /**
-   * Send scalar03 from 1d system code to the nekRS mesh
-   * @param[in] elem_id global element ID
-   * @param[in] scalar boundary scalar value
-   */
-  void scalar03(const int elem_id, const double scalar);
+  void scalar(const int elem_id, const int scalarId, const double scalarValue);
 
   /// Type of coupling to apply to NekRS
   const MultiMooseEnum _coupling_type;

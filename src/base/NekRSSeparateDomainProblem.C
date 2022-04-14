@@ -41,7 +41,7 @@ NekRSSeparateDomainProblem::validParams()
       "coupling_type", coupling_types, "NekRS boundary types to couple to a 1-D T/H code");
 
   MultiMooseEnum coupled_scalars("scalar01 scalar02 scalar03");
-  params.addRequiredParam<MultiMooseEnum>(
+  params.addParam<MultiMooseEnum>(
       "coupled_scalars", coupled_scalars, "NekRS scalars to couple to a 1-D T/H code");
 
   params.addRequiredParam<std::vector<int>>("outlet_boundary", "NekRS outlet boundary ID");
@@ -96,13 +96,9 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     bool valid_ids = nekrs::mesh::validBoundaryIDs(_outlet_boundary, invalid_id, n_boundaries);
 
     if (!valid_ids)
-      mooseError("Invalid 'outlet_boundary' entry: ",
-                 invalid_id,
-                 "\n\n"
+      mooseError("Invalid 'outlet_boundary' entry: ", invalid_id, "\n\n"
                  "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
-                 "For this problem, NekRS has ",
-                 n_boundaries,
-                 " boundaries. "
+                 "For this problem, NekRS has ", n_boundaries, " boundaries. "
                  "Did you enter a valid 'outlet_boundary'?");
   }
 
@@ -119,13 +115,9 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     bool valid_ids = nekrs::mesh::validBoundaryIDs(_inlet_boundary, invalid_id, n_boundaries);
 
     if (!valid_ids)
-      mooseError("Invalid 'inlet_boundary' entry: ",
-                 invalid_id,
-                 "\n\n"
+      mooseError("Invalid 'inlet_boundary' entry: ", invalid_id, "\n\n"
                  "NekRS assumes the boundary IDs are ordered contiguously beginning at 1. "
-                 "For this problem, NekRS has ",
-                 n_boundaries,
-                 " boundaries. "
+                 "For this problem, NekRS has ", n_boundaries, " boundaries. "
                  "Did you enter a valid 'inlet_boundary'?");
   }
 
@@ -134,6 +126,9 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     mooseError("Invalid 'inlet_boundary' entry: " + Moose::stringify(_inlet_boundary) + " \n",
                "'inlet_boundary' must be in 'boundary' supplied to NekRSMesh, but 'boundary' = " +
                    Moose::stringify(*_boundary) + ".");
+
+
+  // TODO, add checking of BCs if using inlet coupling
 }
 
 NekRSSeparateDomainProblem::~NekRSSeparateDomainProblem() { nekrs::freeScratch(); }
@@ -184,11 +179,11 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
           sendBoundaryTemperatureToNek();
 
         if (_scalar01_coupling)
-          sendBoundaryScalar01ToNek();
+          sendBoundaryScalarToNek(1);
         if (_scalar02_coupling)
-          sendBoundaryScalar02ToNek();
+          sendBoundaryScalarToNek(2);
         if (_scalar03_coupling)
-          sendBoundaryScalar03ToNek();
+          sendBoundaryScalarToNek(3);
       }
 
       // copy scratch to device
@@ -259,7 +254,7 @@ NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek()
 }
 
 void
-NekRSSeparateDomainProblem::sendBoundaryScalar01ToNek()
+NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId)
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -274,57 +269,22 @@ NekRSSeparateDomainProblem::sendBoundaryScalar01ToNek()
 
   auto & mesh = _nek_mesh->getMesh();
 
-  _console << "Sending scalar01 of " << *_toNekRS_scalar01 << " to NekRS boundary "
+  // check which scalar PP to pass to NekRS
+  const PostprocessorValue * scalarValue = nullptr;
+
+  if(scalarId==1)
+    scalarValue = _toNekRS_scalar01;
+  else if(scalarId==2)
+    scalarValue = _toNekRS_scalar02;
+  else if(scalarId==3)
+    scalarValue = _toNekRS_scalar03;
+
+  _console << "Sending scalar0" << Moose::stringify(scalarId) << " of "
+           << *scalarValue << " to NekRS boundary "
            << Moose::stringify(_inlet_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
-    scalar01(e, *_toNekRS_scalar01);
-}
-
-void
-NekRSSeparateDomainProblem::sendBoundaryScalar02ToNek()
-{
-  auto & solution = _aux->solution();
-  auto sys_number = _aux->number();
-
-  if (_first)
-  {
-    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-    _first = false;
-  }
-
-  solution.localize(*_serialized_solution);
-
-  auto & mesh = _nek_mesh->getMesh();
-
-  _console << "Sending scalar02 of " << *_toNekRS_scalar02 << " to NekRS boundary "
-           << Moose::stringify(_inlet_boundary) << std::endl;
-
-  for (unsigned int e = 0; e < _n_surface_elems; e++)
-    scalar02(e, *_toNekRS_scalar02);
-}
-
-void
-NekRSSeparateDomainProblem::sendBoundaryScalar03ToNek()
-{
-  auto & solution = _aux->solution();
-  auto sys_number = _aux->number();
-
-  if (_first)
-  {
-    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-    _first = false;
-  }
-
-  solution.localize(*_serialized_solution);
-
-  auto & mesh = _nek_mesh->getMesh();
-
-  _console << "Sending scalar03 of " << *_toNekRS_scalar03 << " to NekRS boundary "
-           << Moose::stringify(_inlet_boundary) << std::endl;
-
-  for (unsigned int e = 0; e < _n_surface_elems; e++)
-    scalar03(e, *_toNekRS_scalar03);
+    scalar(e,scalarId, *scalarValue);
 }
 
 void
@@ -473,7 +433,7 @@ NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperat
 }
 
 void
-NekRSSeparateDomainProblem::scalar01(const int elem_id, const double scalar)
+NekRSSeparateDomainProblem::scalar(const int elem_id, const int scalarId, const double scalar)
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
@@ -481,10 +441,10 @@ NekRSSeparateDomainProblem::scalar01(const int elem_id, const double scalar)
   if (nekrs::commRank() == bc.processor_id(elem_id))
   {
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    //mesh_t * mesh = nekrs::temperatureMesh();
     mesh_t * mesh = nekrs::entireMesh();
 
     int scalarFieldOffset = nekrs::scalarFieldOffset();
+    int scalarWrkOffset = (scalarId + 1)*scalarFieldOffset; // offset by 1, first "scalar" is temperature
 
     int end_1d = mesh->Nq;
     int end_2d = end_1d * end_1d;
@@ -496,68 +456,9 @@ NekRSSeparateDomainProblem::scalar01(const int elem_id, const double scalar)
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id + 2*scalarFieldOffset] = scalar; // send single scalar value to NekRS
+      nrs->usrwrk[id + scalarWrkOffset] = scalar; // send single scalar value to NekRS
     }
   }
 }
-
-void
-NekRSSeparateDomainProblem::scalar02(const int elem_id, const double scalar)
-{
-  const auto & bc = _nek_mesh->boundaryCoupling();
-
-  // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (nekrs::commRank() == bc.processor_id(elem_id))
-  {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    //mesh_t * mesh = nekrs::temperatureMesh();
-    mesh_t * mesh = nekrs::entireMesh();
-
-    int scalarFieldOffset = nekrs::scalarFieldOffset();
-
-    int end_1d = mesh->Nq;
-    int end_2d = end_1d * end_1d;
-
-    int e = bc.element[elem_id];
-    int f = bc.face[elem_id];
-
-    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
-    for (int i = 0; i < end_2d; ++i)
-    {
-      int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id + 3*scalarFieldOffset] = scalar; // send single scalar value to NekRS
-    }
-  }
-}
-
-void
-NekRSSeparateDomainProblem::scalar03(const int elem_id, const double scalar)
-{
-  const auto & bc = _nek_mesh->boundaryCoupling();
-
-  // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (nekrs::commRank() == bc.processor_id(elem_id))
-  {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    //mesh_t * mesh = nekrs::temperatureMesh();
-    mesh_t * mesh = nekrs::entireMesh();
-
-    int scalarFieldOffset = nekrs::scalarFieldOffset();
-
-    int end_1d = mesh->Nq;
-    int end_2d = end_1d * end_1d;
-
-    int e = bc.element[elem_id];
-    int f = bc.face[elem_id];
-
-    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
-    for (int i = 0; i < end_2d; ++i)
-    {
-      int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id + 4*scalarFieldOffset] = scalar; // send single scalar value to NekRS
-    }
-  }
-}
-
 
 #endif
