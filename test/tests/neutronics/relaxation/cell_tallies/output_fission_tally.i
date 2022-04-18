@@ -15,8 +15,6 @@
     input = repeat
     subdomain_id = 0
   []
-
-  parallel_type = replicated
 []
 
 [AuxVariables]

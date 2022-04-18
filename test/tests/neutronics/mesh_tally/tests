@@ -86,4 +86,12 @@
                   "mesh tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [disable_renumbering]
+    type = RunException
+    input = one_mesh.i
+    cli_args = 'Mesh/allow_renumbering=true'
+    expect_err = "Mesh tallies currently require 'allow_renumbering = false' to be set in the \[Mesh\]!"
+    requirement = "Mesh tallies shall temporarily require disabled renumbering until capability is available"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

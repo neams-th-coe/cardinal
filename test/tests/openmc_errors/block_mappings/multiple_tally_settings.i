@@ -34,8 +34,6 @@
     type = CombinerGenerator
     inputs = 'solid_ids fluid_ids'
   []
-
-  parallel_type = replicated
 []
 
 [Problem]
