@@ -732,17 +732,45 @@ OpenMCCellAverageProblem::computeCellMappedVolumes()
     volumes.push_back(vol);
   }
 
-  _communicator.allgather(volumes);
+  gatherCellSum(volumes, _cell_to_elem_volume);
+}
 
-  _cell_to_elem_volume.clear();
+template <typename T>
+void
+OpenMCCellAverageProblem::gatherCellSum(std::vector<T> & local, std::map<cellInfo, T> & global)
+{
+  global.clear();
+  _communicator.allgather(local);
+
   for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
   {
     cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
 
-    if (_cell_to_elem_volume.count(cell_info))
-      _cell_to_elem_volume[cell_info] += volumes[i];
+    if (global.count(cell_info))
+      global[cell_info] += local[i];
     else
-      _cell_to_elem_volume[cell_info] = volumes[i];
+      global[cell_info] = local[i];
+  }
+}
+
+template <typename T>
+void
+OpenMCCellAverageProblem::gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local,
+  std::map<cellInfo, std::vector<T>> & global)
+{
+  global.clear();
+  _communicator.allgather(n_local);
+  _communicator.allgather(local);
+
+  int e = 0;
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
+  {
+    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
+
+    for (unsigned int j = e; j < e + n_local[i]; ++j)
+      global[cell_info].push_back(local[j]);
+
+    e += n_local[i];
   }
 }
 
@@ -804,41 +832,9 @@ OpenMCCellAverageProblem::getCellMappedPhase()
     cells_n_none.push_back(n_none);
   }
 
-  _communicator.allgather(cells_n_solid);
-  _communicator.allgather(cells_n_fluid);
-  _communicator.allgather(cells_n_none);
-
-  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
-  {
-    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
-    int n_solid = cells_n_solid[i];
-    int n_fluid = cells_n_fluid[i];
-    int n_none = cells_n_none[i];
-
-    if (n_solid)
-    {
-      if (_n_solid.count(cell_info))
-        _n_solid[cell_info] += n_solid;
-      else
-        _n_solid[cell_info] = n_solid;
-    }
-
-    if (n_fluid)
-    {
-      if (_n_fluid.count(cell_info))
-        _n_fluid[cell_info] += n_fluid;
-      else
-        _n_fluid[cell_info] = n_fluid;
-    }
-
-    if (n_none)
-    {
-      if (_n_none.count(cell_info))
-        _n_none[cell_info] += n_none;
-      else
-        _n_none[cell_info] = n_none;
-    }
-  }
+  gatherCellSum(cells_n_solid, _n_solid);
+  gatherCellSum(cells_n_fluid, _n_fluid);
+  gatherCellSum(cells_n_none, _n_none);
 }
 
 void
@@ -907,8 +903,8 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 void
 OpenMCCellAverageProblem::getCellMappedSubdomains()
 {
-  std::vector<int> n_elems;
-  std::vector<int> elem_ids;
+  std::vector<unsigned int> n_elems;
+  std::vector<unsigned int> elem_ids;
 
   for (const auto & c : _cell_to_elem)
   {
@@ -921,22 +917,16 @@ OpenMCCellAverageProblem::getCellMappedSubdomains()
     }
   }
 
-  _communicator.allgather(n_elems);
-  _communicator.allgather(elem_ids);
+  std::map<cellInfo, std::vector<unsigned int>> cell_to_subdomain_vec;
+  gatherCellVector(elem_ids, n_elems, cell_to_subdomain_vec);
 
-  // now that all the mapping information is on all ranks, populate the cell_to_elem_subdomain
+  // convert to a set
   _cell_to_elem_subdomain.clear();
-
-  int e = 0;
-  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
+  for (const auto & c : cell_to_subdomain_vec)
   {
-    for (unsigned int j = e; j < e + n_elems[i]; ++j)
-    {
-      cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
-      _cell_to_elem_subdomain[cell_info].insert(elem_ids[j]);
-    }
-
-    e += n_elems[i];
+    auto cell_info = c.first;
+    for (const auto & s : c.second)
+      _cell_to_elem_subdomain[cell_info].insert(s);
   }
 }
 
@@ -2707,9 +2697,8 @@ OpenMCCellAverageProblem::extractOutputs()
 void
 OpenMCCellAverageProblem::gatherCellToElem()
 {
-  // flatten the element IDs, cell IDs, and cell instances
-  std::vector<int> n_elems;
-  std::vector<int> elems;
+  std::vector<unsigned int> n_elems;
+  std::vector<unsigned int> elems;
   for (const auto & c : _cell_to_elem)
   {
     n_elems.push_back(c.second.size());
@@ -2718,25 +2707,7 @@ OpenMCCellAverageProblem::gatherCellToElem()
       elems.push_back(_local_to_global_elem[e]);
   }
 
-  _communicator.allgather(n_elems);
-  _communicator.allgather(elems);
-
-  // now that all the mapping information is on all ranks, re-populate the _cell_to_elem
-  // data structure so that it holds the global information (up until this point it held
-  // LOCAL element IDs on each rank. Now we change that so it holds GLOBAL element IDs.
-  _cell_to_elem.clear();
-
-  int e = 0;
-  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
-  {
-    for (unsigned int j = e; j < e + n_elems[i]; ++j)
-    {
-      cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
-      _cell_to_elem[cell_info].push_back(elems[j]);
-    }
-
-    e += n_elems[i];
-  }
+  gatherCellVector(elems, n_elems, _cell_to_elem);
 }
 
 #endif

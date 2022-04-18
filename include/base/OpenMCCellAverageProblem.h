@@ -256,6 +256,23 @@ public:
 
 protected:
   /**
+   * Gather a vector of values to be summed for each cell
+   * @param[in] local local values to be summed for the cells
+   * @param[out] global global mapping of the summed values to the cells
+   */
+  template <typename T>
+  void gatherCellSum(std::vector<T> & local, std::map<cellInfo, T> & global);
+
+  /**
+   * Gather a vector of values to be pushed back to for each cell
+   * @param[in] local local values to be pushed back for the cells
+   * @param[in] n_local number of local values contributed to each cell
+   * @param[out] global global mapping of the pushed back values to the cells
+   */
+  template <typename T>
+  void gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local, std::map<cellInfo, std::vector<T>> & global);
+
+  /**
    * Gather the _cell_to_elem structure distributed across ranks so that all information
    * on the cell mapping is available to all ranks.
    */
