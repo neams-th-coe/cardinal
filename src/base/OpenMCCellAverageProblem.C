@@ -1807,20 +1807,6 @@ OpenMCCellAverageProblem::findCell(const Point & point)
   return !openmc::exhaustive_find_cell(_particle);
 }
 
-double
-OpenMCCellAverageProblem::tallySum(std::vector<openmc::Tally *> tally) const
-{
-  double sum = 0.0;
-
-  for (const auto & t : tally)
-  {
-    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-    sum += xt::sum(mean)();
-  }
-
-  return sum;
-}
-
 void
 OpenMCCellAverageProblem::addExternalVariables()
 {
@@ -2063,16 +2049,6 @@ OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw
     return raw_tally / _global_kappa_fission;
   else
     return raw_tally / _local_kappa_fission;
-}
-
-Real
-OpenMCCellAverageProblem::relativeError(const Real & sum,
-                                        const Real & sum_sq,
-                                        const int & n_realizations) const
-{
-  Real mean = sum / n_realizations;
-  Real std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
-  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
 }
 
 void

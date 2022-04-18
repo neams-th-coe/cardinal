@@ -31,6 +31,7 @@
 #include "openmc/settings.h"
 #include "openmc/source.h"
 #include "openmc/state_point.h"
+#include "xtensor/xview.hpp"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -397,6 +398,30 @@ OpenMCProblemBase::cellHasFissileMaterials(const cellInfo & cell_info) const
   }
 
   return false;
+}
+
+Real
+OpenMCProblemBase::relativeError(const Real & sum,
+                                        const Real & sum_sq,
+                                        const int & n_realizations) const
+{
+  Real mean = sum / n_realizations;
+  Real std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
+  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+}
+
+double
+OpenMCProblemBase::tallySum(std::vector<openmc::Tally *> tally) const
+{
+  double sum = 0.0;
+
+  for (const auto & t : tally)
+  {
+    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    sum += xt::sum(mean)();
+  }
+
+  return sum;
 }
 
 #endif

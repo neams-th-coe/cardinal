@@ -228,14 +228,6 @@ public:
    */
   double cellMappedVolume(const cellInfo & cell_info);
 
-  /**
-   * Compute relative error
-   * @param[in] sum sum of scores
-   * @param[in] sum_sq sum of scores squared
-   * @param[in] n_realizations number of realizations
-   */
-  Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
-
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
 
@@ -366,13 +358,6 @@ protected:
    * to fluid, solid, or neither based on the settings in the 'fluid_blocks' and 'solid_blocks'.
    */
   void storeElementPhase();
-
-  /**
-   * Compute the mean value of a tally
-   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
-   * @return mean value
-   */
-  double tallySum(std::vector<openmc::Tally *> tally) const;
 
   void relaxAndNormalizeHeatSource(const int & t);
 

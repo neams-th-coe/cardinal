@@ -21,6 +21,7 @@
 #define LIBMESH
 
 #include "ExternalProblem.h"
+#include "openmc/tallies/tally.h"
 
 /**
  * Base class for all MOOSE wrappings of OpenMC
@@ -41,10 +42,25 @@ public:
   void importProperties() const;
 
   /**
+   * Compute the mean value of a tally
+   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
+   * @return mean value
+   */
+  double tallySum(std::vector<openmc::Tally *> tally) const;
+
+  /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
    * value is the cell index, while the second is the cell instance.
    */
   typedef std::pair<int32_t, int32_t> cellInfo;
+
+  /**
+   * Compute relative error
+   * @param[in] sum sum of scores
+   * @param[in] sum_sq sum of scores squared
+   * @param[in] n_realizations number of realizations
+   */
+  Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
 
   /**
    * Get the density conversion factor (multiplicative factor)
