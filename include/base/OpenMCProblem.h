@@ -31,8 +31,6 @@ public:
   OpenMCProblem(const InputParameters & params);
   static InputParameters validParams();
 
-  virtual ~OpenMCProblem() override;
-
   virtual void addExternalVariables() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 

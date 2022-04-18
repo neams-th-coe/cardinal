@@ -75,8 +75,6 @@ public:
   OpenMCCellAverageProblem(const InputParameters & params);
   static InputParameters validParams();
 
-  virtual ~OpenMCCellAverageProblem() override;
-
   /**
    * Add 'heat_source', 'temp', and, if any fluid blocks are specified, a
    * 'density' variable. These are used to communicate OpenMC's solution with MOOSE,
@@ -214,19 +212,6 @@ public:
    * @return coupling fields
    */
   const coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info);
-
-  /**
-   * Get a descriptive, formatted, string describing a cell
-   * @param[in] cell_info cell index, instance pair
-   * @return descriptive string describing cell
-   */
-  std::string printCell(const cellInfo & cell_info) const;
-
-  /**
-   * Get the density conversion factor (multiplicative factor)
-   * @return density conversion factor from kg/m3 to g/cm3
-   */
-  const Real & densityConversionFactor() const { return _density_conversion_factor; }
 
   const std::vector<openmc::Tally *> & getLocalTally() const { return _local_tally; }
 
@@ -381,12 +366,6 @@ protected:
    * to fluid, solid, or neither based on the settings in the 'fluid_blocks' and 'solid_blocks'.
    */
   void storeElementPhase();
-
-  /**
-   * Compute the number of digits required to display an integer
-   * @param[in] number number to display
-   */
-  int digits(const int & number) const;
 
   /**
    * Compute the mean value of a tally
@@ -549,23 +528,6 @@ protected:
    * @return whether OpenMC reported an error
    */
   bool findCell(const Point & point);
-
-  /**
-   * Get the fill of an OpenMC cell
-   * @param[in] cell_info cell ID, instance
-   * @param[out] fill_type fill type of the cell, one of MATERIAL, UNIVERSE, or LATTICE
-   * @return indices of material fills
-   */
-  std::vector<int32_t> cellFill(const cellInfo & cell_info, int & fill_type) const;
-
-  /**
-   * Whether a cell contains any fissile materials; for now, this simply returns true for
-   * cells filled by universes or lattices because we have yet to implement something more
-   * sophisticated that recurses down into all the fills
-   * @param[in] cell_info cell ID, instance
-   * @return whether cell contains fissile material
-   */
-  bool cellHasFissileMaterials(const cellInfo & cell_info) const;
 
   /// Extract user-specified additional output fields from OpenMC
   void extractOutputs();
@@ -929,17 +891,6 @@ protected:
   /// Mean value of the local kappa fission tally
   Real _local_kappa_fission;
 
-  /// Conversion unit to transfer between kg/m3 and g/cm3
-  static constexpr Real _density_conversion_factor{0.001};
-
-  /**
-   * Number of digits to use to display the cell ID for diagnostic messages; this is
-   * estimated conservatively based on the total number of cells, even though there
-   * may be distributed cells such that the maximum cell ID is far smaller than the
-   * total number of cells.
-   */
-  const int _n_cell_digits;
-
   /**
    * For OpenMC geometries with a single coordinate level, we define default behavior for
    * tally_blocks to be all of the subdomains in the MOOSE mesh.
@@ -963,9 +914,6 @@ protected:
    * the 'skip_first_incoming_transfer' parameter
    */
   static bool _first_transfer;
-
-  /// ID used by OpenMC to indicate that a material fill is VOID
-  static constexpr int MATERIAL_VOID{-1};
 
   /// Dummy particle to reduce number of allocations of particles for cell lookup routines
   openmc::Particle _particle;
