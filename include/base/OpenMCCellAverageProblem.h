@@ -273,12 +273,6 @@ protected:
   void gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local, std::map<cellInfo, std::vector<T>> & global);
 
   /**
-   * Gather the _cell_to_elem structure distributed across ranks so that all information
-   * on the cell mapping is available to all ranks.
-   */
-  void gatherCellToElem();
-
-  /**
    * Get the element coupling phase
    * @param[in] elem
    * @return coupling phase
@@ -472,6 +466,15 @@ protected:
    * @param[in] descriptor string to use in formatting the error message content
    */
   void checkZeroTally(const Real & power_fraction, const std::string & descriptor) const;
+
+  /**
+   * Compute the product of volume with a field across ranks and sum into a global map
+   * @param[in] var_num variable to weight with volume
+   * @param[in] phase phase to compute the operation for
+   * @return volume-weighted field for each cell, in a global sense
+   */
+  std::map<cellInfo, Real> computeVolumeWeightedCellInput(const unsigned int & var_num,
+    const coupling::CouplingFields * phase);
 
   /**
    * Send temperature from MOOSE to the OpenMC cells by computing a volume average
@@ -865,6 +868,9 @@ protected:
 
   /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs
   std::map<cellInfo, std::vector<unsigned int>> _cell_to_elem;
+
+  /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs, on each local rank
+  std::map<cellInfo, std::vector<unsigned int>> _local_cell_to_elem;
 
   /// Mapping of OpenMC cell indices to the subdomain IDs each maps to
   std::map<cellInfo, std::unordered_set<SubdomainID>> _cell_to_elem_subdomain;
