@@ -413,6 +413,9 @@ protected:
    */
   void checkBlockOverlap();
 
+  /// Loop over all the OpenMC cells and get the element subdomain IDs that map to each cell
+  void getCellMappedSubdomains();
+
   /**
    * Loop over all the OpenMC cells and determine if a cell maps to more than one subdomain
    * that also has different tally settings (i.e. we would not know whether to add or not to
@@ -845,6 +848,9 @@ protected:
 
   /// Mapping of OpenMC cell indices to a vector of MOOSE element IDs
   std::map<cellInfo, std::vector<unsigned int>> _cell_to_elem;
+
+  /// Mapping of OpenMC cell indices to the subdomain IDs each maps to
+  std::map<cellInfo, std::unordered_set<SubdomainID>> _cell_to_elem_subdomain;
 
   /**
    * A point inside the cell, taken simply as the centroid of the first global

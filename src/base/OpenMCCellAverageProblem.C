@@ -905,25 +905,55 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 }
 
 void
-OpenMCCellAverageProblem::checkCellMappedSubdomains()
+OpenMCCellAverageProblem::getCellMappedSubdomains()
 {
+  std::vector<int> n_elems;
+  std::vector<int> elem_ids;
+
   for (const auto & c : _cell_to_elem)
   {
-    // find the set of subdomains that this cell maps to
-    std::set<SubdomainID> cell_to_elem_subdomain;
+    n_elems.push_back(c.second.size());
     for (const auto & e : c.second)
     {
-      const auto * elem = _mesh.elemPtr(e);
-      cell_to_elem_subdomain.insert(elem->subdomain_id());
+      // we are looping over local elements, so no need to check for nullptr
+      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      elem_ids.push_back(elem->subdomain_id());
+    }
+  }
+
+  _communicator.allgather(n_elems);
+  _communicator.allgather(elem_ids);
+
+  // now that all the mapping information is on all ranks, populate the cell_to_elem_subdomain
+  _cell_to_elem_subdomain.clear();
+
+  int e = 0;
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
+  {
+    for (unsigned int j = e; j < e + n_elems[i]; ++j)
+    {
+      cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
+      _cell_to_elem_subdomain[cell_info].insert(elem_ids[j]);
     }
 
-    // If the OpenMC cell maps to multiple subdomains that _also_ have different
-    // tally settings, we need to error because we are unsure of whether to add tallies or not;
-    // both of these need to be true to error
+    e += n_elems[i];
+  }
+}
+
+void
+OpenMCCellAverageProblem::checkCellMappedSubdomains()
+{
+  // If the OpenMC cell maps to multiple subdomains that _also_ have different
+  // tally settings, we need to error because we are unsure of whether to add tallies or not;
+  // both of these need to be true to error
+  for (const auto & c : _cell_to_elem)
+  {
     bool at_least_one_in_tallies = false;
     bool at_least_one_not_in_tallies = false;
     int block_in_tallies, block_not_in_tallies;
-    for (const auto & s : cell_to_elem_subdomain)
+
+    auto cell_info = c.first;
+    for (const auto & s : _cell_to_elem_subdomain[cell_info])
     {
       if (!at_least_one_in_tallies)
       {
@@ -941,8 +971,6 @@ OpenMCCellAverageProblem::checkCellMappedSubdomains()
       if (at_least_one_in_tallies && at_least_one_not_in_tallies)
         break;
     }
-
-    const auto cell_info = c.first;
 
     if (at_least_one_in_tallies && at_least_one_not_in_tallies)
       mooseError("cell " + printCell(cell_info) +
@@ -1477,6 +1505,10 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // Get the number of elements of each phase within the cells; we do this here while
   // _cell_to_elem is still a local quantity
   getCellMappedPhase();
+
+  // Get the element subdomains within each cell; we do this here while _cell_to_elem is
+  // still a local quantity
+  getCellMappedSubdomains();
 
   // collect the _cell_to_elem onto all ranks
   gatherCellToElem();
@@ -2680,7 +2712,6 @@ OpenMCCellAverageProblem::gatherCellToElem()
   std::vector<int> elems;
   for (const auto & c : _cell_to_elem)
   {
-    auto cell_info = c.first;
     n_elems.push_back(c.second.size());
 
     for (const auto & e : c.second)
@@ -2698,8 +2729,6 @@ OpenMCCellAverageProblem::gatherCellToElem()
   int e = 0;
   for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
   {
-    if (_communicator.rank() == 0) std::cout << "elements from " << e << " to " << e + n_elems[i] - 1 << std::endl;
-
     for (unsigned int j = e; j < e + n_elems[i]; ++j)
     {
       cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
