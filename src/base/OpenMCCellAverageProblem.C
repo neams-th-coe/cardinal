@@ -762,6 +762,86 @@ OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
 }
 
 void
+OpenMCCellAverageProblem::getCellMappedPhase()
+{
+  // clear data structures
+  _n_solid.clear();
+  _n_fluid.clear();
+  _n_none.clear();
+
+  std::vector<int> cells_n_solid;
+  std::vector<int> cells_n_fluid;
+  std::vector<int> cells_n_none;
+
+  // whether each cell maps to a single phase
+  for (const auto & c : _cell_to_elem)
+  {
+    int n_solid = 0, n_fluid = 0, n_none = 0;
+
+    for (const auto & e : c.second)
+    {
+      // we are looping over local elements, so no need to check for nullptr
+      const Elem * elem = _mesh.queryElemPtr(globalElemID(e));
+
+      switch (elemPhase(elem))
+      {
+        case coupling::temperature:
+          n_solid++;
+          break;
+        case coupling::density_and_temperature:
+          n_fluid++;
+          break;
+        case coupling::none:
+          n_none++;
+          break;
+        default:
+          mooseError("Unhandled CouplingFieldsEnum in OpenMCCellAverageProblem!");
+      }
+    }
+
+    cells_n_solid.push_back(n_solid);
+    cells_n_fluid.push_back(n_fluid);
+    cells_n_none.push_back(n_none);
+  }
+
+  _communicator.allgather(cells_n_solid);
+  _communicator.allgather(cells_n_fluid);
+  _communicator.allgather(cells_n_none);
+
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
+  {
+    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
+    int n_solid = cells_n_solid[i];
+    int n_fluid = cells_n_fluid[i];
+    int n_none = cells_n_none[i];
+
+    if (n_solid)
+    {
+      if (_n_solid.count(cell_info))
+        _n_solid[cell_info] += n_solid;
+      else
+        _n_solid[cell_info] = n_solid;
+    }
+
+    if (n_fluid)
+    {
+      if (_n_fluid.count(cell_info))
+        _n_fluid[cell_info] += n_fluid;
+      else
+        _n_fluid[cell_info] = n_fluid;
+    }
+
+    if (n_none)
+    {
+      if (_n_none.count(cell_info))
+        _n_none[cell_info] += n_none;
+      else
+        _n_none[cell_info] = n_none;
+    }
+  }
+}
+
+void
 OpenMCCellAverageProblem::checkCellMappedPhase()
 {
   VariadicTable<std::string, int, int, int, Real> vt(
@@ -777,33 +857,12 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   bool has_fluid_cells = false;
   bool has_solid_cells = false;
 
-  // whether each cell maps to a single phase
   for (const auto & c : _cell_to_elem)
   {
-    int n_solid = 0, n_fluid = 0, n_none = 0;
     auto cell_info = c.first;
-
-    for (const auto & e : c.second)
-    {
-      const Elem * elem = _mesh.queryElemPtr(e);
-
-      switch (elemPhase(elem))
-      {
-        case coupling::temperature:
-          has_solid_cells = true;
-          n_solid++;
-          break;
-        case coupling::density_and_temperature:
-          has_fluid_cells = true;
-          n_fluid++;
-          break;
-        case coupling::none:
-          n_none++;
-          break;
-        default:
-          mooseError("Unhandled CouplingFieldsEnum in OpenMCCellAverageProblem!");
-      }
-    }
+    int n_solid = _n_solid[cell_info];
+    int n_fluid = _n_fluid[cell_info];
+    int n_none = _n_none[cell_info];
 
     vt.addRow(printCell(cell_info), n_solid, n_fluid, n_none, _cell_to_elem_volume[cell_info]);
 
@@ -819,9 +878,15 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     }
 
     if (n_solid)
+    {
+      has_solid_cells = true;
       _cell_phase[cell_info] = coupling::temperature;
+    }
     else if (n_fluid)
+    {
+      has_fluid_cells = true;
       _cell_phase[cell_info] = coupling::density_and_temperature;
+    }
     else
       _cell_phase[cell_info] = coupling::none;
   }
@@ -1408,6 +1473,10 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // Compute the volume that each OpenMC cell maps to in the MOOSE mesh; we do this
   // here while _cell_to_elem is still a local quantity
   computeCellMappedVolumes();
+
+  // Get the number of elements of each phase within the cells; we do this here while
+  // _cell_to_elem is still a local quantity
+  getCellMappedPhase();
 
   // collect the _cell_to_elem onto all ranks
   gatherCellToElem();

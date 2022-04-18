@@ -388,7 +388,12 @@ protected:
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
-   * is mapped based on phase. This function is used to ensure that each OpenMC cell only maps
+   * is mapped based on phase.
+   */
+  void getCellMappedPhase();
+
+  /**
+   * This function is used to ensure that each OpenMC cell only maps
    * to a single phase. This function is also used to check that if 'fluid_blocks' is specified,
    * that we map to at least one OpenMC cell (or else this is probably a mistake). The same check
    * is also performed for the 'solid_blocks'.
@@ -991,6 +996,15 @@ protected:
 
   /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
   std::unique_ptr<SymmetryPointGenerator> _symmetry;
+
+  /// Number of solid elements in each mapped OpenMC cell (global)
+  std::map<cellInfo, int> _n_solid;
+
+  /// Number of fluid elements in each mapped OpenMC cell (global)
+  std::map<cellInfo, int> _n_fluid;
+
+  /// Number of none elements in each mapped OpenMC cell (global)
+  std::map<cellInfo, int> _n_none;
 
 private:
   /**
