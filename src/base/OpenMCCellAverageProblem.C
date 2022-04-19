@@ -241,6 +241,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _temperature_blocks(nullptr),
     _symmetry(nullptr)
 {
+  if (_tally_type == tally::mesh)
+    if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
+      mooseError("Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
+
   if (isParamValid("symmetry_plane_normal"))
   {
     const auto & normal = getParam<Point>("symmetry_plane_normal");
