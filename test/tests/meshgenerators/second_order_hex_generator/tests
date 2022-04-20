@@ -1,0 +1,9 @@
+[Tests]
+  [invalid_elem]
+    type = RunException
+    input = invalid_elem.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator can only be applied to HEX8 elements!"
+    requirement = "The system shall error if an invalid element type is used with a hex8 to hex20 converter"
+  []
+[]
