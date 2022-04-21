@@ -8,4 +8,6 @@
     input = tube
     boundaries_to_rebuild = ''
   []
+
+  parallel_type = replicated
 []

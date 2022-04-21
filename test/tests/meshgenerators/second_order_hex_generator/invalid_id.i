@@ -9,4 +9,6 @@
     boundary = '10'
     radius = 0.6
   []
+
+  parallel_type = replicated
 []

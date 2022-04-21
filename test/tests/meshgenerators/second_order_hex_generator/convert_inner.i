@@ -9,4 +9,6 @@
     boundary = 'rmin'
     radius = 0.05
   []
+
+  parallel_type = replicated
 []

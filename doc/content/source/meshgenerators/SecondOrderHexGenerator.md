@@ -14,6 +14,11 @@ for compatibility with NekRS's [exo2nek](https://nekrsdoc.readthedocs.io/en/late
   its [!ac](GLL) points (as long as the HEX20 elements have their mid-side nodes
   one the cylinder, which is what this mesh generator does for you)
 
+!alert warning
+This mesh generator has very limited error checking, and will not protect you
+from inverted elements or other errors. Always be sure to check your mesh output
+for correct behavior.
+
 ## Example
 
 This example converts from a HEX27 mesh to a HEX20 mesh, while also moving the outer boundary

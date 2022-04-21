@@ -40,7 +40,7 @@
   [convert_no_sidsets]
     type = Exodiff
     input = convert_no_sidesets.i
-    exodiff = convert_no_sidesets.e
+    exodiff = convert_no_sidesets_in.e
     cli_args = '--mesh-only'
     requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 with no sidesets retained."
   []

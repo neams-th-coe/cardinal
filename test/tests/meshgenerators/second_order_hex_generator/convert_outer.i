@@ -9,4 +9,6 @@
     boundary = 'rmax'
     radius = 0.25
   []
+
+  parallel_type = replicated
 []

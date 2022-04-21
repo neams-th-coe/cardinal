@@ -7,4 +7,6 @@
     type = SecondOrderHexGenerator
     input = tube
   []
+
+  parallel_type = replicated
 []

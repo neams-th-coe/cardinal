@@ -8,4 +8,6 @@
     input = tube
     boundaries_to_rebuild = 'rmax 3'
   []
+
+  parallel_type = replicated
 []

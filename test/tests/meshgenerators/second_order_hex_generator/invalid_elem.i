@@ -10,4 +10,6 @@
     type = SecondOrderHexGenerator
     input = clad
   []
+
+  parallel_type = replicated
 []
