@@ -19,6 +19,7 @@
 #include "SecondOrderHexGenerator.h"
 #include "CastUniquePointer.h"
 #include "UserErrorChecking.h"
+#include "MooseMeshUtils.h"
 
 #include "libmesh/mesh_tools.h"
 #include "libmesh/cell_hex20.h"
@@ -36,8 +37,14 @@ SecondOrderHexGenerator::validParams()
   MooseEnum axis("x y z", "z");
   params.addParam<MooseEnum>("axis", axis, "Axis of the mesh about which to build "
     "the circular surface");
-  params.addParam<std::vector<BoundaryID>>("boundary", "Boundary(s) to enforce a circular surface");
-  params.addParam<Real>("radius", "Radius the circular surface");
+  params.addParam<std::vector<BoundaryName>>("boundary", "Boundary(s) to enforce a circular surface");
+  params.addRangeCheckedParam<Real>("radius", "radius > 0.0", "Radius of the circular surface");
+
+  // TODO: stop-gap solution until the MOOSE reactor module does a better job
+  // of clearing out lingering sidesets used for stitching, but not for actual BCs/physics
+  params.addParam<std::vector<BoundaryName>>("boundaries_to_rebuild",
+    "Boundary(s) to retain from the original mesh in the new mesh; if not "
+    "specified, all original boundaries are kept.");
 
   params.addClassDescription(
       "Converts a HEX27 mesh to a HEX20 mesh, while optionally preserving "
@@ -48,23 +55,9 @@ SecondOrderHexGenerator::validParams()
 SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
   : MeshGenerator(params),
     _input(getMesh("input")),
-    _axis(getParam<MooseEnum>("axis"))
+    _axis(getParam<MooseEnum>("axis")),
+    _has_moving_boundary(isParamValid("boundary"))
 {
-  if (isParamValid("boundary"))
-  {
-    _boundary = &getParam<std::vector<BoundaryID>>("boundary");
-    checkRequiredParam(params, "radius", "When specifying a 'boundary'");
-  }
-
-  if (isParamValid("radius"))
-  {
-    _radius = getParam<Real>("radius");
-    checkRequiredParam(params, "boundary", "When specifying a 'radius'");
-  }
-
-  if (!_boundary)
-    checkUnusedParam(params, "axis", "If not setting a 'boundary'");
-
   // for each face, the mid-side nodes to be adjusted
   _side_ids.push_back({12, 15, 14, 13});
   _side_ids.push_back({11, 9, 17, 19});
@@ -72,6 +65,21 @@ SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
   _side_ids.push_back({9, 11, 19, 17});
   _side_ids.push_back({10, 8, 16, 18});
   _side_ids.push_back({12, 13, 14, 15});
+
+  // corner nodes for each face
+  _corner_nodes.resize(Hex27::num_sides);
+  for (unsigned int i = 0; i < Hex27::num_sides; ++i)
+    for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
+      _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
+
+  if (isParamValid("boundary"))
+    checkRequiredParam(params, "radius", "When specifying a 'boundary'");
+
+  if (isParamValid("radius"))
+    checkRequiredParam(params, "boundary", "When specifying a 'radius'");
+
+  if (!isParamValid("boundary") && !isParamValid("radius"))
+    checkUnusedParam(parameters(), "axis", "If not setting a 'boundary'");
 }
 
 void
@@ -116,21 +124,10 @@ SecondOrderHexGenerator::midPointNodeIndex(const unsigned int & face_id, const u
   return _side_ids[face_id][it - primary_nodes.begin()];
 }
 
-std::unique_ptr<MeshBase>
-SecondOrderHexGenerator::generate()
+void
+SecondOrderHexGenerator::checkOrigin(const MeshBase & mesh) const
 {
-  std::unique_ptr<MeshBase> mesh = std::move(_input);
-
-  // first, check for valid element type
-  for (const auto & elem : mesh->element_ptr_range())
-  {
-    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    if (!hex27)
-      mooseError("This mesh generator can only be applied to HEX27 elements!");
-  }
-
-  // next, check that the mesh is centered on the origin (for the plane of the circle)
-  const auto bbox = MeshTools::create_bounding_box(*mesh);
+  const auto bbox = MeshTools::create_bounding_box(mesh);
   auto origin = 0.5 * (bbox.max() + bbox.min());
 
   auto adjusted_origin = origin;
@@ -145,57 +142,110 @@ SecondOrderHexGenerator::generate()
       "Your origin is at: (", origin(0), ", ", origin(1), ", ", origin(2), ").\n"
       "Please use a TransformGenerator to center the input mesh at (",
        desired_origin(0), ", ", desired_origin(1), ", ", desired_origin(2), ").");
+}
 
-  const auto & boundary_info = mesh->get_boundary_info();
+BoundaryID
+SecondOrderHexGenerator::getBoundaryID(const BoundaryName & name, const MeshBase & mesh) const
+{
+  auto & boundary_info = mesh.get_boundary_info();
+  auto id = MooseMeshUtils::getBoundaryID(name, mesh);
 
-  // corner nodes for each face
-  _corner_nodes.resize(Hex27::num_sides);
-  for (unsigned int i = 0; i < Hex27::num_sides; ++i)
-    for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
-      _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
+  const auto & all_boundaries = boundary_info.get_boundary_ids();
+  if (all_boundaries.find(id) == all_boundaries.end())
+    mooseError("Boundary '", name, "' was not found in the mesh!");
+
+  return id;
+}
+
+std::unique_ptr<MeshBase>
+SecondOrderHexGenerator::generate()
+{
+  std::unique_ptr<MeshBase> mesh = std::move(_input);
+  auto & boundary_info = mesh->get_boundary_info();
+
+  // get the boundary movement information, and check for valid user specifications
+  if (isParamValid("boundary"))
+  {
+    _radius = getParam<Real>("radius");
+
+    const auto & moving_names = getParam<std::vector<BoundaryName>>("boundary");
+    for (const auto & name : moving_names)
+      _moving_boundary.push_back(getBoundaryID(name, *mesh));
+  }
+
+  // get information on which boundaries to rebuild, and check for valid user specifications
+  if (isParamValid("boundaries_to_rebuild"))
+  {
+    const auto & rebuild_names = getParam<std::vector<BoundaryName>>("boundaries_to_rebuild");
+    for (const auto & name : rebuild_names)
+      _boundaries_to_rebuild.insert(getBoundaryID(name, *mesh));
+  }
+  else
+  {
+    // by default, rebuild all the boundaries
+    const auto & all_boundaries = boundary_info.get_boundary_ids();
+    for (const auto & b : all_boundaries)
+      _boundaries_to_rebuild.insert(b);
+  }
+
+  // check for valid element type
+  for (const auto & elem : mesh->element_ptr_range())
+  {
+    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
+    if (!hex27)
+      mooseError("This mesh generator can only be applied to HEX27 elements!");
+  }
+
+  // check that the mesh is centered on the origin (for the plane of the circle)
+  checkOrigin(*mesh);
+
+  // store the existing boundary IDs and names
+  for (const auto & b: boundary_info.get_boundary_ids())
+    _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
 
   std::vector<libMesh::dof_id_type> boundary_elem_ids;
   std::vector<unsigned int> boundary_face_ids;
   std::vector<std::vector<boundary_id_type>> boundary_ids;
 
-  // move the nodes on the surface of interest
-  if (_boundary)
+  // move the nodes on the surface of interest; while looping through the elements,
+  // also store the boundar information
+  for (auto & elem : mesh->element_ptr_range())
   {
-    for (auto & elem : mesh->element_ptr_range())
+    bool at_least_one_face_on_boundary = false;
+
+    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
     {
-      bool at_least_one_face_on_boundary = false;
+      // get the boundary IDs that this element face lie on
+      std::vector<boundary_id_type> b;
+      boundary_info.boundary_ids(elem, s, b);
 
-      for (unsigned short int s = 0; s < elem->n_faces(); ++s)
+      boundary_elem_ids.push_back(elem->set_id());
+      boundary_face_ids.push_back(s);
+      boundary_ids.push_back(b);
+
+      if (!_has_moving_boundary)
+        continue;
+
+      // find the overlap with the specified _moving_boundary
+      std::vector<SubdomainID> v(b.size() + _moving_boundary.size());
+      std::vector<SubdomainID>::iterator it, st;
+      it = std::set_intersection(b.begin(), b.end(), _moving_boundary.begin(), _moving_boundary.end(), v.begin());
+
+      for (st = v.begin(); st != it; ++st)
       {
-        // get the boundary IDs that this element face lie on
-        std::vector<boundary_id_type> b;
-        boundary_info.boundary_ids(elem, s, b);
+        if (at_least_one_face_on_boundary)
+          mooseError("This mesh generator cannot be applied to elements that have more than "
+            "one face on the circular sideset!");
 
-        boundary_elem_ids.push_back(elem->set_id());
-        boundary_face_ids.push_back(s);
-        boundary_ids.push_back(b);
+        at_least_one_face_on_boundary = true;
 
-        // find the overlap with the specified _boundary
-        std::vector<SubdomainID> v(b.size() + _boundary->size());
-        std::vector<SubdomainID>::iterator it, st;
-        it = std::set_intersection(b.begin(), b.end(), _boundary->begin(), _boundary->end(), v.begin());
-
-        for (st = v.begin(); st != it; ++st)
+        for (auto & face_node : nodesOnFace(s))
         {
-          if (at_least_one_face_on_boundary)
-            mooseError("This mesh generator cannot be applied to elements that have more than "
-              "one face on the circular sideset!");
+          adjustPointToCircle(face_node, elem);
 
-          at_least_one_face_on_boundary = true;
-
-          for (auto & face_node : nodesOnFace(s))
-          {
-            adjustPointToCircle(face_node, elem);
-
-            // if this is a corner node, we also need to adjust the mid-point node
-            if (isCornerNode(face_node))
-              adjustMidPointNode(midPointNodeIndex(s, face_node), elem);
-          }
+          // if this is a corner node, we also need to adjust the mid-point node
+          if (isCornerNode(face_node))
+            adjustMidPointNode(midPointNodeIndex(s, face_node), elem);
         }
       }
     }
@@ -257,15 +307,30 @@ SecondOrderHexGenerator::generate()
   }
 
   // create the sidesets
-  auto & new_boundary_info = mesh->get_boundary_info();
   for (unsigned int i = 0; i < boundary_elem_ids.size(); ++i)
   {
     auto elem_id = boundary_elem_ids[i];
-    auto face_id = boundary_face_ids[i];
     auto boundary = boundary_ids[i];
 
     const auto & elem = mesh->elem_ptr(elem_id);
-    new_boundary_info.add_side(elem, face_id, boundary);
+
+    // if boundary is not included in the list to rebuild, skip it
+    for (const auto & b : boundary)
+    {
+      if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())
+        continue;
+      else
+        boundary_info.add_side(elem, boundary_face_ids[i], boundary);
+    }
+  }
+
+  for (const auto & b: _boundary_id_to_name)
+  {
+    // if boundary is not included in the list to rebuild, skip it
+    if (_boundaries_to_rebuild.find(b.first) == _boundaries_to_rebuild.end())
+      continue;
+
+    boundary_info.sideset_name(b.first) = b.second;
   }
 
   mesh->prepare_for_use();

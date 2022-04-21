@@ -22,4 +22,57 @@
                  "Please use a TransformGenerator to center the input mesh at \(0, 0, 3\)."
     requirement = "The system shall error if the input mesh is not centered on the origin"
   []
+  [invalid_id]
+    type = RunException
+    input = invalid_id.i
+    cli_args = '--mesh-only'
+    expect_err = "Boundary '10' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for circular sideset fitting does not exist"
+  []
+  [convert]
+    type = Exodiff
+    input = convert.i
+    exodiff = convert_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 with default behavior of "
+                  "rebuilding all boundaries, and without any circular movement."
+  []
+  [convert_no_sidsets]
+    type = Exodiff
+    input = convert_no_sidesets.i
+    exodiff = convert_no_sidesets.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 with no sidesets retained."
+  []
+  [convert_some_sidsets]
+    type = Exodiff
+    input = convert_some_sidesets.i
+    exodiff = convert_some_sidesets_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 with custom behavior of "
+                  "rebuilding only some boundaries, and without any circular movement."
+  []
+  [convert_some_sidsets_invalid]
+    type = RunException
+    input = convert_some_sidesets.i
+    cli_args = '--mesh-only Mesh/to_hex20/boundaries_to_rebuild="rma"'
+    expect_err = "Boundary 'rma' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for rebuilding sidesets does not exist"
+  []
+  [convert_outer]
+    type = Exodiff
+    input = convert_outer.i
+    exodiff = convert_outer_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving the outer "
+                  "boundary to fit a circle."
+  []
+  [convert_inner]
+    type = Exodiff
+    input = convert_inner.i
+    exodiff = convert_inner_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving the inner "
+                  "boundary to fit a circle."
+  []
 []

@@ -37,6 +37,21 @@ public:
 
   std::unique_ptr<MeshBase> generate() override;
 
+  /**
+   * Get the boundary ID pertaining to a boundary name, and check for validity
+   * @param[in] name boundary to check
+   * @param[in] mesh mesh
+   * @return boundary ID corresponding to name
+   */
+  BoundaryID getBoundaryID(const BoundaryName & name, const MeshBase & mesh) const;
+
+  /**
+   * Check that the mesh is centered on (0, 0) (in the plane perpendicular to the
+   * circular surface).
+   * @param[in] mesh mesh to check
+   */
+  void checkOrigin(const MeshBase & mesh) const;
+
   bool isCornerNode(const unsigned int & node) const
   {
     return node < Hex8::num_nodes;
@@ -80,8 +95,11 @@ protected:
   /// Axis of the mesh about which to build the circular surface
   const MooseEnum & _axis;
 
+  /// Whether sidesets will be moved to match circular surfaces
+  const bool _has_moving_boundary;
+
   /// Sideset IDs to move to fit the circular surface
-  const std::vector<BoundaryID> * _boundary;
+  std::vector<BoundaryID> _moving_boundary;
 
   /// Radius of the circular surface
   Real _radius;
@@ -91,4 +109,10 @@ protected:
 
   /// For each face, the corner node indices
   std::vector<std::vector<unsigned int>> _corner_nodes;
+
+  /// Original boundary names and IDs
+  std::map<BoundaryID, BoundaryName> _boundary_id_to_name;
+
+  /// Boundaries to rebuild in the new mesh
+  std::set<BoundaryID> _boundaries_to_rebuild;
 };
