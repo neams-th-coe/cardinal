@@ -18,9 +18,11 @@
 
 #include "SecondOrderHexGenerator.h"
 #include "CastUniquePointer.h"
+#include "UserErrorChecking.h"
 
+#include "libmesh/mesh_tools.h"
 #include "libmesh/cell_hex20.h"
-#include "libmesh/cell_hex27.h"
+#include "libmesh/cell_hex8.h"
 
 registerMooseObject("CardinalApp", SecondOrderHexGenerator);
 
@@ -28,10 +30,14 @@ InputParameters
 SecondOrderHexGenerator::validParams()
 {
   InputParameters params = MeshGenerator::validParams();
-
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
-  params.addRequiredParam<std::vector<BoundaryID>>("boundary", "Boundary to enforce a circular surface");
-  params.addRequiredParam<Real>("radius", "Radius of circular surface");
+
+  // optional parameters if fitting sidesets to a circular surface
+  MooseEnum axis("x y z", "z");
+  params.addParam<MooseEnum>("axis", axis, "Axis of the mesh about which to build "
+    "the circular surface");
+  params.addParam<std::vector<BoundaryID>>("boundary", "Boundary(s) to enforce a circular surface");
+  params.addParam<Real>("radius", "Radius the circular surface");
 
   params.addClassDescription(
       "Converts a HEX27 mesh to a HEX20 mesh, while optionally preserving "
@@ -42,138 +48,164 @@ SecondOrderHexGenerator::validParams()
 SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
   : MeshGenerator(params),
     _input(getMesh("input")),
-    _boundary(getParam<std::vector<BoundaryID>>("boundary")),
-    _radius(getParam<Real>("radius"))
+    _axis(getParam<MooseEnum>("axis"))
 {
+  if (isParamValid("boundary"))
+  {
+    _boundary = &getParam<std::vector<BoundaryID>>("boundary");
+    checkRequiredParam(params, "radius", "When specifying a 'boundary'");
+  }
+
+  if (isParamValid("radius"))
+  {
+    _radius = getParam<Real>("radius");
+    checkRequiredParam(params, "boundary", "When specifying a 'radius'");
+  }
+
+  if (!_boundary)
+    checkUnusedParam(params, "axis", "If not setting a 'boundary'");
+
+  // for each face, the mid-side nodes to be adjusted
+  _side_ids.push_back({12, 15, 14, 13});
+  _side_ids.push_back({11, 9, 17, 19});
+  _side_ids.push_back({8, 18, 10, 16});
+  _side_ids.push_back({9, 11, 19, 17});
+  _side_ids.push_back({10, 8, 16, 18});
+  _side_ids.push_back({12, 13, 14, 15});
+}
+
+void
+SecondOrderHexGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem) const
+{
+  auto & node = elem->node_ref(node_id);
+
+  // point to node in (x, y, z) space
+  const Point pt(node(0), node(1), node(2));
+
+  // project point onto the circle plane and convert to unit vector
+  Point xy_plane = pt;
+  xy_plane(_axis) = 0.0;
+  Real d0 = xy_plane.norm();
+  xy_plane = xy_plane.unit();
+
+  node = pt + xy_plane * (_radius - d0);
+}
+
+void
+SecondOrderHexGenerator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) const
+{
+  int index = node_id - Hex8::num_nodes;
+  unsigned int p0 = Hex27::edge_nodes_map[index][0];
+  unsigned int p1 = Hex27::edge_nodes_map[index][1];
+
+  auto & adjust = elem->node_ref(node_id);
+  const auto & primary = elem->node_ref(p0);
+  const auto & secondary = elem->node_ref(p1);
+
+  Point pt(0.5 * (primary(0) + secondary(0)), 0.5 * (primary(1) + secondary(1)),
+           0.5 * (primary(2) + secondary(2)));
+
+  adjust = pt;
+}
+
+unsigned int
+SecondOrderHexGenerator::midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const
+{
+  const auto & primary_nodes = _corner_nodes[face_id];
+  auto it = std::find(primary_nodes.begin(), primary_nodes.end(), face_node);
+  return _side_ids[face_id][it - primary_nodes.begin()];
 }
 
 std::unique_ptr<MeshBase>
 SecondOrderHexGenerator::generate()
 {
-  int n_nodes_per_elem = 20;
-
   std::unique_ptr<MeshBase> mesh = std::move(_input);
 
-  // loop over the mesh and store all the element information
-  int N = mesh->n_elem();
-  std::vector<std::vector<libMesh::dof_id_type>> node_ids;
-  std::vector<libMesh::dof_id_type> elem_ids;
-  std::vector<std::vector<boundary_id_type>> elem_face_ids;
-  node_ids.resize(N);
-  elem_face_ids.resize(N);
+  // first, check for valid element type
+  for (const auto & elem : mesh->element_ptr_range())
+  {
+    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
+    if (!hex27)
+      mooseError("This mesh generator can only be applied to HEX27 elements!");
+  }
+
+  // next, check that the mesh is centered on the origin (for the plane of the circle)
+  const auto bbox = MeshTools::create_bounding_box(*mesh);
+  auto origin = 0.5 * (bbox.max() + bbox.min());
+
+  auto adjusted_origin = origin;
+  adjusted_origin(_axis) = 0.0;
+
+  Point zero(0.0, 0.0, 0.0);
+  auto desired_origin = zero;
+  desired_origin(_axis) = origin(_axis);
+
+  if (!adjusted_origin.absolute_fuzzy_equals(zero))
+    mooseError("This mesh generator can only be applied to meshes centered on the origin! "
+      "Your origin is at: (", origin(0), ", ", origin(1), ", ", origin(2), ").\n"
+      "Please use a TransformGenerator to center the input mesh at (",
+       desired_origin(0), ", ", desired_origin(1), ", ", desired_origin(2), ").");
 
   const auto & b_info = mesh->get_boundary_info();
 
-  // for each face (0 through 5), what are the node ids on that face
-  std::vector<std::vector<unsigned int>> face_to_node_ids;
-  face_to_node_ids.push_back({4, 16, 5, 19, 25, 17, 7, 18, 6});
-  face_to_node_ids.push_back({0, 8, 1, 12, 21, 13, 4, 16, 5});
-  face_to_node_ids.push_back({1, 9, 2, 13, 22, 14, 5, 17, 6});
-  face_to_node_ids.push_back({3, 10, 2, 15, 23, 14, 7, 18, 6});
-  face_to_node_ids.push_back({0, 11, 3, 12, 24, 15, 4, 19, 7});
-  face_to_node_ids.push_back({0, 8, 1, 11, 20, 9, 3, 10, 2});
-
-  // for each face, the mid-side nodes to be adjusted
-  std::vector<std::vector<unsigned int>> side_ids;
-  side_ids.push_back({12, 15, 14, 13});
-  side_ids.push_back({19, 17, 9, 11});
-  side_ids.push_back({16, 18, 10, 8});
-  side_ids.push_back({19, 17, 9, 11});  // same as side 1
-  side_ids.push_back({8, 16, 18, 10});  // same as side 2
-  side_ids.push_back({12, 13, 14, 15}); // same as side 0
-
-  // nodes to be averaged to get the mid-side points
-  std::vector<std::vector<unsigned int>> paired_nodes0;
-  std::vector<std::vector<unsigned int>> paired_nodes1;
-  paired_nodes0.push_back({4, 7, 6, 5});
-  paired_nodes0.push_back({4, 5, 1, 0});
-  paired_nodes0.push_back({5, 6, 2, 1});
-  paired_nodes0.push_back({7, 6, 2, 3});
-  paired_nodes0.push_back({0, 4, 7, 3});
-  paired_nodes0.push_back({0, 1, 2, 3});
-
-  paired_nodes1.push_back({0, 3, 2, 1});
-  paired_nodes1.push_back({7, 6, 2, 3});
-  paired_nodes1.push_back({4, 7, 3, 0});
-  paired_nodes1.push_back({4, 5, 1, 0});
-  paired_nodes1.push_back({1, 5, 6, 2});
-  paired_nodes1.push_back({4, 5, 6, 7});
+  // corner nodes for each face
+  _corner_nodes.resize(Hex27::num_sides);
+  for (unsigned int i = 0; i < Hex27::num_sides; ++i)
+    for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
+      _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
 
   // move the nodes on the surface of interest
-  for (auto & elem : mesh->element_ptr_range())
+  if (_boundary)
   {
-    for (unsigned short int s = 0; s < 6; ++s)
+    for (auto & elem : mesh->element_ptr_range())
     {
-      std::vector<boundary_id_type> b;
-      b_info.boundary_ids(elem, s, b);
+      bool at_least_one_face_on_boundary = false;
 
-      std::vector<SubdomainID> v(b.size() + _boundary.size());
-      std::vector<SubdomainID>::iterator it, st;
-
-      it = std::set_intersection(b.begin(), b.end(), _boundary.begin(), _boundary.end(), v.begin());
-
-      for (st = v.begin(); st != it; ++st)
+      for (unsigned short int s = 0; s < elem->n_faces(); ++s)
       {
-        // this face of the element is on the boundary of interest
-        const auto & face_nodes = face_to_node_ids[s];
+        // get the boundary IDs that this element face lie on
+        std::vector<boundary_id_type> b;
+        b_info.boundary_ids(elem, s, b);
 
-        // nodes on the face that will need to be used to adjust the mid-side points
-        const auto & primary_nodes = paired_nodes0[s];
-        const auto & secondary_nodes = paired_nodes1[s];
+        // find the overlap with the specified _boundary
+        std::vector<SubdomainID> v(b.size() + _boundary->size());
+        std::vector<SubdomainID>::iterator it, st;
+        it = std::set_intersection(b.begin(), b.end(), _boundary->begin(), _boundary->end(), v.begin());
 
-        for (unsigned int n = 0; n < face_nodes.size(); ++n)
+        for (st = v.begin(); st != it; ++st)
         {
-          auto face_node = face_nodes[n];
+          if (at_least_one_face_on_boundary)
+            mooseError("This mesh generator cannot be applied to elements that have more than "
+              "one face on the circular sideset!");
 
-          auto & node = elem->node_ref(face_node);
-          const Point original_pt(node(0), node(1), node(2));
+          at_least_one_face_on_boundary = true;
 
-          // distance from origin, in the x-y plane
-          const Point xy_plane(node(0), node(1), 0.0);
-          Real d0 = xy_plane.norm();
-
-          // unit vector from origin to the node
-          const Point project(0.0, 0.0, node(2));
-          Point unit_vector = original_pt - project;
-          unit_vector = unit_vector.unit();
-
-          const Point new_pt = original_pt + unit_vector * (_radius - d0);
-
-          node(0) = new_pt(0);
-          node(1) = new_pt(1);
-          node(2) = new_pt(2);
-
-          // if this is a corner node, we also need to adjust the mid-point node
-          if (std::count(primary_nodes.begin(), primary_nodes.end(), face_node))
+          for (auto & face_node : nodesOnFace(s))
           {
-            auto it = std::find(primary_nodes.begin(), primary_nodes.end(), face_node);
-            int index = it - primary_nodes.begin();
+            adjustPointToCircle(face_node, elem);
 
-            auto & primary = elem->node_ref(primary_nodes[index]);
-            auto & secondary = elem->node_ref(secondary_nodes[index]);
-            auto & adjust = elem->node_ref(side_ids[s][index]);
-
-            Point pt(0.5 * (primary(0) + secondary(0)), 0.5 * (primary(1) + secondary(1)),
-              0.5 * (primary(2) + secondary(2)));
-            adjust(0) = pt(0);
-            adjust(1) = pt(1);
-            adjust(2) = pt(2);
+            // if this is a corner node, we also need to adjust the mid-point node
+            if (isCornerNode(face_node))
+              adjustMidPointNode(midPointNodeIndex(s, face_node), elem);
           }
         }
       }
     }
   }
 
+  // loop over the mesh and store all the element information
+  int N = mesh->n_elem();
+  std::vector<std::vector<libMesh::dof_id_type>> node_ids;
+  std::vector<libMesh::dof_id_type> elem_ids;
+  node_ids.resize(N);
+
   int i = 0;
   for (const auto & elem : mesh->element_ptr_range())
   {
     libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    if (!hex27)
-      mooseError("This mesh generator can only be applied to HEX27 elements!");
-
     elem_ids.push_back(hex27->set_id());
 
-    for (unsigned int j = 0; j < n_nodes_per_elem; ++j)
+    for (unsigned int j = 0; j < Hex20::num_nodes; ++j)
       node_ids[i].push_back(hex27->node_ref(j).id());
 
     i++;
@@ -204,9 +236,7 @@ SecondOrderHexGenerator::generate()
     elem->set_id(elem_ids[i]);
     mesh->add_elem(elem);
 
-    // node IDs for the i-th element
     const auto & ids = node_ids[i];
-
     for (unsigned int n = 0; n < ids.size(); ++n)
     {
       auto node_ptr = mesh->node_ptr(ids[n]);
@@ -214,7 +244,6 @@ SecondOrderHexGenerator::generate()
     }
   }
 
-  std::cout << "added all elemens" << std::endl;
   mesh->prepare_for_use();
 
   return dynamic_pointer_cast<MeshBase>(mesh);

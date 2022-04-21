@@ -3,7 +3,23 @@
     type = RunException
     input = invalid_elem.i
     cli_args = '--mesh-only'
-    expect_err = "This mesh generator can only be applied to HEX8 elements!"
-    requirement = "The system shall error if an invalid element type is used with a hex8 to hex20 converter"
+    expect_err = "This mesh generator can only be applied to HEX27 elements!"
+    requirement = "The system shall error if an invalid element type is used with a hex27 to hex20 converter"
+  []
+  [multiple_sides]
+    type = RunException
+    input = multiple_sides.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator cannot be applied to elements that have more than one face on the circular sideset!"
+    requirement = "The system shall error if attempting to move elements to a circular surface "
+                  "when those elements have more than one face on the circular sideset."
+  []
+  [offcenter]
+    type = RunException
+    input = offcenter.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator can only be applied to meshes centered on the origin! Your origin is at: \(1, 2, 3\).\n"
+                 "Please use a TransformGenerator to center the input mesh at \(0, 0, 3\)."
+    requirement = "The system shall error if the input mesh is not centered on the origin"
   []
 []
