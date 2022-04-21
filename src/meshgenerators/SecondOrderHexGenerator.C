@@ -146,13 +146,17 @@ SecondOrderHexGenerator::generate()
       "Please use a TransformGenerator to center the input mesh at (",
        desired_origin(0), ", ", desired_origin(1), ", ", desired_origin(2), ").");
 
-  const auto & b_info = mesh->get_boundary_info();
+  const auto & boundary_info = mesh->get_boundary_info();
 
   // corner nodes for each face
   _corner_nodes.resize(Hex27::num_sides);
   for (unsigned int i = 0; i < Hex27::num_sides; ++i)
     for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
       _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
+
+  std::vector<libMesh::dof_id_type> boundary_elem_ids;
+  std::vector<unsigned int> boundary_face_ids;
+  std::vector<std::vector<boundary_id_type>> boundary_ids;
 
   // move the nodes on the surface of interest
   if (_boundary)
@@ -165,7 +169,11 @@ SecondOrderHexGenerator::generate()
       {
         // get the boundary IDs that this element face lie on
         std::vector<boundary_id_type> b;
-        b_info.boundary_ids(elem, s, b);
+        boundary_info.boundary_ids(elem, s, b);
+
+        boundary_elem_ids.push_back(elem->set_id());
+        boundary_face_ids.push_back(s);
+        boundary_ids.push_back(b);
 
         // find the overlap with the specified _boundary
         std::vector<SubdomainID> v(b.size() + _boundary->size());
@@ -196,14 +204,17 @@ SecondOrderHexGenerator::generate()
   // loop over the mesh and store all the element information
   int N = mesh->n_elem();
   std::vector<std::vector<libMesh::dof_id_type>> node_ids;
-  std::vector<libMesh::dof_id_type> elem_ids;
   node_ids.resize(N);
+
+  std::vector<libMesh::dof_id_type> elem_ids;
+  std::vector<libMesh::subdomain_id_type> elem_block_ids;
 
   int i = 0;
   for (const auto & elem : mesh->element_ptr_range())
   {
     libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
     elem_ids.push_back(hex27->set_id());
+    elem_block_ids.push_back(hex27->subdomain_id());
 
     for (unsigned int j = 0; j < Hex20::num_nodes; ++j)
       node_ids[i].push_back(hex27->node_ref(j).id());
@@ -234,6 +245,7 @@ SecondOrderHexGenerator::generate()
   {
     auto elem = new Hex20;
     elem->set_id(elem_ids[i]);
+    elem->subdomain_id() = elem_block_ids[i];
     mesh->add_elem(elem);
 
     const auto & ids = node_ids[i];
@@ -242,6 +254,18 @@ SecondOrderHexGenerator::generate()
       auto node_ptr = mesh->node_ptr(ids[n]);
       elem->set_node(n) = node_ptr;
     }
+  }
+
+  // create the sidesets
+  auto & new_boundary_info = mesh->get_boundary_info();
+  for (unsigned int i = 0; i < boundary_elem_ids.size(); ++i)
+  {
+    auto elem_id = boundary_elem_ids[i];
+    auto face_id = boundary_face_ids[i];
+    auto boundary = boundary_ids[i];
+
+    const auto & elem = mesh->elem_ptr(elem_id);
+    new_boundary_info.add_side(elem, face_id, boundary);
   }
 
   mesh->prepare_for_use();
