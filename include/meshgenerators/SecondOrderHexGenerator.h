@@ -154,7 +154,7 @@ protected:
   std::set<BoundaryID> _boundaries_to_rebuild;
 
   /// Number of layers to sweep on each boundary
-  std::vector<unsigned int> _num_layers;
+  std::vector<unsigned int> _layers;
 
   /// For each face, the node pairing "across" that face to the other side of a Hex27
   std::vector<std::vector<std::pair<unsigned int, unsigned int>>> _across_pair;

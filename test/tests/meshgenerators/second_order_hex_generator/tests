@@ -129,11 +129,19 @@
     requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to "
                   "fit circles based on multiple origins."
   []
-  [layers]
+  [layers_length]
     type = RunException
     input = layers.i
-    cli_args = 'Mesh/to_hex20/num_layers="0 1" --mesh-only'
-    expect_err = "'boundary' and 'num_layers' must be the same length!"
+    cli_args = 'Mesh/to_hex20/layers="0 1" --mesh-only'
+    expect_err = "'boundary' and 'layers' must be the same length!"
     requirement = "The system shall error if the number of layers does not match the number of boundaries to move"
+  []
+  [layers]
+    type = Exodiff
+    input = layers.i
+    exodiff = layers_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving sidesets with "
+                  "boundary layers to fit a cylinder surface."
   []
 []

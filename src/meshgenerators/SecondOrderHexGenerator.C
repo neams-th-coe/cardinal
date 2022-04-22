@@ -41,7 +41,7 @@ SecondOrderHexGenerator::validParams()
   params.addParam<std::vector<Real>>("radius", "Radius(es) of the circular surfaces");
   params.addParam<std::vector<std::vector<Real>>>("origin", "Origin(s) about which to form the circular surfaces; "
     "if not specified, all values default to (0, 0, 0)");
-  params.addParam<std::vector<unsigned int>>("num_layers", "Number of layers to sweep for each "
+  params.addParam<std::vector<unsigned int>>("layers", "Number of layers to sweep for each "
     "boundary when forming the circular surfaces; if not specified, all values default to 0");
 
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
@@ -86,7 +86,7 @@ SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
   {
     checkUnusedParam(params, "axis", "If not setting a 'boundary'");
     checkUnusedParam(params, "origin", "If not setting a 'boundary'");
-    checkUnusedParam(params, "num_layers", "If not setting a 'boundary'");
+    checkUnusedParam(params, "layers", "If not setting a 'boundary'");
   }
 
   _across_pair.resize(Hex27::num_sides);
@@ -246,18 +246,18 @@ SecondOrderHexGenerator::generate()
         _origin.push_back({0.0, 0.0, 0.0});
     }
 
-    if (isParamValid("num_layers"))
+    if (isParamValid("layers"))
     {
-      _num_layers = getParam<std::vector<unsigned int>>("num_layers");
+      _layers = getParam<std::vector<unsigned int>>("layers");
 
-      if (_moving_boundary.size() != _num_layers.size())
-        mooseError("'boundary' and 'num_layers' must be the same length!");
+      if (_moving_boundary.size() != _layers.size())
+        mooseError("'boundary' and 'layers' must be the same length!");
     }
     else
     {
       // set to the default values of 0
       for (const auto & b : _moving_boundary)
-        _num_layers.push_back(0.0);
+        _layers.push_back(0.0);
     }
   }
 
@@ -347,7 +347,7 @@ SecondOrderHexGenerator::generate()
           Point adjustment = adjustPointToCircle(face_node, elem, _radius[index], pt);
 
           // move boundary layers of paired nodes, if present
-          if (_num_layers[index] > 0)
+          if (_layers[index] > 0)
           {
             // find the paired node
             unsigned int pair;
@@ -360,7 +360,7 @@ SecondOrderHexGenerator::generate()
               }
             }
 
-            for (unsigned int l = 0; l < _num_layers[index]; ++l)
+            for (unsigned int l = 0; l < _layers[index]; ++l)
             {
               auto & paired_node = elem->node_ref(pair);
               paired_node += adjustment;
