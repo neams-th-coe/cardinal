@@ -7,7 +7,7 @@
     type = SecondOrderHexGenerator
     input = tube
     boundary = 'rmin'
-    radius = 0.05
+    radius = '0.05'
   []
 
   parallel_type = replicated

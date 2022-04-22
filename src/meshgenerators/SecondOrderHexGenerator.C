@@ -38,7 +38,9 @@ SecondOrderHexGenerator::validParams()
   params.addParam<MooseEnum>("axis", axis, "Axis of the mesh about which to build "
     "the circular surface");
   params.addParam<std::vector<BoundaryName>>("boundary", "Boundary(s) to enforce a circular surface");
-  params.addRangeCheckedParam<Real>("radius", "radius > 0.0", "Radius of the circular surface");
+  params.addParam<std::vector<Real>>("radius", "Radius(es) of the circular surfaces");
+  params.addParam<std::vector<std::vector<Real>>>("origin", "Origin(s) about which to form the circular surfaces; "
+    "if not specified, all values default to (0, 0, 0)");
 
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
   // of clearing out lingering sidesets used for stitching, but not for actual BCs/physics
@@ -79,24 +81,30 @@ SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
     checkRequiredParam(params, "boundary", "When specifying a 'radius'");
 
   if (!isParamValid("boundary") && !isParamValid("radius"))
-    checkUnusedParam(parameters(), "axis", "If not setting a 'boundary'");
+  {
+    checkUnusedParam(params, "axis", "If not setting a 'boundary'");
+    checkUnusedParam(params, "origin", "If not setting a 'boundary'");
+  }
+}
+
+Point
+SecondOrderHexGenerator::projectPoint(const Point & origin, const Point & pt) const
+{
+  Point vec = pt - origin;
+  vec(_axis) = 0.0;
+  return vec;
 }
 
 void
-SecondOrderHexGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem) const
+SecondOrderHexGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const
 {
   auto & node = elem->node_ref(node_id);
-
-  // point to node in (x, y, z) space
   const Point pt(node(0), node(1), node(2));
 
   // project point onto the circle plane and convert to unit vector
-  Point xy_plane = pt;
-  xy_plane(_axis) = 0.0;
-  Real d0 = xy_plane.norm();
-  xy_plane = xy_plane.unit();
+  Point xy_plane = projectPoint(origin, pt);
 
-  node = pt + xy_plane * (_radius - d0);
+  node = pt + xy_plane.unit() * (radius - xy_plane.norm());
 }
 
 void
@@ -124,26 +132,6 @@ SecondOrderHexGenerator::midPointNodeIndex(const unsigned int & face_id, const u
   return _side_ids[face_id][it - primary_nodes.begin()];
 }
 
-void
-SecondOrderHexGenerator::checkOrigin(const MeshBase & mesh) const
-{
-  const auto bbox = MeshTools::create_bounding_box(mesh);
-  auto origin = 0.5 * (bbox.max() + bbox.min());
-
-  auto adjusted_origin = origin;
-  adjusted_origin(_axis) = 0.0;
-
-  Point zero(0.0, 0.0, 0.0);
-  auto desired_origin = zero;
-  desired_origin(_axis) = origin(_axis);
-
-  if (!adjusted_origin.absolute_fuzzy_equals(zero))
-    mooseError("This mesh generator can only be applied to meshes centered on the origin! "
-      "Your origin is at: (", origin(0), ", ", origin(1), ", ", origin(2), ").\n"
-      "Please use a TransformGenerator to center the input mesh at (",
-       desired_origin(0), ", ", desired_origin(1), ", ", desired_origin(2), ").");
-}
-
 BoundaryID
 SecondOrderHexGenerator::getBoundaryID(const BoundaryName & name, const MeshBase & mesh) const
 {
@@ -155,6 +143,34 @@ SecondOrderHexGenerator::getBoundaryID(const BoundaryName & name, const MeshBase
     mooseError("Boundary '", name, "' was not found in the mesh!");
 
   return id;
+}
+
+Point
+SecondOrderHexGenerator::getClosestOrigin(const unsigned int & index, const Point & pt) const
+{
+  const auto & candidates = _origin[index];
+  double distance = std::numeric_limits<double>::max();
+  int origin_index;
+
+  int n_origins = candidates.size() / 3;
+  for (int i = 0; i < n_origins; ++i)
+  {
+    Point origin(candidates[3 * i], candidates[3 * i + 1], candidates[3 * i + 2]);
+
+    // get the distance to this origin
+    Point d = pt - origin;
+    d(_axis) = 0.0;
+    Real current_distance = d.norm();
+
+    if (current_distance < distance)
+    {
+      distance = current_distance;
+      origin_index = i;
+    }
+  }
+
+  Point closest(candidates[3 * origin_index], candidates[3 * origin_index + 1], candidates[3 * origin_index + 2]);
+  return closest;
 }
 
 std::unique_ptr<MeshBase>
@@ -170,11 +186,44 @@ SecondOrderHexGenerator::generate()
   // get the boundary movement information, and check for valid user specifications
   if (isParamValid("boundary"))
   {
-    _radius = getParam<Real>("radius");
+    _radius = getParam<std::vector<Real>>("radius");
+
+    for (const auto & r : _radius)
+      if (r <= 0.0)
+        mooseError("All entries in 'radius' must be non-zero and positive!");
 
     const auto & moving_names = getParam<std::vector<BoundaryName>>("boundary");
     for (const auto & name : moving_names)
       _moving_boundary.push_back(getBoundaryID(name, *mesh));
+
+    if (_moving_boundary.size() != _radius.size())
+      mooseError("'boundary' and 'radius' must be the same length!");
+
+    if (isParamValid("origin"))
+    {
+      _origin = getParam<std::vector<std::vector<Real>>>("origin");
+
+      if (_moving_boundary.size() != _origin.size())
+        mooseError("'boundary' and 'origin' must be the same length!");
+
+      // in the case of multiple origins for one boundary, check that each has correct length
+      for (const auto & o : _origin)
+      {
+        if (o.size() == 0)
+          mooseError("Zero-length entry in 'origin' detected! Please be sure that each "
+            "entry in 'origin' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
+
+        if (o.size() % 3 != 0)
+          mooseError("When using multiple origins for one boundary, each entry in 'origin' "
+            "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
+      }
+    }
+    else
+    {
+      // set to the default value of (0, 0, 0)
+      for (const auto & r : _radius)
+        _origin.push_back({0.0, 0.0, 0.0});
+    }
   }
 
   // get information on which boundaries to rebuild, and check for valid user specifications
@@ -200,9 +249,6 @@ SecondOrderHexGenerator::generate()
       mooseError("This mesh generator can only be applied to HEX27 elements!");
   }
 
-  // check that the mesh is centered on the origin (for the plane of the circle)
-  checkOrigin(*mesh);
-
   // store the existing boundary IDs and names
   for (const auto & b: boundary_info.get_boundary_ids())
     _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
@@ -227,16 +273,33 @@ SecondOrderHexGenerator::generate()
       boundary_face_ids.push_back(s);
       boundary_ids.push_back(b);
 
-      if (!_has_moving_boundary)
+      // if there is no moving boundary, or no faces of this element are on any boundaries, we can leave
+      if (!_has_moving_boundary || b.size() == 0)
         continue;
 
-      // find the overlap with the specified _moving_boundary
-      std::vector<SubdomainID> v(b.size() + _moving_boundary.size());
-      std::vector<SubdomainID>::iterator it, st;
-      it = std::set_intersection(b.begin(), b.end(), _moving_boundary.begin(), _moving_boundary.end(), v.begin());
+      // is this face on any of the specified boundaries?
+      std::vector<int> indices;
 
-      for (st = v.begin(); st != it; ++st)
+      for (const auto & b_index : b)
       {
+        auto it = std::find(_moving_boundary.begin(), _moving_boundary.end(), b_index);
+
+        if (it != _moving_boundary.end())
+          indices.push_back(it - _moving_boundary.begin());
+      }
+
+      // TODO: could relax this
+      if (indices.size() > 1)
+        mooseError("This mesh generator does not support elements with the same face "
+          "existing on multiple side sets!");
+
+      // use the element centroid for finding the closest origin
+      const Point centroid = elem->vertex_average();
+
+      for (unsigned int ii = 0; ii < indices.size(); ++ii)
+      {
+        unsigned int index = indices[ii];
+
         if (at_least_one_face_on_boundary)
           mooseError("This mesh generator cannot be applied to elements that have more than "
             "one face on the circular sideset!");
@@ -245,7 +308,8 @@ SecondOrderHexGenerator::generate()
 
         for (auto & face_node : nodesOnFace(s))
         {
-          adjustPointToCircle(face_node, elem);
+          Point pt = getClosestOrigin(index, centroid);
+          adjustPointToCircle(face_node, elem, _radius[index], pt);
 
           // if this is a corner node, we also need to adjust the mid-point node
           if (isCornerNode(face_node))

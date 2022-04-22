@@ -38,6 +38,24 @@ on the cylinder.
   caption=Input, output, and NekRS meshes involved in mesh conversion example
   style=width:60%;margin-left:auto;margin-right:auto
 
+For a second example, consider the case where you have one boundary that you
+want to move with *multiple* origins. In this case, list the points in `origin`
+for each boundary, with a semicolon separating the origins to be used for each
+`boundary`.
+
+!listing /test/tests/meshgenerators/second_order_hex_generator/multiple_origins.i
+
+[rebuilt_mesh2] shows the meshes involved in this second example; the original
+mesh (`fluid.exo`) is a HEX27 mesh, which gets converted to a HEX20 mesh where
+boundary `1` is moved according to the nearest origin from a set of 7 different origins.
+This allows you to group all the surfaces into one sideset, but move them to
+unique origins.
+
+!media multi_hex_generator.png
+  id=rebuilt_mesh2
+  caption=Input and output meshes when using multiple origins for a single sideset
+  style=width:50%;margin-left:auto;margin-right:auto
+
 !syntax parameters /Mesh/SecondOrderHexGenerator
 
 !syntax inputs /Mesh/SecondOrderHexGenerator

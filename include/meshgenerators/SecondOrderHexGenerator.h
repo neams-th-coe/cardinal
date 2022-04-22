@@ -38,6 +38,22 @@ public:
   std::unique_ptr<MeshBase> generate() override;
 
   /**
+   * Find the origin closest to the given point
+   * @param[in] index boundary index to look for origins
+   * @param[in] pt point of interest
+   * @return closest origin
+   */
+  Point getClosestOrigin(const unsigned int & index, const Point & pt) const;
+
+  /**
+   * Project a point onto the (x,y) plane (perpendicular to the 'axis'), relative to the origin
+   * @param[in] origin origin
+   * @param[in] pt point to project
+   * @return projected point
+   */
+  Point projectPoint(const Point & origin, const Point & pt) const;
+
+  /**
    * Get the boundary ID pertaining to a boundary name, and check for validity
    * @param[in] name boundary to check
    * @param[in] mesh mesh
@@ -52,6 +68,11 @@ public:
    */
   void checkOrigin(const MeshBase & mesh) const;
 
+  /**
+   * Whether a node on a face if a corner node
+   * @param[in] node node index
+   * @return whether node is a corner node
+   */
   bool isCornerNode(const unsigned int & node) const
   {
     return node < Hex8::num_nodes;
@@ -62,8 +83,13 @@ public:
    * @param[in] node_id node ID
    * @param[in] elem element of interest
    */
-  void adjustPointToCircle(const unsigned int & node_id, Elem * elem) const;
+  void adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const;
 
+  /**
+   * Get the node indices on a given face
+   * @param[in] face face index
+   * @return node indices on that face
+   */
   const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const
   {
     const auto & side_map = Hex27::side_nodes_map[face];
@@ -101,8 +127,11 @@ protected:
   /// Sideset IDs to move to fit the circular surface
   std::vector<BoundaryID> _moving_boundary;
 
-  /// Radius of the circular surface
-  Real _radius;
+  /// Radii of the circular surface(s)
+  std::vector<Real> _radius;
+
+  /// Origins of the circular surface(s)
+  std::vector<std::vector<Real>> _origin;
 
   /// For each face, the mid-side nodes to be adjusted
   std::vector<std::vector<unsigned int>> _side_ids;
