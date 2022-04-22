@@ -38,6 +38,13 @@ public:
   std::unique_ptr<MeshBase> generate() override;
 
   /**
+   * Get the two nodes to average coordinates for given a side-node id
+   * @param[in] node_id mid-point side node ID
+   * @return two nodes on the corners to average to get new coordinates
+   */
+  std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const;
+
+  /**
    * Find the origin closest to the given point
    * @param[in] index boundary index to look for origins
    * @param[in] pt point of interest
@@ -82,8 +89,9 @@ public:
    * Adjust the point to which a face node should move to fit onto the circle
    * @param[in] node_id node ID
    * @param[in] elem element of interest
+   * @return adjustment made to point, for use when shifting other boundary layers
    */
-  void adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const;
+  Point adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const;
 
   /**
    * Get the node indices on a given face
@@ -144,4 +152,10 @@ protected:
 
   /// Boundaries to rebuild in the new mesh
   std::set<BoundaryID> _boundaries_to_rebuild;
+
+  /// Number of layers to sweep on each boundary
+  std::vector<unsigned int> _num_layers;
+
+  /// For each face, the node pairing "across" that face to the other side of a Hex27
+  std::vector<std::vector<std::pair<unsigned int, unsigned int>>> _across_pair;
 };

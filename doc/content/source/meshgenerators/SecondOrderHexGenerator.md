@@ -56,6 +56,25 @@ unique origins.
   caption=Input and output meshes when using multiple origins for a single sideset
   style=width:50%;margin-left:auto;margin-right:auto
 
+When your mesh has boundary layers that are thin relative to the mesh movement
+needed to fit to cylinder surfaces, it is possible to obtain inverted elements.
+You can move the elements on the "other" side of the element face lying on the
+cylinder by setting the `num_layers` variable. With this parameter, if node
+$A$ on face 0 moves by $\Delta x$ to get onto the cylinder surface, then the
+same displacement is applied to that node's "pair" on the opposite face.
+An example of this usage is shown below, where nodes not on the boundary of
+interest are still moved in order to better mesh the boundary layer.
+
+!listing /test/tests/meshgenerators/second_order_hex_generator/layers.i
+
+[rebuilt_mesh3] shows the effect of setting `num_layers` (which defaults to zero)
+to `1`.
+
+!media hex_generator_layers.png
+  id=rebuilt_mesh3
+  caption=Input and output meshes when using different `num_layers` settings
+  style=width:50%;margin-left:auto;margin-right:auto
+
 !syntax parameters /Mesh/SecondOrderHexGenerator
 
 !syntax inputs /Mesh/SecondOrderHexGenerator

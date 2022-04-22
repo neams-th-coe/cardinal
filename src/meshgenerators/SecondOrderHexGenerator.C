@@ -41,6 +41,8 @@ SecondOrderHexGenerator::validParams()
   params.addParam<std::vector<Real>>("radius", "Radius(es) of the circular surfaces");
   params.addParam<std::vector<std::vector<Real>>>("origin", "Origin(s) about which to form the circular surfaces; "
     "if not specified, all values default to (0, 0, 0)");
+  params.addParam<std::vector<unsigned int>>("num_layers", "Number of layers to sweep for each "
+    "boundary when forming the circular surfaces; if not specified, all values default to 0");
 
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
   // of clearing out lingering sidesets used for stitching, but not for actual BCs/physics
@@ -84,7 +86,16 @@ SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
   {
     checkUnusedParam(params, "axis", "If not setting a 'boundary'");
     checkUnusedParam(params, "origin", "If not setting a 'boundary'");
+    checkUnusedParam(params, "num_layers", "If not setting a 'boundary'");
   }
+
+  _across_pair.resize(Hex27::num_sides);
+  _across_pair[0] = {{0, 4}, {8, 16}, {1, 5}, {11, 19}, {20, 25}, {9, 17}, {3, 7}, {10, 18}, {2, 6}};
+  _across_pair[1] = {{0, 3}, {8, 10}, {1, 2}, {12, 15}, {21, 23}, {13, 14}, {4, 7}, {16, 18}, {5, 6}};
+  _across_pair[2] = {{1, 0}, {9, 11}, {2, 3}, {13, 12}, {22, 24}, {14, 15}, {5, 4}, {17, 19}, {6, 7}};
+  _across_pair[3] = {{3, 0}, {10, 8}, {2, 1}, {15, 12}, {23, 21}, {14, 13}, {7, 4}, {18, 16}, {6, 5}};
+  _across_pair[4] = {{0, 1}, {11, 9}, {3, 2}, {12, 13}, {24, 22}, {15, 14}, {4, 5}, {19, 17}, {7, 6}};
+  _across_pair[5] = {{4, 0}, {16, 8}, {5, 1}, {19, 11}, {25, 20}, {17, 9}, {7, 3}, {18, 10}, {6, 2}};
 }
 
 Point
@@ -95,7 +106,7 @@ SecondOrderHexGenerator::projectPoint(const Point & origin, const Point & pt) co
   return vec;
 }
 
-void
+Point
 SecondOrderHexGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const
 {
   auto & node = elem->node_ref(node_id);
@@ -104,19 +115,29 @@ SecondOrderHexGenerator::adjustPointToCircle(const unsigned int & node_id, Elem 
   // project point onto the circle plane and convert to unit vector
   Point xy_plane = projectPoint(origin, pt);
 
-  node = pt + xy_plane.unit() * (radius - xy_plane.norm());
+  Point adjustment = xy_plane.unit() * (radius - xy_plane.norm());
+
+  node = pt + adjustment;
+  return adjustment;
+}
+
+std::pair<unsigned int, unsigned int>
+SecondOrderHexGenerator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
+{
+  int index = node_id - Hex8::num_nodes;
+  unsigned int p0 = Hex27::edge_nodes_map[index][0];
+  unsigned int p1 = Hex27::edge_nodes_map[index][1];
+  return {p0, p1};
 }
 
 void
 SecondOrderHexGenerator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) const
 {
-  int index = node_id - Hex8::num_nodes;
-  unsigned int p0 = Hex27::edge_nodes_map[index][0];
-  unsigned int p1 = Hex27::edge_nodes_map[index][1];
+  std::pair<unsigned int, unsigned int> p = pairedNodesAboutMidPoint(node_id);
 
   auto & adjust = elem->node_ref(node_id);
-  const auto & primary = elem->node_ref(p0);
-  const auto & secondary = elem->node_ref(p1);
+  const auto & primary = elem->node_ref(p.first);
+  const auto & secondary = elem->node_ref(p.second);
 
   Point pt(0.5 * (primary(0) + secondary(0)), 0.5 * (primary(1) + secondary(1)),
            0.5 * (primary(2) + secondary(2)));
@@ -224,6 +245,20 @@ SecondOrderHexGenerator::generate()
       for (const auto & r : _radius)
         _origin.push_back({0.0, 0.0, 0.0});
     }
+
+    if (isParamValid("num_layers"))
+    {
+      _num_layers = getParam<std::vector<unsigned int>>("num_layers");
+
+      if (_moving_boundary.size() != _num_layers.size())
+        mooseError("'boundary' and 'num_layers' must be the same length!");
+    }
+    else
+    {
+      // set to the default values of 0
+      for (const auto & b : _moving_boundary)
+        _num_layers.push_back(0.0);
+    }
   }
 
   // get information on which boundaries to rebuild, and check for valid user specifications
@@ -288,10 +323,9 @@ SecondOrderHexGenerator::generate()
           indices.push_back(it - _moving_boundary.begin());
       }
 
-      // TODO: could relax this
       if (indices.size() > 1)
         mooseError("This mesh generator does not support elements with the same face "
-          "existing on multiple side sets!");
+          "existing on multiple moving side sets!");
 
       // use the element centroid for finding the closest origin
       const Point centroid = elem->vertex_average();
@@ -305,11 +339,33 @@ SecondOrderHexGenerator::generate()
             "one face on the circular sideset!");
 
         at_least_one_face_on_boundary = true;
+        Point pt = getClosestOrigin(index, centroid);
 
+        auto paired_nodes_for_face = _across_pair[s];
         for (auto & face_node : nodesOnFace(s))
         {
-          Point pt = getClosestOrigin(index, centroid);
-          adjustPointToCircle(face_node, elem, _radius[index], pt);
+          Point adjustment = adjustPointToCircle(face_node, elem, _radius[index], pt);
+
+          // move boundary layers of paired nodes, if present
+          if (_num_layers[index] > 0)
+          {
+            // find the paired node
+            unsigned int pair;
+            for (const auto & p : paired_nodes_for_face)
+            {
+              if (p.first == face_node)
+              {
+                pair = p.second;
+                break;
+              }
+            }
+
+            for (unsigned int l = 0; l < _num_layers[index]; ++l)
+            {
+              auto & paired_node = elem->node_ref(pair);
+              paired_node += adjustment;
+            }
+          }
 
           // if this is a corner node, we also need to adjust the mid-point node
           if (isCornerNode(face_node))
