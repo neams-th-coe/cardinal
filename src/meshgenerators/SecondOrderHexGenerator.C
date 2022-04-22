@@ -194,6 +194,56 @@ SecondOrderHexGenerator::getClosestOrigin(const unsigned int & index, const Poin
   return closest;
 }
 
+unsigned int
+SecondOrderHexGenerator::pairedFaceNode(const unsigned int & node_id, const unsigned int & face_id) const
+{
+  unsigned int pair;
+
+  for (const auto & p : _across_pair[face_id])
+  {
+    if (p.first == node_id)
+    {
+      pair = p.second;
+      break;
+    }
+  }
+
+  return pair;
+}
+
+void
+SecondOrderHexGenerator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face)
+{
+  // use the element centroid for finding the closest origin
+  const Point centroid = elem->vertex_average();
+  Point pt = getClosestOrigin(boundary_index, centroid);
+
+  auto paired_nodes_for_face = _across_pair[primary_face];
+
+  for (auto & face_node : nodesOnFace(primary_face))
+  {
+    // move the points on the primary face
+    Point adjustment = adjustPointToCircle(face_node, elem, _radius[boundary_index], pt);
+
+    // move boundary layers of paired nodes, if present
+    if (_layers[boundary_index] > 0)
+    {
+      // find the paired node
+      unsigned int pair = pairedFaceNode(face_node, primary_face);
+
+      for (unsigned int l = 0; l < _layers[boundary_index]; ++l)
+      {
+        auto & paired_node = elem->node_ref(pair);
+        paired_node += adjustment;
+      }
+    }
+
+    // if this is a corner node, we also need to adjust the mid-point node
+    if (isCornerNode(face_node))
+      adjustMidPointNode(midPointNodeIndex(primary_face, face_node), elem);
+  }
+}
+
 std::unique_ptr<MeshBase>
 SecondOrderHexGenerator::generate()
 {
@@ -336,44 +386,12 @@ SecondOrderHexGenerator::generate()
       // use the element centroid for finding the closest origin
       const Point centroid = elem->vertex_average();
 
-
       if (at_least_one_face_on_boundary)
         mooseError("This mesh generator cannot be applied to elements that have more than "
           "one face on the circular sideset!");
 
       at_least_one_face_on_boundary = true;
-      Point pt = getClosestOrigin(index, centroid);
-
-      auto paired_nodes_for_face = _across_pair[s];
-      for (auto & face_node : nodesOnFace(s))
-      {
-        Point adjustment = adjustPointToCircle(face_node, elem, _radius[index], pt);
-
-        // move boundary layers of paired nodes, if present
-        if (_layers[index] > 0)
-        {
-          // find the paired node
-          unsigned int pair;
-          for (const auto & p : paired_nodes_for_face)
-          {
-            if (p.first == face_node)
-            {
-              pair = p.second;
-              break;
-            }
-          }
-
-          for (unsigned int l = 0; l < _layers[index]; ++l)
-          {
-            auto & paired_node = elem->node_ref(pair);
-            paired_node += adjustment;
-          }
-        }
-
-        // if this is a corner node, we also need to adjust the mid-point node
-        if (isCornerNode(face_node))
-          adjustMidPointNode(midPointNodeIndex(s, face_node), elem);
-      }
+      moveElem(elem, index, s);
     }
   }
 

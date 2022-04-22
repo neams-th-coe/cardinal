@@ -37,6 +37,12 @@ public:
 
   std::unique_ptr<MeshBase> generate() override;
 
+  unsigned int pairedFaceNode(const unsigned int & node_id, const unsigned int & face_id) const;
+
+void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face);
+
+
+
   /**
    * Get the two nodes to average coordinates for given a side-node id
    * @param[in] node_id mid-point side node ID
