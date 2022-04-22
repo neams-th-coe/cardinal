@@ -73,7 +73,7 @@ to `1`.
 !media hex_generator_layers.png
   id=rebuilt_mesh3
   caption=Input and output meshes when using different `layers` settings
-  style=width:50%;margin-left:auto;margin-right:auto
+  style=width:90%;margin-left:auto;margin-right:auto
 
 !syntax parameters /Mesh/SecondOrderHexGenerator
 
