@@ -7,7 +7,7 @@
     rmax = 1.0
   []
   [to_hex20]
-    type = SecondOrderHexGenerator
+    type = Hex20Generator
     input = clad
   []
 

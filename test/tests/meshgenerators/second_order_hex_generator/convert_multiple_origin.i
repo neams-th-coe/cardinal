@@ -10,7 +10,7 @@
     vector_value = '1.0 0.0 0.0'
   []
   [to_hex20]
-    type = SecondOrderHexGenerator
+    type = Hex20Generator
     input = translate
     boundary = 'rmin rmax'
     radius = '0.05 0.2'

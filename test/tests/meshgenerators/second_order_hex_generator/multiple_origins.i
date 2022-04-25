@@ -4,7 +4,7 @@
     file = fluid.exo
   []
   [to_hex20]
-    type = SecondOrderHexGenerator
+    type = Hex20Generator
     input = fluid
     boundary = '1'
     radius = '${fparse 7.646e-3 / 2.0}'

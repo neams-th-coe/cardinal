@@ -1,6 +1,6 @@
-# SecondOrderHexGenerator
+# Hex20Generator
 
-!syntax description /Mesh/SecondOrderHexGenerator
+!syntax description /Mesh/Hex20Generator
 
 ## Description
 
@@ -75,8 +75,8 @@ to `1`.
   caption=Input and output meshes when using different `layers` settings
   style=width:90%;margin-left:auto;margin-right:auto
 
-!syntax parameters /Mesh/SecondOrderHexGenerator
+!syntax parameters /Mesh/Hex20Generator
 
-!syntax inputs /Mesh/SecondOrderHexGenerator
+!syntax inputs /Mesh/Hex20Generator
 
-!syntax children /Mesh/SecondOrderHexGenerator
+!syntax children /Mesh/Hex20Generator

@@ -28,12 +28,12 @@
  * preservation of circular edges by moving the mid-edge nodes to form a
  * circular sideset in the plane perpendicular to the 'axis'.
  */
-class SecondOrderHexGenerator : public MeshGenerator
+class Hex20Generator : public MeshGenerator
 {
 public:
   static InputParameters validParams();
 
-  SecondOrderHexGenerator(const InputParameters & parameters);
+  Hex20Generator(const InputParameters & parameters);
 
   std::unique_ptr<MeshBase> generate() override;
 

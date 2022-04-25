@@ -4,7 +4,7 @@
     file = tube_in.e
   []
   [to_hex20]
-    type = SecondOrderHexGenerator
+    type = Hex20Generator
     input = tube
     boundary = '10'
     radius = '0.6'

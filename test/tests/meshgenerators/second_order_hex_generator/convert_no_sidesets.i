@@ -4,7 +4,7 @@
     file = tube_in.e
   []
   [to_hex20]
-    type = SecondOrderHexGenerator
+    type = Hex20Generator
     input = tube
     boundaries_to_rebuild = ''
   []

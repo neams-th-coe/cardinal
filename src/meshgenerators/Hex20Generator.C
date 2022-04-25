@@ -16,7 +16,7 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "SecondOrderHexGenerator.h"
+#include "Hex20Generator.h"
 #include "CastUniquePointer.h"
 #include "UserErrorChecking.h"
 #include "MooseMeshUtils.h"
@@ -25,10 +25,10 @@
 #include "libmesh/cell_hex20.h"
 #include "libmesh/cell_hex8.h"
 
-registerMooseObject("CardinalApp", SecondOrderHexGenerator);
+registerMooseObject("CardinalApp", Hex20Generator);
 
 InputParameters
-SecondOrderHexGenerator::validParams()
+Hex20Generator::validParams()
 {
   InputParameters params = MeshGenerator::validParams();
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
@@ -56,7 +56,7 @@ SecondOrderHexGenerator::validParams()
   return params;
 }
 
-SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
+Hex20Generator::Hex20Generator(const InputParameters & params)
   : MeshGenerator(params),
     _input(getMesh("input")),
     _axis(getParam<MooseEnum>("axis")),
@@ -107,7 +107,7 @@ SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
 }
 
 Point
-SecondOrderHexGenerator::projectPoint(const Point & origin, const Point & pt) const
+Hex20Generator::projectPoint(const Point & origin, const Point & pt) const
 {
   Point vec = pt - origin;
   vec(_axis) = 0.0;
@@ -115,7 +115,7 @@ SecondOrderHexGenerator::projectPoint(const Point & origin, const Point & pt) co
 }
 
 Point
-SecondOrderHexGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const
+Hex20Generator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const
 {
   auto & node = elem->node_ref(node_id);
   const Point pt(node(0), node(1), node(2));
@@ -130,7 +130,7 @@ SecondOrderHexGenerator::adjustPointToCircle(const unsigned int & node_id, Elem 
 }
 
 std::pair<unsigned int, unsigned int>
-SecondOrderHexGenerator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
+Hex20Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
 {
   int index = node_id - Hex8::num_nodes;
   unsigned int p0 = Hex27::edge_nodes_map[index][0];
@@ -139,7 +139,7 @@ SecondOrderHexGenerator::pairedNodesAboutMidPoint(const unsigned int & node_id) 
 }
 
 void
-SecondOrderHexGenerator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) const
+Hex20Generator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) const
 {
   std::pair<unsigned int, unsigned int> p = pairedNodesAboutMidPoint(node_id);
 
@@ -154,7 +154,7 @@ SecondOrderHexGenerator::adjustMidPointNode(const unsigned int & node_id, Elem *
 }
 
 unsigned int
-SecondOrderHexGenerator::midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const
+Hex20Generator::midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const
 {
   const auto & primary_nodes = _corner_nodes[face_id];
   auto it = std::find(primary_nodes.begin(), primary_nodes.end(), face_node);
@@ -162,7 +162,7 @@ SecondOrderHexGenerator::midPointNodeIndex(const unsigned int & face_id, const u
 }
 
 BoundaryID
-SecondOrderHexGenerator::getBoundaryID(const BoundaryName & name, const MeshBase & mesh) const
+Hex20Generator::getBoundaryID(const BoundaryName & name, const MeshBase & mesh) const
 {
   auto & boundary_info = mesh.get_boundary_info();
   auto id = MooseMeshUtils::getBoundaryID(name, mesh);
@@ -175,7 +175,7 @@ SecondOrderHexGenerator::getBoundaryID(const BoundaryName & name, const MeshBase
 }
 
 Point
-SecondOrderHexGenerator::getClosestOrigin(const unsigned int & index, const Point & pt) const
+Hex20Generator::getClosestOrigin(const unsigned int & index, const Point & pt) const
 {
   const auto & candidates = _origin[index];
   double distance = std::numeric_limits<double>::max();
@@ -203,7 +203,7 @@ SecondOrderHexGenerator::getClosestOrigin(const unsigned int & index, const Poin
 }
 
 unsigned int
-SecondOrderHexGenerator::pairedFaceNode(const unsigned int & node_id, const unsigned int & face_id) const
+Hex20Generator::pairedFaceNode(const unsigned int & node_id, const unsigned int & face_id) const
 {
   unsigned int pair;
 
@@ -220,7 +220,7 @@ SecondOrderHexGenerator::pairedFaceNode(const unsigned int & node_id, const unsi
 }
 
 const Elem *
-SecondOrderHexGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touching_face, unsigned int & next_touching_face) const
+Hex20Generator::getNextLayerElem(const Elem & elem, const unsigned int & touching_face, unsigned int & next_touching_face) const
 
 {
   std::set<const Elem * > neighbor_set;
@@ -262,7 +262,7 @@ SecondOrderHexGenerator::getNextLayerElem(const Elem & elem, const unsigned int 
 }
 
 void
-SecondOrderHexGenerator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face)
+Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face)
 {
   // use the element centroid for finding the closest origin
   const Point centroid = elem->vertex_average();
@@ -307,7 +307,7 @@ SecondOrderHexGenerator::moveElem(Elem * elem, const unsigned int & boundary_ind
 }
 
 unsigned int
-SecondOrderHexGenerator::getNodeIndex(const Elem * elem, const Point & pt) const
+Hex20Generator::getNodeIndex(const Elem * elem, const Point & pt) const
 {
   for (unsigned int i = 0; i < Hex27::num_nodes; ++i)
     if (pt.absolute_fuzzy_equals(elem->point(i)))
@@ -317,7 +317,7 @@ SecondOrderHexGenerator::getNodeIndex(const Elem * elem, const Point & pt) const
 }
 
 std::unique_ptr<MeshBase>
-SecondOrderHexGenerator::generate()
+Hex20Generator::generate()
 {
   std::unique_ptr<MeshBase> mesh = std::move(_input);
   auto & boundary_info = mesh->get_boundary_info();

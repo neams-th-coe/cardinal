@@ -12,7 +12,7 @@
     vector_value = '0.5 0.5 0.0'
   []
   [to_hex20]
-    type = SecondOrderHexGenerator
+    type = Hex20Generator
     input = offcenter
     boundary = '3'
     radius = '2.0'
