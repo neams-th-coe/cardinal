@@ -96,6 +96,14 @@ SecondOrderHexGenerator::SecondOrderHexGenerator(const InputParameters & params)
   _across_pair[3] = {{3, 0}, {10, 8}, {2, 1}, {15, 12}, {23, 21}, {14, 13}, {7, 4}, {18, 16}, {6, 5}};
   _across_pair[4] = {{0, 1}, {11, 9}, {3, 2}, {12, 13}, {24, 22}, {15, 14}, {4, 5}, {19, 17}, {7, 6}};
   _across_pair[5] = {{4, 0}, {16, 8}, {5, 1}, {19, 11}, {25, 20}, {17, 9}, {7, 3}, {18, 10}, {6, 2}};
+
+  _across_face.resize(Hex27::num_sides);
+  _across_face[0] = 5;
+  _across_face[1] = 3;
+  _across_face[2] = 4;
+  _across_face[3] = 1;
+  _across_face[4] = 2;
+  _across_face[5] = 0;
 }
 
 Point
@@ -211,6 +219,48 @@ SecondOrderHexGenerator::pairedFaceNode(const unsigned int & node_id, const unsi
   return pair;
 }
 
+const Elem *
+SecondOrderHexGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touching_face, unsigned int & next_touching_face) const
+
+{
+  std::set<const Elem * > neighbor_set;
+
+  // for the input element, get the node index on the mid-face, since for Hex27 that should
+  // only uniquely touch one other element
+  auto face_node = Hex27::side_nodes_map[touching_face][Hex27::nodes_per_side - 1];
+  auto face_pt = elem.point(face_node);
+
+  elem.find_point_neighbors(face_pt, neighbor_set);
+
+  if (neighbor_set.size() > 2)
+    mooseError("This mesh generator does not support meshes with Hex27 elements that share "
+      "mid-side nodes\nwith more than one other element! Detected element ", elem.id(),
+      " sharing mid-point node with ", neighbor_set.size(), " neighbors.");
+
+  std::set<const Elem *>::iterator it = neighbor_set.begin();
+  for (int i = 0; i < neighbor_set.size(); ++i, it++)
+  {
+    auto & e = *(*it);
+
+    // we restrict the size to 2, so just return the element that is NOT the input element
+    if ((*it)->id() != elem.id())
+    {
+      // get the face that is touching the 'touching_face', but on the output element
+      for (unsigned int j = 0; j < Hex27::num_sides; ++j)
+      {
+        auto node_index = Hex27::side_nodes_map[j][Hex27::nodes_per_side - 1];
+        if (face_pt.absolute_fuzzy_equals((*it)->point(node_index)))
+          next_touching_face = j;
+      }
+
+      return *it;
+    }
+  }
+
+  mooseError("Failed to find a neighbor element across the boundary layer! Please check that\n"
+    "the 'layers' are set to reasonable values.");
+}
+
 void
 SecondOrderHexGenerator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face)
 {
@@ -218,30 +268,52 @@ SecondOrderHexGenerator::moveElem(Elem * elem, const unsigned int & boundary_ind
   const Point centroid = elem->vertex_average();
   Point pt = getClosestOrigin(boundary_index, centroid);
 
-  auto paired_nodes_for_face = _across_pair[primary_face];
-
   for (auto & face_node : nodesOnFace(primary_face))
   {
     // move the points on the primary face
     Point adjustment = adjustPointToCircle(face_node, elem, _radius[boundary_index], pt);
 
     // move boundary layers of paired nodes, if present
-    if (_layers[boundary_index] > 0)
-    {
-      // find the paired node
-      unsigned int pair = pairedFaceNode(face_node, primary_face);
+    Elem * bl_elem = elem;
+    unsigned int start_node = face_node;
+    unsigned int start_face = primary_face;
+    unsigned int pair_node = pairedFaceNode(start_node, start_face);
+    unsigned int pair_face = _across_face[start_face];
 
-      for (unsigned int l = 0; l < _layers[boundary_index]; ++l)
-      {
-        auto & paired_node = elem->node_ref(pair);
-        paired_node += adjustment;
-      }
+    for (unsigned int l = 0; l < _layers[boundary_index]; ++l)
+    {
+      auto & paired_node = bl_elem->node_ref(pair_node);
+      paired_node += adjustment;
+
+      // if this is a corner node, we also need to adjust the mid-point node
+      if (isCornerNode(start_node))
+        adjustMidPointNode(midPointNodeIndex(start_face, start_node), bl_elem);
+
+      // increment to the next boundary layer element
+      auto next_elem = getNextLayerElem(*bl_elem, pair_face, start_face);
+      bl_elem = const_cast<Elem *>(next_elem);
+      Point pt(paired_node(0), paired_node(1), paired_node(2));
+      start_node = getNodeIndex(bl_elem, pt);
+      pair_node = pairedFaceNode(start_node, start_face);
+      pair_face = _across_face[start_face];
     }
 
-    // if this is a corner node, we also need to adjust the mid-point node
-    if (isCornerNode(face_node))
-      adjustMidPointNode(midPointNodeIndex(primary_face, face_node), elem);
+    // even if there aren't boundary layers, we need to adjust the mid-point side node
+    // of the first moved element
+    if (_layers[boundary_index] == 0)
+      if (isCornerNode(face_node))
+        adjustMidPointNode(midPointNodeIndex(primary_face, face_node), elem);
   }
+}
+
+unsigned int
+SecondOrderHexGenerator::getNodeIndex(const Elem * elem, const Point & pt) const
+{
+  for (unsigned int i = 0; i < Hex27::num_nodes; ++i)
+    if (pt.absolute_fuzzy_equals(elem->point(i)))
+      return i;
+
+  mooseError("Failed to find any node on element ", elem->id(), " that matches ", pt);
 }
 
 std::unique_ptr<MeshBase>
@@ -354,7 +426,7 @@ SecondOrderHexGenerator::generate()
       std::vector<boundary_id_type> b;
       boundary_info.boundary_ids(elem, s, b);
 
-      boundary_elem_ids.push_back(elem->set_id());
+      boundary_elem_ids.push_back(elem->id());
       boundary_face_ids.push_back(s);
       boundary_ids.push_back(b);
 
@@ -407,7 +479,7 @@ SecondOrderHexGenerator::generate()
   for (const auto & elem : mesh->element_ptr_range())
   {
     libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    elem_ids.push_back(hex27->set_id());
+    elem_ids.push_back(hex27->id());
     elem_block_ids.push_back(hex27->subdomain_id());
 
     for (unsigned int j = 0; j < Hex20::num_nodes; ++j)

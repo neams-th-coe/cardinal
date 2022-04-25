@@ -37,11 +37,39 @@ public:
 
   std::unique_ptr<MeshBase> generate() override;
 
+  /**
+   * Get the node index pertaining to a given point
+   * @param[in] elem element
+   * @param[in] pt point of interest
+   * @return node index corresponding to the point
+   */
+  unsigned int getNodeIndex(const Elem * elem, const Point & pt) const;
+
+  /**
+   * Get the node "paired" to the present node "across" the face
+   * @param[in] node_id node ID on primary face
+   * @param[in] face_id ID of primary face
+   * @return node ID "across" that face to the other side of the Hex27
+   */
   unsigned int pairedFaceNode(const unsigned int & node_id, const unsigned int & face_id) const;
 
-void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face);
+  /**
+   * For an element on the 'boundary' of interest, move its nodes, as well as those
+   * of any boundary layers
+   * @param[in] elem element on the primary 'boundary'
+   * @param[in] boundary_index index of the 'boundary'
+   * @param[in] primary_face face ID of the element on the 'boundary'
+   */
+  void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face);
 
-
+  /**
+   * Get a pointer to the next element in the boundary layer
+   * @param[in] elem current element in the boundary layer
+   * @param[in] primary_face face of the element that touches the "next" element
+   * @param[out] next_touching_face face ID of the "next" element
+   */
+  const Elem * getNextLayerElem(const Elem & elem, const unsigned int & touching_face,
+    unsigned int & next_touching_face) const;
 
   /**
    * Get the two nodes to average coordinates for given a side-node id
@@ -164,4 +192,7 @@ protected:
 
   /// For each face, the node pairing "across" that face to the other side of a Hex27
   std::vector<std::vector<std::pair<unsigned int, unsigned int>>> _across_pair;
+
+  /// For each face, the paired face "across" to the other side of a Hex27
+  std::vector<unsigned int> _across_face;
 };

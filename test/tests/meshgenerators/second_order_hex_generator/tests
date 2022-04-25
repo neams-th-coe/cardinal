@@ -144,4 +144,12 @@
     requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving sidesets with "
                   "boundary layers to fit a cylinder surface."
   []
+  [three_layers]
+    type = Exodiff
+    input = three_layers.i
+    exodiff = three_layers_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving sidesets with "
+                  "multiple boundary layers to fit a cylinder surface."
+  []
 []
