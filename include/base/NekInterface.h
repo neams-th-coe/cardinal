@@ -24,7 +24,6 @@
 #include "NekVolumeCoupling.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
-#include "io.hpp"
 #include "udf.hpp"
 #include "meshSetup.hpp"
 #include "libmesh/point.h"
