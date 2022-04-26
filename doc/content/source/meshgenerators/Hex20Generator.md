@@ -39,7 +39,7 @@ on the cylinder.
   style=width:60%;margin-left:auto;margin-right:auto
 
 For a second example, consider the case where you have one boundary that you
-want to move with *multiple* origins. In this case, list the points in `origin`
+want to move with *multiple* origins. In this case, list the points in `origins`
 for each boundary, with a semicolon separating the origins to be used for each
 `boundary`.
 
@@ -64,15 +64,27 @@ $A$ on face 0 moves by $\Delta x$ to get onto the cylinder surface, then the
 same displacement is applied to that node's "pair" on the opposite face.
 An example of this usage is shown below, where nodes not on the boundary of
 interest are still moved in order to better mesh the boundary layer.
-
-!listing /test/tests/meshgenerators/second_order_hex_generator/layers.i
-
 [rebuilt_mesh3] shows the effect of setting `layers` (which defaults to zero)
 to `1`.
+
+!listing /test/tests/meshgenerators/second_order_hex_generator/layers.i
 
 !media hex_generator_layers.png
   id=rebuilt_mesh3
   caption=Input and output meshes when using different `layers` settings
+  style=width:90%;margin-left:auto;margin-right:auto
+
+You can also set the `layers` to be greater than 1, in which case multiple
+layers of boundary elements are moved. An example of this usage is shown below,
+where elements 3 layers deep are moved to match the cylinder surface.
+[rebuilt_mesh4] shows the effect of setting `layers` (which defaults to zero)
+to `3`.
+
+!listing test/tests/meshgenerators/second_order_hex_generator/three_layers.i
+
+!media hex_generator_layers3.png
+  id=rebuilt_mesh4
+  caption=Input and output meshes when using `layers = 3`
   style=width:90%;margin-left:auto;margin-right:auto
 
 !syntax parameters /Mesh/Hex20Generator

@@ -14,8 +14,8 @@
     input = translate
     boundary = 'rmin rmax'
     radius = '0.05 0.2'
-    origin = '1.0 0.0 0.0;
-              1.0 0.0 0.0'
+    origins = '1.0 0.0 0.0;
+               1.0 0.0 0.0'
   []
 
   parallel_type = replicated

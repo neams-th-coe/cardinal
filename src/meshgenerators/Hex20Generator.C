@@ -36,10 +36,10 @@ Hex20Generator::validParams()
   // optional parameters if fitting sidesets to a circular surface
   MooseEnum axis("x y z", "z");
   params.addParam<MooseEnum>("axis", axis, "Axis of the mesh about which to build "
-    "the circular surface");
+    "the circular surface(s)");
   params.addParam<std::vector<BoundaryName>>("boundary", "Boundary(s) to enforce a circular surface");
   params.addParam<std::vector<Real>>("radius", "Radius(es) of the circular surfaces");
-  params.addParam<std::vector<std::vector<Real>>>("origin", "Origin(s) about which to form the circular surfaces; "
+  params.addParam<std::vector<std::vector<Real>>>("origins", "Origin(s) about which to form the circular surfaces; "
     "if not specified, all values default to (0, 0, 0)");
   params.addParam<std::vector<unsigned int>>("layers", "Number of layers to sweep for each "
     "boundary when forming the circular surfaces; if not specified, all values default to 0");
@@ -85,7 +85,7 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
   if (!isParamValid("boundary") && !isParamValid("radius"))
   {
     checkUnusedParam(params, "axis", "If not setting a 'boundary'");
-    checkUnusedParam(params, "origin", "If not setting a 'boundary'");
+    checkUnusedParam(params, "origins", "If not setting a 'boundary'");
     checkUnusedParam(params, "layers", "If not setting a 'boundary'");
   }
 
@@ -342,22 +342,22 @@ Hex20Generator::generate()
     if (_moving_boundary.size() != _radius.size())
       mooseError("'boundary' and 'radius' must be the same length!");
 
-    if (isParamValid("origin"))
+    if (isParamValid("origins"))
     {
-      _origin = getParam<std::vector<std::vector<Real>>>("origin");
+      _origin = getParam<std::vector<std::vector<Real>>>("origins");
 
       if (_moving_boundary.size() != _origin.size())
-        mooseError("'boundary' and 'origin' must be the same length!");
+        mooseError("'boundary' and 'origins' must be the same length!");
 
       // in the case of multiple origins for one boundary, check that each has correct length
       for (const auto & o : _origin)
       {
         if (o.size() == 0)
-          mooseError("Zero-length entry in 'origin' detected! Please be sure that each "
-            "entry in 'origin' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
+          mooseError("Zero-length entry in 'origins' detected! Please be sure that each "
+            "entry in 'origins' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
 
         if (o.size() % 3 != 0)
-          mooseError("When using multiple origins for one boundary, each entry in 'origin' "
+          mooseError("When using multiple origins for one boundary, each entry in 'origins' "
             "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
       }
     }
