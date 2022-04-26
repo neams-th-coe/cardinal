@@ -14,6 +14,30 @@ for compatibility with NekRS's [exo2nek](https://nekrsdoc.readthedocs.io/en/late
   its [!ac](GLL) points (as long as the HEX20 elements have their mid-side nodes
   one the cylinder, which is what this mesh generator does for you)
 
+!alert! note title="Have a HEX8 mesh instead of a HEX27 mesh?
+
+If you have a HEX8 mesh, you can convert it to a HEX27 mesh by adding
+`second_order = true` in a separate MOOSE file that generates your mesh
+(which can be as simple as just reading the mesh from a file with a
+[FileMeshGenerator](https://mooseframework.inl.gov/source/meshgenerators/FileMeshGenerator.html), like this
+
+```
+[Mesh]
+  [file]
+    type = FileMeshGenerator
+    file = mesh.e
+  []
+
+  second_order = true
+[]
+```
+
+Just for illustration, if you named the above as `mesh.i`, you can then run
+`cardinal-opt -i mesh.i --mesh-only` to get a new mesh, `mesh_in.e` that is a HEX27 mesh. Then,
+you can use this mesh generator.
+
+!alert-end!
+
 !alert warning
 This mesh generator has very limited error checking, and will not protect you
 from inverted elements or other errors. Always be sure to check your mesh output

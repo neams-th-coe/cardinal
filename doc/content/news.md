@@ -17,4 +17,5 @@ features.
 
 ## Latest News
 
+- [March 2022](news/mar2022.md)
 - [February 2022](news/feb2022.md)
