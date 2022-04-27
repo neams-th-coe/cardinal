@@ -1,10 +1,7 @@
 #include "udf.hpp"
 
-void UDF_LoadKernels(nrs_t *nrs)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
-  setupAide & options = platform->options;
-  occa::properties & kernelInfo = *nrs->kernelInfo;
-
   // in non-dimensional form, U^+ = U/U_ref, where we chose the reference
   // velocity to be the inlet velocity
   kernelInfo["defines/Vz"] = 1.0;
