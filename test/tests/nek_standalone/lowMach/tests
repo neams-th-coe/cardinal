@@ -23,6 +23,7 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
+    skip = 'Need to resolve precompile issues'
   []
   [boundary]
     type = CSVDiff
@@ -42,5 +43,6 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
+    skip = 'Need to resolve precompile issues'
   []
 []
