@@ -92,23 +92,20 @@
   # same mesh and quadrature order as in the coupled OpenMC wrapping
   [heat_source_from_openmc]
     type = MultiAppCopyTransfer
-    direction = from_multiapp
-    multi_app = openmc
+    from_multi_app = openmc
     variable = heat_source
     source_variable = heat_source
   []
   [temp_to_openmc]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = openmc
+    to_multi_app = openmc
     variable = temp
     source_variable = temp
     fixed_meshes = true
   []
   [density_to_openmc]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = openmc
+    to_multi_app = openmc
     variable = density
     source_variable = density
     fixed_meshes = true

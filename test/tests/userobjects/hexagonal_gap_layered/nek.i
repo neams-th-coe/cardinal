@@ -78,21 +78,18 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
   [uo1_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = gap_avg
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = gap_avg
   []
   [uo2_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = gap_area
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = gap_area
   []
   [temp_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = temp
     source_variable = temp
   []

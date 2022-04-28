@@ -162,9 +162,8 @@
   [nek_temp_to_bison]
     type = MultiAppNearestNodeTransfer
     source_variable = nek_temp
-    direction = to_multiapp
     variable = nek_temp
-    multi_app = bison
+    to_multi_app = bison
 
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
     # just restrict this transfer between the two surfaces of interest because this
@@ -175,9 +174,8 @@
   [source_to_bison]
     type = MultiAppNearestNodeTransfer
     source_variable = source_bison
-    direction = to_multiapp
     variable = source
-    multi_app = bison
+    to_multi_app = bison
     from_postprocessors_to_be_preserved = source_integral_bison
     to_postprocessors_to_be_preserved = source_integral
     allow_skipped_adjustment = true
@@ -185,8 +183,7 @@
   [bison_flux_to_openmc]
     type = MultiAppNearestNodeTransfer
     source_variable = flux
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
     variable = bison_flux
 
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
@@ -198,17 +195,15 @@
   [bison_flux_integral_to_openmc]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
-    direction = from_multiapp
     from_postprocessor = flux_integral
-    multi_app = bison
+    from_multi_app = bison
     reduction_type = 'average' # not used when only one sub-app
   []
   [bison_temp_to_openmc]
     type = MultiAppNearestNodeTransfer
     source_variable = temp
     variable = bison_temp
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
 
     # IMPORTANT: this cannot be boundary restricted because we use this temperature to
     # compute a heat source for BISON
@@ -216,10 +211,9 @@
 
   [bison_flux_to_nek]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
     source_variable = bison_flux
     variable = avg_flux
-    multi_app = nek
+    to_multi_app = nek
 
     # the nekRSMesh is a volume mesh, and to save on some of the data transfer, we can
     # just restrict this transfer from the sourcesurface of interest because this
@@ -230,30 +224,26 @@
   [bison_flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
-    direction = to_multiapp
     from_postprocessor = flux_integral
-    multi_app = nek
+    to_multi_app = nek
   []
   [source_to_nek]
     type = MultiAppNearestNodeTransfer
     source_variable = source_nek
     variable = heat_source
-    multi_app = nek
-    direction = to_multiapp
+    to_multi_app = nek
   []
   [source_integral_to_nek]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = source_integral
-    direction = to_multiapp
     from_postprocessor = source_integral_nek
-    multi_app = nek
+    to_multi_app = nek
   []
   [nek_temp_to_openmc]
     type = MultiAppNearestNodeTransfer
     source_variable = temp
     variable = nek_temp
-    multi_app = nek
-    direction = from_multiapp
+    from_multi_app = nek
 
     # IMPORTANT: this cannot be restricted to a boundary because we need it to
     # compute the heat source by OpenMC

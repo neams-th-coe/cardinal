@@ -105,23 +105,20 @@ o=0.15
   [temperature]
     type = MultiAppNearestNodeTransfer
     source_variable = temp
-    direction = from_multiapp
-    multi_app = nek
+    from_multi_app = nek
     variable = nek_temp
   []
   [source]
     type = MultiAppNearestNodeTransfer
     source_variable = source
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
     variable = heat_source
   []
   [source_integral]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = source_integral
-    direction = to_multiapp
     from_postprocessor = source_integral
-    multi_app = nek
+    to_multi_app = nek
   []
 []
 

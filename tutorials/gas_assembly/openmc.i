@@ -279,16 +279,14 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = MultiAppInterpolationTransfer
     source_variable = T
     variable = solid_temp
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
   []
   [heat_flux_to_openmc]
     type = MultiAppNearestNodeTransfer
     fixed_meshes = true
     source_variable = flux
     variable = flux
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
     source_boundary = 'fluid_solid_interface'
     target_boundary = 'fluid_solid_interface'
     from_postprocessors_to_be_preserved = flux_integral
@@ -298,8 +296,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = MultiAppMeshFunctionTransfer
     source_variable = heat_source
     variable = power
-    direction = to_multiapp
-    multi_app = bison
+    to_multi_app = bison
     from_postprocessors_to_be_preserved = heat_source
     to_postprocessors_to_be_preserved = power
   []
@@ -307,22 +304,19 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = MultiAppInterpolationTransfer
     source_variable = thm_temp_wall
     variable = thm_temp
-    direction = to_multiapp
-    multi_app = bison
+    to_multi_app = bison
   []
 
   [q_wall_to_thm]
     type = MultiAppUserObjectTransfer
     variable = q_wall
-    direction = to_multiapp
-    multi_app = thm
+    to_multi_app = thm
     user_object = q_wall_avg
   []
   [T_wall_from_thm]
     type = MultiAppNearestNodeTransfer
     source_variable = T_wall
-    direction = from_multiapp
-    multi_app = thm
+    from_multi_app = thm
     variable = thm_temp_wall
     fixed_meshes = true
     target_boundary = 'fluid_solid_interface'
@@ -330,8 +324,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   [T_bulk_from_thm]
     type = MultiAppNearestNodeTransfer
     source_variable = T
-    direction = from_multiapp
-    multi_app = thm
+    from_multi_app = thm
     variable = thm_temp
     fixed_meshes = true
   []
@@ -340,16 +333,14 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   [pressure_from_thm]
     type = MultiAppNearestNodeTransfer
     source_variable = p
-    direction = from_multiapp
-    multi_app = thm
+    from_multi_app = thm
     variable = thm_pressure
     fixed_meshes = true
   []
   [velocity_from_thm]
     type = MultiAppNearestNodeTransfer
     source_variable = vel_z
-    direction = from_multiapp
-    multi_app = thm
+    from_multi_app = thm
     variable = thm_velocity
     fixed_meshes = true
   []
