@@ -3,7 +3,7 @@
     type = RunApp
     input = solid.i
     cli_args = "openmc:Problem/particles=1000 openmc:Problem/batches=10 openmc:Problem/inactive_batches=5"
-    min_parallel = 8
+    min_parallel = 4
     requirement = "The system shall be able to run the pebble tutorial."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -11,7 +11,7 @@
     type = RunApp
     input = solid_um.i
     cli_args = "openmc:Problem/particles=1000 openmc:Problem/batches=10 openmc:Problem/inactive_batches=5 Mesh/pebble/file=sphere_in_m.e"
-    min_parallel = 8
+    min_parallel = 4
     requirement = "The system shall be able to run the pebble tutorial."
     required_objects = 'OpenMCCellAverageProblem'
   []
