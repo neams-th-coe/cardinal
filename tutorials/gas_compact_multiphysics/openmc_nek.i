@@ -164,23 +164,20 @@ N = 1000
     type = MultiAppInterpolationTransfer
     source_variable = T
     variable = solid_temp
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
   []
   [source_to_bison]
     type = MultiAppMeshFunctionTransfer
     source_variable = heat_source
     variable = power
-    direction = to_multiapp
-    multi_app = bison
+    to_multi_app = bison
     from_postprocessors_to_be_preserved = heat_source
     to_postprocessors_to_be_preserved = power
   []
   [temp_from_nek]
     type = MultiAppMeshFunctionTransfer
     source_variable = nek_bulk_temp
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
     variable = nek_temp
   []
 []

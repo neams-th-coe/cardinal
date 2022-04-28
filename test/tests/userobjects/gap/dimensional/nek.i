@@ -142,43 +142,37 @@
   [uo1_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = avg_T
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = avg_T
   []
   [uo2_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = avg_p
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = avg_p
   []
   [uo3_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = avg_v
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = avg_v
   []
   [uo4_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = integral_T
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = integral_T
   []
   [uo5_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = integral_p
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = integral_p
   []
   [uo6_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = integral_v
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = integral_v
   []
 []

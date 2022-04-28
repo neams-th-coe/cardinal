@@ -61,17 +61,16 @@ NearestPointReceiverTransfer::execute()
   {
     case TO_MULTIAPP:
     {
-      FEProblemBase & from_problem = _multi_app->problemBase();
+      FEProblemBase & from_problem = getToMultiApp()->problemBase();
       auto & from_uo = from_problem.getUserObjectBase(_from_uo_name);
 
-      for (unsigned int i = 0; i < _multi_app->numGlobalApps(); i++)
+      for (unsigned int i = 0; i < getToMultiApp()->numGlobalApps(); i++)
       {
-        if (_multi_app->hasLocalApp(i))
+        if (getToMultiApp()->hasLocalApp(i))
         {
           values.clear();
 
-          auto & receiver =
-              _multi_app->appProblemBase(i).getUserObject<NearestPointReceiver>(_to_uo_name);
+          auto & receiver = getToMultiApp()->appProblemBase(i).getUserObject<NearestPointReceiver>(_to_uo_name);
           const auto & points = receiver.positions();
 
           values.reserve(points.size());
@@ -87,16 +86,16 @@ NearestPointReceiverTransfer::execute()
     }
     case FROM_MULTIAPP:
     {
-      FEProblemBase & to_problem = _multi_app->problemBase();
+      FEProblemBase & to_problem = getFromMultiApp()->problemBase();
       auto & receiver = to_problem.getUserObject<NearestPointReceiver>(_to_uo_name);
 
-      for (unsigned int i = 0; i < _multi_app->numGlobalApps(); ++i)
+      for (unsigned int i = 0; i < getFromMultiApp()->numGlobalApps(); ++i)
       {
-        if (_multi_app->hasLocalApp(i))
+        if (getFromMultiApp()->hasLocalApp(i))
         {
           values.clear();
 
-          auto & from_uo = _multi_app->appProblemBase(i).getUserObjectBase(_from_uo_name);
+          auto & from_uo = getFromMultiApp()->appProblemBase(i).getUserObjectBase(_from_uo_name);
           const auto & points = receiver.positions();
 
           values.reserve(points.size());
