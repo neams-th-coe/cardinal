@@ -386,6 +386,11 @@ NekRSProblemBase::externalSolve()
   double step_start_time = _time - _dt;
   double step_end_time = _time;
 
+  _is_output_step = isOutputStep();
+
+  // tell NekRS what the value of nrs->isOutputStep should be
+  nekrs::outputStep(_is_output_step);
+
   // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
   // evaluated at (step_end_time, _t_step)
   nekrs::runStep(_timestepper->nondimensionalDT(step_start_time),
@@ -403,8 +408,6 @@ NekRSProblemBase::externalSolve()
   // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
   // by the user.
   nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
-
-  _is_output_step = isOutputStep();
 
   if (_is_output_step && !_disable_fld_file_output)
   {
