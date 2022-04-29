@@ -27,6 +27,5 @@
   [vol_avg]
     type = NekBinnedVolumeAverage
     bins = 'subchannel_binning'
-    field = temperature
   []
 []

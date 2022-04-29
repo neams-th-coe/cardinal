@@ -1,0 +1,62 @@
+[Tests]
+  [invalid_field_scalar01]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max_S/field=scalar01'
+    expect_err = "Cardinal cannot find 'scalar01' "
+                 "because your Nek case files do not have a scalar01 variable!"
+    requirement = "The system shall throw an error if trying to use scalar01 postprocessors for inputs "
+                  "that don't have a scalar01 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [invalid_field_scalar02]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max_S/field=scalar02'
+    expect_err = "Cardinal cannot find 'scalar02' "
+                 "because your Nek case files do not have a scalar02 variable!"
+    requirement = "The system shall throw an error if trying to use scalar02 postprocessors for inputs "
+                  "that don't have a scalar02 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [invalid_field_scalar03]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max_S/field=scalar03'
+    expect_err = "Cardinal cannot find 'scalar03' "
+                 "because your Nek case files do not have a scalar03 variable!"
+    requirement = "The system shall throw an error if trying to use scalar03 postprocessors for inputs "
+                  "that don't have a scalar03 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [invalid_field_uo_scalar01]
+    type = RunException
+    input = nek_uo.i
+    cli_args = 'UserObjects/vol_avg/field=scalar01'
+    expect_err = "Cardinal cannot find 'scalar01' "
+                 "because your Nek case files do not have a scalar01 variable!"
+    requirement = "The system shall throw an error if trying to use scalar01 userobjects for inputs "
+                  "that don't have a scalar01 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [invalid_field_uo_scalar02]
+    type = RunException
+    input = nek_uo.i
+    cli_args = 'UserObjects/vol_avg/field=scalar02'
+    expect_err = "Cardinal cannot find 'scalar02' "
+                 "because your Nek case files do not have a scalar02 variable!"
+    requirement = "The system shall throw an error if trying to use scalar02 userobjects for inputs "
+                  "that don't have a scalar02 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [invalid_field_uo_scalar03]
+    type = RunException
+    input = nek_uo.i
+    cli_args = 'UserObjects/vol_avg/field=scalar03'
+    expect_err = "Cardinal cannot find 'scalar03' "
+                 "because your Nek case files do not have a scalar03 variable!"
+    requirement = "The system shall throw an error if trying to use scalar03 userobjects for inputs "
+                  "that don't have a scalar03 variable."
+    required_objects = 'NekRSProblem'
+  []
+[]

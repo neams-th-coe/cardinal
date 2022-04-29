@@ -24,8 +24,8 @@
 static nekrs::solution::characteristicScales scales;
 
 // Maximum number of fields that we pre-allocate in the scratch space array.
-// The first two are *always* reserved for the heat flux BC and the volumetric
-// heat source to be used in nekRS - all others are still free for use for
+// The first five are *always* reserved for Cardinal's use to be used in nekRS
+// - all others are still free for use for
 // things like computing wall distances, etc. If anyone ever wants more than
 // 7, we can just change this value and commit that to the Cardinal repo - this
 // is just a number not reflective of any limitations anywhere, so we're free to
@@ -127,6 +127,13 @@ hasTemperatureSolve()
 }
 
 bool
+hasScalarVariable(int scalarId)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return (scalarId < nrs->Nscalar);
+}
+
+bool
 hasHeatSourceKernel()
 {
   return udf.sEqnSource;
@@ -219,7 +226,7 @@ initializeScratch()
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays. At the point that this function is called, we don't know if we have
   // boundary coupling, volume coupling, or both. So, we allocate enough space here to hold
-  // _both_ a heat flux and a volumetric heat source. These fields are always stored in this
+  // multiple data transfers. These fields are always stored in this
   // order - i.e. if we only had volume couping, we would only start writing to this array
   // beginning at index nrs->cds->fieldOffset.
   nrs->usrwrk = (double *)calloc(MAX_SCRATCH_FIELDS * scalarFieldOffset(), sizeof(double));
@@ -529,15 +536,15 @@ copyScratchToDevice()
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
-  // From Cardinal, we only write the first two "slices" in nrs->usrwrk. But, the user might
+  // From Cardinal, we only write to the first five "slices" in nrs->usrwrk. But, the user might
   // be writing other parts of this scratch space from the .udf file. So, we need to be sure
   // to only copy the slices reserved for Cardinal, so that we don't accidentally overwrite other
   // parts of o_usrwrk (which from the order of the UDF calls, would always happen *after* the
-  // flux and/or source transfers into nekRS)
+  // transfers into NekRS)
 
-  // first two slices are always reserved for the heat flux and volumetric heat source. Either one
-  // or both will be present, but we always reserve the first two slices for this coupling data.
-  nrs->o_usrwrk.copyFrom(nrs->usrwrk, 2 * scalarFieldOffset() * sizeof(dfloat), 0);
+  // The type of data contained in each slice of nrs->usrwrk depends on the Cardinal Problem
+  // class used, but we always reserve the first five slices for Cardinal coupling data.
+  nrs->o_usrwrk.copyFrom(nrs->usrwrk, 5 * scalarFieldOffset() * sizeof(dfloat), 0);
 }
 
 void
@@ -1263,6 +1270,28 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 
 namespace solution
 {
+
+double
+scalar01(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->cds->S[id + 1 * scalarFieldOffset()];
+}
+
+double
+scalar02(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->cds->S[id + 2 * scalarFieldOffset()];
+}
+
+double
+scalar03(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->cds->S[id + 3 * scalarFieldOffset()];
+}
+
 double
 temperature(const int id)
 {
@@ -1373,10 +1402,31 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
                  "interface!");
       break;
     case field::temperature:
+      if (!nekrs::hasTemperatureVariable())
+        mooseError("Cardinal cannot find 'temperature' "
+                   "because your Nek case files do not have a temperature variable!");
       f = &solution::temperature;
       break;
     case field::pressure:
       f = &solution::pressure;
+      break;
+    case field::scalar01:
+      if (!hasScalarVariable(1))
+        mooseError("Cardinal cannot find 'scalar01' "
+                   "because your Nek case files do not have a scalar01 variable!");
+      f = &solution::scalar01;
+      break;
+    case field::scalar02:
+      if (!hasScalarVariable(2))
+        mooseError("Cardinal cannot find 'scalar02' "
+                   "because your Nek case files do not have a scalar02 variable!");
+      f = &solution::scalar02;
+      break;
+    case field::scalar03:
+      if (!hasScalarVariable(3))
+        mooseError("Cardinal cannot find 'scalar03' "
+                   "because your Nek case files do not have a scalar03 variable!");
+      f = &solution::scalar03;
       break;
     case field::unity:
       f = &solution::unity;
@@ -1489,6 +1539,15 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       break;
     case field::pressure:
       value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::scalar01:
+      // no dimensionalization needed
+      break;
+    case field::scalar02:
+      // no dimensionalization needed
+      break;
+    case field::scalar03:
+      // no dimensionalization needed
       break;
     case field::unity:
       // no dimensionalization needed
