@@ -3,7 +3,7 @@
   numSteps = 1
   dt = 5.0e-4
   timeStepper = tombo2
-  writeControl = timeStep
+  writeControl = steps
   writeInterval = 25
   dealiasing = yes
   polynomialOrder = 3
@@ -19,7 +19,6 @@
 [PRESSURE]
   residualTol = 1.0e-6
   residualProj = false
-  preconditioner = semg_amg
 
 [TEMPERATURE]
   solver = none
@@ -27,4 +26,3 @@
   rhoCp = 1024766.0
   boundaryTypeMap = f, f, t, O
   residualTol = 1.0e-5
-  absoluteTol = 1.0e-5
