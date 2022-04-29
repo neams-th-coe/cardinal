@@ -36,12 +36,6 @@ public:
   virtual void initialize() {}
   virtual void finalize() {}
 
-  /**
-   * Check whether a provided field is valid for this postprocessor
-   * @param[in] field field
-   */
-  virtual void checkValidField(const field::NekFieldEnum & field) const;
-
 protected:
   /// Underlying problem object
   const NekRSProblemBase * _nek_problem;

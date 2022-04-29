@@ -31,7 +31,8 @@ NekSpatialBinUserObject::validParams()
                                      getNekFieldEnum(),
                                      "Field to postprocess; "
                                      "options: velocity_x, velocity_y, velocity_z, "
-                                     "velocity_component, velocity, temperature, pressure, unity");
+                                     "velocity_component, velocity, temperature, pressure, "
+                                     "scalar01, scalar02, scalar03, unity");
   params.addParam<bool>(
       "map_space_by_qp",
       false,
@@ -108,8 +109,6 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_values_y = (double *)calloc(_n_bins, sizeof(double));
     _bin_values_z = (double *)calloc(_n_bins, sizeof(double));
   }
-
-  checkValidField(_field);
 
   _has_direction = {false, false, false};
   _bin_providing_direction.resize(3);

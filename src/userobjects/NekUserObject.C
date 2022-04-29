@@ -44,12 +44,4 @@ NekUserObject::NekUserObject(const InputParameters & parameters)
   _fixed_mesh = !(_nek_problem->movingMesh());
 }
 
-void
-NekUserObject::checkValidField(const field::NekFieldEnum & field) const
-{
-  if (!nekrs::hasTemperatureVariable() && field == field::temperature)
-    mooseError("This user object cannot set 'field = temperature' "
-               "because your Nek case files do not have a temperature variable!");
-}
-
 #endif

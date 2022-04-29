@@ -572,11 +572,6 @@ NekRSProblemBase::getExternalVariableParameters()
 void
 NekRSProblemBase::addTemperatureVariable()
 {
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("Cannot set 'output = temperature' for '" + type() +
-               "' because "
-               "your Nek case files do not have a temperature variable!");
-
   // For the special case of temperature, we want the variable name to be
   // 'temp' instead of 'temperature' due to legacy reasons of what NekRSProblem
   // chose to name the temperature variable. For everything else, we just use

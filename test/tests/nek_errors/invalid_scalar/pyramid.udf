@@ -1,0 +1,24 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->meshV;
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    nrs->U[n + 0 * nrs->fieldOffset] = 0;  // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = 0;  // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = 0; // z-velocity
+
+    nrs->P[n] = 0; // pressure
+  }
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+}
