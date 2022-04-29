@@ -6,9 +6,8 @@
   numSteps = 1
   dt = 5.0e-4
   polynomialOrder = 7
-  writeControl = timeStep
+  writeControl = steps
   writeInterval = 2
-  extrapolation = subCycling
 
 [VELOCITY]
   viscosity = -880.2742616033756
