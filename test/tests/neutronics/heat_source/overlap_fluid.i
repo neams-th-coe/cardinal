@@ -28,8 +28,6 @@
     type = CombinerGenerator
     inputs = 'solid_ids fluid_ids'
   []
-
-  parallel_type = replicated
 []
 
 # This AuxVariable and AuxKernel is only here to get the postprocessors

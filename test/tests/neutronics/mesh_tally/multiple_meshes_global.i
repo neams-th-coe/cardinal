@@ -34,7 +34,7 @@
                  0 0 8'
   []
 
-  parallel_type = replicated
+  allow_renumbering = false
 []
 
 # This AuxVariable and AuxKernel is only here to get the postprocessors

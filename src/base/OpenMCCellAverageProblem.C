@@ -33,7 +33,6 @@
 #include "openmc/cell.h"
 #include "openmc/constants.h"
 #include "openmc/error.h"
-#include "openmc/material.h"
 #include "openmc/particle.h"
 #include "openmc/geometry.h"
 #include "openmc/geometry_aux.h"
@@ -235,7 +234,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
-    _n_cell_digits(digits(openmc::model::cells.size())),
     _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level &&
                                 !isParamValid("tally_blocks")),
     _total_n_particles(0),
@@ -243,6 +241,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _temperature_blocks(nullptr),
     _symmetry(nullptr)
 {
+  if (_tally_type == tally::mesh)
+    if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
+      mooseError("Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
+
   if (isParamValid("symmetry_plane_normal"))
   {
     const auto & normal = getParam<Point>("symmetry_plane_normal");
@@ -455,8 +457,6 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     checkUnusedParam(parameters, "batch_interval", "not using triggers");
   }
 }
-
-OpenMCCellAverageProblem::~OpenMCCellAverageProblem() { openmc_finalize(); }
 
 template <typename T>
 void
@@ -681,12 +681,6 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
   }
 }
 
-int
-OpenMCCellAverageProblem::digits(const int & number) const
-{
-  return std::to_string(number).length();
-}
-
 const coupling::CouplingFields
 OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
 {
@@ -698,17 +692,6 @@ OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
     return coupling::temperature;
   else
     return coupling::none;
-}
-
-void
-OpenMCCellAverageProblem::getPointInCell()
-{
-  for (const auto & c : _cell_to_elem)
-  {
-    const Elem * elem = _mesh.queryElemPtr(c.second[0]);
-
-    _cell_to_point[c.first] = elem->vertex_average();
-  }
 }
 
 void
@@ -728,14 +711,60 @@ OpenMCCellAverageProblem::storeElementPhase()
 void
 OpenMCCellAverageProblem::computeCellMappedVolumes()
 {
-  for (const auto & c : _cell_to_elem)
+  std::vector<Real> volumes;
+
+  for (const auto & c : _local_cell_to_elem)
   {
-    auto cell_info = c.first;
-
-    _cell_to_elem_volume[cell_info] = 0.0;
-
+    Real vol = 0.0;
     for (const auto & e : c.second)
-      _cell_to_elem_volume[cell_info] += _mesh.elemPtr(e)->volume();
+    {
+      // we are looping over local elements, so no need to check for nullptr
+      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      vol += elem->volume();
+    }
+
+    volumes.push_back(vol);
+  }
+
+  gatherCellSum(volumes, _cell_to_elem_volume);
+}
+
+template <typename T>
+void
+OpenMCCellAverageProblem::gatherCellSum(std::vector<T> & local, std::map<cellInfo, T> & global)
+{
+  global.clear();
+  _communicator.allgather(local);
+
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
+  {
+    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
+
+    if (global.count(cell_info))
+      global[cell_info] += local[i];
+    else
+      global[cell_info] = local[i];
+  }
+}
+
+template <typename T>
+void
+OpenMCCellAverageProblem::gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local,
+  std::map<cellInfo, std::vector<T>> & global)
+{
+  global.clear();
+  _communicator.allgather(n_local);
+  _communicator.allgather(local);
+
+  int e = 0;
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
+  {
+    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
+
+    for (unsigned int j = e; j < e + n_local[i]; ++j)
+      global[cell_info].push_back(local[j]);
+
+    e += n_local[i];
   }
 }
 
@@ -755,6 +784,49 @@ OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
 }
 
 void
+OpenMCCellAverageProblem::getCellMappedPhase()
+{
+  std::vector<int> cells_n_solid;
+  std::vector<int> cells_n_fluid;
+  std::vector<int> cells_n_none;
+
+  // whether each cell maps to a single phase
+  for (const auto & c : _local_cell_to_elem)
+  {
+    int n_solid = 0, n_fluid = 0, n_none = 0;
+
+    for (const auto & e : c.second)
+    {
+      // we are looping over local elements, so no need to check for nullptr
+      const Elem * elem = _mesh.queryElemPtr(globalElemID(e));
+
+      switch (elemPhase(elem))
+      {
+        case coupling::temperature:
+          n_solid++;
+          break;
+        case coupling::density_and_temperature:
+          n_fluid++;
+          break;
+        case coupling::none:
+          n_none++;
+          break;
+        default:
+          mooseError("Unhandled CouplingFieldsEnum in OpenMCCellAverageProblem!");
+      }
+    }
+
+    cells_n_solid.push_back(n_solid);
+    cells_n_fluid.push_back(n_fluid);
+    cells_n_none.push_back(n_none);
+  }
+
+  gatherCellSum(cells_n_solid, _n_solid);
+  gatherCellSum(cells_n_fluid, _n_fluid);
+  gatherCellSum(cells_n_none, _n_none);
+}
+
+void
 OpenMCCellAverageProblem::checkCellMappedPhase()
 {
   VariadicTable<std::string, int, int, int, Real> vt(
@@ -770,36 +842,12 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   bool has_fluid_cells = false;
   bool has_solid_cells = false;
 
-  // whether each cell maps to a single phase
   for (const auto & c : _cell_to_elem)
   {
-    int n_solid = 0, n_fluid = 0, n_none = 0;
     auto cell_info = c.first;
-
-    for (const auto & e : c.second)
-    {
-      const Elem * elem = _mesh.queryElemPtr(e);
-
-      if (!isLocalElem(elem))
-        continue;
-
-      switch (elemPhase(elem))
-      {
-        case coupling::temperature:
-          has_solid_cells = true;
-          n_solid++;
-          break;
-        case coupling::density_and_temperature:
-          has_fluid_cells = true;
-          n_fluid++;
-          break;
-        case coupling::none:
-          n_none++;
-          break;
-        default:
-          mooseError("Unhandled CouplingFieldsEnum in OpenMCCellAverageProblem!");
-      }
-    }
+    int n_solid = _n_solid[cell_info];
+    int n_fluid = _n_fluid[cell_info];
+    int n_none = _n_none[cell_info];
 
     vt.addRow(printCell(cell_info), n_solid, n_fluid, n_none, _cell_to_elem_volume[cell_info]);
 
@@ -815,9 +863,15 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     }
 
     if (n_solid)
+    {
+      has_solid_cells = true;
       _cell_phase[cell_info] = coupling::temperature;
+    }
     else if (n_fluid)
+    {
+      has_fluid_cells = true;
       _cell_phase[cell_info] = coupling::density_and_temperature;
+    }
     else
       _cell_phase[cell_info] = coupling::none;
   }
@@ -836,25 +890,49 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 }
 
 void
-OpenMCCellAverageProblem::checkCellMappedSubdomains()
+OpenMCCellAverageProblem::getCellMappedSubdomains()
 {
-  for (const auto & c : _cell_to_elem)
+  std::vector<unsigned int> n_elems;
+  std::vector<unsigned int> elem_ids;
+
+  for (const auto & c : _local_cell_to_elem)
   {
-    // find the set of subdomains that this cell maps to
-    std::set<SubdomainID> cell_to_elem_subdomain;
+    n_elems.push_back(c.second.size());
     for (const auto & e : c.second)
     {
-      const auto * elem = _mesh.elemPtr(e);
-      cell_to_elem_subdomain.insert(elem->subdomain_id());
+      // we are looping over local elements, so no need to check for nullptr
+      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      elem_ids.push_back(elem->subdomain_id());
     }
+  }
 
-    // If the OpenMC cell maps to multiple subdomains that _also_ have different
-    // tally settings, we need to error because we are unsure of whether to add tallies or not;
-    // both of these need to be true to error
+  std::map<cellInfo, std::vector<unsigned int>> cell_to_subdomain_vec;
+  gatherCellVector(elem_ids, n_elems, cell_to_subdomain_vec);
+
+  // convert to a set
+  _cell_to_elem_subdomain.clear();
+  for (const auto & c : cell_to_subdomain_vec)
+  {
+    auto cell_info = c.first;
+    for (const auto & s : c.second)
+      _cell_to_elem_subdomain[cell_info].insert(s);
+  }
+}
+
+void
+OpenMCCellAverageProblem::checkCellMappedSubdomains()
+{
+  // If the OpenMC cell maps to multiple subdomains that _also_ have different
+  // tally settings, we need to error because we are unsure of whether to add tallies or not;
+  // both of these need to be true to error
+  for (const auto & c : _cell_to_elem)
+  {
     bool at_least_one_in_tallies = false;
     bool at_least_one_not_in_tallies = false;
     int block_in_tallies, block_not_in_tallies;
-    for (const auto & s : cell_to_elem_subdomain)
+
+    auto cell_info = c.first;
+    for (const auto & s : _cell_to_elem_subdomain[cell_info])
     {
       if (!at_least_one_in_tallies)
       {
@@ -872,8 +950,6 @@ OpenMCCellAverageProblem::checkCellMappedSubdomains()
       if (at_least_one_in_tallies && at_least_one_not_in_tallies)
         break;
     }
-
-    const auto cell_info = c.first;
 
     if (at_least_one_in_tallies && at_least_one_not_in_tallies)
       mooseError("cell " + printCell(cell_info) +
@@ -932,20 +1008,6 @@ OpenMCCellAverageProblem::getMaterialFills()
   }
 }
 
-std::string
-OpenMCCellAverageProblem::printCell(const cellInfo & cell_info) const
-{
-  int32_t id = cellID(cell_info.first);
-
-  std::stringstream msg;
-  msg << "id " << std::setw(_n_cell_digits) << Moose::stringify(id) << ", instance "
-      << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) << " (of "
-      << std::setw(_n_cell_digits)
-      << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
-
-  return msg.str();
-}
-
 void
 OpenMCCellAverageProblem::initializeElementToCellMapping()
 {
@@ -987,12 +1049,22 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
     std::unique(mapped_cells.begin(), mapped_cells.end());
     openmc::prepare_distribcell(&mapped_cells);
+
     // perform element to cell mapping again to get correct instances
     mapElemsToCells();
   }
 
   // For each cell, get one point inside it to speed up the particle search
   getPointInCell();
+
+  // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
+  computeCellMappedVolumes();
+
+  // Get the number of elements of each phase within the cells
+  getCellMappedPhase();
+
+  // Get the element subdomains within each cell
+  getCellMappedSubdomains();
 
   if (_cell_to_elem.size() == 0)
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
@@ -1038,9 +1110,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
                    " OpenMC cells!");
   }
 
-  // Compute the volume that each OpenMC cell maps to in the MOOSE mesh
-  computeCellMappedVolumes();
-
   // Check that each cell maps to a single phase
   checkCellMappedPhase();
 
@@ -1084,7 +1153,7 @@ OpenMCCellAverageProblem::cacheContainedCells()
   if (!_identical_tally_cell_fills)
   {
     for (const auto & c : _cell_to_elem)
-      setContainedCells(c.first, _cell_to_point[c.first], _cell_to_contained_material_cells);
+      setContainedCells(c.first, transformPointToOpenMC(_cell_to_point[c.first]), _cell_to_contained_material_cells);
     return;
   }
 
@@ -1179,10 +1248,7 @@ OpenMCCellAverageProblem::cacheContainedCells()
 
     std::map<cellInfo, containedCells> checking_cell_fills;
     for (const auto & c : _cell_to_elem)
-    {
-      const Point & p = _mesh.elemPtr(c.second[0])->vertex_average();
-      setContainedCells(c.first, transformPointToOpenMC(p), checking_cell_fills);
-    }
+      setContainedCells(c.first, transformPointToOpenMC(_cell_to_point[c.first]), checking_cell_fills);
 
     std::map<cellInfo, containedCells> ordered_reference(checking_cell_fills.begin(),
                                                          checking_cell_fills.end());
@@ -1288,10 +1354,18 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // reset data structures
   _elem_to_cell.clear();
   _cell_to_elem.clear();
+  _flattened_ids.clear();
+  _flattened_instances.clear();
 
+  int local_elem = -1;
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
   {
     const auto * elem = _mesh.queryElemPtr(e);
+
+    if (!isLocalElem(elem))
+      continue;
+
+    local_elem++;
 
     const Point & c = elem->vertex_average();
     Real element_volume = elem->volume();
@@ -1301,7 +1375,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
     if (error)
     {
-      _elem_to_cell.push_back({UNMAPPED, UNMAPPED});
       _uncoupled_volume += element_volume;
       _n_mapped_none_elems++;
       continue;
@@ -1311,7 +1384,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // on coupling for this region; first, determine the phase of this element
     // and store the information
     int level;
-
     auto phase = elemPhase(elem);
 
     switch (phase)
@@ -1372,11 +1444,85 @@ OpenMCCellAverageProblem::mapElemsToCells()
     if (openmc::model::cells[cell_index]->type_ != openmc::Fill::MATERIAL)
       _material_cells_only = false;
 
-    _elem_to_cell.push_back(cell_info);
-
     // store the map of cells to elements that will be coupled
     if (phase != coupling::none)
-      _cell_to_elem[cell_info].push_back(e);
+      _cell_to_elem[cell_info].push_back(local_elem);
+  }
+
+  _communicator.sum(_n_mapped_solid_elems);
+  _communicator.sum(_n_mapped_fluid_elems);
+  _communicator.sum(_n_mapped_none_elems);
+  _communicator.sum(_uncoupled_volume);
+
+  // if ANY rank finds a non-material cell, they will hold 0 (false)
+  _communicator.min(_material_cells_only);
+
+  // store the local mapping of cells to elements for convenience
+  _local_cell_to_elem = _cell_to_elem;
+
+  // flatten the cell IDs and instances
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+    _flattened_ids.push_back(cell_info.first);
+    _flattened_instances.push_back(cell_info.second);
+  }
+
+  _communicator.allgather(_flattened_ids);
+  _communicator.allgather(_flattened_instances);
+
+  // collect the _cell_to_elem onto all ranks
+  std::vector<unsigned int> n_elems;
+  std::vector<unsigned int> elems;
+  for (const auto & c : _cell_to_elem)
+  {
+    n_elems.push_back(c.second.size());
+    for (const auto & e : c.second)
+      elems.push_back(_local_to_global_elem[e]);
+  }
+
+  gatherCellVector(elems, n_elems, _cell_to_elem);
+
+  // fill out the elem_to_cell structure
+  _elem_to_cell.resize(_mesh.nElem());
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+    _elem_to_cell[e] = {UNMAPPED, UNMAPPED};
+
+  for (const auto & c : _cell_to_elem)
+  {
+    for (const auto & e : c.second)
+      _elem_to_cell[e] = c.first;
+  }
+}
+
+void
+OpenMCCellAverageProblem::getPointInCell()
+{
+  std::vector<Real> x;
+  std::vector<Real> y;
+  std::vector<Real> z;
+  for (const auto & c : _local_cell_to_elem)
+  {
+    // we are only dealing with local elements here, no need to check for nullptr
+    const Elem * elem = _mesh.queryElemPtr(globalElemID(c.second[0]));
+    const Point & p = elem->vertex_average();
+
+    x.push_back(p(0));
+    y.push_back(p(1));
+    z.push_back(p(2));
+  }
+
+  _communicator.allgather(x);
+  _communicator.allgather(y);
+  _communicator.allgather(z);
+
+  // this will get a point from the lowest rank in each cell
+  _cell_to_point.clear();
+  for (unsigned int i = 0; i < _flattened_ids.size(); ++i)
+  {
+    cellInfo cell_info = {_flattened_ids[i], _flattened_instances[i]};
+    if (!_cell_to_point.count(cell_info))
+      _cell_to_point[cell_info] = Point(x[i], y[i], z[i]);
   }
 }
 
@@ -1665,20 +1811,6 @@ OpenMCCellAverageProblem::findCell(const Point & point)
   return !openmc::exhaustive_find_cell(_particle);
 }
 
-double
-OpenMCCellAverageProblem::tallySum(std::vector<openmc::Tally *> tally) const
-{
-  double sum = 0.0;
-
-  for (const auto & t : tally)
-  {
-    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
-    sum += xt::sum(mean)();
-  }
-
-  return sum;
-}
-
 void
 OpenMCCellAverageProblem::addExternalVariables()
 {
@@ -1768,34 +1900,62 @@ OpenMCCellAverageProblem::externalSolve()
   _total_n_particles += nParticles();
 }
 
+std::map<OpenMCCellAverageProblem::cellInfo, Real>
+OpenMCCellAverageProblem::computeVolumeWeightedCellInput(const unsigned int & var_num,
+  const coupling::CouplingFields * phase = nullptr)
+{
+  const auto sys_number = _aux->number();
+
+  // collect the volume-weighted product across local ranks
+  std::vector<Real> volume_product;
+  for (const auto & c : _local_cell_to_elem)
+  {
+    // if a specific phase is passed in, only evaluate for those elements in the phase;
+    // in order to have the correct array sizes for gatherCellSum, we set zero values
+    // for any cells that aren't in the correct phase, and leave it up to the send...ToOpenMC()
+    // routines to properly shield against incorrect phases
+    if (phase)
+    {
+      if (cellCouplingFields(c.first) != *phase)
+      {
+        volume_product.push_back(0.0 /* dummy value */);
+        continue;
+      }
+    }
+
+    Real product = 0.0;
+    for (const auto & e : c.second)
+    {
+      // we are only accessing local elements here, so no need to check for nullptr
+      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      auto dof_idx = elem->dof_number(sys_number, var_num, 0);
+      product += (*_serialized_solution)(dof_idx) * elem->volume();
+    }
+
+    volume_product.push_back(product);
+  }
+
+  std::map<cellInfo, Real> global_volume_product;
+  gatherCellSum(volume_product, global_volume_product);
+
+  return global_volume_product;
+}
+
 void
 OpenMCCellAverageProblem::sendTemperatureToOpenMC()
 {
-  const auto sys_number = _aux->number();
-  const auto & mesh = _mesh.getMesh();
-
   _console << "Sending temperature to OpenMC cells... " << printNewline();
 
   double maximum = std::numeric_limits<double>::min();
   double minimum = std::numeric_limits<double>::max();
 
+  // collect the volume-temperature product across local ranks
+  std::map<cellInfo, Real> cell_vol_temp = computeVolumeWeightedCellInput(_temp_var);
+
   for (const auto & c : _cell_to_elem)
   {
-    Real average_temp = 0.0;
     auto cell_info = c.first;
-
-    for (const auto & e : c.second)
-    {
-      auto elem_ptr = mesh.query_elem_ptr(e);
-
-      if (elem_ptr)
-      {
-        auto dof_idx = elem_ptr->dof_number(sys_number, _temp_var, 0);
-        average_temp += (*_serialized_solution)(dof_idx)*elem_ptr->volume();
-      }
-    }
-
-    average_temp /= _cell_to_elem_volume[cell_info];
+    Real average_temp = cell_vol_temp[cell_info] / _cell_to_elem_volume[cell_info];
 
     minimum = std::min(minimum, average_temp);
     maximum = std::max(maximum, average_temp);
@@ -1808,17 +1968,8 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
     auto contained_cells = _cell_to_contained_material_cells[cell_info];
     for (const auto & contained : contained_cells)
     {
-      auto id = contained.first;
-
       for (const auto & instance : contained.second)
-      {
-        int err = openmc_cell_set_temperature(id, average_temp, &instance, false);
-
-        if (err)
-          mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
-                     Moose::stringify(average_temp) + " (K), OpenMC reported:\n\n" +
-                     std::string(openmc_err_msg));
-      }
+        setCellTemperature(contained.first, instance, average_temp, cell_info);
     }
   }
 
@@ -1839,76 +1990,33 @@ OpenMCCellAverageProblem::containedMaterialCell(const cellInfo & cell_info)
 void
 OpenMCCellAverageProblem::sendDensityToOpenMC()
 {
-  const auto sys_number = _aux->number();
-  const auto & mesh = _mesh.getMesh();
-
   _console << "Sending density to OpenMC cells... " << printNewline();
 
   double maximum = std::numeric_limits<double>::min();
   double minimum = std::numeric_limits<double>::max();
 
+  // collect the volume-density product across local ranks
+  auto phase = coupling::density_and_temperature;
+  std::map<cellInfo, Real> cell_vol_density = computeVolumeWeightedCellInput(_density_var, &phase);
+
   for (const auto & c : _cell_to_elem)
   {
-    Real average_density = 0.0;
     auto cell_info = c.first;
 
-    // skip if the cell isn't fluid
-    if (cellCouplingFields(cell_info) != coupling::density_and_temperature)
+    // dummy values fill cell_vol_density for the non-fluid cells
+    if (cellCouplingFields(cell_info) != phase)
       continue;
 
-    for (const auto & e : c.second)
-    {
-      auto elem_ptr = mesh.query_elem_ptr(e);
-
-      if (elem_ptr)
-      {
-        auto dof_idx = elem_ptr->dof_number(sys_number, _density_var, 0);
-        average_density += (*_serialized_solution)(dof_idx)*elem_ptr->volume();
-      }
-    }
-
-    average_density /= _cell_to_elem_volume[cell_info];
+    Real average_density = cell_vol_density[cell_info] / _cell_to_elem_volume[cell_info];
 
     minimum = std::min(minimum, average_density);
     maximum = std::max(maximum, average_density);
-
-    // OpenMC technically allows a density of >= 0.0, but we can impose a tighter
-    // check here with a better error message than the Excepts() in material->set_density
-    // because it could be a very common mistake to forget to set an initial condition
-    // for density if OpenMC runs first
-    if (average_density <= 0.0)
-      mooseError("Densities less than or equal to zero cannot be set in the OpenMC model!\n cell " +
-                 printCell(cell_info) + " set to density " + Moose::stringify(average_density) +
-                 " (kg/m3)");
 
     if (_verbose)
       _console << "Setting cell " << printCell(cell_info) << " to density (kg/m3): " << std::setw(4)
                << average_density << std::endl;
 
-    int fill_type;
-    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
-
-    // throw a special error if the cell is void, because the OpenMC error isn't very
-    // clear what the mistake is
-    if (material_indices[0] == MATERIAL_VOID)
-      mooseError("Cannot set density for cell " + printCell(cell_info) +
-                 " because this cell is void (vacuum)!");
-
-    if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
-      mooseError(
-          "Density transfer does not currently support cells filled with universes or lattices!");
-
-    // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
-    // auxvariable as well as the MOOSE fluid properties module) to g/cm3
-    const char * units = "g/cc";
-    int err = openmc_material_set_density(
-        material_indices[cell_info.second], average_density * _density_conversion_factor, units);
-
-    if (err)
-      mooseError("In attempting to set material with index " +
-                 Moose::stringify(material_indices[cell_info.second]) + " to density " +
-                 Moose::stringify(average_density) + " (kg/m3), OpenMC reported:\n\n" +
-                 std::string(openmc_err_msg));
+    setCellDensity(average_density, cell_info);
   }
 
   if (!_verbose)
@@ -1945,16 +2053,6 @@ OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw
     return raw_tally / _global_kappa_fission;
   else
     return raw_tally / _local_kappa_fission;
-}
-
-Real
-OpenMCCellAverageProblem::relativeError(const Real & sum,
-                                        const Real & sum_sq,
-                                        const int & n_realizations) const
-{
-  Real mean = sum / n_realizations;
-  Real std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
-  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
 }
 
 void
@@ -2260,14 +2358,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         {
           case coupling::hdf5:
           {
-            _console << "Reading temperature and density from properties.h5" << std::endl;
-
-            int err = openmc_properties_import("properties.h5");
-            if (err)
-              mooseError("In attempting to load temperature and density from a properties.h5 file, "
-                         "OpenMC reported:\n\n" +
-                         std::string(openmc_err_msg));
-
+            importProperties();
             return;
           }
           case coupling::moose:
@@ -2375,51 +2466,6 @@ OpenMCCellAverageProblem::checkTallySum() const
 
     mooseError(msg.str());
   }
-}
-
-std::vector<int32_t>
-OpenMCCellAverageProblem::cellFill(const cellInfo & cell_info, int & fill_type) const
-{
-  fill_type = static_cast<int>(openmc::Fill::MATERIAL);
-  int32_t * materials = nullptr;
-  int n_materials = 0;
-
-  int err = openmc_cell_get_fill(cell_info.first, &fill_type, &materials, &n_materials);
-
-  if (err)
-    mooseError("In attempting to get fill of cell " + printCell(cell_info) +
-               ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
-
-  std::vector<int32_t> material_indices;
-  material_indices.assign(materials, materials + n_materials);
-  return material_indices;
-}
-
-bool
-OpenMCCellAverageProblem::cellHasFissileMaterials(const cellInfo & cell_info) const
-{
-  int fill_type;
-  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
-
-  // TODO: for cells with non-material fills, we need to implement something that recurses
-  // into the cell/universe fills to see if there's anything fissile; until then, just assume
-  // that the cell has something fissile
-  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
-    return true;
-
-  // for each material fill, check whether it is fissionable
-  for (const auto & index : material_indices)
-  {
-    // We know void cells certainly aren't fissionable; if not void, check if fissionable
-    if (index != MATERIAL_VOID)
-    {
-      const auto & material = openmc::model::materials[index];
-      if (material->fissionable_)
-        return true;
-    }
-  }
-
-  return false;
 }
 
 void

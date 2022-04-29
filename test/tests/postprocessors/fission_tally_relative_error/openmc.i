@@ -15,8 +15,6 @@
     input = solid
     subdomain_id = '100'
   []
-
-  parallel_type = replicated
 []
 
 # This AuxVariable and AuxKernel is only here to get the postprocessors

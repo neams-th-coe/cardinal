@@ -26,10 +26,12 @@
 #include "openmc/cell.h"
 #include "openmc/geometry.h"
 #include "openmc/hdf5_interface.h"
+#include "openmc/material.h"
 #include "openmc/mesh.h"
 #include "openmc/settings.h"
 #include "openmc/source.h"
 #include "openmc/state_point.h"
+#include "xtensor/xview.hpp"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -71,7 +73,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _reuse_source(getParam<bool>("reuse_source")),
     _single_coord_level(openmc::model::n_coord_levels == 1),
     _fixed_point_iteration(-1),
-    _path_output(openmc::settings::path_output)
+    _path_output(openmc::settings::path_output),
+    _n_cell_digits(std::to_string(openmc::model::cells.size()).length())
 {
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
@@ -112,7 +115,19 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   _n_openmc_cells = 0.0;
   for (const auto & c : openmc::model::cells)
     _n_openmc_cells += c->n_instances_;
+
+  // establish the local -> global element mapping for convenience
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    const auto * elem = _mesh.queryElemPtr(e);
+    if (!isLocalElem(elem))
+      continue;
+
+    _local_to_global_elem.push_back(e);
+  }
 }
+
+OpenMCProblemBase::~OpenMCProblemBase() { openmc_finalize(); }
 
 void
 OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
@@ -121,17 +136,17 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
-  const auto & mesh = _mesh.getMesh();
 
   // loop over all the elements and set the specified variable to the specified value
   for (const auto & e : elem_ids)
   {
-    auto elem_ptr = mesh.query_elem_ptr(e);
-    if (elem_ptr)
-    {
-      auto dof_idx = elem_ptr->dof_number(sys_number, var_num, 0);
-      solution.set(dof_idx, value);
-    }
+    auto elem_ptr = _mesh.queryElemPtr(e);
+
+    if (!isLocalElem(elem_ptr))
+      continue;
+
+    auto dof_idx = elem_ptr->dof_number(sys_number, var_num, 0);
+    solution.set(dof_idx, value);
   }
 }
 
@@ -263,6 +278,150 @@ OpenMCProblemBase::isLocalElem(const Elem * elem) const
     return true;
 
   return false;
+}
+
+void
+OpenMCProblemBase::setCellTemperature(const int32_t & id, const int32_t & instance, const Real & T,
+  const cellInfo & cell_info) const
+{
+  int err = openmc_cell_set_temperature(id, T, &instance, false);
+
+  if (err)
+    mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
+               Moose::stringify(T) + " (K), OpenMC reported:\n\n" +
+               std::string(openmc_err_msg));
+}
+
+std::vector<int32_t>
+OpenMCProblemBase::cellFill(const cellInfo & cell_info, int & fill_type) const
+{
+  fill_type = static_cast<int>(openmc::Fill::MATERIAL);
+  int32_t * materials = nullptr;
+  int n_materials = 0;
+
+  int err = openmc_cell_get_fill(cell_info.first, &fill_type, &materials, &n_materials);
+
+  if (err)
+    mooseError("In attempting to get fill of cell " + printCell(cell_info) +
+               ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+  std::vector<int32_t> material_indices;
+  material_indices.assign(materials, materials + n_materials);
+  return material_indices;
+}
+
+void
+OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_info) const
+{
+  // OpenMC technically allows a density of >= 0.0, but we can impose a tighter
+  // check here with a better error message than the Excepts() in material->set_density
+  // because it could be a very common mistake to forget to set an initial condition
+  // for density if OpenMC runs first
+  if (density <= 0.0)
+    mooseError("Densities less than or equal to zero cannot be set in the OpenMC model!\n cell " +
+               printCell(cell_info) + " set to density " + Moose::stringify(density) + " (kg/m3)");
+
+  int fill_type;
+  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
+
+  // throw a special error if the cell is void, because the OpenMC error isn't very
+  // clear what the mistake is
+  if (material_indices[0] == MATERIAL_VOID)
+    mooseError("Cannot set density for cell " + printCell(cell_info) +
+               " because this cell is void (vacuum)!");
+
+  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+    mooseError(
+        "Density transfer does not currently support cells filled with universes or lattices!");
+
+  // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
+  // auxvariable as well as the MOOSE fluid properties module) to g/cm3
+  const char * units = "g/cc";
+  int err = openmc_material_set_density(
+      material_indices[cell_info.second], density * _density_conversion_factor, units);
+
+  if (err)
+    mooseError("In attempting to set material with index " +
+               Moose::stringify(material_indices[cell_info.second]) + " to density " +
+               Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n" +
+               std::string(openmc_err_msg));
+}
+
+std::string
+OpenMCProblemBase::printCell(const cellInfo & cell_info) const
+{
+  int32_t id = cellID(cell_info.first);
+
+  std::stringstream msg;
+  msg << "id " << std::setw(_n_cell_digits) << Moose::stringify(id) << ", instance "
+      << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) << " (of "
+      << std::setw(_n_cell_digits)
+      << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
+
+  return msg.str();
+}
+
+void
+OpenMCProblemBase::importProperties() const
+{
+  _console << "Reading temperature and density from properties.h5" << std::endl;
+
+  int err = openmc_properties_import("properties.h5");
+  if (err)
+    mooseError("In attempting to load temperature and density from a properties.h5 file, "
+               "OpenMC reported:\n\n" +
+               std::string(openmc_err_msg));
+}
+
+bool
+OpenMCProblemBase::cellHasFissileMaterials(const cellInfo & cell_info) const
+{
+  int fill_type;
+  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
+
+  // TODO: for cells with non-material fills, we need to implement something that recurses
+  // into the cell/universe fills to see if there's anything fissile; until then, just assume
+  // that the cell has something fissile
+  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+    return true;
+
+  // for each material fill, check whether it is fissionable
+  for (const auto & index : material_indices)
+  {
+    // We know void cells certainly aren't fissionable; if not void, check if fissionable
+    if (index != MATERIAL_VOID)
+    {
+      const auto & material = openmc::model::materials[index];
+      if (material->fissionable_)
+        return true;
+    }
+  }
+
+  return false;
+}
+
+Real
+OpenMCProblemBase::relativeError(const Real & sum,
+                                        const Real & sum_sq,
+                                        const int & n_realizations) const
+{
+  Real mean = sum / n_realizations;
+  Real std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
+  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+}
+
+double
+OpenMCProblemBase::tallySum(std::vector<openmc::Tally *> tally) const
+{
+  double sum = 0.0;
+
+  for (const auto & t : tally)
+  {
+    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    sum += xt::sum(mean)();
+  }
+
+  return sum;
 }
 
 #endif
