@@ -1,13 +1,13 @@
 #include "udf.hpp"
 
-void UDF_LoadKernels(ins_t *ins)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
 }
 
-void UDF_Setup(ins_t *ins)
+void UDF_Setup(nrs_t * nrs)
 {
 }
 
-void UDF_ExecuteStep(ins_t *ins, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t * nrs, dfloat time, int tstep)
 {
 }
