@@ -11,8 +11,6 @@
     input = sphere
     subdomain_id = '100'
   []
-
-  parallel_type = replicated
 []
 
 [AuxVariables]

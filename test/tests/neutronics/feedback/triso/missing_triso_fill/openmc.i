@@ -10,8 +10,6 @@
     top_right = '1.0 1.0 0.07'
     block_id = '5'
   []
-
-  parallel_type = replicated
 []
 
 [Problem]

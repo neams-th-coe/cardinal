@@ -3,8 +3,6 @@
 [Mesh]
   type = FileMesh
   file = sphere_in_cm.e
-
-  parallel_type = replicated
 []
 
 [Variables]

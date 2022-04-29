@@ -15,6 +15,8 @@
     input = repeat
     subdomain_id = 0
   []
+
+  allow_renumbering = false
 []
 
 

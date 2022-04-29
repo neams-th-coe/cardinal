@@ -16,7 +16,7 @@
     subdomain_id = '100'
   []
 
-  parallel_type = replicated
+  allow_renumbering = false
 []
 
 [Problem]

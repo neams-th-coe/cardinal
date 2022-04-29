@@ -9,8 +9,6 @@
     positions = '0 0 0
                  5 0 0'
   []
-
-  parallel_type = replicated
 []
 
 [AuxVariables]

@@ -22,8 +22,6 @@
     type = CombinerGenerator
     inputs = 'delete_block translate_surrounding'
   []
-
-  parallel_type = replicated
 []
 
 [AuxVariables]

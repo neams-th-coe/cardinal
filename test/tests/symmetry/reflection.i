@@ -4,15 +4,12 @@
   [sphere]
     type = FileMeshGenerator
     file = ../neutronics/meshes/sphere.e
-    #file = ../../../tutorials/pebbles/sphere_finer.e
   []
   [solid_ids]
     type = SubdomainIDGenerator
     input = sphere
     subdomain_id = '100'
   []
-
-  parallel_type = replicated
 []
 
 [AuxVariables]
