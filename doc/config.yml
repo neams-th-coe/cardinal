@@ -22,7 +22,8 @@ Extensions:
             HPC Systems: hpc.md
             Documentation: source/index.md
             Contributing: contributing.md
-            Contact/Citing: contact.md
+            Publications: publications.md
+            Contact: contact.md
             News: news.md
     MooseDocs.extensions.appsyntax:
         executable: ${ROOT_DIR}
