@@ -24,9 +24,7 @@ before proceeding here.
 The smallest possible MOOSE-wrapped input file that can be used to run NekRS standalone
 cases is shown below. This input file in particular runs the `channel` example that ships
 with the NekRS repository - if you navigate to the `test/tests/nek_standalone/channel` directory,
-you will see that all the NekRS case files are simply symbolic links to files in the
-`contrib/nekRS/examples/channel` directory. All other input examples shown on
-this page are also symbolic links to examples that ship with NekRS.
+you will see that all the NekRS case files are the same as the examples that ship with NekRS.
 
 In this input file, `casename` is the prefix describing the NekRS input files, i.e. this
 parameter would be `casename = channel` if the NekRS input files are `channel.re2`,
