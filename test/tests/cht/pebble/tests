@@ -4,7 +4,12 @@
     input = nek_master.i
     exodiff = 'nek_master_out.e'
     min_parallel = 8
+
+    # unforuntunately when we first made this test, we used a pretty loose
+    # residualTol on temperature; so we can't expect this test to gold against
+    # any tighter tolerance than what's specified in the .par file
     custom_cmp = exodiff.cmp
+
     requirement = "A coupled MOOSE-nekRS pebble flow problem shall predict physically realistic "
                   "conjugate heat transfer. This test is simply a modernized version of the "
                   "onepebble2 case in the problems/spherical_heat_conduction directory, but with "

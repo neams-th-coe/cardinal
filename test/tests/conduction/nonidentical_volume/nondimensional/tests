@@ -7,6 +7,7 @@
     # on the nekRS side
     exodiff = 'nek_master_out_nek0.e'
     cli_args = '--nekrs-setup cylinder'
+    rel_err = 1e-5
 
     min_parallel = 8
     requirement = "A coupled MOOSE-nekRS cylinder heat conduction problem shall produce the correct "

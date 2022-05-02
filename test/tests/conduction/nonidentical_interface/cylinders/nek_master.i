@@ -63,12 +63,10 @@
 
 [Executioner]
   type = Transient
-  num_steps = 1000
+  num_steps = 14
   dt = 0.1
   nl_abs_tol = 1e-8
   nl_rel_tol = 1e-15
-  steady_state_detection = true
-  steady_state_tolerance = 1e-3
 []
 
 [MultiApps]

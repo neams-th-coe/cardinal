@@ -1,5 +1,5 @@
 [Tests]
-  [cylinder_conduction]
+  [conduction]
     type = Exodiff
     input = nek_master.i
     exodiff = 'nek_master_out.e'
@@ -21,42 +21,42 @@
                   "are very close to those predicted by the standalone MOOSE case."
     required_objects = 'NekRSProblem'
   []
-  [cylinder_conduction_subcycle]
+  [conduction_subcycle]
     type = CSVDiff
     input = nek_master_subcycle.i
     csvdiff = 'nek_master_subcycle_out.csv'
     min_parallel = 8
-    rel_err = 1e-5
-    requirement = "The same solution shall be obtained as the cylinder_conduction case when nekRS is "
+    rel_err = 2e-5
+    requirement = "The same solution shall be obtained as the conduction case when nekRS is "
                   "run with a smaller time step than MOOSE with subcycling. The run will not require the "
-                  "the same overall number of time steps as the cylinder_conduction test, so we just compare "
+                  "the same overall number of time steps as the conduction test, so we just compare "
                   "some postprocessor values at the end of the simulation. These CSV results are less than "
-                  "1e-3 different from those for the cylinder_conduction case, so the simulation process "
+                  "1e-3 different from those for the conduction case, so the simulation process "
                   "is equivalent. We don't use exactly the same CSV gold file because the number of time steps "
                   "differs, and would trigger a failure."
     required_objects = 'NekRSProblem'
   []
-  [cylinder_conduction_reversed]
+  [conduction_reversed]
     type = CSVDiff
     input = nek_master_reversed.i
     csvdiff = 'nek_master_reversed_out.csv'
     min_parallel = 8
     rel_err = 1e-5
     requirement = "The same solution shall be obtained when nekRS is run before MOOSE. We compare CSV results "
-                  "against those for the cylinder_conduction case, which match wo within 1e-5. We don't use "
+                  "against those for the conduction case, which match to within 1e-5. We don't use "
                   "exactly the same CSV gold file because the number of time steps differ, and would trigger "
                   "a failure."
     required_objects = 'NekRSProblem'
   []
-  [cylinder_conduction_mini]
+  [conduction_mini]
     type = CSVDiff
     input = nek_master_mini.i
     csvdiff = 'nek_master_subcycle_out.csv'
     min_parallel = 8
-    rel_err = 1e-5
+    rel_err = 2e-5
     requirement = "The same solution shall be obtained when nekRS is run as a sub-app with minimized transfers "
                   "for in the incoming and outgoing data transfers. We compare against the same CSV file used "
-                  "for the cylinder_conduction_subcycle case because the results should be exactly the same."
+                  "for the conduction_subcycle case because the results should be exactly the same."
     required_objects = 'NekRSProblem'
   []
 []
