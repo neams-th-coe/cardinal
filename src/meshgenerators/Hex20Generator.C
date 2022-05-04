@@ -574,7 +574,7 @@ Hex20Generator::generate()
       if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())
         continue;
       else
-        boundary_info.add_side(elem, boundary_face_ids[i], boundary);
+        boundary_info.add_side(elem, boundary_face_ids[i], b);
     }
   }
 
