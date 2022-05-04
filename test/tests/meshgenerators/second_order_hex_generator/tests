@@ -121,6 +121,13 @@
     expect_err = "'boundary' and 'origins' must be the same length!"
     requirement = "The system shall error if the origin and boundary are not the same length."
   []
+  [mismatch_origin_file_length]
+    type = RunException
+    input = convert_multiple.i
+    cli_args = 'Mesh/to_hex20/origins_files="a.txt" --mesh-only'
+    expect_err = "'boundary' and 'origins_files' must be the same length!"
+    requirement = "The system shall error if the origin and boundary are not the same length."
+  []
   [mismatch_origin_space]
     type = RunException
     input = convert_multiple.i
@@ -175,5 +182,28 @@
     cli_args = '--mesh-only'
     requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving sidesets with "
                   "multiple boundary layers to fit a cylinder surface."
+  []
+  [too_many_origins]
+    type = RunException
+    input = multiple_origins.i
+    cli_args = 'Mesh/to_hex20/origins_files=a.txt --mesh-only'
+    expect_err = "Cannot specify both 'origins' and 'origins_files'!"
+    requirement = "The system shall error if trying to set the origins in more than one manner"
+  []
+  [invalid_origin_length]
+    type = RunExpception
+    input = multiple_origins_files.txt
+    cli_args = "Mesh/to_hex20/origins_files=invalid_origins.txt --mesh-only"
+    expect_err = "All entries in invalid_origins.txt must contain exactly 3 entries to represent "
+                 "\(x, y, z\) coordinates!"
+    requirement = "The system shall error if invalid points are provided for the origins"
+  []
+  [multiple_origins_files]
+    type = Exodiff
+    input = multiple_origins_files.i
+    exodiff = multiple_origins_files_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to "
+                  "fit circles based on multiple origins provided from a file."
   []
 []
