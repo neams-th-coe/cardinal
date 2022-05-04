@@ -191,7 +191,7 @@
     requirement = "The system shall error if trying to set the origins in more than one manner"
   []
   [invalid_origin_length]
-    type = RunExpception
+    type = RunException
     input = multiple_origins_files.txt
     cli_args = "Mesh/to_hex20/origins_files=invalid_origins.txt --mesh-only"
     expect_err = "All entries in invalid_origins.txt must contain exactly 3 entries to represent "
