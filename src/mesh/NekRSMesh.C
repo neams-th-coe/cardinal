@@ -130,6 +130,8 @@ NekRSMesh::printMeshInfo() const
   std::string boundaries = "";
   if (_boundary)
     boundaries = Moose::stringify(*_boundary);
+  else
+    boundaries = Moose::stringify(nek_bids);
   vt.addRow("NekRS mirror", _order + 1, boundaries, _n_surface_elems, _n_volume_elems);
 
   vt.print(_console);
