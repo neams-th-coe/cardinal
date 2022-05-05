@@ -194,7 +194,7 @@
     type = RunException
     input = multiple_origins_files.i
     cli_args = "Mesh/to_hex20/origins_files=invalid_origins.txt --mesh-only"
-    expect_err = "All entries in invalid_origins.txt must contain exactly 3 entries to represent "
+    expect_err = "All entries in 'invalid_origins.txt' must contain exactly 3 entries to represent "
                  "\(x, y, z\) coordinates!"
     requirement = "The system shall error if invalid points are provided for the origins"
   []
