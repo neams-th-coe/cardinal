@@ -20,6 +20,7 @@
 #include "CastUniquePointer.h"
 #include "UserErrorChecking.h"
 #include "MooseMeshUtils.h"
+#include "DelimitedFileReader.h"
 
 #include "libmesh/mesh_tools.h"
 #include "libmesh/cell_hex20.h"
@@ -41,6 +42,8 @@ Hex20Generator::validParams()
   params.addParam<std::vector<Real>>("radius", "Radius(es) of the circular surfaces");
   params.addParam<std::vector<std::vector<Real>>>("origins", "Origin(s) about which to form the circular surfaces; "
     "if not specified, all values default to (0, 0, 0)");
+  params.addParam<std::vector<std::string>>("origins_files", "Origin(s) about which to form the circular surfaces, "
+    "with a file of points provided for each boundary. If not specified, all values default to (0, 0, 0)");
   params.addParam<std::vector<unsigned int>>("layers", "Number of layers to sweep for each "
     "boundary when forming the circular surfaces; if not specified, all values default to 0");
 
@@ -86,6 +89,7 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
   {
     checkUnusedParam(params, "axis", "If not setting a 'boundary'");
     checkUnusedParam(params, "origins", "If not setting a 'boundary'");
+    checkUnusedParam(params, "origins_files", "If not setting a 'boundary'");
     checkUnusedParam(params, "layers", "If not setting a 'boundary'");
   }
 
@@ -342,6 +346,9 @@ Hex20Generator::generate()
     if (_moving_boundary.size() != _radius.size())
       mooseError("'boundary' and 'radius' must be the same length!");
 
+    if (isParamValid("origins") && isParamValid("origins_files"))
+      mooseError("Cannot specify both 'origins' and 'origins_files'!");
+
     if (isParamValid("origins"))
     {
       _origin = getParam<std::vector<std::vector<Real>>>("origins");
@@ -359,6 +366,37 @@ Hex20Generator::generate()
         if (o.size() % 3 != 0)
           mooseError("When using multiple origins for one boundary, each entry in 'origins' "
             "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
+      }
+    }
+    else if (isParamValid("origins_files"))
+    {
+      auto origin_filenames = getParam<std::vector<std::string>>("origins_files");
+
+      if (_moving_boundary.size() != origin_filenames.size())
+        mooseError("'boundary' and 'origins_files' must be the same length!");
+
+      _origin.resize(origin_filenames.size());
+
+      int i = 0;
+      for (const auto & f : origin_filenames)
+      {
+        MooseUtils::DelimitedFileReader file(f, &_communicator);
+        file.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
+        file.read();
+
+        const std::vector<std::vector<double>> & data = file.getData();
+
+        for (const auto & d : data)
+        {
+          if (d.size() != 3)
+            mooseError("All entries in '", f, "' must contain exactly 3 entries to represent (x, y, z) coordinates!");
+
+          _origin[i].push_back(d[0]);
+          _origin[i].push_back(d[1]);
+          _origin[i].push_back(d[2]);
+        }
+
+        i += 1;
       }
     }
     else
@@ -536,7 +574,7 @@ Hex20Generator::generate()
       if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())
         continue;
       else
-        boundary_info.add_side(elem, boundary_face_ids[i], boundary);
+        boundary_info.add_side(elem, boundary_face_ids[i], b);
     }
   }
 
