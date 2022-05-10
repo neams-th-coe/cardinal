@@ -76,17 +76,15 @@ automatically. To fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 $ ./scripts/get-dependencies.sh
 ```
 
+
+!alert! note title=Optional dependencies
+
 Cardinal supports *optional* coupling to the following codes:
 
 - *SAM*, a tool for systems analysis of advanced non-light water reactors
-  safety analysis
-- *Sockeye*, a tool for modeling of heat pipe systems
-
-!alert! note title=Building with an optional dependency?
-
-- *SAM*: Follow [these instructions](sam_instructions.md) to obtain the required dependencies for adding the
+  safety analysis. Follow [these instructions](sam_instructions.md) to obtain the required dependencies for adding the
   SAM submodule.
-- *Sockeye*: Follow [these instructions](sockeye_instructions.md) to obtain the required dependencies for adding the
+- *Sockeye*, a tool for modeling of heat pipe systems. Follow [these instructions](sockeye_instructions.md) to obtain the required dependencies for adding the
   Sockeye submodule.
 !alert-end!
 
@@ -130,8 +128,9 @@ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.
 Additional *optional* environment variables that you may need/want to set when building
 Cardinal:
 
-- `HDF5_INCLUDE_DIR`: location of HDF5 headers
-- `HDF5_LIBDIR`: location of HDF5 libraries
+- `HDF5_ROOT`: top-level directory containing HDF5 (this directory should contain
+   an `include` and a `lib` directory). If not set, this will default to the HDF5 downloaded
+   by PETSc and placed into `$PETSC_DIR/$PETSC_ARCH`.
 - `METHODS`: optimization method(s) to use for building Cardinal's libMesh dependency.
    Multiple libMesh libraries with different settings will be built if specifying more than one method, such as wth
   `METHODS='opt dbg'`. Options are:
