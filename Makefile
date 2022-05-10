@@ -6,9 +6,14 @@
 #
 # * CARDINAL_DIR : Top-level Cardinal src dir (default: this Makefile's dir)
 # * CONTRIB_DIR : Dir with third-party src (default: $(CARDINAL_DIR)/contrib)
+# * HYPRE_DIR: Top-level HYPRE dir (default: $(PETSC_DIR)/$(PETSC_ARCH))
+
+# HDF5_ROOT: Top-level HDF5 directory (default: $(HYPRE_DIR), meaning that the default
+#            is to use HDF5 downloaded by PETSc. This makefile will then get the header
+#            files from $(HDF5_ROOT)/include and the libraries from $(HDF5_ROOT)/lib.
+
 # * HDF5_INCLUDE_DIR: Top-level HDF5 header dir (default: $(HDF5_ROOT)/include)
 # * HDF5_LIBDIR: Top-level HDF5 lib dir (default: $(HDF5_ROOT)/lib)
-# * HYPRE_DIR: Top-level HYPRE dir (default: $(PETSC_DIR)/$(PETSC_ARCH))
 # * MOOSE_SUBMODULE : Top-level MOOSE src dir (default: $(CONTRIB_DIR)/moose)
 # * NEKRS_DIR: Top-level NekRS src dir (default: $(CONTRIB_DIR)/nekRS)
 # * OPENMC_DIR: Top-level OpenMC src dir (default: $(CONTRIB_DIR)/openmc)
@@ -30,8 +35,6 @@ ENABLE_OPENMC       ?= yes
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
-HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
-HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
 MOOSE_SUBMODULE     ?= $(CONTRIB_DIR)/moose
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
@@ -45,6 +48,21 @@ SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+
+# If HDF5_ROOT is set, use those settings to link HDF5 to OpenMC.
+# Otherwise, use HYPRE_DIR, which is where PETSc will put HDF5 if downloading it.
+ifeq ($(HDF5_ROOT),)
+  HDF5_ROOT          := $(HYPRE_DIR)
+  export HDF5_ROOT
+endif
+
+HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
+HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
+
+# HDF5 is only needed to be linked if using OpenMC
+ifeq ($(ENABLE_OPENMC), yes)
+  $(info Cardinal is using HDF5 from $(HDF5_ROOT))
+endif
 
 ALL_MODULES         := no
 

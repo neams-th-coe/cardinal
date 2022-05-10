@@ -130,8 +130,9 @@ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.
 Additional *optional* environment variables that you may need/want to set when building
 Cardinal:
 
-- `HDF5_INCLUDE_DIR`: location of HDF5 headers
-- `HDF5_LIBDIR`: location of HDF5 libraries
+- `HDF5_ROOT`: top-level directory containing HDF5 (this directory should contain
+   an `include` and a `lib` directory). If not set, this will default to the HDF5 downloaded
+   by PETSc and placed into `$PETSC_DIR/$PETSC_ARCH`.
 - `METHODS`: optimization method(s) to use for building Cardinal's libMesh dependency.
    Multiple libMesh libraries with different settings will be built if specifying more than one method, such as wth
   `METHODS='opt dbg'`. Options are:
