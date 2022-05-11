@@ -31,14 +31,13 @@ for more information.
 is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
 partition with 36 cores/node and a Intel Knights Landing partition with
 64 cores/node. Below are a bash script and sample job scripts to build
-Cardinal and run the NekRS and OpenMC wrappings (*last updated 12/10/2021*).
+Cardinal and run the NekRS and OpenMC wrappings (*last updated 05/2022*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
 module purge
 module load gcc/8.2.0-g7hppkz
 module load openmpi/3.1.4
-module load cmake/3.14.2-gvwazz3
-module load hdf5/1.8.16-mz7lmxh
+module load cmake/3.20.3-vedypwm
 module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
 export CC=mpicc
@@ -64,8 +63,7 @@ export NEKRS_HOME=$HOME/cardinal/install
 module purge
 module load gcc/8.2.0-g7hppkz
 module load openmpi/3.1.4
-module load cmake/3.14.2-gvwazz3
-module load hdf5/1.8.16-mz7lmxh
+module load cmake/3.20.3-vedypwm
 module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
 export CC=mpicc
@@ -95,8 +93,7 @@ mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=64 > log
 module purge
 module load gcc/8.2.0-g7hppkz
 module load openmpi/3.1.4
-module load cmake/3.14.2-gvwazz3
-module load hdf5/1.8.16-mz7lmxh
+module load cmake/3.20.3-vedypwm
 module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
 export CC=mpicc
