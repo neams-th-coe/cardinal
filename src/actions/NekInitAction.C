@@ -69,6 +69,19 @@ NekInitAction::act()
     else
       setup_file = getParam<std::string>("casename");
 
+    // If the casename is a directory path (i.e. not just a file name), then standalone
+    // NekRS will cd into that directory so that the casename really is just the case file name,
+    // i.e. with the path subtracted out. We will replicate this behavior here.
+    std::size_t last_slash = setup_file.rfind('/') + 1;
+    std::string casepath = setup_file.substr(0, last_slash);
+    std::string casename = setup_file.substr(last_slash, setup_file.length() - last_slash);
+    if (casepath.length() > 0)
+    {
+      int fail = chdir(casepath.c_str());
+      if (fail)
+        mooseError("Failed to cd into '", casepath.c_str(), "'!");
+    }
+
     std::string cache_dir;
 
     // we need to set the default values here because it seems that the default values
@@ -111,7 +124,7 @@ NekInitAction::act()
                  size_target,
                  ci_mode,
                  cache_dir,
-                 setup_file,
+                 casename,
                  "" /* backend */,
                  "" /* device ID */);
 
