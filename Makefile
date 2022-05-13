@@ -1,29 +1,13 @@
-# ======================================================================================
-# Cardinal Makefile
-# ======================================================================================
-#
 # Optional environment variables:
 #
-# * CARDINAL_DIR : Top-level Cardinal src dir (default: this Makefile's dir)
-# * CONTRIB_DIR : Dir with third-party src (default: $(CARDINAL_DIR)/contrib)
-# * HYPRE_DIR: Top-level HYPRE dir (default: $(PETSC_DIR)/$(PETSC_ARCH))
-
-# HDF5_ROOT: Top-level HDF5 directory (default: $(HYPRE_DIR), meaning that the default
-#            is to use HDF5 downloaded by PETSc. This makefile will then get the header
-#            files from $(HDF5_ROOT)/include and the libraries from $(HDF5_ROOT)/lib.
-
-# * HDF5_INCLUDE_DIR: Top-level HDF5 header dir (default: $(HDF5_ROOT)/include)
-# * HDF5_LIBDIR: Top-level HDF5 lib dir (default: $(HDF5_ROOT)/lib)
-# * MOOSE_SUBMODULE : Top-level MOOSE src dir (default: $(CONTRIB_DIR)/moose)
-# * NEKRS_DIR: Top-level NekRS src dir (default: $(CONTRIB_DIR)/nekRS)
-# * OPENMC_DIR: Top-level OpenMC src dir (default: $(CONTRIB_DIR)/openmc)
-# * PETSC_DIR: Top-levle PETSc src dir (default: $(MOOSE_SUBMODULE)/petsc)
-# * PETSC_ARCH: PETSc architecture (default: arch-moose)
-# * SAM_DIR: Top-level SAM src dir (default: $(CONTRIB_DIR)/SAM)
-# * SOCKEYE_DIR: Top-level Sockeye src dir (default: $(CONTRIB_DIR)/sockeye)
-# * SODIUM_DIR: Top-level sodium src dir (default: $(CONTRIB_DIR)/sodium)
-# * POTASSIUM_DIR: Top-level potassium src dir (default: $(CONTRIB_DIR)/potassium)
-# * IAPWS95_DIR: Top-level iapws95 src dir (default: $(CONTRIB_DIR)/iapws95)
+# HDF5_ROOT: Top-level HDF5 directory (default: $(PETSC_DIR)/$(PETSC_ARCH), meaning
+#            that the default is to use HDF5 downloaded by PETSc. This makefile will
+#            then get the header files from $(HDF5_ROOT)/include and the libraries
+#            from $(HDF5_ROOT)/lib.
+#
+# PETSC_DIR: Top-level PETSc src dir (default: $(MOOSE_SUBMODULE)/petsc)
+#
+# PETSC_ARCH: PETSc architecture (default: arch-moose)
 #
 # ======================================================================================
 
@@ -41,7 +25,6 @@ OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
 PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
-HYPRE_DIR           ?= $(PETSC_DIR)/$(PETSC_ARCH)
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 SAM_DIR             ?= $(CONTRIB_DIR)/SAM
 SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
@@ -50,9 +33,9 @@ POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 
 # If HDF5_ROOT is set, use those settings to link HDF5 to OpenMC.
-# Otherwise, use HYPRE_DIR, which is where PETSc will put HDF5 if downloading it.
+# Otherwise, use the location where PETSc will put HDF5 if downloading it.
 ifeq ($(HDF5_ROOT),)
-  HDF5_ROOT          := $(HYPRE_DIR)
+  HDF5_ROOT          := $(PETSC_DIR)/$(PETSC_ARCH)
   export HDF5_ROOT
 endif
 
