@@ -287,12 +287,14 @@ fi
 
 module purge
 module load openmpi/4.0.5_ucx1.9
-module load cmake/3.16.2-gcc-9.3.0-tza7
+module load cmake/3.22.3-gcc-9.3.0-ngra
 module load hdf5/1.12.0_ucx1.9
 
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
+
+export HDF5_ROOT=/apps/local/hdf5/1.12.0_ucx1.9
 !listing-end!
 
 !listing! language=bash caption=Job script to run OpenMC coupled to MOOSE on one node with the `moose` project code for 2 MPI processes and 24 OpenMP threads id=st2
@@ -307,6 +309,7 @@ export FC=mpif90
 
 module purge
 module load openmpi/4.0.5_ucx1.9
+module load cmake/3.22.3-gcc-9.3.0-ngra
 module load hdf5/1.12.0_ucx1.9
 
 # Revise for your cross section data location
@@ -329,7 +332,7 @@ mpirun $HOME/projects/cardinal/cardinal-opt -i openmc_master.i --n-threads=24 > 
 
 module purge
 module load openmpi/4.0.5_ucx1.9
-module load cmake/3.16.2-gcc-9.3.0-tza7
+module load cmake/3.22.3-gcc-9.3.0-ngra
 module load hdf5/1.12.0_ucx1.9
 
 # Revise for your Cardinal repository location
