@@ -1,4 +1,10 @@
 [Tests]
+  [standalone]
+    type = RunCommand
+    command = '../../../../install/bin/openmc 2'
+    requirement = "The system shall be able to run OpenMC as a standalone application."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [particles]
     type = CSVDiff
     input = particles.i
