@@ -46,15 +46,13 @@ Cardinal's prerequisites are summarized in [prereq_table].
 |    | Building with NekRS | Building with OpenMC | Both |
 | :- | :- | :- | :- |
 | CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
-| GNU compilers | $\checkmark$ | &nbsp; | $\checkmark$  |
 | HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
 | MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
 
 !alert note
 If you use [MOOSE's conda environment](https://mooseframework.inl.gov/getting_started/installation/conda.html)
  on Linux, all of these requirements will automatically
-be available to you. If you are on MacOS, MOOSE's conda environment only contains the
-clang compiler, so you will separately need to obtain the GNU compilers.
+be available to you.
 
 ## Building
   id=build
