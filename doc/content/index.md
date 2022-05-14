@@ -59,9 +59,6 @@ Multiphysics model of a 7-pin SFR fuel bundle using NekRS-OpenMC-MOOSE [!cite](n
 
 !card media/assembly_solid_temp_fine.png title=Prismatic Gas Reactors
 Multiphysics model of a prismatic hexagonal assembly with TRISO fuel using THM-OpenMC-MOOSE [!cite](novak_2021c); figure shows the solid temperature predicted by BISON.
-
-!card media/pts.png title=Pressurized Thermal Shock
-Coupled [!ac](CFD) simulations with the MOOSE tensor mechanics module for predicting stress-strain response in [!ac](LWR) reactor vessels [!cite](yu_2022). Figure shows the fluid velocity and temperature predicted by NekRS, which are then fed to a solid mechanics model.
 !gallery-end!
 
 

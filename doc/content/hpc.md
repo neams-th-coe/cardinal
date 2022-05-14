@@ -274,7 +274,7 @@ mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores. Each compute node contains
 dual Xeon Platinum 8268 processors with 24 cores each, giving 48 cores per node. 27 nodes have
 four NVIDIA V100 GPUs each. Below are a bash script and sample job scripts to build Cardinal and
-run the NekRS and OpenMC wrappings (*last updated 10/11/2021*).
+run the NekRS and OpenMC wrappings (*last updated 05/13/2022*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=st1
 if [ -f /etc/bashrc ]; then
