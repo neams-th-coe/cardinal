@@ -87,18 +87,21 @@ Example MultiApp transfers for velocity, temperature and scalar01 coupling are s
   [inlet_V_transfer]
     type = MultiAppPostprocessorTransfer
     from_multi_app = 1D_TH_code
+    reduction_type = average
     from_postprocessor = toNekRS_velocity
     to_postprocessor   = inlet_V
   []
   [inlet_T_transfer]
     type = MultiAppPostprocessorTransfer
     from_multi_app = 1D_TH_code
+    reduction_type = average
     from_postprocessor = toNekRS_temperature
     to_postprocessor   = inlet_T
   []
   [inlet_S01_transfer]
     type = MultiAppPostprocessorTransfer
     from_multi_app = 1D_TH_code
+    reduction_type = average
     from_postprocessor = toNekRS_scalar01
     to_postprocessor   = inlet_S01
   []
