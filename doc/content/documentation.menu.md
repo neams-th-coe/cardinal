@@ -1,7 +1,7 @@
 !row! class=row
 !col! small=12 medium=6 large=4
 
-## [Tutorials](tutorials/index.md)
+## [Tutorials [!icon!link]](tutorials/index.md)
 
 - Coupling NekRS to MOOSE
 - Coupling OpenMC to MOOSE
@@ -11,7 +11,7 @@
 
 !col! small=12 medium=6 large=4
 
-## [Class Objects](source/index.md)
+## [Class Objects [!icon!link]](source/index.md)
 
 - Cardinal input file syntax
 
@@ -19,7 +19,7 @@
 
 !col! small=12 medium=6 large=4
 
-## [Running on HPC](hpc.md)
+## [Running on HPC [!icon!link]](hpc.md)
 
 - Module settings
 - Job submission scripts
