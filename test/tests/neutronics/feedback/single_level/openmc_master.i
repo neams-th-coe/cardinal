@@ -5,7 +5,6 @@
 [Mesh]
   type = FileMesh
   file = ../../meshes/pincell.e
-  parallel_type = replicated
 []
 
 [Variables]
@@ -128,8 +127,7 @@
 [Transfers]
   [heat_source_from_openmc]
     type = MultiAppMeshFunctionTransfer
-    direction = from_multiapp
-    multi_app = openmc
+    from_multi_app = openmc
     variable = heat_source
     source_variable = heat_source
     from_postprocessors_to_be_preserved = heat_source
@@ -137,15 +135,13 @@
   []
   [temp_to_openmc]
     type = MultiAppMeshFunctionTransfer
-    direction = to_multiapp
-    multi_app = openmc
+    to_multi_app = openmc
     variable = temp
     source_variable = temp
   []
   [density_to_openmc]
     type = MultiAppMeshFunctionTransfer
-    direction = to_multiapp
-    multi_app = openmc
+    to_multi_app = openmc
     variable = density
     source_variable = density
   []

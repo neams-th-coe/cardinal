@@ -93,36 +93,31 @@
   [uo1_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = vol_avg
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = vol_avg
   []
   [uox_to_sub]
     type = MultiAppNearestNodeTransfer
     source_variable = uo_x
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = uo_x
   []
   [uoy_to_sub]
     type = MultiAppNearestNodeTransfer
     source_variable = uo_y
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = uo_y
   []
   [uoz_to_sub]
     type = MultiAppNearestNodeTransfer
     source_variable = uo_z
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = uo_z
   []
   [analytic_to_sub]
     type = MultiAppNearestNodeTransfer
     source_variable = velocity_component
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = velocity_component
   []
 []

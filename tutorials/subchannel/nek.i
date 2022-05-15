@@ -110,35 +110,30 @@
   [uo_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = average_T
-    direction = to_multiapp
-    multi_app = subchannel
+    to_multi_app = subchannel
     variable = average_T
   []
   [uo_to_sub2]
     type = MultiAppUserObjectTransfer
     user_object = average_T_gaps
-    direction = to_multiapp
-    multi_app = subchannel_gap
+    to_multi_app = subchannel_gap
     variable = average_T
   []
   [uo1_to_sub]
     type = MultiAppUserObjectTransfer
     user_object = avg_gap_velocity
-    direction = to_multiapp
-    multi_app = subchannel_gap
+    to_multi_app = subchannel_gap
     variable = avg_gap_velocity
   []
   [uox_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel_gap
+    to_multi_app = subchannel_gap
     source_variable = uo_x
     variable = uo_x
   []
   [uoy_to_sub]
     type = MultiAppNearestNodeTransfer
-    direction = to_multiapp
-    multi_app = subchannel_gap
+    to_multi_app = subchannel_gap
     source_variable = uo_y
     variable = uo_y
   []

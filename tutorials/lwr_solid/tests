@@ -1,8 +1,15 @@
 [Tests]
+  [make_mesh]
+    type = RunApp
+    input = mesh.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall create the mesh for the OpenMC and solid domains."
+  []
   [lwr_pincell]
     type = RunApp
     input = solid.i
     min_parallel = 4
+    prereq = make_mesh
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with cell tallies."
@@ -12,6 +19,7 @@
     type = RunApp
     input = solid_um.i
     min_parallel = 4
+    prereq = make_mesh
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
                   "to MOOSE with an unstructured mesh tally."

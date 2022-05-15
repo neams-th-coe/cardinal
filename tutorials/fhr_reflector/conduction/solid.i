@@ -128,16 +128,14 @@ core_heat_flux = 5e3
   [temperature]
     type = MultiAppNearestNodeTransfer
     source_variable = temp
-    direction = from_multiapp
-    multi_app = nek
+    from_multi_app = nek
     variable = nek_temp
     fixed_meshes = true
   []
   [flux]
     type = MultiAppNearestNodeTransfer
     source_variable = flux
-    direction = to_multiapp
-    multi_app = nek
+    to_multi_app = nek
     variable = avg_flux
     fixed_meshes = true
     source_boundary = 'fluid_solid_interface'
@@ -145,9 +143,8 @@ core_heat_flux = 5e3
   [flux_integral]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
-    direction = to_multiapp
     from_postprocessor = flux_integral
-    multi_app = nek
+    to_multi_app = nek
   []
 []
 

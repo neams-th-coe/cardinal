@@ -1,0 +1,209 @@
+[Tests]
+  [invalid_elem]
+    type = RunException
+    input = invalid_elem.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator can only be applied to HEX27 elements!"
+    requirement = "The system shall error if an invalid element type is used with a hex27 to hex20 converter"
+  []
+  [multiple_sides]
+    type = RunException
+    input = multiple_sides.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator cannot be applied to elements that have more than one face on the circular sideset!"
+    requirement = "The system shall error if attempting to move elements to a circular surface "
+                  "when those elements have more than one face on the circular sideset."
+  []
+  [repeated_sides]
+    type = RunException
+    input = repeated_sides.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator cannot be applied to elements that have more than "
+                 "one face on the circular sideset!"
+    requirement = "The system shall error if attempting to move elements to a circular surface "
+                  "when those elements have more than one face on the circular sidesets."
+  []
+  [invalid_id]
+    type = RunException
+    input = invalid_id.i
+    cli_args = '--mesh-only'
+    expect_err = "Boundary '10' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for circular sideset fitting does not exist"
+  []
+  [convert]
+    type = Exodiff
+    input = convert.i
+    exodiff = convert_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 with default behavior of "
+                  "rebuilding all boundaries, and without any circular movement."
+  []
+  [convert_no_sidsets]
+    type = Exodiff
+    input = convert_no_sidesets.i
+    exodiff = convert_no_sidesets_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 with no sidesets retained."
+  []
+  [convert_some_sidsets]
+    type = Exodiff
+    input = convert_some_sidesets.i
+    exodiff = convert_some_sidesets_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 with custom behavior of "
+                  "rebuilding only some boundaries, and without any circular movement."
+  []
+  [convert_some_sidsets_invalid]
+    type = RunException
+    input = convert_some_sidesets.i
+    cli_args = '--mesh-only Mesh/to_hex20/boundaries_to_rebuild="rma"'
+    expect_err = "Boundary 'rma' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for rebuilding sidesets does not exist"
+  []
+  [convert_outer]
+    type = Exodiff
+    input = convert_outer.i
+    exodiff = convert_outer_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving the outer "
+                  "boundary to fit a circle."
+  []
+  [convert_inner]
+    type = Exodiff
+    input = convert_inner.i
+    exodiff = convert_inner_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving the inner "
+                  "boundary to fit a circle."
+  []
+  [convert_multiple]
+    type = Exodiff
+    input = convert_multiple.i
+    exodiff = convert_multiple_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving multiple boundaries "
+                  "to fit a circle."
+  []
+  [convert_multiple_origin]
+    type = Exodiff
+    input = convert_multiple_origin.i
+    exodiff = convert_multiple_origin_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving multiple boundaries "
+                  "to fit a circle with origins not at (0, 0, 0)."
+  []
+  [offcenter]
+    type = Exodiff
+    input = offcenter.i
+    exodiff = offcenter_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to fit "
+                  "a circle when the origin is not at (0, 0, 0)"
+  []
+  [invalid_radius]
+    type = RunException
+    input = convert_multiple.i
+    cli_args = 'Mesh/to_hex20/radius="0.05 -0.01" --mesh-only'
+    expect_err = "All entries in 'radius' must be non-zero and positive!"
+    requirement = "The system shall error if the invalid values are used for the radii."
+  []
+  [mismatch_radius_length]
+    type = RunException
+    input = convert_multiple.i
+    cli_args = 'Mesh/to_hex20/radius="0.05" --mesh-only'
+    expect_err = "'boundary' and 'radius' must be the same length!"
+    requirement = "The system shall error if the radius and boundary are not the same length."
+  []
+  [mismatch_origin_length]
+    type = RunException
+    input = convert_multiple.i
+    cli_args = 'Mesh/to_hex20/origins="0.0 0.0 0.0" --mesh-only'
+    expect_err = "'boundary' and 'origins' must be the same length!"
+    requirement = "The system shall error if the origin and boundary are not the same length."
+  []
+  [mismatch_origin_file_length]
+    type = RunException
+    input = convert_multiple.i
+    cli_args = 'Mesh/to_hex20/origins_files="a.txt" --mesh-only'
+    expect_err = "'boundary' and 'origins_files' must be the same length!"
+    requirement = "The system shall error if the origin and boundary are not the same length."
+  []
+  [mismatch_origin_space]
+    type = RunException
+    input = convert_multiple.i
+    cli_args = 'Mesh/to_hex20/origins="0.0 0.0; 0.0 0.0" --mesh-only'
+    expect_err = "When using multiple origins for one boundary, each entry in 'origins' must have a length\n"
+                 "divisible by 3 to represent \(x, y, z\) coordinates!"
+    requirement = "The system shall error if the origin entries are not the correct length."
+  []
+  [mismatch_origin_empty]
+    type = RunException
+    input = convert_multiple.i
+    cli_args = 'Mesh/to_hex20/origins=" ; 0.0 0.0 0.0" --mesh-only'
+    expect_err = "Zero-length entry in 'origins' detected! Please be sure that each "
+                 "entry in 'origins' has a length\ndivisible by 3 to represent \(x, y, z\) coordinates."
+    requirement = "The system shall error if the origin entries are not the correct length."
+  []
+  [multiple_origins]
+    type = Exodiff
+    input = multiple_origins.i
+    exodiff = multiple_origins_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to "
+                  "fit circles based on multiple origins."
+  []
+  [layers_length]
+    type = RunException
+    input = layers.i
+    cli_args = 'Mesh/to_hex20/layers="0 1" --mesh-only'
+    expect_err = "'boundary' and 'layers' must be the same length!"
+    requirement = "The system shall error if the number of layers does not match the number of boundaries to move"
+  []
+  [layers]
+    type = Exodiff
+    input = layers.i
+    exodiff = layers_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving sidesets with "
+                  "boundary layers to fit a cylinder surface."
+  []
+  [layers_too_many]
+    type = RunException
+    input = layers.i
+    cli_args = 'Mesh/to_hex20/layers="10" --mesh-only'
+    expect_err = "Failed to find a neighbor element across the boundary layer!"
+    requirement = "The system shall error if there is an obvious mismatch between the number of "
+                  "boundary layers and the mesh."
+  []
+  [three_layers]
+    type = Exodiff
+    input = three_layers.i
+    exodiff = three_layers_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving sidesets with "
+                  "multiple boundary layers to fit a cylinder surface."
+  []
+  [too_many_origins]
+    type = RunException
+    input = multiple_origins.i
+    cli_args = 'Mesh/to_hex20/origins_files=a.txt --mesh-only'
+    expect_err = "Cannot specify both 'origins' and 'origins_files'!"
+    requirement = "The system shall error if trying to set the origins in more than one manner"
+  []
+  [invalid_origin_length]
+    type = RunException
+    input = multiple_origins_files.i
+    cli_args = "Mesh/to_hex20/origins_files=invalid_origins.txt --mesh-only"
+    expect_err = "All entries in 'invalid_origins.txt' must contain exactly 3 entries to represent "
+                 "\(x, y, z\) coordinates!"
+    requirement = "The system shall error if invalid points are provided for the origins"
+  []
+  [multiple_origins_files]
+    type = Exodiff
+    input = multiple_origins_files.i
+    exodiff = multiple_origins_files_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to "
+                  "fit circles based on multiple origins provided from a file."
+  []
+[]

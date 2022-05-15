@@ -3,8 +3,6 @@
     type = FileMeshGenerator
     file = ../solid.e
   []
-
-  parallel_type = replicated
 []
 
 [Problem]

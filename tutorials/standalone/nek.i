@@ -83,8 +83,7 @@
 [Transfers]
   [uo_to_sub]
     type = MultiAppUserObjectTransfer
-    multi_app = sub
-    direction = to_multiapp
+    to_multi_app = sub
     user_object = volume_averages
     variable = avg_velocity
   []

@@ -7,7 +7,6 @@ pin_diameter = 0.6
     type = PolygonConcentricCircleMeshGenerator
     num_sides = 6
     polygon_size = ${fparse pin_pitch / 2.0}
-    ring_intervals = '2'
     num_sectors_per_side = '2 2 2 2 2 2'
   []
   [bundle]

@@ -97,7 +97,7 @@ system in MOOSE, the mesh is created at runtime. If you want to generate a mesh 
 you can do so by running the solid input file in mesh generation mode:
 
 !listing
-$ cardinal-opt -i solid.i --mesh-only
+$ cardinal-opt -i mesh.i --mesh-only
 
 !media pincell_solid_mesh.png
   id=solid_mesh
@@ -223,8 +223,13 @@ for the solid regions of an [!ac](LWR) pincell. All input files are present in t
 ### Solid Input Files
 
 The solid phase is solved with the MOOSE heat conduction module, and is
-described in the `solid.i` input. The solid mesh is set up using various
-mesh generators.
+described in the `solid.i` input. The solid mesh is created using mesh generators
+in the `mesh.i` input:
+
+!listing /tutorials/lwr_solid/mesh.i
+
+We generate the mesh by running `cardinal-opt -i mesh.i --mesh-only` to create the
+`mesh_in.e` file, which we then use in the solid input file.
 
 !listing /tutorials/lwr_solid/solid.i
   end=Variables
@@ -613,14 +618,8 @@ specify will be obtained when normalizing the OpenMC tally. In the limit of
 an extremely refined unstructured mesh, the error in normalizing by the global
 tally decreases to zero.
 
-In order to get a mesh file for use in tallying, we run the solid input file in mesh
-generation mode to output the mesh as an Exodis file:
-
-```
-$ cardinal-opt -i solid_um.i --mesh-only
-$ mv solid_um_in.e pincell.e
-```
-
+The mesh file we use for tallying is simply the `mesh_in.e` mesh we generated
+earlier with the mesh generators.
 Note that because the mesh in the `[Mesh]` block contains elements that correspond
 to the cladding, we will technically be tallying in cladding regions, even though
 there isn't a heat source there. Simply delete the cladding blocks in the mesh template

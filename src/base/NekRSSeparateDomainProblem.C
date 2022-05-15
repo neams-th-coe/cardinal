@@ -272,13 +272,6 @@ NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId)
   // check which scalar PP to pass to NekRS
   const PostprocessorValue * scalarValue = nullptr;
 
-  if(scalarId==1)
-    scalarValue = _toNekRS_scalar01;
-  else if(scalarId==2)
-    scalarValue = _toNekRS_scalar02;
-  else if(scalarId==3)
-    scalarValue = _toNekRS_scalar03;
-
   _console << "Sending scalar0" << Moose::stringify(scalarId) << " of "
            << *scalarValue << " to NekRS boundary "
            << Moose::stringify(_inlet_boundary) << std::endl;

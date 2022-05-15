@@ -12,9 +12,9 @@ features.
 - OpenMC will soon support unstructured mesh tracking; we will extend the OpenMC
   wrapping to support tracking directly on a `MooseMesh`, combined with mesh
   deformations from MOOSE's tensor mechanics module.
-- Add a distributed mesh implementation for the OpenMC wrapping to improve performance
-  for large problems
 
 ## Latest News
 
+- [April 2022](news/april2022.md)
+- [March 2022](news/mar2022.md)
 - [February 2022](news/feb2022.md)
