@@ -80,53 +80,43 @@ Example MultiApp transfers for velocity, temperature and scalar01 coupling are s
 [Transfers]
   [dP_transfer]
     type = MultiAppPostprocessorTransfer
-    multi_app = 1D_TH_code
-    direction = to_multiapp
+    to_multi_app = 1D_TH_code
     from_postprocessor = dP
     to_postprocessor   = fromNekRS_pressureDrop
   []
   [inlet_V_transfer]
     type = MultiAppPostprocessorTransfer
-    multi_app = 1D_TH_code
-    direction = from_multiapp
-    reduction_type = average
+    from_multi_app = 1D_TH_code
     from_postprocessor = toNekRS_velocity
     to_postprocessor   = inlet_V
   []
   [inlet_T_transfer]
     type = MultiAppPostprocessorTransfer
-    multi_app = 1D_TH_code
-    direction = from_multiapp
-    reduction_type = average
+    from_multi_app = 1D_TH_code
     from_postprocessor = toNekRS_temperature
     to_postprocessor   = inlet_T
   []
   [inlet_S01_transfer]
     type = MultiAppPostprocessorTransfer
-    multi_app = 1D_TH_code
-    direction = from_multiapp
-    reduction_type = average
+    from_multi_app = 1D_TH_code
     from_postprocessor = toNekRS_scalar01
     to_postprocessor   = inlet_S01
   []
   [outlet_V_transfer]
     type = MultiAppPostprocessorTransfer
-    multi_app = 1D_TH_code
-    direction = to_multiapp
+    to_multi_app = 1D_TH_code
     from_postprocessor = outlet_V
     to_postprocessor   = fromNekRS_velocity
   []
   [outlet_T_transfer]
     type = MultiAppPostprocessorTransfer
-    multi_app = 1D_TH_code
-    direction = to_multiapp
+    to_multi_app = 1D_TH_code
     from_postprocessor = outlet_T
     to_postprocessor   = fromNekRS_temperature
   []
   [outlet_S01_transfer]
     type = MultiAppPostprocessorTransfer
-    multi_app = 1D_TH_code
-    direction = to_multiapp
+    to_multi_app = 1D_TH_code
     from_postprocessor = outlet_S01
     to_postprocessor   = fromNekRS_scalar01
   []

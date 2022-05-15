@@ -50,7 +50,7 @@ public:
   void sendBoundaryTemperatureToNek();
 
   ///Send scalar to NekRS
-  void sendBoundaryScalarToNek(const int scalarId);
+  void sendBoundaryScalarToNek(const int scalarId,  const double scalarValue);
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 

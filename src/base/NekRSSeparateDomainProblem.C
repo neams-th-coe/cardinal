@@ -179,11 +179,11 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
           sendBoundaryTemperatureToNek();
 
         if (_scalar01_coupling)
-          sendBoundaryScalarToNek(1);
+          sendBoundaryScalarToNek(1, *_toNekRS_scalar01);
         if (_scalar02_coupling)
-          sendBoundaryScalarToNek(2);
+          sendBoundaryScalarToNek(2, *_toNekRS_scalar02);
         if (_scalar03_coupling)
-          sendBoundaryScalarToNek(3);
+          sendBoundaryScalarToNek(3, *_toNekRS_scalar03);
       }
 
       // copy scratch to device
@@ -254,7 +254,7 @@ NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek()
 }
 
 void
-NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId)
+NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId, const double scalarValue)
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -269,15 +269,15 @@ NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId)
 
   auto & mesh = _nek_mesh->getMesh();
 
-  // check which scalar PP to pass to NekRS
-  const PostprocessorValue * scalarValue = nullptr;
+//  // check which scalar PP to pass to NekRS
+//  const PostprocessorValue * scalarValue = nullptr;
 
   _console << "Sending scalar0" << Moose::stringify(scalarId) << " of "
-           << *scalarValue << " to NekRS boundary "
+           << scalarValue << " to NekRS boundary "
            << Moose::stringify(_inlet_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
-    scalar(e,scalarId, *scalarValue);
+    scalar(e,scalarId, scalarValue);
 }
 
 void
