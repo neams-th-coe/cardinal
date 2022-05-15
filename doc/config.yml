@@ -17,9 +17,8 @@ Extensions:
         name: Cardinal
         repo: https://github.com/neams-th-coe/cardinal
         menu:
-            Getting Started: start.md
+            Getting Started: start.menu.md
             Documentation: documentation.menu.md
-            Contributing: contributing.md
             Publications: publications.md
             Contact: contact.md
             News: news.md
