@@ -9,7 +9,7 @@ using said checkpoint files.
 # Creating NekRS checkpoint files
 
 NekRS checkpoint file output is controlled
-using the `writeControl` parameter in the .par file.
+using the `writeControl` and `writeInterval` parameters in the .par file.
 The .par example below only writes a single checkpoint file
 at the end of the simulation.
 
@@ -28,7 +28,7 @@ for the previous and current MOOSE simulations must match.
 
 # Reading NekRS checkpoint files
 
-The NekRS solution is restarted using the `restartFrom`
+The NekRS solution is restarted using the `startFrom`
 parameter in the NekRS .par file. `restartFrom` should contain the
 checkpoint file to restart the NekRS portion of the coupled simulation from.
 
@@ -37,7 +37,7 @@ checkpoint file to restart the NekRS portion of the coupled simulation from.
 # Reading MOOSE checkpoint files
 
 The MOOSE solution is restarted within its Problem block
-using `restart_file_base`. `restart_file_base` should contain the
+using `restart_file_base`. This should contain the
 checkpoint file base to restart the MOOSE portion of the
 coupled simulation from. Furthermore, if MOOSE is running as the sub app in the MultiApp
 system, `force_restart` can be set to restart the MOOSE sub app
