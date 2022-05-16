@@ -43,7 +43,7 @@ coupled simulation from. Furthermore, if MOOSE is running as the sub app in the 
 system, `force_restart` can be set to restart the MOOSE sub app
 without restarting the main app.
 
-!listing /tutorials/restart_nek_and_moose/restart_from_checkpoints/cardinal_sub.i
+!listing /tutorials/restart_nek_and_moose/read_from_checkpoints/cardinal_sub.i
   block=Problem
 
 # Restart MOOSE at time zero
@@ -51,5 +51,5 @@ without restarting the main app.
 By default, NekRS will restart its simulation from time zero. The `start_time` in MOOSE
 needs to be set to zero in order for MOOSE to start at the same time as the NekRS simulation.
 
-!listing /tutorials/restart_nek_and_moose/restart_from_checkpoints/cardinal_sub.i
+!listing /tutorials/restart_nek_and_moose/read_from_checkpoints/cardinal_sub.i
   block=Executioner
