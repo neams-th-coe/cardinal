@@ -8,7 +8,7 @@
   dt = 5e-3
   variableDT = no
   timeStepper = tombo2
-  writeControl = numSteps
+  writeControl = steps
   writeInterval = 100
   polynomialOrder = 4
 
@@ -25,7 +25,6 @@
 [PRESSURE]
   residualTol = 1.0e-6
   residualProj = false
-  preconditioner = semg_amg
 
 [TEMPERATURE]
   conductivity = 64.21

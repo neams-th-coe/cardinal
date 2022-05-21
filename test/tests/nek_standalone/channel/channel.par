@@ -1,1 +1,19 @@
-../../../../contrib/nekRS/examples/channel/channel.par
+[GENERAL] 
+polynomialOrder = 7
+#startFrom = "restart.fld"
+numSteps = 100
+dt = 1e-03
+timeStepper = tombo2
+writeInterval = 0
+
+[PROBLEMTYPE]
+equation = Stokes
+stressFormulation = true # required for variable viscosity
+
+[PRESSURE]
+residualTol = 1e-08
+
+[VELOCITY]
+residualTol = 1e-12
+density = 1.0
+viscosity = 0.1

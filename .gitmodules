@@ -1,9 +1,6 @@
 [submodule "contrib/openmc"]
 	path = contrib/openmc
 	url = https://github.com/openmc-dev/openmc.git
-[submodule "contrib/nekRS"]
-	path = contrib/nekRS
-	url = https://github.com/neams-th-coe/nekRS.git
 [submodule "contrib/moose"]
 	path = contrib/moose
 	url = https://github.com/idaholab/moose.git
@@ -25,3 +22,6 @@
 [submodule "contrib/iapws95"]
 	path = contrib/iapws95
 	url = git@hpcgitlab.hpc.inl.gov:idaholab/iapws95.git
+[submodule "contrib/nekRS"]
+	path = contrib/nekRS
+	url = https://github.com/Nek5000/nekRS.git

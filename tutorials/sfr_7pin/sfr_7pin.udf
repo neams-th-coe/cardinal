@@ -1,5 +1,9 @@
 #include "udf.hpp"
 
+#define mdot 0.1
+#define height 20.32e-2
+#define inlet_T 355 + 273.15
+
 float mass_flowrate()
 {
   return 0.1;
@@ -29,7 +33,7 @@ float inlet_velocity(nrs_t * nrs)
   return mass_flowrate() / flow_area / rho;
 }
 
-void UDF_LoadKernels(nrs_t *nrs)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
   setupAide & options = platform->options;
   occa::properties & kernelInfo = *nrs->kernelInfo;
