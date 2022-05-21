@@ -2,13 +2,13 @@ COORDINATES absolute 1.e-6
 
 TIME STEPS relative 5.5e-6 floor 1e-10
 
-GLOBAL VARIABLES relative 5.5e-6 floor 1e-10
+GLOBAL VARIABLES relative 5.5e-5 floor 1e-10
 	average_flux
 	flux_integral
 
-NODAL VARIABLES relative 5.5e-5 floor 1e-10
+NODAL VARIABLES relative 2.0e-3 floor 1e-10
 	nek_temp
 	temp
 
-ELEMENT VARIABLES relative 5.5e-4 floor 1e-10
+ELEMENT VARIABLES relative 5.5e-3 floor 1e-10
 	avg_flux

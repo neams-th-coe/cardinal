@@ -6,10 +6,8 @@ polynomialOrder = 5
 numSteps = 5
 dt = 1e-04
 writeInterval = 5
-extrapolation = subCycling
 
 [PRESSURE]
-preconditioner = semg_amg
 residualTol = 1e-04
 residualProj = false
 

@@ -6,16 +6,15 @@
   numSteps = 7
   dt = 5.0e-4
   polynomialOrder = 1
-  writeControl = timeStep
+  writeControl = steps
   writeInterval = 2
-  extrapolation = subCycling
 
 [VELOCITY]
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
   residualProj = false
-  boundaryTypeMap = symz, symz, inlet, outlet, symy, symy
+  boundaryTypeMap = symy, symy, inlet, outlet, symz, symz
 
 [PRESSURE]
   residualTol = 1.0e-5

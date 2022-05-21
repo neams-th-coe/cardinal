@@ -30,5 +30,6 @@
     input = action.i
     exodiff = sinusoidal_z_out.e
     requirement = 'The system shall be able to apply a normalized sinusoidal initial condition with a convenient action syntax.'
+    skip = 'Need to prioritize Nek update'
   []
 []
