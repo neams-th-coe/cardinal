@@ -6,8 +6,9 @@
   numSteps = 3
   dt = 1.0
   polynomialOrder = 2
-  writeControl = steps
+  writeControl = timeStep
   writeInterval = 1
+  extrapolation = subCycling
 
 [MESH]
   solver = user
