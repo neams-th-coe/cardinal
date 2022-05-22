@@ -1,46 +1,31 @@
-#[OCCA]
-#backend = CUDA
-#deviceNumber = LOCAL-RANK
+[OCCA]
+  backend = CPU
 
 [GENERAL]
-#verbose = true
-polynomialOrder = 7
-#startFrom = "restart.fld"
-stopAt = endTime
-endTime = 0.06
+  polynomialOrder = 7
+  stopAt = endTime
 
-dt = 6.0e-3
-#dt = targetCFL=4 + max=1e-2 + initial=6e-3
+  # we shorten the end time to 0.05 so that the test suite runs quickly;
+  # you can increase this in order to evolve the flow through the domain
+  endTime = 0.05
 
-timeStepper = tombo2
-subCyclingSteps = 2
+  dt = 6.0e-3
+  timeStepper = tombo2
+  extrapolation = subCycling
+  subCyclingSteps = 2
 
-writeControl = runTime
-writeInterval = 1
+  writeControl = numSteps
+  writeInterval = 100
 
-regularization = hpfrt + nModes=1 + scalingCoeff=10
+  filtering = hpfrt
+  filterWeight = 0.1/${dt}
+  filterModes = 1
 
 [PRESSURE]
-residualTol = 1e-04
-#initialGuess = projectionAconj+nVector=10
+  residualTol = 1e-04
 
 [VELOCITY]
-#solver = pfcg+block
-boundaryTypeMap = inlet, outlet, wall
-density = 1.0
-viscosity = 1/19000
-residualTol = 1e-06
-
-#[BOOMERAMG]
-#coarsenType = 10
-#interpolationType = 6
-#smootherType = -1
-#iterations = 1
-#strongThreshold = 0.25
-#nonGalerkinTol = 0.1
-#
-[CASEDATA]
-#/* diameters  */
-ZLENGTH = 20.0
-NSLABS  = 60
-NELSLAB = 108
+  boundaryTypeMap = inlet, outlet, wall
+  density = 1.0
+  viscosity = -19000
+  residualTol = 1e-06

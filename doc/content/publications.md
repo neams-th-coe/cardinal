@@ -61,7 +61,7 @@ A.J. Novak, D. Shaver, and B. Feng
 # High Temperature Gas Reactors
 
 A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Keutelian,
-["Coupled Monte Carlo and Thermal-Hydrualics Modeling of a Prismatic Gas Reactor Fuel Assembly Using Cardinal"](https://www.researchgate.net/publication/360681454_Coupled_Monte_Carlo_and_Thermal-Hydraulics_Modeling_of_a_Prismatic_Gas_Reactor_Fuel_Assembly_Using_Cardinal?_sg%5B1%5D=1Iq-lQWwadAANa8I10BgfiSiL9agM7rVq-JhJIgNRg2JQgPqQEq6hU82MhzPEQphXzZrYciSQA)
+"Coupled Monte Carlo and Thermal-Hydrualics Modeling of a Prismatic Gas Reactor Fuel Assembly Using Cardinal"
 *Proceedings of PHYSOR* (2022)
 
 # Sodium Fast Reactors

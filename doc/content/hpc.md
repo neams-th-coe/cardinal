@@ -178,29 +178,6 @@ cd $HOME/cardinal/test/tests/cht/sfr_pincell
 mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
 !listing-end!
 
-## KOOKIE Cluster
-
-The KOOKIE cluster at [!ac](ANL) (also called the VTR cluster) has 12
-nodes with a variety of different CPUs and GPUs for each node.
-Below is
-a bash script to build Cardinal (*last updated 5/16/2022*)
-
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=k1
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-export F77=mpif77
-export F90=mpif90
-
-module purge
-module load advanced_modules
-module load mpich-gcc
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
-!listing-end!
-
 ## Nek5k
 
 Nek5k is a cluster at [!ac](ANL) with 40 nodes, each with 40 cores.
@@ -297,7 +274,7 @@ mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores. Each compute node contains
 dual Xeon Platinum 8268 processors with 24 cores each, giving 48 cores per node. 27 nodes have
 four NVIDIA V100 GPUs each. Below are a bash script and sample job scripts to build Cardinal and
-run the NekRS and OpenMC wrappings (*last updated 05/13/2022*).
+run the NekRS and OpenMC wrappings (*last updated 10/11/2021*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=st1
 if [ -f /etc/bashrc ]; then
@@ -310,14 +287,12 @@ fi
 
 module purge
 module load openmpi/4.0.5_ucx1.9
-module load cmake/3.22.3-gcc-9.3.0-ngra
+module load cmake/3.16.2-gcc-9.3.0-tza7
 module load hdf5/1.12.0_ucx1.9
 
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
-
-export HDF5_ROOT=/apps/local/hdf5/1.12.0_ucx1.9
 !listing-end!
 
 !listing! language=bash caption=Job script to run OpenMC coupled to MOOSE on one node with the `moose` project code for 2 MPI processes and 24 OpenMP threads id=st2
@@ -332,7 +307,6 @@ export HDF5_ROOT=/apps/local/hdf5/1.12.0_ucx1.9
 
 module purge
 module load openmpi/4.0.5_ucx1.9
-module load cmake/3.22.3-gcc-9.3.0-ngra
 module load hdf5/1.12.0_ucx1.9
 
 # Revise for your cross section data location
@@ -355,7 +329,7 @@ mpirun $HOME/projects/cardinal/cardinal-opt -i openmc_master.i --n-threads=24 > 
 
 module purge
 module load openmpi/4.0.5_ucx1.9
-module load cmake/3.22.3-gcc-9.3.0-ngra
+module load cmake/3.16.2-gcc-9.3.0-tza7
 module load hdf5/1.12.0_ucx1.9
 
 # Revise for your Cardinal repository location

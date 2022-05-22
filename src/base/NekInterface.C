@@ -95,12 +95,6 @@ hasMovingMesh()
 }
 
 bool
-hasVariableDt()
-{
-  return platform->options.compareArgs("VARIABLE DT", "TRUE");
-}
-
-bool
 endControlElapsedTime()
 {
   return !platform->options.getArgs("STOP AT ELAPSED TIME").empty();
@@ -1191,10 +1185,7 @@ namespace mesh
 bool
 isHeatFluxBoundary(const int boundary)
 {
-  // the heat flux boundary is now named 'codedFixedGradient', but 'fixedGradient'
-  // will be present for backwards compatibility
-  return (bcMap::text(boundary, "scalar00") == "fixedGradient") ||
-         (bcMap::text(boundary, "scalar00") == "codedFixedGradient");
+  return bcMap::text(boundary, "scalar00") == "fixedGradient";
 }
 
 bool

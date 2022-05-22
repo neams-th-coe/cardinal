@@ -13,6 +13,5 @@
                   "The gold solution was verified by comparing it"
                   "to the analytic solution and a solution obtained by MOOSE's heat conduction solve."
     required_objects = 'NekRSProblem'
-    skip = 'Skip until resolved'
   []
 []
