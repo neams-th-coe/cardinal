@@ -1,7 +1,8 @@
 #include <math.h>
 #include "udf.hpp"
+#include <iostream>
 
-void UDF_LoadKernels(occa::properties & kernelInfo)
+void UDF_LoadKernels(nrs_t *nrs)
 {
 }
 

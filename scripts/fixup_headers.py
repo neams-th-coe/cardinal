@@ -8,7 +8,7 @@
 import os, string, re, shutil
 from optparse import OptionParser
 
-global_ignores = ['contrib', '.svn', '.git', 'libmesh', 'unity_src', 'test', 'tutorials']
+global_ignores = ['contrib', '.svn', '.git', 'libmesh', 'unity_src']
 
 unified_header = """\
 /********************************************************************/

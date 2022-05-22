@@ -205,7 +205,7 @@ the `.udf` file) to adjust the total diffusion coefficient on temperature to
 $k_f+k_T$ according to [eq:PrT]. This adjustment must happen on device, in a new GPU kernel we name
 `scalarScaledAddKernel`. This kernel will be defined in the `.oudf` file; we
 instruct the JIT compilation to compile this new kernel by calling
-`oudfBuildKernel`.
+`udfBuildKernel`.
 
 Then, in `UDF_Setup` we set an initial condition for fluid
 temperature (the first scalar in the `nrs->cds->S` array that holds all the

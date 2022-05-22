@@ -4,18 +4,16 @@
 #include <math.h>
 #include "udf.hpp"
 #include "plugins/velRecycling.hpp"
-#include "plugins/tavg.hpp"
+#include "plugins/avg.hpp"
 
-static dfloat ZLENGTH;
-static int NSLABS;
-static int NELSLAB;
+#include "casedata.h"
 
 /* UDF Functions */                                                      
 
-void UDF_LoadKernels(occa::properties& kernelInfo)
+void UDF_LoadKernels(nrs_t *nrs)
 {
-  velRecycling::buildKernel(kernelInfo);
-  tavg::buildKernel(kernelInfo);
+  velRecycling::buildKernel(nrs);
+  avg::buildKernel(nrs);
 }
 
 void UDF_Setup(nrs_t *nrs)
@@ -31,19 +29,7 @@ void UDF_Setup(nrs_t *nrs)
   const hlong offset = NELSLAB * round(NSLABS * zRecycLayer/ZLENGTH); 
   velRecycling::setup(nrs, nrs->o_usrwrk, offset, bID, wbar);
 
-  tavg::setup(nrs);
-}
-void UDF_Setup0(MPI_Comm comm, setupAide &options)
-{
-  platform->par->extract("casedata", "zlength", ZLENGTH);
-  platform->par->extract("casedata", "nslabs", NSLABS);
-  platform->par->extract("casedata", "nelslab", NELSLAB);
-  if (platform->options.compareArgs("BUILD ONLY", "FALSE")) {
-    double* const nek_cb_scnrs = (double*) nek::ptr("cb_scnrs");
-    nek_cb_scnrs[0] = ZLENGTH;
-    nek_cb_scnrs[1] = NSLABS;
-    nek_cb_scnrs[2] = NELSLAB;
-  }
+  avg::setup(nrs);
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
@@ -51,13 +37,13 @@ void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
   mesh_t *mesh = nrs->meshV;
 
   velRecycling::copy();
-  tavg::run(time);
+  avg::run(time);
 
   if (nrs->isOutputStep) {
     occa::memory o_UZ = nrs->o_U + 2*nrs->fieldOffset * sizeof(dfloat);
     const dfloat ubar = platform->linAlg->innerProd(mesh->Nlocal, o_UZ, mesh->o_LMM, platform->comm.mpiComm)/mesh->volume;
     if (platform->comm.mpiRank == 0) printf(" uBulk: %g\n", ubar);
 
-    tavg::outfld();
+    avg::outfld();
   }
 }

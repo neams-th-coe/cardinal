@@ -106,15 +106,14 @@ NekInitAction::act()
                  std::to_string(_n_cases + 1) + "+ cases.");
     }
 
-    nekrs::setup(comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
-                 comm /* local communicator */,
+    nekrs::setup(comm,
                  build_only,
                  size_target,
                  ci_mode,
+                 cache_dir,
                  setup_file,
                  "" /* backend */,
-                 "" /* device ID */,
-                 0 /* debug mode */);
+                 "" /* device ID */);
 
     _n_cases++;
   }

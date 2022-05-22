@@ -1,18 +1,17 @@
 # Getting Started
 
 This page describes how to get started using Cardinal. For additional help,
-please post to our [discussions page](https://github.com/neams-th-coe/cardinal/discussions).
-We also have Cardinal-specific
+please [contact a developer](contact.md). We also have private Cardinal-specific
 Slack channels on the MOOSE Developers Slack workspace
 (`moosedevelopers.slack.com`) and on the NekRS Developers Slack workspace
-(`nekrsdev-team.slack.com`). Please reach out to a [developer](contact.md) to be
+(`nekrsdev-team.slack.com`). Feel free to reach out to a developer to be
 added to these channels.
 
 ## Access
 
-Cardinal is openly-available on GitHub; to access, clone the repository.
-Then, `cd` into the top-level of the repository (all further instructions on this
-page assume you are located in the root directory of Cardinal).
+To get access to Cardinal, simply clone the repository and
+`cd` into the repository (all further instructions on this page assume you
+are located in the root directory of the Cardinal repository).
 
 ```
 $ git clone https://github.com/neams-th-coe/cardinal.git
@@ -24,32 +23,35 @@ $ cd cardinal
 Before building, first decide whether you want *both* NekRS and OpenMC, just one,
 or neither. You can build Cardinal with only the dependencies that you want (which reduces
 the software stack prerequisites). If you do *not*
-want to build the NekRS-part of Cardinal, set:
+want to build the NekRS-part of Cardinal, set the following environment variable:
 
 ```
 $ export ENABLE_NEK=false
 ```
 
-Likewise, if you do *not* want to build the OpenMC-part of Cardinal, set:
+Likewise, if you do *not* want to build the OpenMC-part of Cardinal,
+set the following environment variable:
 
 ```
 $ export ENABLE_OPENMC=false
 ```
 
-You can also edit both of these environment variables in Cardinal's `Makefile`.
-Cardinal's prerequisites are summarized in [prereq_table].
+You can also edit both of these variables in Cardinal's `Makefile`. Then, the prerequisites
+for building Cardinal are summarized in [prereq_table].
 
 !table id=prereq_table caption=Summary of prerequisites needed for Cardinal.
 |    | Building with NekRS | Building with OpenMC | Both |
 | :- | :- | :- | :- |
 | CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+| GNU compilers | $\checkmark$ | &nbsp; | $\checkmark$  |
 | HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
 | MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
 
 !alert note
 If you use [MOOSE's conda environment](https://mooseframework.inl.gov/getting_started/installation/conda.html)
  on Linux, all of these requirements will automatically
-be available to you.
+be available to you. If you are on MacOS, MOOSE's conda environment only contains the
+clang compiler, so you will separately need to obtain the GNU compilers.
 
 ## Building
   id=build
@@ -74,18 +76,21 @@ automatically. To fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 $ ./scripts/get-dependencies.sh
 ```
 
-!alert! note title=Optional submodules
 
-Cardinal can be coupled to *any* MOOSE application. For convenience, we have a few commonly-used
-MOOSE applications available as optional submodules:
+!alert! note title=Optional dependencies
 
-- *SAM*, for systems analysis of advanced non-light water reactors. Follow [these instructions](sam_instructions.md) to get SAM.
-- *Sockeye*, for heat pipe systems. Follow [these instructions](sockeye_instructions.md) to get Sockeye.
+Cardinal supports *optional* coupling to the following codes:
+
+- *SAM*, a tool for systems analysis of advanced non-light water reactors
+  safety analysis. Follow [these instructions](sam_instructions.md) to obtain the required dependencies for adding the
+  SAM submodule.
+- *Sockeye*, a tool for modeling of heat pipe systems. Follow [these instructions](sockeye_instructions.md) to obtain the required dependencies for adding the
+  Sockeye submodule.
 !alert-end!
 
 !alert! note title=Running with OpenMC?
 
-- Follow [these instructions](cross_sections.md) to obtain cross section data.
+- Follow [these instructions](cross_sections.md) to obtain cross section data for use in OpenMC.
 - You may also *optionally* use OpenMC's Python [!ac](API) to build OpenMC models. To use
   this [!ac](API), follow
   [these instructions](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api).
@@ -96,12 +101,18 @@ MOOSE applications available as optional submodules:
   id=env
 
 A number of environment variables are required or recommended when building/running Cardinal.
+We recommend putting these in your `~/.bashrc`:
 
 ``` language=bash
 # [REQUIRED] you must set the location of the root directory of the NekRS install;
 # this will be the 'install' directory at the top level of the Cardinal repository.
 # Be sure to adjust this to wherever you have cloned the Cardinal repository
 export NEKRS_HOME=$HOME/cardinal/install
+
+# [REQUIRED IF USING MOOSE CONDA ENV] you must set the location of the HYPRE
+# libraries (so that a libHYPRE.so or something similar is located at
+# HYPRE_DIR/lib). This is needed because NekRS uses the same HYPRE built with MOOSE
+export HYPRE_DIR=$CONDA_PREFIX
 
 # [OPTIONAL] it's a good idea to explicitly note that you are using MPI compiler wrappers
 export CC=mpicc
@@ -114,13 +125,13 @@ export FC=mpif90
 export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
 ```
 
-Additional *optional* environment variables that you may want to set:
+Additional *optional* environment variables that you may need/want to set when building
+Cardinal:
 
 - `HDF5_ROOT`: top-level directory containing HDF5 (this directory should contain
    an `include` and a `lib` directory). If not set, this will default to the HDF5 downloaded
-   by PETSc (which is placed into `$PETSC_DIR/$PETSC_ARCH`).
-
-- `METHODS`: optimization method(s) to use for building libMesh.
+   by PETSc and placed into `$PETSC_DIR/$PETSC_ARCH`.
+- `METHODS`: optimization method(s) to use for building Cardinal's libMesh dependency.
    Multiple libMesh libraries with different settings will be built if specifying more than one method, such as wth
   `METHODS='opt dbg'`. Options are:
 
@@ -131,10 +142,10 @@ Additional *optional* environment variables that you may want to set:
      internal assertions enabled, and very slow libstdc++ range-checking and consistency
      checks enabled
 
-- `METHOD`: optimization method to use for Cardinal. Only one Cardinal executable can be built at once,
-  such as via
+- `METHOD`: optimization method to use when building Cardinal. MOOSE currently only supports
+  building one Cardinal executable at a time, such as via
   `METHOD='opt'`. If you want to build multiple Cardinal executables with
-  different optimization methods, run `make` multiple times with different
+  different optimization methods, you will need to run `make` multiple times with different
   `METHOD` values.
 
 #### Set the OCCA Backend
@@ -144,15 +155,15 @@ NekRS uses [OCCA](https://libocca.org/#/) to provide an API for device programmi
 backends in NekRS include CPU (i.e. [!ac](MPI) parallelism), CUDA, HIP, OpenCL, and OpenMP.
 There are several different ways that you can set the backend. We recommend setting the
 `NEKRS_OCCA_MODE_DEFAULT` environment variable to one of `CPU`, `CUDA`, `HIP`, `OPENCL`, or
-`OPENMP`.
+`OPENMP`. This will set the backend for all NekRS runs within Cardinal.
 
 ```
 $ export NEKRS_OCCA_MODE_DEFAULT=CPU
 ```
 
-If you only want to control the backend
-for a particular case, you can explicitly set the backend in the `[OCCA]` block of NekRS's
-`.par` file:
+Alternatively, if you only want to control the backend
+for a particular case, you can explicitly set the backend in the NekRS input files
+in the `[OCCA]` block in the `.par` file:
 
 ```
 [OCCA]
@@ -160,7 +171,7 @@ for a particular case, you can explicitly set the backend in the `[OCCA]` block 
 ```
 
 which will override environment settings.
-If you plan to use a GPU backend, you will also need to
+If you plan to use a GPU  backend, you will also need to
 set the correct threading API in the `Makefile` by setting
 the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
 respectively.
@@ -192,12 +203,14 @@ $ make PETSC_DIR=$HOME/cardinal/contrib/moose/scripts/../petsc PETSC_ARCH=arch-m
 ```
 
 !alert tip
-Building PETSc and libMesh can be time consuming. You only need to build these
-if the PETSc or libMesh hashes used by MOOSE has been updated or this is the first time you
+Building libMesh can be time consuming. You only need to build libMesh
+if the libMesh hash used by MOOSE has been updated or this is the first time you
 are building Cardinal.
 On systems with multiple processors, you can set the environment
 variables `JOBS`, `LIBMESH_JOBS`, and/or `MOOSE_JOBS` to be the number
-of processes to use in a parallel `make` to build libMesh.
+of processes to use in a parallel `make` to build libMesh.  You can
+also save time by restricting the
+`METHOD` option.
 
 #### Compile Cardinal
   id=compiling
@@ -211,7 +224,7 @@ $ make -j8
 which will compile Cardinal in parallel with 8 processes.
 This will create the executable `cardinal-<mode>` in the
 top-level directory. `<mode>` is the optimization level used to compile MOOSE
-set with the `METHOD` variable.
+set with the `METHOD` environment variable.
 
 !alert! tip
 If at any point during the build process, you change your environment, then
@@ -228,14 +241,14 @@ $ rm -rf cardinal/install cardinal/build
 
 ## Running
 
-To run Cardinal with `<n>` MPI ranks and `<s>` OpenMP threads is:
+The command to run Cardinal with `<n>` MPI ranks and `<s>` OpenMP threads is:
 
 ```
 $ mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
 ```
 
 This command assumes that `cardinal-opt` is located on your `PATH`; otherwise,
-you need to provide the full path to `cardinal-opt`.
+you need to provide the full path to `cardinal-opt` in the above command.
 Note that while MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,
 NekRS does not use shared memory parallelism.
 
@@ -251,12 +264,7 @@ You can run Cardinal's test suite with the following:
 $ ./run_tests -j8
 ```
 
-which will run the tests in parallel with 8 processes. There are many other
-options you can pass to `run_tests`, such as to only run tests that match a certain
-regex, or to run tests with a distributed mesh, etc. For a full list of all options
-available to `run_tests`, do `./run_tests --dump`.
-
-OpenMC's tests require
+which will run the tests in parallel with 8 processes. OpenMC's tests require
 you to use the ENDF/B7-II.1 data set, which you can download following
 the instructions [here](cross_sections.md).
 Depending on the availability of various dependencies, some tests may be skipped.
