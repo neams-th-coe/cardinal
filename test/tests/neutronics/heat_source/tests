@@ -10,6 +10,21 @@
                   "for perfect model overlap with fissile fluid and solid phases."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [from_postprocessor]
+    type = Exodiff
+    input = from_postprocessor.i
+
+    # use the same gold file from the overlap_all test; this test is exactly the same except
+    # that the power comes from a postprocessor
+    cli_args = 'Outputs/file_base=overlap_all_out'
+    exodiff = 'overlap_all_out.e'
+
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The power shall be provided by a postprocessor"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [overlap_solid]
     type = Exodiff
     input = overlap_solid.i
