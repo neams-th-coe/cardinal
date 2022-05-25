@@ -39,6 +39,12 @@ namespace nekrs
 constexpr double abs_tol = 1e-8;
 constexpr double rel_tol = 1e-5;
 
+void
+setStartTime(const double & start)
+{
+  platform->options.setArgs("START TIME", to_string_f(start));
+}
+
 std::vector<int>
 cornerGLLIndices(const int & n)
 {
