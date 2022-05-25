@@ -316,14 +316,6 @@ NekRSProblemBase::initialSetup()
                "you have specified the '" +
                executioner->type() + "' executioner!");
 
-  // If the simulation start time is not zero, the app's time must be shifted
-  // relative to its master app (if any). Until this is implemented, make sure
-  // a start time of zero is used.
-  const auto moose_start_time = _transient_executioner->getStartTime();
-  if (moose_start_time != 0.0)
-    mooseError("You specified a start time of " + Moose::stringify(moose_start_time) +
-               ", but a non-zero start time is not yet supported for '" + type() + "'!");
-
   // To get the correct time stepping information on the MOOSE side, we also
   // must use the NekTimeStepper
   TimeStepper * stepper = _transient_executioner->getTimeStepper();
@@ -337,19 +329,11 @@ NekRSProblemBase::initialSetup()
   // Set the reference time for use in dimensionalizing/non-dimensionalizing the time
   _timestepper->setReferenceTime(_L_ref, _U_ref);
 
-  // Also make sure that the start time is consistent with what MOOSE wants to use.
-  // If different from what NekRS internally wants to use, use the MOOSE value.
-  if (!MooseUtils::absoluteFuzzyEqual(moose_start_time, _start_time))
-  {
-    mooseWarning("The start time set on the executioner: " + Moose::stringify(moose_start_time) +
-                 " does not match the start time set in NekRS's .par file: " +
-                 Moose::stringify(_timestepper->dimensionalDT(_start_time)) +
-                 ". "
-                 "\nThis may happen if you are using a restart file in NekRS.\n\n" +
-                 "Setting start time for '" + type() +
-                 "' to: " + Moose::stringify(moose_start_time));
-    _start_time = moose_start_time;
-  }
+  // Set the NekRS start time to whatever is set on Executioner/start_time; print
+  // a message if those times don't match the .par file
+  const auto moose_start_time = _transient_executioner->getStartTime();
+  nekrs::setStartTime(moose_start_time);
+  _start_time = moose_start_time;
 
   if (_minimize_transfers_in)
     _transfer_in = &getPostprocessorValueByName("transfer_in");
