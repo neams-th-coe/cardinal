@@ -92,5 +92,5 @@
 
 [Outputs]
   exodus = true
-  hide = 'dummy density'
+  hide = 'dummy density p'
 []
