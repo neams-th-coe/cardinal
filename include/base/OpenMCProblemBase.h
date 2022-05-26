@@ -21,12 +21,13 @@
 #define LIBMESH
 
 #include "ExternalProblem.h"
+#include "PostprocessorInterface.h"
 #include "openmc/tallies/tally.h"
 
 /**
  * Base class for all MOOSE wrappings of OpenMC
  */
-class OpenMCProblemBase : public ExternalProblem
+class OpenMCProblemBase : public ExternalProblem, public PostprocessorInterface
 {
 public:
   OpenMCProblemBase(const InputParameters & params);
