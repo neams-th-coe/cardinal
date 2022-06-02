@@ -1327,153 +1327,153 @@ TEST_F(HexagonalLatticeTest, line_distance)
   EXPECT_DOUBLE_EQ(hl.distanceFromLine(p3, l5, l6), std::sqrt(2.0) / 2.0);
 }
 
-TEST_F(HexagonalLatticeTest, closest_gap)
-{
-   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
-
-   Point pt1(0.23, 0.27, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt1), 0);
-
-   Point pt2(-0.5, 0.29, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt2), 11);
-
-   Point pt3(1.14, 0.275, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt3), 29);
-
-   Point pt4(-0.77, 1.015, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt4), 13);
-
-   Point pt5(-0.84, 0.445, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt5), 16);
-
-   Point pt6(-0.47, 1.55, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt6), 32);
-
-   Point pt7(-0.069, 1.94, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt7), 43);
-
-   Point pt8(-1.22, 1.79, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt8), 45);
-
-   Point pt10(-0.26, -1.61, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt10), 37);
-
-   Point pt11(2.23, 0.03, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt11), 57);
-
-   Point pt12(-1.77, -0.70, 0.0);
-   EXPECT_EQ(hl.gapIndex(pt12), 49);
- }
-
-TEST_F(HexagonalLatticeTest, normals1)
-{
-   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 1, 2);
-   const auto & normals = hl.gapUnitNormals();
-   Real sin60 = std::sqrt(3.0) / 2.0;
-
-   for (const auto & n : normals)
-     EXPECT_DOUBLE_EQ(n(2), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[0](0), -1.0);
-   EXPECT_DOUBLE_EQ(normals[0](1), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[1](0), -0.5);
-   EXPECT_DOUBLE_EQ(normals[1](1), -sin60);
-
-   EXPECT_DOUBLE_EQ(normals[2](0), 0.5);
-   EXPECT_DOUBLE_EQ(normals[2](1), -sin60);
-
-   EXPECT_DOUBLE_EQ(normals[3](0), 1.0);
-   EXPECT_DOUBLE_EQ(normals[3](1), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[4](0), 0.5);
-   EXPECT_DOUBLE_EQ(normals[4](1), sin60);
-
-   EXPECT_DOUBLE_EQ(normals[5](0), -0.5);
-   EXPECT_DOUBLE_EQ(normals[5](1), sin60);
- }
-
-TEST_F(HexagonalLatticeTest, normals2)
-{
-   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
-   const auto & normals = hl.gapUnitNormals();
-   Real sin60 = std::sqrt(3.0) / 2.0;
-
-   for (const auto & n : normals)
-     EXPECT_DOUBLE_EQ(n(2), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[0](0), -sin60);
-   EXPECT_DOUBLE_EQ(normals[0](1), 0.5);
-
-   EXPECT_DOUBLE_EQ(normals[1](0), -sin60);
-   EXPECT_DOUBLE_EQ(normals[1](1), -0.5);
-
-   EXPECT_DOUBLE_EQ(normals[2](0), 0.0);
-   EXPECT_DOUBLE_EQ(normals[2](1), -1.0);
-
-   EXPECT_DOUBLE_EQ(normals[3](0), sin60);
-   EXPECT_DOUBLE_EQ(normals[3](1), -0.5);
-
-   EXPECT_DOUBLE_EQ(normals[4](0), sin60);
-   EXPECT_DOUBLE_EQ(normals[4](1), 0.5);
-
-   EXPECT_DOUBLE_EQ(normals[5](0), 0.0);
-   EXPECT_DOUBLE_EQ(normals[5](1), 1.0);
-
-   EXPECT_DOUBLE_EQ(normals[6](0), 0.0);
-   EXPECT_DOUBLE_EQ(normals[6](1), -1.0);
-
-   EXPECT_DOUBLE_EQ(normals[7](0), -sin60);
-   EXPECT_DOUBLE_EQ(normals[7](1), -0.5);
-
-   EXPECT_DOUBLE_EQ(normals[8](0), sin60);
-   EXPECT_DOUBLE_EQ(normals[8](1), -0.5);
-
-   EXPECT_DOUBLE_EQ(normals[9](0), sin60);
-   EXPECT_DOUBLE_EQ(normals[9](1), 0.5);
-
-   EXPECT_DOUBLE_EQ(normals[10](0), 0.0);
-   EXPECT_DOUBLE_EQ(normals[10](1), 1.0);
-
-   EXPECT_DOUBLE_EQ(normals[11](0), -sin60);
-   EXPECT_DOUBLE_EQ(normals[11](1), 0.5);
-
-   EXPECT_DOUBLE_EQ(normals[12](0), -1.0);
-   EXPECT_DOUBLE_EQ(normals[12](1), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[13](0), -1.0);
-   EXPECT_DOUBLE_EQ(normals[13](1), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[14](0), -0.5);
-   EXPECT_DOUBLE_EQ(normals[14](1), -sin60);
-
-   EXPECT_DOUBLE_EQ(normals[15](0), -0.5);
-   EXPECT_DOUBLE_EQ(normals[15](1), -sin60);
-
-   EXPECT_DOUBLE_EQ(normals[16](0), 0.5);
-   EXPECT_DOUBLE_EQ(normals[16](1), -sin60);
-
-   EXPECT_DOUBLE_EQ(normals[17](0), 0.5);
-   EXPECT_DOUBLE_EQ(normals[17](1), -sin60);
-
-   EXPECT_DOUBLE_EQ(normals[18](0), 1.0);
-   EXPECT_DOUBLE_EQ(normals[18](1), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[19](0), 1.0);
-   EXPECT_DOUBLE_EQ(normals[19](1), 0.0);
-
-   EXPECT_DOUBLE_EQ(normals[20](0), 0.5);
-   EXPECT_DOUBLE_EQ(normals[20](1), sin60);
-
-   EXPECT_DOUBLE_EQ(normals[21](0), 0.5);
-   EXPECT_DOUBLE_EQ(normals[21](1), sin60);
-
-   EXPECT_DOUBLE_EQ(normals[22](0), -0.5);
-   EXPECT_DOUBLE_EQ(normals[22](1), sin60);
-
-   EXPECT_DOUBLE_EQ(normals[23](0), -0.5);
-   EXPECT_DOUBLE_EQ(normals[23](1), sin60);
- }
+//TEST_F(HexagonalLatticeTest, closest_gap)
+//{
+//   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+//
+//   Point pt1(0.23, 0.27, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt1), 0);
+//
+//   Point pt2(-0.5, 0.29, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt2), 11);
+//
+//   Point pt3(1.14, 0.275, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt3), 29);
+//
+//   Point pt4(-0.77, 1.015, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt4), 13);
+//
+//   Point pt5(-0.84, 0.445, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt5), 16);
+//
+//   Point pt6(-0.47, 1.55, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt6), 32);
+//
+//   Point pt7(-0.069, 1.94, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt7), 43);
+//
+//   Point pt8(-1.22, 1.79, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt8), 45);
+//
+//   Point pt10(-0.26, -1.61, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt10), 37);
+//
+//   Point pt11(2.23, 0.03, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt11), 57);
+//
+//   Point pt12(-1.77, -0.70, 0.0);
+//   EXPECT_EQ(hl.gapIndex(pt12), 49);
+// }
+//
+//TEST_F(HexagonalLatticeTest, normals1)
+//{
+//   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 1, 2);
+//   const auto & normals = hl.gapUnitNormals();
+//   Real sin60 = std::sqrt(3.0) / 2.0;
+//
+//   for (const auto & n : normals)
+//     EXPECT_DOUBLE_EQ(n(2), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[0](0), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[0](1), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[1](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[1](1), -sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[2](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[2](1), -sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[3](0), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[3](1), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[4](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[4](1), sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[5](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[5](1), sin60);
+// }
+//
+//TEST_F(HexagonalLatticeTest, normals2)
+//{
+//   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+//   const auto & normals = hl.gapUnitNormals();
+//   Real sin60 = std::sqrt(3.0) / 2.0;
+//
+//   for (const auto & n : normals)
+//     EXPECT_DOUBLE_EQ(n(2), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[0](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[0](1), 0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[1](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[1](1), -0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[2](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[2](1), -1.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[3](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[3](1), -0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[4](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[4](1), 0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[5](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[5](1), 1.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[6](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[6](1), -1.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[7](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[7](1), -0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[8](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[8](1), -0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[9](0), sin60);
+//   EXPECT_DOUBLE_EQ(normals[9](1), 0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[10](0), 0.0);
+//   EXPECT_DOUBLE_EQ(normals[10](1), 1.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[11](0), -sin60);
+//   EXPECT_DOUBLE_EQ(normals[11](1), 0.5);
+//
+//   EXPECT_DOUBLE_EQ(normals[12](0), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[12](1), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[13](0), -1.0);
+//   EXPECT_DOUBLE_EQ(normals[13](1), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[14](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[14](1), -sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[15](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[15](1), -sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[16](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[16](1), -sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[17](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[17](1), -sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[18](0), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[18](1), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[19](0), 1.0);
+//   EXPECT_DOUBLE_EQ(normals[19](1), 0.0);
+//
+//   EXPECT_DOUBLE_EQ(normals[20](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[20](1), sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[21](0), 0.5);
+//   EXPECT_DOUBLE_EQ(normals[21](1), sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[22](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[22](1), sin60);
+//
+//   EXPECT_DOUBLE_EQ(normals[23](0), -0.5);
+//   EXPECT_DOUBLE_EQ(normals[23](1), sin60);
+// }
 
 TEST_F(HexagonalLatticeTest, normals3)
 {
