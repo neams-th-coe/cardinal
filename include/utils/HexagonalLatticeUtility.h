@@ -146,6 +146,14 @@ public:
   const bool pointInPolygon(const Point & point, const std::vector<Point> & corners) const;
 
   /**
+   * Whether a point is on the edge of a polygon given its corner points
+   * @param[in] point point of interest
+   * @param[in] corners corner points of polygon
+   * @return whether point is on edge of polygon
+   */
+  const bool pointOnEdge(const Point & point, const std::vector<Point> & corners) const;
+
+  /**
    * Get the number of pins in a given ring
    * @param[in] n ring number, beginning from 1
    * @return number of pins in the specified ring

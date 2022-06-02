@@ -604,6 +604,10 @@ TEST_F(HexagonalLatticeTest, channel_index)
   EXPECT_EQ(hl.channelIndex(pt4), 4);
   EXPECT_EQ(hl.channelIndex(pt5), 5);
 
+  // check that a point exactly on the edge falls into one channel
+  pt0 = {0.5 * 0.8 * 0.5, 0.5 * 0.8 * std::sqrt(3.0) / 2.0, 0.0};
+  EXPECT_EQ(hl.channelIndex(pt0), 0);
+
   // check that the z-coordinate doesn't affect the channel index identification
   EXPECT_EQ(hl.channelIndex(pt0 + Point(0.0, 0.0, 3.5)), 0);
   EXPECT_EQ(hl.channelIndex(pt1 + Point(0.0, 0.0, 3.5)), 1);
@@ -1323,7 +1327,7 @@ TEST_F(HexagonalLatticeTest, line_distance)
   EXPECT_DOUBLE_EQ(hl.distanceFromLine(p3, l5, l6), std::sqrt(2.0) / 2.0);
 }
 
-// TEST_F(HexagonalLatticeTest, closest_gap)
+//TEST_F(HexagonalLatticeTest, closest_gap)
 //{
 //   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
 //
@@ -1361,7 +1365,7 @@ TEST_F(HexagonalLatticeTest, line_distance)
 //   EXPECT_EQ(hl.gapIndex(pt12), 49);
 // }
 //
-// TEST_F(HexagonalLatticeTest, normals1)
+//TEST_F(HexagonalLatticeTest, normals1)
 //{
 //   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 1, 2);
 //   const auto & normals = hl.gapUnitNormals();
@@ -1389,7 +1393,7 @@ TEST_F(HexagonalLatticeTest, line_distance)
 //   EXPECT_DOUBLE_EQ(normals[5](1), sin60);
 // }
 //
-// TEST_F(HexagonalLatticeTest, normals2)
+//TEST_F(HexagonalLatticeTest, normals2)
 //{
 //   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
 //   const auto & normals = hl.gapUnitNormals();
@@ -1740,4 +1744,38 @@ TEST_F(HexagonalLatticeTest, pin_corners)
 
   p = {0.85, 0.51, 0.0};
   EXPECT_EQ(hl.pinIndex(p), 7);
+}
+
+TEST_F(HexagonalLatticeTest, point_on_edge)
+{
+  // test points exactly on and along the same vector (but not on) the edge
+  // of a gap in a hexagonal lattice
+  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+  Point midpoint(0.5 * 0.8 * 0.5, 0.5 * 0.8 * std::sqrt(3.0) / 2.0);
+  Point vec(0.8 * 0.5, 0.8 * std::sqrt(3.0) / 2.0, 0.0);
+  Point too_far_midpoint = midpoint + vec;
+
+  const auto & corners = hl.interiorChannelCornerCoordinates(0);
+  EXPECT_TRUE(hl.pointOnEdge(midpoint, corners));
+  EXPECT_FALSE(hl.pointOnEdge(too_far_midpoint, corners));
+
+  // perturb the midpoint a small bit to ensure we're no longer on the edge
+  midpoint(0) += 1e-6;
+  EXPECT_FALSE(hl.pointOnEdge(midpoint, corners));
+
+  // test points on a simpler Cartesian-based polygon
+  Point pt8(1.0, 2.0, 0.0);
+  Point pt9(2.0, 3.0, 0.0);
+  Point pt10(3.0, 3.0, 0.0);
+  Point pt11(3.0, 1.0, 0.0);
+
+  Point pt0(3.0, 1.0, 0.0);
+  Point pt1(3.0, 1.1, 0.0);
+  Point pt2(3.1, 1.0, 0.0);
+  Point pt3(3.0, 0.9, 0.0);
+
+  EXPECT_TRUE(hl.pointInPolygon(pt0, {pt8, pt9, pt10, pt11}));
+  EXPECT_TRUE(hl.pointInPolygon(pt1, {pt8, pt9, pt10, pt11}));
+  EXPECT_FALSE(hl.pointInPolygon(pt2, {pt8, pt9, pt10, pt11}));
+  EXPECT_FALSE(hl.pointInPolygon(pt3, {pt8, pt9, pt10, pt11}));
 }
