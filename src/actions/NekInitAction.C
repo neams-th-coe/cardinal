@@ -54,6 +54,17 @@ NekInitAction::act()
   if (_type == "NekRSProblem" || _type == "NekRSStandaloneProblem" ||
       _type == "NekRSSeparateDomainProblem")
   {
+    // NekRS does some checks in main(); because we don't call that function
+    // directly, repeat those checks here
+    if (!getenv("NEKRS_HOME"))
+      mooseError("Cannot find environment variable NEKRS_HOME!");
+
+    std::string bin(getenv("NEKRS_HOME"));
+    bin += "/bin/nekrs";
+    const char * ptr = realpath(bin.c_str(), NULL);
+    if (!ptr)
+      mooseError("Cannot find '", bin, "'! Did you set NEKRS_HOME to the correct location?");
+
     std::shared_ptr<CommandLine> cl = _app.commandLine();
     bool casename_on_command_line = cl->search("nekrs_setup");
 
