@@ -229,6 +229,8 @@ NekRSProblemBase::~NekRSProblemBase()
   freePointer(_external_data);
   freePointer(_interpolation_outgoing);
   freePointer(_interpolation_incoming);
+
+  nekrs::finalize();
 }
 
 void
