@@ -7,4 +7,12 @@
                   "fashion that a standalone NekRS case will"
     required_objects = 'NekRSProblem'
   []
+  [invalid_directory]
+    type = RunException
+    input = nek.i
+    cli_args = 'Problem/casename="invalid/pyramid"'
+    expect_err = "Failed to find 'invalid/'! Did you set the 'casename' correctly?"
+    requirement = "The system shall error if an invalid directory path is provided for the case"
+    required_objects = 'NekRSProblem'
+  []
 []

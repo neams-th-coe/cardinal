@@ -79,7 +79,7 @@ NekInitAction::act()
     {
       int fail = chdir(casepath.c_str());
       if (fail)
-        mooseError("Failed to cd into '", casepath.c_str(), "'!");
+        mooseError("Failed to find '", casepath.c_str(), "'! Did you set the 'casename' correctly?");
     }
 
     std::string cache_dir;
