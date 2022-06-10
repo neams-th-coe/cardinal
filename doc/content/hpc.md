@@ -378,3 +378,10 @@ module load cuda
 module load hdf5
 module load python/3.7.0-anaconda3-5.3.0
 !listing-end!
+
+Remember that in order to build Cardinal with GPU support, set the appropriate
+variable in the `Makefile` to true (`1`):
+
+!listing cardinal/Makefile
+  start=OCCA_CUDA_ENABLED
+  end=NEKRS_BUILDDIR
