@@ -7,15 +7,30 @@ ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
 endif
 
+moose_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep moose | cut -c1)
+ifneq (,$(findstring +,$(moose_status)))
+  $(warning $n"***WARNING***: Your MOOSE submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+endif
+
 ifeq ($(ENABLE_NEK), yes)
   ifeq ($(NEKRS_CONTENT),)
     $(error $n"NekRS does not seem to be available, but ENABLE_NEK is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
+  endif
+
+  nek_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep nekRS | cut -c1)
+  ifneq (,$(findstring +,$(nek_status)))
+    $(warning $n"***WARNING***: Your NekRS submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
   endif
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
   ifeq ($(OPENMC_CONTENT),)
     $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts-get-dependencies.sh")
+  endif
+
+  openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
+  ifneq (,$(findstring +,$(openmc_status)))
+    $(warning $n"***WARNING***: Your OpenMC submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
   endif
 endif
 
