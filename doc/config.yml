@@ -17,11 +17,8 @@ Extensions:
         name: Cardinal
         repo: https://github.com/neams-th-coe/cardinal
         menu:
-            Getting Started: start.md
-            Tutorials: tutorials/index.md
-            HPC Systems: hpc.md
-            Documentation: source/index.md
-            Contributing: contributing.md
+            Getting Started: start.menu.md
+            Documentation: documentation.menu.md
             Publications: publications.md
             Contact: contact.md
             News: news.md
