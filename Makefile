@@ -64,6 +64,11 @@ ifeq ($(ENABLE_OPENMC), yes)
   $(info Cardinal is using HDF5 from $(HDF5_ROOT))
 endif
 
+# Check that NEKRS_HOME is set to the correct location
+ifeq ($(ENABLE_NEK), yes)
+  include config/check_nekrs.mk
+endif
+
 ALL_MODULES         := no
 
 FLUID_PROPERTIES    := yes
