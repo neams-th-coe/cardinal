@@ -541,52 +541,6 @@ TEST_F(HexagonalLatticeTest, pin_centers)
     EXPECT_DOUBLE_EQ(centers4[i](2), 0.0);
 }
 
-TEST_F(HexagonalLatticeTest, point_in_polygon)
-{
-  HexagonalLatticeUtility hl(5.0, 0.99, 0.8, 0.05, 50.0, 3, 2);
-
-  // triangle
-  Point pt1(1.0, 1.0, 0.0);
-  Point pt2(3.0, 2.0, 0.0);
-  Point pt3(2.0, 2.0, 0.0);
-
-  Point pt_in(2.0, 1.9, 0.0);
-  Point pt_not_in(2.0, 3.0, 0.0);
-  Point pt_edge = pt1;
-
-  EXPECT_TRUE(hl.pointInPolygon(pt_in, {pt1, pt2, pt3}));
-  EXPECT_FALSE(hl.pointInPolygon(pt_not_in, {pt1, pt2, pt3}));
-  EXPECT_TRUE(hl.pointInPolygon(pt_edge, {pt1, pt2, pt3}));
-
-  // rectangle
-  Point pt4(1.0, 2.0, 0.0);
-  Point pt5(2.0, 1.0, 0.0);
-  Point pt6(4.0, 3.0, 0.0);
-  Point pt7(3.0, 4.0, 0.0);
-
-  Point pt_in1(2.0, 2.0, 0.0);
-  Point pt_not_in1(3.0, 1.0, 0.0);
-  pt_edge = pt5;
-
-  EXPECT_TRUE(hl.pointInPolygon(pt_in1, {pt4, pt5, pt6, pt7}));
-  EXPECT_FALSE(hl.pointInPolygon(pt_not_in1, {pt4, pt5, pt6, pt7}));
-  EXPECT_TRUE(hl.pointInPolygon(pt_edge, {pt4, pt5, pt6, pt7}));
-
-  // general polygon
-  Point pt8(1.0, 2.0, 0.0);
-  Point pt9(2.0, 3.0, 0.0);
-  Point pt10(3.0, 3.0, 0.0);
-  Point pt11(3.0, 1.0, 0.0);
-
-  Point pt_in2(2.0, 2.0, 0.0);
-  Point pt_not_in2(1.0, 3.0, 0.0);
-  Point pt_edge2(3.0, 2.0, 0.0);
-
-  EXPECT_TRUE(hl.pointInPolygon(pt_in2, {pt8, pt9, pt10, pt11}));
-  EXPECT_FALSE(hl.pointInPolygon(pt_not_in2, {pt8, pt9, pt10, pt11}));
-  EXPECT_TRUE(hl.pointInPolygon(pt_edge2, {pt8, pt9, pt10, pt11}));
-}
-
 TEST_F(HexagonalLatticeTest, channel_index)
 {
   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
@@ -1304,29 +1258,6 @@ TEST_F(HexagonalLatticeTest, gaps3)
   EXPECT_EQ(lg[i++][1], 57);
 }
 
-TEST_F(HexagonalLatticeTest, line_distance)
-{
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
-
-  // horizontal line
-  Point p1(4.0, 5.0, 0.0);
-  Point l1(1.0, 3.0, 0.0);
-  Point l2(5.0, 3.0, 0.0);
-  EXPECT_DOUBLE_EQ(hl.distanceFromLine(p1, l1, l2), 2.0);
-
-  // vertical line
-  Point l4(1.0, 5.0, 0.0);
-  Point l3(1.0, 3.0, 0.0);
-  Point p2(3.0, 4.0, 0.0);
-  EXPECT_DOUBLE_EQ(hl.distanceFromLine(p2, l3, l4), 2.0);
-
-  // angled line
-  Point p3(2.0, 2.0, 0.0);
-  Point l5(1.0, 2.0, 0.0);
-  Point l6(2.0, 3.0, 0.0);
-  EXPECT_DOUBLE_EQ(hl.distanceFromLine(p3, l5, l6), std::sqrt(2.0) / 2.0);
-}
-
 //TEST_F(HexagonalLatticeTest, closest_gap)
 //{
 //   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
@@ -1744,38 +1675,4 @@ TEST_F(HexagonalLatticeTest, pin_corners)
 
   p = {0.85, 0.51, 0.0};
   EXPECT_EQ(hl.pinIndex(p), 7);
-}
-
-TEST_F(HexagonalLatticeTest, point_on_edge)
-{
-  // test points exactly on and along the same vector (but not on) the edge
-  // of a gap in a hexagonal lattice
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
-  Point midpoint(0.5 * 0.8 * 0.5, 0.5 * 0.8 * std::sqrt(3.0) / 2.0);
-  Point vec(0.8 * 0.5, 0.8 * std::sqrt(3.0) / 2.0, 0.0);
-  Point too_far_midpoint = midpoint + vec;
-
-  const auto & corners = hl.interiorChannelCornerCoordinates(0);
-  EXPECT_TRUE(hl.pointOnEdge(midpoint, corners));
-  EXPECT_FALSE(hl.pointOnEdge(too_far_midpoint, corners));
-
-  // perturb the midpoint a small bit to ensure we're no longer on the edge
-  midpoint(0) += 1e-6;
-  EXPECT_FALSE(hl.pointOnEdge(midpoint, corners));
-
-  // test points on a simpler Cartesian-based polygon
-  Point pt8(1.0, 2.0, 0.0);
-  Point pt9(2.0, 3.0, 0.0);
-  Point pt10(3.0, 3.0, 0.0);
-  Point pt11(3.0, 1.0, 0.0);
-
-  Point pt0(3.0, 1.0, 0.0);
-  Point pt1(3.0, 1.1, 0.0);
-  Point pt2(3.1, 1.0, 0.0);
-  Point pt3(3.0, 0.9, 0.0);
-
-  EXPECT_TRUE(hl.pointInPolygon(pt0, {pt8, pt9, pt10, pt11}));
-  EXPECT_TRUE(hl.pointInPolygon(pt1, {pt8, pt9, pt10, pt11}));
-  EXPECT_FALSE(hl.pointInPolygon(pt2, {pt8, pt9, pt10, pt11}));
-  EXPECT_FALSE(hl.pointInPolygon(pt3, {pt8, pt9, pt10, pt11}));
 }

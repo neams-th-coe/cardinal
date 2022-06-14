@@ -1,0 +1,119 @@
+/********************************************************************/
+/*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
+/*                             Cardinal                             */
+/*                                                                  */
+/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                        ALL RIGHTS RESERVED                       */
+/*                                                                  */
+/*                 Prepared by UChicago Argonne, LLC                */
+/*               Under Contract No. DE-AC02-06CH11357               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*             Prepared by Battelle Energy Alliance, LLC            */
+/*               Under Contract No. DE-AC07-05ID14517               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*                 See LICENSE for full restrictions                */
+/********************************************************************/
+
+#include "GeometryUtilityTest.h"
+#include "HexagonalLatticeUtility.h"
+
+TEST_F(GeometryUtilityTest, line_distance)
+{
+  // horizontal line
+  Point p1(4.0, 5.0, 0.0);
+  Point l1(1.0, 3.0, 0.0);
+  Point l2(5.0, 3.0, 0.0);
+  EXPECT_DOUBLE_EQ(geom_utility::distanceFromLine(p1, l1, l2), 2.0);
+
+  // vertical line
+  Point l4(1.0, 5.0, 0.0);
+  Point l3(1.0, 3.0, 0.0);
+  Point p2(3.0, 4.0, 0.0);
+  EXPECT_DOUBLE_EQ(geom_utility::distanceFromLine(p2, l3, l4), 2.0);
+
+  // angled line
+  Point p3(2.0, 2.0, 0.0);
+  Point l5(1.0, 2.0, 0.0);
+  Point l6(2.0, 3.0, 0.0);
+  EXPECT_DOUBLE_EQ(geom_utility::distanceFromLine(p3, l5, l6), std::sqrt(2.0) / 2.0);
+}
+
+TEST_F(GeometryUtilityTest, point_on_edge)
+{
+  // test points exactly on and along the same vector (but not on) the edge
+  // of a gap in a hexagonal lattice
+  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+  Point midpoint(0.5 * 0.8 * 0.5, 0.5 * 0.8 * std::sqrt(3.0) / 2.0);
+  Point vec(0.8 * 0.5, 0.8 * std::sqrt(3.0) / 2.0, 0.0);
+  Point too_far_midpoint = midpoint + vec;
+
+  const auto & corners = hl.interiorChannelCornerCoordinates(0);
+  EXPECT_TRUE(geom_utility::pointOnEdge(midpoint, corners));
+  EXPECT_FALSE(geom_utility::pointOnEdge(too_far_midpoint, corners));
+
+  // perturb the midpoint a small bit to ensure we're no longer on the edge
+  midpoint(0) += 1e-6;
+  EXPECT_FALSE(geom_utility::pointOnEdge(midpoint, corners));
+
+  // test points on a simpler Cartesian-based polygon
+  Point pt8(1.0, 2.0, 0.0);
+  Point pt9(2.0, 3.0, 0.0);
+  Point pt10(3.0, 3.0, 0.0);
+  Point pt11(3.0, 1.0, 0.0);
+
+  Point pt0(3.0, 1.0, 0.0);
+  Point pt1(3.0, 1.1, 0.0);
+  Point pt2(3.1, 1.0, 0.0);
+  Point pt3(3.0, 0.9, 0.0);
+
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt0, {pt8, pt9, pt10, pt11}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt1, {pt8, pt9, pt10, pt11}));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt2, {pt8, pt9, pt10, pt11}));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt3, {pt8, pt9, pt10, pt11}));
+}
+
+TEST_F(GeometryUtilityTest, point_in_polygon)
+{
+  // triangle
+  Point pt1(1.0, 1.0, 0.0);
+  Point pt2(3.0, 2.0, 0.0);
+  Point pt3(2.0, 2.0, 0.0);
+
+  Point pt_in(2.0, 1.9, 0.0);
+  Point pt_not_in(2.0, 3.0, 0.0);
+  Point pt_edge = pt1;
+
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in, {pt1, pt2, pt3}));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in, {pt1, pt2, pt3}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge, {pt1, pt2, pt3}));
+
+  // rectangle
+  Point pt4(1.0, 2.0, 0.0);
+  Point pt5(2.0, 1.0, 0.0);
+  Point pt6(4.0, 3.0, 0.0);
+  Point pt7(3.0, 4.0, 0.0);
+
+  Point pt_in1(2.0, 2.0, 0.0);
+  Point pt_not_in1(3.0, 1.0, 0.0);
+  pt_edge = pt5;
+
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in1, {pt4, pt5, pt6, pt7}));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in1, {pt4, pt5, pt6, pt7}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge, {pt4, pt5, pt6, pt7}));
+
+  // general polygon
+  Point pt8(1.0, 2.0, 0.0);
+  Point pt9(2.0, 3.0, 0.0);
+  Point pt10(3.0, 3.0, 0.0);
+  Point pt11(3.0, 1.0, 0.0);
+
+  Point pt_in2(2.0, 2.0, 0.0);
+  Point pt_not_in2(1.0, 3.0, 0.0);
+  Point pt_edge2(3.0, 2.0, 0.0);
+
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in2, {pt8, pt9, pt10, pt11}));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in2, {pt8, pt9, pt10, pt11}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge2, {pt8, pt9, pt10, pt11}));
+}

@@ -18,6 +18,7 @@
 
 #include "HexagonalLatticeUtility.h"
 #include "MooseUtils.h"
+#include "GeometryUtility.h"
 
 const Real HexagonalLatticeUtility::COS60 = 0.5;
 const Real HexagonalLatticeUtility::SIN60 = std::sqrt(3.0) / 2.0;
@@ -604,78 +605,6 @@ HexagonalLatticeUtility::channelCentroid(const std::vector<Point> & pins) const
   return centroid;
 }
 
-const Real
-HexagonalLatticeUtility::lineHalfSpace(const Point & pt1,
-                                       const Point & pt2,
-                                       const Point & pt3) const
-{
-  return (pt1(0) - pt3(0)) * (pt2(1) - pt3(1)) - (pt2(0) - pt3(0)) * (pt1(1) - pt3(1));
-}
-
-const bool
-HexagonalLatticeUtility::pointInPolygon(const Point & point,
-                                        const std::vector<Point> & corners) const
-{
-  auto n_pts = corners.size();
-
-  std::vector<bool> negative_half_space;
-  std::vector<bool> positive_half_space;
-  for (unsigned int i = 0; i < corners.size(); ++i)
-  {
-    int next = (i == n_pts - 1) ? 0 : i + 1;
-    auto half = lineHalfSpace(point, corners[i], corners[next]);
-    negative_half_space.push_back(half < 0);
-    positive_half_space.push_back(half > 0);
-  }
-
-  bool negative = std::find(negative_half_space.begin(), negative_half_space.end(), true) !=
-                  negative_half_space.end();
-  bool positive = std::find(positive_half_space.begin(), positive_half_space.end(), true) !=
-                  positive_half_space.end();
-
-  bool in_polygon = !(negative && positive);
-  if (in_polygon) return true;
-
-  for (unsigned int i = 0; i < corners.size(); ++i)
-    if (pointOnEdge(point, corners))
-      return true;
-
-  return false;
-}
-
-const bool
-HexagonalLatticeUtility::pointOnEdge(const Point & point,
-                                        const std::vector<Point> & corners) const
-{
-  auto n_pts = corners.size();
-
-  Real tol = 1e-8;
-  for (unsigned int i = 0; i < corners.size(); ++i)
-  {
-    int next = (i == n_pts - 1) ? 0 : i + 1;
-    const auto & pt1 = corners[i];
-    const auto & pt2 = corners[next];
-    bool close_to_line = distanceFromLine(point, pt1, pt2) < tol;
-
-    // we can stop early if we know we're not close to the line
-    if (!close_to_line)
-      continue;
-
-    // check that the point is "between" the two points; TODO: first pass
-    // we can just compare x and y coordinates
-    bool between_points = (point(0) >= std::min(pt1(0), pt2(0))) &&
-                          (point(0) <= std::max(pt1(0), pt2(0))) &&
-                          (point(1) >= std::min(pt1(1), pt2(1))) &&
-                          (point(1) <= std::max(pt1(1), pt2(1)));
-
-    // point needs to be close to the line AND "between" the two points
-    if (close_to_line && between_points)
-      return true;
-  }
-
-  return false;
-}
-
 const unsigned int
 HexagonalLatticeUtility::pinIndex(const Point & point) const
 {
@@ -694,7 +623,7 @@ HexagonalLatticeUtility::pinIndex(const Point & point) const
       continue;
 
     auto corners = _pin_centered_corner_coordinates[i];
-    if (pointInPolygon(point, corners))
+    if (geom_utility::pointInPolygon(point, corners))
       return i;
   }
 
@@ -713,7 +642,7 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_interior_channels; ++i)
       {
         auto corners = interiorChannelCornerCoordinates(i);
-        if (pointInPolygon(point, corners))
+        if (geom_utility::pointInPolygon(point, corners))
           return i;
       }
       break;
@@ -723,7 +652,7 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_edge_channels; ++i)
       {
         auto corners = edgeChannelCornerCoordinates(i);
-        if (pointInPolygon(point, corners))
+        if (geom_utility::pointInPolygon(point, corners))
           return i + _n_interior_channels;
       }
       break;
@@ -733,7 +662,7 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_corner_channels; ++i)
       {
         auto corners = cornerChannelCornerCoordinates(i);
-        if (pointInPolygon(point, corners))
+        if (geom_utility::pointInPolygon(point, corners))
           return i + _n_interior_channels + _n_edge_channels;
       }
       break;
@@ -833,7 +762,7 @@ HexagonalLatticeUtility::computeGapIndices()
 
     Point pt1(_pin_centers[pins.first]);
     Point pt2(_pin_centers[pins.second]);
-    _gap_line_coeffs.push_back(getLineCoefficients(pt1, pt2));
+    _gap_line_coeffs.push_back(geom_utility::getLineCoefficients(pt1, pt2));
 
     // for the last gap in the ring, we need to swap the ordering of pins
     if (lastGapInRing(i))
@@ -843,7 +772,7 @@ HexagonalLatticeUtility::computeGapIndices()
       pt2 = tmp;
     }
 
-    _gap_unit_normals.push_back(unitNormal(pt1, pt2));
+    _gap_unit_normals.push_back(geom_utility::unitNormal(pt1, pt2));
   }
 
   Real d = _pin_bundle_spacing + pinRadius();
@@ -856,28 +785,9 @@ HexagonalLatticeUtility::computeGapIndices()
     const Point pt2 = pt1 + Point(d * _translation_x[side], d * _translation_y[side], 0.0);
     _gap_centers.push_back(0.5 * (pt2 + pt1));
 
-    _gap_line_coeffs.push_back(getLineCoefficients(pt1, pt2));
+    _gap_line_coeffs.push_back(geom_utility::getLineCoefficients(pt1, pt2));
 
-    _gap_unit_normals.push_back(unitNormal(pt1, pt2));
-  }
-}
-
-Point
-HexagonalLatticeUtility::unitNormal(const Point & pt1, const Point & pt2) const
-{
-  Real dx = pt2(0) - pt1(0);
-  Real dy = pt2(1) - pt1(1);
-  Point normal = {dy, -dx, 0.0};
-  Point gap_line = pt2 - pt1;
-
-  auto cross_product = gap_line.cross(normal);
-
-  if (cross_product(2) > 0)
-    return normal.unit();
-  else
-  {
-    Point corrected_normal = {-dy, dx, 0.0};
-    return corrected_normal.unit();
+    _gap_unit_normals.push_back(geom_utility::unitNormal(pt1, pt2));
   }
 }
 
@@ -892,38 +802,6 @@ HexagonalLatticeUtility::globalGapIndex(const std::pair<int, int> & local_gap) c
   }
 
   mooseError("Failed to find local gap in global gap array!");
-}
-
-std::vector<Real>
-HexagonalLatticeUtility::getLineCoefficients(const Point & line0, const Point & line1) const
-{
-  std::vector<Real> l;
-  l.resize(3);
-
-  // vertical line needs special treatment
-  if (line1(0) == line0(0))
-  {
-    l[0] = 1.0;
-    l[1] = 0.0;
-    l[2] = -line1(0);
-  }
-  else
-  {
-    l[0] = (line1(1) - line0(1)) / (line1(0) - line0(0));
-    l[1] = -1.0;
-    l[2] = line1(1) - l[0] * line1(0);
-  }
-
-  return l;
-}
-
-Real
-HexagonalLatticeUtility::distanceFromLine(const Point & pt,
-                                          const Point & line0,
-                                          const Point & line1) const
-{
-  auto l = getLineCoefficients(line0, line1);
-  return std::abs(l[0] * pt(0) + l[1] * pt(1) + l[2]) / std::sqrt(l[0] * l[0] + l[1] * l[1]);
 }
 
 Real
