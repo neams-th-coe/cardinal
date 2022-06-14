@@ -178,6 +178,29 @@ cd $HOME/cardinal/test/tests/cht/sfr_pincell
 mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
 !listing-end!
 
+## KOOKIE Cluster
+
+The KOOKIE cluster at [!ac](ANL) (also called the VTR cluster) has 12
+nodes with a variety of different CPUs and GPUs for each node.
+Below is
+a bash script to build Cardinal (*last updated 5/16/2022*)
+
+!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=k1
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+export F77=mpif77
+export F90=mpif90
+
+module purge
+module load advanced_modules
+module load mpich-gcc
+
+# Revise for your Cardinal repository location
+export NEKRS_HOME=$HOME/cardinal/install
+
+!listing-end!
+
 ## Nek5k
 
 Nek5k is a cluster at [!ac](ANL) with 40 nodes, each with 40 cores.
@@ -274,7 +297,7 @@ mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores. Each compute node contains
 dual Xeon Platinum 8268 processors with 24 cores each, giving 48 cores per node. 27 nodes have
 four NVIDIA V100 GPUs each. Below are a bash script and sample job scripts to build Cardinal and
-run the NekRS and OpenMC wrappings (*last updated 10/11/2021*).
+run the NekRS and OpenMC wrappings (*last updated 05/13/2022*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=st1
 if [ -f /etc/bashrc ]; then
@@ -355,3 +378,10 @@ module load cuda
 module load hdf5
 module load python/3.7.0-anaconda3-5.3.0
 !listing-end!
+
+Remember that in order to build Cardinal with GPU support, set the appropriate
+variable in the `Makefile` to true (`1`):
+
+!listing cardinal/Makefile
+  start=OCCA_CUDA_ENABLED
+  end=NEKRS_BUILDDIR

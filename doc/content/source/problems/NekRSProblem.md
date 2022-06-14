@@ -29,7 +29,7 @@ its time stepping.
 
 The remainder of this page describes how `NekRSProblem` wraps NekRS as a MOOSE application.
 
-## Initializing MOOSE-type Field Interfaces
+## Initializing MOOSE Fields
 
 When initializing a coupling of NekRS within the MOOSE framework, the first action
 taken by `NekRSProblem` is to initialize MOOSE-type variables
@@ -252,6 +252,48 @@ the boundary and volume transfers are basically the same coming *from* NekRS -
 the temperature is written into the `temp` variable. The entire volume data is
 written for volume transfers, whereas only the temperature on the specified boundaries
 is written for boundary transfers.
+
+## What are the Fluxes?
+
+There are a few different heat fluxes involved when coupled NekRS via [!ac](CHT)
+to MOOSE. When you run a [!ac](CHT) calculation, for each time step you will see
+something like the following printed to the screen:
+
+!listing!
+Sending heat flux to NekRS boundary 1
+Normalizing total NekRS flux of 78.8581 to the conserved MOOSE value of 78.6508
+!listing-end!
+
+Here, the "total NekRS flux of ..." is the integral of `nrs->usrwrk` over the
+high-order NekRS spectral element mesh. Conversely, the "conserved MOOSE value of ..."
+is the total heat flux that MOOSE is setting in NekRS (which you are transferring
+via a postprocessor to the `flux_integral` postprocessor in the NekRS MOOSE-wrapped
+input file). These two numbers will be
+different unless all of the following are true:
+
+- The NekRS and MOOSE meshes are identical
+- The NekRS polynomial order matches the MOOSE polynomial order, and for the same
+  polynomial order the nodes are the same. Because NekRS is a spectral element method
+  and MOOSE uses the finite element method, this criteria can only occur if NekRS and
+  MOOSE are either 1st or 2nd order (because the node placement for 1st or 2nd order
+  elements is the same for spectral and finite elements).
+- The quadrature rule used to integrate in MOOSE is the [!ac](GLL) quadrature
+
+Any differences between the "total NekRS flux" and the "conserved MOOSE value" will
+simply arise due to differences in the integration of a field over their respective meshes.
+You may see large differences if the geometry is curved, since the NekRS high-order
+mesh will capture the curvature and result in very different area integrals.
+We always recommend doing a sanity check on the flux sent from MOOSE to NekRS
+via the MOOSE output files.
+
+You can also monitor the heat flux in NekRS by computing $-k\nabla T$ using a
+[NekHeatFluxIntegral](postprocessors/NekHeatFluxIntegral.md). In general, the quantity
+computed by this postprocessor will *not* match the heat flux set by MOOSE because
+both the finite and spectral element methods solve weak forms where Neumann boundary
+conditions are only *weakly* imposed. That is, we set the heat flux but only enforce
+it by driving the entire nonlinear residual to a small-enough number, so heat flux
+boundary conditions are never perfectly observed like Dirichlet boundary conditions are.
+
 
 ## Other Features
 

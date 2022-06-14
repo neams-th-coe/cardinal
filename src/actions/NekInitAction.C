@@ -54,6 +54,17 @@ NekInitAction::act()
   if (_type == "NekRSProblem" || _type == "NekRSStandaloneProblem" ||
       _type == "NekRSSeparateDomainProblem")
   {
+    // NekRS does some checks in main(); because we don't call that function
+    // directly, repeat those checks here
+    if (!getenv("NEKRS_HOME"))
+      mooseError("Cannot find environment variable NEKRS_HOME!");
+
+    std::string bin(getenv("NEKRS_HOME"));
+    bin += "/bin/nekrs";
+    const char * ptr = realpath(bin.c_str(), NULL);
+    if (!ptr)
+      mooseError("Cannot find '", bin, "'! Did you set NEKRS_HOME to the correct location?");
+
     std::shared_ptr<CommandLine> cl = _app.commandLine();
     bool casename_on_command_line = cl->search("nekrs_setup");
 
@@ -68,6 +79,19 @@ NekInitAction::act()
       cl->search("nekrs_setup", setup_file);
     else
       setup_file = getParam<std::string>("casename");
+
+    // If the casename is a directory path (i.e. not just a file name), then standalone
+    // NekRS will cd into that directory so that the casename really is just the case file name,
+    // i.e. with the path subtracted out. We will replicate this behavior here.
+    std::size_t last_slash = setup_file.rfind('/') + 1;
+    std::string casepath = setup_file.substr(0, last_slash);
+    std::string casename = setup_file.substr(last_slash, setup_file.length() - last_slash);
+    if (casepath.length() > 0)
+    {
+      int fail = chdir(casepath.c_str());
+      if (fail)
+        mooseError("Failed to find '", casepath.c_str(), "'! Did you set the 'casename' correctly?");
+    }
 
     std::string cache_dir;
 
@@ -111,7 +135,7 @@ NekInitAction::act()
                  size_target,
                  ci_mode,
                  cache_dir,
-                 setup_file,
+                 casename,
                  "" /* backend */,
                  "" /* device ID */);
 
