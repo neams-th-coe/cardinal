@@ -38,6 +38,24 @@ TEST_F(GeometryUtilityTest, line_distance)
   Point l5(1.0, 2.0, 0.0);
   Point l6(2.0, 3.0, 0.0);
   EXPECT_DOUBLE_EQ(geom_utility::distanceFromLine(p3, l5, l6), std::sqrt(2.0) / 2.0);
+
+  // now place the lines in the y-z plane
+  Point p4(0.0, 4.0, 5.0);
+  Point l7(0.0, 1.0, 3.0);
+  Point l8(0.0, 5.0, 3.0);
+  EXPECT_DOUBLE_EQ(geom_utility::distanceFromLine(p4, l7, l8), 2.0);
+
+  // vertical line
+  Point l10(0.0, 1.0, 5.0);
+  Point l9(0.0, 1.0, 3.0);
+  Point p5(0.0, 3.0, 4.0);
+  EXPECT_DOUBLE_EQ(geom_utility::distanceFromLine(p5, l9, l10), 2.0);
+
+  // angled line
+  Point p6(0.0, 2.0, 2.0);
+  Point l11(0.0, 1.0, 2.0);
+  Point l12(0.0, 2.0, 3.0);
+  EXPECT_DOUBLE_EQ(geom_utility::distanceFromLine(p6, l11, l12), std::sqrt(2.0) / 2.0);
 }
 
 TEST_F(GeometryUtilityTest, point_on_edge)

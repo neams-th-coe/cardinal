@@ -127,8 +127,11 @@ std::vector<Real> getLineCoefficients(const Point & line0, const Point & line1)
 
 Real distanceFromLine(const Point & pt, const Point & line0, const Point & line1)
 {
-  auto l = getLineCoefficients(line0, line1);
-  return std::abs(l[0] * pt(0) + l[1] * pt(1) + l[2]) / std::sqrt(l[0] * l[0] + l[1] * l[1]);
+  const Point a = pt - line0;
+  const Point b = pt - line1;
+  const Point c = line1 - line0;
+
+  return (a.cross(b).norm()) / c.norm();
 }
 
 }; // end namespace geom_utility

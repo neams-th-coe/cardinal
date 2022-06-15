@@ -32,7 +32,7 @@ namespace geom_utility {
   Point unitNormal(const Point & pt1, const Point & pt2);
 
   /**
-   * Compute the distance from a line, provided in terms of two points on the line
+   * Compute the distance from a 3-D line, provided in terms of two points on the line
    * @param[in] pt point of interest
    * @param[in] line0 first point on line
    * @param[in] line1 second point on line
