@@ -103,28 +103,6 @@ Point unitNormal(const Point & pt1, const Point & pt2)
   }
 }
 
-std::vector<Real> getLineCoefficients(const Point & line0, const Point & line1)
-{
-  std::vector<Real> l;
-  l.resize(3);
-
-  // vertical line needs special treatment
-  if (line1(0) == line0(0))
-  {
-    l[0] = 1.0;
-    l[1] = 0.0;
-    l[2] = -line1(0);
-  }
-  else
-  {
-    l[0] = (line1(1) - line0(1)) / (line1(0) - line0(0));
-    l[1] = -1.0;
-    l[2] = line1(1) - l[0] * line1(0);
-  }
-
-  return l;
-}
-
 Real distanceFromLine(const Point & pt, const Point & line0, const Point & line1)
 {
   const Point a = pt - line0;

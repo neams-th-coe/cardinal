@@ -754,15 +754,17 @@ HexagonalLatticeUtility::computeGapIndices()
     gap += _n_rings;
   }
 
-  // get the coefficients of the lines formed by all the gaps
+  _gap_points.resize(_n_gaps);
+
+  // For each gap, get two points on the gap
   for (int i = 0; i < _n_interior_gaps; ++i)
   {
     const auto & pins = _gap_indices[i];
-    _gap_centers.push_back(0.5 * (_pin_centers[pins.second] + _pin_centers[pins.first]));
-
     Point pt1(_pin_centers[pins.first]);
     Point pt2(_pin_centers[pins.second]);
-    _gap_line_coeffs.push_back(geom_utility::getLineCoefficients(pt1, pt2));
+    _gap_centers.push_back(0.5 * (pt2 + pt1));
+
+    _gap_points[i] = {pt1, pt2};
 
     // for the last gap in the ring, we need to swap the ordering of pins
     if (lastGapInRing(i))
@@ -785,7 +787,7 @@ HexagonalLatticeUtility::computeGapIndices()
     const Point pt2 = pt1 + Point(d * _translation_x[side], d * _translation_y[side], 0.0);
     _gap_centers.push_back(0.5 * (pt2 + pt1));
 
-    _gap_line_coeffs.push_back(geom_utility::getLineCoefficients(pt1, pt2));
+    _gap_points[i] = {pt1, pt2};
 
     _gap_unit_normals.push_back(geom_utility::unitNormal(pt1, pt2));
   }
@@ -807,8 +809,8 @@ HexagonalLatticeUtility::globalGapIndex(const std::pair<int, int> & local_gap) c
 Real
 HexagonalLatticeUtility::distanceFromGap(const Point & pt, const unsigned int & gap_index) const
 {
-  auto l = _gap_line_coeffs[gap_index];
-  return std::abs(l[0] * pt(0) + l[1] * pt(1) + l[2]) / std::sqrt(l[0] * l[0] + l[1] * l[1]);
+  auto p = _gap_points[gap_index];
+  return geom_utility::projectedDistanceFromLine(pt, p[0], p[1], _axis);
 }
 
 unsigned int

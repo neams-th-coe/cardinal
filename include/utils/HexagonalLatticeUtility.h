@@ -738,8 +738,8 @@ protected:
   /// Local-to-global gap indexing, ordered by channel ID
   std::vector<std::vector<int>> _local_to_global_gaps;
 
-  /// Coefficients forming the lines between each gap
-  std::vector<std::vector<Real>> _gap_line_coeffs;
+  /// Two points on each gap, in order to compute distance-from-gap calculations
+  std::vector<std::vector<Point>> _gap_points;
 
   /// Unit normal vectors for each gap
   std::vector<Point> _gap_unit_normals;

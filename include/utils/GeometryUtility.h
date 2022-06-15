@@ -53,15 +53,6 @@ namespace geom_utility {
   Real projectedDistanceFromLine(Point pt, Point line0, Point line1, const unsigned int & axis);
 
   /**
-   * Get the coefficients a, b, and c in ax + by + c = 0 for the line passing
-   * through the provided points
-   * @param[in] line0 first point on line
-   * @param[in] line1 second point on line
-   * @return coefficients of line
-   */
-  std::vector<Real> getLineCoefficients(const Point & line0, const Point & line1);
-
-  /**
    * If positive, point is on the positive side of the half space (and vice versa)
    * @param[in] pt1 point of interest
    * @param[in] pt2 one end point of line
