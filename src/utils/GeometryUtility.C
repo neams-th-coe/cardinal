@@ -134,4 +134,14 @@ Real distanceFromLine(const Point & pt, const Point & line0, const Point & line1
   return (a.cross(b).norm()) / c.norm();
 }
 
+Real projectedDistanceFromLine(Point pt, Point line0, Point line1, const unsigned int & axis)
+{
+  // project all the points to the plane perpendicular to the axis
+  pt(axis) = 0.0;
+  line0(axis) = 0.0;
+  line1(axis) = 0.0;
+
+  return distanceFromLine(pt, line0, line1);
+}
+
 }; // end namespace geom_utility

@@ -41,6 +41,18 @@ namespace geom_utility {
   Real distanceFromLine(const Point & pt, const Point & line0, const Point & line1);
 
   /**
+   * Compute the distance from a 3-D line, provided in terms of two points on the line.
+   * Both the input point and the points on the line are projected into the 2-d plane
+   * perpendicular to the specified axis.
+   * @param[in] pt point of interest
+   * @param[in] line0 first point on line
+   * @param[in] line1 second point on line
+   * @param[in] axis axis index (0 = x, 1 = y, 2 = z) perpendicular to the projection plane
+   * @return distance from line
+   */
+  Real projectedDistanceFromLine(Point pt, Point line0, Point line1, const unsigned int & axis);
+
+  /**
    * Get the coefficients a, b, and c in ax + by + c = 0 for the line passing
    * through the provided points
    * @param[in] line0 first point on line

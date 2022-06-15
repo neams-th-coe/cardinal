@@ -19,6 +19,27 @@
 #include "GeometryUtilityTest.h"
 #include "HexagonalLatticeUtility.h"
 
+TEST_F(GeometryUtilityTest, projected_line_distance)
+{
+  // horizontal line
+  Point p1(4.0, 5.0, 4.0);
+  Point l1(1.0, 3.0, 3.0);
+  Point l2(5.0, 3.0, 6.0);
+  EXPECT_DOUBLE_EQ(geom_utility::projectedDistanceFromLine(p1, l1, l2, 2), 2.0);
+
+  // vertical line
+  Point l4(1.0, 5.0, 4.0);
+  Point l3(1.0, 3.0, 3.0);
+  Point p2(3.0, 4.0, 6.0);
+  EXPECT_DOUBLE_EQ(geom_utility::projectedDistanceFromLine(p2, l3, l4, 2), 2.0);
+
+  // angled line
+  Point p3(2.0, 2.0, 4.0);
+  Point l5(1.0, 2.0, 3.0);
+  Point l6(2.0, 3.0, 6.0);
+  EXPECT_DOUBLE_EQ(geom_utility::projectedDistanceFromLine(p3, l5, l6, 2), std::sqrt(2.0) / 2.0);
+}
+
 TEST_F(GeometryUtilityTest, line_distance)
 {
   // horizontal line
