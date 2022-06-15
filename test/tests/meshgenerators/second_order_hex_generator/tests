@@ -206,4 +206,12 @@
     requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to "
                   "fit circles based on multiple origins provided from a file."
   []
+  [rotation]
+    type = Exodiff
+    input = non_z.i
+    exodiff = non_z_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to "
+                  "fit a circle and when the alignment axis is not the default (z)."
+  []
 []
