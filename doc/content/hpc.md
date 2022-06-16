@@ -297,7 +297,7 @@ mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores. Each compute node contains
 dual Xeon Platinum 8268 processors with 24 cores each, giving 48 cores per node. 27 nodes have
 four NVIDIA V100 GPUs each. Below are a bash script and sample job scripts to build Cardinal and
-run the NekRS and OpenMC wrappings (*last updated 05/13/2022*).
+run the NekRS and OpenMC wrappings (*last updated 06/14/2022*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=st1
 if [ -f /etc/bashrc ]; then
@@ -309,59 +309,19 @@ if [ -f  ~/.bashrc_local ]; then
 fi
 
 module purge
-module load openmpi/4.0.5_ucx1.9
-module load cmake/3.16.2-gcc-9.3.0-tza7
-module load hdf5/1.12.0_ucx1.9
+module load use.moose
+module load moose-dev
+export HDF5_ROOT=/apps/moose/stack/miniconda3
 
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
-!listing-end!
 
-!listing! language=bash caption=Job script to run OpenMC coupled to MOOSE on one node with the `moose` project code for 2 MPI processes and 24 OpenMP threads id=st2
-#!/bin/bash
-#PBS -l select=1:ncpus=48:mpiprocs=2:ompthreads=24
-#PBS -l walltime=5:00
-#PBS -M email@address.gov
-#PBS -m ae
-#PBS -N lattice
-#PBS -j oe
-#PBS -P moose
-
-module purge
-module load openmpi/4.0.5_ucx1.9
-module load hdf5/1.12.0_ucx1.9
-
-# Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=$HOME/projects/cross_sections/endfb71_hdf5/cross_sections.xml
-
-# Review for your input file and executable locations
-cd $HOME/projects/cardinal/test/tests/neutronics/feedback/lattice
-mpirun $HOME/projects/cardinal/cardinal-opt -i openmc_master.i --n-threads=24 > logfile
-!listing-end!
-
-!listing! language=bash caption=Job script to run NekRS coupled to MOOSE on one node with the `moose` project code for 48 MPI processes id=st3
-#!/bin/bash
-#PBS -l select=1:ncpus=48:mpiprocs=48
-#PBS -l walltime=5:00
-#PBS -M email@address.gov
-#PBS -m ae
-#PBS -N pebble
-#PBS -j oe
-#PBS -P moose
-
-module purge
-module load openmpi/4.0.5_ucx1.9
-module load cmake/3.16.2-gcc-9.3.0-tza7
-module load hdf5/1.12.0_ucx1.9
-
-# Revise for your Cardinal repository location
+# Revise for your repository location
 export NEKRS_HOME=$HOME/projects/cardinal/install
-
-# Revise for your input file and executable locations
-cd $HOME/projects/cardinal/test/tests/cht/pebble
-mpirun $HOME/projects/cardinal/cardinal-opt -i nek_master.i > logfile
 !listing-end!
+
+!listing scripts/job_sawtooth language=bash caption=Job script to run OpenMC and Nek cases on one node with the `moose` project code id=st2
 
 ## Summit
 

@@ -1,0 +1,26 @@
+#!/bin/bash
+#PBS -l select=1:ncpus=48:mpiprocs=24:ompthreads=2
+#PBS -l walltime=5:00
+#PBS -m ae
+#PBS -N cardinal
+#PBS -j oe
+#PBS -P moose
+
+module purge
+module load use.moose
+module load moose-dev
+
+# Revise for your repository and cross section data locations
+export OPENMC_CROSS_SECTIONS=$HOME/projects/cross_sections/endfb71_hdf5/cross_sections.xml
+export CARDINAL_DIR=$HOME/projects/cardinal
+export NEKRS_HOME=$CARDINAL_DIR/install
+
+# Run an OpenMC case
+cd $CARDINAL_DIR/test/tests/neutronics/feedback/lattice
+rm logfile
+mpirun $CARDINAL_DIR/cardinal-opt -i openmc_master.i --n-threads=2 > logfile
+
+# Run a NekRS case
+cd $CARDINAL_DIR/test/tests/cht/sfr_pincell
+rm logfile
+mpirun $CARDINAL_DIR/cardinal-opt -i nek_master.i > logfile
