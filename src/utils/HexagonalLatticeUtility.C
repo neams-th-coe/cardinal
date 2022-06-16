@@ -48,6 +48,10 @@ HexagonalLatticeUtility::HexagonalLatticeUtility(const Real & bundle_inner_flat_
     _P_over_D(_pin_pitch / _pin_diameter),
     _L_over_D(_wire_pitch / _pin_diameter)
 {
+  auto idx = geom_utility::projectedIndices(_axis);
+  _ix = idx.first;
+  _iy = idx.second;
+
   // object is not tested and probably won't work if axis != 2
   if (_axis != 2)
     mooseError("The HexagonalLatticeUtility is currently limited to 'axis = 2'!");
@@ -243,7 +247,7 @@ HexagonalLatticeUtility::minDuctWallDistance(const Point & p) const
     Real b = _duct_coeffs[i][1];
     Real c = _duct_coeffs[i][2];
 
-    Real d = std::abs(a * p(0) + b * p(1) + c) / std::sqrt(a * a + b * b);
+    Real d = std::abs(a * p(_ix) + b * p(_iy) + c) / std::sqrt(a * a + b * b);
     distance = std::min(d, distance);
   }
 
@@ -253,12 +257,11 @@ HexagonalLatticeUtility::minDuctWallDistance(const Point & p) const
 const Real
 HexagonalLatticeUtility::minDuctCornerDistance(const Point & p) const
 {
-  auto idx = geom_utility::projectedIndices(_axis);
   Real distance = std::numeric_limits<Real>::max();
   for (unsigned int i = 0; i < NUM_SIDES; ++i)
   {
-    Real dx = _duct_corners[i](idx.first) - p(idx.first);
-    Real dy = _duct_corners[i](idx.second) - p(idx.second);
+    Real dx = _duct_corners[i](_ix) - p(_ix);
+    Real dy = _duct_corners[i](_iy) - p(_iy);
     Real d = std::sqrt(dx * dx + dy * dy);
     distance = std::min(d, distance);
   }
@@ -274,8 +277,6 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
 
   Real edge_shiftx[] = {-1, -COS60, COS60, 1, COS60, -COS60};
   Real edge_shifty[] = {0, -SIN60, -SIN60, 0, SIN60, SIN60};
-
-  auto idx = geom_utility::projectedIndices(_axis);
 
   // compute coordinates of the pin centers relative to the bundle's center
   Point center(0, 0, 0);
@@ -301,8 +302,8 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
       // additional shift for the edge sides
       if (d != 0)
       {
-        center(idx.first) += edge_shiftx[side] * _pin_pitch * d;
-        center(idx.second) += edge_shifty[side] * _pin_pitch * d;
+        center(_ix) += edge_shiftx[side] * _pin_pitch * d;
+        center(_iy) += edge_shifty[side] * _pin_pitch * d;
       }
 
       _pin_centers.push_back(center);
@@ -339,8 +340,9 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
     auto c = i;
     unsigned int n = i == 5 ? 0 : i + 1;
     Real slope =
-        (_duct_corners[n](1) - _duct_corners[c](1)) / (_duct_corners[n](0) - _duct_corners[c](0));
-    std::vector<Real> coeffs = {-slope, 1.0, slope * _duct_corners[c](0) - _duct_corners[c](1)};
+        (_duct_corners[n](_iy) - _duct_corners[c](_iy)) /
+        (_duct_corners[n](_ix) - _duct_corners[c](_ix));
+    std::vector<Real> coeffs = {-slope, 1.0, slope * _duct_corners[c](_ix) - _duct_corners[c](_iy)};
     _duct_coeffs.push_back(coeffs);
   }
 }
@@ -610,13 +612,12 @@ const unsigned int
 HexagonalLatticeUtility::pinIndex(const Point & point) const
 {
   auto side = hexagonSide(_pin_pitch);
-  auto idx = geom_utility::projectedIndices(_axis);
 
   for (unsigned int i = 0; i < _n_pins; ++i)
   {
     const auto & center = _pin_centers[i];
-    Real dx = center(idx.first) - point(idx.first);
-    Real dy = center(idx.second) - point(idx.second);
+    Real dx = center(_ix) - point(_ix);
+    Real dy = center(_iy) - point(_iy);
     Real distance_from_pin = std::sqrt(dx * dx + dy * dy);
 
     // if we're outside the circumference of the hexagon, we're certain not to

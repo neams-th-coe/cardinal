@@ -766,6 +766,12 @@ protected:
   /// Center points of all the gaps
   std::vector<Point> _gap_centers;
 
+  /// Index representing "first" coordinate of 2-D plane
+  unsigned int _ix;
+
+  /// Index representing "second" coordinate of 2-D plane
+  unsigned int _iy;
+
 private:
   /// Determine the global gap indices, sorted first by lower pin ID and next by higher pin ID
   void computeGapIndices();
