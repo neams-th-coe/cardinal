@@ -156,12 +156,23 @@ public:
    */
   unsigned int midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const;
 
+  /**
+   * Whether a point is close enough to a corner to require moving to fit the
+   * curved radii of curvature
+   * @param[in] pt point
+   * @return whether point needs to be moved
+   */
+  bool isNearCorner(const Point & pt) const;
+
 protected:
   /// Mesh to modify
   std::unique_ptr<MeshBase> & _input;
 
   /// Axis of the mesh about which to build the circular surface
   const MooseEnum & _axis;
+
+  /// Whether to move corner nodes to fit curved radii of a regular polygon
+  const bool & _curve_corners;
 
   /// Whether sidesets will be moved to match circular surfaces
   const bool _has_moving_boundary;
@@ -195,4 +206,19 @@ protected:
 
   /// For each face, the paired face "across" to the other side of a Hex27
   std::vector<unsigned int> _across_face;
+
+  /// If curving corners, the radius of curvature of the corner
+  Real _corner_radius;
+
+  /// Boundary of the polygon whose corners we want to move
+  BoundaryID _polygon_boundary;
+
+  /// If curving corners, the corner coordinates of the polygon
+  std::vector<Point> _polygon_corners;
+
+  /// Maximum distance a point can be from a corner and still require movement to the curved corners
+  Real _max_corner_distance;
+
+  /// Number of boundaries to be moved that do not include the corners
+  unsigned int _n_noncorner_boundaries;
 };

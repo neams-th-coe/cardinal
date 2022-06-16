@@ -21,6 +21,7 @@
 #include "UserErrorChecking.h"
 #include "MooseMeshUtils.h"
 #include "DelimitedFileReader.h"
+#include "GeometryUtility.h"
 
 #include "libmesh/mesh_tools.h"
 #include "libmesh/cell_hex20.h"
@@ -47,6 +48,22 @@ Hex20Generator::validParams()
   params.addParam<std::vector<unsigned int>>("layers", "Number of layers to sweep for each "
     "boundary when forming the circular surfaces; if not specified, all values default to 0");
 
+  // optional parameters if fitting corners of a polygon to radius of curvature
+  params.addParam<bool>("curve_corners", false,
+    "Whether to move elements to respect radius of curvature of polygon corners");
+  params.addRangeCheckedParam<unsigned int>("polygon_sides", "polygon_sides > 2",
+    "When curving corners, the number of sides of the polygon to use for identifying corners");
+  params.addRangeCheckedParam<Real>("polygon_size", "polygon_size > 0.0",
+    "When curving corners, the size of the polygon (measured as distance from center to a "
+    "corner) to use for identifying corners");
+  params.addRangeCheckedParam<Real>("corner_radius", "corner_radius > 0.0",
+    "When curving corners, the radius of curvature of the corners");
+  params.addParam<unsigned int>("polygon_layers", 0,
+    "When curving corners, the number of layers to sweep for each polygon corner; if not "
+    "specified, this defaults to 0");
+  params.addParam<BoundaryName>("polygon_boundary", "Boundary to enforce radius of curvature "
+    "for polygon corners");
+
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
   // of clearing out lingering sidesets used for stitching, but not for actual BCs/physics
   params.addParam<std::vector<BoundaryName>>("boundaries_to_rebuild",
@@ -63,7 +80,8 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
   : MeshGenerator(params),
     _input(getMesh("input")),
     _axis(getParam<MooseEnum>("axis")),
-    _has_moving_boundary(isParamValid("boundary"))
+    _curve_corners(getParam<bool>("curve_corners")),
+    _has_moving_boundary(isParamValid("boundary") || _curve_corners)
 {
   // for each face, the mid-side nodes to be adjusted
   _side_ids.push_back({12, 15, 14, 13});
@@ -79,11 +97,27 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
     for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
       _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
 
+  if (_curve_corners)
+  {
+    checkRequiredParam(params, "polygon_sides", "'curve_corners' is true");
+    checkRequiredParam(params, "polygon_size", "'curve_corners' is true");
+    checkRequiredParam(params, "polygon_boundary", "'curve_corners' is true");
+    checkRequiredParam(params, "corner_radius", "'curve_corners' is true");
+  }
+  else
+  {
+    checkUnusedParam(params, "polygon_sides", "'curve_corners' is false");
+    checkUnusedParam(params, "polygon_size", "'curve_corners' is false");
+    checkUnusedParam(params, "polygon_boundary", "'curve_corners' is false");
+    checkUnusedParam(params, "corner_radius", "'curve_corners' is false");
+    checkUnusedParam(params, "polygon_layers", "'curve_corners' is false");
+  }
+
   if (isParamValid("boundary"))
-    checkRequiredParam(params, "radius", "When specifying a 'boundary'");
+    checkRequiredParam(params, "radius", "specifying a 'boundary'");
 
   if (isParamValid("radius"))
-    checkRequiredParam(params, "boundary", "When specifying a 'radius'");
+    checkRequiredParam(params, "boundary", "specifying a 'radius'");
 
   if (!isParamValid("boundary") && !isParamValid("radius"))
   {
@@ -268,12 +302,20 @@ Hex20Generator::getNextLayerElem(const Elem & elem, const unsigned int & touchin
 void
 Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face)
 {
+  bool is_corner_boundary = boundary_index >= _n_noncorner_boundaries;
+
   // use the element centroid for finding the closest origin
   const Point centroid = elem->vertex_average();
   Point pt = getClosestOrigin(boundary_index, centroid);
 
   for (auto & face_node : nodesOnFace(primary_face))
   {
+    //const Point corner_point(face_node(0), face_node(1), face_node(2));
+    const Node & n = elem->node_ref(face_node);
+    const Point corner_point(n(0), n(1), n(2));
+    if (is_corner_boundary && !isNearCorner(corner_point))
+      continue;
+
     // move the points on the primary face
     Point adjustment = adjustPointToCircle(face_node, elem, _radius[boundary_index], pt);
 
@@ -318,6 +360,16 @@ Hex20Generator::getNodeIndex(const Elem * elem, const Point & pt) const
       return i;
 
   mooseError("Failed to find any node on element ", elem->id(), " that matches ", pt);
+}
+
+bool
+Hex20Generator::isNearCorner(const Point & pt) const
+{
+  // point is a moving point by the corner if the distance from the corner is less
+  Real distance_to_closest_corner = geom_utility::minDistanceToPoints(pt,
+    _polygon_corners, _axis);
+
+  return distance_to_closest_corner < _max_corner_distance;
 }
 
 std::unique_ptr<MeshBase>
@@ -426,6 +478,50 @@ Hex20Generator::generate()
     }
   }
 
+  // get information related to moving corners
+  if (_curve_corners)
+  {
+    auto polygon_sides = getParam<unsigned int>("polygon_sides");
+    auto polygon_size = getParam<Real>("polygon_size");
+    auto corner_radius = getParam<Real>("corner_radius");
+    auto polygon_layers = getParam<unsigned int>("polygon_layers");
+
+    Real polygon_angle = M_PI - (2.0 * M_PI / polygon_sides);
+    Real max_circle_radius = polygon_size * std::cos(M_PI / polygon_sides);
+
+    if (corner_radius > max_circle_radius)
+      mooseError("Specified 'corner_radius' cannot fit within the specified polygon!\n"
+        "The maximum allowable radius of curvature is: ", max_circle_radius);
+
+    const auto & name = getParam<BoundaryName>("polygon_boundary");
+    _polygon_boundary = getBoundaryID(name, *mesh);
+
+    // polygon boundary shouldn't already have been specified in the 'boundary'
+    if (std::count(_moving_boundary.begin(), _moving_boundary.end(), _polygon_boundary))
+      mooseError("The 'polygon_boundary' cannot also be listed in the 'boundary'!");
+
+    Real theta = M_PI / 2.0 - polygon_angle / 2.0;
+    Real l = corner_radius / std::cos(theta);
+    _max_corner_distance = l * std::sin(theta);
+
+    // find origins of the cylinders for the corner fitting
+    _polygon_corners = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
+    auto corner_origins = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
+
+    std::vector<Real> flattened_corner_origins;
+    for (const auto & o : corner_origins)
+      for (unsigned int i = 0; i < 3; ++i)
+        flattened_corner_origins.push_back(o(i));
+
+    // We can treat the polygon corners simply as extra entries in the
+    // boundary, origins, and radii vectors
+    _n_noncorner_boundaries = _moving_boundary.size();
+    _moving_boundary.push_back(_polygon_boundary);
+    _radius.push_back(corner_radius);
+    _origin.push_back(flattened_corner_origins);
+    _layers.push_back(getParam<unsigned int>("polygon_layers"));
+  }
+
   // get information on which boundaries to rebuild, and check for valid user specifications
   if (isParamValid("boundaries_to_rebuild"))
   {
@@ -458,7 +554,7 @@ Hex20Generator::generate()
   std::vector<std::vector<boundary_id_type>> boundary_ids;
 
   // move the nodes on the surface of interest; while looping through the elements,
-  // also store the boundar information
+  // also store the boundary information
   for (auto & elem : mesh->element_ptr_range())
   {
     bool at_least_one_face_on_boundary = false;

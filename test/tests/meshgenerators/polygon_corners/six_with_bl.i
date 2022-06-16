@@ -1,7 +1,7 @@
 [Mesh]
   [fluid]
     type = FileMeshGenerator
-    file = fluid.exo
+    file = with_bl.exo
   []
   [rotate]
     type = TransformGenerator
@@ -12,13 +12,14 @@
   [to_hex20]
     type = Hex20Generator
     input = rotate
-    boundaries_to_rebuild = '1 2 3 10000'
+    boundaries_to_rebuild = '1 2 3 4'
 
     curve_corners = true
     polygon_sides = 6
-    polygon_size = ${fparse 0.03 / sqrt(3.0)}
-    polygon_boundary = '10000'
-    corner_radius = 0.005
+    polygon_size = 0.018001405522227287
+    polygon_boundary = '4'
+    polygon_layers = 3
+    corner_radius = 0.002
   []
 
   parallel_type = replicated

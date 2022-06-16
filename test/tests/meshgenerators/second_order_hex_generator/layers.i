@@ -16,7 +16,6 @@
                +0.00776452 -0.00448285 +0.00000000
                +0.00776452 +0.00448285 +0.00000000'
     layers = '1'
-    boundary_to_rebuild = '1 2 3'
   []
 
   parallel_type = replicated
