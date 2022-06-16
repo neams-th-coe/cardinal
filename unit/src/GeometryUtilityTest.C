@@ -19,6 +19,18 @@
 #include "GeometryUtilityTest.h"
 #include "HexagonalLatticeUtility.h"
 
+TEST_F(GeometryUtilityTest, line_half_space)
+{
+  Point p1(1.0, 1.0, 1.0);
+  Point p2(2.0, 2.0, 5.0);
+
+  Point p(2.0, 1.0, 9.0);
+  EXPECT_TRUE(geom_utility::projectedLineHalfSpace(p, p1, p2, 2) < 0.0);
+
+  Point q(-1.0, 0.0, -3.0);
+  EXPECT_TRUE(geom_utility::projectedLineHalfSpace(q, p1, p2, 2) > 0.0);
+}
+
 TEST_F(GeometryUtilityTest, projected_unit_normal)
 {
   Point p1(1.0, 1.0, 1.0);

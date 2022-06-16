@@ -20,9 +20,17 @@
 
 namespace geom_utility {
 
-const Real lineHalfSpace(const Point & pt1, const Point & pt2, const Point & pt3)
+const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis)
 {
-  return (pt1(0) - pt3(0)) * (pt2(1) - pt3(1)) - (pt2(0) - pt3(0)) * (pt1(1) - pt3(1));
+  // project points onto plane perpendicular to axis
+  pt1(axis) = 0.0;
+  pt2(axis) = 0.0;
+  pt3(axis) = 0.0;
+
+  auto i = projectedIndices(axis);
+
+  return (pt1(i.first) - pt3(i.first)) * (pt2(i.second) - pt3(i.second)) -
+    (pt2(i.first) - pt3(i.first)) * (pt1(i.second) - pt3(i.second));
 }
 
 const bool pointInPolygon(const Point & point, const std::vector<Point> & corners)
@@ -34,7 +42,7 @@ const bool pointInPolygon(const Point & point, const std::vector<Point> & corner
   for (unsigned int i = 0; i < corners.size(); ++i)
   {
     int next = (i == n_pts - 1) ? 0 : i + 1;
-    auto half = lineHalfSpace(point, corners[i], corners[next]);
+    auto half = projectedLineHalfSpace(point, corners[i], corners[next], 2);
     negative_half_space.push_back(half < 0);
     positive_half_space.push_back(half > 0);
   }

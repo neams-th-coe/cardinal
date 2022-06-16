@@ -64,13 +64,16 @@ namespace geom_utility {
   Real projectedDistanceFromLine(Point pt, Point line0, Point line1, const unsigned int & axis);
 
   /**
-   * If positive, point is on the positive side of the half space (and vice versa)
+   * If positive, point is on the positive side of the half space (and vice versa). Because
+   * a 3-D line does not have a negative or positive "side," you must provide the 'axis'
+   * perpendicular to the plane into which the point and line are first projected.
    * @param[in] pt1 point of interest
    * @param[in] pt2 one end point of line
    * @param[in] pt3 other end point of line
+   * @param[in] axis axis perpendicular to plane onto which point and line are first projected
    * @return half space of line
    */
-  const Real lineHalfSpace(const Point & pt1, const Point & pt2, const Point & pt3);
+  const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis);
 
   /**
    * Whether a point is in a polygon given by corner points
