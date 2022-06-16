@@ -14,8 +14,8 @@ To get access to Cardinal, simply clone the repository and
 are located in the root directory of the Cardinal repository).
 
 ```
-$ git clone https://github.com/neams-th-coe/cardinal.git
-$ cd cardinal
+git clone https://github.com/neams-th-coe/cardinal.git
+cd cardinal
 ```
 
 ## Prerequisites
@@ -26,14 +26,14 @@ the software stack prerequisites). If you do *not*
 want to build the NekRS-part of Cardinal, set the following environment variable:
 
 ```
-$ export ENABLE_NEK=false
+export ENABLE_NEK=false
 ```
 
 Likewise, if you do *not* want to build the OpenMC-part of Cardinal,
 set the following environment variable:
 
 ```
-$ export ENABLE_OPENMC=false
+export ENABLE_OPENMC=false
 ```
 
 You can also edit both of these variables in Cardinal's `Makefile`. Then, the prerequisites
@@ -73,7 +73,7 @@ build/compile *any* of these dependencies - Cardinal's Makefile handles all step
 automatically. To fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 
 ```
-$ ./scripts/get-dependencies.sh
+./scripts/get-dependencies.sh
 ```
 
 
@@ -158,7 +158,7 @@ There are several different ways that you can set the backend. We recommend sett
 `OPENMP`. This will set the backend for all NekRS runs within Cardinal.
 
 ```
-$ export NEKRS_OCCA_MODE_DEFAULT=CPU
+export NEKRS_OCCA_MODE_DEFAULT=CPU
 ```
 
 Alternatively, if you only want to control the backend
@@ -189,8 +189,8 @@ If not using MOOSE's conda environment, you must now build PETSc and libMesh.
 To build PETSc and libMesh, run:
 
 ```
-$ ./contrib/moose/scripts/update_and_rebuild_petsc.sh
-$ ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
+./contrib/moose/scripts/update_and_rebuild_petsc.sh
+./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 ```
 
 After building PETSc, if you want to test the installation you will need to `cd`
@@ -198,8 +198,8 @@ into the PETSc directory before running the on-screen directions that print
 when PETSc finishes, i.e. like:
 
 ```
-$ cd contrib/moose/petsc
-$ make PETSC_DIR=$HOME/cardinal/contrib/moose/scripts/../petsc PETSC_ARCH=arch-moose check
+cd contrib/moose/petsc
+make PETSC_DIR=$HOME/cardinal/contrib/moose/scripts/../petsc PETSC_ARCH=arch-moose check
 ```
 
 !alert tip
@@ -218,7 +218,7 @@ also save time by restricting the
 Finally, run `make` in the top-level directory,
 
 ```
-$ make -j8
+make -j8
 ```
 
 which will compile Cardinal in parallel with 8 processes.
@@ -235,7 +235,7 @@ directories so that the appropriate CMake configuration files will be recreated
 with the newest environment settings.
 
 ```
-$ rm -rf cardinal/install cardinal/build
+rm -rf cardinal/install cardinal/build
 ```
 !alert-end!
 
@@ -244,7 +244,7 @@ $ rm -rf cardinal/install cardinal/build
 The command to run Cardinal with `<n>` MPI ranks and `<s>` OpenMP threads is:
 
 ```
-$ mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
+mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
 ```
 
 This command assumes that `cardinal-opt` is located on your `PATH`; otherwise,
@@ -288,7 +288,7 @@ test suite, which consists of unit and regression tests.
 You can run Cardinal's test suite with the following:
 
 ```
-$ ./run_tests -j8
+./run_tests -j8
 ```
 
 which will run the tests in parallel with 8 processes. OpenMC's tests require
