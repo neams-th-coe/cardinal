@@ -23,13 +23,24 @@
 
 namespace geom_utility {
   /**
-   * Get the unit normal vector between two points, such that the cross product of
-   * the unit normal with the line from pt1 to pt2 has a positive 3rd-component
+   * Get the indices of the plane perpendicular to the specified axis.
+   * For example, if the axis is the y-axis (1), then this will return
+   * (0, 2), indicating that the coordinates of a general 3-D point once
+   * projected onto the x-z plane can be obtained with the 0 and 2 indices.
+   * @param[in] axis axis perpendicular to the projection plane
+   * @return indices of coordinates on plane
+   */
+  std::pair<unsigned int, unsigned int> projectedIndices(const unsigned int & axis);
+
+  /**
+   * Get the unit normal vector between two points (which are first projected onto
+   * the plane perpendicular to the 'axis'), such that the cross product of
+   * the unit normal with the line from pt1 to pt2 has a positive 'axis' component.
    * @param[in] pt1 first point for line
    * @param[in] pt2 second point for line
    * @return unit normal
    */
-  Point unitNormal(const Point & pt1, const Point & pt2);
+  Point projectedUnitNormal(Point pt1, Point pt2, const unsigned int & axis);
 
   /**
    * Compute the distance from a 3-D line, provided in terms of two points on the line

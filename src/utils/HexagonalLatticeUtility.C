@@ -774,7 +774,7 @@ HexagonalLatticeUtility::computeGapIndices()
       pt2 = tmp;
     }
 
-    _gap_unit_normals.push_back(geom_utility::unitNormal(pt1, pt2));
+    _gap_unit_normals.push_back(geom_utility::projectedUnitNormal(pt1, pt2, _axis));
   }
 
   Real d = _pin_bundle_spacing + pinRadius();
@@ -789,7 +789,7 @@ HexagonalLatticeUtility::computeGapIndices()
 
     _gap_points[i] = {pt1, pt2};
 
-    _gap_unit_normals.push_back(geom_utility::unitNormal(pt1, pt2));
+    _gap_unit_normals.push_back(geom_utility::projectedUnitNormal(pt1, pt2, _axis));
   }
 }
 

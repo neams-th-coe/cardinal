@@ -19,6 +19,16 @@
 #include "GeometryUtilityTest.h"
 #include "HexagonalLatticeUtility.h"
 
+TEST_F(GeometryUtilityTest, projected_unit_normal)
+{
+  Point p1(1.0, 1.0, 1.0);
+  Point p2(2.0, 2.0, 5.0);
+  auto n1 = geom_utility::projectedUnitNormal(p1, p2, 2);
+  EXPECT_DOUBLE_EQ(n1(0), -std::sqrt(2.0) / 2.0);
+  EXPECT_DOUBLE_EQ(n1(1), std::sqrt(2.0) / 2.0);
+  EXPECT_DOUBLE_EQ(n1(2), 0.0);
+}
+
 TEST_F(GeometryUtilityTest, projected_line_distance)
 {
   // horizontal line

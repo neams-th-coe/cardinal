@@ -85,20 +85,57 @@ const bool pointOnEdge(const Point & point, const std::vector<Point> & corners)
   return false;
 }
 
-Point unitNormal(const Point & pt1, const Point & pt2)
+std::pair<unsigned int, unsigned int> projectedIndices(const unsigned int & axis)
 {
-  Real dx = pt2(0) - pt1(0);
-  Real dy = pt2(1) - pt1(1);
-  Point normal = {dy, -dx, 0.0};
+  std::pair<unsigned int, unsigned int> indices;
+
+  if (axis == 0)
+  {
+    indices.first = 1;
+    indices.second = 2;
+  }
+  else if (axis == 1)
+  {
+    indices.first = 0;
+    indices.second = 2;
+  }
+  else
+  {
+    indices.first = 0;
+    indices.second = 1;
+  }
+
+  return indices;
+}
+
+Point projectedUnitNormal(Point pt1, Point pt2, const unsigned int & axis)
+{
+  // project the points to the plane perpendicular to the axis
+  pt1(axis) = 0.0;
+  pt2(axis) = 0.0;
+
+  auto i = projectedIndices(axis);
+
+  Real dx = pt2(i.first) - pt1(i.first);
+  Real dy = pt2(i.second) - pt1(i.second);
+
+  Point normal;
+  normal(i.first) = dy;
+  normal(i.second) = -dx;
+  normal(axis) = 0.0;
+
   Point gap_line = pt2 - pt1;
 
   auto cross_product = gap_line.cross(normal);
 
-  if (cross_product(2) > 0)
+  if (cross_product(axis) > 0)
     return normal.unit();
   else
   {
-    Point corrected_normal = {-dy, dx, 0.0};
+    Point corrected_normal;
+    corrected_normal(i.first) = -dy;
+    corrected_normal(i.second) = dx;
+    corrected_normal(axis) = 0.0;
     return corrected_normal.unit();
   }
 }
