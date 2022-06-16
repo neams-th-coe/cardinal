@@ -86,18 +86,24 @@ namespace geom_utility {
   const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis);
 
   /**
-   * Whether a point is in a polygon given by corner points
+   * Whether a point is in 2-D a polygon in the plane perpendicular to the specified
+   * axis, given by corner points
    * @param[in] point point of interest
    * @param[in] corners corner points of polygon
+   * @param[in] axis axis perpendicular to the plane of the polygon
    * @return whether point is inside the polygon
    */
-  const bool pointInPolygon(const Point & point, const std::vector<Point> & corners);
+  const bool pointInPolygon(const Point & point, const std::vector<Point> & corners,
+    const unsigned int & axis);
 
   /**
-   * Whether a point is on the edge of a polygon given its corner points
+   * Whether a point is on the edge of a 2-D polygon in the plane perpendicular to
+   * the specified axis, given its corner points
    * @param[in] point point of interest
    * @param[in] corners corner points of polygon
+   * @param[in] axis axis perpendicular to the plane of the polygon
    * @return whether point is on edge of polygon
    */
-  const bool pointOnEdge(const Point & point, const std::vector<Point> & corners);
+  const bool pointOnEdge(const Point & point, const std::vector<Point> & corners,
+    const unsigned int & axis);
 }; // end of namespace geom_utility

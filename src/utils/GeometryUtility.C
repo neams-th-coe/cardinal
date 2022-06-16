@@ -44,7 +44,8 @@ const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigne
     (pt2(i.first) - pt3(i.first)) * (pt1(i.second) - pt3(i.second));
 }
 
-const bool pointInPolygon(const Point & point, const std::vector<Point> & corners)
+const bool pointInPolygon(const Point & point, const std::vector<Point> & corners,
+  const unsigned int & axis)
 {
   auto n_pts = corners.size();
 
@@ -53,7 +54,7 @@ const bool pointInPolygon(const Point & point, const std::vector<Point> & corner
   for (unsigned int i = 0; i < corners.size(); ++i)
   {
     int next = (i == n_pts - 1) ? 0 : i + 1;
-    auto half = projectedLineHalfSpace(point, corners[i], corners[next], 2);
+    auto half = projectedLineHalfSpace(point, corners[i], corners[next], axis);
     negative_half_space.push_back(half < 0);
     positive_half_space.push_back(half > 0);
   }
@@ -67,15 +68,17 @@ const bool pointInPolygon(const Point & point, const std::vector<Point> & corner
   if (in_polygon) return true;
 
   for (unsigned int i = 0; i < corners.size(); ++i)
-    if (pointOnEdge(point, corners))
+    if (pointOnEdge(point, corners, axis))
       return true;
 
   return false;
 }
 
-const bool pointOnEdge(const Point & point, const std::vector<Point> & corners)
+const bool pointOnEdge(const Point & point, const std::vector<Point> & corners,
+  const unsigned int & axis)
 {
   auto n_pts = corners.size();
+  auto idx = projectedIndices(axis);
 
   Real tol = 1e-8;
   for (unsigned int i = 0; i < corners.size(); ++i)
@@ -83,7 +86,7 @@ const bool pointOnEdge(const Point & point, const std::vector<Point> & corners)
     int next = (i == n_pts - 1) ? 0 : i + 1;
     const auto & pt1 = corners[i];
     const auto & pt2 = corners[next];
-    bool close_to_line = distanceFromLine(point, pt1, pt2) < tol;
+    bool close_to_line = projectedDistanceFromLine(point, pt1, pt2, axis) < tol;
 
     // we can stop early if we know we're not close to the line
     if (!close_to_line)
@@ -91,10 +94,10 @@ const bool pointOnEdge(const Point & point, const std::vector<Point> & corners)
 
     // check that the point is "between" the two points; TODO: first pass
     // we can just compare x and y coordinates
-    bool between_points = (point(0) >= std::min(pt1(0), pt2(0))) &&
-                          (point(0) <= std::max(pt1(0), pt2(0))) &&
-                          (point(1) >= std::min(pt1(1), pt2(1))) &&
-                          (point(1) <= std::max(pt1(1), pt2(1)));
+    bool between_points = (point(idx.first) >= std::min(pt1(idx.first), pt2(idx.first))) &&
+                          (point(idx.first) <= std::max(pt1(idx.first), pt2(idx.first))) &&
+                          (point(idx.second) >= std::min(pt1(idx.second), pt2(idx.second))) &&
+                          (point(idx.second) <= std::max(pt1(idx.second), pt2(idx.second)));
 
     // point needs to be close to the line AND "between" the two points
     if (close_to_line && between_points)

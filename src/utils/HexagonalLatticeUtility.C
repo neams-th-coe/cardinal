@@ -625,7 +625,7 @@ HexagonalLatticeUtility::pinIndex(const Point & point) const
       continue;
 
     auto corners = _pin_centered_corner_coordinates[i];
-    if (geom_utility::pointInPolygon(point, corners))
+    if (geom_utility::pointInPolygon(point, corners, _axis))
       return i;
   }
 
@@ -644,7 +644,7 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_interior_channels; ++i)
       {
         auto corners = interiorChannelCornerCoordinates(i);
-        if (geom_utility::pointInPolygon(point, corners))
+        if (geom_utility::pointInPolygon(point, corners, _axis))
           return i;
       }
       break;
@@ -654,7 +654,7 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_edge_channels; ++i)
       {
         auto corners = edgeChannelCornerCoordinates(i);
-        if (geom_utility::pointInPolygon(point, corners))
+        if (geom_utility::pointInPolygon(point, corners, _axis))
           return i + _n_interior_channels;
       }
       break;
@@ -664,7 +664,7 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_corner_channels; ++i)
       {
         auto corners = cornerChannelCornerCoordinates(i);
-        if (geom_utility::pointInPolygon(point, corners))
+        if (geom_utility::pointInPolygon(point, corners, _axis))
           return i + _n_interior_channels + _n_edge_channels;
       }
       break;

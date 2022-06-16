@@ -111,12 +111,12 @@ TEST_F(GeometryUtilityTest, point_on_edge)
   Point too_far_midpoint = midpoint + vec;
 
   const auto & corners = hl.interiorChannelCornerCoordinates(0);
-  EXPECT_TRUE(geom_utility::pointOnEdge(midpoint, corners));
-  EXPECT_FALSE(geom_utility::pointOnEdge(too_far_midpoint, corners));
+  EXPECT_TRUE(geom_utility::pointOnEdge(midpoint, corners, 2));
+  EXPECT_FALSE(geom_utility::pointOnEdge(too_far_midpoint, corners, 2));
 
   // perturb the midpoint a small bit to ensure we're no longer on the edge
   midpoint(0) += 1e-6;
-  EXPECT_FALSE(geom_utility::pointOnEdge(midpoint, corners));
+  EXPECT_FALSE(geom_utility::pointOnEdge(midpoint, corners, 2));
 
   // test points on a simpler Cartesian-based polygon
   Point pt8(1.0, 2.0, 0.0);
@@ -129,10 +129,10 @@ TEST_F(GeometryUtilityTest, point_on_edge)
   Point pt2(3.1, 1.0, 0.0);
   Point pt3(3.0, 0.9, 0.0);
 
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt0, {pt8, pt9, pt10, pt11}));
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt1, {pt8, pt9, pt10, pt11}));
-  EXPECT_FALSE(geom_utility::pointInPolygon(pt2, {pt8, pt9, pt10, pt11}));
-  EXPECT_FALSE(geom_utility::pointInPolygon(pt3, {pt8, pt9, pt10, pt11}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt0, {pt8, pt9, pt10, pt11}, 2));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt1, {pt8, pt9, pt10, pt11}, 2));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt2, {pt8, pt9, pt10, pt11}, 2));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt3, {pt8, pt9, pt10, pt11}, 2));
 }
 
 TEST_F(GeometryUtilityTest, point_in_polygon)
@@ -146,9 +146,9 @@ TEST_F(GeometryUtilityTest, point_in_polygon)
   Point pt_not_in(2.0, 3.0, 0.0);
   Point pt_edge = pt1;
 
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in, {pt1, pt2, pt3}));
-  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in, {pt1, pt2, pt3}));
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge, {pt1, pt2, pt3}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in, {pt1, pt2, pt3}, 2));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in, {pt1, pt2, pt3}, 2));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge, {pt1, pt2, pt3}, 2));
 
   // rectangle
   Point pt4(1.0, 2.0, 0.0);
@@ -160,9 +160,9 @@ TEST_F(GeometryUtilityTest, point_in_polygon)
   Point pt_not_in1(3.0, 1.0, 0.0);
   pt_edge = pt5;
 
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in1, {pt4, pt5, pt6, pt7}));
-  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in1, {pt4, pt5, pt6, pt7}));
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge, {pt4, pt5, pt6, pt7}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in1, {pt4, pt5, pt6, pt7}, 2));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in1, {pt4, pt5, pt6, pt7}, 2));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge, {pt4, pt5, pt6, pt7}, 2));
 
   // general polygon
   Point pt8(1.0, 2.0, 0.0);
@@ -174,7 +174,7 @@ TEST_F(GeometryUtilityTest, point_in_polygon)
   Point pt_not_in2(1.0, 3.0, 0.0);
   Point pt_edge2(3.0, 2.0, 0.0);
 
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in2, {pt8, pt9, pt10, pt11}));
-  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in2, {pt8, pt9, pt10, pt11}));
-  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge2, {pt8, pt9, pt10, pt11}));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_in2, {pt8, pt9, pt10, pt11}, 2));
+  EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in2, {pt8, pt9, pt10, pt11}, 2));
+  EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge2, {pt8, pt9, pt10, pt11}, 2));
 }
