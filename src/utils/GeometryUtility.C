@@ -20,6 +20,23 @@
 
 namespace geom_utility {
 
+const Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
+  const unsigned int & axis)
+{
+  const auto idx = projectedIndices(axis);
+
+  Real distance = std::numeric_limits<Real>::max();
+  for (const auto & c : candidates)
+  {
+    Real dx = c(idx.first) - pt(idx.first);
+    Real dy = c(idx.second) - pt(idx.second);
+    Real d = std::sqrt(dx * dx + dy * dy);
+    distance = std::min(d, distance);
+  }
+
+  return distance;
+}
+
 Point projectPoint(const Real & x0, const Real & x1, const unsigned int & axis)
 {
   auto i = projectedIndices(axis);

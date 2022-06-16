@@ -1,0 +1,16 @@
+[Tests]
+  [invalid_id]
+    type = RunException
+    input = six.i
+    cli_args = 'Mesh/to_hex20/polygon_boundary='59' --mesh-only'
+    expect_err = "Boundary '59' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for corner fitting does not exist"
+  []
+  [duplicate_boundary]
+    type = RunException
+    input = six.i
+    cli_args = 'Mesh/to_hex20/polygon_boundary='1' --mesh-only'
+    expect_err = "The 'polygon_boundary' cannot also be listed in the 'boundary'!"
+    requirement = "The system shall error if an invalid polygon boundary is provided"
+  []
+[]

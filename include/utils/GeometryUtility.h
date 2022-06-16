@@ -22,6 +22,18 @@
 #include "libmesh/point.h"
 
 namespace geom_utility {
+
+  /**
+   * Get the minimum distance from a point to another set of points, in the plane
+   * perpendicular to the specified axis
+   * @param[in] pt point
+   * @param[in] candidates set of points we will find the nearest of
+   * @param[in] axis axis perpendicular to the plane of the polygon
+   * @return minimum distance to the provided points
+   */
+  const Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
+    const unsigned int & axis);
+
   /**
    * Get the corner coordinates of a regular 2-D polygon, assuming a face of the polygon
    * is parallel to the x0 axis
