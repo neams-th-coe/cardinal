@@ -326,8 +326,7 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
   }
 
   // compute coordinates of duct corners relative to the bundle's center
-  Real l = triangleSide(_bundle_pitch / 2.0);
-
+  Real l = _bundle_side_length;
   for (unsigned int i = 0; i < NUM_SIDES; ++i)
   {
     Point corner = geom_utility::projectPoint(corner_shiftx[i] * l, corner_shifty[i] * l, _axis);

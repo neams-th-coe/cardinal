@@ -174,4 +174,23 @@ Real projectedDistanceFromLine(Point pt, Point line0, Point line1, const unsigne
   return distanceFromLine(pt, line0, line1);
 }
 
+std::vector<Point> polygonCorners(const unsigned int & num_sides, const Real & radius,
+  const unsigned int & axis)
+{
+  std::vector<Point> corners;
+  Real theta = 2.0 * M_PI / num_sides;
+  Real first_angle = M_PI / 2.0 - theta / 2.0;
+
+  for (unsigned int i = 0; i < num_sides; ++i)
+  {
+    Real angle = first_angle + i * theta;
+    Real x = radius * cos(angle);
+    Real y = radius * sin(angle);
+
+    corners.push_back(projectPoint(x, y, axis));
+  }
+
+  return corners;
+}
+
 }; // end namespace geom_utility
