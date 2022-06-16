@@ -13,6 +13,10 @@ for compatibility with NekRS's [exo2nek](https://nekrsdoc.readthedocs.io/en/late
   spectral element solution, which will exactly represent the cylinder surface with
   its [!ac](GLL) points (as long as the HEX20 elements have their mid-side nodes
   one the cylinder, which is what this mesh generator does for you)
+- *Optionally* move nodes at polygon corners to a cylindrical radius of curvature.
+  This allows NekRS to exactly represent curved corners of meshes that represent
+  regular polygons, such as for curving the corners of a mesh representing a
+  six-sided duct.
 
 !alert! note title="Have a HEX8 mesh instead of a HEX27 mesh?
 
@@ -110,6 +114,22 @@ to `3`.
   id=rebuilt_mesh4
   caption=Input and output meshes when using `layers = 3`
   style=width:90%;margin-left:auto;margin-right:auto
+
+Finally, you can move the corners of your mesh to a specified radius of curvature.
+In the example below, the original mesh has an outer boundary that matches
+a regular six-sided polygon. We move the corners,
+as well as attached boundary layers, to have a radius of curvature.
+
+!listing test/tests/meshgenerators/polygon_corners/six_with_bl.i
+
+!media hex_generator_corners.png
+  id=rebuilt_mesh5
+  caption=Input and output meshes when enforcing radius of curvature at polygon corners
+  style=width:90%;margin-left:auto;margin-right:auto
+
+!alert note
+For moving polygonal corners, it is currently assumed that a "face" of the polygon
+is parallel to the "x" axis.
 
 !syntax parameters /Mesh/Hex20Generator
 
