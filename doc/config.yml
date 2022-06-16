@@ -21,6 +21,7 @@ Extensions:
             Documentation: documentation.menu.md
             Publications: publications.md
             Contact: contact.md
+            Help: faq.md
             News: news.md
     MooseDocs.extensions.appsyntax:
         executable: ${ROOT_DIR}
