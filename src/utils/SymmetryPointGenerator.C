@@ -17,6 +17,7 @@
 /********************************************************************/
 
 #include "SymmetryPointGenerator.h"
+#include "GeometryUtility.h"
 #include "MooseUtils.h"
 #include "math.h"
 
@@ -54,7 +55,7 @@ SymmetryPointGenerator::initializeAngularSymmetry(const Point & axis, const Real
   _zero_theta = _normal.cross(_rotational_axis);
   _zero_theta = _zero_theta / _zero_theta.norm();
 
-  _reflection_normal = rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
+  _reflection_normal = geom_utility::rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
   _reflection_normal = _reflection_normal / _reflection_normal.norm();
 }
 
@@ -69,37 +70,6 @@ SymmetryPointGenerator::reflectPointAcrossPlane(const Point & p, const Point & n
 {
   Real coeff = -normal * p;
   return p + 2.0 * coeff * normal;
-}
-
-Point
-SymmetryPointGenerator::rotatePointAboutAxis(const Point & p,
-                                             const Real & angle,
-                                             const Point & axis) const
-{
-  Real cos_theta = cos(angle);
-  Real sin_theta = sin(angle);
-
-  Point pt;
-  Real xy = axis(0) * axis(1);
-  Real xz = axis(0) * axis(2);
-  Real yz = axis(1) * axis(2);
-
-  Point x_op(cos_theta + axis(0) * axis(0) * (1.0 - cos_theta),
-             xy * (1.0 - cos_theta) - axis(2) * sin_theta,
-             xz * (1.0 - cos_theta) + axis(1) * sin_theta);
-
-  Point y_op(xy * (1.0 - cos_theta) + axis(2) * sin_theta,
-             cos_theta + axis(1) * axis(1) * (1.0 - cos_theta),
-             yz * (1.0 - cos_theta) - axis(0) * sin_theta);
-
-  Point z_op(xz * (1.0 - cos_theta) - axis(1) * sin_theta,
-             yz * (1.0 - cos_theta) + axis(0) * sin_theta,
-             cos_theta + axis(2) * axis(2) * (1.0 - cos_theta));
-
-  pt(0) = x_op * p;
-  pt(1) = y_op * p;
-  pt(2) = z_op * p;
-  return pt;
 }
 
 int
@@ -127,7 +97,7 @@ SymmetryPointGenerator::transformPoint(const Point & p) const
     int s = sector(vec_to_pt);
     if (s != 0)
     {
-      pt = rotatePointAboutAxis(p, s * _angle, _rotational_axis);
+      pt = geom_utility::rotatePointAboutAxis(p, s * _angle, _rotational_axis);
 
       // if the sector was odd, we also need to reflect the point about an axis
       // halfway between the symmetry plane and the zero-theta line

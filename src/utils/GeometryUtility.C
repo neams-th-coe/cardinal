@@ -210,4 +210,32 @@ std::vector<Point> polygonCorners(const unsigned int & num_sides, const Real & r
   return corners;
 }
 
+Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis)
+{
+  Real cos_theta = cos(angle);
+  Real sin_theta = sin(angle);
+
+  Point pt;
+  Real xy = axis(0) * axis(1);
+  Real xz = axis(0) * axis(2);
+  Real yz = axis(1) * axis(2);
+
+  Point x_op(cos_theta + axis(0) * axis(0) * (1.0 - cos_theta),
+             xy * (1.0 - cos_theta) - axis(2) * sin_theta,
+             xz * (1.0 - cos_theta) + axis(1) * sin_theta);
+
+  Point y_op(xy * (1.0 - cos_theta) + axis(2) * sin_theta,
+             cos_theta + axis(1) * axis(1) * (1.0 - cos_theta),
+             yz * (1.0 - cos_theta) - axis(0) * sin_theta);
+
+  Point z_op(xz * (1.0 - cos_theta) - axis(1) * sin_theta,
+             yz * (1.0 - cos_theta) + axis(0) * sin_theta,
+             cos_theta + axis(2) * axis(2) * (1.0 - cos_theta));
+
+  pt(0) = x_op * p;
+  pt(1) = y_op * p;
+  pt(2) = z_op * p;
+  return pt;
+}
+
 }; // end namespace geom_utility

@@ -22,6 +22,14 @@
 #include "libmesh/point.h"
 
 namespace geom_utility {
+  /**
+   * Rotate point about an axis
+   * @param[in] p point
+   * @param[in] angle angle to rotate (radians)
+   * @param[in] axis axis expressed as vector
+   * @return rotated point
+   */
+  Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis);
 
   /**
    * Get the minimum distance from a point to another set of points, in the plane

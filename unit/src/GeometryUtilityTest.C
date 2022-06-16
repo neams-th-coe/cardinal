@@ -19,6 +19,38 @@
 #include "GeometryUtilityTest.h"
 #include "HexagonalLatticeUtility.h"
 
+TEST_F(GeometryUtilityTest, rotate_about_y)
+{
+  Point n(0.0, 0.0, -1.0);
+  Point a(0.0, 1.0, 0.0);
+
+  Point pt(0.0, 0.0, -1.0);
+  Point ptr = geom_utility::rotatePointAboutAxis(pt, M_PI / 4.0, a);
+  EXPECT_DOUBLE_EQ(ptr(0), -sqrt(2.0) / 2.0);
+  EXPECT_DOUBLE_EQ(ptr(1), 0.0);
+  EXPECT_DOUBLE_EQ(ptr(2), -sqrt(2.0) / 2.0);
+}
+
+TEST_F(GeometryUtilityTest, rotate_about_x)
+{
+  Point n(0.0, 1.0, 0.0);
+  Point a(0.5, 0.0, 0.0);
+  a = a / a.norm();
+
+  // already on x-axis, shouldn't move
+  Point pt(1.0, 0.0, 0.0);
+  Point ptr = geom_utility::rotatePointAboutAxis(pt, M_PI / 2.0, a);
+  EXPECT_DOUBLE_EQ(ptr(0), 1.0);
+  EXPECT_DOUBLE_EQ(ptr(1), 0.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 0.0);
+
+  pt = {0.0, 1.0, 0.0};
+  ptr = geom_utility::rotatePointAboutAxis(pt, 3.0 * M_PI / 4.0, a);
+  EXPECT_DOUBLE_EQ(ptr(0), 0.0);
+  EXPECT_DOUBLE_EQ(ptr(1), -sqrt(2.0) / 2.0);
+  EXPECT_DOUBLE_EQ(ptr(2), sqrt(2.0) / 2.0);
+}
+
 TEST_F(GeometryUtilityTest, polygon_corners)
 {
   // 4-sided polygon
