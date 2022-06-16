@@ -253,11 +253,12 @@ HexagonalLatticeUtility::minDuctWallDistance(const Point & p) const
 const Real
 HexagonalLatticeUtility::minDuctCornerDistance(const Point & p) const
 {
+  auto idx = geom_utility::projectedIndices(_axis);
   Real distance = std::numeric_limits<Real>::max();
   for (unsigned int i = 0; i < NUM_SIDES; ++i)
   {
-    Real dx = _duct_corners[i](0) - p(0);
-    Real dy = _duct_corners[i](1) - p(1);
+    Real dx = _duct_corners[i](idx.first) - p(idx.first);
+    Real dy = _duct_corners[i](idx.second) - p(idx.second);
     Real d = std::sqrt(dx * dx + dy * dy);
     distance = std::min(d, distance);
   }
@@ -273,6 +274,8 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
 
   Real edge_shiftx[] = {-1, -COS60, COS60, 1, COS60, -COS60};
   Real edge_shifty[] = {0, -SIN60, -SIN60, 0, SIN60, SIN60};
+
+  auto idx = geom_utility::projectedIndices(_axis);
 
   // compute coordinates of the pin centers relative to the bundle's center
   Point center(0, 0, 0);
@@ -292,16 +295,14 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
       if (d == increment)
         d = 0;
 
-      // it is assumed that the pins are aligned parallel to the z-axis
-      Point center(corner_shiftx[side] * _pin_pitch * (i - 1),
-                   corner_shifty[side] * _pin_pitch * (i - 1),
-                   0.0);
+      Point center = geom_utility::projectPoint(corner_shiftx[side] * _pin_pitch * (i - 1),
+        corner_shifty[side] * _pin_pitch * (i - 1), _axis);
 
       // additional shift for the edge sides
       if (d != 0)
       {
-        center(0) += edge_shiftx[side] * _pin_pitch * d;
-        center(1) += edge_shifty[side] * _pin_pitch * d;
+        center(idx.first) += edge_shiftx[side] * _pin_pitch * d;
+        center(idx.second) += edge_shifty[side] * _pin_pitch * d;
       }
 
       _pin_centers.push_back(center);
@@ -317,9 +318,9 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
   {
     for (unsigned int i = 0; i < NUM_SIDES; ++i)
     {
-      Point translation(_translation_x[i] * side, _translation_y[i] * side, 0.0);
-      Point pin_center = _pin_centers[pin];
-      _pin_centered_corner_coordinates[pin].push_back(translation + pin_center);
+      Point translation = geom_utility::projectPoint(_translation_x[i] * side,
+        _translation_y[i] * side, _axis);;
+      _pin_centered_corner_coordinates[pin].push_back(translation + _pin_centers[pin]);
     }
   }
 
@@ -328,7 +329,7 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
 
   for (unsigned int i = 0; i < NUM_SIDES; ++i)
   {
-    Point corner(corner_shiftx[i] * l, corner_shifty[i] * l, 0.0);
+    Point corner = geom_utility::projectPoint(corner_shiftx[i] * l, corner_shifty[i] * l, _axis);
     _duct_corners.push_back(corner);
   }
 
@@ -609,12 +610,13 @@ const unsigned int
 HexagonalLatticeUtility::pinIndex(const Point & point) const
 {
   auto side = hexagonSide(_pin_pitch);
+  auto idx = geom_utility::projectedIndices(_axis);
 
   for (unsigned int i = 0; i < _n_pins; ++i)
   {
     const auto & center = _pin_centers[i];
-    Real dx = center(0) - point(0);
-    Real dy = center(1) - point(1);
+    Real dx = center(idx.first) - point(idx.first);
+    Real dy = center(idx.second) - point(idx.second);
     Real distance_from_pin = std::sqrt(dx * dx + dy * dy);
 
     // if we're outside the circumference of the hexagon, we're certain not to

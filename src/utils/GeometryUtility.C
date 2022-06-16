@@ -20,6 +20,17 @@
 
 namespace geom_utility {
 
+Point projectPoint(const Real & x0, const Real & x1, const unsigned int & axis)
+{
+  auto i = projectedIndices(axis);
+  Point point;
+  point(i.first) = x0;
+  point(i.second) = x1;
+  point(axis) = 0.0;
+
+  return point;
+}
+
 const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis)
 {
   // project points onto plane perpendicular to axis
@@ -127,11 +138,7 @@ Point projectedUnitNormal(Point pt1, Point pt2, const unsigned int & axis)
   Real dx = pt2(i.first) - pt1(i.first);
   Real dy = pt2(i.second) - pt1(i.second);
 
-  Point normal;
-  normal(i.first) = dy;
-  normal(i.second) = -dx;
-  normal(axis) = 0.0;
-
+  Point normal = projectPoint(dy, -dx, axis);
   Point gap_line = pt2 - pt1;
 
   auto cross_product = gap_line.cross(normal);
@@ -140,10 +147,7 @@ Point projectedUnitNormal(Point pt1, Point pt2, const unsigned int & axis)
     return normal.unit();
   else
   {
-    Point corrected_normal;
-    corrected_normal(i.first) = -dy;
-    corrected_normal(i.second) = dx;
-    corrected_normal(axis) = 0.0;
+    Point corrected_normal = projectPoint(-dy, dx, axis);
     return corrected_normal.unit();
   }
 }

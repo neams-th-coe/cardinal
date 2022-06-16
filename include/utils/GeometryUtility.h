@@ -33,6 +33,16 @@ namespace geom_utility {
   std::pair<unsigned int, unsigned int> projectedIndices(const unsigned int & axis);
 
   /**
+   * Given two coordinates, construct a point in the 2-D plane perpendicular to the
+   * specified axis.
+   * @param[in] x0 first coordinate
+   * @param[in] x1 second coordinate
+   * @param[in] axis axis perpendicular to the projection plane
+   * @return point
+   */
+  Point projectPoint(const Real & x0, const Real & x1, const unsigned int & axis);
+
+  /**
    * Get the unit normal vector between two points (which are first projected onto
    * the plane perpendicular to the 'axis'), such that the cross product of
    * the unit normal with the line from pt1 to pt2 has a positive 'axis' component.
