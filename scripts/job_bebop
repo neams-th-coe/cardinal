@@ -1,0 +1,31 @@
+#!/bin/bash
+
+#SBATCH --job-name=cardinal
+#SBATCH --account=startup
+#SBATCH --partition=bdwall
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=36
+#SBATCH --output=run.out
+#SBATCH --error=run.error
+#SBATCH --time=00:10:00
+
+module purge
+module load gcc/8.2.0-g7hppkz
+module load openmpi/3.1.4
+module load cmake/3.20.3-vedypwm
+module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
+
+# Revise for your repository and cross section data locations
+export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
+export CARDINAL_DIR=$HOME/cardinal
+export NEKRS_HOME=$CARDINAL_DIR/install
+
+# Run an OpenMC case
+cd $CARDINAL_DIR/test/tests/neutronics/feedback/lattice
+rm logfile
+mpiexec -np 18 $CARDINAL_DIR/cardinal-opt -i openmc_master.i --n-threads=2 > logfile
+
+# Run a NekRS case
+cd $CARDINAL_DIR/test/tests/cht/sfr_pincell
+rm logfile
+mpiexec -np 36 $CARDINAL_DIR/cardinal-opt -i nek_master.i > logfile
