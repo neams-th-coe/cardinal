@@ -171,7 +171,7 @@
     type = RunException
     input = layers.i
     cli_args = 'Mesh/to_hex20/layers="10" --mesh-only'
-    expect_err = "Failed to find a neighbor element across the boundary layer!"
+    expect_err = "Boundary layer sweeping requires finding exactly one neighbor element"
     requirement = "The system shall error if there is an obvious mismatch between the number of "
                   "boundary layers and the mesh."
   []

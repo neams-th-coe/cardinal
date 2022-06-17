@@ -270,29 +270,22 @@ Hex20Generator::getNextLayerElem(const Elem & elem, const unsigned int & touchin
 
   elem.find_point_neighbors(face_pt, neighbor_set);
 
-  if (neighbor_set.size() > 2)
-    mooseError("This mesh generator does not support meshes with Hex27 elements that share "
-      "mid-side nodes\nwith more than one other element! Detected element ", elem.id(),
-      " sharing mid-point node with ", neighbor_set.size(), " neighbors.");
+  if (neighbor_set.size() != 2)
+    mooseError("Boundary layer sweeping requires finding exactly one neighbor element\n"
+      "through the layer face! Found ", neighbor_set.size() - 1, " neighbors for element\n",
+      elem.id(), ", face ", touching_face,
+      "\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
+
+  // TODO: this mesh generator currently assumes we're working on an extruded mesh,
+  // so that the face pattern follows as we sweep through the boundary layers
+  next_touching_face = _across_face[touching_face];
 
   std::set<const Elem *>::iterator it = neighbor_set.begin();
   for (int i = 0; i < neighbor_set.size(); ++i, it++)
   {
-    auto & e = *(*it);
-
     // we restrict the size to 2, so just return the element that is NOT the input element
     if ((*it)->id() != elem.id())
-    {
-      // get the face that is touching the 'touching_face', but on the output element
-      for (unsigned int j = 0; j < Hex27::num_sides; ++j)
-      {
-        auto node_index = Hex27::side_nodes_map[j][Hex27::nodes_per_side - 1];
-        if (face_pt.absolute_fuzzy_equals((*it)->point(node_index)))
-          next_touching_face = j;
-      }
-
       return *it;
-    }
   }
 
   mooseError("Failed to find a neighbor element across the boundary layer! Please check that\n"
