@@ -48,65 +48,7 @@ export FC=mpif90
 export NEKRS_HOME=$HOME/cardinal/install
 !listing-end!
 
-!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node of the 64-core partition id=bb2
-#!/bin/bash
-
-#SBATCH --job-name=lattice
-#SBATCH --account=startup
-#SBATCH --partition=knlall
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --output=run.out
-#SBATCH --error=run.error
-#SBATCH --time=00:05:00
-
-module purge
-module load gcc/8.2.0-g7hppkz
-module load openmpi/3.1.4
-module load cmake/3.20.3-vedypwm
-module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
-
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-
-# Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
-mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=64 > logfile
-!listing-end!
-
-!listing! language=bash caption=Sample job script to run NekRS coupled to MOOSE on one node of the 36-core partition id=bb3
-#!/bin/bash
-
-#SBATCH --job-name=cht
-#SBATCH --account=startup
-#SBATCH --partition=bdwall
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=36
-#SBATCH --output=run.out
-#SBATCH --error=run.error
-#SBATCH --time=00:05:00
-
-module purge
-module load gcc/8.2.0-g7hppkz
-module load openmpi/3.1.4
-module load cmake/3.20.3-vedypwm
-module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
-
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/cht/sfr_pincell
-mpiexec -np 36 $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
-!listing-end!
+!listing scripts/job_bebop language=bash caption=Job script to run OpenMC and Nek cases on one node of the 36-core partition with the `startup` project code id=bb2
 
 ## Eddy
 
