@@ -377,6 +377,7 @@ Hex20Generator::generate()
 {
   std::unique_ptr<MeshBase> mesh = std::move(_input);
   auto & boundary_info = mesh->get_boundary_info();
+  const auto & original_boundaries = boundary_info.get_boundary_ids();
 
   // TODO: no real reason for this restriction, just didn't need it in the first pass
   if (!mesh->is_replicated())
@@ -532,8 +533,7 @@ Hex20Generator::generate()
   else
   {
     // by default, rebuild all the boundaries
-    const auto & all_boundaries = boundary_info.get_boundary_ids();
-    for (const auto & b : all_boundaries)
+    for (const auto & b : original_boundaries)
       _boundaries_to_rebuild.insert(b);
   }
 
@@ -545,16 +545,47 @@ Hex20Generator::generate()
       mooseError("This mesh generator can only be applied to HEX27 elements!");
   }
 
-  // store the existing boundary IDs and names
-  for (const auto & b: boundary_info.get_boundary_ids())
-    _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
-
-  std::vector<libMesh::dof_id_type> boundary_elem_ids;
+  // store all information from the incoming mesh that is needed to rebuild it from scratch
+  std::vector<dof_id_type> boundary_elem_ids;
   std::vector<unsigned int> boundary_face_ids;
   std::vector<std::vector<boundary_id_type>> boundary_ids;
+  std::vector<std::vector<dof_id_type>> node_ids;
+  std::vector<dof_id_type> elem_ids;
+  std::vector<subdomain_id_type> elem_block_ids;
+  node_ids.resize(mesh->n_elem());
+  std::vector<Node> original_nodes;
+  std::vector<dof_id_type> original_node_ids;
 
-  // move the nodes on the surface of interest; while looping through the elements,
-  // also store the boundary information
+  // [1] store boundary ID <-> name mapping
+  for (const auto & b: original_boundaries)
+    _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
+
+  int i = 0;
+  for (auto & elem : mesh->element_ptr_range())
+  {
+    // [2] store information about the element faces
+    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
+    {
+      std::vector<boundary_id_type> b;
+      boundary_info.boundary_ids(elem, s, b);
+
+      boundary_elem_ids.push_back(elem->id());
+      boundary_face_ids.push_back(s);
+      boundary_ids.push_back(b);
+    }
+
+    // [3] store information about the elements
+    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
+    elem_ids.push_back(hex27->id());
+    elem_block_ids.push_back(hex27->subdomain_id());
+
+    for (unsigned int j = 0; j < Hex20::num_nodes; ++j)
+      node_ids[i].push_back(hex27->node_ref(j).id());
+
+    i++;
+  }
+
+  // move the nodes on the surface of interest
   for (auto & elem : mesh->element_ptr_range())
   {
     bool at_least_one_face_on_boundary = false;
@@ -564,10 +595,6 @@ Hex20Generator::generate()
       // get the boundary IDs that this element face lie on
       std::vector<boundary_id_type> b;
       boundary_info.boundary_ids(elem, s, b);
-
-      boundary_elem_ids.push_back(elem->id());
-      boundary_face_ids.push_back(s);
-      boundary_ids.push_back(b);
 
       // if there is no moving boundary, or no faces of this element are on any boundaries, we can leave
       if (!_has_moving_boundary || b.size() == 0)
@@ -606,30 +633,7 @@ Hex20Generator::generate()
     }
   }
 
-  // loop over the mesh and store all the element information
-  int N = mesh->n_elem();
-  std::vector<std::vector<libMesh::dof_id_type>> node_ids;
-  node_ids.resize(N);
-
-  std::vector<libMesh::dof_id_type> elem_ids;
-  std::vector<libMesh::subdomain_id_type> elem_block_ids;
-
-  int i = 0;
-  for (const auto & elem : mesh->element_ptr_range())
-  {
-    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    elem_ids.push_back(hex27->id());
-    elem_block_ids.push_back(hex27->subdomain_id());
-
-    for (unsigned int j = 0; j < Hex20::num_nodes; ++j)
-      node_ids[i].push_back(hex27->node_ref(j).id());
-
-    i++;
-  }
-
-  // loop over the mesh and store all the node information
-  std::vector<Node> original_nodes;
-  std::vector<dof_id_type> original_node_ids;
+  // [4] store information about the nodes
   for (const auto & node : mesh->node_ptr_range())
   {
     original_nodes.push_back(*node);
