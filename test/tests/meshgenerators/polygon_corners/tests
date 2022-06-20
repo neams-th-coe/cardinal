@@ -28,4 +28,12 @@
     exodiff = 'six_in.e'
     requirement = "The system shall curve corners of a six-sided polygon with zero boundary layers"
   []
+  [corners_rotation]
+    type = Exodiff
+    input = six_rotation.i
+    cli_args = "--mesh-only"
+    exodiff = 'six_rotation_in.e'
+    requirement = "The system shall curve corners of a six-sided polygon when the input mesh "
+                  "does not have one edge of the polygon horizontal."
+  []
 []

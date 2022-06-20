@@ -63,6 +63,8 @@ Hex20Generator::validParams()
     "specified, this defaults to 0");
   params.addParam<BoundaryName>("polygon_boundary", "Boundary to enforce radius of curvature "
     "for polygon corners");
+  params.addParam<Real>("rotation_angle", 0, "When curving corners, the rotation angle (degrees) "
+    "needed to apply to the original mesh to get a polygon boundary with one side horizontal");
 
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
   // of clearing out lingering sidesets used for stitching, but not for actual BCs/physics
@@ -81,6 +83,7 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
     _input(getMesh("input")),
     _axis(getParam<MooseEnum>("axis")),
     _curve_corners(getParam<bool>("curve_corners")),
+    _rotation_angle(getParam<Real>("rotation_angle")),
     _has_moving_boundary(isParamValid("boundary") || _curve_corners)
 {
   // for each face, the mid-side nodes to be adjusted
@@ -111,6 +114,7 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
     checkUnusedParam(params, "polygon_boundary", "'curve_corners' is false");
     checkUnusedParam(params, "corner_radius", "'curve_corners' is false");
     checkUnusedParam(params, "polygon_layers", "'curve_corners' is false");
+    checkUnusedParam(params, "rotation_angle", "'curve_corners' is false");
   }
 
   if (isParamValid("boundary"))
@@ -303,7 +307,6 @@ Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const
 
   for (auto & face_node : nodesOnFace(primary_face))
   {
-    //const Point corner_point(face_node(0), face_node(1), face_node(2));
     const Node & n = elem->node_ref(face_node);
     const Point corner_point(n(0), n(1), n(2));
     if (is_corner_boundary && !isNearCorner(corner_point))
@@ -501,6 +504,15 @@ Hex20Generator::generate()
     // find origins of the cylinders for the corner fitting
     _polygon_corners = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
     auto corner_origins = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
+
+    // apply optional rotation
+    Real rotation_angle_radians = _rotation_angle * M_PI / 180.0;
+    Point axis(0.0, 0.0, 0.0);
+    axis(_axis) = 1.0;
+    for (auto & o : _polygon_corners)
+      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
+    for (auto & o : corner_origins)
+      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
 
     std::vector<Real> flattened_corner_origins;
     for (const auto & o : corner_origins)

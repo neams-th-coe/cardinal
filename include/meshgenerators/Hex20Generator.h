@@ -174,6 +174,23 @@ protected:
   /// Whether to move corner nodes to fit curved radii of a regular polygon
   const bool & _curve_corners;
 
+  /**
+   * When curving corners, this mesh generator assumes that the polygon boundary
+   * is oriented so that it has a flat side "horizontal." For instance, if the
+   * polygon has 3 sides, this would look like:
+   *
+   *     o ----- o
+   *      \     /
+   *       \   /
+   *        \o/
+   *
+   * This is only used for identifying the points "at the corners" that need
+   * to be modified. If the input mesh therefore does not match the above, this
+   * rotation angle can be used to specify a different polygon orientation for
+   * the sake of curving corners.
+   */
+  const Real & _rotation_angle;
+
   /// Whether sidesets will be moved to match circular surfaces
   const bool _has_moving_boundary;
 
