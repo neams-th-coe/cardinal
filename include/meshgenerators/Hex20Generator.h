@@ -38,6 +38,17 @@ public:
   std::unique_ptr<MeshBase> generate() override;
 
   /**
+   * Given an element with a face on the boundary of interest, get pointers
+   * to all the elements nested into the geometry
+   * @param[in] elem input element
+   * @param[in] n_layers number of layers to sweep inwards
+   * @param[in] primary_face face of the input element that is on the boundary
+   * @return vector of elements attached to input element
+   */
+  std::vector<Elem *> getBoundaryLayerElems(Elem * elem, const unsigned int & n_layers,
+    const unsigned int & primary_face) const;
+
+  /**
    * Get the node index pertaining to a given point
    * @param[in] elem element
    * @param[in] pt point of interest

@@ -276,9 +276,9 @@ Hex20Generator::getNextLayerElem(const Elem & elem, const unsigned int & touchin
 
   if (neighbor_set.size() != 2)
     mooseError("Boundary layer sweeping requires finding exactly one neighbor element\n"
-      "through the layer face! Found ", neighbor_set.size() - 1, " neighbors for element\n",
+      "through the layer face! Found ", neighbor_set.size() - 1, " neighbors for element ",
       elem.id(), ", face ", touching_face,
-      "\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
+      ".\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
 
   // TODO: this mesh generator currently assumes we're working on an extruded mesh,
   // so that the face pattern follows as we sweep through the boundary layers
@@ -296,10 +296,37 @@ Hex20Generator::getNextLayerElem(const Elem & elem, const unsigned int & touchin
     "the 'layers' are set to reasonable values.");
 }
 
+std::vector<Elem *>
+Hex20Generator::getBoundaryLayerElems(Elem * elem, const unsigned int & n_layers,
+  const unsigned int & primary_face) const
+{
+  std::vector<Elem *> nested_elems;
+
+  const auto face_nodes = nodesOnFace(primary_face);
+  unsigned int face_node = face_nodes[Hex27::nodes_per_side - 1];
+
+  Elem * bl_elem = elem;
+  unsigned int start_face = primary_face;
+  unsigned int pair_face = _across_face[start_face];
+
+  for (unsigned int l = 0; l < n_layers; ++l)
+  {
+    // increment to the next boundary layer element
+    auto next_elem = getNextLayerElem(*bl_elem, pair_face, start_face);
+    bl_elem = const_cast<Elem *>(next_elem);
+    pair_face = _across_face[start_face];
+    nested_elems.push_back(bl_elem);
+  }
+
+  return nested_elems;
+}
+
 void
 Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face)
 {
   bool is_corner_boundary = boundary_index >= _n_noncorner_boundaries;
+
+  const auto bl_elems = getBoundaryLayerElems(elem, _layers[boundary_index], primary_face);
 
   // use the element centroid for finding the closest origin
   const Point centroid = elem->vertex_average();
@@ -320,7 +347,6 @@ Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const
     unsigned int start_node = face_node;
     unsigned int start_face = primary_face;
     unsigned int pair_node = pairedFaceNode(start_node, start_face);
-    unsigned int pair_face = _across_face[start_face];
 
     for (unsigned int l = 0; l < _layers[boundary_index]; ++l)
     {
@@ -332,12 +358,11 @@ Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const
         adjustMidPointNode(midPointNodeIndex(start_face, start_node), bl_elem);
 
       // increment to the next boundary layer element
-      auto next_elem = getNextLayerElem(*bl_elem, pair_face, start_face);
+      auto next_elem = bl_elems[l];
       bl_elem = const_cast<Elem *>(next_elem);
       Point pt(paired_node(0), paired_node(1), paired_node(2));
       start_node = getNodeIndex(bl_elem, pt);
       pair_node = pairedFaceNode(start_node, start_face);
-      pair_face = _across_face[start_face];
     }
 
     // even if there aren't boundary layers, we need to adjust the mid-point side node
