@@ -633,7 +633,47 @@ HexagonalLatticeUtility::pointInPolygon(const Point & point,
   bool positive = std::find(positive_half_space.begin(), positive_half_space.end(), true) !=
                   positive_half_space.end();
 
-  return !(negative && positive);
+  bool in_polygon = !(negative && positive);
+  if (in_polygon) return true;
+
+  for (unsigned int i = 0; i < corners.size(); ++i)
+    if (pointOnEdge(point, corners))
+      return true;
+
+  return false;
+}
+
+const bool
+HexagonalLatticeUtility::pointOnEdge(const Point & point,
+                                        const std::vector<Point> & corners) const
+{
+  auto n_pts = corners.size();
+
+  Real tol = 1e-8;
+  for (unsigned int i = 0; i < corners.size(); ++i)
+  {
+    int next = (i == n_pts - 1) ? 0 : i + 1;
+    const auto & pt1 = corners[i];
+    const auto & pt2 = corners[next];
+    bool close_to_line = distanceFromLine(point, pt1, pt2) < tol;
+
+    // we can stop early if we know we're not close to the line
+    if (!close_to_line)
+      continue;
+
+    // check that the point is "between" the two points; TODO: first pass
+    // we can just compare x and y coordinates
+    bool between_points = (point(0) >= std::min(pt1(0), pt2(0))) &&
+                          (point(0) <= std::max(pt1(0), pt2(0))) &&
+                          (point(1) >= std::min(pt1(1), pt2(1))) &&
+                          (point(1) <= std::max(pt1(1), pt2(1)));
+
+    // point needs to be close to the line AND "between" the two points
+    if (close_to_line && between_points)
+      return true;
+  }
+
+  return false;
 }
 
 const unsigned int

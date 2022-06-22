@@ -37,8 +37,8 @@ InputParameters
 OpenMCProblemBase::validParams()
 {
   InputParameters params = ExternalProblem::validParams();
-  params.addRequiredRangeCheckedParam<Real>(
-      "power", "power >= 0.0", "Power (Watts) to normalize the OpenMC tallies");
+  params.addRequiredParam<PostprocessorName>(
+      "power", "Power (Watts) to normalize the OpenMC tallies");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
   // interfaces to directly set some OpenMC parameters
@@ -68,7 +68,8 @@ OpenMCProblemBase::validParams()
 
 OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   : ExternalProblem(params),
-    _power(getParam<Real>("power")),
+    PostprocessorInterface(this),
+    _power(getPostprocessorValue("power")),
     _verbose(getParam<bool>("verbose")),
     _reuse_source(getParam<bool>("reuse_source")),
     _single_coord_level(openmc::model::n_coord_levels == 1),

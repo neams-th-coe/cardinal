@@ -14,8 +14,8 @@ To get access to Cardinal, simply clone the repository and
 are located in the root directory of the Cardinal repository).
 
 ```
-$ git clone https://github.com/neams-th-coe/cardinal.git
-$ cd cardinal
+git clone https://github.com/neams-th-coe/cardinal.git
+cd cardinal
 ```
 
 ## Prerequisites
@@ -26,14 +26,14 @@ the software stack prerequisites). If you do *not*
 want to build the NekRS-part of Cardinal, set the following environment variable:
 
 ```
-$ export ENABLE_NEK=false
+export ENABLE_NEK=false
 ```
 
 Likewise, if you do *not* want to build the OpenMC-part of Cardinal,
 set the following environment variable:
 
 ```
-$ export ENABLE_OPENMC=false
+export ENABLE_OPENMC=false
 ```
 
 You can also edit both of these variables in Cardinal's `Makefile`. Then, the prerequisites
@@ -73,7 +73,7 @@ build/compile *any* of these dependencies - Cardinal's Makefile handles all step
 automatically. To fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 
 ```
-$ ./scripts/get-dependencies.sh
+./scripts/get-dependencies.sh
 ```
 
 
@@ -158,7 +158,7 @@ There are several different ways that you can set the backend. We recommend sett
 `OPENMP`. This will set the backend for all NekRS runs within Cardinal.
 
 ```
-$ export NEKRS_OCCA_MODE_DEFAULT=CPU
+export NEKRS_OCCA_MODE_DEFAULT=CPU
 ```
 
 Alternatively, if you only want to control the backend
@@ -189,8 +189,8 @@ If not using MOOSE's conda environment, you must now build PETSc and libMesh.
 To build PETSc and libMesh, run:
 
 ```
-$ ./contrib/moose/scripts/update_and_rebuild_petsc.sh
-$ ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
+./contrib/moose/scripts/update_and_rebuild_petsc.sh
+./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 ```
 
 After building PETSc, if you want to test the installation you will need to `cd`
@@ -198,8 +198,8 @@ into the PETSc directory before running the on-screen directions that print
 when PETSc finishes, i.e. like:
 
 ```
-$ cd contrib/moose/petsc
-$ make PETSC_DIR=$HOME/cardinal/contrib/moose/scripts/../petsc PETSC_ARCH=arch-moose check
+cd contrib/moose/petsc
+make PETSC_DIR=$HOME/cardinal/contrib/moose/scripts/../petsc PETSC_ARCH=arch-moose check
 ```
 
 !alert tip
@@ -218,7 +218,7 @@ also save time by restricting the
 Finally, run `make` in the top-level directory,
 
 ```
-$ make -j8
+make -j8
 ```
 
 which will compile Cardinal in parallel with 8 processes.
@@ -235,7 +235,7 @@ directories so that the appropriate CMake configuration files will be recreated
 with the newest environment settings.
 
 ```
-$ rm -rf cardinal/install cardinal/build
+rm -rf cardinal/install cardinal/build
 ```
 !alert-end!
 
@@ -244,7 +244,7 @@ $ rm -rf cardinal/install cardinal/build
 The command to run Cardinal with `<n>` MPI ranks and `<s>` OpenMP threads is:
 
 ```
-$ mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
+mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
 ```
 
 This command assumes that `cardinal-opt` is located on your `PATH`; otherwise,
@@ -252,16 +252,43 @@ you need to provide the full path to `cardinal-opt` in the above command.
 Note that while MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,
 NekRS does not use shared memory parallelism.
 
-For the special case of running SAM as the master application, you also need to pass
+Finally, for the special case of running SAM as the master application, you also need to pass
 `--app SamApp` on the command line to instruct Cardinal to build a `SamApp`.
 
-## Testing
+## Checking the Install
 
-Cardinal uses MOOSE's CIVET system for regression testing [!cite](slaughter).
+If you would like to check that Cardinal was built correctly and that you
+have all the basic requirements in place, you can try running a few input files.
+
+1. If you are using OpenMC, try:
+
+```
+cd tutorials/lwr_solid
+mpiexec -np 2 ../../cardinal-opt -i solid.i --n-threads=2
+```
+
+2. If you are using OpenMC and also want to leverage OpenMC's
+   [Python API](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api)
+   to make OpenMC models, try:
+
+```
+cd tutorials/lwr_solid
+python make_openmc_model.py
+```
+
+3. If you are using NekRS, try:
+
+```
+cd test/tests/cht/sfr_pincell
+mpiexec -np 4 ../../../../cardinal-opt -i nek_master.i
+```
+
+For developers, you will also find it useful to be able to run Cardinal's
+test suite, which consists of unit and regression tests.
 You can run Cardinal's test suite with the following:
 
 ```
-$ ./run_tests -j8
+./run_tests -j8
 ```
 
 which will run the tests in parallel with 8 processes. OpenMC's tests require
@@ -271,43 +298,3 @@ Depending on the availability of various dependencies, some tests may be skipped
 The first time
 you run the test suite, the runtime will be very long due to the just-in-time compilation of
 NekRS. Subsequent runs will be much faster due to the use of cached build files.
-
-!alert! note
-Do you get an error like the following when running the test suite?
-
-```
-Traceback (most recent call last):
-  File "/Users/anovak/projects/cardinal/./run_tests", line 11, in <module>
-    from TestHarness import TestHarness
-ModuleNotFoundError: No module named 'TestHarness'
-```
-
-This means that you need to:
-
-- Be sure that your Python is version 3 (`python --version` will show you the version)
-- Add `cardinal/contrib/moose/python` to your `PYTHONPATH` to be sure Python can find `TestHarness`
-
-!alert-end!
-
-!alert! note
-Do you get an error like the following when running the test suite?
-
-```
-Error! Could not find 'libmesh-config' in any of the usual libmesh's locations!
-```
-
-This means that you need to explicitly set `LIBMESH_DIR` to point
-to where you have `moose/libmesh`. If you're using MOOSE's conda environment, this
-means setting `LIBMESH_DIR` to `$CONDA_PREFIX/libmesh`. If not using the conda
-environment, set to `cardinal/contrib/moose/libmesh`.
-
-!alert-end!
-
-You can also try running the various test input files directly (i.e. outside
-the testing framework). For example, you can try to run a [!ac](CHT) for a
-[!ac](SFR) pincell with:
-
-```
-$ cd test/tests/cht/sfr_pincell
-$ mpiexec -np 4 cardinal-opt -i nek_master.i
-```

@@ -45,6 +45,12 @@ namespace nekrs
 static int build_only;
 
 /**
+ * Set the start time used by NekRS
+ * @param[in] start start time
+ */
+void setStartTime(const double & start);
+
+/**
  * Whether NekRS itself has been initialized yet
  * @return whether NekRS is initialized
  */

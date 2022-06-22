@@ -48,65 +48,7 @@ export FC=mpif90
 export NEKRS_HOME=$HOME/cardinal/install
 !listing-end!
 
-!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node of the 64-core partition id=bb2
-#!/bin/bash
-
-#SBATCH --job-name=lattice
-#SBATCH --account=startup
-#SBATCH --partition=knlall
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=64
-#SBATCH --output=run.out
-#SBATCH --error=run.error
-#SBATCH --time=00:05:00
-
-module purge
-module load gcc/8.2.0-g7hppkz
-module load openmpi/3.1.4
-module load cmake/3.20.3-vedypwm
-module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
-
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-
-# Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
-mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=64 > logfile
-!listing-end!
-
-!listing! language=bash caption=Sample job script to run NekRS coupled to MOOSE on one node of the 36-core partition id=bb3
-#!/bin/bash
-
-#SBATCH --job-name=cht
-#SBATCH --account=startup
-#SBATCH --partition=bdwall
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=36
-#SBATCH --output=run.out
-#SBATCH --error=run.error
-#SBATCH --time=00:05:00
-
-module purge
-module load gcc/8.2.0-g7hppkz
-module load openmpi/3.1.4
-module load cmake/3.20.3-vedypwm
-module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
-
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/cht/sfr_pincell
-mpiexec -np 36 $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
-!listing-end!
+!listing scripts/job_bebop language=bash caption=Job script to run OpenMC and Nek cases on one node of the 36-core partition with the `startup` project code id=bb2
 
 ## Eddy
 
@@ -176,6 +118,29 @@ export NEKRS_HOME=$HOME/cardinal/install
 # Revise for your input file and executable locations
 cd $HOME/cardinal/test/tests/cht/sfr_pincell
 mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
+!listing-end!
+
+## KOOKIE Cluster
+
+The KOOKIE cluster at [!ac](ANL) (also called the VTR cluster) has 12
+nodes with a variety of different CPUs and GPUs for each node.
+Below is
+a bash script to build Cardinal (*last updated 5/16/2022*)
+
+!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=k1
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+export F77=mpif77
+export F90=mpif90
+
+module purge
+module load advanced_modules
+module load mpich-gcc
+
+# Revise for your Cardinal repository location
+export NEKRS_HOME=$HOME/cardinal/install
+
 !listing-end!
 
 ## Nek5k
@@ -274,7 +239,7 @@ mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores. Each compute node contains
 dual Xeon Platinum 8268 processors with 24 cores each, giving 48 cores per node. 27 nodes have
 four NVIDIA V100 GPUs each. Below are a bash script and sample job scripts to build Cardinal and
-run the NekRS and OpenMC wrappings (*last updated 10/11/2021*).
+run the NekRS and OpenMC wrappings (*last updated 06/14/2022*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=st1
 if [ -f /etc/bashrc ]; then
@@ -286,59 +251,19 @@ if [ -f  ~/.bashrc_local ]; then
 fi
 
 module purge
-module load openmpi/4.0.5_ucx1.9
-module load cmake/3.16.2-gcc-9.3.0-tza7
-module load hdf5/1.12.0_ucx1.9
+module load use.moose
+module load moose-dev
+export HDF5_ROOT=/apps/moose/stack/miniconda3
 
 export CC=mpicc
 export CXX=mpicxx
 export FC=mpif90
-!listing-end!
 
-!listing! language=bash caption=Job script to run OpenMC coupled to MOOSE on one node with the `moose` project code for 2 MPI processes and 24 OpenMP threads id=st2
-#!/bin/bash
-#PBS -l select=1:ncpus=48:mpiprocs=2:ompthreads=24
-#PBS -l walltime=5:00
-#PBS -M email@address.gov
-#PBS -m ae
-#PBS -N lattice
-#PBS -j oe
-#PBS -P moose
-
-module purge
-module load openmpi/4.0.5_ucx1.9
-module load hdf5/1.12.0_ucx1.9
-
-# Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=$HOME/projects/cross_sections/endfb71_hdf5/cross_sections.xml
-
-# Review for your input file and executable locations
-cd $HOME/projects/cardinal/test/tests/neutronics/feedback/lattice
-mpirun $HOME/projects/cardinal/cardinal-opt -i openmc_master.i --n-threads=24 > logfile
-!listing-end!
-
-!listing! language=bash caption=Job script to run NekRS coupled to MOOSE on one node with the `moose` project code for 48 MPI processes id=st3
-#!/bin/bash
-#PBS -l select=1:ncpus=48:mpiprocs=48
-#PBS -l walltime=5:00
-#PBS -M email@address.gov
-#PBS -m ae
-#PBS -N pebble
-#PBS -j oe
-#PBS -P moose
-
-module purge
-module load openmpi/4.0.5_ucx1.9
-module load cmake/3.16.2-gcc-9.3.0-tza7
-module load hdf5/1.12.0_ucx1.9
-
-# Revise for your Cardinal repository location
+# Revise for your repository location
 export NEKRS_HOME=$HOME/projects/cardinal/install
-
-# Revise for your input file and executable locations
-cd $HOME/projects/cardinal/test/tests/cht/pebble
-mpirun $HOME/projects/cardinal/cardinal-opt -i nek_master.i > logfile
 !listing-end!
+
+!listing scripts/job_sawtooth language=bash caption=Job script to run OpenMC and Nek cases on one node with the `moose` project code id=st2
 
 ## Summit
 
@@ -355,3 +280,10 @@ module load cuda
 module load hdf5
 module load python/3.7.0-anaconda3-5.3.0
 !listing-end!
+
+Remember that in order to build Cardinal with GPU support, set the appropriate
+variable in the `Makefile` to true (`1`):
+
+!listing cardinal/Makefile
+  start=OCCA_CUDA_ENABLED
+  end=NEKRS_BUILDDIR

@@ -1,0 +1,29 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  startFrom = pyramid.fld
+  stopAt = numSteps
+  numSteps = 5
+  dt = 5.0e-4
+  polynomialOrder = 5
+  writeControl = runSteps
+  writeInterval = 2
+
+[VELOCITY]
+  solver = none
+  viscosity = 1.0
+  density = 1.0
+  residualTol = 1.0e-6
+  residualProj = false
+  boundaryTypeMap = inlet, outlet, wall, wall, wall, wall, wall, wall
+
+[PRESSURE]
+  residualTol = 1.0e-5
+  residualProj = false
+
+[TEMPERATURE]
+  solver = none
+  residualTol = 1.0e-5
+  residualProj  = no
+  boundaryTypeMap = f, f, f, f, f, f, f, f

@@ -1,6 +1,5 @@
 $(OPENMC_BUILDDIR)/Makefile: $(OPENMC_DIR)/CMakeLists.txt
 	mkdir -p $(OPENMC_BUILDDIR)
-	mkdir -p $(LIBMESH_DIR)/include/contrib
 	cd $(OPENMC_BUILDDIR) && \
 	cmake -L \
 	-DCMAKE_BUILD_TYPE=$(BUILD_TYPE) \
