@@ -128,7 +128,7 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
                    Moose::stringify(*_boundary) + ".");
 
 
-  // TODO, add checking of BCs if using inlet coupling
+  // TODO, add checks of BCs if using inlet coupling
 }
 
 NekRSSeparateDomainProblem::~NekRSSeparateDomainProblem() { nekrs::freeScratch(); }
@@ -268,9 +268,6 @@ NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId, const do
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
-
-//  // check which scalar PP to pass to NekRS
-//  const PostprocessorValue * scalarValue = nullptr;
 
   _console << "Sending scalar0" << Moose::stringify(scalarId) << " of "
            << scalarValue << " to NekRS boundary "

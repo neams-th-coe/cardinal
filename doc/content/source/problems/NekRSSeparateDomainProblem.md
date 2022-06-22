@@ -8,7 +8,7 @@ updating boundary conditions between the domains. For most applications where th
  is of interest for CFD simulation.
 
 The coupling's setup is controlled using the `coupling_type`, which provides information for how the
- NekRS is coupled to the 1D T/H code, via NekRS's `inlet`, `outlet`, or `inlet outlet`.
+ NekRS is coupled to the 1D T/H code, via NekRS's `inlet`, `outlet`, or `'inlet outlet'`.
 
 !alert warning
 This class currently only supports dimensional solutions coming from NekRS. Nondimensional support is in progress.
@@ -16,7 +16,7 @@ This class currently only supports dimensional solutions coming from NekRS. Nond
 ### Velocity, temperature, and scalar coupling
 
 [inlet_outlet] shows the coupling of velocity (V), temperature (T), and scalar01 (S01)
- for `coupling_type = inlet outlet`, where the 1D T/H code is coupled to NekRS's inlet and outlet boundaries.
+ for `coupling_type = 'inlet outlet'`, where the 1D T/H code is coupled to NekRS's inlet and outlet boundaries.
 
 Scalar coupling is allowed for up to 3 scalars (scalar01, scalar02, and scalar03) using the optional `coupled_scalars` parameter.
  Coupling scalars is useful when running a 1D T/H coupled to a NekRS RANS k-tau simulation with
@@ -60,7 +60,7 @@ A summary of postProcessors generated is shown in the following table for veloci
 The postProcessor created depends on (1) the `coupling_type` given, (2) whether or not NekRS is solving for temperature
  and (3) the optional `coupling_scalars` provided.
 
-| postProcessor created | `coupling_type = inlet` | `coupling_type = outlet` | `coupling_type = inlet outlet` |
+| postProcessor created | `coupling_type = inlet` | `coupling_type = outlet` | `coupling_type = 'inlet outlet'` |
 | - | - | - | - |
 | dP | $\checkmark$ | $\checkmark$ | $\checkmark$ |
 | inlet_V | $\checkmark$ | &nbsp; | $\checkmark$ |
@@ -73,8 +73,8 @@ The postProcessor created depends on (1) the `coupling_type` given, (2) whether 
 
 
 Example MultiApp transfers for velocity, temperature and scalar01 coupling are shown below for
- `coupling_type = 'inlet outlet'` and `coupled_scalars = 'scalar01'`. These transfers assume NekRS
- is acting as the MainApp and the `1D_TH_code` as the SubApp.
+ `coupling_type = 'inlet outlet'` and `coupled_scalars = 'scalar01'`. NekRS can run as either
+ the MainApp or SubApp, but these example transfers assume NekRS is acting as the MainApp and the `1D_TH_code` as the SubApp.
 
 ```
 [Transfers]
