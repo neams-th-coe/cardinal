@@ -649,6 +649,12 @@ TEST_F(HexagonalLatticeTest, channel_index)
   Point pt3(-0.12, -0.349, 0.0);
   Point pt4(0.46, -0.27, 0.0);
   Point pt5(0.37, 0.6, 0.0);
+  EXPECT_EQ(hl.channelType(pt0), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt1), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt2), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt3), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt4), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt5), channel_type::interior);
   EXPECT_EQ(hl.channelIndex(pt0), 0);
   EXPECT_EQ(hl.channelIndex(pt1), 1);
   EXPECT_EQ(hl.channelIndex(pt2), 2);
@@ -679,6 +685,24 @@ TEST_F(HexagonalLatticeTest, channel_index)
   Point pt22(0.78, 0.38, 0.0);
   Point pt23(0.74, 0.84, 0.0);
 
+  EXPECT_EQ(hl.channelType(pt6), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt7), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt8), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt9), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt10), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt11), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt12), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt13), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt14), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt15), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt16), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt17), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt18), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt19), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt20), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt21), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt22), channel_type::interior);
+  EXPECT_EQ(hl.channelType(pt23), channel_type::interior);
   EXPECT_EQ(hl.channelIndex(pt6), 6);
   EXPECT_EQ(hl.channelIndex(pt7), 7);
   EXPECT_EQ(hl.channelIndex(pt8), 8);
@@ -711,6 +735,18 @@ TEST_F(HexagonalLatticeTest, channel_index)
   Point pt34(1.51, 0.37, 0.0);
   Point pt35(1.16, 1.42, 0.0);
 
+  EXPECT_EQ(hl.channelType(pt24), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt25), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt26), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt27), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt28), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt29), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt30), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt31), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt32), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt33), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt34), channel_type::edge);
+  EXPECT_EQ(hl.channelType(pt35), channel_type::edge);
   EXPECT_EQ(hl.channelIndex(pt24), 24);
   EXPECT_EQ(hl.channelIndex(pt25), 25);
   EXPECT_EQ(hl.channelIndex(pt26), 26);
@@ -731,6 +767,12 @@ TEST_F(HexagonalLatticeTest, channel_index)
   Point pt40(0.89, -1.79, 0.0);
   Point pt41(1.98, 0.12, 0.0);
 
+  EXPECT_EQ(hl.channelType(pt36), channel_type::corner);
+  EXPECT_EQ(hl.channelType(pt37), channel_type::corner);
+  EXPECT_EQ(hl.channelType(pt38), channel_type::corner);
+  EXPECT_EQ(hl.channelType(pt39), channel_type::corner);
+  EXPECT_EQ(hl.channelType(pt40), channel_type::corner);
+  EXPECT_EQ(hl.channelType(pt41), channel_type::corner);
   EXPECT_EQ(hl.channelIndex(pt36), 36);
   EXPECT_EQ(hl.channelIndex(pt37), 37);
   EXPECT_EQ(hl.channelIndex(pt38), 38);
