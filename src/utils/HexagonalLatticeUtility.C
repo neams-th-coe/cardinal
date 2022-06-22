@@ -655,6 +655,9 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_edge_channels; ++i)
       {
         auto corners = edgeChannelCornerCoordinates(i);
+        std::cout << "\n Edge channel: " << i << std::endl;
+        for (const auto & c : corners)
+          std::cout << c << std::endl;
         if (geom_utility::pointInPolygon(point, corners, _axis))
           return i + _n_interior_channels;
       }
