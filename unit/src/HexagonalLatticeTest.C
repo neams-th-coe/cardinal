@@ -541,6 +541,104 @@ TEST_F(HexagonalLatticeTest, pin_centers)
     EXPECT_DOUBLE_EQ(centers4[i](2), 0.0);
 }
 
+TEST_F(HexagonalLatticeTest, channel_index_shifted)
+{
+  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+
+  // check that the z-coordinate doesn't affect the channel index identification
+  Point pt0(0.06, 0.35, 3.5);
+  Point pt1(-0.47, 0.28, 3.5);
+  Point pt2(-0.26, -0.21, 3.5);
+  Point pt3(-0.12, -0.349, 3.5);
+  Point pt4(0.46, -0.27, 3.5);
+  Point pt5(0.37, 0.6, 3.5);
+
+  EXPECT_EQ(hl.channelIndex(pt0), 0);
+  EXPECT_EQ(hl.channelIndex(pt1), 1);
+  EXPECT_EQ(hl.channelIndex(pt2), 2);
+  EXPECT_EQ(hl.channelIndex(pt3), 3);
+  EXPECT_EQ(hl.channelIndex(pt4), 4);
+  EXPECT_EQ(hl.channelIndex(pt5), 5);
+
+  Point pt6(0.36, 1.06, -7.0);
+  Point pt7(0.11, 0.98, -7.0);
+  Point pt8(-0.43, 1.27, -7.0);
+  Point pt9(-0.81, 0.93, -7.0);
+  Point pt10(-0.75, 0.47, -7.0);
+  Point pt11(-1.06, 0.28, -7.0);
+  Point pt12(-1.16, -0.13, -7.0);
+  Point pt13(-0.73, -0.41, -7.0);
+  Point pt14(-0.73, -0.81, -7.0);
+  Point pt15(-0.46, -1.18, -7.0);
+  Point pt16(0.05, -0.98, -7.0);
+  Point pt17(0.27, -1.00, -7.0);
+  Point pt18(0.72, -0.98, -7.0);
+  Point pt19(0.75, -0.58, -7.0);
+  Point pt20(1.23, -0.23, -7.0);
+  Point pt21(1.17, 0.09, -7.0);
+  Point pt22(0.78, 0.38, -7.0);
+  Point pt23(0.74, 0.84, -7.0);
+
+  EXPECT_EQ(hl.channelIndex(pt6), 6);
+  EXPECT_EQ(hl.channelIndex(pt7), 7);
+  EXPECT_EQ(hl.channelIndex(pt8), 8);
+  EXPECT_EQ(hl.channelIndex(pt9), 9);
+  EXPECT_EQ(hl.channelIndex(pt10), 10);
+  EXPECT_EQ(hl.channelIndex(pt11), 11);
+  EXPECT_EQ(hl.channelIndex(pt12), 12);
+  EXPECT_EQ(hl.channelIndex(pt13), 13);
+  EXPECT_EQ(hl.channelIndex(pt14), 14);
+  EXPECT_EQ(hl.channelIndex(pt15), 15);
+  EXPECT_EQ(hl.channelIndex(pt16), 16);
+  EXPECT_EQ(hl.channelIndex(pt17), 17);
+  EXPECT_EQ(hl.channelIndex(pt18), 18);
+  EXPECT_EQ(hl.channelIndex(pt19), 19);
+  EXPECT_EQ(hl.channelIndex(pt20), 20);
+  EXPECT_EQ(hl.channelIndex(pt21), 21);
+  EXPECT_EQ(hl.channelIndex(pt22), 22);
+  EXPECT_EQ(hl.channelIndex(pt23), 23);
+
+  Point pt24(0.31, 1.44, -0.1);
+  Point pt25(-0.38, 1.61, -0.1);
+  Point pt26(-1.17, 1.52, -0.1);
+  Point pt27(-1.78, 0.38, -0.1);
+  Point pt28(-1.91, -0.42, -0.1);
+  Point pt29(-1.39, -1.24, -0.1);
+  Point pt30(-0.46, -1.74, -0.1);
+  Point pt31(0.18, -1.79, -0.1);
+  Point pt32(1.24, -1.17, -0.1);
+  Point pt33(1.75, -0.57, -0.1);
+  Point pt34(1.51, 0.37, -0.1);
+  Point pt35(1.16, 1.42, -0.1);
+
+  EXPECT_EQ(hl.channelIndex(pt24), 24);
+  EXPECT_EQ(hl.channelIndex(pt25), 25);
+  EXPECT_EQ(hl.channelIndex(pt26), 26);
+  EXPECT_EQ(hl.channelIndex(pt27), 27);
+  EXPECT_EQ(hl.channelIndex(pt28), 28);
+  EXPECT_EQ(hl.channelIndex(pt29), 29);
+  EXPECT_EQ(hl.channelIndex(pt30), 30);
+  EXPECT_EQ(hl.channelIndex(pt31), 31);
+  EXPECT_EQ(hl.channelIndex(pt32), 32);
+  EXPECT_EQ(hl.channelIndex(pt33), 33);
+  EXPECT_EQ(hl.channelIndex(pt34), 34);
+  EXPECT_EQ(hl.channelIndex(pt35), 35);
+
+  Point pt36(1.05, 1.75, 1.2);
+  Point pt37(-1.02, 1.72, 1.2);
+  Point pt38(-2.03, -0.05, 1.2);
+  Point pt39(-1.01, -1.59, 1.2);
+  Point pt40(0.89, -1.79, 1.2);
+  Point pt41(1.98, 0.12, 1.2);
+
+  EXPECT_EQ(hl.channelIndex(pt36), 36);
+  EXPECT_EQ(hl.channelIndex(pt37), 37);
+  EXPECT_EQ(hl.channelIndex(pt38), 38);
+  EXPECT_EQ(hl.channelIndex(pt39), 39);
+  EXPECT_EQ(hl.channelIndex(pt40), 40);
+  EXPECT_EQ(hl.channelIndex(pt41), 41);
+}
+
 TEST_F(HexagonalLatticeTest, channel_index)
 {
   HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
@@ -561,14 +659,6 @@ TEST_F(HexagonalLatticeTest, channel_index)
   // check that a point exactly on the edge falls into one channel
   pt0 = {0.5 * 0.8 * 0.5, 0.5 * 0.8 * std::sqrt(3.0) / 2.0, 0.0};
   EXPECT_EQ(hl.channelIndex(pt0), 0);
-
-  // check that the z-coordinate doesn't affect the channel index identification
-  EXPECT_EQ(hl.channelIndex(pt0 + Point(0.0, 0.0, 3.5)), 0);
-  EXPECT_EQ(hl.channelIndex(pt1 + Point(0.0, 0.0, 3.5)), 1);
-  EXPECT_EQ(hl.channelIndex(pt2 + Point(0.0, 0.0, 3.5)), 2);
-  EXPECT_EQ(hl.channelIndex(pt3 + Point(0.0, 0.0, 3.5)), 3);
-  EXPECT_EQ(hl.channelIndex(pt4 + Point(0.0, 0.0, 3.5)), 4);
-  EXPECT_EQ(hl.channelIndex(pt5 + Point(0.0, 0.0, 3.5)), 5);
 
   Point pt6(0.36, 1.06, 0.0);
   Point pt7(0.11, 0.98, 0.0);
@@ -608,25 +698,6 @@ TEST_F(HexagonalLatticeTest, channel_index)
   EXPECT_EQ(hl.channelIndex(pt22), 22);
   EXPECT_EQ(hl.channelIndex(pt23), 23);
 
-  EXPECT_EQ(hl.channelIndex(pt6 + Point(0.0, 0.0, -7.0)), 6);
-  EXPECT_EQ(hl.channelIndex(pt7 + Point(0.0, 0.0, -7.0)), 7);
-  EXPECT_EQ(hl.channelIndex(pt8 + Point(0.0, 0.0, -7.0)), 8);
-  EXPECT_EQ(hl.channelIndex(pt9 + Point(0.0, 0.0, -7.0)), 9);
-  EXPECT_EQ(hl.channelIndex(pt10 + Point(0.0, 0.0, -7.0)), 10);
-  EXPECT_EQ(hl.channelIndex(pt11 + Point(0.0, 0.0, -7.0)), 11);
-  EXPECT_EQ(hl.channelIndex(pt12 + Point(0.0, 0.0, -7.0)), 12);
-  EXPECT_EQ(hl.channelIndex(pt13 + Point(0.0, 0.0, -7.0)), 13);
-  EXPECT_EQ(hl.channelIndex(pt14 + Point(0.0, 0.0, -7.0)), 14);
-  EXPECT_EQ(hl.channelIndex(pt15 + Point(0.0, 0.0, -7.0)), 15);
-  EXPECT_EQ(hl.channelIndex(pt16 + Point(0.0, 0.0, -7.0)), 16);
-  EXPECT_EQ(hl.channelIndex(pt17 + Point(0.0, 0.0, -7.0)), 17);
-  EXPECT_EQ(hl.channelIndex(pt18 + Point(0.0, 0.0, -7.0)), 18);
-  EXPECT_EQ(hl.channelIndex(pt19 + Point(0.0, 0.0, -7.0)), 19);
-  EXPECT_EQ(hl.channelIndex(pt20 + Point(0.0, 0.0, -7.0)), 20);
-  EXPECT_EQ(hl.channelIndex(pt21 + Point(0.0, 0.0, -7.0)), 21);
-  EXPECT_EQ(hl.channelIndex(pt22 + Point(0.0, 0.0, -7.0)), 22);
-  EXPECT_EQ(hl.channelIndex(pt23 + Point(0.0, 0.0, -7.0)), 23);
-
   Point pt24(0.31, 1.44, 0.0);
   Point pt25(-0.38, 1.61, 0.0);
   Point pt26(-1.17, 1.52, 0.0);
@@ -653,19 +724,6 @@ TEST_F(HexagonalLatticeTest, channel_index)
   EXPECT_EQ(hl.channelIndex(pt34), 34);
   EXPECT_EQ(hl.channelIndex(pt35), 35);
 
-  EXPECT_EQ(hl.channelIndex(pt24 + Point(0.0, 0.0, -0.1)), 24);
-  EXPECT_EQ(hl.channelIndex(pt25 + Point(0.0, 0.0, -0.1)), 25);
-  EXPECT_EQ(hl.channelIndex(pt26 + Point(0.0, 0.0, -0.1)), 26);
-  EXPECT_EQ(hl.channelIndex(pt27 + Point(0.0, 0.0, -0.1)), 27);
-  EXPECT_EQ(hl.channelIndex(pt28 + Point(0.0, 0.0, -0.1)), 28);
-  EXPECT_EQ(hl.channelIndex(pt29 + Point(0.0, 0.0, -0.1)), 29);
-  EXPECT_EQ(hl.channelIndex(pt30 + Point(0.0, 0.0, -0.1)), 30);
-  EXPECT_EQ(hl.channelIndex(pt31 + Point(0.0, 0.0, -0.1)), 31);
-  EXPECT_EQ(hl.channelIndex(pt32 + Point(0.0, 0.0, -0.1)), 32);
-  EXPECT_EQ(hl.channelIndex(pt33 + Point(0.0, 0.0, -0.1)), 33);
-  EXPECT_EQ(hl.channelIndex(pt34 + Point(0.0, 0.0, -0.1)), 34);
-  EXPECT_EQ(hl.channelIndex(pt35 + Point(0.0, 0.0, -0.1)), 35);
-
   Point pt36(1.05, 1.75, 0.0);
   Point pt37(-1.02, 1.72, 0.0);
   Point pt38(-2.03, -0.05, 0.0);
@@ -679,13 +737,6 @@ TEST_F(HexagonalLatticeTest, channel_index)
   EXPECT_EQ(hl.channelIndex(pt39), 39);
   EXPECT_EQ(hl.channelIndex(pt40), 40);
   EXPECT_EQ(hl.channelIndex(pt41), 41);
-
-  EXPECT_EQ(hl.channelIndex(pt36 + Point(0.0, 0.0, 1.2)), 36);
-  EXPECT_EQ(hl.channelIndex(pt37 + Point(0.0, 0.0, 1.2)), 37);
-  EXPECT_EQ(hl.channelIndex(pt38 + Point(0.0, 0.0, 1.2)), 38);
-  EXPECT_EQ(hl.channelIndex(pt39 + Point(0.0, 0.0, 1.2)), 39);
-  EXPECT_EQ(hl.channelIndex(pt40 + Point(0.0, 0.0, 1.2)), 40);
-  EXPECT_EQ(hl.channelIndex(pt41 + Point(0.0, 0.0, 1.2)), 41);
 }
 
 TEST_F(HexagonalLatticeTest, gaps1)
