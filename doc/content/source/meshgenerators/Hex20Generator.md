@@ -127,10 +127,6 @@ as well as attached boundary layers, to have a radius of curvature.
   caption=Input and output meshes when enforcing radius of curvature at polygon corners
   style=width:90%;margin-left:auto;margin-right:auto
 
-!alert note
-For moving polygonal corners, it is currently assumed that a "face" of the polygon
-is parallel to the "x" axis.
-
 !syntax parameters /Mesh/Hex20Generator
 
 !syntax inputs /Mesh/Hex20Generator
