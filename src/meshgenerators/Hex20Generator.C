@@ -101,21 +101,13 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
       _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
 
   if (_curve_corners)
-  {
-    checkRequiredParam(params, "polygon_sides", "'curve_corners' is true");
-    checkRequiredParam(params, "polygon_size", "'curve_corners' is true");
-    checkRequiredParam(params, "polygon_boundary", "'curve_corners' is true");
-    checkRequiredParam(params, "corner_radius", "'curve_corners' is true");
-  }
+    checkRequiredParam(params, {"polygon_sides", "polygon_size", "polygon_boundary", "corner_radius"},
+                               "'curve_corners' is true");
   else
-  {
-    checkUnusedParam(params, "polygon_sides", "'curve_corners' is false");
-    checkUnusedParam(params, "polygon_size", "'curve_corners' is false");
-    checkUnusedParam(params, "polygon_boundary", "'curve_corners' is false");
-    checkUnusedParam(params, "corner_radius", "'curve_corners' is false");
-    checkUnusedParam(params, "polygon_layers", "'curve_corners' is false");
-    checkUnusedParam(params, "rotation_angle", "'curve_corners' is false");
-  }
+    checkUnusedParam(params, {"polygon_sides", "polygon_size", "polygon_boundary",
+                              "corner_radius", "polygon_layers", "rotation_angle",
+                              "polygon_smoothing_layers"},
+                              "'curve_corners' is false");
 
   if (isParamValid("boundary"))
     checkRequiredParam(params, "radius", "specifying a 'boundary'");
@@ -124,12 +116,8 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
     checkRequiredParam(params, "boundary", "specifying a 'radius'");
 
   if (!isParamValid("boundary") && !isParamValid("radius"))
-  {
-    checkUnusedParam(params, "axis", "If not setting a 'boundary'");
-    checkUnusedParam(params, "origins", "If not setting a 'boundary'");
-    checkUnusedParam(params, "origins_files", "If not setting a 'boundary'");
-    checkUnusedParam(params, "layers", "If not setting a 'boundary'");
-  }
+    checkUnusedParam(params, {"axis", "origins", "origins_files", "layers"},
+                             "not setting a 'boundary'");
 
   _across_pair.resize(Hex27::num_sides);
   _across_pair[0] = {{0, 4}, {8, 16}, {1, 5}, {11, 19}, {20, 25}, {9, 17}, {3, 7}, {10, 18}, {2, 6}};
