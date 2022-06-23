@@ -564,7 +564,6 @@ HexagonalLatticeUtility::edgeChannelCornerCoordinates(const unsigned int & edge_
   const Point & pin2 = _pin_centers[pin_indices[1]];
 
   Real d = pinBundleSpacing() + pinRadius();
-  std::cout << pinBundleSpacing() << " " << _pin_diameter / 2.0 << std::endl;
 
   corners.push_back(pin1);
   corners.push_back(pin2);
@@ -572,9 +571,6 @@ HexagonalLatticeUtility::edgeChannelCornerCoordinates(const unsigned int & edge_
   unsigned int sector = edge_channel_id / (_n_rings - 1);
   corners.push_back(pin2 + Point(d * _translation_x[sector], d * _translation_y[sector], 0.0));
   corners.push_back(pin1 + Point(d * _translation_x[sector], d * _translation_y[sector], 0.0));
-
-  for (const auto & c : corners)
-    std::cout << c << std::endl;
 
   return corners;
 }
@@ -659,9 +655,6 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       for (unsigned int i = 0; i < _n_edge_channels; ++i)
       {
         auto corners = edgeChannelCornerCoordinates(i);
-        std::cout << "\n Edge channel: " << i << std::endl;
-        for (const auto & c : corners)
-          std::cout << c << std::endl;
         if (geom_utility::pointInPolygon(point, corners, _axis))
           return i + _n_interior_channels;
       }

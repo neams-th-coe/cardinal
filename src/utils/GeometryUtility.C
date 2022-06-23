@@ -55,7 +55,6 @@ const bool pointInPolygon(const Point & point, const std::vector<Point> & corner
   {
     int next = (i == n_pts - 1) ? 0 : i + 1;
     auto half = projectedLineHalfSpace(point, corners[i], corners[next], axis);
-    std::cout << (half < 0) << (half > 0) << std::endl;
     negative_half_space.push_back(half < 0);
     positive_half_space.push_back(half > 0);
   }
