@@ -71,7 +71,8 @@ public:
    * @param[in] boundary_index index of the 'boundary'
    * @param[in] primary_face face ID of the element on the 'boundary'
    */
-  void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face);
+  void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face,
+    const std::vector<Real> & polygon_layer_smoothing);
 
   /**
    * Get a pointer to the next element in the boundary layer

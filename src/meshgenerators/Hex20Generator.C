@@ -60,7 +60,7 @@ Hex20Generator::validParams()
     "When curving corners, the radius of curvature of the corners");
   params.addParam<unsigned int>("polygon_layers", 0,
     "When curving corners, the number of layers to sweep for each polygon corner");
-  params.addParam<std::vector<unsigned int>>("polygon_layer_smoothing",
+  params.addParam<std::vector<Real>>("polygon_layer_smoothing",
     "When curving corners, the multiplicative factor to apply to each boundary layer; if not "
     "specified, all values default to 1.0");
   params.addParam<BoundaryName>("polygon_boundary", "Boundary to enforce radius of curvature "
@@ -312,7 +312,8 @@ Hex20Generator::getBoundaryLayerElems(Elem * elem, const unsigned int & n_layers
 }
 
 void
-Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face)
+Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face,
+  const std::vector<Real> & polygon_layer_smoothing)
 {
   bool is_corner_boundary = boundary_index >= _n_noncorner_boundaries;
 
@@ -341,7 +342,9 @@ Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const
     for (unsigned int l = 0; l < _layers[boundary_index]; ++l)
     {
       auto & paired_node = bl_elem->node_ref(pair_node);
-      paired_node += adjustment;
+      Real multiplier = is_corner_boundary ? polygon_layer_smoothing[l] : 1.0;
+
+      paired_node += adjustment * multiplier;
 
       // if this is a corner node, we also need to adjust the mid-point node
       if (isCornerNode(start_node))
@@ -491,12 +494,32 @@ Hex20Generator::generate()
   }
 
   // get information related to moving corners
+  std::vector<Real> polygon_layer_smoothing;
   if (_curve_corners)
   {
     auto polygon_sides = getParam<unsigned int>("polygon_sides");
     auto polygon_size = getParam<Real>("polygon_size");
     auto corner_radius = getParam<Real>("corner_radius");
     auto polygon_layers = getParam<unsigned int>("polygon_layers");
+
+    if (polygon_layers)
+    {
+      if (isParamValid("polygon_layer_smoothing"))
+      {
+        polygon_layer_smoothing = getParam<std::vector<Real>>("polygon_layer_smoothing");
+        if (polygon_layers != polygon_layer_smoothing.size())
+          mooseError("The length of 'polygon_layer_smoothing' must be equal to 'polygon_layers'!");
+
+        for (auto & p : polygon_layer_smoothing)
+          if (p <= 0.0)
+            mooseError("Each entry in 'polygon_layer_smoothing' must be positive and non-zero!");
+      }
+      else
+      {
+        for (unsigned int i = 0; i < polygon_layers; ++i)
+          polygon_layer_smoothing.push_back(1.0);
+      }
+    }
 
     Real polygon_angle = M_PI - (2.0 * M_PI / polygon_sides);
     Real max_circle_radius = polygon_size * std::cos(M_PI / polygon_sides);
@@ -649,7 +672,7 @@ Hex20Generator::generate()
           "one face on the circular sideset!");
 
       at_least_one_face_on_boundary = true;
-      moveElem(elem, index, s);
+      moveElem(elem, index, s, polygon_layer_smoothing);
     }
   }
 
