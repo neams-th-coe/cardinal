@@ -344,7 +344,8 @@ Hex20Generator::generate()
       _moving_boundary.push_back(getBoundaryID(name, *mesh));
 
     if (_moving_boundary.size() != _radius.size())
-      mooseError("'boundary' and 'radius' must be the same length!");
+      mooseError("'boundary' and 'radius' must be the same length!"
+        "\n 'boundary' length: ", _moving_boundary.size(), "\n 'radius' length: ", _radius.size());
 
     if (isParamValid("origins") && isParamValid("origins_files"))
       mooseError("Cannot specify both 'origins' and 'origins_files'!");
@@ -354,7 +355,8 @@ Hex20Generator::generate()
       _origin = getParam<std::vector<std::vector<Real>>>("origins");
 
       if (_moving_boundary.size() != _origin.size())
-        mooseError("'boundary' and 'origins' must be the same length!");
+        mooseError("'boundary' and 'origins' must be the same length!"
+          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins' length: ", _origin.size());
 
       // in the case of multiple origins for one boundary, check that each has correct length
       for (const auto & o : _origin)
@@ -373,7 +375,9 @@ Hex20Generator::generate()
       auto origin_filenames = getParam<std::vector<std::string>>("origins_files");
 
       if (_moving_boundary.size() != origin_filenames.size())
-        mooseError("'boundary' and 'origins_files' must be the same length!");
+        mooseError("'boundary' and 'origins_files' must be the same length!"
+          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins_files' length: ",
+          origin_filenames.size());
 
       _origin.resize(origin_filenames.size());
 
@@ -411,7 +415,8 @@ Hex20Generator::generate()
       _layers = getParam<std::vector<unsigned int>>("layers");
 
       if (_moving_boundary.size() != _layers.size())
-        mooseError("'boundary' and 'layers' must be the same length!");
+        mooseError("'boundary' and 'layers' must be the same length!"
+          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'layers' length: ", _layers.size());
     }
     else
     {
