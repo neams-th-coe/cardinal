@@ -20,7 +20,8 @@
 
 TEST_F(HexagonalLatticeTest, rings_and_pins)
 {
-  HexagonalLatticeUtility hl1(10.0, 0.1, 0.04, 0.01, 50.0, 1, 2);
+  Real bp = 10.0, pp = 0.1, pd = 0.04, wd = 0.01, wp = 50.0; unsigned int nr = 1, a = 2;
+  HexagonalLatticeUtility hl1(bp, pp, pd, wd, wp, nr, a);
 
   // Test number of rings given number of pins
   EXPECT_EQ(hl1.rings(1), 1);
@@ -59,10 +60,17 @@ TEST_F(HexagonalLatticeTest, rings_and_pins)
 
 TEST_F(HexagonalLatticeTest, variation_with_rings)
 {
-  HexagonalLatticeUtility hl1(10.0, 0.1, 0.04, 0.01, 50.0, 1, 2);
-  HexagonalLatticeUtility hl2(10.0, 0.1, 0.04, 0.01, 50.0, 2, 2);
-  HexagonalLatticeUtility hl3(10.0, 0.1, 0.04, 0.01, 50.0, 3, 2);
-  HexagonalLatticeUtility hl4(10.0, 0.1, 0.04, 0.01, 50.0, 4, 2);
+  Real bp = 10.0, pp = 0.1, pd = 0.04, wd = 0.01, wp = 50.0; unsigned int nr = 1, a = 2;
+  HexagonalLatticeUtility hl1(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 2;
+  HexagonalLatticeUtility hl2(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 3;
+  HexagonalLatticeUtility hl3(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 4;
+  HexagonalLatticeUtility hl4(bp, pp, pd, wd, wp, nr, a);
 
   EXPECT_EQ(hl1.nPins(), 1);
   EXPECT_EQ(hl1.nInteriorPins(), 1);
@@ -253,10 +261,17 @@ TEST_F(HexagonalLatticeTest, variation_with_rings)
 
 TEST_F(HexagonalLatticeTest, pin_bundle_spacing)
 {
-  HexagonalLatticeUtility hl5(5.0, 1.0, 0.8, 0.05, 50.0, 1, 2);
-  HexagonalLatticeUtility hl6(5.0, 1.0, 0.8, 0.05, 50.0, 2, 2);
-  HexagonalLatticeUtility hl7(5.0, 1.0, 0.8, 0.00, 50.0 /* unused */, 1, 2);
-  HexagonalLatticeUtility hl8(5.0, 1.0, 0.8, 0.00, 50.0 /* unused */, 2, 2);
+  Real bp = 5.0, pp = 1.0, pd = 0.8, wd = 0.05, wp = 50.0; unsigned int nr = 1, a = 2;
+  HexagonalLatticeUtility hl5(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 2;
+  HexagonalLatticeUtility hl6(bp, pp, pd, wd, wp, nr, a);
+
+  wd = 0.0; nr = 1;
+  HexagonalLatticeUtility hl7(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 2;
+  HexagonalLatticeUtility hl8(bp, pp, pd, wd, wp, nr, a);
 
   // wire-wrapped bundles
   EXPECT_DOUBLE_EQ(hl5.pinBundleSpacing(), 2.1);
@@ -273,12 +288,23 @@ TEST_F(HexagonalLatticeTest, hydraulic_diameters)
   Real flow_interior, flow_edge, flow_corner;
   Real area_interior, area_edge, area_corner;
 
-  HexagonalLatticeUtility hl9(5.0, 1.0, 0.8, 0.1, 50.0, 1, 2);
-  HexagonalLatticeUtility hl10(5.0, 1.0, 0.8, 0.1, 50.0, 2, 2);
-  HexagonalLatticeUtility hl11(5.0, 0.99, 0.8, 0.1, 50.0, 3, 2);
-  HexagonalLatticeUtility hl12(5.0, 1.0, 0.8, 0.0, 50.0 /* unused */, 1, 2);
-  HexagonalLatticeUtility hl13(5.0, 1.0, 0.8, 0.0, 50.0 /* unused */, 2, 2);
-  HexagonalLatticeUtility hl14(5.0, 0.99, 0.8, 0.0, 50.0 /* unused */, 3, 2);
+  Real bp = 5.0, pp = 1.0, pd = 0.8, wd = 0.1, wp = 50.0; unsigned int nr = 1, a = 2;
+  HexagonalLatticeUtility hl9(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 2;
+  HexagonalLatticeUtility hl10(bp, pp, pd, wd, wp, nr, a);
+
+  pp = 0.99; nr = 3;
+  HexagonalLatticeUtility hl11(bp, pp, pd, wd, wp, nr, a);
+
+  pp = 1.0; wd = 0.0; nr = 1;
+  HexagonalLatticeUtility hl12(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 2;
+  HexagonalLatticeUtility hl13(bp, pp, pd, wd, wp, nr, a);
+
+  pp = 0.99; nr = 3;
+  HexagonalLatticeUtility hl14(bp, pp, pd, wd, wp, nr, a);
 
   // values are obtained from a completely separately-developed Python script for
   // verifying the bundle-wide hydraulic diameter. We verify the diameters for each
@@ -378,10 +404,17 @@ TEST_F(HexagonalLatticeTest, hydraulic_diameters)
 
 TEST_F(HexagonalLatticeTest, pin_centers)
 {
-  HexagonalLatticeUtility hl14(5.0, 0.99, 0.8, 0.0, 50.0 /* unused */, 3, 2);
-  HexagonalLatticeUtility hl15(5.0, 0.99, 0.8, 0.0, 50.0 /* unused */, 1, 2);
-  HexagonalLatticeUtility hl16(5.0, 0.99, 0.8, 0.0, 50.0 /* unused */, 2, 2);
-  HexagonalLatticeUtility hl17(10.0, 0.99, 0.8, 0.0, 50.0 /* unused */, 4, 2);
+  Real bp = 5.0, pp = 0.99, pd = 0.8, wd = 0.0, wp = 50.0; unsigned int nr = 3, a = 2;
+  HexagonalLatticeUtility hl14(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 1;
+  HexagonalLatticeUtility hl15(bp, pp, pd, wd, wp, nr, a);
+
+  nr = 2;
+  HexagonalLatticeUtility hl16(bp, pp, pd, wd, wp, nr, a);
+
+  bp = 10.0; nr = 4;
+  HexagonalLatticeUtility hl17(bp, pp, pd, wd, wp, nr, a);
 
   Real cos60 = 0.5;
   Real sin60 = std::sqrt(3.0) / 2.0;
@@ -543,7 +576,8 @@ TEST_F(HexagonalLatticeTest, pin_centers)
 
 TEST_F(HexagonalLatticeTest, channel_index_shifted)
 {
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 3, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
 
   // check that the z-coordinate doesn't affect the channel index identification
   Point pt0(0.06, 0.35, 3.5);
@@ -641,7 +675,8 @@ TEST_F(HexagonalLatticeTest, channel_index_shifted)
 
 TEST_F(HexagonalLatticeTest, channel_index)
 {
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 3, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
 
   Point pt0(0.06, 0.35, 0.0);
   Point pt1(-0.47, 0.28, 0.0);
@@ -783,7 +818,8 @@ TEST_F(HexagonalLatticeTest, channel_index)
 
 TEST_F(HexagonalLatticeTest, gaps1)
 {
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 1, 2);
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 1, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
   const auto & gi = hl.gapIndices();
   const auto & lg = hl.localToGlobalGaps();
 
@@ -833,7 +869,8 @@ TEST_F(HexagonalLatticeTest, gaps1)
 
 TEST_F(HexagonalLatticeTest, gaps2)
 {
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 2, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
   const auto & gi = hl.gapIndices();
   const auto & lg = hl.localToGlobalGaps();
 
@@ -990,7 +1027,8 @@ TEST_F(HexagonalLatticeTest, gaps2)
 
 TEST_F(HexagonalLatticeTest, gaps3)
 {
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 3, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
   const auto & gi = hl.gapIndices();
   const auto & lg = hl.localToGlobalGaps();
 
@@ -1501,7 +1539,8 @@ TEST_F(HexagonalLatticeTest, gaps3)
 
 TEST_F(HexagonalLatticeTest, normals3)
 {
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 3, 2);
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 3, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
   const auto & normals = hl.gapUnitNormals();
   Real sin60 = std::sqrt(3.0) / 2.0;
 
@@ -1691,7 +1730,8 @@ TEST_F(HexagonalLatticeTest, normals3)
 
 TEST_F(HexagonalLatticeTest, pin_corners)
 {
-  HexagonalLatticeUtility hl(4.0, 0.8, 0.6, 0.05, 50.0, 2, 2);
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 2, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
   const auto & pin_corners = hl.pinCenteredCornerCoordinates();
   Real sin60 = std::sqrt(3.0) / 2.0;
   Real cos60 = 0.5;
@@ -1768,4 +1808,16 @@ TEST_F(HexagonalLatticeTest, pin_corners)
 
   p = {0.85, 0.51, 0.0};
   EXPECT_EQ(hl.pinIndex(p), 7);
+}
+
+TEST_F(HexagonalLatticeTest, constructor)
+{
+  Real bp = 4.0, pp = 0.8, pd = 0.6, wd = 0.05, wp = 50.0; unsigned int nr = 3, a = 2;
+  HexagonalLatticeUtility hl(bp, pp, pd, wd, wp, nr, a);
+  EXPECT_DOUBLE_EQ(hl.bundlePitch(), 4.0);
+  EXPECT_DOUBLE_EQ(hl.pinPitch(), 0.8);
+  EXPECT_DOUBLE_EQ(hl.pinDiameter(), 0.6);
+  EXPECT_DOUBLE_EQ(hl.pinRadius(), 0.3);
+  EXPECT_DOUBLE_EQ(hl.wireDiameter(), 0.05);
+  EXPECT_DOUBLE_EQ(hl.wirePitch(), 50.0);
 }
