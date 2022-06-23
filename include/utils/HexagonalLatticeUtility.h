@@ -38,15 +38,6 @@ public:
                           const unsigned int & axis);
 
   /**
-   * Get the unit normal vector between two points, such that the cross product of
-   * the unit normal with the line from pt1 to pt2 has a positive 3rd-component
-   * @param[in] pt1 first point for line
-   * @param[in] pt2 second point for line
-   * @return unit normal
-   */
-  Point unitNormal(const Point & pt1, const Point & pt2) const;
-
-  /**
    * Distance from a point and a gap
    * @param[in] pt point
    * @param[in] gap_index gap index
@@ -109,49 +100,6 @@ public:
    * @return gap unit normals
    */
   const std::vector<Point> & gapUnitNormals() const { return _gap_unit_normals; }
-
-  /**
-   * Compute the distance from a line, provided in terms of two points on the line
-   * @param[in] pt point of interest
-   * @param[in] line0 first point on line
-   * @param[in] line1 second point on line
-   * @return distance from line
-   */
-  Real distanceFromLine(const Point & pt, const Point & line0, const Point & line1) const;
-
-  /**
-   * Get the coefficients a, b, and c in ax + by + c = 0 for the line passing
-   * through the provided points
-   * @param[in] line0 first point on line
-   * @param[in] line1 second point on line
-   * @return coefficients of line
-   */
-  std::vector<Real> getLineCoefficients(const Point & line0, const Point & line1) const;
-
-  /**
-   * If positive, point is on the positive side of the half space (and vice versa)
-   * @param[in] pt1 point of interest
-   * @param[in] pt2 one end point of line
-   * @param[in] pt3 other end point of line
-   * @return half space of line
-   */
-  const Real lineHalfSpace(const Point & pt1, const Point & pt2, const Point & pt3) const;
-
-  /**
-   * Whether a point is in a polygon given by corner points
-   * @param[in] point point of interest
-   * @param[in] corners corner points of polygon
-   * @return whether point is inside the polygon
-   */
-  const bool pointInPolygon(const Point & point, const std::vector<Point> & corners) const;
-
-  /**
-   * Whether a point is on the edge of a polygon given its corner points
-   * @param[in] point point of interest
-   * @param[in] corners corner points of polygon
-   * @return whether point is on edge of polygon
-   */
-  const bool pointOnEdge(const Point & point, const std::vector<Point> & corners) const;
 
   /**
    * Get the number of pins in a given ring
@@ -790,8 +738,8 @@ protected:
   /// Local-to-global gap indexing, ordered by channel ID
   std::vector<std::vector<int>> _local_to_global_gaps;
 
-  /// Coefficients forming the lines between each gap
-  std::vector<std::vector<Real>> _gap_line_coeffs;
+  /// Two points on each gap, in order to compute distance-from-gap calculations
+  std::vector<std::vector<Point>> _gap_points;
 
   /// Unit normal vectors for each gap
   std::vector<Point> _gap_unit_normals;
@@ -817,6 +765,12 @@ protected:
 
   /// Center points of all the gaps
   std::vector<Point> _gap_centers;
+
+  /// Index representing "first" coordinate of 2-D plane
+  unsigned int _ix;
+
+  /// Index representing "second" coordinate of 2-D plane
+  unsigned int _iy;
 
 private:
   /// Determine the global gap indices, sorted first by lower pin ID and next by higher pin ID
