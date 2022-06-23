@@ -38,6 +38,17 @@ public:
   std::unique_ptr<MeshBase> generate() override;
 
   /**
+   * Given an element with a face on the boundary of interest, get pointers
+   * to all the elements nested into the geometry
+   * @param[in] elem input element
+   * @param[in] n_layers number of layers to sweep inwards
+   * @param[in] primary_face face of the input element that is on the boundary
+   * @return vector of elements attached to input element
+   */
+  std::vector<Elem *> getBoundaryLayerElems(Elem * elem, const unsigned int & n_layers,
+    const unsigned int & primary_face) const;
+
+  /**
    * Get the node index pertaining to a given point
    * @param[in] elem element
    * @param[in] pt point of interest
@@ -60,7 +71,8 @@ public:
    * @param[in] boundary_index index of the 'boundary'
    * @param[in] primary_face face ID of the element on the 'boundary'
    */
-  void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face);
+  void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face,
+    const std::vector<Real> & polygon_layer_smoothing);
 
   /**
    * Get a pointer to the next element in the boundary layer
@@ -156,12 +168,40 @@ public:
    */
   unsigned int midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const;
 
+  /**
+   * Whether a point is close enough to a corner to require moving to fit the
+   * curved radii of curvature
+   * @param[in] pt point
+   * @return whether point needs to be moved
+   */
+  bool isNearCorner(const Point & pt) const;
+
 protected:
   /// Mesh to modify
   std::unique_ptr<MeshBase> & _input;
 
   /// Axis of the mesh about which to build the circular surface
   const MooseEnum & _axis;
+
+  /// Whether to move corner nodes to fit curved radii of a regular polygon
+  const bool & _curve_corners;
+
+  /**
+   * When curving corners, this mesh generator assumes that the polygon boundary
+   * is oriented so that it has a flat side "horizontal." For instance, if the
+   * polygon has 3 sides, this would look like:
+   *
+   *     o ----- o
+   *      \     /
+   *       \   /
+   *        \o/
+   *
+   * This is only used for identifying the points "at the corners" that need
+   * to be modified. If the input mesh therefore does not match the above, this
+   * rotation angle can be used to specify a different polygon orientation for
+   * the sake of curving corners.
+   */
+  const Real & _rotation_angle;
 
   /// Whether sidesets will be moved to match circular surfaces
   const bool _has_moving_boundary;
@@ -195,4 +235,16 @@ protected:
 
   /// For each face, the paired face "across" to the other side of a Hex27
   std::vector<unsigned int> _across_face;
+
+  /// If curving corners, the radius of curvature of the corner
+  Real _corner_radius;
+
+  /// If curving corners, the corner coordinates of the polygon
+  std::vector<Point> _polygon_corners;
+
+  /// Maximum distance a point can be from a corner and still require movement to the curved corners
+  Real _max_corner_distance;
+
+  /// Number of boundaries to be moved that do not include the corners
+  unsigned int _n_noncorner_boundaries;
 };

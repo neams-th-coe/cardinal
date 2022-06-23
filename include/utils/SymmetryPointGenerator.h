@@ -55,15 +55,6 @@ public:
   Point reflectPointAcrossPlane(const Point & p, const Point & normal) const;
 
   /**
-   * Rotate point about an axis
-   * @param[in] p point
-   * @param[in] angle angle to rotate (radians)
-   * @param[in] axis axis expressed as vector
-   * @return rotated point
-   */
-  Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis) const;
-
-  /**
    * Transform point coordinates according to class settings
    * @param[in] p point
    * @return transformed point

@@ -1,0 +1,55 @@
+[Tests]
+  [invalid_id]
+    type = RunException
+    input = six.i
+    cli_args = "Mesh/to_hex20/polygon_boundary='59' --mesh-only"
+    expect_err = "Boundary '59' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for corner fitting does not exist"
+  []
+  [duplicate_boundary]
+    type = RunException
+    input = six.i
+    cli_args = "Mesh/to_hex20/boundary='1' Mesh/to_hex20/radius=0.1 Mesh/to_hex20/polygon_boundary='1' --mesh-only"
+    expect_err = "The 'polygon_boundary' cannot also be listed in the 'boundary'!"
+    requirement = "The system shall error if an invalid polygon boundary is provided"
+  []
+  [too_big_radius]
+    type = RunException
+    input = six.i
+    cli_args = "Mesh/to_hex20/corner_radius=0.016 --mesh-only"
+    expect_err = "Specified 'corner_radius' cannot fit within the specified polygon!\n"
+                 "The maximum allowable radius of curvature is: 0.015"
+    requirement = "The system shall error if the radius of curvature is too big to fit inside the polygon"
+  []
+  [corners]
+    type = Exodiff
+    input = six.i
+    cli_args = "--mesh-only"
+    exodiff = 'six_in.e'
+    requirement = "The system shall curve corners of a six-sided polygon with zero boundary layers"
+  []
+  [corners_rotation]
+    type = Exodiff
+    input = six_rotation.i
+    cli_args = "--mesh-only"
+    exodiff = 'six_rotation_in.e'
+    requirement = "The system shall curve corners of a six-sided polygon when the input mesh "
+                  "does not have one edge of the polygon horizontal."
+  []
+  [invalid_number_of_smoothing]
+    type = RunException
+    input = six_with_smoothing.i
+    cli_args = 'Mesh/to_hex20/polygon_layer_smoothing="1.0 1.0" --mesh-only'
+    expect_err = "The length of 'polygon_layer_smoothing' must be equal to 'polygon_layers'!"
+    requirement = "The system shall error if the length of smoothing adjustments does not "
+                  "equal the number of polygon layers"
+  []
+  [zero_smoothing]
+    type = RunException
+    input = six_with_smoothing.i
+    cli_args = 'Mesh/to_hex20/polygon_layer_smoothing="1.0 1.0 0.0" --mesh-only'
+    expect_err = "Each entry in 'polygon_layer_smoothing' must be positive and non-zero!"
+    requirement = "The system shall error if the length of smoothing adjustments are not set "
+                  "to valid values"
+  []
+[]
