@@ -59,8 +59,10 @@ Hex20Generator::validParams()
   params.addRangeCheckedParam<Real>("corner_radius", "corner_radius > 0.0",
     "When curving corners, the radius of curvature of the corners");
   params.addParam<unsigned int>("polygon_layers", 0,
-    "When curving corners, the number of layers to sweep for each polygon corner; if not "
-    "specified, this defaults to 0");
+    "When curving corners, the number of layers to sweep for each polygon corner");
+  params.addParam<std::vector<unsigned int>>("polygon_layer_smoothing",
+    "When curving corners, the multiplicative factor to apply to each boundary layer; if not "
+    "specified, all values default to 1.0");
   params.addParam<BoundaryName>("polygon_boundary", "Boundary to enforce radius of curvature "
     "for polygon corners");
   params.addParam<Real>("rotation_angle", 0, "When curving corners, the rotation angle (degrees) "
@@ -106,7 +108,7 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
   else
     checkUnusedParam(params, {"polygon_sides", "polygon_size", "polygon_boundary",
                               "corner_radius", "polygon_layers", "rotation_angle",
-                              "polygon_smoothing_layers"},
+                              "polygon_layer_smoothing"},
                               "'curve_corners' is false");
 
   if (isParamValid("boundary"))
