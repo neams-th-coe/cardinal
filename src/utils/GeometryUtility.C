@@ -20,6 +20,23 @@
 
 namespace geom_utility {
 
+const Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
+  const unsigned int & axis)
+{
+  const auto idx = projectedIndices(axis);
+
+  Real distance = std::numeric_limits<Real>::max();
+  for (const auto & c : candidates)
+  {
+    Real dx = c(idx.first) - pt(idx.first);
+    Real dy = c(idx.second) - pt(idx.second);
+    Real d = std::sqrt(dx * dx + dy * dy);
+    distance = std::min(d, distance);
+  }
+
+  return distance;
+}
+
 Point projectPoint(const Real & x0, const Real & x1, const unsigned int & axis)
 {
   auto i = projectedIndices(axis);
@@ -172,6 +189,53 @@ Real projectedDistanceFromLine(Point pt, Point line0, Point line1, const unsigne
   line1(axis) = 0.0;
 
   return distanceFromLine(pt, line0, line1);
+}
+
+std::vector<Point> polygonCorners(const unsigned int & num_sides, const Real & radius,
+  const unsigned int & axis)
+{
+  std::vector<Point> corners;
+  Real theta = 2.0 * M_PI / num_sides;
+  Real first_angle = M_PI / 2.0 - theta / 2.0;
+
+  for (unsigned int i = 0; i < num_sides; ++i)
+  {
+    Real angle = first_angle + i * theta;
+    Real x = radius * cos(angle);
+    Real y = radius * sin(angle);
+
+    corners.push_back(projectPoint(x, y, axis));
+  }
+
+  return corners;
+}
+
+Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis)
+{
+  Real cos_theta = cos(angle);
+  Real sin_theta = sin(angle);
+
+  Point pt;
+  Real xy = axis(0) * axis(1);
+  Real xz = axis(0) * axis(2);
+  Real yz = axis(1) * axis(2);
+
+  Point x_op(cos_theta + axis(0) * axis(0) * (1.0 - cos_theta),
+             xy * (1.0 - cos_theta) - axis(2) * sin_theta,
+             xz * (1.0 - cos_theta) + axis(1) * sin_theta);
+
+  Point y_op(xy * (1.0 - cos_theta) + axis(2) * sin_theta,
+             cos_theta + axis(1) * axis(1) * (1.0 - cos_theta),
+             yz * (1.0 - cos_theta) - axis(0) * sin_theta);
+
+  Point z_op(xz * (1.0 - cos_theta) - axis(1) * sin_theta,
+             yz * (1.0 - cos_theta) + axis(0) * sin_theta,
+             cos_theta + axis(2) * axis(2) * (1.0 - cos_theta));
+
+  pt(0) = x_op * p;
+  pt(1) = y_op * p;
+  pt(2) = z_op * p;
+  return pt;
 }
 
 }; // end namespace geom_utility

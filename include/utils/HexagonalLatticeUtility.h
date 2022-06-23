@@ -541,12 +541,6 @@ public:
   cornerChannelCornerCoordinates(const unsigned int & corner_channel_id) const;
 
   /**
-   * Get the duct corner coordinates
-   * @return duct corner coordinates
-   */
-  const std::vector<Point> & ductCorners() const { return _duct_corners; }
-
-  /**
    * Get the centroid of a channel given the corner coordinates
    * @param[in] corners corner coordinates
    * @return channel centroid

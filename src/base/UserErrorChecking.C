@@ -21,11 +21,29 @@
 
 void
 checkUnusedParam(const InputParameters & p,
+                 const std::vector<std::string> & names,
+                 const std::string & explanation)
+{
+  for (const auto & n : names)
+    checkUnusedParam(p, n, explanation);
+}
+
+void
+checkUnusedParam(const InputParameters & p,
                  const std::string & name,
                  const std::string & explanation)
 {
   if (p.isParamSetByUser(name))
     mooseWarning("When " + explanation + ", the '" + name + "' parameter is unused!");
+}
+
+void
+checkRequiredParam(const InputParameters & p,
+                   const std::vector<std::string> & names,
+                   const std::string & explanation)
+{
+  for (const auto & n : names)
+    checkRequiredParam(p, n, explanation);
 }
 
 void

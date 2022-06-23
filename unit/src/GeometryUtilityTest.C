@@ -19,6 +19,92 @@
 #include "GeometryUtilityTest.h"
 #include "HexagonalLatticeUtility.h"
 
+TEST_F(GeometryUtilityTest, rotate_about_y)
+{
+  Point n(0.0, 0.0, -1.0);
+  Point a(0.0, 1.0, 0.0);
+
+  Point pt(0.0, 0.0, -1.0);
+  Point ptr = geom_utility::rotatePointAboutAxis(pt, M_PI / 4.0, a);
+  EXPECT_DOUBLE_EQ(ptr(0), -sqrt(2.0) / 2.0);
+  EXPECT_DOUBLE_EQ(ptr(1), 0.0);
+  EXPECT_DOUBLE_EQ(ptr(2), -sqrt(2.0) / 2.0);
+}
+
+TEST_F(GeometryUtilityTest, rotate_about_x)
+{
+  Point n(0.0, 1.0, 0.0);
+  Point a(0.5, 0.0, 0.0);
+  a = a / a.norm();
+
+  // already on x-axis, shouldn't move
+  Point pt(1.0, 0.0, 0.0);
+  Point ptr = geom_utility::rotatePointAboutAxis(pt, M_PI / 2.0, a);
+  EXPECT_DOUBLE_EQ(ptr(0), 1.0);
+  EXPECT_DOUBLE_EQ(ptr(1), 0.0);
+  EXPECT_DOUBLE_EQ(ptr(2), 0.0);
+
+  pt = {0.0, 1.0, 0.0};
+  ptr = geom_utility::rotatePointAboutAxis(pt, 3.0 * M_PI / 4.0, a);
+  EXPECT_DOUBLE_EQ(ptr(0), 0.0);
+  EXPECT_DOUBLE_EQ(ptr(1), -sqrt(2.0) / 2.0);
+  EXPECT_DOUBLE_EQ(ptr(2), sqrt(2.0) / 2.0);
+}
+
+TEST_F(GeometryUtilityTest, polygon_corners)
+{
+  // 4-sided polygon
+  auto c = geom_utility::polygonCorners(4, 1.0, 2);
+  Real side_length = std::sqrt(0.5);
+
+  EXPECT_DOUBLE_EQ(c[0](0), side_length);
+  EXPECT_DOUBLE_EQ(c[0](1), side_length);
+  EXPECT_DOUBLE_EQ(c[0](2), 0.0);
+
+  EXPECT_DOUBLE_EQ(c[1](0), -side_length);
+  EXPECT_DOUBLE_EQ(c[1](1), side_length);
+  EXPECT_DOUBLE_EQ(c[1](2), 0.0);
+
+  EXPECT_DOUBLE_EQ(c[2](0), -side_length);
+  EXPECT_DOUBLE_EQ(c[2](1), -side_length);
+  EXPECT_DOUBLE_EQ(c[2](2), 0.0);
+
+  EXPECT_DOUBLE_EQ(c[3](0), side_length);
+  EXPECT_DOUBLE_EQ(c[3](1), -side_length);
+  EXPECT_DOUBLE_EQ(c[3](2), 0.0);
+
+  // 6-sided polygon
+  c = geom_utility::polygonCorners(6, 1.0, 2);
+  const Real COS60 = 0.5;
+  const Real SIN60 = std::sqrt(3.0) / 2.0;
+  Real tol = 1e-6;
+  side_length = 1.0;
+
+  EXPECT_NEAR(c[0](0), side_length * COS60, tol);
+  EXPECT_NEAR(c[0](1), side_length * SIN60, tol);
+  EXPECT_NEAR(c[0](2), 0.0, tol);
+
+  EXPECT_NEAR(c[1](0), -side_length * COS60, tol);
+  EXPECT_NEAR(c[1](1), side_length * SIN60, tol);
+  EXPECT_NEAR(c[1](2), 0.0, tol);
+
+  EXPECT_NEAR(c[2](0), -side_length, tol);
+  EXPECT_NEAR(c[2](1), 0.0, tol);
+  EXPECT_NEAR(c[2](2), 0.0, tol);
+
+  EXPECT_NEAR(c[3](0), -side_length * COS60, tol);
+  EXPECT_NEAR(c[3](1), -side_length * SIN60, tol);
+  EXPECT_NEAR(c[3](2), 0.0, tol);
+
+  EXPECT_NEAR(c[4](0), side_length * COS60, tol);
+  EXPECT_NEAR(c[4](1), -side_length * SIN60, tol);
+  EXPECT_NEAR(c[4](2), 0.0, tol);
+
+  EXPECT_NEAR(c[5](0), side_length, tol);
+  EXPECT_NEAR(c[5](1), 0.0, tol);
+  EXPECT_NEAR(c[5](2), 0.0, tol);
+}
+
 TEST_F(GeometryUtilityTest, line_half_space)
 {
   Point p1(1.0, 1.0, 1.0);

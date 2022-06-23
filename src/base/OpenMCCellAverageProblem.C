@@ -260,11 +260,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
   else
-  {
-    checkUnusedParam(params, "symmetry_plane_normal", "not setting a symmetry plane");
-    checkUnusedParam(params, "symmetry_axis", "not setting a symmetry plane");
-    checkUnusedParam(params, "symmetry_angle", "not setting a symmetry plane");
-  }
+    checkUnusedParam(params, {"symmetry_plane_normal", "symmetry_axis", "symmetry_angle"},
+                             "not setting a symmetry plane");
 
   if (_assume_separate_tallies && _needs_global_tally)
     paramError("assume_separate_tallies",
@@ -317,9 +314,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   {
     case tally::cell:
     {
-      checkUnusedParam(params, "mesh_template", "using cell tallies");
-      checkUnusedParam(params, "mesh_translations", "using cell tallies");
-      checkUnusedParam(params, "mesh_translations_file", "using cell tallies");
+      checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
+                               "using cell tallies");
 
       // tally_blocks is optional if the OpenMC geometry has a single coordinate level
       if (!_single_coord_level)

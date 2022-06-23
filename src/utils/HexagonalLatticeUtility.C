@@ -257,16 +257,7 @@ HexagonalLatticeUtility::minDuctWallDistance(const Point & p) const
 const Real
 HexagonalLatticeUtility::minDuctCornerDistance(const Point & p) const
 {
-  Real distance = std::numeric_limits<Real>::max();
-  for (unsigned int i = 0; i < NUM_SIDES; ++i)
-  {
-    Real dx = _duct_corners[i](_ix) - p(_ix);
-    Real dy = _duct_corners[i](_iy) - p(_iy);
-    Real d = std::sqrt(dx * dx + dy * dy);
-    distance = std::min(d, distance);
-  }
-
-  return distance;
+  return geom_utility::minDistanceToPoints(p, _duct_corners, _axis);
 }
 
 void
@@ -326,8 +317,7 @@ HexagonalLatticeUtility::computePinAndDuctCoordinates()
   }
 
   // compute coordinates of duct corners relative to the bundle's center
-  Real l = triangleSide(_bundle_pitch / 2.0);
-
+  Real l = _bundle_side_length;
   for (unsigned int i = 0; i < NUM_SIDES; ++i)
   {
     Point corner = geom_utility::projectPoint(corner_shiftx[i] * l, corner_shifty[i] * l, _axis);

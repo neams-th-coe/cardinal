@@ -23,6 +23,37 @@
 
 namespace geom_utility {
   /**
+   * Rotate point about an axis
+   * @param[in] p point
+   * @param[in] angle angle to rotate (radians)
+   * @param[in] axis axis expressed as vector
+   * @return rotated point
+   */
+  Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & axis);
+
+  /**
+   * Get the minimum distance from a point to another set of points, in the plane
+   * perpendicular to the specified axis
+   * @param[in] pt point
+   * @param[in] candidates set of points we will find the nearest of
+   * @param[in] axis axis perpendicular to the plane of the polygon
+   * @return minimum distance to the provided points
+   */
+  const Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
+    const unsigned int & axis);
+
+  /**
+   * Get the corner coordinates of a regular 2-D polygon, assuming a face of the polygon
+   * is parallel to the x0 axis
+   * @param[in] num_sides number of sides to polygon
+   * @param[in] radius distance from polygon center to a corner
+   * @param[in] axis axis perpendicular to the plane of the polygon
+   * @return corner coordinates
+   */
+  std::vector<Point> polygonCorners(const unsigned int & num_sides, const Real & radius,
+    const unsigned int & axis);
+
+  /**
    * Get the indices of the plane perpendicular to the specified axis.
    * For example, if the axis is the y-axis (1), then this will return
    * (0, 2), indicating that the coordinates of a general 3-D point once
