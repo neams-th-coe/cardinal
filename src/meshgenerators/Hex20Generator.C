@@ -380,6 +380,7 @@ bool
 Hex20Generator::isNearCorner(const Point & pt) const
 {
   // point is a moving point by the corner if the distance from the corner is less
+  // that the distance from the circle tangent to the corner
   Real distance_to_closest_corner = geom_utility::minDistanceToPoints(pt,
     _polygon_corners, _axis);
 
@@ -520,6 +521,8 @@ Hex20Generator::generate()
           polygon_layer_smoothing.push_back(1.0);
       }
     }
+    else
+      checkUnusedParam(parameters(), "polygon_layer_smoothing", "not setting 'polygon_layers'");
 
     Real polygon_angle = M_PI - (2.0 * M_PI / polygon_sides);
     Real max_circle_radius = polygon_size * std::cos(M_PI / polygon_sides);
@@ -529,10 +532,10 @@ Hex20Generator::generate()
         "The maximum allowable radius of curvature is: ", max_circle_radius);
 
     const auto & name = getParam<BoundaryName>("polygon_boundary");
-    _polygon_boundary = getBoundaryID(name, *mesh);
+    auto polygon_boundary = getBoundaryID(name, *mesh);
 
     // polygon boundary shouldn't already have been specified in the 'boundary'
-    if (std::count(_moving_boundary.begin(), _moving_boundary.end(), _polygon_boundary))
+    if (std::count(_moving_boundary.begin(), _moving_boundary.end(), polygon_boundary))
       mooseError("The 'polygon_boundary' cannot also be listed in the 'boundary'!");
 
     Real theta = M_PI / 2.0 - polygon_angle / 2.0;
@@ -560,7 +563,7 @@ Hex20Generator::generate()
     // We can treat the polygon corners simply as extra entries in the
     // boundary, origins, and radii vectors
     _n_noncorner_boundaries = _moving_boundary.size();
-    _moving_boundary.push_back(_polygon_boundary);
+    _moving_boundary.push_back(polygon_boundary);
     _radius.push_back(corner_radius);
     _origin.push_back(flattened_corner_origins);
     _layers.push_back(getParam<unsigned int>("polygon_layers"));

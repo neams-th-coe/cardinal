@@ -239,9 +239,6 @@ protected:
   /// If curving corners, the radius of curvature of the corner
   Real _corner_radius;
 
-  /// Boundary of the polygon whose corners we want to move
-  BoundaryID _polygon_boundary;
-
   /// If curving corners, the corner coordinates of the polygon
   std::vector<Point> _polygon_corners;
 
