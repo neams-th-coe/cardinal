@@ -31,7 +31,8 @@ NekRSStandaloneProblem::validParams()
 }
 
 NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
-  : NekRSProblemBase(params)
+  : NekRSProblemBase(params),
+    _usrwrk_indices(MultiMooseEnum("unused"))
 {
   // It doesn't make sense to specify both a boundary and volume for a
   // standalone case, because we are only using the boundary/volume for
@@ -41,6 +42,17 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
     mooseWarning("When 'volume = true' for '" + type() +
                  "', it is redundant to also set 'boundary'.\n"
                  "Boundary IDs will be ignored.");
+
+  // Cardinal does not write any data to nsr->usrwrk for this class, so all
+  // slices are unused
+  std::vector<std::string> indices;
+  _minimum_scratch_size_for_coupling = 0;
+  for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
+    indices.push_back("unused");
+
+  _usrwrk_indices = indices;
+
+  printScratchSpaceInfo(_usrwrk_indices);
 }
 
 bool

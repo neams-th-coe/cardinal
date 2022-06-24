@@ -7,6 +7,7 @@
                  "'n_usrwrk_slots' must be greater than or equal to 1"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "
                   "NekRSProblem always requires at least 1 slot"
+    required_objects = 'NekRSProblem'
   []
   [too_small_b]
     type = RunException
@@ -16,6 +17,7 @@
                  "'n_usrwrk_slots' must be greater than or equal to 2"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "
                   "NekRSProblem always requires at least 2 slots if volume coupling is enabled"
+    required_objects = 'NekRSProblem'
   []
   [too_small_c]
     type = RunException
@@ -25,5 +27,6 @@
                  "'n_usrwrk_slots' must be greater than or equal to 5"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "
                   "NekRSProblem always requires at least 5 slots if moving meshes are enabled"
+    required_objects = 'NekRSProblem'
   []
 []

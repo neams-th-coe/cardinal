@@ -253,9 +253,16 @@ NekRSProblemBase::printScratchSpaceInfo(const MultiMooseEnum & indices) const
   for (int i = 0; i < indices.size(); ++i)
     vt.addRow(i, indices[i], " bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM] ");
 
-  _console << "\nQuantities written into NekRS scratch space:" << std::endl;
-  vt.print(_console);
-  _console << std::endl;
+  if (indices.size() == 0)
+  {
+    _console << "Skipping allocation of NekRS scratch space because 'n_usrwrk_slots' is 0\n" << std::endl;
+  }
+  else
+  {
+    _console << "\nQuantities written into NekRS scratch space:" << std::endl;
+    vt.print(_console);
+    _console << std::endl;
+  }
 }
 
 void

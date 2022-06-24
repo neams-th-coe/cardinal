@@ -32,4 +32,8 @@ public:
   static InputParameters validParams();
 
   virtual bool movingMesh() const override;
+
+protected:
+  /// quantities to write to  nrs->usrwrk (and the order to write them)
+  MultiMooseEnum _usrwrk_indices;
 };
