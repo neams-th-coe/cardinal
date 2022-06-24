@@ -155,7 +155,7 @@ which NekRS makes available within the boundary condition functions in the `.oud
 [usrwrk_nrsp] shows the assignment of "slots" in the `nrs->usrwrk` scratch space
 array with quantities written by Cardinal. Because different quantities are written into
 Cardinal depending on the problem setup, if a particular slice is not needed for a
-case, it will just hold zero values. That is, the **order** of the various quantities
+case, it will just hold zero values. That is, the *order* of the various quantities
 is always the same in `nrs->usrwrk`.
 
 !table id=usrwrk_nrsp caption=Quantities written into the scratch space array by Cardinal
