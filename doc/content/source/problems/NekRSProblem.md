@@ -2,12 +2,24 @@
 
 This class performs all activities related to solving NekRS as a MOOSE application.
 This class also facilitates data transfers to/from [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
-in order to exchange field data between NekRS and MOOSE. The actual actions taken by this class depend
-on whether NekRS is coupled via boundary [!ac](CHT), volume-based temperature and
-heat source feedback, or a combination of the two. This class must be used in
-conjunction with the [NekRSMesh](/mesh/NekRSMesh.md), and the parameters for the
-`NekRSMesh` determine the type of coupling between NekRS and MOOSE. This class must
-also be used in conjunction with the [NekTimeStepper](/timesteppers/NekTimeStepper.md).
+in order to exchange field data between NekRS and MOOSE. This class allows NekRS to be
+coupled to MOOSE in several different manners:
+
+- Boundary coupling via [!ac](CHT),
+- Volume coupling via temperature and heat source feedback, or a
+- Combination of the above
+
+This class must be used in conjunction with two other classes in Cardinal:
+
+1. [NekRSMesh](/mesh/NekRSMesh.md), which builds a mirror of the NekRS mesh
+   in a MOOSE format so that all the usual
+   [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+   understand how to send data into/out of NekRS. The settings on
+   [NekRSMesh](/mesh/NekRSMesh.md) also determine which
+   coupling type (listed above) is used.
+2. [NekTimeStepper](/timesteppers/NekTimeStepper.md), which allows NekRS to
+   control its own time stepping.
+
 Therefore, we recommend first reading the documentation for `NekRSMesh` and
 `NekTimeStepper` before proceeding here.
 
@@ -15,13 +27,6 @@ The smallest possible MOOSE-wrapped input file that can be used to run NekRS
 is shown below. `casename` is the prefix describing the NekRS input files,
 i.e. this parameter would be `casename = 'fluid'` if the NekRS input files
 are `fluid.re2`, `fluid.par`, `fluid.udf`, and `fluid.oudf`.
-The crux of a NekRS wrapping is in the `NekRSProblem`,
-[NekRSMesh](/mesh/NekRSMesh.md), and [NekTimeStepper](/timesteppers/NekTimeStepper.md)
-classes. `NekRSProblem` controls the program execution and data transfers,
-`NekRSMesh` creates a mesh mirror so that all the usual
-[Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html) understand
-how NekRS's solution is stored, and the `NekTimeStepper` allows NekRS to control
-its time stepping.
 
 !listing smallest_input.i
   id=smallest
@@ -42,27 +47,27 @@ First, `NekRSProblem` initializes
 to receive and write spatial data necessary for multiphysics coupling. Depending on the settings for this class,
 the following variables will be added:
 
-- `temp`, the NekRS temperature to be sent to MOOSE (both boundary and volume coupling)
-- `avg_flux`, the MOOSE surface heat flux to be sent to NekRS (boundary coupling)
-- `heat_source`, the MOOSE heat source to be sent to NekRS (volume coupling)
+- `temp`, the NekRS temperature to be sent to MOOSE (this is created for both boundary and volume coupling)
+- `avg_flux`, the MOOSE surface heat flux to be sent to NekRS (this is created for boundary coupling)
+- `heat_source`, the MOOSE heat source to be sent to NekRS (this is created for volume coupling)
 
 Here, "boundary coupling" refers to the case when the `boundary` parameter is
 specified for the [NekRSMesh](/mesh/NekRSMesh.md), while "volume coupling" refers to
 the case when `volume = true` is specified for the `NekRSMesh`.
-The polynomial order of each of these variables is set to match the `order` selected in the
+The polynomial order of each of the variables listed above is set to match the `order` selected in the
 `NekRSMesh`.
 
-This initialization of MOOSE variables happens behind the scenes - for instance, in
+This initialization of MOOSE variables happens "behind the scenes" - for instance, in
 the Nek-wrapped input file in [smallest], we have indicated that
 we are going to be coupling NekRS through
 both boundary [!ac](CHT) and volumetric heat sources (because we set `volume = true`
-and provide `boundary`).
+and provided `boundary`).
 Therefore, `NekRSProblem` essentially adds the following
 to the input file:
 
 !listing
 [AuxVariables]
-  [temp] # added for both boundary and volume coupling
+  [temp] # always added
     family = LAGRANGE
     order = FIRST
   []
@@ -77,7 +82,7 @@ to the input file:
 []
 
 This auxiliary variable addition happens *automatically* in order to simplify the input file
-creation, so you don't need to add these variables yourself in the input file.
+creation, so you don't need to add these variables yourself.
 In addition to these auxiliary variables, `NekRSProblem` also automatically
 adds several [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessors that are used for ensuring conservation in the data transfers:
@@ -104,11 +109,10 @@ to the input file:
 class. For each time step, the calculation proceeds according to the `ExternalProblem::solve()` function.
 Data gets sent into NekRS, NekRS runs a time step, and data gets extracted from NekRS.
 `NekRSProblem` mostly consists of defining the `syncSolutions` and `externalSolve` methods.
+Each of these functions is now described.
 
 !listing /framework/src/problems/ExternalProblem.C
   re=void\sExternalProblem::solve.*?^}
-
-Each of these functions is now described.
 
 ### External Solve
   id=solve
@@ -129,7 +133,8 @@ These four functions are defined in the NekRS source code, and perform the follo
 - Execute a [user-defined function](https://nekrsdoc.readthedocs.io/en/latest/input_files.html#udf-executestep-nrs-t-nrs-dfloat-time-int-tstep) in NekRS, `UDF_ExecuteStep`, for Nek-style postprocessing
 - Write a NekRS output file
 
-This means that for *every* NekRS time step, data is sent to and from
+Because `externalSolve` is wrapped inside two `syncSolutions` calls,
+this means that for *every* NekRS time step, data is sent to and from
 NekRS, even if NekRS runs with a smaller time step than the MOOSE application
 to which it is coupled (i.e. if the data going *into* NekRS hasn't changed since
 the last time it was sent to NekRS). A means by which to reduce some of these
@@ -140,9 +145,69 @@ the last time it was sent to NekRS). A means by which to reduce some of these
 In the `TO_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
  are read from the
 [NekRSMesh](/mesh/NekRSMesh.md) mesh mirror and interpolated onto the NekRS
-[!ac](GLL) points corresponding to each node using Vandermonde matrices.
-The data transfers going into NekRS are determined based on how the
+[!ac](GLL) points corresponding to each node using [Vandermonde matrices](vandermonde.md).
+The specific data transfers going into NekRS are determined based on how the
 `NekRSMesh` was constructed, i.e. whether boundary and/or volume coupling is used.
+
+Data is "sent" into NekRS by writing into the `nrs->usrwrk` scratch space array,
+which NekRS makes available within the boundary condition functions in the `.oudf` file
+(on device, this array is technically called the `nrs->o_usrwrk` array).
+[usrwrk_nrsp] shows the assignment of "slots" in the `nrs->usrwrk` scratch space
+array with quantities written by Cardinal. Because different quantities are written into
+Cardinal depending on the problem setup, if a particular slice is not needed for a
+case, it will just hold zero values. That is, the **order** of the various quantities
+is always the same in `nrs->usrwrk`.
+
+!table id=usrwrk_nrsp caption=Quantities written into the scratch space array by Cardinal
+| Slice | Quantity | When Will There be Non-Zero Values? | How to Access in the `.oudf` File |
+| :- | :- | :- | :- |
+| 0 | Boundary heat flux | if `boundary` is set on `NekRSMesh` | `bc->wrk[0 * bc->fieldOffset + bc->idM]` |
+| 1 | Volumetric heat source | if `volume` is true on `NekRSMesh` | `bc->wrk[1 * bc->fieldOffset + bc->idM]` |
+| 2 | Mesh x-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[2 * bc->fieldOffset + bc->idM]` |
+| 3 | Mesh y-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[3 * bc->fieldOffset + bc->idM]` |
+| 4 | Mesh z-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[4 * bc->fieldOffset + bc->idM]` |
+
+The total number of slots in the scratch space that are allocated by Cardinal
+is controlled with the `n_usrwrk_slots` parameter.
+If you need to use extra slices in `nrs->usrwrk` for other custom user actions,
+simply set `n_usrwrk_slots` to be greater than the number of slots strictly needed
+for coupling. At the start of your Cardinal simulation, a table will be printed to the
+screen to explicitly tell you what each slice in the scratch space holds.
+Any extra slots are noted as `unused`, and are free for non-coupling use.
+
+For example, if your case couples NekRS to MOOSE via volumes by
+setting `volume = true`, but has `boundary` unset and `moving_mesh = false`,
+the slice normally dedicated to storing heat flux is still allocated (because
+we keep the order the same in `nrs->usrwrk`, and the flux is earlier in the array than
+the volumetric heat source), but won't hold any meaningful information.
+A table similar to the following
+would print out at the start of your simulation. You could use slices 2 onwards
+for custom purposes.
+
+!listing id=l11 caption=Table printed at start of Cardinal simulation that describes available scratch space for a case that couples NekRS to MOOSE via volumetric power density, but not via boundaries or a moving mesh. A total of 7 slots are allocated by setting `n_usrwrk_slots` to 7
+------------------------------------------------------------------
+| Slice |  Quantity   |        How to Access in NekRS BCs        |
+------------------------------------------------------------------
+|     0 | flux        |  bc->wrk[0 * bc->fieldOffset + bc->idM]  |
+|     1 | heat_source |  bc->wrk[1 * bc->fieldOffset + bc->idM]  |
+|     2 | unused      |  bc->wrk[2 * bc->fieldOffset + bc->idM]  |
+|     3 | unused      |  bc->wrk[3 * bc->fieldOffset + bc->idM]  |
+|     4 | unused      |  bc->wrk[4 * bc->fieldOffset + bc->idM]  |
+|     5 | unused      |  bc->wrk[5 * bc->fieldOffset + bc->idM]  |
+|     6 | unused      |  bc->wrk[6 * bc->fieldOffset + bc->idM]  |
+------------------------------------------------------------------
+
+!alert warning
+Allocation of `nrs->usrwrk` and `nrs->o_usrwrk` is done automatically by
+`NekRSProblem`. If you attempt to run a NekRS input file that accesses `bc->wrk` in the
+`.oudf` file *without* a Cardinal executable (i.e. using something like
+`nrsmpi case 4`), then that scratch space will have to be manually allocated in
+the `.udf` file, or else your input will seg fault. This use case will not be typically
+encountered by most users, but if you really do want to run the NekRS input files
+intended for a Cardinal case with the NekRS executable (perhaps for debugging),
+we recommend simply replacing `bc->wrk` by a dummy value, such as `bc->flux = 0.0`
+for the boundary heat flux use case. This just replaces a value that normally comes from MOOSE by a fixed
+value. All other aspects of the NekRS case files should not require modification.
 
 #### Boundary Transfers
 
@@ -150,12 +215,7 @@ If `boundary` was specified on [NekRSMesh](/mesh/NekRSMesh.md), then a heat flux
 (stored in the variable `avg_flux`) and the total heat flux integral over the
 boundary for normalization (stored in the postprocessor `flux_integral`) are sent
 to NekRS. The heat flux is written into the first "slot" of a NekRS scratch space array,
-`nrs->usrwrk`. This scratch space is specifically designed for general user
-utility, and its device-side version is accessible in NekRS's boundary condition functions on device.
-Allocation of this scratch space is done automatically by `NekRSProblem`.
-After writing into this scratch space, the scratch space is then copied to an
-equivalent scratch space on the device.
-
+`nrs->usrwrk` by Cardinal.
 Then, all that is required to use a heat flux transferred by MOOSE is to
 apply it in the `scalarNeumannConditions` [!ac](OCCA) boundary condition.
 Below, `bc->wrk` is the same as `nrs->o_usrwrk`, or the scratch space on the
@@ -163,18 +223,6 @@ device; this function applies the heat flux computed by MOOSE to the flux bounda
 
 !listing /test/tests/cht/pebble/onepebble2.oudf language=cpp
   re=void\sscalarNeumannConditions.*?^}
-
-!alert warning
-Allocation of `nrs->usrwrk` and `nrs->o_usrwrk` is done automatically by
-`NekRSProblem`. If you attempt to run a NekRS input file that applies heat flux
-via `bc->wrk` *without* a Cardinal executable (i.e. using something like
-`nrsmpi case 4`), then that scratch space will have to be manually allocated in
-the `.udf` file, or else your input will seg fault. This use case will not be typically
-encountered by most users, but if you really do want to run the NekRS input files
-intended for a Cardinal case with the NekRS executable (perhaps for debugging),
-we recommend simply replacing `bc->wrk[bc->idM]` by a dummy, non-zero flux value,
-such as `bc->flux = 100.0;`. This just replaces a heat flux from MOOSE by a fixed
-value. All other aspects of the NekRS case files should not require modification.
 
 #### Volume Transfers
 
@@ -232,8 +280,8 @@ In NekRS's `.oudf` file, you will apply a heat flux in the `scalarNeumannConditi
 In the `FROM_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
 are written to
 the [NekRSMesh](/mesh/NekRSMesh.md) by interpolating from NekRS's [!ac](GLL)
-points using Vandermone matrices.
-The data transfer coming from
+points using [Vandermonde matrices](vandermonde.md).
+The data transfers coming from
 NekRS are determined based on how the `NekRSMesh` was constructed, i.e. whether
 boundary and/or volume coupling is used.
 
@@ -255,7 +303,7 @@ is written for boundary transfers.
 
 ## What are the Fluxes?
 
-There are a few different heat fluxes involved when coupled NekRS via [!ac](CHT)
+There are a few different heat fluxes involved when coupling NekRS via [!ac](CHT)
 to MOOSE. When you run a [!ac](CHT) calculation, for each time step you will see
 something like the following printed to the screen:
 
@@ -287,7 +335,7 @@ We always recommend doing a sanity check on the flux sent from MOOSE to NekRS
 via the MOOSE output files.
 
 You can also monitor the heat flux in NekRS by computing $-k\nabla T$ using a
-[NekHeatFluxIntegral](postprocessors/NekHeatFluxIntegral.md). In general, the quantity
+[NekHeatFluxIntegral](postprocessors/NekHeatFluxIntegral.md) postprocessor. In general, the quantity
 computed by this postprocessor will *not* match the heat flux set by MOOSE because
 both the finite and spectral element methods solve weak forms where Neumann boundary
 conditions are only *weakly* imposed. That is, we set the heat flux but only enforce
