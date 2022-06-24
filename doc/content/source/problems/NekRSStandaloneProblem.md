@@ -26,7 +26,7 @@ In this input file, `casename` is the prefix describing the NekRS input files, i
 parameter would be `casename = channel` if the NekRS input files are `channel.re2`,
 `channel.par`, `channel.udf`, and `channel.oudf`.
 
-!listing test/tests/nek_standalone/channel/nek.i id=l22
+!listing test/tests/nek_standalone/channel/nek.i id=l22 caption=Smallest possible input file for running a standalone NekRS simulation within Cardinal
   end=Postprocessors
 
 In other words, you can either run the `channel` NekRS example with
