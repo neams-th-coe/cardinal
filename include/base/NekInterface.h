@@ -202,7 +202,7 @@ bool scratchAvailable();
  */
 void initializeScratch(const unsigned int & n_slots);
 
-/// Free the scratch space for the flux transfer
+/// Free the scratch space
 void freeScratch();
 
 /**
@@ -220,7 +220,7 @@ double viscosity();
 double Pr();
 
 /**
- * Copy the flux from host to device.
+ * Copy the data interpolated from MOOSE->Nek from host to device.
  * From Cardinal, we only write to the first 'slots_reserved_by_cardinal' in nrs->usrwrk. But, the user might
  * be writing other parts of this scratch space from the .udf file. So, we need to be sure
  * to only copy the slices reserved for Cardinal, so that we don't accidentally overwrite other

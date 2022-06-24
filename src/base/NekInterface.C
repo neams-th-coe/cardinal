@@ -23,15 +23,6 @@
 
 static nekrs::solution::characteristicScales scales;
 
-// Maximum number of fields that we pre-allocate in the scratch space array.
-// The first five are *always* reserved for Cardinal's use to be used in nekRS
-// - all others are still free for use for
-// things like computing wall distances, etc. If anyone ever wants more than
-// 7, we can just change this value and commit that to the Cardinal repo - this
-// is just a number not reflective of any limitations anywhere, so we're free to
-// make it bigger later if we need it. Seven just seems fine for now.
-#define MAX_SCRATCH_FIELDS 7
-
 namespace nekrs
 {
 
@@ -208,10 +199,10 @@ scratchAvailable()
 
   // Because these scratch spaces are available for whatever the user sees fit, it is
   // possible that the user wants to use these arrays for a _different_ purpose aside from
-  // transferring heat flux values. In nekrs::setup, we call the UDF_Setup0, UDF_Setup,
+  // transferring in MOOSE values. In nekrs::setup, we call the UDF_Setup0, UDF_Setup,
   // and UDF_ExecuteStep routines. These scratch space arrays aren't initialized anywhere
   // else in the core base, so we will make sure to throw an error from MOOSE if these
-  // arrays are already in use, because otherwise our flux transfer might get overwritten
+  // arrays are already in use, because otherwise our MOOSE transfer might get overwritten
   // by whatever other operation the user is trying to do.
   if (nrs->usrwrk)
     return false;
