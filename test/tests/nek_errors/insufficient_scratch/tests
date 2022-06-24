@@ -70,4 +70,14 @@
                   "NekRSSeparateDomainProblem always requires at least 5 slots if scalar03 is coupled "
     required_objects = 'NekRSProblem'
   []
+  [standalone]
+    type = RunException
+    input = nek_standalone.i
+    cli_args = "--error"
+    expect_err = "When using running NekRS as a standalone problem through Cardinal, the "
+                 "'n_usrwrk_slots' parameter is unused!"
+    requirement = "The system shall warn if the user enters a scratch alloction for a standalone problem, "
+                  "which does not actually allocate any scratch storage"
+    required_objects = 'NekRSProblem'
+  []
 []
