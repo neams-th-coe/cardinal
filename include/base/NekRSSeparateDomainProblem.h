@@ -120,4 +120,7 @@ protected:
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
+
+  /// quantities to write to  nrs->usrwrk (and the order to write them)
+  MultiMooseEnum _usrwrk_indices;
 };
