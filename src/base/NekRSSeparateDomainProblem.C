@@ -186,8 +186,9 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
           sendBoundaryScalarToNek(3, *_toNekRS_scalar03);
       }
 
-      // copy scratch to device
-      nekrs::copyScratchToDevice();
+      // copy scratch to device: TODO this is the old behavior
+      unsigned int copy_max = 5;
+      nekrs::copyScratchToDevice(copy_max);
 
       break;
     }
