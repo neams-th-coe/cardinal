@@ -76,8 +76,7 @@ NekInitAction::act()
     bool casename_on_command_line = cl->search("nekrs_setup");
 
     if (!casename_on_command_line && !_casename_in_input_file)
-      mooseError("All inputs using 'NekRSProblem' or 'NekRSStandaloneProblem' must pass "
-                 "'--nekrs-setup <case>' on "
+      mooseError("All inputs using '", _type, "' must pass '--nekrs-setup <case>' on "
                  "the command line\nor set casename = '<case>' in the [Problem] block in the "
                  "Nek-wrapped input file!");
 

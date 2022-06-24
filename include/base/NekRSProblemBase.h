@@ -289,7 +289,7 @@ protected:
    * memory-limited cases, you can reduce this number to just the bare
    * minimum necessary for your use case.
    */
-  const unsigned int & _n_usrwrk_slots;
+  unsigned int _n_usrwrk_slots;
 
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
