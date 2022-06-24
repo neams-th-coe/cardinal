@@ -121,6 +121,10 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
                  "Did you enter a valid 'inlet_boundary'?");
   }
 
+  if (!_boundary)
+    mooseError("In order to initialize the separate domain coupling, 'boundary' "
+               "should contain,\nat a minimum, all boundaries listed in 'inlet_boundary'");
+
   // make sure that inlet boundary is in NekRSMesh boundary IDs provided
   if (std::find(_boundary->begin(), _boundary->end(), _inlet_boundary.front()) == _boundary->end())
     mooseError("Invalid 'inlet_boundary' entry: " + Moose::stringify(_inlet_boundary) + " \n",
