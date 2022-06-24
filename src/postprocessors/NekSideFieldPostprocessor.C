@@ -27,10 +27,7 @@ NekSideFieldPostprocessor::validParams()
   InputParameters params = NekSidePostprocessor::validParams();
   params.addRequiredParam<MooseEnum>("field",
                                      getNekFieldEnum(),
-                                     "Field to integrate;"
-                                     "options: velocity_x, velocity_y, velocity_z, "
-                                     "velocity_component, velocity, temperature, pressure, "
-                                     "scalar01, scalar02, scalar03, unity");
+                                     "Field to integrate");
   params.addParam<Point>(
       "velocity_direction",
       "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
