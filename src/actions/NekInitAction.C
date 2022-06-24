@@ -40,11 +40,18 @@ NekInitAction::validParams()
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
       "Can also be provided on the command line with --nekrs-setup, which will override this "
       "setting");
+
+  params.addParam<unsigned int>("n_usrwrk_slots", 7,
+    "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+    "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
+
   return params;
 }
 
 NekInitAction::NekInitAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters), _casename_in_input_file(isParamValid("casename"))
+  : MooseObjectAction(parameters),
+    _casename_in_input_file(isParamValid("casename")),
+    _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots"))
 {
 }
 
@@ -180,11 +187,8 @@ NekInitAction::act()
           "2 * nrs->cds->fieldOffset[0] such that the space reserved for coupling data is "
           "untouched.");
 
-    // For the new approach, initialize the space for the user scratch space on the host and device.
-    // nekRS does not have a dedicated array to store a "flux" boundary condition, so we
-    // will make use of these arrays to write incoming flux values from MOOSE.
-    if (scratch_available)
-      nekrs::initializeScratch();
+    // Initialize scratch space in NekRS to write data incoming data from MOOSE
+    nekrs::initializeScratch(_n_usrwrk_slots);
 
     // Initialize default dimensional scales assuming a dimensional run is performed.
     // We need to do this construction here so that any tests that *dont* use NekRSProblem

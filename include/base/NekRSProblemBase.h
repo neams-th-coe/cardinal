@@ -98,6 +98,12 @@ public:
    */
   double L_ref() const { return _L_ref; }
 
+  /**
+   * Print information showing how the entries in nrs->usrwrk and nrs->o_usrwrk
+   * are populated by Cardinal.
+   */
+  void printScratchSpaceInfo(const MultiMooseEnum & indices) const;
+
 protected:
   /**
    * Write into the NekRS solution space; for setting a mesh position in terms of a
@@ -275,6 +281,16 @@ protected:
    */
   const bool & _minimize_transfers_out;
 
+  /**
+   * Number of slices/slots to allocate in nrs->usrwrk to hold fields
+   * for coupling (i.e. data going into NekRS, written by Cardinal), or
+   * used for custom user actions, but not for coupling. By default, we just
+   * allocate 7 slots (no inherent reason, just a fairly big amount). For
+   * memory-limited cases, you can reduce this number to just the bare
+   * minimum necessary for your use case.
+   */
+  const unsigned int & _n_usrwrk_slots;
+
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
 
@@ -352,4 +368,7 @@ protected:
 
   /// Vandermonde interpolation matrix (for incoming transfers)
   double * _interpolation_incoming = nullptr;
+
+  /// Minimum allowable scratch space size, strictly what is needed by Cardinal for coupling
+  unsigned int _minimum_scratch_size_for_coupling;
 };

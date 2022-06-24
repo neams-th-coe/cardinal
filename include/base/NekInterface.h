@@ -196,8 +196,11 @@ std::vector<int> cornerGLLIndices(const int & n);
  */
 bool scratchAvailable();
 
-/// Initialize scratch space for flux transfer
-void initializeScratch();
+/**
+ * Initialize scratch space for data to get sent into NekRS
+ * @param[in] n_slots number of slots (for volume arrays) to allocate
+ */
+void initializeScratch(const unsigned int & n_slots);
 
 /// Free the scratch space for the flux transfer
 void freeScratch();
@@ -216,8 +219,16 @@ double viscosity();
  */
 double Pr();
 
-/// Copy the flux from host to device
-void copyScratchToDevice();
+/**
+ * Copy the flux from host to device.
+ * From Cardinal, we only write to the first 'slots_reserved_by_cardinal' in nrs->usrwrk. But, the user might
+ * be writing other parts of this scratch space from the .udf file. So, we need to be sure
+ * to only copy the slices reserved for Cardinal, so that we don't accidentally overwrite other
+ * parts of o_usrwrk (which from the order of the UDF calls, would always happen *after* the
+ * transfers into NekRS)
+ * @param[in] slots_reserved_by_cardinal number of slots holding data written by Cardinal
+ */
+void copyScratchToDevice(const unsigned int & slots_reserved_by_cardinal);
 
 /// Copy volume deformation of mesh from host to device for moving-mesh problems
 void copyDeformationToDevice();

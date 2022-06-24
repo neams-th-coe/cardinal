@@ -220,7 +220,7 @@ scratchAvailable()
 }
 
 void
-initializeScratch()
+initializeScratch(const unsigned int & n_slots)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = temperatureMesh();
@@ -230,13 +230,9 @@ initializeScratch()
 
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
-  // as volume arrays. At the point that this function is called, we don't know if we have
-  // boundary coupling, volume coupling, or both. So, we allocate enough space here to hold
-  // multiple data transfers. These fields are always stored in this
-  // order - i.e. if we only had volume couping, we would only start writing to this array
-  // beginning at index nrs->cds->fieldOffset.
-  nrs->usrwrk = (double *)calloc(MAX_SCRATCH_FIELDS * scalarFieldOffset(), sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(MAX_SCRATCH_FIELDS * scalarFieldOffset() * sizeof(double),
+  // as volume arrays.
+  nrs->usrwrk = (double *)calloc(n_slots * scalarFieldOffset(), sizeof(double));
+  nrs->o_usrwrk = platform->device.malloc(n_slots * scalarFieldOffset() * sizeof(double),
                                           nrs->usrwrk);
 }
 
@@ -538,19 +534,10 @@ limitTemperature(const double * min_T, const double * max_T)
 }
 
 void
-copyScratchToDevice()
+copyScratchToDevice(const unsigned int & slots_reserved_by_cardinal)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-
-  // From Cardinal, we only write to the first five "slices" in nrs->usrwrk. But, the user might
-  // be writing other parts of this scratch space from the .udf file. So, we need to be sure
-  // to only copy the slices reserved for Cardinal, so that we don't accidentally overwrite other
-  // parts of o_usrwrk (which from the order of the UDF calls, would always happen *after* the
-  // transfers into NekRS)
-
-  // The type of data contained in each slice of nrs->usrwrk depends on the Cardinal Problem
-  // class used, but we always reserve the first five slices for Cardinal coupling data.
-  nrs->o_usrwrk.copyFrom(nrs->usrwrk, 5 * scalarFieldOffset() * sizeof(dfloat), 0);
+  nrs->o_usrwrk.copyFrom(nrs->usrwrk, slots_reserved_by_cardinal * scalarFieldOffset() * sizeof(dfloat), 0);
 }
 
 void
