@@ -64,7 +64,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   if (!nekrs::isInitialized())
     mooseError("This mesh can only be used with wrapped Nek cases!\n"
                "You need to change the problem type to a Nek-wrapped problem.\n\n"
-               "options: 'NekRSProblem', 'NekRSStandaloneProblem'");
+               "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
 
   _nek_internal_mesh = nekrs::entireMesh();
 

@@ -17,6 +17,9 @@ This output feature is used by specifying the fields to be output with the
 - `pressure` (which creates a MOOSE variable named `P`)
 - `velocity` (which creates MOOSE variables named `vel_x`, `vel_y`, and `vel_z`)
 - `temperature` (which creates a MOOSE variable named `temp`)
+- `scalar01` (which creates a MOOSE variable named `scalar01`)
+- `scalar02` (which creates a MOOSE variable named `scalar02`)
+- `scalar03` (which creates a MOOSE variable named `scalar03`)
 
 For NekRS simulations that are coupled to MOOSE, the temperature will already
 be output because it is used as part of the physics transfers. When outputting
