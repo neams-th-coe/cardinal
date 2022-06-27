@@ -1,0 +1,10 @@
+[Tests]
+  [scalar_output]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "Nek-wrapped MOOSE cases shall be able to output the "
+                  "passive scalars from the Nek solution onto the mesh mirror."
+    required_objects = 'NekRSProblem'
+  []
+[]

@@ -60,7 +60,7 @@ NekRSProblemBase::validParams()
   params.addRangeCheckedParam<Real>(
       "Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
 
-  MultiMooseEnum nek_outputs("temperature pressure velocity");
+  MultiMooseEnum nek_outputs("temperature pressure velocity scalar01 scalar02 scalar03");
   params.addParam<MultiMooseEnum>(
       "output", nek_outputs, "Field(s) to output from NekRS onto the mesh mirror");
 
@@ -520,6 +520,12 @@ NekRSProblemBase::extractOutputs()
         field_enum = field::velocity_y;
       else if (_var_names[i] == "vel_z")
         field_enum = field::velocity_z;
+      else if (_var_names[i] == "scalar01")
+        field_enum = field::scalar01;
+      else if (_var_names[i] == "scalar02")
+        field_enum = field::scalar02;
+      else if (_var_names[i] == "scalar03")
+        field_enum = field::scalar03;
       else
         mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
 
@@ -588,6 +594,12 @@ NekRSProblemBase::addExternalVariables()
       }
       else if (output == "pressure")
         _var_names.push_back("P");
+      else if (output == "scalar01")
+        _var_names.push_back("scalar01");
+      else if (output == "scalar02")
+        _var_names.push_back("scalar02");
+      else if (output == "scalar03")
+        _var_names.push_back("scalar03");
     }
 
     _var_string = "";
