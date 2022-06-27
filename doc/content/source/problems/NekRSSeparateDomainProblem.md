@@ -164,7 +164,7 @@ any meaningful information.
 A table similar to the following would print out at the start of your simulation.
 You could use slices 4 onwards for custom purposes.
 
-!listing id=l11 caption=Table printed at start of Cardinal simulation that describes available scratch space for a case that couples NekRS to MOOSE via an inilet and with the second passive scalar, but without the first passive scalar or a temperature solve. A total of 7 slots are allocated by setting `n_usrwrk_slots` to 7
+!listing id=l11 caption=Table printed at start of Cardinal simulation that describes available scratch space for a case that couples NekRS to MOOSE via an inlet and with the second passive scalar, but without the first passive scalar or a temperature solve. A total of 7 slots are allocated by setting `n_usrwrk_slots` to 7
 ------------------------------------------------------------------
 | Slice |  Quantity   |        How to Access in NekRS BCs        |
 ------------------------------------------------------------------

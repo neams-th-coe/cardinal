@@ -70,7 +70,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   //   1: heat_source      (if _volume is true and _has_heat_source is true)
   //   2: x_displacement   (if _moving_mesh is true)
   //   3: y_displacement   (if _moving_mesh is true)
-  //   4: z_displacement   (if _movign_mesh is true)
+  //   4: z_displacement   (if _moving_mesh is true)
   //
   // The most we will do is skip allocating terms at the end of this ordering if we
   // don't need them. We never change the ordering of "earlier" terms.
