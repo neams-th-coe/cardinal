@@ -1,5 +1,3 @@
-# Data Interpolation into NekRS
-
 The NekRS solution in element $e$, or $f_e$, is a linear combination of polynomials $\phi$ and coefficients $c$,
 
 \begin{equation}
