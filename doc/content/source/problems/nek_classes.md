@@ -9,5 +9,5 @@ This class must be used in conjunction with two other classes in Cardinal:
 2. [NekTimeStepper](/timesteppers/NekTimeStepper.md), which allows NekRS to
    control its own time stepping.
 
-Therefore, we recommend first reading the documentation for `NekRSMesh` and
-`NekTimeStepper` before proceeding here.
+Therefore, we recommend first reading the documentation for the above classes
+before proceeding here.

@@ -14,7 +14,7 @@ on four [!ac](GLL) points (blue dots).
 !media interpolation.png
   id=interpolation
   caption=Interpolation between a high-order NekRS solution (based on [!ac](GLL) quadrature points $x$) and generic points $p$
-  style=width:40%;margin-left:auto;margin-right:auto;halign:center
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
 To interpolate this solution to a MOOSE element with arbitrary
 nodes $p$ (red dots),

@@ -202,8 +202,8 @@ value. All other aspects of the NekRS case files should not require modification
 If `boundary` was specified on [NekRSMesh](/mesh/NekRSMesh.md), then a heat flux
 (stored in the variable `avg_flux`) and the total heat flux integral over the
 boundary for normalization (stored in the postprocessor `flux_integral`) are sent
-to NekRS. The heat flux is written into the first "slot" of a NekRS scratch space array,
-`nrs->usrwrk` by Cardinal.
+to NekRS. The heat flux is written into the first "slot" of a NekRS scratch space array
+(`nrs->usrwrk`) by Cardinal.
 Then, all that is required to use a heat flux transferred by MOOSE is to
 apply it in the `scalarNeumannConditions` [!ac](OCCA) boundary condition.
 Below, `bc->wrk` is the same as `nrs->o_usrwrk`, or the scratch space on the
