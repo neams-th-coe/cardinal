@@ -43,6 +43,10 @@ NekRSProblemBase::validParams()
       "Can also be provided on the command line with --nekrs-setup, which will override this "
       "setting");
 
+  params.addParam<unsigned int>("n_usrwrk_slots", 7,
+    "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+    "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
+
   params.addParam<bool>("nondimensional", false, "Whether NekRS is solved in non-dimensional form");
   params.addRangeCheckedParam<Real>(
       "U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");
@@ -97,6 +101,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
     _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
     _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
+    _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
     _start_time(nekrs::startTime())
 {
   // the way the data transfers are detected depend on nekRS being a sub-application,
@@ -231,6 +236,33 @@ NekRSProblemBase::~NekRSProblemBase()
   freePointer(_interpolation_incoming);
 
   nekrs::finalize();
+}
+
+void
+NekRSProblemBase::printScratchSpaceInfo(const MultiMooseEnum & indices) const
+{
+  if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling)
+    mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+      "'n_usrwrk_slots' must be greater than or equal to ", _minimum_scratch_size_for_coupling, "!");
+
+  VariadicTable<int, std::string, std::string> vt({"Slice", "Quantity", "How to Access in NekRS BCs"});
+  vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
+                      VariadicTableColumnFormat::AUTO,
+                      VariadicTableColumnFormat::AUTO});
+
+  for (int i = 0; i < indices.size(); ++i)
+    vt.addRow(i, indices[i], " bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM] ");
+
+  if (indices.size() == 0)
+  {
+    _console << "Skipping allocation of NekRS scratch space because 'n_usrwrk_slots' is 0\n" << std::endl;
+  }
+  else
+  {
+    _console << "\nQuantities written into NekRS scratch space:" << std::endl;
+    vt.print(_console);
+    _console << std::endl;
+  }
 }
 
 void

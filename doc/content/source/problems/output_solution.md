@@ -6,7 +6,7 @@ This feature can be used for:
 
 - Quick visualization of the NekRS solution without needing to rely on
   NekRS's custom output format
-- Postprocessing the NekRS solution
+- Postprocessing the NekRS solution using MOOSE's systems
 - Providing one-way coupling to other MOOSE applications, such as for
   transporting scalars based on NekRS's velocity solution or for projecting
   NekRS turbulent viscosity closure terms onto another MOOSE application's mesh
@@ -22,10 +22,14 @@ This output feature is used by specifying the fields to be output with the
 - `scalar03` (which creates a MOOSE variable named `scalar03`)
 
 For NekRS simulations that are coupled to MOOSE, the temperature will already
-be output because it is used as part of the physics transfers. When outputting
+be output because it is used as part of the physics transfers.
+
+When outputting
 data, the NekRS solution fields are interpolated from the [!ac](GLL) points
 onto the [NekRSMesh](/mesh/NekRSMesh.md), which will be either a first or
-second order representation of the NekRS mesh. Therefore, the output solution
+second order representation of the NekRS mesh. This interpolation is performed
+using [Vandermonde matrices](vandermonde.md).
+Therefore, the output solution
 is generally not an exact representation of NekRS's solution, for which the
 NekRS field files are still required to visualize fully. Because the MOOSE
 framework supports many different

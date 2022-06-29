@@ -3,6 +3,10 @@
   casename = 'sfr_pin'
   minimize_transfers_in = true
   minimize_transfers_out = true
+
+  # we only technically need one scratch space slot for this problem,
+  # so we can skip allocating extra
+  n_usrwrk_slots = 1
 []
 
 [Mesh]

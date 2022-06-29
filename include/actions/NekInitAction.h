@@ -38,6 +38,16 @@ protected:
   /// whether a casename was provided in the input file
   const bool _casename_in_input_file;
 
+  /**
+   * Number of slices/slots to allocate in nrs->usrwrk to hold fields
+   * for coupling (i.e. data going into NekRS, written by Cardinal), or
+   * used for custom user actions, but not for coupling. By default, we just
+   * allocate 7 slots (no inherent reason, just a fairly big amount). For
+   * memory-limited cases, you can reduce this number to just the bare
+   * minimum necessary for your use case.
+   */
+  const unsigned int & _n_usrwrk_slots;
+
   /// number of NekRS cases created
   static int _n_cases;
 };

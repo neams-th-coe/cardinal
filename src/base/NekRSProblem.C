@@ -62,8 +62,43 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   : NekRSProblemBase(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _moving_mesh(getParam<bool>("moving_mesh")),
-    _has_heat_source(getParam<bool>("has_heat_source"))
+    _has_heat_source(getParam<bool>("has_heat_source")),
+    _usrwrk_indices(MultiMooseEnum("flux heat_source x_displacement y_displacement z_displacement unused"))
 {
+  // Determine an appropriate default usrwrk indexing; the ordering will always be
+  //   0: flux             (if _boundary is true)
+  //   1: heat_source      (if _volume is true and _has_heat_source is true)
+  //   2: x_displacement   (if _moving_mesh is true)
+  //   3: y_displacement   (if _moving_mesh is true)
+  //   4: z_displacement   (if _moving_mesh is true)
+  //
+  // The most we will do is skip allocating terms at the end of this ordering if we
+  // don't need them. We never change the ordering of "earlier" terms.
+  std::vector<std::string> indices =
+    {"flux", "heat_source", "x_displacement", "y_displacement", "z_displacement"};
+
+  // progressively erase terms from the back if we don't need them
+  if (!_moving_mesh)
+  {
+    indices.erase(indices.begin() + 2, indices.end());
+
+    if (!_volume)
+    {
+      indices.erase(indices.end());
+
+      if (!_boundary)
+        indices.erase(indices.end());
+    }
+  }
+
+  _minimum_scratch_size_for_coupling = indices.size();
+  for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
+    indices.push_back("unused");
+
+  _usrwrk_indices = indices;
+
+  printScratchSpaceInfo(_usrwrk_indices);
+
   // will be implemented soon
   if (_moving_mesh)
   {
@@ -559,7 +594,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         sendVolumeHeatSourceToNek();
 
       // copy the boundary heat flux and/or volume heat source in the scratch space to device
-      nekrs::copyScratchToDevice();
+      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
 
       if (_moving_mesh)
       {

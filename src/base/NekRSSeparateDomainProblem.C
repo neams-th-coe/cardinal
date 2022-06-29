@@ -60,9 +60,9 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     _coupled_scalars(getParam<MultiMooseEnum>("coupled_scalars")),
     _scalar01_coupling(false),
     _scalar02_coupling(false),
-    _scalar03_coupling(false)
+    _scalar03_coupling(false),
+    _usrwrk_indices(MultiMooseEnum("velocity temperature scalar01 scalar02 scalar03 unused"))
 {
-
   // check scalar01-03_coupling provided
   for (const auto & s : _coupled_scalars)
   {
@@ -121,6 +121,10 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
                  "Did you enter a valid 'inlet_boundary'?");
   }
 
+  if (!_boundary)
+    mooseError("In order to initialize the separate domain coupling, 'boundary' "
+               "should contain,\nat a minimum, all boundaries listed in 'inlet_boundary'");
+
   // make sure that inlet boundary is in NekRSMesh boundary IDs provided
   if (std::find(_boundary->begin(), _boundary->end(), _inlet_boundary.front()) == _boundary->end())
     mooseError("Invalid 'inlet_boundary' entry: " + Moose::stringify(_inlet_boundary) + " \n",
@@ -129,6 +133,48 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
 
 
   // TODO, add checks of BCs if using inlet coupling
+
+  // Determine an appropriate default usrwrk indexing; the ordering will always be
+  //   0: velocity         (if _inlet_coupling is true)
+  //   1: temperature      (if _inlet_coupling is true and NekRS has temperature solve)
+  //   2: scalar01         (if _inlet_coupling is true and _scalar01_coupling is true)
+  //   3: scalar02         (if _inlet_coupling is true and _scalar02_coupling is true)
+  //   4: scalar03         (if _inlet_coupling is true and _scalar03_coupling is true)
+  //
+  // The most we will do is skip allocating terms at the end of this ordering if we
+  // don't need them. We never change the ordering of "earlier" terms.
+  std::vector<std::string> indices;
+
+  // there are no necessary coupling arrays if there is not inlet coupling
+  if (_inlet_coupling)
+  {
+    indices = {"velocity", "temperature", "scalar01", "scalar02", "scalar03"};
+
+    // progressively erase terms from the back if we don't need them
+    if (!_scalar03_coupling)
+    {
+      indices.erase(indices.end());
+      if (!_scalar02_coupling)
+      {
+        indices.erase(indices.end());
+        if (!_scalar01_coupling)
+        {
+          indices.erase(indices.end());
+
+          if (!nekrs::hasTemperatureSolve())
+            indices.erase(indices.end());
+        }
+      }
+    }
+  }
+
+  _minimum_scratch_size_for_coupling = indices.size();
+  for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
+    indices.push_back("unused");
+
+  _usrwrk_indices = indices;
+
+  printScratchSpaceInfo(_usrwrk_indices);
 }
 
 NekRSSeparateDomainProblem::~NekRSSeparateDomainProblem() { nekrs::freeScratch(); }
@@ -187,7 +233,7 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
       }
 
       // copy scratch to device
-      nekrs::copyScratchToDevice();
+      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
 
       break;
     }
