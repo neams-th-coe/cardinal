@@ -38,7 +38,7 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
                "You need to change the problem type from '" +
                _fe_problem.type() + "'" + extra_help +
                " to a Nek-wrapped problem.\n\n"
-               "options: 'NekRSProblem', 'NekRSStandaloneProblem'");
+               "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
   }
 
   _fixed_mesh = !(_nek_problem->movingMesh());

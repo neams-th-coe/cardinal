@@ -81,8 +81,7 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<MooseEnum>(
       "initial_properties",
       getInitialPropertiesEnum(),
-      "Where to read the temperature and density initial conditions for the OpenMC mdoel; "
-      "options: hdf5, moose (default), or xml.");
+      "Where to read the temperature and density initial conditions for the OpenMC model");
 
   params.addParam<bool>(
       "export_properties",
@@ -107,7 +106,7 @@ OpenMCCellAverageProblem::validParams()
       "by Cardinal are spatially separate. This is a performance optimization");
 
   params.addRequiredParam<MooseEnum>(
-      "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC, options: cell, mesh");
+      "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
   params.addParam<std::string>("mesh_template",
                                "Mesh tally template for OpenMC when using mesh tallies; "
                                "at present, this mesh must exactly match the mesh used in the "
@@ -126,15 +125,13 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<MooseEnum>("tally_trigger",
                              getTallyTriggerEnum(),
                              "Trigger criterion to determine when OpenMC simulation is complete "
-                             "based on tallies; options: "
-                             "variance, std_dev, rel_err, none (default)");
+                             "based on tallies");
   params.addRangeCheckedParam<Real>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
   params.addParam<MooseEnum>(
       "k_trigger",
       getTallyTriggerEnum(),
-      "Trigger criterion to determine when OpenMC simulation is complete based on k; options: "
-      "variance, std_dev, rel_err, none (default)");
+      "Trigger criterion to determine when OpenMC simulation is complete based on k");
   params.addRangeCheckedParam<Real>(
       "k_trigger_threshold", "k_trigger_threshold > 0", "Threshold for the k trigger");
   params.addRangeCheckedParam<unsigned int>(
@@ -189,8 +186,7 @@ OpenMCCellAverageProblem::validParams()
 
   params.addParam<MooseEnum>("relaxation",
                              getRelaxationEnum(),
-                             "Type of relaxation to apply to the OpenMC solution, options: "
-                             "constant, robbins_monro, dufek_gudowski, none (default)");
+                             "Type of relaxation to apply to the OpenMC solution");
   params.addRangeCheckedParam<Real>("relaxation_factor",
                                     0.5,
                                     "relaxation_factor > 0.0 & relaxation_factor < 2.0",

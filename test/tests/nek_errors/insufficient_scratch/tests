@@ -1,0 +1,83 @@
+[Tests]
+  [too_small_a]
+    type = RunException
+    input = nek.i
+    cli_args = "Mesh/boundary='6' Problem/n_usrwrk_slots=0"
+    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+                 "'n_usrwrk_slots' must be greater than or equal to 1"
+    requirement = "The system shall error if the user enters too small a scratch space allocation; "
+                  "NekRSProblem always requires at least 1 slot"
+    required_objects = 'NekRSProblem'
+  []
+  [too_small_b]
+    type = RunException
+    input = nek.i
+    cli_args = "Mesh/volume=true Problem/n_usrwrk_slots=1"
+    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+                 "'n_usrwrk_slots' must be greater than or equal to 2"
+    requirement = "The system shall error if the user enters too small a scratch space allocation; "
+                  "NekRSProblem always requires at least 2 slots if volume coupling is enabled"
+    required_objects = 'NekRSProblem'
+  []
+  [too_small_c]
+    type = RunException
+    input = nek.i
+    cli_args = "Mesh/volume=true Problem/moving_mesh=true Problem/has_heat_source=false Problem/n_usrwrk_slots=4"
+    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+                 "'n_usrwrk_slots' must be greater than or equal to 5"
+    requirement = "The system shall error if the user enters too small a scratch space allocation; "
+                  "NekRSProblem always requires at least 5 slots if moving meshes are enabled"
+    required_objects = 'NekRSProblem'
+  []
+  [too_small_d]
+    type = RunException
+    input = nek_separate_domain.i
+    cli_args = "Problem/n_usrwrk_slots=1"
+    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+                 "'n_usrwrk_slots' must be greater than or equal to 2"
+    requirement = "The system shall error if the user enters too small a scratch space allocation; "
+                  "NekRSSeparateDomainProblem always requires at least 2 slots if Nek's temperature "
+                  "solve is enabled"
+    required_objects = 'NekRSProblem'
+  []
+  [too_small_e]
+    type = RunException
+    input = nek_separate_domain.i
+    cli_args = "Problem/n_usrwrk_slots=2 Problem/coupled_scalars='scalar01'"
+    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+                 "'n_usrwrk_slots' must be greater than or equal to 3"
+    requirement = "The system shall error if the user enters too small a scratch space allocation; "
+                  "NekRSSeparateDomainProblem always requires at least 3 slots if scalar01 is coupled "
+    required_objects = 'NekRSProblem'
+  []
+  [too_small_f]
+    type = RunException
+    input = nek_separate_domain.i
+    cli_args = "Problem/n_usrwrk_slots=3 Problem/coupled_scalars='scalar02'"
+    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+                 "'n_usrwrk_slots' must be greater than or equal to 4"
+    requirement = "The system shall error if the user enters too small a scratch space allocation; "
+                  "NekRSSeparateDomainProblem always requires at least 4 slots if scalar02 is coupled "
+    required_objects = 'NekRSProblem'
+  []
+  [too_small_g]
+    type = RunException
+    input = nek_separate_domain.i
+    cli_args = "Problem/n_usrwrk_slots=4 Problem/coupled_scalars='scalar03'"
+    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+                 "'n_usrwrk_slots' must be greater than or equal to 5"
+    requirement = "The system shall error if the user enters too small a scratch space allocation; "
+                  "NekRSSeparateDomainProblem always requires at least 5 slots if scalar03 is coupled "
+    required_objects = 'NekRSProblem'
+  []
+  [standalone]
+    type = RunException
+    input = nek_standalone.i
+    cli_args = "--error"
+    expect_err = "When using running NekRS as a standalone problem through Cardinal, the "
+                 "'n_usrwrk_slots' parameter is unused!"
+    requirement = "The system shall warn if the user enters a scratch alloction for a standalone problem, "
+                  "which does not actually allocate any scratch storage"
+    required_objects = 'NekRSProblem'
+  []
+[]

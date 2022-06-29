@@ -20,6 +20,7 @@
 
 #include "NekRSStandaloneProblem.h"
 #include "NekInterface.h"
+#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", NekRSStandaloneProblem);
 
@@ -41,6 +42,12 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
     mooseWarning("When 'volume = true' for '" + type() +
                  "', it is redundant to also set 'boundary'.\n"
                  "Boundary IDs will be ignored.");
+
+  // Cardinal does not automatically allocate any scratch space for this class
+  if (params.isParamSetByUser("n_usrwrk_slots"))
+    checkUnusedParam(params, "n_usrwrk_slots", "using running NekRS as a standalone "
+      "problem through Cardinal");
+  _n_usrwrk_slots = 0;
 }
 
 bool

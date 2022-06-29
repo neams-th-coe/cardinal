@@ -30,7 +30,7 @@ NekVolumeExtremeValue::validParams()
   params.addParam<MooseEnum>(
       "value_type",
       getOperationEnum(),
-      "Whether to give the maximum or minimum extreme value; options: 'max' (default), 'min'");
+      "Whether to give the maximum or minimum extreme value");
   params.addClassDescription("Compute the extreme value (max/min) of a field over the NekRS mesh");
   return params;
 }

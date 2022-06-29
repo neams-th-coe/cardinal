@@ -31,8 +31,7 @@ KStandardDeviation::validParams()
   InputParameters params = OpenMCPostprocessor::validParams();
   params.addParam<MooseEnum>("value_type",
                              getEigenvalueEnum(),
-                             "Type of eigenvalue global tally to report; options: collision, "
-                             "absorption, tracklength, combined (default)");
+                             "Type of eigenvalue global tally to report");
   params.addClassDescription("Extract the k standard deviation computed by OpenMC");
   return params;
 }
