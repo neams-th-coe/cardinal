@@ -22,7 +22,10 @@ cd cardinal
 
 Before building, first decide whether you want *both* NekRS and OpenMC, just one,
 or neither. You can build Cardinal with only the dependencies that you want (which reduces
-the software stack prerequisites). If you do *not*
+the software stack prerequisites). If you want to build with both NekRS and OpenMC,
+skip to [#build] - both dependencies are enabled by default.
+
+If you do *not*
 want to build the NekRS-part of Cardinal, set the following environment variable:
 
 ```
