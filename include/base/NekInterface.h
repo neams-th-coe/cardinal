@@ -572,6 +572,22 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int & N);
 
 } // end namespace mesh
 
+/// Integer indices in the usrwrk scratch space for writing solutions from MOOSE
+struct usrwrkIndices
+{
+  int flux;
+
+  int heat_source;
+
+  int x_displacement;
+
+  int y_displacement;
+
+  int z_displacement;
+};
+
+static usrwrkIndices indices;
+
 namespace solution
 {
 

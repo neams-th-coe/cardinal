@@ -367,7 +367,7 @@ sourceIntegral(const NekVolumeCoupling & nek_volume_coupling)
       int offset = i * mesh->Np;
 
       for (int v = 0; v < mesh->Np; ++v)
-        integral += nrs->usrwrk[scalarFieldOffset() + offset + v] *
+        integral += nrs->usrwrk[indices.heat_source * scalarFieldOffset() + offset + v] *
                     mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
@@ -397,7 +397,7 @@ fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling)
 
       for (int v = 0; v < mesh->Nfp; ++v)
         integral +=
-            nrs->usrwrk[mesh->vmapM[offset + v]] * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+            nrs->usrwrk[indices.flux * scalarFieldOffset() + mesh->vmapM[offset + v]] * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
     }
   }
 
@@ -438,7 +438,7 @@ normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
       for (int v = 0; v < mesh->Nfp; ++v)
       {
         int id = mesh->vmapM[offset + v];
-        nrs->usrwrk[id] *= ratio;
+        nrs->usrwrk[indices.flux * scalarFieldOffset() + id] *= ratio;
       }
     }
   }
@@ -478,7 +478,7 @@ normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling,
       int id = i * mesh->Np;
 
       for (int v = 0; v < mesh->Np; ++v)
-        nrs->usrwrk[scalarFieldOffset() + id + v] *= ratio;
+        nrs->usrwrk[indices.heat_source * scalarFieldOffset() + id + v] *= ratio;
     }
   }
 
@@ -1332,14 +1332,14 @@ void
 flux(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[id] = value;
+  nrs->usrwrk[indices.flux * scalarFieldOffset() + id] = value;
 }
 
 void
 heat_source(const int id, const dfloat value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  nrs->usrwrk[1 * scalarFieldOffset() + id] = value;
+  nrs->usrwrk[indices.heat_source * scalarFieldOffset() + id] = value;
 }
 
 void

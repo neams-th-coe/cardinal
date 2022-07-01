@@ -76,6 +76,11 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   // don't need them. We never change the ordering of "earlier" terms.
   std::vector<std::string> indices =
     {"flux", "heat_source", "x_displacement", "y_displacement", "z_displacement"};
+  nekrs::indices.flux = 0;
+  nekrs::indices.heat_source = 1;
+  nekrs::indices.x_displacement = 2;
+  nekrs::indices.y_displacement = 3;
+  nekrs::indices.z_displacement = 4;
 
   // progressively erase terms from the back if we don't need them
   if (!_moving_mesh)
@@ -735,7 +740,7 @@ NekRSProblem::flux(const int elem_id, double * flux_face)
     for (int i = 0; i < mesh->Nfp; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id] = flux_tmp[i];
+      nekrs::solution::flux(id, flux_tmp[i]);
     }
 
     freePointer(flux_tmp);
