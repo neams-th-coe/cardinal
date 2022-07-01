@@ -728,27 +728,16 @@ NekRSProblem::flux(const int elem_id, double * flux_face)
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
     mesh_t * mesh = nekrs::temperatureMesh();
 
-    int end_1d = mesh->Nq;
-    int start_1d = _nek_mesh->order() + 2;
-    int end_2d = end_1d * end_1d;
+    int offset;
+    double * flux_tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+    interpolateBoundarySolutionToNek(elem_id, flux_face, flux_tmp, offset);
 
-    int e = bc.element[elem_id];
-    int f = bc.face[elem_id];
-
-    double * scratch = (double *)calloc(start_1d * end_1d, sizeof(double));
-    double * flux_tmp = (double *)calloc(end_2d, sizeof(double));
-
-    nekrs::interpolateSurfaceFaceHex3D(
-        scratch, _interpolation_incoming, flux_face, start_1d, flux_tmp, end_1d);
-
-    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
-    for (int i = 0; i < end_2d; ++i)
+    for (int i = 0; i < mesh->Nfp; ++i)
     {
       int id = mesh->vmapM[offset + i];
       nrs->usrwrk[id] = flux_tmp[i];
     }
 
-    freePointer(scratch);
     freePointer(flux_tmp);
   }
 }

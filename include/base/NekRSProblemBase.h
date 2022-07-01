@@ -106,6 +106,16 @@ public:
 
 protected:
   /**
+   * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh
+   * @param[in] elem_id element ID
+   * @param[in] incoming_moose_value MOOSE face values
+   * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS boundary mesh
+   * @param[out] vmapM_offset offset into vmapM to start from for indexing into this element's indices
+   */
+  void interpolateBoundarySolutionToNek(const int elem_id, double * incoming_moose_value,
+                                        double * outgoing_nek_value, int & vmapM_offset);
+
+  /**
    * Write into the NekRS solution space; for setting a mesh position in terms of a
    * displacement, we need to add the displacement to the initial mesh coordinates. For
    * this, the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order,
@@ -371,4 +381,7 @@ protected:
 
   /// Minimum allowable scratch space size, strictly what is needed by Cardinal for coupling
   unsigned int _minimum_scratch_size_for_coupling;
+
+  /// For the MOOSE mesh, the number of quadrature points in each coordinate direction
+  int _moose_Nq;
 };
