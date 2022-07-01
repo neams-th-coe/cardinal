@@ -821,12 +821,11 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
     void (*write_solution)(int, dfloat);
     write_solution = nekrs::solution::solutionPointer(field);
 
-    int e = vc.element[elem_id];
+    int id;
     double * tmp = (double *)calloc(mesh->Np, sizeof(double));
 
-    nekrs::interpolateVolumeHex3D(_interpolation_incoming, T, _moose_Nq, tmp, mesh->Nq);
+    interpolateVolumeSolutionToNek(elem_id, T, tmp, id);
 
-    int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
@@ -835,6 +834,20 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
 
     freePointer(tmp);
   }
+}
+
+void
+NekRSProblemBase::interpolateVolumeSolutionToNek(const int elem_id, double * incoming_moose_value,
+  double * outgoing_nek_value, int & gll_offset)
+{
+  auto vc = _nek_mesh->volumeCoupling();
+  int e = vc.element[elem_id];
+  mesh_t * mesh = nekrs::entireMesh();
+
+  nekrs::interpolateVolumeHex3D(_interpolation_incoming, incoming_moose_value, _moose_Nq,
+    outgoing_nek_value, mesh->Nq);
+
+  gll_offset = e * mesh->Np;
 }
 
 void

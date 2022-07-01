@@ -106,7 +106,7 @@ public:
 
 protected:
   /**
-   * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh
+   * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh (mirror -> re2)
    * @param[in] elem_id element ID
    * @param[in] incoming_moose_value MOOSE face values
    * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS boundary mesh
@@ -114,6 +114,16 @@ protected:
    */
   void interpolateBoundarySolutionToNek(const int elem_id, double * incoming_moose_value,
                                         double * outgoing_nek_value, int & vmapM_offset);
+
+  /**
+   * Interpolate the MOOSE mesh mirror solution onto the NekRS volume mesh (mirror -> re2)
+   * @param[in] elem_id element ID
+   * @param[in] incoming_moose_value MOOSE face values
+   * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS volume mesh
+   * @param[out] gll_offset offset into usrwrk to start from for indexing into this element's indices
+   */
+  void interpolateVolumeSolutionToNek(const int elem_id, double * incoming_moose_value,
+                                      double * outgoing_nek_value, int & gll_offset);
 
   /**
    * Write into the NekRS solution space; for setting a mesh position in terms of a
@@ -131,14 +141,14 @@ protected:
                            const std::vector<double> * add = nullptr);
 
   /**
-   * Interpolate the nekRS volume solution onto the volume data transfer mesh
+   * Interpolate the NekRS volume solution onto the volume MOOSE mesh mirror (re2 -> mirror)
    * @param[in] f field to interpolate
    * @param[out] T interpolated volume value
    */
   void volumeSolution(const field::NekFieldEnum & f, double * T);
 
   /**
-   * Interpolate the nekRS boundary solution onto the boundary data transfer mesh
+   * Interpolate the NekRS boundary solution onto the boundary MOOSE mesh mirror (re2 -> mirror)
    * @param[in] f field to interpolate
    * @param[out] T interpolated boundary value
    */
