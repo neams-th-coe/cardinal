@@ -3,7 +3,8 @@
 The Nek development team provides many useful tools for streamlining
 the use of NekRS. The binaries you can build, as well as their purpose, include:
 
-- `exo2nek`: Convert between Exodus and Gmsh meshes to the custom NekRS `.re2` mesh format
+- `exo2nek`: Convert between Exodus meshes to the custom NekRS `.re2` mesh format
+- `gmsh2nek`: Convert between Gmsh meshes to the custom NekRS `.re2` mesh format
 - `visnek`: Generate metadata files to view the custom NekRS output file format in Paraview or Visit
 
 To build these tools, separately clone the Nek5000 repository and then
