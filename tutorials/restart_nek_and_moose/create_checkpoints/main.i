@@ -5,15 +5,13 @@
   ny = 3
 []
 
-[Problem]
-   type = FEProblem
-   restart_file_base = ../create_checkpoints/cardinal_sub_checkpoint_cp/LATEST # restart from LATEST time
-   force_restart = true # force restart sub app only
-[]
-
 [Variables]
   [u]
   []
+[]
+
+[Problem]
+  type = FEProblem
 []
 
 [Kernels]
@@ -53,10 +51,17 @@
 
 [Executioner]
   type = Transient
-
-  start_time = 0 # force start time to zero, same as nek restarted time
-
   petsc_options_iname = '-pc_type -pc_hypre_type'
   petsc_options_value = 'hypre boomeramg'
   nl_abs_tol = 1e-10
+  num_steps = 10
+  dt = 5e-4
+[]
+
+[Outputs]
+  [checkpoint]
+    file_base = 'cardinal_sub_checkpoint'
+    type = Checkpoint
+    num_files = 1
+  []
 []
