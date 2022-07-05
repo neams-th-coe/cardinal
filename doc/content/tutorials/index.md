@@ -49,11 +49,8 @@ documentation.
 
 8. [Multiphysics coupling of NekRS, OpenMC, and MOOSE heat conduction](tutorials/coupled.md)
 
-## Tutorials for Restarting Coupled Simulations
-
-9. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
-
 ## Miscellaneous
 
+9. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
 10. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
 11. [Assessing convergence](tutorials/convergence.md)

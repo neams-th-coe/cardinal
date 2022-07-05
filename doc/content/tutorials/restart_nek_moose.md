@@ -9,9 +9,10 @@ using said checkpoint files.
 # Creating NekRS checkpoint files
 
 NekRS checkpoint file output is controlled
-using the `writeControl` and `writeInterval` parameters in the .par file.
-The .par example below only writes a single checkpoint file
-at the end of the simulation.
+using the `writeControl` and `writeInterval` parameters in the `.par` file.
+The `.par` example below, for instance, writes a single checkpoint file
+at the end of the simulation. More fine-grained control can be achieved
+by using a smaller `writeInterval`.
 
 !listing /tutorials/restart_nek_and_moose/create_checkpoints/pyramid.par
 
@@ -29,8 +30,8 @@ for the previous and current MOOSE simulations must match.
 # Reading NekRS checkpoint files
 
 The NekRS solution is restarted using the `startFrom`
-parameter in the NekRS .par file. `restartFrom` should contain the
-checkpoint file to restart the NekRS portion of the coupled simulation from.
+parameter in the NekRS `.par` file. `startFrom` should contain the
+checkpoint file to restart the NekRS portion of the coupled simulation.
 
 !listing /tutorials/restart_nek_and_moose/read_from_checkpoints/pyramid.par
 
@@ -46,10 +47,16 @@ without restarting the main app.
 !listing /tutorials/restart_nek_and_moose/read_from_checkpoints/cardinal_sub.i
   block=Problem
 
-# Restart MOOSE at time zero
+# Restart MOOSE time
 
-By default, NekRS will restart its simulation from time zero. The `start_time` in MOOSE
-needs to be set to zero in order for MOOSE to start at the same time as the NekRS simulation.
+The `start_time` for a NekRS simulation is defined on the `Executioner` block
+in the NekRS-wrapped input file. By default, the start time will be set to zero
+(though the solution will still be read from whatever data is provided in the
+`startFrom` parameter in the `.par` file). In order to properly continue a
+coupled MOOSE-NekRS simulation, you just need to set the `start_time` in the
+MOOSE input file to match what NekRS will use. For instance, if you keep the
+default behavior in NekRS of setting the time to zero, set the `start_time` in
+the coupled MOOSE file also to zero.
 
 !listing /tutorials/restart_nek_and_moose/read_from_checkpoints/cardinal_sub.i
   block=Executioner

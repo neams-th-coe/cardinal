@@ -6,8 +6,8 @@
 []
 
 [Variables]
-  [./u]
-  [../]
+  [u]
+  []
 []
 
 [Problem]
@@ -15,29 +15,29 @@
 []
 
 [Kernels]
-  [./trans]
+  [trans]
     type = TimeDerivative
     variable = u
-  [../]
-  [./diff]
+  []
+  [diff]
     type = Diffusion
     variable = u
-  [../]
+  []
 []
 
 [BCs]
-  [./left]
+  [left]
     type = DirichletBC
     variable = u
     boundary = 'left'
     value = 0
-  [../]
-  [./right]
+  []
+  [right]
     type = DirichletBC
     variable = u
     boundary = 'right'
     value = 1
-  [../]
+  []
 []
 
 [Postprocessors]
@@ -63,4 +63,3 @@
     num_files = 1
   []
 []
-
