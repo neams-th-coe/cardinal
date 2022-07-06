@@ -3,5 +3,6 @@
     type = RunApp
     input = main.i
     requirement = "The system shall be able to create checkpoint files for a coupled Nek-MOOSE simulation"
+    required_objects = 'NekRSProblem'
   []
 []
