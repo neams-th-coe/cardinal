@@ -586,8 +586,6 @@ struct usrwrkIndices
   int z_displacement;
 };
 
-static usrwrkIndices indices;
-
 namespace solution
 {
 

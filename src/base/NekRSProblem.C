@@ -34,6 +34,7 @@
 registerMooseObject("CardinalApp", NekRSProblem);
 
 bool NekRSProblem::_first = true;
+extern nekrs::usrwrkIndices indices;
 
 InputParameters
 NekRSProblem::validParams()
@@ -74,33 +75,33 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   //
   // The most we will do is skip allocating terms at the end of this ordering if we
   // don't need them. We never change the ordering of "earlier" terms.
-  std::vector<std::string> indices =
+  std::vector<std::string> str_indices =
     {"flux", "heat_source", "x_displacement", "y_displacement", "z_displacement"};
-  nekrs::indices.flux = 0;
-  nekrs::indices.heat_source = 1;
-  nekrs::indices.x_displacement = 2;
-  nekrs::indices.y_displacement = 3;
-  nekrs::indices.z_displacement = 4;
+  indices.flux = 0 * nekrs::scalarFieldOffset();
+  indices.heat_source = 1 * nekrs::scalarFieldOffset();
+  indices.x_displacement = 2 * nekrs::scalarFieldOffset();
+  indices.y_displacement = 3 * nekrs::scalarFieldOffset();
+  indices.z_displacement = 4 * nekrs::scalarFieldOffset();
 
   // progressively erase terms from the back if we don't need them
   if (!_moving_mesh)
   {
-    indices.erase(indices.begin() + 2, indices.end());
+    str_indices.erase(str_indices.begin() + 2, str_indices.end());
 
     if (!_volume)
     {
-      indices.erase(indices.end());
+      str_indices.erase(str_indices.end());
 
       if (!_boundary)
-        indices.erase(indices.end());
+        str_indices.erase(str_indices.end());
     }
   }
 
-  _minimum_scratch_size_for_coupling = indices.size();
+  _minimum_scratch_size_for_coupling = str_indices.size();
   for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
-    indices.push_back("unused");
+    str_indices.push_back("unused");
 
-  _usrwrk_indices = indices;
+  _usrwrk_indices = str_indices;
 
   printScratchSpaceInfo(_usrwrk_indices);
 
