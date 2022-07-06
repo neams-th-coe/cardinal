@@ -134,6 +134,8 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     mooseError("Mesh for '" + type() + "' must be of type 'NekRSMesh', but you have specified a '" +
                mesh().type() + "'!");
 
+  _moose_Nq = _nek_mesh->order() + 2;
+
   // the Problem constructor is called right after building the mesh. In order
   // to have pretty screen output without conflicting with the timed print messages,
   // print diagnostic info related to the mesh here. If running in JIT mode, this
@@ -664,7 +666,7 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
   f = nekrs::solution::solutionPointer(field);
 
   int start_1d = mesh->Nq;
-  int end_1d = _nek_mesh->order() + 2;
+  int end_1d = _moose_Nq;
   int start_3d = start_1d * start_1d * start_1d;
   int end_3d = end_1d * end_1d * end_1d;
 
@@ -735,7 +737,7 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
   f = nekrs::solution::solutionPointer(field);
 
   int start_1d = mesh->Nq;
-  int end_1d = _nek_mesh->order() + 2;
+  int end_1d = _moose_Nq;
   int start_2d = start_1d * start_1d;
   int end_2d = end_1d * end_1d;
 
@@ -819,15 +821,11 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
     void (*write_solution)(int, dfloat);
     write_solution = nekrs::solution::solutionPointer(field);
 
-    int end_1d = mesh->Nq;
-    int start_1d = _nek_mesh->order() + 2;
-
-    int e = vc.element[elem_id];
+    int id;
     double * tmp = (double *)calloc(mesh->Np, sizeof(double));
 
-    nekrs::interpolateVolumeHex3D(_interpolation_incoming, T, start_1d, tmp, end_1d);
+    interpolateVolumeSolutionToNek(elem_id, T, tmp, id);
 
-    int id = e * mesh->Np;
     for (int v = 0; v < mesh->Np; ++v)
     {
       double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
@@ -836,6 +834,40 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
 
     freePointer(tmp);
   }
+}
+
+void
+NekRSProblemBase::interpolateVolumeSolutionToNek(const int elem_id, double * incoming_moose_value,
+  double * outgoing_nek_value, int & gll_offset)
+{
+  auto vc = _nek_mesh->volumeCoupling();
+  int e = vc.element[elem_id];
+  mesh_t * mesh = nekrs::entireMesh();
+
+  nekrs::interpolateVolumeHex3D(_interpolation_incoming, incoming_moose_value, _moose_Nq,
+    outgoing_nek_value, mesh->Nq);
+
+  gll_offset = e * mesh->Np;
+}
+
+void
+NekRSProblemBase::interpolateBoundarySolutionToNek(const int elem_id, double * incoming_moose_value,
+  double * outgoing_nek_value, int & vmapM_offset)
+{
+  const auto & bc = _nek_mesh->boundaryCoupling();
+  int e = bc.element[elem_id];
+  int f = bc.face[elem_id];
+
+  mesh_t * mesh = nekrs::temperatureMesh();
+
+  double * scratch = (double *)calloc(_moose_Nq * mesh->Nq, sizeof(double));
+
+  nekrs::interpolateSurfaceFaceHex3D(
+      scratch, _interpolation_incoming, incoming_moose_value, _moose_Nq, outgoing_nek_value, mesh->Nq);
+
+  vmapM_offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
+
+  freePointer(scratch);
 }
 
 #endif
