@@ -1,4 +1,4 @@
-# Tutorial 9: Coupling to Other MOOSE Apps
+# Tutorial 10: Coupling to Other MOOSE Apps
 
 In this tutorial, you will learn how to:
 
