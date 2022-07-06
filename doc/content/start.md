@@ -100,6 +100,15 @@ Cardinal supports *optional* coupling to the following codes:
 
 !alert-end!
 
+!alert! note title=Running with NekRS?
+
+Follow [these instructions](nek_tools.md) to obtain binary executables to use for common NekRS-related operations, such as:
+
+- Converting between an Exodus mesh and NekRS's custom `.re2` mesh format
+- Generating metadata files for visualizing NekRS's custom field fiel output in Paraview
+
+!alert-end!
+
 #### Set Environment Variables
   id=env
 
@@ -284,6 +293,14 @@ python make_openmc_model.py
 ```
 cd test/tests/cht/sfr_pincell
 mpiexec -np 4 ../../../../cardinal-opt -i nek_master.i
+```
+
+4. If you are using NekRS and also want to leverage [NekRS's tools](nek_tools.md)
+   to make meshes, view output files in Paraview, etc., try:
+
+```
+cd test/tests/conduction/boundary_and_volume/prism
+exo2nek
 ```
 
 For developers, you will also find it useful to be able to run Cardinal's
