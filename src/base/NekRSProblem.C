@@ -34,6 +34,7 @@
 registerMooseObject("CardinalApp", NekRSProblem);
 
 bool NekRSProblem::_first = true;
+extern nekrs::usrwrkIndices indices;
 
 InputParameters
 NekRSProblem::validParams()
@@ -74,28 +75,33 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   //
   // The most we will do is skip allocating terms at the end of this ordering if we
   // don't need them. We never change the ordering of "earlier" terms.
-  std::vector<std::string> indices =
+  std::vector<std::string> str_indices =
     {"flux", "heat_source", "x_displacement", "y_displacement", "z_displacement"};
+  indices.flux = 0 * nekrs::scalarFieldOffset();
+  indices.heat_source = 1 * nekrs::scalarFieldOffset();
+  indices.x_displacement = 2 * nekrs::scalarFieldOffset();
+  indices.y_displacement = 3 * nekrs::scalarFieldOffset();
+  indices.z_displacement = 4 * nekrs::scalarFieldOffset();
 
   // progressively erase terms from the back if we don't need them
   if (!_moving_mesh)
   {
-    indices.erase(indices.begin() + 2, indices.end());
+    str_indices.erase(str_indices.begin() + 2, str_indices.end());
 
     if (!_volume)
     {
-      indices.erase(indices.end());
+      str_indices.erase(str_indices.end());
 
       if (!_boundary)
-        indices.erase(indices.end());
+        str_indices.erase(str_indices.end());
     }
   }
 
-  _minimum_scratch_size_for_coupling = indices.size();
+  _minimum_scratch_size_for_coupling = str_indices.size();
   for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
-    indices.push_back("unused");
+    str_indices.push_back("unused");
 
-  _usrwrk_indices = indices;
+  _usrwrk_indices = str_indices;
 
   printScratchSpaceInfo(_usrwrk_indices);
 
@@ -728,27 +734,16 @@ NekRSProblem::flux(const int elem_id, double * flux_face)
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
     mesh_t * mesh = nekrs::temperatureMesh();
 
-    int end_1d = mesh->Nq;
-    int start_1d = _nek_mesh->order() + 2;
-    int end_2d = end_1d * end_1d;
+    int offset;
+    double * flux_tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+    interpolateBoundarySolutionToNek(elem_id, flux_face, flux_tmp, offset);
 
-    int e = bc.element[elem_id];
-    int f = bc.face[elem_id];
-
-    double * scratch = (double *)calloc(start_1d * end_1d, sizeof(double));
-    double * flux_tmp = (double *)calloc(end_2d, sizeof(double));
-
-    nekrs::interpolateSurfaceFaceHex3D(
-        scratch, _interpolation_incoming, flux_face, start_1d, flux_tmp, end_1d);
-
-    int offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
-    for (int i = 0; i < end_2d; ++i)
+    for (int i = 0; i < mesh->Nfp; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id] = flux_tmp[i];
+      nekrs::solution::flux(id, flux_tmp[i]);
     }
 
-    freePointer(scratch);
     freePointer(flux_tmp);
   }
 }
