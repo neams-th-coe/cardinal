@@ -189,12 +189,8 @@ protected:
    */
   std::string fieldFilePrefix(const int & number) const;
 
-  /// Whether the nekRS solution is performed in nondimensional scales
-  const bool & _nondimensional;
-
-  //@{
   /**
-   * \brief Reference scales for nekRS solution in non-dimensional form.
+   * \brief Whether the nekRS solution is performed in nondimensional scales
    *
    * If nekRS is solving in non-dimensional form, this means that the nekRS solution
    * is performed for:
@@ -223,18 +219,25 @@ protected:
    * heat flux to dimensionless nekRS heat flux is performed automatically, and does not require
    * any special treatment in the nekRS scalarNeumannBC kernel.
    */
+  const bool & _nondimensional;
+
+  /// Reference characteristic velocity
   const Real & _U_ref;
 
+  /// Reference characteristic temperature
   const Real & _T_ref;
 
+  /// Reference characteristic temperature delta
   const Real & _dT_ref;
 
+  /// Reference characteristic length
   const Real & _L_ref;
 
+  /// Reference density
   const Real & _rho_0;
 
+  /// Reference isobaric specific heat capacity
   const Real & _Cp_0;
-  //@}
 
   /**
    * Whether to disable output file writing by NekRS and replace it by output
