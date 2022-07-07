@@ -35,4 +35,7 @@ if MOOSE_PYTHON_DIR not in sys.path:
 
 from MooseDocs import main
 if __name__ == '__main__':
+    os.chdir("..")
+    os.system("doxygen doc/content/doxygen/Doxyfile")
+    os.chdir("doc")
     sys.exit(main.run())
