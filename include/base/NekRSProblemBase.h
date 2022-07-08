@@ -42,6 +42,12 @@ public:
   ~NekRSProblemBase();
 
   /**
+   * Write NekRS solution field file
+   * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be non-dimensional)
+   */
+  void writeFieldFile(const Real & time) const;
+
+  /**
    * Optional entry point called in externalSolve() where we can adjust
    * the NekRS solution (such as to clip out high/low values of temperature).
    * This is called after runStep(), but before writing anything to the Nek5000
@@ -394,4 +400,10 @@ protected:
 
   /// For the MOOSE mesh, the number of quadrature points in each coordinate direction
   int _moose_Nq;
+
+  /// Slots in the nrs->o_usrwrk array to write to a field file
+  const std::vector<unsigned int> * _usrwrk_output;
+
+  /// Filename prefix to use for naming the field files containing the nrs->o_usrwrk array slots
+  const std::vector<std::string> * _usrwrk_output_prefix;
 };

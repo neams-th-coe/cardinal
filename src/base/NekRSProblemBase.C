@@ -68,6 +68,14 @@ NekRSProblemBase::validParams()
   params.addParam<MultiMooseEnum>(
       "output", nek_outputs, "Field(s) to output from NekRS onto the mesh mirror");
 
+  params.addParam<std::vector<unsigned int>>("usrwrk_output",
+    "Usrwrk slot(s) to output to NekRS field files; this can be used for viewing the quantities "
+    "passed from MOOSE to NekRS after interpolation to the CFD mesh. Can also be used for any slots "
+    "in usrwrk that are written by the user, but unused for coupling.");
+  params.addParam<std::vector<std::string>>("usrwrk_output_prefix",
+    "String prefix to use for naming the field file(s); "
+    "only the first three characters are used in the name based on limitations in NekRS");
+
   params.addParam<bool>(
       "write_fld_files",
       false,
@@ -75,7 +83,8 @@ NekRSProblemBase::validParams()
       "from Cardinal. If true, this will disable any output writing by NekRS itself, and "
       "instead produce output files with names a01...a99pin, b01...b99pin, etc.");
   params.addParam<bool>(
-      "disable_fld_file_output", false, "Whether to turn off all NekRS field file output writing");
+      "disable_fld_file_output", false, "Whether to turn off all NekRS field file output writing "
+      "(for the usual field file output - this does not affect writing the usrwrk with 'usrwrk_output')");
 
   params.addParam<bool>("minimize_transfers_in",
                         false,
@@ -220,24 +229,50 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _outputs = &getParam<MultiMooseEnum>("output");
     _external_data = (double *)calloc(_n_points, sizeof(double));
   }
+
+  checkJointParams(params, {"usrwrk_output", "usrwrk_output_prefix"},
+    "outputting usrwrk slots to field files");
+
+  if (isParamValid("usrwrk_output"))
+  {
+    _usrwrk_output = &getParam<std::vector<unsigned int>>("usrwrk_output");
+    _usrwrk_output_prefix = &getParam<std::vector<std::string>>("usrwrk_output_prefix");
+
+    for (const auto & s : *_usrwrk_output)
+      if (s >= _n_usrwrk_slots)
+        mooseError("Cannot write field file for usrwrk slot greater than the total number of "
+          "allocated slots: ", _n_usrwrk_slots, "!");
+
+    if (_usrwrk_output->size() != _usrwrk_output_prefix->size())
+      mooseError("The length of 'usrwrk_output' must match the length of 'usrwrk_output_prefix'!");
+  }
 }
 
 NekRSProblemBase::~NekRSProblemBase()
 {
   // write nekRS solution to output if not already written for this step
-  if (!_is_output_step && !_disable_fld_file_output)
-  {
-    if (_write_fld_files)
-      nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(_time));
-    else
-      nekrs::outfld(_timestepper->nondimensionalDT(_time));
-  }
+  if (!_is_output_step)
+    writeFieldFile(_time);
 
   freePointer(_external_data);
   freePointer(_interpolation_outgoing);
   freePointer(_interpolation_incoming);
 
   nekrs::finalize();
+}
+
+void
+NekRSProblemBase::writeFieldFile(const Real & step_end_time) const
+{
+  if (_disable_fld_file_output)
+    return;
+
+  Real t = _timestepper->nondimensionalDT(step_end_time);
+
+  if (_write_fld_files)
+    nekrs::write_field_file(_prefix, t);
+  else
+    nekrs::outfld(t);
 }
 
 void
@@ -412,7 +447,7 @@ NekRSProblemBase::externalSolve()
   nekrs::outputStep(_is_output_step);
 
   // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
-  // evaluated at (step_end_time, _t_step)
+  // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
   nekrs::runStep(_timestepper->nondimensionalDT(step_start_time),
                  _timestepper->nondimensionalDT(_dt),
                  _t_step);
@@ -429,12 +464,26 @@ NekRSProblemBase::externalSolve()
   // by the user.
   nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  if (_is_output_step && !_disable_fld_file_output)
+  static std::vector<bool> first_fld(_usrwrk_output->size(), true);
+
+  if (_is_output_step)
   {
-    if (_write_fld_files)
-      nekrs::write_field_file(_prefix, _timestepper->nondimensionalDT(step_end_time));
-    else
-      nekrs::outfld(_timestepper->nondimensionalDT(step_end_time));
+    writeFieldFile(step_end_time);
+
+    // TODO: I could not figure out why this can't be called from the destructor, to
+    // add another field file on Cardinal's last time step. Revisit in the future.
+    if (_usrwrk_output)
+    {
+      for (unsigned int i = 0; i < _usrwrk_output->size(); ++i)
+      {
+        bool write_coords = first_fld[i] ? true : false;
+
+        nekrs::write_usrwrk_field_file((*_usrwrk_output)[i], (*_usrwrk_output_prefix)[i],
+          _timestepper->nondimensionalDT(step_end_time), write_coords);
+
+        first_fld[i] = false;
+      }
+    }
   }
 
   _time += _dt;
