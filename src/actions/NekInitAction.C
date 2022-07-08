@@ -106,9 +106,13 @@ NekInitAction::act()
     // function
     int size_target = 0;
     int ci_mode = 0;
+    std::string backend = "";
+    std::string device_id = "";
 
     cl->search("nekrs_buildonly", size_target);
     cl->search("nekrs_cimode", ci_mode);
+    cl->search("nekrs_backend", backend);
+    cl->search("nekrs_device_id", device_id);
 
     int build_only = size_target > 0 ? 1 : 0;
 
@@ -142,8 +146,8 @@ NekInitAction::act()
                  ci_mode,
                  cache_dir,
                  casename,
-                 "" /* backend */,
-                 "" /* device ID */);
+                 backend,
+                 device_id);
 
     _n_cases++;
   }
