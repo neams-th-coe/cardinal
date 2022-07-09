@@ -7,7 +7,7 @@
 
 [Problem]
    type = FEProblem
-   restart_file_base = ../create_checkpoints/cardinal_sub_checkpoint_cp/LATEST # restart from LATEST time
+   restart_file_base = ../cardinal_sub_checkpoint_cp/LATEST # restart from LATEST time
    force_restart = true # force restart sub app only
 []
 
