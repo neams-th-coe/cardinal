@@ -70,6 +70,9 @@ CardinalApp::validParams()
   params.addCommandLineParam<int>(
       "nekrs_buildonly", "--nekrs-buildonly [#procs]", "#procs to build NekRS if pre-compiling");
   params.addCommandLineParam<int>("nekrs_cimode", "--nekrs-cimode [id]", "CI test ID for NekRS");
+  params.addCommandLineParam<std::string>("nekrs_backend", "--nekrs-backend",
+    "Backend to use for NekRS parallelism; options: CPU, CUDA, HIP, OPENCL, OPENMP");
+  params.addCommandLineParam<std::string>("nekrs_device_id", "--nekrs-device-id", "NekRS device ID");
 
   params.set<bool>("use_legacy_material_output") = false;
   return params;
