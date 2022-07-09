@@ -10,6 +10,8 @@ you want to write. Then, specify a filename prefix to use to name each field fil
 In the example below, the first two "slots" in the `nrs->usrwrk` array will be
 written to field files on the same interval that NekRS writes its usual field files.
 These files will be named `aaabrick0.f00001`, etc. and `cccbrick0.f00001`, etc.
+Based on limitations in how NekRS writes its files, the fields written to these
+files will all be named `temperature` when visualized.
 
 !listing test/tests/nek_file_output/usrwrk/nek.i
   block=Problem
