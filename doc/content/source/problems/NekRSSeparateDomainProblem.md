@@ -239,6 +239,17 @@ void velocityDirichletConditions(bcData *bc)
 }
 !listing-end!
 
+## Other Features
+
+This class mainly facilitates data transfers to and from NekRS. A number of other
+features are implemented in order to enable nondimensional solutions,
+improved communication, and convenient solution modifications. These are
+described in this section.
+
+### Outputting the Scratch Array
+
+!include write_scratch.md
+
 !syntax parameters /Problem/NekRSSeparateDomainProblem
 
 !syntax inputs /Problem/NekRSSeparateDomainProblem

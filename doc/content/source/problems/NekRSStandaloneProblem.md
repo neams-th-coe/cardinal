@@ -146,3 +146,7 @@ to place the results in the `layered_p` auxiliary variable.
 These two examples of postprocessor and userobject usage only scratch the
 surface of the capabilities of the MOOSE framework - please consult
 the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html) to learn about further capabilities.
+
+## Outputting the Scratch Array
+
+!include write_scratch.md

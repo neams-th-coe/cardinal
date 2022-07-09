@@ -370,6 +370,10 @@ solution - only an interpolated version of the NekRS solution.
   caption=Velocity from the NekRS field files (left) and after interpolation onto a second order mesh mirror (right).
   style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
+### Outputting the Scratch Array
+
+!include write_scratch.md
+
 ### Reducing CPU/GPU Data Transfers
   id=min
 
