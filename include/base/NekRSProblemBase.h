@@ -402,8 +402,8 @@ protected:
   int _moose_Nq;
 
   /// Slots in the nrs->o_usrwrk array to write to a field file
-  const std::vector<unsigned int> * _usrwrk_output;
+  const std::vector<unsigned int> * _usrwrk_output = nullptr;
 
   /// Filename prefix to use for naming the field files containing the nrs->o_usrwrk array slots
-  const std::vector<std::string> * _usrwrk_output_prefix;
+  const std::vector<std::string> * _usrwrk_output_prefix = nullptr;
 };
