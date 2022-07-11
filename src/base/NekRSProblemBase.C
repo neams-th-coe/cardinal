@@ -464,8 +464,6 @@ NekRSProblemBase::externalSolve()
   // by the user.
   nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
 
-  static std::vector<bool> first_fld(_usrwrk_output->size(), true);
-
   if (_is_output_step)
   {
     writeFieldFile(step_end_time);
@@ -474,6 +472,8 @@ NekRSProblemBase::externalSolve()
     // add another field file on Cardinal's last time step. Revisit in the future.
     if (_usrwrk_output)
     {
+      static std::vector<bool> first_fld(_usrwrk_output->size(), true);
+
       for (unsigned int i = 0; i < _usrwrk_output->size(); ++i)
       {
         bool write_coords = first_fld[i] ? true : false;
