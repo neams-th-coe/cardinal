@@ -9,7 +9,7 @@
 # * HYPRE_DIR: Top-level HYPRE dir (default: $(PETSC_DIR)/$(PETSC_ARCH))
 
 # HDF5_ROOT: Top-level HDF5 directory (default: $(HYPRE_DIR), meaning that the default
-#            is to use HDF5 downloaded by PETSc. This makefile will then get the header
+#            is to use HDF5 downloaded by PETSc). This makefile will then get the header
 #            files from $(HDF5_ROOT)/include and the libraries from $(HDF5_ROOT)/lib.
 
 # * HDF5_INCLUDE_DIR: Top-level HDF5 header dir (default: $(HDF5_ROOT)/include)
