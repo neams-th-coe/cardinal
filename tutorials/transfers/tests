@@ -1,0 +1,20 @@
+[Tests]
+  [mesh1]
+    type = RunApp
+    input = mesh1.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall create a mesh for a data transfer tutorial."
+  []
+  [mesh2]
+    type = RunApp
+    input = mesh2.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall create a mesh for a data transfer tutorial."
+  []
+  [volume]
+    type = RunApp
+    input = main.i
+    requirement = "The system shall be able to transfer fields between two volume meshes in several different ways."
+    prereq = 'mesh1 mesh2'
+  []
+[]
