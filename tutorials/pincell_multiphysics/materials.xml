@@ -1,0 +1,238 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1" name="UO2">
+    <density units="g/cm3" value="10.29769" />
+    <nuclide ao="0.00022623866603420858" name="U234" />
+    <nuclide ao="0.02531160246829241" name="U235" />
+    <nuclide ao="0.9743462195687997" name="U238" />
+    <nuclide ao="0.00011593929687363616" name="U236" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material id="2" name="water0">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="3" name="Zircaloy 4">
+    <density units="g/cm3" value="6.55" />
+    <nuclide name="Sn112" wo="0.0001280150011885156" />
+    <nuclide name="Sn114" wo="8.865813236022722e-05" />
+    <nuclide name="Sn115" wo="4.607357438391996e-05" />
+    <nuclide name="Sn116" wo="0.001987443043627223" />
+    <nuclide name="Sn117" wo="0.0010588319166827192" />
+    <nuclide name="Sn118" wo="0.0033677060749010084" />
+    <nuclide name="Sn119" wo="0.001204557209296121" />
+    <nuclide name="Sn120" wo="0.004607003655772829" />
+    <nuclide name="Sn122" wo="0.0006656367398249325" />
+    <nuclide name="Sn124" wo="0.0008460746519625024" />
+    <nuclide name="Fe54" wo="9.315171073560117e-05" />
+    <nuclide name="Fe56" wo="0.0015163752247343758" />
+    <nuclide name="Fe57" wo="3.564608218682946e-05" />
+    <nuclide name="Fe58" wo="4.826982343193628e-06" />
+    <nuclide name="Cr50" wo="4.173686536432398e-05" />
+    <nuclide name="Cr52" wo="0.0008369936235260468" />
+    <nuclide name="Cr53" wo="9.673586887095358e-05" />
+    <nuclide name="Cr54" wo="2.4533642238675768e-05" />
+    <nuclide name="Zr90" wo="0.4986186065354624" />
+    <nuclide name="Zr91" wo="0.10994725679002436" />
+    <nuclide name="Zr92" wo="0.1699042107139048" />
+    <nuclide name="Zr94" wo="0.1759321745494071" />
+    <nuclide name="Zr96" wo="0.028947751411201494" />
+  </material>
+  <material id="4" name="water1">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="5" name="water2">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="6" name="water3">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="7" name="water4">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="8" name="water5">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="9" name="water6">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="10" name="water7">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="11" name="water8">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="12" name="water9">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="13" name="water10">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="14" name="water11">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="15" name="water12">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="16" name="water13">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="17" name="water14">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="18" name="water15">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="19" name="water16">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="20" name="water17">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="21" name="water18">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="22" name="water19">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="23" name="water20">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="24" name="water21">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="25" name="water22">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="26" name="water23">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+  <material id="27" name="water24">
+    <density units="g/cm3" value="1.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+    <sab name="c_H_in_H2O" />
+  </material>
+</materials>
