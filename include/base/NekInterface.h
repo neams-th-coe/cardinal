@@ -57,6 +57,16 @@ void setStartTime(const double & start);
 bool isInitialized();
 
 /**
+ * Write a field file containing a specific slot of the nrs->usrwrk scratch space;
+ * this will write the field to the 'temperature' slot in a field file.
+ * @param[in] slot index in the nrs->usrwrk array to write
+ * @param[in] prefix prefix for file name
+ * @param[in] time simulation time to write file for
+ * @parma[in] write_coords whether to write the mesh coordinates
+ */
+void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const bool & write_coords);
+
+/**
  * Write a field file containing pressure, velocity, and scalars with given prefix
  * @param[in] prefix three-character prefix
  * @param[in] time time

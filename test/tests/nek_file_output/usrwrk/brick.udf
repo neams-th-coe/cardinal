@@ -1,0 +1,51 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(nrs_t *nrs)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    dfloat x = mesh->x[n];
+    dfloat y = mesh->y[n];
+    dfloat z = mesh->z[n];
+
+    nrs->U[n + 0 * nrs->fieldOffset] = 1 + x * y * z; // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = 2 + y * exp(z); // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = 3 + z * x; // z-velocity
+
+    nrs->P[n] = 0.0; // pressure
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
+  }
+
+  nrs->usrwrk = (double *)calloc(2 * nrs->cds->fieldOffset[0], sizeof(double));
+  nrs->o_usrwrk = platform->device.malloc(2 * nrs->cds->fieldOffset[0] * sizeof(double),
+                                          nrs->usrwrk);
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+  if (tstep == 0)
+  {
+    auto mesh = nrs->cds->mesh[0];
+    int n_gll_points = mesh->Np * mesh->Nelements;
+
+    // write the first slot of the scratch space
+    int offset = 0;
+    for (int n = 0; n < n_gll_points; ++n)
+      nrs->usrwrk[offset + n] = mesh->z[n];
+
+    // write the second slot of the scratch space
+    offset = nrs->cds->fieldOffset[0];
+    for (int n = 0; n < n_gll_points; ++n)
+      nrs->usrwrk[offset + n] = mesh->x[n];
+
+    nrs->o_usrwrk.copyFrom(nrs->usrwrk, 2 * nrs->cds->fieldOffset[0] * sizeof(double), 0);
+  }
+}
