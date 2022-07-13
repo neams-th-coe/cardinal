@@ -45,7 +45,11 @@ export CXX=mpicxx
 export FC=mpif90
 
 # Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Bebop is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 !listing-end!
 
 !listing scripts/job_bebop language=bash caption=Job script to run OpenMC and Nek cases on one node of the 36-core partition with the `startup` project code id=bb2

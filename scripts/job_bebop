@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input file names in this script
+# 3. sbatch job_bebop
+
 #SBATCH --job-name=cardinal
 #SBATCH --account=startup
 #SBATCH --partition=bdwall
@@ -20,12 +25,8 @@ export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xm
 export CARDINAL_DIR=$HOME/cardinal
 export NEKRS_HOME=$CARDINAL_DIR/install
 
-# Run an OpenMC case
-cd $CARDINAL_DIR/test/tests/neutronics/feedback/lattice
-rm logfile
-mpiexec -np 18 $CARDINAL_DIR/cardinal-opt -i openmc_master.i --n-threads=2 > logfile
+# The name of the input file you want to run
+input_file=openmc.i
 
-# Run a NekRS case
-cd $CARDINAL_DIR/test/tests/cht/sfr_pincell
-rm logfile
-mpiexec -np 36 $CARDINAL_DIR/cardinal-opt -i nek_master.i > logfile
+# Run a Cardinal case
+mpiexec -np 36 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile
