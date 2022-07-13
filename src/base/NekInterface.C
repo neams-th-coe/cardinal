@@ -53,6 +53,20 @@ cornerGLLIndices(const int & n)
 }
 
 void
+write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const bool & write_coords)
+{
+  int num_bytes = scalarFieldOffset() * sizeof(dfloat);
+
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  occa::memory o_write = platform->device.malloc(num_bytes);
+  o_write.copyFrom(nrs->o_usrwrk, num_bytes /* length we are copying */,
+    0 /* where to place data */, num_bytes * slot /* where to source data */);
+
+  occa::memory o_null;
+  writeFld(prefix.c_str(), time, write_coords, 1 /* FP64 */, &o_null, &o_null, &o_write, 1);
+}
+
+void
 write_field_file(const std::string & prefix, const dfloat time)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
