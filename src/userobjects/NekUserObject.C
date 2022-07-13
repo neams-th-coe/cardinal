@@ -28,7 +28,7 @@ NekUserObject::validParams()
 }
 
 NekUserObject::NekUserObject(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters)
+  : ThreadedGeneralUserObject(parameters), _mesh(_subproblem.mesh())
 {
   _nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!_nek_problem)
@@ -41,7 +41,9 @@ NekUserObject::NekUserObject(const InputParameters & parameters)
                "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
   }
 
-  _fixed_mesh = !(_nek_problem->movingMesh());
+  _nek_mesh = dynamic_cast<const NekRSMesh *>(&_mesh);
+
+  _fixed_mesh = !(_nek_mesh->movingMesh());
 }
 
 #endif

@@ -36,6 +36,7 @@ NekRSMesh::validParams()
   params.addParam<std::vector<int>>("boundary",
                                     "Boundary ID(s) through which nekRS will be coupled to MOOSE");
   params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
+  params.addParam<bool>("moving_mesh", false, "Whether we have a moving mesh problem or not");
   params.addParam<MooseEnum>(
       "order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
   params.addRangeCheckedParam<Real>(
@@ -47,6 +48,7 @@ NekRSMesh::validParams()
 
 NekRSMesh::NekRSMesh(const InputParameters & parameters)
   : MooseMesh(parameters),
+    _moving_mesh(getParam<bool>("moving_mesh")),
     _volume(getParam<bool>("volume")),
     _boundary(isParamValid("boundary") ? &getParam<std::vector<int>>("boundary") : nullptr),
     _order(getParam<MooseEnum>("order").getEnum<order::NekOrderEnum>()),
@@ -98,6 +100,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
 
   // save the initial mesh structure in case we are applying displacements
   // (which are additive to the initial mesh structure)
+
   for (int k = 0; k < _nek_internal_mesh->Nelements; ++k)
   {
     int offset = k * _nek_internal_mesh->Np;

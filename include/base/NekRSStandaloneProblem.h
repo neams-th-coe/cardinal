@@ -31,5 +31,5 @@ public:
 
   static InputParameters validParams();
 
-  virtual bool movingMesh() const override;
+  virtual bool movingMesh() const;
 };

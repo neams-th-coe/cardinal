@@ -40,7 +40,6 @@ InputParameters
 NekRSProblem::validParams()
 {
   InputParameters params = NekRSProblemBase::validParams();
-  params.addParam<bool>("moving_mesh", false, "Whether we have a moving mesh problem or not");
 
   params.addParam<bool>("has_heat_source",
                         true,
@@ -62,7 +61,6 @@ NekRSProblem::validParams()
 NekRSProblem::NekRSProblem(const InputParameters & params)
   : NekRSProblemBase(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _moving_mesh(getParam<bool>("moving_mesh")),
     _has_heat_source(getParam<bool>("has_heat_source")),
     _usrwrk_indices(MultiMooseEnum("flux heat_source x_displacement y_displacement z_displacement unused"))
 {
@@ -84,7 +82,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   indices.z_displacement = 4 * nekrs::scalarFieldOffset();
 
   // progressively erase terms from the back if we don't need them
-  if (!_moving_mesh)
+  if (!hasMovingNekMesh())
   {
     str_indices.erase(str_indices.begin() + 2, str_indices.end());
 
@@ -106,7 +104,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   printScratchSpaceInfo(_usrwrk_indices);
 
   // will be implemented soon
-  if (_moving_mesh)
+  if (hasMovingNekMesh())
   {
     if (_nondimensional)
       mooseError("Moving mesh features are not yet implemented for a non-dimensional nekRS case!");
@@ -129,7 +127,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _source_elem = (double *)calloc(_n_vertices_per_volume, sizeof(double));
   }
 
-  if (_moving_mesh)
+  if (hasMovingNekMesh())
   {
     if (_boundary)
       mooseError("Mesh displacement not supported in boundary coupling!");
@@ -209,7 +207,7 @@ NekRSProblem::initialSetup()
           "for the source\nin the passive scalar equations! If you don't have an energy source\n"
           "in your NekRS domain, you can disable this error with 'has_heat_source = false'.");
 
-  if (_moving_mesh && !nekrs::hasMovingMesh())
+  if (hasMovingNekMesh() && !nekrs::hasMovingMesh())
     mooseError("In order for MOOSE to compute a mesh deformation in NekRS, you "
                "must have 'solver = user' in the [MESH] block!");
 
@@ -231,7 +229,7 @@ NekRSProblem::initialSetup()
   }
 
   // save initial mesh for moving mesh problems to match deformation in exodus output files
-  if (_moving_mesh && !_disable_fld_file_output)
+  if (hasMovingNekMesh() && !_disable_fld_file_output)
     nekrs::outfld(_timestepper->nondimensionalDT(_time));
 }
 
@@ -602,7 +600,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       // copy the boundary heat flux and/or volume heat source in the scratch space to device
       nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
 
-      if (_moving_mesh)
+      if (hasMovingNekMesh())
       {
         if (_volume)
         {
@@ -710,7 +708,7 @@ NekRSProblem::addExternalVariables()
 
   // add the displacement aux variables from the solid mechanics solver; these will
   // be needed regardless of whether the displacement is boundary- or volume-based
-  if (_moving_mesh)
+  if (hasMovingNekMesh())
   {
     addAuxVariable("MooseVariable", "disp_x", var_params);
     _disp_x_var = _aux->getFieldVariable<Real>(0, "disp_x").number();

@@ -40,6 +40,12 @@ protected:
   /// Underlying problem object
   const NekRSProblemBase * _nek_problem;
 
+  /// Base mesh this postprocessor acts on
+  const MooseMesh & _mesh;
+
+  /// Underlying NekRSMesh, if present
+  const NekRSMesh * _nek_mesh;
+
   /// Whether the mesh this userobject operates on is fixed, allowing caching of volumes and areas
   bool _fixed_mesh;
 };

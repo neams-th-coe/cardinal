@@ -41,11 +41,12 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
                "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
   }
 
-  _fixed_mesh = !(_nek_problem->movingMesh());
 
   // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that
   // this pointer isn't NULL
   _nek_mesh = dynamic_cast<const NekRSMesh *>(&_mesh);
+
+  _fixed_mesh = !(_nek_mesh->movingMesh());
 }
 
 #endif

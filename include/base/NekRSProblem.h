@@ -106,7 +106,7 @@ public:
    */
   virtual double minInterpolatedTemperature() const;
 
-  virtual bool movingMesh() const override { return _moving_mesh; }
+  virtual const bool hasMovingNekMesh() const override { return _nek_mesh->movingMesh(); }
 
 protected:
   virtual void addTemperatureVariable() override { return; }
@@ -119,9 +119,6 @@ protected:
   void flux(const int elem_id, double * flux_face);
 
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
-
-  /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
-  const bool & _moving_mesh;
 
   /// Whether a heat source will be applied to NekRS from MOOSE
   const bool & _has_heat_source;

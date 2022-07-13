@@ -4,12 +4,12 @@
   volume = true
   parallel_type = replicated
   displacements = 'disp_x disp_y disp_z'
+  moving_mesh = true
 []
 
 [Problem]
   type = NekRSProblem
   casename = 'nekbox'
-  moving_mesh = true
   minimize_transfers_in = true
 []
 

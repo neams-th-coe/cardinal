@@ -1,6 +1,5 @@
 [Problem]
   type = NekRSProblem
-  moving_mesh = true
   casename = 'cube'
 []
 
@@ -9,6 +8,7 @@
   volume = true
   parallel_type = replicated
   displacements = 'disp_x disp_y disp_z'
+  moving_mesh = true
 []
 
 [Executioner]

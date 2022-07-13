@@ -252,6 +252,12 @@ public:
    */
   int facesOnBoundary(const int elem_id) const;
 
+  /**
+   * Get the value of the _moving_mesh parameter
+   * @return whether the problem is "moving mesh" type or not
+   */
+  const bool & movingMesh() const { return _moving_mesh; }
+
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
@@ -284,6 +290,9 @@ protected:
 
   /// Initialize members for the mesh and determine the GLL-to-node mapping
   void initializeMeshParams();
+
+  /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
+  const bool & _moving_mesh;
 
   /**
    * \brief Whether nekRS is coupled through volumes to MOOSE

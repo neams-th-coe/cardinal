@@ -81,10 +81,10 @@ public:
   virtual bool nondimensional() const { return _nondimensional; }
 
   /**
-   * Whether the mesh is moving
-   * @return whether the mesh is moving
-   */
-  virtual bool movingMesh() const { return false; }
+  * Whether the mesh is moving
+  * @return whether the mesh is moving
+  */
+  virtual const bool hasMovingNekMesh() const { return false; }
 
   /**
    * Whether data should be synchronized in to nekRS
