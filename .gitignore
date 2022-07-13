@@ -230,3 +230,5 @@ install/**
 problems/large-problems-master/
 
 *.ppm
+
+doc/content/doxygen/html*

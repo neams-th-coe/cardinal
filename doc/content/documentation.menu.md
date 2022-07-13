@@ -1,5 +1,5 @@
 !row! class=row
-!col! small=12 medium=6 large=4
+!col! small=12 medium=6 large=3
 
 ## [Tutorials [!icon!link]](tutorials/index.md)
 
@@ -9,15 +9,25 @@
 
 !col-end!
 
-!col! small=12 medium=6 large=4
+!col! small=12 medium=6 large=3
 
-## [Class Objects [!icon!link]](source/index.md)
+## [Input Files [!icon!link]](source/index.md)
 
 - Cardinal input file syntax
+- Code usage
 
 !col-end!
 
-!col! small=12 medium=6 large=4
+!col! small=12 medium=6 large=3
+
+## [Doxygen [!icon!link]](doxygen/html/classes.html)
+
+- C++ code documentation
+- Class inheritance, member variables, ...
+
+!col-end!
+
+!col! small=12 medium=6 large=3
 
 ## [Running on HPC [!icon!link]](hpc.md)
 
