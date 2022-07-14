@@ -358,27 +358,53 @@ protected:
   /// Total number of volume elements in the nekRS problem
   int _nek_n_volume_elems;
 
-  ///@{
   /**
-   * \brief \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the nodes
+   * \brief \f$x\f$ coordinates of the current GLL points (which can move in time), for this rank
    *
    * This is ordered according to nekRS's internal geometry layout, and is indexed
    * first by the element and then by the node.
-   **/
+   */
   std::vector<double> _x;
-  std::vector<double> _y;
-  std::vector<double> _z;
-  ///@}
 
-  ///@{
   /**
-   * \f$x\f$, \f$y\f$, \f$z\f$ coordinates of the initial GLL points
-   * in the mesh, for this rank
-   **/
+   * \brief \f$y\f$ coordinates of the current GLL points (which can move in time), for this rank
+   *
+   * This is ordered according to nekRS's internal geometry layout, and is indexed
+   * first by the element and then by the node.
+   */
+  std::vector<double> _y;
+
+  /**
+   * \brief \f$z\f$ coordinates of the current GLL points (which can move in time), for this rank
+   *
+   * This is ordered according to nekRS's internal geometry layout, and is indexed
+   * first by the element and then by the node.
+   */
+  std::vector<double> _z;
+
+  /**
+   * \brief \f$x\f$ coordinates of the initial GLL points, for this rank
+   *
+   * This is ordered according to nekRS's internal geometry layout, and is indexed
+   * first by the element and then by the node.
+   */
   std::vector<double> _initial_x;
+
+  /**
+   * \brief \f$y\f$ coordinates of the initial GLL points, for this rank
+   *
+   * This is ordered according to nekRS's internal geometry layout, and is indexed
+   * first by the element and then by the node.
+   */
   std::vector<double> _initial_y;
+
+  /**
+   * \brief \f$z\f$ coordinates of the initial GLL points, for this rank
+   *
+   * This is ordered according to nekRS's internal geometry layout, and is indexed
+   * first by the element and then by the node.
+   */
   std::vector<double> _initial_z;
-  ///@}
 
   /**
    * \brief Mapping of boundary GLL indices to MooseMesh node indices
