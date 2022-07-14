@@ -1,0 +1,35 @@
+# Model of single LWR pincell, in non-dimensional form
+#
+# Pr = 0.86
+# Re = 500.0
+# Pe = Re * Pr
+
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 2000
+  dt = 2e-2
+  timeStepper = tombo2
+  writeControl = numSteps
+  writeInterval = 200
+  polynomialOrder = 3
+
+[VELOCITY]
+  viscosity = -500.0
+  density = 1.0
+  boundaryTypeMap = w, v, O, symx, symx, symy, symy
+  residualTol = 1.0e-6
+  residualProj = false
+
+[PRESSURE]
+  residualTol = 1.0e-6
+  residualProj = false
+  preconditioner = semg_amg
+
+[TEMPERATURE]
+  conductivity = -430.0
+  rhoCp = 1.0
+  boundaryTypeMap = f, t, I, I, I, I, I
+  residualTol = 1.0e-3
