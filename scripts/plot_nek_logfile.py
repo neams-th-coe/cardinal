@@ -31,9 +31,21 @@
 #
 # Then, run this script with "-i" passing the name of the logfile to parse.
 # Optional settings:
-#
+
 # What quantities to plot for temporal convergence
 temporal_plots = ['Vz', 'S01', 'S02']
+
+# Length of domain in non-dimensional units, to use for temporal plots
+flow_through_length = 144.3761398582499
+
+# Names to use for the scalars for plotting
+scalar_names = ["$T$", "$k$", "$\\tau$"]
+
+# Colors to use for plotting
+colors = ['firebrick', 'darkorange', 'forestgreen', 'steelblue', 'slateblue']
+if (len(colors) < len(temporal_plots)):
+  raise ValueError("Length of 'colors' array must be at least as long as the length " + \
+    "of 'temporal_plots'! Please edit plot_nek_logfile.py to specify more plot colors.")
 
 import matplotlib
 matplotlib.use('Agg')
@@ -44,8 +56,7 @@ import numpy as np
 import re
 
 matplotlib.rcParams.update({'font.size': 14})
-colors = ['firebrick', 'orangered', 'darkorange', 'goldenrod', 'forestgreen', \
-          'lightseagreen', 'steelblue', 'slateblue']
+color_idx = 0
 
 program_description = ("Script for plotting quantities from NekRS's console output")
 ap = ArgumentParser(description=program_description)
@@ -228,33 +239,44 @@ plt.close()
 
 n_fld_files = len(max_Vx)
 
+for i in range(len(fld_file_time)):
+  fld_file_time[i] /= flow_through_length
+  fld_file_time[i] = np.round(fld_file_time[i], 2)
+
+ms = 4
+lw = 2
+
 print('')
 if ('Vx' in temporal_plots):
   rel_diff_max_Vx = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vx.append(abs(max_Vx[i + 1] - max_Vx[i]) / max_Vx[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_Vx, marker='o', markersize=3, color='b', label='Maximum $V_x$')
+  plt.plot(fld_file_time[1:], rel_diff_max_Vx, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_x$')
+  color_idx += 1
   print('Percent change in maximum Vx:  ', rel_diff_max_Vx[-1] * 100.0)
 
 if ('Vy' in temporal_plots):
   rel_diff_max_Vy = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vy.append(abs(max_Vy[i + 1] - max_Vy[i]) / max_Vy[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_Vy, marker='o', markersize=3, color='r', label='Maximum $V_y$')
+  plt.plot(fld_file_time[1:], rel_diff_max_Vy, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_y$')
+  color_idx += 1
   print('Percent change in maximum Vy:  ', rel_diff_max_Vy[-1] * 100.0)
 
 if ('Vz' in temporal_plots):
   rel_diff_max_Vz = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vz.append(abs(max_Vz[i + 1] - max_Vz[i]) / max_Vz[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_Vz, marker='o', markersize=3, color='k', label='Maximum $V_z$')
+  plt.plot(fld_file_time[1:], rel_diff_max_Vz, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_z$')
+  color_idx += 1
   print('Percent change in maximum Vz:  ', rel_diff_max_Vz[-1] * 100.0)
 
 if ('P' in temporal_plots):
   rel_diff_max_P = []
   for i in range(n_fld_files - 1):
     rel_diff_max_P.append(abs(max_P[i + 1] - max_P[i]) / max_P[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_P, marker='o', markersize=3, color='g', label='Maximum $P$')
+  plt.plot(fld_file_time[1:], rel_diff_max_P, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $P$')
+  color_idx += 1
   print('Percent change in maximum P:   ', rel_diff_max_P[-1] * 100.0)
 
 for j in range(n_scalars):
@@ -262,12 +284,13 @@ for j in range(n_scalars):
     rel_diff_max_S = []
     for i in range(n_fld_files - 1):
       rel_diff_max_S.append(abs(max_scalars[j][i + 1] - max_scalars[j][i]) / max_scalars[j][i])
-    plt.plot(fld_file_time[1:], rel_diff_max_S, marker='o', markersize=3, color=colors[j], label='Maximum $S_{%i}$' %j)
+    plt.plot(fld_file_time[1:], rel_diff_max_S, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum ' + scalar_names[j])
+    color_idx += 1
     print('Percent change in maximum S0' + str(j) + ': ', rel_diff_max_S[-1] * 100.0)
 
 plt.xticks(fld_file_time[1:])
-plt.xlabel('Time (-)')
-plt.ylabel('Relative Difference from Previous Step')
+plt.xlabel('Flow-Through Times (-)')
+plt.ylabel('Relative Difference')
 plt.legend()
 plt.grid()
 plt.savefig('temporal.pdf', bbox_inches="tight")
