@@ -31,8 +31,10 @@
 #
 # Then, run this script with "-i" passing the name of the logfile to parse.
 
-from argparse import ArgumentParser
 import matplotlib
+matplotlib.use('Agg')
+
+from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 import numpy as np
 import re
