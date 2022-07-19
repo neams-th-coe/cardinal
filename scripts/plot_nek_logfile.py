@@ -56,36 +56,6 @@ eTimeStep = []
 dt = []
 t = []
 
-has_velocity_solver = True
-n_scalars = 0
-solve_scalars = []
-
-with open(args.logfile_name, 'r') as f:
-  lines = f.readlines()
-  for line in lines:
-    if (line.startswith('key: VELOCITY SOLVER,')):
-      match = re.search('value: (.*)', line)
-      if (match):
-        if (match.group(1) == "NONE"):
-          has_velocity_solver = False
-
-    if (line.startswith('key: NUMBER OF SCALARS,')):
-      match = re.search('value: (.*)', line)
-      if (match):
-        n_scalars = int(match.group(1))
-
-    solve_scalars = [True] * n_scalars
-    for i in range(n_scalars):
-      if (line.startswith('key: SCALAR0' + str(i) + ' SOLVER,')):
-        match = re.search('value: (.*)', line)
-        if (match.group(1) == "NONE"):
-          solve_scalars[i] = False
-
-char_after_cfl = 'UVW'
-if (not has_velocity_solver):
-  if (n_scalars and any(e == True for e in solve_scalars)):
-    char_after_cfl = 'S:'
-
 with open(args.logfile_name, 'r') as f:
   lines = f.readlines()
   for line in lines:
