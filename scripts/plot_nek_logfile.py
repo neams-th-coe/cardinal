@@ -93,6 +93,10 @@ with open(args.logfile_name, 'r') as f:
       if (match):
         eTimeStep.append(float(match.group(1).strip().split("s", 1)[0]))
 
+if (len(dt) == 0):
+  raise ValueError("Cannot parse " + args.logfile_name + " time step because " + \
+    "no NekRS time steps have been run!");
+
 print('Average dt:        ', np.average(dt))
 plt.plot(t, dt, color='k')
 plt.xlabel('Time')
@@ -110,7 +114,8 @@ plt.savefig('cfl.pdf', bbox_inches="tight")
 plt.close()
 
 if (len(UVW) > 0):
-  print('Average UVW:       ', np.average(UVW))
+  print('\nAverage UVW:       ', np.average(UVW))
+  print('  Percent > 200:   ', sum(i > 200 for i in UVW) / len(UVW) * 100.0)
   plt.plot(t, UVW, color='k')
   plt.xlabel('Time')
   plt.ylabel('Number of Velocity Iterations (-)')
@@ -119,7 +124,8 @@ if (len(UVW) > 0):
   plt.close()
 
 if (len(P) > 0):
-  print('Average P:         ', np.average(P))
+  print('\nAverage P:         ', np.average(P))
+  print('  Percent > 200:   ', sum(i > 200 for i in P) / len(P) * 100.0)
   plt.plot(t, P, color='k')
   plt.xlabel('Time')
   plt.ylabel('Number of Pressure Iterations (-)')
@@ -127,8 +133,9 @@ if (len(P) > 0):
   plt.savefig('p.pdf', bbox_inches="tight")
   plt.close()
 
-print('Average eTimeStep: ', np.average(eTimeStep))
-print('Total runtime:     ', np.sum(eTimeStep), ' to reach an end time of: ', np.sum(dt))
+print('\nAverage eTimeStep: ', np.average(eTimeStep))
+print('Total runtime:     ', np.sum(eTimeStep))
+print('End time:          ', np.sum(dt))
 print('runtime / second:  ', np.sum(eTimeStep) / np.sum(dt))
 plt.plot(t, eTimeStep, color='k')
 plt.xlabel('Time')
