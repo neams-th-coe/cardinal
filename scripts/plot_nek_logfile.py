@@ -284,7 +284,7 @@ ms = 4
 lw = 2
 
 print('')
-if ('Vx' in temporal_plots):
+if ('Vx' in temporal_plots and len(max_Vx) > 0):
   rel_diff_max_Vx = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vx.append(abs(max_Vx[i + 1] - max_Vx[i]) / max_Vx[i])
@@ -292,7 +292,7 @@ if ('Vx' in temporal_plots):
   color_idx += 1
   print('Percent change in maximum Vx:  ', rel_diff_max_Vx[-1] * 100.0)
 
-if ('Vy' in temporal_plots):
+if ('Vy' in temporal_plots and len(max_Vy) > 0):
   rel_diff_max_Vy = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vy.append(abs(max_Vy[i + 1] - max_Vy[i]) / max_Vy[i])
@@ -300,7 +300,7 @@ if ('Vy' in temporal_plots):
   color_idx += 1
   print('Percent change in maximum Vy:  ', rel_diff_max_Vy[-1] * 100.0)
 
-if ('Vz' in temporal_plots):
+if ('Vz' in temporal_plots and len(max_Vz) > 0):
   rel_diff_max_Vz = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vz.append(abs(max_Vz[i + 1] - max_Vz[i]) / max_Vz[i])
@@ -308,7 +308,7 @@ if ('Vz' in temporal_plots):
   color_idx += 1
   print('Percent change in maximum Vz:  ', rel_diff_max_Vz[-1] * 100.0)
 
-if ('P' in temporal_plots):
+if ('P' in temporal_plots and len(max_P) > 0):
   rel_diff_max_P = []
   for i in range(n_fld_files - 1):
     rel_diff_max_P.append(abs(max_P[i + 1] - max_P[i]) / max_P[i])
@@ -317,7 +317,7 @@ if ('P' in temporal_plots):
   print('Percent change in maximum P:   ', rel_diff_max_P[-1] * 100.0)
 
 for j in range(n_scalars):
-  if ('S0' + str(j) in temporal_plots):
+  if ('S0' + str(j) in temporal_plots and len(max_scalars[j]) > 0):
     rel_diff_max_S = []
     for i in range(n_fld_files - 1):
       rel_diff_max_S.append(abs(max_scalars[j][i + 1] - max_scalars[j][i]) / max_scalars[j][i])
@@ -325,7 +325,7 @@ for j in range(n_scalars):
     color_idx += 1
     print('Percent change in maximum S0' + str(j) + ': ', rel_diff_max_S[-1] * 100.0)
 
-if ('dP' in temporal_plots):
+if ('dP' in temporal_plots and len(dP) > 0):
   rel_diff_dP = []
   for i in range(n_fld_files - 1):
     rel_diff_dP.append(abs(dP[i + 1] - dP[i]) / dP[i])
