@@ -316,14 +316,6 @@ if ('P' in temporal_plots):
   color_idx += 1
   print('Percent change in maximum P:   ', rel_diff_max_P[-1] * 100.0)
 
-if ('dP' in temporal_plots):
-  rel_diff_dP = []
-  for i in range(n_fld_files - 1):
-    rel_diff_dP.append(abs(dP[i + 1] - dP[i]) / dP[i])
-  plt.plot(fld_file_time[1:], rel_diff_dP, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='$\Delta P/\Delta L$')
-  color_idx += 1
-  print('Percent change in dP/dL:       ', rel_diff_dP[-1] * 100.0)
-
 for j in range(n_scalars):
   if ('S0' + str(j) in temporal_plots):
     rel_diff_max_S = []
@@ -332,6 +324,14 @@ for j in range(n_scalars):
     plt.plot(fld_file_time[1:], rel_diff_max_S, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum ' + scalar_names[j])
     color_idx += 1
     print('Percent change in maximum S0' + str(j) + ': ', rel_diff_max_S[-1] * 100.0)
+
+if ('dP' in temporal_plots):
+  rel_diff_dP = []
+  for i in range(n_fld_files - 1):
+    rel_diff_dP.append(abs(dP[i + 1] - dP[i]) / dP[i])
+  plt.plot(fld_file_time[1:], rel_diff_dP, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='$\Delta P/\Delta L$')
+  color_idx += 1
+  print('Percent change in dP/dL:       ', rel_diff_dP[-1] * 100.0)
 
 plt.xticks(fld_file_time[1:])
 plt.xlabel('Flow-Through Times (-)')
