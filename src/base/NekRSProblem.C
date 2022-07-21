@@ -306,7 +306,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 
         // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
         // onto the nekRS GLL points
-        flux(e, _flux_face);
+        writeBoundarySolution(e, field::flux, _flux_face);
       }
     }
     else if (_volume)
@@ -720,31 +720,6 @@ NekRSProblem::addExternalVariables()
 
     addAuxVariable("MooseVariable", "disp_z", var_params);
     _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
-  }
-}
-
-void
-NekRSProblem::flux(const int elem_id, double * flux_face)
-{
-  const auto & bc = _nek_mesh->boundaryCoupling();
-
-  // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (nekrs::commRank() == bc.processor_id(elem_id))
-  {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    mesh_t * mesh = nekrs::temperatureMesh();
-
-    int offset;
-    double * flux_tmp = (double *)calloc(mesh->Nfp, sizeof(double));
-    interpolateBoundarySolutionToNek(elem_id, flux_face, flux_tmp, offset);
-
-    for (int i = 0; i < mesh->Nfp; ++i)
-    {
-      int id = mesh->vmapM[offset + i];
-      nekrs::solution::flux(id, flux_tmp[i]);
-    }
-
-    freePointer(flux_tmp);
   }
 }
 
