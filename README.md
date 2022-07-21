@@ -1,4 +1,4 @@
-![Cardinal](./doc/content/media/cardinal_logo.png)
+<img src="./doc/content/media/cardinal_logo.png" width="500">
 
 Cardinal is a wrapping of the spectral element code CFD [NekRS](https://github.com/Nek5000/nekRS) and
 the Monte Carlo radiation transport code [OpenMC](https://github.com/openmc-dev/openmc) as a MOOSE application.
