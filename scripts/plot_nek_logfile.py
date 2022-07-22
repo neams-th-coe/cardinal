@@ -32,8 +32,11 @@
 # Then, run this script with "-i" passing the name of the logfile to parse.
 # Optional settings:
 
-# What quantities to plot for temporal convergence
-temporal_plots = ['Vz', 'S01', 'S02']
+# What quantities to plot for temporal convergence. options:
+# Vx, Vy, Vz, P, T, S<nn>, dP. The 'dP' option is only valid for periodic
+# flows, as it will extract the bulk pressure drop using information for
+# the constant flow rate solver
+temporal_plots = ['Vz', 'S01', 'S02', 'dP']
 
 # Length of domain in non-dimensional units, to use for temporal plots
 flow_through_length = 144.3761398582499
@@ -87,18 +90,27 @@ min_Vy      = []
 min_Vz      = []
 min_P       = []
 min_scalars = []
+dP          = []
 n_scalars   = 0
 n_lines_in_write_checkpoint = 2
 casename    = ""
 
+first_fld_file = True
+constant_flow_rate = False
+
 # do some initial parsing to find information like number of scalars
 i = 0
-first_fld_file = True
+l = -1
 step = 0
 fld_file_time = []
+lines_with_scale_before_write_checkpoint = []
+
+first_shift = True
 with open(args.logfile_name, 'r') as f:
   lines = f.readlines()
   for line in lines:
+    l += 1
+
     # get the number of scalars
     if (line.startswith('key: NUMBER OF SCALARS,')):
       match = re.search('value: (.*)', line)
@@ -129,6 +141,12 @@ with open(args.logfile_name, 'r') as f:
       split = line.split()
 
       if (i == 0):
+        if (first_shift):
+          lines_with_scale_before_write_checkpoint.append(l - 6)
+          first_shift = False
+        else:
+          lines_with_scale_before_write_checkpoint.append(l - 5)
+
         fld_file_time.append(step)
         min_Vx.append(float(split[1]))
         max_Vx.append(float(split[2]))
@@ -150,6 +168,21 @@ with open(args.logfile_name, 'r') as f:
         i = 0
       else:
         i += 1
+
+# get the scale
+l = -1
+k = 0
+with open(args.logfile_name, 'r') as f:
+  lines = f.readlines()
+  for line in lines:
+    l += 1
+
+    if (k < len(lines_with_scale_before_write_checkpoint) and l == lines_with_scale_before_write_checkpoint[k]):
+      k += 1
+
+      match = re.search('scale(.*)', line)
+      if (match):
+        dP.append(float(match.group(1).strip()))
 
 with open(args.logfile_name, 'r') as f:
   lines = f.readlines()
@@ -185,6 +218,10 @@ with open(args.logfile_name, 'r') as f:
       match = re.search('elapsedStep=(.*)', line)
       if (match):
         eTimeStep.append(float(match.group(1).strip().split("s", 1)[0]))
+
+      match = re.search('scale (.*)', line)
+      if (match):
+        scale.append(float(match.group(1).strip()))
 
 if (len(dt) == 0):
   raise ValueError("Cannot parse " + args.logfile_name + " time step because " + \
@@ -247,7 +284,7 @@ ms = 4
 lw = 2
 
 print('')
-if ('Vx' in temporal_plots):
+if ('Vx' in temporal_plots and len(max_Vx) > 0):
   rel_diff_max_Vx = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vx.append(abs(max_Vx[i + 1] - max_Vx[i]) / max_Vx[i])
@@ -255,7 +292,7 @@ if ('Vx' in temporal_plots):
   color_idx += 1
   print('Percent change in maximum Vx:  ', rel_diff_max_Vx[-1] * 100.0)
 
-if ('Vy' in temporal_plots):
+if ('Vy' in temporal_plots and len(max_Vy) > 0):
   rel_diff_max_Vy = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vy.append(abs(max_Vy[i + 1] - max_Vy[i]) / max_Vy[i])
@@ -263,7 +300,7 @@ if ('Vy' in temporal_plots):
   color_idx += 1
   print('Percent change in maximum Vy:  ', rel_diff_max_Vy[-1] * 100.0)
 
-if ('Vz' in temporal_plots):
+if ('Vz' in temporal_plots and len(max_Vz) > 0):
   rel_diff_max_Vz = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vz.append(abs(max_Vz[i + 1] - max_Vz[i]) / max_Vz[i])
@@ -271,7 +308,7 @@ if ('Vz' in temporal_plots):
   color_idx += 1
   print('Percent change in maximum Vz:  ', rel_diff_max_Vz[-1] * 100.0)
 
-if ('P' in temporal_plots):
+if ('P' in temporal_plots and len(max_P) > 0):
   rel_diff_max_P = []
   for i in range(n_fld_files - 1):
     rel_diff_max_P.append(abs(max_P[i + 1] - max_P[i]) / max_P[i])
@@ -280,13 +317,21 @@ if ('P' in temporal_plots):
   print('Percent change in maximum P:   ', rel_diff_max_P[-1] * 100.0)
 
 for j in range(n_scalars):
-  if ('S0' + str(j) in temporal_plots):
+  if ('S0' + str(j) in temporal_plots and len(max_scalars[j]) > 0):
     rel_diff_max_S = []
     for i in range(n_fld_files - 1):
       rel_diff_max_S.append(abs(max_scalars[j][i + 1] - max_scalars[j][i]) / max_scalars[j][i])
     plt.plot(fld_file_time[1:], rel_diff_max_S, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum ' + scalar_names[j])
     color_idx += 1
     print('Percent change in maximum S0' + str(j) + ': ', rel_diff_max_S[-1] * 100.0)
+
+if ('dP' in temporal_plots and len(dP) > 0):
+  rel_diff_dP = []
+  for i in range(n_fld_files - 1):
+    rel_diff_dP.append(abs(dP[i + 1] - dP[i]) / dP[i])
+  plt.plot(fld_file_time[1:], rel_diff_dP, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='$\Delta P/\Delta L$')
+  color_idx += 1
+  print('Percent change in dP/dL:       ', rel_diff_dP[-1] * 100.0)
 
 plt.xticks(fld_file_time[1:])
 plt.xlabel('Flow-Through Times (-)')
