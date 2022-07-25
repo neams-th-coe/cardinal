@@ -15,25 +15,14 @@
                   "a sub-app."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [three_pebbles]
-    type = Exodiff
-    input = openmc_master.i
-    exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
-    min_parallel = 4
-    min_threads = 2
-    # This test has very few particles, and OpenMC will error if there aren't enough source particles
-    # in the fission bank on a process
-    max_parallel = 6
-    requirement = "A coupled OpenMC-MOOSE problem for three pebbles shall demonstrate "
-                  "correct data transfers between OpenMC and heat conduction in the solid."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [missing_pebble]
     type = RunException
     input = openmc_missing_pebble.i
     min_parallel = 4
     min_threads = 2
-    expect_err = "Heating tally kappa-fission does not match the global kappa-fission value"
+    expect_err = "Heating tallies do not match the global kappa-fission tally"
+    requirement = "The system shall error if the heating tallies are missing power from other parts "
+                  "of the problem."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

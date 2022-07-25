@@ -18,18 +18,15 @@
 []
 
 [Problem]
-  type = OpenMCProblem
+  type = OpenMCCellAverageProblem
   power = 10.0
-  centers = '0 0 0
-             0 0 4'
-  volumes = '1.322128e+01'
   tally_type = 'cell'
-  pebble_cell_level = 0
+  solid_cell_level = 0
+  solid_blocks = '1'
 []
 
 [Executioner]
   type = Transient
-  num_steps = 2
 []
 
 [Outputs]

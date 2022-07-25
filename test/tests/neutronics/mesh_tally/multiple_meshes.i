@@ -59,11 +59,6 @@
   normalize_by_global_tally = false
   mesh_translations_file = pebble_centers.txt
 
-  # alternative OpenMC problem that was used to gold the test results
-  #type = OpenMCProblem
-  #pebble_cell_level = 0
-  #centers_file = pebble_centers.txt
-
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'
   power = 100.0
