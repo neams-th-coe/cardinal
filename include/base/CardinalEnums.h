@@ -25,6 +25,7 @@ MooseEnum getBinnedVelocityComponentEnum();
 MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
 MooseEnum getTallyTypeEnum();
+MooseEnum getTallyEstimatorEnum();
 MooseEnum getEigenvalueEnum();
 MooseEnum getRelaxationEnum();
 MooseEnum getTallyTriggerEnum();
@@ -96,6 +97,14 @@ enum TallyTypeEnum
 {
   cell,
   mesh
+};
+
+/// Type of estimator to use for OpenMC tallies
+enum TallyEstimatorEnum
+{
+  collision,
+  tracklength,
+  analog
 };
 
 /// Type of trigger to apply

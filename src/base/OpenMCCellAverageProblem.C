@@ -107,6 +107,8 @@ OpenMCCellAverageProblem::validParams()
 
   params.addRequiredParam<MooseEnum>(
       "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
+  params.addParam<MooseEnum>(
+      "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
   params.addParam<std::string>("mesh_template",
                                "Mesh tally template for OpenMC when using mesh tallies; "
                                "at present, this mesh must exactly match the mesh used in the "
@@ -237,6 +239,43 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _temperature_blocks(nullptr),
     _symmetry(nullptr)
 {
+  if (isParamValid("tally_estimator"))
+  {
+    auto estimator = getParam<MooseEnum>("tally_estimator").getEnum<tally::TallyEstimatorEnum>();
+    if (_tally_type == tally::mesh && estimator == tally::tracklength)
+      mooseError("Tracklength estimators are currently incompatible with mesh tallies!");
+
+    switch (estimator)
+    {
+      case tally::tracklength:
+        _tally_estimator = openmc::TallyEstimator::TRACKLENGTH;
+        break;
+      case tally::collision:
+        _tally_estimator = openmc::TallyEstimator::COLLISION;
+        break;
+      case tally::analog:
+        _tally_estimator = openmc::TallyEstimator::ANALOG;
+        break;
+      default:
+        mooseError("Unhandled TallyEstimatorEnum in OpenMCCellAverageProblem!");
+    }
+  }
+  else
+  {
+    // set a default of tracklength for cells, and use mandatory collision for mesh tallies
+    switch (_tally_type)
+    {
+      case tally::cell:
+        _tally_estimator = openmc::TallyEstimator::TRACKLENGTH;
+        break;
+      case tally::mesh:
+        _tally_estimator = openmc::TallyEstimator::COLLISION;
+        break;
+      default:
+        mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+    }
+  }
+
   if (_tally_type == tally::mesh)
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
       mooseError("Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
@@ -1607,12 +1646,11 @@ OpenMCCellAverageProblem::storeTallyCells()
 }
 
 void
-OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters,
-                                        const openmc::TallyEstimator estimator)
+OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters)
 {
   auto tally = openmc::Tally::create();
   tally->set_scores({"kappa-fission"});
-  tally->estimator_ = estimator;
+  tally->estimator_ = _tally_estimator;
   tally->set_filters(filters);
   _local_tally.push_back(tally);
 }
@@ -1672,7 +1710,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
       cell_filter->set_cell_instances(cells);
       std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      addLocalTally(tally_filters, openmc::TallyEstimator::TRACKLENGTH);
+      addLocalTally(tally_filters);
 
       break;
     }
@@ -1720,7 +1758,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
         _mesh_filters.push_back(meshFilter);
         std::vector<openmc::Filter *> tally_filters = {meshFilter};
-        addLocalTally(tally_filters, openmc::TallyEstimator::COLLISION);
+        addLocalTally(tally_filters);
       }
 
       if (_verbose)

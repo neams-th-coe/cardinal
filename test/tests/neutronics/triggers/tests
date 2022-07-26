@@ -42,12 +42,28 @@
       "tally relative error with cell tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [tally_rel_err_collision]
+    type = CSVDiff
+    input = tally_rel_err.i
+    cli_args = "Outputs/file_base=collision_out Problem/tally_estimator=collision"
+    csvdiff = collision_out.csv
+    requirement = "The system shall allow the user to customize the tally estimator for cell tallies"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [mesh_tally_rel_err]
     type = CSVDiff
     input = mesh_tally_rel_err.i
     csvdiff = mesh_tally_rel_err_out.csv
     requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
       "tally relative error with mesh tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [mesh_tally_rel_err_analog]
+    type = CSVDiff
+    input = mesh_tally_rel_err.i
+    cli_args = "Outputs/file_base=analog_out Problem/tally_estimator=analog"
+    csvdiff = analog_out.csv
+    requirement = "The system shall allow the user to customize the tally estimator for mesh tallies"
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
