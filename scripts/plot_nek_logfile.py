@@ -36,7 +36,7 @@
 # Vx, Vy, Vz, P, T, S<nn>, dP. The 'dP' option is only valid for periodic
 # flows, as it will extract the bulk pressure drop using information for
 # the constant flow rate solver
-temporal_plots = ['Vz', 'S01', 'S02', 'dP']
+temporal_plots = ['Vx', 'Vy', 'Vz', 'S01', 'S02', 'dP']
 
 # Length of domain in non-dimensional units, to use for temporal plots
 flow_through_length = 144.3761398582499
@@ -45,7 +45,7 @@ flow_through_length = 144.3761398582499
 scalar_names = ["$T$", "$k$", "$\\tau$"]
 
 # Colors to use for plotting
-colors = ['firebrick', 'darkorange', 'forestgreen', 'steelblue', 'slateblue']
+colors = ['firebrick', 'darkorange', 'forestgreen', 'steelblue', 'slateblue', 'black']
 if (len(colors) < len(temporal_plots)):
   raise ValueError("Length of 'colors' array must be at least as long as the length " + \
     "of 'temporal_plots'! Please edit plot_nek_logfile.py to specify more plot colors.")
@@ -282,61 +282,75 @@ for i in range(len(fld_file_time)):
 
 ms = 4
 lw = 2
+has_plot = False
 
 print('')
-if ('Vx' in temporal_plots and len(max_Vx) > 0):
+if ('Vx' in temporal_plots and len(max_Vx) > 1):
+  has_plot = True
   rel_diff_max_Vx = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vx.append(abs(max_Vx[i + 1] - max_Vx[i]) / max_Vx[i])
   plt.plot(fld_file_time[1:], rel_diff_max_Vx, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_x$')
   color_idx += 1
   print('Percent change in maximum Vx:  ', rel_diff_max_Vx[-1] * 100.0)
+  print('  maximum Vx:                  ', max_Vx[-1])
 
-if ('Vy' in temporal_plots and len(max_Vy) > 0):
+if ('Vy' in temporal_plots and len(max_Vy) > 1):
+  has_plot = True
   rel_diff_max_Vy = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vy.append(abs(max_Vy[i + 1] - max_Vy[i]) / max_Vy[i])
   plt.plot(fld_file_time[1:], rel_diff_max_Vy, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_y$')
   color_idx += 1
   print('Percent change in maximum Vy:  ', rel_diff_max_Vy[-1] * 100.0)
+  print('  maximum Vy:                  ', max_Vy[-1])
 
-if ('Vz' in temporal_plots and len(max_Vz) > 0):
+if ('Vz' in temporal_plots and len(max_Vz) > 1):
+  has_plot = True
   rel_diff_max_Vz = []
   for i in range(n_fld_files - 1):
     rel_diff_max_Vz.append(abs(max_Vz[i + 1] - max_Vz[i]) / max_Vz[i])
   plt.plot(fld_file_time[1:], rel_diff_max_Vz, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_z$')
   color_idx += 1
   print('Percent change in maximum Vz:  ', rel_diff_max_Vz[-1] * 100.0)
+  print('  maximum Vz:                  ', max_Vz[-1])
 
-if ('P' in temporal_plots and len(max_P) > 0):
+if ('P' in temporal_plots and len(max_P) > 1):
+  has_plot = True
   rel_diff_max_P = []
   for i in range(n_fld_files - 1):
     rel_diff_max_P.append(abs(max_P[i + 1] - max_P[i]) / max_P[i])
   plt.plot(fld_file_time[1:], rel_diff_max_P, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $P$')
   color_idx += 1
   print('Percent change in maximum P:   ', rel_diff_max_P[-1] * 100.0)
+  print('  maximum P:                   ', max_P[-1])
 
 for j in range(n_scalars):
-  if ('S0' + str(j) in temporal_plots and len(max_scalars[j]) > 0):
+  if ('S0' + str(j) in temporal_plots and len(max_scalars[j]) > 1):
+    has_plot = True
     rel_diff_max_S = []
     for i in range(n_fld_files - 1):
       rel_diff_max_S.append(abs(max_scalars[j][i + 1] - max_scalars[j][i]) / max_scalars[j][i])
     plt.plot(fld_file_time[1:], rel_diff_max_S, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum ' + scalar_names[j])
     color_idx += 1
     print('Percent change in maximum S0' + str(j) + ': ', rel_diff_max_S[-1] * 100.0)
+    print('  maximum S0' + str(j) + ':                 ', max_scalars[j][-1])
 
-if ('dP' in temporal_plots and len(dP) > 0):
+if ('dP' in temporal_plots and len(dP) > 1):
+  has_plot = True
   rel_diff_dP = []
   for i in range(n_fld_files - 1):
     rel_diff_dP.append(abs(dP[i + 1] - dP[i]) / dP[i])
   plt.plot(fld_file_time[1:], rel_diff_dP, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='$\Delta P/\Delta L$')
   color_idx += 1
   print('Percent change in dP/dL:       ', rel_diff_dP[-1] * 100.0)
+  print('  dP/dL:                       ', dP[-1])
 
-plt.xticks(fld_file_time[1:])
-plt.xlabel('Flow-Through Times (-)')
-plt.ylabel('Relative Difference')
-plt.legend()
-plt.grid()
-plt.savefig('temporal.pdf', bbox_inches="tight")
-plt.close()
+if (has_plot):
+  plt.xticks(fld_file_time[1:])
+  plt.xlabel('Flow-Through Times (-)')
+  plt.ylabel('Relative Difference')
+  plt.legend()
+  plt.grid()
+  plt.savefig('temporal.pdf', bbox_inches="tight")
+  plt.close()

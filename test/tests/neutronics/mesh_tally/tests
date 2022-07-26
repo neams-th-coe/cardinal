@@ -7,9 +7,7 @@
     # on a particular process
     max_parallel = 32
     requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
-                  "a local tally when a single mesh is used. "
-                  "The gold file was created with the original OpenMCProblem, showing "
-                  "that the mesh tally implementation is equivalent."
+                  "a local tally when a single mesh is used."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [one_mesh_global]
@@ -33,9 +31,7 @@
     # on a particular process
     max_parallel = 32
     requirement = "The heat source shall be tallied on an unstructured mesh and normalized against "
-                  "a local tally when multiple identical meshes are used. "
-                  "The gold file was created with the original OpenMCProblem, showing "
-                  "that the mesh tally implementation is equivalent."
+                  "a local tally when multiple identical meshes are used."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_meshes_global]
