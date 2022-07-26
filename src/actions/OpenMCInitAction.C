@@ -43,7 +43,7 @@ OpenMCInitAction::act()
 {
   TIME_SECTION("initOpenMC", 1, "Initializing OpenMC", false);
 
-  if (_type == "OpenMCCellAverageProblem" || _type == "OpenMCProblem")
+  if (_type == "OpenMCCellAverageProblem")
   {
     int argc = 1;
     char openmc[] = "openmc";
