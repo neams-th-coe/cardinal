@@ -276,6 +276,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
 
+  if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != tally::none)
+    mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
+
   if (_tally_type == tally::mesh)
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
       mooseError("Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
