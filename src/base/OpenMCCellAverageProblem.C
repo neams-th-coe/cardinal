@@ -240,7 +240,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _total_n_particles(0),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
-    _symmetry(nullptr)
+    _symmetry(nullptr),
+    _tally_is_zero_in_nonfissile(false)
 {
   if (isParamValid("tally_estimator"))
   {
@@ -298,12 +299,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       break;
     case score::kappa_fission:
       _tally_score = "kappa-fission";
+      _tally_is_zero_in_nonfissile = true;
       break;
     case score::fission_q_prompt:
       _tally_score = "fission-q-prompt";
+      _tally_is_zero_in_nonfissile = true;
       break;
     case score::fission_q_recoverable:
       _tally_score = "fission-q-recoverable";
+      _tally_is_zero_in_nonfissile = true;
       break;
     case score::damage_energy:
       _tally_score = "damage-energy";
@@ -1609,8 +1613,9 @@ OpenMCCellAverageProblem::storeTallyCells()
 
     if (_cell_has_tally[cell_info])
     {
-      // if the cell doesn't have fissile material, don't add a tally to save some evaluation
-      if (!cellHasFissileMaterials(cell_info))
+      // if the cell doesn't have fissile material AND the tally has nonzero contributions in non-fissile materials,
+      //  don't add a tally to save some evaluation
+      if (!cellHasFissileMaterials(cell_info) && _tally_is_zero_in_nonfissile)
       {
         // for the special case of a single coordinate level, just silently skip adding the tallies
         if (_using_default_tally_blocks)

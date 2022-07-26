@@ -963,6 +963,16 @@ protected:
   /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
   std::unique_ptr<SymmetryPointGenerator> _symmetry;
 
+  /**
+   * \brief Whether the tally has a zero contribution in all non-fissile materials
+   *
+   * For scores involving energy from fission with entirely local deposition
+   * at the site of fission, we know that there will be zero contribution from cells
+   * not containing fissile materials. We can reduce the total number of added tally
+   * bins by ensuring we don't add tallies in non-fissile materials for these scores.
+   */
+  bool _tally_is_zero_in_nonfissile;
+
   /// Number of solid elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_solid;
 

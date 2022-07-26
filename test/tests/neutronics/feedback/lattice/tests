@@ -9,4 +9,44 @@
                   "a case built without distributed cells in ../single_level."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [heating]
+    type = CSVDiff
+    input = openmc_scores.i
+    csvdiff = heating_out.csv
+    cli_args = 'Outputs/file_base=heating_out'
+    requirement = "The system shall allow the user to specify a 'heating' score in the OpenMC tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [heating_local]
+    type = CSVDiff
+    input = openmc_scores.i
+    csvdiff = heating_local_out.csv
+    cli_args = 'Problem/tally_score=heating_local Outputs/file_base=heating_local_out'
+    requirement = "The system shall allow the user to specify a 'heating-local' score in the OpenMC tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [damage_energy]
+    type = CSVDiff
+    input = openmc_scores.i
+    csvdiff = damage_energy_out.csv
+    cli_args = 'Problem/tally_score=damage_energy Outputs/file_base=damage_energy_out'
+    requirement = "The system shall allow the user to specify a 'damage-energy' score in the OpenMC tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [fission_q_prompt]
+    type = CSVDiff
+    input = openmc_scores.i
+    csvdiff = fission_q_prompt_out.csv
+    cli_args = 'Problem/tally_score=fission_q_prompt Outputs/file_base=fission_q_prompt_out'
+    requirement = "The system shall allow the user to specify a 'fission-q-prompt' score in the OpenMC tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [fission_q_recoverable]
+    type = CSVDiff
+    input = openmc_scores.i
+    csvdiff = fission_q_recoverable_out.csv
+    cli_args = 'Problem/tally_score=fission_q_recoverable Outputs/file_base=fission_q_recoverable_out'
+    requirement = "The system shall allow the user to specify a 'fission-q-recoverable' score in the OpenMC tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
