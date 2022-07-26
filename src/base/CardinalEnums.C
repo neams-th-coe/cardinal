@@ -50,6 +50,12 @@ getTallyTypeEnum()
 }
 
 MooseEnum
+getTallyEstimatorEnum()
+{
+  return MooseEnum("collision tracklength analog");
+}
+
+MooseEnum
 getEigenvalueEnum()
 {
   return MooseEnum("collision absorption tracklength combined", "combined");

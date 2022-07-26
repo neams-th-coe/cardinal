@@ -490,10 +490,8 @@ protected:
   /**
    * Add the local kappa-fission tally
    * @param[in] filters tally filters
-   * @param[in] estimator estimator type
    */
-  void addLocalTally(std::vector<openmc::Filter *> & filters,
-                     const openmc::TallyEstimator estimator);
+  void addLocalTally(std::vector<openmc::Filter *> & filters);
 
   /**
    * Check the sum of the fluid and solid tallies (if present) against the global
@@ -773,6 +771,9 @@ protected:
    * a fissile solid phase and wish to couple that heat source to MOOSE.
    */
   bool _add_tallies_to_solid;
+
+  /// Tally estimator to use for the OpenMC tallies created for multiphysics
+  openmc::TallyEstimator _tally_estimator;
 
   /// Blocks in MOOSE mesh that correspond to the fluid phase
   std::unordered_set<SubdomainID> _fluid_blocks;

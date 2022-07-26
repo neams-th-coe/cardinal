@@ -28,4 +28,13 @@
                   "a totally different mesh is used (pincell versus pebbles)."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [invalid_estimator]
+    type = RunException
+    input = incorrect_file.i
+    cli_args = 'Problem/mesh_template=../../neutronics/meshes/sphere.e Problem/tally_estimator=tracklength'
+    expect_err = "Tracklength estimators are currently incompatible with mesh tallies!"
+    requirement = "The system shall error if a tracklength estimator is attempted with unstructured mesh tallies, "
+                  "since this capability is not supported in libMesh."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
