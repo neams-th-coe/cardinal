@@ -1,0 +1,9 @@
+[Tests]
+  [plot]
+    type = RunException
+    input = plot.i
+    expect_err = "Running OpenMC in plotting mode is not supported through Cardinal!"
+    requirement = "The system shall error if attempting to run OpenMC in plotting mode through Cardinal."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
