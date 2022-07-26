@@ -47,7 +47,8 @@ First, `OpenMCCellAverageProblem` initializes [MooseVariables](https://moosefram
 to receive data necessary for multiphysics coupling. Depending on the settings
 for this class, the following variables will be added:
 
-- `heat_source`, the OpenMC fission heat source to be sent to MOOSE based on a `kappa-fission` tally score
+- `heat_source`, the OpenMC fission heat source to be sent to MOOSE; the particular tally score is
+   selected with the `tally_score` parameter
 - `temp`, the MOOSE temperature to be sent to OpenMC
 - `density`, the MOOSE density to be sent to OpenMC (fluid coupling)
 
@@ -282,8 +283,8 @@ locally "deepest" coordinate level.
 
 ## Adding Tallies
 
-This class automatically creates `kappa-fission` tallies (recoverable energy release
-from fission) in order to compute the fission power distribution. Cardinal includes
+This class automatically creates tallies
+in order to compute the power distribution. Cardinal includes
 two options for tallying the fission power in OpenMC:
 
 1. Cell tallies
@@ -291,7 +292,7 @@ two options for tallying the fission power in OpenMC:
 
 The tally type is specified with the `tally_type` parameter.
 The fission tally is normalized according to the specified `power`. By default,
-the normalization is done against a global `kappa-fission` tally added over the entire
+the normalization is done against a global tally added over the entire
 OpenMC domain. By setting `normalize_by_global_tally` to false, however, the fission tally is instead
 normalized by the sum of the fission tally itself. 
 
@@ -492,13 +493,13 @@ that your problem satisfies all of the following criteria, you can set
 `assume_separate_tallies = true` to greatly speed up the particle tracking rate:
 
 - `check_tally_sum = true`; when you set this parameter to true, Cardinal
-  automatically adds a **global** `kappa-fission` tally to check that your local
+  automatically adds a **global** tally to check that your local
   tally that couples to MOOSE didn't "miss" any fissile regions. However, when
   you add a global tally like this, any other tallies are no longer spatially
   separate.
 - `normalize_by_global_tally = true`; when you set this parameter to true,
-  Cardinal will again automatically add a **global** `kappa-fission` tally in order
-  to normalize the local `kappa-fission` tally that is coupled to MOOSE.
+  Cardinal will again automatically add a **global** tally in order
+  to normalize the local tally that is coupled to MOOSE.
   For the same reasons as above, your tallies will no longer be spatially separate.
 - Your `tallies.xml` file does not contain any other tallies that would fail
   to be spatially separate from the tallies automatically added by Cardinal.
@@ -521,6 +522,7 @@ mapped into the `heat_source` variable. Options include:
    on the incident energy by linking to optional fission energy release data
 - `damage_energy`: damage energy production
 
+For $k$-eigenvalue calculations, the tally score defaults to the `kappa_fission` mode.
 All of the units for the above tallies are eV/source particle, which this class
 converts to a volumetric heat source according to the user-provided `power`.
 For more information on the specific meanings of these various scores,
@@ -591,10 +593,10 @@ reaching a specified `threshold` in the following uncertainties:
 - $k$ standard deviation
 - $k$ variance
 - $k$ relative error
-- kappa-fission relative error
+- tally relative error
 
 Set the `k_trigger` parameter to activate a trigger based on $k$, and set
-`tally_trigger` to activate a trigger based on the kappa-fission tally created
+`tally_trigger` to activate a trigger based on the tally created
 automatically as part of the wrapping setup. Then, the desired convergence
 threshold is specified with the `k_trigger_threshold` and `tally_trigger_threshold`
 parameters, respectively. Both $k$ and tally triggers can be used simultaneously.

@@ -2112,18 +2112,18 @@ Real
 OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
 {
   if (_normalize_by_global)
-    return tally_result / _global_kappa_fission;
+    return tally_result / _global_mean_tally;
   else
-    return tally_result / _local_kappa_fission;
+    return tally_result / _local_mean_tally;
 }
 
 xt::xtensor<double, 1>
 OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
 {
   if (_normalize_by_global)
-    return raw_tally / _global_kappa_fission;
+    return raw_tally / _global_mean_tally;
   else
-    return raw_tally / _local_kappa_fission;
+    return raw_tally / _local_mean_tally;
 }
 
 void
@@ -2312,13 +2312,13 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 void
 OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 {
-  _console << "Extracting OpenMC fission heat source... " << printNewline();
+  _console << "Extracting OpenMC heat source... " << printNewline();
 
-  // get the total kappa fission sources for normalization
+  // get the total tallies for normalization
   if (_global_tally)
-    _global_kappa_fission = tallySum({_global_tally});
+    _global_mean_tally = tallySum({_global_tally});
 
-  _local_kappa_fission = tallySum(_local_tally);
+  _local_mean_tally = tallySum(_local_tally);
 
   if (_check_tally_sum)
     checkTallySum();
@@ -2481,13 +2481,13 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 void
 OpenMCCellAverageProblem::checkTallySum() const
 {
-  if (std::abs(_global_kappa_fission - _local_kappa_fission) / _global_kappa_fission >
+  if (std::abs(_global_mean_tally - _local_mean_tally) / _global_mean_tally >
       openmc::FP_REL_PRECISION)
   {
     std::stringstream msg;
     msg << "Heating tallies do not match the global " << _tally_score << " tally:\n"
-        << " Global value: " << Moose::stringify(_global_kappa_fission)
-        << "\n Tally sum: " << Moose::stringify(_local_kappa_fission)
+        << " Global value: " << Moose::stringify(_global_mean_tally)
+        << "\n Tally sum: " << Moose::stringify(_local_mean_tally)
         << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level
@@ -2529,7 +2529,7 @@ OpenMCCellAverageProblem::checkTallySum() const
           missing_tallies = "solid";
 
         msg << "\n\nYour problem didn't add tallies for the " << missing_tallies
-            << "; this warning might be caused by\nfission sources in these regions that "
+            << "; this warning might be caused by\nheat sources in these regions that "
                "contribute to the global " << _tally_score << " tally, without being\npart of the "
                "multiphysics setup.";
       }
