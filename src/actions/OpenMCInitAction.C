@@ -50,6 +50,7 @@ OpenMCInitAction::act()
     char * argv[1] = {openmc};
 
     openmc_init(argc, argv, &_communicator.get());
+
     // ensure that any mapped cells have their distribcell indices generated in OpenMC
     if (!openmc::settings::material_cell_offsets)
     {
@@ -57,6 +58,26 @@ OpenMCInitAction::act()
                    "in the OpenMC settings. Enabling...");
       openmc::settings::material_cell_offsets = true;
       openmc::prepare_distribcell();
+    }
+
+    // ensure that unsupported run modes are not used
+    auto run_mode = openmc::settings::run_mode;
+    switch (run_mode)
+    {
+      case openmc::RunMode::EIGENVALUE:
+      case openmc::RunMode::FIXED_SOURCE:
+        break;
+      case openmc::RunMode::PLOTTING:
+        mooseError("Running OpenMC in plotting mode is not supported through Cardinal!\n"
+          "Please just run using the OpenMC executable, like 'openmc --plot'");
+      case openmc::RunMode::PARTICLE:
+        mooseError("Running OpenMC in particle restart mode is not supported through Cardinal!\n"
+         "Please just run using the OpenMC executable, like 'openmc --restart <binary_file>'");
+      case openmc::RunMode::VOLUME:
+        mooseError("Running OpenMC in volume calculation mode is not supported through Cardinal!\n"
+          "Please just run using the OpenMC executable, like 'openmc --volume'");
+      default:
+        mooseError("Unhandled openmc::RunMode enum in OpenMCInitAction!");
     }
   }
 }
