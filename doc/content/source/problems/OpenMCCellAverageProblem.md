@@ -503,6 +503,29 @@ that your problem satisfies all of the following criteria, you can set
 - Your `tallies.xml` file does not contain any other tallies that would fail
   to be spatially separate from the tallies automatically added by Cardinal.
 
+#### Tally Scores
+
+You can customize the type of score that OpenMC uses for its tally that gets
+mapped into the `heat_source` variable. Options include:
+
+- `heating`: total nuclear heating
+- `heating_local`: same as the `heating` score, except that energy from secondary photons
+   is deposited locally
+- `kappa_fission`: recoverable energy from fission, including prompt sources (fission fragments,
+   prompt neutrons, prompt gammas) and delayed sources (delayed neutrons,
+   delayed gammas, delayed betas). Neutrino energy is neglected. The energy from photons
+   is assumed to deposit locally.
+- `fission_q_prompt`: the prompt components of the `kappa_fission` score, except that the energy
+   released is a function of the incident energy by linking to optional fission energy release data.
+- `fission_q_recoverable`: same as the `kappa_fission` score, except that the score depends
+   on the incident energy by linking to optional fission energy release data
+- `damage_energy`: damage energy production
+
+All of the units for the above tallies are eV/source particle, which this class
+converts to a volumetric heat source according to the user-provided `power`.
+For more information on the specific meanings of these various scores,
+please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html).
+
 #### Relaxation
 
 OpenMC is coupled to MOOSE via fixed point iteration, also referred to

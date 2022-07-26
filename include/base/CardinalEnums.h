@@ -24,6 +24,7 @@ MooseEnum getNekOrderEnum();
 MooseEnum getBinnedVelocityComponentEnum();
 MooseEnum getNekFieldEnum();
 MooseEnum getOperationEnum();
+MooseEnum getTallyScoreEnum();
 MooseEnum getTallyTypeEnum();
 MooseEnum getTallyEstimatorEnum();
 MooseEnum getEigenvalueEnum();
@@ -89,6 +90,20 @@ enum OperationEnum
   min
 };
 } // namespace operation
+
+namespace score
+{
+/// Type of score to use for OpenMC tallies coupled to MOOSE
+enum TallyScoreEnum
+{
+  heating,
+  heating_local,
+  kappa_fission,
+  fission_q_prompt,
+  fission_q_recoverable,
+  damage_energy
+};
+} // namespace score
 
 namespace tally
 {

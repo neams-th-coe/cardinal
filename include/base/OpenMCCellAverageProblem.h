@@ -775,6 +775,9 @@ protected:
   /// Tally estimator to use for the OpenMC tallies created for multiphysics
   openmc::TallyEstimator _tally_estimator;
 
+  /// Score to use for evaluating the tally that gets mapped to the 'heat_source' variable
+  std::string _tally_score;
+
   /// Blocks in MOOSE mesh that correspond to the fluid phase
   std::unordered_set<SubdomainID> _fluid_blocks;
 
