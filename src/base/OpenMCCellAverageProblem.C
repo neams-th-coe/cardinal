@@ -1746,18 +1746,15 @@ OpenMCCellAverageProblem::initializeTallies()
       {
         // create a local mesh from a libMesh mesh
         local_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(),_scaling);
-        // by setting the ID to -1, OpenMC will automatically detect the next available ID
-        local_mesh->set_id(-1);
-        local_mesh->output_ = false;
       }
       else
       {
         // create a local mesh from the file name
         local_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
-        // by setting the ID to -1, OpenMC will automatically detect the next available ID
-        local_mesh->set_id(-1);
-        local_mesh->output_ = false;
       }
+      // by setting the ID to -1, OpenMC will automatically detect the next available ID
+      local_mesh->set_id(-1);
+      local_mesh->output_ = false;
 
       int32_t mesh_index = openmc::model::meshes.size();
 
