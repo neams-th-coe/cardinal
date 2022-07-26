@@ -372,7 +372,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
     case tally::mesh:
     {
-      checkRequiredParam(params, "mesh_template", "using a mesh tally");
       checkUnusedParam(params, "tally_blocks", "using mesh tallies");
 
       if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
@@ -382,10 +381,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         mooseWarning(
             "The 'check_equal_mapped_tally_volumes' parameter is unused when using mesh tallies!");
 
-      _mesh_template_filename = getParam<std::string>("mesh_template");
-
-      if (_mesh_template_filename.empty())
-        paramError("mesh_template", "When using a mesh tally, the mesh template cannot be empty!");
+      // get _mesh_template_filename, if not provided, handle with MooseMesh::_mesh
+      if(params.isParamSetByUser("mesh_template"))
+      {
+        _mesh_template_filename = getParam<std::string>("mesh_template");
+      }
 
       fillMeshTranslations();
 
@@ -1741,16 +1741,28 @@ OpenMCCellAverageProblem::initializeTallies()
       _current_mean_tally.resize(n_translations);
       _previous_mean_tally.resize(n_translations);
 
-      // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
-      // next available ID
-      auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
-      mesh->set_id(-1);
-      mesh->output_ = false;
+      std::unique_ptr<openmc::LibMesh> local_mesh; // local mesh that will be created from a libMesh pointer or a mesh file
+      if(_mesh_template_filename.empty())
+      {
+        // create a local mesh from a libMesh mesh
+        local_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(),_scaling);
+        // by setting the ID to -1, OpenMC will automatically detect the next available ID
+        local_mesh->set_id(-1);
+        local_mesh->output_ = false;
+      }
+      else
+      {
+        // create a local mesh from the file name
+        local_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
+        // by setting the ID to -1, OpenMC will automatically detect the next available ID
+        local_mesh->set_id(-1);
+        local_mesh->output_ = false;
+      }
 
       int32_t mesh_index = openmc::model::meshes.size();
 
-      _mesh_template = mesh.get();
-      openmc::model::meshes.push_back(std::move(mesh));
+      _mesh_template = local_mesh.get();
+      openmc::model::meshes.push_back(std::move(local_mesh));
 
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
       {
