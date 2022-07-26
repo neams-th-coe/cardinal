@@ -1,0 +1,129 @@
+#/bin/bash
+
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input files names in this script
+# 3. ./job_summit <casename> <nodes> <hh:mm>
+#    where <casename> is the NekRS case (used for precompiling)
+#          <nodes> is the number of nodes you want to use
+#          <hh::mm> is the maximum wall time you want
+
+# additional variables you may want to change
+: ${PROJ_ID:=""}
+: ${NEKRS_HOME:=/autofs/nccs-svm1_home1/novak/cardinal/install}
+: ${OCCA_CACHE_DIR:="$PWD/.cache/occa"}
+: ${CARDINAL_BIN:=/autofs/nccs-svm1_home1/novak/cardinal/cardinal-opt}
+: ${CARDINAL_I:=nek_master.i}
+: ${OPENMC_CROSS_SECTIONS:=/autofs/nccs-svm1_home1/novak/cross_sections/endfb71_hdf5/cross_sections.xml}
+
+# =============================================================================
+# Adapted from nrsqsub_summit
+# =============================================================================
+
+if [ -z "$PROJ_ID" ]; then
+  echo "ERROR: PROJ_ID is empty"
+  exit 1
+fi
+
+NVME_HOME="/mnt/bb/$USER/"
+XL_HOME="/sw/summit/xl/16.1.1-3/xlC/16.1.1"
+
+: ${CPUONLY:=0}
+export NEKRS_HOME
+export OPENMC_CROSS_SECTIONS
+export OCCA_CACHE_DIR
+export NEKRS_HYPRE_NUM_THREADS=1
+export OGS_MPI_SUPPORT=1
+export OCCA_CXX=
+export OCCA_CXXFLAGS="-O3 -qarch=pwr9 -qhot -DUSE_OCCA_MEM_BYTE_ALIGN=64"
+export OCCA_LDFLAGS="$XL_HOME/lib/libibmc++.a"
+
+#export OCCA_VERBOSE=1
+#export OMPI_LD_PRELOAD_POSTPEND=$OLCF_SPECTRUM_MPI_ROOT/lib/libmpitrace.so
+
+#export PAMI_ENABLE_STRIPING=1
+#export PAMI_IBV_ADAPTER_AFFINITY=1
+#export PAMI_IBV_DEVICE_NAME="mlx5_0:1,mlx5_3:1"
+#export PAMI_IBV_DEVICE_NAME_1="mlx5_3:1,mlx5_0:1"
+
+if [ -z "$PROJ_ID" ]; then
+  echo "ERROR: PROJ_ID is empty"
+  exit 1
+fi
+
+if [ $# -ne 3 ]; then
+  echo "usage: [PROJ_ID] [CPUONLY=1] $0 <casename> <number of compute nodes> <hh:mm>"
+  exit 0
+fi
+
+module unload darshan-runtime
+module load gcc
+
+bin=$CARDINAL_BIN
+case=$1
+nodes=$2
+gpu_per_node=6
+cores_per_socket=21
+let nn=$nodes*$gpu_per_node
+let ntasks=nn
+time=$3
+backend=CUDA
+
+if [ $CPUONLY -eq 1 ]; then
+  backend=CPU
+  let nn=2*$nodes
+  let ntasks=$nn*$cores_per_socket
+fi
+
+if [ ! -f $bin ]; then
+  echo "Cannot find" $bin
+  exit 1
+fi
+
+if [ ! -f $case.par ]; then
+  echo "Cannot find" $case.par
+  exit 1
+fi
+
+
+if [ ! -f $case.udf ]; then
+  echo "Cannot find" $case.udf
+  exit 1
+fi
+
+if [ ! -f $case.oudf ]; then
+  echo "Cannot find" $case.oudf
+  exit 1
+fi
+
+if [ ! -f $case.re2 ]; then
+  echo "Cannot find" $case.re2
+  exit 1
+fi
+
+mkdir -p $OCCA_CACHE_DIR 2>/dev/null
+
+while true; do
+  read -p "Do you want precompile (recommended)? [N]" yn
+  case $yn in
+    [Yy]* )
+      echo $NEKRS_HOME
+      mpirun -pami_noib -np 1 $NEKRS_HOME/bin/nekrs --setup $case --build-only $ntasks --backend $backend;
+      if [ $? -ne 0 ]; then
+        exit 1
+      fi
+      break ;;
+    * )
+      break ;;
+  esac
+done
+
+if [ $CPUONLY -eq 1 ]; then
+  jsrun="jsrun -X 1 -n$nodes -r1 -a1 -c1 -g0 -b packed:1 -d packed cp -a $OCCA_CACHE_DIR/* $NVME_HOME; export OCCA_CACHE_DIR=$NVME_HOME; jsrun -X 1 -n$nn -a$cores_per_socket -c$cores_per_socket -g0 -b packed:1 -d packed $bin -i $CARDINAL_I"
+else
+  jsrun="jsrun -X 1 -n$nodes -r1 -a1 -c1 -g0 -b packed:1 -d packed cp -a $OCCA_CACHE_DIR/* $NVME_HOME; export OCCA_CACHE_DIR=$NVME_HOME; jsrun --smpiargs='-gpu' -X 1 -n$nn -r$gpu_per_node -a1 -c2 -g1 -b rs -d packed $bin -i $CARDINAL_I --nekrs-backend $backend --nekrs-device-id 0"
+fi
+
+cmd="bsub -nnodes $nodes -alloc_flags NVME -W $time -P $PROJ_ID -J cardinal_$case \"${jsrun}\""
+echo $cmd
+$cmd
