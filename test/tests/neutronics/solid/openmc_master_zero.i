@@ -24,7 +24,7 @@
     family = MONOMIAL
     order = CONSTANT
   []
-  [average_temp]
+  [average_temp] # unused in the coupling; this is just present to avoid a re-gold
     family = MONOMIAL
     order = CONSTANT
   []
@@ -141,9 +141,9 @@ b=${fparse 300-500/(zmax-zmin)*zmin}
     source_variable = heat_source
   []
   [average_temp_to_openmc]
-    type = NearestPointReceiverTransfer
+    type = MultiAppNearestNodeTransfer
     to_multi_app = openmc
-    from_uo = average_temp
-    to_uo = average_temp
+    source_variable = temp
+    variable = temp
   []
 []

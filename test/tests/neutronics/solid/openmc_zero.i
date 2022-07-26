@@ -20,12 +20,11 @@
 []
 
 [Problem]
-  type = OpenMCProblem
+  type = OpenMCCellAverageProblem
   power = 0.0
-  centers_file = 'pebble_centers_rescaled.txt'
-  volumes = '1.322128e+01'
   tally_type = 'cell'
-  pebble_cell_level = 0
+  solid_cell_level = 0
+  solid_blocks = '1'
 []
 
 [Executioner]
