@@ -37,9 +37,9 @@ NekBinnedSideAverage::NekBinnedSideAverage(const InputParameters & parameters)
 }
 
 void
-NekBinnedSideAverage::execute()
+NekBinnedSideAverage::executeUserObject()
 {
-  NekBinnedSideIntegral::execute();
+  NekBinnedSideIntegral::executeUserObject();
 
   // divide by the bin area if accessible; otherwise, we know that there weren't any counts,
   // and the bin value will remain zero
