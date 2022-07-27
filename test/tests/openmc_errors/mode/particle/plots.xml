@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plots>
+  <plot basis="xz" color_by="cell" filename="plot1" id="1" type="slice">
+    <origin>0.0 0.0 6.0</origin>
+    <width>4.0 12.0</width>
+    <pixels>100 300</pixels>
+  </plot>
+  <plot basis="xy" color_by="cell" filename="plot2" id="2" type="slice">
+    <origin>0.0 0.0 2.0</origin>
+    <width>4.0 4.0</width>
+    <pixels>100 100</pixels>
+  </plot>
+</plots>

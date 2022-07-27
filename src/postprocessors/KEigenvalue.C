@@ -38,6 +38,8 @@ KEigenvalue::KEigenvalue(const InputParameters & parameters)
   : OpenMCPostprocessor(parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>())
 {
+  if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
+    mooseError("Eigenvalues are only computed when running OpenMC in eigenvalue mode!");
 }
 
 Real

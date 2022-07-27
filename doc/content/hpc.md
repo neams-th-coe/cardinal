@@ -274,8 +274,16 @@ export NEKRS_HOME=$HOME/projects/cardinal/install
 [Summit](https://docs.olcf.ornl.gov/systems/summit_user_guide.html)
 is an [!ac](HPC) system at [!ac](ORNL) with approximately
 4,600 compute nodes, each of which has two IBM POWER9 processors
-and six NVIDIA Tesla V100 GPUs. Below is a bash script to build
-Cardinal on Summit (*last updated 8/01/2021*).
+and six NVIDIA Tesla V100 GPUs. Below are a bash script and sample job scripts to build
+and run the NekRS and OpenMC wrappings (*last updated 7/26/2022*).
+Remember that in order to build Cardinal with GPU support, set the appropriate
+variable in the `Makefile` to true (`1`):
+
+```
+OCCA_CUDA_ENABLED=0
+OCCA_HIP_ENABLED=0
+OCCA_OPENCL_ENABLED=0
+```
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=su1
 module load gcc
@@ -283,11 +291,17 @@ module load cmake
 module load cuda
 module load hdf5
 module load python/3.7.0-anaconda3-5.3.0
+
+export HDF5_ROOT=/sw/summit/spack-envs/base/opt/linux-rhel8-ppc64le/gcc-9.1.0/hdf5-1.10.7-yxvwkhm4nhgezbl2mwzdruwoaiblt6q2
+export HDF5_INCLUDE_DIR=$HDF5_ROOT/include
+export HDF5_LIBDIR=$HDF5_ROOT/lib
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Summit is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 !listing-end!
 
-Remember that in order to build Cardinal with GPU support, set the appropriate
-variable in the `Makefile` to true (`1`):
-
-!listing cardinal/Makefile
-  start=OCCA_CUDA_ENABLED
-  end=NEKRS_BUILDDIR
+!listing scripts/job_summit language=bash caption=Job script to run OpenMC and Nek cases id=sum2
