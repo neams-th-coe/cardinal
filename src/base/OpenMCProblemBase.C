@@ -20,6 +20,7 @@
 
 #include "OpenMCProblemBase.h"
 #include "AuxiliarySystem.h"
+#include "UserErrorChecking.h"
 
 #include "mpi.h"
 #include "openmc/capi.h"
@@ -77,6 +78,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _path_output(openmc::settings::path_output),
     _n_cell_digits(std::to_string(openmc::model::cells.size()).length())
 {
+  if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
+    checkUnusedParam(params, "inactive_batches", "not running in k-eigenvalue mode");
+
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
 
