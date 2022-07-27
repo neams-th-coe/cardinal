@@ -1,0 +1,11 @@
+[Tests]
+  [reuse_source]
+    type = RunException
+    input = openmc.i
+    cli_args = Problem/reuse_source=true
+    expected_err = "When running in fixed source mode, the particle source is given by the user"
+    requirement = "The system shall error if the user tries to reuse a source from a previous Picard "
+                  "iteration when running in fixed source mode."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

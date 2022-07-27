@@ -79,7 +79,11 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _n_cell_digits(std::to_string(openmc::model::cells.size()).length())
 {
   if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
+  {
     checkUnusedParam(params, "inactive_batches", "not running in k-eigenvalue mode");
+    checkUnusedParam(params, "reuse_source", "not running in k-eigenvalue mode");
+    _reuse_source = false;
+  }
 
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");

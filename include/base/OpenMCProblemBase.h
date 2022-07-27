@@ -211,7 +211,7 @@ protected:
    * progress because you don't "start from scratch" each iteration and do the same
    * identical (within a random number seed) converging of the fission source.
    */
-  const bool & _reuse_source;
+  bool _reuse_source;
 
   /**
    * Whether the OpenMC model consists of a single coordinate level; this can
