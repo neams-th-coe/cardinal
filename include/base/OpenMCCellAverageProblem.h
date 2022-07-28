@@ -674,7 +674,7 @@ protected:
    * to normalize by the local tally, we're probably using mesh tallies). But you can
    * of course still set a value for this parameter to override the default.
    */
-  const bool & _check_tally_sum;
+  const bool _check_tally_sum;
 
   /**
    * Whether to check that the [Mesh] volume each cell tally maps to is identical.

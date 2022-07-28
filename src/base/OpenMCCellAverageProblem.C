@@ -226,7 +226,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _scaling(getParam<Real>("scaling")),
     _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
     _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum")
-                                                     : _normalize_by_global),
+                                                     : (openmc::settings::run_mode == openmc::RunMode::FIXED_SOURCE ?
+                                                        true : _normalize_by_global)),
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
     _relaxation_factor(getParam<Real>("relaxation_factor")),
     _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
@@ -244,6 +245,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _symmetry(nullptr),
     _tally_is_zero_in_nonfissile(false)
 {
+  if (openmc::settings::run_mode == openmc::RunMode::FIXED_SOURCE)
+    checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
+
   if (isParamValid("tally_estimator"))
   {
     auto estimator = getParam<MooseEnum>("tally_estimator").getEnum<tally::TallyEstimatorEnum>();
