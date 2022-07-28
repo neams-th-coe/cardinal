@@ -454,4 +454,14 @@ OpenMCProblemBase::tallySum(std::vector<openmc::Tally *> tally) const
   return sum;
 }
 
+double
+OpenMCProblemBase::tallyMean(std::vector<openmc::Tally *> tally) const
+{
+  int n = 0;
+  for (const auto & t : tally)
+    n += t->n_realizations_;
+
+  return tallySum(tally) / n;
+}
+
 #endif

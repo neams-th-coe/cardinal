@@ -43,11 +43,18 @@ public:
   void importProperties() const;
 
   /**
-   * Compute the mean value of a tally
+   * Compute the sum of a tally
    * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
-   * @return mean value
+   * @return tally sum
    */
   double tallySum(std::vector<openmc::Tally *> tally) const;
+
+  /**
+   * Compute the mean of a tally
+   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
+   * @return tally mean
+   */
+  double tallyMean(std::vector<openmc::Tally *> tally) const;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
@@ -198,11 +205,14 @@ protected:
     return _path_output + "initial_source_" + std::to_string(_fixed_point_iteration) + ".h5";
   }
 
-  /// Power by which to normalize the OpenMC results
-  const Real & _power;
-
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
+
+  /// Power by which to normalize the OpenMC results, for k-eigenvalue mode
+  const Real * _power;
+
+  /// Source strength by which to normalize the OpenMC results, for fixed source mode
+  const Real * _source_strength;
 
   /**
    * Whether to take the starting fission source from iteration \f$n\f$ as the
