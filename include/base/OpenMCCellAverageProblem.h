@@ -472,8 +472,18 @@ protected:
   void getFissionTallyFromOpenMC(const unsigned int & var_num);
 
   /**
+   * Multiplier on the normalized tally results; for fixed source runs,
+   * we multiply the tally (which has units of eV/source)
+   * by the source strength and the eV to joule conversion, while for k-eigenvalue runs, we
+   * multiply the normalized tally (which is unitless and has an integral
+   * value of 1.0) by the power.
+   */
+  Real tallyMultiplier() const;
+
+  /**
    * Normalize the local tally by either the global tally, or the sum
-   * of the local tally
+   * of the local tally. For fixed source simulations, do nothing because the
+   * tally result is not re-normalized to any integral quantity.
    * @param[in] tally_result value of tally result
    * @return normalized tally
    */
@@ -481,7 +491,8 @@ protected:
 
   /**
    * Normalize the local tally by either the global tally, or the sum
-   * of the local tally
+   * of the local tally. For fixed source simulations, do nothing because the
+   * tally result is not re-normalized to any integral quantity.
    * @param[in] raw_tally value of tally result
    * @return normalized tally
    */
@@ -640,6 +651,9 @@ protected:
    */
   const Real & _scaling;
 
+  /// OpenMC run mode
+  const openmc::RunMode _run_mode;
+
   /**
    * How to normalize the OpenMC tally into units of W/volume. If 'true',
    * normalization is performed by dividing each local tally against a problem-global
@@ -659,7 +673,7 @@ protected:
    * miss some of that power when sending to MOOSE. So, in this case, it is better to
    * normalize against the local tally itself so that the correct power is preserved.
    */
-  const bool & _normalize_by_global;
+  const bool _normalize_by_global;
 
   /**
    * Whether to check the tallies against the global tally;
@@ -874,10 +888,13 @@ protected:
   /// Density variable, which must be in units of kg/m3 based on internal conversions
   unsigned int _density_var;
 
-  /// Mean value of the global tally
-  Real _global_mean_tally;
+  /// Sum value of the global tally, across all bins
+  Real _global_sum_tally;
 
-  /// Mean value of the local tally
+  /// Sum value of the local tally, across all bins
+  Real _local_sum_tally;
+
+  /// Mean value of the local tally, across all bins; only used for fixed source mode
   Real _local_mean_tally;
 
   /**
@@ -984,6 +1001,9 @@ protected:
 
   /// Number of none elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_none;
+
+  /// Conversion rate from eV to Joule
+  static constexpr Real EV_TO_JOULE = 1.6022e-19;
 
 private:
   /**

@@ -50,12 +50,14 @@
   verbose = true
   source_strength = 1e12
   solid_blocks = '100'
-  fluid_blocks = '200'
-  tally_blocks = '100 200'
+  tally_blocks = '100'
   solid_cell_level = 0
-  fluid_cell_level = 0
   tally_type = cell
   initial_properties = xml
+
+  # we are omitting the fluid regions from feedback (which have some fissile material),
+  # so we need to explicitly skip the tally check
+  check_tally_sum = false
 []
 
 [Executioner]
