@@ -440,14 +440,20 @@ OpenMCProblemBase::relativeError(const Real & sum,
   return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
 }
 
+xt::xtensor<double, 1>
+OpenMCProblemBase::tallySum(openmc::Tally * tally) const
+{
+  return xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+}
+
 double
-OpenMCProblemBase::tallySum(std::vector<openmc::Tally *> tally) const
+OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally) const
 {
   double sum = 0.0;
 
   for (const auto & t : tally)
   {
-    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    auto mean = tallySum(t);
     sum += xt::sum(mean)();
   }
 
@@ -455,13 +461,13 @@ OpenMCProblemBase::tallySum(std::vector<openmc::Tally *> tally) const
 }
 
 double
-OpenMCProblemBase::tallyMean(std::vector<openmc::Tally *> tally) const
+OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally) const
 {
   int n = 0;
   for (const auto & t : tally)
     n += t->n_realizations_;
 
-  return tallySum(tally) / n;
+  return tallySumAcrossBins(tally) / n;
 }
 
 #endif

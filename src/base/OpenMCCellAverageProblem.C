@@ -2175,8 +2175,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
   {
     case tally::cell:
     {
-      auto tally = _local_tally.at(0);
-      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum = tallySum(_local_tally.at(0));
 
       int i = 0;
       for (const auto & c : _cell_to_elem)
@@ -2202,9 +2201,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
     for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
     {
       const auto * filter = _mesh_filters[i];
-
-      auto tally = _local_tally.at(i);
-      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum = tallySum(_local_tally.at(i));
 
       for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
       {
@@ -2233,8 +2230,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
     case tally::cell:
     {
       auto tally = _local_tally.at(0);
-      auto sum =
-          xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum = tallySum(_local_tally.at(0));
       auto sum_sq =
           xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
@@ -2267,8 +2263,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
         const auto * filter = _mesh_filters[i];
 
         auto tally = _local_tally.at(i);
-        auto sum =
-            xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+        auto sum = tallySum(_local_tally.at(i));
         auto sum_sq =
             xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
@@ -2301,8 +2296,7 @@ OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
   // return
   if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
   {
-    auto mean_tally = xt::view(
-        _local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    auto mean_tally = tallySum(_local_tally.at(t));
     _current_mean_tally[t] = normalizeLocalTally(mean_tally);
     _previous_mean_tally[t] = normalizeLocalTally(mean_tally);
     return;
@@ -2312,8 +2306,7 @@ OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
   std::copy(_current_mean_tally[t].cbegin(),
             _current_mean_tally[t].cend(),
             _previous_mean_tally[t].begin());
-  auto mean_tally = xt::view(
-      _local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  auto mean_tally = tallySum(_local_tally.at(t));
 
   double alpha;
   switch (_relaxation)
@@ -2358,9 +2351,9 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 
   // get the total tallies for normalization
   if (_global_tally)
-    _global_mean_tally = tallySum({_global_tally});
+    _global_mean_tally = tallySumAcrossBins({_global_tally});
 
-  _local_mean_tally = tallySum(_local_tally);
+  _local_mean_tally = tallySumAcrossBins(_local_tally);
 
   if (_check_tally_sum)
     checkTallySum();
