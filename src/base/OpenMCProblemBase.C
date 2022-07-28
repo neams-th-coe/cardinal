@@ -38,8 +38,10 @@ InputParameters
 OpenMCProblemBase::validParams()
 {
   InputParameters params = ExternalProblem::validParams();
-  params.addRequiredParam<PostprocessorName>(
-      "power", "Power (Watts) to normalize the OpenMC tallies");
+  params.addParam<PostprocessorName>(
+      "power", "Power (Watts) to normalize the OpenMC tallies; only used for k-eigenvalue mode");
+  params.addParam<PostprocessorName>(
+      "source_strength", "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
   // interfaces to directly set some OpenMC parameters
@@ -70,7 +72,6 @@ OpenMCProblemBase::validParams()
 OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   : ExternalProblem(params),
     PostprocessorInterface(this),
-    _power(getPostprocessorValue("power")),
     _verbose(getParam<bool>("verbose")),
     _reuse_source(getParam<bool>("reuse_source")),
     _single_coord_level(openmc::model::n_coord_levels == 1),
@@ -78,11 +79,19 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _path_output(openmc::settings::path_output),
     _n_cell_digits(std::to_string(openmc::model::cells.size()).length())
 {
-  if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
+  if (openmc::settings::run_mode == openmc::RunMode::FIXED_SOURCE)
   {
-    checkUnusedParam(params, "inactive_batches", "not running in k-eigenvalue mode");
-    checkUnusedParam(params, "reuse_source", "not running in k-eigenvalue mode");
+    checkRequiredParam(params, "source_strength", "running in fixed source mode");
+    _source_strength = &getPostprocessorValue("source_strength");
+
+    checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
+    checkUnusedParam(params, "reuse_source", "running in fixed source mode");
     _reuse_source = false;
+  }
+  else
+  {
+    checkRequiredParam(params, "power", "running in k-eigenvalue mode");
+    _power = &getPostprocessorValue("power");
   }
 
   if (openmc::settings::libmesh_comm)

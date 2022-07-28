@@ -2128,21 +2128,44 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 }
 
 Real
+OpenMCCellAverageProblem::tallyMultiplier() const
+{
+  if (openmc::settings::run_mode == openmc::RunMode::EIGENVALUE)
+    return *_power;
+  else
+    return *_source_strength * EV_TO_JOULE;
+}
+
+Real
 OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
 {
-  if (_normalize_by_global)
-    return tally_result / _global_mean_tally;
+  if (openmc::settings::run_mode == openmc::RunMode::EIGENVALUE)
+  {
+    if (_normalize_by_global)
+      return tally_result / _global_mean_tally;
+    else
+      return tally_result / _local_mean_tally;
+  }
   else
-    return tally_result / _local_mean_tally;
+  {
+    return tally_result;
+  }
 }
 
 xt::xtensor<double, 1>
 OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
 {
-  if (_normalize_by_global)
-    return raw_tally / _global_mean_tally;
+  if (openmc::settings::run_mode == openmc::RunMode::EIGENVALUE)
+  {
+    if (_normalize_by_global)
+      return raw_tally / _global_mean_tally;
+    else
+      return raw_tally / _local_mean_tally;
+  }
   else
-    return raw_tally / _local_mean_tally;
+  {
+    return raw_tally;
+  }
 }
 
 void
@@ -2164,7 +2187,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
         if (!_cell_has_tally[cell_info])
           continue;
 
-        Real local_power = normalizeLocalTally(sum(i)) * _power / _cell_to_elem_volume[cell_info];
+        Real local_power = normalizeLocalTally(sum(i)) * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         fillElementalAuxVariable(_external_vars[var_num], c.second, local_power);
         i++;
       }
@@ -2185,7 +2208,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
 
       for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
       {
-        Real local_power = normalizeLocalTally(sum(e)) * _power / _mesh_template->volume(e) *
+        Real local_power = normalizeLocalTally(sum(e)) * tallyMultiplier() / _mesh_template->volume(e) *
           _scaling * _scaling * _scaling;
         std::vector<unsigned int> elem_ids = {offset + e};
         fillElementalAuxVariable(_external_vars[var_num], elem_ids, local_power);
@@ -2226,7 +2249,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
 
         // we make sure we have the right units by multiplying the percent error by the
         // volumetric power in this tally bin
-        Real local_power = normalizeLocalTally(sum(i)) * _power / _cell_to_elem_volume[cell_info];
+        Real local_power = normalizeLocalTally(sum(i)) * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         Real std_dev = relativeError(sum(i), sum_sq(i), tally->n_realizations_) * local_power;
         fillElementalAuxVariable(_external_vars[var_num], c.second, std_dev);
         i++;
@@ -2253,7 +2276,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
         {
           // we make sure we have the right units by multiplying the percent error by the
           // volumetric power in this tally bin
-          Real local_power = normalizeLocalTally(sum(e)) * _power / _mesh_template->volume(e) *
+          Real local_power = normalizeLocalTally(sum(e)) * tallyMultiplier() / _mesh_template->volume(e) *
                              _scaling * _scaling * _scaling;
           Real std_dev = relativeError(sum(e), sum_sq(e), tally->n_realizations_) * local_power;
           std::vector<unsigned int> elem_ids = {offset + e};
