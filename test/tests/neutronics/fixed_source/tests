@@ -1,11 +1,10 @@
 [Tests]
-  [reuse_source]
-    type = RunException
-    input = openmc.i
-    cli_args = Problem/reuse_source=true
-    expected_err = "When running in fixed source mode, the particle source is given by the user"
-    requirement = "The system shall error if the user tries to reuse a source from a previous Picard "
-                  "iteration when running in fixed source mode."
+  [overlap_all]
+    type = CSVDiff
+    input = overlap_all.i
+    csvdiff = overlap_all_out.csv
+    requirement = "The system shall correctly normalize tallies from a fixed source simulation when there "
+                  "is perfect overlap between the OpenMC model and the MOOSE mesh."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
