@@ -86,12 +86,15 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
     checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
     checkUnusedParam(params, "reuse_source", "running in fixed source mode");
+    checkUnusedParam(params, "power", "running in fixed source mode");
     _reuse_source = false;
   }
   else
   {
     checkRequiredParam(params, "power", "running in k-eigenvalue mode");
     _power = &getPostprocessorValue("power");
+
+    checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
   }
 
   if (openmc::settings::libmesh_comm)
