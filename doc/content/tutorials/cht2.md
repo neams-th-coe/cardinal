@@ -348,11 +348,10 @@ mesh on the boundaries of interest - the IDs associated with the fluid-solid int
   block=Mesh
 
 Next, [NekRSProblem](/problems/NekRSProblem.md) is used to describe all aspects of the
-NekRS wrapping. We use two boolean options, `minimize_transfer_in` and `minimize_transfers_out`,
-which indicate that we want to limit the data interpolations from NekRS's [!ac](GLL) points
+NekRS wrapping. We use `synchronization_interval = parent_app` to
+indicate that we want to limit the data interpolations from NekRS's [!ac](GLL) points
 to the mesh mirror, and the copies between CPU/GPU, to only occur when new coupling data is
-to be sent/received from the coupled MOOSE application.
-When either of these options is set to true,
+to be sent/received from the coupled MOOSE application. When this option is used,
 [NekRSProblem](/problems/NekRSProblem.md) automatically adds a
 [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessor named `transfer_in`, as if the following were added to the input file:
@@ -436,7 +435,7 @@ To run the pseudo-steady model, run the following from a command line:
 $ mpiexec -np 12 cardinal-opt -i solid.i
 ```
 
-By using the `minimize_transfers_in` feature, you will see in the screen output
+By using the `synchronization_interval = parent_app` feature, you will see in the screen output
 that the data transfers into NekRS only occur on synchronization points with the
 master application - all other time steps will omit the messages about normalizing
 heat flux and extracting temperatures from NekRS.

@@ -8,4 +8,13 @@
                   "the output files are exactly identical at the specified interval steps."
     required_objects = 'NekRSProblem'
   []
+  [interval_synchronization]
+    type = CSVDiff
+    input = nek_synchronization.i
+    csvdiff = nek_synchronization_out.csv
+    requirement = "The system shall allow the Nek to mesh-mirror interpolation to only occur on a fixed interval "
+                  "of time steps. The gold files were created by setting interval = 1 to ensure that "
+                  "the output files are exactly identical at the specified interval steps."
+    required_objects = 'NekRSProblem'
+  []
 []

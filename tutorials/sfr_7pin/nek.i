@@ -6,9 +6,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_7pin'
-
-  minimize_transfers_in = true
-  minimize_transfers_out = true
+  synchronization_interval = parent_app
 []
 
 [Executioner]

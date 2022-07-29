@@ -10,7 +10,7 @@
   type = NekRSProblem
   casename = 'nekbox'
   moving_mesh = true
-  minimize_transfers_in = true
+  synchronization_interval = parent_app
 []
 
 [AuxVariables]

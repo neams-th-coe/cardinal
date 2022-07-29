@@ -20,6 +20,7 @@
 
 #include "MooseEnum.h"
 
+MooseEnum getSynchronizationEnum();
 MooseEnum getNekOrderEnum();
 MooseEnum getBinnedVelocityComponentEnum();
 MooseEnum getNekFieldEnum();
@@ -30,6 +31,19 @@ MooseEnum getEigenvalueEnum();
 MooseEnum getRelaxationEnum();
 MooseEnum getTallyTriggerEnum();
 MooseEnum getInitialPropertiesEnum();
+
+namespace synchronization
+{
+/**
+ * Enumeration of possible points at which to synchronize the external app's solution
+ * to the mesh mirror
+ */
+enum SynchronizationEnum
+{
+  constant,
+  parent_app
+};
+} //namespace synchronization
 
 namespace order
 {
