@@ -550,21 +550,33 @@ NekRSProblemBase::synchronizeIn()
   bool synchronize = true;
   static bool first = true;
 
-  if (_synchronization_interval == synchronization::parent_app)
+  switch (_synchronization_interval)
   {
-    // For the minimized incoming synchronization to work correctly, the value
-    // of the incoming postprocessor must not be zero. We only need to check this for the very
-    // first time we evaluate this function. This ensures that you don't accidentally set a
-    // zero value as a default in the master application's postprocessor.
-    if (first && *_transfer_in == false)
-      mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
-                 "must not be false! Make sure that the master application's "
-                 "postprocessor is not zero.");
+    case synchronization::parent_app:
+    {
+      // For the minimized incoming synchronization to work correctly, the value
+      // of the incoming postprocessor must not be zero. We only need to check this for the very
+      // first time we evaluate this function. This ensures that you don't accidentally set a
+      // zero value as a default in the master application's postprocessor.
+      if (first && *_transfer_in == false)
+        mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
+                   "must not be false! Make sure that the master application's "
+                   "postprocessor is not zero.");
 
-    if (*_transfer_in == false)
-      synchronize = false;
-    else
-      setPostprocessorValueByName("transfer_in", false, 0);
+      if (*_transfer_in == false)
+        synchronize = false;
+      else
+        setPostprocessorValueByName("transfer_in", false, 0);
+
+      break;
+    }
+    case synchronization::constant:
+    {
+      synchronize = timeStep() % _constant_interval == 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled SynchronizationEnum in NekRSProblemBase!");
   }
 
   first = false;
@@ -576,11 +588,22 @@ NekRSProblemBase::synchronizeOut()
 {
   bool synchronize = true;
 
-  if (_synchronization_interval == synchronization::parent_app)
+  switch (_synchronization_interval)
   {
-    if (std::abs(_time - _dt - _transient_executioner->getTargetTime()) >
-        _transient_executioner->timestepTol())
-      synchronize = false;
+    case synchronization::parent_app:
+    {
+      if (std::abs(_time - _dt - _transient_executioner->getTargetTime()) >
+          _transient_executioner->timestepTol())
+        synchronize = false;
+      break;
+    }
+    case synchronization::constant:
+    {
+      synchronize = timeStep() % _constant_interval == 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled SynchronizationEnum in NekRSProblemBase!");
   }
 
   return synchronize;
