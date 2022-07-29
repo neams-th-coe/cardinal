@@ -35,11 +35,6 @@
   solid_cell_level = 0
   normalize_by_global_tally = false
 
-  # alternative OpenMC problem that was used to gold the test results
-  #type = OpenMCProblem
-  #pebble_cell_level = 0
-  #centers = '0 0 0'
-
   tally_type = mesh
   power = 100.0
   check_zero_tallies = false
