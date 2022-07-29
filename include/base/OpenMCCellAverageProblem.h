@@ -359,6 +359,26 @@ protected:
    */
   void storeElementPhase();
 
+  /**
+   * Relax the heat source and normalize it so that it has units of power fraction (i.e. an
+   * integral of unity, where that "integral" is over the entire OpenMC domain if you set
+   * 'normalize_by_global_tally = true', but only over the Cardinal-created tallies if you
+   * instead set 'normalize_by_global_tally = false'.
+   *
+   * NOTE: This function relaxes the power _distribution_, and not the actual magnitude of the
+   * power. That is, we relax the power distribution and then multiply it by the power
+   * (for k-eigenvalue) or source strength (for fixed source) of _the current step_ before
+   * applying it to MOOSE. If the magnitude of the power is constant in time, there is zero
+   * error in this. But for fixed source simulations where the actual magnitude of the tally
+   * can vary based on simulation (b/c we don't renormalize it in the sense that we do
+   * for k-eigenvalue simulations), we are basically relaxing the distribution of the heat
+   * source, but then multiplying it by the _current_ mean tally magnitude.
+   *
+   * There will be very small errors in these approximations unless power/the source strength
+   * change dramatically with iteration. But because relaxation is itself a numerical approximation,
+   * this is still inconsequential at the end of the day as long as your problem has converged
+   * the relaxed heat source to the raw (unrelaxed) tally.
+   */
   void relaxAndNormalizeHeatSource(const int & t);
 
   /**
