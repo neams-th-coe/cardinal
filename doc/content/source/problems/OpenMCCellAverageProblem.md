@@ -322,8 +322,14 @@ The only requirement imposed is that:
   id=um
 
 When using unstructured mesh tallies, the `tally_blocks` parameter is unused. Instead,
-a `mesh_template` is used to provide a path to an unstructured mesh that OpenMC
-will tally on. To translate the same mesh to multiple locations in the OpenMC geometry
+there are two options for specifying an unstructured mesh tally:
+
+- Do nothing, in which case OpenMC will tally exactly on the `[Mesh]` block
+- Specify a `mesh_template`, which provides a path to a mesh file
+
+All remaining parts of this section are discussing the `mesh_template` option.
+For the `mesh_template` option, it is possible
+to translate the same mesh to multiple locations in the OpenMC geometry
 (while only taking up the memory needed to store a single mesh), or
 even simply to move a single mesh to a different location than where the mesh template
 is defined,
@@ -338,7 +344,7 @@ The `mesh_template` and the mesh translations must be in the same units as the
 
 At present, unstructured mesh tallies are copied directly to the `[Mesh]` (without
 doing any type of nearest-node lookup). Therefore, there is an important limitation
-when using unstructured mesh tallies in Cardinal that is best explained by example.
+when using unstructured *file-based* mesh tallies in Cardinal that is best explained by example.
 Suppose the mesh template consists of a mesh for a pincell with $N$ elements
 that you have translated to 3 different locations, giving a total of $3N$ tally
 bins. Because a direct copy is used to transfer the mesh tally results to the `[Mesh]`,
@@ -385,7 +391,7 @@ Then the following setup for the mesh tallies would be correct:
 This setup is correct because the first $3N$ elements in the `[Mesh]`
 exactly match the mesh template (we use the same `pincell.e` mesh and
 translate that pincell in the same order to the three positions). Using a
-mesh template other than `pincell.e` for `OpenMCCellAverageProblem`, *or*
+mesh template other than `pincell.e` *or*
 using a different order of translations to the mesh template than the element
 ordering in `[Mesh]`, will trigger an error. In practice, this design
 just requires some attention in the construction of the `[Mesh]` mesh mirror -
@@ -460,7 +466,8 @@ OpenMC always uses a length unit of centimeters, but a coupled MOOSE application
 often uses SI units (with a length unit of meters). When transferring field data
 to/from OpenMC, it is important for data transferred from OpenMC to match the length units
 of the coupled MOOSE application. This class contains a `scaling` parameter that
-is used to apply a multiplicative factor to the `[Mesh]` to get to units of
+is used to apply a multiplicative factor to the `[Mesh]` and `mesh_template`
+(if using a file-based mesh tally) to get to units of
 centimeters assumed by OpenMC. This multiplicative factor is then applied to:
 
 - Find cell routines in OpenMC in order to correctly map a centimeters-based

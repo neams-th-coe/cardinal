@@ -234,6 +234,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level &&
                                 !isParamValid("tally_blocks")),
+    _tally_mesh_from_moose(!isParamValid("mesh_template")),
     _total_n_particles(0),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
@@ -372,20 +373,31 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
     case tally::mesh:
     {
-      checkRequiredParam(params, "mesh_template", "using a mesh tally");
       checkUnusedParam(params, "tally_blocks", "using mesh tallies");
 
-      if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
-        mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
+      if (!_tally_mesh_from_moose)
+      {
+        _mesh_template_filename = getParam<std::string>("mesh_template");
+
+        if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
+          mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
+      }
+      else
+      {
+        // if user does not provide a 'mesh_template', just use the [Mesh] block, which means these
+        // other parameters are ignored. To simplify logic elsewhere in the code, we throw an error
+        if (isParamValid("mesh_translations"))
+          mooseError("When reading the tally mesh from the [Mesh] block, the 'mesh_translations' "
+            "cannot be specified!");
+
+        if (isParamValid("mesh_translations_file"))
+          mooseError("When reading the tally mesh from the [Mesh] block, the 'mesh_translations_file' "
+            "cannot be specified!");
+      }
 
       if (_check_equal_mapped_tally_volumes)
         mooseWarning(
             "The 'check_equal_mapped_tally_volumes' parameter is unused when using mesh tallies!");
-
-      _mesh_template_filename = getParam<std::string>("mesh_template");
-
-      if (_mesh_template_filename.empty())
-        paramError("mesh_template", "When using a mesh tally, the mesh template cannot be empty!");
 
       fillMeshTranslations();
 
@@ -1721,7 +1733,8 @@ OpenMCCellAverageProblem::initializeTallies()
     {
       int n_translations = _mesh_translations.size();
 
-      _console << "\nAdding mesh tally based on " + _mesh_template_filename + " at " +
+      std::string name = _tally_mesh_from_moose ? "the MOOSE [Mesh]" : _mesh_template_filename;
+      _console << "\nAdding mesh tally based on " + name + " at " +
                       Moose::stringify(n_translations) + " locations"
                << std::endl;
 
@@ -1741,16 +1754,20 @@ OpenMCCellAverageProblem::initializeTallies()
       _current_mean_tally.resize(n_translations);
       _previous_mean_tally.resize(n_translations);
 
-      // create a new mesh; by setting the ID to -1, OpenMC will automatically detect the
-      // next available ID
-      auto mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
-      mesh->set_id(-1);
-      mesh->output_ = false;
+      std::unique_ptr<openmc::LibMesh> tally_mesh;
+      if (_tally_mesh_from_moose)
+        tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
+      else
+        tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
+
+      // by setting the ID to -1, OpenMC will automatically detect the next available ID
+      tally_mesh->set_id(-1);
+      tally_mesh->output_ = false;
 
       int32_t mesh_index = openmc::model::meshes.size();
 
-      _mesh_template = mesh.get();
-      openmc::model::meshes.push_back(std::move(mesh));
+      _mesh_template = tally_mesh.get();
+      openmc::model::meshes.push_back(std::move(tally_mesh));
 
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
       {
@@ -1788,11 +1805,9 @@ OpenMCCellAverageProblem::initializeTallies()
         _console << std::endl;
       }
 
-      // if using a mesh tally, we are restricted to collision estimators; therefore,
-      // because we are going to use this global tally for normalization, we need to make
-      // sure it also uses a collision estimator
+      // we want to match the same estimator used for the local tally
       if (_global_tally)
-        _global_tally->estimator_ = openmc::TallyEstimator::COLLISION;
+        _global_tally->estimator_ = _tally_estimator;
 
       break;
     }

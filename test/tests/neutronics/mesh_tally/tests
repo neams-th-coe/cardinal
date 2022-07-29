@@ -10,6 +10,19 @@
                   "a local tally when a single mesh is used."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [one_mesh_no_input_file]
+    type = Exodiff
+    input = one_mesh_no_input_file.i
+    exodiff = 'one_mesh_out.e'
+    cli_args = "Outputs/file_base=one_mesh_out"
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "This test is nearly identical to one_mesh. The difference lies in having no mesh_template "
+                  "in the input file. Without one, the system should be able to directly tally on a moose "
+                  "mesh instead of a file "
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [one_mesh_global]
     type = Exodiff
     input = one_mesh_global.i
