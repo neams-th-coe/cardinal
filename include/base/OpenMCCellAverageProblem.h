@@ -883,6 +883,9 @@ protected:
    */
   const bool _using_default_tally_blocks;
 
+  /// When using mesh tallies, whether the mesh comes from the MOOSE [Mesh] block or from a file
+  const bool _tally_mesh_from_moose;
+
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
    * must be identical to the mesh used in the [Mesh] block because a simple copy transfer
