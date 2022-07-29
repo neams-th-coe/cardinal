@@ -37,9 +37,9 @@ NekBinnedVolumeAverage::NekBinnedVolumeAverage(const InputParameters & parameter
 }
 
 void
-NekBinnedVolumeAverage::execute()
+NekBinnedVolumeAverage::executeUserObject()
 {
-  NekBinnedVolumeIntegral::execute();
+  NekBinnedVolumeIntegral::executeUserObject();
 
   // divide by the bin volume if accessible; otherwise, we know that there weren't any counts,
   // and the bin value will remain zero
