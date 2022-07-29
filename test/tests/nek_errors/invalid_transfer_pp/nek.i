@@ -1,6 +1,6 @@
 [Problem]
   type = NekRSProblem
-  minimize_transfers_in = true
+  synchronization_interval = parent_app
   casename = 'cube'
 []
 

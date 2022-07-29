@@ -33,8 +33,7 @@ dT = ${fparse power / mdot / Cp}
   has_heat_source = false
 
   # this just reduces how often we send data back up to the solid app
-  minimize_transfers_in = true
-  minimize_transfers_out = true
+  synchronization_interval = parent_app
 []
 
 [Mesh]
