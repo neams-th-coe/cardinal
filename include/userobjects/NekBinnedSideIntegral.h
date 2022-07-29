@@ -30,7 +30,7 @@ public:
 
   NekBinnedSideIntegral(const InputParameters & parameters);
 
-  virtual void execute() override;
+  virtual void executeUserObject() override;
 
   virtual void getBinVolumes() override;
 

@@ -30,5 +30,5 @@ public:
 
   NekBinnedPlaneAverage(const InputParameters & parameters);
 
-  virtual void execute() override;
+  virtual void executeUserObject() override;
 };

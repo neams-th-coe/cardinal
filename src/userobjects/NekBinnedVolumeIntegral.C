@@ -106,7 +106,7 @@ NekBinnedVolumeIntegral::binnedVolumeIntegral(const field::NekFieldEnum & integr
 }
 
 void
-NekBinnedVolumeIntegral::execute()
+NekBinnedVolumeIntegral::executeUserObject()
 {
   // if the mesh is changing, re-compute the volumes of the bins and check the counts
   if (!_fixed_mesh)

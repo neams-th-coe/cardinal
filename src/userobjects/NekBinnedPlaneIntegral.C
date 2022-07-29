@@ -164,7 +164,7 @@ NekBinnedPlaneIntegral::computeIntegral()
 }
 
 void
-NekBinnedPlaneIntegral::execute()
+NekBinnedPlaneIntegral::executeUserObject()
 {
   computeIntegral();
 

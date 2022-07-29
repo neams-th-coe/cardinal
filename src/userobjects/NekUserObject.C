@@ -24,11 +24,18 @@ InputParameters
 NekUserObject::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
+  params.addParam<unsigned int>("interval", 1,
+    "Frequency (in number of time steps) with which to execute this user object; "
+    "because Nek uses very small time steps, you need many time steps to reach "
+    "steady state, and user objects can be expensive and not necessary to evaluate "
+    "on every single time step. NOTE: you probably want to match this 'interval' "
+    "in the Output");
   return params;
 }
 
 NekUserObject::NekUserObject(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters)
+  : ThreadedGeneralUserObject(parameters),
+    _interval(getParam<unsigned int>("interval"))
 {
   _nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!_nek_problem)
@@ -42,6 +49,13 @@ NekUserObject::NekUserObject(const InputParameters & parameters)
   }
 
   _fixed_mesh = !(_nek_problem->movingMesh());
+}
+
+void
+NekUserObject::execute()
+{
+  if (_fe_problem.timeStep() % _interval == 0)
+    executeUserObject();
 }
 
 #endif

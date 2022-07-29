@@ -35,8 +35,19 @@ public:
 
   virtual void initialize() {}
   virtual void finalize() {}
+  virtual void execute() override;
+
+  /**
+   * Execute the user object; separating this call from execute() allows
+   * all derived classes to leverage this base class's 'interval' parameter
+   * to decide when to call the user object
+   */
+  virtual void executeUserObject() = 0;
 
 protected:
+  /// Interval with which to evaluate the user object
+  const unsigned int & _interval;
+
   /// Underlying problem object
   const NekRSProblemBase * _nek_problem;
 

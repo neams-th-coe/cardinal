@@ -1,0 +1,11 @@
+[Tests]
+  [interval]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = 'nek_out_v_0003.csv nek_out_v_0006.csv nek_out_v_0009.csv'
+    requirement = "The system shall allow the Nek user objects to only evaluate on a fixed interval "
+                  "of time steps. The gold files were created by setting interval = 1 to ensure that "
+                  "the output files are exactly identical at the specified interval steps."
+    required_objects = 'NekRSProblem'
+  []
+[]

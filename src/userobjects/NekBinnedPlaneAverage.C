@@ -37,7 +37,7 @@ NekBinnedPlaneAverage::NekBinnedPlaneAverage(const InputParameters & parameters)
 }
 
 void
-NekBinnedPlaneAverage::execute()
+NekBinnedPlaneAverage::executeUserObject()
 {
   computeIntegral();
 

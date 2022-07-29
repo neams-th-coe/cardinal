@@ -144,7 +144,7 @@ NekBinnedSideIntegral::computeIntegral()
 }
 
 void
-NekBinnedSideIntegral::execute()
+NekBinnedSideIntegral::executeUserObject()
 {
   computeIntegral();
 }
