@@ -374,18 +374,24 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     {
       checkUnusedParam(params, "tally_blocks", "using mesh tallies");
 
-      if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
-        mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
+      if (isParamValid("mesh_template"))
+      {
+        _mesh_template_filename = getParam<std::string>("mesh_template");
+
+        if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
+          mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
+      }
+      else
+      {
+        // if user does not provide a 'mesh_template', just use the [Mesh] block, which means these
+        // other parameters are ignored
+        checkUnusedParam(params, "mesh_translations", "reading the tally mesh from the [Mesh] block");
+        checkUnusedParam(params, "mesh_translations_file", "reading the tally mesh from the [Mesh] block");
+      }
 
       if (_check_equal_mapped_tally_volumes)
         mooseWarning(
             "The 'check_equal_mapped_tally_volumes' parameter is unused when using mesh tallies!");
-
-      // get _mesh_template_filename, if not provided, handle with MooseMesh::_mesh
-      if(params.isParamSetByUser("mesh_template"))
-      {
-        _mesh_template_filename = getParam<std::string>("mesh_template");
-      }
 
       fillMeshTranslations();
 
