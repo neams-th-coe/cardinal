@@ -594,8 +594,9 @@ point to a different input file.
 Then, in `openmc_um.i`, we make small modifications to the settings for the
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md). We indicate that
 `tally_type`
-is set to `mesh` and provide the unstructured mesh that we want to tally as a file
-with the `mesh_template`.
+is set to `mesh`. By default, OpenMC will then just tally directly on the MOOSE
+`[Mesh]` (though we could have specified a different mesh by providing a
+`mesh_template` file name).
 
 !listing /tutorials/lwr_solid/openmc_um.i
   block=Problem
