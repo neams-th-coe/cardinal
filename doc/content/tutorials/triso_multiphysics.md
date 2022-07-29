@@ -541,8 +541,7 @@ file, we know a priori that OpenMC will not be sending a heat source *to NekRS*,
 we set `has_heat_source = false` so that we don't need to add a dummy heat
 source kernel to the `ranstube.oudf` file. Finally, we indicate that we will
 be minimizing the data transfers in/out of NekRS unless new data is actually available
-from the MOOSE heat conduction module with the `minimize_transfers_in` and
-`minimize_transfers_out` parameters.
+from the MOOSE heat conduction module with the `synchronization_interval = parent_app` parameter.
 
 !listing /tutorials/gas_compact_multiphysics/nek.i
   block=Problem

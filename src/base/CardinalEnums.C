@@ -19,6 +19,12 @@
 #include "CardinalEnums.h"
 
 MooseEnum
+getSynchronizationEnum()
+{
+  return MooseEnum("constant parent_app", "constant");
+}
+
+MooseEnum
 getNekOrderEnum()
 {
   return MooseEnum("first second", "first");

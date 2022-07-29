@@ -94,6 +94,12 @@ NekRSProblemBase::validParams()
                         false,
                         "Whether to only synchronize nekRS "
                         "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
+
+  params.addParam<MooseEnum>("synchronization_interval", getSynchronizationEnum(),
+    "When to synchronize the NekRS solution with the mesh mirror. By default, the NekRS solution "
+    "is mapped to/receives data from the mesh mirror for every time step.");
+  params.addParam<unsigned int>("constant_interval", 1,
+    "Constant interval (in units of number of time steps) with which to synchronize the NekRS solution");
   return params;
 }
 
@@ -108,20 +114,40 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _Cp_0(getParam<Real>("Cp_0")),
     _write_fld_files(getParam<bool>("write_fld_files")),
     _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
-    _minimize_transfers_in(getParam<bool>("minimize_transfers_in")),
-    _minimize_transfers_out(getParam<bool>("minimize_transfers_out")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
+    _synchronization_interval(getParam<MooseEnum>("synchronization_interval").getEnum<synchronization::SynchronizationEnum>()),
+    _constant_interval(getParam<unsigned int>("constant_interval")),
     _start_time(nekrs::startTime())
 {
-  // the way the data transfers are detected depend on nekRS being a sub-application,
-  // so these settings are not invalid if nekRS is the master app (though you could
-  // relax this in the future by reversing the synchronization step identification
-  // from the nekRS-subapp case to the nekRS-master app case - it's just not implemented yet).
-  if (_app.isUltimateMaster())
-    if (_minimize_transfers_in || _minimize_transfers_out)
-      mooseError("The 'minimize_transfers_in' and 'minimize_transfers_out' capabilities "
-                 "require that nekRS is receiving and sending data to a master application, but "
-                 "in your case nekRS is the master application.");
+  if (params.isParamSetByUser("minimize_transfers_in"))
+    mooseError("The 'minimize_transfers_in' parameter has been replaced by "
+      "'synchronization_interval = parent_app'! Please update your input files.");
+
+  if (params.isParamSetByUser("minimize_transfers_out"))
+    mooseError("The 'minimize_transfers_out' parameter has been replaced by "
+      "'synchronization_interval = parent_app'! Please update your input files.");
+
+   switch (_synchronization_interval)
+   {
+     case synchronization::parent_app:
+     {
+        // the way the data transfers are detected depend on nekRS being a sub-application,
+        // so these settings are not invalid if nekRS is the master app (though you could
+        // relax this in the future by reversing the synchronization step identification
+        // from the nekRS-subapp case to the nekRS-master app case - it's just not implemented yet).
+        if (_app.isUltimateMaster())
+          mooseError("The 'synchronization_interval = parent_app' capability "
+                     "requires that nekRS is receiving and sending data to a parent application, but "
+                     "in your case nekRS is the main application.");
+
+        checkUnusedParam(params, "constant_interval", "synchronizing based on the 'parent_app'");
+        break;
+     }
+     case synchronization::constant:
+       break;
+     default:
+       mooseError("Unhandled SynchronizationEnum in NekRSProblemBase!");
+  }
 
   if (_disable_fld_file_output && _write_fld_files)
     mooseError("Cannot both disable all field file output and write custom field files!\n"
@@ -406,7 +432,7 @@ NekRSProblemBase::initialSetup()
   nekrs::setStartTime(moose_start_time);
   _start_time = moose_start_time;
 
-  if (_minimize_transfers_in)
+  if (_synchronization_interval == synchronization::parent_app)
     _transfer_in = &getPostprocessorValueByName("transfer_in");
 
   // Then, dimensionalize the NekRS time so that all occurrences of _dt here are
@@ -524,21 +550,33 @@ NekRSProblemBase::synchronizeIn()
   bool synchronize = true;
   static bool first = true;
 
-  if (_minimize_transfers_in)
+  switch (_synchronization_interval)
   {
-    // For the minimized incoming synchronization to work correctly, the value
-    // of the incoming postprocessor must not be zero. We only need to check this for the very
-    // first time we evaluate this function. This ensures that you don't accidentally set a
-    // zero value as a default in the master application's postprocessor.
-    if (first && *_transfer_in == false)
-      mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
-                 "must not be false! Make sure that the master application's "
-                 "postprocessor is not zero.");
+    case synchronization::parent_app:
+    {
+      // For the minimized incoming synchronization to work correctly, the value
+      // of the incoming postprocessor must not be zero. We only need to check this for the very
+      // first time we evaluate this function. This ensures that you don't accidentally set a
+      // zero value as a default in the master application's postprocessor.
+      if (first && *_transfer_in == false)
+        mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
+                   "must not be false! Make sure that the master application's "
+                   "postprocessor is not zero.");
 
-    if (*_transfer_in == false)
-      synchronize = false;
-    else
-      setPostprocessorValueByName("transfer_in", false, 0);
+      if (*_transfer_in == false)
+        synchronize = false;
+      else
+        setPostprocessorValueByName("transfer_in", false, 0);
+
+      break;
+    }
+    case synchronization::constant:
+    {
+      synchronize = timeStep() % _constant_interval == 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled SynchronizationEnum in NekRSProblemBase!");
   }
 
   first = false;
@@ -550,11 +588,22 @@ NekRSProblemBase::synchronizeOut()
 {
   bool synchronize = true;
 
-  if (_minimize_transfers_out)
+  switch (_synchronization_interval)
   {
-    if (std::abs(_time - _dt - _transient_executioner->getTargetTime()) >
-        _transient_executioner->timestepTol())
-      synchronize = false;
+    case synchronization::parent_app:
+    {
+      if (std::abs(_time - _dt - _transient_executioner->getTargetTime()) >
+          _transient_executioner->timestepTol())
+        synchronize = false;
+      break;
+    }
+    case synchronization::constant:
+    {
+      synchronize = timeStep() % _constant_interval == 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled SynchronizationEnum in NekRSProblemBase!");
   }
 
   return synchronize;
@@ -697,7 +746,7 @@ NekRSProblemBase::addExternalVariables()
     _var_string.erase(std::prev(_var_string.end()));
   }
 
-  if (_minimize_transfers_in)
+  if (_synchronization_interval == synchronization::parent_app)
   {
     auto pp_params = _factory.getValidParams("Receiver");
     pp_params.set<std::vector<OutputName>>("outputs") = {"none"};

@@ -32,8 +32,7 @@ num_layers_for_plots = 50                # number of layers to average fields ov
   rho_0 = ${fluid_density}
   Cp_0 = ${fluid_Cp}
 
-  minimize_transfers_in = true
-  minimize_transfers_out = true
+  synchronization_interval = parent_app
 []
 
 [Executioner]

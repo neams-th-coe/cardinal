@@ -1,8 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'sfr_pin'
-  minimize_transfers_in = true
-  minimize_transfers_out = true
+  synchronization_interval = parent_app
 
   # we only technically need one scratch space slot for this problem,
   # so we can skip allocating extra

@@ -1,8 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'cylinder'
-  minimize_transfers_in = true
-  minimize_transfers_out = true
+  synchronization_interval = parent_app
 []
 
 [Mesh]
