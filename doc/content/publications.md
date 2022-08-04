@@ -4,13 +4,15 @@ This page contains an inexhaustive list of publications using Cardinal.
 If you use Cardinal for your work, please consider citing the following.
 
 ```tex
-@article{cardinal2021NT,
-   title = {{Cardinal}: A Lower Length-Scale Multiphysics Simulator for Pebble-Bed Reactors},
-  author = {E. Merzari and H. Yuan and M. Min and D. Shaver and R. Rahaman and P. Shriwise and P. Romano and A. Talamo and Y. Lan and D. Gaston and R. Martineau and P. Fischer and Y. Hassan},
-    year = {2021},
- journal = {{Nuclear Technology}},
-     DOI = {https://doi.org/10.1080/00295450.2020.1824471},
-     url = {https://www.tandfonline.com/doi/full/10.1080/00295450.2020.1824471}
+@article{novak2022_cardinal,
+   author = {A.J. Novak and D. Andrs and P. Shriwise and J. Fang and H. Yuan and D. Shaver and E. Merzari and P.K. Romano and R.C. Martineau},
+    title = {{Coupled {Monte} {Carlo} and Thermal-Fluid Modeling of High Temperature Gas Reactors Using {Cardinal}}},
+  journal = {Annals of Nuclear Energy},
+     year = 2022,
+   volume = 177,
+    pages = {109310},
+      DOI = {10.1016/j.anucene.2022.109310},
+      url = {https://www.sciencedirect.com/science/article/pii/S0306454922003450}
 }
 ```
 
@@ -60,8 +62,11 @@ A.J. Novak, D. Shaver, and B. Feng
 
 # High Temperature Gas Reactors
 
+A.J. Novak, D. Andrs, P. Shriwise, J. Fang, H. Yuan, D. Shaver, E. Merzari, P.K. Romano, and R.C. Martineau,
+["Coupled Monte Carlo and Thermal-Fluid Modeling of High Temperature Gas Reactors Using Cardinal"](https://www.sciencedirect.com/science/article/pii/S0306454922003450) 177 (109310) *Annals of Nuclear Energy* (2022)
+
 A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Keutelian,
-["Coupled Monte Carlo and Thermal-Hydrualics Modeling of a Prismatic Gas Reactor Fuel Assembly Using Cardinal"](https://www.researchgate.net/publication/360681454_Coupled_Monte_Carlo_and_Thermal-Hydraulics_Modeling_of_a_Prismatic_Gas_Reactor_Fuel_Assembly_Using_Cardinal?_sg%5B1%5D=1Iq-lQWwadAANa8I10BgfiSiL9agM7rVq-JhJIgNRg2JQgPqQEq6hU82MhzPEQphXzZrYciSQA)
+["Coupled Monte Carlo and Thermal-Hydraulics Modeling of a Prismatic Gas Reactor Fuel Assembly Using Cardinal"](https://www.researchgate.net/publication/360681454_Coupled_Monte_Carlo_and_Thermal-Hydraulics_Modeling_of_a_Prismatic_Gas_Reactor_Fuel_Assembly_Using_Cardinal?_sg%5B1%5D=1Iq-lQWwadAANa8I10BgfiSiL9agM7rVq-JhJIgNRg2JQgPqQEq6hU82MhzPEQphXzZrYciSQA)
 *Proceedings of PHYSOR* (2022)
 
 # Sodium Fast Reactors

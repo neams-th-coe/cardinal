@@ -215,6 +215,12 @@ make PETSC_DIR=$HOME/cardinal/contrib/moose/scripts/../petsc PETSC_ARCH=arch-moo
 ```
 
 !alert tip
+If you run into problems while building PETSc or libMesh, the issue is almost always
+at the MOOSE level, and not specific to Cardinal. We recommend posting your problem directly
+to the [MOOSE discussions page](https://github.com/idaholab/moose/discussions) or to
+the MOOSE Slack.
+
+!alert tip
 Building libMesh can be time consuming. You only need to build libMesh
 if the libMesh hash used by MOOSE has been updated or this is the first time you
 are building Cardinal.
