@@ -528,6 +528,11 @@ converts to a volumetric heat source according to the user-provided `power`.
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html).
 
+The `damage_energy` score is unique because it doesn't really represent _heating_
+of a material - it instead represents energy for DPA calculations. For this case, the
+`heat_source` auxiliary variable should not be used in any type of volumetric heat
+source kernel.
+
 #### Relaxation
 
 OpenMC is coupled to MOOSE via fixed point iteration, also referred to
