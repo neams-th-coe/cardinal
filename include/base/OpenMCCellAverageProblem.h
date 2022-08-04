@@ -453,7 +453,7 @@ protected:
   void sendDensityToOpenMC();
 
   /**
-   * Extract the heat source from OpenMC and normalize by a global kappa fission tally,
+   * Extract the heat source from OpenMC and normalize by a global tally,
    * then apply as a uniform field to the corresponding MOOSE elements.
    */
   void getHeatSourceFromOpenMC();
@@ -472,30 +472,30 @@ protected:
   void getFissionTallyFromOpenMC(const unsigned int & var_num);
 
   /**
-   * Normalize the local tally by either the global kappa fission tally, or the sum
-   * of the local kappa fission tally
+   * Normalize the local tally by either the global tally, or the sum
+   * of the local tally
    * @param[in] tally_result value of tally result
    * @return normalized tally
    */
   Real normalizeLocalTally(const Real & tally_result) const;
 
   /**
-   * Normalize the local tally by either the global kappa fission tally, or the sum
-   * of the local kappa fission tally
+   * Normalize the local tally by either the global tally, or the sum
+   * of the local tally
    * @param[in] raw_tally value of tally result
    * @return normalized tally
    */
   xt::xtensor<double, 1> normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const;
 
   /**
-   * Add the local kappa-fission tally
+   * Add the local tally
    * @param[in] filters tally filters
    */
   void addLocalTally(std::vector<openmc::Filter *> & filters);
 
   /**
    * Check the sum of the fluid and solid tallies (if present) against the global
-   * kappa fission tally.
+   * tally.
    */
   void checkTallySum() const;
 
@@ -529,7 +529,7 @@ protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
-   * Type of tally to apply to extract kappa fission score from OpenMC;
+   * Type of tally to apply to extract score from OpenMC;
    * if you want to tally in cells, use 'cell'. Otherwise, to tally on an
    * unstructured mesh, use 'mesh'. Currently, this implementation is limited
    * to a single mesh in the OpenMC geometry.
@@ -553,7 +553,7 @@ protected:
   const relaxation::RelaxationEnum _relaxation;
 
   /**
-   * Type of trigger to apply to OpenMC kappa-fission tallies to indicate when
+   * Type of trigger to apply to OpenMC tallies to indicate when
    * the simulation is complete. These can be used to on-the-fly adjust the number
    * of active batches in order to reach some desired criteria (which is specified
    * by this parameter).
@@ -641,9 +641,9 @@ protected:
   const Real & _scaling;
 
   /**
-   * How to normalize the OpenMC kappa-fission tally into units of W/volume. If 'true',
+   * How to normalize the OpenMC tally into units of W/volume. If 'true',
    * normalization is performed by dividing each local tally against a problem-global
-   * kappa-fission tally. The advantage of this approach is that some power-producing parts of the
+   * tally. The advantage of this approach is that some power-producing parts of the
    * OpenMC domain can be excluded from multiphysics feedback (without us having to guess
    * what the power of the *included* part of the domain is). This can let us do
    * "zooming" type calculations, where perhaps we only want to send T/H feedback to
@@ -655,16 +655,16 @@ protected:
    * for instance, a first-order sphere mesh will not perfectly match the volume of a
    * TRISO pebble - then not all of the power actually produced in the pebble is
    * tallies on the mesh approximation to that pebble. Therefore, if you set a core
-   * power of 1 MW and you normalized based on a global kappa fission tally, you'd always
+   * power of 1 MW and you normalized based on a global tally, you'd always
    * miss some of that power when sending to MOOSE. So, in this case, it is better to
    * normalize against the local tally itself so that the correct power is preserved.
    */
   const bool & _normalize_by_global;
 
   /**
-   * Whether to check the tallies against the global kappa fission tally;
+   * Whether to check the tallies against the global tally;
    * if set to true, and the tallies added for the 'tally_blocks' do not
-   * sum to the global kappa fission tally, an error is thrown. If you are
+   * sum to the global tally, an error is thrown. If you are
    * only performing multiphysics feedback for, say, a single assembly in a
    * full-core OpenMC model, you must set this check to false, because there
    * are known fission sources outside the domain of interest.
@@ -775,6 +775,9 @@ protected:
   /// Tally estimator to use for the OpenMC tallies created for multiphysics
   openmc::TallyEstimator _tally_estimator;
 
+  /// Score to use for evaluating the tally that gets mapped to the 'heat_source' variable
+  std::string _tally_score;
+
   /// Blocks in MOOSE mesh that correspond to the fluid phase
   std::unordered_set<SubdomainID> _fluid_blocks;
 
@@ -847,14 +850,14 @@ protected:
   /// Number of material-type cells contained within a cell
   std::map<cellInfo, int32_t> _cell_to_n_contained;
 
-  /// OpenMC cells to which a kappa fission tally is to be added
+  /// OpenMC cells to which a tally is to be added
   std::vector<cellInfo> _tally_cells;
 
-  /// Global kappa fission tally
+  /// Global tally
   openmc::Tally * _global_tally{nullptr};
 
   /**
-   * Local kappa fission tallies; multiple tallies will only exist when
+   * Local tallies; multiple tallies will only exist when
    * translating multiple unstructured meshes throughout the geometry
    */
   std::vector<openmc::Tally *> _local_tally;
@@ -871,11 +874,11 @@ protected:
   /// Density variable, which must be in units of kg/m3 based on internal conversions
   unsigned int _density_var;
 
-  /// Mean value of the global kappa fission tally
-  Real _global_kappa_fission;
+  /// Mean value of the global tally
+  Real _global_mean_tally;
 
-  /// Mean value of the local kappa fission tally
-  Real _local_kappa_fission;
+  /// Mean value of the local tally
+  Real _local_mean_tally;
 
   /**
    * For OpenMC geometries with a single coordinate level, we define default behavior for
@@ -962,6 +965,16 @@ protected:
 
   /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
   std::unique_ptr<SymmetryPointGenerator> _symmetry;
+
+  /**
+   * \brief Whether the tally has a zero contribution in all non-fissile materials
+   *
+   * For scores involving energy from fission with entirely local deposition
+   * at the site of fission, we know that there will be zero contribution from cells
+   * not containing fissile materials. We can reduce the total number of added tally
+   * bins by ensuring we don't add tallies in non-fissile materials for these scores.
+   */
+  bool _tally_is_zero_in_nonfissile;
 
   /// Number of solid elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_solid;

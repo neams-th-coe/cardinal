@@ -64,7 +64,7 @@ OpenMCCellAverageProblem::validParams()
       "Subdomain ID(s) for which to add tallies in the OpenMC model; "
       "only used with cell tallies");
   params.addParam<bool>("check_tally_sum",
-                        "Whether to check consistency between the cell-wise kappa fission tallies "
+                        "Whether to check consistency between the cell-wise tallies "
                         "with a global tally");
   params.addParam<bool>(
       "check_zero_tallies",
@@ -97,7 +97,7 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
-      "Whether to normalize by a global kappa-fission tally (true) or else by the sum "
+      "Whether to normalize by a global tally (true) or else by the sum "
       "of the local tally (false)");
   params.addParam<bool>(
       "assume_separate_tallies",
@@ -109,6 +109,9 @@ OpenMCCellAverageProblem::validParams()
       "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
   params.addParam<MooseEnum>(
       "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
+  params.addParam<MooseEnum>(
+      "tally_score", getTallyScoreEnum(), "Type of score to use in the OpenMC tallies automatically "
+      "constructed by Cardinal.");
   params.addParam<std::string>("mesh_template",
                                "Mesh tally template for OpenMC when using mesh tallies; "
                                "at present, this mesh must exactly match the mesh used in the "
@@ -238,7 +241,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _total_n_particles(0),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
-    _symmetry(nullptr)
+    _symmetry(nullptr),
+    _tally_is_zero_in_nonfissile(false)
 {
   if (isParamValid("tally_estimator"))
   {
@@ -279,6 +283,39 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != tally::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
+
+  score::TallyScoreEnum score;
+  if (isParamValid("tally_score"))
+    score = getParam<MooseEnum>("tally_score").getEnum<score::TallyScoreEnum>();
+  else
+    score = score::kappa_fission;
+
+  switch (score)
+  {
+    case score::heating:
+      _tally_score = "heating";
+      break;
+    case score::heating_local:
+      _tally_score = "heating-local";
+      break;
+    case score::kappa_fission:
+      _tally_score = "kappa-fission";
+      _tally_is_zero_in_nonfissile = true;
+      break;
+    case score::fission_q_prompt:
+      _tally_score = "fission-q-prompt";
+      _tally_is_zero_in_nonfissile = true;
+      break;
+    case score::fission_q_recoverable:
+      _tally_score = "fission-q-recoverable";
+      _tally_is_zero_in_nonfissile = true;
+      break;
+    case score::damage_energy:
+      _tally_score = "damage-energy";
+      break;
+    default:
+      mooseError("Unhandled TallyScoreEnum in OpenMCCellAverageProblem!");
+  }
 
   if (_tally_type == tally::mesh)
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
@@ -1588,8 +1625,9 @@ OpenMCCellAverageProblem::storeTallyCells()
 
     if (_cell_has_tally[cell_info])
     {
-      // if the cell doesn't have fissile material, don't add a tally to save some evaluation
-      if (!cellHasFissileMaterials(cell_info))
+      // if the cell doesn't have fissile material AND the tally has nonzero contributions in non-fissile materials,
+      //  don't add a tally to save some evaluation
+      if (!cellHasFissileMaterials(cell_info) && _tally_is_zero_in_nonfissile)
       {
         // for the special case of a single coordinate level, just silently skip adding the tallies
         if (_using_default_tally_blocks)
@@ -1664,7 +1702,7 @@ void
 OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters)
 {
   auto tally = openmc::Tally::create();
-  tally->set_scores({"kappa-fission"});
+  tally->set_scores({_tally_score});
   tally->estimator_ = _tally_estimator;
   tally->set_filters(filters);
   _local_tally.push_back(tally);
@@ -1695,7 +1733,7 @@ OpenMCCellAverageProblem::initializeTallies()
   if (_needs_global_tally)
   {
     _global_tally = openmc::Tally::create();
-    _global_tally->set_scores({"kappa-fission"});
+    _global_tally->set_scores({_tally_score});
   }
 
   // create the local heating tally
@@ -1818,8 +1856,8 @@ OpenMCCellAverageProblem::initializeTallies()
   if (_assume_separate_tallies)
     openmc::settings::assume_separate = true;
 
-  // add trigger information, if present; for each tally, we only have a single score
-  // (kappa-fission), so i_score is always set to 0
+  // add trigger information, if present; for each tally, we only have a single score,
+  // so i_score is always set to 0
   for (auto & t : _local_tally)
   {
     switch (_tally_trigger)
@@ -2089,18 +2127,18 @@ Real
 OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
 {
   if (_normalize_by_global)
-    return tally_result / _global_kappa_fission;
+    return tally_result / _global_mean_tally;
   else
-    return tally_result / _local_kappa_fission;
+    return tally_result / _local_mean_tally;
 }
 
 xt::xtensor<double, 1>
 OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
 {
   if (_normalize_by_global)
-    return raw_tally / _global_kappa_fission;
+    return raw_tally / _global_mean_tally;
   else
-    return raw_tally / _local_kappa_fission;
+    return raw_tally / _local_mean_tally;
 }
 
 void
@@ -2289,13 +2327,13 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 void
 OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 {
-  _console << "Extracting OpenMC fission heat source... " << printNewline();
+  _console << "Extracting OpenMC heat source... " << printNewline();
 
-  // get the total kappa fission sources for normalization
+  // get the total tallies for normalization
   if (_global_tally)
-    _global_kappa_fission = tallySum({_global_tally});
+    _global_mean_tally = tallySum({_global_tally});
 
-  _local_kappa_fission = tallySum(_local_tally);
+  _local_mean_tally = tallySum(_local_tally);
 
   if (_check_tally_sum)
     checkTallySum();
@@ -2458,13 +2496,13 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 void
 OpenMCCellAverageProblem::checkTallySum() const
 {
-  if (std::abs(_global_kappa_fission - _local_kappa_fission) / _global_kappa_fission >
+  if (std::abs(_global_mean_tally - _local_mean_tally) / _global_mean_tally >
       openmc::FP_REL_PRECISION)
   {
     std::stringstream msg;
-    msg << "Heating tallies do not match the global kappa-fission tally:\n"
-        << " Global value: " << Moose::stringify(_global_kappa_fission)
-        << "\n Tally sum: " << Moose::stringify(_local_kappa_fission)
+    msg << "Heating tallies do not match the global " << _tally_score << " tally:\n"
+        << " Global value: " << Moose::stringify(_global_mean_tally)
+        << "\n Tally sum: " << Moose::stringify(_local_mean_tally)
         << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level
@@ -2476,7 +2514,7 @@ OpenMCCellAverageProblem::checkTallySum() const
         msg << "\n\nYour problem has " + Moose::stringify(n_uncoupled_cells) +
                    " uncoupled OpenMC cells; this warning might be caused by these cells "
                    "contributing\n" +
-                   "to the global kappa fission tally, without being part of the multiphysics "
+                   "to the global " << _tally_score << " tally, without being part of the multiphysics "
                    "setup.";
 
       // If there are cells in OpenMC's problem that we're not coupling with (and therefore not
@@ -2506,8 +2544,8 @@ OpenMCCellAverageProblem::checkTallySum() const
           missing_tallies = "solid";
 
         msg << "\n\nYour problem didn't add tallies for the " << missing_tallies
-            << "; this warning might be caused by\nfission sources in these regions that "
-               "contribute to the global kappa fission tally, without being\npart of the "
+            << "; this warning might be caused by\nheat sources in these regions that "
+               "contribute to the global " << _tally_score << " tally, without being\npart of the "
                "multiphysics setup.";
       }
     }
