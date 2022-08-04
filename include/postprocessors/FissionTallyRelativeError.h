@@ -22,7 +22,7 @@
 #include "CardinalEnums.h"
 
 /**
- * Compute the max/min relative error of the kappa fission tally
+ * Compute the max/min relative error of the tally
  * added to extract the heat source from OpenMC.
  */
 class FissionTallyRelativeError : public OpenMCPostprocessor

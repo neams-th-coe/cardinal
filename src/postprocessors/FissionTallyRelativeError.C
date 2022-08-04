@@ -30,7 +30,7 @@ FissionTallyRelativeError::validParams()
   params.addParam<MooseEnum>("value_type",
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
-  params.addClassDescription("Extract the maximum/minimum fission tally relative error");
+  params.addClassDescription("Extract the maximum/minimum tally relative error");
   return params;
 }
 
