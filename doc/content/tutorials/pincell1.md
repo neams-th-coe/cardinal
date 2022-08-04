@@ -97,7 +97,7 @@ system in MOOSE, the mesh is created at runtime. If you want to generate a mesh 
 you can do so by running the solid input file in mesh generation mode:
 
 !listing
-$ cardinal-opt -i mesh.i --mesh-only
+cardinal-opt -i mesh.i --mesh-only
 
 !media pincell_solid_mesh.png
   id=solid_mesh
@@ -201,14 +201,14 @@ expect in your coupled multiphysics problem - otherwise, you will encounter
 a runtime error that data is not available at the requested temperatures.
 
 Because OpenMC runs at the end of each timestep, the initial fluid temperature
-is seto to 280&deg;C. And as there is no density feedback in this example, the
+is set to 280&deg;C. And as there is no density feedback in this example, the
 densities initially imposed
 in the OpenMC model remain fixed at the values set in the OpenMC input files.
 
 To generate the XML files needed to run OpenMC, you can run the following:
 
 ```
-$ python make_openmc_model.py
+python make_openmc_model.py
 ```
 
 or simply use the XML files checked in to the `tutorials/lwr_solid` directory.
@@ -288,16 +288,16 @@ In this example, the overall calculation workflow is as follows:
   computed by OpenMC and map in the opposite direction from OpenMC cells
   to all the MOOSE elements that mapped to each cell.
 
-The above sequence is repeated until the desired convergence of the coupled domain.
+The above sequence is repeated until desired convergence of the coupled domain is achieved.
 The [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
 and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal and MOOSE. The MOOSE
-heat conduction application is here run as the master application, with
+heat conduction application is run as the master application, with
 OpenMC run as the sub-application. We specify that MOOSE will run
 first on each time step.
 
 Two transfers are required to couple OpenMC and MOOSE for heat source and
-temperature feedback; the first is a transfer of heat source from Cardinal
+temperature feedback. The first is a transfer of heat source from Cardinal
 to MOOSE. The second is transfer of temperature from MOOSE to Cardinal.
 
 !listing /tutorials/lwr_solid/solid.i
@@ -359,7 +359,7 @@ a volume-average temperature to apply to each OpenMC cell.
 !alert note
 While we use nomenclature
 like `solid_blocks`, these blocks don't need to actually represent
-*solid* - we only use this verbage to note where OpenMC should receive temperature
+*solids* - we only use this verbage to note where OpenMC should receive temperature
 feedback, but *not* density feedback (which would require moving the cell boundaries
 for deforming solids to preserve mass).
 
@@ -434,7 +434,7 @@ wrapper file explicitly. It is as if the following is included in the input file
 To run the coupled calculation, run the following:
 
 ```
-$ mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
+mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
 ```
 
 This will run both MOOSE and OpenMC with 8 [!ac](MPI) processes and 2 OpenMP threads.
@@ -652,7 +652,7 @@ the `particles`,
 Then, to run the input using mesh tallies, use:
 
 ```
-$ mpiexec -np 24 cardinal-opt -i solid_um.i --n-threads=2
+mpiexec -np 24 cardinal-opt -i solid_um.i --n-threads=2
 ```
 
 [mesh_hs] shows the unstructured mesh heat source computed by OpenMC; the
