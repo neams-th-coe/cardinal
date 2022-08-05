@@ -374,7 +374,7 @@ protected:
    * for k-eigenvalue simulations), we are basically relaxing the distribution of the heat
    * source, but then multiplying it by the _current_ mean tally magnitude.
    *
-   * There will be very small errors in these approximations unless power/the source strength
+   * There will be very small errors in these approximations unless the power/source strength
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed heat source to the raw (unrelaxed) tally.
