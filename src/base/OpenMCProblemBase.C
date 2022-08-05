@@ -20,6 +20,7 @@
 
 #include "OpenMCProblemBase.h"
 #include "AuxiliarySystem.h"
+#include "UserErrorChecking.h"
 
 #include "mpi.h"
 #include "openmc/capi.h"
@@ -37,8 +38,10 @@ InputParameters
 OpenMCProblemBase::validParams()
 {
   InputParameters params = ExternalProblem::validParams();
-  params.addRequiredParam<PostprocessorName>(
-      "power", "Power (Watts) to normalize the OpenMC tallies");
+  params.addParam<PostprocessorName>(
+      "power", "Power (Watts) to normalize the OpenMC tallies; only used for k-eigenvalue mode");
+  params.addParam<PostprocessorName>(
+      "source_strength", "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
   // interfaces to directly set some OpenMC parameters
@@ -69,7 +72,6 @@ OpenMCProblemBase::validParams()
 OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   : ExternalProblem(params),
     PostprocessorInterface(this),
-    _power(getPostprocessorValue("power")),
     _verbose(getParam<bool>("verbose")),
     _reuse_source(getParam<bool>("reuse_source")),
     _single_coord_level(openmc::model::n_coord_levels == 1),
@@ -77,6 +79,24 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _path_output(openmc::settings::path_output),
     _n_cell_digits(std::to_string(openmc::model::cells.size()).length())
 {
+  if (openmc::settings::run_mode == openmc::RunMode::FIXED_SOURCE)
+  {
+    checkRequiredParam(params, "source_strength", "running in fixed source mode");
+    _source_strength = &getPostprocessorValue("source_strength");
+
+    checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
+    checkUnusedParam(params, "reuse_source", "running in fixed source mode");
+    checkUnusedParam(params, "power", "running in fixed source mode");
+    _reuse_source = false;
+  }
+  else
+  {
+    checkRequiredParam(params, "power", "running in k-eigenvalue mode");
+    _power = &getPostprocessorValue("power");
+
+    checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
+  }
+
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
 
@@ -420,18 +440,34 @@ OpenMCProblemBase::relativeError(const Real & sum,
   return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
 }
 
+xt::xtensor<double, 1>
+OpenMCProblemBase::tallySum(openmc::Tally * tally) const
+{
+  return xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+}
+
 double
-OpenMCProblemBase::tallySum(std::vector<openmc::Tally *> tally) const
+OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally) const
 {
   double sum = 0.0;
 
   for (const auto & t : tally)
   {
-    auto mean = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    auto mean = tallySum(t);
     sum += xt::sum(mean)();
   }
 
   return sum;
+}
+
+double
+OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally) const
+{
+  int n = 0;
+  for (const auto & t : tally)
+    n += t->n_realizations_;
+
+  return tallySumAcrossBins(tally) / n;
 }
 
 #endif
