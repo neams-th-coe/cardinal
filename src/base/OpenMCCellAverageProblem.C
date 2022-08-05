@@ -224,9 +224,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _export_properties(getParam<bool>("export_properties")),
     _specified_scaling(params.isParamSetByUser("scaling")),
     _scaling(getParam<Real>("scaling")),
-    _normalize_by_global(getParam<bool>("normalize_by_global_tally")),
-    _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum")
-                                                     : _normalize_by_global),
+    _run_mode(openmc::settings::run_mode),
+    _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
+                                      getParam<bool>("normalize_by_global_tally")),
+    _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") :
+                                                       (_run_mode == openmc::RunMode::FIXED_SOURCE ?
+                                                        true : _normalize_by_global)),
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
     _relaxation_factor(getParam<Real>("relaxation_factor")),
     _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
@@ -244,6 +247,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _symmetry(nullptr),
     _tally_is_zero_in_nonfissile(false)
 {
+  if (_run_mode == openmc::RunMode::FIXED_SOURCE)
+    checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
+
   if (isParamValid("tally_estimator"))
   {
     auto estimator = getParam<MooseEnum>("tally_estimator").getEnum<tally::TallyEstimatorEnum>();
@@ -281,7 +287,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
 
-  if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != tally::none)
+  if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != tally::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
   score::TallyScoreEnum score;
@@ -2124,21 +2130,30 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 }
 
 Real
+OpenMCCellAverageProblem::tallyMultiplier() const
+{
+  if (_run_mode == openmc::RunMode::EIGENVALUE)
+    return *_power;
+  else
+    return *_source_strength * EV_TO_JOULE * _local_mean_tally;
+}
+
+Real
 OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
 {
   if (_normalize_by_global)
-    return tally_result / _global_mean_tally;
+    return tally_result / _global_sum_tally;
   else
-    return tally_result / _local_mean_tally;
+    return tally_result / _local_sum_tally;
 }
 
 xt::xtensor<double, 1>
 OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
 {
   if (_normalize_by_global)
-    return raw_tally / _global_mean_tally;
+    return raw_tally / _global_sum_tally;
   else
-    return raw_tally / _local_mean_tally;
+    return raw_tally / _local_sum_tally;
 }
 
 void
@@ -2148,8 +2163,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
   {
     case tally::cell:
     {
-      auto tally = _local_tally.at(0);
-      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum = tallySum(_local_tally.at(0));
 
       int i = 0;
       for (const auto & c : _cell_to_elem)
@@ -2160,7 +2174,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
         if (!_cell_has_tally[cell_info])
           continue;
 
-        Real local_power = normalizeLocalTally(sum(i)) * _power / _cell_to_elem_volume[cell_info];
+        Real local_power = normalizeLocalTally(sum(i)) * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         fillElementalAuxVariable(_external_vars[var_num], c.second, local_power);
         i++;
       }
@@ -2175,13 +2189,11 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
     for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
     {
       const auto * filter = _mesh_filters[i];
-
-      auto tally = _local_tally.at(i);
-      auto sum = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum = tallySum(_local_tally.at(i));
 
       for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
       {
-        Real local_power = normalizeLocalTally(sum(e)) * _power / _mesh_template->volume(e) *
+        Real local_power = normalizeLocalTally(sum(e)) * tallyMultiplier() / _mesh_template->volume(e) *
           _scaling * _scaling * _scaling;
         std::vector<unsigned int> elem_ids = {offset + e};
         fillElementalAuxVariable(_external_vars[var_num], elem_ids, local_power);
@@ -2206,8 +2218,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
     case tally::cell:
     {
       auto tally = _local_tally.at(0);
-      auto sum =
-          xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+      auto sum = tallySum(_local_tally.at(0));
       auto sum_sq =
           xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
@@ -2222,7 +2233,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
 
         // we make sure we have the right units by multiplying the percent error by the
         // volumetric power in this tally bin
-        Real local_power = normalizeLocalTally(sum(i)) * _power / _cell_to_elem_volume[cell_info];
+        Real local_power = normalizeLocalTally(sum(i)) * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         Real std_dev = relativeError(sum(i), sum_sq(i), tally->n_realizations_) * local_power;
         fillElementalAuxVariable(_external_vars[var_num], c.second, std_dev);
         i++;
@@ -2240,8 +2251,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
         const auto * filter = _mesh_filters[i];
 
         auto tally = _local_tally.at(i);
-        auto sum =
-            xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+        auto sum = tallySum(_local_tally.at(i));
         auto sum_sq =
             xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
@@ -2249,7 +2259,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
         {
           // we make sure we have the right units by multiplying the percent error by the
           // volumetric power in this tally bin
-          Real local_power = normalizeLocalTally(sum(e)) * _power / _mesh_template->volume(e) *
+          Real local_power = normalizeLocalTally(sum(e)) * tallyMultiplier() / _mesh_template->volume(e) *
                              _scaling * _scaling * _scaling;
           Real std_dev = relativeError(sum(e), sum_sq(e), tally->n_realizations_) * local_power;
           std::vector<unsigned int> elem_ids = {offset + e};
@@ -2274,8 +2284,7 @@ OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
   // return
   if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
   {
-    auto mean_tally = xt::view(
-        _local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    auto mean_tally = tallySum(_local_tally.at(t));
     _current_mean_tally[t] = normalizeLocalTally(mean_tally);
     _previous_mean_tally[t] = normalizeLocalTally(mean_tally);
     return;
@@ -2285,8 +2294,7 @@ OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
   std::copy(_current_mean_tally[t].cbegin(),
             _current_mean_tally[t].cend(),
             _previous_mean_tally[t].begin());
-  auto mean_tally = xt::view(
-      _local_tally.at(t)->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  auto mean_tally = tallySum(_local_tally.at(t));
 
   double alpha;
   switch (_relaxation)
@@ -2331,9 +2339,10 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 
   // get the total tallies for normalization
   if (_global_tally)
-    _global_mean_tally = tallySum({_global_tally});
+    _global_sum_tally = tallySumAcrossBins({_global_tally});
 
-  _local_mean_tally = tallySum(_local_tally);
+  _local_sum_tally = tallySumAcrossBins(_local_tally);
+  _local_mean_tally = tallyMeanAcrossBins(_local_tally);
 
   if (_check_tally_sum)
     checkTallySum();
@@ -2359,7 +2368,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 
         // divide each tally value by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric heat source (W/volume).
-        Real volumetric_power = power_fraction * _power / _cell_to_elem_volume[cell_info];
+        Real volumetric_power = power_fraction * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         power_fraction_sum += power_fraction;
 
         if (_verbose)
@@ -2392,7 +2401,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
           // Because we require that the mesh template has units of cm based on the
           // mesh constructors in OpenMC, we need to adjust the division
           Real volumetric_power =
-              power_fraction * _power / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
+              power_fraction * tallyMultiplier() / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
           power_fraction_sum += power_fraction;
           template_power_fraction += power_fraction;
 
@@ -2496,13 +2505,13 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 void
 OpenMCCellAverageProblem::checkTallySum() const
 {
-  if (std::abs(_global_mean_tally - _local_mean_tally) / _global_mean_tally >
+  if (std::abs(_global_sum_tally - _local_sum_tally) / _global_sum_tally >
       openmc::FP_REL_PRECISION)
   {
     std::stringstream msg;
     msg << "Heating tallies do not match the global " << _tally_score << " tally:\n"
-        << " Global value: " << Moose::stringify(_global_mean_tally)
-        << "\n Tally sum: " << Moose::stringify(_local_mean_tally)
+        << " Global value: " << Moose::stringify(_global_sum_tally)
+        << "\n Tally sum: " << Moose::stringify(_local_sum_tally)
         << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level

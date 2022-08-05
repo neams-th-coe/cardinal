@@ -43,11 +43,31 @@ public:
   void importProperties() const;
 
   /**
-   * Compute the mean value of a tally
-   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
-   * @return mean value
+   * \brief Compute the sum of a tally within each bin
+   *
+   * For example, suppose we have a cell tally with 4 bins, one for each of 4
+   * different cells. This function will return the sum of the tally in each of
+   * those bins, so the return xtensor will have a length of 4, with each value
+   * representing the sum for that bin.
+   *
+   * @param[in] tally OpenMC tally
+   * @return tally sum within each bin
    */
-  double tallySum(std::vector<openmc::Tally *> tally) const;
+  xt::xtensor<double, 1> tallySum(openmc::Tally * tally) const;
+
+  /**
+   * Compute the sum of a tally across all of its bins
+   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
+   * @return tally sum
+   */
+  double tallySumAcrossBins(std::vector<openmc::Tally *> tally) const;
+
+  /**
+   * Compute the mean of a tally across all of its bins
+   * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
+   * @return tally mean
+   */
+  double tallyMeanAcrossBins(std::vector<openmc::Tally *> tally) const;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
@@ -198,11 +218,14 @@ protected:
     return _path_output + "initial_source_" + std::to_string(_fixed_point_iteration) + ".h5";
   }
 
-  /// Power by which to normalize the OpenMC results
-  const Real & _power;
-
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
+
+  /// Power by which to normalize the OpenMC results, for k-eigenvalue mode
+  const Real * _power;
+
+  /// Source strength by which to normalize the OpenMC results, for fixed source mode
+  const Real * _source_strength;
 
   /**
    * Whether to take the starting fission source from iteration \f$n\f$ as the
@@ -211,7 +234,7 @@ protected:
    * progress because you don't "start from scratch" each iteration and do the same
    * identical (within a random number seed) converging of the fission source.
    */
-  const bool & _reuse_source;
+  bool _reuse_source;
 
   /**
    * Whether the OpenMC model consists of a single coordinate level; this can

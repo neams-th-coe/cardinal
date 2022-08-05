@@ -20,6 +20,7 @@
   solid_cell_level = 0
   tally_type = cell
   initial_properties = xml
+  source_strength = 1e6
 []
 
 [Executioner]
