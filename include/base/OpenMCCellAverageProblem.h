@@ -361,7 +361,7 @@ protected:
 
   /**
    * Relax the heat source and normalize it so that it has units of power fraction (i.e. an
-   * integral of unity, where that "integral" is over the entire OpenMC domain if you set
+   * integral of unity, where that "integral" is over the entire OpenMC domain) if you set
    * 'normalize_by_global_tally = true', but only over the Cardinal-created tallies if you
    * instead set 'normalize_by_global_tally = false'.
    *
