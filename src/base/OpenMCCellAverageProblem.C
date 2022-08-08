@@ -105,6 +105,12 @@ OpenMCCellAverageProblem::validParams()
       "Whether to assume that all tallies added by in the XML files and automatically "
       "by Cardinal are spatially separate. This is a performance optimization");
 
+  params.addParam<bool>("fixed_mesh", true,
+    "Whether the MooseMesh is unchanging during the simulation (true), or whether there is mesh "
+    "movement and/or adaptivity that is changing the mesh in time (false). When the mesh changes "
+    "during the simulation, the mapping from OpenMC's cells to the mesh must be re-evaluated after "
+    "each OpenMC run.");
+
   params.addRequiredParam<MooseEnum>(
       "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
   params.addParam<MooseEnum>(
@@ -227,6 +233,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _run_mode(openmc::settings::run_mode),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
                                       getParam<bool>("normalize_by_global_tally")),
+    _fixed_mesh(getParam<bool>("fixed_mesh")),
     _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") :
                                                        (_run_mode == openmc::RunMode::FIXED_SOURCE ?
                                                         true : _normalize_by_global)),
@@ -470,13 +477,19 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (isParamValid("output"))
     _outputs = &getParam<MultiMooseEnum>("output");
 
-  initializeElementToCellMapping();
-
-  getMaterialFills();
+  setupProblem();
 
   initializeTallies();
 
   checkMeshTemplateAndTranslations();
+}
+
+void
+OpenMCCellAverageProblem::setupProblem()
+{
+  initializeElementToCellMapping();
+
+  getMaterialFills();
 
   // we do this last so that we can at least hit any other errors first before
   // spending time on the costly filled cell caching
@@ -2447,6 +2460,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
+      // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
+      if (!_first_transfer && !_fixed_mesh)
+        setupProblem();
+
       if (_first_transfer)
       {
         switch (_initial_condition)

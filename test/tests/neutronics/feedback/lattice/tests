@@ -9,6 +9,14 @@
                   "a case built without distributed cells in ../single_level."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [pincell_null_fixed_mesh]
+    type = Exodiff
+    input = openmc_master.i
+    exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
+    requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
+                  "during a simulation."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [heating]
     type = CSVDiff
     input = openmc_scores.i
