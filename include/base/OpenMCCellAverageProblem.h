@@ -86,6 +86,8 @@ public:
    */
   void setupProblem();
 
+  virtual void initialSetup() override;
+
   /**
    * Add 'heat_source', 'temp', and, if any fluid blocks are specified, a
    * 'density' variable. These are used to communicate OpenMC's solution with MOOSE,

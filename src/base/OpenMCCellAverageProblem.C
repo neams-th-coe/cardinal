@@ -485,6 +485,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 }
 
 void
+OpenMCCellAverageProblem::initialSetup()
+{
+  OpenMCProblemBase::initialSetup();
+
+  if (_adaptivity.isOn() && _fixed_mesh)
+    mooseError("When using mesh adaptivity, 'fixed_mesh' must be false!");
+}
+
+void
 OpenMCCellAverageProblem::setupProblem()
 {
   initializeElementToCellMapping();
