@@ -619,17 +619,12 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
   // other words, you might have two meshes that represent the same geometry, but if you created
   // the solid phase _first_ in Cubit for one mesh, but the fluid phase _first_ in Cubit for the
   // other mesh, even though the geometry is the same, the element ordering would be different.
-  //
-  // If the first two elements of each mesh translation match the [Mesh], we assume that the meshes
-  // are the same (otherwise, print an error). We need to check two elements per mesh translation
-  // because this ensures that both the position and angular rotation match.
   unsigned int offset = 0;
   for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
   {
     const auto & filter = _mesh_filters[i];
 
-    // just compare the first two elements
-    for (unsigned int e = 0; e < 2; ++e)
+    for (unsigned int e = 0; e < filter->n_bins(); ++e)
     {
       auto elem_ptr = _mesh.queryElemPtr(offset + e);
 
