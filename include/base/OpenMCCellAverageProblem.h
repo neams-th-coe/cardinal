@@ -76,6 +76,19 @@ public:
   static InputParameters validParams();
 
   /**
+   * \brief Initialize the mapping of OpenMC to the MooseMesh and perform any additional setup actions.
+   *
+   * When 'fixed_mesh' is false, this function is called at the start of _each_ OpenMC
+   * run to establish the mapping from the OpenMC cells to the [Mesh].
+   * TODO: this function currently does not re-initialize tallies based on the updated mapping
+   *       (which will certainly need to be updated for any mesh tallies on the [Mesh], and might
+   *       need updating for cell tallies if the identities of the coupled OpenMC cells changes).
+   */
+  void setupProblem();
+
+  virtual void initialSetup() override;
+
+  /**
    * Add 'heat_source', 'temp', and, if any fluid blocks are specified, a
    * 'density' variable. These are used to communicate OpenMC's solution with MOOSE,
    * and for MOOSE to communicate its solution with OpenMC.
@@ -694,6 +707,14 @@ protected:
    * normalize against the local tally itself so that the correct power is preserved.
    */
   const bool _normalize_by_global;
+
+  /**
+   * Whether the [Mesh] is fixed and unchanging during the simulation, or whether
+   * the mesh moves spatially and/or is adaptively refine. When the mesh changes
+   * during the simulation, the mapping from OpenMC cells to the [Mesh] must be
+   * re-established after each OpenMC run.
+   */
+  const bool & _fixed_mesh;
 
   /**
    * Whether to check the tallies against the global tally;
