@@ -251,8 +251,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _total_n_particles(0),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
-    _symmetry(nullptr),
-    _tally_is_zero_in_nonfissile(false)
+    _symmetry(nullptr)
 {
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
@@ -313,15 +312,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       break;
     case score::kappa_fission:
       _tally_score = "kappa-fission";
-      _tally_is_zero_in_nonfissile = true;
       break;
     case score::fission_q_prompt:
       _tally_score = "fission-q-prompt";
-      _tally_is_zero_in_nonfissile = true;
       break;
     case score::fission_q_recoverable:
       _tally_score = "fission-q-recoverable";
-      _tally_is_zero_in_nonfissile = true;
       break;
     case score::damage_energy:
       _tally_score = "damage-energy";
@@ -1636,7 +1632,6 @@ void
 OpenMCCellAverageProblem::storeTallyCells()
 {
   std::stringstream warning;
-  bool print_warning = false;
 
   bool is_first_tally_cell = true;
   cellInfo first_tally_cell;
@@ -1648,19 +1643,6 @@ OpenMCCellAverageProblem::storeTallyCells()
 
     if (_cell_has_tally[cell_info])
     {
-      // if the cell doesn't have fissile material AND the tally has nonzero contributions in non-fissile materials,
-      //  don't add a tally to save some evaluation
-      if (!cellHasFissileMaterials(cell_info) && _tally_is_zero_in_nonfissile)
-      {
-        // for the special case of a single coordinate level, just silently skip adding the tallies
-        if (_using_default_tally_blocks)
-          continue;
-
-        // otherwise, warn the user that they've specified tallies for some non-fissile cells
-        print_warning = true;
-        warning << "\n  cell " << printCell(cell_info);
-      }
-
       _tally_cells.push_back(cell_info);
 
       if (is_first_tally_cell)
@@ -1714,11 +1696,6 @@ OpenMCCellAverageProblem::storeTallyCells()
       }
     }
   }
-
-  if (print_warning)
-    mooseWarning("Skipping tallies for: " + warning.str() +
-                 "\n\nThese cells do not contain fissile material, but tallies are still specified "
-                 "in 'tally_blocks'.");
 }
 
 void
