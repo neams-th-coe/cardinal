@@ -245,8 +245,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
-    _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level &&
-                                !isParamValid("tally_blocks")),
     _tally_mesh_from_moose(!isParamValid("mesh_template")),
     _total_n_particles(0),
     _temperature_vars(nullptr),
@@ -402,16 +400,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
                                "using cell tallies");
 
-      // tally_blocks is optional if the OpenMC geometry has a single coordinate level
-      if (!_single_coord_level)
-        checkRequiredParam(
-            params, "tally_blocks", "OpenMC geometries have more than one coordinate level");
-
       readTallyBlocks();
 
-      // For single-level geometries, we take the default setting for tally_blocks to be all the
-      // blocks in the MOOSE domain
-      if (_using_default_tally_blocks)
+      // If not specified, add tallies to all MOOSE blocks
+      if (!isParamValid("tally_blocks"))
         for (const auto & s : _mesh.meshSubdomains())
           _tally_blocks.insert(s);
 

@@ -938,12 +938,6 @@ protected:
   /// Mean value of the local tally, across all bins; only used for fixed source mode
   Real _local_mean_tally;
 
-  /**
-   * For OpenMC geometries with a single coordinate level, we define default behavior for
-   * tally_blocks to be all of the subdomains in the MOOSE mesh.
-   */
-  const bool _using_default_tally_blocks;
-
   /// When using mesh tallies, whether the mesh comes from the MOOSE [Mesh] block or from a file
   const bool _tally_mesh_from_moose;
 
