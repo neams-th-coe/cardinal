@@ -405,7 +405,7 @@ protected:
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed heat source to the raw (unrelaxed) tally.
    */
-  void relaxAndNormalizeHeatSource(const int & t);
+  void relaxAndNormalizeTally(const int & t);
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
