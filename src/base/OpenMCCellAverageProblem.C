@@ -1700,6 +1700,61 @@ OpenMCCellAverageProblem::addLocalTally(const std::string & score, std::vector<o
   _local_tally.push_back(tally);
 }
 
+openmc::Filter *
+OpenMCCellAverageProblem::cellInstanceFilter()
+{
+  auto cell_filter =
+      dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+
+  std::vector<openmc::CellInstance> cells;
+  for (const auto & c : _tally_cells)
+    cells.push_back(
+        {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
+
+  cell_filter->set_cell_instances(cells);
+  return cell_filter;
+}
+
+std::vector<openmc::Filter *>
+OpenMCCellAverageProblem::meshFilter()
+{
+  std::unique_ptr<openmc::LibMesh> tally_mesh;
+  if (_tally_mesh_from_moose)
+  {
+    // for distributed meshes, each rank only owns a portion of the mesh information, but
+    // OpenMC wants the entire mesh to be available on every rank. We might be able to add
+    // this feature in the future, but will need to investigate
+    if (!_mesh.getMesh().is_replicated())
+      mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
+        "for distributed meshes!");
+
+    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
+  }
+  else
+    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
+
+  // by setting the ID to -1, OpenMC will automatically detect the next available ID
+  tally_mesh->set_id(-1);
+  tally_mesh->output_ = false;
+  _mesh_template = tally_mesh.get();
+
+  int32_t mesh_index = openmc::model::meshes.size();
+  openmc::model::meshes.push_back(std::move(tally_mesh));
+
+  std::vector<openmc::Filter *> mesh_filters;
+
+  for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
+  {
+    const auto & translation = _mesh_translations[i];
+    auto meshFilter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
+    meshFilter->set_mesh(mesh_index);
+    meshFilter->set_translation({translation(0), translation(1), translation(2)});
+    mesh_filters.push_back(meshFilter);
+  }
+
+  return mesh_filters;
+}
+
 void
 OpenMCCellAverageProblem::initializeTallies()
 {
@@ -1739,17 +1794,8 @@ OpenMCCellAverageProblem::initializeTallies()
       _current_mean_tally.resize(1);
       _previous_mean_tally.resize(1);
 
-      auto cell_filter =
-          dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
-
-      std::vector<openmc::CellInstance> cells;
-      for (const auto & c : _tally_cells)
-        cells.push_back(
-            {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
-
-      cell_filter->set_cell_instances(cells);
-      std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      addLocalTally(_tally_score, tally_filters);
+      std::vector<openmc::Filter *> filter = {cellInstanceFilter()};
+      addLocalTally(_tally_score, filter);
 
       break;
     }
@@ -1778,40 +1824,14 @@ OpenMCCellAverageProblem::initializeTallies()
       _current_mean_tally.resize(n_translations);
       _previous_mean_tally.resize(n_translations);
 
-      std::unique_ptr<openmc::LibMesh> tally_mesh;
-      if (_tally_mesh_from_moose)
-      {
-        // for distributed meshes, each rank only owns a portion of the mesh information, but
-        // OpenMC wants the entire mesh to be available on every rank. We might be able to add
-        // this feature in the future, but will need to investigate
-        if (!_mesh.getMesh().is_replicated())
-          mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
-            "for distributed meshes!");
-
-        tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
-      }
-      else
-        tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
-
-      // by setting the ID to -1, OpenMC will automatically detect the next available ID
-      tally_mesh->set_id(-1);
-      tally_mesh->output_ = false;
-
-      int32_t mesh_index = openmc::model::meshes.size();
-
-      _mesh_template = tally_mesh.get();
-      openmc::model::meshes.push_back(std::move(tally_mesh));
+      auto filters = meshFilter();
+      for (const auto & m : filters)
+        _mesh_filters.push_back(dynamic_cast<openmc::MeshFilter *>(m));
 
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
       {
-        const auto & translation = _mesh_translations[i];
-        auto meshFilter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
-        meshFilter->set_mesh(mesh_index);
-        meshFilter->set_translation({translation(0), translation(1), translation(2)});
-
-        _mesh_filters.push_back(meshFilter);
-        std::vector<openmc::Filter *> tally_filters = {meshFilter};
-        addLocalTally(_tally_score, tally_filters);
+        std::vector<openmc::Filter *> filter = {filters[i]};
+        addLocalTally(_tally_score, filter);
       }
 
       if (_verbose)

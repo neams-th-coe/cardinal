@@ -133,6 +133,19 @@ public:
   }
 
   /**
+   * Get the cell instance filter for tallies automatically constructed by Cardinal
+   * @return cell instance filter
+   */
+  openmc::Filter * cellInstanceFilter();
+
+  /**
+   * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
+   * Multiple mesh filters are only created if the mesh template feature is used.
+   * @return mesh filters
+   */
+  std::vector<openmc::Filter *> meshFilter();
+
+  /**
    * This class uses elem->volume() in order to normalize the fission power produced
    * by OpenMC to conserve the specified power. However, as discussed on the MOOSE
    * slack channel,
@@ -971,7 +984,7 @@ protected:
   std::vector<Point> _mesh_translations;
 
   /// OpenMC mesh filters for unstructured mesh tallies
-  std::vector<const openmc::MeshFilter *> _mesh_filters;
+  std::vector<openmc::MeshFilter *> _mesh_filters;
 
   /// OpenMC solution fields to output to the mesh mirror
   const MultiMooseEnum * _outputs = nullptr;
