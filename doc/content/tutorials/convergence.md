@@ -100,7 +100,7 @@ To determine an appropriate cell discretization, you can use the
 In addition, your Cardinal input file must contain a number of postprocessors,
 user objects, and vector postprocessors to process the solution to extract
 the various scalar and averaged quantities used in the convergence study.
-In the `[Problem]` block, you must set `outputs = 'fission_tally_std_dev'`.
+In the `[Problem]` block, you must set `outputs = 'unrelaxed_tally_std_dev'`.
 You will also need to copy and paste the following into your input file:
 
 ```
@@ -130,14 +130,14 @@ You will also need to copy and paste the following into your input file:
 
   [proxy_max_power_std_dev]
     type = ElementExtremeValue
-    variable = fission_tally_std_dev
+    variable = unrelaxed_tally_std_dev
     proxy_variable = heat_source
     value_type = max
     block = 2
   []
   [proxy_min_power_std_dev]
     type = ElementExtremeValue
-    variable = fission_tally_std_dev
+    variable = unrelaxed_tally_std_dev
     proxy_variable = heat_source
     value_type = min
     block = 2
