@@ -532,10 +532,11 @@ protected:
   xt::xtensor<double, 1> normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const;
 
   /**
-   * Add the local tally
+   * Add local tally
+   * @param[in] score score type
    * @param[in] filters tally filters
    */
-  void addLocalTally(std::vector<openmc::Filter *> & filters);
+  void addLocalTally(const std::string & score, std::vector<openmc::Filter *> & filters);
 
   /**
    * Check the sum of the fluid and solid tallies (if present) against the global

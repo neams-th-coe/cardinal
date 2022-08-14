@@ -1691,10 +1691,10 @@ OpenMCCellAverageProblem::storeTallyCells()
 }
 
 void
-OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters)
+OpenMCCellAverageProblem::addLocalTally(const std::string & score, std::vector<openmc::Filter *> & filters)
 {
   auto tally = openmc::Tally::create();
-  tally->set_scores({_tally_score});
+  tally->set_scores({score});
   tally->estimator_ = _tally_estimator;
   tally->set_filters(filters);
   _local_tally.push_back(tally);
@@ -1733,14 +1733,8 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     case tally::cell:
     {
-      if (_tally_cells.size() == 0)
-        _console << "Skipping cell tallies for blocks " + Moose::stringify(_tally_blocks) +
-                        " because no fissile material is present"
-                 << std::endl;
-      else
-        _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
-                        Moose::stringify(_tally_cells.size()) + " cells..."
-                 << std::endl;
+      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
+                      Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
       _current_mean_tally.resize(1);
       _previous_mean_tally.resize(1);
@@ -1755,7 +1749,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
       cell_filter->set_cell_instances(cells);
       std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      addLocalTally(tally_filters);
+      addLocalTally(_tally_score, tally_filters);
 
       break;
     }
@@ -1817,7 +1811,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
         _mesh_filters.push_back(meshFilter);
         std::vector<openmc::Filter *> tally_filters = {meshFilter};
-        addLocalTally(tally_filters);
+        addLocalTally(_tally_score, tally_filters);
       }
 
       if (_verbose)
