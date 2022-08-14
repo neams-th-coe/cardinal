@@ -42,7 +42,8 @@
   check_tally_sum = false
 
   # this outputs the fission tally standard deviation in space
-  output = 'fission_tally_std_dev'
+  output = 'unrelaxed_tally_std_dev'
+  output_name = 'fission_tally_std_dev'
 
   # This turns off the density and temperature update on the first syncSolutions;
   # this uses whatever temperature and densities are set in OpenMCs XML files for first step

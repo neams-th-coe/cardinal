@@ -114,7 +114,7 @@ N = 1000
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'fission_tally_std_dev'
+  output = 'unrelaxed_tally_std_dev'
   check_equal_mapped_tally_volumes = true
 
   power = ${unit_cell_power}

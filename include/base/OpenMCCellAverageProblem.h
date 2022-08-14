@@ -490,17 +490,16 @@ protected:
   void getTallyFromOpenMC();
 
   /**
-   * Get the fission tally standard deviation as a function of space and store into variable
+   * Get the (unrelaxed) tally standard deviation as a function of space and store into variable
    * @param[in] var_num variable number to store the standard deviation in
    */
-  void getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
+  void getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
 
   /**
-   * Get the fission tally (i.e. raw, unrelaxed output from OpenMC)
-   *  as a function of space and store into variable
+   * Get the (unrelaxed) tally from OpenMC as a function of space and store into variable
    * @param[in] var_num variable number to store the tally in
    */
-  void getFissionTallyFromOpenMC(const unsigned int & var_num);
+  void getUnrelaxedTallyFromOpenMC(const unsigned int & var_num);
 
   /**
    * Multiplier on the normalized tally results; for fixed source runs,
@@ -972,6 +971,12 @@ protected:
 
   /// OpenMC solution fields to output to the mesh mirror
   const MultiMooseEnum * _outputs = nullptr;
+
+  /**
+   * Auxiliary variable names to apply to each quantity in 'output'; if not specified,
+   * the names default to the string-conversion of the enum in 'output'
+   */
+  std::vector<std::string> _output_name;
 
   /// Numeric identifiers for the external variables
   std::vector<unsigned int> _external_vars;

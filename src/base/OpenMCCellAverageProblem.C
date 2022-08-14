@@ -192,9 +192,11 @@ OpenMCCellAverageProblem::validParams()
       "Whether to check that your model does indeed have identical tally cell fills, allowing "
       "you to set 'identical_tally_cell_fills = true' to speed up initialization");
 
-  MultiMooseEnum openmc_outputs("fission_tally_std_dev fission_tally");
+  MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
   params.addParam<MultiMooseEnum>(
-      "output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
+      "output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror.");
+  params.addParam<std::vector<std::string>>("output_name", "Auxiliary variable name(s) to write "
+    "'output' into. If not specified, these default to the 'output' field names");
 
   params.addParam<MooseEnum>("relaxation",
                              getRelaxationEnum(),
@@ -478,7 +480,25 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   getCellLevel("solid", _solid_cell_level);
 
   if (isParamValid("output"))
+  {
     _outputs = &getParam<MultiMooseEnum>("output");
+
+    if (isParamValid("output_name"))
+    {
+      _output_name = getParam<std::vector<std::string>>("output_name");
+      if (_output_name.size() != _outputs->size())
+        mooseError("When specifying custom variable names for OpenMC outputs, "
+          "the 'output_name' must be the same length as 'output'!");
+    }
+    else
+    {
+      // default names are simply matched to the output enum string
+      for (const auto & o : *_outputs)
+        _output_name.push_back(o);
+    }
+  }
+  else
+    checkUnusedParam(params, "output_name", "not specifying 'output'");
 
   setupProblem();
 
@@ -1956,9 +1976,8 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     for (std::size_t i = 0; i < _outputs->size(); ++i)
     {
-      std::string out = (*_outputs)[i];
-      addAuxVariable("MooseVariable", out, var_params);
-      _external_vars.push_back(_aux->getFieldVariable<Real>(0, out).number());
+      addAuxVariable("MooseVariable", _output_name[i], var_params);
+      _external_vars.push_back(_aux->getFieldVariable<Real>(0, _output_name[i]).number());
     }
   }
 
@@ -2206,7 +2225,7 @@ OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw
 }
 
 void
-OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num)
+OpenMCCellAverageProblem::getUnrelaxedTallyFromOpenMC(const unsigned int & var_num)
 {
   switch (_tally_type)
   {
@@ -2260,7 +2279,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
 
 
 void
-OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
+OpenMCCellAverageProblem::getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
 {
   switch (_tally_type)
   {
@@ -2707,10 +2726,10 @@ OpenMCCellAverageProblem::extractOutputs()
     {
       std::string out = (*_outputs)[i];
 
-      if (out == "fission_tally_std_dev")
-        getFissionTallyStandardDeviationFromOpenMC(i);
-      if (out == "fission_tally")
-        getFissionTallyFromOpenMC(i);
+      if (out == "unrelaxed_tally_std_dev")
+        getUnrelaxedTallyStandardDeviationFromOpenMC(i);
+      if (out == "unrelaxed_tally")
+        getUnrelaxedTallyFromOpenMC(i);
     }
   }
 }

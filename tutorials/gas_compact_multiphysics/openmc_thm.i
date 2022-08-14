@@ -123,7 +123,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'fission_tally_std_dev'
+  output = 'unrelaxed_tally_std_dev'
   check_equal_mapped_tally_volumes = true
 
   power = ${unit_cell_power}
