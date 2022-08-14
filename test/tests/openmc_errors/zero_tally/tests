@@ -2,7 +2,7 @@
   [local_zero]
     type = RunException
     input = openmc.i
-    expect_err = "Cannot normalize tally by local sum: 0 due to divide-by-zero.\n
+    expect_err = "Cannot normalize tally by local sum: 0 due to divide-by-zero.\n"
                  "This means that the kappa-fission tally created by Cardinal is everywhere zero."
     requirement = "The system shall error if the local tally is to be normalized by a local tally which is everywhere zero."
   []
