@@ -2306,7 +2306,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
 }
 
 void
-OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
+OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t)
 {
   // if OpenMC has only run one time, or we don't have relaxation at all,
   // then we don't have a "previous" with which to relax, so we just copy the mean tally in and
@@ -2364,7 +2364,7 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 void
 OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
 {
-  _console << "Extracting OpenMC heat source... " << printNewline();
+  _console << "Extracting OpenMC tallies... " << printNewline();
 
   // get the total tallies for normalization
   if (_global_tally)
@@ -2382,7 +2382,10 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
   {
     case tally::cell:
     {
-      relaxAndNormalizeHeatSource(0);
+      VariadicTable<std::string, Real> vt({"Cell", "Fraction of total " + _tally_score});
+      vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
+
+      relaxAndNormalizeTally(0);
 
       int i = 0;
       for (const auto & c : _cell_to_elem)
@@ -2400,17 +2403,21 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         Real volumetric_power = power_fraction * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         power_fraction_sum += power_fraction;
 
-        if (_verbose)
-          _console << " cell " << printCell(cell_info) << " power fraction: " << std::setw(3)
-                   << Moose::stringify(power_fraction) << std::endl;
+        vt.addRow(printCell(cell_info), power_fraction);
 
         checkZeroTally(power_fraction, "cell " + printCell(cell_info));
         fillElementalAuxVariable(_heat_source_var, c.second, volumetric_power);
       }
+
+      if (_verbose)
+        vt.print(_console);
       break;
     }
     case tally::mesh:
     {
+      VariadicTable<unsigned int, Real> vt({"Mesh", "Fraction of total " + _tally_score});
+      vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
+
       // TODO: this requires that the mesh exactly correspond to the mesh templates;
       // for cases where they don't match, we'll need to do a nearest-node transfer or something
 
@@ -2418,7 +2425,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
       for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
       {
         const auto * filter = _mesh_filters[i];
-        relaxAndNormalizeHeatSource(i);
+        relaxAndNormalizeTally(i);
         Real template_power_fraction = 0.0;
 
         for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
@@ -2441,12 +2448,13 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
           fillElementalAuxVariable(_heat_source_var, elem_ids, volumetric_power);
         }
 
-        if (_verbose)
-          _console << " mesh template " + Moose::stringify(i) << " power fraction: " << std::setw(3)
-                   << Moose::stringify(template_power_fraction) << std::endl;
+        vt.addRow(i, template_power_fraction);
 
         offset += filter->n_bins();
       }
+
+      if (_verbose)
+        vt.print(_console);
 
       break;
     }
