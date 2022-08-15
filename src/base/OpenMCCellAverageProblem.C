@@ -2181,7 +2181,7 @@ OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
   {
     if (std::abs(_local_sum_tally) < 1e-12)
       mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally created by Cardinal is everywhere zero.");
+        "This means that the ", _tally_score, " tally over the entire domain is zero.");
     return tally_result / _local_sum_tally;
   }
 }
@@ -2200,7 +2200,7 @@ OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw
   {
     if (std::abs(_local_sum_tally) < 1e-12)
       mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally created by Cardinal is everywhere zero.");
+        "This means that the ", _tally_score, " tally over the entire domain is zero.");
     return raw_tally / _local_sum_tally;
   }
 }
