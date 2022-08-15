@@ -37,6 +37,17 @@
                   "heat source coupling only performed for the solid phase."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [custom_name]
+    type = Exodiff
+    input = custom_name.i
+    exodiff = 'custom_name_out.e'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall allow the user to specify a custom tally variable name. This test is "
+                  "identical to the overlap_solid test, but with a different name for the auxiliary variable."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [overlap_fluid]
     type = Exodiff
     input = overlap_fluid.i
