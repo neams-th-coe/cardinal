@@ -1817,7 +1817,16 @@ OpenMCCellAverageProblem::initializeTallies()
 
       std::unique_ptr<openmc::LibMesh> tally_mesh;
       if (_tally_mesh_from_moose)
+      {
+        // for distributed meshes, each rank only owns a portion of the mesh information, but
+        // OpenMC wants the entire mesh to be available on every rank. We might be able to add
+        // this feature in the future, but will need to investigate
+        if (!_mesh.getMesh().is_replicated())
+          mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
+            "for distributed meshes!");
+
         tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
+      }
       else
         tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
 
@@ -2159,18 +2168,38 @@ Real
 OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
 {
   if (_normalize_by_global)
+  {
+    if (std::abs(_global_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally over the entire domain is zero.");
     return tally_result / _global_sum_tally;
+  }
   else
+  {
+    if (std::abs(_local_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally created by Cardinal is everywhere zero.");
     return tally_result / _local_sum_tally;
+  }
 }
 
 xt::xtensor<double, 1>
 OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
 {
   if (_normalize_by_global)
+  {
+    if (std::abs(_global_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally over the entire domain is zero.");
     return raw_tally / _global_sum_tally;
+  }
   else
+  {
+    if (std::abs(_local_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally created by Cardinal is everywhere zero.");
     return raw_tally / _local_sum_tally;
+  }
 }
 
 void

@@ -14,13 +14,23 @@
     type = Exodiff
     input = one_mesh_no_input_file.i
     exodiff = 'one_mesh_out.e'
-    cli_args = "Outputs/file_base=one_mesh_out"
+    cli_args = "Outputs/file_base=one_mesh_out Mesh/parallel_type=replicated"
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
     requirement = "This test is nearly identical to one_mesh. The difference lies in having no mesh_template "
                   "in the input file. Without one, the system should be able to directly tally on a moose "
                   "mesh instead of a file "
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [moose_mesh_tally_distributed]
+    type = RunException
+    input = one_mesh_no_input_file.i
+    mesh_mode = 'distributed'
+    expect_err = "Directly tallying on the \[Mesh\] block by OpenMC is not yet supported "
+                 "for distributed meshes!"
+    requirement = "The system shall error if attempting to directly tally on a MOOSE mesh that is "
+                  "distributed, since all meshes are always replicated in OpenMC."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [one_mesh_global]
