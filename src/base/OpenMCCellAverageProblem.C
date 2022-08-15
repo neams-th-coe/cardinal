@@ -118,6 +118,7 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<MooseEnum>(
       "tally_score", getTallyScoreEnum(), "Type of score to use in the OpenMC tallies automatically "
       "constructed by Cardinal.");
+  params.addParam<std::string>("tally_name", "heat_source", "Auxiliary variable name to use for OpenMC tallies");
   params.addParam<std::string>("mesh_template",
                                "Mesh tally template for OpenMC when using mesh tallies; "
                                "at present, this mesh must exactly match the mesh used in the "
@@ -296,6 +297,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != tally::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
+
+  _tally_name = getParam<std::string>("tally_name");
 
   score::TallyScoreEnum score;
   if (isParamValid("tally_score"))
@@ -879,7 +882,7 @@ OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
 {
   // _cell_to_elem only holds cells that are coupled by feedback to the [Mesh] (for sake of
   // efficiency in cell-based loops for updating temperatures, densities and
-  // extracting the heat source). But in some auxiliary kernels, we figure out
+  // extracting the tally). But in some auxiliary kernels, we figure out
   // an element's phase in terms of the cell that it maps to. For these cells that
   // do *map* spatially, but just don't participate in coupling, _cell_to_elem doesn't
   // have any notion of those elements
@@ -1685,13 +1688,13 @@ OpenMCCellAverageProblem::storeTallyCells()
               << " (cm3).\n\n"
                  "If the tallied cells in your OpenMC model are of identical volumes, this means "
                  "that you can get\n"
-                 "distortion of the volumetric heat source output. For instance, suppose you have "
+                 "distortion of the volumetric tally output. For instance, suppose you have "
                  "two equal-size OpenMC\n"
                  "cells which have the same volume - but each OpenMC cell maps to a MOOSE region "
                  "of different volume\n"
                  "just due to the nature of the centroid mapping scheme. Even if those two tallies "
                  "do actually have the\n"
-                 "same value, the volumetric heat source will be different because you'll be "
+                 "same value, the volumetric tally will be different because you'll be "
                  "dividing each tally by a\n"
                  "different mapped MOOSE volume.\n\n";
 
@@ -1759,7 +1762,7 @@ OpenMCCellAverageProblem::initializeTallies()
     _global_tally->set_scores({_tally_score});
   }
 
-  // create the local heating tally
+  // create the local tally
   switch (_tally_type)
   {
     case tally::cell:
@@ -1936,8 +1939,8 @@ OpenMCCellAverageProblem::addExternalVariables()
   var_params.set<MooseEnum>("family") = "MONOMIAL";
   var_params.set<MooseEnum>("order") = "CONSTANT";
 
-  addAuxVariable("MooseVariable", "heat_source", var_params);
-  _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
+  addAuxVariable("MooseVariable", _tally_name, var_params);
+  _tally_var = _aux->getFieldVariable<Real>(0, _tally_name).number();
 
   addAuxVariable("MooseVariable", "temp", var_params);
   _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
@@ -2379,9 +2382,9 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 }
 
 void
-OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
+OpenMCCellAverageProblem::getTallyFromOpenMC()
 {
-  _console << "Extracting OpenMC heat source... " << printNewline();
+  _console << "Extracting OpenMC tallies... " << printNewline();
 
   // get the total tallies for normalization
   if (_global_tally)
@@ -2413,7 +2416,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
         Real power_fraction = _current_mean_tally[0](i++);
 
         // divide each tally value by the volume that it corresponds to in MOOSE
-        // because we will apply it as a volumetric heat source (W/volume).
+        // because we will apply it as a volumetric tally (per unit volume).
         Real volumetric_power = power_fraction * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         power_fraction_sum += power_fraction;
 
@@ -2422,7 +2425,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
                    << Moose::stringify(power_fraction) << std::endl;
 
         checkZeroTally(power_fraction, "cell " + printCell(cell_info));
-        fillElementalAuxVariable(_heat_source_var, c.second, volumetric_power);
+        fillElementalAuxVariable(_tally_var, c.second, volumetric_power);
       }
       break;
     }
@@ -2443,7 +2446,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
           Real power_fraction = _current_mean_tally[i](e);
 
           // divide each tally by the volume that it corresponds to in MOOSE
-          // because we will apply it as a volumetric heat source (W/volume).
+          // because we will apply it as a volumetric tally (per unit volume).
           // Because we require that the mesh template has units of cm based on the
           // mesh constructors in OpenMC, we need to adjust the division
           Real volumetric_power =
@@ -2455,7 +2458,7 @@ OpenMCCellAverageProblem::getHeatSourceFromOpenMC()
                          "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
 
           std::vector<unsigned int> elem_ids = {offset + e};
-          fillElementalAuxVariable(_heat_source_var, elem_ids, volumetric_power);
+          fillElementalAuxVariable(_tally_var, elem_ids, volumetric_power);
         }
 
         if (_verbose)
@@ -2538,7 +2541,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      getHeatSourceFromOpenMC();
+      getTallyFromOpenMC();
 
       extractOutputs();
 
@@ -2647,20 +2650,13 @@ OpenMCCellAverageProblem::createQRules(QuadratureType type,
 
   // Some quadrature rules don't ever seem to give a matching elem->volume() with the MOOSE
   // volume integrations
-  if (type == Moose::stringToEnum<QuadratureType>("GRID"))
+  if (type == Moose::stringToEnum<QuadratureType>("GRID") ||
+      type == Moose::stringToEnum<QuadratureType>("TRAP"))
     mooseError(
-        "The GRID quadrature set will never match the '_current_elem_volume' used to compute\n"
-        "integrals in MOOSE. This means that the heat source computed by OpenMC is normalized by\n"
+        "The ", std::to_string(type), " quadrature set will never match the '_current_elem_volume' used to compute\n"
+        "integrals in MOOSE. This means that the tally computed by OpenMC is normalized by\n"
         "a different volume than used for MOOSE volume integrations, such that the specified "
-        "'power'\n"
-        "would not be respected. Please switch to a different quadrature set.");
-
-  if (type == Moose::stringToEnum<QuadratureType>("TRAP"))
-    mooseError(
-        "The TRAP quadrature set will never match the '_current_elem_volume' used to compute\n"
-        "integrals in MOOSE. This means that the heat source computed by OpenMC is normalized by\n"
-        "a different volume than used for MOOSE volume integrations, such that the specified "
-        "'power'\n"
+        "'power' or 'source_strength'\n"
         "would not be respected. Please switch to a different quadrature set.");
 
   FEProblemBase::createQRules(
