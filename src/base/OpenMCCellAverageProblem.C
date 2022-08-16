@@ -192,9 +192,11 @@ OpenMCCellAverageProblem::validParams()
       "Whether to check that your model does indeed have identical tally cell fills, allowing "
       "you to set 'identical_tally_cell_fills = true' to speed up initialization");
 
-  MultiMooseEnum openmc_outputs("fission_tally_std_dev fission_tally");
+  MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
   params.addParam<MultiMooseEnum>(
-      "output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror");
+      "output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror.");
+  params.addParam<std::vector<std::string>>("output_name", "Auxiliary variable name(s) to write "
+    "'output' into. If not specified, these default to the 'output' field names");
 
   params.addParam<MooseEnum>("relaxation",
                              getRelaxationEnum(),
@@ -246,14 +248,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
-    _using_default_tally_blocks(_tally_type == tally::cell && _single_coord_level &&
-                                !isParamValid("tally_blocks")),
     _tally_mesh_from_moose(!isParamValid("mesh_template")),
     _total_n_particles(0),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
-    _symmetry(nullptr),
-    _tally_is_zero_in_nonfissile(false)
+    _symmetry(nullptr)
 {
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
@@ -316,15 +315,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       break;
     case score::kappa_fission:
       _tally_score = "kappa-fission";
-      _tally_is_zero_in_nonfissile = true;
       break;
     case score::fission_q_prompt:
       _tally_score = "fission-q-prompt";
-      _tally_is_zero_in_nonfissile = true;
       break;
     case score::fission_q_recoverable:
       _tally_score = "fission-q-recoverable";
-      _tally_is_zero_in_nonfissile = true;
       break;
     case score::damage_energy:
       _tally_score = "damage-energy";
@@ -409,16 +405,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
                                "using cell tallies");
 
-      // tally_blocks is optional if the OpenMC geometry has a single coordinate level
-      if (!_single_coord_level)
-        checkRequiredParam(
-            params, "tally_blocks", "OpenMC geometries have more than one coordinate level");
-
       readTallyBlocks();
 
-      // For single-level geometries, we take the default setting for tally_blocks to be all the
-      // blocks in the MOOSE domain
-      if (_using_default_tally_blocks)
+      // If not specified, add tallies to all MOOSE blocks
+      if (!isParamValid("tally_blocks"))
         for (const auto & s : _mesh.meshSubdomains())
           _tally_blocks.insert(s);
 
@@ -478,7 +468,25 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   getCellLevel("solid", _solid_cell_level);
 
   if (isParamValid("output"))
+  {
     _outputs = &getParam<MultiMooseEnum>("output");
+
+    if (isParamValid("output_name"))
+    {
+      _output_name = getParam<std::vector<std::string>>("output_name");
+      if (_output_name.size() != _outputs->size())
+        mooseError("When specifying custom variable names for OpenMC outputs, "
+          "the 'output_name' must be the same length as 'output'!");
+    }
+    else
+    {
+      // default names are simply matched to the output enum string
+      for (const auto & o : *_outputs)
+        _output_name.push_back(o);
+    }
+  }
+  else
+    checkUnusedParam(params, "output_name", "not specifying 'output'");
 
   setupProblem();
 
@@ -1639,7 +1647,6 @@ void
 OpenMCCellAverageProblem::storeTallyCells()
 {
   std::stringstream warning;
-  bool print_warning = false;
 
   bool is_first_tally_cell = true;
   cellInfo first_tally_cell;
@@ -1651,19 +1658,6 @@ OpenMCCellAverageProblem::storeTallyCells()
 
     if (_cell_has_tally[cell_info])
     {
-      // if the cell doesn't have fissile material AND the tally has nonzero contributions in non-fissile materials,
-      //  don't add a tally to save some evaluation
-      if (!cellHasFissileMaterials(cell_info) && _tally_is_zero_in_nonfissile)
-      {
-        // for the special case of a single coordinate level, just silently skip adding the tallies
-        if (_using_default_tally_blocks)
-          continue;
-
-        // otherwise, warn the user that they've specified tallies for some non-fissile cells
-        print_warning = true;
-        warning << "\n  cell " << printCell(cell_info);
-      }
-
       _tally_cells.push_back(cell_info);
 
       if (is_first_tally_cell)
@@ -1717,21 +1711,71 @@ OpenMCCellAverageProblem::storeTallyCells()
       }
     }
   }
-
-  if (print_warning)
-    mooseWarning("Skipping tallies for: " + warning.str() +
-                 "\n\nThese cells do not contain fissile material, but tallies are still specified "
-                 "in 'tally_blocks'.");
 }
 
 void
-OpenMCCellAverageProblem::addLocalTally(std::vector<openmc::Filter *> & filters)
+OpenMCCellAverageProblem::addLocalTally(const std::string & score, std::vector<openmc::Filter *> & filters)
 {
   auto tally = openmc::Tally::create();
-  tally->set_scores({_tally_score});
+  tally->set_scores({score});
   tally->estimator_ = _tally_estimator;
   tally->set_filters(filters);
   _local_tally.push_back(tally);
+}
+
+openmc::Filter *
+OpenMCCellAverageProblem::cellInstanceFilter()
+{
+  auto cell_filter =
+      dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+
+  std::vector<openmc::CellInstance> cells;
+  for (const auto & c : _tally_cells)
+    cells.push_back(
+        {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
+
+  cell_filter->set_cell_instances(cells);
+  return cell_filter;
+}
+
+std::vector<openmc::Filter *>
+OpenMCCellAverageProblem::meshFilter()
+{
+  std::unique_ptr<openmc::LibMesh> tally_mesh;
+  if (_tally_mesh_from_moose)
+  {
+    // for distributed meshes, each rank only owns a portion of the mesh information, but
+    // OpenMC wants the entire mesh to be available on every rank. We might be able to add
+    // this feature in the future, but will need to investigate
+    if (!_mesh.getMesh().is_replicated())
+      mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
+        "for distributed meshes!");
+
+    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
+  }
+  else
+    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
+
+  // by setting the ID to -1, OpenMC will automatically detect the next available ID
+  tally_mesh->set_id(-1);
+  tally_mesh->output_ = false;
+  _mesh_template = tally_mesh.get();
+
+  int32_t mesh_index = openmc::model::meshes.size();
+  openmc::model::meshes.push_back(std::move(tally_mesh));
+
+  std::vector<openmc::Filter *> mesh_filters;
+
+  for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
+  {
+    const auto & translation = _mesh_translations[i];
+    auto meshFilter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
+    meshFilter->set_mesh(mesh_index);
+    meshFilter->set_translation({translation(0), translation(1), translation(2)});
+    mesh_filters.push_back(meshFilter);
+  }
+
+  return mesh_filters;
 }
 
 void
@@ -1767,29 +1811,14 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     case tally::cell:
     {
-      if (_tally_cells.size() == 0)
-        _console << "Skipping cell tallies for blocks " + Moose::stringify(_tally_blocks) +
-                        " because no fissile material is present"
-                 << std::endl;
-      else
-        _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
-                        Moose::stringify(_tally_cells.size()) + " cells..."
-                 << std::endl;
+      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
+                      Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
       _current_mean_tally.resize(1);
       _previous_mean_tally.resize(1);
 
-      auto cell_filter =
-          dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
-
-      std::vector<openmc::CellInstance> cells;
-      for (const auto & c : _tally_cells)
-        cells.push_back(
-            {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
-
-      cell_filter->set_cell_instances(cells);
-      std::vector<openmc::Filter *> tally_filters = {cell_filter};
-      addLocalTally(tally_filters);
+      std::vector<openmc::Filter *> filter = {cellInstanceFilter()};
+      addLocalTally(_tally_score, filter);
 
       break;
     }
@@ -1818,40 +1847,14 @@ OpenMCCellAverageProblem::initializeTallies()
       _current_mean_tally.resize(n_translations);
       _previous_mean_tally.resize(n_translations);
 
-      std::unique_ptr<openmc::LibMesh> tally_mesh;
-      if (_tally_mesh_from_moose)
-      {
-        // for distributed meshes, each rank only owns a portion of the mesh information, but
-        // OpenMC wants the entire mesh to be available on every rank. We might be able to add
-        // this feature in the future, but will need to investigate
-        if (!_mesh.getMesh().is_replicated())
-          mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
-            "for distributed meshes!");
-
-        tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
-      }
-      else
-        tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
-
-      // by setting the ID to -1, OpenMC will automatically detect the next available ID
-      tally_mesh->set_id(-1);
-      tally_mesh->output_ = false;
-
-      int32_t mesh_index = openmc::model::meshes.size();
-
-      _mesh_template = tally_mesh.get();
-      openmc::model::meshes.push_back(std::move(tally_mesh));
+      auto filters = meshFilter();
+      for (const auto & m : filters)
+        _mesh_filters.push_back(dynamic_cast<openmc::MeshFilter *>(m));
 
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
       {
-        const auto & translation = _mesh_translations[i];
-        auto meshFilter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
-        meshFilter->set_mesh(mesh_index);
-        meshFilter->set_translation({translation(0), translation(1), translation(2)});
-
-        _mesh_filters.push_back(meshFilter);
-        std::vector<openmc::Filter *> tally_filters = {meshFilter};
-        addLocalTally(tally_filters);
+        std::vector<openmc::Filter *> filter = {filters[i]};
+        addLocalTally(_tally_score, filter);
       }
 
       if (_verbose)
@@ -1956,9 +1959,8 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     for (std::size_t i = 0; i < _outputs->size(); ++i)
     {
-      std::string out = (*_outputs)[i];
-      addAuxVariable("MooseVariable", out, var_params);
-      _external_vars.push_back(_aux->getFieldVariable<Real>(0, out).number());
+      addAuxVariable("MooseVariable", _output_name[i], var_params);
+      _external_vars.push_back(_aux->getFieldVariable<Real>(0, _output_name[i]).number());
     }
   }
 
@@ -2206,7 +2208,7 @@ OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw
 }
 
 void
-OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num)
+OpenMCCellAverageProblem::getUnrelaxedTallyFromOpenMC(const unsigned int & var_num)
 {
   switch (_tally_type)
   {
@@ -2260,7 +2262,7 @@ OpenMCCellAverageProblem::getFissionTallyFromOpenMC(const unsigned int & var_num
 
 
 void
-OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
+OpenMCCellAverageProblem::getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
 {
   switch (_tally_type)
   {
@@ -2326,7 +2328,7 @@ OpenMCCellAverageProblem::getFissionTallyStandardDeviationFromOpenMC(const unsig
 }
 
 void
-OpenMCCellAverageProblem::relaxAndNormalizeHeatSource(const int & t)
+OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t)
 {
   // if OpenMC has only run one time, or we don't have relaxation at all,
   // then we don't have a "previous" with which to relax, so we just copy the mean tally in and
@@ -2402,7 +2404,10 @@ OpenMCCellAverageProblem::getTallyFromOpenMC()
   {
     case tally::cell:
     {
-      relaxAndNormalizeHeatSource(0);
+      VariadicTable<std::string, Real> vt({"Cell", "Fraction of total " + _tally_score});
+      vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
+
+      relaxAndNormalizeTally(0);
 
       int i = 0;
       for (const auto & c : _cell_to_elem)
@@ -2420,17 +2425,21 @@ OpenMCCellAverageProblem::getTallyFromOpenMC()
         Real volumetric_power = power_fraction * tallyMultiplier() / _cell_to_elem_volume[cell_info];
         power_fraction_sum += power_fraction;
 
-        if (_verbose)
-          _console << " cell " << printCell(cell_info) << " power fraction: " << std::setw(3)
-                   << Moose::stringify(power_fraction) << std::endl;
+        vt.addRow(printCell(cell_info), power_fraction);
 
         checkZeroTally(power_fraction, "cell " + printCell(cell_info));
         fillElementalAuxVariable(_tally_var, c.second, volumetric_power);
       }
+
+      if (_verbose)
+        vt.print(_console);
       break;
     }
     case tally::mesh:
     {
+      VariadicTable<unsigned int, Real> vt({"Mesh", "Fraction of total " + _tally_score});
+      vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
+
       // TODO: this requires that the mesh exactly correspond to the mesh templates;
       // for cases where they don't match, we'll need to do a nearest-node transfer or something
 
@@ -2438,7 +2447,7 @@ OpenMCCellAverageProblem::getTallyFromOpenMC()
       for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
       {
         const auto * filter = _mesh_filters[i];
-        relaxAndNormalizeHeatSource(i);
+        relaxAndNormalizeTally(i);
         Real template_power_fraction = 0.0;
 
         for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
@@ -2461,12 +2470,13 @@ OpenMCCellAverageProblem::getTallyFromOpenMC()
           fillElementalAuxVariable(_tally_var, elem_ids, volumetric_power);
         }
 
-        if (_verbose)
-          _console << " mesh template " + Moose::stringify(i) << " power fraction: " << std::setw(3)
-                   << Moose::stringify(template_power_fraction) << std::endl;
+        vt.addRow(i, template_power_fraction);
 
         offset += filter->n_bins();
       }
+
+      if (_verbose)
+        vt.print(_console);
 
       break;
     }
@@ -2707,10 +2717,10 @@ OpenMCCellAverageProblem::extractOutputs()
     {
       std::string out = (*_outputs)[i];
 
-      if (out == "fission_tally_std_dev")
-        getFissionTallyStandardDeviationFromOpenMC(i);
-      if (out == "fission_tally")
-        getFissionTallyFromOpenMC(i);
+      if (out == "unrelaxed_tally_std_dev")
+        getUnrelaxedTallyStandardDeviationFromOpenMC(i);
+      if (out == "unrelaxed_tally")
+        getUnrelaxedTallyFromOpenMC(i);
     }
   }
 }

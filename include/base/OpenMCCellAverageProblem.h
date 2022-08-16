@@ -134,6 +134,19 @@ public:
   }
 
   /**
+   * Get the cell instance filter for tallies automatically constructed by Cardinal
+   * @return cell instance filter
+   */
+  openmc::Filter * cellInstanceFilter();
+
+  /**
+   * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
+   * Multiple mesh filters are only created if the mesh template feature is used.
+   * @return mesh filters
+   */
+  std::vector<openmc::Filter *> meshFilter();
+
+  /**
    * This class uses elem->volume() in order to normalize the fission power produced
    * by OpenMC to conserve the specified power. However, as discussed on the MOOSE
    * slack channel,
@@ -393,7 +406,7 @@ protected:
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed tally to the raw (unrelaxed) tally.
    */
-  void relaxAndNormalizeHeatSource(const int & t);
+  void relaxAndNormalizeTally(const int & t);
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
@@ -490,17 +503,16 @@ protected:
   void getTallyFromOpenMC();
 
   /**
-   * Get the fission tally standard deviation as a function of space and store into variable
+   * Get the (unrelaxed) tally standard deviation as a function of space and store into variable
    * @param[in] var_num variable number to store the standard deviation in
    */
-  void getFissionTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
+  void getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
 
   /**
-   * Get the fission tally (i.e. raw, unrelaxed output from OpenMC)
-   *  as a function of space and store into variable
+   * Get the (unrelaxed) tally from OpenMC as a function of space and store into variable
    * @param[in] var_num variable number to store the tally in
    */
-  void getFissionTallyFromOpenMC(const unsigned int & var_num);
+  void getUnrelaxedTallyFromOpenMC(const unsigned int & var_num);
 
   /**
    * Multiplier on the normalized tally results; for fixed source runs,
@@ -530,10 +542,11 @@ protected:
   xt::xtensor<double, 1> normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const;
 
   /**
-   * Add the local tally
+   * Add local tally
+   * @param[in] score score type
    * @param[in] filters tally filters
    */
-  void addLocalTally(std::vector<openmc::Filter *> & filters);
+  void addLocalTally(const std::string & score, std::vector<openmc::Filter *> & filters);
 
   /**
    * Check the sum of the fluid and solid tallies (if present) against the global
@@ -930,12 +943,6 @@ protected:
   /// Mean value of the local tally, across all bins; only used for fixed source mode
   Real _local_mean_tally;
 
-  /**
-   * For OpenMC geometries with a single coordinate level, we define default behavior for
-   * tally_blocks to be all of the subdomains in the MOOSE mesh.
-   */
-  const bool _using_default_tally_blocks;
-
   /// When using mesh tallies, whether the mesh comes from the MOOSE [Mesh] block or from a file
   const bool _tally_mesh_from_moose;
 
@@ -968,10 +975,16 @@ protected:
   std::vector<Point> _mesh_translations;
 
   /// OpenMC mesh filters for unstructured mesh tallies
-  std::vector<const openmc::MeshFilter *> _mesh_filters;
+  std::vector<openmc::MeshFilter *> _mesh_filters;
 
   /// OpenMC solution fields to output to the mesh mirror
   const MultiMooseEnum * _outputs = nullptr;
+
+  /**
+   * Auxiliary variable names to apply to each quantity in 'output'; if not specified,
+   * the names default to the string-conversion of the enum in 'output'
+   */
+  std::vector<std::string> _output_name;
 
   /// Numeric identifiers for the external variables
   std::vector<unsigned int> _external_vars;
@@ -1015,16 +1028,6 @@ protected:
 
   /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
   std::unique_ptr<SymmetryPointGenerator> _symmetry;
-
-  /**
-   * \brief Whether the tally has a zero contribution in all non-fissile materials
-   *
-   * For scores involving energy from fission with entirely local deposition
-   * at the site of fission, we know that there will be zero contribution from cells
-   * not containing fissile materials. We can reduce the total number of added tally
-   * bins by ensuring we don't add tallies in non-fissile materials for these scores.
-   */
-  bool _tally_is_zero_in_nonfissile;
 
   /// Number of solid elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_solid;

@@ -54,7 +54,8 @@
   solid_cell_level = 1
   scaling = 100.0
 
-  output = 'fission_tally'
+  output = 'unrelaxed_tally'
+  output_name = 'fission_tally'
   relaxation = constant
 []
 

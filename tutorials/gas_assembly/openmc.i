@@ -164,7 +164,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'fission_tally_std_dev'
+  output = 'unrelaxed_tally_std_dev'
   check_equal_mapped_tally_volumes = true
 
   identical_tally_cell_fills = true

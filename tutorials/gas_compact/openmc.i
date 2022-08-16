@@ -43,7 +43,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  output = 'fission_tally_std_dev'
+  output = 'unrelaxed_tally_std_dev'
   check_equal_mapped_tally_volumes = true
 
   power = ${power}
@@ -115,7 +115,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
   []
   [avg_std_dev]
     type = NearestPointLayeredAverage
-    variable = fission_tally_std_dev
+    variable = unrelaxed_tally_std_dev
     points = '0.0 0.0 0.0'
     num_layers = 30
     direction = z
