@@ -47,8 +47,12 @@ First, `OpenMCCellAverageProblem` initializes [MooseVariables](https://moosefram
 to receive data necessary for multiphysics coupling. Depending on the settings
 for this class, the following variables will be added:
 
-- `heat_source`, the OpenMC fission heat source to be sent to MOOSE; the particular tally score is
-   selected with the `tally_score` parameter
+- A variable representing the OpenMC tally; the score is selected with the `tally_score`
+  parameter, while the name is selected with the `tally_name` parameter (which defaults to
+  `heat_source`). For simplicity, all references to this variable will just be referred to
+  as the `heat_source` variable in this documentation, even though we support some scores such
+  as `damage_energy` that don't really represent a heat source - for these cases, you may want
+  to choose a different `tally_name` that better reflects the physical meaning.
 - `temp`, the MOOSE temperature to be sent to OpenMC
 - `density`, the MOOSE density to be sent to OpenMC (fluid coupling)
 
@@ -60,11 +64,11 @@ to be flowing and continually entering/exiting the domain).
 
 The order of all of these variables is `CONSTANT MONOMIAL` to simplify the
 averaging performed in space (for data going *in* to OpenMC) and to simplify the
-application of the cell or element-average heat source (for data going *out* of OpenMC)
+application of the cell or element-average tally (for data going *out* of OpenMC)
 to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
 The initialization of these MOOSE variables happens behind the scenes -
 for instance, in [openmc1], we have indicated that we are coupling OpenMC via
-a heat source (by setting `tally_blocks`) to both fluid and solid regions (by setting
+a tally (by setting `tally_blocks`) to both fluid and solid regions (by setting
 `solid_blocks` and `fluid_blocks`). Therefore, `OpenMCCellAverageProblem`
 essentially adds the following to the input file:
 
@@ -78,7 +82,7 @@ essentially adds the following to the input file:
     order = CONSTANT
     family = MONOMIAL
   []
-  [heat_source] # always added
+  [heat_source] # always added; the name is determined by the tally_name parameter
     order = CONSTANT
     family = MONOMIAL
   []
@@ -300,11 +304,11 @@ To fully elaborate, consider an
 OpenMC problem consisting of 3 fuel pebbles that produce a total of 1 W. Suppose
 pebble 1 produces 0.3 W, pebble 2 produces 0.5 W, and pebble 3 produces 0.2 W. If your
 `[Mesh]` only overlaps spatially with the first two pebbles, then setting
-`normalize_by_global_tally = true` (the default) will apply an OpenMC heat source
+`normalize_by_global_tally = true` (the default) will apply an OpenMC tally
 to `[Mesh]` with a magnitude of 0.8 W. Normalizing by a global tally indicates that
 the `power` represents the total power of the OpenMC domain, regardless of which regions actually
 got mapped to the `[Mesh]`. Conversely, by setting `normalize_by_global_tally = false`,
-OpenMC will apply a heat source to `[Mesh]` with a magnitude of 1.0 W. Normalizing
+OpenMC will apply a tally to `[Mesh]` with a magnitude of 1.0 W. Normalizing
 by the local tally indicates that the `power` represents only the power of the
 regions that got mapped. This latter setting becomes the default when using
 mesh tallies; this will be described in more detail in [#um].
@@ -449,9 +453,9 @@ to those cells that mapped to elements on the `fluid_blocks`.
 #### Transfers from OpenMC
 
 In the `FROM_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
-are written to on the `[Mesh]` by writing a heat source. For cell tallies,
+are written to on the `[Mesh]` by writing a tally. For cell tallies,
 all elements that mapped to cell $i$ are written with the same cell-averaged
-heat source. For mesh tallies, each tally bin is written to the corresponding
+tally value. For mesh tallies, each tally bin is written to the corresponding
 element in the `[Mesh]`.
 
 ## Other Features
@@ -513,8 +517,8 @@ that your problem satisfies all of the following criteria, you can set
 
 #### Tally Scores
 
-You can customize the type of score that OpenMC uses for its tally that gets
-mapped into the `heat_source` variable. Options include:
+You can customize the type of score that OpenMC uses for its tally.
+Options include:
 
 - `heating`: total nuclear heating
 - `heating_local`: same as the `heating` score, except that energy from secondary photons
@@ -529,25 +533,26 @@ mapped into the `heat_source` variable. Options include:
    on the incident energy by linking to optional fission energy release data
 - `damage_energy`: damage energy production
 
-For $k$-eigenvalue calculations, the tally score defaults to the `kappa_fission` mode.
-All of the units for the above tallies are eV/source particle, which this class
-converts to a volumetric heat source according to the user-provided `power`.
+For $k$-eigenvalue calculations, this class
+converts the tally to a volumetric heat source according to the user-provided `power`.
+For fixed-source calculations, this class converts the tally to a volumetric heat source according
+to the user-provided `source_strength`.
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html).
 
 The `damage_energy` score is unique because it doesn't really represent _heating_
-of a material - it instead represents energy for DPA calculations. For this case, the
-`heat_source` auxiliary variable should not be used in any type of volumetric heat
-source kernel.
+of a material - it instead represents energy for DPA calculations. For this case,
+you may want to instead use a different name instead of `heat_source`
+to make this meaning clear, via the `tally_name` parameter.
 
 #### Relaxation
 
 OpenMC is coupled to MOOSE via fixed point iteration, also referred to
 as Picard iteration. For many problems, oscillations can exist between OpenMC
 and the coupled thermal-fluid physics. The OpenMC wrapping offers several
-options by which the heat source computed by OpenMC can be "relaxed" between
+options by which the tally computed by OpenMC can be "relaxed" between
 iterations to effectively damp these oscillations. For all these relaxation schemes,
-the heat source that gets coupled to MOOSE for iteration $n+1$ is taken as a weighted
+the tally that gets coupled to MOOSE for iteration $n+1$ is taken as a weighted
 sum of the previous iterate and the most-recent Monte Carlo calculation:
 
 \begin{equation}
@@ -642,14 +647,13 @@ the meaning of the OpenMC verbosity settings, please consult the
 
 #### Outputting the OpenMC Solution
 
-In addition to extracting the fission heat source, this class provides
+In addition to extracting the tally, this class provides
 minimal capabilities to extract other aspects of the OpenMC solution directly
 onto the mesh mirror for postprocessing or visualization. A list of parameters to
 output is provided to the `output` parameter; available options are:
 
-- `fission_tally`: unrelaxed fission tally in units of volumetric power density
-- `fission_tally_std_dev`: fission tally standard deviation in units of volumetric
-  power density with length units that match the units of the `heat_source`
+- `fission_tally`: unrelaxed tally
+- `fission_tally_std_dev`: unrelaxed tally standard deviation
 
 #### Collating Temperatures from Multiple Apps
 

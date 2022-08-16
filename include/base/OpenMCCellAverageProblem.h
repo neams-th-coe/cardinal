@@ -40,7 +40,7 @@
  * which blocks in the MOOSE domain should be used to send temperature (and *not*
  * density) to OpenMC. Tallies are automatically added to the OpenMC cells that
  * correspond to the 'tally_blocks' parameter. Therefore, you can individually
- * control where multiphysics feedback is sent to OpenMC, and where heat source
+ * control where multiphysics feedback is sent to OpenMC, and where tally
  * feedback is received by MOOSE. If you have a single-level OpenMC geometry,
  * you can omit 'tally_blocks', in which case tallies are added to all MOOSE blocks.
  *
@@ -89,7 +89,8 @@ public:
   virtual void initialSetup() override;
 
   /**
-   * Add 'heat_source', 'temp', and, if any fluid blocks are specified, a
+   * Add the tally variable (name determined by 'tally_name'),
+   * 'temp', and, if any fluid blocks are specified, a
    * 'density' variable. These are used to communicate OpenMC's solution with MOOSE,
    * and for MOOSE to communicate its solution with OpenMC.
    */
@@ -146,7 +147,7 @@ public:
    * "the libmesh volume computation"
    *
    * So, we need to make sure that a minimum order quadrature rule is used with this
-   * class so that the total heat source as computed by an
+   * class so that the total tally as computed by an
    * ElementIntegralVariablePostprocessor actually matches the specified 'power'
    * (for low quadrature orders, there can be an error up to about 5% or so in total
    * power). This override simply forces the volume quadrature order to be 2 or higher
@@ -352,7 +353,7 @@ protected:
 
   /**
    * Check the setup of the mesh template and translations. Because a simple copy transfer
-   * is used to get the heat source from a mesh tally onto the [Mesh], we require that the
+   * is used to write a mesh tally onto the [Mesh], we require that the
    * meshes are identical - both in terms of the element ordering and the actual dimensions of
    * each element. This function performs as many checks as possible to ensure that the meshes
    * are indeed identical.
@@ -373,7 +374,7 @@ protected:
   void storeElementPhase();
 
   /**
-   * Relax the heat source and normalize it so that it has units of power fraction (i.e. an
+   * Relax the tally and normalize it so that it has units of power fraction (i.e. an
    * integral of unity, where that "integral" is over the entire OpenMC domain) if you set
    * 'normalize_by_global_tally = true', but only over the Cardinal-created tallies if you
    * instead set 'normalize_by_global_tally = false'.
@@ -384,13 +385,13 @@ protected:
    * applying it to MOOSE. If the magnitude of the power is constant in time, there is zero
    * error in this. But for fixed source simulations where the actual magnitude of the tally
    * can vary based on simulation (b/c we don't renormalize it in the sense that we do
-   * for k-eigenvalue simulations), we are basically relaxing the distribution of the heat
-   * source, but then multiplying it by the _current_ mean tally magnitude.
+   * for k-eigenvalue simulations), we are basically relaxing the distribution of the tally,
+   * but then multiplying it by the _current_ mean tally magnitude.
    *
    * There will be very small errors in these approximations unless the power/source strength
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
    * this is still inconsequential at the end of the day as long as your problem has converged
-   * the relaxed heat source to the raw (unrelaxed) tally.
+   * the relaxed tally to the raw (unrelaxed) tally.
    */
   void relaxAndNormalizeHeatSource(const int & t);
 
@@ -485,11 +486,8 @@ protected:
    */
   void sendDensityToOpenMC();
 
-  /**
-   * Extract the heat source from OpenMC and normalize by a global tally,
-   * then apply as a uniform field to the corresponding MOOSE elements.
-   */
-  void getHeatSourceFromOpenMC();
+  /// Extract the tally from OpenMC and then apply as a uniform field to the corresponding MOOSE elements.
+  void getTallyFromOpenMC();
 
   /**
    * Get the fission tally standard deviation as a function of space and store into variable
@@ -590,10 +588,7 @@ protected:
    */
   const coupling::OpenMCInitialCondition _initial_condition;
 
-  /**
-   * Type of relaxation to apply to the OpenMC solution; relaxation is
-   * applied to the heat source tally.
-   */
+  /// Type of relaxation to apply to the OpenMC tallies
   const relaxation::RelaxationEnum _relaxation;
 
   /**
@@ -815,23 +810,20 @@ protected:
    */
   const bool _needs_global_tally;
 
-  /**
-   * Whether tallies should be added to the fluid phase; this should be true if you have
-   * a fissile fluid phase and wish to couple that heat source to MOOSE.
-   */
+  /// Whether tallies should be added to the fluid phase
   bool _add_tallies_to_fluid;
 
-  /**
-   * Whether tallies should be added to the solid phase; this should be true if you have
-   * a fissile solid phase and wish to couple that heat source to MOOSE.
-   */
+  /// Whether tallies should be added to the solid phase
   bool _add_tallies_to_solid;
 
   /// Tally estimator to use for the OpenMC tallies created for multiphysics
   openmc::TallyEstimator _tally_estimator;
 
-  /// Score to use for evaluating the tally that gets mapped to the 'heat_source' variable
+  /// OpenMC tally score to write into the 'tally_name' auxiliary variable
   std::string _tally_score;
+
+  /// Auxiliary variable name for the OpenMC tally
+  std::string _tally_name;
 
   /// Blocks in MOOSE mesh that correspond to the fluid phase
   std::unordered_set<SubdomainID> _fluid_blocks;
@@ -921,7 +913,7 @@ protected:
   const openmc::LibMesh * _mesh_template;
 
   /// Heat source variable
-  unsigned int _heat_source_var;
+  unsigned int _tally_var;
 
   /// Temperature variable
   unsigned int _temp_var;
@@ -998,11 +990,11 @@ protected:
 
   /**
    * Current fixed point iteration tally result; for instance, when using constant
-   * relaxation, the heat source is updated as:
+   * relaxation, the tally is updated as:
    * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
    * where q(n+1) is _current_mean_tally, a is the relaxation factor, q(n)
    * is _previous_mean_tally, and PHI is the most-recently-computed tally result
-   * (available locally in the heat source update function).
+   * (available locally in the tally update function).
    */
   std::vector<xt::xtensor<double, 1>> _current_mean_tally;
 
