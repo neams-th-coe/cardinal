@@ -33,4 +33,11 @@
                   "is only partial overlap between the OpenMC model and MOOSE domain."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [flux]
+    type = CSVDiff
+    input = flux.i
+    csvdiff = flux_out.csv
+    requirement = "The system shall correctly normalize flux tallies for fixed source simulations."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

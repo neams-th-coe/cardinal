@@ -115,7 +115,8 @@ enum TallyScoreEnum
   kappa_fission,
   fission_q_prompt,
   fission_q_recoverable,
-  damage_energy
+  damage_energy,
+  flux
 };
 } // namespace score
 
