@@ -467,7 +467,7 @@ we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
   block=Problem
 
 Other features we use include an output of the fission tally standard deviation
-in units of W/m$^3$ to the `[Mesh]` by setting `output = 'fission_tally_std_dev'`.
+in units of W/m$^3$ to the `[Mesh]` by setting `output = 'unrelaxed_tally_std_dev'`.
 This is used to obtain uncertainty estimates of the heat source distribution from OpenMC
 in the same units as the heat source. We also leverage a helper utility
 in Cardinal by setting `check_equal_mapped_tally_volumes = true`. This parameter will

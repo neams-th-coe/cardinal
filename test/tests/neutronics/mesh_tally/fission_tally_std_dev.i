@@ -41,7 +41,8 @@
   check_tally_sum = false
   check_zero_tallies = false
 
-  output = 'fission_tally_std_dev'
+  output = 'unrelaxed_tally_std_dev'
+  output_name = 'fission_tally_std_dev'
 []
 
 [Executioner]

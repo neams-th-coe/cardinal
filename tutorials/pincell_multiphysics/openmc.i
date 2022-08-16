@@ -124,7 +124,7 @@ dT = ${fparse power / mdot / Cp}
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'fission_tally_std_dev'
+  output = 'unrelaxed_tally_std_dev'
   check_equal_mapped_tally_volumes = true
 
   power = ${power}

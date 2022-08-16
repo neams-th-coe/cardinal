@@ -652,8 +652,8 @@ minimal capabilities to extract other aspects of the OpenMC solution directly
 onto the mesh mirror for postprocessing or visualization. A list of parameters to
 output is provided to the `output` parameter; available options are:
 
-- `fission_tally`: unrelaxed tally
-- `fission_tally_std_dev`: unrelaxed tally standard deviation
+- `unrelaxed_tally`: unrelaxed tally
+- `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation
 
 #### Collating Temperatures from Multiple Apps
 
