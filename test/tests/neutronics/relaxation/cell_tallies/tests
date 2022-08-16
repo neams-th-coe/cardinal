@@ -107,6 +107,16 @@
                   "openmc_nonaligned.i case with normalize_by_global_tally=false"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [local_without_alignment_relax_null_fixed_mesh]
+    type = Exodiff
+    input = openmc_nonaligned.i
+    exodiff = nonalignment_relaxation_out.e
+    cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=nonalignment_relaxation_out Problem/fixed_mesh=false"
+    min_parallel = 2
+    requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
+                  "during a simulation."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [output_fission_tally_cell]
     type = Exodiff
     input = output_fission_tally.i

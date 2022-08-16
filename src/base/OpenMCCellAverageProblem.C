@@ -105,6 +105,12 @@ OpenMCCellAverageProblem::validParams()
       "Whether to assume that all tallies added by in the XML files and automatically "
       "by Cardinal are spatially separate. This is a performance optimization");
 
+  params.addParam<bool>("fixed_mesh", true,
+    "Whether the MooseMesh is unchanging during the simulation (true), or whether there is mesh "
+    "movement and/or adaptivity that is changing the mesh in time (false). When the mesh changes "
+    "during the simulation, the mapping from OpenMC's cells to the mesh must be re-evaluated after "
+    "each OpenMC run.");
+
   params.addRequiredParam<MooseEnum>(
       "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
   params.addParam<MooseEnum>(
@@ -227,6 +233,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _run_mode(openmc::settings::run_mode),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
                                       getParam<bool>("normalize_by_global_tally")),
+    _fixed_mesh(getParam<bool>("fixed_mesh")),
     _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") :
                                                        (_run_mode == openmc::RunMode::FIXED_SOURCE ?
                                                         true : _normalize_by_global)),
@@ -470,13 +477,28 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (isParamValid("output"))
     _outputs = &getParam<MultiMooseEnum>("output");
 
-  initializeElementToCellMapping();
-
-  getMaterialFills();
+  setupProblem();
 
   initializeTallies();
 
   checkMeshTemplateAndTranslations();
+}
+
+void
+OpenMCCellAverageProblem::initialSetup()
+{
+  OpenMCProblemBase::initialSetup();
+
+  if (_adaptivity.isOn() && _fixed_mesh)
+    mooseError("When using mesh adaptivity, 'fixed_mesh' must be false!");
+}
+
+void
+OpenMCCellAverageProblem::setupProblem()
+{
+  initializeElementToCellMapping();
+
+  getMaterialFills();
 
   // we do this last so that we can at least hit any other errors first before
   // spending time on the costly filled cell caching
@@ -597,17 +619,12 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
   // other words, you might have two meshes that represent the same geometry, but if you created
   // the solid phase _first_ in Cubit for one mesh, but the fluid phase _first_ in Cubit for the
   // other mesh, even though the geometry is the same, the element ordering would be different.
-  //
-  // If the first two elements of each mesh translation match the [Mesh], we assume that the meshes
-  // are the same (otherwise, print an error). We need to check two elements per mesh translation
-  // because this ensures that both the position and angular rotation match.
   unsigned int offset = 0;
   for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
   {
     const auto & filter = _mesh_filters[i];
 
-    // just compare the first two elements
-    for (unsigned int e = 0; e < 2; ++e)
+    for (unsigned int e = 0; e < filter->n_bins(); ++e)
     {
       auto elem_ptr = _mesh.queryElemPtr(offset + e);
 
@@ -1800,7 +1817,16 @@ OpenMCCellAverageProblem::initializeTallies()
 
       std::unique_ptr<openmc::LibMesh> tally_mesh;
       if (_tally_mesh_from_moose)
+      {
+        // for distributed meshes, each rank only owns a portion of the mesh information, but
+        // OpenMC wants the entire mesh to be available on every rank. We might be able to add
+        // this feature in the future, but will need to investigate
+        if (!_mesh.getMesh().is_replicated())
+          mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
+            "for distributed meshes!");
+
         tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
+      }
       else
         tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
 
@@ -2142,18 +2168,38 @@ Real
 OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
 {
   if (_normalize_by_global)
+  {
+    if (std::abs(_global_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally over the entire domain is zero.");
     return tally_result / _global_sum_tally;
+  }
   else
+  {
+    if (std::abs(_local_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally created by Cardinal is everywhere zero.");
     return tally_result / _local_sum_tally;
+  }
 }
 
 xt::xtensor<double, 1>
 OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
 {
   if (_normalize_by_global)
+  {
+    if (std::abs(_global_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally over the entire domain is zero.");
     return raw_tally / _global_sum_tally;
+  }
   else
+  {
+    if (std::abs(_local_sum_tally) < 1e-12)
+      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
+        "This means that the ", _tally_score, " tally created by Cardinal is everywhere zero.");
     return raw_tally / _local_sum_tally;
+  }
 }
 
 void
@@ -2447,6 +2493,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
+      // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
+      if (!_first_transfer && !_fixed_mesh)
+        setupProblem();
+
       if (_first_transfer)
       {
         switch (_initial_condition)
