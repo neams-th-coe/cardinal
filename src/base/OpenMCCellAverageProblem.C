@@ -624,6 +624,11 @@ OpenMCCellAverageProblem::fillMeshTranslations()
 void
 OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
 {
+  // If we are just tallying directly on the [Mesh], we don't need to perform any
+  // consistency checks.
+  if (_tally_mesh_from_moose)
+    return;
+
   // we can do some rudimentary checking on the mesh template by comparing the centroid
   // coordinates compared to centroids in the [Mesh] (because right now, we just doing a simple
   // copy transfer that necessitates the meshes to have the same elements in the same order). In
