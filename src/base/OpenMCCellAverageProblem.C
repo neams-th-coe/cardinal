@@ -482,7 +482,12 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     {
       // default names are simply matched to the output enum string
       for (const auto & o : *_outputs)
-        _output_name.push_back(o);
+      {
+        std::string name = o;
+        std::transform(name.begin(), name.end(), name.begin(),
+            [](unsigned char c){ return std::tolower(c); });
+        _output_name.push_back(name);
+      }
     }
   }
   else
