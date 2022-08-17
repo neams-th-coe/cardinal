@@ -1744,6 +1744,10 @@ OpenMCCellAverageProblem::meshFilter()
   std::unique_ptr<openmc::LibMesh> tally_mesh;
   if (_tally_mesh_from_moose)
   {
+    if (std::abs(_scaling - 1.0) > 1e-6)
+      mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity,\n"
+        "because we multiply the [Mesh] by 'scaling' when tallying on it in OpenMC.");
+
     // for distributed meshes, each rank only owns a portion of the mesh information, but
     // OpenMC wants the entire mesh to be available on every rank. We might be able to add
     // this feature in the future, but will need to investigate
