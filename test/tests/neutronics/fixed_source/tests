@@ -20,7 +20,7 @@
     type = RunException
     input = overlap_solid.i
     cli_args = 'Problem/check_tally_sum=true'
-    expect_err = "Heating tallies do not match the global kappa-fission tally"
+    expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
     requirement = "The system shall error if the total tally sum does not match the system-wide value for "
                   "fixed source simulations."
     required_objects = 'OpenMCCellAverageProblem'

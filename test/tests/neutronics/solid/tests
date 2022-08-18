@@ -20,7 +20,7 @@
     input = openmc_missing_pebble.i
     min_parallel = 4
     min_threads = 2
-    expect_err = "Heating tallies do not match the global kappa-fission tally"
+    expect_err = "kappa-fission tallies do not match the global kappa-fission tally"
     requirement = "The system shall error if the heating tallies are missing power from other parts "
                   "of the problem."
     required_objects = 'OpenMCCellAverageProblem'
