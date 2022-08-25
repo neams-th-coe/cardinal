@@ -504,7 +504,7 @@ steady state relative tolerance of $10^{-8}$.
 To run the coupled NekRS-MOOSE calculation, run the following:
 
 ```
-$ mpiexec -np 500 cardinal-opt -i common_input.i solid_nek.i
+mpiexec -np 500 cardinal-opt -i common_input.i solid_nek.i
 ```
 
 This will run with 500 [!ac](MPI) processes (you may run with other parallel
@@ -513,7 +513,7 @@ HPC resources due to the large mesh). To run the coupled THM-MOOSE calculation,
 run the following:
 
 ```
-$ cardinal-opt -i common_input.i solid_thm.i --n-threads=8
+cardinal-opt -i common_input.i solid_thm.i --n-threads=8
 ```
 
 which will run with 8 OpenMP threads; greater computational resources are not needed

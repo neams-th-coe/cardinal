@@ -220,7 +220,7 @@ of 7.1 MPa given the imposed temperature, i.e. $\rho_f(P,T_f)$.
 To create the XML files required to run OpenMC, run the script:
 
 ```
-$ python assembly.py
+python assembly.py
 ```
 
 You can also use the XML files checked in to the `tutorials/gas_assembly` directory;
@@ -595,7 +595,7 @@ inconsequential in this case, but instead represents the Picard iteration. We wi
 To run the coupled calculation, run the following:
 
 ```
-$ mpiexec -np 6 cardinal-opt -i common_input.i openmc.i --n-threads=12
+mpiexec -np 6 cardinal-opt -i common_input.i openmc.i --n-threads=12
 ```
 
 This will run with 6 [!ac](MPI) processes and 12 OpenMP threads (you may use other
@@ -698,7 +698,7 @@ cell temperatures and densities for the fluid cells.
 [fluid_temp] shows the solid temperature computed by MOOSE on several $x-y$ planes
 with the fluid temperature computed by [!ac](THM) shown as tubes. An inset shows the fluid temperature
 on the outlet plane. The absence of compacts in the center region results in the lowest
-fluid temperatures in this region, while the highest fluid temperatures are observed for channels surrounded by 6 compacts 
+fluid temperatures in this region, while the highest fluid temperatures are observed for channels surrounded by 6 compacts
 that are sufficiently close to the periphery to be affected by the lateral insulated boundary conditions.
 
 !media assembly_fluid_temp.png
@@ -710,7 +710,7 @@ and velocity and pressure (right) as a function of axial position. The negative
 temperature feedback results in a top-peaked power distribution. The fuel temperature
 peaks near the mid-plane due to the combined effects of the relatively high power
 density and the continually-increasing fluid temperature with distance from the inlet. The pressure gradient is nearly
-constant with axial position. 
+constant with axial position.
 Due to mass conservation, the heating of the fluid results in the velocity
 increasing with distance from the inlet.
 

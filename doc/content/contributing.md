@@ -24,7 +24,7 @@ create branches and commit your set of changes.
   the account where you forked the repository to
 
 ```
-$ git clone https://github.com/username/cardinal.git
+git clone https://github.com/username/cardinal.git
 ```
 
 ### 2. Add the `upstream` Remote:
@@ -32,8 +32,8 @@ $ git clone https://github.com/username/cardinal.git
 Add the real Cardinal repository as a remote named "upstream":
 
 ```
-$ cd cardinal
-$ git remote add upstream https://github.com/neams-th-coe/cardinal.git
+cd cardinal
+git remote add upstream https://github.com/neams-th-coe/cardinal.git
 ```
 
 You should now have at least two remotes when you run `git remote -vv`:
@@ -51,22 +51,22 @@ To make modifications to Cardinal, first create a branch where you will commit y
 work.
 
 ```
-$ git checkout -b branch_name upstream/devel
+git checkout -b branch_name upstream/devel
 ```
 
 Then, add your contributions to the branch.
 
 ```
-$ git add new_file.C
-$ git commit -m "An informative message about the commit."
+git add new_file.C
+git commit -m "An informative message about the commit."
 ```
 
 Before contributing your changes, you should rebase them on top of the latest
 upstream "devel" branch in the real Cardinal repository:
 
 ```
-$ git fetch upstream
-$ git rebase upstream/devel
+git fetch upstream
+git rebase upstream/devel
 ```
 
 ### 4. Add Documentation
@@ -79,7 +79,7 @@ for documentation. Please be sure to document your changes and commit it to your
 Push your branch to your fork:
 
 ```
-$ git push origin branch_name
+git push origin branch_name
 ```
 
 ### 6. Create a Pull Request

@@ -157,7 +157,7 @@ of 7.1 MPa [!cite](petersen) given the imposed temperature, i.e. $\rho_f(P, T)$.
 To create the XML files required to run OpenMC, run the script:
 
 ```
-$ python unit_cell.py
+python unit_cell.py
 ```
 
 You can also use the XML files checked in to the `tutorials/gas_compact` directory.
@@ -359,7 +359,7 @@ executioner. Finally, we specify Exodus and CSV output formats.
 To run the coupled calculation, run the following from the command line.
 
 ```
-$ mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=24
+mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=24
 ```
 
 This will run both MOOSE and OpenMC with 2 [!ac](MPI) processes and 24 OpenMP threads

@@ -118,7 +118,7 @@ model remain fixed at the values set in the OpenMC input files.
 To create the XML files required to run OpenMC, run the script:
 
 ```
-$ python make_openmc_model.py
+python make_openmc_model.py
 ```
 
 You can also use the XML files checked in to the `tutorials/pebbles` directory.
@@ -219,7 +219,7 @@ define several postprocessors.
 To run the coupled calculation, run the following from the command line.
 
 ```
-$ mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
+mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
 ```
 
 This will run both MOOSE and OpenMC with 8 [!ac](MPI) processes and 2 OpenMP threads.
@@ -304,7 +304,7 @@ within the [!ac](CSG) spheres, but slightly outside the faceted surface of the s
 To run this input, enter the following in a command line.
 
 ```
-$ mpiexec -np 8 cardinal-opt -i solid_um.i --n-threads=2
+mpiexec -np 8 cardinal-opt -i solid_um.i --n-threads=2
 ```
 
 [mesh3] shows the heat source computed by OpenMC, the heat source applied in MOOSE,

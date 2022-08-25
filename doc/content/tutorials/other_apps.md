@@ -13,7 +13,7 @@ use dynamic linking in order to couple Cardinal to a generic MOOSE application
 named Chickadee - please first clone this repository with
 
 ```
-$ git clone https://github.com/aprilnovak/Chickadee.git
+git clone https://github.com/aprilnovak/Chickadee.git
 ```
 
 Chickadee doesn't solve any interesting physics - it only contains one
@@ -25,15 +25,15 @@ MOOSE version that you are using in Cardinal; unless you specified something
 special when building Cardinal, this will be `cardinal/contrib/moose`:
 
 ```
-$ export MOOSE_DIR=$HOME/cardinal/contrib/moose
+export MOOSE_DIR=$HOME/cardinal/contrib/moose
 ```
 
 Adjust the above according to wherever you have the Cardinal repository cloned.
 Then, you must compile Chickadee just as you would for any other MOOSE application:
 
 ```
-$ cd chickadee
-$ make -j8
+cd chickadee
+make -j8
 ```
 
 All input files for this tutorial are available in the `tutorials/other_apps`
@@ -69,7 +69,7 @@ To run this input file, use the Cardinal executable (since the master applicatio
 is a Cardinal application):
 
 ```
-$ cardinal-opt -i cardinal_master.i
+cardinal-opt -i cardinal_master.i
 ```
 
 ## Running Cardinal as the Sub App
@@ -90,6 +90,6 @@ otherwise, `CardinalApp` will try to find a `SoluteDiffusion` object, which
 only exists in `ChickadeeApp`, not `CardinalApp`.
 
 ```
-$ chickadee-opt -i chickadee_master.i
+chickadee-opt -i chickadee_master.i
 ```
 
