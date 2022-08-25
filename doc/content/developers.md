@@ -18,11 +18,13 @@ with NekRS. Therefore, the NekRS submodule points to the `cardinal` branch on ou
 of NekRS in your filesystem, first merge the latest master branch into a new NekRS feature update branch.
 
 ```
-$ pwd
-  /home/anovak/NekRS
-
-$ git co -b cardinal-update-5-21
-$ git merge origin/master
+pwd
+```
+An example output from the above command: `/home/anovak/NekRS`.
+```
+```
+git co -b cardinal-update-5-21
+git merge origin/master
 ```
 
 You will need to correct merge conflicts, which should just be related to retaining
