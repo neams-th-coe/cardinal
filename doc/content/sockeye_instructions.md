@@ -12,7 +12,7 @@ Cardinal executable.
 To get the Sockeye submodule, run:
 
 ```
-$ ./scripts/get-sockeye.sh
+./scripts/get-sockeye.sh
 ```
 
 You will then be prompted to enter credentials to access INL's gitlab site.

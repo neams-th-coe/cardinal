@@ -33,14 +33,14 @@ In other words, you can either run the `channel` NekRS example with
 the standalone NekRS executable (which does not bring any advantages of Cardinal),
 
 ```
-$ nrsmpi channel 8
+nrsmpi channel 8
 ```
 
 or through the Cardinal executable (which brings many useful postprocessing features),
 
 
 ```
-$ mpiexec -np 8 cardinal-opt -i nek.i
+mpiexec -np 8 cardinal-opt -i nek.i
 ```
 
 Both will run the NekRS case in exactly the same fashion using exactly the same NekRS input files.
