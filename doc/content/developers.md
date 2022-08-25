@@ -22,7 +22,6 @@ pwd
 ```
 An example output from the above command: `/home/anovak/NekRS`.
 ```
-```
 git co -b cardinal-update-5-21
 git merge origin/master
 ```
