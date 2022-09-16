@@ -214,4 +214,12 @@
     requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 when moving one boundary to "
                   "fit a circle and when the alignment axis is not the default (z)."
   []
+  [ignore_some_sidesets]
+    type = Exodiff
+    input = ignore_top.i
+    exodiff = ignore_top_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a HEX27 mesh as HEX20 while moving only parts "
+                  "of a sideset, while ignoring faces that have a normal parallel to the specified axis."
+  []
 []
