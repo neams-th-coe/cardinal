@@ -52,9 +52,9 @@ R. Martineau, P. Fischer, and Y. Hassan,
 ["Cardinal: A Lower Length-Scale Multiphysics Simulator for Pebble Bed Reactors"](https://www.tandfonline.com/doi/full/10.1080/00295450.2020.1824471)
 *Nuclear Technology* (2021)
 
-P. Fischer, E. Merzari, M. Min, S. Kerkemeier, Y. Lan, M. Phillips, T. Rathnayake, A. Novak, D. Gaston, N. Chalmers, and T. Warburton
-["Highly Optimized Full-Core Reactor Simulations on Summit"](https://arxiv.org/abs/2110.01716#:~:text=Nek5000%2FRS%20is%20a%20highly,turbulent%20flows%20in%20complex%20domains.)
-*arXiv preprint* (2021)
+M. Min, Y. Lan, P. Fischer, E. Merzari, S. Kerkemeier, M. Phillips, T. Rathnayake, A. Novak, D. Gaston, N. Chalmers, and T. Warburton,
+"Optimization of Full-Core Reactor Simulations on Summit"
+*Proceedings of Supercomputing* (2022)
 
 A.J. Novak, D. Shaver, and B. Feng
 ["Conjugate Heat Transfer Coupling of NekRS and MOOSE for Bypass Flow Modeling"](https://www.researchgate.net/publication/356728287_Conjugate_Heat_Transfer_Coupling_of_NekRS_and_MOOSE_for_Bypass_Flow_Modeling)
@@ -69,9 +69,19 @@ A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Ke
 ["Coupled Monte Carlo and Thermal-Hydraulics Modeling of a Prismatic Gas Reactor Fuel Assembly Using Cardinal"](https://www.researchgate.net/publication/360681454_Coupled_Monte_Carlo_and_Thermal-Hydraulics_Modeling_of_a_Prismatic_Gas_Reactor_Fuel_Assembly_Using_Cardinal?_sg%5B1%5D=1Iq-lQWwadAANa8I10BgfiSiL9agM7rVq-JhJIgNRg2JQgPqQEq6hU82MhzPEQphXzZrYciSQA)
 *Proceedings of PHYSOR* (2022)
 
+# Lead Fast Reactors
+
+H. Park, Y. Yu, E. Shemon, and A. Novak,
+"Progress on Demonstration of a MOOSE-Based Coupled Capability for Hot Channel Factors in Fast Reactors"
+*Argonne National Laboratory*, ANL/NSE-22/45 (2022)
+
 # Sodium Fast Reactors
 
-A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston
+A.J. Novak, A. Chaube, D.R. Shaver, C.S. Brooks,
+"Validation of NekRS-MOOSE Conjugate Heat Transfer Coupling for a 7-Pin Bare Bundle"
+*Proceedings of ANS* (2022)
+
+A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 ["Coupled Monte Carlo Transport and Conjugate Heat Transfer for Wire-Wrapped Bundles Within the MOOSE Framework"](https://www.researchgate.net/publication/359121160_COUPLED_MONTE_CARLO_TRANSPORT_AND_CONJUGATE_HEAT_TRANSFER_FOR_WIRE-WRAPPED_BUNDLES_WITHIN_THE_MOOSE_FRAMEWORK)
 *Proceedings of Nureth* (2022)
 
@@ -81,8 +91,30 @@ Y. Yu, A. Novak, D. Shaver, and E. Merzari,
 "Coupled Simulation of Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS) Using Cardinal"
 *Proceedings of ATH* (2022)
 
+Y. Yu, A. Novak, D. Shaver, and E. Merzari,
+["Multi-Physics Simulation on Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS)"](https://www.osti.gov/biblio/1876833)
+*Argonne National Laboratory*, ANL/NSE-22/30 (2022)
+
 # Systems-Level Analysis
+
+A. Huxford, V. Coppo Leite, E. Merzari, L. Zou, V. Petrov, and A. Manera,
+"Development and Application of a Hybrid Domain-Overlapping Coupling Scheme Between SAM and NekRS Using Cardinal"
+*Proceedings of ANS* (2022)
 
 A. Huxford, V. Petrov, A. Manera, V. Coppo Leite, E. Merzari, and L. Zou
 "Development of Innovative Overlapping-Domain Coupling Between SAM and nekRS"
 *Proceedings of Nureth* (2022)
+
+# Virtual Test Bed Documentation
+
+A. Abou-Jaoude, E. Shemon, G. Giudicelli, S. Walker, T. Folk, M. Tano, J. Fang, and A. Novak,
+"Status of New Models Hosted on the Virtual Test Bed (VTB) in 2022"
+*Proceedings of ANS* (2022)
+
+B. Feng, J. Fang, T. Hua, N. Stauff, A. Novak, L. Zou, R. Hu, P. Balestra, D. Reger, N. Martin, G. Giudicelli, and A. Abou-Jaoude,
+"Single- and Multi-Physics Models of Advanced Reactors in the Virtual Test Bed"
+*Proceedings of ANS* (2021)
+
+B. Feng, J. Fang, N. Stauff, T. Hua, L. Zou, R. Hu, D. Shaver, and A. Novak,
+["Development of Advanced Reactor Models for Virtual Test Bed Using NEAMS Tools"](https://www.osti.gov/biblio/1832109)
+*Argonne National Laboratory*, ANL-21/28 (2021)
