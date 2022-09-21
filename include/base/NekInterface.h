@@ -73,16 +73,18 @@ bool isInitialized();
  * @param[in] slot index in the nrs->usrwrk array to write
  * @param[in] prefix prefix for file name
  * @param[in] time simulation time to write file for
+ * @param[in] step time step index
  * @parma[in] write_coords whether to write the mesh coordinates
  */
-void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const bool & write_coords);
+void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords);
 
 /**
  * Write a field file containing pressure, velocity, and scalars with given prefix
  * @param[in] prefix three-character prefix
  * @param[in] time time
+ * @param[in] step time step index
  */
-void write_field_file(const std::string & prefix, const dfloat time);
+void write_field_file(const std::string & prefix, const dfloat time, const int & step);
 
 /**
  * Indicate whether NekRS was run in build-only mode (this doesn't actually

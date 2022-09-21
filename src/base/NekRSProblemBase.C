@@ -279,7 +279,7 @@ NekRSProblemBase::~NekRSProblemBase()
 {
   // write nekRS solution to output if not already written for this step
   if (!_is_output_step)
-    writeFieldFile(_time);
+    writeFieldFile(_time, _t_step);
 
   freePointer(_external_data);
   freePointer(_interpolation_outgoing);
@@ -289,7 +289,7 @@ NekRSProblemBase::~NekRSProblemBase()
 }
 
 void
-NekRSProblemBase::writeFieldFile(const Real & step_end_time) const
+NekRSProblemBase::writeFieldFile(const Real & step_end_time, const int & step) const
 {
   if (_disable_fld_file_output)
     return;
@@ -297,9 +297,9 @@ NekRSProblemBase::writeFieldFile(const Real & step_end_time) const
   Real t = _timestepper->nondimensionalDT(step_end_time);
 
   if (_write_fld_files)
-    nekrs::write_field_file(_prefix, t);
+    nekrs::write_field_file(_prefix, t, step);
   else
-    nekrs::outfld(t);
+    nekrs::outfld(t, step);
 }
 
 void
@@ -493,7 +493,7 @@ NekRSProblemBase::externalSolve()
 
   if (_is_output_step)
   {
-    writeFieldFile(step_end_time);
+    writeFieldFile(step_end_time, _t_step);
 
     // TODO: I could not figure out why this can't be called from the destructor, to
     // add another field file on Cardinal's last time step. Revisit in the future.
@@ -506,7 +506,7 @@ NekRSProblemBase::externalSolve()
         bool write_coords = first_fld[i] ? true : false;
 
         nekrs::write_usrwrk_field_file((*_usrwrk_output)[i], (*_usrwrk_output_prefix)[i],
-          _timestepper->nondimensionalDT(step_end_time), write_coords);
+          _timestepper->nondimensionalDT(step_end_time), _t_step, write_coords);
 
         first_fld[i] = false;
       }

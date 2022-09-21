@@ -44,8 +44,9 @@ public:
   /**
    * Write NekRS solution field file
    * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be non-dimensional)
+   * @param[in] step time step index
    */
-  void writeFieldFile(const Real & time) const;
+  void writeFieldFile(const Real & time, const int & step) const;
 
   /**
    * Optional entry point called in externalSolve() where we can adjust
