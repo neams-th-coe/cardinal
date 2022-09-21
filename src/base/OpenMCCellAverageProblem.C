@@ -298,12 +298,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
   _tally_name = getParam<std::string>("tally_name");
-
-  score::TallyScoreEnum score;
-  if (isParamValid("tally_score"))
-    score = getParam<MooseEnum>("tally_score").getEnum<score::TallyScoreEnum>();
-  else
-    score = score::kappa_fission;
+  score::TallyScoreEnum score = getParam<MooseEnum>("tally_score").getEnum<score::TallyScoreEnum>();
 
   switch (score)
   {
@@ -325,6 +320,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     case score::damage_energy:
       _tally_score = "damage-energy";
       break;
+    case score::flux:
+    {
+      _tally_score = "flux";
+
+      if (_run_mode != openmc::RunMode::FIXED_SOURCE)
+        mooseError("The 'flux' tally score is only available when running OpenMC in fixed source mode!\n"
+          "Flux renormalization for eigenvalue runs has not been implemented yet.");
+
+      break;
+    }
     default:
       mooseError("Unhandled TallyScoreEnum in OpenMCCellAverageProblem!");
   }
@@ -2162,7 +2167,7 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 {
   if (_check_zero_tallies && power_fraction < 1e-12)
     mooseError(
-        "Heat source computed for " + descriptor + " is zero!\n\n" +
+        _tally_score + " computed for " + descriptor + " is zero!\n\n" +
         "This may occur if there is no fissile material in this region, if you have very few "
         "particles, "
         "or if you have a geometry "
@@ -2172,10 +2177,23 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 Real
 OpenMCCellAverageProblem::tallyMultiplier() const
 {
-  if (_run_mode == openmc::RunMode::EIGENVALUE)
-    return *_power;
+  Real m;
+
+  if (_tally_score == "flux")
+  {
+    // Flux tally has units of particle - cm / source particle; we also only get here for fixed source
+    m = *_source_strength * _local_mean_tally / _scaling;
+  }
   else
-    return *_source_strength * EV_TO_JOULE * _local_mean_tally;
+  {
+    // All other tally score options have units of eV / source particle
+    if (_run_mode == openmc::RunMode::EIGENVALUE)
+      m = *_power;
+    else
+      m = *_source_strength * EV_TO_JOULE * _local_mean_tally;
+  }
+
+  return m;
 }
 
 Real
@@ -2581,7 +2599,7 @@ OpenMCCellAverageProblem::checkTallySum() const
       openmc::FP_REL_PRECISION)
   {
     std::stringstream msg;
-    msg << "Heating tallies do not match the global " << _tally_score << " tally:\n"
+    msg << _tally_score << " tallies do not match the global " << _tally_score << " tally:\n"
         << " Global value: " << Moose::stringify(_global_sum_tally)
         << "\n Tally sum: " << Moose::stringify(_local_sum_tally)
         << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
