@@ -24,7 +24,6 @@
 #include "NekVolumeCoupling.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
-#include "io.hpp"
 #include "udf.hpp"
 #include "meshSetup.hpp"
 #include "libmesh/point.h"
@@ -115,6 +114,12 @@ bool hasCHT();
  * @return whether nekRS's input file indicates a moving mesh
  */
 bool hasMovingMesh();
+
+/**
+ * Whether nekRS's input file indicates a variable time stepping scheme
+ * @return whether nekRS's input file indicates a variable time stepping
+ */
+bool hasVariableDt();
 
 /**
  * Whether nekRS's input file intends to terminate the simulation based on a wall time

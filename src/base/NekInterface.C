@@ -119,6 +119,12 @@ hasMovingMesh()
 }
 
 bool
+hasVariableDt()
+{
+  return platform->options.compareArgs("VARIABLE DT", "TRUE");
+}
+
+bool
 endControlElapsedTime()
 {
   return !platform->options.getArgs("STOP AT ELAPSED TIME").empty();
