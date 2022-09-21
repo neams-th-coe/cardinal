@@ -99,8 +99,6 @@ NekInitAction::act()
         mooseError("Failed to find '", casepath.c_str(), "'! Did you set the 'casename' correctly?");
     }
 
-    std::string cache_dir;
-
     // we need to set the default values here because it seems that the default values
     // that can be set via addCommandLineParam in CardinalApp aren't propagated through the 'search'
     // function
@@ -140,14 +138,15 @@ NekInitAction::act()
                  std::to_string(_n_cases + 1) + "+ cases.");
     }
 
-    nekrs::setup(comm,
+    nekrs::setup(comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
+                 comm /* local communicator */,
                  build_only,
                  size_target,
                  ci_mode,
-                 cache_dir,
                  casename,
                  backend,
-                 device_id);
+                 device_id,
+                 0 /* debug mode */);
 
     _n_cases++;
   }
