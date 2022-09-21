@@ -326,7 +326,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
       if (_run_mode != openmc::RunMode::FIXED_SOURCE)
         mooseError("The 'flux' tally score is only available when running OpenMC in fixed source mode!\n"
-          "We have just not implemented the renormalization for eigenvalue runs yet.");
+          "Flux renormalization for eigenvalue runs has not been implemented yet.");
 
       break;
     }
