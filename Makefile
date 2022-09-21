@@ -113,26 +113,32 @@ NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
 NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 NEKRS_INCLUDES := \
 	-I$(NEKRS_DIR)/src \
+	-I$(NEKRS_DIR)/src/bdry \
+	-I$(NEKRS_DIR)/src/bench/advsub \
+	-I$(NEKRS_DIR)/src/bench/axHelm \
+	-I$(NEKRS_DIR)/src/bench/core \
+	-I$(NEKRS_DIR)/src/bench/fdm \
 	-I$(NEKRS_DIR)/src/cds \
 	-I$(NEKRS_DIR)/src/core \
-	-I$(NEKRS_DIR)/src/core/utils \
 	-I$(NEKRS_DIR)/src/elliptic \
-	-I$(NEKRS_DIR)/src/elliptic/linearSolver \
 	-I$(NEKRS_DIR)/src/elliptic/amgSolver \
 	-I$(NEKRS_DIR)/src/elliptic/amgSolver/amgx \
 	-I$(NEKRS_DIR)/src/elliptic/amgSolver/hypre \
 	-I$(NEKRS_DIR)/src/elliptic/amgSolver/parAlmond \
-	-I$(NEKRS_DIR)/src/elliptic/amgSolver/parAlmond/agmgSetup \
+	-I$(NEKRS_DIR)/src/elliptic/linearSolver \
 	-I$(NEKRS_DIR)/src/io \
 	-I$(NEKRS_DIR)/src/lib \
 	-I$(NEKRS_DIR)/src/linAlg \
-	-I$(NEKRS_DIR)/src/lns \
 	-I$(NEKRS_DIR)/src/mesh \
+	-I$(NEKRS_DIR)/src/navierStokes \
 	-I$(NEKRS_DIR)/src/nekInterface \
 	-I$(NEKRS_DIR)/src/plugins \
+	-I$(NEKRS_DIR)/src/postProcessing \
 	-I$(NEKRS_DIR)/src/regularization \
+	-I$(NEKRS_DIR)/src/setup \
 	-I$(NEKRS_DIR)/src/timeStepper \
 	-I$(NEKRS_DIR)/src/udf \
+	-I$(NEKRS_DIR)/src/utils \
 	-I$(NEKRS_INSTALL_DIR)/gatherScatter \
 	-I$(NEKRS_INSTALL_DIR)/include \
 	-I$(NEKRS_INSTALL_DIR)/libparanumal/include \
