@@ -7,7 +7,7 @@
   numSteps = 5
   dt = 5.0e-4
   polynomialOrder = 5
-  writeControl = runSteps
+  writeControl = steps
   writeInterval = 2
 
 [VELOCITY]

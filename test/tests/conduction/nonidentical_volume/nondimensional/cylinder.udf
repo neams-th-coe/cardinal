@@ -2,9 +2,9 @@
 
 static occa::kernel mooseHeatSourceKernel;
 
-void UDF_LoadKernels(nrs_t *nrs)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
-  mooseHeatSourceKernel = udfBuildKernel(nrs, "mooseHeatSource");
+  mooseHeatSourceKernel = oudfBuildKernel(kernelInfo, "mooseHeatSource");
 }
 
 void userq(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
