@@ -5,7 +5,7 @@
   stopAt = numSteps
   numSteps = 7
   dt = 5.0e-4
-  polynomialOrder = 1
+  polynomialOrder = 2
   writeControl = steps
   writeInterval = 2
 
