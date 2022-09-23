@@ -58,8 +58,8 @@ for [Tutorial 6C](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
 we would run:
 
 ```
-$ cd tutorials/gas_compact
-$ python ../../scripts/inactive_study.py -i unit_cell -input openmc.i
+cd tutorials/gas_compact
+python ../../scripts/inactive_study.py -i unit_cell -input openmc.i
 ```
 
 since the Python script used to generate the OpenMC model is named
@@ -172,8 +172,8 @@ for [Tutorial 6C](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
 we would run:
 
 ```
-$ cd tutorials/gas_compact
-$ python ../../scripts/layers_study.py -i unit_cell -input openmc.i
+cd tutorials/gas_compact
+python ../../scripts/layers_study.py -i unit_cell -input openmc.i
 ```
 
 since the Python script used to generate the OpenMC model is named

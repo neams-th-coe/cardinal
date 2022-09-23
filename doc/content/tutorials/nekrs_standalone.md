@@ -31,7 +31,7 @@ To use these scripts to run standalone NekRS cases,
 we recommend adding this location to your path:
 
 ```
-$ export PATH=$NEKRS_HOME/bin:$PATH
+export PATH=$NEKRS_HOME/bin:$PATH
 ```
 
 Then, you can run any standalone NekRS case simply by having built Cardinal -
@@ -39,8 +39,8 @@ no need to separately build and compile NekRS. For instance, try running the
 `ethier` example that ships with NekRS:
 
 ```
-$ cd contrib/nekRS/examples/ethier
-$ nrsmpi ethier 4
+cd contrib/nekRS/examples/ethier
+nrsmpi ethier 4
 ```
 
 ## Thinly-Wrapped Simulations
@@ -117,7 +117,7 @@ projected onto the [NekRSMesh](/mesh/NekRSMesh.md) to the specified format.
 This input file is run with:
 
 ```
-$ mpiexec -np 8 cardinal-opt -i nek.i
+mpiexec -np 8 cardinal-opt -i nek.i
 ```
 
 which will run with 8 [!ac](MPI) ranks.

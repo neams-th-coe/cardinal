@@ -39,7 +39,7 @@ and [NekTimeStepper](/timesteppers/NekTimeStepper.md) to run the NekRS CFD
 calculation through the Cardinal wrapper. You can run this example with
 
 ```
-$ mpiexec -np 4 cardinal-opt -i nek.i
+mpiexec -np 4 cardinal-opt -i nek.i
 ```
 
 which will create an output file named `nek_out.e`, which contains the time
@@ -243,7 +243,7 @@ no physics solve occurs in this sub-application.
 This input can be run with
 
 ```
-$ mpiexec -np 8 cardinal-opt -i nek.i
+mpiexec -np 8 cardinal-opt -i nek.i
 ```
 
 which will run with 8 [!ac](MPI) ranks. Because we don't specify any output

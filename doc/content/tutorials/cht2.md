@@ -149,7 +149,7 @@ on which the results are displayed), or simply by running the solid input file i
 mesh generation mode:
 
 !listing
-$ cardinal-opt -i solid.i --mesh-only
+cardinal-opt -i solid.i --mesh-only
 
 The boundary names are illustrated towards
 the right by showing only the highlighted surface to which each boundary corresponds. Names
@@ -432,7 +432,7 @@ parameters in a single place and use them multiple places (these functions are
 To run the pseudo-steady model, run the following from a command line:
 
 ```
-$ mpiexec -np 12 cardinal-opt -i solid.i
+mpiexec -np 12 cardinal-opt -i solid.i
 ```
 
 By using the `synchronization_interval = parent_app` feature, you will see in the screen output

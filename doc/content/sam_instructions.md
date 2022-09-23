@@ -11,7 +11,7 @@ use the SAM submodule in Cardinal and directly run SAM input files using the
 Cardinal executable. To get the SAM submodule, run:
 
 ```
-$ git submodule update --init contrib/SAM
+git submodule update --init contrib/SAM
 ```
 
 You will then be prompted to enter credentials to access ANL's gitlab site.

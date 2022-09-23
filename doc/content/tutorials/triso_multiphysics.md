@@ -162,7 +162,7 @@ same initial conditions as for the "single-stack" case.
 To create the XML files required to run OpenMC, run the script:
 
 ```
-$ python unit_cell.py
+python unit_cell.py
 ```
 
 You can also use the XML files checked in to the `tutorials/gas_compact_multiphysics` directory.

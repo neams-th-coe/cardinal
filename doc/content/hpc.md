@@ -157,8 +157,8 @@ you use Nek5k:
 - The first time you log in, run from the command line:
 
 ```
-$ module load openmpi/4.0.1/gcc/8.3.1 cmake openmpi/4.0.1/gcc/8.3.1-hdf5-1.10.6 anaconda3/anaconda3
-$ conda init
+module load openmpi/4.0.1/gcc/8.3.1 cmake openmpi/4.0.1/gcc/8.3.1-hdf5-1.10.6 anaconda3/anaconda3
+conda init
 ```
 
 - Log out, then log back in

@@ -7,7 +7,7 @@ which has data for temperatures between 250 K and 2500 K.
 You can get this cross section data set by running
 
 ```
-$ ./scripts/download-openmc-cross-sections.sh
+./scripts/download-openmc-cross-sections.sh
 ```
 
 This script will place cross section data into a directory

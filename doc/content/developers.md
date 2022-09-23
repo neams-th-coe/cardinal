@@ -66,7 +66,7 @@ Next, generate the static HTML by running the following
 from within the `doc` directory:
 
 ```
-$ ./moosedocs.py build
+./moosedocs.py build
 ```
 
 This should print to the screen a summary of the steps taken when compiling
@@ -90,7 +90,7 @@ this directory, and then copy all content to the `cardinal` public HTML director
 in the [!ac](GCE) computing environment.
 
 ```
-$ scp -r * <user>@homes.cels.anl.gov:/nfs/pub_html/gce/projects/cardinal
+scp -r * <user>@homes.cels.anl.gov:/nfs/pub_html/gce/projects/cardinal
 ```
 
 

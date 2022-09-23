@@ -402,7 +402,7 @@ the `exo2nek` program are available [here](https://nekrsdoc.readthedocs.io/en/la
 After this script has been compiled, you simply need to run
 
 ```
-$ exo2nek
+exo2nek
 ```
 
 and then follow the prompts for the information that must be added about the mesh
@@ -791,7 +791,7 @@ To run the pseudo-steady conduction model, run the following from a command line
 through a job submission script on a [!ac](HPC) system.
 
 ```
-$ mpiexec -np 48 cardinal-opt -i solid.i
+mpiexec -np 48 cardinal-opt -i solid.i
 ```
 
 where `mpiexec` is an [!ac](MPI) compiler wrapper, `-np 48` indicates that the input
