@@ -20,14 +20,12 @@
 # To control where OpenMC grabs HDF5 from; you don't need to set any of these unless
 # you don't want to use the HDF5 that comes with PETSc
 
-# * HDF5_ROOT         : Top-level HDF5 directory (default: $(HYPRE_DIR), meaning that
+# * HDF5_ROOT         : Top-level HDF5 directory (default: $(PETSC_DIR)/$(PETSC_ARCH), meaning that
 #                       the default is to use HDF5 downloaded by PETSc). This makefile
 #                       will then get the header files from $(HDF5_ROOT)/include and the
 #                       libraries from $(HDF5_ROOT)/lib.
 # * HDF5_INCLUDE_DIR  : Top-level HDF5 header dir (default: $(HDF5_ROOT)/include)
 # * HDF5_LIBDIR       : Top-level HDF5 lib dir (default: $(HDF5_ROOT)/lib)
-# * HYPRE_DIR         : Top-level HYPRE dir (default: $(PETSC_DIR)/$(PETSC_ARCH)); only
-#                       used for getting the place where PETSc puts its HDF5 download
 # * PETSC_DIR         : Top-level PETSc dir (default: $(MOOSE_SUBMODULE)/petsc)
 # * PETSC_ARCH        : PETSc architecture (default: arch-moose)
 # ======================================================================================
@@ -46,7 +44,6 @@ OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
 PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
-HYPRE_DIR           ?= $(PETSC_DIR)/$(PETSC_ARCH)
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 SAM_DIR             ?= $(CONTRIB_DIR)/SAM
 SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
@@ -55,9 +52,9 @@ POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 
 # If HDF5_ROOT is set, use those settings to link HDF5 to OpenMC.
-# Otherwise, use HYPRE_DIR, which is where PETSc will put HDF5 if downloading it.
+# Otherwise, use where PETSc will put HDF5 if downloading it.
 ifeq ($(HDF5_ROOT),)
-  HDF5_ROOT          := $(HYPRE_DIR)
+  HDF5_ROOT          := $(PETSC_DIR)/$(PETSC_ARCH)
   export HDF5_ROOT
 endif
 
