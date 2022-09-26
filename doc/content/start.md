@@ -7,11 +7,31 @@ Slack channels on the MOOSE Developers Slack workspace
 (`nekrsdev-team.slack.com`). Feel free to reach out to a developer to be
 added to these channels.
 
+!alert! note title=tldr
+
+On *CPU systems*, all that you need to compile Cardinal is:
+
+```
+cd $HOME
+git clone https://github.com/neams-th-coe/cardinal.git
+cd cardinal
+./scripts/get-dependencies.sh
+./contrib/moose/scripts/update_and_rebuild_petsc.sh
+./contrib/moose/scripts/updatea_and_rebuild_libmesh.sh
+export NEKRS_HOME=$HOME/cardinal/install
+make -j8
+```
+
+If the above produces a `cardinal-opt` Cardinal executable, you can
+jump straight to [#running]. If you are on a GPU system, want to customize the
+build, or were not successful with the above, please consult the detailed instructions
+that follow.
+!alert-end!
+
 ## Access
 
 To get access to Cardinal, simply clone the repository and
-`cd` into the repository (all further instructions on this page assume you
-are located in the root directory of the Cardinal repository).
+`cd` into the repository.
 
 ```
 git clone https://github.com/neams-th-coe/cardinal.git
@@ -20,11 +40,25 @@ cd cardinal
 
 ## Prerequisites
 
-Before building, first decide whether you want *both* NekRS and OpenMC, just one,
-or neither. You can build Cardinal with only the dependencies that you want (which reduces
-the software stack prerequisites). If you want to build with both NekRS and OpenMC,
-skip to [#build] - both dependencies are enabled by default.
+The basic prerequisites for building Cardinal are summarized in [prereq_table].
 
+!alert! tip title=How do I know if I have these dependencies?
+Most systems will already have these available.
+To figure out if you have these dependencies, check out
+[our prerequisite guide](prereqs.md).
+!alert-end!
+
+!table id=prereq_table caption=Summary of prerequisites needed for Cardinal.
+|    | Building with NekRS | Building with OpenMC | Both |
+| :- | :- | :- | :- |
+| CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+| GNU fortran compilers | $\checkmark$ | &nbsp; | $\checkmark$  |
+| HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
+| MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+
+Then, decide whether you want *both* NekRS and OpenMC, just one,
+or neither. Both are enabled by default, but you can
+build Cardinal with only the dependencies that you want.
 If you do *not*
 want to build the NekRS-part of Cardinal, set the following environment variable:
 
@@ -39,34 +73,8 @@ set the following environment variable:
 export ENABLE_OPENMC=false
 ```
 
-You can also edit both of these variables in Cardinal's `Makefile`. Then, the prerequisites
-for building Cardinal are summarized in [prereq_table].
-
-!table id=prereq_table caption=Summary of prerequisites needed for Cardinal.
-|    | Building with NekRS | Building with OpenMC | Both |
-| :- | :- | :- | :- |
-| CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
-| GNU compilers | $\checkmark$ | &nbsp; | $\checkmark$  |
-| HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
-| MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
-
-!alert note
-If you use [MOOSE's conda environment](https://mooseframework.inl.gov/getting_started/installation/conda.html)
- on Linux, all of these requirements will automatically
-be available to you. If you are on MacOS, MOOSE's conda environment only contains the
-clang compiler, so you will separately need to obtain the GNU compilers.
-
 ## Building
   id=build
-
-This section describes how to build Cardinal. Please follow each task in the order it is
-presented:
-
-1. [#fetch]
-2. [#env]
-3. [#occa]
-4. [#petsc_libmesh]
-5. [#compiling]
 
 #### Fetch Dependencies
   id=fetch
@@ -79,7 +87,6 @@ automatically. To fetch the MOOSE, OpenMC, and NekRS dependencies, run:
 ./scripts/get-dependencies.sh
 ```
 
-
 !alert! note title=Optional dependencies
 
 Cardinal supports *optional* coupling to the following codes:
@@ -91,40 +98,20 @@ Cardinal supports *optional* coupling to the following codes:
   Sockeye submodule.
 !alert-end!
 
-!alert! note title=Running with OpenMC?
-
-- Follow [these instructions](cross_sections.md) to obtain cross section data for use in OpenMC.
-- You may also *optionally* use OpenMC's Python [!ac](API) to build OpenMC models. To use
-  this [!ac](API), follow
-  [these instructions](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api).
-
-!alert-end!
-
-!alert! note title=Running with NekRS?
-
-Follow [these instructions](nek_tools.md) to obtain binary executables to use for common NekRS-related operations, such as:
-
-- Converting between an Exodus mesh and NekRS's custom `.re2` mesh format
-- Generating metadata files for visualizing NekRS's custom field fiel output in Paraview
-
-!alert-end!
-
 #### Set Environment Variables
   id=env
 
 A number of environment variables are required or recommended when building/running Cardinal.
-We recommend putting these in your `~/.bashrc`:
+Put these in your `~/.bashrc`:
 
 ``` language=bash
 # [REQUIRED] you must set the location of the root directory of the NekRS install;
 # this will be the 'install' directory at the top level of the Cardinal repository.
-# Be sure to adjust this to wherever you have cloned the Cardinal repository
 export NEKRS_HOME=$HOME/cardinal/install
 
-# [REQUIRED IF USING MOOSE CONDA ENV] you must set the location of the HYPRE
-# libraries (so that a libHYPRE.so or something similar is located at
-# HYPRE_DIR/lib). This is needed because NekRS uses the same HYPRE built with MOOSE
-export HYPRE_DIR=$CONDA_PREFIX
+# [REQUIRED IF USING MOOSE CONDA ENV for HDF5] you must set the location of the
+# root HDF5 directory provided by MOOSE for OpenMC to find
+export HDF5_ROOT=$CONDA_PREFIX
 
 # [OPTIONAL] it's a good idea to explicitly note that you are using MPI compiler wrappers
 export CC=mpicc
@@ -133,88 +120,61 @@ export FC=mpif90
 
 # [OPTIONAL] if running with OpenMC, you will need cross section data at runtime;
 # you will need to set this variable to point to a 'cross_sections.xml' file.
-# Be sure to adjust this to wherever you have cross section data.
 export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
 ```
 
-Additional *optional* environment variables that you may need/want to set when building
-Cardinal:
-
-- `HDF5_ROOT`: top-level directory containing HDF5 (this directory should contain
-   an `include` and a `lib` directory). If not set, this will default to the HDF5 downloaded
-   by PETSc and placed into `$PETSC_DIR/$PETSC_ARCH`.
-- `METHODS`: optimization method(s) to use for building Cardinal's libMesh dependency.
-   Multiple libMesh libraries with different settings will be built if specifying more than one method, such as wth
-  `METHODS='opt dbg'`. Options are:
-
-  - `opt`: optimized mode, for production runs
-  - `oprof`: very slightly slower, instrumented for performance analysis with tools
-     like "oprofile" or "perf"
-  - `dbg`: debugging mode, much slower, with debugging symbols, optimization disabled, slow
-     internal assertions enabled, and very slow libstdc++ range-checking and consistency
-     checks enabled
-
-- `METHOD`: optimization method to use when building Cardinal. MOOSE currently only supports
-  building one Cardinal executable at a time, such as via
-  `METHOD='opt'`. If you want to build multiple Cardinal executables with
-  different optimization methods, you will need to run `make` multiple times with different
-  `METHOD` values.
+!alert! tip title=Additional environment variables
+For even further control of the build, you may want to set other
+[optional environment variables](env_vars.md) to specify the optimization level,
+dependency locations, and more.
+!alert-end!
 
 #### Set the OCCA Backend
   id=occa
 
 NekRS uses [OCCA](https://libocca.org/#/) to provide an API for device programming. Available
-backends in NekRS include CPU (i.e. [!ac](MPI) parallelism), CUDA, HIP, OpenCL, and OpenMP.
-There are several different ways that you can set the backend. We recommend setting the
-`NEKRS_OCCA_MODE_DEFAULT` environment variable to one of `CPU`, `CUDA`, `HIP`, `OPENCL`, or
-`OPENMP`. This will set the backend for all NekRS runs within Cardinal.
+backends include CPU (i.e. [!ac](MPI) parallelism), CUDA, HIP, OpenCL, and OpenMP.
+There are several different ways that you can set the backend; in order of *decreasing* priority,
 
-```
-export NEKRS_OCCA_MODE_DEFAULT=CPU
-```
+- Pass via the command line, like
 
-Alternatively, if you only want to control the backend
-for a particular case, you can explicitly set the backend in the NekRS input files
-in the `[OCCA]` block in the `.par` file:
+  ```
+  cardinal-opt -i nek.i --nekrs-backend=CPU
+  ```
+- Set in the `[OCCA]` block of the NekRS `.par` file to control the backend for a specific model, like
 
-```
-[OCCA]
-  backend = CPU
-```
+  ```
+  [OCCA]
+    backend = CPU
+  ```
+- Set the `NEKRS_OCCA_MODE_DEFAULT` environment variable to one of `CPU`, `CUDA`, `HIP`, `OPENCL`, or
+  `OPENMP` to control the backend for all models, like
 
-which will override environment settings.
-If you plan to use a GPU  backend, you will also need to
+  ```
+  export NEKRS_OCCA_MODE_DEFAULT=CPU
+  ```
+
+!alert! note title=Compiling for GPU?
+If you plan to use a GPU backend, you will also need to
 set the correct threading API in the `Makefile` by setting
-the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables,
+the values of the `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED` variables to 1,
 respectively.
+!alert-end!
 
 #### Build PETSc and libMesh
   id=petsc_libmesh
 
-!alert note
 If you are using the PETSc and libMesh that ship with MOOSE's conda environment,
-set `PETSC_DIR` and `PETSC_ARCH` to the PETSc install directory and architecture name
-and `LIBMESH_DIR` to the libMesh install directory.
-Then, skip directly to [#compiling].
-
-If not using MOOSE's conda environment, you must now build PETSc and libMesh.
-To build PETSc and libMesh, run:
+skip directly to [#compiling]. Otherwise,
+you must now build PETSc and libMesh:
 
 ```
 ./contrib/moose/scripts/update_and_rebuild_petsc.sh
 ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 ```
 
-After building PETSc, if you want to test the installation you will need to `cd`
-into the PETSc directory before running the on-screen directions that print
-when PETSc finishes, i.e. like:
-
-```
-cd contrib/moose/petsc
-make PETSC_DIR=$HOME/cardinal/contrib/moose/scripts/../petsc PETSC_ARCH=arch-moose check
-```
-
-!alert tip
+If you want to check the PETSc install, you can
+[run the PETSc tests](petsc.md).
 If you run into problems while building PETSc or libMesh, the issue is almost always
 at the MOOSE level, and not specific to Cardinal. We recommend posting your problem directly
 to the [MOOSE discussions page](https://github.com/idaholab/moose/discussions) or to
@@ -258,6 +218,7 @@ rm -rf cardinal/install cardinal/build
 !alert-end!
 
 ## Running
+  id=running
 
 The command to run Cardinal with `<n>` MPI ranks and `<s>` OpenMP threads is:
 
@@ -270,8 +231,36 @@ you need to provide the full path to `cardinal-opt` in the above command.
 Note that while MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,
 NekRS does not use shared memory parallelism.
 
-Finally, for the special case of running SAM as the main application, you also need to pass
-`--app SamApp` on the command line to instruct Cardinal to build a `SamApp`.
+!alert! tip title=Command line options
+Cardinal supports all of MOOSE's command line parameters, as well as a few Cardinal-specific
+command line options. For a full list:
+
+```
+cardinal-opt --help
+```
+!alert-end!
+
+!alert! note title=Running with OpenMC?
+
+If you are using OpenMC, you may require a few other dependencies either at runtime or when
+setting up models.
+
+- Follow [these instructions](cross_sections.md) to obtain cross section data.
+- You may also *optionally* use OpenMC's Python [!ac](API) to build models. To use
+  this [!ac](API), follow
+  [these instructions](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api).
+
+!alert-end!
+
+!alert! note title=Running with NekRS?
+
+If you are using NekRS, you will require a few other dependencies when setting up models.
+Follow [these instructions](nek_tools.md) to obtain binary executables to use for common NekRS-related operations, such as:
+
+- Converting between an Exodus mesh and NekRS's custom `.re2` mesh format
+- Generating metadata files for visualizing NekRS's custom field fiel output in Paraview
+
+!alert-end!
 
 ## Checking the Install
 

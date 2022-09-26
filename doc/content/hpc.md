@@ -31,7 +31,7 @@ for more information.
 is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
 partition with 36 cores/node and a Intel Knights Landing partition with
 64 cores/node. Below are a bash script and sample job scripts to build
-Cardinal and run the NekRS and OpenMC wrappings (*last updated 05/2022*).
+Cardinal and run the NekRS and OpenMC wrappings (*last updated 09/2022*).
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
 module purge
@@ -122,29 +122,6 @@ export NEKRS_HOME=$HOME/cardinal/install
 # Revise for your input file and executable locations
 cd $HOME/cardinal/test/tests/cht/sfr_pincell
 mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
-!listing-end!
-
-## KOOKIE Cluster
-
-The KOOKIE cluster at [!ac](ANL) (also called the VTR cluster) has 12
-nodes with a variety of different CPUs and GPUs for each node.
-Below is
-a bash script to build Cardinal (*last updated 5/16/2022*)
-
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=k1
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-export F77=mpif77
-export F90=mpif90
-
-module purge
-module load advanced_modules
-module load mpich-gcc
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
 !listing-end!
 
 ## Nek5k
