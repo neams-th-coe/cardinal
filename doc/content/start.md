@@ -35,12 +35,6 @@ cd cardinal
 
 The basic prerequisites for building Cardinal are summarized in [prereq_table].
 
-!alert! tip title=How do I know if I have these dependencies?
-Most systems will already have these available.
-To figure out if you have these dependencies, check out
-[our prerequisite guide](prereqs.md).
-!alert-end!
-
 !table id=prereq_table caption=Summary of prerequisites needed for Cardinal.
 |    | Building with NekRS | Building with OpenMC | Both |
 | :- | :- | :- | :- |
@@ -48,6 +42,12 @@ To figure out if you have these dependencies, check out
 | GNU fortran compilers | $\checkmark$ | &nbsp; | $\checkmark$  |
 | HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
 | MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+
+!alert! tip title=How do I know if I have these dependencies?
+Most systems will already have these available.
+To figure out if you have these dependencies, check out
+[our prerequisite guide](prereqs.md).
+!alert-end!
 
 Then, decide whether you want *both* NekRS and OpenMC, just one,
 or neither. Both are enabled by default, but you can
@@ -117,7 +117,7 @@ export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.
 ```
 
 !alert! tip title=Additional environment variables
-For even further control of the build, you may want to set other
+For even further control, you can set other
 [optional environment variables](env_vars.md) to specify the optimization level,
 dependency locations, and more.
 !alert-end!
@@ -175,9 +175,7 @@ if the libMesh hash used by MOOSE has been updated or this is the first time you
 are building Cardinal.
 On systems with multiple processors, you can set the environment
 variables `JOBS`, `LIBMESH_JOBS`, and/or `MOOSE_JOBS` to be the number
-of processes to use in a parallel `make` to build libMesh.  You can
-also save time by restricting the
-`METHOD` option.
+of processes to use in a parallel `make` to build libMesh.
 
 #### Compile Cardinal
   id=compiling
@@ -197,9 +195,9 @@ set with the `METHOD` environment variable.
 If at any point during the build process, you change your environment, then
 you may need to start the build from scratch to be sure that the same
 HDF5/compilers/etc. are used to build the entire set of dependencies. When
-you restart the build, be sure to clear the `cardinal/build` and `cardinal/install`
+you restart the build, be sure to clear the `build` and `install`
 directories so that the appropriate CMake configuration files will be recreated
-with the newest environment settings.
+with the newest environment.
 
 ```
 rm -rf cardinal/install cardinal/build
@@ -225,14 +223,11 @@ Cardinal supports all of MOOSE's command line parameters, as well as a few Cardi
 command line options. For a full list:
 
 ```
-cardinal-opt --help
+./cardinal-opt --help
 ```
 !alert-end!
 
 !alert! note title=Running with OpenMC?
-
-If you are using OpenMC, you may require a few other dependencies either at runtime or when
-setting up models.
 
 - Follow [these instructions](cross_sections.md) to obtain cross section data.
 - You may also *optionally* use OpenMC's Python [!ac](API) to build models. To use
@@ -243,7 +238,6 @@ setting up models.
 
 !alert! note title=Running with NekRS?
 
-If you are using NekRS, you will require a few other dependencies when setting up models.
 Follow [these instructions](nek_tools.md) to obtain binary executables to use for common NekRS-related operations, such as:
 
 - Converting between an Exodus mesh and NekRS's custom `.re2` mesh format

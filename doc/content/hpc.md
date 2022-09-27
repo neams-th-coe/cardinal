@@ -32,6 +32,9 @@ is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
 partition with 36 cores/node and a Intel Knights Landing partition with
 64 cores/node. Below are a bash script and sample job scripts to build
 Cardinal and run the NekRS and OpenMC wrappings (*last updated 09/2022*).
+Note that if you want to *build* Cardinal via a job script, you will also
+need to `module load numactl/2.0.12-355ef36` because make can find `libnuma-dev`
+on the login nodes, but you need to explicitly load it for compute nodes.
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
 module purge
@@ -129,7 +132,7 @@ mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
 Nek5k is a cluster at [!ac](ANL) with 40 nodes, each with 40 cores.
 We use conda to set up a proper environment on Nek5k for running Cardinal.
 To use this environment, you will need to follow these steps *the first time*
-you use Nek5k:
+you use Nek5k (*last updated 9/27/2022*):
 
 - The first time you log in, run from the command line:
 
@@ -180,39 +183,12 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
+
+# need to point to a newer CMake version
+export PATH=/shared/cmake-3.24.2/bin:$PATH
 !listing-end!
 
-Below are sample job scripts to run the NekRS and OpenMC
-wrappings (*last updated 10/20/2021*).
-
-!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node with 40 OpenMP threads id=n2
-#!/bin/bash
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=40
-#SBATCH --time=00:20:00
-#SBATCH --output=pincell.log
-#SBATCH -p compute
-
-# Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
-mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=40 > logfile
-!listing-end!
-
-!listing! language=bash caption=Sample job script to run NekRS coupled to MOOSE on one node with 40 MPI processes id=n3
-#!/bin/bash
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=40
-#SBATCH --time=00:20:00
-#SBATCH --output=sfr.log
-#SBATCH -p compute
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/cht/sfr_pincell
-mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
-!listing-end!
+!listing scripts/job_nek5k language=bash caption=Job script to run OpenMC and Nek cases on one node id=nk
 
 ## Sawtooth
 
