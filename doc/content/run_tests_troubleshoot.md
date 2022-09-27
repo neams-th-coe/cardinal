@@ -31,4 +31,4 @@ Error! Could not find 'libmesh-config' in any of the usual libmesh's locations!
 This means that you need to explicitly set `LIBMESH_DIR` to point
 to where you have `moose/libmesh`. If you're using MOOSE's conda environment, this
 means setting `LIBMESH_DIR` to `$CONDA_PREFIX/libmesh`. If not using the conda
-environment, set to `cardinal/contrib/moose/libmesh`.
+environment, set to `cardinal/contrib/moose/libmesh/installed`.

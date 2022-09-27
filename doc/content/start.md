@@ -1,12 +1,5 @@
 # Getting Started
 
-This page describes how to get started using Cardinal. For additional help,
-please [contact a developer](contact.md). We also have private Cardinal-specific
-Slack channels on the MOOSE Developers Slack workspace
-(`moosedevelopers.slack.com`) and on the NekRS Developers Slack workspace
-(`nekrsdev-team.slack.com`). Feel free to reach out to a developer to be
-added to these channels.
-
 !alert! note title=tldr
 
 On *CPU systems*, all that you need to compile Cardinal is:
@@ -173,12 +166,8 @@ you must now build PETSc and libMesh:
 ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
 ```
 
-If you want to check the PETSc install, you can
+To troubleshoot the PETSc or libMesh install, please consult our [PETSc and libMesh troubleshooting](petsc_libmesh.md) page. If you want to check the PETSc install, you can
 [run the PETSc tests](petsc.md).
-If you run into problems while building PETSc or libMesh, the issue is almost always
-at the MOOSE level, and not specific to Cardinal. We recommend posting your problem directly
-to the [MOOSE discussions page](https://github.com/idaholab/moose/discussions) or to
-the MOOSE Slack.
 
 !alert tip
 Building libMesh can be time consuming. You only need to build libMesh
@@ -274,6 +263,9 @@ cd tutorials/lwr_solid
 mpiexec -np 2 ../../cardinal-opt -i solid.i --n-threads=2
 ```
 
+If you run into any issues when running OpenMC cases, check out our
+[troubleshooting OpenMC at runtime](openmc_runtime.md) page.
+
 2. If you are using OpenMC and also want to leverage OpenMC's
    [Python API](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api)
    to make OpenMC models, try:
@@ -289,6 +281,9 @@ python make_openmc_model.py
 cd test/tests/cht/sfr_pincell
 mpiexec -np 4 ../../../../cardinal-opt -i nek_master.i
 ```
+
+If you run into any issues when running NekRS cases, check out our
+[troubleshooting NekRS at runtime](nekrs_runtime.md) page.
 
 4. If you are using NekRS and also want to leverage [NekRS's tools](nek_tools.md)
    to make meshes, view output files in Paraview, etc., try:
@@ -313,3 +308,6 @@ Depending on the availability of various dependencies, some tests may be skipped
 The first time
 you run the test suite, the runtime will be very long due to the just-in-time compilation of
 NekRS. Subsequent runs will be much faster due to the use of cached build files.
+
+If you run into issues running the test suite, please check out our
+[run_tests troubleshooting page](run_tests_troubleshoot.md).
