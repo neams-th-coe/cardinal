@@ -16,7 +16,7 @@ for your particular setup are:
 
 - `NEKRS_HOME`: should point to NekRS install location, or `cardinal/install`; this
    is only needed for inputs that run NekRS
-- `OPENMC_CROSS_SECTIONS`: should point to the location of `cross_sections.xml`; this
+- `OPENMC_CROSS_SECTIONS`: should point to a `cross_sections.xml`; this
    is only needed for inputs that run OpenMC
 
 !alert note
