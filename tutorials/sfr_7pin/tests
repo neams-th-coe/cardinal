@@ -1,0 +1,9 @@
+[Tests]
+  [solid]
+    type = RunApp
+    input = solid.i
+    min_parallel = 2
+    cli_args = 'Mesh/clad/nt=8 Mesh/fuel/nt=8 MultiApps/active="" Transfers/active="" Executioner/num_steps=1'
+    requirement = "The system shall run a solid heat conduction problem for a 7-pin bundle."
+  []
+[]
