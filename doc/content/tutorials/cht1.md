@@ -124,6 +124,21 @@ The MOOSE heat conduction module is used to solve for energy conservation in the
 
 !include heat_eqn.md
 
+A fixed heat flux of 5 kW/m$^2$ is imposed on the block surface facing the pebble bed.
+On the surface of the barrel, a heat convection boundary condition is imposed,
+
+\begin{equation}
+\label{eq:hfc}
+q^{''}=h\left(T_s-T_\infty\right)
+\end{equation}
+
+where $q^{''}$ is the heat flux, $h$ is the convective heat transfer coefficient, and $T_\infty$
+is the far-field ambient temperature.
+At fluid-solid interfaces, the solid temperature is imposed as a Dirichlet condition,
+where NekRS computes the surface temperature.
+Finally, the top and bottom of the block, as well as all symmetry boundaries, are treated
+as insulated.
+
 ### NekRS Model
 
 NekRS is used to solve the incompressible Navier-Stokes equations,
@@ -230,26 +245,6 @@ and an outlet temperature of 500 K, setting $\Delta T=100$ means that $T^\dagger
 range from 0 to 1. Setting a different value, such as $\Delta T=50$, means that
 $T^\dagger$ will instead range from 0 to 2.
 
-### Solid Boundary Conditions
-
-For the solid
-domain, a fixed heat flux of 5 kW/m$^2$ is imposed on the block surface facing the pebble bed.
-On the surface of the barrel, a heat convection boundary condition is imposed,
-
-\begin{equation}
-\label{eq:hfc}
-q^{''}=h\left(T_s-T_\infty\right)
-\end{equation}
-
-where $q^{''}$ is the heat flux, $h$ is the convective heat transfer coefficient, and $T_\infty$
-is the far-field ambient temperature.
-At fluid-solid interfaces, the solid temperature is imposed as a Dirichlet condition,
-where NekRS computes the surface temperature.
-Finally, the top and bottom of the block, as well as all symmetry boundaries, are treated
-as insulated.
-
-### Fluid Boundary Conditions
-
 At the inlet, the fluid temperature is taken as 650&deg;C, or the nominal
 median fluid temperature. The inlet velocity is set to a uniform value such that the Reynolds number is 100.
 At the outlet, a zero pressure is imposed. On the $\theta=0^\circ$ boundary (i.e. the $y=0$ boundary), symmetry is imposed
@@ -265,8 +260,6 @@ the NekRS computational model to the depiction in [#model] is imperfect.
 
 At fluid-solid interfaces, the heat flux is imposed as a Neumann condition, where MOOSE
 computes the surface heat flux.
-
-### Initial Conditions
 
 Because the NekRS mesh contains very small elements in the fluid phase, fairly small time
 steps are required to meet [!ac](CFL) conditions related to stability. Therefore,
