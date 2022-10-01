@@ -1,4 +1,4 @@
-# Tutorial 1: Running NekRS as a Standalone Application
+# Running NekRS as a Standalone Application
 
 In this tutorial, you will learn how to:
 
