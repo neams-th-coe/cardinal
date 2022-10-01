@@ -1,6 +1,6 @@
 # Conjugate Heat Transfer Coupling of NekRS and MOOSE
 
-These tutorials describe describe how to couple NekRS to MOOSE through *boundary*
+These tutorials describe how to couple NekRS to MOOSE through *boundary*
 heat transfer by exchanging boundary conditions for wall temperature and heat flux.
 This is shown schematically in [sfr_cht].
 These types of calculations are referred to as *conjugate heat transfer*.

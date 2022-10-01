@@ -76,13 +76,20 @@ We recommend quickly reading this documentation before proceeding.
 ## Tutorials for OpenMC
   id=openmc
 
-6. [Solid coupling to MOOSE heat conduction](tutorials/openmc_solid.md)
-7. [Solid and fluid coupling to MOOSE heat conduction and thermal-fluids](tutorials/openmc_fluid.md)
+!alert! tip
+These tutorials make use of the following major Cardinal classes. We recommend
+quickly reading this documentation before proceeding.
+
+- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+!alert-end!
+
+6. [Solid coupling to MOOSE](tutorials/openmc_solid.md)
+7. [Solid and fluid coupling to MOOSE](tutorials/openmc_fluid.md)
 
 ## Tutorials for Coupling NekRS and OpenMC
   id=multi
 
-8. [Multiphysics coupling of NekRS, OpenMC, and MOOSE heat conduction](tutorials/coupled.md)
+8. [Coupling of NekRS, OpenMC, and MOOSE](tutorials/coupled.md)
 
 ## Miscellaneous
 

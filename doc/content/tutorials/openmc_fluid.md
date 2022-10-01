@@ -1,28 +1,27 @@
-# Tutorial 7: Solid and Fluid Coupling of OpenMC, MOOSE, and THM
+# Solid and Fluid Coupling of OpenMC and MOOSE
 
 In this tutorial, you will learn how to:
 
 - Couple OpenMC via temperature and density to separate MOOSE applications
-  solving for the thermal physics in the solid and fluid
+  solving for the thermal physics in the solid and fluid, for an [!ac](HTGR) fuel assembly
 - Couple OpenMC to mixed-dimension feedback with 3-D heat conduction and 1-D fluid flow
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Apply homogenized temperature feedback to heterogeneous OpenMC cells
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
-
-- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
-
-We recommend quickly reading this documentation before proceeding
-with this tutorial. This tutorial also requires you to download a
+This tutorial also requires you to download a
 mesh file and an OpenMC XML file from Box. Please download the files from the
 `gas_assembly` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within the same directory structure
 in `tutorials/gas_assembly`.
+
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial. If the as-is files
+are too slow, simply decrease the resolution of the solid mesh.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module
-and the MOOSE [!ac](THM), a set of 1-D systems-level thermal-hydraulics kernels in MOOSE
+and the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+, a set of 1-D systems-level thermal-hydraulics kernels in MOOSE
 [!cite](relap7).
 OpenMC will receive temperature feedback from both
 the MOOSE heat conduction module (for the solid regions) and from [!ac](THM)
@@ -41,7 +40,6 @@ of Excellence. A paper [!cite](novak_2021c)
 describing the physics models and mesh refinement studies provides additional
 context beyond the scope of this tutorial.
 
-!alert note
 Due to the tall height of the full
 assembly (about 6 meters), the converged results shown in [!cite](novak_2021c)
 and in the figures in this tutorial require a finer mesh and more particles
@@ -257,9 +255,6 @@ A summary of the data transfers between the three applications is shown in
   id=data_transfers
   caption=Summary of data transfers between OpenMC, MOOSE, and [!ac](THM)
   style=width:80%;margin-left:auto;margin-right:auto
-
-All input files are present in the
-`tutorials/gas_assembly` directory. The following sub-sections describe these files.
 
 ### Solid Input Files
 
@@ -592,14 +587,14 @@ inconsequential in this case, but instead represents the Picard iteration. We wi
 ## Execution and Postprocessing
   id=results
 
-To run the coupled calculation, run the following:
+To run the coupled calculation,
 
 ```
-mpiexec -np 6 cardinal-opt -i common_input.i openmc.i --n-threads=12
+mpiexec -np 4 cardinal-opt -i common_input.i openmc.i --n-threads=2
 ```
 
-This will run with 6 [!ac](MPI) processes and 12 OpenMP threads (you may use other
-parallel configurations as needed). This tutorial uses quite large meshes due to the
+This will run with 4 MPI processes and 2 OpenMP threads per rank.
+This tutorial uses quite large meshes due to the
 6 meter height of the domain - if you wish to run this tutorial with fewer computational
 resources, you can reduce the height and the various mesh parameters (number of extruded
 layers and elements in the [!ac](THM) domain) and then recreate the OpenMC model and meshes.

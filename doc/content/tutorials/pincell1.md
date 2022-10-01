@@ -1,60 +1,55 @@
-# Tutorial 6A: LWR Pincell
+# LWR Pincell
 
 In this tutorial, you will learn how to:
 
-- Couple OpenMC via temperature and heat source feedback to MOOSE
+- Couple OpenMC via temperature and heat source feedback to MOOSE for an [!ac](LWR) pincell
 - Control the resolution of physics feedback received by OpenMC
 - Tally an OpenMC heat source on an unstructured mesh
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
+To access this tutorial,
 
-- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+```
+cd cardinal/tutorials/lwr_solid
+```
 
-We recommend quickly reading this documentation before proceeding
-with this tutorial.
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
 !alert-end!
 
-This tutorial describes how to use Cardinal to perform temperature and heat
-source coupling of OpenMC to MOOSE for a [!ac](LWR) pincell.
 At a high level, Cardinal's wrapping of OpenMC consists of two major stages - first, establishing
 the mapping between OpenMC's geometry and the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
 with which OpenMC communicates. This stage consists of:
 
-1. Mapping the elements in a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+1. Map the elements in a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
   to OpenMC cells by identifying the OpenMC cell that resides at each element's centroid.
   The mapping does not place any requirements on geometry alignment.
-2. Identifying which MOOSE mesh blocks are "solid" and which are "fluid." The solid blocks will then
+2. Identify which MOOSE mesh blocks are "solid" and which are "fluid." The solid blocks will then
   exchange temperature with OpenMC, while the fluid blocks will exchange both temperature and
   density with OpenMC.
-3. If using cell tallies, identifying which MOOSE blocks should be tallied - tallies are then added to all OpenMC cells that
+3. If using cell tallies, identify which MOOSE blocks should be tallied - tallies are then added to all OpenMC cells that
   correspond to those elements. If using mesh tallies, tallies are added with a unique bin
   in each mesh element.
 
 The second stage of the wrapping encompasses the actual multiphysics solve:
 
-1. Adding a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+1. Add a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
   to represent OpenMC's heat source. In other words, if OpenMC stores the fission heating tally
-  as a `std::vector<double>` (it doesn't, but assume it does for pedagogical reasons), with each entry corresponding to a tally bin,
+  as a `std::vector<double>`,
   then a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
   is created that represents the same data, but mapped to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
-2. Writing multiphysics feedback fields in/out of OpenMC's internal cell and material representations.
-  In other words, if OpenMC represents cell temperature as `std::vector<double>` (it doesn't, but assume it does for pedagogical reasons), this involves reading
+2. Write multiphysics feedback fields in/out of OpenMC's internal cell and material representations.
+  In other words, if OpenMC represents cell temperature as `std::vector<double>`, this involves reading
   from a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
   representing temperature and writing into OpenMC's internal data structures. A similar process occurs for
   density feedback.
 
 Cardinal developers have an intimate knowledge of how OpenMC stores its tally results,
-temperatures, and densities, so this entire process is automated for you! OpenMC
-can communicate with any other MOOSE application via the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-and [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
-systems in MOOSE. The same wrapping can be used for temperature, density, and heat source
-feedback with *any* MOOSE application that can compute temperature and density -
-such as Pronghorn, BISON, and even the NekRS wrapping in Cardinal.
+temperatures, and densities, so this entire process is automated for you!
+Setting up a coupled OpenMC-MOOSE simulation only requires a handful of user specifications.
 
 ## Geometry and Computational Models
 
-This section describes the geometry for the present [!ac](LWR) pincell analysis. The relevant dimensions
+This model consists of an [!ac](LWR) pincell. The relevant dimensions
 are summarized in [table1]. The geometry consists of a UO$_2$ pincell within a Zircaloy
 cladding; a helium gap separates the fuel from the cladding. Borated water
 is present outside the cladding.
@@ -68,8 +63,7 @@ is present outside the cladding.
 | Pin pitch | 1.25984 |
 | Height | 300 |
 
-Heat is produced in the pellet region and is transferred by radiation and conduction across
-the pellet-clad gap to the cladding. A total core power of 3000 MWth is assumed uniformly
+A total core power of 3000 MWth is assumed uniformly
 distributed among 273 fuel bundles, each with 17$\times$17 pins (neglecting the effect
 of guide tubes on the average pin power). The tallies from OpenMC
 will therefore be normalized according to a pin-wise power of
@@ -86,7 +80,7 @@ per bundle.
 
 !include steady_hc.md
 
-MOOSE [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
+[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
 the solid mesh. [solid_mesh] shows the solid mesh with block IDs and sidesets.
 Different block IDs are used for the hexahedral and prism elements
 in the pellet region because libMesh does not allow different element types
@@ -142,7 +136,7 @@ the temperature feedback resolution.
 
 The second consideration is slightly more subtle, but allows great flexibility for
 imposing multiphysics feedback for very heterogeneous geometries, such as
-[!ac](TRISO) pebbles. The "level" of a [!ac](CSG) cell refers to the number of
+[!ac](TRISO) fuels. The "level" of a [!ac](CSG) cell refers to the number of
 nested universes (relative to the root universe) at which you would like to impose
 feedback. If you construct your geometry without *filling* any OpenMC cells with
 other universes, then all your cells are at level zero - i.e. the highest level in
@@ -163,10 +157,14 @@ When setting up your OpenMC coupling, we *highly* recommend running Cardinal wit
 `verbose` set to `true`.
 This setting will display the mapping of OpenMC cells to
 MOOSE elements and should help provide a grasp on the "level" concept.
+We also recommend exploring the OpenMC-MOOSE mapping using
+[CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html)
+and [CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)
+auxkernels.
 
 OpenMC's Python [!ac](API)
 is used to create the pincell model with the script shown below. First, we define
-materials for the various regions and create the geometry. We add
+materials and create the geometry. We add
 40 cells to receive solid temperature feedback by dividing the entire axial
 height by 41 axial planes.
 Note that this particular choice of axial cells has *no* relationship to the solid mesh.
@@ -182,7 +180,7 @@ The OpenMC geometry as produced via plots is shown in [pincell_openmc].
 !media pincell_openmc.png
   id=pincell_openmc
   caption=OpenMC [!ac](CSG) geometry colored by cell ID shown on the $x$-$y$ and $x$-$z$ planes
-  style=width:60%;margin-left:auto;margin-right:auto
+  style=width:50%;margin-left:auto;margin-right:auto
 
 The top and bottom of the pincell are vacuum boundaries.
 The four lateral faces of the pincell are reflective.
@@ -217,8 +215,8 @@ or simply use the XML files checked in to the `tutorials/lwr_solid` directory.
   id=coupling
 
 In this section, OpenMC and MOOSE are coupled for heat source and temperature feedback
-for the solid regions of an [!ac](LWR) pincell. All input files are present in the
-`tutorials/lwr_solid` directory. The following sub-sections describe these files.
+for an [!ac](LWR) pincell.
+The following sub-sections describe these files.
 
 ### Solid Input Files
 
@@ -431,13 +429,13 @@ wrapper file explicitly. It is as if the following is included in the input file
 
 ## Execution and Postprocessing
 
-To run the coupled calculation, run the following:
+To run the coupled calculation,
 
 ```
-mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
+mpiexec -np 2 cardinal-opt -i solid.i --n-threads=2
 ```
 
-This will run both MOOSE and OpenMC with 8 [!ac](MPI) processes and 2 OpenMP threads.
+This will run both MOOSE and OpenMC with 2 MPI processes and 2 OpenMP threads per rank.
 To run the simulation faster, you can increase the parallel processes/threads, or
 simply decrease the number of particles used in OpenMC.
 When the simulation has completed, you will have created a number of different output files:
@@ -537,8 +535,8 @@ Mapping of OpenMC cells to MOOSE mesh elements:
 -----------------------------------------------------------------------------------
 ```
 
-This shows that a total of 80 OpenMC cells mapped to the MOOSE blocks (blocks 1, 2, and 3 -
-because that's what we specified for `solid_blocks`). Because the gap between the pellet
+This shows the OpenMC cells mapped to the MOOSE elements.
+Because the gap between the pellet
 and cladding is un-meshed, the helium gap in the OpenMC model does not participate in
 coupling.
 The above message also shows the
@@ -652,9 +650,11 @@ the `particles`,
 Then, to run the input using mesh tallies, use:
 
 ```
-mpiexec -np 24 cardinal-opt -i solid_um.i --n-threads=2
+mpiexec -np 2 cardinal-opt -i solid_um.i --n-threads=2
 ```
 
+To make the runtime faster, you can decrease the number of particles
+(though the heat source will have higher statistical noise).
 [mesh_hs] shows the unstructured mesh heat source computed by OpenMC; the
 clad region is shown as solid gray. You can
 see the "rim effect" common in [!ac](LWR) fuels,
