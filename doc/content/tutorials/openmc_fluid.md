@@ -378,9 +378,9 @@ change in the solution is less than $10^{-8}$.
 
 As you may notice, this [!ac](THM) input file only models a single coolant flow
 channel. We will leverage a feature in MOOSE that allows a single application to be
-repeated multiple times throughout a master application without having to
+repeated multiple times throughout a main application without having to
 merge input files or perform other transformations. We will run OpenMC as
-the master application; the syntax needed to achieve this setup is covered next.
+the main application; the syntax needed to achieve this setup is covered next.
 
 ### Neutronics Input Files
   id=n1
@@ -401,13 +401,13 @@ repeat it for the 108 coolant channels.
   end=AuxVariables
 
 Before progressing further, we first need to describe the multiapp structure
-connecting OpenMC, MOOSE heat conduction, and [!ac](THM). We set the master application
+connecting OpenMC, MOOSE heat conduction, and [!ac](THM). We set the main application
 to OpenMC, and will have both MOOSE heat conduction and [!ac](THM) as
 "sibling" sub-applications. At the time of writing, the MOOSE framework
 does not support "sibling" multiapp transfers, meaning that the data to be
 communicated between MOOSE heat conduction and [!ac](THM)
 (the heat flux and wall temperature data transfers in [data_transfers]) must go "up a level"
-to their common master application. Therefore, we will see in the OpenMC
+to their common main application. Therefore, we will see in the OpenMC
 input file information related to data transfers between MOOSE heat
 conduction and [!ac](THM). The auxiliary variables defined for the OpenMC
 model are shown below.
@@ -518,7 +518,7 @@ Carlo solution and the previous iterate. This is necessary to accelerate the fix
 point iterations and achieve convergence in a reasonable time - otherwise oscillations
 can occur in the coupled physics.
 
-We run OpenMC as the master application, so we next need to define
+We run OpenMC as the main application, so we next need to define
 [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html) to run
 the solid heat conduction model and the [!ac](THM) fluid model as the sub-applications.
 We also require a number of transfers both for 1) sending necessary coupling data between

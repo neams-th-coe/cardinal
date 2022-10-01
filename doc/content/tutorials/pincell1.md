@@ -290,7 +290,7 @@ The above sequence is repeated until desired convergence of the coupled domain i
 The [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
 and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal and MOOSE. The MOOSE
-heat conduction application is run as the master application, with
+heat conduction application is run as the main application, with
 OpenMC run as the sub-application. We specify that MOOSE will run
 first on each time step.
 
@@ -391,7 +391,7 @@ the `[Mesh]`.
 Next, we specify an executioner and output settings. Even though OpenMC technically
 performs a criticality calculation (with no time dependence), we use the transient
 executioner so that *if* we wanted to run OpenMC more times than the coupled
-master application via subcycling, we would have a way to control that.
+main application via subcycling, we would have a way to control that.
 
 !listing /tutorials/lwr_solid/openmc.i
   start=Executioner

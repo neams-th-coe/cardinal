@@ -289,11 +289,11 @@ transfer into NekRS consists of several steps:
 3. Once the heat flux has been normalized on the host, it is then copied from the host to the device (i.e. the parallel backend,
    which will be either a CPU or GPU).
 
-If NekRS is run with a much smaller time step than the master application,
+If NekRS is run with a much smaller time step than the main application,
 steps 2 and 3 can be omitted to save on the interpolation from the [NekRSMesh](/mesh/NekRSMesh.md)
 to NekRS's [!ac](GLL) points *and* on the copy from the host to the device.
 Unfortunately, MOOSE's design does not propagate any information about the
-coupling hierarchy from a master application to its sub-application(s). So, the use
+coupling hierarchy from a main application to its sub-application(s). So, the use
 of this postprocessor (plus some settings in [NekRSProblem](/problems/NekRSProblem.md), to be
 discussed shortly) can be used to only perform steps 2 and 3 *if the time stepping
 is on the synchronization points* between NekRS and MOOSE. In other words,
@@ -340,14 +340,14 @@ postprocessor named `transfer_in`, as if the following were added to the input f
 []
 
 The `transfer_in` postprocessor simply receives
-the `synchronize` postprocessor from the master application, as shown in
+the `synchronize` postprocessor from the main application, as shown in
 the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
 in the solid input file. The value of this postprocessor is then used to
 infer whether new data is available/requested from the coupled MOOSE application.
 
 We specify a number of other postprocessors in order to query the NekRS solution
 for each time step. Note that the
-`flux_integral` receiver postprocessor that the master application sends the flux
+`flux_integral` receiver postprocessor that the main application sends the flux
 integral to does not appear in the input - this postprocessor, like `temp` and
 `avg_flux` auxiliary variables, are added automatically by [NekRSProblem](/problems/NekRSProblem.md).
 
@@ -357,7 +357,7 @@ integral to does not appear in the input - this postprocessor, like `temp` and
 Finally, we specify a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
 executioner and [NekTimeStepper](/timesteppers/NekTimeStepper.md) in order for
 NekRS to choose its time step (subject to any synchronization points specified
-by the master application). We also specify an Exodus output file format.
+by the main application). We also specify an Exodus output file format.
 
 !listing tutorials/sfr_7pin/nek.i
   start=Executioner

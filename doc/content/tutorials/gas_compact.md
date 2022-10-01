@@ -305,7 +305,7 @@ with the function given by [eq:fluid].
   start=ICs
   end=Problem
 
-We run OpenMC as the master application, so we next need to define a
+We run OpenMC as the main application, so we next need to define a
 [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html) that will run
 the solid heat conduction model as the sub-application. We also require two transfers. To get the fission
 power into the solid model, we use a [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
