@@ -67,16 +67,10 @@ core_heat_flux = 5e3
     v = nek_temp
     boundary = 'fluid_solid_interface'
   []
-  [symmetry]
+  [insulated]
     type = NeumannBC
     variable = T
-    boundary = 'symmetry'
-    value = 0.0
-  []
-  [top_and_bottom]
-    type = NeumannBC
-    variable = T
-    boundary = 'top bottom'
+    boundary = 'symmetry top bottom'
     value = 0.0
   []
   [inner_surface]
@@ -125,14 +119,14 @@ core_heat_flux = 5e3
 []
 
 [Transfers]
-  [temperature]
+  [temperature_from_nek]
     type = MultiAppNearestNodeTransfer
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
     fixed_meshes = true
   []
-  [flux]
+  [flux_to_nek]
     type = MultiAppNearestNodeTransfer
     source_variable = flux
     to_multi_app = nek
@@ -140,7 +134,7 @@ core_heat_flux = 5e3
     fixed_meshes = true
     source_boundary = 'fluid_solid_interface'
   []
-  [flux_integral]
+  [flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = flux_integral
     from_postprocessor = flux_integral
