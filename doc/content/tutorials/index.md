@@ -57,6 +57,16 @@ on how to approach multiphysics coupling.
 ## Tutorials for NekRS
   id=nekrs
 
+These tutorials make use of the following major Cardinal classes:
+
+- [NekRSMesh](/mesh/NekRSMesh.md)
+- [NekTimeStepper](/timesteppers/NekTimeStepper.md)
+- [NekRSProblem](/problems/NekRSProblem.md)
+- [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md)
+
+We recommend quickly reading this documentation before proceeding
+with these tutorials.
+
 1. [Running as a standalone application](tutorials/nekrs_standalone.md)
 2. [Conjugate heat transfer coupling to MOOSE](tutorials/cht.md)
 3. [Volumetric heat source coupling to chemical species transport](tutorials/volumetric.md)
