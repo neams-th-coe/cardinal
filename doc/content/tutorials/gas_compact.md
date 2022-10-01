@@ -1,22 +1,19 @@
-# Tutorial 6C: TRISO Compacts
+# TRISO Compacts
 
 In this tutorial, you will learn how to:
 
-- Couple OpenMC via temperature and heat source feedback to MOOSE
+- Couple OpenMC via temperature and heat source feedback to MOOSE for [!ac](TRISO) fuels
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Apply homogenized temperature feedback to heterogeneous OpenMC cells
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
-
-- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
-
-We recommend quickly reading this documentation before proceeding
-with this tutorial. This tutorial also requires you to download a
+This tutorial also requires you to download a
 mesh file from Box. Please download the files from the
 `gas_compact` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within the same directory structured
 in `tutorials/gas_compact`.
+
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
 !alert-end!
 
 Cardinal contains convenient features for applying multiphysics
@@ -165,8 +162,8 @@ You can also use the XML files checked in to the `tutorials/gas_compact` directo
 ## Multiphysics Coupling
 
 In this section, OpenMC and MOOSE are coupled for heat source and temperature feedback
-for the solid regions of a [!ac](TRISO)-fueled gas reactor compact. All input files
-are present in the `tutorials/gas_compact` directory. The following sub-sections
+for the solid regions of a [!ac](TRISO)-fueled gas reactor compact.
+The following sub-sections
 describe these files.
 
 ### Solid Input Files
@@ -308,7 +305,7 @@ with the function given by [eq:fluid].
   start=ICs
   end=Problem
 
-We run OpenMC as the master application, so we next need to define a
+We run OpenMC as the main application, so we next need to define a
 [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html) that will run
 the solid heat conduction model as the sub-application. We also require two transfers. To get the fission
 power into the solid model, we use a [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
@@ -356,14 +353,13 @@ executioner. Finally, we specify Exodus and CSV output formats.
 
 ## Execution and Postprocessing
 
-To run the coupled calculation, run the following from the command line.
+To run the coupled calculation,
 
 ```
-mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=24
+mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=2
 ```
 
-This will run both MOOSE and OpenMC with 2 [!ac](MPI) processes and 24 OpenMP threads
-(you may use other parallel configurations as needed).
+This will run both MOOSE and OpenMC with 2 [!ac](MPI) processes and 2 OpenMP threads per rank.
 When the simulation has completed, you will have created a number of different output files:
 
 - `openmc_out.e`, an Exodus file with the OpenMC solution and the data that was

@@ -1,8 +1,18 @@
-# Tutorial 10: Coupling to Other MOOSE Apps
+# Coupling to Other MOOSE Apps
 
 In this tutorial, you will learn how to:
 
 - Couple Cardinal to any arbitrary MOOSE application
+
+To access this tutorial,
+
+```
+cd cardinal/tutorials/other_apps
+```
+
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
+!alert-end!
 
 For convenience purposes, Cardinal contains several other MOOSE applications
 as submodules - Sockeye and SAM, allowing you to simply build those
@@ -39,11 +49,11 @@ make -j8
 All input files for this tutorial are available in the `tutorials/other_apps`
 directory.
 
-## Running Cardinal as the Master App
+## Running Cardinal as the Main App
 
 You can couple Cardinal to an arbitrary MOOSE application and run Cardinal either
-as the master application or as a sub-application. There is a very small difference
-between the two, so we will describe both. To run Cardinal as the master application,
+as the main application or as a sub-application. There is a very small difference
+between the two, so we will describe both. To run Cardinal as the main application,
 we need to create an input file that runs Cardinal. In this file, we include a
 [TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html),
 which will run Chickadee at the end of each Cardinal time step; in this particular
@@ -65,7 +75,7 @@ that uses the `SoluteDiffusion` kernel in Chickadee.
 
 !listing /tutorials/other_apps/chickadee_sub.i
 
-To run this input file, use the Cardinal executable (since the master application
+To run this input file, use the Cardinal executable (since the main application
 is a Cardinal application):
 
 ```

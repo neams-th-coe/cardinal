@@ -1,28 +1,27 @@
-# Tutorial 7: Solid and Fluid Coupling of OpenMC, MOOSE, and THM
+# Solid and Fluid Coupling of OpenMC and MOOSE
 
 In this tutorial, you will learn how to:
 
 - Couple OpenMC via temperature and density to separate MOOSE applications
-  solving for the thermal physics in the solid and fluid
+  solving for the thermal physics in the solid and fluid, for an [!ac](HTGR) fuel assembly
 - Couple OpenMC to mixed-dimension feedback with 3-D heat conduction and 1-D fluid flow
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Apply homogenized temperature feedback to heterogeneous OpenMC cells
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
-
-- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
-
-We recommend quickly reading this documentation before proceeding
-with this tutorial. This tutorial also requires you to download a
+This tutorial also requires you to download a
 mesh file and an OpenMC XML file from Box. Please download the files from the
 `gas_assembly` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within the same directory structure
 in `tutorials/gas_assembly`.
+
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial. If the as-is files
+are too slow, simply decrease the resolution of the solid mesh.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module
-and the MOOSE [!ac](THM), a set of 1-D systems-level thermal-hydraulics kernels in MOOSE
+and the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+, a set of 1-D systems-level thermal-hydraulics kernels in MOOSE
 [!cite](relap7).
 OpenMC will receive temperature feedback from both
 the MOOSE heat conduction module (for the solid regions) and from [!ac](THM)
@@ -41,7 +40,6 @@ of Excellence. A paper [!cite](novak_2021c)
 describing the physics models and mesh refinement studies provides additional
 context beyond the scope of this tutorial.
 
-!alert note
 Due to the tall height of the full
 assembly (about 6 meters), the converged results shown in [!cite](novak_2021c)
 and in the figures in this tutorial require a finer mesh and more particles
@@ -258,9 +256,6 @@ A summary of the data transfers between the three applications is shown in
   caption=Summary of data transfers between OpenMC, MOOSE, and [!ac](THM)
   style=width:80%;margin-left:auto;margin-right:auto
 
-All input files are present in the
-`tutorials/gas_assembly` directory. The following sub-sections describe these files.
-
 ### Solid Input Files
 
 The solid phase is solved with the MOOSE heat conduction module, and is described
@@ -383,9 +378,9 @@ change in the solution is less than $10^{-8}$.
 
 As you may notice, this [!ac](THM) input file only models a single coolant flow
 channel. We will leverage a feature in MOOSE that allows a single application to be
-repeated multiple times throughout a master application without having to
+repeated multiple times throughout a main application without having to
 merge input files or perform other transformations. We will run OpenMC as
-the master application; the syntax needed to achieve this setup is covered next.
+the main application; the syntax needed to achieve this setup is covered next.
 
 ### Neutronics Input Files
   id=n1
@@ -406,13 +401,13 @@ repeat it for the 108 coolant channels.
   end=AuxVariables
 
 Before progressing further, we first need to describe the multiapp structure
-connecting OpenMC, MOOSE heat conduction, and [!ac](THM). We set the master application
+connecting OpenMC, MOOSE heat conduction, and [!ac](THM). We set the main application
 to OpenMC, and will have both MOOSE heat conduction and [!ac](THM) as
 "sibling" sub-applications. At the time of writing, the MOOSE framework
 does not support "sibling" multiapp transfers, meaning that the data to be
 communicated between MOOSE heat conduction and [!ac](THM)
 (the heat flux and wall temperature data transfers in [data_transfers]) must go "up a level"
-to their common master application. Therefore, we will see in the OpenMC
+to their common main application. Therefore, we will see in the OpenMC
 input file information related to data transfers between MOOSE heat
 conduction and [!ac](THM). The auxiliary variables defined for the OpenMC
 model are shown below.
@@ -523,7 +518,7 @@ Carlo solution and the previous iterate. This is necessary to accelerate the fix
 point iterations and achieve convergence in a reasonable time - otherwise oscillations
 can occur in the coupled physics.
 
-We run OpenMC as the master application, so we next need to define
+We run OpenMC as the main application, so we next need to define
 [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html) to run
 the solid heat conduction model and the [!ac](THM) fluid model as the sub-applications.
 We also require a number of transfers both for 1) sending necessary coupling data between
@@ -592,14 +587,14 @@ inconsequential in this case, but instead represents the Picard iteration. We wi
 ## Execution and Postprocessing
   id=results
 
-To run the coupled calculation, run the following:
+To run the coupled calculation,
 
 ```
-mpiexec -np 6 cardinal-opt -i common_input.i openmc.i --n-threads=12
+mpiexec -np 4 cardinal-opt -i common_input.i openmc.i --n-threads=2
 ```
 
-This will run with 6 [!ac](MPI) processes and 12 OpenMP threads (you may use other
-parallel configurations as needed). This tutorial uses quite large meshes due to the
+This will run with 4 MPI processes and 2 OpenMP threads per rank.
+This tutorial uses quite large meshes due to the
 6 meter height of the domain - if you wish to run this tutorial with fewer computational
 resources, you can reduce the height and the various mesh parameters (number of extruded
 layers and elements in the [!ac](THM) domain) and then recreate the OpenMC model and meshes.

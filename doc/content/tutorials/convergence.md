@@ -1,9 +1,19 @@
-# Tutorial 11: Assessing Convergence
+# Assessing Convergence
 
 In this tutorial, you will learn how to:
 
 - Use helper scripts in Cardinal to assess convergence of the OpenMC solution
   and of a general MOOSE application
+
+To access this tutorial,
+
+```
+cd cardinal/gas_compact
+```
+
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
+!alert-end!
 
 This tutorial provides a description of several helper scripts
 available in the `cardinal/scripts` directory that can be used for:

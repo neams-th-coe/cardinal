@@ -270,7 +270,7 @@ you need to provide the full path to `cardinal-opt` in the above command.
 Note that while MOOSE and OpenMC use hybrid parallelism with both MPI and OpenMP,
 NekRS does not use shared memory parallelism.
 
-Finally, for the special case of running SAM as the master application, you also need to pass
+Finally, for the special case of running SAM as the main application, you also need to pass
 `--app SamApp` on the command line to instruct Cardinal to build a `SamApp`.
 
 ## Checking the Install

@@ -1,109 +1,82 @@
-# Tutorial 2A: Conjugate Heat Transfer for Reflector Bypass Flow
+# Conjugate Heat Transfer for Reflector Bypass Flow
 
 In this tutorial, you will learn how to:
 
-- Couple NekRS with MOOSE for [!ac](CHT)
+- Couple NekRS with MOOSE for [!ac](CHT) in a pebble bed reactor reflector block
 - Solve NekRS in non-dimensional form while MOOSE solves in dimensional form
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
+To access this tutorial,
 
-- [NekRSMesh](/mesh/NekRSMesh.md)
-- [NekTimeStepper](/timesteppers/NekTimeStepper.md)
-- [NekRSProblem](/problems/NekRSProblem.md)
+```
+cd cardinal/tutorials/fhr_reflector
+```
 
-We recommend quickly reading this documentation before proceeding
-with this tutorial. This tutorial also requires you to download
+This tutorial also requires you to download
 some mesh files and restart files from Box. Please download the files
 from the `fhr_reflector` folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
 and place these files within the same directory structure
 in `tutorials/fhr_reflector`.
+
+This tutorial was developed with funding from the NRIC [!ac](VTB). You can
+find additional context on this model in our conference publication
+[!cite](novak_ans_2021).
+
+!alert! note title=Computing Needs
+This tutorial requires [!ac](HPC) resources to run. Please still read this
+tutorial if you do not have resources, because you will apply some concepts
+from this tutorial in [Tutorial 2B](cht2.md), which you can run on a typical
+personal computer.
 !alert-end!
-
-This tutorial provides a description of how to use Cardinal to perform
-[!ac](CHT) coupling of NekRS to MOOSE for bypass flow modeling in
-a portion of a [!ac](PB-FHR) reflector block.
-This tutorial was developed as part of the
-[!ac](VTB), a [!ac](NRIC) initiative aimed at facilitating the use of advanced modeling
-and simulation tools for reactor design and development. This tutorial has been modified slightly
-from the [!ac](VTB) tutorial to better fit the context of a Cardinal tutorial.
-
-!alert note
-Note that this example uses a fluid mesh with about 500,000 elements -
-depending on your system, you may require a few nodes in order to run
-this tutorial. [Tutorial 2B](cht2.md) covers similar [!ac](CHT)
-coupling (for a pin bundle application), but uses a much smaller mesh
-and will therefore run much faster. If your system resources are too small
-to run this case, you will be able to run [Tutorial 2B](cht2.md)
-(but please read this tutorial first, because it introduces many concepts
-taken as granted in later Nek coupling tutorials).
 
 At a high level, Cardinal's wrapping of NekRS consists of:
 
-1. Constructing a "mirror" of the NekRS mesh through which data transfers occur
-  with MOOSE. For [!ac](CHT) applications, a
+1. Construct a "mirror" of the NekRS mesh through which data transfers occur
+  with MOOSE. A
   [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
    is created by copying the NekRS surface mesh into a format that
   all native MOOSE applications can understand.
-2. Adding [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+2. Add [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
   to represent the NekRS solution. In other words,
-  if NekRS stores the temperature internally as an `std::vector<double>` (it doesn't, but
-  assume for pedagogical reasons that it does), with each
+  if NekRS stores the temperature internally as an `std::vector<double>`,
+  with each
   entry corresponding to a NekRS node, then a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
    is created that represents
-  the same data, but that can be accessed in relation to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+  the same data, but which can be accessed in relation to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
    mirror.
-3. Writing multiphysics feedback fields in/out of NekRS's internal solution and boundary
-  condition arrays. So, if NekRS represents a heat flux boundary condition internally
-  as an `std::vector<double>` (it doesn't, but assume for pedagogical reasons that it does),
+3. Write multiphysics feedback fields in/out of NekRS's internal solution and boundary
+  condition arrays. In other words, if NekRS represents a heat flux boundary condition internally
+  as an `std::vector<double>`,
   this involves reading from a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html) representing
-  heat flux (which can be transferred with any of MOOSE's transfers to the NekRS
-  wrapping) and writing into NekRS's internal vectors.
+  heat flux
+  and writing into NekRS's internal vectors.
 
 Cardinal developers have an intimate knowledge of how NekRS stores its
 solution fields and mesh, so this entire process is automated for you!
 Setting up a coupling of NekRS to MOOSE only requires a handful of user
 specifications.
 
-NekRS can
-communicate with any other MOOSE application via the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-and [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html) systems
-in MOOSE, enabling complex multiscale [!ac](T/H) analysis and multiphysics feedback.
-The same wrapping can be used for [!ac](CHT) analysis with *any* MOOSE
-application that can compute a heat flux; that is, because a MOOSE-wrapped version of NekRS
-interacts with the MOOSE framework in a similar manner as natively-developed
-MOOSE applications, the agnostic formulations of the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html) and
-[Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html) can be
-used to couple NekRS via [!ac](CHT) to Pronghorn, BISON, the MOOSE heat conduction
-module, SAM, Sockeye, and so on.
-For pedagogical purposes, this tutorial couples NekRS to the MOOSE
-heat conduction module.
-
 ## Geometry and Computational Model
   id=model
 
-The pebble region in the [!ac](PB-FHR) is enclosed by an outer graphite reflector
-that constrains the pebble geometry while also
-serving as a reflector for neutrons and a shield for
-the reactor barrel and core externals. In order to keep the graphite reflector within
+The pebble region in the [!ac](PB-FHR) is enclosed by an outer graphite reflector.
+In order to keep the graphite reflector within
 allowable design temperatures, the reflector contains several bypass flow
 paths so that a small percentage of the coolant flow, usually on the
 order of 5 to 10% of the total flow, can
 maintain the graphite within allowable temperature ranges. This
-bypass flow, so-named because coolant is diverted from the pebble region,
-is important to quantify during the reactor design process so that accurate
+bypass flow
+is important to quantify so that accurate
 estimates of core cooling and reflector temperatures can be obtained. By repeating
 these calculations for a range of Reynolds numbers and geometries, this model
 can be used to provide friction factor and Nusselt number correlations as inputs
 to a full-core Pronghorn model.
 
-This section describes the [!ac](PB-FHR) reflector geometry and the simplifications
-made in constructing a computational model of this system.
-A top-down view of the [!ac](PB-FHR) reactor vessel is shown below, with important
+This section describes the [!ac](PB-FHR) reflector geometry and our computational model.
+A top-down view of the [!ac](PB-FHR) reactor is shown in [top_down], with important
 specifications summarized in [table1].
 The center region
 is the pebble bed core, which is surrounded by two rings of graphite reflector blocks,
-staggered with respect to one another in a brick-like fashion. The nominal
+staggered in a brick-like fashion. The nominal
 gap size between blocks is 0.002 m, but to ease meshing and make model depiction easier,
 the gap between blocks is increased to 0.006 m
 (which could be interpreted as an end-of-life, maximum-swelling condition
@@ -112,12 +85,12 @@ Each ring contains 24 blocks. In black is shown the core barrel.
 To form the entire axial height of the reflector, rings of blocks are stacked
 vertically. The entire core height is 5.3175 m, or
 about 10 vertical rings of blocks. Additional structures are present as well,
-but are not considered in this model.
+but are not considered here.
 
 !media top_down.png
   id=top_down
   caption=Top-down schematic of the [!ac](PB-FHR) reactor core.
-  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 !table id=table1 caption=Geometric and operating conditions relevant to reflector block modeling, based on [!cite](shaver)
 | Parameter | Value |
@@ -139,7 +112,7 @@ flow paths radially (i.e. from lower to higher $r$ at a fixed $z$ between stacks
 of reflector blocks) are not shown. While
 such radial bypass paths contribute to bypass flow, they are not considered in this tutorial.
 
-To reduce computational cost, the coupled NekRS-MOOSE simulation is conducted
+The coupled NekRS-MOOSE simulation is conducted
 for a single ring of reflector blocks (i.e. a height of 0.52 m), with azimuthal symmetry assumed to further
 reduce the domain to half of an inner ring block, half of an outer ring block,
 and the vertical bypass flow paths between the blocks and the barrel. This
@@ -150,6 +123,21 @@ computational domain is shown outlined with a red dotted line in [top_down].
 The MOOSE heat conduction module is used to solve for energy conservation in the solid,
 
 !include heat_eqn.md
+
+A fixed heat flux of 5 kW/m$^2$ is imposed on the block surface facing the pebble bed.
+On the surface of the barrel, a heat convection boundary condition is imposed,
+
+\begin{equation}
+\label{eq:hfc}
+q^{''}=h\left(T_s-T_\infty\right)
+\end{equation}
+
+where $q^{''}$ is the heat flux, $h$ is the convective heat transfer coefficient, and $T_\infty$
+is the far-field ambient temperature.
+At fluid-solid interfaces, the solid temperature is imposed as a Dirichlet condition,
+where NekRS computes the surface temperature.
+Finally, the top and bottom of the block, as well as all symmetry boundaries, are treated
+as insulated.
 
 ### NekRS Model
 
@@ -231,9 +219,7 @@ Pe\equiv\frac{L_{ref}u_{ref}}{\alpha}
 
 where $\alpha$ is the thermal diffusivity.
 NekRS solves for $\mathbf u^\dagger$, $P^\dagger$, and $T^\dagger$. Cardinal will handle
-conversions from a non-dimensional NekRS solution to a dimensional MOOSE application,
-based on settings in the Cardinal input files. The required parameters will be described
-in detail in [#fluid_model].
+conversions from a non-dimensional NekRS solution to a dimensional MOOSE application.
 In this tutorial, the following characteristic scales are selected:
 
 - $L_{ref}=0.006$ m, such that the block gap width is unity
@@ -259,32 +245,6 @@ and an outlet temperature of 500 K, setting $\Delta T=100$ means that $T^\dagger
 range from 0 to 1. Setting a different value, such as $\Delta T=50$, means that
 $T^\dagger$ will instead range from 0 to 2.
 
-## Boundary Conditions
-
-This section describes the boundary conditions imposed on the fluid and solid phases.
-When the meshes are described in [#meshes], descriptive words such as "inlet" and "outlet"
-will be directly tied to sidesets in the mesh to enhance the verbal description here.
-
-#### Solid Boundary Conditions
-
-For the solid
-domain, a fixed heat flux of 5 kW/m$^2$ is imposed on the block surface facing the pebble bed.
-On the surface of the barrel, a heat convection boundary condition is imposed,
-
-\begin{equation}
-\label{eq:hfc}
-q^{''}=h\left(T_s-T_\infty\right)
-\end{equation}
-
-where $q^{''}$ is the heat flux, $h$ is the convective heat transfer coefficient, and $T_\infty$
-is the far-field ambient temperature.
-At fluid-solid interfaces, the solid temperature is imposed as a Dirichlet condition,
-where NekRS computes the surface temperature.
-Finally, the top and bottom of the block, as well as all symmetry boundaries, are treated
-as insulated.
-
-#### Fluid Boundary Conditions
-
 At the inlet, the fluid temperature is taken as 650&deg;C, or the nominal
 median fluid temperature. The inlet velocity is set to a uniform value such that the Reynolds number is 100.
 At the outlet, a zero pressure is imposed. On the $\theta=0^\circ$ boundary (i.e. the $y=0$ boundary), symmetry is imposed
@@ -301,8 +261,6 @@ the NekRS computational model to the depiction in [#model] is imperfect.
 At fluid-solid interfaces, the heat flux is imposed as a Neumann condition, where MOOSE
 computes the surface heat flux.
 
-## Initial Conditions
-
 Because the NekRS mesh contains very small elements in the fluid phase, fairly small time
 steps are required to meet [!ac](CFL) conditions related to stability. Therefore,
 the approach to the coupled, pseudo-steady [!ac](CHT) solution can be
@@ -315,8 +273,7 @@ to run Cardinal in [!ac](CHT) mode is described in [#part2].
 ## Meshing
   id=meshes
 
-This section describes how the meshes are generated for MOOSE and NekRS.
-For both applications, the Cubit meshing software [!cite](cubit) is used to
+Cubit [!cite](cubit) is used to
 programmatically create meshes with user-defined geometry and customizable
 boundary layers. Journal files, or Python-scripted Cubit inputs, are used
 to create meshes in Exodus II format. The MOOSE framework accepts meshes in
@@ -328,7 +285,7 @@ with your preferred meshing tool.
 ### Solid Mesh
   id=solid_mesh
 
-The Cubit script that is used to generate the solid mesh is
+The Cubit script used to generate the solid mesh is
 shown below. To run this script yourself, you will need to update
 the `directory` variable to point to the tutorials directory on your machine.
 
@@ -336,7 +293,7 @@ the `directory` variable to point to the tutorials directory on your machine.
 
 The complete solid mesh (before a series of refinements) is shown below; the boundary names are illustrated towards
 the right by showing only the highlighted surface to which each boundary corresponds.
-Names are shown in Courier font. A unique block ID is used for the set of elements
+A unique block ID is used for the set of elements
 corresponding to the inner ring, outer ring, and barrel. Material properties in MOOSE
 are typically restricted by block, and setting three separate IDs allows us to set
 different properties in each of these blocks.
@@ -348,8 +305,8 @@ different properties in each of these blocks.
 
 Unique boundary names are set for each boundary to which we will apply a unique
 boundary condition; we define the boundaries on the top and bottom of the block,
-the symmetry boundaries that reflect the fact that we've reduced the full [!ac](PB-FHR)
-reflector to a half-block domain, and boundaries at the interface between the
+the symmetry boundaries,
+and boundaries at the interface between the
 reflector and the bed and on the barrel surface.
 
 One convenient aspect of MOOSE is that the same elements
@@ -358,10 +315,10 @@ temperature boundary conditions between NekRS and MOOSE, we define another bound
 that contains all of the fluid-solid interfaces through which we will exchange
 heat flux and temperature, as `fluid_solid_interface`.
 
-### Fluid NekRS Mesh
+### Fluid Mesh
   id=fluid_mesh
 
-The Cubit script that is used to generate the fluid mesh is shown below.
+The Cubit script used to generate the fluid mesh is shown below.
 To run this script yourself, you will need to update
 the `directory` variable to point to the tutorials directory on your machine.
 
@@ -369,8 +326,8 @@ the `directory` variable to point to the tutorials directory on your machine.
 
 The complete fluid mesh is shown below; the boundary names are illustrated towards
 the right by showing only the highlighted surface to which each boundary corresponds.
-Names are shown in Courier font. While the names of the surfaces are shown in Courier
-font, NekRS does not directly use these names - rather, NekRS assigns boundary
+While the names of the surfaces are shown,
+NekRS does not directly use these names - rather, NekRS assigns boundary
 conditions based on the numeric value of the boundary name; these are shown as "ID"
 in the figure. An important restriction in NekRS is that the boundary IDs be ordered
 sequentially beginning from 1.
@@ -380,9 +337,9 @@ sequentially beginning from 1.
   caption=Fluid mesh for the FLiBe flowing around the reflector blocks, along with boundary names and IDs. It is difficult to see, but the `porous_inner_surface` boundary corresponds to the thin surface at the interface between the reflector region and the pebble bed.
   style=halign:center
 
-A strength of Cardinal for [!ac](CHT) applications
-is that the fluid and solid meshes do not need to share nodes on a common surface; libMesh
-mesh-to-mesh data interpolations apply to surfaces of very different refinement and position in
+One strength of Cardinal for [!ac](CHT) applications
+is that the fluid and solid meshes do not need to share nodes on a common surface; MOOSE
+mesh-to-mesh data interpolations can communicate between surfaces with different refinement and position in
 space; meshes may even overlap or share no nodes at all, such as
 for curvilinear applications. [zoom_mesh] shows
 a zoom-in of the two mesh files (for the fluid and solid phases). Rather than being limited
@@ -419,8 +376,8 @@ mesh, named `fluid.re2`.
 In this section, NekRS and MOOSE are coupled for conduction heat transfer in the solid reflector
 blocks and barrel, and through a stagnant fluid. The purpose of this stage of
 the analysis is to obtain a restart file for use as an initial condition in [#part2] to accelerate the NekRS
-calculation for [!ac](CHT), since the energy equation is slowest to converge.
-All input files for this stage of the analysis are present in the
+calculation for [!ac](CHT).
+All input files for this stage are present in the
 `tutorials/fhr_reflector/conduction` directory. The following sub-sections describe these files.
 
 ### Solid Input Files
@@ -433,7 +390,7 @@ At the top of this file, the core heat flux is defined as a variable local to th
 
 The value of this variable can then be used anywhere else in the input file
 with syntax like `${core_heat_flux}`, similar to bash syntax. Next, the solid mesh is
-specified by pointing to the Exodus mesh generated previously.
+specified by pointing to the Exodus mesh.
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
   start=Mesh
@@ -469,7 +426,7 @@ In this example, the overall calculation workflow is as follows:
 3. Run NekRS with a given surface heat flux distribution from MOOSE.
 4. Send surface temperature to MOOSE as a boundary condition.
 
-The above sequence is repeated until convergence of the coupled domain. For the very first
+The above sequence is repeated until convergence. For the very first
 time step, an initial condition should be set for `nek_temp`, because we will be running
 the MOOSE heat conduction simulation first. An initial condition is set using a function
 with an arbitrary, but not wholly unrealistic, distribution for the fluid temperature -
@@ -481,7 +438,7 @@ $T_f=923-50(r-3.348)$.
 
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as the
 [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
- kernel, or $-\nabla\cdot(k\nabla T)=0$. That is, this example neglects the time derivative term
+ kernel, or $-\nabla\cdot(k\nabla T)=0$. This example neglects the time derivative term
 in [eq:solid_eq], and there is no volumetric heat source. The
 [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html) auxiliary kernel is also specified
 for the `flux` variable in order to compute the flux on the `fluid_solid_interface` boundary.
@@ -495,7 +452,7 @@ a [MatchedValueBC](https://mooseframework.inl.gov/source/bcs/MatchedValueBC.html
  applies the value of the `nek_temp` receiver auxiliary variable
 to the temperature in a strong Dirichlet sense. Insulated boundary conditions are applied on the `symmetry`,
 `top`, and `bottom` boundaries. On the boundary at the bed-reflector interface, the
-core heat flux is specified as a `NeumannBC`. Finally, on the surface of the barrel,
+core heat flux is specified as a [NeumannBC](https://mooseframework.inl.gov/source/bcs/NeumannBC.html). Finally, on the surface of the barrel,
 a heat flux of $h(T-T_\infty)$ is specified, where both $h$ and $T_\infty$ are specified
 as material properties.
 
@@ -518,11 +475,11 @@ in the graphite and steel.
 Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
  and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal
-and MOOSE. The MOOSE heat conduction module is here run as the master application, with
+and MOOSE. The MOOSE heat conduction module is here run as the main application, with
 the NekRS wrapping run as the sub-application. We specify that MOOSE will run first on each
 time step. Allowing sub-cycling means that, if the MOOSE time step is 0.05 seconds, but
 the NekRS time step set in the `.par` file is 0.02 seconds, that for every MOOSE time step, NekRS will perform
-three time steps, of length 0.02, 0.02, and 0.01 seconds to "catch up" to the MOOSE master
+three time steps, of length 0.02, 0.02, and 0.01 seconds to "catch up" to the main
 application. If sub-cycling is turned off, then the smallest time step among all the various
 applications is used.
 
@@ -545,7 +502,7 @@ conservation of a transferred field using the `from_postprocessors_to_be_preserv
 [MultiAppConservativeTransfer](https://mooseframework.inl.gov/moose/source/transfers/MultiAppConservativeTransfer.html).
 However, proper conservation of a field within NekRS (which uses a completely different
 spatial discretization from MOOSE) requires performing such conservations in NekRS itself.
-Hence, an integral postprocessor must explicitly be passed.
+This is why an integral postprocessor must explicitly be passed.
 
 Next, postprocessors are used to compute the integral heat flux as a
 [SideIntegralVariablePostprocessor](https://mooseframework.inl.gov/source/postprocessors/SideIntegralVariablePostprocessor.html).
@@ -576,11 +533,10 @@ The fluid phase is solved with NekRS.
 The wrapping of NekRS as a MOOSE
 application is specified in the `nek.i` file.
 Compared to the solid input file, the fluid input file is quite minimal, as the specification
-of the NekRS problem setup is mostly performed using the NekRS input files that would be required to
-run NekRS as a standalone application.
+of the NekRS problem setup is mostly performed using the NekRS standalone input files.
 
 First, a local variable, `fluid_solid_interface`, is used to define all the boundary IDs through which NekRS is coupled
-via [!ac](CHT) to MOOSE for convenience. A first-order mirror of the NekRS mesh
+via [!ac](CHT) to MOOSE. A first-order mirror of the NekRS mesh
 is constructed using the [NekRSMesh](/mesh/NekRSMesh.md). By specifying the
 `boundary` parameter, we are indicating that NekRS will be coupled via [!ac](CHT) through
 boundaries 1, 2, and 7 to MOOSE.
@@ -615,9 +571,7 @@ the NekRS input files.
 !alert warning
 These characteristic scales are used by Cardinal to dimensionalize the NekRS solution
 into the units that the coupled MOOSE application expects. *You* still need to properly
-non-dimensionalize the NekRS input files (to be discussed later). That is, you cannot
-simply specify the non-dimensional scales in `NekRSProblem` and expect a *dimsensional*
-NekRS input specification to be converted to non-dimensional form.
+non-dimensionalize the NekRS input files (to be discussed later).
 
 Next, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html) executioner
 is specified. This is the same executioner used for the solid case, except now a
@@ -682,7 +636,7 @@ added automatically, as if the following were included in the input file:
 []
 
 These variables receive incoming and outgoing transfers to/from NekRS; the `order` is set
-to match the order of the [NekRSMesh](/mesh/NekRSMesh.md) (which defaults to first order).
+to match the order of the [NekRSMesh](/mesh/NekRSMesh.md).
 You will see both `temp` and `avg_flux` referred to in the solid input file `[Transfers]` block,
 in addition to the `flux_integral` [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessor that receives the integrated heat flux for normalization.
@@ -702,9 +656,9 @@ The additional NekRS files are:
 A detailed description of all of the available parameters, settings, and use cases
 for these input files is available on the
 [NekRS documentation website](https://nekrsdoc.readthedocs.io/en/latest/input_files.html).
-Because the purpose of this analysis is to demonstrate Cardinal's capabilties, only
+Because this is a Cardinal tutorial, only
 the aspects of NekRS required to understand the present case will be covered. First,
-begin with the `fluid.par` file, shown in entirety below.
+begin with the `fluid.par` file.
 
 !listing /tutorials/fhr_reflector/conduction/fluid.par
 
@@ -712,7 +666,7 @@ The input consists of blocks and parameters. The `[GENERAL]` block describes the
 time stepping, simulation end control, and the polynomial order. Here, a time step
 of 0.025 (non-dimensional) is used; a NekRS output file is written every 100 time steps.
 Because NekRS is run as a sub-application to MOOSE, the `stopAt` and `numSteps`
-fields are actually ignored, so that the steady state tolerance in the MOOSE master
+fields are actually ignored, so that the steady state tolerance in the MOOSE main
 application dictates when a simulation terminates. Because the purpose of this
 simulation is only to obtain a reasonable initial condition, a low polynomial order
 of 2 is used.
@@ -720,7 +674,7 @@ of 2 is used.
 Next, the `[VELOCITY]` and `[PRESSURE]` blocks describe the solution of the
 pressure Poisson equation and velocity Helmholtz equations. In the velocity block,
 setting `solver = none` turns off the velocity solution; therefore, none of the
-parameters specified here are of consequence, so their description will be deferred
+parameters specified here are used right now, so their description will be deferred
 to [#part2]. Finally, the `[TEMPERATURE]` block describes the solution of the
 temperature passive scalar equation. $\rho_fC_{p,f}$ is set to unity because the
 solve is conducted in non-dimensional form, such that
@@ -755,7 +709,7 @@ insulated, boundary 5 is a specified temperature, and boundary 6 is a zero-gradi
 outlet. The actual assignment of numeric values to these boundary conditions is then
 performed in the `fluid.oudf` file. The `fluid.oudf` file contains [!ac](OCCA) kernels that
 will be run on a [!ac](GPU) (if present). If no [!ac](GPU) is present,
-these kernels are simply run with a [!ac](MPI) backend.
+these kernels are simply run with MPI.
 Because this case does not have any user-defined
 source terms in NekRS, these [!ac](OCCA) kernels are only used to apply boundary conditions.
 
@@ -787,8 +741,7 @@ additional scalars would be present).
 ### Execution and Postprocessing
   id=ep
 
-To run the pseudo-steady conduction model, run the following from a command line or
-through a job submission script on a [!ac](HPC) system.
+To run the pseudo-steady conduction model, run the following:
 
 ```
 mpiexec -np 48 cardinal-opt -i solid.i
@@ -839,8 +792,8 @@ and is in other places negative (such as near the barrel) where heat leaves the 
 ## Part 2: CHT Coupling
   id=part2
 
-In this section, NekRS and MOOSE are coupled for [!ac](CHT) between the FLiBe coolant
-and the reflector blocks and barrel. All input files for this stage of the analysis are present in the
+In this section, NekRS and MOOSE are coupled for [!ac](CHT).
+All input files for this stage of the analysis are present in the
 `tutorials/fhr_reflector/cht` directory. The following sub-sections describe all of these files; for
 brevity, most emphasis will be placed on input file setup that is different or extends the
 conduction case in [#part1].
@@ -848,15 +801,14 @@ conduction case in [#part1].
 ### Solid Input Files
 
 The solid phase is again solved with the MOOSE heat conduction module; the input file
-is largely the same except that the simulation is run for 400 time steps instead of progressing
-to a converged steady state.
+is largely the same except that the simulation is run for 400 time steps.
 
 !listing /tutorials/fhr_reflector/cht/solid.i
   block=Executioner
 
 ### Fluid Input Files
 
-The fluid phase is again solved with NekRS wrapped as a MOOSE app via Cardinal. The
+The fluid phase is again solved with NekRS. The
 input file is largely the same as the conduction case, except that additional
 postprocessors are added to query more [!ac](T/H) aspects of the NekRS
 solution. The postprocessors used for the NekRS wrapping are shown below.
@@ -875,15 +827,12 @@ As in [#part1], four additional files are required to set up the NekRS simulatio
 `fluid.re2`, `fluid.par`, `fluid.udf`, and `fluid.oudf`. These files are largely the
 same as those used in the steady conduction model, so only the differences will be
 emphasized here.
-The `fluid.par` file is shown below. Here, `startFrom` provides a restart file,
+The `fluid.par` file is shown below. Here, `startFrom` provides a restart file (that
+we generated from [#part1]),
 `conduction.fld` and specifies that we only want to read temperature from the
 file (by appending `+T` to the file name). We increase the polynomial order as well.
 
 !listing /tutorials/fhr_reflector/cht/fluid.par
-
-The restart file required for this stage of the calculation is created as a result
-of the simulation in [#part1], but is also available on Box as described at
-the beginning of this tutorial.
 
 In the `[VELOCITY]` block, the density is set to unity, because the solve is conducted
 in nondimensional form, such that
@@ -926,8 +875,13 @@ same as for the steady conduction case.
 
 ### Execution and Postprocessing
 
-The instructions to run the [!ac](CHT) model are the same as those
-given in [#ep]. The pressure and velocity distributions
+To run the pseudo-steady [!ac](CHT) model, run the following:
+
+```
+$ mpiexec -np 48 cardinal-opt -i solid.i
+```
+
+The pressure and velocity distributions
 are shown below, both in non-dimensional form.
 
 !media fhr_pressure.png

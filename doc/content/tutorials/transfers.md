@@ -1,8 +1,18 @@
-# Tutorial 12: Data Transfers in MOOSE
+# Data Transfers in MOOSE
 
 In this tutorial, you will learn how to:
 
 - Select a Transfer appropriate for your simulation
+
+To access this tutorial,
+
+```
+cd cardinal/tutorials/transfers
+```
+
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
+!alert-end!
 
 The MOOSE [Transfer system](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 is used to send data between applications. In Cardinal, these transfers are used to
@@ -26,7 +36,6 @@ We will transfer data between two cylinders, one with
 a much finer mesh than the other. First, generate the meshes:
 
 ```
-cd tutorials/transfers
 cardinal-opt -i mesh1.i --mesh-only
 cardinal-opt -i mesh2.i --mesh-only
 ```

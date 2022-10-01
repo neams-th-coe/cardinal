@@ -1,10 +1,28 @@
 # Conjugate Heat Transfer Coupling of NekRS and MOOSE
 
-This tutorial describes how to use NekRS to solve for fluid flow and heat transfer
-coupled to a solid described by the MOOSE heat conduction module. Three examples are
-provided - a section of a laminar reflector block in a [!ac](PB-FHR), a bare laminar 7-pin
-[!ac](SFR) fuel bundle, and a turbulent heated channel flow.
+These tutorials describe how to couple NekRS to MOOSE through *boundary*
+heat transfer by exchanging boundary conditions for wall temperature and heat flux.
+This is shown schematically in [sfr_cht].
+These types of calculations are referred to as *conjugate heat transfer*.
 
-- [Reflector Bypass Flow](cht1.md)
-- [Pin Bundle Flow](cht2.md)
-- [Turbulent Channel Flow](cht3.md)
+!media cht.png
+  id=sfr_cht
+  caption=Illustration of data transfers to couple NekRS to MOOSE for boundary heat transfer in a pin bundle.
+  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+
+Cardinal uses a general formulation that allows NekRS to couple via conjugate
+heat transfer to *any* MOOSE application that can compute a heat flux. This
+is shown schematically in [cardinal_cht]. All tutorials in this section couple
+NekRS to the MOOSE heat conduction module, but the concepts extend equally to
+coupling NekRS to any of these other MOOSE thermal-fluid codes.
+
+!media cardinal_cht.png
+  id=cardinal_cht
+  caption=NekRS integrates with *any* MOOSE application that can compute a heat flux
+  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+
+Three examples are provided:
+
+- [Reflector Bypass Flow](cht1.md) around a reflector block in a pebble bed reactor
+- [Pin Bundle Flow](cht2.md) in a bare 7-pin geometry
+- [Turbulent Channel Flow](cht3.md) in a [!ac](TRISO) compact

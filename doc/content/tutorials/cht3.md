@@ -1,61 +1,45 @@
-# Tutorial 2C: Conjugate Heat Transfer for Turbulent Channel Flow
+# Conjugate Heat Transfer for Turbulent Channel Flow
   id=tutorial1c
 
 In this tutorial, you will learn how to:
 
-- Couple NekRS to MOOSE for [!ac](CHT)
-- Extract velocity and turbulent viscosity from a NekRS flow-only restart file
-- Swap out NekRS for a different thermal-fluid MOOSE application, THM
+- Couple NekRS to MOOSE for [!ac](CHT) for turbulent flow in a [!ac](TRISO) compact
+- Extract an initial condition from a NekRS restart file
+- Swap out NekRS for a different thermal-fluid MOOSE application, the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
 - Compute heat transfer coefficients with NekRS
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
+To access this tutorial,
 
-- [NekRSMesh](/mesh/NekRSMesh.md)
-- [NekTimeStepper](/timesteppers/NekTimeStepper.md)
-- [NekRSProblem](/problems/NekRSProblem.md)
+```
+cd cardinal/tutorials/gas_compact_cht
+```
 
-We recommend quickly reading this documentation before proceeding
-with this tutorial.
 This tutorial also requires you to download some mesh files from Box.
 Please download the files from the `gas_compact_cht` folder
 [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
 and place these files within the same directory structure in
 `tutorials/gas_compact_cht`.
-!alert-end!
-
-This tutorial describes how to use Cardinal to perform [!ac](CHT) coupling of NekRS
-to MOOSE for turbulent flow modeling in a unit cell representation of a prismatic
-gas reactor assembly. Two different thermal-hydraulics tools are used to model the
-fluid domain, depending on the desired resolution:
-
-- NekRS, which will solve the wall-resolved $k$-$\tau$ model
-- THM, which will solve the 1-D area-averaged Navier-Stokes equations; THM is
-  a set of 1-D systems level thermal-fluid kernels in the MOOSE framework that essentially contain
-  all the single-phase physics in RELAP-7 [!cite](relap7)
-
-This tutorial will demonstrate how Cardinal can be used to generate
-a convective heat transfer coefficient that can be input into another thermal-fluid
-MOOSE application. This process will be shown using THM, which can readily be extended
-to other MOOSE-based thermal-fluid codes.
 
 This tutorial was developed with support from the NEAMS Thermal Fluids
-Center of Excellence. A technical report [!cite](novak_coe) describing the physics models,
-mesh refinement studies, and auxiliary analyses provides additional context
-and application examples beyond the scope of this tutorial.
+Center of Excellence and the NRIC [!ac](VTB). You can find additional context on
+this model in our journal article [!cite](novak2022_cardinal).
+
+!alert! note title=Computing Needs
+This tutorial requires [!ac](HPC) resources to run the NekRS cases. Please still read this tutorial
+if you do not have resources, because you will be able to run the THM cases
+and much of the Cardinal usage is agnostic of the particular thermal code being used.
+!alert-end!
 
 ## Geometry and Computational Model
 
 The geometry consists of a unit cell of a [!ac](TRISO)-fueled
-gas reactor compact, loosely based on a point design available in the literature
-[!cite](sterbentz).
+gas reactor compact [!cite](sterbentz).
 A top-down view of the geometry is shown in
 [unit_cell]. The fuel is cooled by helium flowing in a cylindrical channel
 of diameter $d_c$. Cylindrical fuel compacts containing randomly-dispersed
 [!ac](TRISO) particles at 15% packing fraction
 are arranged around the coolant channel in a triangular
-lattice; the distance between the compact and coolant channel centers
-is $p_{cf}$. The diameter of the fuel compact cylinders is $d_f$.
+lattice.
 The [!ac](TRISO) particles use a conventional design that consists of a central
 fissile uranium oxycarbide kernel enclosed in a carbon buffer, an inner
 [!ac](PyC) layer, a silicon carbide layer, and finally an outer
@@ -70,9 +54,9 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 !table id=table1 caption=Geometric specifications for a [!ac](TRISO)-fueled gas reactor compact
 | Parameter | Value (cm) |
 | :- | :- |
-| Coolant channel diameter | 1.6 |
-| Fuel compact diameter | 1.27 |
-| Fuel-to-coolant center distance | 1.628 |
+| Coolant channel diameter, $d_c$ | 1.6 |
+| Fuel compact diameter, $d_f$ | 1.27 |
+| Fuel-to-coolant center distance, $p_{cf}$ | 1.628 |
 | Height | 160 |
 | TRISO kernel radius | 214.85e-4 |
 | Buffer layer radius | 314.85e-4 |
@@ -84,8 +68,8 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 
 !include steady_hc.md
 
-The solid mesh is shown in [solid_mesh]; the only sideset defined in the domain
-is the coolant channel surface. The [!ac](TRISO) particles are homogenized into
+The solid mesh is shown in [solid_mesh].
+The [!ac](TRISO) particles are homogenized into
 the compact regions - all material properties in the heterogeneous regions
 are taken as volume averages of the various constituent materials.
 To simplify the specification of
@@ -104,8 +88,7 @@ The volumetric power density $\dot{q}_s$ is set to a sinusoidal function of $z$,
 
 where $q_0$ is a coefficient used to ensure that the total power produced is 38 kW
 and $H$ is the domain height. The power is uniform
-in the radial direction in each compact, effectively homogenizing the [!ac](TRISO)
-particles into the matrix.
+in the radial direction in each compact.
 
 On the coolant channel surface, a Dirichlet temperature is provided by NekRS/THM.
 All other boundaries are insulated. We will run the solid model first, so we must specify
@@ -125,15 +108,15 @@ required in the NekRS simulation. To accelerate the overall coupled [!ac](CHT) c
 that is of interest in this tutorial, the NekRS model is split into a series of calculations:
 
 1. We first run a partial-height, periodic flow-only case
-   to obtain converged pressure, velocity, and turbulent viscosity distributions.
-2. Then, we extrapolate the velocity and turbulent viscosity to the full-height case.
-3. Finally, we use the converged, full-height velocity and turbulent viscosity distributions
-   to transport a temperature passive scalar in a conjugate heat transfer calculation with MOOSE.
+   to obtain converged $P$, $\vec{u}$, and $\mu_T$ distributions.
+2. Then, we extrapolate the $\vec{u}$ and $\mu_T$ to the full-height case.
+3. Finally, we use the converged, full-height $\vec{u}$ and $\mu_T$ distributions
+   to transport a temperature passive scalar in a [!ac](CHT) calculation with MOOSE.
 
 As a rough estimate, solving the coupled mass-momentum equations requires about an
 order of magnitude more compute time than a passive scalar equation in NekRS, assuming
-an identical time step size. Therefore, by "freezing" the velocity and $\mu_T$ solutions,
-we can dramatically reduce the total cost of the coupled conjugate heat transfer calculation.
+an identical time step size. Therefore, by "freezing" the $\vec{u}$ and $\mu_T$ solutions,
+we can dramatically reduce the total cost of the coupled [!ac](CHT) calculation.
 
 The periodic flow model has a height of $\frac{H}{10}$ and takes about 10,000 core hours
 to reach steady state. The extrapolation from $\frac{H}{10}$ to $H$ then is a simple postprocessing
@@ -146,18 +129,17 @@ converged NekRS predictions of velocity, $k$, and $\tau$.
 
 !media nek_uc_results.png
   id=nek_restart
-  caption=Converged NekRS predictions of velocity magnitude (left), $k$ (middle), and $\tau$ (right) for the periodic case.
+  caption=Converged NekRS predictions of velocity magnitude (left), $k$ (middle), and $\tau$ (right) for the periodic case (all in non-dimensional form)
   style=width:80%;margin-left:auto;margin-right:auto
 
 [nek_line_plots] shows the axial velocity, $k$, and $\tau$ on a line plot through the center of the channel.
-All quantities shown in [nek_restart] and [nek_line_plots] are dimensionless,
-according to the NekRS non-dimensional solution. All quantities display the expected physical behavior -
+All quantities display the expected physical behavior -
  the peak axial velocity is about 1.15 times the uniform inlet velocity, the turbulent
 kinetic energy reaches a peak very close to the wall and decreases towards the centerline, while $\tau$ peaks at the centerline.
 
 !media nek_line_plots.png
   id=nek_line_plots
-  caption=Converged NekRS predictions of velocity magnitude (left), $k$ (middle), and $\tau$ (right) for the periodic case along the channel mide-plane
+  caption=Converged NekRS predictions of velocity magnitude (left), $k$ (middle), and $\tau$ (right) for the periodic case along the channel mide-plane (all in non-dimensional form)
   style=width:80%;margin-left:auto;margin-right:auto
 
 For the conjugate heat transfer case, we will load this restart file, compute $k_T$ from the
@@ -170,12 +152,7 @@ These files are:
 - `ranstube.udf`: User-defined C++ functions for on-line postprocessing and model setup
 - `ranstube.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and source terms
 
-A detailed description of all of the available parameters, settings, and use
-cases for these input files is available on the
-[NekRS documentation website](https://nekrsdoc.readthedocs.io/en/latest/index.html).
-Because the purpose of this analysis is to demonstrate Cardinal's capabilities, only the aspects
-of NekRS required to understand the present case will be covered. First, the NekRS mesh
-is shown in [nek_mesh]. Boundary 1 is the inlet, boundary 2 is the outlet, and boundary
+The NekRS mesh is shown in [nek_mesh]. Boundary 1 is the inlet, boundary 2 is the outlet, and boundary
 3 is the wall. The same mesh was used for the periodic flow solve, except with
 a shorter height.
 
@@ -185,8 +162,8 @@ a shorter height.
   style=width:60%;margin-left:auto;margin-right:auto
 
 Next, the `.par` file contains problem setup information.
-This input sets up a nondimensional passive scalar solution, loading pressure, velocity,
-$k$, and $\tau$ from a restart file. In order to "freeze," or turn off the pressure, velocity,
+This input sets up a nondimensional passive scalar solution, loading $P$, $\vec{u}$,
+$k$, and $\tau$ from a restart file. In order to "freeze," or turn off the $P$, $\vec{u}$,
 $k$, and $\tau$ solves, we set `solver = none` in the `[VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
 and `[SCALAR02]` ($\tau$ passive scalar) blocks. In the nondimensional formulation,
 the "viscosity" becomes $1/Re$, where $Re$ is the Reynolds number, while the
@@ -200,7 +177,7 @@ The only equation that NekRS will solve is for temperature.
 Next, the `.udf` file is used to setup initial conditions and define how
 $k_T$ should be computed based on $Pr_T$ and the restart values of $k$ and $\tau$.
 In `turbulent_props`, a user-defined function, we use $k_f$ from the input file
-in combination with the $Pr_T$ and $mu_T$ (read from the restart file later in
+in combination with the $Pr_T$ and $\mu_T$ (read from the restart file later in
 the `.udf` file) to adjust the total diffusion coefficient on temperature to
 $k_f+k_T$ according to [eq:PrT]. This adjustment must happen on device, in a new GPU kernel we name
 `scalarScaledAddKernel`. This kernel will be defined in the `.oudf` file; we
@@ -225,7 +202,7 @@ $T_{ref}$), while the fluid-solid interface will receive a heat flux from MOOSE.
 
 !include thm.md
 
-The converged THM mesh contains 150 elements; the mesh is constucted automatically
+The THM mesh contains 150 elements; the mesh is constucted automatically
 within THM. To simplify the specification of material properties, the fluid geometry
 uses a length unit of meters. The heat flux imposed in the THM elements is obtained
 by area averaging the heat flux from the heat conduction model in 150 layers along
@@ -240,17 +217,17 @@ which are set to uniform distributions.
 ## CHT Coupling
   id=cht
 
-In this section, MOOSE, NekRS, and THM are coupled for conjugate heat transfer modeling
-of a [!ac](TRISO)-fueled gas reactor compact. All input files are present in the
-`tutorials/gas_compact_cht` directory. Two separate simulations are performed here:
+In this section, MOOSE, NekRS, and THM are coupled for [!ac](CHT).
+Two separate simulations are performed here:
 
 - Coupling of NekRS with MOOSE
 - Coupling of THM with MOOSE
 
 By individually describing the two setups, you will understand that NekRS is really
-as interchangeable as any other MOOSE application for coupling within the framework.
+as interchangeable as any other MOOSE application for coupling.
 In addition, we will describe how to generate a heat transfer coefficient from the
-NekRS-MOOSE coupling to input into the THM-MOOSE coupling.
+NekRS-MOOSE coupling to input into the THM-MOOSE coupling to demonstrate an important
+multiscale use case of NekRS.
 
 ### NekRS-MOOSE
 
@@ -270,7 +247,7 @@ boundary conditions we will apply.
 
 !listing /tutorials/gas_compact_cht/solid_nek.i
   start=Variables
-  end=ICs
+  end=Functions
 
 The MOOSE heat conduction module will receive a wall temperature from NekRS in
 the form of an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
@@ -285,7 +262,7 @@ input file.
 
 !listing /tutorials/gas_compact_cht/solid_nek.i
   start=AuxVariables
-  end=ICs
+  end=MultiApps
 
 Next, we use functions to define the thermal conductivities. The material properties
 for the [!ac](TRISO) compacts are taken as volume averages of the various
@@ -294,7 +271,7 @@ constituent materials. We also use functions to set initial conditions for power
 from inlet to outlet).
 
 !listing /tutorials/gas_compact_cht/solid_nek.i
-  start=ICs
+  start=Functions
   end=Postprocessors
 
 We define a number of postprocessors for querying the solution as well as for
@@ -314,37 +291,36 @@ and by setting `csv = true` in the output.
 !listing /tutorials/gas_compact_cht/solid_nek.i
   start=UserObjects
 
-Finally, the most important part of the input file requires us to specify how
-data will be sent to the NekRS. We add a
-[TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html)
+Finally, we add a [TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html)
 that will run a MOOSE-wrapped NekRS simulation. Then, we add four different
-transfers to/from NekRS. we use a [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
-to send the heat flux to NekRS and to receive the temperature from NekRS. In order
-to properly normalize the heat flux being sent from MOOSE to NekRS (because the meshes
-may be entirely different, such that the integrals of the heat flux would not exactly
-match the total power), a [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
-is used to send the flux integral to NekRS. Finally, in order to speed up the
-transfers, we also send a dummy postprocessor named `synchronization_to_nek` that
-simply allows the NekRS sub-application to know when "new" coupling data is
-available from MOOSE, and to only do transfers to/from GPU when new data is
-available; as this feature has already been introduced in previous tutorials,
-please consult the [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
-documentation for further information.
+transfers to/from NekRS:
+
+- [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+  to send the heat flux from MOOSE to NekRS
+- [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+  to send temperature from NekRS to MOOSE
+- [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+  to normalize the heat flux sent to NekRS
+- [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+  to send a dummy postprocessor named `synchronization_to_nek` that
+  simply allows the NekRS sub-application to know when "new" coupling data is
+  available from MOOSE, and to only do transfers to/from GPU when new data is
+  available; please consult the [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
+  documentation for further information.
 
 !listing /tutorials/gas_compact_cht/solid_nek.i
   start=MultiApps
   end=Executioner
 
 Finally, although our heat conduction model does not have any time derivatives
-(which we recommend because it will be much faster to converge because
-you don't need to time evolve both NekRS and MOOSE), NekRS must be run
+(in order to more quickly reach steady state), NekRS must be run
 as a transient. In order to control the interval on which NekRS couples to MOOSE, we
 use a MOOSE time step that is `N` times bigger than the NekRS time step, taking care
 to account for the fact that the time step in the `ranstube.par` file is actually
-a *nondimensional* time step. By setting `subcycling = true`, the settings in this
-file mean that MOOSE is only run every `N` time steps (the subcycling setting), *and* that the NekRS
-solution is only copied to/from GPU every `N` time steps (the minimize transfers setting
-that will be described shortly in [#nek]).
+a *nondimensional* time step. By setting `subcycling = true` for the
+[TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html),
+MOOSE is only run every `N` time steps (the subcycling setting), *and* that the NekRS
+solution is only copied to/from GPU every `N` time steps (the minimize transfers setting).
 
 Finally, we will run the MOOSE heat conduction model
 until the relative change in the solution (across the entire domain) differs by
@@ -358,12 +334,12 @@ only on the order of the fourth or fifth decimal place in temperatures.
 #### Fluid Input Files
   id=nek
 
-The standalone NekRS case files have already been introduced; therefore, we simply
-build a small wrapping input file, `nek.i`, that will run NekRS within MOOSE. We first define
+The Nek wrapping is described in the `nek.i` input file.
+We first define
 a few file-local variables, and then build a mesh mirror with a
 [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html). By setting
-`boundary = '3'`, we indicate that boundary 3 will be coupled via conjugate heat
-transfer. In this example, we don't have any volume-based coupling, but we set
+`boundary = '3'`, we indicate that boundary 3 will be coupled via [!ac](CHT).
+In this example, we don't have any volume-based coupling, but we set
 `volume = true` just to be able to visualize quickly the NekRS solution over
 the entire NekRS volume (as a first-order interpolation of the 7-th order polynomial
 solution).
@@ -396,9 +372,7 @@ we hide these from the console output above, they will still be output to CSV.
   block=Postprocessors
 
 Finally, we add a few userobjects to compute the necessary terms in a heat transfer
-coefficient. A heat transfer coefficient appears in the [!ac](THM) closures to represent
-the temperature drop between the wall and the bulk fluid. This NekRS-MOOSE model is used
-to compute a heat transfer coefficient in a series of equally-spaced axial layers along the flow direction as
+coefficient in a series of equally-spaced axial layers along the flow direction as
 
 \begin{equation}
 \label{eq:htc2}
@@ -414,6 +388,10 @@ We then output the results of these userobjects to CSV using
 [SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html). For the time being, we turn off the calculation of these objects
 until we are ready to describe the generation of heat transfer
 coefficients in [#htc].
+
+!listing /tutorials/gas_compact_cht/solid_nek.i
+  start=UserObjects
+  end=Outputs
 
 ### THM-MOOSE
 
@@ -455,7 +433,7 @@ which computes heat flux on a boundary given the temperature computed by MOOSE.
 
 The fluid phase will be solved with THM, and is described in the `thm.i` file.
 The THM input file is built using syntax specific to THM - we will only briefly
-cover the syntax, and instead refer users to the THM manuals for more information.
+cover the syntax, and instead refer users to the [THM manuals](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html) for more information.
 First, we define a number of constants at the beginning of the file and apply
 some global settings. We set the initial conditions for pressure, velocity, and
 temperature and indicate the fluid [!ac](EOS) object using
@@ -478,7 +456,7 @@ We set up the Churchill correlation for the friction factor and the Dittus-Boelt
 correlation for the convective heat transfer coefficient. Additional materials are
 created to represent dimensionless numbers and other auxiliary terms, such as the
 wall temperature. As can be seen here, the [Material](https://mooseframework.inl.gov/syntax/Materials/index.html)
-system is not always used to represent quantities traditioanlly thought of
+system is not always used to represent quantities traditionally thought of
 as "material properties."
 
 !listing /tutorials/gas_compact_cht/thm.i
@@ -497,27 +475,25 @@ executioner, and set an Exodus output. We will run THM to convergence based on a
 steady state relative tolerance of $10^{-8}$.
 
 !listing /tutorials/gas_compact_cht/thm.i
-  start=Preconditioners
+  start=Preconditioning
+  end=UserObjects
 
 ## Execution and Postprocessing
 
-To run the coupled NekRS-MOOSE calculation, run the following:
+To run the coupled NekRS-MOOSE calculation,
 
 ```
 mpiexec -np 500 cardinal-opt -i common_input.i solid_nek.i
 ```
 
-This will run with 500 [!ac](MPI) processes (you may run with other parallel
-configurations as needed, but you will find that the NekRS simulation requires
-HPC resources due to the large mesh). To run the coupled THM-MOOSE calculation,
-run the following:
+This will run with 500 [!ac](MPI) processes.
+To run the coupled THM-MOOSE calculation,
 
 ```
-cardinal-opt -i common_input.i solid_thm.i --n-threads=8
+mpiexec -np 2 cardinal-opt -i common_input.i solid_thm.i --n-threads=2
 ```
 
-which will run with 8 OpenMP threads; greater computational resources are not needed
-for the THM-MOOSE model due to the very inexpensive thermal-fluid model.
+which will run with 2 MPI ranks and 2 OpenMP threads per rank.
 
 When the two simulations have completed, you will have created a number of different
 output files:
@@ -530,7 +506,7 @@ output files:
 - `solid_thm_out.e`, an Exodus file with the MOOSE solution for the THM-MOOSE calculation
 - `solid_thm_out_thm0.e`, an Exodus file with the THM solution
 
-All CSV output files are placed in the `gas_compact_cht/csv` directory. In discussing
+All CSV output files are placed in the `csv` directory. In discussing
 the results, we will refer to the nominal Dittus-Boelter THM simulations as the
 "baseline" THM-MOOSE simulations. In [#htc] when we correct the Dittus-Boelter correlation
 based on the NekRS-MOOSE simulations, we will refer to those THM-MOOSE simulations
@@ -586,7 +562,7 @@ section, we will describe how Cardinal can be used to generate these heat transf
 
 In this section, we use Cardinal to
 correct the THM closures to better reflect the unit cell geometry and thermal-fluid conditions
-of interest. Due to limited scope, a correction is only computed at the single
+of interest. A correction is only computed at the single
 Reynolds and Prandtl numbers characterizing the unit cell ($Re=223214$ and $Pr=0.655$). That is, a new coefficient $c$ is computed for a Dittus-Boelter type correlation with the same functional dependence on $Re$ and $Pr$,
 
 \begin{equation}
@@ -676,7 +652,6 @@ effects of convective heat transfer and the imposed sinusoidal power distributio
   style=width:80%;margin-left:auto;margin-right:auto
 
 Finally, [unit_cell_cht_temps] compares the solutions for radially-averaged temperatures
-(which are plotted using a Python script that reads the output CSV files)
 along the flow direction. As already discussed, the solid temperatures
 match very well between NekRS-MOOSE and THM-MOOSE and match the expected behavior
 for a sinusoidal power distribution. The fluid bulk temperature increases along
