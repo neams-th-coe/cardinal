@@ -24,7 +24,7 @@ Extensions:
                 Tutorials: tutorials/index.md
                 Input File Syntax: source/index.md
                 Code-Specific Theory: theory/index.md
-                Doxygen: doxygen/html/classes.html
+                Doxygen: doxygen.md
                 Running on HPC: hpc.md
             Publications: publications.md
             Contact: contact.md
