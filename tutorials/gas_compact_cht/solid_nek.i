@@ -19,6 +19,10 @@ q0 = ${fparse unit_cell_power / (4.0 * unit_cell_height * compact_diameter * com
 
 # Time step interval on which to exchange data between NekRS and MOOSE
 N = 50
+U_ref = ${fparse mdot / (n_bundles * n_coolant_channels_per_block) / fluid_density / (pi * channel_diameter * channel_diameter / 4.0)}
+t0 = ${fparse channel_diameter / U_ref}
+nek_dt = 6e-3
+
 
 [Mesh]
   type = FileMesh
@@ -208,10 +212,6 @@ N = 50
     to_multi_app = nek
   []
 []
-
-U_ref = ${fparse mdot / (n_bundles * n_coolant_channels_per_block) / fluid_density / (pi * channel_diameter * channel_diameter / 4.0)}
-t0 = ${fparse channel_diameter / U_ref}
-nek_dt = 6e-3
 
 [Executioner]
   type = Transient

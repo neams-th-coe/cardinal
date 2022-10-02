@@ -6,6 +6,16 @@ In this tutorial, you will learn how to:
 - Create checkpoint files for MOOSE simulations
 - Use checkpoint files to restart coupled NekRS-MOOSE simulations
 
+To access this tutorial,
+
+```
+cd cardinal/tutorials/restart_nek_and_moose
+```
+
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
+!alert-end!
+
 ## Creating checkpoint files
 
 NekRS checkpoint file output is controlled
@@ -28,7 +38,7 @@ for the previous and current MOOSE simulations must match.
 To run these input files and create our checkpoint files,
 
 ```
-cd tutorials/restart_nek_and_moose/create_checkpoints
+cd create_checkpoints
 cardinal-opt -i main.i
 ```
 
@@ -65,6 +75,6 @@ the coupled MOOSE file also to zero.
 To run the simulation with restarted fields,
 
 ```
-cd restart_nek_and_moose/read_from_checkpoints
+cd read_from_checkpoints
 cardinal-opt -i main.i
 ```

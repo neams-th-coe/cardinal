@@ -1,61 +1,55 @@
-# Tutorial 8A: Multiphysics for a TRISO Gas-Cooled Compact
+# Multiphysics for a TRISO Gas-Cooled Compact
 
 In this tutorial, you will learn how to:
 
-- Couple OpenMC, NekRS/THM, and MOOSE together for multiphysics Monte Carlo transport and thermal-fluid analysis
+- Couple OpenMC, NekRS/THM, and MOOSE together for multiphysics modeling of a [!ac](TRISO) compact
 - Use two different MultiApp hierarchies to achieve different data transfers
 - Use triggers to automatically terminate the OpenMC active batches once reaching the desired statistical uncertainty
 - Automatically detect steady state
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
-
-- [NekRSMesh](/mesh/NekRSMesh.md)
-- [NekRSProblem](/problems/NekRSProblem.md)
-- [NekTimeStepper](/timesteppers/NekTimeStepper.md)
-- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
-
-We recommend quickly reading this documentation before proceeding
-with this tutorial.
 This tutorial also requires you to download mesh files and a NekRS
 restart file from Box. Please download the files from the `gas_compact_multiphysics`
 folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89) and place
 these within the same directory structure in `tutorials/gas_compact_multiphysics`.
+
+!alert! note title=Computing Needs
+This tutorial requires [!ac](HPC) resources to run. Please still read this tutorial
+if you do not have resources, because you will apply some concepts from this tutorial
+in [Tutorial 8B](pincell_multiphysics.md), which you can run on a typical personal
+computer.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module, with fluid
-feedback provided by *either* NekRS or THM, a set of 1-D systems level thermal-fluids
-kernels in the MOOSE framework. With NekRS, we will solve the wall-resolved $k$-$\tau$
-[!ac](RANS) equations, while THM will solve the 1-D area-averaged Navier-Stokes
-equations [!cite](relap7). Two different multiapp hierarchies will be used in order
-to demonstrate both the flexibility of the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-system and Cardinal, where the same OpenMC model can be used to provide
-feedback to different combinations of MOOSE applications (a general feature that
-applies to all MOOSE applications).
+feedback provided by *either* NekRS or THM,
 
-In this tutorial, OpenMC will receive temperature feedback from the MOOSE heat
+- NekRS: we solve the wall-resolved $k$-\$tau$ [!ac](RANS) equations
+- THM: we solve the 1-D area-averaged Navier-Stokes equations using the
+  [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+
+Two different multiapp hierarchies will be used in order
+to demonstrate the flexibility of the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+system. The same OpenMC model can be used to provide
+feedback to different combinations of MOOSE applications.
+
+In this tutorial, OpenMC receives temperature feedback from the MOOSE heat
 conduction module (for the solid regions) and NekRS/THM (for the fluid regions). Density
-feedback will be provided by NekRS/THM for the fluid regions. This tutorial models a
+feedback is provided by NekRS/THM for the fluid regions. This tutorial models a
 partial-height [!ac](TRISO)-fueled unit cell of a prismatic gas reactor assembly, and is
 a continuation of the [!ac](CHT) [Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html).
 
 This tutorial was developed with support from the NEAMS Thermal Fluids Center
-of Excellence. A technical report [!cite](novak_coe) describing the physics models,
-mesh refinement studies, and auxiliary analyses provides additional context and application
-examples beyond the scope of this tutorial.
+of Excellence and is described in more detail in our journal article [!cite](novak2022_cardinal).
 
 ## Geometry and Computational Model
 
-The geometry consists of a unit cell of a [!ac](TRISO)-fueled
-gas reactor compact, loosely based on a point design available in the literature
-[!cite](sterbentz).
+The geometry consists of a [!ac](TRISO)-fueled
+gas reactor compact unit cell [!cite](sterbentz).
 A top-down view of the geometry is shown in
 [unit_cell]. The fuel is cooled by helium flowing in a cylindrical channel
 of diameter $d_c$. Cylindrical fuel compacts containing randomly-dispersed
 [!ac](TRISO) particles at 15% packing fraction
 are arranged around the coolant channel in a triangular
-lattice; the distance between the compact and coolant channel centers
-is $p_{cf}$. The diameter of the fuel compact cylinders is $d_f$.
+lattice.
 The [!ac](TRISO) particles use a conventional design that consists of a central
 fissile uranium oxycarbide kernel enclosed in a carbon buffer, an inner
 [!ac](PyC) layer, a silicon carbide layer, and finally an outer
@@ -70,9 +64,9 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 !table id=table1 caption=Geometric specifications for a [!ac](TRISO)-fueled gas reactor compact
 | Parameter | Value (cm) |
 | :- | :- |
-| Coolant channel diameter | 1.6 |
-| Fuel compact diameter | 1.27 |
-| Fuel-to-coolant center distance | 1.628 |
+| Coolant channel diameter, $d_c$ | 1.6 |
+| Fuel compact diameter, $d_f$ | 1.27 |
+| Fuel-to-coolant center distance, $p_{cf}$ | 1.628 |
 | Height | 160 |
 | TRISO kernel radius | 214.85e-4 |
 | Buffer layer radius | 314.85e-4 |
@@ -88,10 +82,10 @@ hierarchies are used in this tutorial:
 - A "tree" design where each application has a single "parent" application,
   but multiple "child" applications
 
-[multiapps] shows a conceptual depiction of the application hierarchies used
-in this tutorial; these will be described in greater detail when discussing the Cardinal
-input files for this tutorial, but are introduced here to assist with describing
-a few aspects of the single-physics models in the following sections. The circled
+[multiapps] shows a conceptual depiction of these hierarchies.
+We will describe these in greater detail later,
+but introduce them here to assist with describing
+a few aspects of the single-physics models. The circled
 numbers indicate the order in which the applications run.
 
 Solid lines
@@ -120,8 +114,8 @@ the desired target application.
 The OpenMC model is built using [!ac](CSG). The [!ac](TRISO) positions are
 sampled using the [!ac](RSA) [algorithm in OpenMC](https://docs.openmc.org/en/stable/examples/triso.html).
 OpenMC's Python [!ac](API) is
-used to create the model with the script shown below. First, we define materials
-for the various regions. Next, we create a single [!ac](TRISO) particle universe
+used to create the model with the script shown below. First, we define materials.
+Next, we create a single [!ac](TRISO) particle universe
 consisting of the five layers of the particle and an infinite extent of graphite
 filling all other space. We then pack pack uniform-radius spheres into a cylindrical
 region representing a fuel compact, setting each sphere to be filled with the
@@ -131,8 +125,8 @@ region representing a fuel compact, setting each sphere to be filled with the
 
 Finally, we loop over
 $n_l$ axial layers and create unique cells for each of the six compacts, the graphite
-block, and the coolant. This means that each fuel compact and graphite block receives
-a unique temperature from MOOSE in each axial layer. The level on which we will apply
+block, and the coolant. Recall that we need unique cells in order for each region to obtain a
+a unique temperature from MOOSE. The level on which we will apply
 feedback from MOOSE is set to 1 because each layer is a component in a lattice nested once
 with respect to the highest level. To accelerate the particle tracking, we:
 
@@ -154,7 +148,7 @@ For the "single-stack" MultiApp hierarchy, OpenMC runs first, so the initial
 temperature is set to uniform in the radial direction and given by a linear variation
 between the inlet and outlet fluid temperatures. The fluid density is then set using
 the ideal gas [!ac](EOS) with pressure taken as the fixed outlet of 7.1 MPa given the
-temerature, i.e. $\rho_f(P, T)$. For the "tree" MultiApp hierarchy, OpenMC insteady runs
+temperature, i.e. $\rho_f(P, T)$. For the "tree" MultiApp hierarchy, OpenMC insteady runs
 after the MOOSE heat conduction module, but before THM. For this structure, initial
 conditions are only required for fluid temperature and density, which are taken as the
 same initial conditions as for the "single-stack" case.
@@ -162,7 +156,7 @@ same initial conditions as for the "single-stack" case.
 To create the XML files required to run OpenMC, run the script:
 
 ```
-$ python unit_cell.py
+python unit_cell.py
 ```
 
 You can also use the XML files checked in to the `tutorials/gas_compact_multiphysics` directory.
@@ -171,8 +165,8 @@ You can also use the XML files checked in to the `tutorials/gas_compact_multiphy
 
 !include steady_hc.md
 
-The solid mesh is shown in [solid_mesh]; the only sideset defined in the domain
-is the coolant channel surface. The [!ac](TRISO) particles are homogenized into
+The solid mesh is shown in [solid_mesh].
+The [!ac](TRISO) particles are homogenized into
 the compact regions - all material properties in the heterogeneous regions
 are taken as volume averages of the various constituent materials.
 To simplify the specification of
@@ -205,22 +199,20 @@ required in the NekRS simulation. To accelerate the overall coupled solve
 that is of interest in this tutorial, the NekRS model is split into a series of calculations:
 
 1. We first run a partial-height, periodic flow-only case
-   to obtain converged pressure, velocity, and turbulent viscosity distributions.
-2. Then, we extrapolate the velocity and turbulent viscosity to the full-height case.
-3. We use the converged, full-height velocity and turbulent viscosity distributions
+   to obtain converged $P$, $\vec{u}$, and $\mu_T$ distributions.
+2. Then, we extrapolate the $\vec{u}$ and $\mu_T$ to the full-height case.
+3. We use the converged, full-height $\vec{u}$ and $\mu_T$ distributions
    to transport a temperature passive scalar in a [!ac](CHT) calculation with MOOSE.
 4. Finally, we use the converged [!ac](CHT) case as an initial condition for the multiphysics
    simulation with OpenMC and MOOSE feedback.
 
 Steps 1-3 were performed in [Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html) -
-for brevity, we skip repeating the discussion of steps 1-3, and instead refer you to
-the previous tutorial.
+for brevity, we skip repeating the discussion of steps 1-3.
 
-For the multiphysics case, we will load this restart file, compute $k_T$ from the
+For the multiphysics case, we will load the restart file produced from step 3, compute $k_T$ from the
 loaded solutions for $k$ and $\tau$, and then transport temperature with coupling to MOOSE
 heat conduction and OpenMC particle transport.
-Let's now describe the NekRS input files needed for the passive scalar solve.
-These files are:
+Let's now describe the NekRS input files needed for the passive scalar solve:
 
 - `ranstube.re2`: NekRS mesh
 - `ranstube.par`: High-level settings for the solver, boundary condition mappings to sidesets, and the equations to solve
@@ -242,12 +234,12 @@ a shorter height.
   style=width:60%;margin-left:auto;margin-right:auto
 
 Next, the `.par` file contains problem setup information.
-This input sets up a nondimensional passive scalar solution, loading pressure, velocity,
-$k$, and $\tau$ from a restart file. In order to "freeze," or turn off the pressure, velocity,
-$k$, and $\tau$ solves, we set `solver = none` in the `[VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
+This input sets up a nondimensional passive scalar solution, loading $P$, $\vec{u}$,
+$k$, and $\tau$ from a restart file. We "freeze" the flow by setting
+`solver = none` in the `[VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
 and `[SCALAR02]` ($\tau$ passive scalar) blocks. In the nondimensional formulation,
 the "viscosity" becomes $1/Re$, where $Re$ is the Reynolds number, while the
-"thermal conductivity" becomes $1/Pe$, where $Pe$ is the Peclet number. There nondimensional
+"thermal conductivity" becomes $1/Pe$, where $Pe$ is the Peclet number. These nondimensional
 numbers are used to set various diffusion coefficients in the governing equations
 with syntax like `-223214`, which is equivalent in NekRS syntax to $\frac{1}{223214}$.
 The only equation that NekRS will solve is for temperature.
@@ -257,7 +249,7 @@ The only equation that NekRS will solve is for temperature.
 Next, the `.udf` file is used to setup initial conditions and define how
 $k_T$ should be computed based on $Pr_T$ and the restart values of $k$ and $\tau$.
 In `turbulent_props`, a user-defined function, we use $k_f$ from the input file
-in combination with the $Pr_T$ and $mu_T$ (read from the restart file later in
+in combination with the $Pr_T$ and $\mu_T$ (read from the restart file later in
 the `.udf` file) to adjust the total diffusion coefficient on temperature to
 $k_f+k_T$ according to [eq:PrT]. This adjustment must happen on device, in a new GPU kernel we name
 `scalarScaledAddKernel`. This kernel will be defined in the `.oudf` file; we
@@ -277,14 +269,14 @@ $T_{ref}$), while the fluid-solid interface will receive a heat flux from MOOSE.
 !listing /tutorials/gas_compact_multiphysics/ranstube.oudf language=cpp
 
 For this tutorial, NekRS runs last in the "single-stack" MultiApp hierarchy,
-so no initial conditions are required aside from the temperature, velocity,
+so no initial conditions are required aside from the $T$, $\vec{u}$,
 and $\mu_T$ taken from the `converged_cht.fld` restart file on Box.
 
 ### THM Model
 
 !include thm.md
 
-The converged THM mesh contains 150 elements; the mesh is constucted automatically
+The THM mesh contains 150 elements; the mesh is constucted automatically
 within THM. To simplify the specification of material properties, the fluid geometry
 uses a length unit of meters. The heat flux imposed in the THM elements is obtained
 by area averaging the heat flux from the heat conduction model in 150 layers along

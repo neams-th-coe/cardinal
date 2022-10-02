@@ -1,32 +1,26 @@
-# Tutorial 6B: UO$_2$ Pebbles
+# UO$_2$ Pebbles
 
 In this tutorial, you will learn how to:
 
-- Couple OpenMC via temperature and heat source feedback to MOOSE
+- Couple OpenMC via temperature and heat source feedback to MOOSE for pebbles
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Couple OpenMC solves in units of centimeters with MOOSE solves in units of meters
 - Repeat the same mesh tally several times throughout the OpenMC domain
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
+To access this tutorial,
 
-- [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+```
+cd cardinal/tutorials/pebbles
+```
 
-We recommend quickly reading this documentation before proceeding
-with this tutorial. This
+This
 tutorial also requires you to download a mesh file from Box. Please download
 the files from the `pebbles` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within the same directory structure in `tutorials/pebbles`.
-!alert-end!
 
-This tutorial describes how to use Cardinal to perform temperature and heat
-source coupling of OpenMC and MOOSE for modeling solid UO$_2$ pebbles in a
-lattice. While "pebbles" in nuclear applications typically refer to
-[!ac](TRISO) fuel geometries, this tutorial only considers homogeneous
-pebbles so as to serve as a stepping stone to modeling heterogeneous
-[!ac](TRISO) geometries in [Tutorial 6C](gas_compact.md). Here, we first emphasize
-important features of the OpenMC wrapping having to do with lattices
-and unstructured mesh tallies.
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
+!alert-end!
 
 ## Geometry and Computational Models
 
@@ -37,18 +31,25 @@ are located at $(0, 0, 2)$ cm, $(0, 0, 6)$ cm, and $(0, 0, 10)$ cm.
 FLiBe coolant occupies the space around the pebbles. Heat is produced in the
 pebbles; we assume the total power is 1500 W.
 
+While "pebbles" in nuclear applications typically refer to
+[!ac](TRISO) fuel geometries, this tutorial only considers homogeneous
+pebbles so as to serve as a stepping stone to modeling heterogeneous
+[!ac](TRISO) geometries in [Tutorial 6C](gas_compact.md). Here, we first emphasize
+important features of the OpenMC wrapping having to do with lattices
+and unstructured mesh tallies.
+
 ### Heat Conduction Model
 
 !include steady_hc.md
 
-The solid mesh is shown in [solid_mesh].
-The only sideset in the domain is the surface of the pebbles, which is sideset 1.
+The solid mesh is shown in [solid_mesh]. The pebble surface is sideset 1.
 The MOOSE solid problem is set up with a length unit of meters,
 which is convenient
 for heat transfer applications because
 material properties for thermal-fluids physics are almost always given in SI units. Further,
 many MOOSE physics modules inherently assume SI units, such as the
-[fluid property module](https://mooseframework.inl.gov/modules/fluid_properties/index.html).
+[fluid property module](https://mooseframework.inl.gov/modules/fluid_properties/index.html)
+and [solid property module](https://mooseframework.inl.gov/modules/solid_properties/index.html).
 
 !media pebble_mesh.png
   id=solid_mesh
@@ -118,7 +119,7 @@ model remain fixed at the values set in the OpenMC input files.
 To create the XML files required to run OpenMC, run the script:
 
 ```
-$ python make_openmc_model.py
+python make_openmc_model.py
 ```
 
 You can also use the XML files checked in to the `tutorials/pebbles` directory.
@@ -126,8 +127,8 @@ You can also use the XML files checked in to the `tutorials/pebbles` directory.
 ## Multiphysics Coupling
 
 In this section, OpenMC and MOOSE are coupled for heat source and temperature feedback for
-the solid regions of a stack of three pebbles. All input files are present in the
-`tutorials/pebbles` directory. The following sub-sections describe these files.
+the solid regions of a stack of three pebbles.
+The following sub-sections describe these files.
 
 ### Solid Input Files
 
@@ -201,7 +202,6 @@ are repeated in the lattice nested one level below the root universe, we set the
 The `scaling` parameter is used to indicate a multiplicative factor that should be
 applied to the `[Mesh]` in order to get to units of centimeters.
 Because the `[Mesh]` is in units of meters, we set `scaling = 100.0`.
-
 This scaling factor is
 applied within the `OpenMCCellAverageProblem::findCell` routine that maps MOOSE elements to OpenMC [!ac](CSG) cells -
 no actual changes are made to the mesh in the `[Mesh]` block.
@@ -216,13 +216,13 @@ define several postprocessors.
 
 ## Execution and Postprocessing
 
-To run the coupled calculation, run the following from the command line.
+To run the coupled calculation,
 
 ```
-$ mpiexec -np 8 cardinal-opt -i solid.i --n-threads=2
+mpiexec -np 2 cardinal-opt -i solid.i --n-threads=2
 ```
 
-This will run both MOOSE and OpenMC with 8 [!ac](MPI) processes and 2 OpenMP threads.
+This will run both MOOSE and OpenMC with 8 MPI processes and 2 OpenMP threads per rank.
 When the simulation has completed, you will have created a number of different output files:
 
 - `solid_out.e`, an Exodus file with the solid mesh and solution
@@ -301,10 +301,10 @@ In addition, because our sphere mesh does not perfectly preserve the volume of t
 by the sum of the mesh tally. Otherwise, we would miss a small amount of power produced
 within the [!ac](CSG) spheres, but slightly outside the faceted surface of the sphere mesh. Setting this parameter to false ensures that the tally normalization is correct in that the heat sources are normalized by a tally sum over the same tally domain in the OpenMC model.
 
-To run this input, enter the following in a command line.
+To run this input,
 
 ```
-$ mpiexec -np 8 cardinal-opt -i solid_um.i --n-threads=2
+mpiexec -np 2 cardinal-opt -i solid_um.i --n-threads=2
 ```
 
 [mesh3] shows the heat source computed by OpenMC, the heat source applied in MOOSE,

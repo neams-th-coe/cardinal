@@ -29,9 +29,9 @@
 
   # subtracts the two pressure postprocessors
   [dP]
-    type = LinearCombinationPostprocessor
-    pp_names = 'outlet_p inlet_p'
-    pp_coefs = '1.0 -1.0'
+    type = DifferencePostprocessor
+    value1 = outlet_p
+    value2 = inlet_p
   []
 []
 

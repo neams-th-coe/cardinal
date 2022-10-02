@@ -1,40 +1,33 @@
-# Tutorial 2B: Conjugate Heat Transfer for Laminar Pin Bundle Flow
+# Conjugate Heat Transfer for Laminar Pin Bundle Flow
 
 In this tutorial, you will learn how to:
 
-- Couple NekRS with MOOSE for [!ac](CHT)
+- Couple NekRS with MOOSE for [!ac](CHT) for a 7-pin bundle
 - Solve both NekRS and MOOSE in dimensional form
 - Reduce the amount of copy to/from commands between host and device for NekRS
   (an advanced user feature)
 
-!alert! note
-This tutorial makes use of the following major Cardinal classes:
+To access this tutorial,
 
-- [NekRSMesh](/mesh/NekRSMesh.md)
-- [NekTimeStepper](/timesteppers/NekTimeStepper.md)
-- [NekRSProblem](/problems/NekRSProblem.md)
+```
+cd cardinal/tutorials/sfr_7pin
+```
 
-We recommend quickly reading this documentation before proceeding
-with this tutorial. If you have not completed [Tutorial 2A](cht1.md),
-please first read that tutorial to gain most of the background information
-related to coupling NekRS and MOOSE for [!ac](CHT).
 This tutorial also requires you to download some mesh files from Box.
 Please download the files from the `sfr_7pin` folder
 [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
 and place these files within the same directory structure in
 `tutorials/sfr_7pin`.
-!alert-end!
 
-This tutorial describes how to use Cardinal to perform [!ac](CHT) coupling of NekRS
-to MOOSE for flow modeling in a bare 7-pin [!ac](SFR) bundle.
+!alert! note title=Computing Needs
+No special computing needs are required for this tutorial.
+!alert-end!
 
 ## Geometry and Computational Model
 
-This section describes the geometry for a 7-pin [!ac](SFR) bare bundle. This geometry
-is a reduced-size version of the fuel bundles in the [!ac](ABTR) [!cite](abtr). Rather
-than model the entire 217-pin bundle, only 7 pins for a single wire pitch
-are modeled. The spacing between the outermost row of pins and
-the duct matches the nominal design. Relevant dimensions are summarized in
+The geometry
+is a shorter, 7-pin version of the fuel bundles in the [!ac](ABTR) [!cite](abtr).
+Relevant dimensions are summarized in
 [table1].
 
 !table id=table1 caption=Geometric and operating conditions for the [!ac](ABTR), based on [!cite](abtr)
@@ -49,9 +42,7 @@ the duct matches the nominal design. Relevant dimensions are summarized in
 
 Heat is produced in the pellet region and transfers by radiation and conduction across
 the pellet-clad gap to the cladding. Sodium flows around the pins to remove the fission heat.
-The total core power of 250 MWth is assumed uniformly distributed amongst the 54 fueled bundles,
-over the entire active axial heigth of 0.8 m. The power in the solid phase is therefore
-set to
+The power in the solid phase is set equal to
 
 \begin{equation}
 \dot{q}_s=\frac{250 \text{ MWth}}{n_b n_p H \pi R_p^2}
@@ -67,21 +58,7 @@ The MOOSE heat conduction module is used to solve for energy conservation in the
 
 !include heat_eqn.md
 
-### NekRS Model
-
-NekRS is used to solve the incompressible Navier-Stokes equations,
-
-!include ins.md
-
-## Boundary Conditions
-
-This section describes the boundary conditions imposed on the fluid and solid phases. When
-the meshes are described in [#meshing], descriptive words such as "inlet" and "outlet"
-will be directly tied to sidesets in the mesh to enhance the verbal description here.
-
-#### Solid Boundary Conditions
-
-For the solid domain, the outer surface of the duct and the tops and bottoms of the
+The outer surface of the duct and the tops and bottoms of the
 pins and ducts are assumed insulated. At fluid-solid interfaces, the solid temperature
 is imposed as a Dirichlet condition, where NekRS computes the surface temperature.
 
@@ -113,7 +90,14 @@ where $r_2>r_1$ are the radial coordinates associated with the outer and inner r
 of the cylindrical annulus, $L$ is the height of the annulus, and $k$ is the
 thermal conductivity of the annulus material.
 
-#### Fluid Boundary Conditions
+Both the solid temperature and the surface temperature boundary condition (that will
+be provided by NekRS) are set to an initial condition of 500 K.
+
+### NekRS Model
+
+NekRS is used to solve the incompressible Navier-Stokes equations,
+
+!include ins.md
 
 At the inlet, the fluid temperature is taken as 355&deg;C. The inlet velocity
 is selected such that the mass flowrate is 0.1 kg/s, which is low enough that the flow is
@@ -124,41 +108,34 @@ the energy conservation equation. On all solid-fluid interfaces, the velocity is
 to the no-slip condition and a heat flux is imposed in the energy conservation equation,
 where MOOSE computes the surface heat flux.
 
-## Initial Conditions
-
-For the fluid phase, the initial pressure is set to zero. Both the velocity and temperature
-are set to uniform initial conditions that match the inlet conditions. For the solid phase,
-both the solid temperature and the surface temperature boundary condition (that will
-be provided by NekRS) are set to 500 K.
+The initial pressure is set to zero. Both the velocity and temperature
+are set to uniform initial conditions that match the inlet conditions.
 
 ## Meshing
   id=meshing
 
-This section describes the meshes used for the fluid and solid phases. For both phases,
-the Cubit meshing software [!cite](cubit) is used to programmatically create the meshes.
-For the solid phase, a mesh for the duct is combined with [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html)
-to generate the mesh for the pellets and clad.
+A combination of Cubit [!cite](cubit) and MOOSE
+[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html)
+are used to generate the meshes for the fluid and solid phases.
 
 ### Solid Mesh
 
-The complete solid mesh is shown in [solid_mesh]; because this mesh is generated using
-the [MeshGenerator](https://mooseframework.inl.gov/syntax/Mesh/)
-system in MOOSE, there is not a unified mesh file that describes the solid mesh.
-You can view the solid mesh either by running the simulation (and viewing the mesh
+The solid mesh is shown in [solid_mesh]; because this mesh is generated using
+a combination of Cubit-generated meshes (for the duct) and
+MOOSE [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/) (for everything else), so you can
+view the mesh by running the simulation (and viewing the mesh
 on which the results are displayed), or simply by running the solid input file in
 mesh generation mode:
 
 !listing
-$ cardinal-opt -i solid.i --mesh-only
+cardinal-opt -i solid.i --mesh-only
 
 The boundary names are illustrated towards
-the right by showing only the highlighted surface to which each boundary corresponds. Names
-are shown in Courier font. A unique block ID is used for the set of elements in the cladding,
+the right by showing only the highlighted surface to which each boundary corresponds.
+A unique block ID is used for the set of elements in the cladding,
 the duct, and for the pellet elements. Two block IDs are required to describe the pellet
-regions because two different element types are present in the pellet region due to how
-the [AnnularMeshGenerator](https://mooseframework.inl.gov/source/meshgenerators/AnnularMeshGenerator.html)
-creates meshes for non-annular cylinders. As can be seen in [solid_mesh], the
-pellet-clad gap is unmeshed.
+regions because two different element types (quads and prisms) are present in the pellet region.
+The pellet-clad gap is unmeshed.
 
 !media sfr_solid_mesh.png
   id=solid_mesh
@@ -169,14 +146,11 @@ Unique boundary names are set for each boundary to which we will apply a unique 
 condition. Because we will apply insulated boundary conditions on the top and bottom
 surfaces, as well as on the outside of the duct, we don't need to define sidesets (because
 the "do-nothing" boundary condition in the finite element method is a zero-flux condition).
-Finally, block IDs are specified for the different regions of the geometry to facilitate
-setting different material properties.
 
 ### Fluid Mesh
 
 The complete fluid mesh is shown in [fluid_mesh]; the boundary names are illustrated towards the right
-by showing only the highlighted surface to which each boundary corresponds. Names are
-shown in Courier font.
+by showing only the highlighted surface to which each boundary corresponds.
 
 !media sfr_fluid_mesh.png
   id=fluid_mesh
@@ -192,8 +166,7 @@ handle any differences in the mesh.
 ## CHT Coupling
 
 In this section, NekRS and MOOSE are coupled for [!ac](CHT) between the sodium
-coolant and the solid pincells and duct. All input files are present in the
-`tutorials/sfr_7pin` directory.
+coolant and the solid pincells and duct.
 
 ### Solid Input Files
 
@@ -254,10 +227,9 @@ auxiliary kernel is used.
 
 The [HeatConductionMaterial](https://mooseframework.inl.gov/source/materials/HeatConductionMaterial.html)
 is then used to specify functional-forms for the thermal conductivity
-of the pellet, clad, and duct. For this particular material, you can use
+of the pellet, clad, and duct. For the [HeatConductionMaterial](https://mooseframework.inl.gov/source/materials/HeatConductionMaterial.html), you can use
 `t` in [ParsedFunctions](https://mooseframework.inl.gov/source/functions/MooseParsedFunction.html)
-to represent temperature (because the [HeatConductionMaterial](https://mooseframework.inl.gov/source/materials/HeatConductionMaterial.html)
-permits this).
+to represent temperature.
 
 !listing tutorials/sfr_7pin/solid.i
   start=Functions
@@ -275,7 +247,7 @@ the surface temperature computed by NekRS.
 Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
  and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal
-and MOOSE. The MOOSE heat conduction module is here run as the master application, with
+and MOOSE. The MOOSE heat conduction module is here run as the main application, with
 the NekRS wrapping run as the sub-application.
 Three transfers are required to couple Cardinal and MOOSE; the first is a transfer
 of surface temperature from Cardinal (specifically, the NekRS wrapping) to MOOSE.
@@ -304,28 +276,28 @@ detail the data transfers that occur when sub-cycling. Please note that this is 
 advanced feature added for very large runs to squeeze out as much performance as possible -
 understanding this feature is not necessary for using Cardinal.
 
-Consider the case where the master application has a time step of 1,
-but NekRS has a time step of 0.2. After the solution of the master application, the heat flux
+Consider the case where the main application has a time step of 1,
+but NekRS has a time step of 0.2. After the solution of the main application, the heat flux
 transfer into NekRS consists of several steps:
 
-1. Transfer from `avg_flux` in the master application to the `avg_flux` receiver variable in
+1. Transfer from `avg_flux` in the main application to the `avg_flux` receiver variable in
    the MOOSE-wrapped NekRS app.
    This is the transfer that happens in the `Transfers` block.
 2. Once the heat flux is available in the `avg_flux` variable in the `nek.i` input, transfer
-   that heat flux into NekRS on the host (i.e. the [!ac](CPU)) by interpolating from the
+   that heat flux into NekRS on the host (i.e. the CPU) by interpolating from the
    [NekRSMesh](/mesh/NekRSMesh.md) to the [!ac](GLL) points.
 3. Once the heat flux has been normalized on the host, it is then copied from the host to the device (i.e. the parallel backend,
-   which will be either a [!ac](CPU) or [!ac](GPU)).
+   which will be either a CPU or GPU).
 
-If NekRS is run with a much smaller time step than the master application,
+If NekRS is run with a much smaller time step than the main application,
 steps 2 and 3 can be omitted to save on the interpolation from the [NekRSMesh](/mesh/NekRSMesh.md)
 to NekRS's [!ac](GLL) points *and* on the copy from the host to the device.
 Unfortunately, MOOSE's design does not propagate any information about the
-coupling hierarchy from a master application to its sub-application(s). So, the use
+coupling hierarchy from a main application to its sub-application(s). So, the use
 of this postprocessor (plus some settings in [NekRSProblem](/problems/NekRSProblem.md), to be
 discussed shortly) can be used to only perform steps 2 and 3 *if the time stepping
 is on the synchronization points* between NekRS and MOOSE. In other words,
-if NekRS runs with a time step 100 times smaller than a master application,
+if NekRS runs with a time step 100 times smaller than a main application,
 this feature of [NekRSProblem](/problems/NekRSProblem.md) can be used to reduce the mesh interpolation
 and host-to-device copying by a factor of 100. By transferring this "dummy"
 postprocessor to the NekRS wrapping, a signal of the synchronization points,
@@ -338,8 +310,7 @@ Finally, we specify an executioner and an exodus output for the solid solution.
 
 ### Fluid Input Files
 
-The fluid phase is solved with NekRS.
-The wrapping of NekRS as a MOOSE application is specified
+The fluid phase is solved with NekRS, and is specified
 in the `nek.i` file. For [!ac](CHT) coupling, first we construct a mirror of NekRS's
 mesh on the boundaries of interest - the IDs associated with the fluid-solid interfaces
 (as known to NekRS) are boundaries 1 and 2.
@@ -348,7 +319,12 @@ mesh on the boundaries of interest - the IDs associated with the fluid-solid int
   block=Mesh
 
 Next, [NekRSProblem](/problems/NekRSProblem.md) is used to describe all aspects of the
-NekRS wrapping. We use `synchronization_interval = parent_app` to
+NekRS wrapping.
+
+!listing tutorials/sfr_7pin/nek.i
+  block=Problem
+
+We use `synchronization_interval = parent_app` to
 indicate that we want to limit the data interpolations from NekRS's [!ac](GLL) points
 to the mesh mirror, and the copies between CPU/GPU, to only occur when new coupling data is
 to be sent/received from the coupled MOOSE application. When this option is used,
@@ -364,14 +340,14 @@ postprocessor named `transfer_in`, as if the following were added to the input f
 []
 
 The `transfer_in` postprocessor simply receives
-the `synchronize` postprocessor from the master application, as shown in
+the `synchronize` postprocessor from the main application, as shown in
 the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
 in the solid input file. The value of this postprocessor is then used to
 infer whether new data is available/requested from the coupled MOOSE application.
 
 We specify a number of other postprocessors in order to query the NekRS solution
 for each time step. Note that the
-`flux_integral` receiver postprocessor that the master application sends the flux
+`flux_integral` receiver postprocessor that the main application sends the flux
 integral to does not appear in the input - this postprocessor, like `temp` and
 `avg_flux` auxiliary variables, are added automatically by [NekRSProblem](/problems/NekRSProblem.md).
 
@@ -381,7 +357,7 @@ integral to does not appear in the input - this postprocessor, like `temp` and
 Finally, we specify a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
 executioner and [NekTimeStepper](/timesteppers/NekTimeStepper.md) in order for
 NekRS to choose its time step (subject to any synchronization points specified
-by the master application). We also specify an Exodus output file format.
+by the main application). We also specify an Exodus output file format.
 
 !listing tutorials/sfr_7pin/nek.i
   start=Executioner
@@ -396,18 +372,12 @@ to set up a standalone NekRS simulation -
 - `sfr_7pin.udf`: User-defined C++ functions for on-line postprocessing and model setup
 - `sfr_7pin.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and source terms
 
-A detailed description of all of the available parameters, settings, and use cases
-for these input files is available on the
-[NekRS documentation website](https://nekrsdoc.readthedocs.io/en/latest/input_files.html).
-Because the purpose of this analysis is to demonstrate Cardinal's capabilties, only
-the aspects of NekRS required to understand the present case will be covered. First,
-begin with the `sfr_7pin.par` file, shown in entirety below.
+Begin with the `sfr_7pin.par` file.
 
 !listing /tutorials/sfr_7pin/sfr_7pin.par
 
 This input differs from the `.par` file in [Tutorial 2A](cht1.md) in
-that the input is in dimensional form. Because the geometry is different,
-the sidesets and boundary conditions also differ.
+that the input is in dimensional form.
 Boundaries 1 and 2 will receive heat flux from MOOSE, so these two boundaries are set to
 flux boundaries, or `f` for the `[TEMPERATURE]` block. Other settings are largely the same.
 
@@ -429,15 +399,15 @@ parameters in a single place and use them multiple places (these functions are
 
 ## Execution and Postprocessing
 
-To run the pseudo-steady model, run the following from a command line:
+To run the pseudo-steady model,
 
 ```
-$ mpiexec -np 12 cardinal-opt -i solid.i
+mpiexec -np 4 cardinal-opt -i solid.i
 ```
 
 By using the `synchronization_interval = parent_app` feature, you will see in the screen output
 that the data transfers into NekRS only occur on synchronization points with the
-master application - all other time steps will omit the messages about normalizing
+main application - all other time steps will omit the messages about normalizing
 heat flux and extracting temperatures from NekRS.
 
 After converting the NekRS output files to a format viewable in Paraview
