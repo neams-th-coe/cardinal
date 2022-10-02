@@ -1,12 +1,20 @@
+# Incompressible Navier-Stokes Equations
+
+The incompressible Navier-Stokes equations solved in NekRS are conservation of mass,
+
 \begin{equation}
 \label{eq:nek_mass}
 \frac{\partial u_i}{\partial x_i}=0
 \end{equation}
 
+conservation of momentum,
+
 \begin{equation}
 \label{eq:nek_mom}
 \rho_f\left(\frac{\partial u_i}{\partial t}+u_j\frac{\partial u_i}{\partial x_j}\right)=-\frac{\partial P}{\partial x_i}+\frac{\partial \tau_{ij}}{\partial x_j}+\rho f_j
 \end{equation}
+
+and conservation of energy,
 
 \begin{equation}
 \label{eq:nek_energy}

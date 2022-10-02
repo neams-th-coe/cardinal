@@ -1,3 +1,7 @@
+# Conservation of Energy in Solids
+
+The conservation of energy equation is,
+
 \begin{equation}
 \label{eq:solid_eq}
 \rho_sC_{p,s}\frac{\partial T_s}{\partial t}-\frac{\partial}{\partial x_i}\left(k_s\frac{\partial T_s}{\partial x_i}\right)-\dot{q}_s=0

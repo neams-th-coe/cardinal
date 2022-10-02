@@ -54,10 +54,7 @@ radius of the fuel pellet.
 
 ### Heat Conduction Model
 
-The MOOSE heat conduction module is used to solve for energy conservation in the solid,
-
-!include heat_eqn.md
-
+The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
 The outer surface of the duct and the tops and bottoms of the
 pins and ducts are assumed insulated. At fluid-solid interfaces, the solid temperature
 is imposed as a Dirichlet condition, where NekRS computes the surface temperature.
@@ -95,10 +92,7 @@ be provided by NekRS) are set to an initial condition of 500 K.
 
 ### NekRS Model
 
-NekRS is used to solve the incompressible Navier-Stokes equations,
-
-!include ins.md
-
+NekRS is used to solve the [incompressible Navier-Stokes equations](theory/ins.md).
 At the inlet, the fluid temperature is taken as 355&deg;C. The inlet velocity
 is selected such that the mass flowrate is 0.1 kg/s, which is low enough that the flow is
 laminar and a turbulence model is not required for this pedagogical example.

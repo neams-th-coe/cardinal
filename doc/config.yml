@@ -17,8 +17,15 @@ Extensions:
         name: Cardinal
         repo: https://github.com/neams-th-coe/cardinal
         menu:
-            Getting Started: start.menu.md
-            Documentation: documentation.menu.md
+            Getting Started:
+                Installing Cardinal: start.md
+                How to Contribute: contributing.md
+            Documentation:
+                Tutorials: tutorials/index.md
+                Input File Syntax: source/index.md
+                Code-Specific Theory: theory/index.md
+                Doxygen: doxygen/html/classes.html
+                Running on HPC: hpc.md
             Publications: publications.md
             Contact: contact.md
             Help: faq.md
