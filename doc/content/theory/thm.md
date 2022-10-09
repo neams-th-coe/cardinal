@@ -1,4 +1,7 @@
-[!ac](THM) solves for conservation of mass, momentum, and energy with 1-D area averages of the Navier-Stokes equations,
+# 1-D Area-Averaged Navier-Stokes Equations
+
+The [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+ solves for conservation of mass, momentum, and energy with 1-D area averages of the Navier-Stokes equations,
 
 \begin{equation}
 \label{eq:thm1}
@@ -17,4 +20,4 @@
 
 where $x$ is the coordinate along the flow length, $A$ is the channel cross-sectional area, $\rho_f$ is the fluid density,
 $u$ is the $x$-component of velocity, $\tilde{P}$ is the average pressure on the curve boundary, $E_f$ is the fluid total energy,
-$f$ is the friction factor, $H_w$ is the wall heat transfer coefficient, $a_w$ is the heat transfer area density, $T_\text{wall}$ is the wall temperature, and $T_\text{bulk}$ is the area average bulk fluid temperature. The Churchill correlation is used for $f$ and the Dittus-Boelter correlation is used for $H_w$ [!cite](relap7).
+$f$ is the friction factor, $H_w$ is the wall heat transfer coefficient, $a_w$ is the heat transfer area density, $T_\text{wall}$ is the wall temperature, and $T_\text{bulk}$ is the area average bulk fluid temperature.

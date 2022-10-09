@@ -66,8 +66,8 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 
 ### Heat Conduction Model
 
-!include steady_hc.md
-
+The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md),
+with the time derivative neglected in order to more quickly approach steady state.
 The solid mesh is shown in [solid_mesh].
 The [!ac](TRISO) particles are homogenized into
 the compact regions - all material properties in the heterogeneous regions
@@ -97,7 +97,9 @@ between the inlet and the outlet based on the nominal temperature rise.
 
 ### NekRS Model
 
-!include ktau.md
+NekRS solves the [incompressible k-tau RANS equations](theory/ktau.md).
+To relate $\mu_T$ to $k_T$, $Pr_T=0.91$ is selected. The resolution of the mesh near all no-slip boundaries
+ensures that $y^+<1$ such that the NekRS model is a wall-resolved model.
 
 The inlet mass flowrate is 0.0905 kg/s; with the channel diameter of 1.6 cm and material
 properties of helium, this results in a Reynolds number of 223214 and a Prandtl number
@@ -179,7 +181,7 @@ $k_T$ should be computed based on $Pr_T$ and the restart values of $k$ and $\tau
 In `turbulent_props`, a user-defined function, we use $k_f$ from the input file
 in combination with the $Pr_T$ and $\mu_T$ (read from the restart file later in
 the `.udf` file) to adjust the total diffusion coefficient on temperature to
-$k_f+k_T$ according to [eq:PrT]. This adjustment must happen on device, in a new GPU kernel we name
+$k_f+k_T$ according to the [definition of turbulent Prandtl number](theory/ktau.md). This adjustment must happen on device, in a new GPU kernel we name
 `scalarScaledAddKernel`. This kernel will be defined in the `.oudf` file; we
 instruct the JIT compilation to compile this new kernel by calling
 `udfBuildKernel`.
@@ -187,7 +189,7 @@ instruct the JIT compilation to compile this new kernel by calling
 Then, in `UDF_Setup` we set an initial condition for fluid
 temperature (the first scalar in the `nrs->cds->S` array that holds all the
 scalars). In this function, we also store the value of $\mu_T$ computed in the
-restart file based on [eq:mu_ktau].
+restart file.
 
 !listing /tutorials/gas_compact_cht/ranstube.udf language=cpp
 
@@ -200,7 +202,8 @@ $T_{ref}$), while the fluid-solid interface will receive a heat flux from MOOSE.
 
 ### THM Model
 
-!include thm.md
+THM solves the [1-D area averages of the Navier-Stokes equations](theory/thm.md).
+The Churchill correlation is used for $f$ and the Dittus-Boelter correlation is used for $H_w$ [!cite](relap7).
 
 The THM mesh contains 150 elements; the mesh is constucted automatically
 within THM. To simplify the specification of material properties, the fluid geometry

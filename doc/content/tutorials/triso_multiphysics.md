@@ -163,8 +163,7 @@ You can also use the XML files checked in to the `tutorials/gas_compact_multiphy
 
 ### Heat Conduction Model
 
-!include steady_hc.md
-
+The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
 The solid mesh is shown in [solid_mesh].
 The [!ac](TRISO) particles are homogenized into
 the compact regions - all material properties in the heterogeneous regions
@@ -188,8 +187,7 @@ power is taken as uniform.
 
 ### NekRS Model
 
-!include ktau.md
-
+NekRS is used to solve the [incompressible k-tau RANS model](theory/ktau.md).
 The inlet mass flowrate is 0.0905 kg/s; with the channel diameter of 1.6 cm and material
 properties of helium, this results in a Reynolds number of 223214 and a Prandtl number
 of 0.655. This highly-turbulent flow results in extremely thin momentum and thermal boundary
@@ -251,13 +249,13 @@ $k_T$ should be computed based on $Pr_T$ and the restart values of $k$ and $\tau
 In `turbulent_props`, a user-defined function, we use $k_f$ from the input file
 in combination with the $Pr_T$ and $\mu_T$ (read from the restart file later in
 the `.udf` file) to adjust the total diffusion coefficient on temperature to
-$k_f+k_T$ according to [eq:PrT]. This adjustment must happen on device, in a new GPU kernel we name
+$k_f+k_T$ according to the [turbulent Prandtl number definition](theory/ktau.md). This adjustment must happen on device, in a new GPU kernel we name
 `scalarScaledAddKernel`. This kernel will be defined in the `.oudf` file; we
 instruct the JIT compilation to compile this new kernel by calling
 `udfBuildKernel`.
 
 Then, in `UDF_Setup` we store the value of $\mu_T$ computed in the
-restart file based on [eq:mu_ktau].
+restart file.
 
 !listing /tutorials/gas_compact_multiphysics/ranstube.udf language=cpp
 
@@ -274,8 +272,7 @@ and $\mu_T$ taken from the `converged_cht.fld` restart file on Box.
 
 ### THM Model
 
-!include thm.md
-
+THM is used to solve the [1-D area-averaged Navier-Stokes equations](theory/thm.md).
 The THM mesh contains 150 elements; the mesh is constucted automatically
 within THM. To simplify the specification of material properties, the fluid geometry
 uses a length unit of meters. The heat flux imposed in the THM elements is obtained
