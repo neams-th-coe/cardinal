@@ -10,25 +10,27 @@ conda compiler wrappers.
 You MUST set `export ENABLE_NEK=false` if you want to use the conda environment.
 Otherwise, if you do want NekRS features, you need to instead follow the
 [instructions for building without the conda environment](without_conda.md).
-
 We hope to relax this restriction in the future - if this
 is impacting your work, please let us know so that we can increase its priority.
 !alert-end!
 
 If you're only interested in OpenMC, then you're in the right place -
-please follow the instructions on this page.
+please follow the instructions on this page. Note that you should NOT be building
+OpenMC separately, or using its conda environment (i.e., do
+`conda deactivate openmc` if you were using OpenMC's conda).
 
 !alert! note title=tldr
 
 On *CPU systems*, all that you need to compile Cardinal is:
 
 ```
+conda activate moose
 cd $HOME
 git clone https://github.com/neams-th-coe/cardinal.git
 cd cardinal
 ./scripts/get-dependencies.sh
+export ENABLE_NEK=false
 export HDF5_ROOT=$CONDA_PREFIX
-export NEKRS_HOME=$HOME/cardinal/install
 make -j8
 ```
 
@@ -60,8 +62,6 @@ But if you want to learn more, check out
 [our prerequisite guide](prereqs.md).
 !alert-end!
 
-!include options.md
-
 ## Building
   id=build
 
@@ -73,7 +73,29 @@ But if you want to learn more, check out
 #### Set Environment Variables
   id=env
 
-!include start_env_vars.md
+A number of environment variables are required or recommended when building/running Cardinal.
+Put these in your `~/.bashrc`:
+
+``` language=bash
+# [REQUIRED IF USING MOOSE CONDA ENV for HDF5] you must set the location of the
+# root HDF5 directory provided by MOOSE for OpenMC to find
+export HDF5_ROOT=$CONDA_PREFIX
+
+# [OPTIONAL] it's a good idea to explicitly note that you are using MPI compiler wrappers
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+
+# [OPTIONAL] if running with OpenMC, you will need cross section data at runtime;
+# you will need to set this variable to point to a 'cross_sections.xml' file.
+export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
+```
+
+!alert! tip title=Additional environment variables
+For even further control, you can set other
+[optional environment variables](env_vars.md) to specify the optimization level,
+dependency locations, and more.
+!alert-end!
 
 #### Compile Cardinal
   id=compiling
