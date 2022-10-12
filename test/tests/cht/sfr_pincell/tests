@@ -11,6 +11,7 @@
                   "(based on the power imposed in the solid) will not be observed because some heat flux "
                   "GLL points are also on Dirichlet boundaries, which win in boundary condition ties."
     required_objects = 'NekRSProblem'
+    max_time = 500
   []
   [sfr_pincell_vpp]
     type = Exodiff

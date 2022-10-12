@@ -7,5 +7,6 @@
     requirement = "The system shall be able to output the pressure and velocity solution from NekRS "
                   "when coupling to MOOSE."
     required_objects = 'NekRSProblem'
+    max_time = 500
   []
 []
