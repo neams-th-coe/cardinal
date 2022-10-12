@@ -3,6 +3,7 @@
     type = Exodiff
     input = box-test.i
     exodiff = 'box-test_out_nek0.e'
+    custom_cmp = exodiff.cmp
     min_parallel = 8
     requirement = "This test solves the steady state heat conduction equation "
                   "with a source term of 3*sin(x)*sin(y)*sin(z) and a conductivity"
