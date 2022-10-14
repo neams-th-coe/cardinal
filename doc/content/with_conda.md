@@ -31,6 +31,7 @@ cd cardinal
 ./scripts/get-dependencies.sh
 export ENABLE_NEK=false
 export HDF5_ROOT=$CONDA_PREFIX
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 make -j8
 ```
 
@@ -43,6 +44,8 @@ that follow.
 ## Access
 
 !include access.md
+
+To get MOOSE's conda environment, follow the instructions [here](https://mooseframework.inl.gov/getting_started/installation/index.html).
 
 ## Prerequisites
 
@@ -74,12 +77,16 @@ But if you want to learn more, check out
   id=env
 
 A number of environment variables are required or recommended when building/running Cardinal.
-Put these in your `~/.bashrc`:
+Put these in your `~/.bashrc` (don't forget to `source ~/.bashrc`!):
 
 ``` language=bash
 # [REQUIRED IF USING MOOSE CONDA ENV for HDF5] you must set the location of the
 # root HDF5 directory provided by MOOSE for OpenMC to find
 export HDF5_ROOT=$CONDA_PREFIX
+
+# [REQUIRED ON SOME SYSTEMS] for some systems, libraries won't be linked properly unless
+# you explicitly point this variable. We're working on a more elegant fix.
+export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 
 # [OPTIONAL] it's a good idea to explicitly note that you are using MPI compiler wrappers
 export CC=mpicc

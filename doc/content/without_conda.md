@@ -57,7 +57,7 @@ To figure out if you have these dependencies, check out
   id=env
 
 A number of environment variables are required or recommended when building/running Cardinal.
-Put these in your `~/.bashrc`:
+Put these in your `~/.bashrc` (don't forget to `source ~/.bashrc`!):
 
 ``` language=bash
 # [REQUIRED] you must set the location of the root directory of the NekRS install;
