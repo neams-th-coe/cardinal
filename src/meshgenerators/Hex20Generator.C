@@ -65,6 +65,8 @@ Hex20Generator::validParams()
     "specified, all values default to 1.0");
   params.addParam<BoundaryName>("polygon_boundary", "Boundary to enforce radius of curvature "
     "for polygon corners");
+  params.addParam<std::vector<std::vector<Real>>>("polygon_origins", "Origin(s) about which to curve "
+    "the polygon corners; if not specified, defaults to (0, 0, 0)");
   params.addParam<Real>("rotation_angle", 0, "When curving corners, the rotation angle (degrees) "
     "needed to apply to the original mesh to get a polygon boundary with one side horizontal");
 
@@ -108,7 +110,7 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
   else
     checkUnusedParam(params, {"polygon_sides", "polygon_size", "polygon_boundary",
                               "corner_radius", "polygon_layers", "rotation_angle",
-                              "polygon_layer_smoothing"},
+                              "polygon_layer_smoothing", "polygon_origins"},
                               "'curve_corners' is false");
 
   if (isParamValid("boundary"))
@@ -387,6 +389,21 @@ Hex20Generator::isNearCorner(const Point & pt) const
   return distance_to_closest_corner < _max_corner_distance;
 }
 
+void
+Hex20Generator::checkPointLength(const std::vector<std::vector<Real>> & points, std::string name) const
+{
+  for (const auto & o : points)
+  {
+    if (o.size() == 0)
+      mooseError("Zero-length entry in '" + name + "' detected! Please be sure that each "
+        "entry in '" + name + "' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
+
+    if (o.size() % 3 != 0)
+      mooseError("When using multiple origins for one boundary, each entry in '" + name + "' "
+        "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
+  }
+}
+
 std::unique_ptr<MeshBase>
 Hex20Generator::generate()
 {
@@ -426,17 +443,7 @@ Hex20Generator::generate()
         mooseError("'boundary' and 'origins' must be the same length!"
           "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins' length: ", _origin.size());
 
-      // in the case of multiple origins for one boundary, check that each has correct length
-      for (const auto & o : _origin)
-      {
-        if (o.size() == 0)
-          mooseError("Zero-length entry in 'origins' detected! Please be sure that each "
-            "entry in 'origins' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
-
-        if (o.size() % 3 != 0)
-          mooseError("When using multiple origins for one boundary, each entry in 'origins' "
-            "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
-      }
+      checkPointLength(_origin, "origins");
     }
     else if (isParamValid("origins_files"))
     {
@@ -503,6 +510,15 @@ Hex20Generator::generate()
     auto corner_radius = getParam<Real>("corner_radius");
     auto polygon_layers = getParam<unsigned int>("polygon_layers");
 
+    std::vector<std::vector<Real>> polygon_origin;
+    if (isParamValid("polygon_origins"))
+    {
+      polygon_origin = getParam<std::vector<std::vector<Real>>>("polygon_origins");
+      checkPointLength(polygon_origin, "polygon_origins");
+    }
+    else
+      polygon_origin.push_back({0.0, 0.0, 0.0});
+
     if (polygon_layers)
     {
       if (isParamValid("polygon_layer_smoothing"))
@@ -543,8 +559,18 @@ Hex20Generator::generate()
     _max_corner_distance = l * std::sin(theta);
 
     // find origins of the cylinders for the corner fitting
-    _polygon_corners = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
-    auto corner_origins = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
+    std::vector<Point> corner_origins;
+    for (const auto & o : polygon_origin)
+    {
+      Point shift(o[0], o[1], o[2]);
+      auto tmp1 = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
+      for (const auto & t : tmp1)
+        _polygon_corners.push_back(t + shift);
+
+      auto tmp2 = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
+      for (const auto & t : tmp2)
+        corner_origins.push_back(t + shift);
+    }
 
     // apply optional rotation
     Real rotation_angle_radians = _rotation_angle * M_PI / 180.0;

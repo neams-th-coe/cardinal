@@ -28,6 +28,13 @@
     exodiff = 'six_in.e'
     requirement = "The system shall curve corners of a six-sided polygon with zero boundary layers"
   []
+  [corners_translate]
+    type = Exodiff
+    input = six_translate.i
+    cli_args = "--mesh-only"
+    exodiff = 'six_translate_in.e'
+    requirement = "The system shall curve corners of a six-sided polygon with zero boundary layers with translation in space"
+  []
   [corners_rotation]
     type = Exodiff
     input = six_rotation.i
