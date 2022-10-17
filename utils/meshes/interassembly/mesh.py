@@ -220,11 +220,15 @@ with open('mesh_info.i', 'w') as f:
 
 if (args.generate):
   import os
-  os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i plane.i " + \
+  var = os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i plane.i " + \
     " --mesh-only --n-threads=10")
+  if (var):
+    raise ValueError('Failed to run the plane.i mesh script!')
 
-  os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i convert.i " + \
+  var = os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i convert.i " + \
     " --mesh-only --n-threads=10")
+  if (var):
+    raise ValueError('Failed to run the convert.i mesh script!')
 
   os.system("mv convert_in.e fluid.exo")
 
