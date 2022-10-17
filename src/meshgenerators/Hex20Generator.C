@@ -515,6 +515,12 @@ Hex20Generator::generate()
     {
       polygon_origin = getParam<std::vector<std::vector<Real>>>("polygon_origins");
       checkPointLength(polygon_origin, "polygon_origins");
+
+      // Cannot specify a non-zero rotation when giving a different polygon origin,
+      // because we simply rotate the point about either the x, y, or z 'axis'. This
+      // is not a hard limit, just something we didn't initially put effort to support.
+      if (std::abs(_rotation_angle) > 1e-8)
+        mooseError("Cannot specify a non-zero 'rotation_angle' when providing custom 'polygon_origins'!");
     }
     else
       polygon_origin.push_back({0.0, 0.0, 0.0});
