@@ -171,7 +171,6 @@ def lattice_centers(nrings, pitch):
 
   return lattices[:-1] + "'"
 
-
 cs = ""
 for i in range(len(corner_smoothing)):
   cs += " " + str(corner_smoothing[i])
