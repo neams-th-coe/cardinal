@@ -60,7 +60,6 @@ import numpy as np
 import re
 
 matplotlib.rcParams.update({'font.size': 14})
-color_idx = 0
 
 program_description = ("Script for plotting quantities from NekRS's console output")
 ap = ArgumentParser(description=program_description)
@@ -267,6 +266,7 @@ if (len(P) > 0):
 print('\nAverage eTimeStep: ', np.average(eTimeStep))
 print('Total runtime:     ', np.sum(eTimeStep))
 print('End time:          ', np.sum(dt))
+print('Flow-thru times:   ', np.sum(dt) / flow_through_length)
 print('runtime / second:  ', np.sum(eTimeStep) / np.sum(dt))
 plt.plot(t, eTimeStep, color='k')
 plt.xlabel('Time')
@@ -283,15 +283,84 @@ for i in range(len(fld_file_time)):
 
 ms = 4
 lw = 2
-has_plot = False
 
+color_idx = 0
+# Make plots of absolute magnitudes of various temporal quantities
+if ('Vx' in temporal_plots and len(max_Vx) > 1):
+  plt.plot(fld_file_time, max_Vx, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx])
+  color_idx += 1
+  plt.xlabel('Flow-Through Times (-)')
+  plt.ylabel('Maximum $V_x$')
+  plt.grid()
+  plt.savefig('max_Vx.pdf', bbox_inches="tight")
+  plt.close()
+
+if ('Vy' in temporal_plots and len(max_Vy) > 1):
+  plt.plot(fld_file_time, max_Vy, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx])
+  color_idx += 1
+  plt.xlabel('Flow-Through Times (-)')
+  plt.ylabel('Maximum $V_y$')
+  plt.grid()
+  plt.savefig('max_Vy.pdf', bbox_inches="tight")
+  plt.close()
+
+if ('Vz' in temporal_plots and len(max_Vz) > 1):
+  plt.plot(fld_file_time, max_Vz, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx])
+  color_idx += 1
+  plt.xlabel('Flow-Through Times (-)')
+  plt.ylabel('Maximum $V_z$')
+  plt.grid()
+  plt.savefig('max_Vz.pdf', bbox_inches="tight")
+  plt.close()
+
+if ('P' in temporal_plots and len(max_P) > 1):
+  plt.plot(fld_file_time, max_P, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx])
+  color_idx += 1
+  plt.xlabel('Flow-Through Times (-)')
+  plt.ylabel('Maximum $P$')
+  plt.grid()
+  plt.savefig('max_P.pdf', bbox_inches="tight")
+  plt.close()
+
+for j in range(n_scalars):
+  if ('S0' + str(j) in temporal_plots and len(max_scalars[j]) > 1):
+    plt.plot(fld_file_time, max_scalars[j], marker='o', markersize=ms, linewidth=lw, color=colors[color_idx])
+    color_idx += 1
+    plt.xlabel('Flow-Through Times (-)')
+    plt.ylabel('Maximum ' + scalar_names[j])
+    plt.grid()
+    plt.savefig('max_S' + str(j) + '.pdf', bbox_inches="tight")
+    plt.close()
+
+if ('dP' in temporal_plots and len(dP) > 1):
+  plt.plot(fld_file_time, dP, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx])
+  color_idx += 1
+  plt.xlabel('Flow-Through Times (-)')
+  plt.ylabel('$\Delta P/\Delta L$')
+  plt.grid()
+  plt.savefig('dPdL.pdf', bbox_inches="tight")
+  plt.close()
+
+def rel_diff(a, b):
+  """Compute relative difference between two fields, returning zero
+     if both are zero."""
+  tol = 1e-8
+  if (abs(a) < tol and abs(b) < tol):
+    return 0.0;
+  else:
+    return abs(a - b) / b
+
+has_plot = False
+color_idx = 0
+
+# Make plots of temporal convergence
 print('')
 if ('Vx' in temporal_plots and len(max_Vx) > 1):
   has_plot = True
   rel_diff_max_Vx = []
   for i in range(n_fld_files - 1):
-    rel_diff_max_Vx.append(abs(max_Vx[i + 1] - max_Vx[i]) / max_Vx[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_Vx, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_x$')
+    rel_diff_max_Vx.append(rel_diff(max_Vx[i + 1], max_Vx[i]))
+  plt.semilogy(fld_file_time[1:], rel_diff_max_Vx, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Max $V_x$')
   color_idx += 1
   print(Fore.RED + '\nPercent change in maximum Vx:  ', rel_diff_max_Vx[-1] * 100.0)
   print(Fore.GREEN + '  maximum Vx:                  ', max_Vx[-1])
@@ -300,8 +369,8 @@ if ('Vy' in temporal_plots and len(max_Vy) > 1):
   has_plot = True
   rel_diff_max_Vy = []
   for i in range(n_fld_files - 1):
-    rel_diff_max_Vy.append(abs(max_Vy[i + 1] - max_Vy[i]) / max_Vy[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_Vy, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_y$')
+    rel_diff_max_Vy.append(rel_diff(max_Vy[i + 1], max_Vy[i]))
+  plt.semilogy(fld_file_time[1:], rel_diff_max_Vy, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Max $V_y$')
   color_idx += 1
   print(Fore.RED + '\nPercent change in maximum Vy:  ', rel_diff_max_Vy[-1] * 100.0)
   print(Fore.GREEN + '  maximum Vy:                  ', max_Vy[-1])
@@ -310,8 +379,8 @@ if ('Vz' in temporal_plots and len(max_Vz) > 1):
   has_plot = True
   rel_diff_max_Vz = []
   for i in range(n_fld_files - 1):
-    rel_diff_max_Vz.append(abs(max_Vz[i + 1] - max_Vz[i]) / max_Vz[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_Vz, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $V_z$')
+    rel_diff_max_Vz.append(rel_diff(max_Vz[i + 1], max_Vz[i]))
+  plt.semilogy(fld_file_time[1:], rel_diff_max_Vz, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Max $V_z$')
   color_idx += 1
   print(Fore.RED + '\nPercent change in maximum Vz:  ', rel_diff_max_Vz[-1] * 100.0)
   print(Fore.GREEN + '  maximum Vz:                  ', max_Vz[-1])
@@ -320,8 +389,8 @@ if ('P' in temporal_plots and len(max_P) > 1):
   has_plot = True
   rel_diff_max_P = []
   for i in range(n_fld_files - 1):
-    rel_diff_max_P.append(abs(max_P[i + 1] - max_P[i]) / max_P[i])
-  plt.plot(fld_file_time[1:], rel_diff_max_P, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum $P$')
+    rel_diff_max_P.append(rel_diff(max_P[i + 1], max_P[i]))
+  plt.semilogy(fld_file_time[1:], rel_diff_max_P, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Max $P$')
   color_idx += 1
   print(Fore.RED + '\nPercent change in maximum P:   ', rel_diff_max_P[-1] * 100.0)
   print(Fore.GREEN + '  maximum P:                   ', max_P[-1])
@@ -331,8 +400,8 @@ for j in range(n_scalars):
     has_plot = True
     rel_diff_max_S = []
     for i in range(n_fld_files - 1):
-      rel_diff_max_S.append(abs(max_scalars[j][i + 1] - max_scalars[j][i]) / max_scalars[j][i])
-    plt.plot(fld_file_time[1:], rel_diff_max_S, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Maximum ' + scalar_names[j])
+      rel_diff_max_S.append(rel_diff(max_scalars[j][i + 1], max_scalars[j][i]))
+    plt.semilogy(fld_file_time[1:], rel_diff_max_S, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='Max ' + scalar_names[j])
     color_idx += 1
     print(Fore.RED + '\nPercent change in maximum S0' + str(j) + ': ', rel_diff_max_S[-1] * 100.0)
     print(Fore.GREEN + '  maximum S0' + str(j) + ':                 ', max_scalars[j][-1])
@@ -341,17 +410,16 @@ if ('dP' in temporal_plots and len(dP) > 1):
   has_plot = True
   rel_diff_dP = []
   for i in range(n_fld_files - 1):
-    rel_diff_dP.append(abs(dP[i + 1] - dP[i]) / dP[i])
-  plt.plot(fld_file_time[1:], rel_diff_dP, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='$\Delta P/\Delta L$')
+    rel_diff_dP.append(rel_diff(dP[i + 1], dP[i]))
+  plt.semilogy(fld_file_time[1:], rel_diff_dP, marker='o', markersize=ms, linewidth=lw, color=colors[color_idx], label='$\Delta P/\Delta L$')
   color_idx += 1
   print(Fore.RED + '\nPercent change in dP/dL:       ', rel_diff_dP[-1] * 100.0)
   print(Fore.GREEN + '  dP/dL:                       ', dP[-1])
 
 if (has_plot):
-  plt.xticks(fld_file_time[1:])
   plt.xlabel('Flow-Through Times (-)')
   plt.ylabel('Relative Difference')
-  plt.legend()
-  plt.grid()
+  plt.legend(ncol= int(len(temporal_plots) / 2), handletextpad=0.2)
+  plt.grid(which="both")
   plt.savefig('temporal.pdf', bbox_inches="tight")
   plt.close()
