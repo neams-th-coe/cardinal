@@ -120,10 +120,8 @@ computational domain is shown outlined with a red dotted line in [top_down].
 
 ### Heat Conduction Model
 
-The MOOSE heat conduction module is used to solve for energy conservation in the solid,
-
-!include heat_eqn.md
-
+The MOOSE heat conduction module is used to solve for
+[energy conservation in the solid](theory/heat_eqn.md).
 A fixed heat flux of 5 kW/m$^2$ is imposed on the block surface facing the pebble bed.
 On the surface of the barrel, a heat convection boundary condition is imposed,
 
@@ -141,85 +139,8 @@ as insulated.
 
 ### NekRS Model
 
-NekRS is used to solve the incompressible Navier-Stokes equations,
-
-!include ins.md
-
-NekRS can be solved in either dimensional or non-dimensional form; in the present case,
-NekRS is solved in non-dimensional form. That is, characteristic scales for velocity,
-temperature, length, and time are defined and substituted into the governing equations
-in [eq:nek_mass], [eq:nek_mom], and [eq:nek_energy]
-so that all solution fields (velocity, pressure, temperature) are of order unity.
-A full derivation of the non-dimensional governing equations in NekRS is available
-[here](https://nekrsdoc.readthedocs.io/en/latest/theory.html#non-dimensional-formulation).
-A description of the non-dimensional formulation is important because it
-is relevant to the data transfer between meshes when wrapping NekRS.
-Non-dimensional formulations for velocity, pressure, temperature, length,
-and time are defined as
-
-\begin{equation}
-\label{eq:u_ref}
-u_i^\dagger\equiv\frac{u_i}{u_{ref}}
-\end{equation}
-
-\begin{equation}
-\label{eq:p_ref}
-P^\dagger\equiv\frac{P}{\rho_0u_{ref}^2}
-\end{equation}
-
-\begin{equation}
-\label{eq:T_ref}
-T^\dagger\equiv\frac{T-T_{ref}}{\Delta T}
-\end{equation}
-
-\begin{equation}
-\label{eq:x_ref}
-x_i^\dagger\equiv\frac{x_i}{L_{ref}}
-\end{equation}
-
-\begin{equation}
-\label{eq:t_ref}
-t^\dagger\equiv\frac{t}{L_{ref}/u_{ref}}
-\end{equation}
-
-where a $\dagger$ superscript indicates a non-dimensional quantity and a $ref$ subscript indicates
-a characteristic scale.
-A "$0$" subscript indicates a reference parameter (so-called because a reference parameter is not
-really a characteristic scale, but rather a reference value corresponding to the conditions
-at the characteristic scales). Inserting these definitions into
-the conservation of mass, momentum, and energy equations solved by NekRS gives
-
-\begin{equation}
-\label{eq:mass_nondim}
-\frac{\partial u_i^\dagger}{\partial x_i^\dagger}=0
-\end{equation}
-
-\begin{equation}
-\label{eq:momentum_nondim}
-\rho^\dagger\left(\frac{\partial u_i^\dagger}{\partial t^\dagger}+u_j^\dagger\frac{\partial u_i^\dagger}{\partial x_j^\dagger}\right)=-\frac{\partial P^\dagger}{\partial x_i^\dagger}+\frac{1}{Re}\frac{\partial \tau_{ij}^\dagger}{\partial x_j^\dagger}+\rho^\dagger f_i^\dagger
-\end{equation}
-
-\begin{equation}
-\label{eq:energy_nondim}
-\rho^\dagger C_p^\dagger\left(\frac{\partial T^\dagger}{\partial t^\dagger}+u_i^\dagger\frac{\partial T^\dagger}{\partial x_i^\dagger}\right)=\frac{1}{Pe}\frac{\partial}{\partial x_i^\dagger}\left(k^\dagger\frac{\partial T^\dagger}{\partial x_i^\dagger}\right)+\dot{q}^\dagger
-\end{equation}
-
-New terms in these non-dimensional equations are $Re$ and $Pe$, the Reynolds and Peclet numbers,
-respectively:
-
-\begin{equation}
-\label{eq:Re}
-Re\equiv\frac{\rho_0 u_{ref}L_{ref}}{\mu_0}
-\end{equation}
-
-\begin{equation}
-\label{eq:Pe}
-Pe\equiv\frac{L_{ref}u_{ref}}{\alpha}
-\end{equation}
-
-where $\alpha$ is the thermal diffusivity.
-NekRS solves for $\mathbf u^\dagger$, $P^\dagger$, and $T^\dagger$. Cardinal will handle
-conversions from a non-dimensional NekRS solution to a dimensional MOOSE application.
+NekRS is used to solve the [incompressible Navier-Stokes equations](theory/ins.md)
+in [non-dimensional form](theory/nondimensional_ns.md).
 In this tutorial, the following characteristic scales are selected:
 
 - $L_{ref}=0.006$ m, such that the block gap width is unity
@@ -438,8 +359,7 @@ $T_f=923-50(r-3.348)$.
 
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as the
 [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
- kernel, or $-\nabla\cdot(k\nabla T)=0$. This example neglects the time derivative term
-in [eq:solid_eq], and there is no volumetric heat source. The
+ kernel, or $-\nabla\cdot(k\nabla T)=0$. This example neglects the time derivative, and there is no volumetric heat source. The
 [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html) auxiliary kernel is also specified
 for the `flux` variable in order to compute the flux on the `fluid_solid_interface` boundary.
 
@@ -684,7 +604,7 @@ solve is conducted in non-dimensional form, such that
 \rho^\dagger C_{p,f}^\dagger\equiv\frac{\rho_fC_{p,f}}{\rho_0C_{p,0}}=1
 \end{equation}
 
-The coefficient on the diffusive equation term, as shown in [eq:energy_nondim],
+The coefficient on the diffusive equation term in the [non-dimensional energy equation](theory/nondimensional_ns.md)
 is equal to $1/Pe$. In NekRS, specifying `conductivity = -1500.5` is equivalent
 to specifying `conductivity = 0.00066644` (i.e. $1/1500.5$), or a Peclet number of
 1500.5.
@@ -842,7 +762,8 @@ in nondimensional form, such that
 \rho^\dagger\equiv\frac{\rho_f}{\rho_0}=1
 \end{equation}
 
-The coefficient on the diffusive term, as shown in [eq:momentum_nondim], is equal to
+The coefficient on the diffusive term in the [non-dimensional momentum equation](theory/nondimensional_ns.md)
+is equal to
 $1/Re$. In NekRS, specifying `diffusivity = -100.0` is equivalent to specifying
 `diffusivity = 0.001` (i.e. $1/100.0$), or a Reynolds number of 100.0. All other parameters
 have similar interpretations as described in [#part1].

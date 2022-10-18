@@ -1,0 +1,25 @@
+[Tests]
+  [specs]
+    type = RunCommand
+    command = 'python mesh.py'
+    requirement = 'The system shall be able to generate the preprocessing information for an interassembly flow mesh.'
+  []
+  [interassembly_mesh]
+    type = Exodiff
+    input = mesh_info.i
+    exodiff = plane_in.e
+    cli_args = "plane.i --mesh-only"
+    requirement = 'The system shall create a mesh of the interassembly flow.'
+    mesh_mode = 'replicated'
+    prereq = specs
+  []
+  [convert]
+    type = Exodiff
+    input = mesh_info.i
+    exodiff = convert_in.e
+    cli_args = "convert.i --mesh-only"
+    requirement = 'The system shall create a mesh of the interassembly flow suitable for Nek.'
+    mesh_mode = 'replicated'
+    prereq = interassembly_mesh
+  []
+[]

@@ -1,5 +1,8 @@
-The NekRS model includes the incompressible Navier-Stokes equations with the $k$-$\tau$ [!ac](RANS)
-turbulence model. This model includes equations governing conservation of mass, momentum,
+# The k-tau RANS Model
+
+NekRS's $k$-$\tau$ [!ac](RANS) model solves the incompressible Navier-Stokes equations with
+two additional PDEs for $k$ and $\tau$.
+This model includes equations governing conservation of mass, momentum,
 and energy,
 
 \begin{equation}
@@ -17,7 +20,7 @@ and energy,
 \rho_fC_{p,f}\left(\frac{\partial T_f}{\partial t}+\vec{u}\cdot\nabla T_f\right)=\nabla\cdot\left\lbrack\left(k_f+k_T\right)\nabla T_f\right\rbrack+\dot{q}_f
 \end{equation}
 
-where $\vec{u}$ is the velocity, $\rho_f$ is the fluid density, $P$ is the pressure, $\mu_f$ is the laminar dynamic viscosity, $\mu_T$ is the turbulent dynamic viscosity, $\vec{f}$ is a general momentum source, $C_{p,f}$ is the fluid isobaric specific heat capacity, $T_f$ is the fluid temperature, $k_f$ is the laminar fluid thermal conductivity, $k_T$ is the turbulent thermal conductivity, and $\dot{q}_f$ is a general energy source. Because the coolant is not fissile and energy deposition by photons is neglected, $\dot{q}_f=0$ for this application. Assuming similarity between turbulent momentum and energy transfer, $k_T$ is related to $\mu_T$ through the turbulent Prandtl number $Pr_T$,
+where $\vec{u}$ is the velocity, $\rho_f$ is the fluid density, $P$ is the pressure, $\mu_f$ is the laminar dynamic viscosity, $\mu_T$ is the turbulent dynamic viscosity, $\vec{f}$ is a general momentum source, $C_{p,f}$ is the fluid isobaric specific heat capacity, $T_f$ is the fluid temperature, $k_f$ is the laminar fluid thermal conductivity, $k_T$ is the turbulent thermal conductivity, and $\dot{q}_f$ is a general energy source. Assuming similarity between turbulent momentum and energy transfer, $k_T$ is related to $\mu_T$ through the turbulent Prandtl number $Pr_T$,
 
 \begin{equation}
 \label{eq:PrT}
@@ -54,6 +57,3 @@ where $\sigma_\tau$, $\alpha$, and $\beta$ are constants. The turbulent dynamic 
 \label{eq:mu_ktau}
 \mu_T=\rho_fk\tau\ .
 \end{equation}
-
-To relate $\mu_T$ to $k_T$, $Pr_T=0.91$ is selected. The resolution of the mesh near all no-slip boundaries
-ensures that $y^+<1$ such that the NekRS model is a wall-resolved model.

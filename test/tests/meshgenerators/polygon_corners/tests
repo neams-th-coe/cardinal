@@ -28,6 +28,20 @@
     exodiff = 'six_in.e'
     requirement = "The system shall curve corners of a six-sided polygon with zero boundary layers"
   []
+  [corners_translate]
+    type = Exodiff
+    input = six_translate.i
+    cli_args = "--mesh-only"
+    exodiff = 'six_translate_in.e'
+    requirement = "The system shall curve corners of a six-sided polygon with zero boundary layers with translation in space"
+  []
+  [corners_translate_rotate]
+    type = RunException
+    input = six_translate.i
+    cli_args = "Mesh/to_hex20/rotation_angle=30.0 --mesh-only"
+    expect_err = "Cannot specify a non-zero 'rotation_angle' when providing custom 'polygon_origins'!"
+    requirement = "The system shall error if applying a rotation angle to a polygon not centered on (0, 0)"
+  []
   [corners_rotation]
     type = Exodiff
     input = six_rotation.i

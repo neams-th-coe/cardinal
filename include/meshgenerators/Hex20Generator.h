@@ -38,6 +38,13 @@ public:
   std::unique_ptr<MeshBase> generate() override;
 
   /**
+   * Check that points have 3 components to represent x, y, z
+   * @param[in] points points
+   * @param[in] name name of input parameter for error messages
+   */
+  void checkPointLength(const std::vector<std::vector<Real>> & points, std::string name) const;
+
+  /**
    * Given an element with a face on the boundary of interest, get pointers
    * to all the elements nested into the geometry
    * @param[in] elem input element
