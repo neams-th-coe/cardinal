@@ -35,10 +35,15 @@ growth_factor = 1.7          # growth factor for the boundary layers
 bl_height = 0.0001           # height of the first boundary layer
 
 # Smoothing factors to apply to the corner movement; must match the length
-# of the e_per_bl
-corner_smoothing = [1.0]
+# of the e_per_bl (if specified)
+corner_smoothing = []
 
 ###########################################################################
+
+# If not specified by user, set a do-nothing default
+if (len(corner_smoothing) == 0):
+  for i in range(e_per_bl):
+    corner_smoothing.append(1.0)
 
 # dummy block IDs just for mesh creation purposes
 gap_id = 5

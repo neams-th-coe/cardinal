@@ -50,23 +50,26 @@ plenum_height = 0.1016        # plenum height
 e_per_side = 2                # elements per side of the duct
 e_per_gap_span = 1            # elements across non-boundary layer part of gap
 e_per_load_pad_span = 1       # elements across the non-boundary layer part of load pad
-e_per_peripheral = 1          # elements across the peripheral region
-e_per_interior_bl = 1         # elements in each boundary layer in duct interior (high Re)
 e_per_duct_span = 1           # elements across the duct region
-bl_interior_height = 0.0001   # height of first boundary layer in duct interior (high Re)
-e_per_exterior_bl = 1         # elements in each bounddary layer in duct exterior (low Re)
-bl_exterior_height = 0.0001   # height of first boundary layer in duct exterior (low Re)
+e_per_peripheral = 1          # elements across the peripheral region
+e_per_bl = 1                  # elements in each boundary layer
 e_per_pad_bl = 1              # elements in the boundary layers on the bottom/top faces of the load pads
+bl_height = 0.0001            # height of first boundary layer
 bl_pad_height = 0.0001        # height of first boundary layer on bottom/top faces of load pads
 growth_factor = 1.8           # boundary layer growth factor
 
 num_layers_per_dz = 1.0       # layers per axial pitch
 
 # Smoothing factors to apply to the corner movement; must match the length
-# of the e_per_bl
-corner_smoothing = [1.0]
+# of the e_per_bl (if specified)
+corner_smoothing = []
 
 ###########################################################################
+
+# If not specified by user, set a do-nothing default
+if (len(corner_smoothing) == 0):
+  for i in range(e_per_bl):
+    corner_smoothing.append(1.0)
 
 # block and sideset IDs for various regions in the mesh (arbitrary, but this
 # lets us refer to them consistently across the scripts)
@@ -202,9 +205,9 @@ bundle_pattern = pat(n_rings)
 # other syntax in the mesh generator)
 duct_radii = []
 previous_r = flat_to_flat / 2.0
-for i in range(e_per_interior_bl):
-  duct_radii.append(str(previous_r - math.pow(growth_factor, i) * bl_interior_height))
-  previous_r -=  math.pow(growth_factor, i - 1) * bl_interior_height
+for i in range(e_per_bl):
+  duct_radii.append(str(previous_r - math.pow(growth_factor, i) * bl_height))
+  previous_r -=  math.pow(growth_factor, i - 1) * bl_height
 duct_radii.reverse()
 
 # Get the "radii" of the "ducts" which we use to create boundary layers on
@@ -215,11 +218,11 @@ bl = []
 previous_dx = 0.0
 starting_pt = flat_to_flat / 2.0 + thickness
 bl_outer_dx = 0.0
-for i in range(e_per_exterior_bl):
-  bl_outer_dx += math.pow(growth_factor, i) * bl_exterior_height
-  layer = math.pow(growth_factor, i) * bl_exterior_height + starting_pt + previous_dx
+for i in range(e_per_bl):
+  bl_outer_dx += math.pow(growth_factor, i) * bl_height
+  layer = math.pow(growth_factor, i) * bl_height + starting_pt + previous_dx
   bl.append(layer)
-  previous_dx += math.pow(growth_factor, i) * bl_exterior_height
+  previous_dx += math.pow(growth_factor, i) * bl_height
 
 # Get the boundary layer thickness on bottom/top of the load pads
 bl_pad_ascending = []
@@ -285,17 +288,17 @@ for i in range(len(copy_bl)):
   oobl_radii += " " + str(copy_bl[i] + pad_thickness)
 
 gi = ""
-for i in range(e_per_exterior_bl):
+for i in range(e_per_bl):
   gi += " " + str(gap_id)
 
 ds = ""; di = ""; dbi = ""
-for i in range(e_per_interior_bl):
+for i in range(e_per_bl):
   ds += " " + str(duct_radii[i])
   di += " " + str(1)
   dbi += " " + str(fluid_id)
 
 dbi_lp = ""; di_lp = ""
-for i in range(e_per_exterior_bl):
+for i in range(e_per_bl):
   dbi_lp += " " + str(load_pad_id)
   di_lp += " " + str(1)
 
@@ -318,8 +321,7 @@ with open('mesh_info.i', 'w') as f:
   f.write(str.format('e_per_gap_span={0}\n', e_per_gap_span))
   f.write(str.format('e_per_load_pad_span={0}\n',e_per_load_pad_span))
   f.write(str.format('e_per_peripheral={0}\n',e_per_peripheral))
-  f.write(str.format('e_per_exterior_bl={0}\n',e_per_exterior_bl))
-  f.write(str.format('e_per_interior_bl={0}\n', e_per_interior_bl))
+  f.write(str.format('e_per_bl={0}\n', e_per_bl))
   f.write(str.format('e_per_pad_bl={0}\n',e_per_pad_bl))
   f.write(str.format('e_per_duct_span={0}\n',e_per_duct_span))
   f.write(str.format('fluid_id={0}\n',fluid_id))

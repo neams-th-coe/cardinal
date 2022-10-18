@@ -49,7 +49,7 @@ garbage_5 = 504
 
     peripheral_outer_boundary_layer_bias = ${fparse 1.0 / growth_factor}
     peripheral_outer_boundary_layer_width = ${bl_outer_dx}
-    peripheral_outer_boundary_layer_intervals = ${e_per_exterior_bl}
+    peripheral_outer_boundary_layer_intervals = ${e_per_bl}
   []
   [rename]
     type = RenameBoundaryGenerator
