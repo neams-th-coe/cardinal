@@ -1,0 +1,25 @@
+[Tests]
+  [specs]
+    type = RunCommand
+    command = 'python mesh.py'
+    requirement = 'The system shall be able to generate the preprocessing information for an interassembly flow mesh with structures.'
+  []
+  [interassembly_mesh]
+    type = Exodiff
+    input = mesh_info.i
+    exodiff = bundle_in.e
+    cli_args = "bundle.i --mesh-only"
+    requirement = 'The system shall create a mesh of the interassembly flow with structures.'
+    mesh_mode = 'replicated'
+    prereq = specs
+  []
+  [convert]
+    type = Exodiff
+    input = mesh_info.i
+    exodiff = convert_in.e
+    cli_args = "convert.i --mesh-only"
+    requirement = 'The system shall create a mesh of the interassembly flow with structures suitable for Nek.'
+    mesh_mode = 'replicated'
+    prereq = interassembly_mesh
+  []
+[]
