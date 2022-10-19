@@ -1,0 +1,16 @@
+pin_diameter = 9.54236e-3     # pin diameter
+pin_pitch = 11.2769e-3        # pin pitch
+flat_to_flat = 0.035          # duct inner flat-to-flat
+corner_radius = 6.858e-3      # radius of curvature of duct corners
+wire_diameter = 1.7062e-3     # wire diameter
+wire_pitch = 0.28499          # wire axial pitch
+h = 0.28499                   # height
+n_pins = 7                    # number of pins
+
+e_per_side = 2                # number of elements along each 1/6 of the pin
+e_per_bl = 3                  # number of elements in each boundary layer
+e_per_pin_background = 1      # number of background elements in pincell
+e_per_assembly_background = 3 # number of background elements in assembly
+growth_factor = 1.8           # boundary layer growth factor
+nl = 1                        # number of axial layers
+bl_height = 0.00006           # height of first boundary layer

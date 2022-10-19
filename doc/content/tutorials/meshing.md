@@ -8,3 +8,4 @@ Here, we have collected a number of meshing scripts we have developed that you
 may find a useful starting point for MOOSE-based meshing.
 
 - [Interassembly flow in fast reactors](interassembly.md)
+- [Assembly flow in fast reactors](assembly.md)
