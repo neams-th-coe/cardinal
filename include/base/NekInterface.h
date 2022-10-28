@@ -56,6 +56,21 @@ void setAbsoluteTol(double tol);
 void setRelativeTol(double tol);
 
 /**
+ * Nek's runtime statistics are formed by collecting a timer of both the initialization
+ * and accumulated run time. We unfortunately have to split this across multiple classes,
+ * so if we want correct times we need to have NekInitAction save the value of the time
+ * spent on initialization.
+ * @param[in] time time spent on initialization
+ */
+void setNekSetupTime(const double & time);
+
+/**
+ * Get time spent on initialization
+ * @return time spent on initialization
+ */
+double getNekSetupTime();
+
+/**
  * Set the start time used by NekRS
  * @param[in] start start time
  */

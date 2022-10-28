@@ -427,4 +427,16 @@ protected:
 
   /// Filename prefix to use for naming the field files containing the nrs->o_usrwrk array slots
   const std::vector<std::string> * _usrwrk_output_prefix = nullptr;
+
+  /// Sum of the elapsed time in NekRS solves
+  double _elapsedStepSum;
+
+  /// Sum of the total elapsed time in NekRS solves
+  double _elapsedTime;
+
+  /// Minimum step solve time
+  double _tSolveStepMin;
+
+  /// Maximum step solve time
+  double _tSolveStepMax;
 };

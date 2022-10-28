@@ -24,6 +24,7 @@
 
 #include "MooseApp.h"
 #include "CommandLine.h"
+#include <chrono>
 
 registerMooseAction("CardinalApp", NekInitAction, "nek_init");
 
@@ -58,98 +59,112 @@ NekInitAction::NekInitAction(const InputParameters & parameters)
 void
 NekInitAction::act()
 {
-  if (_type == "NekRSProblem" || _type == "NekRSStandaloneProblem" ||
-      _type == "NekRSSeparateDomainProblem")
+  bool is_nek_problem = _type == "NekRSProblem" || _type == "NekRSStandaloneProblem" ||
+                        _type == "NekRSSeparateDomainProblem";
+
+  if (!is_nek_problem)
+    return;
+
+  const auto timeStart = std::chrono::high_resolution_clock::now();
+
+  // NekRS does some checks in main(); because we don't call that function
+  // directly, repeat those checks here
+  if (!getenv("NEKRS_HOME"))
+    mooseError("Cannot find environment variable NEKRS_HOME!");
+
+  std::string bin(getenv("NEKRS_HOME"));
+  bin += "/bin/nekrs";
+  const char * ptr = realpath(bin.c_str(), NULL);
+  if (!ptr)
+    mooseError("Cannot find '", bin, "'! Did you set NEKRS_HOME to the correct location?");
+
+  std::shared_ptr<CommandLine> cl = _app.commandLine();
+  bool casename_on_command_line = cl->search("nekrs_setup");
+
+  if (!casename_on_command_line && !_casename_in_input_file)
+    mooseError("All inputs using '", _type, "' must pass '--nekrs-setup <case>' on "
+               "the command line\nor set casename = '<case>' in the [Problem] block in the "
+               "Nek-wrapped input file!");
+
+  std::string setup_file;
+  if (casename_on_command_line)
+    cl->search("nekrs_setup", setup_file);
+  else
+    setup_file = getParam<std::string>("casename");
+
+  // If the casename is a directory path (i.e. not just a file name), then standalone
+  // NekRS will cd into that directory so that the casename really is just the case file name,
+  // i.e. with the path subtracted out. We will replicate this behavior here.
+  std::size_t last_slash = setup_file.rfind('/') + 1;
+  std::string casepath = setup_file.substr(0, last_slash);
+  std::string casename = setup_file.substr(last_slash, setup_file.length() - last_slash);
+  if (casepath.length() > 0)
   {
-    // NekRS does some checks in main(); because we don't call that function
-    // directly, repeat those checks here
-    if (!getenv("NEKRS_HOME"))
-      mooseError("Cannot find environment variable NEKRS_HOME!");
-
-    std::string bin(getenv("NEKRS_HOME"));
-    bin += "/bin/nekrs";
-    const char * ptr = realpath(bin.c_str(), NULL);
-    if (!ptr)
-      mooseError("Cannot find '", bin, "'! Did you set NEKRS_HOME to the correct location?");
-
-    std::shared_ptr<CommandLine> cl = _app.commandLine();
-    bool casename_on_command_line = cl->search("nekrs_setup");
-
-    if (!casename_on_command_line && !_casename_in_input_file)
-      mooseError("All inputs using '", _type, "' must pass '--nekrs-setup <case>' on "
-                 "the command line\nor set casename = '<case>' in the [Problem] block in the "
-                 "Nek-wrapped input file!");
-
-    std::string setup_file;
-    if (casename_on_command_line)
-      cl->search("nekrs_setup", setup_file);
-    else
-      setup_file = getParam<std::string>("casename");
-
-    // If the casename is a directory path (i.e. not just a file name), then standalone
-    // NekRS will cd into that directory so that the casename really is just the case file name,
-    // i.e. with the path subtracted out. We will replicate this behavior here.
-    std::size_t last_slash = setup_file.rfind('/') + 1;
-    std::string casepath = setup_file.substr(0, last_slash);
-    std::string casename = setup_file.substr(last_slash, setup_file.length() - last_slash);
-    if (casepath.length() > 0)
-    {
-      int fail = chdir(casepath.c_str());
-      if (fail)
-        mooseError("Failed to find '", casepath.c_str(), "'! Did you set the 'casename' correctly?");
-    }
-
-    // we need to set the default values here because it seems that the default values
-    // that can be set via addCommandLineParam in CardinalApp aren't propagated through the 'search'
-    // function
-    int size_target = 0;
-    int ci_mode = 0;
-    std::string backend = "";
-    std::string device_id = "";
-
-    cl->search("nekrs_buildonly", size_target);
-    cl->search("nekrs_cimode", ci_mode);
-    cl->search("nekrs_backend", backend);
-    cl->search("nekrs_device_id", device_id);
-
-    int build_only = size_target > 0 ? 1 : 0;
-
-    nekrs::buildOnly(build_only);
-
-    MPI_Comm comm = *static_cast<const MPI_Comm *>(&_communicator.get());
-
-    // If this MPI communicator has already created one case, then we cannot also create a
-    // second NekRS case. For instance, if you have 4 Nek sub-apps, but only 3 processes, then
-    // NekRS doesn't like trying to set up a case with a communicator, then immediately try
-    // to set up another case with the same communicator. If you un-comment this error message,
-    // you'll get an error when reading the mesh file that is basically missing a "/".
-    // This error is probably due to NekRS relying a lot on static variables.
-    if (_n_cases > 0)
-    {
-      int size;
-      MPI_Comm_size(comm, &size);
-      mooseError("NekRS does not currently support setting up multiple cases with the same "
-                 "MPI communicator.\nThat is, you need at least one MPI process in a master "
-                 "application per Nek sub-application.\n\n"
-                 "The MPI communicator has " +
-                 std::to_string(size) +
-                 " ranks and is trying to "
-                 "construct " +
-                 std::to_string(_n_cases + 1) + "+ cases.");
-    }
-
-    nekrs::setup(comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
-                 comm /* local communicator */,
-                 build_only,
-                 size_target,
-                 ci_mode,
-                 casename,
-                 backend,
-                 device_id,
-                 0 /* debug mode */);
-
-    _n_cases++;
+    int fail = chdir(casepath.c_str());
+    if (fail)
+      mooseError("Failed to find '", casepath.c_str(), "'! Did you set the 'casename' correctly?");
   }
+
+  // we need to set the default values here because it seems that the default values
+  // that can be set via addCommandLineParam in CardinalApp aren't propagated through the 'search'
+  // function
+  int size_target = 0;
+  int ci_mode = 0;
+  std::string backend = "";
+  std::string device_id = "";
+
+  cl->search("nekrs_buildonly", size_target);
+  cl->search("nekrs_cimode", ci_mode);
+  cl->search("nekrs_backend", backend);
+  cl->search("nekrs_device_id", device_id);
+
+  int build_only = size_target > 0 ? 1 : 0;
+
+  nekrs::buildOnly(build_only);
+
+  MPI_Comm comm = *static_cast<const MPI_Comm *>(&_communicator.get());
+
+  // If this MPI communicator has already created one case, then we cannot also create a
+  // second NekRS case. For instance, if you have 4 Nek sub-apps, but only 3 processes, then
+  // NekRS doesn't like trying to set up a case with a communicator, then immediately try
+  // to set up another case with the same communicator. If you un-comment this error message,
+  // you'll get an error when reading the mesh file that is basically missing a "/".
+  // This error is probably due to NekRS relying a lot on static variables.
+  if (_n_cases > 0)
+  {
+    int size;
+    MPI_Comm_size(comm, &size);
+    mooseError("NekRS does not currently support setting up multiple cases with the same "
+               "MPI communicator.\nThat is, you need at least one MPI process in a master "
+               "application per Nek sub-application.\n\n"
+               "The MPI communicator has " +
+               std::to_string(size) +
+               " ranks and is trying to "
+               "construct " +
+               std::to_string(_n_cases + 1) + "+ cases.");
+  }
+
+  nekrs::setup(comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
+               comm /* local communicator */,
+               build_only,
+               size_target,
+               ci_mode,
+               casename,
+               backend,
+               device_id,
+               0 /* debug mode */);
+
+  _n_cases++;
+
+  // copy-pasta from NekRS's main()
+  double elapsedTime = 0;
+  const auto timeStop = std::chrono::high_resolution_clock::now();
+  elapsedTime += std::chrono::duration<double, std::milli>(timeStop - timeStart).count() / 1e3;
+  MPI_Allreduce(MPI_IN_PLACE, &elapsedTime, 1, MPI_DOUBLE, MPI_MAX, comm);
+  nekrs::updateTimer("setup", elapsedTime);
+  nekrs::setNekSetupTime(elapsedTime);
+
+  _console << "initialization took " << elapsedTime << " s" << std::endl;
 
   // setup actions only needed if coupling with MOOSE
   if (_type == "NekRSProblem")

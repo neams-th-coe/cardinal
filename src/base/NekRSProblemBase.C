@@ -117,7 +117,11 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
     _synchronization_interval(getParam<MooseEnum>("synchronization_interval").getEnum<synchronization::SynchronizationEnum>()),
     _constant_interval(getParam<unsigned int>("constant_interval")),
-    _start_time(nekrs::startTime())
+    _start_time(nekrs::startTime()),
+    _elapsedStepSum(0.0),
+    _elapsedTime(nekrs::getNekSetupTime()),
+    _tSolveStepMin(std::numeric_limits<double>::max()),
+    _tSolveStepMax(std::numeric_limits<double>::min())
 {
   if (params.isParamSetByUser("minimize_transfers_in"))
     mooseError("The 'minimize_transfers_in' parameter has been replaced by "
@@ -281,6 +285,10 @@ NekRSProblemBase::~NekRSProblemBase()
   if (!_is_output_step)
     writeFieldFile(_time, _t_step);
 
+  if (nekrs::runTimeStatFreq())
+    if (_t_step % nekrs::runTimeStatFreq())
+      nekrs::printRuntimeStatistics(_t_step);
+
   freePointer(_external_data);
   freePointer(_interpolation_outgoing);
   freePointer(_interpolation_incoming);
@@ -442,6 +450,7 @@ NekRSProblemBase::initialSetup()
 
   // nekRS calls UDF_ExecuteStep once before the time stepping begins
   nekrs::udfExecuteStep(_start_time, _t_step, false /* not an output step */);
+  nekrs::resetTimer("udfExecuteStep");
 }
 
 void
@@ -449,6 +458,8 @@ NekRSProblemBase::externalSolve()
 {
   if (nekrs::buildOnly())
     return;
+
+  const double timeStartStep = MPI_Wtime();
 
   // _dt reflects the time step that MOOSE wants Nek to
   // take. For instance, if Nek is controlled by a master app and subcycling is used,
@@ -472,6 +483,10 @@ NekRSProblemBase::externalSolve()
 
   // tell NekRS what the value of nrs->isOutputStep should be
   nekrs::outputStep(_is_output_step);
+
+  // NekRS prints out verbose info for the first 1000 time steps
+  if (_t_step <= 1000)
+    nekrs::verboseInfo(true);
 
   // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
   // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
@@ -512,6 +527,32 @@ NekRSProblemBase::externalSolve()
       }
     }
   }
+
+  // copy-pasta from Nek's main() for calling timers and printing
+  if (nekrs::updateFileCheckFreq())
+    if (_t_step % nekrs::updateFileCheckFreq())
+      nekrs::processUpdFile();
+
+  MPI_Barrier(comm().get());
+  const double elapsedStep = MPI_Wtime() - timeStartStep;
+  _tSolveStepMin = std::min(elapsedStep, _tSolveStepMin);
+  _tSolveStepMax = std::max(elapsedStep, _tSolveStepMax);
+  nekrs::updateTimer("minSolveStep", _tSolveStepMin);
+  nekrs::updateTimer("maxSolveStep", _tSolveStepMax);
+
+  _elapsedStepSum += elapsedStep;
+  _elapsedTime += elapsedStep;
+  nekrs::updateTimer("elapsedStep", elapsedStep);
+  nekrs::updateTimer("elapsedStepSum", _elapsedStepSum);
+  nekrs::updateTimer("elapsed", _elapsedTime);
+
+  if (nekrs::printInfoFreq())
+    if (_t_step % nekrs::printInfoFreq() == 0)
+      nekrs::printInfo(_time, _t_step);
+
+  if (nekrs::runTimeStatFreq())
+    if (_t_step % nekrs::runTimeStatFreq() == 0)
+      nekrs::printRuntimeStatistics(_t_step);
 
   _time += _dt;
 }

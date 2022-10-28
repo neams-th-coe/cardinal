@@ -26,6 +26,7 @@ nekrs::usrwrkIndices indices;
 
 namespace nekrs
 {
+static double setup_time;
 
 // various constants for controlling tolerances
 static double abs_tol;
@@ -41,6 +42,18 @@ void
 setRelativeTol(double tol)
 {
   rel_tol = tol;
+}
+
+void
+setNekSetupTime(const double & time)
+{
+  setup_time = time;
+}
+
+double
+getNekSetupTime()
+{
+  return setup_time;
 }
 
 void
