@@ -411,7 +411,12 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
                moose_flux,
                ".\n\nThis may happen if the nekRS mesh "
                "is very different from that used in the App sending heat flux to nekRS and the "
-               "nearest node transfer is only picking up zero values in the coupled App.");
+               "nearest node transfer is only picking up zero values in the coupled App.\n\n"
+               "OR, this error could indicate that your tolerances for comparing the re-normalized "
+               "Nek flux with the incoming MOOSE flux are too tight. If the NekRS flux (",
+               normalized_nek_flux, ") is acceptably close to the MOOSE flux (", moose_flux, "), "
+               "then you can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' "
+               "parameters");
 }
 
 void
@@ -564,7 +569,12 @@ NekRSProblem::sendVolumeHeatSourceToNek()
                moose_source,
                ".\n\nThis may happen if the nekRS mesh "
                "is very different from that used in the App sending heat source to nekRS and the "
-               "nearest node transfer is only picking up zero values in the coupled App.");
+               "nearest node transfer is only picking up zero values in the coupled App."
+               "OR, this error could indicate that your tolerances for comparing the re-normalized "
+               "Nek heat source with the incoming MOOSE heat source are too tight. If the NekRS heat source (",
+               normalized_nek_source, ") is acceptably close to the MOOSE heat source (", moose_source, "), "
+               "then you can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' "
+               "parameters");
 }
 
 void
