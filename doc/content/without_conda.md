@@ -80,6 +80,10 @@ For even further control, you can set other
 dependency locations, and more.
 !alert-end!
 
+#### Set OCCA Backend
+
+!include occa.md
+
 #### Build PETSc and libMesh
   id=petsc_libmesh
 

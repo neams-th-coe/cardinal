@@ -1,4 +1,3 @@
-
 NekRS uses [OCCA](https://libocca.org/#/) to provide an API for device programming. Available
 backends include CPU (i.e. [!ac](MPI) parallelism), CUDA, HIP, OpenCL, and OpenMP.
 There are several different ways that you can set the backend; in order of *decreasing* priority,
