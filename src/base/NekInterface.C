@@ -28,8 +28,20 @@ namespace nekrs
 {
 
 // various constants for controlling tolerances
-constexpr double abs_tol = 1e-8;
-constexpr double rel_tol = 1e-5;
+static double abs_tol;
+static double rel_tol;
+
+void
+setAbsoluteTol(double tol)
+{
+  abs_tol = tol;
+}
+
+void
+setRelativeTol(double tol)
+{
+  rel_tol = tol;
+}
 
 void
 setStartTime(const double & start)
@@ -1485,7 +1497,7 @@ initializeDimensionalScales(const double U_ref,
   scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
   scales.source_ref = scales.flux_ref / L_ref;
 
-  scales.nondimensional_T = (std::abs(dT_ref - 1.0) > abs_tol) || (std::abs(T_ref) > abs_tol);
+  scales.nondimensional_T = (std::abs(dT_ref - 1.0) > 1e-6) || (std::abs(T_ref) > 1e-6);
 }
 
 double
