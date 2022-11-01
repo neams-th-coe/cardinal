@@ -36,3 +36,15 @@ libgomp: Thread creation failed: Resource temporarily unavailable
 
 This error can usually be addressed by explicitly telling NekRS to use just 1 OpenMC
 thread, with `export OMP_NUM_THREADS=1`.
+
+## parRSB
+
+If you see an error just after NekRS prints `running parRSB ...`, such as this:
+
+```
+running parRSB ...
+cardinal-opt: ../../ccmi/protocols/barrier/MultiLeaderBarrierT.h:256: static void CCMI::Protocols::Barrier::MultiLeaderBarrierFactoryT<T_Composite, T_Conn>::cb_async(libcoll_context_t, void*, const void*, unsigned int, unsigned int, size_t, LibColl::PipeWorkQueue**, void (**)(libcoll_context_t, void*, libcoll_result_t), void**) [with T_Composite = CCMI::Protocols::Barrier::MultiLeaderBarrierT<LibColl::Interfaces::NativeInterface, (LibColl::topologyIndex_t)0>; T_Conn = CCMI::ConnectionManager::SimpleConnMgr; libcoll_context_t = void*; size_t = long unsigned int; libcoll_event_function = void (*)(void*, void*, libcoll_result_t)]: Assertion `composite != __null' failed.
+```
+
+there may be issues with parRSB. You can get around these by using `gencon` and `genmap`
+(tools that [ship with Nek5000](nek_tools.md)).
