@@ -4,7 +4,7 @@ To get help with Cardinal, you can either:
 
 - Post a question to our [Discussions page](https://github.com/neams-th-coe/cardinal/discussions)
 - Reach out on our Cardinal Slack channels on the MOOSE Slack workspace
-  (`moosedevelopers.slack.com`) or on the NekRSSlack workspace
+  (`moosedevelopers.slack.com`) or on the NekRS Slack workspace
   (`nekrsdev-team.slack.com`).
 - [Contact a developer](contact.md)
 
