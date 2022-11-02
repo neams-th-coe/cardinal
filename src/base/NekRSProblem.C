@@ -274,7 +274,7 @@ NekRSProblem::adjustNekSolution()
     msg = "Limiting nekRS temperature to below maximum temperature of " + Moose::stringify(*_max_T);
   if (_max_T && _min_T)
     msg = "Limiting nekRS temperature to within the range [" + Moose::stringify(*_min_T) + ", " +
-          Moose::stringify(*_max_T);
+          Moose::stringify(*_max_T) + "]";
 
   if (limit_temperature)
   {

@@ -330,6 +330,20 @@ conditions are only *weakly* imposed. That is, we set the heat flux but only enf
 it by driving the entire nonlinear residual to a small-enough number, so heat flux
 boundary conditions are never perfectly observed like Dirichlet boundary conditions are.
 
+## What Order Does Everything Happen in?
+
+It can be helpful to understand exactly the order in which different data transfers
+and other operations occur within the NekRS-MOOSE wrapping. For every time step of
+NekRS, we call this function:
+
+!listing /framework/src/problems/ExternalProblem.C
+  re=void\sExternalProblem::solve.*?^}
+
+A detailed breakdown of each of these three basic steps is provided below:
+
+- [sync solutions from MOOSE to NekRS](sync_in.md)
+- [run NekRS](run_nek.md)
+- [sync solutions from NekRS to MOOSE](sync_out.md)
 
 ## Other Features
 
