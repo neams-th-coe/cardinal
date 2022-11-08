@@ -21,6 +21,7 @@
 #include "NekMeshGenerator.h"
 
 #include "libmesh/cell_hex8.h"
+#include "libmesh/cell_hex20.h"
 #include "libmesh/cell_hex27.h"
 
 /**
@@ -39,20 +40,9 @@ public:
 
   virtual void checkElementType(std::unique_ptr<MeshBase> & mesh) override;
 
-  virtual unsigned int getFaceNode(const unsigned int & primary_face) const override;
-
   virtual std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const override;
 
-  virtual bool isCornerNode(const unsigned int & node) const override
-  {
-    return node < Hex8::num_nodes;
-  }
+  virtual bool isCornerNode(const unsigned int & node) const override;
 
-  virtual const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const override
-  {
-    const auto & side_map = Hex27::side_nodes_map[face];
-    std::vector<unsigned int> nodes;
-    nodes.assign(std::begin(side_map), std::end(side_map));
-    return nodes;
-  }
+  virtual const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const override;
 };

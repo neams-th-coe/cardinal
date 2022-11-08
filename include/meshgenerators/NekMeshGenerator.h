@@ -65,7 +65,7 @@ public:
    * @param[in] primary_face face ID
    * @return node index on that face
    */
-  virtual unsigned int getFaceNode(const unsigned int & primary_face) const = 0;
+  unsigned int getFaceNode(const unsigned int & primary_face) const;
 
   /**
    * Get the node indices on a given face
@@ -248,6 +248,9 @@ protected:
 
   /// Number of nodes per element in resulting mesh
   unsigned int _n_end_nodes;
+
+  /// Number of nodes per side of the starting element
+  unsigned int _n_start_nodes_per_side;
 
   /// Sideset IDs to move to fit the circular surface
   std::vector<BoundaryID> _moving_boundary;

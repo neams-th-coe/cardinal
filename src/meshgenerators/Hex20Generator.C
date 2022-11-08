@@ -18,11 +18,7 @@
 
 #include "Hex20Generator.h"
 #include "CastUniquePointer.h"
-#include "MooseMeshUtils.h"
-
 #include "libmesh/mesh_tools.h"
-#include "libmesh/cell_hex20.h"
-#include "libmesh/cell_hex8.h"
 
 registerMooseObject("CardinalApp", Hex20Generator);
 
@@ -40,6 +36,8 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
   : NekMeshGenerator(params)
 {
   _n_start_nodes = Hex27::num_nodes;
+  _n_start_nodes_per_side = Hex27::nodes_per_side;
+
   _n_end_nodes = Hex20::num_nodes;
 
   // for each face, the mid-side nodes to be adjusted
@@ -82,13 +80,6 @@ Hex20Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
   return {p0, p1};
 }
 
-unsigned int
-Hex20Generator::getFaceNode(const unsigned int & primary_face) const
-{
-  const auto face_nodes = nodesOnFace(primary_face);
-  return face_nodes[Hex27::nodes_per_side - 1];
-}
-
 void
 Hex20Generator::checkElementType(std::unique_ptr<MeshBase> & mesh)
 {
@@ -98,6 +89,21 @@ Hex20Generator::checkElementType(std::unique_ptr<MeshBase> & mesh)
     if (!hex27)
       mooseError("This mesh generator can only be applied to HEX27 elements!");
   }
+}
+
+bool
+Hex20Generator::isCornerNode(const unsigned int & node) const
+{
+  return node < Hex8::num_nodes;
+}
+
+const std::vector<unsigned int>
+Hex20Generator::nodesOnFace(const unsigned int & face) const
+{
+  const auto & side_map = Hex27::side_nodes_map[face];
+  std::vector<unsigned int> nodes;
+  nodes.assign(std::begin(side_map), std::end(side_map));
+  return nodes;
 }
 
 std::unique_ptr<MeshBase>

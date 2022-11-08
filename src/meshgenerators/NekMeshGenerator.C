@@ -712,6 +712,13 @@ NekMeshGenerator::saveAndRebuildNodes(std::unique_ptr<MeshBase> & mesh)
   }
 }
 
+unsigned int
+NekMeshGenerator::getFaceNode(const unsigned int & primary_face) const
+{
+  const auto face_nodes = nodesOnFace(primary_face);
+  return face_nodes[_n_start_nodes_per_side - 1];
+}
+
 std::unique_ptr<MeshBase>
 NekMeshGenerator::generate()
 {
