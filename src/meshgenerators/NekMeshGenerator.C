@@ -573,6 +573,145 @@ NekMeshGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touch
     "the 'layers' are set to reasonable values.");
 }
 
+void
+NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> & polygon_layer_smoothing)
+{
+  auto & boundary_info = mesh->get_boundary_info();
+
+  // move the nodes on the surface of interest
+  for (auto & elem : mesh->element_ptr_range())
+  {
+    bool at_least_one_face_on_boundary = false;
+
+    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
+    {
+      // get the boundary IDs that this element face lie on
+      std::vector<boundary_id_type> b;
+      boundary_info.boundary_ids(elem, s, b);
+
+      // if there is no moving boundary, or no faces of this element are on any boundaries, we can leave
+      if (!_has_moving_boundary || b.size() == 0)
+        continue;
+
+      // is this face on any of the specified boundaries?
+      std::vector<int> indices;
+
+      for (const auto & b_index : b)
+      {
+        auto it = std::find(_moving_boundary.begin(), _moving_boundary.end(), b_index);
+
+        if (it != _moving_boundary.end())
+          indices.push_back(it - _moving_boundary.begin());
+      }
+
+      // if none of this element's faces are on the boundaries of interest, we can leave
+      if (indices.size() == 0)
+        continue;
+
+      if (indices.size() > 1)
+        mooseError("This mesh generator does not support elements with the same face "
+          "existing on multiple moving side sets!");
+
+      unsigned int index = indices[0];
+
+      // use the element centroid for finding the closest origin
+      const Point centroid = elem->vertex_average();
+
+      if (at_least_one_face_on_boundary)
+        mooseError("This mesh generator cannot be applied to elements that have more than "
+          "one face on the circular sideset!");
+
+      at_least_one_face_on_boundary = true;
+      moveElem(elem, index, s, polygon_layer_smoothing);
+    }
+  }
+}
+
+void
+NekMeshGenerator::storeMeshInfo(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
+  std::vector<unsigned int> & boundary_face_ids, std::vector<std::vector<boundary_id_type>> & boundary_ids)
+{
+  auto & boundary_info = mesh->get_boundary_info();
+  const auto & original_boundaries = boundary_info.get_boundary_ids();
+
+  // store boundary ID <-> name mapping
+  for (const auto & b: original_boundaries)
+    _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
+
+  int i = 0;
+  for (auto & elem : mesh->element_ptr_range())
+  {
+    // store information about the element faces
+    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
+    {
+      std::vector<boundary_id_type> b;
+      boundary_info.boundary_ids(elem, s, b);
+
+      boundary_elem_ids.push_back(elem->id());
+      boundary_face_ids.push_back(s);
+      boundary_ids.push_back(b);
+    }
+  }
+}
+
+void
+NekMeshGenerator::addSidesets(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
+  std::vector<unsigned int> & boundary_face_ids,
+  std::vector<std::vector<boundary_id_type>> & boundary_ids)
+{
+  auto & boundary_info = mesh->get_boundary_info();
+
+  // create the sidesets
+  for (unsigned int i = 0; i < boundary_elem_ids.size(); ++i)
+  {
+    auto elem_id = boundary_elem_ids[i];
+    auto boundary = boundary_ids[i];
+
+    const auto & elem = mesh->elem_ptr(elem_id);
+
+    // if boundary is not included in the list to rebuild, skip it
+    for (const auto & b : boundary)
+    {
+      if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())
+        continue;
+      else
+        boundary_info.add_side(elem, boundary_face_ids[i], b);
+    }
+  }
+
+  for (const auto & b: _boundary_id_to_name)
+  {
+    // if boundary is not included in the list to rebuild, skip it
+    if (_boundaries_to_rebuild.find(b.first) == _boundaries_to_rebuild.end())
+      continue;
+
+    boundary_info.sideset_name(b.first) = b.second;
+  }
+}
+
+void
+NekMeshGenerator::saveAndRebuildNodes(std::unique_ptr<MeshBase> & mesh)
+{
+  std::vector<Node> original_nodes;
+  std::vector<dof_id_type> original_node_ids;
+
+  // store information about the nodes
+  for (const auto & node : mesh->node_ptr_range())
+  {
+    original_nodes.push_back(*node);
+    original_node_ids.push_back(node->id());
+  }
+
+  mesh->clear();
+
+  // create the nodes
+  for (unsigned int i = 0; i < original_nodes.size(); ++i)
+  {
+    Point pt(original_nodes[i](0), original_nodes[i](1), original_nodes[i](2));
+    mesh->add_point(pt, original_node_ids[i]);
+  }
+}
+
 std::unique_ptr<MeshBase>
 NekMeshGenerator::generate()
 {

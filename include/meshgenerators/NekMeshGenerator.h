@@ -82,6 +82,29 @@ public:
   virtual bool isCornerNode(const unsigned int & node) const = 0;
 
   /**
+   * Store the previous mesh information in order to rebuild it later
+   */
+  void storeMeshInfo(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
+    std::vector<unsigned int> & boundary_face_ids, std::vector<std::vector<boundary_id_type>> & boundary_ids);
+
+  /**
+   * Create the sidesets in the new mesh
+   */
+  void addSidesets(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
+    std::vector<unsigned int> & boundary_face_ids,
+    std::vector<std::vector<boundary_id_type>> & boundary_ids);
+
+  /**
+   * Move any elements for circular adjusting
+   */
+  void moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> & polygon_layer_smoothing);
+
+  /**
+   * Save the previous node positions and rebuild them with the new element order
+   */
+  void saveAndRebuildNodes(std::unique_ptr<MeshBase> & mesh);
+
+  /**
    * Get a pointer to the next element in the boundary layer
    * @param[in] elem current element in the boundary layer
    * @param[in] primary_face face of the element that touches the "next" element

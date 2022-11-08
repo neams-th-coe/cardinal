@@ -18,10 +18,7 @@
 
 #include "Hex20Generator.h"
 #include "CastUniquePointer.h"
-#include "UserErrorChecking.h"
 #include "MooseMeshUtils.h"
-#include "DelimitedFileReader.h"
-#include "GeometryUtility.h"
 
 #include "libmesh/mesh_tools.h"
 #include "libmesh/cell_hex20.h"
@@ -134,28 +131,13 @@ Hex20Generator::generate()
   std::vector<dof_id_type> elem_ids;
   std::vector<subdomain_id_type> elem_block_ids;
   node_ids.resize(mesh->n_elem());
-  std::vector<Node> original_nodes;
-  std::vector<dof_id_type> original_node_ids;
 
-  // [1] store boundary ID <-> name mapping
-  for (const auto & b: original_boundaries)
-    _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
+  storeMeshInfo(mesh, boundary_elem_ids, boundary_face_ids, boundary_ids);
 
   int i = 0;
   for (auto & elem : mesh->element_ptr_range())
   {
-    // [2] store information about the element faces
-    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
-    {
-      std::vector<boundary_id_type> b;
-      boundary_info.boundary_ids(elem, s, b);
-
-      boundary_elem_ids.push_back(elem->id());
-      boundary_face_ids.push_back(s);
-      boundary_ids.push_back(b);
-    }
-
-    // [3] store information about the elements
+    // store information about the elements
     libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
     elem_ids.push_back(hex27->id());
     elem_block_ids.push_back(hex27->subdomain_id());
@@ -167,68 +149,9 @@ Hex20Generator::generate()
   }
 
   // move the nodes on the surface of interest
-  for (auto & elem : mesh->element_ptr_range())
-  {
-    bool at_least_one_face_on_boundary = false;
+  moveNodes(mesh, polygon_layer_smoothing);
 
-    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
-    {
-      // get the boundary IDs that this element face lie on
-      std::vector<boundary_id_type> b;
-      boundary_info.boundary_ids(elem, s, b);
-
-      // if there is no moving boundary, or no faces of this element are on any boundaries, we can leave
-      if (!_has_moving_boundary || b.size() == 0)
-        continue;
-
-      // is this face on any of the specified boundaries?
-      std::vector<int> indices;
-
-      for (const auto & b_index : b)
-      {
-        auto it = std::find(_moving_boundary.begin(), _moving_boundary.end(), b_index);
-
-        if (it != _moving_boundary.end())
-          indices.push_back(it - _moving_boundary.begin());
-      }
-
-      // if none of this element's faces are on the boundaries of interest, we can leave
-      if (indices.size() == 0)
-        continue;
-
-      if (indices.size() > 1)
-        mooseError("This mesh generator does not support elements with the same face "
-          "existing on multiple moving side sets!");
-
-      unsigned int index = indices[0];
-
-      // use the element centroid for finding the closest origin
-      const Point centroid = elem->vertex_average();
-
-      if (at_least_one_face_on_boundary)
-        mooseError("This mesh generator cannot be applied to elements that have more than "
-          "one face on the circular sideset!");
-
-      at_least_one_face_on_boundary = true;
-      moveElem(elem, index, s, polygon_layer_smoothing);
-    }
-  }
-
-  // [4] store information about the nodes
-  for (const auto & node : mesh->node_ptr_range())
-  {
-    original_nodes.push_back(*node);
-    original_node_ids.push_back(node->id());
-  }
-
-  mesh->clear();
-
-  // create the nodes
-  for (unsigned int i = 0; i < original_nodes.size(); ++i)
-  {
-    Point pt(original_nodes[i](0), original_nodes[i](1), original_nodes[i](2));
-    mesh->add_point(pt, original_node_ids[i]);
-  }
+  saveAndRebuildNodes(mesh);
 
   // create the elements
   for (unsigned int i = 0; i < elem_ids.size(); ++i)
@@ -246,32 +169,7 @@ Hex20Generator::generate()
     }
   }
 
-  // create the sidesets
-  for (unsigned int i = 0; i < boundary_elem_ids.size(); ++i)
-  {
-    auto elem_id = boundary_elem_ids[i];
-    auto boundary = boundary_ids[i];
-
-    const auto & elem = mesh->elem_ptr(elem_id);
-
-    // if boundary is not included in the list to rebuild, skip it
-    for (const auto & b : boundary)
-    {
-      if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())
-        continue;
-      else
-        boundary_info.add_side(elem, boundary_face_ids[i], b);
-    }
-  }
-
-  for (const auto & b: _boundary_id_to_name)
-  {
-    // if boundary is not included in the list to rebuild, skip it
-    if (_boundaries_to_rebuild.find(b.first) == _boundaries_to_rebuild.end())
-      continue;
-
-    boundary_info.sideset_name(b.first) = b.second;
-  }
+  addSidesets(mesh, boundary_elem_ids, boundary_face_ids, boundary_ids);
 
   mesh->prepare_for_use();
 
