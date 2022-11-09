@@ -40,7 +40,5 @@ public:
 
   virtual std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const override;
 
-  virtual bool isCornerNode(const unsigned int & node) const override;
-
   virtual const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const override;
 };

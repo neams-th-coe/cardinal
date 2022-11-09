@@ -46,12 +46,6 @@ Quad8Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
   return {p0, p1};
 }
 
-bool
-Quad8Generator::isCornerNode(const unsigned int & node) const
-{
-  return node < Quad4::num_nodes;
-}
-
 const std::vector<unsigned int>
 Quad8Generator::nodesOnFace(const unsigned int & face) const
 {

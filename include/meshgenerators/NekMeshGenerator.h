@@ -85,7 +85,7 @@ public:
    * @param[in] node node index
    * @return whether node is a corner node
    */
-  virtual bool isCornerNode(const unsigned int & node) const = 0;
+  virtual bool isCornerNode(const unsigned int & node) const;
 
   /**
    * Store the previous mesh information in order to rebuild it later
@@ -260,6 +260,9 @@ protected:
 
   /// Number of sides per element (faces in 3-D, edges in 2-D)
   unsigned int _n_sides;
+
+  /// Number of corner nodes
+  unsigned int _n_corner_nodes;
 
   /// Sideset IDs to move to fit the circular surface
   std::vector<BoundaryID> _moving_boundary;

@@ -768,6 +768,7 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
       _n_start_nodes_per_side = Quad9::nodes_per_side;
       _n_end_nodes = Quad8::num_nodes;
       _n_sides = Quad9::num_sides;
+      _n_corner_nodes = Quad4::num_nodes;
 
       // for each face, the mid-side nodes to be adjusted
       _side_ids.push_back({7, 5});
@@ -800,6 +801,7 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
       _n_start_nodes_per_side = Hex27::nodes_per_side;
       _n_end_nodes = Hex20::num_nodes;
       _n_sides = Hex27::num_sides;
+      _n_corner_nodes = Hex8::num_nodes;
 
       // for each face, the mid-side nodes to be adjusted
       _side_ids.push_back({12, 15, 14, 13});
@@ -835,6 +837,12 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
     default:
       mooseError("Unhandled element type in initializeElemData()!");
   }
+}
+
+bool
+NekMeshGenerator::isCornerNode(const unsigned int & node) const
+{
+  return node < _n_corner_nodes;
 }
 
 std::unique_ptr<MeshBase>

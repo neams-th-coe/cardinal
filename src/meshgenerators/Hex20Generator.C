@@ -46,12 +46,6 @@ Hex20Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
   return {p0, p1};
 }
 
-bool
-Hex20Generator::isCornerNode(const unsigned int & node) const
-{
-  return node < Hex8::num_nodes;
-}
-
 const std::vector<unsigned int>
 Hex20Generator::nodesOnFace(const unsigned int & face) const
 {
@@ -99,12 +93,11 @@ Hex20Generator::generate()
   for (auto & elem : mesh->element_ptr_range())
   {
     // store information about the elements
-    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    elem_ids.push_back(hex27->id());
-    elem_block_ids.push_back(hex27->subdomain_id());
+    elem_ids.push_back(elem->id());
+    elem_block_ids.push_back(elem->subdomain_id());
 
     for (unsigned int j = 0; j < _n_end_nodes; ++j)
-      node_ids[i].push_back(hex27->node_ref(j).id());
+      node_ids[i].push_back(elem->node_ref(j).id());
 
     i++;
   }
