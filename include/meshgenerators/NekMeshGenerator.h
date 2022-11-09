@@ -252,6 +252,9 @@ protected:
   /// Number of nodes per side of the starting element
   unsigned int _n_start_nodes_per_side;
 
+  /// Number of sides per element (faces in 3-D, edges in 2-D)
+  unsigned int _n_sides;
+
   /// Sideset IDs to move to fit the circular surface
   std::vector<BoundaryID> _moving_boundary;
 

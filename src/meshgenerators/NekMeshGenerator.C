@@ -583,7 +583,7 @@ NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> 
   {
     bool at_least_one_face_on_boundary = false;
 
-    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
+    for (unsigned short int s = 0; s < _n_sides; ++s)
     {
       // get the boundary IDs that this element face lie on
       std::vector<boundary_id_type> b;
@@ -642,7 +642,7 @@ NekMeshGenerator::storeMeshInfo(std::unique_ptr<MeshBase> & mesh, std::vector<do
   for (auto & elem : mesh->element_ptr_range())
   {
     // store information about the element faces
-    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
+    for (unsigned short int s = 0; s < _n_sides; ++s)
     {
       std::vector<boundary_id_type> b;
       boundary_info.boundary_ids(elem, s, b);

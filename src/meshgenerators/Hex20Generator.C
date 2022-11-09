@@ -37,8 +37,8 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
 {
   _n_start_nodes = Hex27::num_nodes;
   _n_start_nodes_per_side = Hex27::nodes_per_side;
-
   _n_end_nodes = Hex20::num_nodes;
+  _n_sides = Hex27::num_sides;
 
   // for each face, the mid-side nodes to be adjusted
   _side_ids.push_back({12, 15, 14, 13});
