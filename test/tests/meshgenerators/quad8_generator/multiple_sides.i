@@ -4,7 +4,7 @@
     file = square_in.e
   []
   [to_quad8]
-    type = Quad8Generator
+    type = NekMeshGenerator
     input = square
     boundary = '1 2'
     radius = '2.0 2.0'

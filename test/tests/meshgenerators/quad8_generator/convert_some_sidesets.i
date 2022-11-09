@@ -4,7 +4,7 @@
     file = tube_in.e
   []
   [to_quad8]
-    type = Quad8Generator
+    type = NekMeshGenerator
     input = tube
     boundaries_to_rebuild = 'rmax'
   []

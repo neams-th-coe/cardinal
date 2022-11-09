@@ -7,7 +7,7 @@
     rmax = 1.0
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = clad
   []
 

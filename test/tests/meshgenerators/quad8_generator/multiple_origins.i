@@ -4,7 +4,7 @@
     file = fluid.exo
   []
   [to_quad8]
-    type = Quad8Generator
+    type = NekMeshGenerator
     input = fluid
     boundary = '1'
     layers = 2

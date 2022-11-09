@@ -12,7 +12,7 @@
     vector_value = '0.5 0.5 0.0'
   []
   [to_quad8]
-    type = Quad8Generator
+    type = NekMeshGenerator
     input = offcenter
     boundary = '2'
     radius = '2.0'

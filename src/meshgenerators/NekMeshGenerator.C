@@ -31,6 +31,12 @@
 #include "libmesh/face_quad8.h"
 #include "libmesh/face_quad9.h"
 
+registerMooseObject("CardinalApp", NekMeshGenerator);
+registerMooseObjectRenamed("CardinalApp",
+                           Hex20Generator,
+                           "03/01/2023 24:00",
+                           NekMeshGenerator);
+
 InputParameters
 NekMeshGenerator::validParams()
 {
@@ -79,8 +85,8 @@ NekMeshGenerator::validParams()
     "specified, all original boundaries are kept.");
 
   params.addClassDescription(
-      "Base class for converting MOOSE meshes to NekRS compatible format, while optionally preserving "
-      "circular edges (which were faceted) in the HEX27 mesh.");
+      "Converts MOOSE meshes to element types needed for Nek (Quad8 or Hex20), "
+      "while optionally preserving circular edges (which were faceted) in the original mesh.");
   return params;
 }
 
@@ -874,5 +880,86 @@ NekMeshGenerator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
 std::unique_ptr<MeshBase>
 NekMeshGenerator::generate()
 {
-  mooseError("Should not get here!");
+  std::unique_ptr<MeshBase> mesh = std::move(_input);
+
+  // TODO: no real reason for this restriction, just didn't need it in the first pass
+  if (!mesh->is_replicated())
+    mooseError("This mesh generator does not yet support distributed mesh implementations!");
+
+  // get the boundary movement information, and check for valid user specifications
+  getCircularSidesetInfo(mesh);
+
+  // get information related to moving corners
+  std::vector<Real> polygon_layer_smoothing = getPolygonSmoothingInfo(mesh);
+
+  // get information on which boundaries to rebuild, and check for valid user specifications
+  getBoundariesToRebuild(mesh);
+
+  // check for valid element type
+  checkElementType(mesh);
+
+  initializeElemData(mesh);
+
+  // store all information from the incoming mesh that is needed to rebuild it from scratch
+  std::vector<dof_id_type> boundary_elem_ids;
+  std::vector<unsigned int> boundary_face_ids;
+  std::vector<std::vector<boundary_id_type>> boundary_ids;
+  std::vector<std::vector<dof_id_type>> node_ids;
+  std::vector<dof_id_type> elem_ids;
+  std::vector<subdomain_id_type> elem_block_ids;
+  node_ids.resize(mesh->n_elem());
+
+  storeMeshInfo(mesh, boundary_elem_ids, boundary_face_ids, boundary_ids);
+
+  int i = 0;
+  for (auto & elem : mesh->element_ptr_range())
+  {
+    // store information about the elements
+    elem_ids.push_back(elem->id());
+    elem_block_ids.push_back(elem->subdomain_id());
+
+    for (unsigned int j = 0; j < _n_end_nodes; ++j)
+      node_ids[i].push_back(elem->node_ref(j).id());
+
+    i++;
+  }
+
+  // move the nodes on the surface of interest
+  moveNodes(mesh, polygon_layer_smoothing);
+
+  saveAndRebuildNodes(mesh);
+
+  // create the elements
+  for (unsigned int i = 0; i < elem_ids.size(); ++i)
+  {
+    Elem * elem;
+    switch (_etype)
+    {
+      case QUAD9:
+        elem = new Quad8;
+        break;
+      case HEX27:
+        elem = new Hex20;
+        break;
+      default:
+        mooseError("Unhandled element type in generate()!");
+    }
+
+    elem->set_id(elem_ids[i]);
+    elem->subdomain_id() = elem_block_ids[i];
+    mesh->add_elem(elem);
+
+    const auto & ids = node_ids[i];
+    for (unsigned int n = 0; n < ids.size(); ++n)
+    {
+      auto node_ptr = mesh->node_ptr(ids[n]);
+      elem->set_node(n) = node_ptr;
+    }
+  }
+
+  addSidesets(mesh, boundary_elem_ids, boundary_face_ids, boundary_ids);
+
+  mesh->prepare_for_use();
+
+  return dynamic_pointer_cast<MeshBase>(mesh);
 }

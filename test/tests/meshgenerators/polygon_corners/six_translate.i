@@ -16,7 +16,7 @@
     vector_value = '0.5 0.5 0.0'
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = shift
     boundaries_to_rebuild = '1 2 3 10000'
 

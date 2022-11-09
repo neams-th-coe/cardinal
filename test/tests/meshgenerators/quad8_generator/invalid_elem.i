@@ -7,7 +7,7 @@
     rmax = 1.0
   []
   [to_quad8]
-    type = Quad8Generator
+    type = NekMeshGenerator
     input = clad
   []
 
