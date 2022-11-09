@@ -64,7 +64,7 @@ public:
    * @param[in] node_id mid-point side node ID
    * @return two nodes on the corners to average to get new coordinates
    */
-  virtual std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const = 0;
+  virtual std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const;
 
   /**
    * Get a node on the given face that is unique to that side of the element
@@ -72,13 +72,6 @@ public:
    * @return node index on that face
    */
   unsigned int getFaceNode(const unsigned int & primary_face) const;
-
-  /**
-   * Get the node indices on a given face
-   * @param[in] face face index
-   * @return node indices on that face
-   */
-  virtual const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const;
 
   /**
    * Whether a node on a face is a corner node
@@ -311,4 +304,7 @@ protected:
 
   /// Side nodes map
   std::vector<std::vector<unsigned int>> _side_nodes_map;
+
+  /// Face nodes map
+  std::vector<std::vector<unsigned int>> _face_nodes_map;
 };

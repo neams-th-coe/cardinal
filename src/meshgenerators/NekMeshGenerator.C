@@ -463,7 +463,7 @@ NekMeshGenerator::moveElem(Elem * elem, const unsigned int & boundary_index, con
   const Point centroid = elem->vertex_average();
   Point pt = getClosestOrigin(boundary_index, centroid);
 
-  for (auto & face_node : nodesOnFace(primary_face))
+  for (auto & face_node : _side_nodes_map[primary_face])
   {
     const Node & n = elem->node_ref(face_node);
     const Point corner_point(n(0), n(1), n(2));
@@ -729,7 +729,7 @@ NekMeshGenerator::saveAndRebuildNodes(std::unique_ptr<MeshBase> & mesh)
 unsigned int
 NekMeshGenerator::getFaceNode(const unsigned int & primary_face) const
 {
-  const auto face_nodes = nodesOnFace(primary_face);
+  const auto face_nodes = _side_nodes_map[primary_face];
   return face_nodes[_n_start_nodes_per_side - 1];
 }
 
@@ -775,6 +775,8 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
         for (unsigned int j = 0; j < _n_start_nodes_per_side; ++j)
           _side_nodes_map[i].push_back(Quad9::side_nodes_map[i][j]);
 
+      _face_nodes_map = _side_nodes_map;
+
       // for each face, the mid-side nodes to be adjusted
       _side_ids.push_back({7, 5});
       _side_ids.push_back({4, 6});
@@ -812,6 +814,11 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
       for (unsigned int i = 0; i < _n_sides; ++i)
         for (unsigned int j = 0; j < _n_start_nodes_per_side; ++j)
           _side_nodes_map[i].push_back(Hex27::side_nodes_map[i][j]);
+
+      _face_nodes_map.resize(Hex27::num_edges);
+      for (unsigned int i = 0; i < Hex27::num_edges; ++i)
+        for (unsigned int j = 0; j < Hex27::nodes_per_edge; ++j)
+          _face_nodes_map[i].push_back(Hex27::edge_nodes_map[i][j]);
 
       // for each face, the mid-side nodes to be adjusted
       _side_ids.push_back({12, 15, 14, 13});
@@ -855,10 +862,13 @@ NekMeshGenerator::isCornerNode(const unsigned int & node) const
   return node < _n_corner_nodes;
 }
 
-const std::vector<unsigned int>
-NekMeshGenerator::nodesOnFace(const unsigned int & face) const
+std::pair<unsigned int, unsigned int>
+NekMeshGenerator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
 {
-  return _side_nodes_map[face];
+  int index = node_id - _n_corner_nodes;
+  unsigned int p0 = _face_nodes_map[index][0];
+  unsigned int p1 = _face_nodes_map[index][1];
+  return {p0, p1};
 }
 
 std::unique_ptr<MeshBase>

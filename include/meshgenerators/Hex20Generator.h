@@ -37,6 +37,4 @@ public:
   Hex20Generator(const InputParameters & parameters);
 
   std::unique_ptr<MeshBase> generate() override;
-
-  virtual std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const override;
 };

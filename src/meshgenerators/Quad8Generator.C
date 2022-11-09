@@ -37,15 +37,6 @@ Quad8Generator::Quad8Generator(const InputParameters & params)
 {
 }
 
-std::pair<unsigned int, unsigned int>
-Quad8Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
-{
-  int index = node_id - Quad4::num_nodes;
-  unsigned int p0 = Quad9::side_nodes_map[index][0];
-  unsigned int p1 = Quad9::side_nodes_map[index][1];
-  return {p0, p1};
-}
-
 std::unique_ptr<MeshBase>
 Quad8Generator::generate()
 {

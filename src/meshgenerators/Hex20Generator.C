@@ -37,15 +37,6 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
 {
 }
 
-std::pair<unsigned int, unsigned int>
-Hex20Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
-{
-  int index = node_id - Hex8::num_nodes;
-  unsigned int p0 = Hex27::edge_nodes_map[index][0];
-  unsigned int p1 = Hex27::edge_nodes_map[index][1];
-  return {p0, p1};
-}
-
 std::unique_ptr<MeshBase>
 Hex20Generator::generate()
 {
