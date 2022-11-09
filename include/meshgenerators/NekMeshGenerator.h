@@ -35,21 +35,6 @@ public:
 
   std::unique_ptr<MeshBase> generate() override;
 
-  /**
-   * Extract all user specifications for the circular sideset movements
-   */
-  void getCircularSidesetInfo(std::unique_ptr<MeshBase> & mesh);
-
-  /**
-   * Extract all user specifications for the polygon corner smoothing
-   */
-  std::vector<Real> getPolygonSmoothingInfo(std::unique_ptr<MeshBase> & mesh);
-
-  /**
-   * Extract all user specifications for the boundaries to rebuild
-   */
-  void getBoundariesToRebuild(std::unique_ptr<MeshBase> & mesh);
-
 
   void initializeElemData(std::unique_ptr<MeshBase> & mesh);
 
@@ -81,27 +66,9 @@ public:
   virtual bool isCornerNode(const unsigned int & node) const;
 
   /**
-   * Store the previous mesh information in order to rebuild it later
-   */
-  void storeMeshInfo(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
-    std::vector<unsigned int> & boundary_face_ids, std::vector<std::vector<boundary_id_type>> & boundary_ids);
-
-  /**
-   * Create the sidesets in the new mesh
-   */
-  void addSidesets(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
-    std::vector<unsigned int> & boundary_face_ids,
-    std::vector<std::vector<boundary_id_type>> & boundary_ids);
-
-  /**
    * Move any elements for circular adjusting
    */
   void moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> & polygon_layer_smoothing);
-
-  /**
-   * Save the previous node positions and rebuild them with the new element order
-   */
-  void saveAndRebuildNodes(std::unique_ptr<MeshBase> & mesh);
 
   /**
    * Get a pointer to the next element in the boundary layer

@@ -179,221 +179,6 @@ NekMeshGenerator::checkPointLength(const std::vector<std::vector<Real>> & points
 }
 
 void
-NekMeshGenerator::getCircularSidesetInfo(std::unique_ptr<MeshBase> & mesh)
-{
-  if (!isParamValid("boundary"))
-    return;
-
-  _radius = getParam<std::vector<Real>>("radius");
-
-  for (const auto & r : _radius)
-    if (r <= 0.0)
-      mooseError("All entries in 'radius' must be non-zero and positive!");
-
-  const auto & moving_names = getParam<std::vector<BoundaryName>>("boundary");
-  for (const auto & name : moving_names)
-    _moving_boundary.push_back(getBoundaryID(name, *mesh));
-
-  if (_moving_boundary.size() != _radius.size())
-    mooseError("'boundary' and 'radius' must be the same length!"
-      "\n 'boundary' length: ", _moving_boundary.size(), "\n 'radius' length: ", _radius.size());
-
-  if (isParamValid("origins") && isParamValid("origins_files"))
-    mooseError("Cannot specify both 'origins' and 'origins_files'!");
-
-  if (isParamValid("origins"))
-  {
-    _origin = getParam<std::vector<std::vector<Real>>>("origins");
-
-    if (_moving_boundary.size() != _origin.size())
-      mooseError("'boundary' and 'origins' must be the same length!"
-        "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins' length: ", _origin.size());
-
-    checkPointLength(_origin, "origins");
-  }
-  else if (isParamValid("origins_files"))
-  {
-    auto origin_filenames = getParam<std::vector<std::string>>("origins_files");
-
-    if (_moving_boundary.size() != origin_filenames.size())
-      mooseError("'boundary' and 'origins_files' must be the same length!"
-        "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins_files' length: ",
-        origin_filenames.size());
-
-    _origin.resize(origin_filenames.size());
-
-    int i = 0;
-    for (const auto & f : origin_filenames)
-    {
-      MooseUtils::DelimitedFileReader file(f, &_communicator);
-      file.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
-      file.read();
-
-      const std::vector<std::vector<double>> & data = file.getData();
-
-      for (const auto & d : data)
-      {
-        if (d.size() != 3)
-          mooseError("All entries in '", f, "' must contain exactly 3 entries to represent (x, y, z) coordinates!");
-
-        _origin[i].push_back(d[0]);
-        _origin[i].push_back(d[1]);
-        _origin[i].push_back(d[2]);
-      }
-
-      i += 1;
-    }
-  }
-  else
-  {
-    // set to the default value of (0, 0, 0)
-    for (std::size_t i = 0; i < _radius.size(); ++i)
-      _origin.push_back({0.0, 0.0, 0.0});
-  }
-
-  if (isParamValid("layers"))
-  {
-    _layers = getParam<std::vector<unsigned int>>("layers");
-
-    if (_moving_boundary.size() != _layers.size())
-      mooseError("'boundary' and 'layers' must be the same length!"
-        "\n 'boundary' length: ", _moving_boundary.size(), "\n 'layers' length: ", _layers.size());
-  }
-  else
-  {
-    // set to the default values of 0
-    for (std::size_t i = 0; i < _moving_boundary.size(); ++i)
-      _layers.push_back(0.0);
-  }
-}
-
-std::vector<Real>
-NekMeshGenerator::getPolygonSmoothingInfo(std::unique_ptr<MeshBase> & mesh)
-{
-  std::vector<Real> polygon_layer_smoothing;
-  _n_noncorner_boundaries = _moving_boundary.size();
-
-  if (_curve_corners)
-  {
-    auto polygon_sides = getParam<unsigned int>("polygon_sides");
-    auto polygon_size = getParam<Real>("polygon_size");
-    auto corner_radius = getParam<Real>("corner_radius");
-    auto polygon_layers = getParam<unsigned int>("polygon_layers");
-
-    std::vector<std::vector<Real>> polygon_origin;
-    if (isParamValid("polygon_origins"))
-    {
-      polygon_origin = getParam<std::vector<std::vector<Real>>>("polygon_origins");
-      checkPointLength(polygon_origin, "polygon_origins");
-
-      // Cannot specify a non-zero rotation when giving a different polygon origin,
-      // because we simply rotate the point about either the x, y, or z 'axis'. This
-      // is not a hard limit, just something we didn't initially put effort to support.
-      if (std::abs(_rotation_angle) > 1e-8)
-        mooseError("Cannot specify a non-zero 'rotation_angle' when providing custom 'polygon_origins'!");
-    }
-    else
-      polygon_origin.push_back({0.0, 0.0, 0.0});
-
-    if (polygon_layers)
-    {
-      if (isParamValid("polygon_layer_smoothing"))
-      {
-        polygon_layer_smoothing = getParam<std::vector<Real>>("polygon_layer_smoothing");
-        if (polygon_layers != polygon_layer_smoothing.size())
-          mooseError("The length of 'polygon_layer_smoothing' must be equal to 'polygon_layers'!");
-
-        for (auto & p : polygon_layer_smoothing)
-          if (p <= 0.0)
-            mooseError("Each entry in 'polygon_layer_smoothing' must be positive and non-zero!");
-      }
-      else
-      {
-        for (unsigned int i = 0; i < polygon_layers; ++i)
-          polygon_layer_smoothing.push_back(1.0);
-      }
-    }
-    else
-      checkUnusedParam(parameters(), "polygon_layer_smoothing", "not setting 'polygon_layers'");
-
-    Real polygon_angle = M_PI - (2.0 * M_PI / polygon_sides);
-    Real max_circle_radius = polygon_size * std::cos(M_PI / polygon_sides);
-
-    if (corner_radius > max_circle_radius)
-      mooseError("Specified 'corner_radius' cannot fit within the specified polygon!\n"
-        "The maximum allowable radius of curvature is: ", max_circle_radius);
-
-    const auto & name = getParam<BoundaryName>("polygon_boundary");
-    auto polygon_boundary = getBoundaryID(name, *mesh);
-
-    // polygon boundary shouldn't already have been specified in the 'boundary'
-    if (std::count(_moving_boundary.begin(), _moving_boundary.end(), polygon_boundary))
-      mooseError("The 'polygon_boundary' cannot also be listed in the 'boundary'!");
-
-    Real theta = M_PI / 2.0 - polygon_angle / 2.0;
-    Real l = corner_radius / std::cos(theta);
-    _max_corner_distance = l * std::sin(theta);
-
-    // find origins of the cylinders for the corner fitting
-    std::vector<Point> corner_origins;
-    for (const auto & o : polygon_origin)
-    {
-      Point shift(o[0], o[1], o[2]);
-      auto tmp1 = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
-      for (const auto & t : tmp1)
-        _polygon_corners.push_back(t + shift);
-
-      auto tmp2 = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
-      for (const auto & t : tmp2)
-        corner_origins.push_back(t + shift);
-    }
-
-    // apply optional rotation
-    Real rotation_angle_radians = _rotation_angle * M_PI / 180.0;
-    Point axis(0.0, 0.0, 0.0);
-    axis(_axis) = 1.0;
-    for (auto & o : _polygon_corners)
-      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
-    for (auto & o : corner_origins)
-      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
-
-    std::vector<Real> flattened_corner_origins;
-    for (const auto & o : corner_origins)
-      for (unsigned int i = 0; i < 3; ++i)
-        flattened_corner_origins.push_back(o(i));
-
-    // We can treat the polygon corners simply as extra entries in the
-    // boundary, origins, and radii vectors
-    _moving_boundary.push_back(polygon_boundary);
-    _radius.push_back(corner_radius);
-    _origin.push_back(flattened_corner_origins);
-    _layers.push_back(getParam<unsigned int>("polygon_layers"));
-  }
-
-  return polygon_layer_smoothing;
-}
-
-void
-NekMeshGenerator::getBoundariesToRebuild(std::unique_ptr<MeshBase> & mesh)
-{
-  auto & boundary_info = mesh->get_boundary_info();
-  const auto & original_boundaries = boundary_info.get_boundary_ids();
-
-  if (isParamValid("boundaries_to_rebuild"))
-  {
-    const auto & rebuild_names = getParam<std::vector<BoundaryName>>("boundaries_to_rebuild");
-    for (const auto & name : rebuild_names)
-      _boundaries_to_rebuild.insert(getBoundaryID(name, *mesh));
-  }
-  else
-  {
-    // by default, rebuild all the boundaries
-    for (const auto & b : original_boundaries)
-      _boundaries_to_rebuild.insert(b);
-  }
-}
-
-void
 NekMeshGenerator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) const
 {
   std::pair<unsigned int, unsigned int> p = pairedNodesAboutMidPoint(node_id);
@@ -578,7 +363,7 @@ NekMeshGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touch
       elem.id(), ", face ", touching_face,
       ".\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
 
-  // TODO: this mesh generator currently assumes we're working on an extruded mesh,
+  // When in 3-D, this mesh generator currently assumes we're working on an extruded mesh,
   // so that the face pattern follows as we sweep through the boundary layers
   next_touching_face = _across_face[touching_face];
 
@@ -648,95 +433,10 @@ NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> 
   }
 }
 
-void
-NekMeshGenerator::storeMeshInfo(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
-  std::vector<unsigned int> & boundary_face_ids, std::vector<std::vector<boundary_id_type>> & boundary_ids)
-{
-  auto & boundary_info = mesh->get_boundary_info();
-  const auto & original_boundaries = boundary_info.get_boundary_ids();
-
-  // store boundary ID <-> name mapping
-  for (const auto & b: original_boundaries)
-    _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
-
-  for (auto & elem : mesh->element_ptr_range())
-  {
-    // store information about the element faces
-    for (unsigned short int s = 0; s < _n_sides; ++s)
-    {
-      std::vector<boundary_id_type> b;
-      boundary_info.boundary_ids(elem, s, b);
-
-      boundary_elem_ids.push_back(elem->id());
-      boundary_face_ids.push_back(s);
-      boundary_ids.push_back(b);
-    }
-  }
-}
-
-void
-NekMeshGenerator::addSidesets(std::unique_ptr<MeshBase> & mesh, std::vector<dof_id_type> & boundary_elem_ids,
-  std::vector<unsigned int> & boundary_face_ids,
-  std::vector<std::vector<boundary_id_type>> & boundary_ids)
-{
-  auto & boundary_info = mesh->get_boundary_info();
-
-  // create the sidesets
-  for (unsigned int i = 0; i < boundary_elem_ids.size(); ++i)
-  {
-    auto elem_id = boundary_elem_ids[i];
-    auto boundary = boundary_ids[i];
-
-    const auto & elem = mesh->elem_ptr(elem_id);
-
-    // if boundary is not included in the list to rebuild, skip it
-    for (const auto & b : boundary)
-    {
-      if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())
-        continue;
-      else
-        boundary_info.add_side(elem, boundary_face_ids[i], b);
-    }
-  }
-
-  for (const auto & b: _boundary_id_to_name)
-  {
-    // if boundary is not included in the list to rebuild, skip it
-    if (_boundaries_to_rebuild.find(b.first) == _boundaries_to_rebuild.end())
-      continue;
-
-    boundary_info.sideset_name(b.first) = b.second;
-  }
-}
-
-void
-NekMeshGenerator::saveAndRebuildNodes(std::unique_ptr<MeshBase> & mesh)
-{
-  std::vector<Node> original_nodes;
-  std::vector<dof_id_type> original_node_ids;
-
-  // store information about the nodes
-  for (const auto & node : mesh->node_ptr_range())
-  {
-    original_nodes.push_back(*node);
-    original_node_ids.push_back(node->id());
-  }
-
-  mesh->clear();
-
-  // create the nodes
-  for (unsigned int i = 0; i < original_nodes.size(); ++i)
-  {
-    Point pt(original_nodes[i](0), original_nodes[i](1), original_nodes[i](2));
-    mesh->add_point(pt, original_node_ids[i]);
-  }
-}
-
 unsigned int
 NekMeshGenerator::getFaceNode(const unsigned int & primary_face) const
 {
-  const auto face_nodes = _side_nodes_map[primary_face];
-  return face_nodes[_n_start_nodes_per_side - 1];
+  return _side_nodes_map[primary_face][_n_start_nodes_per_side - 1];
 }
 
 void
@@ -881,19 +581,213 @@ std::unique_ptr<MeshBase>
 NekMeshGenerator::generate()
 {
   std::unique_ptr<MeshBase> mesh = std::move(_input);
+  auto & boundary_info = mesh->get_boundary_info();
+  const auto & original_boundaries = boundary_info.get_boundary_ids();
 
   // TODO: no real reason for this restriction, just didn't need it in the first pass
   if (!mesh->is_replicated())
     mooseError("This mesh generator does not yet support distributed mesh implementations!");
 
   // get the boundary movement information, and check for valid user specifications
-  getCircularSidesetInfo(mesh);
+  if (isParamValid("boundary"))
+  {
+    _radius = getParam<std::vector<Real>>("radius");
+
+    for (const auto & r : _radius)
+      if (r <= 0.0)
+        mooseError("All entries in 'radius' must be non-zero and positive!");
+
+    const auto & moving_names = getParam<std::vector<BoundaryName>>("boundary");
+    for (const auto & name : moving_names)
+      _moving_boundary.push_back(getBoundaryID(name, *mesh));
+
+    if (_moving_boundary.size() != _radius.size())
+      mooseError("'boundary' and 'radius' must be the same length!"
+        "\n 'boundary' length: ", _moving_boundary.size(), "\n 'radius' length: ", _radius.size());
+
+    if (isParamValid("origins") && isParamValid("origins_files"))
+      mooseError("Cannot specify both 'origins' and 'origins_files'!");
+
+    if (isParamValid("origins"))
+    {
+      _origin = getParam<std::vector<std::vector<Real>>>("origins");
+
+      if (_moving_boundary.size() != _origin.size())
+        mooseError("'boundary' and 'origins' must be the same length!"
+          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins' length: ", _origin.size());
+
+      checkPointLength(_origin, "origins");
+    }
+    else if (isParamValid("origins_files"))
+    {
+      auto origin_filenames = getParam<std::vector<std::string>>("origins_files");
+
+      if (_moving_boundary.size() != origin_filenames.size())
+        mooseError("'boundary' and 'origins_files' must be the same length!"
+          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins_files' length: ",
+          origin_filenames.size());
+
+      _origin.resize(origin_filenames.size());
+
+      int i = 0;
+      for (const auto & f : origin_filenames)
+      {
+        MooseUtils::DelimitedFileReader file(f, &_communicator);
+        file.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
+        file.read();
+
+        const std::vector<std::vector<double>> & data = file.getData();
+
+        for (const auto & d : data)
+        {
+          if (d.size() != 3)
+            mooseError("All entries in '", f, "' must contain exactly 3 entries to represent (x, y, z) coordinates!");
+
+          _origin[i].push_back(d[0]);
+          _origin[i].push_back(d[1]);
+          _origin[i].push_back(d[2]);
+        }
+
+        i += 1;
+      }
+    }
+    else
+    {
+      // set to the default value of (0, 0, 0)
+      for (std::size_t i = 0; i < _radius.size(); ++i)
+        _origin.push_back({0.0, 0.0, 0.0});
+    }
+
+    if (isParamValid("layers"))
+    {
+      _layers = getParam<std::vector<unsigned int>>("layers");
+
+      if (_moving_boundary.size() != _layers.size())
+        mooseError("'boundary' and 'layers' must be the same length!"
+          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'layers' length: ", _layers.size());
+    }
+    else
+    {
+      // set to the default values of 0
+      for (std::size_t i = 0; i < _moving_boundary.size(); ++i)
+        _layers.push_back(0.0);
+    }
+  }
 
   // get information related to moving corners
-  std::vector<Real> polygon_layer_smoothing = getPolygonSmoothingInfo(mesh);
+  std::vector<Real> polygon_layer_smoothing;
+  _n_noncorner_boundaries = _moving_boundary.size();
+
+  if (_curve_corners)
+  {
+    auto polygon_sides = getParam<unsigned int>("polygon_sides");
+    auto polygon_size = getParam<Real>("polygon_size");
+    auto corner_radius = getParam<Real>("corner_radius");
+    auto polygon_layers = getParam<unsigned int>("polygon_layers");
+
+    std::vector<std::vector<Real>> polygon_origin;
+    if (isParamValid("polygon_origins"))
+    {
+      polygon_origin = getParam<std::vector<std::vector<Real>>>("polygon_origins");
+      checkPointLength(polygon_origin, "polygon_origins");
+
+      // Cannot specify a non-zero rotation when giving a different polygon origin,
+      // because we simply rotate the point about either the x, y, or z 'axis'. This
+      // is not a hard limit, just something we didn't initially put effort to support.
+      if (std::abs(_rotation_angle) > 1e-8)
+        mooseError("Cannot specify a non-zero 'rotation_angle' when providing custom 'polygon_origins'!");
+    }
+    else
+      polygon_origin.push_back({0.0, 0.0, 0.0});
+
+    if (polygon_layers)
+    {
+      if (isParamValid("polygon_layer_smoothing"))
+      {
+        polygon_layer_smoothing = getParam<std::vector<Real>>("polygon_layer_smoothing");
+        if (polygon_layers != polygon_layer_smoothing.size())
+          mooseError("The length of 'polygon_layer_smoothing' must be equal to 'polygon_layers'!");
+
+        for (auto & p : polygon_layer_smoothing)
+          if (p <= 0.0)
+            mooseError("Each entry in 'polygon_layer_smoothing' must be positive and non-zero!");
+      }
+      else
+      {
+        for (unsigned int i = 0; i < polygon_layers; ++i)
+          polygon_layer_smoothing.push_back(1.0);
+      }
+    }
+   else
+      checkUnusedParam(parameters(), "polygon_layer_smoothing", "not setting 'polygon_layers'");
+
+    Real polygon_angle = M_PI - (2.0 * M_PI / polygon_sides);
+    Real max_circle_radius = polygon_size * std::cos(M_PI / polygon_sides);
+
+    if (corner_radius > max_circle_radius)
+      mooseError("Specified 'corner_radius' cannot fit within the specified polygon!\n"
+        "The maximum allowable radius of curvature is: ", max_circle_radius);
+
+    const auto & name = getParam<BoundaryName>("polygon_boundary");
+    auto polygon_boundary = getBoundaryID(name, *mesh);
+
+    // polygon boundary shouldn't already have been specified in the 'boundary'
+    if (std::count(_moving_boundary.begin(), _moving_boundary.end(), polygon_boundary))
+      mooseError("The 'polygon_boundary' cannot also be listed in the 'boundary'!");
+
+    Real theta = M_PI / 2.0 - polygon_angle / 2.0;
+    Real l = corner_radius / std::cos(theta);
+    _max_corner_distance = l * std::sin(theta);
+
+    // find origins of the cylinders for the corner fitting
+    std::vector<Point> corner_origins;
+    for (const auto & o : polygon_origin)
+    {
+      Point shift(o[0], o[1], o[2]);
+      auto tmp1 = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
+      for (const auto & t : tmp1)
+        _polygon_corners.push_back(t + shift);
+
+      auto tmp2 = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
+      for (const auto & t : tmp2)
+        corner_origins.push_back(t + shift);
+    }
+    // apply optional rotation
+    Real rotation_angle_radians = _rotation_angle * M_PI / 180.0;
+    Point axis(0.0, 0.0, 0.0);
+    axis(_axis) = 1.0;
+    for (auto & o : _polygon_corners)
+      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
+    for (auto & o : corner_origins)
+      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
+
+    std::vector<Real> flattened_corner_origins;
+    for (const auto & o : corner_origins)
+      for (unsigned int i = 0; i < 3; ++i)
+        flattened_corner_origins.push_back(o(i));
+
+    // We can treat the polygon corners simply as extra entries in the
+    // boundary, origins, and radii vectors
+    _moving_boundary.push_back(polygon_boundary);
+    _radius.push_back(corner_radius);
+    _origin.push_back(flattened_corner_origins);
+    _layers.push_back(getParam<unsigned int>("polygon_layers"));
+  }
+
 
   // get information on which boundaries to rebuild, and check for valid user specifications
-  getBoundariesToRebuild(mesh);
+  if (isParamValid("boundaries_to_rebuild"))
+  {
+    const auto & rebuild_names = getParam<std::vector<BoundaryName>>("boundaries_to_rebuild");
+    for (const auto & name : rebuild_names)
+      _boundaries_to_rebuild.insert(getBoundaryID(name, *mesh));
+  }
+  else
+  {
+    // by default, rebuild all the boundaries
+    for (const auto & b : original_boundaries)
+      _boundaries_to_rebuild.insert(b);
+  }
 
   // check for valid element type
   checkElementType(mesh);
@@ -909,7 +803,23 @@ NekMeshGenerator::generate()
   std::vector<subdomain_id_type> elem_block_ids;
   node_ids.resize(mesh->n_elem());
 
-  storeMeshInfo(mesh, boundary_elem_ids, boundary_face_ids, boundary_ids);
+  // store boundary ID <-> name mapping
+  for (const auto & b: original_boundaries)
+    _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
+
+  for (auto & elem : mesh->element_ptr_range())
+  {
+    // store information about the element faces
+    for (unsigned short int s = 0; s < _n_sides; ++s)
+    {
+      std::vector<boundary_id_type> b;
+      boundary_info.boundary_ids(elem, s, b);
+
+      boundary_elem_ids.push_back(elem->id());
+      boundary_face_ids.push_back(s);
+      boundary_ids.push_back(b);
+    }
+  }
 
   int i = 0;
   for (auto & elem : mesh->element_ptr_range())
@@ -927,7 +837,25 @@ NekMeshGenerator::generate()
   // move the nodes on the surface of interest
   moveNodes(mesh, polygon_layer_smoothing);
 
-  saveAndRebuildNodes(mesh);
+  // save and rebuild the nodes
+  std::vector<Node> original_nodes;
+  std::vector<dof_id_type> original_node_ids;
+
+  // store information about the nodes
+  for (const auto & node : mesh->node_ptr_range())
+  {
+    original_nodes.push_back(*node);
+    original_node_ids.push_back(node->id());
+  }
+
+  mesh->clear();
+
+  // create the nodes
+  for (unsigned int i = 0; i < original_nodes.size(); ++i)
+  {
+    Point pt(original_nodes[i](0), original_nodes[i](1), original_nodes[i](2));
+    mesh->add_point(pt, original_node_ids[i]);
+  }
 
   // create the elements
   for (unsigned int i = 0; i < elem_ids.size(); ++i)
@@ -957,7 +885,32 @@ NekMeshGenerator::generate()
     }
   }
 
-  addSidesets(mesh, boundary_elem_ids, boundary_face_ids, boundary_ids);
+  // create the sidesets
+  for (unsigned int i = 0; i < boundary_elem_ids.size(); ++i)
+  {
+    auto elem_id = boundary_elem_ids[i];
+    auto boundary = boundary_ids[i];
+    const auto & elem = mesh->elem_ptr(elem_id);
+
+    // if boundary is not included in the list to rebuild, skip it. Otherwise,
+    // rebuild it
+    for (const auto & b : boundary)
+    {
+      if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())
+        continue;
+      else
+        boundary_info.add_side(elem, boundary_face_ids[i], b);
+    }
+  }
+
+  for (const auto & b: _boundary_id_to_name)
+  {
+    // if boundary is not included in the list to rebuild, skip it
+    if (_boundaries_to_rebuild.find(b.first) == _boundaries_to_rebuild.end())
+      continue;
+
+    boundary_info.sideset_name(b.first) = b.second;
+  }
 
   mesh->prepare_for_use();
 
