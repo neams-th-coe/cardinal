@@ -4,7 +4,7 @@
     file = bundle_in.e
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = file
     boundary = '${vessel_inner}'
     radius = '${fparse vessel_inner_diameter / 2.0}'
