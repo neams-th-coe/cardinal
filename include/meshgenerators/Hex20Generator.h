@@ -39,6 +39,4 @@ public:
   std::unique_ptr<MeshBase> generate() override;
 
   virtual std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const override;
-
-  virtual const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const override;
 };

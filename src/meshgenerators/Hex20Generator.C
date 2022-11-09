@@ -46,15 +46,6 @@ Hex20Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
   return {p0, p1};
 }
 
-const std::vector<unsigned int>
-Hex20Generator::nodesOnFace(const unsigned int & face) const
-{
-  const auto & side_map = Hex27::side_nodes_map[face];
-  std::vector<unsigned int> nodes;
-  nodes.assign(std::begin(side_map), std::end(side_map));
-  return nodes;
-}
-
 std::unique_ptr<MeshBase>
 Hex20Generator::generate()
 {

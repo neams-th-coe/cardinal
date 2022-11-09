@@ -78,7 +78,7 @@ public:
    * @param[in] face face index
    * @return node indices on that face
    */
-  virtual const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const = 0;
+  virtual const std::vector<unsigned int> nodesOnFace(const unsigned int & face) const;
 
   /**
    * Whether a node on a face is a corner node
@@ -305,4 +305,10 @@ protected:
 
   /// For each face, the paired face "across" to the other side of the original elem type
   std::vector<unsigned int> _across_face;
+
+  /// Element type in the original mesh
+  ElemType _etype;
+
+  /// Side nodes map
+  std::vector<std::vector<unsigned int>> _side_nodes_map;
 };

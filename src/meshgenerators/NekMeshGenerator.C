@@ -737,11 +737,11 @@ void
 NekMeshGenerator::checkElementType(std::unique_ptr<MeshBase> & mesh)
 {
   // the type of the first element, should match the type of all other elements
-  const ElemType etype = mesh->elem_ptr(0)->type();
+  _etype = mesh->elem_ptr(0)->type();
 
   for (const auto & elem : mesh->element_ptr_range())
   {
-    if (etype != elem->type())
+    if (_etype != elem->type())
       mooseError("This mesh generator can only be applied to meshes that contain a single element type!");
 
     switch (elem->type())
@@ -769,6 +769,11 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
       _n_end_nodes = Quad8::num_nodes;
       _n_sides = Quad9::num_sides;
       _n_corner_nodes = Quad4::num_nodes;
+
+      _side_nodes_map.resize(_n_sides);
+      for (unsigned int i = 0; i < _n_sides; ++i)
+        for (unsigned int j = 0; j < _n_start_nodes_per_side; ++j)
+          _side_nodes_map[i].push_back(Quad9::side_nodes_map[i][j]);
 
       // for each face, the mid-side nodes to be adjusted
       _side_ids.push_back({7, 5});
@@ -802,6 +807,11 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
       _n_end_nodes = Hex20::num_nodes;
       _n_sides = Hex27::num_sides;
       _n_corner_nodes = Hex8::num_nodes;
+
+      _side_nodes_map.resize(_n_sides);
+      for (unsigned int i = 0; i < _n_sides; ++i)
+        for (unsigned int j = 0; j < _n_start_nodes_per_side; ++j)
+          _side_nodes_map[i].push_back(Hex27::side_nodes_map[i][j]);
 
       // for each face, the mid-side nodes to be adjusted
       _side_ids.push_back({12, 15, 14, 13});
@@ -843,6 +853,12 @@ bool
 NekMeshGenerator::isCornerNode(const unsigned int & node) const
 {
   return node < _n_corner_nodes;
+}
+
+const std::vector<unsigned int>
+NekMeshGenerator::nodesOnFace(const unsigned int & face) const
+{
+  return _side_nodes_map[face];
 }
 
 std::unique_ptr<MeshBase>
