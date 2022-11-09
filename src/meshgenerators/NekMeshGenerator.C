@@ -123,6 +123,15 @@ NekMeshGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem,
   // project point onto the circle plane and convert to unit vector
   Point xy_plane = projectPoint(origin, pt);
 
+  // if the point is exactly on the origin, we don't know in which direction to move
+  // it so that it lands up on the circle
+  if ((MooseUtils::absoluteFuzzyEqual(xy_plane(0), 0)) &&
+      (MooseUtils::absoluteFuzzyEqual(xy_plane(1), 0)) &&
+      (MooseUtils::absoluteFuzzyEqual(xy_plane(2), 0)))
+    mooseError("Node ID ", node_id, " of element ", elem->id(), " is already on the origin (",
+      pt(0), ", ", pt(1), ", ", pt(2), ").\n"
+      "This node lacks the nonzero unit vector needed to move it.");
+
   Point adjustment = xy_plane.unit() * (radius - xy_plane.norm());
 
   node = pt + adjustment;
@@ -226,7 +235,7 @@ NekMeshGenerator::getCircularSidesetInfo(std::unique_ptr<MeshBase> & mesh)
   else
   {
     // set to the default value of (0, 0, 0)
-    for (const auto & r : _radius)
+    for (std::size_t i = 0; i < _radius.size(); ++i)
       _origin.push_back({0.0, 0.0, 0.0});
   }
 
@@ -241,7 +250,7 @@ NekMeshGenerator::getCircularSidesetInfo(std::unique_ptr<MeshBase> & mesh)
   else
   {
     // set to the default values of 0
-    for (const auto & b : _moving_boundary)
+    for (std::size_t i = 0; i < _moving_boundary.size(); ++i)
       _layers.push_back(0.0);
   }
 }
@@ -250,6 +259,8 @@ std::vector<Real>
 NekMeshGenerator::getPolygonSmoothingInfo(std::unique_ptr<MeshBase> & mesh)
 {
   std::vector<Real> polygon_layer_smoothing;
+  _n_noncorner_boundaries = _moving_boundary.size();
+
   if (_curve_corners)
   {
     auto polygon_sides = getParam<unsigned int>("polygon_sides");
@@ -324,6 +335,7 @@ NekMeshGenerator::getPolygonSmoothingInfo(std::unique_ptr<MeshBase> & mesh)
       for (const auto & t : tmp2)
         corner_origins.push_back(t + shift);
     }
+
     // apply optional rotation
     Real rotation_angle_radians = _rotation_angle * M_PI / 180.0;
     Point axis(0.0, 0.0, 0.0);
@@ -340,7 +352,6 @@ NekMeshGenerator::getPolygonSmoothingInfo(std::unique_ptr<MeshBase> & mesh)
 
     // We can treat the polygon corners simply as extra entries in the
     // boundary, origins, and radii vectors
-    _n_noncorner_boundaries = _moving_boundary.size();
     _moving_boundary.push_back(polygon_boundary);
     _radius.push_back(corner_radius);
     _origin.push_back(flattened_corner_origins);
@@ -495,8 +506,6 @@ NekMeshGenerator::getBoundaryLayerElems(Elem * elem, const unsigned int & n_laye
 {
   std::vector<Elem *> nested_elems;
 
-  unsigned int face_node = getFaceNode(primary_face);
-
   Elem * bl_elem = elem;
   unsigned int start_face = primary_face;
   unsigned int pair_face = _across_face[start_face];
@@ -562,7 +571,7 @@ NekMeshGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touch
   next_touching_face = _across_face[touching_face];
 
   std::set<const Elem *>::iterator it = neighbor_set.begin();
-  for (int i = 0; i < neighbor_set.size(); ++i, it++)
+  for (std::size_t i = 0; i < neighbor_set.size(); ++i, it++)
   {
     // we restrict the size to 2, so just return the element that is NOT the input element
     if ((*it)->id() != elem.id())
@@ -638,7 +647,6 @@ NekMeshGenerator::storeMeshInfo(std::unique_ptr<MeshBase> & mesh, std::vector<do
   for (const auto & b: original_boundaries)
     _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
 
-  int i = 0;
   for (auto & elem : mesh->element_ptr_range())
   {
     // store information about the element faces

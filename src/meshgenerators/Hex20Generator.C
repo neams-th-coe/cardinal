@@ -110,8 +110,6 @@ std::unique_ptr<MeshBase>
 Hex20Generator::generate()
 {
   std::unique_ptr<MeshBase> mesh = std::move(_input);
-  auto & boundary_info = mesh->get_boundary_info();
-  const auto & original_boundaries = boundary_info.get_boundary_ids();
 
   // TODO: no real reason for this restriction, just didn't need it in the first pass
   if (!mesh->is_replicated())
