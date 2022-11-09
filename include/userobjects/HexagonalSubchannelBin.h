@@ -32,9 +32,9 @@ public:
 
   HexagonalSubchannelBin(const InputParameters & parameters);
 
-  virtual const unsigned int bin(const Point & p) const override;
+  virtual unsigned int bin(const Point & p) const override;
 
-  virtual const unsigned int num_bins() const override;
+  virtual unsigned int num_bins() const override;
 
 protected:
   /// Bundle pitch

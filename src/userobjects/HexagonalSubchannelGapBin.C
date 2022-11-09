@@ -70,13 +70,13 @@ HexagonalSubchannelGapBin::HexagonalSubchannelGapBin(const InputParameters & par
     _bin_centers.push_back(gap);
 }
 
-const unsigned int
+unsigned int
 HexagonalSubchannelGapBin::bin(const Point & p) const
 {
   return _hex_lattice->gapIndex(p);
 }
 
-const unsigned int
+unsigned int
 HexagonalSubchannelGapBin::num_bins() const
 {
   return _hex_lattice->nGaps();
