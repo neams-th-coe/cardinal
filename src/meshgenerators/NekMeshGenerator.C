@@ -24,6 +24,12 @@
 #include "GeometryUtility.h"
 
 #include "libmesh/mesh_tools.h"
+#include "libmesh/cell_hex8.h"
+#include "libmesh/cell_hex20.h"
+#include "libmesh/cell_hex27.h"
+#include "libmesh/face_quad4.h"
+#include "libmesh/face_quad8.h"
+#include "libmesh/face_quad9.h"
 
 InputParameters
 NekMeshGenerator::validParams()
@@ -747,6 +753,87 @@ NekMeshGenerator::checkElementType(std::unique_ptr<MeshBase> & mesh)
       default:
         mooseError("This mesh generator can only be applied to meshes that contain QUAD9 or HEX27 elements!");
     }
+  }
+}
+
+void
+NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
+{
+  const ElemType etype = mesh->elem_ptr(0)->type();
+  switch (etype)
+  {
+    case QUAD9:
+    {
+      _n_start_nodes = Quad9::num_nodes;
+      _n_start_nodes_per_side = Quad9::nodes_per_side;
+      _n_end_nodes = Quad8::num_nodes;
+      _n_sides = Quad9::num_sides;
+
+      // for each face, the mid-side nodes to be adjusted
+      _side_ids.push_back({7, 5});
+      _side_ids.push_back({4, 6});
+      _side_ids.push_back({5, 7});
+      _side_ids.push_back({4, 6});
+
+      // corner nodes for each face
+      _corner_nodes.resize(Quad9::num_sides);
+      for (unsigned int i = 0; i < Quad9::num_sides; ++i)
+        for (unsigned int j = 0; j < Quad4::nodes_per_side; ++j)
+          _corner_nodes[i].push_back(Quad9::side_nodes_map[i][j]);
+
+      _across_pair.resize(Quad9::num_sides);
+      _across_pair[0] = {{0, 3}, {4, 6}, {1, 2}};
+      _across_pair[1] = {{1, 0}, {5, 7}, {2, 3}};
+      _across_pair[2] = {{2, 1}, {6, 4}, {3, 0}};
+      _across_pair[3] = {{3, 2}, {7, 5}, {0, 1}};
+
+      _across_face.resize(Quad9::num_sides);
+      _across_face[0] = 2;
+      _across_face[1] = 3;
+      _across_face[2] = 0;
+      _across_face[3] = 1;
+      break;
+    }
+    case HEX27:
+    {
+      _n_start_nodes = Hex27::num_nodes;
+      _n_start_nodes_per_side = Hex27::nodes_per_side;
+      _n_end_nodes = Hex20::num_nodes;
+      _n_sides = Hex27::num_sides;
+
+      // for each face, the mid-side nodes to be adjusted
+      _side_ids.push_back({12, 15, 14, 13});
+      _side_ids.push_back({11, 9, 17, 19});
+      _side_ids.push_back({8, 18, 10, 16});
+      _side_ids.push_back({9, 11, 19, 17});
+      _side_ids.push_back({10, 8, 16, 18});
+      _side_ids.push_back({12, 13, 14, 15});
+
+      // corner nodes for each face
+      _corner_nodes.resize(Hex27::num_sides);
+      for (unsigned int i = 0; i < Hex27::num_sides; ++i)
+        for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
+          _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
+
+      _across_pair.resize(Hex27::num_sides);
+      _across_pair[0] = {{0, 4}, {8, 16}, {1, 5}, {11, 19}, {20, 25}, {9, 17}, {3, 7}, {10, 18}, {2, 6}};
+      _across_pair[1] = {{0, 3}, {8, 10}, {1, 2}, {12, 15}, {21, 23}, {13, 14}, {4, 7}, {16, 18}, {5, 6}};
+      _across_pair[2] = {{1, 0}, {9, 11}, {2, 3}, {13, 12}, {22, 24}, {14, 15}, {5, 4}, {17, 19}, {6, 7}};
+      _across_pair[3] = {{3, 0}, {10, 8}, {2, 1}, {15, 12}, {23, 21}, {14, 13}, {7, 4}, {18, 16}, {6, 5}};
+      _across_pair[4] = {{0, 1}, {11, 9}, {3, 2}, {12, 13}, {24, 22}, {15, 14}, {4, 5}, {19, 17}, {7, 6}};
+      _across_pair[5] = {{4, 0}, {16, 8}, {5, 1}, {19, 11}, {25, 20}, {17, 9}, {7, 3}, {18, 10}, {6, 2}};
+
+      _across_face.resize(Hex27::num_sides);
+      _across_face[0] = 5;
+      _across_face[1] = 3;
+      _across_face[2] = 4;
+      _across_face[3] = 1;
+      _across_face[4] = 2;
+      _across_face[5] = 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled element type in initializeElemData()!");
   }
 }
 

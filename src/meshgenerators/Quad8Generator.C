@@ -35,34 +35,6 @@ Quad8Generator::validParams()
 Quad8Generator::Quad8Generator(const InputParameters & params)
   : NekMeshGenerator(params)
 {
-  _n_start_nodes = Quad9::num_nodes;
-  _n_start_nodes_per_side = Quad9::nodes_per_side;
-  _n_end_nodes = Quad8::num_nodes;
-  _n_sides = Quad9::num_sides;
-
-  // for each face, the mid-side nodes to be adjusted
-  _side_ids.push_back({7, 5});
-  _side_ids.push_back({4, 6});
-  _side_ids.push_back({5, 7});
-  _side_ids.push_back({4, 6});
-
-  // corner nodes for each face
-  _corner_nodes.resize(Quad9::num_sides);
-  for (unsigned int i = 0; i < Quad9::num_sides; ++i)
-    for (unsigned int j = 0; j < Quad4::nodes_per_side; ++j)
-      _corner_nodes[i].push_back(Quad9::side_nodes_map[i][j]);
-
-  _across_pair.resize(Quad9::num_sides);
-  _across_pair[0] = {{0, 3}, {4, 6}, {1, 2}};
-  _across_pair[1] = {{1, 0}, {5, 7}, {2, 3}};
-  _across_pair[2] = {{2, 1}, {6, 4}, {3, 0}};
-  _across_pair[3] = {{3, 2}, {7, 5}, {0, 1}};
-
-  _across_face.resize(Quad9::num_sides);
-  _across_face[0] = 2;
-  _across_face[1] = 3;
-  _across_face[2] = 0;
-  _across_face[3] = 1;
 }
 
 std::pair<unsigned int, unsigned int>
@@ -109,6 +81,8 @@ Quad8Generator::generate()
 
   // check for valid element type
   checkElementType(mesh);
+
+  initializeElemData(mesh);
 
   // store all information from the incoming mesh that is needed to rebuild it from scratch
   std::vector<dof_id_type> boundary_elem_ids;

@@ -50,6 +50,9 @@ public:
    */
   void getBoundariesToRebuild(std::unique_ptr<MeshBase> & mesh);
 
+
+  void initializeElemData(std::unique_ptr<MeshBase> & mesh);
+
   /**
    * Check for correct element type in input mesh; the input mesh must be
    * either entirely Quad9 or Hex27 elements
