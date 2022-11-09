@@ -84,6 +84,10 @@ NekMeshGenerator::validParams()
     "Boundary(s) to retain from the original mesh in the new mesh; if not "
     "specified, all original boundaries are kept.");
 
+  params.addParam<bool>("retain_original_elem_type", false, "Whether to skip the conversion "
+    "from QUAD9 to QUAD8, or from HEX27 to HEX20, to get into NekRS-compatible element type. "
+    "This is primarily used to just allow MOOSE's AdvancedExtruderGenerator to extrude Quad9 elements.");
+
   params.addClassDescription(
       "Converts MOOSE meshes to element types needed for Nek (Quad8 or Hex20), "
       "while optionally preserving circular edges (which were faceted) in the original mesh.");
@@ -96,6 +100,7 @@ NekMeshGenerator::NekMeshGenerator(const InputParameters & params)
     _axis(getParam<MooseEnum>("axis")),
     _curve_corners(getParam<bool>("curve_corners")),
     _rotation_angle(getParam<Real>("rotation_angle")),
+    _retain_original_elem_type(getParam<bool>("retain_original_elem_type")),
     _has_moving_boundary(isParamValid("boundary") || _curve_corners)
 {
   if (_curve_corners)
@@ -472,9 +477,13 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
     {
       _n_start_nodes = Quad9::num_nodes;
       _n_start_nodes_per_side = Quad9::nodes_per_side;
-      _n_end_nodes = Quad8::num_nodes;
       _n_sides = Quad9::num_sides;
       _n_corner_nodes = Quad4::num_nodes;
+
+      if (_retain_original_elem_type)
+        _n_end_nodes = Quad9::num_nodes;
+      else
+        _n_end_nodes = Quad8::num_nodes;
 
       _side_nodes_map.resize(_n_sides);
       for (unsigned int i = 0; i < _n_sides; ++i)
@@ -512,9 +521,13 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
     {
       _n_start_nodes = Hex27::num_nodes;
       _n_start_nodes_per_side = Hex27::nodes_per_side;
-      _n_end_nodes = Hex20::num_nodes;
       _n_sides = Hex27::num_sides;
       _n_corner_nodes = Hex8::num_nodes;
+
+      if (_retain_original_elem_type)
+        _n_end_nodes = Hex27::num_nodes;
+      else
+        _n_end_nodes = Hex20::num_nodes;
 
       _side_nodes_map.resize(_n_sides);
       for (unsigned int i = 0; i < _n_sides; ++i)
@@ -864,11 +877,21 @@ NekMeshGenerator::generate()
     switch (_etype)
     {
       case QUAD9:
-        elem = new Quad8;
+      {
+        if (_retain_original_elem_type)
+          elem = new Quad9;
+        else
+          elem = new Quad8;
         break;
+      }
       case HEX27:
-        elem = new Hex20;
+      {
+        if (_retain_original_elem_type)
+          elem = new Hex27;
+        else
+          elem = new Hex20;
         break;
+      }
       default:
         mooseError("Unhandled element type in generate()!");
     }

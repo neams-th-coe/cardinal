@@ -206,6 +206,9 @@ protected:
    */
   const Real & _rotation_angle;
 
+  /// Whether to skip the optional output conversion to Quad8 or Hex20 elements
+  const bool & _retain_original_elem_type;
+
   /// Whether sidesets will be moved to match circular surfaces
   const bool _has_moving_boundary;
 
