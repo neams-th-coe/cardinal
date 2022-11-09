@@ -80,17 +80,6 @@ Hex20Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
   return {p0, p1};
 }
 
-void
-Hex20Generator::checkElementType(std::unique_ptr<MeshBase> & mesh)
-{
-  for (const auto & elem : mesh->element_ptr_range())
-  {
-    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    if (!hex27)
-      mooseError("This mesh generator can only be applied to HEX27 elements!");
-  }
-}
-
 bool
 Hex20Generator::isCornerNode(const unsigned int & node) const
 {

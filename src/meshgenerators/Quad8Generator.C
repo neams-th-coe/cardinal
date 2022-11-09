@@ -74,17 +74,6 @@ Quad8Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
   return {p0, p1};
 }
 
-void
-Quad8Generator::checkElementType(std::unique_ptr<MeshBase> & mesh)
-{
-  for (const auto & elem : mesh->element_ptr_range())
-  {
-    libMesh::Quad9 * quad9 = dynamic_cast<libMesh::Quad9 *>(elem);
-    if (!quad9)
-      mooseError("This mesh generator can only be applied to QUAD9 elements!");
-  }
-}
-
 bool
 Quad8Generator::isCornerNode(const unsigned int & node) const
 {

@@ -727,6 +727,29 @@ NekMeshGenerator::getFaceNode(const unsigned int & primary_face) const
   return face_nodes[_n_start_nodes_per_side - 1];
 }
 
+void
+NekMeshGenerator::checkElementType(std::unique_ptr<MeshBase> & mesh)
+{
+  // the type of the first element, should match the type of all other elements
+  const ElemType etype = mesh->elem_ptr(0)->type();
+
+  for (const auto & elem : mesh->element_ptr_range())
+  {
+    if (etype != elem->type())
+      mooseError("This mesh generator can only be applied to meshes that contain a single element type!");
+
+    switch (elem->type())
+    {
+      case QUAD9:
+        break;
+      case HEX27:
+        break;
+      default:
+        mooseError("This mesh generator can only be applied to meshes that contain QUAD9 or HEX27 elements!");
+    }
+  }
+}
+
 std::unique_ptr<MeshBase>
 NekMeshGenerator::generate()
 {

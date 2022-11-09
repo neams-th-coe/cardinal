@@ -21,8 +21,10 @@
 #include "MeshGenerator.h"
 
 /**
- * Base class for converting a MOOSE mesh into a NekRS-compatible format,
- * with options to preserve circular edges.
+ * Converts a MOOSE high-order 2-D or 3-D mesh to optionally preserve
+ * circular boundaries by moving mid-face nodes, as well as optionally
+ * converting the element type into the types supported by Nek (Quad8
+ * and Hex20).
  */
 class NekMeshGenerator : public MeshGenerator
 {
@@ -49,9 +51,10 @@ public:
   void getBoundariesToRebuild(std::unique_ptr<MeshBase> & mesh);
 
   /**
-   * Check for correct element type in input mesh
+   * Check for correct element type in input mesh; the input mesh must be
+   * either entirely Quad9 or Hex27 elements
    */
-  virtual void checkElementType(std::unique_ptr<MeshBase> & mesh) = 0;
+  void checkElementType(std::unique_ptr<MeshBase> & mesh);
 
   /**
    * Get the two nodes to average coordinates for given a side-node id

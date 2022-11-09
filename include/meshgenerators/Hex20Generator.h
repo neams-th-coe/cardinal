@@ -38,8 +38,6 @@ public:
 
   std::unique_ptr<MeshBase> generate() override;
 
-  virtual void checkElementType(std::unique_ptr<MeshBase> & mesh) override;
-
   virtual std::pair<unsigned int, unsigned int> pairedNodesAboutMidPoint(const unsigned int & node_id) const override;
 
   virtual bool isCornerNode(const unsigned int & node) const override;
