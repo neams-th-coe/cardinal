@@ -348,7 +348,7 @@ HexagonalSubchannelMesh::getEdgePoints()
   // Add points on the duct
   Point start4 = _edge_points[p - 1];
   for (unsigned int i = 0; i < _gap_res - 2; ++i)
-    _edge_points[p++] = start4 + Point(-(i + 1) * _pin_pitch / (_gap_res - 1.0), 0.0, 0.0);
+    _edge_points[p++] = start4 + Point(-1.0 * (i + 1) * _pin_pitch / (_gap_res - 1.0), 0.0, 0.0);
 }
 
 void
@@ -377,7 +377,7 @@ HexagonalSubchannelMesh::getCornerPoints()
 
   // Add the points on the first gap
   for (unsigned int i = 0; i < _gap_res - 1; ++i)
-    _corner_points[p++] = pts[3] + Point(0.0, -i * gap_arc_length, 0.0);
+    _corner_points[p++] = pts[3] + Point(0.0, -1.0 * i * gap_arc_length, 0.0);
 
   // Add the points on the pin
   for (unsigned int i = 0; i < _theta_res; ++i)
