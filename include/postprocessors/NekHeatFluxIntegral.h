@@ -19,7 +19,6 @@
 #pragma once
 
 #include "NekSidePostprocessor.h"
-#include "CardinalEnums.h"
 
 /**
  * Compute the integral of the heat flux over a boundary

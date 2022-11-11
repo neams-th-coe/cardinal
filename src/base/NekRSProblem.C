@@ -27,6 +27,7 @@
 #include "MooseUtils.h"
 #include "CardinalUtils.h"
 #include "DisplacedProblem.h"
+#include "UserErrorChecking.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -64,6 +65,11 @@ NekRSProblem::validParams()
   params.addParam<PostprocessorName>("max_T",
                                      "If provided, postprocessor used to limit the maximum "
                                      "temperature (in dimensional form) in the nekRS problem");
+
+  params.addParam<bool>("conserve_flux_by_sideset", false,
+    "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
+    "together). Setting this option to true requires syntax changes in the input file to use "
+    "vector postprocessors, and places restrictions on how the sidesets are set up.");
   return params;
 }
 
@@ -72,10 +78,14 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _moving_mesh(getParam<bool>("moving_mesh")),
     _has_heat_source(getParam<bool>("has_heat_source")),
+    _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _usrwrk_indices(MultiMooseEnum("flux heat_source x_displacement y_displacement z_displacement unused"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
+
+  if (!_boundary)
+    checkUnusedParam(params, "conserve_flux_by_sideset", "coupling NekRS solely through a volume mesh mirror");
 
   // Determine an appropriate default usrwrk indexing; the ordering will always be
   //   0: flux             (if _boundary is true)
@@ -225,7 +235,13 @@ NekRSProblem::initialSetup()
                "must have 'solver = user' in the [MESH] block!");
 
   if (_boundary)
-    _flux_integral = &getPostprocessorValueByName("flux_integral");
+  {
+    if (_conserve_flux_by_sideset)
+      _flux_integral_vpp = &getVectorPostprocessorValueByName("flux_integral", "value");
+    else
+      _flux_integral = &getPostprocessorValueByName("flux_integral");
+  }
+
   if (_volume && _has_heat_source)
     _source_integral = &getPostprocessorValueByName("source_integral");
 
@@ -375,25 +391,85 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   }
 
   // Because the NekRSMesh may be quite different from that used in the app solving for
-  // the heat flux, we will need to normalize the total flux on the nekRS side by the
-  // total flux computed by the coupled MOOSE app. For this and the next check of the
+  // the heat flux, we will need to normalize the flux on the nekRS side by the
+  // flux computed by the coupled MOOSE app. For this and the next check of the
   // flux integral, we need to scale the integral back up again to the dimensional form
   // for the sake of comparison.
   const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
-  const double nek_flux = nekrs::fluxIntegral(_nek_mesh->boundaryCoupling());
-  const double moose_flux = *_flux_integral;
-
-  // For the sake of printing diagnostics to the screen regarding the flux normalization,
-  // we first scale the nek flux by any unit changes and then by the reference flux.
   const double nek_flux_print_mult = scale_squared * nekrs::solution::referenceFlux();
-  double normalized_nek_flux = 0.0;
+
+  // integrate the flux over each individual boundary
+  std::vector<double> nek_flux_sidesets = nekrs::fluxIntegral(_nek_mesh->boundaryCoupling(), *_boundary);
+
   bool successful_normalization;
+  double normalized_nek_flux = 0.0;
 
-  _console << "Normalizing total NekRS flux of " << Moose::stringify(nek_flux * nek_flux_print_mult)
-           << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
+  double total_moose_flux;
 
-  successful_normalization = nekrs::normalizeFlux(
-      _nek_mesh->boundaryCoupling(), moose_flux, nek_flux, normalized_nek_flux);
+  if (_conserve_flux_by_sideset)
+  {
+    auto moose_flux = *_flux_integral_vpp;
+    if (moose_flux.size() != _boundary->size())
+      mooseError("The sideset flux reporter transferred to NekRS must have a length equal to the number\n"
+        "of entries in 'boundary'! Please check the values written to the 'flux_integral' vector postprocessor.\n\n"
+        "Length of reporter: ", moose_flux.size(), "\n",
+        "Length of 'boundary': ", _boundary->size());
+
+    for (std::size_t b = 0; b < _boundary->size(); ++b)
+    {
+      _console << "[boundary " << Moose::stringify((*_boundary)[b]) << "]: Normalizing NekRS flux of "
+               << Moose::stringify(nek_flux_sidesets[b] * nek_flux_print_mult)
+               << " to the conserved MOOSE value of " << Moose::stringify(moose_flux[b]) << std::endl;
+
+      checkInitialFluxValues(nek_flux_sidesets[b], moose_flux[b]);
+    }
+
+    total_moose_flux = std::accumulate(moose_flux.begin(), moose_flux.end(), 0.0);
+
+    // For the sake of printing diagnostics to the screen regarding the flux normalization,
+    // we first scale the nek flux by any unit changes and then by the reference flux.
+    successful_normalization = nekrs::normalizeFluxBySideset(
+        _nek_mesh->boundaryCoupling(), *_boundary, moose_flux, nek_flux_sidesets, normalized_nek_flux);
+  }
+  else
+  {
+    auto moose_flux = *_flux_integral;
+    const double nek_flux = std::accumulate(nek_flux_sidesets.begin(), nek_flux_sidesets.end(), 0.0);
+
+    _console << "Normalizing total NekRS flux of " << Moose::stringify(nek_flux * nek_flux_print_mult)
+             << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
+
+    checkInitialFluxValues(nek_flux, moose_flux);
+
+    total_moose_flux = moose_flux;
+
+    // For the sake of printing diagnostics to the screen regarding the flux normalization,
+    successful_normalization = nekrs::normalizeFlux(
+        _nek_mesh->boundaryCoupling(), *_boundary, moose_flux, nek_flux, normalized_nek_flux);
+  }
+
+  if (!successful_normalization)
+    mooseError("Flux normalization process failed! NekRS integrated flux: ",
+               normalized_nek_flux,
+               " MOOSE integrated flux: ",
+               total_moose_flux, ".\n",
+               "There are a few reason this might happen:\n\n"
+               "- Your tolerances for comparing the re-normalized NekRS flux with the incoming MOOSE\n"
+               "  flux are too tight. If the NekRS flux is acceptably close to the MOOSE flux, you can\n"
+               "  try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters\n\n"
+               "- You forgot to send a flux VARIABLE to NekRS, in which case no matter what you try to\n"
+               "  normalize by, the flux in NekRS is always zero.\n\n"
+               "- If you set 'conserve_flux_by_sideset = true' and nodes are SHARED by boundaries\n"
+               "  (like on corners between sidesets), you will end up renormalizing those shared nodes\n"
+               "  once per sideset that they lie on. There is no guarantee that the total imposed flux\n"
+               "  would be preserved.");
+}
+
+void
+NekRSProblem::checkInitialFluxValues(const Real & nek_flux, const Real & moose_flux) const
+{
+  const Real scale_squared = _nek_mesh->scaling() * _nek_mesh->scaling();
+  const double nek_flux_print_mult = scale_squared * nekrs::solution::referenceFlux();
 
   // If before normalization, there is a large difference between the nekRS imposed flux
   // and the MOOSE flux, this could mean that there is a poor match between the domains,
@@ -401,22 +477,8 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   // units of centimeters, but you're coupling to an app based in meters, the fluxes will
   // be very different from one another.
   if (moose_flux && (std::abs(nek_flux * nek_flux_print_mult - moose_flux) / moose_flux) > 0.25)
-    mooseDoOnce(mooseWarning("nekRS flux differs from MOOSE flux by more than 25\%! "
-                             "This could indicate that your geometries do not line up properly."));
-
-  if (!successful_normalization)
-    mooseError("Flux normalization process failed! nekRS integrated flux: ",
-               normalized_nek_flux,
-               " MOOSE integrated flux: ",
-               moose_flux,
-               ".\n\nThis may happen if the nekRS mesh "
-               "is very different from that used in the App sending heat flux to nekRS and the "
-               "nearest node transfer is only picking up zero values in the coupled App.\n\n"
-               "OR, this error could indicate that your tolerances for comparing the re-normalized "
-               "Nek flux with the incoming MOOSE flux are too tight. If the NekRS flux (",
-               normalized_nek_flux, ") is acceptably close to the MOOSE flux (", moose_flux, "), "
-               "then you can try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' "
-               "parameters");
+    mooseDoOnce(mooseWarning("NekRS flux differs from MOOSE flux by more than 25\%! This might indicate that your\n"
+                             "geometries don't line up properly or something else is wrong with the flux transfer."));
 }
 
 void
@@ -715,8 +777,20 @@ NekRSProblem::addExternalVariables()
     _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
 
     // add the postprocessor that receives the flux integral for normalization
-    auto pp_params = _factory.getValidParams("Receiver");
-    addPostprocessor("Receiver", "flux_integral", pp_params);
+    if (_conserve_flux_by_sideset)
+    {
+      auto vpp_params = _factory.getValidParams("ConstantVectorPostprocessor");
+
+      // create zero initial values
+      std::vector<std::vector<Real>> dummy_vals(1, std::vector<Real>(_boundary->size()));
+      vpp_params.set<std::vector<std::vector<Real>>>("value") = dummy_vals;
+      addVectorPostprocessor("ConstantVectorPostprocessor", "flux_integral", vpp_params);
+    }
+    else
+    {
+      auto pp_params = _factory.getValidParams("Receiver");
+      addPostprocessor("Receiver", "flux_integral", pp_params);
+    }
   }
 
   if (_volume && _has_heat_source)

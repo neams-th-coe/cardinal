@@ -18,32 +18,32 @@
 
 #ifdef ENABLE_NEK_COUPLING
 
-#include "NekHeatFluxIntegral.h"
+#include "NekUsrWrkBoundaryIntegral.h"
 
-registerMooseObject("CardinalApp", NekHeatFluxIntegral);
+registerMooseObject("CardinalApp", NekUsrWrkBoundaryIntegral);
 
 InputParameters
-NekHeatFluxIntegral::validParams()
+NekUsrWrkBoundaryIntegral::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
-  params.addClassDescription("Compute heat flux over a boundary in the NekRS mesh");
+  params.addRequiredParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk to integrate (zero-indexed)");
+  params.addClassDescription("Compute integral of usrwrk over a boundary in the NekRS mesh");
   return params;
 }
 
-NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters)
-  : NekSidePostprocessor(parameters)
+NekUsrWrkBoundaryIntegral::NekUsrWrkBoundaryIntegral(const InputParameters & parameters)
+  : NekSidePostprocessor(parameters),
+    _usrwrk_slot(getParam<unsigned int>("usrwrk_slot"))
 {
-  // this postprocessor computes the gradient of temperature, so it requires
-  // the temperature field to exist
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("This postprocessor can only be used with NekRS problems that have a temperature "
-               "variable!");
+  if (_usrwrk_slot >= _nek_problem->nUsrWrkSlots())
+    mooseError("'usrwrk_slot' must be less than number of allocated usrwrk slots: ",
+      _nek_problem->nUsrWrkSlots());
 }
 
 Real
-NekHeatFluxIntegral::getValue()
+NekUsrWrkBoundaryIntegral::getValue()
 {
-  return nekrs::heatFluxIntegral(_boundary);
+  return nekrs::usrWrkSideIntegral(_boundary, _usrwrk_slot);
 }
 
 #endif
