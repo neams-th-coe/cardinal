@@ -49,10 +49,10 @@ NekVolumeExtremeValue::getValue()
   switch (_type)
   {
     case operation::max:
-      return nekrs::volumeMaxValue(_field);
+      return nekrs::volumeMaxValue(_field, _pp_mesh);
       break;
     case operation::min:
-      return nekrs::volumeMinValue(_field);
+      return nekrs::volumeMinValue(_field, _pp_mesh);
       break;
     default:
       mooseError("Unhandled 'OperationEnum'!");
