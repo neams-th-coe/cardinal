@@ -33,8 +33,7 @@
     type = RunException
     input = mismatch_main.i
     expect_err = "The sideset flux reporter transferred to NekRS must have a length equal to the number\n"
-        "of entries in 'boundary'! Please check the values written to the 'flux_integral' vector postprocessor.\n\n"
-        "Length of reporter: 1\nLength of 'boundary': 8"
+        "of entries in 'boundary'!"
     requirement = "The system shall print a helpful error message if the sideset flux reporter does "
                   "not have the correct length."
     required_objects = 'NekRSProblem'
