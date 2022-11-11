@@ -12,4 +12,16 @@
                   "GLL points are also on Dirichlet boundaries, which win in boundary condition ties."
     required_objects = 'NekRSProblem'
   []
+  [sfr_pincell_vpp]
+    type = Exodiff
+    input = nek_main_vpp.i
+    exodiff = 'nek_master_out.e'
+    min_parallel = 6
+    custom_cmp = 'exodiff_vpp.cmp'
+    heavy = true
+    requirement = "Individually conserving heat flux sideset by sideset shall give equivalent results "
+                  "to the all-combined option when there is just one coupling sideset. The gold file "
+                  "for this test is identical to that for the sfr_pincell case."
+    required_objects = 'NekRSProblem'
+  []
 []
