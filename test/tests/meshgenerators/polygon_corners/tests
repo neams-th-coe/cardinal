@@ -68,7 +68,7 @@
   []
   [corners_quad8]
     type = Exodiff
-    input = corner_quad8.i
+    input = corners_quad8.i
     cli_args = "--mesh-only"
     exodiff = 'corners_quad8_in.e'
     requirement = "The system shall curve corners of a six-sided polygon with zero boundary layers and output QUAD8 elements"
