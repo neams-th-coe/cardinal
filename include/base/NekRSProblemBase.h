@@ -110,6 +110,12 @@ public:
    */
   void printScratchSpaceInfo(const MultiMooseEnum & indices) const;
 
+  /**
+   * Get the number of usrwrk slots allocated
+   * @return number of allocated usrwrk slots
+   */
+  unsigned int nUsrWrkSlots() const { return _n_usrwrk_slots; }
+
 protected:
   /**
    * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh (mirror -> re2)

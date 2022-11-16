@@ -16,34 +16,28 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_NEK_COUPLING
+#pragma once
 
-#include "NekHeatFluxIntegral.h"
+#include "NekSidePostprocessor.h"
 
-registerMooseObject("CardinalApp", NekHeatFluxIntegral);
-
-InputParameters
-NekHeatFluxIntegral::validParams()
+/**
+ * Compute the integral of an entry in the nrs->usrwrk array over the nekRS mesh,
+ * \f$\int_\Gamma q d\Gamma\f$, where \f$q\f$ is the entry in the nrs->usrwrk array
+ * and \f$\Gamma\f$ is the boundary.
+ *
+ * Note that this calculation is done directly on the mesh that nekRS solves on,
+ * _not_ the mesh created for solution transfer in NekRSMesh.
+ */
+class NekUsrWrkBoundaryIntegral : public NekSidePostprocessor
 {
-  InputParameters params = NekSidePostprocessor::validParams();
-  params.addClassDescription("Compute heat flux over a boundary in the NekRS mesh");
-  return params;
-}
+public:
+  static InputParameters validParams();
 
-NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters)
-  : NekSidePostprocessor(parameters)
-{
-  // this postprocessor computes the gradient of temperature, so it requires
-  // the temperature field to exist
-  if (!nekrs::hasTemperatureVariable())
-    mooseError("This postprocessor can only be used with NekRS problems that have a temperature "
-               "variable!");
-}
+  NekUsrWrkBoundaryIntegral(const InputParameters & parameters);
 
-Real
-NekHeatFluxIntegral::getValue()
-{
-  return nekrs::heatFluxIntegral(_boundary);
-}
+  virtual Real getValue() override;
 
-#endif
+protected:
+  /// Slot in usrwrk array to integrate
+  const unsigned int & _usrwrk_slot;
+};

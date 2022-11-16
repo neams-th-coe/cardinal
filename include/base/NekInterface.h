@@ -331,9 +331,11 @@ Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 /**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
  * @param[in] nek_boundary_coupling data structure holding boundary coupling info
+ * @param[in] boundary boundaries over which to integrate the flux
  * @return boundary integrated flux
  */
-double fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling);
+std::vector<double> fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling,
+                                 const std::vector<int> & boundary);
 
 /**
  * Integrate the interpolated heat source over the volume of the data transfer mesh
@@ -345,12 +347,29 @@ double sourceIntegral(const NekVolumeCoupling & nek_volume_coupling);
 /**
  * Normalize the flux sent to nekRS to conserve the total flux
  * @param[in] nek_boundary_coupling data structure holding boundary coupling info
+ * @param[in] boundary boundaries for which to normalize the flux
+ * @param[in] moose_integral total integrated flux from MOOSE to conserve
+ * @param[in] nek_integral total integrated flux in nekRS to adjust
+ * @param[out] normalized_nek_integral final normalized nek flux integral
+ * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
+ */
+bool normalizeFluxBySideset(const NekBoundaryCoupling & nek_boundary_coupling,
+                   const std::vector<int> & boundary,
+                   const std::vector<double> & moose_integral,
+                   std::vector<double> & nek_integral,
+                   double & normalized_nek_integral);
+
+/**
+ * Normalize the flux sent to nekRS to conserve the total flux
+ * @param[in] nek_boundary_coupling data structure holding boundary coupling info
+ * @param[in] boundary boundaries for which to normalize the flux
  * @param[in] moose_integral total integrated flux from MOOSE to conserve
  * @param[in] nek_integral total integrated flux in nekRS to adjust
  * @param[out] normalized_nek_integral final normalized nek flux integral
  * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
 bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
+                   const std::vector<int> & boundary,
                    const double moose_integral,
                    double nek_integral,
                    double & normalized_nek_integral);
@@ -374,6 +393,14 @@ bool normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling,
  * @return area integral
  */
 double area(const std::vector<int> & boundary_id);
+
+/**
+ * Compute the area integral of a given slot in the usrwrk array over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+ * @param[in] slot slot in usrwrk array
+ * @return area integral of a component of the usrwrk array
+ */
+double usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot);
 
 /**
  * Compute the area integral of a given integrand over a set of boundary IDs
