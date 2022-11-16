@@ -3,7 +3,7 @@
     type = RunException
     input = invalid_elem.i
     cli_args = '--mesh-only'
-    expect_err = "This mesh generator can only be applied to HEX27 elements!"
+    expect_err = "This mesh generator can only be applied to meshes that contain QUAD9 or HEX27 elements!"
     requirement = "The system shall error if an invalid element type is used with a hex27 to hex20 converter"
   []
   [multiple_sides]

@@ -109,7 +109,7 @@ HexagonalSubchannelBin::HexagonalSubchannelBin(const InputParameters & parameter
   }
 }
 
-const unsigned int
+unsigned int
 HexagonalSubchannelBin::bin(const Point & p) const
 {
   if (_pin_centered_bins)
@@ -118,7 +118,7 @@ HexagonalSubchannelBin::bin(const Point & p) const
     return _hex_lattice->channelIndex(p);
 }
 
-const unsigned int
+unsigned int
 HexagonalSubchannelBin::num_bins() const
 {
   if (_pin_centered_bins)

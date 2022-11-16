@@ -10,7 +10,7 @@
     vector_value = '1.0 0.0 0.0'
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = translate
     boundary = 'rmin rmax'
     radius = '0.05 0.2'

@@ -89,12 +89,12 @@ HexagonalSubchannelMesh::buildMesh()
   getEdgePoints();
   getCornerPoints();
 
-  int nl = _volume_mesh ? _n_axial : _n_axial + 1;
+  auto nl = _volume_mesh ? _n_axial : _n_axial + 1;
 
   mesh.set_mesh_dimension(3);
   mesh.set_spatial_dimension(3);
 
-  for (int i = 0; i < nl; ++i)
+  for (unsigned int i = 0; i < nl; ++i)
   {
     Real zmin = i * dz;
     Real zmax = (i + 1) * dz;
@@ -103,7 +103,7 @@ HexagonalSubchannelMesh::buildMesh()
     if (_hex_lattice.nInteriorChannels())
     {
       // Then add the elements for the interior channels
-      for (int i = 0; i < _hex_lattice.nInteriorChannels(); ++i)
+      for (unsigned int i = 0; i < _hex_lattice.nInteriorChannels(); ++i)
       {
         Point centroid =
             _hex_lattice.channelCentroid(_hex_lattice.interiorChannelCornerCoordinates(i));
@@ -132,7 +132,7 @@ HexagonalSubchannelMesh::buildMesh()
     if (_hex_lattice.nEdgeChannels())
     {
       Real rotation = 0.0;
-      for (int i = 0; i < _hex_lattice.nEdgeChannels(); ++i)
+      for (unsigned int i = 0; i < _hex_lattice.nEdgeChannels(); ++i)
       {
         if (i >= (_n_rings - 1) && i % (_n_rings - 1) == 0)
           rotation += 2 * M_PI / 6.0;
@@ -160,7 +160,7 @@ HexagonalSubchannelMesh::buildMesh()
     }
 
     // there are always corner channels
-    for (int i = 0; i < _hex_lattice.nCornerChannels(); ++i)
+    for (unsigned int i = 0; i < _hex_lattice.nCornerChannels(); ++i)
     {
       Point centroid = _hex_lattice.channelCentroid(_hex_lattice.cornerChannelCornerCoordinates(i));
 
@@ -259,7 +259,7 @@ HexagonalSubchannelMesh::getInteriorPoints()
   Point pin3(distance_from_centroid * COS30, -distance_from_centroid * SIN30, 0.0);
 
   // Add the points on the first pin
-  for (int i = 0; i < _theta_res; ++i)
+  for (unsigned int i = 0; i < _theta_res; ++i)
   {
     Real phi = total_interior_pin_theta + i * pin_arc_theta;
     _interior_points[p++] = pin1 + Point(r * std::cos(phi), -r * std::sin(phi), 0.0);
@@ -267,12 +267,12 @@ HexagonalSubchannelMesh::getInteriorPoints()
 
   // Add the points on the first gap
   Point start1 = _interior_points[_theta_res];
-  for (int i = 0; i < _gap_res - 2; ++i)
+  for (unsigned int i = 0; i < _gap_res - 2; ++i)
     _interior_points[p++] =
         start1 + Point(-gap_dx * (i + 1) * SIN30, -gap_dx * (i + 1) * COS30, 0.0);
 
   // Add the points on the second pin
-  for (int i = 0; i < _theta_res; ++i)
+  for (unsigned int i = 0; i < _theta_res; ++i)
   {
     Real phi = total_interior_pin_theta - i * pin_arc_theta;
     _interior_points[p++] = pin2 + Point(r * std::cos(phi), r * std::sin(phi), 0.0);
@@ -280,11 +280,11 @@ HexagonalSubchannelMesh::getInteriorPoints()
 
   // Add the points on the second gap
   Point start2 = _interior_points[2 * _theta_res + (_gap_res - 2)];
-  for (int i = 0; i < _gap_res - 2; ++i)
+  for (unsigned int i = 0; i < _gap_res - 2; ++i)
     _interior_points[p++] = start2 + Point(gap_dx * (i + 1), 0.0, 0.0);
 
   // Add points on the third pin
-  for (int i = 0; i < _theta_res; ++i)
+  for (unsigned int i = 0; i < _theta_res; ++i)
   {
     Real phi = i * pin_arc_theta;
     _interior_points[p++] = pin3 + Point(-r * std::cos(phi), r * std::sin(phi), 0.0);
@@ -292,7 +292,7 @@ HexagonalSubchannelMesh::getInteriorPoints()
 
   // Add points on the third gap
   Point start3 = _interior_points[3 * _theta_res + 2 * (_gap_res - 2)];
-  for (int i = 0; i < _gap_res - 2; ++i)
+  for (unsigned int i = 0; i < _gap_res - 2; ++i)
     _interior_points[p++] =
         start3 + Point(-gap_dx * (i + 1) * SIN30, gap_dx * (i + 1) * COS30, 0.0);
 }
@@ -316,12 +316,12 @@ HexagonalSubchannelMesh::getEdgePoints()
 
   // Add points on the first gap
   Point start1 = Point(-width / 2.0, height / 2.0, 0.0);
-  for (int i = 0; i < _gap_res - 1; ++i)
+  for (unsigned int i = 0; i < _gap_res - 1; ++i)
     _edge_points[p++] = start1 + Point(0.0, -vertical_gap_arc_length * i, 0.0);
 
   // Add points on the first pin
   Point pin1 = Point(-width / 2.0, -height / 2.0, 0.0);
-  for (int i = 0; i < _theta_res; ++i)
+  for (unsigned int i = 0; i < _theta_res; ++i)
   {
     Real phi = pin_arc_theta * i;
     _edge_points[p++] = pin1 + Point(r * std::sin(phi), r * std::cos(phi), 0.0);
@@ -329,12 +329,12 @@ HexagonalSubchannelMesh::getEdgePoints()
 
   // Add points on the second gap
   Point start2 = _edge_points[p - 1];
-  for (int i = 0; i < _gap_res - 2; ++i)
+  for (unsigned int i = 0; i < _gap_res - 2; ++i)
     _edge_points[p++] = start2 + Point((i + 1) * horizontal_gap_arc_length, 0.0, 0.0);
 
   // Add points on the second pin
   Point pin2 = Point(width / 2.0, -height / 2.0, 0.0);
-  for (int i = 0; i < _theta_res; ++i)
+  for (unsigned int i = 0; i < _theta_res; ++i)
   {
     Real phi = i * pin_arc_theta;
     _edge_points[p++] = pin2 + Point(-r * std::cos(phi), r * std::sin(phi), 0.0);
@@ -342,13 +342,13 @@ HexagonalSubchannelMesh::getEdgePoints()
 
   // Add points on the third gap
   Point start3 = _edge_points[p - 1];
-  for (int i = 0; i < _gap_res - 1; ++i)
+  for (unsigned int i = 0; i < _gap_res - 1; ++i)
     _edge_points[p++] = start3 + Point(0.0, vertical_gap_arc_length * (i + 1), 0.0);
 
   // Add points on the duct
   Point start4 = _edge_points[p - 1];
-  for (int i = 0; i < _gap_res - 2; ++i)
-    _edge_points[p++] = start4 + Point(-(i + 1) * _pin_pitch / (_gap_res - 1.0), 0.0, 0.0);
+  for (unsigned int i = 0; i < _gap_res - 2; ++i)
+    _edge_points[p++] = start4 + Point(-1.0 * (i + 1) * _pin_pitch / (_gap_res - 1.0), 0.0, 0.0);
 }
 
 void
@@ -376,18 +376,18 @@ HexagonalSubchannelMesh::getCornerPoints()
   Real pin_arc_theta = total_corner_pin_theta / (_theta_res - 1.0);
 
   // Add the points on the first gap
-  for (int i = 0; i < _gap_res - 1; ++i)
-    _corner_points[p++] = pts[3] + Point(0.0, -i * gap_arc_length, 0.0);
+  for (unsigned int i = 0; i < _gap_res - 1; ++i)
+    _corner_points[p++] = pts[3] + Point(0.0, -1.0 * i * gap_arc_length, 0.0);
 
   // Add the points on the pin
-  for (int i = 0; i < _theta_res; ++i)
+  for (unsigned int i = 0; i < _theta_res; ++i)
   {
     Real phi = i * pin_arc_theta;
     _corner_points[p++] = pts[0] + Point(r * std::sin(phi), r * std::cos(phi), 0.0);
   }
 
   // Add the points on the second gap
-  for (int i = 0; i < _gap_res - 1; ++i)
+  for (unsigned int i = 0; i < _gap_res - 1; ++i)
   {
     Real dx = (i + 1) * gap_arc_length;
     _corner_points[p++] =
@@ -396,10 +396,10 @@ HexagonalSubchannelMesh::getCornerPoints()
 
   // Add the points on the duct
   Point wall = pts[2] - pts[1];
-  for (int i = 0; i < _gap_res - 1; ++i)
+  for (unsigned int i = 0; i < _gap_res - 1; ++i)
     _corner_points[p++] = pts[1] + wall * (i + 1) / (_gap_res - 1.0);
 
   wall = pts[3] - pts[2];
-  for (int i = 0; i < _gap_res - 2; ++i)
+  for (unsigned int i = 0; i < _gap_res - 2; ++i)
     _corner_points[p++] = pts[2] + wall * (i + 1) / (_gap_res - 1.0);
 }

@@ -39,7 +39,7 @@ namespace geom_utility {
    * @param[in] axis axis perpendicular to the plane of the polygon
    * @return minimum distance to the provided points
    */
-  const Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
+  Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
     const unsigned int & axis);
 
   /**
@@ -114,7 +114,7 @@ namespace geom_utility {
    * @param[in] axis axis perpendicular to plane onto which point and line are first projected
    * @return half space of line
    */
-  const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis);
+  Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis);
 
   /**
    * Whether a point is in 2-D a polygon in the plane perpendicular to the specified
@@ -124,7 +124,7 @@ namespace geom_utility {
    * @param[in] axis axis perpendicular to the plane of the polygon
    * @return whether point is inside the polygon
    */
-  const bool pointInPolygon(const Point & point, const std::vector<Point> & corners,
+  bool pointInPolygon(const Point & point, const std::vector<Point> & corners,
     const unsigned int & axis);
 
   /**
@@ -135,6 +135,6 @@ namespace geom_utility {
    * @param[in] axis axis perpendicular to the plane of the polygon
    * @return whether point is on edge of polygon
    */
-  const bool pointOnEdge(const Point & point, const std::vector<Point> & corners,
+  bool pointOnEdge(const Point & point, const std::vector<Point> & corners,
     const unsigned int & axis);
-}; // end of namespace geom_utility
+} // end of namespace geom_utility

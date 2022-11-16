@@ -9,7 +9,7 @@ num_layers_for_plots = 50
 [GlobalParams]
   initial_p = ${outlet_P}
   initial_T = ${inlet_T}
-  initial_vel = 0
+  initial_vel = 1.0
 
   rdg_slope_reconstruction = full
   closures = none
@@ -22,7 +22,7 @@ num_layers_for_plots = 50
   []
 []
 
-[Modules/FluidProperties]
+[FluidProperties]
   [helium]
     type = IdealGasFluidProperties
     molar_mass = 4e-3

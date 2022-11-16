@@ -41,13 +41,13 @@ public:
    * @param[in] p point
    * @return bin index
    */
-  virtual const unsigned int bin(const Point & p) const = 0;
+  virtual unsigned int bin(const Point & p) const = 0;
 
   /**
    * Get the total number of bins
    * @return total number of bins
    */
-  virtual const unsigned int num_bins() const = 0;
+  virtual unsigned int num_bins() const = 0;
 
   /**
    * Get the bin given a point in an array of bounding points between layers
