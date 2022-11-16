@@ -45,6 +45,18 @@ namespace nekrs
 static int build_only;
 
 /**
+ * Set the absolute tolerance for checking energy conservation in data transfers to Nek
+ * @param[in] tol tolerance
+ */
+void setAbsoluteTol(double tol);
+
+/**
+ * Set the relative tolerance for checking energy conservation in data transfers to Nek
+ * @param[in] tol tolerance
+ */
+void setRelativeTol(double tol);
+
+/**
  * Set the start time used by NekRS
  * @param[in] start start time
  */
