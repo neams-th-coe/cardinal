@@ -16,7 +16,7 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "Hex20Generator.h"
+#include "NekMeshGenerator.h"
 #include "CastUniquePointer.h"
 #include "UserErrorChecking.h"
 #include "MooseMeshUtils.h"
@@ -24,13 +24,21 @@
 #include "GeometryUtility.h"
 
 #include "libmesh/mesh_tools.h"
-#include "libmesh/cell_hex20.h"
 #include "libmesh/cell_hex8.h"
+#include "libmesh/cell_hex20.h"
+#include "libmesh/cell_hex27.h"
+#include "libmesh/face_quad4.h"
+#include "libmesh/face_quad8.h"
+#include "libmesh/face_quad9.h"
 
-registerMooseObject("CardinalApp", Hex20Generator);
+registerMooseObject("CardinalApp", NekMeshGenerator);
+registerMooseObjectRenamed("CardinalApp",
+                           Hex20Generator,
+                           "03/01/2023 24:00",
+                           NekMeshGenerator);
 
 InputParameters
-Hex20Generator::validParams()
+NekMeshGenerator::validParams()
 {
   InputParameters params = MeshGenerator::validParams();
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
@@ -76,34 +84,25 @@ Hex20Generator::validParams()
     "Boundary(s) to retain from the original mesh in the new mesh; if not "
     "specified, all original boundaries are kept.");
 
+  params.addParam<bool>("retain_original_elem_type", false, "Whether to skip the conversion "
+    "from QUAD9 to QUAD8, or from HEX27 to HEX20, to get into NekRS-compatible element type. "
+    "This is primarily used to just allow MOOSE's AdvancedExtruderGenerator to extrude Quad9 elements.");
+
   params.addClassDescription(
-      "Converts a HEX27 mesh to a HEX20 mesh, while optionally preserving "
-      "circular edges (which were faceted) in the HEX27 mesh.");
+      "Converts MOOSE meshes to element types needed for Nek (Quad8 or Hex20), "
+      "while optionally preserving circular edges (which were faceted) in the original mesh.");
   return params;
 }
 
-Hex20Generator::Hex20Generator(const InputParameters & params)
+NekMeshGenerator::NekMeshGenerator(const InputParameters & params)
   : MeshGenerator(params),
     _input(getMesh("input")),
     _axis(getParam<MooseEnum>("axis")),
     _curve_corners(getParam<bool>("curve_corners")),
     _rotation_angle(getParam<Real>("rotation_angle")),
+    _retain_original_elem_type(getParam<bool>("retain_original_elem_type")),
     _has_moving_boundary(isParamValid("boundary") || _curve_corners)
 {
-  // for each face, the mid-side nodes to be adjusted
-  _side_ids.push_back({12, 15, 14, 13});
-  _side_ids.push_back({11, 9, 17, 19});
-  _side_ids.push_back({8, 18, 10, 16});
-  _side_ids.push_back({9, 11, 19, 17});
-  _side_ids.push_back({10, 8, 16, 18});
-  _side_ids.push_back({12, 13, 14, 15});
-
-  // corner nodes for each face
-  _corner_nodes.resize(Hex27::num_sides);
-  for (unsigned int i = 0; i < Hex27::num_sides; ++i)
-    for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
-      _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
-
   if (_curve_corners)
     checkRequiredParam(params, {"polygon_sides", "polygon_size", "polygon_boundary", "corner_radius"},
                                "'curve_corners' is true");
@@ -122,26 +121,10 @@ Hex20Generator::Hex20Generator(const InputParameters & params)
   if (!isParamValid("boundary") && !isParamValid("radius"))
     checkUnusedParam(params, {"axis", "origins", "origins_files", "layers"},
                              "not setting a 'boundary'");
-
-  _across_pair.resize(Hex27::num_sides);
-  _across_pair[0] = {{0, 4}, {8, 16}, {1, 5}, {11, 19}, {20, 25}, {9, 17}, {3, 7}, {10, 18}, {2, 6}};
-  _across_pair[1] = {{0, 3}, {8, 10}, {1, 2}, {12, 15}, {21, 23}, {13, 14}, {4, 7}, {16, 18}, {5, 6}};
-  _across_pair[2] = {{1, 0}, {9, 11}, {2, 3}, {13, 12}, {22, 24}, {14, 15}, {5, 4}, {17, 19}, {6, 7}};
-  _across_pair[3] = {{3, 0}, {10, 8}, {2, 1}, {15, 12}, {23, 21}, {14, 13}, {7, 4}, {18, 16}, {6, 5}};
-  _across_pair[4] = {{0, 1}, {11, 9}, {3, 2}, {12, 13}, {24, 22}, {15, 14}, {4, 5}, {19, 17}, {7, 6}};
-  _across_pair[5] = {{4, 0}, {16, 8}, {5, 1}, {19, 11}, {25, 20}, {17, 9}, {7, 3}, {18, 10}, {6, 2}};
-
-  _across_face.resize(Hex27::num_sides);
-  _across_face[0] = 5;
-  _across_face[1] = 3;
-  _across_face[2] = 4;
-  _across_face[3] = 1;
-  _across_face[4] = 2;
-  _across_face[5] = 0;
 }
 
 Point
-Hex20Generator::projectPoint(const Point & origin, const Point & pt) const
+NekMeshGenerator::projectPoint(const Point & origin, const Point & pt) const
 {
   Point vec = pt - origin;
   vec(_axis) = 0.0;
@@ -149,7 +132,7 @@ Hex20Generator::projectPoint(const Point & origin, const Point & pt) const
 }
 
 Point
-Hex20Generator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const
+NekMeshGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const
 {
   auto & node = elem->node_ref(node_id);
   const Point pt(node(0), node(1), node(2));
@@ -157,23 +140,51 @@ Hex20Generator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, c
   // project point onto the circle plane and convert to unit vector
   Point xy_plane = projectPoint(origin, pt);
 
+  // if the point is exactly on the origin, we don't know in which direction to move
+  // it so that it lands up on the circle
+  if ((MooseUtils::absoluteFuzzyEqual(xy_plane(0), 0)) &&
+      (MooseUtils::absoluteFuzzyEqual(xy_plane(1), 0)) &&
+      (MooseUtils::absoluteFuzzyEqual(xy_plane(2), 0)))
+    mooseError("Node ID ", node_id, " of element ", elem->id(), " is already on the origin (",
+      pt(0), ", ", pt(1), ", ", pt(2), ").\n"
+      "This node lacks the nonzero unit vector needed to move it.");
+
   Point adjustment = xy_plane.unit() * (radius - xy_plane.norm());
 
   node = pt + adjustment;
   return adjustment;
 }
 
-std::pair<unsigned int, unsigned int>
-Hex20Generator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
+BoundaryID
+NekMeshGenerator::getBoundaryID(const BoundaryName & name, const MeshBase & mesh) const
 {
-  int index = node_id - Hex8::num_nodes;
-  unsigned int p0 = Hex27::edge_nodes_map[index][0];
-  unsigned int p1 = Hex27::edge_nodes_map[index][1];
-  return {p0, p1};
+  auto & boundary_info = mesh.get_boundary_info();
+  auto id = MooseMeshUtils::getBoundaryID(name, mesh);
+
+  const auto & all_boundaries = boundary_info.get_boundary_ids();
+  if (all_boundaries.find(id) == all_boundaries.end())
+    mooseError("Boundary '", name, "' was not found in the mesh!");
+
+  return id;
 }
 
 void
-Hex20Generator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) const
+NekMeshGenerator::checkPointLength(const std::vector<std::vector<Real>> & points, std::string name) const
+{
+  for (const auto & o : points)
+  {
+    if (o.size() == 0)
+      mooseError("Zero-length entry in '" + name + "' detected! Please be sure that each "
+        "entry in '" + name + "' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
+
+    if (o.size() % 3 != 0)
+      mooseError("When using multiple origins for one boundary, each entry in '" + name + "' "
+        "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
+  }
+}
+
+void
+NekMeshGenerator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) const
 {
   std::pair<unsigned int, unsigned int> p = pairedNodesAboutMidPoint(node_id);
 
@@ -187,29 +198,29 @@ Hex20Generator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) co
   adjust = pt;
 }
 
-unsigned int
-Hex20Generator::midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const
+bool
+NekMeshGenerator::isNearCorner(const Point & pt) const
 {
-  const auto & primary_nodes = _corner_nodes[face_id];
-  auto it = std::find(primary_nodes.begin(), primary_nodes.end(), face_node);
-  return _side_ids[face_id][it - primary_nodes.begin()];
+  // point is a moving point by the corner if the distance from the corner is less
+  // that the distance from the circle tangent to the corner
+  Real distance_to_closest_corner = geom_utility::minDistanceToPoints(pt,
+    _polygon_corners, _axis);
+
+  return distance_to_closest_corner < _max_corner_distance;
 }
 
-BoundaryID
-Hex20Generator::getBoundaryID(const BoundaryName & name, const MeshBase & mesh) const
+unsigned int
+NekMeshGenerator::getNodeIndex(const Elem * elem, const Point & pt) const
 {
-  auto & boundary_info = mesh.get_boundary_info();
-  auto id = MooseMeshUtils::getBoundaryID(name, mesh);
+  for (unsigned int i = 0; i < _n_start_nodes; ++i)
+    if (pt.absolute_fuzzy_equals(elem->point(i)))
+      return i;
 
-  const auto & all_boundaries = boundary_info.get_boundary_ids();
-  if (all_boundaries.find(id) == all_boundaries.end())
-    mooseError("Boundary '", name, "' was not found in the mesh!");
-
-  return id;
+  mooseError("Failed to find any node on element ", elem->id(), " that matches ", pt);
 }
 
 Point
-Hex20Generator::getClosestOrigin(const unsigned int & index, const Point & pt) const
+NekMeshGenerator::getClosestOrigin(const unsigned int & index, const Point & pt) const
 {
   const auto & candidates = _origin[index];
   double distance = std::numeric_limits<double>::max();
@@ -236,85 +247,8 @@ Hex20Generator::getClosestOrigin(const unsigned int & index, const Point & pt) c
   return closest;
 }
 
-unsigned int
-Hex20Generator::pairedFaceNode(const unsigned int & node_id, const unsigned int & face_id) const
-{
-  unsigned int pair;
-
-  for (const auto & p : _across_pair[face_id])
-  {
-    if (p.first == node_id)
-    {
-      pair = p.second;
-      break;
-    }
-  }
-
-  return pair;
-}
-
-const Elem *
-Hex20Generator::getNextLayerElem(const Elem & elem, const unsigned int & touching_face, unsigned int & next_touching_face) const
-
-{
-  std::set<const Elem * > neighbor_set;
-
-  // for the input element, get the node index on the mid-face, since for Hex27 that should
-  // only uniquely touch one other element
-  auto face_node = Hex27::side_nodes_map[touching_face][Hex27::nodes_per_side - 1];
-  auto face_pt = elem.point(face_node);
-
-  elem.find_point_neighbors(face_pt, neighbor_set);
-
-  if (neighbor_set.size() != 2)
-    mooseError("Boundary layer sweeping requires finding exactly one neighbor element\n"
-      "through the layer face! Found ", neighbor_set.size() - 1, " neighbors for element ",
-      elem.id(), ", face ", touching_face,
-      ".\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
-
-  // TODO: this mesh generator currently assumes we're working on an extruded mesh,
-  // so that the face pattern follows as we sweep through the boundary layers
-  next_touching_face = _across_face[touching_face];
-
-  std::set<const Elem *>::iterator it = neighbor_set.begin();
-  for (int i = 0; i < neighbor_set.size(); ++i, it++)
-  {
-    // we restrict the size to 2, so just return the element that is NOT the input element
-    if ((*it)->id() != elem.id())
-      return *it;
-  }
-
-  mooseError("Failed to find a neighbor element across the boundary layer! Please check that\n"
-    "the 'layers' are set to reasonable values.");
-}
-
-std::vector<Elem *>
-Hex20Generator::getBoundaryLayerElems(Elem * elem, const unsigned int & n_layers,
-  const unsigned int & primary_face) const
-{
-  std::vector<Elem *> nested_elems;
-
-  const auto face_nodes = nodesOnFace(primary_face);
-  unsigned int face_node = face_nodes[Hex27::nodes_per_side - 1];
-
-  Elem * bl_elem = elem;
-  unsigned int start_face = primary_face;
-  unsigned int pair_face = _across_face[start_face];
-
-  for (unsigned int l = 0; l < n_layers; ++l)
-  {
-    // increment to the next boundary layer element
-    auto next_elem = getNextLayerElem(*bl_elem, pair_face, start_face);
-    bl_elem = const_cast<Elem *>(next_elem);
-    pair_face = _across_face[start_face];
-    nested_elems.push_back(bl_elem);
-  }
-
-  return nested_elems;
-}
-
 void
-Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face,
+NekMeshGenerator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face,
   const std::vector<Real> & polygon_layer_smoothing)
 {
   bool is_corner_boundary = boundary_index >= _n_noncorner_boundaries;
@@ -325,7 +259,7 @@ Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const
   const Point centroid = elem->vertex_average();
   Point pt = getClosestOrigin(boundary_index, centroid);
 
-  for (auto & face_node : nodesOnFace(primary_face))
+  for (auto & face_node : _side_nodes_map[primary_face])
   {
     const Node & n = elem->node_ref(face_node);
     const Point corner_point(n(0), n(1), n(2));
@@ -368,44 +302,296 @@ Hex20Generator::moveElem(Elem * elem, const unsigned int & boundary_index, const
   }
 }
 
-unsigned int
-Hex20Generator::getNodeIndex(const Elem * elem, const Point & pt) const
+std::vector<Elem *>
+NekMeshGenerator::getBoundaryLayerElems(Elem * elem, const unsigned int & n_layers,
+  const unsigned int & primary_face) const
 {
-  for (unsigned int i = 0; i < Hex27::num_nodes; ++i)
-    if (pt.absolute_fuzzy_equals(elem->point(i)))
-      return i;
+  std::vector<Elem *> nested_elems;
 
-  mooseError("Failed to find any node on element ", elem->id(), " that matches ", pt);
+  Elem * bl_elem = elem;
+  unsigned int start_face = primary_face;
+  unsigned int pair_face = _across_face[start_face];
+
+  for (unsigned int l = 0; l < n_layers; ++l)
+  {
+    // increment to the next boundary layer element
+    auto next_elem = getNextLayerElem(*bl_elem, pair_face, start_face);
+    bl_elem = const_cast<Elem *>(next_elem);
+    pair_face = _across_face[start_face];
+    nested_elems.push_back(bl_elem);
+  }
+
+  return nested_elems;
 }
 
-bool
-Hex20Generator::isNearCorner(const Point & pt) const
+unsigned int
+NekMeshGenerator::pairedFaceNode(const unsigned int & node_id, const unsigned int & face_id) const
 {
-  // point is a moving point by the corner if the distance from the corner is less
-  // that the distance from the circle tangent to the corner
-  Real distance_to_closest_corner = geom_utility::minDistanceToPoints(pt,
-    _polygon_corners, _axis);
+  unsigned int pair;
 
-  return distance_to_closest_corner < _max_corner_distance;
+  for (const auto & p : _across_pair[face_id])
+  {
+    if (p.first == node_id)
+    {
+      pair = p.second;
+      break;
+    }
+  }
+
+  return pair;
+}
+
+unsigned int
+NekMeshGenerator::midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const
+{
+  const auto & primary_nodes = _corner_nodes[face_id];
+  auto it = std::find(primary_nodes.begin(), primary_nodes.end(), face_node);
+  return _side_ids[face_id][it - primary_nodes.begin()];
+}
+
+const Elem *
+NekMeshGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touching_face, unsigned int & next_touching_face) const
+
+{
+  std::set<const Elem * > neighbor_set;
+
+  // for the input element, get the node index on the mid-face, since for Hex27 that should
+  // only uniquely touch one other element
+  auto face_node = getFaceNode(touching_face);
+  auto face_pt = elem.point(face_node);
+
+  elem.find_point_neighbors(face_pt, neighbor_set);
+
+  if (neighbor_set.size() != 2)
+    mooseError("Boundary layer sweeping requires finding exactly one neighbor element\n"
+      "through the layer face! Found ", neighbor_set.size() - 1, " neighbors for element ",
+      elem.id(), ", face ", touching_face,
+      ".\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
+
+  // When in 3-D, this mesh generator currently assumes we're working on an extruded mesh,
+  // so that the face pattern follows as we sweep through the boundary layers
+  next_touching_face = _across_face[touching_face];
+
+  std::set<const Elem *>::iterator it = neighbor_set.begin();
+  for (std::size_t i = 0; i < neighbor_set.size(); ++i, it++)
+  {
+    // we restrict the size to 2, so just return the element that is NOT the input element
+    if ((*it)->id() != elem.id())
+      return *it;
+  }
+
+  mooseError("Failed to find a neighbor element across the boundary layer! Please check that\n"
+    "the 'layers' are set to reasonable values.");
 }
 
 void
-Hex20Generator::checkPointLength(const std::vector<std::vector<Real>> & points, std::string name) const
+NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> & polygon_layer_smoothing)
 {
-  for (const auto & o : points)
-  {
-    if (o.size() == 0)
-      mooseError("Zero-length entry in '" + name + "' detected! Please be sure that each "
-        "entry in '" + name + "' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
+  auto & boundary_info = mesh->get_boundary_info();
 
-    if (o.size() % 3 != 0)
-      mooseError("When using multiple origins for one boundary, each entry in '" + name + "' "
-        "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
+  // move the nodes on the surface of interest
+  for (auto & elem : mesh->element_ptr_range())
+  {
+    bool at_least_one_face_on_boundary = false;
+
+    for (unsigned short int s = 0; s < _n_sides; ++s)
+    {
+      // get the boundary IDs that this element face lie on
+      std::vector<boundary_id_type> b;
+      boundary_info.boundary_ids(elem, s, b);
+
+      // if there is no moving boundary, or no faces of this element are on any boundaries, we can leave
+      if (!_has_moving_boundary || b.size() == 0)
+        continue;
+
+      // is this face on any of the specified boundaries?
+      std::vector<int> indices;
+
+      for (const auto & b_index : b)
+      {
+        auto it = std::find(_moving_boundary.begin(), _moving_boundary.end(), b_index);
+
+        if (it != _moving_boundary.end())
+          indices.push_back(it - _moving_boundary.begin());
+      }
+
+      // if none of this element's faces are on the boundaries of interest, we can leave
+      if (indices.size() == 0)
+        continue;
+
+      if (indices.size() > 1)
+        mooseError("This mesh generator does not support elements with the same face "
+          "existing on multiple moving side sets!");
+
+      unsigned int index = indices[0];
+
+      // use the element centroid for finding the closest origin
+      const Point centroid = elem->vertex_average();
+
+      if (at_least_one_face_on_boundary)
+        mooseError("This mesh generator cannot be applied to elements that have more than "
+          "one face on the circular sideset!");
+
+      at_least_one_face_on_boundary = true;
+      moveElem(elem, index, s, polygon_layer_smoothing);
+    }
   }
 }
 
+unsigned int
+NekMeshGenerator::getFaceNode(const unsigned int & primary_face) const
+{
+  return _side_nodes_map[primary_face][_n_start_nodes_per_side - 1];
+}
+
+void
+NekMeshGenerator::checkElementType(std::unique_ptr<MeshBase> & mesh)
+{
+  // the type of the first element, should match the type of all other elements
+  _etype = mesh->elem_ptr(0)->type();
+
+  for (const auto & elem : mesh->element_ptr_range())
+  {
+    if (_etype != elem->type())
+      mooseError("This mesh generator can only be applied to meshes that contain a single element type!");
+
+    switch (elem->type())
+    {
+      case QUAD9:
+        break;
+      case HEX27:
+        break;
+      default:
+        mooseError("This mesh generator can only be applied to meshes that contain QUAD9 or HEX27 elements!");
+    }
+  }
+}
+
+void
+NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
+{
+  const ElemType etype = mesh->elem_ptr(0)->type();
+  switch (etype)
+  {
+    case QUAD9:
+    {
+      _n_start_nodes = Quad9::num_nodes;
+      _n_start_nodes_per_side = Quad9::nodes_per_side;
+      _n_sides = Quad9::num_sides;
+      _n_corner_nodes = Quad4::num_nodes;
+
+      if (_retain_original_elem_type)
+        _n_end_nodes = Quad9::num_nodes;
+      else
+        _n_end_nodes = Quad8::num_nodes;
+
+      _side_nodes_map.resize(_n_sides);
+      for (unsigned int i = 0; i < _n_sides; ++i)
+        for (unsigned int j = 0; j < _n_start_nodes_per_side; ++j)
+          _side_nodes_map[i].push_back(Quad9::side_nodes_map[i][j]);
+
+      _face_nodes_map = _side_nodes_map;
+
+      // for each face, the mid-side nodes to be adjusted
+      _side_ids.push_back({7, 5});
+      _side_ids.push_back({4, 6});
+      _side_ids.push_back({5, 7});
+      _side_ids.push_back({4, 6});
+
+      // corner nodes for each face
+      _corner_nodes.resize(Quad9::num_sides);
+      for (unsigned int i = 0; i < Quad9::num_sides; ++i)
+        for (unsigned int j = 0; j < Quad4::nodes_per_side; ++j)
+          _corner_nodes[i].push_back(Quad9::side_nodes_map[i][j]);
+
+      _across_pair.resize(Quad9::num_sides);
+      _across_pair[0] = {{0, 3}, {4, 6}, {1, 2}};
+      _across_pair[1] = {{1, 0}, {5, 7}, {2, 3}};
+      _across_pair[2] = {{2, 1}, {6, 4}, {3, 0}};
+      _across_pair[3] = {{3, 2}, {7, 5}, {0, 1}};
+
+      _across_face.resize(Quad9::num_sides);
+      _across_face[0] = 2;
+      _across_face[1] = 3;
+      _across_face[2] = 0;
+      _across_face[3] = 1;
+      break;
+    }
+    case HEX27:
+    {
+      _n_start_nodes = Hex27::num_nodes;
+      _n_start_nodes_per_side = Hex27::nodes_per_side;
+      _n_sides = Hex27::num_sides;
+      _n_corner_nodes = Hex8::num_nodes;
+
+      if (_retain_original_elem_type)
+        _n_end_nodes = Hex27::num_nodes;
+      else
+        _n_end_nodes = Hex20::num_nodes;
+
+      _side_nodes_map.resize(_n_sides);
+      for (unsigned int i = 0; i < _n_sides; ++i)
+        for (unsigned int j = 0; j < _n_start_nodes_per_side; ++j)
+          _side_nodes_map[i].push_back(Hex27::side_nodes_map[i][j]);
+
+      _face_nodes_map.resize(Hex27::num_edges);
+      for (unsigned int i = 0; i < Hex27::num_edges; ++i)
+        for (unsigned int j = 0; j < Hex27::nodes_per_edge; ++j)
+          _face_nodes_map[i].push_back(Hex27::edge_nodes_map[i][j]);
+
+      // for each face, the mid-side nodes to be adjusted
+      _side_ids.push_back({12, 15, 14, 13});
+      _side_ids.push_back({11, 9, 17, 19});
+      _side_ids.push_back({8, 18, 10, 16});
+      _side_ids.push_back({9, 11, 19, 17});
+      _side_ids.push_back({10, 8, 16, 18});
+      _side_ids.push_back({12, 13, 14, 15});
+
+      // corner nodes for each face
+      _corner_nodes.resize(Hex27::num_sides);
+      for (unsigned int i = 0; i < Hex27::num_sides; ++i)
+        for (unsigned int j = 0; j < Hex8::nodes_per_side; ++j)
+          _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
+
+      _across_pair.resize(Hex27::num_sides);
+      _across_pair[0] = {{0, 4}, {8, 16}, {1, 5}, {11, 19}, {20, 25}, {9, 17}, {3, 7}, {10, 18}, {2, 6}};
+      _across_pair[1] = {{0, 3}, {8, 10}, {1, 2}, {12, 15}, {21, 23}, {13, 14}, {4, 7}, {16, 18}, {5, 6}};
+      _across_pair[2] = {{1, 0}, {9, 11}, {2, 3}, {13, 12}, {22, 24}, {14, 15}, {5, 4}, {17, 19}, {6, 7}};
+      _across_pair[3] = {{3, 0}, {10, 8}, {2, 1}, {15, 12}, {23, 21}, {14, 13}, {7, 4}, {18, 16}, {6, 5}};
+      _across_pair[4] = {{0, 1}, {11, 9}, {3, 2}, {12, 13}, {24, 22}, {15, 14}, {4, 5}, {19, 17}, {7, 6}};
+      _across_pair[5] = {{4, 0}, {16, 8}, {5, 1}, {19, 11}, {25, 20}, {17, 9}, {7, 3}, {18, 10}, {6, 2}};
+
+      _across_face.resize(Hex27::num_sides);
+      _across_face[0] = 5;
+      _across_face[1] = 3;
+      _across_face[2] = 4;
+      _across_face[3] = 1;
+      _across_face[4] = 2;
+      _across_face[5] = 0;
+      break;
+    }
+    default:
+      mooseError("Unhandled element type in initializeElemData()!");
+  }
+}
+
+bool
+NekMeshGenerator::isCornerNode(const unsigned int & node) const
+{
+  return node < _n_corner_nodes;
+}
+
+std::pair<unsigned int, unsigned int>
+NekMeshGenerator::pairedNodesAboutMidPoint(const unsigned int & node_id) const
+{
+  int index = node_id - _n_corner_nodes;
+  unsigned int p0 = _face_nodes_map[index][0];
+  unsigned int p1 = _face_nodes_map[index][1];
+  return {p0, p1};
+}
+
 std::unique_ptr<MeshBase>
-Hex20Generator::generate()
+NekMeshGenerator::generate()
 {
   std::unique_ptr<MeshBase> mesh = std::move(_input);
   auto & boundary_info = mesh->get_boundary_info();
@@ -481,7 +667,7 @@ Hex20Generator::generate()
     else
     {
       // set to the default value of (0, 0, 0)
-      for (const auto & r : _radius)
+      for (std::size_t i = 0; i < _radius.size(); ++i)
         _origin.push_back({0.0, 0.0, 0.0});
     }
 
@@ -496,13 +682,15 @@ Hex20Generator::generate()
     else
     {
       // set to the default values of 0
-      for (const auto & b : _moving_boundary)
+      for (std::size_t i = 0; i < _moving_boundary.size(); ++i)
         _layers.push_back(0.0);
     }
   }
 
   // get information related to moving corners
   std::vector<Real> polygon_layer_smoothing;
+  _n_noncorner_boundaries = _moving_boundary.size();
+
   if (_curve_corners)
   {
     auto polygon_sides = getParam<unsigned int>("polygon_sides");
@@ -543,7 +731,7 @@ Hex20Generator::generate()
           polygon_layer_smoothing.push_back(1.0);
       }
     }
-    else
+   else
       checkUnusedParam(parameters(), "polygon_layer_smoothing", "not setting 'polygon_layers'");
 
     Real polygon_angle = M_PI - (2.0 * M_PI / polygon_sides);
@@ -577,7 +765,6 @@ Hex20Generator::generate()
       for (const auto & t : tmp2)
         corner_origins.push_back(t + shift);
     }
-
     // apply optional rotation
     Real rotation_angle_radians = _rotation_angle * M_PI / 180.0;
     Point axis(0.0, 0.0, 0.0);
@@ -594,12 +781,12 @@ Hex20Generator::generate()
 
     // We can treat the polygon corners simply as extra entries in the
     // boundary, origins, and radii vectors
-    _n_noncorner_boundaries = _moving_boundary.size();
     _moving_boundary.push_back(polygon_boundary);
     _radius.push_back(corner_radius);
     _origin.push_back(flattened_corner_origins);
     _layers.push_back(getParam<unsigned int>("polygon_layers"));
   }
+
 
   // get information on which boundaries to rebuild, and check for valid user specifications
   if (isParamValid("boundaries_to_rebuild"))
@@ -616,12 +803,9 @@ Hex20Generator::generate()
   }
 
   // check for valid element type
-  for (const auto & elem : mesh->element_ptr_range())
-  {
-    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    if (!hex27)
-      mooseError("This mesh generator can only be applied to HEX27 elements!");
-  }
+  checkElementType(mesh);
+
+  initializeElemData(mesh);
 
   // store all information from the incoming mesh that is needed to rebuild it from scratch
   std::vector<dof_id_type> boundary_elem_ids;
@@ -631,18 +815,15 @@ Hex20Generator::generate()
   std::vector<dof_id_type> elem_ids;
   std::vector<subdomain_id_type> elem_block_ids;
   node_ids.resize(mesh->n_elem());
-  std::vector<Node> original_nodes;
-  std::vector<dof_id_type> original_node_ids;
 
-  // [1] store boundary ID <-> name mapping
+  // store boundary ID <-> name mapping
   for (const auto & b: original_boundaries)
     _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
 
-  int i = 0;
   for (auto & elem : mesh->element_ptr_range())
   {
-    // [2] store information about the element faces
-    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
+    // store information about the element faces
+    for (unsigned short int s = 0; s < _n_sides; ++s)
     {
       std::vector<boundary_id_type> b;
       boundary_info.boundary_ids(elem, s, b);
@@ -651,67 +832,29 @@ Hex20Generator::generate()
       boundary_face_ids.push_back(s);
       boundary_ids.push_back(b);
     }
+  }
 
-    // [3] store information about the elements
-    libMesh::Hex27 * hex27 = dynamic_cast<libMesh::Hex27 *>(elem);
-    elem_ids.push_back(hex27->id());
-    elem_block_ids.push_back(hex27->subdomain_id());
+  int i = 0;
+  for (auto & elem : mesh->element_ptr_range())
+  {
+    // store information about the elements
+    elem_ids.push_back(elem->id());
+    elem_block_ids.push_back(elem->subdomain_id());
 
-    for (unsigned int j = 0; j < Hex20::num_nodes; ++j)
-      node_ids[i].push_back(hex27->node_ref(j).id());
+    for (unsigned int j = 0; j < _n_end_nodes; ++j)
+      node_ids[i].push_back(elem->node_ref(j).id());
 
     i++;
   }
 
   // move the nodes on the surface of interest
-  for (auto & elem : mesh->element_ptr_range())
-  {
-    bool at_least_one_face_on_boundary = false;
+  moveNodes(mesh, polygon_layer_smoothing);
 
-    for (unsigned short int s = 0; s < elem->n_faces(); ++s)
-    {
-      // get the boundary IDs that this element face lie on
-      std::vector<boundary_id_type> b;
-      boundary_info.boundary_ids(elem, s, b);
+  // save and rebuild the nodes
+  std::vector<Node> original_nodes;
+  std::vector<dof_id_type> original_node_ids;
 
-      // if there is no moving boundary, or no faces of this element are on any boundaries, we can leave
-      if (!_has_moving_boundary || b.size() == 0)
-        continue;
-
-      // is this face on any of the specified boundaries?
-      std::vector<int> indices;
-
-      for (const auto & b_index : b)
-      {
-        auto it = std::find(_moving_boundary.begin(), _moving_boundary.end(), b_index);
-
-        if (it != _moving_boundary.end())
-          indices.push_back(it - _moving_boundary.begin());
-      }
-
-      // if none of this element's faces are on the boundaries of interest, we can leave
-      if (indices.size() == 0)
-        continue;
-
-      if (indices.size() > 1)
-        mooseError("This mesh generator does not support elements with the same face "
-          "existing on multiple moving side sets!");
-
-      unsigned int index = indices[0];
-
-      // use the element centroid for finding the closest origin
-      const Point centroid = elem->vertex_average();
-
-      if (at_least_one_face_on_boundary)
-        mooseError("This mesh generator cannot be applied to elements that have more than "
-          "one face on the circular sideset!");
-
-      at_least_one_face_on_boundary = true;
-      moveElem(elem, index, s, polygon_layer_smoothing);
-    }
-  }
-
-  // [4] store information about the nodes
+  // store information about the nodes
   for (const auto & node : mesh->node_ptr_range())
   {
     original_nodes.push_back(*node);
@@ -730,7 +873,29 @@ Hex20Generator::generate()
   // create the elements
   for (unsigned int i = 0; i < elem_ids.size(); ++i)
   {
-    auto elem = new Hex20;
+    Elem * elem;
+    switch (_etype)
+    {
+      case QUAD9:
+      {
+        if (_retain_original_elem_type)
+          elem = new Quad9;
+        else
+          elem = new Quad8;
+        break;
+      }
+      case HEX27:
+      {
+        if (_retain_original_elem_type)
+          elem = new Hex27;
+        else
+          elem = new Hex20;
+        break;
+      }
+      default:
+        mooseError("Unhandled element type in generate()!");
+    }
+
     elem->set_id(elem_ids[i]);
     elem->subdomain_id() = elem_block_ids[i];
     mesh->add_elem(elem);
@@ -748,10 +913,10 @@ Hex20Generator::generate()
   {
     auto elem_id = boundary_elem_ids[i];
     auto boundary = boundary_ids[i];
-
     const auto & elem = mesh->elem_ptr(elem_id);
 
-    // if boundary is not included in the list to rebuild, skip it
+    // if boundary is not included in the list to rebuild, skip it. Otherwise,
+    // rebuild it
     for (const auto & b : boundary)
     {
       if (_boundaries_to_rebuild.find(b) == _boundaries_to_rebuild.end())

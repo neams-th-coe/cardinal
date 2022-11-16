@@ -63,14 +63,14 @@ LayeredBin::LayeredBin(const InputParameters & parameters)
   }
 }
 
-const unsigned int
+unsigned int
 LayeredBin::bin(const Point & p) const
 {
   Real direction_x = p(_direction);
   return binFromBounds(direction_x, _layer_pts);
 }
 
-const unsigned int
+unsigned int
 LayeredBin::num_bins() const
 {
   return _num_layers;

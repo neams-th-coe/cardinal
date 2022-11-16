@@ -87,7 +87,7 @@ HexagonalLatticeUtility::HexagonalLatticeUtility(const Real & bundle_inner_flat_
                " is too small to fit the given pins and wire wrap!");
 }
 
-const unsigned int
+unsigned int
 HexagonalLatticeUtility::pins(const unsigned int n) const
 {
   if (n <= 0)
@@ -98,7 +98,7 @@ HexagonalLatticeUtility::pins(const unsigned int n) const
     return NUM_SIDES * (n - 1);
 }
 
-const unsigned int
+unsigned int
 HexagonalLatticeUtility::totalPins(const unsigned int n) const
 {
   unsigned int total = 0;
@@ -108,7 +108,7 @@ HexagonalLatticeUtility::totalPins(const unsigned int n) const
   return total;
 }
 
-const unsigned int
+unsigned int
 HexagonalLatticeUtility::rings(const unsigned int n) const
 {
   auto remaining = n;
@@ -127,63 +127,63 @@ HexagonalLatticeUtility::rings(const unsigned int n) const
   return i;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::hexagonSide(const Real pitch) const
 {
   return pitch / std::sqrt(3.0);
 }
 
-const Real
+Real
 HexagonalLatticeUtility::hexagonArea(const Real pitch) const
 {
   Real side = hexagonSide(pitch);
   return 3 * SIN60 * side * side;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::hexagonVolume(const Real pitch) const
 {
   return hexagonArea(pitch) * _wire_pitch;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::hexagonPitch(const Real volume) const
 {
   Real area = volume / _wire_pitch;
   return std::sqrt(area / SIN60);
 }
 
-const Real
+Real
 HexagonalLatticeUtility::triangleArea(const Real side) const
 {
   return 0.5 * triangleHeight(side) * side;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::triangleHeight(const Real side) const
 {
   return SIN60 * side;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::triangleSide(const Real height) const
 {
   return height / SIN60;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::triangleVolume(const Real side) const
 {
   return triangleArea(side) * _wire_pitch;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::pinRadius() const
 {
   return _pin_diameter / 2.0;
 }
 
-const channel_type::ChannelTypeEnum
+channel_type::ChannelTypeEnum
 HexagonalLatticeUtility::channelType(const Point & p) const
 {
   const Real distance_to_wall = minDuctWallDistance(p);
@@ -203,7 +203,7 @@ HexagonalLatticeUtility::channelType(const Point & p) const
     return channel_type::edge;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::channelSpecificSurfaceArea(
     const channel_type::ChannelTypeEnum & channel) const
 {
@@ -237,7 +237,7 @@ HexagonalLatticeUtility::channelHydraulicDiameter(
   }
 }
 
-const Real
+Real
 HexagonalLatticeUtility::minDuctWallDistance(const Point & p) const
 {
   Real distance = std::numeric_limits<Real>::max();
@@ -254,7 +254,7 @@ HexagonalLatticeUtility::minDuctWallDistance(const Point & p) const
   return distance;
 }
 
-const Real
+Real
 HexagonalLatticeUtility::minDuctCornerDistance(const Point & p) const
 {
   return geom_utility::minDistanceToPoints(p, _duct_corners, _axis);
@@ -414,7 +414,7 @@ HexagonalLatticeUtility::computePinAndChannelTypes()
 
     _n_edge_channels = _n_edge_pins + NUM_SIDES;
 
-    for (int i = 1; i < _n_rings; ++i)
+    for (unsigned int i = 1; i < _n_rings; ++i)
       _n_interior_channels += interiorChannels(i);
   }
 
@@ -587,7 +587,7 @@ HexagonalLatticeUtility::cornerChannelCornerCoordinates(
   return corners;
 }
 
-const Point
+Point
 HexagonalLatticeUtility::channelCentroid(const std::vector<Point> & pins) const
 {
   int n_pins = pins.size();
@@ -598,7 +598,7 @@ HexagonalLatticeUtility::channelCentroid(const std::vector<Point> & pins) const
   return centroid;
 }
 
-const unsigned int
+unsigned int
 HexagonalLatticeUtility::pinIndex(const Point & point) const
 {
   auto side = hexagonSide(_pin_pitch);
@@ -623,7 +623,7 @@ HexagonalLatticeUtility::pinIndex(const Point & point) const
   return _n_pins;
 }
 
-const unsigned int
+unsigned int
 HexagonalLatticeUtility::channelIndex(const Point & point) const
 {
   auto channel = channelType(point);
@@ -698,9 +698,9 @@ HexagonalLatticeUtility::computeGapIndices()
   // and so on
   int n_edge_gaps = _n_rings;
   int pin = totalPins(_n_rings - 1);
-  for (int i = 0; i < NUM_SIDES; ++i)
+  for (unsigned int i = 0; i < NUM_SIDES; ++i)
   {
-    for (int j = 0; j < _n_rings; ++j)
+    for (unsigned int j = 0; j < _n_rings; ++j)
       _gap_indices.push_back({pin + j, -(i + 1)});
 
     pin += n_edge_gaps - 1;
@@ -724,7 +724,7 @@ HexagonalLatticeUtility::computeGapIndices()
   }
 
   int gap = _gap_indices.size() - _n_rings * NUM_SIDES;
-  for (int i = 0; i < _n_edge_channels; ++i)
+  for (unsigned int i = 0; i < _n_edge_channels; ++i)
   {
     const auto & pins = _edge_channel_pin_indices[i];
     std::pair<int, int> gap0 = {std::min(pins[0], pins[1]), std::max(pins[0], pins[1])};
@@ -741,7 +741,7 @@ HexagonalLatticeUtility::computeGapIndices()
   n_edge_gaps = _n_rings * NUM_SIDES;
   _local_to_global_gaps.push_back({n_interior_gaps + n_edge_gaps, n_interior_gaps + 1});
   gap = n_interior_gaps + _n_rings;
-  for (int i = 1; i < _n_corner_channels; ++i)
+  for (unsigned int i = 1; i < _n_corner_channels; ++i)
   {
     _local_to_global_gaps.push_back({gap, gap + 1});
     gap += _n_rings;
@@ -750,7 +750,7 @@ HexagonalLatticeUtility::computeGapIndices()
   _gap_points.resize(_n_gaps);
 
   // For each gap, get two points on the gap
-  for (int i = 0; i < _n_interior_gaps; ++i)
+  for (unsigned int i = 0; i < _n_interior_gaps; ++i)
   {
     const auto & pins = _gap_indices[i];
     Point pt1(_pin_centers[pins.first]);
@@ -771,7 +771,7 @@ HexagonalLatticeUtility::computeGapIndices()
   }
 
   Real d = _pin_bundle_spacing + pinRadius();
-  for (int i = _n_interior_gaps; i < _n_gaps; ++i)
+  for (unsigned int i = _n_interior_gaps; i < _n_gaps; ++i)
   {
     const auto & pins = _gap_indices[i];
     int side = std::abs(pins.second) - 1;
@@ -789,7 +789,7 @@ HexagonalLatticeUtility::computeGapIndices()
 unsigned int
 HexagonalLatticeUtility::globalGapIndex(const std::pair<int, int> & local_gap) const
 {
-  for (int i = 0; i < _gap_indices.size(); ++i)
+  for (std::size_t i = 0; i < _gap_indices.size(); ++i)
   {
     const auto gap = _gap_indices[i];
     if (gap.first == local_gap.first && gap.second == local_gap.second)

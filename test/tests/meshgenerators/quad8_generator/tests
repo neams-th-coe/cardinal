@@ -1,0 +1,135 @@
+[Tests]
+  [invalid_elem]
+    type = RunException
+    input = invalid_elem.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator can only be applied to meshes that contain QUAD9 or HEX27 elements!"
+    requirement = "The system shall error if an invalid element type is used with a quad9 to quad8 converter"
+  []
+  [multiple_sides]
+    type = RunException
+    input = multiple_sides.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator cannot be applied to elements that have more than one face on the circular sideset!"
+    requirement = "The system shall error if attempting to move elements to a circular surface "
+                  "when those elements have more than one face on the circular sideset."
+  []
+  [repeated_sides]
+    type = RunException
+    input = repeated_sides.i
+    cli_args = '--mesh-only'
+    expect_err = "This mesh generator does not support elements with the same face existing on multiple moving side sets!"
+    requirement = "The system shall error if attempting to move elements to a circular surface "
+                  "when those elements have more than one face on the circular sidesets."
+  []
+  [invalid_id]
+    type = RunException
+    input = invalid_id.i
+    cli_args = '--mesh-only'
+    expect_err = "Boundary '10' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for circular sideset fitting does not exist"
+  []
+  [convert]
+    type = Exodiff
+    input = convert.i
+    exodiff = convert_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 with default behavior of "
+                  "rebuilding all boundaries, and without any circular movement."
+  []
+  [convert_no_sidsets]
+    type = Exodiff
+    input = convert_no_sidesets.i
+    exodiff = convert_no_sidesets_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 with no sidesets retained."
+  []
+  [convert_some_sidsets]
+    type = Exodiff
+    input = convert_some_sidesets.i
+    exodiff = convert_some_sidesets_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 with custom behavior of "
+                  "rebuilding only some boundaries, and without any circular movement."
+  []
+  [convert_some_sidsets_invalid]
+    type = RunException
+    input = convert_some_sidesets.i
+    cli_args = '--mesh-only Mesh/to_quad8/boundaries_to_rebuild="rma"'
+    expect_err = "Boundary 'rma' was not found in the mesh!"
+    requirement = "The system shall error if the boundary specified for rebuilding sidesets does not exist"
+  []
+  [convert_outer]
+    type = Exodiff
+    input = convert_outer.i
+    exodiff = convert_outer_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 when moving the outer "
+                  "boundary to fit a circle."
+  []
+  [convert_inner]
+    type = Exodiff
+    input = convert_inner.i
+    exodiff = convert_inner_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 when moving the inner "
+                  "boundary to fit a circle."
+  []
+  [convert_multiple]
+    type = Exodiff
+    input = convert_multiple.i
+    exodiff = convert_multiple_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 when moving multiple boundaries "
+                  "to fit a circle."
+  []
+  [convert_multiple_origin]
+    type = Exodiff
+    input = convert_multiple_origin.i
+    exodiff = convert_multiple_origin_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 when moving multiple boundaries "
+                  "to fit a circle with origins not at (0, 0, 0)."
+  []
+  [offcenter]
+    type = Exodiff
+    input = offcenter.i
+    exodiff = offcenter_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 when moving one boundary to fit "
+                  "a circle when the origin is not at (0, 0, 0)"
+  []
+  [point_already_on_origin]
+    type = RunException
+    input = offcenter.i
+    cli_args = 'Mesh/to_quad8/boundary="3" --mesh-only'
+    expect_err = "Node ID 0 of element 0 is already on the origin \(0, 0, 0\).\n"
+                 "This node lacks the nonzero unit vector needed to move it."
+    requirement = "The system shall error if a point is already located on the origin, because then it lacks "
+                  "a nonzero unit vector to move it to a circular surface."
+  []
+  [multiple_origins]
+    type = Exodiff
+    input = multiple_origins.i
+    exodiff = multiple_origins_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 when moving one boundary to "
+                  "fit circles based on multiple origins, with boundary layers."
+  []
+  [layers_too_many]
+    type = RunException
+    input = multiple_origins.i
+    cli_args = 'Mesh/to_quad8/layers="10" --mesh-only'
+    expect_err = "Boundary layer sweeping requires finding exactly one neighbor element"
+    requirement = "The system shall error if there is an obvious mismatch between the number of "
+                  "boundary layers and the mesh."
+  []
+  [rotation]
+    type = Exodiff
+    input = non_z.i
+    exodiff = non_z_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall correctly rebuild a QUAD9 mesh as QUAD8 when moving one boundary to "
+                  "fit a circle and when the alignment axis is not the default (z)."
+  []
+[]

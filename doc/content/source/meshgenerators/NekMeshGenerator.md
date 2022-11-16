@@ -1,12 +1,19 @@
-# Hex20Generator
+# NekMeshGenerator
 
-!syntax description /Mesh/Hex20Generator
+!syntax description /Mesh/NekMeshGenerator
 
 ## Description
 
-This mesh generator is used to convert a HEX27 mesh into a HEX20 mesh, specifically
-for compatibility with NekRS's [exo2nek](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#:~:text=converting%20an%20exodus%20mesh) utility that generates a NekRS mesh (the custom
-`.re2` format). This mesh generator will:
+This mesh generator is used to convert:
+
+- A HEX27 mesh into a HEX20 mesh, or
+- A QUAD9 mesh into a QUAD8 mesh
+
+These two element types (HEX20, QUAD8) are
+compatible with NekRS's [exo2nek](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#:~:text=converting%20an%20exodus%20mesh) utility that generates a NekRS mesh (the custom
+`.re2` format). This page is written for the HEX27 to HEX20 conversion,
+but the QUAD9 to QUAD8 conversion features are identical, just executed in 2-D.
+This mesh generator will:
 
 - Take a HEX27 mesh and convert it into an equivalent HEX20 mesh
 - *Optionally* move nodes to be conformal with a cylinder. NekRS uses a high-order
@@ -127,8 +134,8 @@ as well as attached boundary layers, to have a radius of curvature.
   caption=Input and output meshes when enforcing radius of curvature at polygon corners
   style=width:90%;margin-left:auto;margin-right:auto
 
-!syntax parameters /Mesh/Hex20Generator
+!syntax parameters /Mesh/NekMeshGenerator
 
-!syntax inputs /Mesh/Hex20Generator
+!syntax inputs /Mesh/NekMeshGenerator
 
-!syntax children /Mesh/Hex20Generator
+!syntax children /Mesh/NekMeshGenerator

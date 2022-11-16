@@ -68,12 +68,12 @@ HexagonalSubchannelGapMesh::buildMesh()
   const Real r = _hex_lattice.pinRadius();
   Real dz = _height / _n_axial;
 
-  for (int i = 0; i < _n_axial; ++i)
+  for (unsigned int i = 0; i < _n_axial; ++i)
   {
     Real zmin = i * dz;
     Real zmax = (i + 1) * dz;
 
-    for (int i = 0; i < _hex_lattice.nInteriorGaps(); ++i)
+    for (unsigned int i = 0; i < _hex_lattice.nInteriorGaps(); ++i)
     {
       const auto & pins = _gap_indices[i];
 
@@ -89,7 +89,7 @@ HexagonalSubchannelGapMesh::buildMesh()
 
     Real d = _hex_lattice.pinBundleSpacing() + _hex_lattice.pinRadius();
 
-    for (int i = _hex_lattice.nInteriorGaps(); i < _gap_indices.size(); ++i)
+    for (unsigned int i = _hex_lattice.nInteriorGaps(); i < _gap_indices.size(); ++i)
     {
       const auto & pins = _gap_indices[i];
       int side = std::abs(pins.second) - 1;

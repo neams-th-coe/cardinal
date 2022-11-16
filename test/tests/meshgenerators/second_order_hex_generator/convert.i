@@ -4,7 +4,7 @@
     file = tube_in.e
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = tube
   []
 

@@ -20,7 +20,7 @@
 
 namespace geom_utility {
 
-const Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
+Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
   const unsigned int & axis)
 {
   const auto idx = projectedIndices(axis);
@@ -48,7 +48,7 @@ Point projectPoint(const Real & x0, const Real & x1, const unsigned int & axis)
   return point;
 }
 
-const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis)
+Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigned int & axis)
 {
   // project points onto plane perpendicular to axis
   pt1(axis) = 0.0;
@@ -61,7 +61,7 @@ const Real projectedLineHalfSpace(Point pt1, Point pt2, Point pt3, const unsigne
     (pt2(i.first) - pt3(i.first)) * (pt1(i.second) - pt3(i.second));
 }
 
-const bool pointInPolygon(const Point & point, const std::vector<Point> & corners,
+bool pointInPolygon(const Point & point, const std::vector<Point> & corners,
   const unsigned int & axis)
 {
   auto n_pts = corners.size();
@@ -91,7 +91,7 @@ const bool pointInPolygon(const Point & point, const std::vector<Point> & corner
   return false;
 }
 
-const bool pointOnEdge(const Point & point, const std::vector<Point> & corners,
+bool pointOnEdge(const Point & point, const std::vector<Point> & corners,
   const unsigned int & axis)
 {
   auto n_pts = corners.size();
@@ -238,4 +238,4 @@ Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & ax
   return pt;
 }
 
-}; // end namespace geom_utility
+} // end namespace geom_utility

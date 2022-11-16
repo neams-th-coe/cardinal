@@ -1,6 +1,6 @@
 # April 2022 News
 
-- Added a [mesh converter](https://cardinal.cels.anl.gov/source/meshgenerators/Hex20Generator.html)
+- Added a [mesh converter](https://cardinal.cels.anl.gov/source/meshgenerators/NekMeshGenerator.html)
   to convert between HEX8 or HEX27 meshes into the HEX20 mesh format needed to use NekRS's
   `exo2nek` mesh generation utility. This mesh generator also optionally moves nodes to preserve
   cylindrical surfaces, allowing high-order curved meshes in NekRS.
