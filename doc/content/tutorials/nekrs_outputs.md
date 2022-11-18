@@ -300,5 +300,5 @@ shown below.
 !media flexible_uo.png
   id=flexible_uo
   caption=Example use case for arbitrary combinations of bin objects for spatial postprocessing of NekRS solutions
-  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
