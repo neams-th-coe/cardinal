@@ -438,18 +438,15 @@ advanced option to individually preserve flux by sideset.
 The input files we will use are the `solid_vpp.i` and `nek_vpp.i` files. These files
 are almost identical to the files described in the previous section, so we only
 emphasize the differences. First, in the solid model we need to set up individual
-postprocessors for the heat flux corresponding to each NekRS boundary:
-
-!listing tutorials/sfr_7pin/solid_vpp.i
-  block=Postprocessors
-
+postprocessors for the heat flux corresponding to each NekRS boundary.
 Then, we need to set up a [VectorOfPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/VectorOfPostprocessors.html)
 to basically fill a vector with each flux postprocessor. Note that the order
 of the postprocessors must match the boundaries they get mapped to in
 [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html).
 
 !listing tutorials/sfr_7pin/solid_vpp.i
-  block=VectorPostprocessors
+  start=VectorPostprocessors
+  end=MultiApps
 
 Then, we simply need to replace the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
 with a [MultiAppReporterTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppReporterTransfer.html).
