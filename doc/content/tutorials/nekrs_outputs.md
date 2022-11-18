@@ -292,3 +292,13 @@ Available user objects for specifying spatial bins are:
 - [LayeredBin](/userobjects/LayeredBin.md)
 - [LayeredGapBin](/userobjects/LayeredGapBin.md)
 - [RadialBin](/userobjects/RadialBin.md)
+
+For example, you can compute an average over a number of planes perpendicular
+to the $x$ axis, split into two layers, by combining the two bin user objects
+shown below.
+
+!media flexible_uo.png
+  id=flexible_uo
+  caption=Example use case for arbitrary combinations of bin objects for spatial postprocessing of NekRS solutions
+  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+
