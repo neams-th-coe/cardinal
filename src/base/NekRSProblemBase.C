@@ -331,7 +331,7 @@ NekRSProblemBase::printScratchSpaceInfo(const MultiMooseEnum & indices) const
   }
   else
   {
-    _console << "\nQuantities written into NekRS scratch space:" << std::endl;
+    _console << "Quantities written into NekRS scratch space:" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }

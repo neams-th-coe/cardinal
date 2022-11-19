@@ -19,7 +19,7 @@
   numSteps = 2000
   dt = 0.001
   timeStepper = tombo2
-  writeControl = numSteps
+  writeControl = steps
   writeInterval = 100
   polynomialOrder = 4
 

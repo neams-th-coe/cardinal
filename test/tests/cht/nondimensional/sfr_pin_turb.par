@@ -19,7 +19,7 @@
   dt = 1e-2
   variableDT = no
   timeStepper = tombo2
-  writeControl = numSteps
+  writeControl = steps
   writeInterval = 1
   polynomialOrder = 4
 
