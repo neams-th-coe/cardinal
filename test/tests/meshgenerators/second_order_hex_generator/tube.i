@@ -7,7 +7,7 @@
     nt = 8
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = box
     direction = '0 0 1'
     num_layers = 3

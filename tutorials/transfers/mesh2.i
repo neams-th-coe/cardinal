@@ -22,7 +22,7 @@ num_layers = 5
     block = '1'
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = delete_fluid
     heights = ${height}
     num_layers = ${num_layers}
