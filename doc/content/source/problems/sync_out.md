@@ -1,6 +1,5 @@
-# Synchronizing Data from NekRS to MOOSE
-
-The `syncSolutions(FROM_EXTERNAL_APP)` sends data from NekRS to MOOSE.
+This page describes how data is sent from NekRS to MOOSE with
+`syncSolutions(FROM_EXTERNAL_APP)`.
 These steps are summarized in [steps3].
 
 !media steps3.png

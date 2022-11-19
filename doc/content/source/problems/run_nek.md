@@ -1,5 +1,4 @@
-# Running NekRS
-
+This page describes how NekRS is executed within MOOSE.
 The `externalSolve()` function runs a single NekRS time step. This involves:
 
 - Advance one CFD time step by calling `nekrs::runStep`. This will print out something showing the results of the NekRS
