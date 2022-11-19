@@ -24,4 +24,3 @@
   rhoCp = 1024766.0
   boundaryTypeMap = f, f, t, O
   residualTol = 1.0e-5
-  absoluteTol = 1.0e-5

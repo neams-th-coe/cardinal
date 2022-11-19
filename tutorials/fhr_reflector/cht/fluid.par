@@ -33,7 +33,6 @@
 [PRESSURE]
   residualTol = 1.0e-8
   residualProj = false
-  preconditioner = semg_amg
 
 [TEMPERATURE]
   conductivity = -1500.5
