@@ -387,7 +387,7 @@ the scratch array that is written by [NekRSProblem](/problems/NekRSProblem.md).
 Finally, the `sfr_7pin.udf` file contains C++ functions to set up boundary conditions
 and perform other post-processing operations. In `UDF_Setup`, we set initial
 conditions for velocity, pressure, and temperature. For convenience, we define
-local functions like `mass_flowrate()` and `height()` to be able to set problem
+local functions like `mass_flowrate()` to be able to set problem
 parameters in a single place and use them multiple places (these functions are
 *not* NekRS syntax - i.e. we could equivalently have done something like `#define mdot 0.1`).
 

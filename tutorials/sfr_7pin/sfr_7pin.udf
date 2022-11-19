@@ -1,17 +1,8 @@
 #include "udf.hpp"
 
-#define mdot 0.1
-#define height 20.32e-2
-#define inlet_T 355 + 273.15
-
 float mass_flowrate()
 {
   return 0.1;
-}
-
-float height()
-{
-  return 20.32e-2;
 }
 
 float inlet_temp()
@@ -19,7 +10,7 @@ float inlet_temp()
   return 355 + 273.15;
 }
 
-float inlet_velocity(nrs_t * nrs)
+float inlet_velocity()
 {
   setupAide & options = platform->options;
 
@@ -36,7 +27,7 @@ float inlet_velocity(nrs_t * nrs)
 void UDF_LoadKernels(occa::properties & kernelInfo)
 {
   // inlet axial velocity (assuming zero radial and azimuthal components)
-  kernelInfo["defines/Vz"] = inlet_velocity(nrs);
+  kernelInfo["defines/Vz"] = inlet_velocity();
 
   // inlet temperature
   kernelInfo["defines/inlet_T"] = inlet_temp();
@@ -47,7 +38,7 @@ void UDF_Setup(nrs_t *nrs)
   // set initial conditions for the velocity, temperature, and pressure
   mesh_t * mesh = nrs->cds->mesh[0];
 
-  float inlet_vel = inlet_velocity(nrs);
+  float inlet_vel = inlet_velocity();
 
   // loop over all the GLL points and assign directly to the solution arrays by
   // indexing according to the field offset necessary to hold the data for each
