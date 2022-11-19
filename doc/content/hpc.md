@@ -5,11 +5,10 @@ of [!ac](HPC) systems. To help streamline the compilation
 process for other users, this section collects instructions for the modules and any
 systems-specific settings for a variety of [!ac](HPC) systems. Because default modules and
 settings change on [!ac](HPC) systems with time, the instructions below may become deprecated.
-The date at which the settings were last tested is given for each system.
 Note that the absence of a particular [!ac](HPC) system from this list does not imply that Cardinal will not
 build/run on that system - only that no instructions have yet been documented for it.
 
-Also please note that in addition to these provided module and environment settings,
+Please note that in addition to these provided module and environment settings,
 you must also follow the build instructions on the
 [Getting Started](start.md) page. Two environment variables that are important to set
 for your particular setup are:
@@ -31,7 +30,7 @@ for more information.
 is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
 partition with 36 cores/node and a Intel Knights Landing partition with
 64 cores/node. Below are a bash script and sample job scripts to build
-Cardinal and run the NekRS and OpenMC wrappings (*last updated 09/2022*).
+Cardinal and run the NekRS and OpenMC wrappings.
 Note that if you want to *build* Cardinal via a job script, you will also
 need to `module load numactl/2.0.12-355ef36` because make can find `libnuma-dev`
 on the login nodes, but you need to explicitly load it for compute nodes.
@@ -62,7 +61,7 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 [Eddy](https://wiki.inside.anl.gov/ne/The_Eddy_Cluster) is a cluster at
 [!ac](ANL) with eleven 32-core nodes, five 40-core nodes, and six 80-core nodes. Below are
 a bash script and sample job scripts to build Cardinal and run the NekRS and OpenMC
-wrappings (*last updated 10/11/2021*)
+wrappings.
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=e1
 module purge
@@ -132,7 +131,7 @@ mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
 Nek5k is a cluster at [!ac](ANL) with 40 nodes, each with 40 cores.
 We use conda to set up a proper environment on Nek5k for running Cardinal.
 To use this environment, you will need to follow these steps *the first time*
-you use Nek5k (*last updated 9/27/2022*):
+you use Nek5k:
 
 - The first time you log in, run from the command line:
 
@@ -196,7 +195,7 @@ export PATH=/shared/cmake-3.24.2/bin:$PATH
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores. Each compute node contains
 dual Xeon Platinum 8268 processors with 24 cores each, giving 48 cores per node. 27 nodes have
 four NVIDIA V100 GPUs each. Below are a bash script and sample job scripts to build Cardinal and
-run the NekRS and OpenMC wrappings (*last updated 06/14/2022*).
+run the NekRS and OpenMC wrappings.
 
 !listing! language=bash caption=`~/.bashrc` to compile Cardinal id=st1
 if [ -f /etc/bashrc ]; then
@@ -228,7 +227,7 @@ export NEKRS_HOME=$HOME/projects/cardinal/install
 is an [!ac](HPC) system at [!ac](ORNL) with approximately
 4,600 compute nodes, each of which has two IBM POWER9 processors
 and six NVIDIA Tesla V100 GPUs. Below are a bash script and sample job scripts to build
-and run the NekRS and OpenMC wrappings (*last updated 7/26/2022*).
+and run the NekRS and OpenMC wrappings.
 Remember that in order to build Cardinal with GPU support, set the appropriate
 variable in the `Makefile` to true (`1`):
 
