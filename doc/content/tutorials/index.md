@@ -81,6 +81,8 @@ These tutorials make use of the following major Cardinal classes. We recommend
 quickly reading this documentation before proceeding.
 
 - [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+
+Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://www.flexiquiz.com/SC/N/30fc79f0-f9a5-4cfc-b140-c07dda3bdf0b)!
 !alert-end!
 
 6. [Solid coupling to MOOSE](tutorials/openmc_solid.md)
