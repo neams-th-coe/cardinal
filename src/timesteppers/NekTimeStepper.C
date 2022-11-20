@@ -111,7 +111,7 @@ NekTimeStepper::computeInitialDT()
 Real
 NekTimeStepper::computeDT()
 {
-  Real dt = nekrs::dt(_t_step);
+  Real dt = nekrs::hasVariableDT() ? nekrs::dt(_t_step) : _nek_dt;
   return dt * _t_ref;
 }
 
