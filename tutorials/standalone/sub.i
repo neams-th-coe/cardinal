@@ -8,7 +8,7 @@
     growth_r = 0.9
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = disc
     heights = '20.0'
     num_layers = '20'

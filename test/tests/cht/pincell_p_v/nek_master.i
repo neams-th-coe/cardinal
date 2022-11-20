@@ -8,7 +8,7 @@
     growth_r = -1.3
   []
   [cylinder]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = circle
     heights = '0.05 0.7 0.05'
     num_layers = '5 10 5'

@@ -24,7 +24,6 @@
 #include "NekVolumeCoupling.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
-#include "io.hpp"
 #include "udf.hpp"
 #include "meshSetup.hpp"
 #include "libmesh/point.h"
@@ -57,6 +56,21 @@ void setAbsoluteTol(double tol);
 void setRelativeTol(double tol);
 
 /**
+ * Nek's runtime statistics are formed by collecting a timer of both the initialization
+ * and accumulated run time. We unfortunately have to split this across multiple classes,
+ * so if we want correct times we need to have NekInitAction save the value of the time
+ * spent on initialization.
+ * @param[in] time time spent on initialization
+ */
+void setNekSetupTime(const double & time);
+
+/**
+ * Get time spent on initialization
+ * @return time spent on initialization
+ */
+double getNekSetupTime();
+
+/**
  * Set the start time used by NekRS
  * @param[in] start start time
  */
@@ -74,16 +88,18 @@ bool isInitialized();
  * @param[in] slot index in the nrs->usrwrk array to write
  * @param[in] prefix prefix for file name
  * @param[in] time simulation time to write file for
+ * @param[in] step time step index
  * @parma[in] write_coords whether to write the mesh coordinates
  */
-void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const bool & write_coords);
+void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords);
 
 /**
  * Write a field file containing pressure, velocity, and scalars with given prefix
  * @param[in] prefix three-character prefix
  * @param[in] time time
+ * @param[in] step time step index
  */
-void write_field_file(const std::string & prefix, const dfloat time);
+void write_field_file(const std::string & prefix, const dfloat time, const int & step);
 
 /**
  * Indicate whether NekRS was run in build-only mode (this doesn't actually
@@ -115,6 +131,12 @@ bool hasCHT();
  * @return whether nekRS's input file indicates a moving mesh
  */
 bool hasMovingMesh();
+
+/**
+ * Whether nekRS's input file indicates a variable time stepping scheme
+ * @return whether nekRS's input file indicates a variable time stepping
+ */
+bool hasVariableDt();
 
 /**
  * Whether nekRS's input file intends to terminate the simulation based on a wall time

@@ -21,7 +21,7 @@ height = 6.343                           # height of the full core (m)
     rmax = ${fparse channel_diameter / 2.0}
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = coolant_face
     num_layers = ${num_layers}
     direction = '0 0 1'

@@ -1,23 +1,16 @@
 # HPC Systems
 
-The Cardinal development team regularly builds and runs Cardinal on a number
-of [!ac](HPC) systems. To help streamline the compilation
-process for other users, this section collects instructions for the modules and any
-systems-specific settings for a variety of [!ac](HPC) systems. Because default modules and
-settings change on [!ac](HPC) systems with time, the instructions below may become deprecated.
-The date at which the settings were last tested is given for each system.
+This page collects
+instructions for building and running Cardinal on a number of [!ac](HPC) systems.
+Because default modules and
+settings change on [!ac](HPC) systems with time, the instructions below may become deprecated, but
+we try to keep this information up-to-date.
 Note that the absence of a particular [!ac](HPC) system from this list does not imply that Cardinal will not
-build/run on that system - only that no instructions have yet been documented for it.
+build/run on that system - only that documentation has not yet been created.
 
-Also please note that in addition to these provided module and environment settings,
-you must also follow the build instructions on the
-[Getting Started](start.md) page. Two environment variables that are important to set
-for your particular setup are:
-
-- `NEKRS_HOME`: should point to NekRS install location, or `cardinal/install`; this
-   is only needed for inputs that run NekRS
-- `OPENMC_CROSS_SECTIONS`: should point to the location of `cross_sections.xml`; this
-   is only needed for inputs that run OpenMC
+In addition to these provided module and environment settings,
+you must follow the build instructions on the
+[Getting Started](start.md) page.
 
 !alert note
 NekRS can sometimes fail to correctly pre-compile its kernels on these [!ac](HPC)
@@ -28,12 +21,16 @@ for more information.
 ## Bebop
 
 [Bebop](https://www.lcrc.anl.gov/systems/resources/bebop/)
-is an [!ac](HPC) system at [!ac](ANL) with 1,024 nodes with an Intel Broadwell
-partition with 36 cores/node and a Intel Knights Landing partition with
-64 cores/node. Below are a bash script and sample job scripts to build
-Cardinal and run the NekRS and OpenMC wrappings (*last updated 05/2022*).
+is an [!ac](HPC) system at [!ac](ANL) with an Intel Broadwell
+partition (36 cores/node) and an Intel Knights Landing partition
+(64 cores/node).
 
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=bb1
+!alert note
+Note that if you want to *build* Cardinal via a job script, you will also
+need to `module load numactl/2.0.12-355ef36` because make can find `libnuma-dev`
+on the login nodes, but you need to explicitly load it for compute nodes.
+
+!listing! language=bash caption=Sample `~/.bashrc` for Bebop id=bb1
 module purge
 module load gcc/8.2.0-g7hppkz
 module load openmpi/3.1.4
@@ -52,16 +49,14 @@ HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
 export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 !listing-end!
 
-!listing scripts/job_bebop language=bash caption=Job script to run OpenMC and Nek cases on one node of the 36-core partition with the `startup` project code id=bb2
+!listing scripts/job_bebop language=bash caption=Sample job script for Bebop with the `startup` project code id=bb2
 
 ## Eddy
 
 [Eddy](https://wiki.inside.anl.gov/ne/The_Eddy_Cluster) is a cluster at
-[!ac](ANL) with eleven 32-core nodes, five 40-core nodes, and six 80-core nodes. Below are
-a bash script and sample job scripts to build Cardinal and run the NekRS and OpenMC
-wrappings (*last updated 10/11/2021*)
+[!ac](ANL) with eleven 32-core nodes, five 40-core nodes, and six 80-core nodes.
 
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=e1
+!listing! language=bash caption=Sample `~/.bashrc` for Eddy id=e1
 module purge
 module load moose/.mpich-3.3_gcc-9.2.0
 module load miniconda moose-tools
@@ -78,7 +73,7 @@ export HDF5_ROOT=/opt/moose/seacas
 export PETSC_DIR=$HOME/cardinal/contrib/moose/petsc
 !listing-end!
 
-!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node of the 32-core partition with 32 OpenMP threads id=e3
+!listing! language=bash caption=Sample job script for Eddy id=e3
 #!/bin/bash
 #PBS -k o
 #PBS -l nodes=1:ppn=32
@@ -124,29 +119,6 @@ cd $HOME/cardinal/test/tests/cht/sfr_pincell
 mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
 !listing-end!
 
-## KOOKIE Cluster
-
-The KOOKIE cluster at [!ac](ANL) (also called the VTR cluster) has 12
-nodes with a variety of different CPUs and GPUs for each node.
-Below is
-a bash script to build Cardinal (*last updated 5/16/2022*)
-
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=k1
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-export F77=mpif77
-export F90=mpif90
-
-module purge
-module load advanced_modules
-module load mpich-gcc
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
-!listing-end!
-
 ## Nek5k
 
 Nek5k is a cluster at [!ac](ANL) with 40 nodes, each with 40 cores.
@@ -176,7 +148,7 @@ to run Cardinal on Nek5k. Your `~/.bashrc` should look something like
 below. The content within the `conda initialize` section is added
 automatically by conda when you perform the steps above.
 
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=n1
+!listing! language=bash caption=Sample `~/.bashrc` for Nek5k id=n1
 # Source global definitions
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
@@ -203,49 +175,19 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
+
+# need to point to a newer CMake version
+export PATH=/shared/cmake-3.24.2/bin:$PATH
 !listing-end!
 
-Below are sample job scripts to run the NekRS and OpenMC
-wrappings (*last updated 10/20/2021*).
-
-!listing! language=bash caption=Sample job script to run OpenMC coupled to MOOSE on one node with 40 OpenMP threads id=n2
-#!/bin/bash
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=40
-#SBATCH --time=00:20:00
-#SBATCH --output=pincell.log
-#SBATCH -p compute
-
-# Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
-mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=40 > logfile
-!listing-end!
-
-!listing! language=bash caption=Sample job script to run NekRS coupled to MOOSE on one node with 40 MPI processes id=n3
-#!/bin/bash
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=40
-#SBATCH --time=00:20:00
-#SBATCH --output=sfr.log
-#SBATCH -p compute
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/cht/sfr_pincell
-mpirun -np 40 $HOME/cardinal/cardinal-opt -i nek_master.i > logfile
-!listing-end!
+!listing scripts/job_nek5k language=bash caption=Sample job script for Nek5k id=nk
 
 ## Sawtooth
 
 [Sawtooth](https://nsuf.inl.gov/Page/computing_resources)
- is an [!ac](HPC) system at [!ac](INL) with 99,792 cores. Each compute node contains
-dual Xeon Platinum 8268 processors with 24 cores each, giving 48 cores per node. 27 nodes have
-four NVIDIA V100 GPUs each. Below are a bash script and sample job scripts to build Cardinal and
-run the NekRS and OpenMC wrappings (*last updated 06/14/2022*).
+ is an [!ac](HPC) system at [!ac](INL) with 99,792 cores (48 cores per node).
 
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=st1
+!listing! language=bash caption=Sample `~/.bashrc` for Sawtooth id=st1
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
@@ -267,15 +209,14 @@ export FC=mpif90
 export NEKRS_HOME=$HOME/projects/cardinal/install
 !listing-end!
 
-!listing scripts/job_sawtooth language=bash caption=Job script to run OpenMC and Nek cases on one node with the `moose` project code id=st2
+!listing scripts/job_sawtooth language=bash caption=Sample job script with the `moose` project code id=st2
 
 ## Summit
 
 [Summit](https://docs.olcf.ornl.gov/systems/summit_user_guide.html)
 is an [!ac](HPC) system at [!ac](ORNL) with approximately
 4,600 compute nodes, each of which has two IBM POWER9 processors
-and six NVIDIA Tesla V100 GPUs. Below are a bash script and sample job scripts to build
-and run the NekRS and OpenMC wrappings (*last updated 7/26/2022*).
+and six NVIDIA Tesla V100 GPUs.
 Remember that in order to build Cardinal with GPU support, set the appropriate
 variable in the `Makefile` to true (`1`):
 
@@ -285,7 +226,7 @@ OCCA_HIP_ENABLED=0
 OCCA_OPENCL_ENABLED=0
 ```
 
-!listing! language=bash caption=`~/.bashrc` to compile Cardinal id=su1
+!listing! language=bash caption=Sample `~/.bashrc` for Summit id=su1
 module load gcc
 module load cmake
 module load cuda
@@ -304,4 +245,4 @@ HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
 export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 !listing-end!
 
-!listing scripts/job_summit language=bash caption=Job script to run OpenMC and Nek cases id=sum2
+!listing scripts/job_summit language=bash caption=Sample job script for Summit id=sum2

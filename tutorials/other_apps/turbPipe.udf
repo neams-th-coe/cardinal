@@ -7,10 +7,10 @@
 #define NSLABS 60
 #define NELSLAB 108
 
-void UDF_LoadKernels(nrs_t *nrs)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
-  velRecycling::buildKernel(nrs);
-  avg::buildKernel(nrs);
+  velRecycling::buildKernel(kernelInfo);
+  avg::buildKernel(kernelInfo);
 }
 
 void UDF_Setup(nrs_t *nrs)

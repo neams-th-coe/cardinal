@@ -19,7 +19,7 @@
   dt = 1e-2
   variableDT = no
   timeStepper = tombo2
-  writeControl = numSteps
+  writeControl = steps
   writeInterval = 1
   polynomialOrder = 4
 
@@ -38,7 +38,6 @@
 
 [PRESSURE]
   residualTol = 1.0e-6
-  preconditioner = semg_amg
 
 [TEMPERATURE]
   # for constant properties, this is 1/Pe. For non-constant properties, it is 1/Pe * k/k_ref

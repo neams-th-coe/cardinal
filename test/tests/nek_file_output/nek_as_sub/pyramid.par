@@ -5,10 +5,9 @@
   stopAt = numSteps
   numSteps = 1
   dt = 0.1
-  polynomialOrder = 1
-  writeControl = timeStep
+  polynomialOrder = 2
+  writeControl = steps
   writeInterval = 3
-  extrapolation = subCycling
 
 [VELOCITY]
   solver = none

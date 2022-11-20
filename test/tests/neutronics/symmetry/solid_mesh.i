@@ -76,7 +76,7 @@ height = 6.343                           # height of the full core (m)
     background_intervals = 1
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = bundle
     heights = ${height}
     num_layers = ${n_layers}

@@ -26,6 +26,7 @@ nekrs::usrwrkIndices indices;
 
 namespace nekrs
 {
+static double setup_time;
 
 // various constants for controlling tolerances
 static double abs_tol;
@@ -41,6 +42,18 @@ void
 setRelativeTol(double tol)
 {
   rel_tol = tol;
+}
+
+void
+setNekSetupTime(const double & time)
+{
+  setup_time = time;
+}
+
+double
+getNekSetupTime()
+{
+  return setup_time;
 }
 
 void
@@ -65,7 +78,7 @@ cornerGLLIndices(const int & n)
 }
 
 void
-write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const bool & write_coords)
+write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
   int num_bytes = scalarFieldOffset() * sizeof(dfloat);
 
@@ -75,11 +88,11 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
     0 /* where to place data */, num_bytes * slot /* where to source data */);
 
   occa::memory o_null;
-  writeFld(prefix.c_str(), time, write_coords, 1 /* FP64 */, &o_null, &o_null, &o_write, 1);
+  writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, &o_null, &o_null, &o_write, 1);
 }
 
 void
-write_field_file(const std::string & prefix, const dfloat time)
+write_field_file(const std::string & prefix, const dfloat time, const int & step)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
@@ -91,7 +104,7 @@ write_field_file(const std::string & prefix, const dfloat time)
     Nscalar = nrs->Nscalar;
   }
 
-  writeFld(prefix.c_str(), time, 1 /* coords */, 1 /* FP64 */, &nrs->o_U, &nrs->o_P, &o_s, Nscalar);
+  writeFld(prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, &nrs->o_U, &nrs->o_P, &o_s, Nscalar);
 }
 
 void
@@ -116,6 +129,12 @@ bool
 hasMovingMesh()
 {
   return platform->options.compareArgs("MOVING MESH", "TRUE");
+}
+
+bool
+hasVariableDt()
+{
+  return platform->options.compareArgs("VARIABLE DT", "TRUE");
 }
 
 bool
@@ -1289,7 +1308,10 @@ namespace mesh
 bool
 isHeatFluxBoundary(const int boundary)
 {
-  return bcMap::text(boundary, "scalar00") == "fixedGradient";
+  // the heat flux boundary is now named 'codedFixedGradient', but 'fixedGradient'
+  // will be present for backwards compatibility
+  return (bcMap::text(boundary, "scalar00") == "fixedGradient") ||
+         (bcMap::text(boundary, "scalar00") == "codedFixedGradient");
 }
 
 bool

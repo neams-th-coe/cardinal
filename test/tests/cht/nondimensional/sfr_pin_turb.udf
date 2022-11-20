@@ -167,11 +167,8 @@ void turbulent_sources(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory 
   RANSktau::updateSourceTerms();
 }
 
-void UDF_LoadKernels(nrs_t *nrs)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
-  setupAide & options = nrs->options;
-  occa::properties & kernelInfo = *nrs->kernelInfo;
-
   // in non-dimensional form, U^+ = U/U_ref, where we chose the reference
   // velocity to be the inlet velocity
   kernelInfo["defines/Vz"] = 1.0;
@@ -181,7 +178,7 @@ void UDF_LoadKernels(nrs_t *nrs)
   // actual nominal temperature rise, but I'm lazy)
   kernelInfo["defines/inlet_T"] = 0.0;
 
-  RANSktau::buildKernel(nrs);
+  RANSktau::buildKernel(kernelInfo);
 }
 
 void UDF_Setup(nrs_t *nrs)

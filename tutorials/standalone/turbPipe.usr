@@ -1,7 +1,3 @@
-#define ZLENGTH  20.0  /* diameters  */
-#define NSLABS 60
-#define NELSLAB 108
-
 c-----------------------------------------------------------------------
       subroutine userchk
 
@@ -16,6 +12,7 @@ c-----------------------------------------------------------------------
       include 'SIZE'
       include 'TOTAL'
       include 'NEKUSE'
+      include 'CASEDATA'
 
       xr = x/0.5
       yr = y/0.5
@@ -67,6 +64,14 @@ c-----------------------------------------------------------------------
 
       include 'SIZE'
       include 'TOTAL'
+      include 'CASEDATA'
+
+      common /scnrs/ sc_nrs(10)
+      real                sc_nrs
+      
+      ZLENGTH = sc_nrs(1)
+      NSLABS = sc_nrs(2)
+      NELSLAB = sc_nrs(3)
 
       z0 = 0.0
       z1 = ZLENGTH

@@ -27,7 +27,7 @@
   numSteps = 1000
 
   # write an output file every specified time steps
-  writeControl = timeStep
+  writeControl = steps
   writeInterval = 1000
 
 [PROBLEMTYPE]

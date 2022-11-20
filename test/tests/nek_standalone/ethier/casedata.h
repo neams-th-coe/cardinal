@@ -1,1 +1,0 @@
-../../../../contrib/nekRS/examples/ethier/casedata.h

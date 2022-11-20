@@ -44,8 +44,9 @@ public:
   /**
    * Write NekRS solution field file
    * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be non-dimensional)
+   * @param[in] step time step index
    */
-  void writeFieldFile(const Real & time) const;
+  void writeFieldFile(const Real & time, const int & step) const;
 
   /**
    * Optional entry point called in externalSolve() where we can adjust
@@ -426,4 +427,16 @@ protected:
 
   /// Filename prefix to use for naming the field files containing the nrs->o_usrwrk array slots
   const std::vector<std::string> * _usrwrk_output_prefix = nullptr;
+
+  /// Sum of the elapsed time in NekRS solves
+  double _elapsedStepSum;
+
+  /// Sum of the total elapsed time in NekRS solves
+  double _elapsedTime;
+
+  /// Minimum step solve time
+  double _tSolveStepMin;
+
+  /// Maximum step solve time
+  double _tSolveStepMax;
 };

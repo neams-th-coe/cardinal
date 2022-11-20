@@ -11,10 +11,9 @@
 
   dt = 6.0e-3
   timeStepper = tombo2
-  extrapolation = subCycling
   subCyclingSteps = 2
 
-  writeControl = numSteps
+  writeControl = steps
   writeInterval = 100
 
   filtering = hpfrt

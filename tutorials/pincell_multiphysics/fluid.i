@@ -56,7 +56,7 @@ bl_height3 = 0.0052061600000000005
     new_boundary = '44'
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = rename_pin_surface
     direction = '0 0 1'
     num_layers = '${num_layers}'
