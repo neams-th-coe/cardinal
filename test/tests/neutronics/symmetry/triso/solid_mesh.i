@@ -71,7 +71,7 @@ height = 0.25
     background_intervals = 1
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = bundle
     heights = ${height}
     num_layers = ${n_layers}

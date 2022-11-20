@@ -387,7 +387,7 @@ the scratch array that is written by [NekRSProblem](/problems/NekRSProblem.md).
 Finally, the `sfr_7pin.udf` file contains C++ functions to set up boundary conditions
 and perform other post-processing operations. In `UDF_Setup`, we set initial
 conditions for velocity, pressure, and temperature. For convenience, we define
-local functions like `mass_flowrate()` and `height()` to be able to set problem
+local functions like `mass_flowrate()` to be able to set problem
 parameters in a single place and use them multiple places (these functions are
 *not* NekRS syntax - i.e. we could equivalently have done something like `#define mdot 0.1`).
 
@@ -438,18 +438,15 @@ advanced option to individually preserve flux by sideset.
 The input files we will use are the `solid_vpp.i` and `nek_vpp.i` files. These files
 are almost identical to the files described in the previous section, so we only
 emphasize the differences. First, in the solid model we need to set up individual
-postprocessors for the heat flux corresponding to each NekRS boundary:
-
-!listing tutorials/sfr_7pin/solid_vpp.i
-  block=Postprocessors
-
+postprocessors for the heat flux corresponding to each NekRS boundary.
 Then, we need to set up a [VectorOfPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/VectorOfPostprocessors.html)
 to basically fill a vector with each flux postprocessor. Note that the order
 of the postprocessors must match the boundaries they get mapped to in
 [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html).
 
 !listing tutorials/sfr_7pin/solid_vpp.i
-  block=VectorPostprocessors
+  start=VectorPostprocessors
+  end=MultiApps
 
 Then, we simply need to replace the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
 with a [MultiAppReporterTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppReporterTransfer.html).

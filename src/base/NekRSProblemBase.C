@@ -117,7 +117,11 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
     _synchronization_interval(getParam<MooseEnum>("synchronization_interval").getEnum<synchronization::SynchronizationEnum>()),
     _constant_interval(getParam<unsigned int>("constant_interval")),
-    _start_time(nekrs::startTime())
+    _start_time(nekrs::startTime()),
+    _elapsedStepSum(0.0),
+    _elapsedTime(nekrs::getNekSetupTime()),
+    _tSolveStepMin(std::numeric_limits<double>::max()),
+    _tSolveStepMax(std::numeric_limits<double>::min())
 {
   if (params.isParamSetByUser("minimize_transfers_in"))
     mooseError("The 'minimize_transfers_in' parameter has been replaced by "
@@ -279,7 +283,11 @@ NekRSProblemBase::~NekRSProblemBase()
 {
   // write nekRS solution to output if not already written for this step
   if (!_is_output_step)
-    writeFieldFile(_time);
+    writeFieldFile(_time, _t_step);
+
+  if (nekrs::runTimeStatFreq())
+    if (_t_step % nekrs::runTimeStatFreq())
+      nekrs::printRuntimeStatistics(_t_step);
 
   freePointer(_external_data);
   freePointer(_interpolation_outgoing);
@@ -289,7 +297,7 @@ NekRSProblemBase::~NekRSProblemBase()
 }
 
 void
-NekRSProblemBase::writeFieldFile(const Real & step_end_time) const
+NekRSProblemBase::writeFieldFile(const Real & step_end_time, const int & step) const
 {
   if (_disable_fld_file_output)
     return;
@@ -297,9 +305,9 @@ NekRSProblemBase::writeFieldFile(const Real & step_end_time) const
   Real t = _timestepper->nondimensionalDT(step_end_time);
 
   if (_write_fld_files)
-    nekrs::write_field_file(_prefix, t);
+    nekrs::write_field_file(_prefix, t, step);
   else
-    nekrs::outfld(t);
+    nekrs::outfld(t, step);
 }
 
 void
@@ -323,7 +331,7 @@ NekRSProblemBase::printScratchSpaceInfo(const MultiMooseEnum & indices) const
   }
   else
   {
-    _console << "\nQuantities written into NekRS scratch space:" << std::endl;
+    _console << "Quantities written into NekRS scratch space:" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }
@@ -442,6 +450,7 @@ NekRSProblemBase::initialSetup()
 
   // nekRS calls UDF_ExecuteStep once before the time stepping begins
   nekrs::udfExecuteStep(_start_time, _t_step, false /* not an output step */);
+  nekrs::resetTimer("udfExecuteStep");
 }
 
 void
@@ -449,6 +458,8 @@ NekRSProblemBase::externalSolve()
 {
   if (nekrs::buildOnly())
     return;
+
+  const double timeStartStep = MPI_Wtime();
 
   // _dt reflects the time step that MOOSE wants Nek to
   // take. For instance, if Nek is controlled by a master app and subcycling is used,
@@ -473,6 +484,10 @@ NekRSProblemBase::externalSolve()
   // tell NekRS what the value of nrs->isOutputStep should be
   nekrs::outputStep(_is_output_step);
 
+  // NekRS prints out verbose info for the first 1000 time steps
+  if (_t_step <= 1000)
+    nekrs::verboseInfo(true);
+
   // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
   // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
   nekrs::runStep(_timestepper->nondimensionalDT(step_start_time),
@@ -493,7 +508,7 @@ NekRSProblemBase::externalSolve()
 
   if (_is_output_step)
   {
-    writeFieldFile(step_end_time);
+    writeFieldFile(step_end_time, _t_step);
 
     // TODO: I could not figure out why this can't be called from the destructor, to
     // add another field file on Cardinal's last time step. Revisit in the future.
@@ -506,12 +521,38 @@ NekRSProblemBase::externalSolve()
         bool write_coords = first_fld[i] ? true : false;
 
         nekrs::write_usrwrk_field_file((*_usrwrk_output)[i], (*_usrwrk_output_prefix)[i],
-          _timestepper->nondimensionalDT(step_end_time), write_coords);
+          _timestepper->nondimensionalDT(step_end_time), _t_step, write_coords);
 
         first_fld[i] = false;
       }
     }
   }
+
+  // copy-pasta from Nek's main() for calling timers and printing
+  if (nekrs::updateFileCheckFreq())
+    if (_t_step % nekrs::updateFileCheckFreq())
+      nekrs::processUpdFile();
+
+  MPI_Barrier(comm().get());
+  const double elapsedStep = MPI_Wtime() - timeStartStep;
+  _tSolveStepMin = std::min(elapsedStep, _tSolveStepMin);
+  _tSolveStepMax = std::max(elapsedStep, _tSolveStepMax);
+  nekrs::updateTimer("minSolveStep", _tSolveStepMin);
+  nekrs::updateTimer("maxSolveStep", _tSolveStepMax);
+
+  _elapsedStepSum += elapsedStep;
+  _elapsedTime += elapsedStep;
+  nekrs::updateTimer("elapsedStep", elapsedStep);
+  nekrs::updateTimer("elapsedStepSum", _elapsedStepSum);
+  nekrs::updateTimer("elapsed", _elapsedTime);
+
+  if (nekrs::printInfoFreq())
+    if (_t_step % nekrs::printInfoFreq() == 0)
+      nekrs::printInfo(_time, _t_step);
+
+  if (nekrs::runTimeStatFreq())
+    if (_t_step % nekrs::runTimeStatFreq() == 0)
+      nekrs::printRuntimeStatistics(_t_step);
 
   _time += _dt;
 }

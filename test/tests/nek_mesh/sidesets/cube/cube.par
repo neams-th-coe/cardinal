@@ -6,9 +6,8 @@
   numSteps = 1
   dt = 1
   polynomialOrder = 7
-  writeControl = timeStep
+  writeControl = steps
   writeInterval = 10
-  extrapolation = subCycling
 
 [VELOCITY]
   solver = none

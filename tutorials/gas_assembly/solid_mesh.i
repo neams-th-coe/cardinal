@@ -89,7 +89,7 @@ n_layers = 100    # number of axial extrusion layers; for the converged case,
     background_block_names = 'graphite'
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = bundle
     heights = ${height}
     num_layers = ${n_layers}

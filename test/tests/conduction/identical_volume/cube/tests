@@ -4,7 +4,7 @@
     input = nek_master.i
     exodiff = 'nek_master_out_nek0.e'
     min_parallel = 8
-    rel_err = 5e-5
+    rel_err = 2e-4
     heavy = true
     requirement = "A coupled MOOSE-nekRS slab heat conduction problem shall produce the correct "
                   "temperature distribution when a heat source is applied to the nekRS problem. "

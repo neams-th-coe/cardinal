@@ -26,7 +26,7 @@ N = 1000
     tri_subdomain_id = 102
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = coolant_face
     num_layers = ${num_layers_for_THM}
     direction = '0 0 1'

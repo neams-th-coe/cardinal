@@ -259,7 +259,7 @@ NekRSProblem::initialSetup()
 
   // save initial mesh for moving mesh problems to match deformation in exodus output files
   if (_moving_mesh && !_disable_fld_file_output)
-    nekrs::outfld(_timestepper->nondimensionalDT(_time));
+    nekrs::outfld(_timestepper->nondimensionalDT(_time), _t_step);
 }
 
 void
@@ -274,7 +274,7 @@ NekRSProblem::adjustNekSolution()
     msg = "Limiting nekRS temperature to below maximum temperature of " + Moose::stringify(*_max_T);
   if (_max_T && _min_T)
     msg = "Limiting nekRS temperature to within the range [" + Moose::stringify(*_min_T) + ", " +
-          Moose::stringify(*_max_T);
+          Moose::stringify(*_max_T) + "]";
 
   if (limit_temperature)
   {

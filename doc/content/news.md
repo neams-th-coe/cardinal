@@ -18,6 +18,7 @@ features.
 Below are updates on developments from Cardinal. Any months not included did not
 have significant software updates to report.
 
+- [October 2022](news/october2022.md)
 - [July 2022](news/july2022.md)
 - [June 2022](news/june2022.md)
 - [May 2022](news/may2022.md)
