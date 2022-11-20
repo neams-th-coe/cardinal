@@ -38,12 +38,6 @@ NekTimeStepper::validParams()
 NekTimeStepper::NekTimeStepper(const InputParameters & parameters)
   : TimeStepper(parameters), _min_dt(getParam<Real>("min_dt"))
 {
-  // Cardinal does not yet support variable dt in Nek; this is coming soon,
-  // but just to make sure no one inadvertently tries it, check for it
-  if (nekrs::hasVariableDt())
-    mooseError("Cardinal does not yet support variable timestepping in NekRS!\n"
-      "This feature is coming soon.");
-
   // Set a higher value for the timestep tolerance with which time steps are
   // compared between nekRS and other MOOSE apps in a multiapp hierarchy. For some reason,
   // it seems that floating point round-off accumulation is significant in nekRS, such
