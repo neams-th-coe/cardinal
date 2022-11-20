@@ -1,5 +1,5 @@
 inlet_T  = 573.0           # inlet temperature
-power = 1e3                # total power (W)
+power = 250                # total power (W)
 Re = 500.0                 # Reynolds number
 
 pin_diameter = 0.97e-2     # pin outer diameter
@@ -17,6 +17,13 @@ U_ref = ${fparse Re * mu / rho / hydraulic_diameter}
 mdot = ${fparse rho * U_ref * flow_area}
 dT = ${fparse power / mdot / Cp}
 
+[Mesh]
+  type = NekRSMesh
+  boundary = '1'
+  scaling = ${hydraulic_diameter}
+  volume = true
+[]
+
 [Problem]
   type = NekRSProblem
   casename = 'fluid'
@@ -31,16 +38,19 @@ dT = ${fparse power / mdot / Cp}
   Cp_0 = ${Cp}
 
   has_heat_source = false
-
-  # this just reduces how often we send data back up to the solid app
   synchronization_interval = parent_app
 []
 
-[Mesh]
-  type = NekRSMesh
-  boundary = '1'
-  scaling = ${hydraulic_diameter}
-  volume = true
+[Postprocessors]
+  [outlet_T]
+    type = NekMassFluxWeightedSideAverage
+    field = temperature
+    boundary = '3'
+  []
+  [max_T]
+    type = NekVolumeExtremeValue
+    field = temperature
+  []
 []
 
 [Executioner]
@@ -53,4 +63,5 @@ dT = ${fparse power / mdot / Cp}
 
 [Outputs]
   exodus = true
+  interval = 10
 []

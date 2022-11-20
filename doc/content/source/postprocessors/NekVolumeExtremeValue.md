@@ -38,7 +38,7 @@ of more use for other postprocessors).
 As an example, the `max_T` postprocessor will evaluate the maximum temperature
 over the volume of the NekRS mesh.
 
-!listing tutorials/sfr_multiphysics/nek.i
+!listing tutorials/pincell_multiphysics/nek.i
   block=Postprocessors
 
 !syntax parameters /Postprocessors/NekVolumeExtremeValue

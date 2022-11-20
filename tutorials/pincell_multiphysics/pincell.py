@@ -6,7 +6,7 @@ R = 0.97 / 2.0           # outer radius of the pincell (cm)
 Rf = 0.825 / 2.0         # outer radius of the pellet (cm)
 pitch = 1.28             # pitch between pincells (cm)
 height = 50.0            # height of the pincell (cm)
-T_inlet = 573.0          # inlet water temperature (K)
+T_inlet = 573.0          # inlet sodium temperature (K)
 
 ap = ArgumentParser()
 ap.add_argument('-n', dest='n_axial', type=int, default=25,
@@ -32,17 +32,15 @@ zircaloy.add_element('Cr', 0.001, 'wo')
 zircaloy.add_element('Zr', 0.98335, 'wo')
 all_materials.append(zircaloy)
 
-water_materials = []
+sodium_materials = []
 
 for i in range(N):
-  water = openmc.Material(name = 'water{:n}'.format(i))
-  water.set_density('g/cm3', 1.0)
-  water.add_element('H', 2.0)
-  water.add_element('O', 1.0)
-  water.add_s_alpha_beta('c_H_in_H2O')
+  sodium = openmc.Material(name = 'sodium{:n}'.format(i))
+  sodium.set_density('g/cm3', 1.0)
+  sodium.add_element('Na', 1.0)
 
-  water_materials.append(water)
-  all_materials.append(water)
+  sodium_materials.append(sodium)
+  all_materials.append(sodium)
 
 materials = openmc.Materials(all_materials)
 materials.export_to_xml()
@@ -58,7 +56,7 @@ plane_surfaces[-1].boundary_type = 'vacuum'
 
 fuel_cells = []
 clad_cells = []
-water_cells = []
+sodium_cells = []
 
 for i in range(N):
   # these are the two planes that bound the current layer on top and bottom
@@ -67,14 +65,14 @@ for i in range(N):
   fuel_cells.append(openmc.Cell(fill = uo2, region = -pellet_surface & layer, name = 'Fuel{:n}'.format(i)))
   clad_cells.append(openmc.Cell(fill = zircaloy, region = +pellet_surface & -pincell_surface & layer, name = 'Clad{:n}'.format(i)))
 
-  # we need to get the correct water material that belongs to this layer
-  water_material = water_materials[i]
-  water_cells.append(openmc.Cell(fill = water_material, region = +pincell_surface & layer & rectangular_prism, name = 'Water{:n}'.format(i)))
+  # we need to get the correct sodium material that belongs to this layer
+  sodium_material = sodium_materials[i]
+  sodium_cells.append(openmc.Cell(fill = sodium_material, region = +pincell_surface & layer & rectangular_prism, name = 'sodium{:n}'.format(i)))
 
 root = openmc.Universe(name = 'root')
 root.add_cells(fuel_cells)
 root.add_cells(clad_cells)
-root.add_cells(water_cells)
+root.add_cells(sodium_cells)
 
 geometry = openmc.Geometry(root)
 geometry.export_to_xml()

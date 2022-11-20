@@ -7,6 +7,12 @@ In this tutorial, you will learn how to:
 - Use triggers to automatically terminate the OpenMC active batches once reaching the desired statistical uncertainty
 - Automatically detect steady state
 
+To access this tutorial,
+
+```
+cd cardinal/tutorials/gas_compact_multiphysics
+```
+
 This tutorial also requires you to download mesh files and a NekRS
 restart file from Box. Please download the files from the `gas_compact_multiphysics`
 folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89) and place
@@ -289,8 +295,8 @@ to uniform conditions.
 ## Multiphysics Coupling
 
 In this section, OpenMC, NekRS/THM, and MOOSE heat conduction are coupled for multiphysics
-modeling of the [!ac](TRISO) gas compact. All input files are present in the
-`tutorials/gas_compact_multiphysics` directory. Two separate simulations are performed here:
+modeling of the [!ac](TRISO) gas compact.
+Two separate simulations are performed here:
 
 - Coupling of OpenMC, NekRS, and MOOSE heat conduction in a "single-stack" MultiApp hierarchy
 - Coupling of OpenMC, THM, a MOOSE heat conduction in a "tree" MultiApp hierarchy

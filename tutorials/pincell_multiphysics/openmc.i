@@ -75,24 +75,19 @@ dT = ${fparse power / mdot / Cp}
     type = CellDensityAux
     variable = cell_density
   []
-[]
-
-[AuxKernels]
   [density]
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
     T = temp
-    fp = water
+    fp = sodium
     execute_on = 'INITIAL TIMESTEP_END'
   []
 []
 
-[Modules]
-  [FluidProperties]
-    [water]
-      type = Water97FluidProperties
-    []
+[FluidProperties]
+  [sodium]
+    type = SodiumSaturationFluidProperties
   []
 []
 
@@ -156,30 +151,6 @@ dT = ${fparse power / mdot / Cp}
   max_batches = 1000
 []
 
-[Executioner]
-  type = Transient
-  dt = 0.5
-  num_steps = 2
-[]
-
-[Postprocessors]
-  [heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    execute_on = 'transfer initial timestep_end'
-  []
-  [max_tally_rel_err]
-    type = FissionTallyRelativeError
-    value_type = max
-  []
-  [k]
-    type = KEigenvalue
-  []
-  [k_std_dev]
-    type = KStandardDeviation
-  []
-[]
-
 [MultiApps]
   [bison]
     type = TransientMultiApp
@@ -195,25 +166,44 @@ dT = ${fparse power / mdot / Cp}
     type = MultiAppCopyTransfer
     source_variable = T
     variable = solid_temp
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
   []
   [source_to_bison]
     type = MultiAppCopyTransfer
     source_variable = heat_source
     variable = power
-    direction = to_multiapp
-    multi_app = bison
+    to_multi_app = bison
   []
   [temp_from_nek]
     type = MultiAppCopyTransfer
     source_variable = nek_temp
-    direction = from_multiapp
-    multi_app = bison
+    from_multi_app = bison
     variable = nek_temp
   []
 []
 
 [Outputs]
   exodus = true
+[]
+
+[Executioner]
+  type = Transient
+  dt = 0.5
+
+  steady_state_detection = true
+  check_aux = true
+  steady_state_tolerance = 1e-3
+[]
+
+[Postprocessors]
+  [max_tally_rel_err]
+    type = FissionTallyRelativeError
+    value_type = max
+  []
+  [k]
+    type = KEigenvalue
+  []
+  [k_std_dev]
+    type = KStandardDeviation
+  []
 []

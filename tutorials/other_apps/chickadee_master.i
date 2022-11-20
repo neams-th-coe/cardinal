@@ -40,7 +40,7 @@
     input_files = cardinal_sub.i
     execute_on = timestep_end
 
-    # change this for wherever you have Chickadee located
+    # change this for wherever you have Cardinal located
     library_path = '/home/anovak/cardinal/lib'
   []
 []

@@ -16,7 +16,7 @@
     execute_on = timestep_end
 
     # change this for wherever you have Chickadee located
-    library_path = '/home/anovak/chickadee/lib'
+    library_path = '/home/anovak/Chickadee/lib'
   []
 []
 

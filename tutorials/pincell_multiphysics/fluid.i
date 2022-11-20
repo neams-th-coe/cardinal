@@ -4,10 +4,12 @@ pin_pitch = 1.28e-2        # pin pitch
 num_layers = 25            # number of layers
 fluid_id = 5               # block ID to assign to fluid (only used for bookkeeping)
 
-bl_height0 = 0.00488
-bl_height1 = 0.004934
-bl_height2 = 0.0050312
-bl_height3 = 0.0052061600000000005
+bl_0 = 0.004855
+bl_1 = 0.00486
+bl_2 = 0.00488
+bl_3 = 0.004934
+bl_4 = 0.0050312
+bl_5 = 0.0052061600000000005
 
 [Mesh]
   [pin]
@@ -17,13 +19,12 @@ bl_height3 = 0.0052061600000000005
     num_sectors_per_side = '6 6 6 6'
     uniform_mesh_on_sides = true
 
-    # 3 boundary layers
-    ring_radii = '${fparse pin_diameter / 2.0} ${bl_height0} ${bl_height1} ${bl_height2}'
-    ring_intervals = '1 1 1 1'
-    ring_block_ids = '${fparse fluid_id + 1} ${fluid_id} ${fluid_id} ${fluid_id}'
+    ring_radii = '${fparse pin_diameter / 2.0} ${bl_0} ${bl_1} ${bl_2} ${bl_3} ${bl_4} ${bl_5}'
+    ring_intervals = '1 1 1 1 1 1 1'
+    ring_block_ids = '${fparse fluid_id + 1} ${fluid_id} ${fluid_id} ${fluid_id} ${fluid_id} ${fluid_id} ${fluid_id}'
 
     background_block_ids = '${fparse fluid_id}'
-    background_intervals = 3
+    background_intervals = 6
   []
   [pin_surface]
     type = SideSetsBetweenSubdomainsGenerator
