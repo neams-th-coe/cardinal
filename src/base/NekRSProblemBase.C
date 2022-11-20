@@ -438,18 +438,14 @@ NekRSProblemBase::initialSetup()
   // Set the NekRS start time to whatever is set on Executioner/start_time; print
   // a message if those times don't match the .par file
   const auto moose_start_time = _transient_executioner->getStartTime();
-  nekrs::setStartTime(moose_start_time);
+  nekrs::setStartTime(_timestepper->nondimensionalDT(moose_start_time));
   _start_time = moose_start_time;
 
   if (_synchronization_interval == synchronization::parent_app)
     _transfer_in = &getPostprocessorValueByName("transfer_in");
 
-  // Then, dimensionalize the NekRS time so that all occurrences of _dt here are
-  // in dimensional form
-  _timestepper->dimensionalizeDT();
-
   // nekRS calls UDF_ExecuteStep once before the time stepping begins
-  nekrs::udfExecuteStep(_start_time, _t_step, false /* not an output step */);
+  nekrs::udfExecuteStep(_timestepper->nondimensionalDT(_start_time), _t_step, false /* not an output step */);
   nekrs::resetTimer("udfExecuteStep");
 }
 
@@ -548,7 +544,7 @@ NekRSProblemBase::externalSolve()
 
   if (nekrs::printInfoFreq())
     if (_t_step % nekrs::printInfoFreq() == 0)
-      nekrs::printInfo(_time, _t_step);
+      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step);
 
   if (nekrs::runTimeStatFreq())
     if (_t_step % nekrs::runTimeStatFreq() == 0)
