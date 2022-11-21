@@ -1,0 +1,58 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(occa::properties & kernelInfo)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+  int n_gll_points = mesh->Np * mesh->Nelements;
+
+  bool has_restart;
+  platform->options.getArgs("RESTART FROM FILE", has_restart);
+  if (has_restart)
+  {
+    std::cout << "\n\n--- Getting initial conditions from restart file!\n\n" << std::endl;
+
+    for (int n = 0; n < n_gll_points; ++n)
+    {
+      dfloat x = mesh->x[n];
+      dfloat y = mesh->y[n];
+      dfloat z = mesh->z[n];
+      dfloat vel_x = sin(x);
+      dfloat vel_y = y + 1;
+      dfloat vel_z = exp(x*y*z);
+      dfloat P = exp(x) + exp(y) + exp(z);
+      dfloat T = exp(x) + sin(y) + x*y*z;
+
+      // compare the loaded quantities to the ICs we know exist in the restart file
+      dfloat vel_x_err = std::abs((nrs->U[n + 0 * nrs->fieldOffset] - vel_x) / vel_x);
+      dfloat vel_y_err = std::abs((nrs->U[n + 1 * nrs->fieldOffset] - vel_y) / vel_y);
+      dfloat vel_z_err = std::abs((nrs->U[n + 2 * nrs->fieldOffset] - vel_z) / vel_z);
+      dfloat P_err = std::abs((nrs->P[n] - P) / P);
+      dfloat T_err = std::abs((nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] - T) / T);
+    }
+
+    return;
+  }
+
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    dfloat x = mesh->x[n];
+    dfloat y = mesh->y[n];
+    dfloat z = mesh->z[n];
+
+    nrs->U[n + 0 * nrs->fieldOffset] = sin(x);     // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = y + 1;      // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = exp(x*y*z); // z-velocity
+
+    nrs->P[n] = exp(x) + exp(y) + exp(z); // pressure
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
+  }
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+}
