@@ -64,16 +64,18 @@ public:
    */
   virtual Real dimensionalDT(const Real & nondimensional_dt) const;
 
-  /// Dimensionalize the time step for nekRS
-  virtual void dimensionalizeDT();
-
 protected:
   virtual Real computeInitialDT() override;
 
   virtual Real computeDT() override;
 
+  /// Minimum allowable time step (dimensional) that MOOSE can set in NekRS
   Real _min_dt;
 
+  /**
+   * The initial time step size in NekRS, in non-dimensional form. This
+   * does not reflect the time step as it changes adaptively.
+   */
   Real _nek_dt;
 
   /// Reference time scale
