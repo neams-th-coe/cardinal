@@ -26,6 +26,11 @@ if [ -z "$PROJ_ID" ]; then
   exit 1
 fi
 
+if [ $# -ne 3 ]; then
+  echo "usage: [PROJ_ID] [CPUONLY=1] $0 <casename> <number of compute nodes> <hh:mm>"
+  exit 0
+fi
+
 NVME_HOME="/mnt/bb/$USER/"
 XL_HOME="/sw/summit/xl/16.1.1-3/xlC/16.1.1"
 
@@ -47,13 +52,11 @@ export OCCA_LDFLAGS="$XL_HOME/lib/libibmc++.a"
 #export PAMI_IBV_DEVICE_NAME="mlx5_0:1,mlx5_3:1"
 #export PAMI_IBV_DEVICE_NAME_1="mlx5_3:1,mlx5_0:1"
 
-if [ $# -ne 3 ]; then
-  echo "usage: [PROJ_ID] [CPUONLY=1] $0 <casename> <number of compute nodes> <hh:mm>"
-  exit 0
-fi
-
 module unload darshan-runtime
 module load gcc
+
+# work-around for barrier issue
+export OMPI_MCA_coll_ibm_collselect_mode_barrier=failsafe
 
 bin=$CARDINAL_BIN
 case=$1

@@ -4,7 +4,7 @@
     file = box_in.e
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = box
     boundary = '1 2'
     radius = '2.0 2.0'

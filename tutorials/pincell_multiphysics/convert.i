@@ -11,7 +11,7 @@ hydraulic_diameter = ${fparse 4.0 * flow_area / wetted_perimeter}
     file = fluid_in.e
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = file
     boundary = '1'
     radius = ${fparse pin_diameter / 2.0}

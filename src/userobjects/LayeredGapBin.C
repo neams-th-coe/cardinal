@@ -74,14 +74,14 @@ LayeredGapBin::LayeredGapBin(const InputParameters & parameters)
     _effective_layer_pts[i] = 0.5 * (_layer_pts[i] + _layer_pts[i - 1]);
 }
 
-const unsigned int
+unsigned int
 LayeredGapBin::bin(const Point & p) const
 {
   Real direction_x = p(_direction);
   return binFromBounds(direction_x, _effective_layer_pts);
 }
 
-const unsigned int
+unsigned int
 LayeredGapBin::num_bins() const
 {
   return _num_faces;

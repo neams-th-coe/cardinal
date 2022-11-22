@@ -19,7 +19,6 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekHeatFluxIntegral.h"
-#include "CardinalEnums.h"
 
 registerMooseObject("CardinalApp", NekHeatFluxIntegral);
 

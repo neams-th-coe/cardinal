@@ -4,7 +4,7 @@
     file = fluid.exo
   []
   [to_hex20]
-    type = Hex20Generator
+    type = NekMeshGenerator
     input = fluid
     boundaries_to_rebuild = '1 2 3 10000'
 

@@ -1,10 +1,7 @@
 #include "udf.hpp"
 
-void UDF_LoadKernels(nrs_t *nrs)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
-  setupAide & options = platform->options;
-  occa::properties & kernelInfo = *nrs->kernelInfo;
-
   // Compute the inlet velocity boundary condition and propagate it to a kernel variable
   kernelInfo["defines/Vz"] = 1.0;
 

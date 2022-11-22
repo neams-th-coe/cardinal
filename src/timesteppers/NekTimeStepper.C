@@ -98,26 +98,21 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters)
       mooseError("Parameter '" + s + "' is unused by the Executioner because it is " +
                  "already specified by 'NekTimeStepper'!");
 
-  // nekRS is currently limited to fixed time stepping. We would need to add a call to
-  // a routine like nekrs::computeDT() which computes the time step based on the CFL condition,
-  // but that function doesn't exist yet. We cannot just call nekrs::dt() in computeDT() here,
-  // because the nrs->dt[0] variable that is returned by nekrs::dt() is the _same_ as that set
-  // by MOOSE. This circular dependency was giving me floating point issues with synchronization
-  // for some subcycling applications. So, until we have variable time stepping in nekRS, let's
-  // set a fixed time step here.
-  _nek_dt = nekrs::dt();
+  // at this point, this is non-dimensional dt
+  _nek_dt = nekrs::dt(1);
 }
 
 Real
 NekTimeStepper::computeInitialDT()
 {
-  return _nek_dt;
+  return _nek_dt * _t_ref;
 }
 
 Real
 NekTimeStepper::computeDT()
 {
-  return _nek_dt;
+  Real dt = nekrs::hasVariableDt() ? nekrs::dt(_t_step) : _nek_dt;
+  return dt * _t_ref;
 }
 
 Real
@@ -130,12 +125,6 @@ void
 NekTimeStepper::setReferenceTime(const Real & L, const Real & U)
 {
   _t_ref = L / U;
-}
-
-void
-NekTimeStepper::dimensionalizeDT()
-{
-  _nek_dt *= _t_ref;
 }
 
 Real

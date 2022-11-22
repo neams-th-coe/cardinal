@@ -1,0 +1,6 @@
+COORDINATES absolute 1.e-6
+
+TIME STEPS relative 5.5e-6 floor 1e-10
+
+NODAL VARIABLES relative 1.0e-3 floor 1e-10
+	temp

@@ -26,6 +26,7 @@ nekrs::usrwrkIndices indices;
 
 namespace nekrs
 {
+static double setup_time;
 
 // various constants for controlling tolerances
 static double abs_tol;
@@ -41,6 +42,18 @@ void
 setRelativeTol(double tol)
 {
   rel_tol = tol;
+}
+
+void
+setNekSetupTime(const double & time)
+{
+  setup_time = time;
+}
+
+double
+getNekSetupTime()
+{
+  return setup_time;
 }
 
 void
@@ -65,7 +78,7 @@ cornerGLLIndices(const int & n)
 }
 
 void
-write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const bool & write_coords)
+write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
   int num_bytes = scalarFieldOffset() * sizeof(dfloat);
 
@@ -75,11 +88,11 @@ write_usrwrk_field_file(const int & slot, const std::string & prefix, const dflo
     0 /* where to place data */, num_bytes * slot /* where to source data */);
 
   occa::memory o_null;
-  writeFld(prefix.c_str(), time, write_coords, 1 /* FP64 */, &o_null, &o_null, &o_write, 1);
+  writeFld(prefix.c_str(), time, step, write_coords, 1 /* FP64 */, &o_null, &o_null, &o_write, 1);
 }
 
 void
-write_field_file(const std::string & prefix, const dfloat time)
+write_field_file(const std::string & prefix, const dfloat time, const int & step)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
@@ -91,7 +104,7 @@ write_field_file(const std::string & prefix, const dfloat time)
     Nscalar = nrs->Nscalar;
   }
 
-  writeFld(prefix.c_str(), time, 1 /* coords */, 1 /* FP64 */, &nrs->o_U, &nrs->o_P, &o_s, Nscalar);
+  writeFld(prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, &nrs->o_U, &nrs->o_P, &o_s, Nscalar);
 }
 
 void
@@ -116,6 +129,12 @@ bool
 hasMovingMesh()
 {
   return platform->options.compareArgs("MOVING MESH", "TRUE");
+}
+
+bool
+hasVariableDt()
+{
+  return platform->options.compareArgs("VARIABLE DT", "TRUE");
 }
 
 bool
@@ -406,13 +425,13 @@ sourceIntegral(const NekVolumeCoupling & nek_volume_coupling)
   return total_integral;
 }
 
-double
-fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling)
+std::vector<double>
+fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling, const std::vector<int> & boundary)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   mesh_t * mesh = temperatureMesh();
 
-  double integral = 0.0;
+  std::vector<double> integral(boundary.size(), 0.0);
 
   for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
   {
@@ -420,23 +439,83 @@ fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling)
     {
       int i = nek_boundary_coupling.element[k];
       int j = nek_boundary_coupling.face[k];
+
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+      auto it = std::find(boundary.begin(), boundary.end(), face_id);
+      auto b_index = it - boundary.begin();
+
       int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
 
       for (int v = 0; v < mesh->Nfp; ++v)
-        integral +=
+        integral[b_index] +=
             nrs->usrwrk[indices.flux + mesh->vmapM[offset + v]] * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
     }
   }
 
-  // sum across all processes
-  double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  // sum across all processes; this can probably be done more efficiently
+  std::vector<double> total_integral(boundary.size(), 0.0);
+  for (std::size_t i = 0; i < boundary.size(); ++i)
+    MPI_Allreduce(&integral[i], &total_integral[i], 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   return total_integral;
 }
 
 bool
+normalizeFluxBySideset(const NekBoundaryCoupling & nek_boundary_coupling,
+                       const std::vector<int> & boundary,
+                       const std::vector<double> & moose_integral,
+                       std::vector<double> & nek_integral,
+                       double & normalized_nek_integral)
+{
+  // scale the nek flux to dimensional form for the sake of normalizing against
+  // a dimensional MOOSE flux
+  for (auto & i : nek_integral)
+    i *= scales.A_ref * scales.flux_ref;
+
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  mesh_t * mesh = temperatureMesh();
+
+  for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
+  {
+    if (nek_boundary_coupling.process[k] == commRank())
+    {
+      int i = nek_boundary_coupling.element[k];
+      int j = nek_boundary_coupling.face[k];
+
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+      auto it = std::find(boundary.begin(), boundary.end(), face_id);
+      auto b_index = it - boundary.begin();
+
+      // avoid divide-by-zero
+      double ratio = 1.0;
+      if (std::abs(nek_integral[b_index]) > abs_tol)
+        ratio = moose_integral[b_index] / nek_integral[b_index];
+
+      int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
+      for (int v = 0; v < mesh->Nfp; ++v)
+      {
+        int id = mesh->vmapM[offset + v];
+        nrs->usrwrk[indices.flux + id] *= ratio;
+      }
+    }
+  }
+
+  // check that the normalization worked properly - confirm against dimensional form
+  auto integrals = fluxIntegral(nek_boundary_coupling, boundary);
+  normalized_nek_integral = std::accumulate(integrals.begin(), integrals.end(), 0.0) * scales.A_ref * scales.flux_ref;
+  double total_moose_integral = std::accumulate(moose_integral.begin(), moose_integral.end(), 0.0);
+  bool low_rel_err = std::abs(total_moose_integral) > abs_tol ?
+                     std::abs(normalized_nek_integral - total_moose_integral) / total_moose_integral < rel_tol : true;
+  bool low_abs_err = std::abs(normalized_nek_integral - total_moose_integral) < abs_tol;
+
+  return low_rel_err && low_abs_err;
+}
+
+
+bool
 normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
+              const std::vector<int> & boundary,
               const double moose_integral,
               double nek_integral,
               double & normalized_nek_integral)
@@ -471,7 +550,8 @@ normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  normalized_nek_integral = fluxIntegral(nek_boundary_coupling) * scales.A_ref * scales.flux_ref;
+  auto integrals = fluxIntegral(nek_boundary_coupling, boundary);
+  normalized_nek_integral = std::accumulate(integrals.begin(), integrals.end(), 0.0) * scales.A_ref * scales.flux_ref;
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < rel_tol;
   bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < abs_tol;
 
@@ -933,6 +1013,38 @@ area(const std::vector<int> & boundary_id)
 }
 
 double
+usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot)
+{
+  mesh_t * mesh = entireMesh();
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+
+  double integral = 0.0;
+
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+
+      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          integral += nrs->usrwrk[slot * scalarFieldOffset() + mesh->vmapM[offset + v]] *
+                      mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+        }
+      }
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+  return total_integral;
+}
+
+double
 sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand)
 {
   mesh_t * mesh = entireMesh();
@@ -1196,7 +1308,10 @@ namespace mesh
 bool
 isHeatFluxBoundary(const int boundary)
 {
-  return bcMap::text(boundary, "scalar00") == "fixedGradient";
+  // the heat flux boundary is now named 'codedFixedGradient', but 'fixedGradient'
+  // will be present for backwards compatibility
+  return (bcMap::text(boundary, "scalar00") == "fixedGradient") ||
+         (bcMap::text(boundary, "scalar00") == "codedFixedGradient");
 }
 
 bool

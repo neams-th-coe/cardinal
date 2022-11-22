@@ -6,16 +6,14 @@ polynomialOrder = 5
 numSteps = 5
 dt = 1e-04
 writeInterval = 5
-extrapolation = subCycling
 
 [PRESSURE]
-preconditioner = semg_amg
-residualTol = 1e-04
+residualTol = 1e-06
 residualProj = false
 
 [VELOCITY]
 boundaryTypeMap = W, O, v
-residualTol = 1e-04
+residualTol = 1e-07
 density = 1.0
 viscosity = 0.00005
 
@@ -23,5 +21,4 @@ viscosity = 0.00005
 boundaryTypeMap = f, I, t
 rhoCp = 100000.0
 conductivity = 5.0
-residualTol = 1e-03
-residualProj = true
+residualTol = 1e-07

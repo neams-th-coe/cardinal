@@ -6,7 +6,7 @@
   numSteps = 2000
   dt = 0.2
   timeStepper = tombo2
-  writeControl = numSteps
+  writeControl = steps
   writeInterval = 5
   polynomialOrder = 1
 
@@ -21,7 +21,6 @@
 [PRESSURE]
   residualTol = 1.0e-6
   residualProj = false
-  preconditioner = semg_amg
 
 [TEMPERATURE]
   conductivity = 0.1

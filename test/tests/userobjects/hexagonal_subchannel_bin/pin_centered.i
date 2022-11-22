@@ -19,7 +19,7 @@ pin_diameter = 0.6
     rotate_angle = 0
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = bundle
     heights = 0.5
     num_layers = 5

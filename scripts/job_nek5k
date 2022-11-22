@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input file names in this script
+# 3. qsub job_nek5k
+
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=40
+#SBATCH --time=00:20:00
+#SBATCH --output=pincell.log
+#SBATCH -p compute
+
+# Revise for your repository and cross section data locations
+export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb71_hdf5/cross_sections.xml
+export CARDINAL_DIR=$HOME/cardinal
+export NEKRS_HOME=$CARDINAL_DIR/install
+
+# The name of the input file you want to run
+input_file=nek_master.i
+
+# Run a Cardinal case
+mpirun -np 40 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile

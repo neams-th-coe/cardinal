@@ -4,6 +4,8 @@ In this tutorial, you will learn how to:
 
 - Couple NekRS with MOOSE for [!ac](CHT) for a 7-pin bundle
 - Solve both NekRS and MOOSE in dimensional form
+- Control how flux normalization is performed in NekRS (by either lumping all sidesets together,
+  or preserving for each sideset individually)
 - Reduce the amount of copy to/from commands between host and device for NekRS
   (an advanced user feature)
 
@@ -385,7 +387,7 @@ the scratch array that is written by [NekRSProblem](/problems/NekRSProblem.md).
 Finally, the `sfr_7pin.udf` file contains C++ functions to set up boundary conditions
 and perform other post-processing operations. In `UDF_Setup`, we set initial
 conditions for velocity, pressure, and temperature. For convenience, we define
-local functions like `mass_flowrate()` and `height()` to be able to set problem
+local functions like `mass_flowrate()` to be able to set problem
 parameters in a single place and use them multiple places (these functions are
 *not* NekRS syntax - i.e. we could equivalently have done something like `#define mdot 0.1`).
 
@@ -422,6 +424,48 @@ temperature color scale is the same in both figures.
   caption=Solid temperature computed by MOOSE for [!ac](CHT) coupling for a bare 7-pin [!ac](SFR) bundle with fluid mesh lines shown in blue.
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
+## Preserving Flux on Individual Sidesets
+
+In the first part of this tutorial, we used default settings for how to renormalize
+flux sent from MOOSE to NekRS in order to conserve power. By default,
+[NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
+will lump all "receiving" sidesets in NekRS together for the purpose of normalization.
+For this example, this means that the pin outer surface flux will not *exactly*
+match the pin outer flux from MOOSE (and similarly for the duct inner surface flux),
+because these surfaces are lumped together. In this section, we illustrate a more
+advanced option to individually preserve flux by sideset.
+
+The input files we will use are the `solid_vpp.i` and `nek_vpp.i` files. These files
+are almost identical to the files described in the previous section, so we only
+emphasize the differences. First, in the solid model we need to set up individual
+postprocessors for the heat flux corresponding to each NekRS boundary.
+Then, we need to set up a [VectorOfPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/VectorOfPostprocessors.html)
+to basically fill a vector with each flux postprocessor. Note that the order
+of the postprocessors must match the boundaries they get mapped to in
+[NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html).
+
+!listing tutorials/sfr_7pin/solid_vpp.i
+  start=VectorPostprocessors
+  end=MultiApps
+
+Then, we simply need to replace the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+with a [MultiAppReporterTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppReporterTransfer.html).
+
+!listing tutorials/sfr_7pin/solid_vpp.i
+  block=Transfers
+
+Finally, we just need to set `conserve_flux_by_sideset = true` in `NekRSProblem`
+in the Nek input file.
+
+!listing tutorials/sfr_7pin/nek_vpp.i
+  block=Problem
+
+To run the model,
+
+```
+mpirun -np 4 cardinal-opt -i solid_vpp.i
+```
+
+The physics predictions are nearly identical to those displayed earlier.
 
 !bibtex bibliography
-

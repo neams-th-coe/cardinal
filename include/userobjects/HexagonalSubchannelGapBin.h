@@ -32,9 +32,9 @@ public:
 
   HexagonalSubchannelGapBin(const InputParameters & parameters);
 
-  virtual const unsigned int bin(const Point & p) const override;
+  virtual unsigned int bin(const Point & p) const override;
 
-  virtual const unsigned int num_bins() const override;
+  virtual unsigned int num_bins() const override;
 
   virtual Real distanceFromGap(const Point & point, const unsigned int & gap_index) const override;
 

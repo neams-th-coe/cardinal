@@ -65,14 +65,14 @@ public:
    * @param[in] side duct side
    * @return x-component translation
    */
-  const Real sideTranslationX(const unsigned int & side) const { return _translation_x[side]; }
+  Real sideTranslationX(const unsigned int & side) const { return _translation_x[side]; }
 
   /**
    * Get the unit vector translation to move a center point to a duct wall
    * @param[in] side duct side
    * @return y-component translation
    */
-  const Real sideTranslationY(const unsigned int & side) const { return _translation_y[side]; }
+  Real sideTranslationY(const unsigned int & side) const { return _translation_y[side]; }
 
   /**
    * Get the index of the "first" pin in a ring
@@ -106,21 +106,21 @@ public:
    * @param[in] n ring number, beginning from 1
    * @return number of pins in the specified ring
    */
-  const unsigned int pins(const unsigned int n) const;
+  unsigned int pins(const unsigned int n) const;
 
   /**
    * Get the total number of pins for all rings
    * @param[in] n number of total rings, beginning from 1
    * @return total number of pins
    */
-  const unsigned int totalPins(const unsigned int n) const;
+  unsigned int totalPins(const unsigned int n) const;
 
   /**
    * Get the number of rings for a specified number of pins
    * @param[in] n number of pins
    * @return number of hexagonal rings
    */
-  const unsigned int rings(const unsigned int n) const;
+  unsigned int rings(const unsigned int n) const;
 
   /**
    * Get the number of interior channels between ring and ring - 1 (0 indexing)
@@ -383,28 +383,28 @@ public:
    * @param[in] p point
    * @return distance to duct
    */
-  const Real minDuctWallDistance(const Point & p) const;
+  Real minDuctWallDistance(const Point & p) const;
 
   /**
    * Get the minimum distance from a point to the duct corners
    * @param[in] p point
    * @return distance to duct corner
    */
-  const Real minDuctCornerDistance(const Point & p) const;
+  Real minDuctCornerDistance(const Point & p) const;
 
   /**
    * Get the channel type (interior, edge, corner) given a point
    * @param[in] p point
    * @return channel type
    */
-  const channel_type::ChannelTypeEnum channelType(const Point & p) const;
+  channel_type::ChannelTypeEnum channelType(const Point & p) const;
 
   /**
    * Get the specific surface area of a channel
    * @param[in] channel channel type
    * @return flow volume per wire pitch
    */
-  const Real channelSpecificSurfaceArea(const channel_type::ChannelTypeEnum & channel) const;
+  Real channelSpecificSurfaceArea(const channel_type::ChannelTypeEnum & channel) const;
 
   /**
    * Get the hydraulic diameter of a channel
@@ -417,63 +417,63 @@ public:
    * Get the pin outer radius
    * @return pin outer radius
    */
-  const Real pinRadius() const;
+  Real pinRadius() const;
 
   /**
    * Get the area of a hexagon with given flat-to-flat distance (pitch)
    * @param[in] pitch flat-to-flat distance
    * @return hexagon area
    */
-  const Real hexagonArea(const Real pitch) const;
+  Real hexagonArea(const Real pitch) const;
 
   /**
    * Get the side length of a hexagon with given flat-to-flat distance (pitch)
    * @param[in] pitch hexgaon flat-to-flat distance, or pitch
    * @return side length of hexagon, to give 1/6 of the hexagon's perimeter
    */
-  const Real hexagonSide(const Real pitch) const;
+  Real hexagonSide(const Real pitch) const;
 
   /**
    * Get the volume of a hexagonal prism per wire pitch
    * @param[in] side side length
    * @return hexagonal prism volume
    */
-  const Real hexagonVolume(const Real side) const;
+  Real hexagonVolume(const Real side) const;
 
   /**
    * Get the pitch of a hexagonal prism based on its per-wire-pitch volume
    * @param[in] volume volume
    * @return pitch
    */
-  const Real hexagonPitch(const Real volume) const;
+  Real hexagonPitch(const Real volume) const;
 
   /**
    * Get the area of an equilateral triangle with given side length
    * @param[in] side side length
    * @return triangle area
    */
-  const Real triangleArea(const Real side) const;
+  Real triangleArea(const Real side) const;
 
   /**
    * Get the height of an equilateral triangle with given side length
    * @param[in] side side length
    * @return triangle height
    */
-  const Real triangleHeight(const Real side) const;
+  Real triangleHeight(const Real side) const;
 
   /**
    * Get the side of an equilateral triangle with given height
    * @param[in] height triangle height
    * @return triangle side
    */
-  const Real triangleSide(const Real height) const;
+  Real triangleSide(const Real height) const;
 
   /**
    * Get the volume of an equilateral triangle prism per wire pitch
    * @param[in] side side length
    * @return triangle prism volume
    */
-  const Real triangleVolume(const Real side) const;
+  Real triangleVolume(const Real side) const;
 
   /**
    * Get the pin indices forming the corners of all interior channels
@@ -545,21 +545,21 @@ public:
    * @param[in] corners corner coordinates
    * @return channel centroid
    */
-  const Point channelCentroid(const std::vector<Point> & corners) const;
+  Point channelCentroid(const std::vector<Point> & corners) const;
 
   /**
    * Get the pin index given a point
    * @param[in] point point
    * @return pin index
    */
-  const unsigned int pinIndex(const Point & point) const;
+  unsigned int pinIndex(const Point & point) const;
 
   /**
    * Get the channel index given a point
    * @param[in] point point
    * @return channel index
    */
-  const unsigned int channelIndex(const Point & point) const;
+  unsigned int channelIndex(const Point & point) const;
 
   std::pair<int, int> sortedGap(const int & id0, const int & id1) const;
 

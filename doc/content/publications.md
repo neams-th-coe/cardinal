@@ -78,7 +78,7 @@ H. Park, Y. Yu, E. Shemon, and A. Novak,
 # Sodium Fast Reactors
 
 A.J. Novak, A. Chaube, D.R. Shaver, C.S. Brooks,
-"Validation of NekRS-MOOSE Conjugate Heat Transfer Coupling for a 7-Pin Bare Bundle"
+["Validation of NekRS-MOOSE Conjugate Heat Transfer Coupling for a 7-Pin Bare Bundle"](https://www.researchgate.net/publication/365443350_Validation_of_NekRS-MOOSE_Conjugate_Heat_Transfer_Coupling_for_a_7-Pin_Bare_Bundle)
 *Proceedings of ANS* (2022)
 
 A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
@@ -96,10 +96,6 @@ Y. Yu, A. Novak, D. Shaver, and E. Merzari,
 *Argonne National Laboratory*, ANL/NSE-22/30 (2022)
 
 # Systems-Level Analysis
-
-A. Huxford, V. Coppo Leite, E. Merzari, L. Zou, V. Petrov, and A. Manera,
-"Development and Application of a Hybrid Domain-Overlapping Coupling Scheme Between SAM and NekRS Using Cardinal"
-*Proceedings of ANS* (2022)
 
 A. Huxford, V. Petrov, A. Manera, V. Coppo Leite, E. Merzari, and L. Zou
 "Development of Innovative Overlapping-Domain Coupling Between SAM and nekRS"

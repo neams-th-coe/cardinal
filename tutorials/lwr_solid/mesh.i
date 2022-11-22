@@ -14,7 +14,7 @@ L = 300.0
     tri_subdomain_id = 0
   []
   [extrude_clad] # this extrudes the circular annulus in the axial direction
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = clad
     heights = '${L}'
     num_layers = '40'
@@ -37,7 +37,7 @@ L = 300.0
     growth_r = -1.2
   []
   [extrude] # this extrudes the circle in the axial direction
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = fuel
     heights = '${L}'
     num_layers = '40'

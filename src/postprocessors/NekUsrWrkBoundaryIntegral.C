@@ -16,14 +16,34 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
-#define P_U0 (0.5)
-#define P_V0 (0.1)
-#define P_W0 (0.2)
+#ifdef ENABLE_NEK_COUPLING
 
-#define P_A0 (0.025)
-#define P_D0 (0.5)
+#include "NekUsrWrkBoundaryIntegral.h"
 
-#define P_OMEGA (15.0)
-#define P_AMP (1.5)
+registerMooseObject("CardinalApp", NekUsrWrkBoundaryIntegral);
 
+InputParameters
+NekUsrWrkBoundaryIntegral::validParams()
+{
+  InputParameters params = NekSidePostprocessor::validParams();
+  params.addRequiredParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk to integrate (zero-indexed)");
+  params.addClassDescription("Compute integral of usrwrk over a boundary in the NekRS mesh");
+  return params;
+}
+
+NekUsrWrkBoundaryIntegral::NekUsrWrkBoundaryIntegral(const InputParameters & parameters)
+  : NekSidePostprocessor(parameters),
+    _usrwrk_slot(getParam<unsigned int>("usrwrk_slot"))
+{
+  if (_usrwrk_slot >= _nek_problem->nUsrWrkSlots())
+    mooseError("'usrwrk_slot' must be less than number of allocated usrwrk slots: ",
+      _nek_problem->nUsrWrkSlots());
+}
+
+Real
+NekUsrWrkBoundaryIntegral::getValue()
+{
+  return nekrs::usrWrkSideIntegral(_boundary, _usrwrk_slot);
+}
+
+#endif

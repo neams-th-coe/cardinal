@@ -23,12 +23,9 @@ void turbulent_props(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S
     o_mu_t_from_restart /* turbulent viscosity */, o_mu /* laminar viscosity */);
 }
 
-void UDF_LoadKernels(nrs_t *nrs)
+void UDF_LoadKernels(occa::properties & kernelInfo)
 {
-  setupAide & options = platform->options;
-  occa::properties & kernelInfo = *nrs->kernelInfo;
-
-  scalarScaledAddKernel = udfBuildKernel(nrs, "scalarScaledAdd");
+  scalarScaledAddKernel = oudfBuildKernel(kernelInfo, "scalarScaledAdd");
 }
 
 void UDF_Setup(nrs_t *nrs)

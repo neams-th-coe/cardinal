@@ -45,7 +45,7 @@ R = ${fparse pin_diameter / 2.0}
     inputs = 'delete_background delete_pin'
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = combine
     heights = ${height}
     num_layers = ${num_layers}

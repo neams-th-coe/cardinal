@@ -330,6 +330,20 @@ conditions are only *weakly* imposed. That is, we set the heat flux but only enf
 it by driving the entire nonlinear residual to a small-enough number, so heat flux
 boundary conditions are never perfectly observed like Dirichlet boundary conditions are.
 
+## What Order Does Everything Happen in?
+
+It can be helpful to understand exactly the order in which different data transfers
+and other operations occur within the NekRS-MOOSE wrapping. For every time step of
+NekRS, we call this function:
+
+!listing /framework/src/problems/ExternalProblem.C
+  re=void\sExternalProblem::solve.*?^}
+
+A detailed breakdown of each of these three basic steps is provided below:
+
+- [sync solutions from MOOSE to NekRS](sync_in.md)
+- [run NekRS](run_nek.md)
+- [sync solutions from NekRS to MOOSE](sync_out.md)
 
 ## Other Features
 
@@ -472,6 +486,58 @@ a linear interpolation of the two flux values at the end points of the master ap
 solve interval, or $0.6q^{''}(t)+0.4q^{''}(t+1)$.
 Using this "minimal transfer" feature will *ignore* the fact that MOOSE is
 interpolating the heat flux.
+
+### Flux Normalization
+
+By default, `NekRSProblem`
+will lump all "receiving" sidesets in NekRS together for the purpose of flux normalization.
+For example, suppose we are coupling NekRS to MOOSE heat conduction through two boundaries.
+Suppose MOOSE heat conduction predicts the following heat flux integrals on each of these
+boundaries:
+
+- MOOSE boundary 1: 100.0 W
+- MOOSE boundary 2: 200.0 W
+
+When this data gets mapped to NekRS's spectral element mesh, we need to renormalize to ensure
+that we conserve power. This renormalization is necessary because the NekRS mesh can be entirely
+different from the MOOSE mesh, and integrating a nodal field on an origin mesh from MOOSE
+(say, a 1-st order Lagrange interpolation) will give a different integral value than
+integrating the interpolated nodal values on the receiving NekRS mesh (say, a 7-th order
+Lagrange interpolation of [!ac](GLL) points). By default, `NekRSProblem` lumps all receiving
+sidesets in the NekRS model together for the sake of normalization. For example, suppose
+that once received on the NekRS mesh and integrated, that the received flux has values of:
+
+- NekRS boundary 1: 102.0 W
+- NekRS boundary 2: 199.0 W
+
+By default, this class will renormalize the NekRS flux in order to match the *total* MOOSE
+flux (of 300.0 W) to give:
+
+- NekRS boundary 1: $102.0 * \frac{100.0 + 200.0}{102.0 + 199.0}\equiv 101.66$
+- NekRS boundary 2: $199.0 * \frac{100.0 + 200.0}{102.0 + 199.0}\equiv 198.34$
+
+The *total* power entering the flux is preserved, but not the distribution among the sidesets.
+This is usually a *very small* error and is an acceptable approximation for many analyses.
+However, we do also support an option where the heat flux on each sideset is preserved with
+the `conserve_flux_by_sideset` option. When setting this parameter to true, the heat flux
+on each NekRS sideset will instead be evaluated as:
+
+- NekRS boundary 1: $102.0 * \frac{100.0}{102.0}\equiv 100.0$
+- NekRS boundary 2: $199.0 * \frac{200.0}{199.0}\equiv 200.0$
+
+This option requires using a vector postprocessor (we typically recommend the
+[VectorOfPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/VectorOfPostprocessors.html)
+object) to send indiviudal boundary flux values to preserve. This more advanced option
+cannot be used if:
+
+- Your sidesets in the coupled MOOSE App are not individually specified. For instance,
+  if your heat conduction solver has one sideset that maps to *two* NekRS sidesets,
+  there's no natural way to figure out what the heat flux is in those sub-sidesets
+  to send a correct value to NekRS.
+- Any nodes are shared among the NekRS sidesets, such as a node on a corner between two
+  sidesets. When we renormalize the NekRS flux, nodes that are present on more than
+  one sideset will get renormalized multiple times, so there is no guarantee that we
+  can enforce the total flux.
 
 ### Limiting Temperature
 

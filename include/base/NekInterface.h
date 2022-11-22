@@ -24,7 +24,6 @@
 #include "NekVolumeCoupling.h"
 #include "nekrs.hpp"
 #include "bcMap.hpp"
-#include "io.hpp"
 #include "udf.hpp"
 #include "meshSetup.hpp"
 #include "libmesh/point.h"
@@ -57,6 +56,21 @@ void setAbsoluteTol(double tol);
 void setRelativeTol(double tol);
 
 /**
+ * Nek's runtime statistics are formed by collecting a timer of both the initialization
+ * and accumulated run time. We unfortunately have to split this across multiple classes,
+ * so if we want correct times we need to have NekInitAction save the value of the time
+ * spent on initialization.
+ * @param[in] time time spent on initialization
+ */
+void setNekSetupTime(const double & time);
+
+/**
+ * Get time spent on initialization
+ * @return time spent on initialization
+ */
+double getNekSetupTime();
+
+/**
  * Set the start time used by NekRS
  * @param[in] start start time
  */
@@ -74,16 +88,18 @@ bool isInitialized();
  * @param[in] slot index in the nrs->usrwrk array to write
  * @param[in] prefix prefix for file name
  * @param[in] time simulation time to write file for
+ * @param[in] step time step index
  * @parma[in] write_coords whether to write the mesh coordinates
  */
-void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const bool & write_coords);
+void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords);
 
 /**
  * Write a field file containing pressure, velocity, and scalars with given prefix
  * @param[in] prefix three-character prefix
  * @param[in] time time
+ * @param[in] step time step index
  */
-void write_field_file(const std::string & prefix, const dfloat time);
+void write_field_file(const std::string & prefix, const dfloat time, const int & step);
 
 /**
  * Indicate whether NekRS was run in build-only mode (this doesn't actually
@@ -115,6 +131,12 @@ bool hasCHT();
  * @return whether nekRS's input file indicates a moving mesh
  */
 bool hasMovingMesh();
+
+/**
+ * Whether nekRS's input file indicates a variable time stepping scheme
+ * @return whether nekRS's input file indicates a variable time stepping
+ */
+bool hasVariableDt();
 
 /**
  * Whether nekRS's input file intends to terminate the simulation based on a wall time
@@ -331,9 +353,11 @@ Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 /**
  * Integrate the interpolated flux over the boundaries of the data transfer mesh
  * @param[in] nek_boundary_coupling data structure holding boundary coupling info
+ * @param[in] boundary boundaries over which to integrate the flux
  * @return boundary integrated flux
  */
-double fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling);
+std::vector<double> fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling,
+                                 const std::vector<int> & boundary);
 
 /**
  * Integrate the interpolated heat source over the volume of the data transfer mesh
@@ -345,12 +369,29 @@ double sourceIntegral(const NekVolumeCoupling & nek_volume_coupling);
 /**
  * Normalize the flux sent to nekRS to conserve the total flux
  * @param[in] nek_boundary_coupling data structure holding boundary coupling info
+ * @param[in] boundary boundaries for which to normalize the flux
+ * @param[in] moose_integral total integrated flux from MOOSE to conserve
+ * @param[in] nek_integral total integrated flux in nekRS to adjust
+ * @param[out] normalized_nek_integral final normalized nek flux integral
+ * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
+ */
+bool normalizeFluxBySideset(const NekBoundaryCoupling & nek_boundary_coupling,
+                   const std::vector<int> & boundary,
+                   const std::vector<double> & moose_integral,
+                   std::vector<double> & nek_integral,
+                   double & normalized_nek_integral);
+
+/**
+ * Normalize the flux sent to nekRS to conserve the total flux
+ * @param[in] nek_boundary_coupling data structure holding boundary coupling info
+ * @param[in] boundary boundaries for which to normalize the flux
  * @param[in] moose_integral total integrated flux from MOOSE to conserve
  * @param[in] nek_integral total integrated flux in nekRS to adjust
  * @param[out] normalized_nek_integral final normalized nek flux integral
  * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
  */
 bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
+                   const std::vector<int> & boundary,
                    const double moose_integral,
                    double nek_integral,
                    double & normalized_nek_integral);
@@ -374,6 +415,14 @@ bool normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling,
  * @return area integral
  */
 double area(const std::vector<int> & boundary_id);
+
+/**
+ * Compute the area integral of a given slot in the usrwrk array over a set of boundary IDs
+ * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+ * @param[in] slot slot in usrwrk array
+ * @return area integral of a component of the usrwrk array
+ */
+double usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot);
 
 /**
  * Compute the area integral of a given integrand over a set of boundary IDs

@@ -89,14 +89,14 @@ RadialBin::RadialBin(const InputParameters & parameters)
   }
 }
 
-const unsigned int
+unsigned int
 RadialBin::bin(const Point & p) const
 {
   Real r = std::sqrt(p.norm_sq() - p(_vertical_axis) * p(_vertical_axis));
   return binFromBounds(r, _radial_pts);
 }
 
-const unsigned int
+unsigned int
 RadialBin::num_bins() const
 {
   return _nr;

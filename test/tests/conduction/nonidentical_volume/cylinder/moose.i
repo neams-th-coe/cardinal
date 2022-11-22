@@ -7,7 +7,7 @@
     nr = 20
   []
   [extrude]
-    type = FancyExtruderGenerator
+    type = AdvancedExtruderGenerator
     input = circle
     heights = '0.5'
     num_layers = '10'
