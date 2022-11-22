@@ -752,6 +752,9 @@ protected:
    */
   const bool & _check_equal_mapped_tally_volumes;
 
+  /// Absolute tolerance for checking equal tally mapped volumes
+  const Real & _equal_tally_volume_abs_tol;
+
   /// Constant relaxation factor
   const Real & _relaxation_factor;
 
