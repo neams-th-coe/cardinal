@@ -950,26 +950,22 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
 {
   auto vc = _nek_mesh->volumeCoupling();
 
-  // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (nekrs::commRank() == vc.processor_id(elem_id))
+  mesh_t * mesh = nekrs::entireMesh();
+  void (*write_solution)(int, dfloat);
+  write_solution = nekrs::solution::solutionPointer(field);
+
+  int id;
+  double * tmp = (double *)calloc(mesh->Np, sizeof(double));
+
+  interpolateVolumeSolutionToNek(elem_id, T, tmp, id);
+
+  for (int v = 0; v < mesh->Np; ++v)
   {
-    mesh_t * mesh = nekrs::entireMesh();
-    void (*write_solution)(int, dfloat);
-    write_solution = nekrs::solution::solutionPointer(field);
-
-    int id;
-    double * tmp = (double *)calloc(mesh->Np, sizeof(double));
-
-    interpolateVolumeSolutionToNek(elem_id, T, tmp, id);
-
-    for (int v = 0; v < mesh->Np; ++v)
-    {
-      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-      write_solution(id + v, tmp[v] + extra);
-    }
-
-    freePointer(tmp);
+    double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+    write_solution(id + v, tmp[v] + extra);
   }
+
+  freePointer(tmp);
 }
 
 void
@@ -978,26 +974,22 @@ NekRSProblemBase::writeBoundarySolution(const int elem_id, const field::NekWrite
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
-  // We can only write into the nekRS scratch space if that face is "owned" by the current process
-  if (nekrs::commRank() == bc.processor_id(elem_id))
+  mesh_t * mesh = nekrs::temperatureMesh();
+  void (*write_solution)(int, dfloat);
+  write_solution = nekrs::solution::solutionPointer(field);
+
+  int offset;
+  double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+  interpolateBoundarySolutionToNek(elem_id, T, tmp, offset);
+
+  for (int i = 0; i < mesh->Nfp; ++i)
   {
-    mesh_t * mesh = nekrs::temperatureMesh();
-    void (*write_solution)(int, dfloat);
-    write_solution = nekrs::solution::solutionPointer(field);
-
-    int offset;
-    double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
-    interpolateBoundarySolutionToNek(elem_id, T, tmp, offset);
-
-    for (int i = 0; i < mesh->Nfp; ++i)
-    {
-      int id = mesh->vmapM[offset + i];
-      double extra = (add == nullptr) ? 0.0 : (*add)[id];
-      write_solution(id, tmp[i]);
-    }
-
-    freePointer(tmp);
+    int id = mesh->vmapM[offset + i];
+    double extra = (add == nullptr) ? 0.0 : (*add)[id];
+    write_solution(id, tmp[i]);
   }
+
+  freePointer(tmp);
 }
 
 void
