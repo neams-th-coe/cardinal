@@ -167,6 +167,8 @@ OpenMCCellAverageProblem::validParams()
       "This can be helpful to ensure that the volume normalization of OpenMC's tallies doesn't "
       "introduce any unintentional distortion just because the mapped volumes are different. "
       "You should only set this to true if your OpenMC tally cells are all the same volume!");
+  params.addRangeCheckedParam<Real>("equal_tally_volume_abs_tol", 1e-8, "equal_tally_volume_abs_tol > 0",
+      "Absolute tolerance for comparing tally volumes");
 
   params.addParam<unsigned int>("solid_cell_level",
                                 "Coordinate level in OpenMC to use for identifying solid cells");
@@ -241,6 +243,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                                                        (_run_mode == openmc::RunMode::FIXED_SOURCE ?
                                                         true : _normalize_by_global)),
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
+    _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol")),
     _relaxation_factor(getParam<Real>("relaxation_factor")),
     _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
     _check_identical_tally_cell_fills(getParam<bool>("check_identical_tally_cell_fills")),
@@ -1680,7 +1683,7 @@ OpenMCCellAverageProblem::storeTallyCells()
       if (_check_equal_mapped_tally_volumes)
       {
         Real diff = std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]);
-        bool absolute_diff = diff > 1e-6;
+        bool absolute_diff = diff > _equal_tally_volume_abs_tol;
         bool relative_diff = diff / mapped_tally_volume > 1e-3;
         if (absolute_diff && relative_diff)
         {
