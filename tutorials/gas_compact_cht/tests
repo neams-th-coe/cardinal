@@ -3,6 +3,5 @@
     type = RunApp
     input = thm.i
     requirement = "The system shall be able to run THM input files for channel flow."
-    required_applications = 'ThermalHydraulicsApp'
   []
 []

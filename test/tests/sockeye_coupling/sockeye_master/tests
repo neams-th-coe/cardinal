@@ -3,9 +3,6 @@
     type = RunApp
     input = flow_only_convection.i
 
-    # THM (a dependency of Sockeye) currently only works in serial
-    max_parallel = 1
-
     requirement = "Cardinal shall be able to run Sockeye as a master-application without any data transfers. "
                   "This test just ensures correct setup of Sockeye as a submodule with app registration."
     required_applications = 'SockeyeApp'

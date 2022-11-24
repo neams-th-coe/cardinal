@@ -13,9 +13,6 @@
 [submodule "contrib/sockeye"]
 	path = contrib/sockeye
 	url = git@hpcgitlab.hpc.inl.gov:idaholab/sockeye.git
-[submodule "contrib/thm"]
-	path = contrib/thm
-	url = git@hpcgitlab.hpc.inl.gov:idaholab/thm.git
 [submodule "contrib/sodium"]
 	path = contrib/sodium
 	url = git@hpcgitlab.hpc.inl.gov:idaholab/sodium.git

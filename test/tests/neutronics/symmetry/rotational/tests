@@ -7,9 +7,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [symmetry_sector]
-    type = Exodiff
+    type = CSVDiff
     input = openmc.i
-    exodiff = openmc_out.e
+    csvdiff = openmc_out.csv
     prereq = generate_mesh
     requirement = "The system shall correctly reflect points about a partial symmetry sector"
     required_objects = 'OpenMCCellAverageProblem'

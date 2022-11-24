@@ -157,5 +157,6 @@
 
 [Outputs]
   exodus = true
-  hide = 'temp pin pin1 pin2 pin3 pin4 pin5 heat_source'
+  csv = true
+  hide = 'temp pin pin1 pin2 pin3 pin4 pin5'
 []
