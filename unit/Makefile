@@ -57,10 +57,6 @@ OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
 SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
 
-ifeq ($(THERMAL_HYDRAULICS), yes)
-  THM_CONTENT     := true
-endif
-
 SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
 POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
 IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
@@ -185,7 +181,7 @@ ifneq ($(SODIUM_CONTENT),)
   APPLICATION_DIR     := $(SODIUM_DIR)
   APPLICATION_NAME    := sodium
   include             $(FRAMEWORK_DIR)/app.mk
-  include             $(SODIUM_DIR)/libSodium.mk
+  include             $(SODIUM_DIR)/libSodiumProperties.mk
 endif
 
 # potassium submodule
@@ -194,7 +190,7 @@ ifneq ($(POTASSIUM_CONTENT),)
   APPLICATION_DIR     := $(POTASSIUM_DIR)
   APPLICATION_NAME    := potassium
   include             $(FRAMEWORK_DIR)/app.mk
-  include             $(POTASSIUM_DIR)/libPotassium.mk
+  include             $(POTASSIUM_DIR)/libPotassiumProperties.mk
 endif
 
 # iapws95 submodule
