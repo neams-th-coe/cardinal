@@ -37,9 +37,6 @@ endif
 # We can check that if it looks like we're going to build Sockeye, that
 # all of its dependencies are there
 ifneq ($(SOCKEYE_CONTENT),)
-  ifeq ($(THM_CONTENT),)
-    $(error $n"Thermal Hydraulics Module dependency for Sockeye does not seem to be available.$n$nMake sure that 'THERMAL_HYDRAULICS := yes' is set in Cardinal's Makefile.")
-  endif
   ifeq ($(SODIUM_CONTENT),)
     $(error $n"Sodium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that SODIUM_DIR points to a location with the sodium source.$n$nTo fetch the sodium submodule, use 'git submodule update --init contrib/sodium'")
   endif
