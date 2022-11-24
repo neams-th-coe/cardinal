@@ -40,9 +40,6 @@ initial_T = 1200
   porosity = ${porosity}
   permeability = ${permeability}
 
-  htc_int_lsw = 1e5
-  htc_int_vapor = 1e5
-
   k_solid = 100
   k_wick = 20
   cv_wick = 500

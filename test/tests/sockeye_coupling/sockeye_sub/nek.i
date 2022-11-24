@@ -24,9 +24,6 @@
     app_type = SockeyeApp
     input_files = 'flow_only_convection.i'
     execute_on = timestep_end
-
-    # THM (a dependency of Sockeye) is currently limited to serial execution
-    max_procs_per_app = 1
   []
 []
 

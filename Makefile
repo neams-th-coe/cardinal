@@ -210,18 +210,13 @@ ifneq ($(SOCKEYE_CONTENT),)
   include             $(FRAMEWORK_DIR)/app.mk
 endif
 
-# THM submodule
-ifneq ($(THM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_THM_COUPLING
-endif
-
 # sodium submodule
 ifneq ($(SODIUM_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_SODIUM
   APPLICATION_DIR     := $(SODIUM_DIR)
   APPLICATION_NAME    := sodium
   include             $(FRAMEWORK_DIR)/app.mk
-  include             $(SODIUM_DIR)/libSodium.mk
+  include             $(SODIUM_DIR)/libSodiumProperties.mk
 endif
 
 # potassium submodule
@@ -230,7 +225,7 @@ ifneq ($(POTASSIUM_CONTENT),)
   APPLICATION_DIR     := $(POTASSIUM_DIR)
   APPLICATION_NAME    := potassium
   include             $(FRAMEWORK_DIR)/app.mk
-  include             $(POTASSIUM_DIR)/libPotassium.mk
+  include             $(POTASSIUM_DIR)/libPotassiumProperties.mk
 endif
 
 # iapws95 submodule

@@ -11,7 +11,7 @@ height = 6.343                           # height of the full core (m)
   []
 
   # create a mesh for a single coolant channel; because we will receive uniform
-  # temperatures and densities from THM on each x-y plane, we can use a very coarse
+  # temperatures and densities on each x-y plane, we can use a very coarse
   # mesh in the radial direction
   [coolant_face]
     type = AnnularMeshGenerator

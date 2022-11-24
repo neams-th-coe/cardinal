@@ -15,7 +15,6 @@
     check_input = true
     cli_args = 'Outputs/exodus=false'
     requirement = "THM shall be able to solve for fluid flow and heat transfer in a pipe."
-    required_applications = 'ThermalHydraulicsApp'
   []
   [run_solid]
     type = RunApp
