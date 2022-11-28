@@ -632,7 +632,9 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   if (moose_source &&
       (std::abs(nek_source * nek_source_print_mult - moose_source) / moose_source) > 0.25)
     mooseDoOnce(mooseWarning("nekRS source differs from MOOSE source by more than 25\%! "
-                             "This could indicate that your geometries do not line up properly."));
+                             "This could indicate that your geometries do not line up properly "
+                             "or there is some other mistake in the data transfer (check the "
+                             "exodus output files to see if the transferred data looks sensible)."));
 
   if (!successful_normalization)
     mooseError("Heat source normalization process failed! nekRS integrated heat source: ",

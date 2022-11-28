@@ -151,3 +151,9 @@ the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html) to l
 ## Outputting the Scratch Array
 
 !include write_scratch.md
+
+!syntax parameters /Problem/NekRSStandaloneProblem
+
+!syntax inputs /Problem/NekRSStandaloneProblem
+
+!syntax children /Problem/NekRSStandaloneProblem
