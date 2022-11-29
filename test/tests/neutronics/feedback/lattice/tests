@@ -57,4 +57,12 @@
     requirement = "The system shall allow the user to specify a 'fission-q-recoverable' score in the OpenMC tally."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [duplicate_variable]
+    type = RunException
+    input = openmc.i
+    cli_args = "AuxVariables/heat_source/order=FIRST"
+    expect_err = "Cardinal is trying to add an auxiliary variable named 'heat_source', but you already have a variable by this name."
+    requirement = "The system shall error if the user adds a duplicate variable with a name Cardinal reserves for OpenMC coupling."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
