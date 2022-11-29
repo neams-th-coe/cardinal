@@ -4,8 +4,8 @@ have all the basic requirements in place, you can try running a few input files.
 1. If you are using OpenMC, try:
 
 ```
-cd tutorials/lwr_solid
-mpiexec -np 2 ../../cardinal-opt -i solid.i --n-threads=2
+cd test/tests/neutronics/feedback/lattice
+mpiexec -np 2 ../../../../../cardinal-opt -i openmc_master.i --n-threads=2
 ```
 
 If you run into any issues when running OpenMC cases, check out our
