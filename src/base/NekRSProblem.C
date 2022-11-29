@@ -771,6 +771,7 @@ NekRSProblem::addExternalVariables()
   NekRSProblemBase::addExternalVariables();
   auto var_params = getExternalVariableParameters();
 
+  checkDuplicateVariableName("temp");
   addAuxVariable("MooseVariable", "temp", var_params);
   _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
 
@@ -783,6 +784,7 @@ NekRSProblem::addExternalVariables()
     // to nekRS. This is just the variable that nekRS reads from - MOOSE's transfer
     // classes handle any additional interpolations needed from the flux on the
     // sending app (such as BISON) into 'avg_flux'.
+    checkDuplicateVariableName("avg_flux");
     addAuxVariable("MooseVariable", "avg_flux", var_params);
     _avg_flux_var = _aux->getFieldVariable<Real>(0, "avg_flux").number();
 
@@ -805,6 +807,7 @@ NekRSProblem::addExternalVariables()
 
   if (_volume && _has_heat_source)
   {
+    checkDuplicateVariableName("heat_source");
     addAuxVariable("MooseVariable", "heat_source", var_params);
     _heat_source_var = _aux->getFieldVariable<Real>(0, "heat_source").number();
 
@@ -817,12 +820,15 @@ NekRSProblem::addExternalVariables()
   // be needed regardless of whether the displacement is boundary- or volume-based
   if (_moving_mesh)
   {
+    checkDuplicateVariableName("disp_x");
     addAuxVariable("MooseVariable", "disp_x", var_params);
     _disp_x_var = _aux->getFieldVariable<Real>(0, "disp_x").number();
 
+    checkDuplicateVariableName("disp_y");
     addAuxVariable("MooseVariable", "disp_y", var_params);
     _disp_y_var = _aux->getFieldVariable<Real>(0, "disp_y").number();
 
+    checkDuplicateVariableName("disp_z");
     addAuxVariable("MooseVariable", "disp_z", var_params);
     _disp_z_var = _aux->getFieldVariable<Real>(0, "disp_z").number();
   }

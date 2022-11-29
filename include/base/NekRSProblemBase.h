@@ -42,6 +42,13 @@ public:
   ~NekRSProblemBase();
 
   /**
+   * Check whether the user has already created a variable using one of the protected
+   * names that the NekRS wrapping is using.
+   * @param[in] name variable name
+   */
+  void checkDuplicateVariableName(const std::string & name) const;
+
+  /**
    * Write NekRS solution field file
    * @param[in] time solution time in NekRS (if NekRS is non-dimensional, this will be non-dimensional)
    * @param[in] step time step index
