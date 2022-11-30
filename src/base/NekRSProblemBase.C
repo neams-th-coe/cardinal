@@ -742,6 +742,20 @@ NekRSProblemBase::addTemperatureVariable()
 }
 
 void
+NekRSProblemBase::checkDuplicateVariableName(const std::string & name) const
+{
+  if (_aux.get()->hasVariable(name))
+    mooseError("Cardinal is trying to add an auxiliary variable named '", name,
+      "', but you already have a variable by this name. Please choose a different name "
+      "for the auxiliary variable you are adding.");
+
+  if (_nl[0].get()->hasVariable(name))
+    mooseError("Cardinal is trying to add a nonlinear variable named '", name,
+      "', but you already have a variable by this name. Please choose a different name "
+      "for the nonlinear variable you are adding.");
+}
+
+void
 NekRSProblemBase::addExternalVariables()
 {
   if (_outputs)
@@ -775,6 +789,7 @@ NekRSProblemBase::addExternalVariables()
     _var_string = "";
     for (const auto & name : _var_names)
     {
+      checkDuplicateVariableName(name);
       addAuxVariable("MooseVariable", name, var_params);
       _external_vars.push_back(_aux->getFieldVariable<Real>(0, name).number());
 

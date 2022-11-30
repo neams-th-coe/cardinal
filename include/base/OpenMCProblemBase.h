@@ -36,6 +36,13 @@ public:
 
   virtual ~OpenMCProblemBase() override;
 
+  /**
+   * Check whether the user has already created a variable using one of the protected
+   * names that the OpenMC wrapping is using.
+   * @param[in] name variable name
+   */
+  void checkDuplicateVariableName(const std::string & name) const;
+
   /// Run a k-eigenvalue OpenMC simulation
   void externalSolve() override;
 

@@ -15,15 +15,6 @@
 [AuxVariables]
   [dummy]
   []
-  [disp_x]
-    order = SECOND
-  []
-  [disp_y]
-    order = SECOND
-  []
-  [disp_z]
-    order = SECOND
-  []
 []
 
 # This AuxVariable and AuxKernel is only here to get the postprocessors
