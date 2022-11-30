@@ -1,10 +1,9 @@
-[GENERAL] 
-#startFrom = "restart.fld"
+[GENERAL]
 polynomialOrder = 7
-numSteps = 1000 
+numSteps = 5
 dt = 2e-02
 timeStepper = tombo2
-writeInterval = 100
+writeInterval = -1
 
 [PRESSURE]
 residualTol = 1e-06

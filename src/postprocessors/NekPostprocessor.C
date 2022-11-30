@@ -25,7 +25,7 @@ NekPostprocessor::validParams()
 {
   InputParameters params = GeneralPostprocessor::validParams();
 
-  MooseEnum mesh("fluid solid all", "fluid");
+  MooseEnum mesh("fluid solid all", "all");
   params.addParam<MooseEnum>(
       "mesh", mesh, "NekRS mesh to compute postprocessor on");
 
@@ -49,10 +49,8 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
   }
 
   if (_pp_mesh=="solid")
-    mooseError("Cardinal cannot operate soley on the NekRS solid mesh, but this capability will\n"
+    mooseError("Cardinal cannot operate solely on the NekRS solid mesh, but this capability will\n"
                "be added in the future. Please use 'fluid' or 'all' until then.");
-//    mooseError("Cardinal cannot operate soley on the NekRS solid mesh, but this capability will\n"
-//               "be added in the future. Please use 'fluid' or 'all' (fluid + solid) until then!");
 
   _fixed_mesh = !(_nek_problem->movingMesh());
 

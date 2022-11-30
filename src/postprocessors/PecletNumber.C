@@ -40,7 +40,6 @@ PecletNumber::PecletNumber(const InputParameters & parameters) : ReynoldsNumber(
   if (!nekrs::hasTemperatureVariable())
     mooseError("This postprocessor cannot be used in NekRS problems "
                "without a temperature variable!");
-
 }
 
 Real

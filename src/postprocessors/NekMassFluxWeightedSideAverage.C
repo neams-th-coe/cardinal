@@ -34,9 +34,6 @@ NekMassFluxWeightedSideAverage::validParams()
 NekMassFluxWeightedSideAverage::NekMassFluxWeightedSideAverage(const InputParameters & parameters)
   : NekMassFluxWeightedSideIntegral(parameters)
 {
-//  // make sure mesh is only fluid
-//  if ( std::find(_pp_mesh.begin(), _pp_mesh.end(), "solid") != _pp_mesh.end() )
-//    mooseError("This postprocessor requires mesh = 'fluid'!");
 }
 
 Real

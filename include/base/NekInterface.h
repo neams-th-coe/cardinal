@@ -42,8 +42,7 @@ namespace nekrs
 {
 
 static int build_only;
-//static std::string mesh_default ("fluid"); // default mesh to act on
-static MooseEnum mesh_default("fluid","fluid"); // default mesh to act on
+static MooseEnum mesh_default("all","all"); // default mesh to act on
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -197,7 +196,7 @@ mesh_t * temperatureMesh();
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @return mesh to act on
  */
-mesh_t * whichMesh(const MooseEnum & pp_mesh = mesh_default);
+mesh_t * getMesh(const MooseEnum & pp_mesh = mesh_default);
 
 /**
  * Get the process rank

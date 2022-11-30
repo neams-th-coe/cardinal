@@ -4,7 +4,6 @@
     input = nek.i
     csvdiff = nek_out.csv
     min_parallel = 2
-    mesh_mode = 'replicated'
     requirement = "Cardinal shall be able to run the conj_ht NekRS example with a thin wrapper while "
                   "using postprocessors acting on either the fluid mesh or fluid+solid mesh."
     required_objects = 'NekRSProblem'
@@ -14,7 +13,7 @@
     type = RunException
     input = nek.i
     cli_args = 'Postprocessors/Area_BC3_flow/mesh="solid"'
-    expect_err = "Cardinal cannot operate soley on the NekRS solid mesh, but this capability will\n"
+    expect_err = "Cardinal cannot operate solely on the NekRS solid mesh, but this capability will\n"
                  "be added in the future. Please use 'fluid' or 'all' until then."
     requirement = "The system shall throw an error if trying to act on only the NekRS solid mesh."
     required_objects = 'NekRSProblem'

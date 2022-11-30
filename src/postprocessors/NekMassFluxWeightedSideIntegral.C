@@ -37,10 +37,6 @@ NekMassFluxWeightedSideIntegral::NekMassFluxWeightedSideIntegral(const InputPara
   if (_field == field::velocity_component)
     mooseError("This class does not support 'field = velocity_component' because the "
                "velocity component normal to the sideset is used!");
-
-//  // make sure mesh is only fluid
-//  if ( std::find(_pp_mesh.begin(), _pp_mesh.end(), "solid") != _pp_mesh.end() )
-//    mooseError("This postprocessor requires mesh = 'fluid'!");
 }
 
 Real

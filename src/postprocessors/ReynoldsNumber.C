@@ -36,7 +36,7 @@ ReynoldsNumber::validParams()
 ReynoldsNumber::ReynoldsNumber(const InputParameters & parameters)
   : NekSidePostprocessor(parameters)
 {
-	// for dimensional cases, we need to provide the characteristic length ourselves
+  // for dimensional cases, we need to provide the characteristic length ourselves
   // because there's no way to infer it
   if (!_nek_problem->nondimensional())
   {

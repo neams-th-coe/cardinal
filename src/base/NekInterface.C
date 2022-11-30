@@ -227,16 +227,15 @@ temperatureMesh()
 }
 
 mesh_t *
-whichMesh(const MooseEnum & pp_mesh)
+getMesh(const MooseEnum & pp_mesh)
 {
   if (pp_mesh == "fluid")
     return flowMesh();
   else if (pp_mesh == "all")
-    return temperatureMesh();
+    return entireMesh();
   else
     mooseError("Cardinal cannot operate on this mesh region of ", pp_mesh);
 }
-
 
 int
 commRank()
@@ -667,7 +666,7 @@ double
 sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
              const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double value = -std::numeric_limits<double>::max();
 
@@ -706,7 +705,7 @@ sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
 double
 volumeMaxValue(const field::NekFieldEnum & field, const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double value = -std::numeric_limits<double>::max();
 
@@ -739,7 +738,7 @@ volumeMaxValue(const field::NekFieldEnum & field, const MooseEnum & pp_mesh)
 double
 volumeMinValue(const field::NekFieldEnum & field, const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double value = std::numeric_limits<double>::max();
 
@@ -773,7 +772,7 @@ double
 sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
              const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double value = std::numeric_limits<double>::max();
 
@@ -886,7 +885,7 @@ centroid(int local_elem_id)
 double
 volume(const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
 
@@ -972,7 +971,7 @@ double
 volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
                const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
 
@@ -999,7 +998,7 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
 double
 area(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
 
@@ -1033,7 +1032,7 @@ double
 usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot,
                    const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *) nrsPtr();
 
   double integral = 0.0;
@@ -1066,7 +1065,7 @@ double
 sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand,
              const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
 
@@ -1102,7 +1101,7 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
 double
 massFlowrate(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the density is constant, because
@@ -1152,7 +1151,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
                              const field::NekFieldEnum & integrand,
                              const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the density is constant, because
@@ -1208,7 +1207,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 double
 heatFluxIntegral(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // TODO: This function only works correctly if the conductivity is constant, because
@@ -1261,7 +1260,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh
 void
 gradient(const int offset, const double * f, double * grad_f, const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = whichMesh(pp_mesh);
+  mesh_t * mesh = getMesh(pp_mesh);
 
   std::vector<std::vector<std::vector<double>>> s_P(
       mesh->Nq, std::vector<std::vector<double>>(mesh->Nq, std::vector<double>(mesh->Nq, 0)));
