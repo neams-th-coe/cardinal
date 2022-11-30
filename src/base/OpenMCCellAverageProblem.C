@@ -1959,15 +1959,18 @@ OpenMCCellAverageProblem::addExternalVariables()
   var_params.set<MooseEnum>("family") = "MONOMIAL";
   var_params.set<MooseEnum>("order") = "CONSTANT";
 
+  checkDuplicateVariableName(_tally_name);
   addAuxVariable("MooseVariable", _tally_name, var_params);
   _tally_var = _aux->getFieldVariable<Real>(0, _tally_name).number();
 
+  checkDuplicateVariableName("temp");
   addAuxVariable("MooseVariable", "temp", var_params);
   _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
 
   // we need a density variable if we are transferring density into OpenMC
   if (_has_fluid_blocks)
   {
+    checkDuplicateVariableName("density");
     addAuxVariable("MooseVariable", "density", var_params);
     _density_var = _aux->getFieldVariable<Real>(0, "density").number();
   }
@@ -1976,6 +1979,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     for (std::size_t i = 0; i < _outputs->size(); ++i)
     {
+      checkDuplicateVariableName(_output_name[i]);
       addAuxVariable("MooseVariable", _output_name[i], var_params);
       _external_vars.push_back(_aux->getFieldVariable<Real>(0, _output_name[i]).number());
     }
@@ -2009,6 +2013,7 @@ OpenMCCellAverageProblem::addExternalVariables()
       var_params.set<MooseEnum>("family") = "LAGRANGE";
       var_params.set<MooseEnum>("order") = "FIRST";
       var_params.set<std::vector<SubdomainName>>("block") = v.second;
+      checkDuplicateVariableName(v.first);
       addAuxVariable("MooseVariable", v.first, var_params);
     }
 

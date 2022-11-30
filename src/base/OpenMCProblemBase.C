@@ -19,6 +19,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCProblemBase.h"
+#include "NonlinearSystem.h"
 #include "AuxiliarySystem.h"
 #include "UserErrorChecking.h"
 
@@ -468,6 +469,20 @@ OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally) const
     n += t->n_realizations_;
 
   return tallySumAcrossBins(tally) / n;
+}
+
+void
+OpenMCProblemBase::checkDuplicateVariableName(const std::string & name) const
+{
+  if (_aux.get()->hasVariable(name))
+    mooseError("Cardinal is trying to add an auxiliary variable named '", name,
+      "', but you already have a variable by this name. Please choose a different name "
+      "for the auxiliary variable you are adding.");
+
+  if (_nl[0].get()->hasVariable(name))
+    mooseError("Cardinal is trying to add a nonlinear variable named '", name,
+      "', but you already have a variable by this name. Please choose a different name "
+      "for the nonlinear variable you are adding.");
 }
 
 #endif
