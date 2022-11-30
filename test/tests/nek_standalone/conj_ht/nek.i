@@ -44,14 +44,38 @@
    field = temperature
    mesh = 'all'
  []
- [heatFluxIntegral_BC3_flow]
+ [HeatFluxIntegral_BC3_flow]
    type = NekHeatFluxIntegral
    boundary = '3'
    mesh = 'fluid'
  []
- [heatFluxIntegral_BC3_all]
+ [HeatFluxIntegral_BC3_all]
    type = NekHeatFluxIntegral
    boundary = '3'
+   mesh = 'all'
+ []
+ [MassFlowRate_BC1_flow]
+   type = NekMassFluxWeightedSideIntegral
+   boundary = '1'
+   field = unity
+   mesh = 'fluid'
+ []
+ [MassFlowRate_BC1_all]
+   type = NekMassFluxWeightedSideIntegral
+   boundary = '1'
+   field = unity
+   mesh = 'all'
+ []
+ [MflowAvgTemp_BC2_flow]
+   type = NekMassFluxWeightedSideAverage
+   boundary = '2'
+   field = temperature
+   mesh = 'fluid'
+ []
+ [MflowAvgTemp_BC2_all]
+   type = NekMassFluxWeightedSideAverage
+   boundary = '2'
+   field = temperature
    mesh = 'all'
  []
  [Reynolds_BC1_flow]
