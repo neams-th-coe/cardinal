@@ -233,3 +233,6 @@ problems/large-problems-master/
 
 doc/content/doxygen/html*
 mesh_info.i
+
+*.exo
+*.re2

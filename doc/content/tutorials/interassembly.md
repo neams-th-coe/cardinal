@@ -4,7 +4,7 @@ The interassembly region in fast reactors is the fluid space
 *outside* the ducts, but inside the reactor vessel. The following
 scripts mesh this geometry with various approximations. With all
 of these scripts,
-ou can control the mesh settings (numbers of elements, boundary layer
+you can control the mesh settings (numbers of elements, boundary layer
 meshing strategy, etc.) and geometry (vessel diameter, duct thickness, etc.)
 by directly editing the script parameters.
 

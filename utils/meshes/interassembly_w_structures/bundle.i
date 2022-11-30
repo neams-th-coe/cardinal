@@ -21,17 +21,22 @@ garbage_5 = 504
     # These are listed from smallest to largest, and do not include the actual outer boundary
     # of the bundle unit cell (i.e. the flat-to-flat including the bundle-bundle gap)
     duct_sizes_style = apothem
-    duct_sizes = '${ds}
+    duct_sizes = '${fparse 0.9 * flat_to_flat / 2.0}
                   ${fparse flat_to_flat / 2.0}
                   ${fparse flat_to_flat / 2.0 + thickness}
                   ${obl_height}
                   ${oobl_height}'
-    duct_intervals = '${di}
-                      ${e_per_duct_span}
+
+    # layers inside duct (deleted later, so the value doesnt matter)
+    # layers in duct (deleted later, so the value doesnt matter)
+    # layers in the load pad region (boundary layers, plus background)
+    # layers in the pad-ring gap region (boundary layers, plus background)
+    duct_intervals = '1
+                      1
                       ${di_lp} ${e_per_load_pad_span}
-                      ${di_lp}
-                      ${e_per_gap_span}'
-    duct_block_ids = '${dbi} ${duct_id} ${dbi_lp} ${gi} ${gap_id}'
+                      ${di_lp_gap} 1'
+
+    duct_block_ids = '${fluid_id} ${duct_id} ${dbi_lp} ${gi} ${gap_id}'
   []
   [core]
     type = PatternedHexMeshGenerator
@@ -81,7 +86,7 @@ garbage_5 = 504
                        ${delete_duct}'
   []
 
-  # The subdomain_swaps in FancyExtruderGenerator unfortunately only changes the subdomain IDs,
+  # The subdomain_swaps in AdvancedExtruderGenerator unfortunately only changes the subdomain IDs,
   # but the SideSetsBetweenSubdomainsGenerator wants subdomain NAMES. We introduce another
   # mesh generator just to get consistent names + IDs.
   [rename_subdomains]
