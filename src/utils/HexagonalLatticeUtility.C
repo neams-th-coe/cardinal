@@ -670,8 +670,8 @@ HexagonalLatticeUtility::channelIndex(const Point & point) const
       ") is not in any channel! This can sometimes happen "
       "due to:\n\n a) Points in the mesh actually being outside the domain specified with the "
       "HexagonalLatticeUtility.\n b) Small floating point errors - we recommend using a CONSTANT "
-      "MONOMIAL variable "
-      "with all related objects.");
+      "MONOMIAL variable with all related objects.\nYou can also try slightly decreasing the pin diameter and/or "
+      "increasing the bundle pitch.");
 }
 
 void

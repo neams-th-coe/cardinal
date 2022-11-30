@@ -23,46 +23,56 @@ from argparse import ArgumentParser
 # The hydraulic diameter is computed based on the same geometry, but without the
 # load pads or restraint rings.
 
+# All of the settings for the mesh (geometry, refinements) are
+# defined in the mesh_settings.py file. You should not need to
+# edit anything in this script except for:
+
+# Smoothing factors to apply to the corner movement; must match the length
+# of the e_per_bl (if specified)
+corner_smoothing = []
+
+################################################################################
+
 ap = ArgumentParser()
 ap.add_argument('-g', '--generate', action='store_true',
                 help='Whether to generate the mesh')
 
 args = ap.parse_args()
 
-flat_to_flat = 14.922e-2      # flat-to-flat inside the duct
-bundle_pitch = 16.142e-2      # bundle pitch
-corner_radius = 1e-2          # radius of curvature of duct corners
-thickness = 0.394e-2          # duct thickness
-vessel_inner_diameter = 0.75  # vessel inner diameter
-wire_pitch = 20.32e-2         # wire axial pitch
-n_bundles = 7                 # number of fuel bundles
+script_dir = os.path.dirname(__file__)
+sys.path.append(script_dir)
+import mesh_settings as ms
 
-pad1 = 10.16e-2               # starting height (above top of active region)
-pad2 = 10.16e-2               # top height (below exit)
-pad_height = 10.16e-2         # height of a load pad
-pad_thickness = 1.5e-3        # pad thickness
-lower_shield_height = 0.1016  # height of lower shield
-active_height = 0.2065        # active height
-gas_plenum_height = 0.4225    # gas plenum height
-standoff_height = 0.3         # standoff heigt
-plenum_height = 0.1016        # plenum height
+flat_to_flat = ms.flat_to_flat
+bundle_pitch = ms.bundle_pitch
+corner_radius = ms.corner_radius
+thickness = ms.thickness
+vessel_inner_diameter = ms.vessel_inner_diameter
+wire_pitch = ms.wire_pitch
+n_bundles = ms.n_bundles
 
-e_per_side = 2                # elements per side of the duct
-e_per_gap_span = 1            # elements across non-boundary layer part of gap
-e_per_load_pad_span = 1       # elements across the non-boundary layer part of load pad
-e_per_duct_span = 1           # elements across the duct region
-e_per_peripheral = 1          # elements across the peripheral region
-e_per_bl = 1                  # elements in each boundary layer
-e_per_pad_bl = 1              # elements in the boundary layers on the bottom/top faces of the load pads
-bl_height = 0.0001            # height of first boundary layer
-bl_pad_height = 0.0001        # height of first boundary layer on bottom/top faces of load pads
-growth_factor = 1.8           # boundary layer growth factor
+pad1 = ms.pad1
+pad2 = ms.pad2
+pad_height = ms.pad_height
+pad_thickness = ms.pad_thickness
+lower_shield_height = ms.lower_shield_height
+active_height = ms.active_height
+gas_plenum_height = ms.gas_plenum_height
+standoff_height = ms.standoff_height
+plenum_height = ms.plenum_height
 
-num_layers_per_dz = 1.0       # layers per axial pitch
+e_per_side = ms.e_per_side
+e_per_gap_span = ms.e_per_gap_span
+e_per_load_pad_span = ms.e_per_load_pad_span
+e_per_peripheral = ms.e_per_peripheral
+e_per_bl = ms.e_per_bl
+e_per_pad_bl = ms.e_per_pad_bl
+e_per_gap_bl = ms.e_per_gap_bl
+bl_height = ms.bl_height
+bl_pad_height = ms.bl_pad_height
+growth_factor = ms.growth_factor
 
-# Smoothing factors to apply to the corner movement; must match the length
-# of the e_per_bl (if specified)
-corner_smoothing = []
+num_layers_per_dz = ms.num_layers_per_dz
 
 ###########################################################################
 
@@ -195,41 +205,61 @@ def pat(nr):
     pattern += ";"
   return pattern + "'"
 
+def layer_dx(first, growth, n):
+  """Get the dx of a series of boundary layers"""
+  l = []
+
+  for i in range(n):
+    l.append(math.pow(growth, i) * first)
+
+  return l
+
+def layer_thicknesses(first, growth, n):
+  """Get the thickness of a series of boundary layers"""
+  l = []
+
+  previous_dx = 0.0
+  for i in range(n):
+    next_dx = math.pow(growth, i) * first
+    layer = next_dx + previous_dx
+    l.append(layer)
+
+    previous_dx += next_dx
+
+  return l
+
+def bl_points(first, growth, n, start):
+  """Get the positions of each boundary layer"""
+  b = layer_thicknesses(first, growth, n)
+  thickness = sum(b)
+  for i in range(n):
+    b[i] += start
+
+  return b, thickness
+
 # Get the origins of the bundles
 bundle_origins = lattice_centers(n_rings, bundle_pitch)
 bundle_pattern = pat(n_rings)
 
-# Get the "radii" of the "ducts" which we use to create boundary layers on
-# the inner surfaces of a duct. After flipping, these are listed in asscending order (smallest to largest),
-# and do not include the actual inner boundary of the duct (which is instead created by
-# other syntax in the mesh generator)
-duct_radii = []
-previous_r = flat_to_flat / 2.0
-for i in range(e_per_bl):
-  duct_radii.append(str(previous_r - math.pow(growth_factor, i) * bl_height))
-  previous_r -=  math.pow(growth_factor, i - 1) * bl_height
-duct_radii.reverse()
+# Get the boundary layers on the duct surface
+bl, bl_outer_dx = bl_points(bl_height, growth_factor, e_per_bl, flat_to_flat / 2.0 + thickness)
 
-# Get the "radii" of the "ducts" which we use to create boundary layers on
-# the outside of the duct, as well as the load pads inside the core region.
-# These are listed in ascending order (smallest to largest), and do not include the
-# actual outer boundary of the bundle unit cell.
-bl = []
-previous_dx = 0.0
-starting_pt = flat_to_flat / 2.0 + thickness
-bl_outer_dx = 0.0
-for i in range(e_per_bl):
-  bl_outer_dx += math.pow(growth_factor, i) * bl_height
-  layer = math.pow(growth_factor, i) * bl_height + starting_pt + previous_dx
-  bl.append(layer)
-  previous_dx += math.pow(growth_factor, i) * bl_height
+# Get the boundary layers on the pad surface
+gap_bl, bl_gap_outer_dx = bl_points(bl_height, growth_factor, e_per_gap_bl, \
+                          flat_to_flat / 2.0 + thickness + pad_thickness)
+
+D = (bundle_pitch - flat_to_flat - 2.0 * thickness - 2.0 * pad_thickness) / 2.0
+
+gap_dx = layer_dx(bl_height, growth_factor, e_per_gap_bl)
+equi_space = (D - 2.0 * sum(gap_dx)) / e_per_gap_span
+for i in range(e_per_gap_span):
+  gap_bl.append(gap_bl[-1] + equi_space)
+gap_dx.reverse()
+for i in range(e_per_gap_bl - 1):
+  gap_bl.append(gap_bl[-1] + gap_dx[i])
 
 # Get the boundary layer thickness on bottom/top of the load pads
-bl_pad_ascending = []
-load_pad_bl_dx = 0.0
-for i in range(e_per_pad_bl):
-  bl_pad_ascending.append(math.pow(growth_factor, i) * bl_pad_height)
-  load_pad_bl_dx += bl_pad_ascending[-1]
+bl_pad_ascending, load_pad_bl_dx = bl_points(bl_pad_height, growth_factor, e_per_pad_bl, 0.0)
 
 delete_duct = str(duct_id) + " " + str(garbage_id4) + " "
 
@@ -246,7 +276,6 @@ for i in range(e_per_pad_bl):
   upper_bl += " " + str(bl_pad_ascending[i])
 
 insertion = flat_to_flat / 2.0 + thickness + pad_thickness
-copy_bl = bl.copy()
 bl.append(insertion)
 bl.sort()
 
@@ -284,23 +313,19 @@ for i in range(len(bl)):
   obl_radii += " " + str(bl[i])
 
 oobl_radii = ""
-for i in range(len(copy_bl)):
-  oobl_radii += " " + str(copy_bl[i] + pad_thickness)
+for i in range(len(gap_bl)):
+  oobl_radii += " " + str(gap_bl[i])
 
 gi = ""
-for i in range(e_per_bl):
+for i in range(e_per_gap_bl * 2 + e_per_gap_span - 1):
   gi += " " + str(gap_id)
 
-ds = ""; di = ""; dbi = ""
-for i in range(e_per_bl):
-  ds += " " + str(duct_radii[i])
-  di += " " + str(1)
-  dbi += " " + str(fluid_id)
-
-dbi_lp = ""; di_lp = ""
+dbi_lp = ""; di_lp = ""; di_lp_gap = ""
 for i in range(e_per_bl):
   dbi_lp += " " + str(load_pad_id)
   di_lp += " " + str(1)
+for i in range(e_per_gap_bl * 2 + e_per_gap_span - 1):
+  di_lp_gap += " " + str(1)
 
 dbi_lp += " " + str(load_pad_id)
 
@@ -323,7 +348,6 @@ with open('mesh_info.i', 'w') as f:
   f.write(str.format('e_per_peripheral={0}\n',e_per_peripheral))
   f.write(str.format('e_per_bl={0}\n', e_per_bl))
   f.write(str.format('e_per_pad_bl={0}\n',e_per_pad_bl))
-  f.write(str.format('e_per_duct_span={0}\n',e_per_duct_span))
   f.write(str.format('fluid_id={0}\n',fluid_id))
   f.write(str.format('load_pad_id={0}\n',load_pad_id))
   f.write(str.format('gap_id={0}\n',gap_id))
@@ -362,10 +386,8 @@ with open('mesh_info.i', 'w') as f:
   f.write("bundle_pattern=" + str(bundle_pattern) + "\n")
   f.write("do_nothing='" + do_nothing + "'\n")
   f.write("obl_height='" + obl_radii + "'\n")
-  f.write("ds='" + ds + "'\n")
-  f.write("di='" + di + "'\n")
   f.write("di_lp='" + di_lp + "'\n")
-  f.write("dbi='" + dbi + "'\n")
+  f.write("di_lp_gap='" + di_lp_gap + "'\n")
   f.write("dbi_lp='" + dbi_lp + "'\n")
   f.write("gi='" + gi + "'\n")
   f.write("oobl_height='" + oobl_radii + "'\n")
@@ -378,13 +400,13 @@ with open('mesh_info.i', 'w') as f:
   f.write("cs='" + cs + "'\n")
 
 if (args.generate):
-  import os
-  var = os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i bundle.i " + \
+  home = os.getenv('HOME')
+  var = os.system(home + "/cardinal/cardinal-opt -i mesh_info.i bundle.i " + \
     " --mesh-only --n-threads=10")
   if (var):
     raise ValueError('Failed to run the bundle.i mesh script!')
 
-  var = os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i convert.i " + \
+  var = os.system(home + "/cardinal/cardinal-opt -i mesh_info.i convert.i " + \
     " --mesh-only --n-threads=10")
   if (var):
     raise ValueError('Failed to run the convert.i mesh script!')

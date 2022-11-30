@@ -1,4 +1,5 @@
 #!/bin/python
+import os
 import math
 import sys
 import numpy as np
@@ -13,32 +14,40 @@ from argparse import ArgumentParser
 # 3: duct outer walls
 # 4: vessel inner diameter
 
+# All of the settings for the mesh (geometry, refinements) are
+# defined in the mesh_settings.py file. You should not need to
+# edit anything in this script except optionally:
+
+# Smoothing factors to apply to the corner movement; must match the length
+# of the e_per_bl (if specified)
+corner_smoothing = []
+
+####################################################################
+
 ap = ArgumentParser()
 ap.add_argument('-g', '--generate', action='store_true',
                 help='Whether to generate the mesh')
 
 args = ap.parse_args()
 
-h = 20.32e-2                 # height to extrude
-flat_to_flat = 14.922e-2     # flat-to-flat inside the duct
-bundle_pitch = 16.142e-2     # bundle pitch
-corner_radius = 1e-2         # radius of curvature of duct corners
-thickness = 0.394e-2         # duct thickness
-vessel_inner_diameter = 0.75 # vessel inner diameter
-n_bundles = 7                # number of fuel bundles
+script_dir = os.path.dirname(__file__)
+sys.path.append(script_dir)
+import mesh_settings as ms
 
-nl = 1                       # number of axial layers
-e_per_side = 2               # number of elements along each duct wall
-e_per_bl = 1                 # number of elements in each boundary layer
-e_per_peripheral = 1         # number of elements to put in the peripheral region
-growth_factor = 1.7          # growth factor for the boundary layers
-bl_height = 0.0001           # height of the first boundary layer
+h = ms.h
+flat_to_flat = ms.flat_to_flat
+bundle_pitch = ms.bundle_pitch
+corner_radius = ms.corner_radius
+thickness = ms.thickness
+vessel_inner_diameter = ms.vessel_inner_diameter
+n_bundles = ms.n_bundles
 
-# Smoothing factors to apply to the corner movement; must match the length
-# of the e_per_bl (if specified)
-corner_smoothing = []
-
-###########################################################################
+nl = ms.nl
+e_per_side = ms.e_per_side
+e_per_bl = ms.e_per_bl
+e_per_peripheral = ms.e_per_peripheral
+growth_factor = ms.growth_factor
+bl_height = ms.bl_height
 
 # If not specified by user, set a do-nothing default
 if (len(corner_smoothing) == 0):
@@ -233,13 +242,13 @@ with open('mesh_info.i', 'w') as f:
   f.write("cs='" + cs + "'\n")
 
 if (args.generate):
-  import os
-  var = os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i plane.i " + \
+  home = os.getenv('HOME')
+  var = os.system(home + "/cardinal/cardinal-opt -i mesh_info.i plane.i " + \
     " --mesh-only --n-threads=10")
   if (var):
     raise ValueError('Failed to run the plane.i mesh script!')
 
-  var = os.system("/home/anovak/cardinal/cardinal-opt -i mesh_info.i convert.i " + \
+  var = os.system(home + "/cardinal/cardinal-opt -i mesh_info.i convert.i " + \
     " --mesh-only --n-threads=10")
   if (var):
     raise ValueError('Failed to run the convert.i mesh script!')
