@@ -42,7 +42,6 @@ namespace nekrs
 {
 
 static int build_only;
-static MooseEnum mesh_default("all","all"); // default mesh to act on
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -196,7 +195,7 @@ mesh_t * temperatureMesh();
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @return mesh to act on
  */
-mesh_t * getMesh(const MooseEnum & pp_mesh = mesh_default);
+mesh_t * getMesh(const MooseEnum & pp_mesh);
 
 /**
  * Get the process rank
@@ -423,7 +422,7 @@ bool normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling,
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @return area integral
  */
-double area(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh = mesh_default);
+double area(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh);
 
 /**
  * Compute the area integral of a given slot in the usrwrk array over a set of boundary IDs
@@ -433,7 +432,7 @@ double area(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh = me
  * @return area integral of a component of the usrwrk array
  */
 double usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot,
-                          const MooseEnum & pp_mesh = mesh_default);
+                          const MooseEnum & pp_mesh);
 
 /**
  * Compute the area integral of a given integrand over a set of boundary IDs
@@ -443,14 +442,14 @@ double usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned i
  * @return area integral of a field
  */
 double sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand,
-                    const MooseEnum & pp_mesh = mesh_default);
+                    const MooseEnum & pp_mesh);
 
 /**
  * Compute the volume over the entire scalar mesh
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @return volume integral
  */
-double volume(const MooseEnum & pp_mesh = mesh_default);
+double volume(const MooseEnum & pp_mesh);
 
 /**
  * Dimensionalize a volume
@@ -494,7 +493,7 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
                                 const std::vector<int> & boundary_id,
                                 double & integral,
-                                const MooseEnum & pp_mesh = mesh_default);
+                                const MooseEnum & pp_mesh);
 
 /**
  * Compute the volume integral of a given integrand over the entire scalar mesh
@@ -505,7 +504,7 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
  */
 double volumeIntegral(const field::NekFieldEnum & integrand,
                       const double & volume,
-                      const MooseEnum & pp_mesh = mesh_default);
+                      const MooseEnum & pp_mesh);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs
@@ -514,7 +513,7 @@ double volumeIntegral(const field::NekFieldEnum & integrand,
  * @return mass flowrate
  */
 double massFlowrate(const std::vector<int> & boundary_id,
-                    const MooseEnum & pp_mesh = mesh_default);
+                    const MooseEnum & pp_mesh);
 
 /**
  * Compute the mass flux weighted integral of a given integrand over a set of boundary IDs
@@ -525,7 +524,7 @@ double massFlowrate(const std::vector<int> & boundary_id,
  */
 double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
                                     const field::NekFieldEnum & integrand,
-                                    const MooseEnum & pp_mesh = mesh_default);
+                                    const MooseEnum & pp_mesh);
 
 /**
  * Compute the heat flux over a set of boundary IDs
@@ -534,7 +533,7 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
  * @return heat flux area integral
  */
 double heatFluxIntegral(const std::vector<int> & boundary_id,
-                        const MooseEnum & pp_mesh = mesh_default);
+                        const MooseEnum & pp_mesh);
 
 /**
  * Limit the temperature in nekRS to within the range of [min_T, max_T]
@@ -551,7 +550,7 @@ void limitTemperature(const double * min_T, const double * max_T);
  * @param[out] grad_f gradient of field
  */
 void gradient(const int offset, const double * f, double * grad_f,
-              const MooseEnum & pp_mesh = mesh_default);
+              const MooseEnum & pp_mesh);
 
 /**
  * Find the minimum of a given field over the entire nekRS domain
@@ -560,7 +559,7 @@ void gradient(const int offset, const double * f, double * grad_f,
  * @return minimum value of field in volume
  */
 double volumeMinValue(const field::NekFieldEnum & field,
-                      const MooseEnum & pp_mesh = mesh_default);
+                      const MooseEnum & pp_mesh);
 
 /**
  * Find the maximum of a given field over the entire nekRS domain
@@ -569,7 +568,7 @@ double volumeMinValue(const field::NekFieldEnum & field,
  * @return maximum value of field in volume
  */
 double volumeMaxValue(const field::NekFieldEnum & field,
-                      const MooseEnum & pp_mesh = mesh_default);
+                      const MooseEnum & pp_mesh);
 
 /**
  * Find the minimum of a given field over a set of boundary IDs
@@ -579,7 +578,7 @@ double volumeMaxValue(const field::NekFieldEnum & field,
  * @return minimum value of field on boundary
  */
 double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-                    const MooseEnum & pp_mesh = mesh_default);
+                    const MooseEnum & pp_mesh);
 
 /**
  * Find the maximum of a given field over a set of boundary IDs
@@ -589,7 +588,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
  * @param maximum value of field on boundary
  */
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-                    const MooseEnum & pp_mesh = mesh_default);
+                    const MooseEnum & pp_mesh);
 
 namespace mesh
 {

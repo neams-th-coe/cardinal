@@ -1199,7 +1199,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 
   // if temperature, we need to add the reference temperature multiplied by the mass flux integral
   if (integrand == field::temperature)
-    total_integral += scales.T_ref * massFlowrate(boundary_id);
+    total_integral += scales.T_ref * massFlowrate(boundary_id, pp_mesh);
 
   return total_integral;
 }
