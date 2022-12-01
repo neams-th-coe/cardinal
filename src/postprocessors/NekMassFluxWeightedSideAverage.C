@@ -39,7 +39,7 @@ NekMassFluxWeightedSideAverage::NekMassFluxWeightedSideAverage(const InputParame
 Real
 NekMassFluxWeightedSideAverage::getValue()
 {
-  return NekMassFluxWeightedSideIntegral::getValue() / nekrs::massFlowrate(_boundary);
+  return NekMassFluxWeightedSideIntegral::getValue() / nekrs::massFlowrate(_boundary, _pp_mesh);
 }
 
 #endif

@@ -42,7 +42,7 @@ NekMassFluxWeightedSideIntegral::NekMassFluxWeightedSideIntegral(const InputPara
 Real
 NekMassFluxWeightedSideIntegral::getValue()
 {
-  return nekrs::sideMassFluxWeightedIntegral(_boundary, _field);
+  return nekrs::sideMassFluxWeightedIntegral(_boundary, _field, _pp_mesh);
 }
 
 #endif

@@ -34,25 +34,25 @@ NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
   if (_fixed_mesh)
-    _volume = nekrs::volume();
+    _volume = nekrs::volume(_pp_mesh);
 }
 
 Real
 NekVolumeIntegral::getValue()
 {
   if (!_fixed_mesh)
-    _volume = nekrs::volume();
+    _volume = nekrs::volume(_pp_mesh);
 
   if (_field == field::velocity_component)
   {
-    Real vx = nekrs::volumeIntegral(field::velocity_x, _volume);
-    Real vy = nekrs::volumeIntegral(field::velocity_y, _volume);
-    Real vz = nekrs::volumeIntegral(field::velocity_z, _volume);
+    Real vx = nekrs::volumeIntegral(field::velocity_x, _volume, _pp_mesh);
+    Real vy = nekrs::volumeIntegral(field::velocity_y, _volume, _pp_mesh);
+    Real vz = nekrs::volumeIntegral(field::velocity_z, _volume, _pp_mesh);
     Point velocity(vx, vy, vz);
     return _velocity_direction * velocity;
   }
 
-  return nekrs::volumeIntegral(_field, _volume);
+  return nekrs::volumeIntegral(_field, _volume, _pp_mesh);
 }
 
 #endif

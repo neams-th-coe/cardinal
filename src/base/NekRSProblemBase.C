@@ -163,10 +163,6 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
 
   _prefix = fieldFilePrefix(_app.multiAppNumber());
 
-  // will be supported in the future, but it's just not implemented yet
-  if (nekrs::hasCHT())
-    mooseError("Cardinal does not yet support running NekRS inputs with conjugate heat transfer!");
-
   _nek_mesh = dynamic_cast<NekRSMesh *>(&mesh());
 
   if (!_nek_mesh)
