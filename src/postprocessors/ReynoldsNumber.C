@@ -47,14 +47,14 @@ ReynoldsNumber::ReynoldsNumber(const InputParameters & parameters)
     checkUnusedParam(parameters, "L_ref", "running NekRS in non-dimensional form");
 
   if (_fixed_mesh)
-    _area = nekrs::area(_boundary);
+    _area = nekrs::area(_boundary, _pp_mesh);
 }
 
 Real
 ReynoldsNumber::getValue()
 {
-  Real area = _fixed_mesh ? _area : nekrs::area(_boundary);
-  Real mdot = std::abs(nekrs::sideMassFluxWeightedIntegral(_boundary, field::unity));
+  Real area = _fixed_mesh ? _area : nekrs::area(_boundary, _pp_mesh);
+  Real mdot = std::abs(nekrs::sideMassFluxWeightedIntegral(_boundary, field::unity, _pp_mesh));
   Real mu = nekrs::viscosity();
   Real L = _nek_problem->nondimensional() ? _nek_problem->L_ref() : *_L_ref;
 

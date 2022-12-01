@@ -33,13 +33,13 @@ NekSideAverage::validParams()
 NekSideAverage::NekSideAverage(const InputParameters & parameters) : NekSideIntegral(parameters)
 {
   if (_fixed_mesh)
-    _area = nekrs::area(_boundary);
+    _area = nekrs::area(_boundary, _pp_mesh);
 }
 
 Real
 NekSideAverage::getValue()
 {
-  Real area = _fixed_mesh ? _area : nekrs::area(_boundary);
+  Real area = _fixed_mesh ? _area : nekrs::area(_boundary, _pp_mesh);
   return NekSideIntegral::getValue() / area;
 }
 

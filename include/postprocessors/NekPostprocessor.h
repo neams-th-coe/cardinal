@@ -50,4 +50,7 @@ protected:
 
   /// Underlying problem
   const NekRSProblemBase * _nek_problem;
+
+  /// Which NekRS mesh to act on
+  const MooseEnum _pp_mesh;
 };
