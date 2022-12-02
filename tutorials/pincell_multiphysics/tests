@@ -40,4 +40,5 @@
                   "also splits tests this way."
     prereq = 'solid_mesh'
     required_objects = 'NekRSProblem'
+  []
 []
