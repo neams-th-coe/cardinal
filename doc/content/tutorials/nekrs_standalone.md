@@ -36,7 +36,7 @@ And that's it! No need to separately compile NekRS if you don't want to use Card
 
 ## Thinly-Wrapped Simulations
 
-To access this tutorial, please navigate to the following directory:
+To access this tutorial:
 
 ```
 cd cardinal/tutorials/standalone

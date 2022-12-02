@@ -1,5 +1,5 @@
 inlet_T  = 573.0           # inlet temperature
-power = 1e3                # total power (W)
+power = 250                # total power (W)
 Re = 500.0                 # Reynolds number
 
 height = 0.5               # total height of the domain
@@ -67,13 +67,6 @@ dT = ${fparse power / mdot / Cp}
   []
 []
 
-[Functions]
-  [axial_fluid_temp]
-    type = ParsedFunction
-    value = '${inlet_T} + z / ${height} * ${dT}'
-  []
-[]
-
 [Materials]
   [uo2]
     type = HeatConductionMaterial
@@ -84,30 +77,6 @@ dT = ${fparse power / mdot / Cp}
     type = HeatConductionMaterial
     thermal_conductivity = 20.0
     block = '3'
-  []
-[]
-
-[Postprocessors]
-  [synchronization_to_nek]
-    type = Receiver
-    default = 1.0
-  []
-  [flux_integral] # evaluate the total heat flux for normalization
-    type = SideDiffusiveFluxIntegral
-    diffusivity = thermal_conductivity
-    variable = T
-    boundary = '5'
-  []
-  [power]
-    type = ElementIntegralVariablePostprocessor
-    variable = power
-    block = '2'
-    execute_on = 'transfer initial'
-  []
-  [max_T_solid]
-    type = ElementExtremeValue
-    variable = T
-    block = '2 3'
   []
 []
 
@@ -125,14 +94,10 @@ dT = ${fparse power / mdot / Cp}
   []
 []
 
-[AuxKernels]
-  [flux]
-    type = DiffusionFluxAux
-    diffusion_variable = T
-    component = normal
-    diffusivity = thermal_conductivity
-    variable = flux
-    boundary = '5'
+[Functions]
+  [axial_fluid_temp]
+    type = ParsedFunction
+    value = '${inlet_T} + z / ${height} * ${dT}'
   []
 []
 
@@ -141,6 +106,17 @@ dT = ${fparse power / mdot / Cp}
     type = FunctionIC
     variable = nek_temp
     function = axial_fluid_temp
+  []
+[]
+
+[AuxKernels]
+  [flux]
+    type = DiffusionFluxAux
+    diffusion_variable = T
+    component = normal
+    diffusivity = thermal_conductivity
+    variable = flux
+    boundary = '5'
   []
 []
 
@@ -176,20 +152,48 @@ dT = ${fparse power / mdot / Cp}
     from_postprocessor = flux_integral
     to_multi_app = nek
   []
-  [synchronization_to_nek]
+  [send]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = transfer_in
-    from_postprocessor = synchronization_to_nek
+    from_postprocessor = send
     to_multi_app = nek
   []
 []
 
+[Postprocessors]
+  [send]
+    type = Receiver
+    default = 1.0
+  []
+  [flux_integral] # evaluate the total heat flux for normalization
+    type = SideDiffusiveFluxIntegral
+    diffusivity = thermal_conductivity
+    variable = T
+    boundary = '5'
+  []
+  [power]
+    type = ElementIntegralVariablePostprocessor
+    variable = power
+    block = '2'
+    execute_on = 'transfer initial'
+  []
+  [max_T_solid]
+    type = ElementExtremeValue
+    variable = T
+    block = '2 3'
+  []
+[]
+
+t_nek = 2.5e-3
+dt0 = ${fparse hydraulic_diameter / U_ref}
+M = 25
+
 [Executioner]
   type = Transient
-  dt = 0.5
-  num_steps = 2
+  dt = ${fparse M * t_nek * dt0}
+  num_steps = 100
 
-  nl_abs_tol = 1e-5
+  nl_abs_tol = 1e-8
   nl_rel_tol = 1e-16
   petsc_options_value = 'hypre boomeramg'
   petsc_options_iname = '-pc_type -pc_hypre_type'
@@ -197,5 +201,5 @@ dT = ${fparse power / mdot / Cp}
 
 [Outputs]
   exodus = true
-  hide = 'synchronization_to_nek'
+  hide = 'power flux_integral send'
 []

@@ -22,7 +22,7 @@
   [openmc]
     type = RunApp
     input = openmc.i
-    cli_args = 'Problem/particles=100 MultiApps/active="" Transfers/active=""'
+    cli_args = 'Problem/particles=100 MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Problem/max_batches=100'
     min_parallel = 4
     requirement = "The system shall be able to run a 3-way coupling of OpenMC, MOOSE, and NekRS for a pincell. "
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
@@ -33,12 +33,12 @@
   [nek]
     type = RunApp
     input = bison.i
-    cli_args = 'MultiApps/active="" Transfers/active=""'
+    cli_args = '-w Executioner/num_steps=1 Executioner/dt=0.01'
     min_parallel = 4
     requirement = "The system shall be able to run a 3-way coupling of OpenMC, MOOSE, and NekRS for a pincell. "
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
                   "also splits tests this way."
-    prereq = 'solid_mesh fluid_mesh_to_hex20'
+    prereq = 'solid_mesh'
     required_objects = 'NekRSProblem'
   []
 []

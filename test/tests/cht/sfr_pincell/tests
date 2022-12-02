@@ -24,5 +24,6 @@
                   "to the all-combined option when there is just one coupling sideset. The gold file "
                   "for this test is identical to that for the sfr_pincell case."
     required_objects = 'NekRSProblem'
+    max_time = 500
   []
 []
