@@ -24,6 +24,7 @@
 #include "NekBoundaryCoupling.h"
 #include "NekVolumeCoupling.h"
 #include "NekInterface.h"
+#include "NekUtils.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -334,8 +335,14 @@ protected:
   /// Order of the nekRS solution
   int _nek_polynomial_order;
 
-  /// Number of surface elements in MooseMesh
+  /**
+   * Number of NekRS surface elements in MooseMesh. The total number of surface
+   * elements in the mesh mirror is _n_surface_elems * _n_build_per_surface_elem.
+   */
   int _n_surface_elems;
+
+  /// Number of MOOSE surface elements to build per NekRS surface element
+  int _n_build_per_surface_elem;
 
   /// Number of volume elements in MooseMesh
   int _n_volume_elems;
