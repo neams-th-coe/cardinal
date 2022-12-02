@@ -1,6 +1,10 @@
 #include "udf.hpp"
 
-#define LENGTH 50.0 / (0.97 / 2.0)
+#define LENGTH 42.35158086795113
+
+void UDF_LoadKernels(occa::properties & kernelInfo)
+{
+}
 
 void UDF_Setup(nrs_t *nrs)
 {

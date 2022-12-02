@@ -8,6 +8,12 @@ In this tutorial, you will learn how to:
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Apply homogenized temperature feedback to heterogeneous OpenMC cells
 
+To access this tutorial:
+
+```
+cd cardinal/tutorials/gas_assembly
+```
+
 This tutorial also requires you to download a
 mesh file and an OpenMC XML file from Box. Please download the files from the
 `gas_assembly` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)

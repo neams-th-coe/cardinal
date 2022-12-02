@@ -1,6 +1,6 @@
-# Model of single LWR pincell, in non-dimensional form
+# Model of single SFR pincell, in non-dimensional form
 #
-# Pr = 0.86
+# Pr = 0.00439
 # Re = 500.0
 # Pe = Re * Pr
 
@@ -10,25 +10,23 @@
 [GENERAL]
   stopAt = numSteps
   numSteps = 2000
-  dt = 2e-2
+  dt = 2.5e-3
   timeStepper = tombo2
   writeControl = steps
   writeInterval = 200
-  polynomialOrder = 3
+  polynomialOrder = 5
 
 [VELOCITY]
   viscosity = -500.0
   density = 1.0
   boundaryTypeMap = w, v, O, symx, symx, symy, symy
-  residualTol = 1.0e-6
-  residualProj = false
+  residualTol = 1.0e-7
 
 [PRESSURE]
   residualTol = 1.0e-6
-  residualProj = false
 
 [TEMPERATURE]
-  conductivity = -430.0
+  conductivity = -2.195
   rhoCp = 1.0
   boundaryTypeMap = f, t, I, I, I, I, I
-  residualTol = 1.0e-3
+  residualTol = 1.0e-6

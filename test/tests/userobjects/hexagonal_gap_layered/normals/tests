@@ -7,6 +7,7 @@
                   "binning and demonstrate correct results for side integrals and averages in directions "
                   "normal to the gap planes."
     required_objects = 'NekRSProblem'
+    max_time = 400
   []
   [normal_component_aux]
     type = Exodiff

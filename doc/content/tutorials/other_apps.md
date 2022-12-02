@@ -46,9 +46,6 @@ cd chickadee
 make -j8
 ```
 
-All input files for this tutorial are available in the `tutorials/other_apps`
-directory.
-
 ## Running Cardinal as the Main App
 
 You can couple Cardinal to an arbitrary MOOSE application and run Cardinal either

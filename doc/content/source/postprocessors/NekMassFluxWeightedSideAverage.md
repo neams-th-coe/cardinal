@@ -32,7 +32,7 @@ of more use for other postprocessors).
 As an example, the `outlet_T` postprocessor evaluates the mass-flux-weighted
 average of temperature over the outlet boundary of NekRS's mesh.
 
-!listing tutorials/sfr_multiphysics/nek.i
+!listing tutorials/pincell_multiphysics/nek.i
   block=Postprocessors
 
 !syntax parameters /Postprocessors/NekMassFluxWeightedSideAverage
