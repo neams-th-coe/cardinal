@@ -29,9 +29,10 @@ dT = ${fparse power / mdot / Cp}
   []
 []
 
+[AuxVariables]
 # These auxiliary variables are all just for visualizing the solution and
 # the mapping - none of these are part of the calculation sequence
-[AuxVariables]
+
   [cell_id]
     family = MONOMIAL
     order = CONSTANT

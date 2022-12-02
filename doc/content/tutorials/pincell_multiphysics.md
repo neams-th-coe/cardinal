@@ -1,8 +1,8 @@
-# Multiphysics for a Pincell
+# Multiphysics for an SFR Pincell
 
 In this tutorial, you will learn how to:
 
-- Couple OpenMC, NekRS, and MOOSE for modeling a pincell
+- Couple OpenMC, NekRS, and MOOSE for modeling an [!ac](SFR) pincell
 - Use MOOSE's [reactor](https://mooseframework.inl.gov/modules/reactor/index.html) module
   to make meshes for common reactor geometries
 - Use subcycling to efficiently allocate computational resources
@@ -19,10 +19,15 @@ This tutorial does not require any special computing needs.
 
 ## Geometry and Computational Model
 
-The geometry consists of a single pincell. The dimensions and assumed operating conditions
+The geometry consists of a single pincell, cooled by sodium. The dimensions and assumed operating conditions
 are summarized in [table1]. Note that these conditions are not necessarily representative
 of full-power nuclear reactor conditions, since we elect laminar flow conditions in order
-to reduce meshing requirements for the sake of a fast-running tutorial.
+to reduce meshing requirements for the sake of a fast-running tutorial. By using
+laminar flow, we will also use a much lower power density than seen in prototypical systems -
+but for the sake of a tutorial, all the essential components of multiphysics are present
+(coupling via power, temperature, and density). In addition, to keep the computational
+requirements as low as possible for NekRS, the height is only 50 cm (so the
+eignevalue predicted by OpenMC will also be very low, due to high axial leakage).
 
 !table id=table1 caption=Geometric and operating specifications for a pincell
 | Parameter | Value |
@@ -34,10 +39,8 @@ to reduce meshing requirements for the sake of a fast-running tutorial.
 | Reynolds number | 500.0 |
 | Prandtl number | 0.00436 |
 | Inlet temperature | 573 K |
+| Outlet temperature | 708 K |
 | Power | 250 W |
-
-We set the total power to 250 W, which for the Reynolds number of 500 we later impose in the NekRS
-model, gives a nominal temperature rise of about 135 K.
 
 We will couple OpenMC, NekRS, and MOOSE heat conduction in a "single stack" hierarchy, with OpenMC
 as the main application, MOOSE as the second-level application, and NekRS as the third-level
@@ -48,24 +51,30 @@ that first have to pass through an "intermediate" application.
 
 !media multiapp_pincell.png
   id=multiapp_pincell
-  caption="Single stack" multiapp hierarchy used in this tutorial. The black circles indicate the order that the codes run within a single time step.
+  caption="Single stack" multiapp hierarchy used in this tutorial.
   style=width:40%;margin-left:auto;margin-right:auto
 
 Like with all Cardinal simulations, Picard iterations are achieved "in time." We have not expounded
 greatly upon this notion in previous tutorials, so we dedicate some space here.
 The overall Cardinal simulation has a notion of "time" and a time step index,
-but usually only NekRS is solved with non-zero time derivatives. The notion of time-stepping is then used to
+because all code applications will use a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+executioner. However,
+usually only NekRS is solved with non-zero time derivatives. The notion of time-stepping is then used to
 customize how frequently (i.e., in units of time steps) data is exchanged.
 To help explain the strategy, represent the time step sizes in NekRS, MOOSE, and OpenMC as
 $\Delta t_{nek}$, $\Delta t_{bison}=M\Delta t_{nek}$, and $\Delta t_{openmc}=NM\Delta t_{nek}$, respectively.
 Selecting $N\neq1$ and/or $M\neq1$ is referred to as "sub-cycling." In other words,
-NekRS runs $M$ times for each MOOSE solve, while MOOSE runs $N$ times for each OpenMC solve, effectively reducing the total number of MOOSE solves by a factor of $M$ and the total number of OpenMC solves by a factor of $NM$ compared to the naive approach to exchange data based on the smallest time step across the coupled codes. Each Picard iteration consists of:
+NekRS runs $M$ times for each MOOSE solve, while MOOSE runs $N$ times for each OpenMC solve, effectively reducing the total number of MOOSE solves by a factor of $M$ and the total number of OpenMC solves by a factor of $NM$ compared to the naive approach to exchange data based on the smallest time step across the coupled codes.
+We can then also reduce the total number of data *transfers* by only transferring
+data when needed. Each Picard iteration consists of:
 
-- Run an OpenMC $k$-eigenvalue calculation. Transfer $\dot{q}_s$ to MOOSE.
+- Run an OpenMC $k$-eigenvalue calculation. Transfer the heat source $\dot{q}_s$ to MOOSE.
 - Repeat $N$ times:
-  - Run a steady-state MOOSE calculation. Transfer $q^{''}$ to NekRS.
-  - Run a transient NekRS calculation for $M$ time steps. Transfer $T_\text{wall}$ to MOOSE.
-- Transfer $T_s$, $T_f$, and $\rho_f$ to OpenMC.
+
+  - Run a steady-state MOOSE calculation. Transfer the heat flux $q^{''}$ to NekRS.
+  - Run a transient NekRS calculation for $M$ time steps. Transfer the wall temperature $T_\text{wall}$ to MOOSE.
+
+- Transfer the solid temperature $T_s$, the fluid temperature $T_f$, and the fluid density $\rho_f$ to OpenMC.
 
 [subcycling2] shows the procedure for an example selection of $N=3$, meaning that the MOOSE-NekRS sub-solve occurs three times for every OpenMC solve.
 
@@ -74,13 +83,32 @@ NekRS runs $M$ times for each MOOSE solve, while MOOSE runs $N$ times for each O
   caption=Coupling procedure with subcycling for a calculation with OpenMC, MOOSE, and NekRS
   style=width:50%;margin-left:auto;margin-right:auto
 
+In this tutorial, we will use different "time steps" for OpenMC, MOOSE, and NekRS,
+and we invite you at the end of the tutorial to explore the impact on changing
+these time step magnitudes to see how you can control the frequency of data transfers.
+
 ### OpenMC Model
 
-The OpenMC model is created using OpenMC's Python API. First, we create a number of materials to represent
-the fuel pellet and cladding. Next, we create a number of materials to represent the sodium material in each
-axial layer of the model. Next, we divide the geometry into a number of axial layers, where on each
-layer we set up cells to represent the pellet, cladding, and sodium. Finally, we declare a number of
-settings related to how temperature feedback is applied, and then export all files to XML.
+OpenMC is used to solve for the neutron transport and power distribution.
+The OpenMC model is created using OpenMC's Python API. We will build this geometry using [!ac](CSG)
+and divided the pincell into a number of axial layers. On each layer, we will apply temperature
+and density feedback from the coupled MOOSE-NekRS simulation.
+
+First, we create a number of materials to represent
+the fuel pellet and cladding. Because these materials will only receive temperature updates (i.e.
+we will not change their density, because doing so would require us to move cell boundaries in
+order to preserve mass), we can simply create one material that we will use on all axial layers.
+Next, we create a number of materials to represent the sodium material in each
+axial layer of the model. Because the sodium cells will change both their temperature *and*
+density, we need to create a unique material for each axial layer.
+
+Next, we divide the geometry into a number of axial layers, where on each
+layer we set up cells to represent the pellet, cladding, and sodium. Each layer is then
+described by lying between two $z$-planes. The boundary condition on the top and bottom
+faces of the OpenMC model are set to vacuum.
+Finally, we declare a number of
+settings related to the initial fission source (uniform over the fissionale regions)
+and how temperature feedback is applied, and then export all files to XML.
 
 !listing /tutorials/pincell_multiphysics/pincell.py
 
@@ -96,6 +124,7 @@ The MOOSE heat conduction module is used to solve for [energy conservation in th
 The solid mesh is shown in [solid_mesh]. This mesh is generated using MOOSE's
 [reactor module](https://mooseframework.inl.gov/modules/reactor/index.html), which can be used to make
 sophisticated meshes of typical reactor geometries such as pin lattices, ducts, and reactor vessels.
+In this example, we use this module to set up just a single pincell.
 
 !media pincell_solid.png
   id=solid_mesh
@@ -117,6 +146,8 @@ mesh actually also includes mesh for the fluid region. In [multiapp_pincell], we
 to "receive" the fluid temperature and density from NekRS, because NekRS cannot directly communicate
 with OpenMC by skipping the second-level app (MOOSE). Therefore, no solve will occur on this fluid mesh,
 it simply exists to receive the fluid solution from NekRS before being passed "upwards" to OpenMC.
+By having this dummy "receiving-only" mesh in the solid application, we will require a few
+extra steps when we set up the MOOSE heat conduction model in [#solid_model].
 
 ### NekRS Model
 
@@ -124,7 +155,7 @@ NekRS is used to solve the [incompressible Navier-Stokes equations](theory/ins.m
 [non-dimensional form](theory/nondimensional_ns.md).
 The NekRS input files needed to solve the incompressible Navier-Stokes equations are:
 
-- `fluid.re2`: NekRS mesh (generated by `exo2nek` using the mesh generators just described)
+- `fluid.re2`: NekRS mesh (generated by `exo2nek` starting from MOOSE-generated meshes, to be discussed shortly)
 - `fluid.par`: High-level settings for the solver, boundary condition mappings to sidesets, and the equations to solve
 - `fluid.udf`: User-defined C++ functions for on-line postprocessing and model setup
 - `fluid.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and source terms
@@ -136,7 +167,9 @@ Because the purpose of this analysis is to demonstrate Cardinal's capabilities, 
 of NekRS required to understand the present case will be covered.
 
 We first create the mesh using MOOSE's [reactor module](https://mooseframework.inl.gov/modules/reactor/index.html).
-The syntax used to build a HEX27 fluid mesh is shown below.
+The syntax used to build a HEX27 fluid mesh is shown below. A major difference from the dummy
+fluid receiving portion of the solid mesh is that we now set up some
+boundary layers on the pincell surfaces, by providing `ring_radii` (and other parameters) as vectors.
 
 !listing tutorials/pincell_multiphysics/fluid.i
 
@@ -144,7 +177,7 @@ However, NekRS requires a HEX20 mesh format. Therefore, we use a
 [NekMeshGenerator](/meshgenerators/NekMeshGenerator.md) to convert from HEX27 to HEX20 format,
 while also moving the higher-order side nodes on the pincell surface to match the curvilinear elements.
 The syntax used to convert from the HEX27 fluid mesh to a HEX20 fluid mesh, while preserving
-the pincell surface, is shown below,
+the pincell surface, is shown below.
 
 !listing tutorials/pincell_multiphysics/convert.i
 
@@ -175,11 +208,13 @@ the "viscosity" becomes $1/Re$, where $Re$ is the Reynolds number, while the
 "thermal conductivity" becomes $1/Pe$, where $Pe$ is the Peclet number. These nondimensional
 numbers are used to set various diffusion coefficients in the governing equations
 with syntax like `-500.0`, which is equivalent in NekRS syntax to $\frac{1}{500.0}$.
+On the four lateral faces of the pincell, we set symmetry conditions for velocity.
 
 !listing /tutorials/pincell_multiphysics/fluid.par
 
 Next, the `.udf` file is used to set up initial conditions for velocity,
-pressure, and temperature.
+pressure, and temperature. We set uniform axial velocity initial conditions,
+and temperature to a linear variation from 0 at the inlet to 1 at the outlet.
 
 !listing /tutorials/pincell_multiphysics/fluid.udf language=cpp
 
@@ -202,7 +237,7 @@ The neutron transport is solved using OpenMC. The input file for this portion of
   end=AuxVariables
 
 Next, we define a number of auxiliary variables to be used for diagnostic purposes. With the exception of the [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html), none of the following variables are necessary for coupling, but they will allow us to visualize how data is mapped from OpenMC to the mesh mirror. The [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html)
-auxiliary kernel is used to compute the fluid density, given the temperature
+auxiliary kernel on the other hand is used to compute the fluid density, given the temperature
 variable `temp` (into which we will write the MOOSE and NekRS temperatures, into different regions of space). Note that we will not send fluid density from NekRS to OpenMC, because the NekRS model uses an incompressible Navier-Stokes model. But to a decent approximation, the fluid density can be approximated solely as a function of temperature using the
 [SodiumSaturationFluidProperties](https://mooseframework.inl.gov/source/userobjects/SodiumSaturationFluidProperties.html)
 (so named because these properties represent sodium properties at
@@ -220,11 +255,16 @@ Cardinal automatically set up cell tallies.
 
 For this problem, the temperature that gets mapped into OpenMC is sourced
 from the `temp` auxiliary variable (which Cardinal automatically creates
-for you, hence we didn't need to add it ourselves in the `AuxVariables` block). However, when multiple applications are writing into a single auxiliary
-variable, it can be easy to accidentally overwrite nodal values from application $A$ with nodal values from application $B$, unless you carefully use block restriction in the MOOSE transfers (which not all transfers support). Therefore, we provide a convenient user feature in Cardinal that will
+for you). However, when multiple applications are writing into a single auxiliary
+variable, it can be easy to accidentally overwrite nodal values from application $A$ with nodal values from application $B$, unless you carefully use block restriction in the MOOSE transfers (which not all transfers support). Therefore, we provide a convenient syntax that will
 automatically "populate" the `temp` variable using temperature fields obtained
 from multiple different applications. This is shown with the
-`temperature_variables` and `temperature_blocks` parameters.
+`temperature_variables` and `temperature_blocks` parameters. This essentially
+means that Cardinal will create auxiliary variables named `solid_temp` and
+`nek_temp` (note that you don't see these in the `AuxVariables` block) and create
+auxiliary kernels to fill the union `temp` variable with these components. Later
+in the `Transfers` block, all data transfers from the sub-applications will write
+into either `solid_temp` or `nek_temp`.
 
 Finally, we provide some additional specifications for how to run OpenMC.
 We set the number of batches and various triggers that will automatically
@@ -240,7 +280,10 @@ Next, we set up some initial conditions for the various fields used for coupling
   start=ICs
   end=Problem
 
-Next, we create a MOOSE heat conduction sub-application, and set up transfers of data between OpenMC and MOOSE. These transfers will send solid temperature and fluid temperature from MOOSE up to OpenMC, and a power distribution to MOOSE.
+Next, we create a MOOSE heat conduction sub-application, and set up transfers of data between OpenMC and MOOSE. These transfers will send solid temperature and fluid temperature from MOOSE up to OpenMC, and a power distribution to MOOSE. Because the solid mesh is exactly the same as the OpenMC mesh mirror, we can use
+simple [MultiAppCopyTransfers](https://mooseframework.inl.gov/source/transfers/MultiAppCopyTransfer.html),
+though you can of course use [other transfers](https://cardinal.cels.anl.gov/tutorials/transfers.html)
+if the meshes were different.
 
 !listing tutorials/pincell_multiphysics/openmc.i
   start=MultiApps
@@ -252,6 +295,7 @@ Finally, we will use a [Transient](https://mooseframework.inl.gov/source/executi
   start=Outputs
 
 ### Solid Input Files
+  id=solid_model
 
 The conservation of solid energy is solved using the MOOSE heat conduction module. The input
 file for this portion of the physics is `bison.i`. We begin by defining a
@@ -261,7 +305,7 @@ number of constants and setting the mesh.
   end=Problem
 
 Because some blocks in the solid mesh aren't actually used in the solid solve
-(the fluid block we will use to receive fluid temperature and density from
+(i.e. the fluid block we will use to receive fluid temperature and density from
 NekRS), we need to explicitly tell MOOSE to not throw errors related
 to checking for material properties on every mesh block.
 
@@ -285,7 +329,7 @@ Next, we declare auxiliary variables to be used for:
 
 - coupling to NekRS (to receive the NekRS temperature, `nek_temp`)
 - computing the pin surface heat flux (to send heat flux `flux` to NekRS)
-- `power` to represent the volumetric heating with a variable
+- `power` to represent the volumetric heating received from OpenMC
 
 On each MOOSE-NekRS substep, we will run MOOSE first. For the very first
 time step, this means we should set an initial condition for the NekRS
@@ -338,7 +382,8 @@ use dimensional units. The various `*_ref` and `*_0` parameters define the chara
 scales that were used to non-dimensionalize the NekRS input. In order to simplify the input
 file, we know a priori that OpenMC will not be sending a heat source *to NekRS*, so
 we set `has_heat_source = false` so that we don't need to add a dummy heat
-source kernel to the `fluid.oudf` file.
+source kernel to the `fluid.oudf` file. If we had volumetric heating in the *fluid*,
+then we would instead send a heating term into NekRS, but this is neglected for this example.
 
 !listing /tutorials/pincell_multiphysics/nek.i
   block=Problem
@@ -365,16 +410,16 @@ This will produce a number of output files,
 - `openmc_out.e`, OpenMC simulation results, mapped to a mesh mirror
 - `openmc_out_bison0.e`, MOOSE heat conduction simulation results
 - `openmc_out_bison0_nek0.e`, NekRS simulation results, mapped to a mesh mirror
-- `fluid0.f*`, NekRS output files
+- `fluid0.f*`, NekRS output files (which you can visualize in Paraview/other software by using the `visnek` [NekRS script](https://cardinal.cels.anl.gov/nek_tools.html)
 
 [pincell_temp] shows the temperature (a) imposed in OpenMC (the output
-of the [CellTemperatureAux](https://cardinal.cels.anl.gov/source/auxkernels/CellTemperatureAux.html)
+of the [CellTemperatureAux](https://cardinal.cels.anl.gov/source/auxkernels/CellTemperatureAux.html))
 auxiliary kernel; (b) the NekRS fluid temperature; and (c) the MOOSE
 solid temperature.
 
 !media pincell_temp.png
   id=pincell_temp
-  caption=Temperatures predicted by NekRS and BISON (middle and right), and what is imposed in OpenMC (left). All images are shown on the same color scale.
+  caption=Temperatures predicted by NekRS and BISON (middle, right), and what is imposed in OpenMC (left). All images are shown on the same color scale.
   style=width:100%;margin-left:auto;margin-right:auto
 
 The OpenMC power distribution is shown in [pincell_power]. The small
@@ -387,6 +432,8 @@ to be fairly symmetric in the axial direction.
   style=width:40%;margin-left:auto;margin-right:auto
 
 Finally, [pincell_cross] shows the fluid and solid temperatures (a) with both phases shown and (b) with just the fluid region highlighted. The very lower power in this demonstration results in fairly small temperature gradients in the fuel, but what is important to note is the coupled solution captures typical conjugate heat transfer temperature distributions in rectangular pincells.
+You can always extend this tutorial to turbulent conditions and increase the power to display
+temperature distributions more characteristic of real nuclear systems.
 
 !media pincell_cross.png
   id=pincell_cross
