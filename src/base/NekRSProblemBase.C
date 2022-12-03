@@ -819,8 +819,12 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
   int start_3d = start_1d * start_1d * start_1d;
   int end_3d = end_1d * end_1d * end_1d;
 
-  // allocate temporary space to hold the results of the search for each process
-  double * Ttmp = (double *)calloc(vc.n_elems * end_3d, sizeof(double));
+  int n_to_write = vc.n_elems * end_3d * _nek_mesh->nBuildPerVolumeElem();
+
+  // allocate temporary space:
+  // - Ttmp: results of the search for each process
+  // - Telem: scratch space for volume interpolation to avoid reallocating a bunch (only used if interpolating)
+  double * Ttmp = (double *)calloc(n_to_write, sizeof(double));
   double * Telem = (double *)calloc(start_3d, sizeof(double));
 
   auto indices = _nek_mesh->cornerIndices();
@@ -830,27 +834,29 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
   {
     int offset = k * start_3d;
 
-    if (_needs_interpolation)
+    for (int build = 0; build < _nek_mesh->nBuildPerVolumeElem(); ++build)
     {
-      // get the solution on the element
-      for (int v = 0; v < start_3d; ++v)
-        Telem[v] = f(offset + v);
+      if (_needs_interpolation)
+      {
+        // get the solution on the element
+        for (int v = 0; v < start_3d; ++v)
+          Telem[v] = f(offset + v);
 
-      // and then interpolate it
-      nekrs::interpolateVolumeHex3D(_interpolation_outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
-      c += end_3d;
-    }
-    else
-    {
-      // get the solution on the element - no need to interpolate
-      for (int v = 0; v < end_3d; ++v, ++c)
-        Ttmp[c] = f(offset + indices[0][v]);
+        // and then interpolate it
+        nekrs::interpolateVolumeHex3D(_interpolation_outgoing, Telem, start_1d, &(Ttmp[c]), end_1d);
+        c += end_3d;
+      }
+      else
+      {
+        // get the solution on the element - no need to interpolate
+        for (int v = 0; v < end_3d; ++v, ++c)
+          Ttmp[c] = f(offset + indices[build][v]);
+      }
     }
   }
 
   // dimensionalize the solution if needed
-  int Nlocal = vc.n_elems * end_3d;
-  for (int v = 0; v < Nlocal; ++v)
+  for (int v = 0; v < n_to_write; ++v)
   {
     nekrs::solution::dimensionalize(field, Ttmp[v]);
 
@@ -859,7 +865,7 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
       Ttmp[v] += _T_ref;
   }
 
-  nekrs::allgatherv(vc.counts, Ttmp, T, end_3d);
+  nekrs::allgatherv(vc.mirror_counts, Ttmp, T, end_3d);
 
   freePointer(Ttmp);
   freePointer(Telem);
@@ -869,7 +875,6 @@ void
 NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T)
 {
   mesh_t * mesh = nekrs::entireMesh();
-
   auto bc = _nek_mesh->boundaryCoupling();
 
   double (*f)(int);
