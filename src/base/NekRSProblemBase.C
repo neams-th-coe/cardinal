@@ -823,17 +823,7 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
   double * Ttmp = (double *)calloc(vc.n_elems * end_3d, sizeof(double));
   double * Telem = (double *)calloc(start_3d, sizeof(double));
 
-  // if we apply the shortcut for first-order interpolations, just hard-code those
-  // indices that we'll grab for a volume hex element
-  int start_2d = start_1d * start_1d;
-  int indices[] = {0,
-                   start_1d - 1,
-                   start_2d - start_1d,
-                   start_2d - 1,
-                   start_3d - start_2d,
-                   start_3d - start_2d + start_1d - 1,
-                   start_3d - start_1d,
-                   start_3d - 1};
+  auto indices = _nek_mesh->cornerIndices();
 
   int c = 0;
   for (int k = 0; k < mesh->Nelements; ++k)
@@ -854,7 +844,7 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
     {
       // get the solution on the element - no need to interpolate
       for (int v = 0; v < end_3d; ++v, ++c)
-        Ttmp[c] = f(offset + indices[v]);
+        Ttmp[c] = f(offset + indices[0][v]);
     }
   }
 
