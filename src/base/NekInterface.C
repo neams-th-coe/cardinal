@@ -62,21 +62,6 @@ setStartTime(const double & start)
   platform->options.setArgs("START TIME", to_string_f(start));
 }
 
-std::vector<int>
-cornerGLLIndices(const int & n)
-{
-  int back_corner = (n + 1) * (n + 1) * n;
-  std::vector<int> corner_indices = {0,
-                                     n,
-                                     (n + 1) * n,
-                                     (n + 1) * (n + 1) - 1,
-                                     back_corner,
-                                     back_corner + n,
-                                     back_corner + (n + 1) * n,
-                                     back_corner + (n + 1) * (n + 1) - 1};
-  return corner_indices;
-}
-
 void
 write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {

@@ -20,6 +20,12 @@
 
 #include "CardinalUtils.h"
 
+/**
+ * Store the geometry and parallel information related to the volume mesh coupling.
+ * Unless otherwise noted, all information in here is indexed according to the
+ * NekRS mesh, and *not* the mesh mirror (this is only relevant for 'exact' mesh mirrors,
+ * where we build N^2 or N^3 MOOSE elements for each NekRS element).
+ */
 class NekVolumeCoupling
 {
 public:
@@ -41,6 +47,9 @@ public:
 
   // number of elements owned by each process
   std::vector<int> counts;
+
+  // number of MOOSE mirror elements owned by each process
+  std::vector<int> mirror_counts;
 
   // number of faces on a boundary of interest for each element
   std::vector<int> n_faces_on_boundary;

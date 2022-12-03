@@ -5,9 +5,8 @@
 
 [Mesh]
   type = NekRSMesh
-  order = SECOND
   volume = true
-  boundary = '1 2 3 4 5 6'
+  exact = true
 []
 
 [Executioner]
@@ -19,6 +18,7 @@
 []
 
 [Outputs]
+  file_base = 'nek_volume_out'
   csv = true
 []
 

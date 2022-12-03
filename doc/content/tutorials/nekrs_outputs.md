@@ -20,6 +20,28 @@ however, all features shown here can also be used in a coupled sense via
 No special computing needs are required for this tutorial.
 !alert-end!
 
+## Viewing the NekRS Mesh
+
+NekRS uses a custom mesh format (with the `.re2` extension). This file cannot
+natively be viewed in visualization software such as Paraview. Standalone NekRS
+users have to run at least one CFD time step, and then can only visualize the
+*output file*. This can be tedious if you need to achieve a viable CFD solve
+just to visualize a mesh.
+
+Cardinal conveniently provides a way to visualize the NekRS CFD mesh. Simply
+set `exact = true` for [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html)
+and then run in `--mesh-only` mode. For example, you can create a small Cardinal
+input file,
+
+!listing /test/tests/nek_mesh/exact/exact_volume.i
+
+And then run in `--mesh-only` mode.
+
+```
+cd test/tests/nek_mesh/exact
+cardinal-opt -i exact.i --mesh-only
+```
+
 ## Loading a NekRS Time History into Exodus
 
 To access this tutorial,

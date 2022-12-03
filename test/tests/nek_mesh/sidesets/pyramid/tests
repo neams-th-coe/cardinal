@@ -8,4 +8,12 @@
                   "which exactly match area integrals performed internally in nekRS."
     required_objects = 'NekRSProblem'
   []
+  [pyramid_sidesets_exact]
+    type = CSVDiff
+    input = exact_volume.i
+    csvdiff = nek_volume_out.csv
+    requirement = "NekRSMesh shall correctly assign sideset IDs based on the nekRS boundary IDs "
+                  "when using an exact mesh mirror. The areas are matched to the 'pyramid_sidesets' test."
+    required_objects = 'NekRSProblem'
+  []
 []

@@ -21,13 +21,3 @@ void scalarDirichletConditions(bcData *bc)
   if (bc->id == 5)
     bc->s = 650.0;
 }
-
-@kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
-{
-  for(dlong e=0;e<Nelements;++e;@outer(0)){
-    for(int n=0;n<p_Np;++n;@inner(0)){
-      const int id = e*p_Np + n;
-      QVOL[id] = source[offset + id];
-    }
-  }
-}
