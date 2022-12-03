@@ -24,6 +24,7 @@
 #include "NekBoundaryCoupling.h"
 #include "NekVolumeCoupling.h"
 #include "NekInterface.h"
+#include "NekUtility.h"
 
 /**
  * Representation of a nekRS surface mesh as a native MooseMesh. This is
@@ -56,6 +57,24 @@ public:
 
   NekRSMesh & operator=(const NekRSMesh & other_mesh) = delete;
   virtual std::unique_ptr<MooseMesh> safeClone() const override;
+
+  /**
+   * NekRS mesh polynomial order
+   * @return NekRS polynomial order
+   */
+  int nekPolynomialOrder() const { return _nek_polynomial_order; }
+
+  /**
+   * Number of elements to build for each NekRS volume element
+   * @return number of MOOSE elements per NekRS volume element
+   */
+  int nBuildPerVolumeElem() const { return _n_build_per_volume_elem; }
+
+  /**
+   * Number of elements to build for each NekRS surface element
+   * @return number of MOOSE elements per NekRS surface element
+   */
+  int nBuildPerSurfaceElem() const { return _n_build_per_surface_elem; }
 
   /**
    * Get the initial mesh x coordinates
@@ -252,6 +271,12 @@ public:
    */
   int facesOnBoundary(const int elem_id) const;
 
+  /**
+   * Whether the mesh mirror is an exact representation of the NekRS mesh
+   * @param return whether mesh mirror is exact
+   */
+  bool exactMirror() const { return _exact; }
+
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
@@ -310,6 +335,18 @@ protected:
    **/
   const order::NekOrderEnum _order;
 
+  /**
+   * Whether the NekRS mesh mirror is an exact replica of the NekRS mesh.
+   * If false (the default), then we build one MOOSE element for each NekRS element,
+   * and the order of the MOOSE element is selected with 'order'. If true,
+   * then we instead build one MOOSE element for each "first-order element"
+   * within each NekRS high-order spectral element. In other words, if the NekRS
+   * mesh is polynomial order 7, then we would build 7^2 MOOSE surface elements
+   * for each NekRS surface element, and 7^3 MOOSE volume elements for each NekRS
+   * volume element. The order of these elements will be first order.
+   */
+  const bool & _exact;
+
   /// Number of vertices per surface
   int _n_vertices_per_surface;
 
@@ -334,14 +371,32 @@ protected:
   /// Order of the nekRS solution
   int _nek_polynomial_order;
 
-  /// Number of surface elements in MooseMesh
+  /**
+   * Number of NekRS surface elements in MooseMesh. The total number of surface
+   * elements in the mesh mirror is _n_surface_elems * _n_build_per_surface_elem.
+   */
   int _n_surface_elems;
 
-  /// Number of volume elements in MooseMesh
+  /// Number of MOOSE surface elements to build per NekRS surface element
+  int _n_build_per_surface_elem;
+
+  /**
+   * Number of NekRS volume elements in MooseMesh. The total number of volume
+   * elements in the mesh mirror is _n_volume_elems * _n_build_per_volume_elem.
+   */
   int _n_volume_elems;
+
+  /// Number of MOOSE volume elements to build per NekRS volume element
+  int _n_build_per_volume_elem;
 
   /// Number of elements in MooseMesh, which depends on whether building a boundary/volume mesh
   int _n_elems;
+
+  /**
+   * Number of MOOSE elements corresponding to each NekRS element, which depends on whether
+   * building a boundary/volume mesh
+   */
+  int _n_moose_per_nek;
 
   /// Function returning the processor id which should own each element
   int (NekRSMesh::*_elem_processor_id)(const int elem_id);

@@ -36,6 +36,7 @@ NekRSMesh::validParams()
   params.addParam<std::vector<int>>("boundary",
                                     "Boundary ID(s) through which nekRS will be coupled to MOOSE");
   params.addParam<bool>("volume", false, "Whether the nekRS volume will be coupled to MOOSE");
+  params.addParam<bool>("exact", false, "Whether the mesh mirror is an exact replica of the NekRS mesh");
   params.addParam<MooseEnum>(
       "order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
   params.addRangeCheckedParam<Real>(
@@ -50,10 +51,14 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _volume(getParam<bool>("volume")),
     _boundary(isParamValid("boundary") ? &getParam<std::vector<int>>("boundary") : nullptr),
     _order(getParam<MooseEnum>("order").getEnum<order::NekOrderEnum>()),
+    _exact(getParam<bool>("exact")),
     _scaling(getParam<Real>("scaling")),
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
+  if (_exact && _order != order::first)
+    mooseError("When building an exact mesh mirror, the 'order' must be FIRST!");
+
   if (!_boundary && !_volume)
     mooseError("This mesh requires at least 'volume = true' or a list of IDs in 'boundary'!");
 
@@ -132,7 +137,8 @@ NekRSMesh::printMeshInfo() const
     boundaries = Moose::stringify(*_boundary);
   else
     boundaries = Moose::stringify(nek_bids);
-  vt.addRow("NekRS mirror", _order + 1, boundaries, _n_surface_elems, _n_volume_elems);
+  vt.addRow("NekRS mirror", _order + 1, boundaries, _n_surface_elems * _n_build_per_surface_elem,
+    _n_volume_elems * _n_build_per_volume_elem);
 
   vt.print(_console);
 }
@@ -159,6 +165,8 @@ void
 NekRSMesh::initializeMeshParams()
 {
   _nek_polynomial_order = nekrs::mesh::polynomialOrder();
+  _n_build_per_surface_elem = _exact ? _nek_polynomial_order * _nek_polynomial_order : 1;
+  _n_build_per_volume_elem = _exact ? std::pow(_nek_polynomial_order, 3) : 1;
 
   /**
    * The libMesh face numbering for a 3-D hexagonal element is
@@ -412,6 +420,11 @@ NekRSMesh::storeBoundaryCoupling()
   MPI_Allgather(
       &Nfaces, 1, MPI_INT, &_boundary_coupling.counts[0], 1, MPI_INT, platform->comm.mpiComm);
 
+  int N_mirror_faces = Nfaces * _n_build_per_surface_elem;
+  _boundary_coupling.mirror_counts.resize(nekrs::commSize());
+  MPI_Allgather(
+      &N_mirror_faces, 1, MPI_INT, &_boundary_coupling.mirror_counts[0], 1, MPI_INT, platform->comm.mpiComm);
+
   // compute the counts and displacements for face-based data exchange
   int * recvCounts = (int *)calloc(nekrs::commSize(), sizeof(int));
   int * displacement = (int *)calloc(nekrs::commSize(), sizeof(int));
@@ -459,6 +472,16 @@ NekRSMesh::storeVolumeCoupling()
                 1,
                 MPI_INT,
                 &_volume_coupling.counts[0],
+                1,
+                MPI_INT,
+                platform->comm.mpiComm);
+
+  _volume_coupling.mirror_counts.resize(nekrs::commSize());
+  int N_mirror_elems = _volume_coupling.n_elems * _n_build_per_volume_elem;
+  MPI_Allgather(&N_mirror_elems,
+                1,
+                MPI_INT,
+                &_volume_coupling.mirror_counts[0],
                 1,
                 MPI_INT,
                 platform->comm.mpiComm);
@@ -587,36 +610,49 @@ void
 NekRSMesh::addElems()
 {
   BoundaryInfo & boundary_info = _mesh->get_boundary_info();
+  auto nested_elems_on_face = nekrs::nestedElementsOnFace(_nek_polynomial_order);
 
   for (int e = 0; e < _n_elems; e++)
   {
-    auto elem = (this->*_new_elem)();
-    elem->set_id() = e;
-    elem->processor_id() = (this->*_elem_processor_id)(e);
-    _mesh->add_elem(elem);
-
-    // add one point for each vertex of the face element
-    for (int n = 0; n < _n_vertices_per_elem; n++)
+    for (int build = 0; build < _n_moose_per_nek; ++build)
     {
-      int node = (*_node_index)[n];
+      auto elem = (this->*_new_elem)();
+      elem->set_id() = e * _n_moose_per_nek + build;
+      elem->processor_id() = (this->*_elem_processor_id)(e);
+      _mesh->add_elem(elem);
 
-      auto node_offset = e * _n_vertices_per_elem + node;
-      Point p(_x[node_offset], _y[node_offset], _z[node_offset]);
-      p *= _scaling;
-
-      auto node_ptr = _mesh->add_point(p);
-      elem->set_node(n) = node_ptr;
-    }
-
-    // add sideset IDs to the mesh if we have volume coupling (this only adds the
-    // sidesets associated with the coupling)
-    if (_volume)
-    {
-      for (int f = 0; f < nekrs::mesh::Nfaces(); ++f)
+      // add one point for each vertex of the face element
+      for (int n = 0; n < _n_vertices_per_elem; n++)
       {
-        int b_id = boundary_id(e, f);
-        if (b_id != -1 /* NekRS's setting to indicate not on a sideset */)
-          boundary_info.add_side(elem, _side_index[f], b_id);
+        int node = (*_node_index)[n];
+
+        auto node_offset = (e * _n_moose_per_nek + build) * _n_vertices_per_elem + node;
+        Point p(_x[node_offset], _y[node_offset], _z[node_offset]);
+        p *= _scaling;
+
+        auto node_ptr = _mesh->add_point(p);
+        elem->set_node(n) = node_ptr;
+      }
+
+      // add sideset IDs to the mesh if we have volume coupling (this only adds the
+      // sidesets associated with the coupling)
+      if (_volume)
+      {
+        for (int f = 0; f < nekrs::mesh::Nfaces(); ++f)
+        {
+          int b_id = boundary_id(e, f);
+          if (b_id != -1 /* NekRS's setting to indicate not on a sideset */)
+          {
+            if (_exact)
+            {
+              auto faces = nested_elems_on_face[f];
+              if (!std::count(faces.begin(), faces.end(), build))
+                continue;
+            }
+
+            boundary_info.add_side(elem, _side_index[f], b_id);
+          }
+        }
       }
     }
   }
@@ -625,16 +661,17 @@ NekRSMesh::addElems()
 void
 NekRSMesh::faceVertices()
 {
-  double * x = (double *)malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  double * y = (double *)malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
-  double * z = (double *)malloc(_n_surface_elems * _n_vertices_per_surface * sizeof(double));
+  int n_vertices_in_mirror = _n_build_per_surface_elem * _n_surface_elems * _n_vertices_per_surface;
+  double * x = (double *) malloc(n_vertices_in_mirror * sizeof(double));
+  double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
+  double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
 
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
   int Nfp_mirror;
-  auto corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N);
+  auto corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
 
   if (_order == 0)
   {
@@ -655,9 +692,10 @@ NekRSMesh::faceVertices()
   }
 
   // Allocate space for the coordinates that are on this rank
-  double * xtmp = (double *)malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
-  double * ytmp = (double *)malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
-  double * ztmp = (double *)malloc(_boundary_coupling.n_faces * Nfp_mirror * sizeof(double));
+  int n_vertices_on_rank = _n_build_per_surface_elem * _boundary_coupling.n_faces * Nfp_mirror;
+  double * xtmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+  double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+  double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
 
   int c = 0;
   for (int k = 0; k < _boundary_coupling.total_n_faces; ++k)
@@ -668,27 +706,26 @@ NekRSMesh::faceVertices()
       int j = _boundary_coupling.face[k];
       int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
 
-      for (int v = 0; v < Nfp_mirror; ++v, ++c)
+      for (int build = 0; build < _n_build_per_surface_elem; ++build)
       {
-        int id;
+        for (int v = 0; v < Nfp_mirror; ++v, ++c)
+        {
+          int vertex_offset = _order == 0 ? corner_indices[build][v] : v;
+          int id = mesh->vmapM[offset + vertex_offset];
 
-        if (_order == 0)
-          id = mesh->vmapM[offset + corner_indices[v]];
-        else
-          id = mesh->vmapM[offset + v];
-
-        xtmp[c] = mesh->x[id];
-        ytmp[c] = mesh->y[id];
-        ztmp[c] = mesh->z[id];
+          xtmp[c] = mesh->x[id];
+          ytmp[c] = mesh->y[id];
+          ztmp[c] = mesh->z[id];
+        }
       }
     }
   }
 
-  nekrs::allgatherv(_boundary_coupling.counts, xtmp, x, Nfp_mirror);
-  nekrs::allgatherv(_boundary_coupling.counts, ytmp, y, Nfp_mirror);
-  nekrs::allgatherv(_boundary_coupling.counts, ztmp, z, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.mirror_counts, xtmp, x, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.mirror_counts, ytmp, y, Nfp_mirror);
+  nekrs::allgatherv(_boundary_coupling.mirror_counts, ztmp, z, Nfp_mirror);
 
-  for (int i = 0; i < _n_surface_elems * _n_vertices_per_surface; ++i)
+  for (int i = 0; i < n_vertices_in_mirror; ++i)
   {
     _x.push_back(x[i]);
     _y.push_back(y[i]);
@@ -708,22 +745,68 @@ NekRSMesh::volumeVertices()
 {
   // nekRS has already performed a global operation such that all processes know the
   // toal number of volume elements.
-  double * x = (double *)malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  double * y = (double *)malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
-  double * z = (double *)malloc(_n_volume_elems * _n_vertices_per_volume * sizeof(double));
+  int n_vertices_in_mirror = _n_build_per_volume_elem * _n_volume_elems * _n_vertices_per_volume;
+  double * x = (double *) malloc(n_vertices_in_mirror * sizeof(double));
+  double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
+  double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
 
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  int rank = nekrs::commRank();
 
-  // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
-  // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-  mesh_t * mesh = createMesh(
-      platform->comm.mpiComm, _order + 1, 1 /* dummy, not used */, nrs->cht, *(nrs->kernelInfo));
+  mesh_t * mesh;
+  int Np_mirror;
+  auto corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
 
-  nekrs::allgatherv(_volume_coupling.counts, mesh->x, x, mesh->Np);
-  nekrs::allgatherv(_volume_coupling.counts, mesh->y, y, mesh->Np);
-  nekrs::allgatherv(_volume_coupling.counts, mesh->z, z, mesh->Np);
+  if (_order == 0)
+  {
+    // For a first-order mesh mirror, we can take a shortcut and instead just fetch the
+    // corner nodes. In this case, 'mesh' is no longer a custom-build mesh copy, but the
+    // actual mesh for computation
+    mesh = _nek_internal_mesh;
+    Np_mirror = 8;
+  }
+  else
+  {
+    // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
+    // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
+    mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
+    Np_mirror = mesh->Np;
+  }
 
-  for (int i = 0; i < _n_volume_elems * _n_vertices_per_volume; ++i)
+  // Allocate space for the coordinates that are on this rank
+  int n_vertices_on_rank = _n_build_per_volume_elem * _volume_coupling.n_elems * Np_mirror;
+  double * xtmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+  double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+  double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+
+  int c = 0;
+  for (int k = 0; k < _volume_coupling.total_n_elems; ++k)
+  {
+    if (_volume_coupling.process[k] == rank)
+    {
+      int i = _volume_coupling.element[k];
+      int offset = i * mesh->Np;
+
+      for (int build = 0; build < _n_build_per_volume_elem; ++build)
+      {
+        for (int v = 0; v < Np_mirror; ++v, ++c)
+        {
+          int vertex_offset = _order == 0 ? corner_indices[build][v] : v;
+          int id = offset + vertex_offset;
+
+          xtmp[c] = mesh->x[id];
+          ytmp[c] = mesh->y[id];
+          ztmp[c] = mesh->z[id];
+        }
+      }
+    }
+  }
+
+  nekrs::allgatherv(_volume_coupling.mirror_counts, xtmp, x, Np_mirror);
+  nekrs::allgatherv(_volume_coupling.mirror_counts, ytmp, y, Np_mirror);
+  nekrs::allgatherv(_volume_coupling.mirror_counts, ztmp, z, Np_mirror);
+
+  for (int i = 0; i < n_vertices_in_mirror; ++i)
   {
     _x.push_back(x[i]);
     _y.push_back(y[i]);
@@ -733,6 +816,9 @@ NekRSMesh::volumeVertices()
   freePointer(x);
   freePointer(y);
   freePointer(z);
+  freePointer(xtmp);
+  freePointer(ytmp);
+  freePointer(ztmp);
 }
 
 void
@@ -746,6 +832,7 @@ NekRSMesh::extractSurfaceMesh()
   _new_elem = &NekRSMesh::boundaryElem;
   _n_elems = _n_surface_elems;
   _n_vertices_per_elem = _n_vertices_per_surface;
+  _n_moose_per_nek = _n_build_per_surface_elem;
   _node_index = &_bnd_node_index;
   _elem_processor_id = &NekRSMesh::boundaryElemProcessorID;
 }
@@ -761,6 +848,7 @@ NekRSMesh::extractVolumeMesh()
   _new_elem = &NekRSMesh::volumeElem;
   _n_elems = _n_volume_elems;
   _n_vertices_per_elem = _n_vertices_per_volume;
+  _n_moose_per_nek = _n_build_per_volume_elem;
   _node_index = &_vol_node_index;
   _elem_processor_id = &NekRSMesh::volumeElemProcessorID;
 }
