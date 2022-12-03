@@ -1,13 +1,13 @@
 [Problem]
   type = NekRSStandaloneProblem
-  casename = 'cube'
+  casename = 'pyramid'
 []
 
 [Mesh]
   type = NekRSMesh
-  order = SECOND
   volume = true
-  boundary = '1 2 3 4 5 6'
+  exact = true
+  boundary = '1 2 3 4 5 6 7 8'
 []
 
 [Executioner]
@@ -20,6 +20,7 @@
 
 [Outputs]
   csv = true
+  file_base = 'nek_volume_out'
 []
 
 [Postprocessors]
@@ -76,5 +77,23 @@
   [area_side6_moose]
     type = AreaPostprocessor
     boundary = '6'
+  []
+  [area_side7_nek]
+    type = NekSideIntegral
+    field = unity
+    boundary = '7'
+  []
+  [area_side7_moose]
+    type = AreaPostprocessor
+    boundary = '7'
+  []
+  [area_side8_nek]
+    type = NekSideIntegral
+    field = unity
+    boundary = '8'
+  []
+  [area_side8_moose]
+    type = AreaPostprocessor
+    boundary = '8'
   []
 []
