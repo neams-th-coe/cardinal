@@ -231,13 +231,12 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   _n_vertices_per_volume = _nek_mesh->numVerticesPerVolume();
 
   // generic data
-  _n_elems = _nek_mesh->numElems();
   _n_vertices_per_elem = _nek_mesh->numVerticesPerElem();
 
   if (_volume)
-    _n_points = _n_volume_elems * _n_vertices_per_volume;
+    _n_points = _n_volume_elems * _n_vertices_per_volume * _nek_mesh->nBuildPerVolumeElem();
   else
-    _n_points = _n_surface_elems * _n_vertices_per_surface;
+    _n_points = _n_surface_elems * _n_vertices_per_surface * _nek_mesh->nBuildPerSurfaceElem();
 
   initializeInterpolationMatrices();
 
@@ -368,33 +367,36 @@ NekRSProblemBase::fillAuxVariable(const unsigned int var_number, const double * 
   auto sys_number = _aux->number();
   auto pid = _communicator.rank();
 
-  for (unsigned int e = 0; e < _n_elems; e++)
+  for (unsigned int e = 0; e < _nek_mesh->numElems(); e++)
   {
-    auto elem_ptr = _nek_mesh->queryElemPtr(e);
-
-    // Only work on elements we can find on our local chunk of a
-    // distributed mesh
-    if (!elem_ptr)
+    for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
     {
-      libmesh_assert(!_nek_mesh->getMesh().is_serial());
-      continue;
-    }
+      auto elem_ptr = _nek_mesh->queryElemPtr(e * _nek_mesh->nMoosePerNek() + build);
 
-    for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
-    {
-      auto node_ptr = elem_ptr->node_ptr(n);
-
-      // For each face vertex, we can only write into the MOOSE auxiliary fields if that
-      // vertex is "owned" by the present MOOSE process.
-      if (node_ptr->processor_id() == pid)
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
       {
-        int node_index = _nek_mesh->nodeIndex(n);
-        auto node_offset = e * _n_vertices_per_elem + node_index;
+        libmesh_assert(!_nek_mesh->getMesh().is_serial());
+        continue;
+      }
 
-        // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary
-        // system
-        auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
-        solution.set(dof_idx, value[node_offset]);
+      for (unsigned int n = 0; n < _n_vertices_per_elem; n++)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
+
+        // For each face vertex, we can only write into the MOOSE auxiliary fields if that
+        // vertex is "owned" by the present MOOSE process.
+        if (node_ptr->processor_id() == pid)
+        {
+          int node_index = _nek_mesh->nodeIndex(n);
+          auto node_offset = (e * _nek_mesh->nMoosePerNek() + build) * _n_vertices_per_elem + node_index;
+
+          // get the DOF for the auxiliary variable, then use it to set the value in the auxiliary
+          // system
+          auto dof_idx = node_ptr->dof_number(sys_number, var_number, 0);
+          solution.set(dof_idx, value[node_offset]);
+        }
       }
     }
   }
@@ -888,16 +890,16 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
   int start_2d = start_1d * start_1d;
   int end_2d = end_1d * end_1d;
 
+  int n_to_write = bc.n_faces * end_2d * _nek_mesh->nBuildPerSurfaceElem();
+
   // allocate temporary space:
   // - Ttmp: results of the search for each process
-  // - Tface: scratch space for face solution to avoid reallocating a bunch
-  // - scratch: scratch for the interpolatino process to avoid reallocating a bunch
-  double * Ttmp = (double *)calloc(bc.n_faces * end_2d * _nek_mesh->nBuildPerSurfaceElem(), sizeof(double));
+  // - Tface: scratch space for face solution to avoid reallocating a bunch (only used if interpolating)
+  // - scratch: scratch for the interpolatino process to avoid reallocating a bunch (only used if interpolating0
+  double * Ttmp = (double *)calloc(n_to_write, sizeof(double));
   double * Tface = (double *)calloc(start_2d, sizeof(double));
   double * scratch = (double *)calloc(start_1d * end_1d, sizeof(double));
 
-  // if we apply the shortcut for first-order interpolations, just hard-code those
-  // indices that we'll grab for a surface hex element
   auto indices = _nek_mesh->cornerIndices();
 
   int c = 0;
@@ -909,35 +911,37 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
       int j = bc.face[k];
       int offset = i * mesh->Nfaces * start_2d + j * start_2d;
 
-      if (_needs_interpolation)
+      for (int build = 0; build < _nek_mesh->nBuildPerSurfaceElem(); ++build)
       {
-        // get the solution on the face
-        for (int v = 0; v < start_2d; ++v)
+        if (_needs_interpolation)
         {
-          int id = mesh->vmapM[offset + v];
-          Tface[v] = f(id);
-        }
+          // get the solution on the face
+          for (int v = 0; v < start_2d; ++v)
+          {
+            int id = mesh->vmapM[offset + v];
+            Tface[v] = f(id);
+          }
 
-        // and then interpolate it
-        nekrs::interpolateSurfaceFaceHex3D(
-            scratch, _interpolation_outgoing, Tface, start_1d, &(Ttmp[c]), end_1d);
-        c += end_2d;
-      }
-      else
-      {
-        // get the solution on the face - no need to interpolate
-        for (int v = 0; v < end_2d; ++v, ++c)
+          // and then interpolate it
+          nekrs::interpolateSurfaceFaceHex3D(
+              scratch, _interpolation_outgoing, Tface, start_1d, &(Ttmp[c]), end_1d);
+          c += end_2d;
+        }
+        else
         {
-          int id = mesh->vmapM[offset + indices[0][v]];
-          Ttmp[c] = f(id);
+          // get the solution on the face - no need to interpolate
+          for (int v = 0; v < end_2d; ++v, ++c)
+          {
+            int id = mesh->vmapM[offset + indices[build][v]];
+            Ttmp[c] = f(id);
+          }
         }
       }
     }
   }
 
   // dimensionalize the solution if needed
-  int Nlocal = bc.n_faces * end_2d;
-  for (int v = 0; v < Nlocal; ++v)
+  for (int v = 0; v < n_to_write; ++v)
   {
     nekrs::solution::dimensionalize(field, Ttmp[v]);
 
@@ -946,7 +950,7 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
       Ttmp[v] += _T_ref;
   }
 
-  nekrs::allgatherv(bc.counts, Ttmp, T, end_2d);
+  nekrs::allgatherv(bc.mirror_counts, Ttmp, T, end_2d);
 
   freePointer(Ttmp);
   freePointer(Tface);

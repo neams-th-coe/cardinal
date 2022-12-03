@@ -128,7 +128,7 @@ public:
   int nekNumQuadraturePoints1D() const;
 
   /**
-   * \brief Get the number of elements in MOOSE's representation of nekRS's mesh
+   * \brief Get the number of NekRS elements we rebuild in the MOOSE mesh
    *
    * This function is used to perform the data transfer routines in NekRSProblem
    * agnostic of whether we have surface or volume coupling.
@@ -283,6 +283,12 @@ public:
    */
   std::vector<std::vector<int>> cornerIndices() const { return _corner_indices; }
 
+  /**
+   * Get the number of MOOSE elements we build for each NekRS element
+   * @return MOOSE elements built for each NekRS element
+   */
+  int nMoosePerNek() const { return _n_moose_per_nek; }
+
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
@@ -395,7 +401,10 @@ protected:
   /// Number of MOOSE volume elements to build per NekRS volume element
   int _n_build_per_volume_elem;
 
-  /// Number of elements in MooseMesh, which depends on whether building a boundary/volume mesh
+  /**
+   * Number of NekRS elements we build in the MooseMesh. The total number of
+   * elements in the mesh mirror is _n_elems * _n_moose_per_nek.
+   */
   int _n_elems;
 
   /**
