@@ -13,4 +13,17 @@
                   "which exactly match area integrals performed internally in nekRS."
     required_objects = 'NekRSProblem'
   []
+  [cube_sidesets_exact]
+    type = CSVDiff
+    input = exact_volume.i
+    csvdiff = nek_volume_out.csv
+    min_parallel = 2
+
+    # nekRS can't use more processors than elements
+    max_parallel = 12
+
+    requirement = "NekRSMesh shall correctly assign sideset IDs based on the nekRS boundary IDs "
+                  "when using an exact mesh mirror. The areas are matched to the 'cube_sidesets' test."
+    required_objects = 'NekRSProblem'
+  []
 []
