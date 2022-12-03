@@ -277,6 +277,12 @@ public:
    */
   bool exactMirror() const { return _exact; }
 
+  /**
+   * Get the corner indices for the GLL points to be used in the mesh mirror
+   * @return mapping of mesh mirror nodes to GLL points
+   */
+  std::vector<std::vector<int>> cornerIndices() const { return _corner_indices; }
+
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
@@ -505,5 +511,6 @@ protected:
   /// Pointer to NekRS's internal mesh data structure
   mesh_t * _nek_internal_mesh = nullptr;
 
-  /// Initial x,y,z coordinates of the internal NekRS mesh
+  /// Corner indices for GLL points of mesh mirror elements
+  std::vector<std::vector<int>> _corner_indices;
 };

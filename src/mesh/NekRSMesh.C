@@ -113,6 +113,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
       _initial_z.push_back(_nek_internal_mesh->z[offset + v]);
     }
   }
+
+  _corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
 }
 
 void

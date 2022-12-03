@@ -892,13 +892,13 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
   // - Ttmp: results of the search for each process
   // - Tface: scratch space for face solution to avoid reallocating a bunch
   // - scratch: scratch for the interpolatino process to avoid reallocating a bunch
-  double * Ttmp = (double *)calloc(bc.n_faces * end_2d, sizeof(double));
+  double * Ttmp = (double *)calloc(bc.n_faces * end_2d * _nek_mesh->nBuildPerSurfaceElem(), sizeof(double));
   double * Tface = (double *)calloc(start_2d, sizeof(double));
   double * scratch = (double *)calloc(start_1d * end_1d, sizeof(double));
 
   // if we apply the shortcut for first-order interpolations, just hard-code those
   // indices that we'll grab for a surface hex element
-  int indices[] = {0, start_1d - 1, start_2d - start_1d, start_2d - 1};
+  auto indices = _nek_mesh->cornerIndices();
 
   int c = 0;
   for (int k = 0; k < bc.total_n_faces; ++k)
@@ -928,7 +928,7 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
         // get the solution on the face - no need to interpolate
         for (int v = 0; v < end_2d; ++v, ++c)
         {
-          int id = mesh->vmapM[offset + indices[v]];
+          int id = mesh->vmapM[offset + indices[0][v]];
           Ttmp[c] = f(id);
         }
       }
