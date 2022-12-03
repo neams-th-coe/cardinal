@@ -25,7 +25,7 @@ No special computing needs are required for this tutorial.
 NekRS uses a custom mesh format (with the `.re2` extension). This file cannot
 natively be viewed in visualization software such as Paraview. Standalone NekRS
 users have to run at least one CFD time step, and then can only visualize the
-*output file*. This can be tedious if you need to set up a bunch of case files
+*output file*. This can be tedious if you need to achieve a viable CFD solve
 just to visualize a mesh.
 
 Cardinal conveniently provides a way to visualize the NekRS CFD mesh. Simply
