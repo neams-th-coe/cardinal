@@ -128,7 +128,7 @@ public:
   int nekNumQuadraturePoints1D() const;
 
   /**
-   * \brief Get the number of elements in MOOSE's representation of nekRS's mesh
+   * \brief Get the number of NekRS elements we rebuild in the MOOSE mesh
    *
    * This function is used to perform the data transfer routines in NekRSProblem
    * agnostic of whether we have surface or volume coupling.
@@ -277,6 +277,18 @@ public:
    */
   bool exactMirror() const { return _exact; }
 
+  /**
+   * Get the corner indices for the GLL points to be used in the mesh mirror
+   * @return mapping of mesh mirror nodes to GLL points
+   */
+  std::vector<std::vector<int>> cornerIndices() const { return _corner_indices; }
+
+  /**
+   * Get the number of MOOSE elements we build for each NekRS element
+   * @return MOOSE elements built for each NekRS element
+   */
+  int nMoosePerNek() const { return _n_moose_per_nek; }
+
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
   void storeVolumeCoupling();
@@ -389,7 +401,10 @@ protected:
   /// Number of MOOSE volume elements to build per NekRS volume element
   int _n_build_per_volume_elem;
 
-  /// Number of elements in MooseMesh, which depends on whether building a boundary/volume mesh
+  /**
+   * Number of NekRS elements we build in the MooseMesh. The total number of
+   * elements in the mesh mirror is _n_elems * _n_moose_per_nek.
+   */
   int _n_elems;
 
   /**
@@ -505,5 +520,6 @@ protected:
   /// Pointer to NekRS's internal mesh data structure
   mesh_t * _nek_internal_mesh = nullptr;
 
-  /// Initial x,y,z coordinates of the internal NekRS mesh
+  /// Corner indices for GLL points of mesh mirror elements
+  std::vector<std::vector<int>> _corner_indices;
 };
