@@ -113,6 +113,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
       _initial_z.push_back(_nek_internal_mesh->z[offset + v]);
     }
   }
+
+  _corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
 }
 
 void
@@ -671,7 +673,6 @@ NekRSMesh::faceVertices()
 
   mesh_t * mesh;
   int Nfp_mirror;
-  auto corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
 
   if (_order == 0)
   {
@@ -710,7 +711,7 @@ NekRSMesh::faceVertices()
       {
         for (int v = 0; v < Nfp_mirror; ++v, ++c)
         {
-          int vertex_offset = _order == 0 ? corner_indices[build][v] : v;
+          int vertex_offset = _order == 0 ? _corner_indices[build][v] : v;
           int id = mesh->vmapM[offset + vertex_offset];
 
           xtmp[c] = mesh->x[id];
@@ -755,7 +756,6 @@ NekRSMesh::volumeVertices()
 
   mesh_t * mesh;
   int Np_mirror;
-  auto corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
 
   if (_order == 0)
   {
@@ -791,7 +791,7 @@ NekRSMesh::volumeVertices()
       {
         for (int v = 0; v < Np_mirror; ++v, ++c)
         {
-          int vertex_offset = _order == 0 ? corner_indices[build][v] : v;
+          int vertex_offset = _order == 0 ? _corner_indices[build][v] : v;
           int id = offset + vertex_offset;
 
           xtmp[c] = mesh->x[id];

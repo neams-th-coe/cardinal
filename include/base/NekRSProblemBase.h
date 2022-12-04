@@ -357,9 +357,6 @@ protected:
   /// Number of vertices per volume element of the transfer mesh
   int _n_vertices_per_volume;
 
-  /// Number of elements in the data transfer mesh, which depends on whether boundary/volume coupling
-  int _n_elems;
-
   /// Number of vertices per element in the data transfer mesh, which depends on whether boundary/volume coupling
   int _n_vertices_per_elem;
 
