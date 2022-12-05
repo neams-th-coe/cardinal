@@ -980,7 +980,7 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
 
 void
 NekRSProblemBase::writeBoundarySolution(const int elem_id, const field::NekWriteEnum & field,
-  double * T, const std::vector<double> * add)
+  double * T)
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
@@ -995,7 +995,6 @@ NekRSProblemBase::writeBoundarySolution(const int elem_id, const field::NekWrite
   for (int i = 0; i < mesh->Nfp; ++i)
   {
     int id = mesh->vmapM[offset + i];
-    double extra = (add == nullptr) ? 0.0 : (*add)[id];
     write_solution(id, tmp[i]);
   }
 

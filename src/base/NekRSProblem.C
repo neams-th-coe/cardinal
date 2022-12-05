@@ -471,28 +471,31 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
         if (nekrs::commRank() != _nek_mesh->boundaryCoupling().processor_id(e))
           continue;
 
-        auto elem_ptr = mesh.query_elem_ptr(e);
-
-        // Only work on elements we can find on our local chunk of a
-        // distributed mesh
-        if (!elem_ptr)
+        for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
         {
-          libmesh_assert(!mesh.is_serial());
-          continue;
-        }
+          auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
 
-        for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
-        {
-          auto node_ptr = elem_ptr->node_ptr(n);
+          // Only work on elements we can find on our local chunk of a
+          // distributed mesh
+          if (!elem_ptr)
+          {
+            libmesh_assert(!mesh.is_serial());
+            continue;
+          }
 
-          // For each face, get the flux at the libMesh nodes. This will be passed into
-          // nekRS, which will interpolate onto its GLL points. Because we are looping over
-          // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
-          // determine the offset in the nekRS arrays.
-          int node_index = _nek_mesh->boundaryNodeIndex(n);
-          auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
-          _flux_face[node_index] =
-              (*_serialized_solution)(dof_idx) / nekrs::solution::referenceFlux();
+          for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
+          {
+            auto node_ptr = elem_ptr->node_ptr(n);
+
+            // For each face, get the flux at the libMesh nodes. This will be passed into
+            // nekRS, which will interpolate onto its GLL points. Because we are looping over
+            // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+            // determine the offset in the nekRS arrays.
+            int node_index = _nek_mesh->boundaryNodeIndex(n);
+            auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
+            _flux_face[node_index] =
+                (*_serialized_solution)(dof_idx) / nekrs::solution::referenceFlux();
+          }
         }
 
         // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
