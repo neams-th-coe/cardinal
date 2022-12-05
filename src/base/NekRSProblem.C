@@ -144,7 +144,11 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
 
   // Depending on the type of coupling, initialize various problem parameters
   if (_boundary && !_volume) // only boundary coupling
-    _flux_face = (double *)calloc(_n_vertices_per_surface, sizeof(double));
+  {
+    int n_per_surf = _nek_mesh->exactMirror() ?
+      std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _n_vertices_per_surface;
+    _flux_face = (double *)calloc(n_per_surf, sizeof(double));
+  }
   else if (_volume && !_boundary) // only volume coupling
     _source_elem = (double *)calloc(_n_vertices_per_volume, sizeof(double));
   else // both volume and boundary coupling
@@ -459,6 +463,7 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
 
   {
     _console << "Sending heat flux to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
@@ -491,7 +496,8 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
             // nekRS, which will interpolate onto its GLL points. Because we are looping over
             // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
             // determine the offset in the nekRS arrays.
-            int node_index = _nek_mesh->boundaryNodeIndex(n);
+            int node_index = _nek_mesh->exactMirror() ?
+              indices[build][_nek_mesh->boundaryNodeIndex(n)] : _nek_mesh->boundaryNodeIndex(n);
             auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
             _flux_face[node_index] =
                 (*_serialized_solution)(dof_idx) / nekrs::solution::referenceFlux();

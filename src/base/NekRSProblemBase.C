@@ -982,23 +982,30 @@ void
 NekRSProblemBase::writeBoundarySolution(const int elem_id, const field::NekWriteEnum & field,
   double * T)
 {
-  const auto & bc = _nek_mesh->boundaryCoupling();
-
   mesh_t * mesh = nekrs::temperatureMesh();
   void (*write_solution)(int, dfloat);
   write_solution = nekrs::solution::solutionPointer(field);
 
-  int offset;
-  double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
-  interpolateBoundarySolutionToNek(elem_id, T, tmp, offset);
+  const auto & bc = _nek_mesh->boundaryCoupling();
+  int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
 
-  for (int i = 0; i < mesh->Nfp; ++i)
+  if (_nek_mesh->exactMirror())
   {
-    int id = mesh->vmapM[offset + i];
-    write_solution(id, tmp[i]);
+    // can write directly into the NekRS solution
+    for (int i = 0; i < mesh->Nfp; ++i)
+      write_solution(mesh->vmapM[offset + i], T[i]);
   }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+    interpolateBoundarySolutionToNek(T, tmp);
 
-  freePointer(tmp);
+    for (int i = 0; i < mesh->Nfp; ++i)
+      write_solution(mesh->vmapM[offset + i], tmp[i]);
+
+    freePointer(tmp);
+  }
 }
 
 void
@@ -1016,21 +1023,15 @@ NekRSProblemBase::interpolateVolumeSolutionToNek(const int elem_id, double * inc
 }
 
 void
-NekRSProblemBase::interpolateBoundarySolutionToNek(const int elem_id, double * incoming_moose_value,
-  double * outgoing_nek_value, int & vmapM_offset)
+NekRSProblemBase::interpolateBoundarySolutionToNek(double * incoming_moose_value,
+  double * outgoing_nek_value)
 {
-  const auto & bc = _nek_mesh->boundaryCoupling();
-  int e = bc.element[elem_id];
-  int f = bc.face[elem_id];
-
   mesh_t * mesh = nekrs::temperatureMesh();
 
   double * scratch = (double *)calloc(_moose_Nq * mesh->Nq, sizeof(double));
 
   nekrs::interpolateSurfaceFaceHex3D(
       scratch, _interpolation_incoming, incoming_moose_value, _moose_Nq, outgoing_nek_value, mesh->Nq);
-
-  vmapM_offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
 
   freePointer(scratch);
 }
