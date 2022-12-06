@@ -27,6 +27,7 @@
     min_parallel = 6
     heavy = true
     prereq = sfr_pincell
+    rel_err = 5e-5
     requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
                   "conservation of energy and realistic thermal solutions when nekRS is run in "
                   "nondimensional form using an exact mesh mirror. This solution was compared to "
