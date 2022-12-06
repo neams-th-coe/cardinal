@@ -142,30 +142,25 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
       mooseWarning("Your NekRSMesh has 'displacements', but your nekRS .par file does not have a\n"
         "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
 
+  int n_per_surf = _nek_mesh->exactMirror() ?
+    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _n_vertices_per_surface;
+  int n_per_vol = _nek_mesh->exactMirror() ?
+    std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _n_vertices_per_volume;
+
   // Depending on the type of coupling, initialize various problem parameters
   if (_boundary && !_volume) // only boundary coupling
-  {
-    int n_per_surf = _nek_mesh->exactMirror() ?
-      std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _n_vertices_per_surface;
     _flux_face = (double *)calloc(n_per_surf, sizeof(double));
-  }
   else if (_volume && !_boundary) // only volume coupling
-  {
-    int n_per_vol = _nek_mesh->exactMirror() ?
-      std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _n_vertices_per_volume;
     _source_elem = (double *)calloc(n_per_vol, sizeof(double));
-  }
   else // both volume and boundary coupling
   {
-    int n_per_vol = _nek_mesh->exactMirror() ?
-      std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _n_vertices_per_volume;
     _flux_elem = (double *)calloc(n_per_vol, sizeof(double));
     _source_elem = (double *)calloc(n_per_vol, sizeof(double));
   }
 
   if (nekrs::hasMovingMesh())
   {
-    int n_entries = _volume ? _n_vertices_per_volume : _n_vertices_per_surface;
+    int n_entries = _volume ? n_per_vol : n_per_surf;
     _displacement_x = (double *)calloc(n_entries, sizeof(double));
     _displacement_y = (double *)calloc(n_entries, sizeof(double));
     _displacement_z = (double *)calloc(n_entries, sizeof(double));
@@ -680,6 +675,7 @@ NekRSProblem::sendVolumeDeformationToNek()
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
 
   _console << "Sending volume deformation to NekRS" << std::endl;
 
@@ -689,31 +685,35 @@ NekRSProblem::sendVolumeDeformationToNek()
     if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
       continue;
 
-    auto elem_ptr = mesh.query_elem_ptr(e);
-
-    // Only work on elements we can find on our local chunk of a
-    // distributed mesh
-    if (!elem_ptr)
+    for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
     {
-      libmesh_assert(!mesh.is_serial());
-      continue;
-    }
+      auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
 
-    for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
-    {
-      auto node_ptr = elem_ptr->node_ptr(n);
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+      {
+        libmesh_assert(!mesh.is_serial());
+        continue;
+      }
 
-      // For each face, get the displacement at the libMesh nodes. This will be passed into
-      // nekRS, which will interpolate onto its GLL points. Because we are looping over
-      // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
-      // determine the offset in the nekRS arrays.
-      int node_index = _nek_mesh->volumeNodeIndex(n);
-      auto dof_idx1 = node_ptr->dof_number(sys_number, _disp_x_var, 0);
-      auto dof_idx2 = node_ptr->dof_number(sys_number, _disp_y_var, 0);
-      auto dof_idx3 = node_ptr->dof_number(sys_number, _disp_z_var, 0);
-      _displacement_x[node_index] = (*_serialized_solution)(dof_idx1)/_L_ref;
-      _displacement_y[node_index] = (*_serialized_solution)(dof_idx2)/_L_ref;
-      _displacement_z[node_index] = (*_serialized_solution)(dof_idx3)/_L_ref;
+      for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
+
+        // For each face, get the displacement at the libMesh nodes. This will be passed into
+        // nekRS, which will interpolate onto its GLL points. Because we are looping over
+        // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+        // determine the offset in the nekRS arrays.
+        int node_index = _nek_mesh->exactMirror() ?
+          indices[build][_nek_mesh->volumeNodeIndex(n)] : _nek_mesh->volumeNodeIndex(n);
+        auto dof_idx1 = node_ptr->dof_number(sys_number, _disp_x_var, 0);
+        auto dof_idx2 = node_ptr->dof_number(sys_number, _disp_y_var, 0);
+        auto dof_idx3 = node_ptr->dof_number(sys_number, _disp_z_var, 0);
+        _displacement_x[node_index] = (*_serialized_solution)(dof_idx1) / _L_ref;
+        _displacement_y[node_index] = (*_serialized_solution)(dof_idx2) / _L_ref;
+        _displacement_z[node_index] = (*_serialized_solution)(dof_idx3) / _L_ref;
+      }
     }
 
     // Now that we have the displacement at the nodes of the NekRSMesh, we can interpolate them
@@ -722,6 +722,7 @@ NekRSProblem::sendVolumeDeformationToNek()
     writeVolumeSolution(e, field::y_displacement, _displacement_y, &(_nek_mesh->nek_initial_y()));
     writeVolumeSolution(e, field::z_displacement, _displacement_z, &(_nek_mesh->nek_initial_z()));
   }
+
   _displaced_problem->updateMesh();
 }
 
