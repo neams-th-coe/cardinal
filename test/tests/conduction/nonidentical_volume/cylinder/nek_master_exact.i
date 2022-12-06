@@ -139,6 +139,7 @@ o=0.15
 
 [Outputs]
   exodus = true
+  csv = true
   print_linear_residuals = false
   execute_on = 'final'
   hide = 'axial'
