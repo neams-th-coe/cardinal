@@ -13,6 +13,18 @@
                   "can be made better by using finer meshes in the coupled Cardinal case."
     required_objects = 'NekRSProblem'
   []
+  [pyramid_exact]
+    type = CSVDiff
+    input = openmc_exact.i
+    csvdiff = openmc_exact_out.csv
+    min_parallel = 8
+    heavy = true
+    requirement = "The system shall couple NekRS to MOOSE through simultaneous boundary heat flux and "
+                  "volumetric heating when using an exact mesh mirror. The solution is nearly identical "
+                  "to the pyramid test and the usrwrk output for flux and volumetric heating match the "
+                  "auxiliary variables in the Nek-wrapped input."
+    required_objects = 'NekRSProblem'
+  []
   [duplicate_temp]
     type = RunException
     input = nek.i
