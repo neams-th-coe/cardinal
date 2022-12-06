@@ -150,11 +150,17 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _flux_face = (double *)calloc(n_per_surf, sizeof(double));
   }
   else if (_volume && !_boundary) // only volume coupling
-    _source_elem = (double *)calloc(_n_vertices_per_volume, sizeof(double));
+  {
+    int n_per_vol = _nek_mesh->exactMirror() ?
+      std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _n_vertices_per_volume;
+    _source_elem = (double *)calloc(n_per_vol, sizeof(double));
+  }
   else // both volume and boundary coupling
   {
-    _flux_elem = (double *)calloc(_n_vertices_per_volume, sizeof(double));
-    _source_elem = (double *)calloc(_n_vertices_per_volume, sizeof(double));
+    int n_per_vol = _nek_mesh->exactMirror() ?
+      std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 3.0) : _n_vertices_per_volume;
+    _flux_elem = (double *)calloc(n_per_vol, sizeof(double));
+    _source_elem = (double *)calloc(n_per_vol, sizeof(double));
   }
 
   if (nekrs::hasMovingMesh())
@@ -525,35 +531,39 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
         if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
           continue;
 
-        int n_faces_on_boundary = _nek_mesh->facesOnBoundary(e);
-
-        // though the flux is a volume field, the only meaningful values are on the coupling
-        // boundaries, so we can just skip this interpolation if this volume element isn't on
-        // a coupling boundary, because that flux data isn't used anyways
-        if (n_faces_on_boundary > 0)
+        for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
         {
-          auto elem_ptr = mesh.query_elem_ptr(e);
+          int n_faces_on_boundary = _nek_mesh->facesOnBoundary(e);
 
-          // Only work on elements we can find on our local chunk of a
-          // distributed mesh
-          if (!elem_ptr)
+          // though the flux is a volume field, the only meaningful values are on the coupling
+          // boundaries, so we can just skip this interpolation if this volume element isn't on
+          // a coupling boundary, because that flux data isn't used anyways
+          if (n_faces_on_boundary > 0)
           {
-            libmesh_assert(!mesh.is_serial());
-            continue;
-          }
+            auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
 
-          for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
-          {
-            auto node_ptr = elem_ptr->node_ptr(n);
+            // Only work on elements we can find on our local chunk of a
+            // distributed mesh
+            if (!elem_ptr)
+            {
+              libmesh_assert(!mesh.is_serial());
+              continue;
+            }
 
-            // For each element, get the flux at the libMesh nodes. This will be passed into
-            // nekRS, which will interpolate onto its GLL points. Because we are looping over
-            // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
-            // determine the offset in the nekRS arrays.
-            int node_index = _nek_mesh->volumeNodeIndex(n);
-            auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
-            _flux_elem[node_index] =
-                (*_serialized_solution)(dof_idx) / nekrs::solution::referenceFlux();
+            for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
+            {
+              auto node_ptr = elem_ptr->node_ptr(n);
+
+              // For each element, get the flux at the libMesh nodes. This will be passed into
+              // nekRS, which will interpolate onto its GLL points. Because we are looping over
+              // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+              // determine the offset in the nekRS arrays.
+              int node_index = _nek_mesh->exactMirror() ?
+                indices[build][_nek_mesh->volumeNodeIndex(n)] : _nek_mesh->volumeNodeIndex(n);
+              auto dof_idx = node_ptr->dof_number(sys_number, _avg_flux_var, 0);
+              _flux_elem[node_index] =
+                  (*_serialized_solution)(dof_idx) / nekrs::solution::referenceFlux();
+            }
           }
 
           // Now that we have the flux at the nodes of the NekRSMesh, we can interpolate them
@@ -730,6 +740,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
 
   {
     _console << "Sending volumetric heat source to NekRS" << std::endl;
@@ -740,29 +751,33 @@ NekRSProblem::sendVolumeHeatSourceToNek()
       if (nekrs::commRank() != _nek_mesh->volumeCoupling().processor_id(e))
         continue;
 
-      auto elem_ptr = mesh.query_elem_ptr(e);
-
-      // Only work on elements we can find on our local chunk of a
-      // distributed mesh
-      if (!elem_ptr)
+      for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
       {
-        libmesh_assert(!mesh.is_serial());
-        continue;
-      }
+        auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
 
-      for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
-      {
-        auto node_ptr = elem_ptr->node_ptr(n);
+        // Only work on elements we can find on our local chunk of a
+        // distributed mesh
+        if (!elem_ptr)
+        {
+          libmesh_assert(!mesh.is_serial());
+          continue;
+        }
 
-        // For each element, get the heat source at the libMesh nodes. This will be passed into
-        // nekRS, which will interpolate onto its GLL points. Because we are looping over
-        // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
-        // determine the offset in the nekRS arrays.
-        int node_index = _nek_mesh->volumeNodeIndex(n);
+        for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
+        {
+          auto node_ptr = elem_ptr->node_ptr(n);
 
-        auto dof_idx = node_ptr->dof_number(sys_number, _heat_source_var, 0);
-        _source_elem[node_index] =
-            (*_serialized_solution)(dof_idx) / nekrs::solution::referenceSource();
+          // For each element, get the heat source at the libMesh nodes. This will be passed into
+          // nekRS, which will interpolate onto its GLL points. Because we are looping over
+          // nodes from libMesh, we need to get the GLL index known by nekRS and use it to
+          // determine the offset in the nekRS arrays.
+          int node_index = _nek_mesh->exactMirror() ?
+            indices[build][_nek_mesh->volumeNodeIndex(n)] : _nek_mesh->volumeNodeIndex(n);
+
+          auto dof_idx = node_ptr->dof_number(sys_number, _heat_source_var, 0);
+          _source_elem[node_index] =
+              (*_serialized_solution)(dof_idx) / nekrs::solution::referenceSource();
+        }
       }
 
       // Now that we have the heat source at the nodes of the NekRSMesh, we can interpolate them

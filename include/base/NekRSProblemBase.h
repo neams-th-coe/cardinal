@@ -138,10 +138,9 @@ protected:
    * @param[in] elem_id element ID
    * @param[in] incoming_moose_value MOOSE face values
    * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS volume mesh
-   * @param[out] gll_offset offset into usrwrk to start from for indexing into this element's indices
    */
   void interpolateVolumeSolutionToNek(const int elem_id, double * incoming_moose_value,
-                                      double * outgoing_nek_value, int & gll_offset);
+                                      double * outgoing_nek_value);
 
   /**
    * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms of a
