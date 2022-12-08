@@ -660,12 +660,12 @@ NekRSMesh::addElems()
             boundary_info.add_side(elem, _side_index[f], b_id);
           }
         }
-      }
 
-      if (e < _nek_n_flow_elems)
-        elem->subdomain_id() = _fluid_block_id;
-      else
-        elem->subdomain_id() = _solid_block_id;
+        if (e < _nek_n_flow_elems)
+          elem->subdomain_id() = _fluid_block_id;
+        else
+          elem->subdomain_id() = _solid_block_id;
+      }
     }
   }
 }
