@@ -46,6 +46,11 @@ NekRSSeparateDomainProblem::validParams()
 
   params.addRequiredParam<std::vector<int>>("outlet_boundary", "NekRS outlet boundary ID");
   params.addRequiredParam<std::vector<int>>("inlet_boundary", "NekRS inlet boundary ID");
+
+  MooseEnum pp_mesh("fluid solid all", "fluid");
+  params.addParam<MooseEnum>(
+      "nek_mesh", pp_mesh, "NekRS mesh to act on");
+
   return params;
 }
 
@@ -61,7 +66,8 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     _scalar01_coupling(false),
     _scalar02_coupling(false),
     _scalar03_coupling(false),
-    _usrwrk_indices(MultiMooseEnum("velocity temperature scalar01 scalar02 scalar03 unused"))
+    _usrwrk_indices(MultiMooseEnum("velocity temperature scalar01 scalar02 scalar03 unused")),
+    _pp_mesh(getParam<MooseEnum>("nek_mesh"))
 {
   // check scalar01-03_coupling provided
   for (const auto & s : _coupled_scalars)
@@ -175,6 +181,10 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   _usrwrk_indices = indices;
 
   printScratchSpaceInfo(_usrwrk_indices);
+
+  if (_pp_mesh!="fluid")
+    mooseError("NekRSSeparateDomainProblem should only act on the Nek fluid mesh.");
+
 }
 
 NekRSSeparateDomainProblem::~NekRSSeparateDomainProblem() { nekrs::freeScratch(); }
@@ -219,17 +229,17 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
       // transfer data to wrk array for NekRS inlet BCs
       if (_inlet_coupling)
       {
-        sendBoundaryVelocityToNek();
+        sendBoundaryVelocityToNek(_pp_mesh);
 
         if (nekrs::hasTemperatureSolve())
-          sendBoundaryTemperatureToNek();
+          sendBoundaryTemperatureToNek(_pp_mesh);
 
         if (_scalar01_coupling)
-          sendBoundaryScalarToNek(1, *_toNekRS_scalar01);
+          sendBoundaryScalarToNek(_pp_mesh, 1, *_toNekRS_scalar01);
         if (_scalar02_coupling)
-          sendBoundaryScalarToNek(2, *_toNekRS_scalar02);
+          sendBoundaryScalarToNek(_pp_mesh, 2, *_toNekRS_scalar02);
         if (_scalar03_coupling)
-          sendBoundaryScalarToNek(3, *_toNekRS_scalar03);
+          sendBoundaryScalarToNek(_pp_mesh, 3, *_toNekRS_scalar03);
       }
 
       // copy scratch to device
@@ -254,7 +264,7 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
 }
 
 void
-NekRSSeparateDomainProblem::sendBoundaryVelocityToNek()
+NekRSSeparateDomainProblem::sendBoundaryVelocityToNek(const MooseEnum & pp_mesh)
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -273,11 +283,11 @@ NekRSSeparateDomainProblem::sendBoundaryVelocityToNek()
            << Moose::stringify(_inlet_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
-    velocity(e, *_toNekRS_velocity);
+    velocity(pp_mesh, e, *_toNekRS_velocity);
 }
 
 void
-NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek()
+NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek(const MooseEnum & pp_mesh)
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -296,11 +306,13 @@ NekRSSeparateDomainProblem::sendBoundaryTemperatureToNek()
            << Moose::stringify(_inlet_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
-    temperature(e, *_toNekRS_temp);
+    temperature(pp_mesh, e, *_toNekRS_temp);
 }
 
 void
-NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId, const double scalarValue)
+NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const MooseEnum & pp_mesh,
+                                                    const int scalarId,
+                                                    const double scalarValue)
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
@@ -320,7 +332,7 @@ NekRSSeparateDomainProblem::sendBoundaryScalarToNek(const int scalarId, const do
            << Moose::stringify(_inlet_boundary) << std::endl;
 
   for (unsigned int e = 0; e < _n_surface_elems; e++)
-    scalar(e,scalarId, scalarValue);
+    scalar(pp_mesh, e, scalarId, scalarValue);
 }
 
 void
@@ -333,6 +345,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
   pp_params.set<MooseEnum>("field") = "pressure";
   pp_params.set<std::vector<int>>("boundary") = _inlet_boundary;
   pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+  pp_params.set<MooseEnum>("mesh") = _pp_mesh;
   addPostprocessor("NekSideAverage", "inlet_P", pp_params);
 
   // outlet NekRS pressure
@@ -340,6 +353,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
   pp_params.set<MooseEnum>("field") = "pressure";
   pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
   pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+  pp_params.set<MooseEnum>("mesh") = _pp_mesh;
   addPostprocessor("NekSideAverage", "outlet_P", pp_params);
 
   // calculate pressure drop over NekRS
@@ -356,6 +370,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
     pp_params.set<MooseEnum>("field") = "velocity";
     pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
     pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+    pp_params.set<MooseEnum>("mesh") = _pp_mesh;
     addPostprocessor("NekSideAverage", "outlet_V", pp_params);
 
     // NekRS -> 1d code, temperature interface
@@ -365,6 +380,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
       pp_params.set<MooseEnum>("field") = "temperature";
       pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
       pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+      pp_params.set<MooseEnum>("mesh") = _pp_mesh;
       addPostprocessor("NekSideAverage", "outlet_T", pp_params);
     }
     // NekRS -> 1d code, scalar interfaces
@@ -374,6 +390,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
       pp_params.set<MooseEnum>("field") = "scalar01";
       pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
       pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+      pp_params.set<MooseEnum>("mesh") = _pp_mesh;
       addPostprocessor("NekSideAverage", "outlet_S01", pp_params);
     }
     if (_scalar02_coupling)
@@ -382,6 +399,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
       pp_params.set<MooseEnum>("field") = "scalar02";
       pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
       pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+      pp_params.set<MooseEnum>("mesh") = _pp_mesh;
       addPostprocessor("NekSideAverage", "outlet_S02", pp_params);
     }
     if (_scalar03_coupling)
@@ -390,6 +408,7 @@ NekRSSeparateDomainProblem::addExternalVariables()
       pp_params.set<MooseEnum>("field") = "scalar03";
       pp_params.set<std::vector<int>>("boundary") = _outlet_boundary;
       pp_params.set<ExecFlagEnum>("execute_on", true) = {EXEC_INITIAL, EXEC_TIMESTEP_END};
+      pp_params.set<MooseEnum>("mesh") = _pp_mesh;
       addPostprocessor("NekSideAverage", "outlet_S03", pp_params);
     }
   }
@@ -415,7 +434,9 @@ NekRSSeparateDomainProblem::addExternalVariables()
 }
 
 void
-NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity)
+NekRSSeparateDomainProblem::velocity(const MooseEnum & pp_mesh,
+                                     const int elem_id,
+                                     const double velocity)
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
@@ -423,7 +444,7 @@ NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity)
   if (nekrs::commRank() == bc.processor_id(elem_id))
   {
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    mesh_t * mesh = nekrs::entireMesh();
+    mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
     int end_1d = mesh->Nq;
     int end_2d = end_1d * end_1d;
@@ -441,7 +462,9 @@ NekRSSeparateDomainProblem::velocity(const int elem_id, const double velocity)
 }
 
 void
-NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperature)
+NekRSSeparateDomainProblem::temperature(const MooseEnum & pp_mesh,
+                                        const int elem_id,
+                                        const double temperature)
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
@@ -449,7 +472,7 @@ NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperat
   if (nekrs::commRank() == bc.processor_id(elem_id))
   {
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    mesh_t * mesh = nekrs::temperatureMesh();
+    mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
     int scalarFieldOffset = nekrs::scalarFieldOffset();
 
@@ -469,7 +492,10 @@ NekRSSeparateDomainProblem::temperature(const int elem_id, const double temperat
 }
 
 void
-NekRSSeparateDomainProblem::scalar(const int elem_id, const int scalarId, const double scalar)
+NekRSSeparateDomainProblem::scalar(const MooseEnum & pp_mesh,
+                                   const int elem_id,
+                                   const int scalarId,
+                                   const double scalar)
 {
   const auto & bc = _nek_mesh->boundaryCoupling();
 
@@ -477,7 +503,7 @@ NekRSSeparateDomainProblem::scalar(const int elem_id, const int scalarId, const 
   if (nekrs::commRank() == bc.processor_id(elem_id))
   {
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    mesh_t * mesh = nekrs::entireMesh();
+    mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
     int scalarFieldOffset = nekrs::scalarFieldOffset();
     int scalarWrkOffset = (scalarId + 1)*scalarFieldOffset; // offset by 1, first "scalar" is temperature
