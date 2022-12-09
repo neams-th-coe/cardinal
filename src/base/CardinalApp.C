@@ -71,6 +71,7 @@ CardinalApp::validParams()
   params.addCommandLineParam<std::string>("nekrs_device_id", "--nekrs-device-id", "NekRS device ID");
 
   params.set<bool>("use_legacy_material_output") = false;
+  params.set<bool>("error_unused") = false;
   return params;
 }
 
