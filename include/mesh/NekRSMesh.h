@@ -380,6 +380,12 @@ protected:
    */
   const Real & _scaling;
 
+  /// Block ID for the fluid portion of the mesh mirror
+  const unsigned int & _fluid_block_id;
+
+  /// Block ID for the solid portion of the mesh mirror
+  const unsigned int & _solid_block_id;
+
   /// Order of the nekRS solution
   int _nek_polynomial_order;
 
@@ -427,6 +433,9 @@ protected:
 
   /// Total number of volume elements in the nekRS problem
   int _nek_n_volume_elems;
+
+  /// Number of volume elements in the flow portion of the NekRS mesh
+  int _nek_n_flow_elems;
 
   /**
    * \brief \f$x\f$ coordinates of the current GLL points (which can move in time), for this rank

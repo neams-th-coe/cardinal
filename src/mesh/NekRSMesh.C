@@ -41,6 +41,8 @@ NekRSMesh::validParams()
       "order", getNekOrderEnum(), "Order of the mesh interpolation between nekRS and MOOSE");
   params.addRangeCheckedParam<Real>(
       "scaling", 1.0, "scaling > 0.0", "Scaling factor to apply to the mesh");
+  params.addParam<unsigned int>("fluid_block_id", 0, "Subdomain ID to use for the fluid mesh mirror");
+  params.addParam<unsigned int>("solid_block_id", 1, "Subdomain ID to use for the solid mesh mirror");
   params.addClassDescription(
       "Construct a mirror of the NekRS mesh in boundary and/or volume format");
   return params;
@@ -53,6 +55,8 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
     _order(getParam<MooseEnum>("order").getEnum<order::NekOrderEnum>()),
     _exact(getParam<bool>("exact")),
     _scaling(getParam<Real>("scaling")),
+    _fluid_block_id(getParam<unsigned int>("fluid_block_id")),
+    _solid_block_id(getParam<unsigned int>("solid_block_id")),
     _n_surface_elems(0),
     _n_volume_elems(0)
 {
@@ -557,6 +561,7 @@ NekRSMesh::buildMesh()
 
   _nek_n_surface_elems = nekrs::mesh::NboundaryFaces();
   _nek_n_volume_elems = nekrs::mesh::Nelements();
+  _nek_n_flow_elems = nekrs::mesh::NflowElements();
 
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
@@ -655,6 +660,11 @@ NekRSMesh::addElems()
             boundary_info.add_side(elem, _side_index[f], b_id);
           }
         }
+
+        if (e < _nek_n_flow_elems)
+          elem->subdomain_id() = _fluid_block_id;
+        else
+          elem->subdomain_id() = _solid_block_id;
       }
     }
   }
