@@ -16,26 +16,37 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#ifdef ENABLE_NEK_COUPLING
 
-#include "NekPostprocessor.h"
-#include "CardinalEnums.h"
+#include "NekVolumePostprocessor.h"
+#include "UserErrorChecking.h"
 
-/**
- * Base class for NekRS postprocessors that operate on fields,
- * such as for taking averages of a field variable.
- */
-class NekFieldPostprocessor : public NekPostprocessor
+InputParameters
+NekVolumePostprocessor::validParams()
 {
-public:
-  static InputParameters validParams();
+  InputParameters params = NekPostprocessor::validParams();
+  params.addRequiredParam<MooseEnum>("field",
+                                     getNekFieldEnum(),
+                                     "Field to integrate");
+  params.addParam<Point>(
+      "velocity_direction",
+      "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
+      "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
+  return params;
+}
 
-  NekFieldPostprocessor(const InputParameters & parameters);
+NekVolumePostprocessor::NekVolumePostprocessor(const InputParameters & parameters)
+  : NekPostprocessor(parameters),
+    _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
+{
+  if (_field == field::velocity_component)
+  {
+    checkRequiredParam(parameters, "velocity_direction", "using 'field = velocity_component'");
 
-protected:
-  /// integrand of the surface integral
-  const field::NekFieldEnum _field;
+    _velocity_direction = geom_utility::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
+  }
+  else
+    checkUnusedParam(parameters, "velocity_direction", "not using 'field = velocity_component'");
+}
 
-  /// Direction in which to evaluate velocity, when field = velocity_component
-  Point _velocity_direction;
-};
+#endif

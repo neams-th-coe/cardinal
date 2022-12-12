@@ -19,6 +19,18 @@
 #include "CardinalEnums.h"
 
 MooseEnum
+getNekMeshEnum()
+{
+  return MooseEnum("fluid solid all", "all");
+}
+
+MooseEnum
+getSeparateDomainNekMeshEnum()
+{
+  return MooseEnum("fluid solid all", "fluid");
+}
+
+MooseEnum
 getSynchronizationEnum()
 {
   return MooseEnum("constant parent_app", "constant");

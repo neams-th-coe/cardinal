@@ -224,11 +224,11 @@ temperatureMesh()
 }
 
 mesh_t *
-getMesh(const MooseEnum & pp_mesh)
+getMesh(const nek_mesh::NekMeshEnum pp_mesh)
 {
-  if (pp_mesh == "fluid")
+  if (pp_mesh == nek_mesh::fluid)
     return flowMesh();
-  else if (pp_mesh == "all")
+  else if (pp_mesh == nek_mesh::all)
     return entireMesh();
   else
     mooseError("Cardinal cannot operate on this mesh region of ", pp_mesh);
@@ -668,7 +668,7 @@ copyDeformationToDevice()
 
 double
 sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-             const MooseEnum & pp_mesh)
+             const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -707,23 +707,38 @@ sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
 }
 
 double
-volumeMaxValue(const field::NekFieldEnum & field, const MooseEnum & pp_mesh)
+volumeMaxValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh)
 {
-  mesh_t * mesh = getMesh(pp_mesh);
-
   double value = -std::numeric_limits<double>::max();
 
   double (*f)(int);
   f = solution::solutionPointer(field);
 
-  for (int i = 0; i < mesh->Nelements; ++i)
+  mesh_t * mesh;
+  int start_id;
+
+  switch (pp_mesh)
   {
-    for (int j = 0; j < mesh->Np; ++j)
+    case nek_mesh::fluid:
+    case nek_mesh::all:
     {
-      int id = i * mesh->Np + j;
-      value = std::max(value, f(id));
+      mesh = getMesh(pp_mesh);
+      start_id = 0;
+      break;
     }
+    case nek_mesh::solid:
+    {
+      mesh = entireMesh();
+      start_id = flowMesh()->Nelements;
+      break;
+    }
+    default:
+      mooseError("Unhandled NekMeshEnum in volumeMaxValue");
   }
+
+  for (int i = start_id; i < mesh->Nelements; ++i)
+    for (int j = 0; j < mesh->Np; ++j)
+      value = std::max(value, f(i * mesh->Np + j));
 
   // find extreme value across all processes
   double reduced_value;
@@ -740,23 +755,38 @@ volumeMaxValue(const field::NekFieldEnum & field, const MooseEnum & pp_mesh)
 }
 
 double
-volumeMinValue(const field::NekFieldEnum & field, const MooseEnum & pp_mesh)
+volumeMinValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh)
 {
-  mesh_t * mesh = getMesh(pp_mesh);
-
   double value = std::numeric_limits<double>::max();
 
   double (*f)(int);
   f = solution::solutionPointer(field);
 
-  for (int i = 0; i < mesh->Nelements; ++i)
+  mesh_t * mesh;
+  int start_id;
+
+  switch (pp_mesh)
   {
-    for (int j = 0; j < mesh->Np; ++j)
+    case nek_mesh::fluid:
+    case nek_mesh::all:
     {
-      int id = i * mesh->Np + j;
-      value = std::min(value, f(id));
+      mesh = getMesh(pp_mesh);
+      start_id = 0;
+      break;
     }
+    case nek_mesh::solid:
+    {
+      mesh = entireMesh();
+      start_id = flowMesh()->Nelements;
+      break;
+    }
+    default:
+      mooseError("Unhandled NekMeshEnum in volumeMaxValue");
   }
+
+  for (int i = start_id; i < mesh->Nelements; ++i)
+    for (int j = 0; j < mesh->Np; ++j)
+      value = std::min(value, f(i * mesh->Np + j));
 
   // find extreme value across all processes
   double reduced_value;
@@ -774,7 +804,7 @@ volumeMinValue(const field::NekFieldEnum & field, const MooseEnum & pp_mesh)
 
 double
 sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-             const MooseEnum & pp_mesh)
+             const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -887,10 +917,9 @@ centroid(int local_elem_id)
 }
 
 double
-volume(const MooseEnum & pp_mesh)
+volume(const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-
   double integral = 0.0;
 
   for (int k = 0; k < mesh->Nelements; ++k)
@@ -958,7 +987,7 @@ void
 dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
                            const std::vector<int> & boundary_id,
                            double & integral,
-			                     const MooseEnum & pp_mesh)
+			                     const nek_mesh::NekMeshEnum pp_mesh)
 {
   // dimensionalize the field if needed
   solution::dimensionalize(integrand, integral);
@@ -973,7 +1002,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 
 double
 volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
-               const MooseEnum & pp_mesh)
+               const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -1000,7 +1029,7 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
 }
 
 double
-area(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
+area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -1034,7 +1063,7 @@ area(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
 
 double
 usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot,
-                   const MooseEnum & pp_mesh)
+                   const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *) nrsPtr();
@@ -1067,7 +1096,7 @@ usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & sl
 
 double
 sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & integrand,
-             const MooseEnum & pp_mesh)
+             const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -1103,7 +1132,7 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
 }
 
 double
-massFlowrate(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
+massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1153,7 +1182,7 @@ massFlowrate(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
 double
 sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
                              const field::NekFieldEnum & integrand,
-                             const MooseEnum & pp_mesh)
+                             const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1209,7 +1238,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 }
 
 double
-pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction, const MooseEnum & pp_mesh)
+pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction, const nek_mesh::NekMeshEnum & pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1251,7 +1280,7 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
 }
 
 double
-heatFluxIntegral(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
+heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1304,7 +1333,7 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh
 }
 
 void
-gradient(const int offset, const double * f, double * grad_f, const MooseEnum & pp_mesh)
+gradient(const int offset, const double * f, double * grad_f, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 

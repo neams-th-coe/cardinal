@@ -33,6 +33,22 @@ MooseEnum getRelaxationEnum();
 MooseEnum getTallyTriggerEnum();
 MooseEnum getInitialPropertiesEnum();
 MultiMooseEnum getTallyScoreEnum();
+MooseEnum getNekMeshEnum();
+MooseEnum getSeparateDomainNekMeshEnum();
+
+namespace nek_mesh
+{
+
+/**
+ * Enumeration of possible meshes to operate upon within NekRS
+ */
+enum NekMeshEnum
+{
+  fluid,
+  solid,
+  all
+};
+} // namespace nek_mesh
 
 namespace synchronization
 {

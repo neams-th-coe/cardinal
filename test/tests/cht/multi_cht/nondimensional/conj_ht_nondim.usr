@@ -1,0 +1,68 @@
+c-----------------------------------------------------------------------
+c   
+c   The domain consists of two plates of finite thickness (h=0.5) 
+c   with plane Poiseiulle flow moving between the plates from left 
+c   to right (x=0 to 8).
+c   
+c   The gap height is 1.0 (y=0 to 1).
+c   
+c   The flow inlet temperature is T=0 and the plates are heated
+c   with volumetric heat source, qvol = 1.
+c
+c   Insulated boundary conditions are applied on the solid
+c   surfaces that are not interior to the computational domain,
+c   so heat leaves only through advection at the flow outlet.
+c
+c-----------------------------------------------------------------------
+      subroutine userchk
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine useric (ix,iy,iz,ieg)
+
+C     Set initial conditions
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+      include 'SIZE'
+      include 'TOTAL'
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2
+      include 'SIZE'
+      include 'TOTAL'
+
+      ! reconstruct boundary tags to remove internal boundary
+      do iel=1,nelv
+      do ifc=1,2*ndim
+         if (cbc(ifc,iel,1) .eq. 'v  ') boundaryID(ifc,iel) = 1
+         if (cbc(ifc,iel,1) .eq. 'O  ') boundaryID(ifc,iel) = 2
+         if (cbc(ifc,iel,1) .eq. 'W  ') boundaryID(ifc,iel) = 3
+         if (cbc(ifc,iel,1) .eq. 'SYM') boundaryID(ifc,iel) = 4
+      enddo
+      enddo
+
+      do iel=1,nelt
+      do ifc=1,2*ndim
+         if (cbc(ifc,iel,2) .eq. 't  ') boundaryIDt(ifc,iel) = 1
+         if (cbc(ifc,iel,2) .eq. 'O  ') boundaryIDt(ifc,iel) = 2
+         if (cbc(ifc,iel,2) .eq. 'I  ') boundaryIDt(ifc,iel) = 3
+         if (cbc(ifc,iel,2) .eq. 'SYM') boundaryIDt(ifc,iel) = 4
+      enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+      return
+      end
+c-----------------------------------------------------------------------

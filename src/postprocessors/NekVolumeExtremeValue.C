@@ -26,7 +26,7 @@ registerMooseObject("CardinalApp", NekVolumeExtremeValue);
 InputParameters
 NekVolumeExtremeValue::validParams()
 {
-  InputParameters params = NekFieldPostprocessor::validParams();
+  InputParameters params = NekVolumePostprocessor::validParams();
   params.addParam<MooseEnum>(
       "value_type",
       getOperationEnum(),
@@ -36,7 +36,7 @@ NekVolumeExtremeValue::validParams()
 }
 
 NekVolumeExtremeValue::NekVolumeExtremeValue(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters),
+  : NekVolumePostprocessor(parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
   if (_field == field::velocity_component)

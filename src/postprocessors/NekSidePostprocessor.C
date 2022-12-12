@@ -32,6 +32,11 @@ NekSidePostprocessor::validParams()
 NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters)
   : NekPostprocessor(parameters), _boundary(getParam<std::vector<int>>("boundary"))
 {
+  if (_pp_mesh == nek_mesh::solid)
+    mooseError("NekRS does not have a notion of solid sidesets - only flow sidesets or\n"
+      "heat transfer sidesets (which might not necessarily represent solid portions "
+      "of the domain). Therefore, you must set either 'fluid' or 'all' for side-based postprocessors.");
+
   const auto & filename = getMooseApp().getInputFileName();
 
   // check that each specified boundary is within the range [1, n_fluid_boundaries]

@@ -1,0 +1,9 @@
+[Tests]
+  [volume_nondim_pp]
+    type = CSVDiff
+    input = nek_nondim_pp.i
+    csvdiff = nek_nondim_pp_out.csv
+    requirement = "The system shall correctly evaluate volume postprocessors for a non-dimensional NekRS solve on a conjugate heat transfer mesh. The gold file is identical to the volume_pp case, which is the dimensional version of the same setup."
+    required_objects = 'NekRSProblem'
+  []
+[]

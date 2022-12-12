@@ -1,0 +1,19 @@
+[GENERAL]
+polynomialOrder = 1
+numSteps = 1
+dt = 2e-02
+timeStepper = tombo2
+writeInterval = 1
+
+[PRESSURE]
+residualTol = 1e-06
+
+[VELOCITY]
+boundaryTypeMap = v, O, W, SYM
+residualTol = 1e-08
+solver = none
+
+[TEMPERATURE]
+boundaryTypeMap = t, O, I, I
+residualTol = 1e-08
+solver = none

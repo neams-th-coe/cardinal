@@ -25,9 +25,8 @@ NekPostprocessor::validParams()
 {
   InputParameters params = GeneralPostprocessor::validParams();
 
-  MooseEnum mesh("fluid solid all", "all");
   params.addParam<MooseEnum>(
-      "mesh", mesh, "NekRS mesh to compute postprocessor on");
+      "mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
 
   return params;
 }
@@ -35,7 +34,7 @@ NekPostprocessor::validParams()
 NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
   : GeneralPostprocessor(parameters),
     _mesh(_subproblem.mesh()),
-    _pp_mesh(getParam<MooseEnum>("mesh"))
+    _pp_mesh(getParam<MooseEnum>("mesh").getEnum<nek_mesh::NekMeshEnum>())
 {
   _nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!_nek_problem)
@@ -48,7 +47,7 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
                "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
   }
 
-  if (_pp_mesh=="solid")
+  if (_pp_mesh == nek_mesh::solid)
     mooseError("Cardinal cannot operate solely on the NekRS solid mesh, but this capability will\n"
                "be added in the future. Please use 'fluid' or 'all' until then.");
 

@@ -38,7 +38,6 @@ NekSideIntegral::NekSideIntegral(const InputParameters & parameters)
 Real
 NekSideIntegral::getValue()
 {
-
   if (_field == field::velocity_component)
   {
     Real vx = nekrs::sideIntegral(_boundary, field::velocity_x, _pp_mesh);
@@ -46,7 +45,6 @@ NekSideIntegral::getValue()
     Real vz = nekrs::sideIntegral(_boundary, field::velocity_z, _pp_mesh);
     Point velocity(vx, vy, vz);
     return _velocity_direction * velocity;
-    ;
   }
 
   return nekrs::sideIntegral(_boundary, _field, _pp_mesh);

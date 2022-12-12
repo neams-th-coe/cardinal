@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "NekFieldPostprocessor.h"
+#include "NekVolumePostprocessor.h"
 
 /**
  * Compute the integral of a specified quantity over the scalar
@@ -28,7 +28,7 @@
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekVolumeIntegral : public NekFieldPostprocessor
+class NekVolumeIntegral : public NekVolumePostprocessor
 {
 public:
   static InputParameters validParams();
@@ -36,6 +36,13 @@ public:
   NekVolumeIntegral(const InputParameters & parameters);
 
   virtual Real getValue() override;
+
+  /**
+   * Integrate the field over the specified mesh
+   * @param[in] mesh mesh
+   * @return field integrated over the mesh
+   */
+  Real getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh);
 
 protected:
   /// Volume by which to normalize

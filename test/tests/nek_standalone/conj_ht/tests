@@ -13,9 +13,8 @@
     type = RunException
     input = nek.i
     cli_args = 'Postprocessors/Area_BC3_flow/mesh="solid"'
-    expect_err = "Cardinal cannot operate solely on the NekRS solid mesh, but this capability will\n"
-                 "be added in the future. Please use 'fluid' or 'all' until then."
-    requirement = "The system shall throw an error if trying to act on only the NekRS solid mesh."
+    expect_err = "NekRS does not have a notion of solid sidesets - only flow sidesets"
+    requirement = "The system shall throw an error if trying to act on only the NekRS solid mesh for side postprocessors."
     required_objects = 'NekRSProblem'
   []
 []
