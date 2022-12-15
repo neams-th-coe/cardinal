@@ -1,4 +1,4 @@
-$(DAGMC_BUILDDIR)/Makefile: $(DAGMC_DIR)/CMakeLists.txt
+$(DAGMC_BUILDDIR)/Makefile: build_moab | $(DAGMC_DIR)/CMakeLists.txt
 	mkdir -p $(DAGMC_BUILDDIR)
 	cd $(DAGMC_BUILDDIR) && \
 	cmake -L \
