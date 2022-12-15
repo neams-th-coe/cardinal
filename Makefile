@@ -39,7 +39,7 @@ ENABLE_NEK          ?= yes
 ENABLE_OPENMC       ?= yes
 
 # Whether you want to build OpenMC with DAGMC support; set to anything except 'yes' to skip
-ENABLE_DAGMC        ?= yes
+ENABLE_DAGMC        ?= no
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
@@ -267,6 +267,11 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_CPPFLAGS += $(HDF5_INCLUDES) $(OPENMC_INCLUDES)
   libmesh_CXXFLAGS    += -DENABLE_OPENMC_COUPLING
+endif
+
+ifeq ($(ENABLE_DAGMC), yes)
+  ADDITIONAL_CPPFLAGS += $(DAGMC_INCLUDES)
+  libmesh_CXXFLAGS    += -DENABLE_DAGMC
 endif
 
 # ======================================================================================
