@@ -11,6 +11,8 @@
 # * MOOSE_SUBMODULE  : Top-level MOOSE dir (default: $(CONTRIB_DIR)/moose)
 # * NEKRS_DIR        : Top-level NekRS dir (default: $(CONTRIB_DIR)/nekRS)
 # * OPENMC_DIR       : Top-level OpenMC dir (default: $(CONTRIB_DIR)/openmc)
+# * DAGMC_DIR        : Top-level DagMC dir (default: $(CONTRIB_DIR)/DAGMC)
+# * MOAB_DIR         : Top-level Moab dir (default: $(CONTRIB_DIR)/moab)
 # * SAM_DIR          : Top-level SAM dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR      : Top-level Sockeye dir (default: $(CONTRIB_DIR)/sockeye)
 # * SODIUM_DIR       : Top-level sodium dir (default: $(CONTRIB_DIR)/sodium)
@@ -66,9 +68,14 @@ endif
 HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
 
-# HDF5 is only needed to be linked if using OpenMC
 ifeq ($(ENABLE_OPENMC), yes)
+  # HDF5 is only needed to be linked if using OpenMC
   $(info Cardinal is using HDF5 from $(HDF5_ROOT))
+else
+  ifeq ($(ENABLE_DAGMC), yes)
+    $(info "Ignoring ENABLE_DAGMC because OpenMC is not enabled.")
+    ENABLE_DAGMC := no
+  endif
 endif
 
 # Check that NEKRS_HOME is set to the correct location
@@ -90,6 +97,8 @@ THERMAL_HYDRAULICS  := yes
 MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
 NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
 OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+DAGMC_CONTENT     := $(shell ls $(DAGMC_DIR) 2> /dev/null)
+MOAB_CONTENT      := $(shell ls $(MOAB_DIR) 2> /dev/null)
 SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
 
@@ -295,6 +304,9 @@ else
 
 build_dagmc:
 	$(info Skipping DagMC build because ENABLE_DAGMC is not set to 'yes')
+
+build_moab:
+	$(info Skipping Moab build because ENABLE_DAGMC is not set to 'yes')
 
 endif
 

@@ -34,6 +34,25 @@ ifeq ($(ENABLE_OPENMC), yes)
   endif
 endif
 
+ifeq ($(ENABLE_DAGMC), yes)
+  ifeq ($(DAGMC_CONTENT),)
+    $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts-get-dependencies.sh")
+  endif
+  ifeq ($(MOAB_CONTENT),)
+    $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts-get-dependencies.sh")
+  endif
+
+  DAGMC_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep DAGMC | cut -c1)
+  ifneq (,$(findstring +,$(DAGMC_status)))
+    $(warning $n"***WARNING***: Your DagMC submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+  endif
+
+  moab_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep moab | cut -c1)
+  ifneq (,$(findstring +,$(moab_status)))
+    $(warning $n"***WARNING***: Your Moab submodule is not pointing to the commit tied to Cardinal.$n                To fetch the paired commit, use ./scripts/get-dependencies.sh"$n)
+  endif
+endif
+
 # We can check that if it looks like we're going to build Sockeye, that
 # all of its dependencies are there
 ifneq ($(SOCKEYE_CONTENT),)
