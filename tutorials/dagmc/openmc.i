@@ -38,7 +38,6 @@
   check_zero_tallies = false
 
   power = 1000.0
-  particles = 20000
 []
 
 [Postprocessors]
