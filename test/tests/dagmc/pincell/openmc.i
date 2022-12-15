@@ -2,15 +2,29 @@
   [cube]
     type = GeneratedMeshGenerator
     dim = 3
-    nx = 5
-    ny = 5
+    nx = 40
+    ny = 40
     nz = 20
-    xmin = -4.0
-    xmax = 4.0
-    ymin = -4.0
-    ymax = 4.0
-    zmin = -4.0
-    zmax = 4.0
+    xmin = -15.0
+    xmax = 15.0
+    ymin = -15.0
+    ymax = 15.0
+    zmin = -10.0
+    zmax = 10.0
+  []
+[]
+
+[AuxVariables]
+  [cell_id]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[AuxKernels]
+  [cell_id]
+    type = CellIDAux
+    variable = cell_id
   []
 []
 
@@ -20,6 +34,12 @@
   tally_type = mesh
   solid_cell_level = 0
   solid_blocks = '0'
+  check_tally_sum = false
+  check_zero_tallies = false
+
+  power = 1000.0
+  particles = 20000
+  initial_properties = xml
 []
 
 [Executioner]
