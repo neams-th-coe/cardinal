@@ -128,7 +128,7 @@ geometry, there are three aspects that you must pay attention to when using Card
 2. The "level" of the cells with which you want to perform feedback
 3. The manner in which temperature feedback is applied to the cross section data
 
-The temperature in OpenMC is stored on the [!ac](CSG) cells. One constant temperature
+The temperature in OpenMC is stored on the cells. One constant temperature
 can be set for each cell. Therefore, the resolution of the temperature feedback
 received from MOOSE is determined during the OpenMC model setup. Each
 OpenMC cell will receive a unique temperature, so the number of OpenMC cells dictates
@@ -136,7 +136,7 @@ the temperature feedback resolution.
 
 The second consideration is slightly more subtle, but allows great flexibility for
 imposing multiphysics feedback for very heterogeneous geometries, such as
-[!ac](TRISO) fuels. The "level" of a [!ac](CSG) cell refers to the number of
+[!ac](TRISO) fuels. The "level" of a cell refers to the number of
 nested universes (relative to the root universe) at which you would like to impose
 feedback. If you construct your geometry without *filling* any OpenMC cells with
 other universes, then all your cells are at level zero - i.e. the highest level in
@@ -179,7 +179,7 @@ The OpenMC geometry as produced via plots is shown in [pincell_openmc].
 
 !media pincell_openmc.png
   id=pincell_openmc
-  caption=OpenMC [!ac](CSG) geometry colored by cell ID shown on the $x$-$y$ and $x$-$z$ planes
+  caption=OpenMC geometry colored by cell ID shown on the $x$-$y$ and $x$-$z$ planes
   style=width:50%;margin-left:auto;margin-right:auto
 
 The top and bottom of the pincell are vacuum boundaries.
@@ -604,7 +604,7 @@ to a global tally over the entire OpenMC problem. When using mesh tallies on
 curvilinear surfaces, an unstructured mesh often cannot perfectly represent the
 domain. In this problem, for instance, the faceted nature of the pincell mesh
 means that a (small) amount of the fission energy is omitted in the tally because
-some regions of the OpenMC [!ac](CSG) cell are *outside* any of the tally mesh
+some regions of the OpenMC cell are *outside* any of the tally mesh
 elements (but still within the cylindrical pellet).
 In order to still obtain the specified
 `power`,

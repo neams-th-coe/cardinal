@@ -1,6 +1,6 @@
 # OpenMCCellAverageProblem
 
-This class couples OpenMC cell-based models to MOOSE. The crux
+This class couples OpenMC cell-based models (e.g. [!ac](CSG) or DAGMC) to MOOSE. The crux
 is to identify a mapping between OpenMC cells and
 a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
 Then, field data on the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
@@ -167,7 +167,7 @@ cell   1, instance   0 (of   1):   200 solid elems  0 fluid elems  0 uncoupled e
 ```
 
 If the "Mapped elems volume" differs significantly among cells that actually have
-the same volume, you may consider adjusting the `[Mesh]` and/or the OpenMC [!ac](CSG)
+the same volume, you may consider adjusting the `[Mesh]` and/or the OpenMC
 geometry. You may also consider running an [OpenMC volume calculation](https://docs.openmc.org/en/latest/usersguide/volume.html)
 to compare the "Mapped elems volume" with a stochastic calculation of cell volumes
 to ensure a reasonable mapping. If all of the tallied OpenMC cells are actually
@@ -207,7 +207,7 @@ a unique *combination* of a cell ID and instance. As such,
 there are two important parameters used in establishing the mapping
 - `fluid_cell_level` and `solid_cell_level`. These two parameters
 indicate the coordinate "level" in the OpenMC geometry to "stop at" for
-identifying the cell ID/instance pairs. [!ac](CSG) geometries can be constructed
+identifying the cell ID/instance pairs. Cell-based geometries can be constructed
 by nesting repeated universes/lattices at multiple locations in the domain, but
 you may not be interested in always coupling cells
 at the lowest level to MOOSE. For instance, with [!ac](TRISO) fuel pebbles, it is often
