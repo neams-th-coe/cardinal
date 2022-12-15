@@ -1,6 +1,6 @@
 import openmc
 
- # materials
+# materials
 u235 = openmc.Material(name="fuel")
 u235.add_nuclide('U235', 1.0, 'ao')
 u235.set_density('g/cc', 11)
@@ -25,8 +25,25 @@ settings.dagmc = True
 settings.batches = 10
 settings.inactive = 2
 settings.particles = 5000
+
+settings.temperature = {'default': 500.0,
+                        'method': 'interpolation',
+                        'range': (294.0, 3000.0),
+                        'tolerance': 1000.0}
+
 settings.export_to_xml()
 
 settings.source = openmc.Source(space=openmc.stats.Box([-4., -4., -4.],
                                                        [ 4.,  4.,  4.]))
 settings.export_to_xml()
+
+p1 = openmc.Plot()
+p1.filename = 'plot1'
+p1.basis = 'xy'
+p1.width = (25.0, 25.0)
+p1.pixels = (400, 400)
+p1.color_by = 'material'
+p1.colors = {u235: 'yellow', water: 'blue'}
+
+plots = openmc.Plots([p1])
+plots.export_to_xml()

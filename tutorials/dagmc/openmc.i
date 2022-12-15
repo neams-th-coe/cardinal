@@ -1,21 +1,16 @@
 [Mesh]
-  [cube]
-    type = GeneratedMeshGenerator
-    dim = 3
-    nx = 40
-    ny = 40
-    nz = 20
-    xmin = -15.0
-    xmax = 15.0
-    ymin = -15.0
-    ymax = 15.0
-    zmin = -10.0
-    zmax = 10.0
+  [file]
+    type = FileMeshGenerator
+    file = mesh_in.e
   []
 []
 
 [AuxVariables]
   [cell_id]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [cell_temperature]
     family = MONOMIAL
     order = CONSTANT
   []
@@ -26,6 +21,10 @@
     type = CellIDAux
     variable = cell_id
   []
+  [cell_temperature]
+    type = CellTemperatureAux
+    variable = cell_temperature
+  []
 []
 
 [Problem]
@@ -33,17 +32,24 @@
   verbose = true
   tally_type = mesh
   solid_cell_level = 0
-  solid_blocks = '0'
+  solid_blocks = '2 3'
   check_tally_sum = false
+  normalize_by_global_tally = false
   check_zero_tallies = false
 
   power = 1000.0
   particles = 20000
-  initial_properties = xml
+[]
+
+[Postprocessors]
+  [heat_source]
+    type = ElementIntegralVariablePostprocessor
+    variable = heat_source
+  []
 []
 
 [Executioner]
-  type = Steady
+  type = Transient
 []
 
 [Outputs]

@@ -9,4 +9,8 @@
       <parameters>-4.0 -4.0 -4.0 4.0 4.0 4.0</parameters>
     </space>
   </source>
+  <temperature_default>500.0</temperature_default>
+  <temperature_method>interpolation</temperature_method>
+  <temperature_range>294.0 3000.0</temperature_range>
+  <temperature_tolerance>1000.0</temperature_tolerance>
 </settings>
