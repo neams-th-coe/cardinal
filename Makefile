@@ -36,11 +36,16 @@ ENABLE_NEK          ?= yes
 # Whether you want to build with OpenMC; set to anything except 'yes' to skip
 ENABLE_OPENMC       ?= yes
 
+# Whether you want to build OpenMC with DAGMC support; set to anything except 'yes' to skip
+ENABLE_DAGMC        ?= yes
+
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE     ?= $(CONTRIB_DIR)/moose
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
+DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
+MOAB_DIR            ?= $(CONTRIB_DIR)/moab
 PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
@@ -110,6 +115,14 @@ endif
 OCCA_CUDA_ENABLED=0
 OCCA_HIP_ENABLED=0
 OCCA_OPENCL_ENABLED=0
+
+DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
+DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+DAGMC_LIBDIR := $(DAGMC_INSTALL_DIR)/lib
+
+MOAB_BUILDDIR := $(CARDINAL_DIR)/build/moab
+MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+MOAB_LIBDIR := $(MOAB_INSTALL_DIR)/lib
 
 NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
 NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
@@ -274,6 +287,17 @@ BUILD_EXEC         := yes
 GEN_REVISION       := no
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 
+ifeq ($(ENABLE_DAGMC), yes)
+  ENABLE_DAGMC     := ON
+  include          $(CARDINAL_DIR)/config/moab.mk
+  include          $(CARDINAL_DIR)/config/dagmc.mk
+else
+
+build_dagmc:
+	$(info Skipping DagMC build because ENABLE_DAGMC is not set to 'yes')
+
+endif
+
 ifeq ($(ENABLE_NEK), yes)
   include            $(CARDINAL_DIR)/config/nekrs.mk
 else
@@ -312,8 +336,8 @@ include            $(FRAMEWORK_DIR)/app.mk
 
 # app_objects are defined in moose.mk and built according to the rules in build.mk
 # We need to build these first so we get include dirs
-$(app_objects): build_nekrs build_openmc
-$(test_objects): build_nekrs build_openmc
+$(app_objects): build_nekrs build_moab build_dagmc build_openmc
+$(test_objects): build_nekrs build_moab build_dagmc build_openmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \
