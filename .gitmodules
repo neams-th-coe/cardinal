@@ -22,3 +22,6 @@
 [submodule "contrib/iapws95"]
 	path = contrib/iapws95
 	url = git@hpcgitlab.hpc.inl.gov:idaholab/iapws95.git
+[submodule "contrib/DAGMC"]
+	path = contrib/DAGMC
+	url = https://github.com/svalinn/DAGMC
