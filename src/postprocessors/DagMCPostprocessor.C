@@ -18,7 +18,7 @@
 
 #ifdef ENABLE_DAGMC
 
-#include "DacMCPostprocessor.h"
+#include "DagMCPostprocessor.h"
 
 InputParameters
 DacMCPostprocessor::validParams()
