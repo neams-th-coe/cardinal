@@ -73,7 +73,7 @@ ifeq ($(ENABLE_OPENMC), yes)
   $(info Cardinal is using HDF5 from $(HDF5_ROOT))
 else
   ifeq ($(ENABLE_DAGMC), yes)
-    $(info "Ignoring ENABLE_DAGMC because OpenMC is not enabled.")
+    $(info Ignoring ENABLE_DAGMC because OpenMC is not enabled.)
     ENABLE_DAGMC := no
   endif
 endif

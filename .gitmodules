@@ -25,3 +25,6 @@
 [submodule "contrib/DAGMC"]
 	path = contrib/DAGMC
 	url = https://github.com/svalinn/DAGMC
+[submodule "contrib/moab"]
+	path = contrib/moab
+	url = https://bitbucket.org/fathomteam/moab
