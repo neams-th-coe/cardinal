@@ -14,3 +14,10 @@ set the following environment variable:
 ```
 export ENABLE_OPENMC=false
 ```
+
+We support an optional usage of DAGMC for CAD-based Monte Carlo transport.
+This capability is off by default, but to build with DAGMC support, set:
+
+```
+export ENABLE_DAGMC=yes
+```

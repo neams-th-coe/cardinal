@@ -65,6 +65,8 @@ But if you want to learn more, check out
 [our prerequisite guide](prereqs.md).
 !alert-end!
 
+!include options.md
+
 ## Building
   id=build
 
