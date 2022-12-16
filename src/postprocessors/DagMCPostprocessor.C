@@ -21,13 +21,13 @@
 #include "DagMCPostprocessor.h"
 
 InputParameters
-DacMCPostprocessor::validParams()
+DagMCPostprocessor::validParams()
 {
   InputParameters params = OpenMCPostprocessor::validParams();
   return params;
 }
 
-DacMCPostprocessor::DacMCPostprocessor(const InputParameters & parameters)
+DagMCPostprocessor::DagMCPostprocessor(const InputParameters & parameters)
   : OpenMCPostprocessor(parameters)
 {
   mooseError("This class solely exists to have an object for checking whether "
@@ -35,7 +35,7 @@ DacMCPostprocessor::DacMCPostprocessor(const InputParameters & parameters)
 }
 
 Real
-DacMCPostprocessor::getValue()
+DagMCPostprocessor::getValue()
 {
   return 0.0;
 }
