@@ -149,21 +149,14 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
 
   if (nekrs::hasMovingMesh())
   {
-    if (!_volume)
-    {
-      _displacement_x = (double *)calloc(_n_vertices_per_surface, sizeof(double));
-      _displacement_y = (double *)calloc(_n_vertices_per_surface, sizeof(double));
-      _displacement_z = (double *)calloc(_n_vertices_per_surface, sizeof(double));
-    }
-    else if (_volume)
-    {
-      _displacement_x = (double *)calloc(_n_vertices_per_volume, sizeof(double));
-      _displacement_y = (double *)calloc(_n_vertices_per_volume, sizeof(double));
-      _displacement_z = (double *)calloc(_n_vertices_per_volume, sizeof(double));
-    }
+    int n_entries = _volume ? _n_vertices_per_volume : _n_vertices_per_surface;
+    _displacement_x = (double *)calloc(n_entries, sizeof(double));
+    _displacement_y = (double *)calloc(n_entries, sizeof(double));
+    _displacement_z = (double *)calloc(n_entries, sizeof(double));
 
     if (nekrs::hasElasticitySolver())
-      _mesh_velocity_elem = (double *)calloc((_nek_mesh->order() + 2)*(_nek_mesh->order() + 2), sizeof(double));
+      _mesh_velocity_elem = (double *)calloc((_nek_mesh->nekPolynomialOrder() + 1) *
+        (_nek_mesh->nekPolynomialOrder() + 1), sizeof(double));
   }
 
   // regardless of the boundary/volume coupling, we will always exchange temperature
