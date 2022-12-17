@@ -9,7 +9,6 @@
 [Problem]
   type = NekRSProblem
   casename = 'nekbox'
-  moving_mesh = true
   synchronization_interval = parent_app
 []
 
