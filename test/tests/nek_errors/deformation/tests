@@ -19,7 +19,7 @@
 
     # nekRS can't use more processors than elements
     max_parallel = 64
-    expect_err ="Your Cardinal NekRSMesh object has displacements, but your nekRS .par file does not have a solver in the \[MESH\] block!"
+    expect_err = "Your NekRSMesh has 'displacements', but your nekRS .par file does not have a"
     requirement = "The system shall error if Cardinal has displacements associated with NekRSMesh, but there is no mesh solver"
                   "in the nekRS [MESH] block."
   []
@@ -31,8 +31,7 @@
 
     # nekRS can't use more processors than elements
     max_parallel = 64
-    expect_err ="Your nekRS .par file has 'solver = user' in the \[MESH\] block. Please enable "
-               "volume coupling for NekRSMesh or switch to another mesh solver in your .par file."
+    expect_err ="Your nekRS .par file has 'solver = user' in the \[MESH\] block."
     requirement = "The system shall error if Cardinal has solver=user in the par file's MESH block, but there is no volume mesh mirror"
                   "in the nekRS [MESH] block."
   []
@@ -61,7 +60,7 @@
     # nekRS can't use more processors than elements
     max_parallel = 64
 
-    expect_err = "For boundary-coupled moving mesh problems, you need at least one boundary in the 'NekRS' "
+    expect_err = "For boundary-coupled moving mesh problems, you need at least one boundary in the NekRS "
                  ".par file to be of the type 'fixedValue' in the \[MESH\] block."
 
     requirement = "The system shall error if the Nek .par file has a solver in the  [MESH] block"

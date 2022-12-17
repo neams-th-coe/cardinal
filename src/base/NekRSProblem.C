@@ -133,8 +133,10 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     if (!_app.actionWarehouse().displacedMesh())
       mooseError("Moving mesh problems require displacements in the [Mesh] block!");
   }
+
   if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
-      mooseWarning("Your Cardinal NekRSMesh object has displacements, but your nekRS .par file does not have a solver in the [MESH] block!");
+      mooseWarning("Your NekRSMesh has 'displacements', but your nekRS .par file does not have a\n"
+        "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
 
   // Depending on the type of coupling, initialize various problem parameters
   if (_boundary && !_volume) // only boundary coupling
@@ -221,15 +223,16 @@ NekRSProblem::initialSetup()
     bool has_one_mv_bc = false;
     for (const auto & b : *boundary)
     {
-      if(nekrs::mesh::isMovingMeshBoundary(b))
-        {
-          has_one_mv_bc = true;
-          break;
-        }
+      if (nekrs::mesh::isMovingMeshBoundary(b))
+      {
+        has_one_mv_bc = true;
+        break;
+      }
     }
+
     if (!has_one_mv_bc)
       mooseError("For boundary-coupled moving mesh problems, you need at least one "
-                 "boundary in the 'NekRS' .par file to be of the type 'fixedValue'"
+                 "boundary in the NekRS .par file to be of the type 'fixedValue'"
                  " in the [MESH] block.");
   }
 
@@ -246,8 +249,12 @@ NekRSProblem::initialSetup()
           "in your NekRS domain, you can disable this error with 'has_heat_source = false'.");
 
   if (!_volume && nekrs::hasUserMeshSolver())
-    mooseError("Your nekRS .par file has 'solver = user' in the [MESH] block. Please enable "
-               "volume coupling for NekRSMesh or switch to another mesh solver in your .par file."  );
+    mooseError("Your nekRS .par file has 'solver = user' in the [MESH] block. With this solver,\n"
+               "displacement values are sent to every GLL point in NekRS. If you only are building\n"
+               "a boundary mesh mirror, it's very likely that some displacement values could result\n"
+               "in negative Jacobians if a sideset moves beyond the bounds of an undeformed element.\n"
+               "To eliminate this possibility, please enable 'volume = true' for NekRSMesh and send a\n"
+               "whole-domain displacement to NekRS. Or, switch to another mesh solver in your .par file.");
 
   if (_boundary)
   {
@@ -992,7 +999,7 @@ NekRSProblem::addExternalVariables()
 void
 NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
 {
-  int len = _nek_mesh->order() + 2;
+  int len = _nek_mesh->nekPolynomialOrder() + 1;
   double dt = _timestepper->getCurrentDT();
 
   switch (field)
