@@ -573,7 +573,6 @@ NekRSMesh::buildMesh()
 
   _nek_n_surface_elems = nekrs::mesh::NboundaryFaces();
   _nek_n_volume_elems = nekrs::mesh::Nelements();
-  _nek_n_flow_elems = nekrs::mesh::NflowElements();
 
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
@@ -673,7 +672,7 @@ NekRSMesh::addElems()
           }
         }
 
-        if (e < _nek_n_flow_elems)
+        if (_phase[(e * _n_moose_per_nek + build) * _n_vertices_per_elem])
           elem->subdomain_id() = _fluid_block_id;
         else
           elem->subdomain_id() = _solid_block_id;
@@ -767,11 +766,12 @@ void
 NekRSMesh::volumeVertices()
 {
   // nekRS has already performed a global operation such that all processes know the
-  // toal number of volume elements.
+  // toal number of volume elements and their phase
   int n_vertices_in_mirror = _n_build_per_volume_elem * _n_volume_elems * _n_vertices_per_volume;
   double * x = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
+  double * p = (double *) malloc(n_vertices_in_mirror * sizeof(double));
 
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   int rank = nekrs::commRank();
@@ -795,11 +795,12 @@ NekRSMesh::volumeVertices()
     Np_mirror = mesh->Np;
   }
 
-  // Allocate space for the coordinates that are on this rank
+  // Allocate space for the coordinates and phase that are on this rank
   int n_vertices_on_rank = _n_build_per_volume_elem * _volume_coupling.n_elems * Np_mirror;
   double * xtmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+  double * ptmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
 
   int c = 0;
   for (int k = 0; k < _volume_coupling.total_n_elems; ++k)
@@ -819,6 +820,8 @@ NekRSMesh::volumeVertices()
           xtmp[c] = mesh->x[id];
           ytmp[c] = mesh->y[id];
           ztmp[c] = mesh->z[id];
+
+          ptmp[c] = i < nrs->meshV->Nelements;
         }
       }
     }
@@ -827,20 +830,24 @@ NekRSMesh::volumeVertices()
   nekrs::allgatherv(_volume_coupling.mirror_counts, xtmp, x, Np_mirror);
   nekrs::allgatherv(_volume_coupling.mirror_counts, ytmp, y, Np_mirror);
   nekrs::allgatherv(_volume_coupling.mirror_counts, ztmp, z, Np_mirror);
+  nekrs::allgatherv(_volume_coupling.mirror_counts, ptmp, p, Np_mirror);
 
   for (int i = 0; i < n_vertices_in_mirror; ++i)
   {
     _x.push_back(x[i]);
     _y.push_back(y[i]);
     _z.push_back(z[i]);
+    _phase.push_back(p[i]);
   }
 
   freePointer(x);
   freePointer(y);
   freePointer(z);
+  freePointer(p);
   freePointer(xtmp);
   freePointer(ytmp);
   freePointer(ztmp);
+  freePointer(ptmp);
 }
 
 void

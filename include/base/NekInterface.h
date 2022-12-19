@@ -654,12 +654,6 @@ int polynomialOrder();
 int Nelements();
 
 /**
- * Total number of volume elements in the flow portion of the NekRS mesh, summed over all processes
- * @return number of flow volume elements
- */
-int NflowElements();
-
-/**
  * Mesh dimension
  * @return mesh dimension
  */

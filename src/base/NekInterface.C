@@ -1432,14 +1432,6 @@ polynomialOrder()
   return entireMesh()->N;
 }
 
-int NflowElements()
-{
-  int n_local = flowMesh()->Nelements;
-  int n_global;
-  MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
-  return n_global;
-}
-
 int
 Nelements()
 {

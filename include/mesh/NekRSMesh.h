@@ -466,8 +466,8 @@ protected:
   /// Total number of volume elements in the nekRS problem
   int _nek_n_volume_elems;
 
-  /// Number of volume elements in the flow portion of the NekRS mesh
-  int _nek_n_flow_elems;
+  /// Phase of each element (0 or 1)
+  std::vector<double> _phase;
 
   /**
    * \brief \f$x\f$ coordinates of the current GLL points (which can move in time), for this rank
