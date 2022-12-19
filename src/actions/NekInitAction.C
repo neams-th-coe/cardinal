@@ -155,7 +155,7 @@ NekInitAction::act()
 
   _n_cases++;
 
-  if (nekrs::hasMovingMesh() && _type != "NekRSProblem")
+  if (nekrs::hasMovingMesh() && _type == "NekRSSeparateDomainProblem")
     mooseError("Your nekRS .par file indicates you wish to use one of nekRS's moving mesh solvers. Please switch"
                " to type = NekRSProblem in the [Problem] block, or remove moving mesh solvers from your "
                ".par file's [Mesh] block.");

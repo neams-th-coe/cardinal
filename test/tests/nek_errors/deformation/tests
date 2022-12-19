@@ -38,7 +38,7 @@
   [missing_nekrsproblem]
     type = RunException
     input = nek.i
-    cli_args = "Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSStandaloneProblem' Problem/casename='user'"
+    cli_args = "Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSSeparateDomainProblem' Problem/casename='user'"
     required_objects = 'NekRSProblem'
 
     # nekRS can't use more processors than elements
