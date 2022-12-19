@@ -218,7 +218,7 @@ NekRSProblem::initialSetup()
       }
   }
 
-  if (boundary && nekrs::hasMovingMesh() && nekrs::hasElasticitySolver())
+  if (boundary && nekrs::hasElasticitySolver())
   {
     bool has_one_mv_bc = false;
     for (const auto & b : *boundary)
@@ -861,7 +861,8 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         sendBoundaryDeformationToNek();
       }
 
-      // copy the boundary heat flux and/or volume heat source in the scratch space to device
+      // copy the boundary heat flux, volume heat source, and/or volume
+      // mesh displacements in the scratch space to device
       nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
       if (nekrs::hasMovingMesh())
       {
