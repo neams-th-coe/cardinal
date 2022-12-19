@@ -864,6 +864,15 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       // copy the boundary heat flux, volume heat source, and/or volume
       // mesh displacements in the scratch space to device
       nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
+
+      // We update geometric factors from the host to the device for all
+      // moving mesh problems after every displacement transfer because NekRS has
+      // shown some inconsistencies in copying geometric factors for its user and
+      // elasticity mesh solvers across different releases. The update has been necessary in
+      // some cases and unnecessary in others. To ensure our moving mesh functionality
+      // does not break, we always copy geometric factors to the device.
+      // We may be able to remove this in the future if the next version of nekRS consistently
+      // updates geometric factors on the device for all moving mesh solvers by itself.
       if (nekrs::hasMovingMesh())
       {
       // update geometric factors and the mesh on the device
