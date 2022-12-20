@@ -852,7 +852,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         sendVolumeHeatSourceToNek();
 
 
-      if (nekrs::hasUserMeshSolver() && _volume)
+      if (nekrs::hasUserMeshSolver())
       {
         sendVolumeDeformationToNek();
       }
