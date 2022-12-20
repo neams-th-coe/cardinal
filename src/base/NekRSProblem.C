@@ -133,6 +133,8 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     if (!_app.actionWarehouse().displacedMesh())
       mooseError("Moving mesh problems require displacements in the [Mesh] block!");
   }
+  if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
+      mooseWarning("Your Cardinal NekRSMesh object has displacements, but your nekRS .par file does not have a solver in the [MESH] block!");
 
   if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
       mooseWarning("Your NekRSMesh has 'displacements', but your nekRS .par file does not have a\n"
@@ -232,7 +234,7 @@ NekRSProblem::initialSetup()
 
     if (!has_one_mv_bc)
       mooseError("For boundary-coupled moving mesh problems, you need at least one "
-                 "boundary in the NekRS .par file to be of the type 'fixedValue'"
+                 "boundary in the 'NekRS' .par file to be of the type 'fixedValue'"
                  " in the [MESH] block.");
   }
 
@@ -850,7 +852,6 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       if (_volume && _has_heat_source)
         sendVolumeHeatSourceToNek();
-
 
       if (nekrs::hasUserMeshSolver())
       {

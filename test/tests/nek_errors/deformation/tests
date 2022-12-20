@@ -72,8 +72,6 @@
     max_parallel = 64
 
     expect_err = "For boundary-coupled moving mesh problems, you need at least one boundary in the NekRS "
-                 ".par file to be of the type 'fixedValue' in the \[MESH\] block."
-
     requirement = "The system shall error if the Nek .par file has a solver in the  [MESH] block"
                   "but the nekRS .par file has no moving mesh (fixedValue) boundary in the"
                   " [Mesh] block."
