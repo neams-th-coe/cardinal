@@ -23,6 +23,17 @@
     requirement = "The system shall error if Cardinal has displacements associated with NekRSMesh, but there is no mesh solver"
                   "in the nekRS [MESH] block."
   []
+  [moving_mesh_with_nrsstandaloneproblem]
+    type = RunException
+    input = nek.i
+    cli_args = "Mesh/volume=false Mesh/boundary='2' Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSStandaloneProblem' Problem/casename='elast' Problem/has_heat_source=false --error"
+    required_objects = 'NekRSProblem'
+
+    # nekRS can't use more processors than elements
+    max_parallel = 64
+    expect_err = "NekRSStandaloneProblem currently does not transfer mesh displacements "
+    requirement = "The system shall error if Cardinal is using NekRSStandaloneProblem with NekRS's moving mesh problems."
+  []
   [missing_volume_for_user_solver]
     type = RunException
     input = nek.i
