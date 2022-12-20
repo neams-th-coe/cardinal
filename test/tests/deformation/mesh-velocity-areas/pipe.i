@@ -5,17 +5,21 @@
 
 [Mesh]
   type = FileMesh
-  file = box.msh
+  file = pipe.exo
   parallel_type = replicated
-  order = SECOND
-  displacements = 'disp_x_o disp_y_o disp_z_o'
-  use_displaced_mesh = true
 []
 
 [Variables]
   [temp]
-    initial_condition = 600.0
-    order = SECOND
+    initial_condition = 0.0
+    order = FIRST
+  []
+[]
+
+[Kernels]
+  [dummy_kernel]
+    type = Diffusion
+    variable = temp
   []
 []
 
@@ -29,20 +33,27 @@
   [disp_z_o]
     order = SECOND
   []
+  [temp_ansol]
+    order = SECOND
+  []
 []
 
 [Functions]
+  [temp_ansol]
+    type = ParsedFunction
+    value = (sin(x)*sin(y)*sin(z))+5
+  []
   [fn_1]
     type = ParsedFunction
-    value = t*x*z*(2-z)*0.1
+    value = 0.05*0.5*t*t*sin(pi*((z+2.0)/4.0))*cos(atan2(y,x))
   []
   [fn_2]
     type = ParsedFunction
-    value = t*x*z*(2-z)*0.05
+    value = 0.05*0.5*t*t*sin(pi*((z+2.0)/4.0))*sin(atan2(y,x))
   []
   [fn_3]
     type = ParsedFunction
-    value = t*(y+1)*(y-1)*0.1
+    value = 0.0
   []
 []
 
@@ -65,6 +76,11 @@
     function = fn_3
     execute_on = timestep_begin
   []
+  [temp_ansol]
+    type = FunctionAux
+    variable = temp_ansol
+    function = temp_ansol
+  []
 []
 
 [Executioner]
@@ -79,8 +95,8 @@
   l_tol = 1e-4
   l_abs_tol = 1e-4
 
-  end_time = 3
-  dt = 1
+  end_time = 0.1
+  dt = 0.001
   [Quadrature]
     type = GAUSS_LOBATTO
     order = SECOND
@@ -89,10 +105,10 @@
 
 [BCs]
   [bc1]
-    type = DirichletBC
+    type = FunctionDirichletBC
     variable = temp
-    boundary = '1 2 3 4 5 6'
-    value = 0
+    boundary = '1 2 3'
+    function = temp_ansol
   []
 []
 
@@ -107,24 +123,37 @@
 []
 
 [Transfers]
-   [disp_x_to_nek]
+   [bdisp_x_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_x_o
-     to_multi_app = nek
+     direction = to_multiapp
+     multi_app = nek
      variable = disp_x
+     source_boundary = 2
    []
-   [disp_y_to_nek]
+   [bdisp_y_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_y_o
-     to_multi_app = nek
+     direction = to_multiapp
+     multi_app = nek
      variable = disp_y
+     source_boundary = 2
    []
-   [disp_z_to_nek]
+   [bdisp_z_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_z_o
-     to_multi_app = nek
+     direction = to_multiapp
+     multi_app = nek
      variable = disp_z
+     source_boundary = 2
    []
+   [synchronize]
+    type = MultiAppPostprocessorTransfer
+    to_postprocessor = transfer_in
+    direction = to_multiapp
+    from_postprocessor = synchronize
+    multi_app = nek
+  []
 []
 
 [Postprocessors]
@@ -132,4 +161,21 @@
     type = Receiver
     default = 1
   []
+  [icbdry_ar]
+    type = AreaPostprocessor
+    boundary = '2'
+    execute_on = INITIAL
+    use_displaced_mesh = true
+  []
+  [bdry_ar]
+    type = AreaPostprocessor
+    boundary = '2'
+    use_displaced_mesh = true 
+  []
+[]
+
+[Outputs]
+  csv = true
+  execute_on = 'final'
+  hide = 'temp temp_ansol disp_x_o disp_y_o disp_z_o synchronize'
 []

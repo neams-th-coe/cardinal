@@ -4,8 +4,7 @@
     input = box-test.i
     csvdiff = 'box-test_out_nek0.csv box-test_out.csv'
     min_parallel = 4
-    abs_zero = 1e-5
-    rel_err = 5e-4
+    abs_zero = 1e-6
     requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
                   "in the sub-app equivalently at each time-step. This shall be verified by"
                   "comparing the areas of each sideset in both the main and the sub-app."

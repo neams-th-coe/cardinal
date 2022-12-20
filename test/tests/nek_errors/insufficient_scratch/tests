@@ -22,7 +22,7 @@
   [too_small_c]
     type = RunException
     input = nek.i
-    cli_args = "Mesh/volume=true Problem/moving_mesh=true Problem/has_heat_source=false Problem/n_usrwrk_slots=4"
+    cli_args = "Mesh/volume=true Problem/casename='brick2' Problem/has_heat_source=false Problem/n_usrwrk_slots=4"
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
                  "'n_usrwrk_slots' must be greater than or equal to 5"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "

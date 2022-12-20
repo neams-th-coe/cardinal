@@ -91,7 +91,10 @@ enum NekWriteEnum
   heat_source,
   x_displacement,
   y_displacement,
-  z_displacement
+  z_displacement,
+  mesh_velocity_x,
+  mesh_velocity_y,
+  mesh_velocity_z
 };
 } // namespace field
 

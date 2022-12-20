@@ -123,6 +123,18 @@ hasVariableDt()
 }
 
 bool
+hasElasticitySolver()
+{
+  return platform->options.compareArgs("MESH SOLVER", "ELASTICITY");
+}
+
+bool
+hasUserMeshSolver()
+{
+  return platform->options.compareArgs("MESH SOLVER", "USER");
+}
+
+bool
 endControlElapsedTime()
 {
   return !platform->options.getArgs("STOP AT ELAPSED TIME").empty();
@@ -1319,6 +1331,12 @@ isHeatFluxBoundary(const int boundary)
 }
 
 bool
+isMovingMeshBoundary(const int boundary)
+{
+  return ( bcMap::text(boundary, "mesh") == "fixedValue" || bcMap::text(boundary, "mesh") == "codedFixedValue");
+}
+
+bool
 isTemperatureBoundary(const int boundary)
 {
   return bcMap::text(boundary, "scalar00") == "fixedValue";
@@ -1517,6 +1535,27 @@ z_displacement(const int id, const dfloat value)
   mesh->z[id] = value;
 }
 
+void
+mesh_velocity_x(const int id, const dfloat value)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  nrs->usrwrk[indices.mesh_velocity_x + id] = value;
+}
+
+void
+mesh_velocity_y(const int id, const dfloat value)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  nrs->usrwrk[indices.mesh_velocity_y + id] = value;
+}
+
+void
+mesh_velocity_z(const int id, const dfloat value)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  nrs->usrwrk[indices.mesh_velocity_z + id] = value;
+}
+
 double (*solutionPointer(const field::NekFieldEnum & field))(int)
 {
   double (*f)(int);
@@ -1596,6 +1635,15 @@ void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
       break;
     case field::z_displacement:
       f = &solution::z_displacement;
+      break;
+    case field::mesh_velocity_x:
+      f = &solution::mesh_velocity_x;
+      break;
+    case field::mesh_velocity_y:
+      f = &solution::mesh_velocity_y;
+      break;
+    case field::mesh_velocity_z:
+      f = &solution::mesh_velocity_z;
       break;
     default:
       throw std::runtime_error("Unhandled NekWriteEnum!");

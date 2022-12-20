@@ -105,20 +105,41 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
                      filename + "'?");
   }
 
+  _corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
+}
+
+void
+NekRSMesh::saveInitialVolMesh()
+{
   // save the initial mesh structure in case we are applying displacements
   // (which are additive to the initial mesh structure)
-  for (int k = 0; k < _nek_internal_mesh->Nelements; ++k)
-  {
-    int offset = k * _nek_internal_mesh->Np;
-    for (int v = 0; v < _nek_internal_mesh->Np; ++v)
-    {
-      _initial_x.push_back(_nek_internal_mesh->x[offset + v]);
-      _initial_y.push_back(_nek_internal_mesh->y[offset + v]);
-      _initial_z.push_back(_nek_internal_mesh->z[offset + v]);
-    }
-  }
 
-  _corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
+  long ngllpts = _nek_internal_mesh->Nelements * _nek_internal_mesh->Np;
+
+  _initial_x.resize(ngllpts,0.0);
+  _initial_y.resize(ngllpts,0.0);
+  _initial_z.resize(ngllpts,0.0);
+
+  memcpy(_initial_x.data(), _nek_internal_mesh->x, ngllpts * sizeof(double));
+  memcpy(_initial_y.data(), _nek_internal_mesh->y, ngllpts * sizeof(double));
+  memcpy(_initial_z.data(), _nek_internal_mesh->z, ngllpts * sizeof(double));
+}
+
+void
+NekRSMesh::initializePreviousDisplacements()
+{
+  long disp_length = 0;
+  if(!_volume)
+  {
+    disp_length = _nek_internal_mesh->NboundaryFaces * (_order + 2) * (_order + 2);
+  }
+  else if (_volume)
+  {
+    disp_length = _nek_internal_mesh->Nelements * (_order + 2) * (_order + 2);
+  }
+  _prev_disp_x.resize(disp_length,0.0);
+  _prev_disp_y.resize(disp_length,0.0);
+  _prev_disp_z.resize(disp_length,0.0);
 }
 
 void
@@ -919,4 +940,25 @@ NekRSMesh::facesOnBoundary(const int elem_id) const
   return _volume_coupling.n_faces_on_boundary[elem_id];
 }
 
+void
+NekRSMesh::updateDisplacement(const int e, const double *src, const field::NekWriteEnum field)
+{
+  int nsrc = (_order + 2) * (_order + 2);
+  int offset = e * nsrc;
+
+  switch (field)
+  {
+    case field::x_displacement:
+      memcpy(&_prev_disp_x[offset], src, nsrc * sizeof(double));
+      break;
+    case field::y_displacement:
+      memcpy(&_prev_disp_y[offset], src, nsrc * sizeof(double));
+      break;
+    case field::z_displacement:
+      memcpy(&_prev_disp_z[offset], src, nsrc * sizeof(double));
+      break;
+    default:
+      throw std::runtime_error("Unhandled NekWriteEnum in NekRSMesh::copyToDisplacement!\n");
+  }
+}
 #endif

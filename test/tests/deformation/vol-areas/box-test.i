@@ -242,7 +242,6 @@
 []
 
 [Outputs]
-  exodus = false
   csv = true
   execute_on = 'final'
   hide = 'source_auxvar synchronize source_integral_m'

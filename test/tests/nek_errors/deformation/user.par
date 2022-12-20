@@ -3,14 +3,17 @@
 
 [GENERAL]
   stopAt = numSteps
-  numSteps = 3
+  numSteps = 1
   dt = 1.0
   polynomialOrder = 2
   writeControl = steps
   writeInterval = 1
-
+  oudf = "nekbox.oudf"
+  udf = "nekbox.udf"
+  verbose = true
 [MESH]
   solver = user
+  file = "nekbox.re2"
 
 [VELOCITY]
   solver = none
@@ -20,11 +23,11 @@
 
 [PRESSURE]
   residualTol = 1.0e-5
-  residualProj = false
 
 [TEMPERATURE]
-  conductivity = 1.0
-  rhoCp = 0.0
-  residualTol = 1.0e-5
-  residualProj = false
-  boundaryTypeMap = t, t, t, t, t, t
+  solver = none
+#  conductivity = 1.0
+#  rhoCp = 0.0
+#  residualTol = 1.0e-5
+#  residualProj = false
+#  boundaryTypeMap = I, f, I, I, I, I

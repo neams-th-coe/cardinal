@@ -9,7 +9,6 @@
 [Problem]
   type = NekRSProblem
   casename = 'nekbox'
-  moving_mesh = true
 []
 
 [AuxVariables]
@@ -85,7 +84,6 @@
 []
 
 [Outputs]
-  exodus = false
   csv = true
   execute_on = 'final'
 
