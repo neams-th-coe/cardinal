@@ -1,0 +1,61 @@
+//
+// nekRS User Defined File
+//
+#include <math.h>
+#include "udf.hpp"
+
+void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+            occa::memory o_UProp, occa::memory o_SProp)
+{
+  mesh_t *mesh = nrs->meshV;
+
+  if(platform->options.compareArgs("MESH SOLVER", "ELASTICITY")){
+    // moving mesh parameters
+    const dfloat vnu = 0.4;
+    const dfloat ce = 1.0 / (1.0 + vnu);
+    const dfloat c2 = vnu * ce / (1.0 - 2.0 * vnu);
+    const dfloat c3 = 0.5 * ce;
+    auto o_mesh_diff = o_UProp + 2 * nrs->fieldOffset * sizeof(dfloat);
+    auto o_mesh_rho  = o_UProp + 3 * nrs->fieldOffset * sizeof(dfloat);
+    platform->linAlg->fill(nrs->meshV->Nlocal, c2, o_mesh_diff);
+    platform->linAlg->fill(nrs->meshV->Nlocal, c3, o_mesh_rho);
+  }
+}
+
+/* UDF Functions */
+
+void UDF_LoadKernels(occa::properties& kernelInfo)
+{
+}
+
+
+void UDF_Setup(nrs_t *nrs)
+{
+  udf.properties = &uservp;
+  nrs->p0th[0] = 1.0;
+  nrs->p0th[1] = 1.0;
+  nrs->p0th[2] = 1.0;
+
+  mesh_t* mesh = nrs->_mesh;
+  int num_quadrature_points = mesh->Np * mesh->Nelements;
+
+  for (int n = 0; n < num_quadrature_points; n++) {
+    float xx = mesh->x[n];
+    float yy = mesh->y[n];
+    float zz = mesh->z[n];
+
+    nrs->U[n + 0 * nrs->fieldOffset] = 0;
+    nrs->U[n + 1 * nrs->fieldOffset] = 0;
+    nrs->U[n + 2 * nrs->fieldOffset] = 0;//(4.0*xx*xx)+(4.0*yy*yy);
+
+    nrs->P[n] = 1.0;
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 0.0;
+  }
+
+
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+}

@@ -52,7 +52,7 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
     mooseError("Cardinal cannot operate solely on the NekRS solid mesh, but this capability will\n"
                "be added in the future. Please use 'fluid' or 'all' until then.");
 
-  _fixed_mesh = !(_nek_problem->movingMesh());
+  _fixed_mesh = !(nekrs::hasMovingMesh());
 
   // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that
   // this pointer isn't NULL

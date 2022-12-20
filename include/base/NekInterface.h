@@ -139,6 +139,18 @@ bool hasMovingMesh();
 bool hasVariableDt();
 
 /**
+ * Whether nekRS's input file has the elasticity mesh solver
+ * @return whether nekRS's input file has [MESH] solver = elasticity
+ */
+bool hasElasticitySolver();
+
+/**
+ * Whether nekRS's input file has the user mesh solver
+ * @return whether nekRS's input file has [MESH] solver = user
+ */
+bool hasUserMeshSolver();
+
+/**
  * Whether nekRS's input file intends to terminate the simulation based on a wall time
  * @return whether a wall time is used in nekRS to end the simulation
  */
@@ -274,7 +286,7 @@ double Pr();
  */
 void copyScratchToDevice(const unsigned int & slots_reserved_by_cardinal);
 
-/// Copy volume deformation of mesh from host to device for moving-mesh problems
+/// Copy the boundary deformation from host to device
 void copyDeformationToDevice();
 
 template <typename T>
@@ -599,6 +611,13 @@ int Nfaces();
 bool isHeatFluxBoundary(const int boundary);
 
 /**
+ * Whether the specific boundary is a moving mesh boundary
+ * @param[in] boundary boundary ID
+ * @return whether boundary is a moving mesh boundary
+ */
+bool isMovingMeshBoundary(const int boundary);
+
+/**
  * Whether the specific boundary is a specified temperature boundary
  * @param[in] boundary boundary ID
  * @return whether boundary is a temperature boundary
@@ -683,11 +702,11 @@ struct usrwrkIndices
 
   int heat_source;
 
-  int x_displacement;
+  int mesh_velocity_x;
 
-  int y_displacement;
+  int mesh_velocity_y;
 
-  int z_displacement;
+  int mesh_velocity_z;
 };
 
 namespace solution

@@ -48,7 +48,7 @@ NekUserObject::NekUserObject(const InputParameters & parameters)
                "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
   }
 
-  _fixed_mesh = !(_nek_problem->movingMesh());
+  _fixed_mesh = !(_nek_problem->hasMovingNekMesh());
 }
 
 void

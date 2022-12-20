@@ -72,6 +72,9 @@ public:
   /// Send boundary heat flux to nekRS
   void sendBoundaryHeatFluxToNek();
 
+  /// Send boundary deformation to nekRS
+  void sendBoundaryDeformationToNek();
+
   /// Send volume mesh deformation flux to nekRS
   void sendVolumeDeformationToNek();
 
@@ -106,7 +109,11 @@ public:
    */
   virtual double minInterpolatedTemperature() const;
 
-  virtual bool movingMesh() const override { return _moving_mesh; }
+  /**
+  * Whether the mesh is moving
+  * @return whether the mesh is moving
+  */
+  virtual const bool hasMovingNekMesh() const override { return nekrs::hasMovingMesh(); }
 
 protected:
   /**
@@ -119,10 +126,15 @@ protected:
 
   virtual void addTemperatureVariable() override { return; }
 
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+  /**
+   * Calculate mesh velocity for NekRS's elasticity solver using current and previous displacement values
+   * and write it to nrs->usrwrk, from where it can be accessed in nekRS's .oudf file.
+   * @param[in] e Boundary element that the displacement values belong to
+   * @param[in] field NekWriteEnum mesh_velocity_x/y/z field
+   */
+  void calculateMeshVelocity(int e, const field::NekWriteEnum & field);
 
-  /// Whether the problem is a moving mesh problem i.e. with on-the-fly mesh deformation enabled
-  const bool & _moving_mesh;
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /// Whether a heat source will be applied to NekRS from MOOSE
   const bool & _has_heat_source;
@@ -196,19 +208,22 @@ protected:
   /// displacement in z for all nodes from MOOSE, for moving mesh problems
   double * _displacement_z = nullptr;
 
+  /// mesh velocity for a given element, used internally for calculating mesh velocity over one element
+  double * _mesh_velocity_elem = nullptr;
+
   /// temperature transfer variable written to be nekRS
   unsigned int _temp_var;
 
   /// flux transfer variable read from by nekRS
   unsigned int _avg_flux_var;
 
-  /// x-displacment transfer variable read from for moving mesh problems
+  /// x-displacment transfer variable read for moving mesh problems
   unsigned int _disp_x_var;
 
-  /// y-displacment transfer variable read from for moving mesh problems
+  /// y-displacment transfer variable read for moving mesh problems
   unsigned int _disp_y_var;
 
-  /// z-displacment transfer variable read from for moving mesh problems
+  /// z-displacment transfer variable read for moving mesh problems
   unsigned int _disp_z_var;
 
   /// volumetric heat source variable read from by nekRS

@@ -3,26 +3,16 @@
   order = SECOND
   volume = true
   parallel_type = replicated
-#  displacements = 'disp_x disp_y disp_z'
 []
 
 [Problem]
   type = NekRSProblem
-  casename = 'nekbox'
-  moving_mesh = true
+  casename = 'user'
+  has_heat_source = false
 []
 
 [AuxVariables]
   [dummy]
-  []
-  [disp_x]
-    order = SECOND
-  []
-  [disp_y]
-    order = SECOND
-  []
-  [disp_z]
-    order = SECOND
   []
 []
 
@@ -40,9 +30,5 @@
   type = Transient
   [TimeStepper]
     type = NekTimeStepper
-  []
-  [Quadrature]
-    type = GAUSS_LOBATTO
-    order = SECOND
   []
 []
