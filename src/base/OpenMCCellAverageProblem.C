@@ -1821,6 +1821,9 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     _global_tally = openmc::Tally::create();
     _global_tally->set_scores({_tally_score});
+
+    // we want to match the same estimator used for the local tally
+    _global_tally->estimator_ = _tally_estimator;
   }
 
   // create the local tally
@@ -1831,8 +1834,9 @@ OpenMCCellAverageProblem::initializeTallies()
       _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
                       Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
-      _current_mean_tally.resize(1);
-      _previous_mean_tally.resize(1);
+      _current_tally.resize(1);
+      _current_raw_tally.resize(1);
+      _previous_tally.resize(1);
 
       std::vector<openmc::Filter *> filter = {cellInstanceFilter()};
       addLocalTally(_tally_score, filter);
@@ -1861,8 +1865,9 @@ OpenMCCellAverageProblem::initializeTallies()
                           VariadicTableColumnFormat::SCIENTIFIC,
                           VariadicTableColumnFormat::SCIENTIFIC});
 
-      _current_mean_tally.resize(n_translations);
-      _previous_mean_tally.resize(n_translations);
+      _current_tally.resize(n_translations);
+      _current_raw_tally.resize(n_translations);
+      _previous_tally.resize(n_translations);
 
       auto filters = meshFilter();
       for (const auto & m : filters)
@@ -1881,9 +1886,7 @@ OpenMCCellAverageProblem::initializeTallies()
           const auto & translation = _mesh_translations[i];
 
           Real volume = 0.0;
-          for (decltype(_local_tally.at(i)->n_filter_bins()) e = 0;
-               e < _local_tally.at(i)->n_filter_bins();
-               ++e)
+          for (int32_t e = 0; e < _local_tally.at(i)->n_filter_bins(); ++e)
             volume += _mesh_template->volume(e);
 
           vt.addRow(i,
@@ -1897,10 +1900,6 @@ OpenMCCellAverageProblem::initializeTallies()
         vt.print(_console);
         _console << std::endl;
       }
-
-      // we want to match the same estimator used for the local tally
-      if (_global_tally)
-        _global_tally->estimator_ = _tally_estimator;
 
       break;
     }
@@ -2185,116 +2184,36 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 Real
 OpenMCCellAverageProblem::tallyMultiplier() const
 {
-  Real m;
-
   if (_tally_score == "flux")
   {
     // Flux tally has units of particle - cm / source particle; we also only get here for fixed source
-    m = *_source_strength * _local_mean_tally / _scaling;
+    return *_source_strength * _local_mean_tally / _scaling;
   }
   else
   {
     // All other tally score options have units of eV / source particle
     if (_run_mode == openmc::RunMode::EIGENVALUE)
-      m = *_power;
+      return *_power;
     else
-      m = *_source_strength * EV_TO_JOULE * _local_mean_tally;
+      return *_source_strength * EV_TO_JOULE * _local_mean_tally;
   }
-
-  return m;
 }
 
-Real
-OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
+template <typename T>
+T
+OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result) const
 {
-  if (_normalize_by_global)
+  Real comparison = _normalize_by_global ? _global_sum_tally : _local_sum_tally;
+
+  if (std::abs(comparison) < 1e-12)
   {
-    if (std::abs(_global_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return tally_result / _global_sum_tally;
+    std::string descriptor = _normalize_by_global ? "global" : "local";
+    mooseError("Cannot normalize tally by " + descriptor + " sum: ", comparison, " due to divide-by-zero.\n"
+      "This means that the ", _tally_score, " tally over the entire domain is zero.");
   }
-  else
-  {
-    if (std::abs(_local_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return tally_result / _local_sum_tally;
-  }
+
+  return tally_result / comparison;
 }
-
-xt::xtensor<double, 1>
-OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
-{
-  if (_normalize_by_global)
-  {
-    if (std::abs(_global_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return raw_tally / _global_sum_tally;
-  }
-  else
-  {
-    if (std::abs(_local_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return raw_tally / _local_sum_tally;
-  }
-}
-
-void
-OpenMCCellAverageProblem::getUnrelaxedTallyFromOpenMC(const unsigned int & var_num)
-{
-  switch (_tally_type)
-  {
-    case tally::cell:
-    {
-      auto sum = tallySum(_local_tally.at(0));
-
-      int i = 0;
-      for (const auto & c : _cell_to_elem)
-      {
-        auto cell_info = c.first;
-
-        // if this cell doesn't have any tallies, skip it
-        if (!_cell_has_tally[cell_info])
-          continue;
-
-        Real local_power = normalizeLocalTally(sum(i)) * tallyMultiplier() / _cell_to_elem_volume[cell_info];
-        fillElementalAuxVariable(_external_vars[var_num], c.second, local_power);
-        i++;
-      }
-      break;
-    }
-  case tally::mesh:
-  {
-    // TODO: this requires that the mesh exactly correspond to the mesh templates;
-    // for cases where they don't match, we'll need to do a nearest-node transfer or something
-
-    unsigned int offset = 0;
-    for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
-    {
-      const auto * filter = _mesh_filters[i];
-      auto sum = tallySum(_local_tally.at(i));
-
-      for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
-      {
-        Real local_power = normalizeLocalTally(sum(e)) * tallyMultiplier() / _mesh_template->volume(e) *
-          _scaling * _scaling * _scaling;
-        std::vector<unsigned int> elem_ids = {offset + e};
-        fillElementalAuxVariable(_external_vars[var_num], elem_ids, local_power);
-      }
-
-      offset += filter->n_bins();
-    }
-
-    break;
-  }
-  default:
-    mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
-  }
-}
-
 
 void
 OpenMCCellAverageProblem::getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
@@ -2365,22 +2284,21 @@ OpenMCCellAverageProblem::getUnrelaxedTallyStandardDeviationFromOpenMC(const uns
 void
 OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t)
 {
+  auto mean_tally = tallySum(_local_tally.at(t));
+  _current_raw_tally[t] = normalizeLocalTally(mean_tally);
+
   // if OpenMC has only run one time, or we don't have relaxation at all,
   // then we don't have a "previous" with which to relax, so we just copy the mean tally in and
   // return
   if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
   {
-    auto mean_tally = tallySum(_local_tally.at(t));
-    _current_mean_tally[t] = normalizeLocalTally(mean_tally);
-    _previous_mean_tally[t] = normalizeLocalTally(mean_tally);
+    _current_tally[t] = _current_raw_tally[t];
+    _previous_tally[t] = _current_raw_tally[t];
     return;
   }
 
   // save the current tally (from the previous iteration) into the previous one
-  std::copy(_current_mean_tally[t].cbegin(),
-            _current_mean_tally[t].cend(),
-            _previous_mean_tally[t].begin());
-  auto mean_tally = tallySum(_local_tally.at(t));
+  std::copy(_current_tally[t].cbegin(), _current_tally[t].cend(), _previous_tally[t].begin());
 
   double alpha;
   switch (_relaxation)
@@ -2404,9 +2322,8 @@ OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t)
       mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
   }
 
-  auto relaxed_tally =
-      (1.0 - alpha) * _previous_mean_tally[t] + alpha * normalizeLocalTally(mean_tally);
-  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally[t].begin());
+  auto relaxed_tally = (1.0 - alpha) * _previous_tally[t] + alpha * _current_raw_tally[t];
+  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_tally[t].begin());
 }
 
 void
@@ -2419,112 +2336,118 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 }
 
 void
-OpenMCCellAverageProblem::getTallyFromOpenMC()
+OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
+  const std::vector<xt::xtensor<double, 1>> & tally, const bool & print_table)
 {
-  _console << "Extracting OpenMC tallies... " << printNewline();
-
-  // get the total tallies for normalization
-  if (_global_tally)
-    _global_sum_tally = tallySumAcrossBins({_global_tally});
-
-  _local_sum_tally = tallySumAcrossBins(_local_tally);
-  _local_mean_tally = tallyMeanAcrossBins(_local_tally);
-
-  if (_check_tally_sum)
-    checkTallySum();
-
-  Real power_fraction_sum = 0.0;
+  Real sum = 0.0;
 
   switch (_tally_type)
   {
     case tally::cell:
     {
-      VariadicTable<std::string, Real> vt({"Cell", "Fraction of total " + _tally_score});
-      vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
-
-      relaxAndNormalizeTally(0);
-
-      int i = 0;
-      for (const auto & c : _cell_to_elem)
-      {
-        auto cell_info = c.first;
-
-        // if this cell doesn't have any tallies, skip it
-        if (!_cell_has_tally[cell_info])
-          continue;
-
-        Real power_fraction = _current_mean_tally[0](i++);
-
-        // divide each tally value by the volume that it corresponds to in MOOSE
-        // because we will apply it as a volumetric tally (per unit volume).
-        Real volumetric_power = power_fraction * tallyMultiplier() / _cell_to_elem_volume[cell_info];
-        power_fraction_sum += power_fraction;
-
-        vt.addRow(printCell(cell_info), power_fraction);
-
-        checkZeroTally(power_fraction, "cell " + printCell(cell_info));
-        fillElementalAuxVariable(_tally_var, c.second, volumetric_power);
-      }
-
-      if (_verbose)
-        vt.print(_console);
+      sum = getCellTally(var_num, tally, print_table);
       break;
     }
     case tally::mesh:
     {
-      VariadicTable<unsigned int, Real> vt({"Mesh", "Fraction of total " + _tally_score});
-      vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
-
-      // TODO: this requires that the mesh exactly correspond to the mesh templates;
-      // for cases where they don't match, we'll need to do a nearest-node transfer or something
-
-      unsigned int offset = 0;
-      for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
-      {
-        const auto * filter = _mesh_filters[i];
-        relaxAndNormalizeTally(i);
-        Real template_power_fraction = 0.0;
-
-        for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
-        {
-          Real power_fraction = _current_mean_tally[i](e);
-
-          // divide each tally by the volume that it corresponds to in MOOSE
-          // because we will apply it as a volumetric tally (per unit volume).
-          // Because we require that the mesh template has units of cm based on the
-          // mesh constructors in OpenMC, we need to adjust the division
-          Real volumetric_power =
-              power_fraction * tallyMultiplier() / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
-          power_fraction_sum += power_fraction;
-          template_power_fraction += power_fraction;
-
-          checkZeroTally(power_fraction,
-                         "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
-
-          std::vector<unsigned int> elem_ids = {offset + e};
-          fillElementalAuxVariable(_tally_var, elem_ids, volumetric_power);
-        }
-
-        vt.addRow(i, template_power_fraction);
-
-        offset += filter->n_bins();
-      }
-
-      if (_verbose)
-        vt.print(_console);
-
+      sum = getMeshTally(var_num, tally, print_table);
       break;
     }
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
 
-  if (_check_tally_sum)
-    if (std::abs(power_fraction_sum - 1.0) > 1e-6)
-      mooseError("Tally normalization process failed! Total power fraction of " +
-                 Moose::stringify(power_fraction_sum) + " does not match 1.0!");
+  if (_check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+    mooseError("Tally normalization process failed! Total fraction of " +
+               Moose::stringify(sum) + " does not match 1.0!");
+}
 
-  _console << "done" << std::endl;
+Real
+OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
+  const std::vector<xt::xtensor<double, 1>> & tally, const bool & print_table)
+{
+  VariadicTable<std::string, Real> vt({"Cell", "Fraction of total " + _tally_score});
+  vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
+
+  Real total = 0.0;
+
+  int i = 0;
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    // if this cell doesn't have any tallies, skip it
+    if (!_cell_has_tally[cell_info])
+      continue;
+
+    Real local = tally[0](i++);
+
+    // divide each tally value by the volume that it corresponds to in MOOSE
+    // because we will apply it as a volumetric tally
+    Real volumetric_power = local * tallyMultiplier() / _cell_to_elem_volume[cell_info];
+    total += local;
+
+    vt.addRow(printCell(cell_info), local);
+
+    checkZeroTally(local, "cell " + printCell(cell_info));
+    fillElementalAuxVariable(var_num, c.second, volumetric_power);
+  }
+
+  vt.addRow("total", total);
+
+  if (_verbose && print_table)
+    vt.print(_console);
+
+  return total;
+}
+
+Real
+OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
+  const std::vector<xt::xtensor<double, 1>> & tally, const bool & print_table)
+{
+  VariadicTable<unsigned int, Real> vt({"Mesh", "Fraction of total " + _tally_score});
+  vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
+
+  Real total = 0.0;
+
+  // TODO: this requires that the mesh exactly correspond to the mesh templates;
+  // for cases where they don't match, we'll need to do a nearest-node transfer or something
+
+  unsigned int offset = 0;
+  for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
+  {
+    const auto * filter = _mesh_filters[i];
+    Real template_power_fraction = 0.0;
+
+    for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
+    {
+      Real power_fraction = tally[i](e);
+
+      // divide each tally by the volume that it corresponds to in MOOSE
+      // because we will apply it as a volumetric tally (per unit volume).
+      // Because we require that the mesh template has units of cm based on the
+      // mesh constructors in OpenMC, we need to adjust the division
+      Real volumetric_power =
+          power_fraction * tallyMultiplier() / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
+      total += power_fraction;
+      template_power_fraction += power_fraction;
+
+      checkZeroTally(power_fraction,
+                     "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e));
+
+      std::vector<unsigned int> elem_ids = {offset + e};
+      fillElementalAuxVariable(var_num, elem_ids, volumetric_power);
+    }
+
+    vt.addRow(i, template_power_fraction);
+
+    offset += filter->n_bins();
+  }
+
+  if (_verbose && print_table)
+    vt.print(_console);
+
+  return total;
 }
 
 void
@@ -2586,9 +2509,50 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      getTallyFromOpenMC();
+      // get the total tallies for normalization
+      if (_global_tally)
+        _global_sum_tally = tallySumAcrossBins({_global_tally});
 
-      extractOutputs();
+      _local_sum_tally = tallySumAcrossBins(_local_tally);
+      _local_mean_tally = tallyMeanAcrossBins(_local_tally);
+
+      if (_check_tally_sum)
+        checkTallySum();
+
+      // Populate the current relaxed and unrelaxed tallies. After this, the _current_tally
+      // holds the relaxed tally and _current_raw_tally has the current unrelaxed tally. If
+      // no relaxation is used, _current_tally and _current_raw_tally are the same.
+      switch (_tally_type)
+      {
+        case tally::cell:
+          relaxAndNormalizeTally(0);
+          break;
+        case tally::mesh:
+          for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
+            relaxAndNormalizeTally(i);
+          break;
+        default:
+          mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+      }
+
+      _console << "Extracting OpenMC tallies... " << printNewline();
+
+      getTally(_tally_var, _current_tally, true);
+
+      if (_outputs)
+      {
+        for (std::size_t i = 0; i < _outputs->size(); ++i)
+        {
+          std::string out = (*_outputs)[i];
+
+          if (out == "unrelaxed_tally_std_dev")
+            getUnrelaxedTallyStandardDeviationFromOpenMC(i);
+          if (out == "unrelaxed_tally")
+            getTally(_external_vars[i], _current_raw_tally, false);
+        }
+      }
+
+      _console << "done" << std::endl;
 
       break;
     }
@@ -2741,23 +2705,6 @@ OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
                ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
 
   return T;
-}
-
-void
-OpenMCCellAverageProblem::extractOutputs()
-{
-  if (_outputs)
-  {
-    for (std::size_t i = 0; i < _outputs->size(); ++i)
-    {
-      std::string out = (*_outputs)[i];
-
-      if (out == "unrelaxed_tally_std_dev")
-        getUnrelaxedTallyStandardDeviationFromOpenMC(i);
-      if (out == "unrelaxed_tally")
-        getUnrelaxedTallyFromOpenMC(i);
-    }
-  }
 }
 
 #endif

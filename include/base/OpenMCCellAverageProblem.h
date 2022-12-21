@@ -134,6 +134,37 @@ public:
   }
 
   /**
+   * Read from an OpenMC cell tally and write into an elemental aux variable
+   * @param[in] var_num variable name to write
+   * @param[in] tally tally values to write
+   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   * @return sum of the tally
+   */
+  Real getCellTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
+    const bool & print_table);
+
+  /**
+   * Read from an OpenMC mesh tally and write into an elemental aux variable
+   * @param[in] var_num variable name to write
+   * @param[in] tally tally values to write
+   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   * @return sum of the tally
+   */
+  Real getMeshTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
+    const bool & print_table);
+
+  /**
+   * Extract the (cell or mesh) tally from OpenMC and then apply to the corresponding MOOSE elements.
+   * We also check that the tally normalization gives a total tally sum of 1.0 (when normalized against
+   * the total tally value).
+   * @param[in] var_num variable name to write
+   * @param[in] tally tally values to write
+   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   */
+  void getTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
+    const bool & print_table);
+
+  /**
    * Get the cell instance filter for tallies automatically constructed by Cardinal
    * @return cell instance filter
    */
@@ -499,20 +530,11 @@ protected:
    */
   void sendDensityToOpenMC();
 
-  /// Extract the tally from OpenMC and then apply as a uniform field to the corresponding MOOSE elements.
-  void getTallyFromOpenMC();
-
   /**
    * Get the (unrelaxed) tally standard deviation as a function of space and store into variable
    * @param[in] var_num variable number to store the standard deviation in
    */
   void getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
-
-  /**
-   * Get the (unrelaxed) tally from OpenMC as a function of space and store into variable
-   * @param[in] var_num variable number to store the tally in
-   */
-  void getUnrelaxedTallyFromOpenMC(const unsigned int & var_num);
 
   /**
    * Multiplier on the normalized tally results; for fixed source runs,
@@ -530,16 +552,8 @@ protected:
    * @param[in] tally_result value of tally result
    * @return normalized tally
    */
-  Real normalizeLocalTally(const Real & tally_result) const;
-
-  /**
-   * Normalize the local tally by either the global tally, or the sum
-   * of the local tally. For fixed source simulations, do nothing because the
-   * tally result is not re-normalized to any integral quantity.
-   * @param[in] raw_tally value of tally result
-   * @return normalized tally
-   */
-  xt::xtensor<double, 1> normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const;
+  template <typename T>
+  T normalizeLocalTally(const T & tally_result) const;
 
   /**
    * Add local tally
@@ -566,9 +580,6 @@ protected:
    * @return whether OpenMC reported an error
    */
   bool findCell(const Point & point);
-
-  /// Extract user-specified additional output fields from OpenMC
-  void extractOutputs();
 
   /**
    * Checks that the contained material cells exactly match between a reference obtained
@@ -1008,14 +1019,17 @@ protected:
    * Current fixed point iteration tally result; for instance, when using constant
    * relaxation, the tally is updated as:
    * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
-   * where q(n+1) is _current_mean_tally, a is the relaxation factor, q(n)
-   * is _previous_mean_tally, and PHI is the most-recently-computed tally result
-   * (available locally in the tally update function).
+   * where q(n+1) is _current_tally, a is the relaxation factor, q(n)
+   * is _previous_tally, and PHI is the most-recently-computed tally result
+   * (the _current_raw_tally).
    */
-  std::vector<xt::xtensor<double, 1>> _current_mean_tally;
+  std::vector<xt::xtensor<double, 1>> _current_tally;
 
   /// Previous fixed point iteration tally result (after relaxation)
-  std::vector<xt::xtensor<double, 1>> _previous_mean_tally;
+  std::vector<xt::xtensor<double, 1>> _previous_tally;
+
+  /// Current "raw" tally output from Monte Carlo solution
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally;
 
   /**
    * Variables to "collate" together (presumably from separate MOOSE apps)
