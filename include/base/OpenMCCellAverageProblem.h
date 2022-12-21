@@ -134,6 +134,16 @@ public:
   }
 
   /**
+   * Read from an OpenMC tally and write into an elemental aux variable
+   * @param[in] var_num variable name to write
+   * @param[in] tally tally values to write
+   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   * @return sum of the tally
+   */
+  Real getCellTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
+    const bool & print_table);
+
+  /**
    * Get the cell instance filter for tallies automatically constructed by Cardinal
    * @return cell instance filter
    */
