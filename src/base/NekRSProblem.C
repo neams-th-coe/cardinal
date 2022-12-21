@@ -326,10 +326,9 @@ NekRSProblem::adjustNekSolution()
 void
 NekRSProblem::sendBoundaryDeformationToNek()
 {
-  auto & solution = _aux->solution();
   auto sys_number = _aux->number();
 
-  solution.localize(*_serialized_solution);
+  _aux->solution().localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
 
@@ -449,10 +448,9 @@ NekRSProblem::sendBoundaryDeformationToNek()
 void
 NekRSProblem::sendBoundaryHeatFluxToNek()
 {
-  auto & solution = _aux->solution();
   auto sys_number = _aux->number();
 
-  solution.localize(*_serialized_solution);
+  _aux->solution().localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
   auto indices = _nek_mesh->cornerIndices();
@@ -654,10 +652,9 @@ NekRSProblem::checkInitialFluxValues(const Real & nek_flux, const Real & moose_f
 void
 NekRSProblem::sendVolumeDeformationToNek()
 {
-  auto & solution = _aux->solution();
   auto sys_number = _aux->number();
 
-  solution.localize(*_serialized_solution);
+  _aux->solution().localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
   auto indices = _nek_mesh->cornerIndices();
@@ -714,10 +711,9 @@ NekRSProblem::sendVolumeDeformationToNek()
 void
 NekRSProblem::sendVolumeHeatSourceToNek()
 {
-  auto & solution = _aux->solution();
   auto sys_number = _aux->number();
 
-  solution.localize(*_serialized_solution);
+  _aux->solution().localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
   auto indices = _nek_mesh->cornerIndices();
