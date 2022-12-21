@@ -134,13 +134,34 @@ public:
   }
 
   /**
-   * Read from an OpenMC tally and write into an elemental aux variable
+   * Read from an OpenMC cell tally and write into an elemental aux variable
    * @param[in] var_num variable name to write
    * @param[in] tally tally values to write
    * @param[in] print_table whether to print the diagnostic table showing tally values by bin
    * @return sum of the tally
    */
   Real getCellTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
+    const bool & print_table);
+
+  /**
+   * Read from an OpenMC mesh tally and write into an elemental aux variable
+   * @param[in] var_num variable name to write
+   * @param[in] tally tally values to write
+   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   * @return sum of the tally
+   */
+  Real getMeshTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
+    const bool & print_table);
+
+  /**
+   * Extract the (cell or mesh) tally from OpenMC and then apply to the corresponding MOOSE elements.
+   * We also check that the tally normalization gives a total tally sum of 1.0 (when normalized against
+   * the total tally value).
+   * @param[in] var_num variable name to write
+   * @param[in] tally tally values to write
+   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   */
+  void getTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
     const bool & print_table);
 
   /**
@@ -509,20 +530,11 @@ protected:
    */
   void sendDensityToOpenMC();
 
-  /// Extract the tally from OpenMC and then apply as a uniform field to the corresponding MOOSE elements.
-  void getTallyFromOpenMC();
-
   /**
    * Get the (unrelaxed) tally standard deviation as a function of space and store into variable
    * @param[in] var_num variable number to store the standard deviation in
    */
   void getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
-
-  /**
-   * Get the (unrelaxed) tally from OpenMC as a function of space and store into variable
-   * @param[in] var_num variable number to store the tally in
-   */
-  void getUnrelaxedTallyFromOpenMC(const unsigned int & var_num);
 
   /**
    * Multiplier on the normalized tally results; for fixed source runs,
@@ -568,9 +580,6 @@ protected:
    * @return whether OpenMC reported an error
    */
   bool findCell(const Point & point);
-
-  /// Extract user-specified additional output fields from OpenMC
-  void extractOutputs();
 
   /**
    * Checks that the contained material cells exactly match between a reference obtained
