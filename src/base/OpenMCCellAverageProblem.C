@@ -1834,8 +1834,9 @@ OpenMCCellAverageProblem::initializeTallies()
       _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
                       Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
-      _current_mean_tally.resize(1);
-      _previous_mean_tally.resize(1);
+      _current_tally.resize(1);
+      _current_raw_tally.resize(1);
+      _previous_tally.resize(1);
 
       std::vector<openmc::Filter *> filter = {cellInstanceFilter()};
       addLocalTally(_tally_score, filter);
@@ -1864,8 +1865,9 @@ OpenMCCellAverageProblem::initializeTallies()
                           VariadicTableColumnFormat::SCIENTIFIC,
                           VariadicTableColumnFormat::SCIENTIFIC});
 
-      _current_mean_tally.resize(n_translations);
-      _previous_mean_tally.resize(n_translations);
+      _current_tally.resize(n_translations);
+      _current_raw_tally.resize(n_translations);
+      _previous_tally.resize(n_translations);
 
       auto filters = meshFilter();
       for (const auto & m : filters)
@@ -2336,22 +2338,21 @@ OpenMCCellAverageProblem::getUnrelaxedTallyStandardDeviationFromOpenMC(const uns
 void
 OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t)
 {
+  auto mean_tally = tallySum(_local_tally.at(t));
+  _current_raw_tally[t] = normalizeLocalTally(mean_tally);
+
   // if OpenMC has only run one time, or we don't have relaxation at all,
   // then we don't have a "previous" with which to relax, so we just copy the mean tally in and
   // return
   if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
   {
-    auto mean_tally = tallySum(_local_tally.at(t));
-    _current_mean_tally[t] = normalizeLocalTally(mean_tally);
-    _previous_mean_tally[t] = normalizeLocalTally(mean_tally);
+    _current_tally[t] = _current_raw_tally[t];
+    _previous_tally[t] = _current_raw_tally[t];
     return;
   }
 
   // save the current tally (from the previous iteration) into the previous one
-  std::copy(_current_mean_tally[t].cbegin(),
-            _current_mean_tally[t].cend(),
-            _previous_mean_tally[t].begin());
-  auto mean_tally = tallySum(_local_tally.at(t));
+  std::copy(_current_tally[t].cbegin(), _current_tally[t].cend(), _previous_tally[t].begin());
 
   double alpha;
   switch (_relaxation)
@@ -2375,9 +2376,8 @@ OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t)
       mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
   }
 
-  auto relaxed_tally =
-      (1.0 - alpha) * _previous_mean_tally[t] + alpha * normalizeLocalTally(mean_tally);
-  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_mean_tally[t].begin());
+  auto relaxed_tally = (1.0 - alpha) * _previous_tally[t] + alpha * _current_raw_tally[t];
+  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_tally[t].begin());
 }
 
 void
@@ -2424,7 +2424,7 @@ OpenMCCellAverageProblem::getTallyFromOpenMC()
         if (!_cell_has_tally[cell_info])
           continue;
 
-        Real power_fraction = _current_mean_tally[0](i++);
+        Real power_fraction = _current_tally[0](i++);
 
         // divide each tally value by the volume that it corresponds to in MOOSE
         // because we will apply it as a volumetric tally (per unit volume).
@@ -2458,7 +2458,7 @@ OpenMCCellAverageProblem::getTallyFromOpenMC()
 
         for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
         {
-          Real power_fraction = _current_mean_tally[i](e);
+          Real power_fraction = _current_tally[i](e);
 
           // divide each tally by the volume that it corresponds to in MOOSE
           // because we will apply it as a volumetric tally (per unit volume).

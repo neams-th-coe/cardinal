@@ -1000,14 +1000,17 @@ protected:
    * Current fixed point iteration tally result; for instance, when using constant
    * relaxation, the tally is updated as:
    * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
-   * where q(n+1) is _current_mean_tally, a is the relaxation factor, q(n)
-   * is _previous_mean_tally, and PHI is the most-recently-computed tally result
-   * (available locally in the tally update function).
+   * where q(n+1) is _current_tally, a is the relaxation factor, q(n)
+   * is _previous_tally, and PHI is the most-recently-computed tally result
+   * (the _current_raw_tally).
    */
-  std::vector<xt::xtensor<double, 1>> _current_mean_tally;
+  std::vector<xt::xtensor<double, 1>> _current_tally;
 
   /// Previous fixed point iteration tally result (after relaxation)
-  std::vector<xt::xtensor<double, 1>> _previous_mean_tally;
+  std::vector<xt::xtensor<double, 1>> _previous_tally;
+
+  /// Current "raw" tally output from Monte Carlo solution
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally;
 
   /**
    * Variables to "collate" together (presumably from separate MOOSE apps)
