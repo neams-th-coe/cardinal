@@ -134,8 +134,6 @@ protected:
    */
   void calculateMeshVelocity(int e, const field::NekWriteEnum & field);
 
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
-
   /// Whether a heat source will be applied to NekRS from MOOSE
   const bool & _has_heat_source;
 

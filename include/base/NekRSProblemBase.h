@@ -436,4 +436,6 @@ protected:
 
   /// Maximum step solve time
   double _tSolveStepMax;
+
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
 };
