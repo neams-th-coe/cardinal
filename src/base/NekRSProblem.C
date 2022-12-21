@@ -884,13 +884,9 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         sendVolumeHeatSourceToNek();
 
       if (nekrs::hasUserMeshSolver())
-      {
         sendVolumeDeformationToNek();
-      }
       else if (nekrs::hasElasticitySolver())
-      {
         sendBoundaryDeformationToNek();
-      }
 
       // copy the boundary heat flux, volume heat source, and/or volume
       // mesh displacements in the scratch space to device
@@ -905,10 +901,8 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       // We may be able to remove this in the future if the next version of nekRS consistently
       // updates geometric factors on the device for all moving mesh solvers by itself.
       if (nekrs::hasMovingMesh())
-      {
-      // update geometric factors and the mesh on the device
         nekrs::copyDeformationToDevice();
-      }
+
       break;
     }
 
