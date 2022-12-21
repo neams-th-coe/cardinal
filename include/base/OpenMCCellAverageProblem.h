@@ -530,16 +530,8 @@ protected:
    * @param[in] tally_result value of tally result
    * @return normalized tally
    */
-  Real normalizeLocalTally(const Real & tally_result) const;
-
-  /**
-   * Normalize the local tally by either the global tally, or the sum
-   * of the local tally. For fixed source simulations, do nothing because the
-   * tally result is not re-normalized to any integral quantity.
-   * @param[in] raw_tally value of tally result
-   * @return normalized tally
-   */
-  xt::xtensor<double, 1> normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const;
+  template <typename T>
+  T normalizeLocalTally(const T & tally_result) const;
 
   /**
    * Add local tally

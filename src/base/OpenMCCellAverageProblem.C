@@ -1821,6 +1821,9 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     _global_tally = openmc::Tally::create();
     _global_tally->set_scores({_tally_score});
+
+    // we want to match the same estimator used for the local tally
+    _global_tally->estimator_ = _tally_estimator;
   }
 
   // create the local tally
@@ -1881,9 +1884,7 @@ OpenMCCellAverageProblem::initializeTallies()
           const auto & translation = _mesh_translations[i];
 
           Real volume = 0.0;
-          for (decltype(_local_tally.at(i)->n_filter_bins()) e = 0;
-               e < _local_tally.at(i)->n_filter_bins();
-               ++e)
+          for (int32_t e = 0; e < _local_tally.at(i)->n_filter_bins(); ++e)
             volume += _mesh_template->volume(e);
 
           vt.addRow(i,
@@ -1897,10 +1898,6 @@ OpenMCCellAverageProblem::initializeTallies()
         vt.print(_console);
         _console << std::endl;
       }
-
-      // we want to match the same estimator used for the local tally
-      if (_global_tally)
-        _global_tally->estimator_ = _tally_estimator;
 
       break;
     }
@@ -2185,61 +2182,35 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 Real
 OpenMCCellAverageProblem::tallyMultiplier() const
 {
-  Real m;
-
   if (_tally_score == "flux")
   {
     // Flux tally has units of particle - cm / source particle; we also only get here for fixed source
-    m = *_source_strength * _local_mean_tally / _scaling;
+    return *_source_strength * _local_mean_tally / _scaling;
   }
   else
   {
     // All other tally score options have units of eV / source particle
     if (_run_mode == openmc::RunMode::EIGENVALUE)
-      m = *_power;
+      return *_power;
     else
-      m = *_source_strength * EV_TO_JOULE * _local_mean_tally;
-  }
-
-  return m;
-}
-
-Real
-OpenMCCellAverageProblem::normalizeLocalTally(const Real & tally_result) const
-{
-  if (_normalize_by_global)
-  {
-    if (std::abs(_global_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return tally_result / _global_sum_tally;
-  }
-  else
-  {
-    if (std::abs(_local_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return tally_result / _local_sum_tally;
+      return *_source_strength * EV_TO_JOULE * _local_mean_tally;
   }
 }
 
-xt::xtensor<double, 1>
-OpenMCCellAverageProblem::normalizeLocalTally(const xt::xtensor<double, 1> & raw_tally) const
+template <typename T>
+T
+OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result) const
 {
-  if (_normalize_by_global)
+  Real comparison = _normalize_by_global ? _global_sum_tally : _local_sum_tally;
+
+  if (std::abs(comparison) < 1e-12)
   {
-    if (std::abs(_global_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by global sum: ", _global_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return raw_tally / _global_sum_tally;
+    std::string descriptor = _normalize_by_global ? "global" : "local";
+    mooseError("Cannot normalize tally by " + descriptor + " sum: ", comparison, " due to divide-by-zero.\n"
+      "This means that the ", _tally_score, " tally over the entire domain is zero.");
   }
-  else
-  {
-    if (std::abs(_local_sum_tally) < 1e-12)
-      mooseError("Cannot normalize tally by local sum: ", _local_sum_tally, " due to divide-by-zero.\n"
-        "This means that the ", _tally_score, " tally over the entire domain is zero.");
-    return raw_tally / _local_sum_tally;
-  }
+
+  return tally_result / comparison;
 }
 
 void
