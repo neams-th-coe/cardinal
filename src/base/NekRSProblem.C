@@ -142,6 +142,9 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
       mooseWarning("Your NekRSMesh has 'displacements', but your nekRS .par file does not have a\n"
         "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
 
+  if (nekrs::hasMovingMesh() && _nek_mesh->exactMirror())
+    mooseError("An exact mesh mirror is not yet implemented for the boundary mesh solver.");
+
   int n_per_surf = _nek_mesh->exactMirror() ?
     std::pow(_nek_mesh->nekNumQuadraturePoints1D(), 2.0) : _n_vertices_per_surface;
   int n_per_vol = _nek_mesh->exactMirror() ?
