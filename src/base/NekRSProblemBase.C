@@ -958,80 +958,89 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
                                       double * T,
                                       const std::vector<double> * add)
 {
-  auto vc = _nek_mesh->volumeCoupling();
-
   mesh_t * mesh = nekrs::entireMesh();
   void (*write_solution)(int, dfloat);
   write_solution = nekrs::solution::solutionPointer(field);
 
-  int id;
-  double * tmp = (double *)calloc(mesh->Np, sizeof(double));
+  auto vc = _nek_mesh->volumeCoupling();
+  int id = vc.element[elem_id] * mesh->Np;
 
-  interpolateVolumeSolutionToNek(elem_id, T, tmp, id);
-
-  for (int v = 0; v < mesh->Np; ++v)
+  if (_nek_mesh->exactMirror())
   {
-    double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
-    write_solution(id + v, tmp[v] + extra);
+    // can write directly into the NekRS solution
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      write_solution(id + v, T[v] + extra);
+    }
   }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Np, sizeof(double));
 
-  freePointer(tmp);
+    interpolateVolumeSolutionToNek(elem_id, T, tmp);
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      double extra = (add == nullptr) ? 0.0 : (*add)[id + v];
+      write_solution(id + v, tmp[v] + extra);
+    }
+
+    freePointer(tmp);
+  }
 }
 
 void
 NekRSProblemBase::writeBoundarySolution(const int elem_id, const field::NekWriteEnum & field,
-  double * T, const std::vector<double> * add)
+  double * T)
 {
-  const auto & bc = _nek_mesh->boundaryCoupling();
-
   mesh_t * mesh = nekrs::temperatureMesh();
   void (*write_solution)(int, dfloat);
   write_solution = nekrs::solution::solutionPointer(field);
 
-  int offset;
-  double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
-  interpolateBoundarySolutionToNek(elem_id, T, tmp, offset);
+  const auto & bc = _nek_mesh->boundaryCoupling();
+  int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;
 
-  for (int i = 0; i < mesh->Nfp; ++i)
+  if (_nek_mesh->exactMirror())
   {
-    int id = mesh->vmapM[offset + i];
-    double extra = (add == nullptr) ? 0.0 : (*add)[id];
-    write_solution(id, tmp[i]);
+    // can write directly into the NekRS solution
+    for (int i = 0; i < mesh->Nfp; ++i)
+      write_solution(mesh->vmapM[offset + i], T[i]);
   }
+  else
+  {
+    // need to interpolate onto the higher-order Nek mesh
+    double * tmp = (double *)calloc(mesh->Nfp, sizeof(double));
+    interpolateBoundarySolutionToNek(T, tmp);
 
-  freePointer(tmp);
+    for (int i = 0; i < mesh->Nfp; ++i)
+      write_solution(mesh->vmapM[offset + i], tmp[i]);
+
+    freePointer(tmp);
+  }
 }
 
 void
 NekRSProblemBase::interpolateVolumeSolutionToNek(const int elem_id, double * incoming_moose_value,
-  double * outgoing_nek_value, int & gll_offset)
+  double * outgoing_nek_value)
 {
-  auto vc = _nek_mesh->volumeCoupling();
-  int e = vc.element[elem_id];
   mesh_t * mesh = nekrs::entireMesh();
 
   nekrs::interpolateVolumeHex3D(_interpolation_incoming, incoming_moose_value, _moose_Nq,
     outgoing_nek_value, mesh->Nq);
-
-  gll_offset = e * mesh->Np;
 }
 
 void
-NekRSProblemBase::interpolateBoundarySolutionToNek(const int elem_id, double * incoming_moose_value,
-  double * outgoing_nek_value, int & vmapM_offset)
+NekRSProblemBase::interpolateBoundarySolutionToNek(double * incoming_moose_value,
+  double * outgoing_nek_value)
 {
-  const auto & bc = _nek_mesh->boundaryCoupling();
-  int e = bc.element[elem_id];
-  int f = bc.face[elem_id];
-
   mesh_t * mesh = nekrs::temperatureMesh();
 
   double * scratch = (double *)calloc(_moose_Nq * mesh->Nq, sizeof(double));
 
   nekrs::interpolateSurfaceFaceHex3D(
       scratch, _interpolation_incoming, incoming_moose_value, _moose_Nq, outgoing_nek_value, mesh->Nq);
-
-  vmapM_offset = e * mesh->Nfaces * mesh->Nfp + f * mesh->Nfp;
 
   freePointer(scratch);
 }

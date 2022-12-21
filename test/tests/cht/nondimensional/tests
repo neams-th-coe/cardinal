@@ -20,4 +20,20 @@
                   "the governing equation is the same, but not necessarily the number of iterations, etc."
     required_objects = 'NekRSProblem'
   []
+  [sfr_pincell_exact]
+    type = CSVDiff
+    input = nek_master_exact.i
+    csvdiff = 'nek_master_exact_out.csv nek_master_exact_out_nek0.csv'
+    min_parallel = 6
+    heavy = true
+    prereq = sfr_pincell
+    rel_err = 5e-5
+    requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
+                  "conservation of energy and realistic thermal solutions when nekRS is run in "
+                  "nondimensional form using an exact mesh mirror. This solution was compared to "
+                  "the sfr_pincell case, and results are very similar with only small differences "
+                  "due to the different mesh mirror representations. The usrwrk_output feature was "
+                  "also used to check the correctness of the flux map into NekRS."
+    required_objects = 'NekRSProblem'
+  []
 []

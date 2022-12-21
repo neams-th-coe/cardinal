@@ -59,4 +59,13 @@
                   "for the cylinder_conduction_subcycle case because the results should be exactly the same."
     required_objects = 'NekRSProblem'
   []
+  [cylinder_conduction_exact]
+    type = CSVDiff
+    input = nek_master_exact.i
+    csvdiff = 'nek_master_exact_out.csv'
+    min_parallel = 8
+    requirement = "The system shall support an exact NekRS mesh mirror. The solution is compared against "
+                  "the cylinder_conduction case and nearly identical solutions are obtained."
+    required_objects = 'NekRSProblem'
+  []
 []
