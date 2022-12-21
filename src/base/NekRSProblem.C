@@ -329,12 +329,6 @@ NekRSProblem::sendBoundaryDeformationToNek()
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
 
-  if (_first)
-  {
-    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-    _first = false;
-  }
-
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
@@ -457,12 +451,6 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
-
-  if (_first)
-  {
-    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-    _first = false;
-  }
 
   solution.localize(*_serialized_solution);
 
@@ -669,12 +657,6 @@ NekRSProblem::sendVolumeDeformationToNek()
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
 
-  if (_first)
-  {
-    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-    _first = false;
-  }
-
   solution.localize(*_serialized_solution);
 
   auto & mesh = _nek_mesh->getMesh();
@@ -734,12 +716,6 @@ NekRSProblem::sendVolumeHeatSourceToNek()
 {
   auto & solution = _aux->solution();
   auto sys_number = _aux->number();
-
-  if (_first)
-  {
-    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-    _first = false;
-  }
 
   solution.localize(*_serialized_solution);
 
@@ -876,6 +852,12 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       if (!synchronizeIn())
         return;
+
+      if (_first)
+      {
+        _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
+        _first = false;
+      }
 
       if (_boundary)
         sendBoundaryHeatFluxToNek();
