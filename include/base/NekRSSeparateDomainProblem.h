@@ -59,8 +59,6 @@ public:
   virtual void addExternalVariables() override;
 
 protected:
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
-
   /**
    * Send velocity from 1d system code to the nekRS mesh
    * @param[in] pp_mesh which NekRS mesh to act on
