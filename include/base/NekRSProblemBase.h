@@ -127,23 +127,20 @@ public:
 protected:
   /**
    * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh (mirror -> re2)
-   * @param[in] elem_id element ID
    * @param[in] incoming_moose_value MOOSE face values
    * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS boundary mesh
-   * @param[out] vmapM_offset offset into vmapM to start from for indexing into this element's indices
    */
-  void interpolateBoundarySolutionToNek(const int elem_id, double * incoming_moose_value,
-                                        double * outgoing_nek_value, int & vmapM_offset);
+  void interpolateBoundarySolutionToNek(double * incoming_moose_value,
+                                        double * outgoing_nek_value);
 
   /**
    * Interpolate the MOOSE mesh mirror solution onto the NekRS volume mesh (mirror -> re2)
    * @param[in] elem_id element ID
    * @param[in] incoming_moose_value MOOSE face values
    * @param[out] outgoing_nek_value interpolated MOOSE face values onto the NekRS volume mesh
-   * @param[out] gll_offset offset into usrwrk to start from for indexing into this element's indices
    */
   void interpolateVolumeSolutionToNek(const int elem_id, double * incoming_moose_value,
-                                      double * outgoing_nek_value, int & gll_offset);
+                                      double * outgoing_nek_value);
 
   /**
    * Write into the NekRS solution space for coupling volumes; for setting a mesh position in terms of a
@@ -162,16 +159,12 @@ protected:
 
   /**
    * Write into the NekRS solution space for coupling boundaries; for setting a mesh position in terms of a
-   * displacement, we need to add the displacement to the initial mesh coordinates. For
-   * this, the 'add' parameter lets you pass in a vector of values (in NekRS's mesh order,
-   * i.e. the re2 order) to add.
+   * displacement, we need to add the displacement to the initial mesh coordinates.
    * @param[in] elem_id element ID
    * @param[in] field field to write
    * @param[in] T solution values to write for the field for the given element
-   * @param[in] add optional vector of values to add to each value set on the NekRS en
    */
-  void writeBoundarySolution(const int elem_id, const field::NekWriteEnum & field, double * T,
-    const std::vector<double> * add = nullptr);
+  void writeBoundarySolution(const int elem_id, const field::NekWriteEnum & field, double * T);
 
   /**
    * Interpolate the NekRS volume solution onto the volume MOOSE mesh mirror (re2 -> mirror)

@@ -69,6 +69,9 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     _usrwrk_indices(MultiMooseEnum("velocity temperature scalar01 scalar02 scalar03 unused")),
     _pp_mesh(getParam<MooseEnum>("nek_mesh"))
 {
+  if (_nek_mesh->exactMirror())
+    mooseError("An exact mesh mirror is not yet supported for NekRSSeparateDomainProblem!");
+
   // check scalar01-03_coupling provided
   for (const auto & s : _coupled_scalars)
   {

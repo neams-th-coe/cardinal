@@ -18,4 +18,16 @@
                   "MOOSE standalone case to within 0.1%."
     required_objects = 'NekRSProblem'
   []
+  [cylinder_exact]
+    type = CSVDiff
+    input = nek_master_exact.i
+    csvdiff = nek_master_exact_out_nek0.csv
+    min_parallel = 6
+    prereq = cylinder_heat_source
+    requirement = "The system shall couple NekRS to MOOSE through volumetric heating when using an "
+                  "exact mesh mirror. The output file was compared against the cylinder_heat_source "
+                  "test, giving very similar answers. The heat source sent into NekRS was also checked "
+                  "with the usrwrk_output feature."
+    required_objects = 'NekRSProblem'
+  []
 []

@@ -6,86 +6,70 @@
 
 This class constructs a "mirror" mesh of the NekRS domain as a
 [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html) so that
-other MOOSE applications can send/receive data to/from this mesh using standard
-MOOSE [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html). In other
-words, [NekRSProblem](/problems/NekRSProblem.md) reads/writes fields from/to NekRS.
-When data is *read* from NekRS, `NekRSProblem` directly
-accesses solution arrays in NekRS and interpolates them onto the `NekRSMesh` mirror
-(specifically, into [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
-initialized ahead of time by `NekRSProblem`). When
+other MOOSE applications can send/receive data to/from this mesh using
+MOOSE [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html).
+When data is *read* from NekRS, [NekRSProblem](/problems/NekRSProblem.md) directly
+accesses solution arrays in NekRS and interpolates them onto the `NekRSMesh` mirror. When
 data is *written* into NekRS, it is read from a `MooseVariable` on the `NekRSMesh`
 and interpolated directly into boundary condition and source arrays in NekRS.
 
 A mesh mirror can be constructed for
 
-- Just the boundaries in a NekRS domain. This is used for cases where only boundary coupling/data is desired, such
-  as for [!ac](CHT) coupling.
-- The entire NekRS volume. This is used for cases where only volume coupling/data is desired, such
-  as for temperature and density coupling to OpenMC, or for extracting the NekRS solution over the volume.
-- The entire NekRS volume *and* boundaries. This is used for cases where boundary *and*/or volume
-  coupled/data is desired, such as for combined [!ac](CHT) and volume coupling to BISON and OpenMC,
-  or for extracting the NekRS solution over the volume.
+- Just the NekRS boundaries. This can be used when only boundary coupling/data is desired, such
+  as for [!ac](CHT).
+- The entire NekRS volume. This can be used when only volume coupling/data is desired, such
+  as for temperature and density coupling to MOOSE.
+- The entire NekRS volume *and* boundaries. This is the most general mirror,
+  and can be used for concurrent boundary *and*/or volume
+  coupled, such as for combined [!ac](CHT) and volume coupling to BISON and OpenMC, respectively.
 
-Each of these three modes are now described.
+For each choice of mesh domain, there are three options for the "resolution" of the mesh mirror:
+
+- first order, or HEX8 elements (for volume mirrors) or QUAD4 elements (for boundary mirrors)
+- second order, or HEX27 elements (for volume mirrors) or QUAD elements (for boundary mirrors)
+- "exact" order, which will represent the NekRS high-order mesh exactly using HEX8 elements (for volume mirrors) or QUAD4 elements (for boundary mirrors).
 
 ### Boundary Mesh Mirror
 
-Boundary mesh mirrors are used for:
-
-- [!ac](CHT) coupling of NekRS to MOOSE
-
 In boundary mode, `NekRSMesh` will read the nodes associated with
 all NekRS elements on a set of specified boundaries and
-then build an equivalent `MooseMesh` of either first or second order. For example, consider
-the NekRS mesh shown in [mesh1]; a boundary with ID 2 is indicated. Mesh lines are shown
+then build an equivalent `MooseMesh` of either first or second order. For example, suppose your NekRS
+mesh is the one shown in [mesh1]; a boundary with ID 2 is indicated.
+The mesh lines in [mesh1] are shown
 connecting the [!ac](GLL) quadrature points in NekRS (*not* the eight nodes that would be needed to
 define the corners of a hexahedral element).
 
 !media mesh1.png
   id=mesh1
   caption=Example NekRS mesh; mesh lines are shown connecting [!ac](GLL) points
-  style=width:60%;margin-left:auto;margin-right:auto
-
-The code snippet below shows how to construct a first-order representation of boundary 2 as a `MooseMesh`.
-We set the `order` of the mesh to `FIRST`, meaning that NekRS's elements are converted
-to HEX8. That is, if NekRS uses a polynomial order of 7, data transfers between the
-mesh mirror and NekRS's mesh would involve interpolations on each element between
-$(7+1)^2$ NekRS quadrature points and 4 MOOSE nodes.
-
-!listing /test/tests/conduction/nonidentical_interface/cylinders/nek.i
-  block=Mesh
-
-The mesh mirror produced by `NekRSMesh` is shown in [mesh1_mirror]. The four nodes
-on each QUAD4 element are shown as white dots.
-
-!media mesh1_mirror.png
-  id=mesh1_mirror
-  caption=First-order surface mesh mirror of the NekRS mesh shown in [mesh1], for sideset `2`.
   style=width:40%;margin-left:auto;margin-right:auto
 
-By default, a first-order mesh is constructed. But you can also create a second-order
-mesh by setting `order = SECOND`. If we change `order = FIRST` in
-to `order = SECOND`, the surface elements are now represented as QUAD9 elements,
-as shown in [mesh1_mirrorb].
-That is, if NekRS uses a polynomial order of 7, data
-transfers between the mesh mirror and NekRS's mesh would involve interpolations on each
-element between $(7+1)^2$ NekRS quadrature points and 9 MOOSE nodes.
+The three different types of mesh mirrors are shown in [mesh1_surface]. White dots
+are shown to indicate the nodes for the first two mesh mirrors (too many nodes would
+clutter the image if we showed the nodes for the exact mesh mirror as well).
 
-!media mesh1_mirrorb.png
-  id=mesh1_mirrorb
-  caption=Second-order surface mesh mirror of the NekRS mesh shown in [mesh1], for sideset `2`.
-  style=width:40%;margin-left:auto;margin-right:auto
+!media mesh1_surface.png
+  id=mesh1_surface
+  caption=Three different mesh mirrors for boundary 2 in the NekRS mesh from [mesh1]
+  style=width:100%;margin-left:auto;margin-right:auto
+
+- First-order mesh mirrors are selected with `order = FIRST`, giving the
+  first mesh mirror in [mesh1_surface]. NekRS's boundary elements are converted to QUAD4.
+  That is, if NekRS uses a polynomial order of 7, data transfers between the
+  mesh mirror and NekRS's mesh would involve interpolations on each element between
+  $(7+1)^2$ NekRS quadrature points and 4 MOOSE nodes.
+- Second-order mesh mirrors are selected with `order = SECOND`, giving the second mesh
+  mirror in [mesh1_surface]. NekRS's boundary elements are converted to QUAD9.
+  That is, if NekRS uses a polynomial order of 7, data
+  transfers between the mesh mirror and NekRS's mesh would involve interpolations on each
+  element between $(7+1)^2$ NekRS quadrature points and 9 MOOSE nodes.
+- An "exact" mesh mirror is selected with `exact = true`, giving the third mesh mirror
+  in [mesh1_surface]. For each NekRS boundary element, we build $N^2$ QUAD4 elements.
 
 The boundary IDs in `boundary` correspond to the boundary IDs in the NekRS mesh,
 i.e. in the `.re2` file.
 You can set multiple boundaries to construct by passing a vector of sideset IDs;
 this will add multiple boundaries into the same mirror mesh.
-
-The `boundary` parameter does more than just inform which
-sides should be created in the mesh mirror - the `boundary` parameter also establishes
-a number of internal mapping data structures used to write/read data from the
-corresponding NekRS sidesets. That is, if you set `boundary = 1`, you are indicating
-that boundary 1 in NekRS's mesh will participate in [!ac](CHT) coupling to MOOSE.
 
 !listing test/tests/postprocessors/nek_weighted_side_integral/nek.i
   block=Mesh
@@ -106,57 +90,33 @@ constructing a volume mesh; please see [#v] and [#vb] for details.
 ### Volume Mesh Mirror
   id=v
 
-Volume mesh mirrors are used for:
-
-- Coupling NekRS via volume temperatures and densities to MOOSE, such as for
-  fluid feedback to OpenMC
-- Projecting a NekRS volume solution onto a lower-order MOOSE mesh
-
 In volume mode, `NekRSMesh` will
 read the nodes associated with the entire NekRS mesh and then build an equivalent
-`MooseMesh` of either first or second order.
+`MooseMesh`. Again using the [mesh1] as an example NekRS mesh,
+the three different types of mesh mirrors are shown in [mesh1_volume]. White dots
+are shown to indicate the nodes for the first two mesh mirrors (too many nodes would
+clutter the image if we showed the nodes for the exact mesh mirror as well).
 
-For setting up a volume mesh mirror, we simply need to set `volume = true`.
-For example, the following code snippet
-would generate a volume mirror of the NekRS mesh shown in [mesh1]. This mesh is
-shown in [mesh1_mirrorc].
-That is, if NekRS uses a polynomial order of 7, data
-transfers between the mesh mirror and NekRS's mesh would involve interpolations on each
-element between $(7+1)^3$ NekRS quadrature points and 8 MOOSE nodes.
+!media mesh1_volume.png
+  id=mesh1_volume
+  caption=Three different mesh mirrors for the entire volume of the NekRS mesh from [mesh1]
+  style=width:100%;margin-left:auto;margin-right:auto
 
-!listing
-[Mesh]
-  type = NekRSMesh
-  order = FIRST
-  volume = true
-[]
-
-!media mesh1_mirrorc.png
-  id=mesh1_mirrorc
-  caption=First-order volume mesh mirror of the NekRS mesh shown in [mesh1]
-  style=width:60%;margin-left:auto;margin-right:auto
-
-If we change `order = FIRST` to `order = SECOND`, a second-order volume mesh
-will be generated; this second-order mirror of the NekRS mesh in [mesh1] is
-shown in [mesh1_mirrord].
-That is, if NekRS uses a polynomial order of 7, data
-transfers between the mesh mirror and NekRS's mesh would involve interpolations on each
-element between $(7+1)^3$ NekRS quadrature points and 27 MOOSE nodes.
-
-!media mesh1_mirrord.png
-  id=mesh1_mirrord
-  caption=Second-order volume mesh mirror of the NekRS mesh shown in [mesh1]
-  style=width:60%;margin-left:auto;margin-right:auto
+- First-order mesh mirrors are selected with `order = FIRST`, giving the
+  first mesh mirror in [mesh1_volume]. NekRS's elements are converted to HEX8.
+  That is, if NekRS uses a polynomial order of 7, data transfers between the
+  mesh mirror and NekRS's mesh would involve interpolations on each element between
+  $(7+1)^3$ NekRS quadrature points and 8 MOOSE nodes.
+- Second-order mesh mirrors are selected with `order = SECOND`, giving the second mesh
+  mirror in [mesh1_volume]. NekRS's elements are converted to HEX27.
+  That is, if NekRS uses a polynomial order of 7, data
+  transfers between the mesh mirror and NekRS's mesh would involve interpolations on each
+  element between $(7+1)^3$ NekRS quadrature points and 27 MOOSE nodes.
+- An "exact" mesh mirror is selected with `exact = true`, giving the third mesh mirror
+  in [mesh1_volume]. For each NekRS element, we build $N^3$ HEX8 elements.
 
 If creating a mesh mirror in volume mode, the sideset IDs from the NekRS mesh
 will be constructed in the mesh mirror.
-However, volume mode does *not* allow
-boundary coupling of NekRS to a coupled MOOSE application because the
-`boundary` parameter is not used to specify which boundaries should be *coupled*.
-That is, the sidesets will exist in the volume mesh, but no data on
-those boundaries are used to send data in/out of NekRS's boundaries.
-So, the volume *and* boundary mode should be used if combined [!ac](CHT)
-and volume coupling are desired; see [#vb] for details.
 
 ### Volume and Boundary Mesh Mirrors
   id=vb
@@ -174,7 +134,7 @@ mesh mirrors), and also set up necessary mapping data structures to facilitate
 
 For instance,
 the following code snippet will generate a second-order volume mesh and sideset
-2 will be coupled via [!ac](CHT) to Moose.
+2 will be coupled via [!ac](CHT) to MOOSE.
 
 !listing
 [Mesh]
