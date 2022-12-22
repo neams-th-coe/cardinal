@@ -56,34 +56,10 @@
   solid_cell_level = 0
   fluid_cell_level = 0
 
-  # This turns off the density and temperature update on the first syncSolutions;
-  # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   initial_properties = xml
 []
 
 [Executioner]
   type = Transient
   num_steps = 1
-[]
-
-[Postprocessors]
-  [heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-  []
-  [fluid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '200'
-  []
-  [solid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '100'
-  []
-[]
-
-[Outputs]
-  exodus = true
-  hide = 'dummy density'
 []

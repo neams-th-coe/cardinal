@@ -54,6 +54,7 @@
   power = 1500.0
   solid_blocks = '0'
   tally_type = mesh
+  tally_name = heat_source
   mesh_template = ../../meshes/sphere_in_m.e
   mesh_translations = '0.0 0.0 0.02
                        0.0 0.0 0.06

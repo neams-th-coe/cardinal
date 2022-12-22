@@ -12,21 +12,6 @@
   allow_renumbering = false
 []
 
-# This AuxVariable and AuxKernel is only here to get the postprocessors
-# to evaluate correctly. This can be deleted after MOOSE issue #17534 is fixed.
-[AuxVariables]
-  [dummy]
-  []
-[]
-
-[AuxKernels]
-  [dummy]
-    type = ConstantAux
-    variable = dummy
-    value = 0.0
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   solid_blocks = '100'
@@ -49,16 +34,4 @@
 [Executioner]
   type = Transient
   num_steps = 1
-[]
-
-[Postprocessors]
-  [heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-  []
-[]
-
-[Outputs]
-  exodus = true
-  hide = 'dummy temp'
 []

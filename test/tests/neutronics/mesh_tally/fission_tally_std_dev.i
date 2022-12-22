@@ -53,7 +53,7 @@
 [Postprocessors]
   [heat_source_at_pt]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.896826 0.189852 0.608855' # centroid of first element in mesh
   []
   [std_dev_at_pt]

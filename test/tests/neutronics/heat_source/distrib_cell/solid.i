@@ -51,6 +51,7 @@
   solid_blocks = '100'
   fluid_blocks = '200'
   tally_blocks = '100 200'
+  tally_name = heat_source
   tally_type = cell
   check_zero_tallies = false
 

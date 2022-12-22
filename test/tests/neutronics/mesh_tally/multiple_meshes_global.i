@@ -64,6 +64,7 @@
                        0 0 8'
 
   tally_type = mesh
+  tally_name = heat_source
   mesh_template = '../meshes/sphere.e'
   power = 100.0
   check_tally_sum = false

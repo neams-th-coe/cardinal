@@ -31,6 +31,7 @@
   check_zero_tallies = false
 
   tally_score = heating
+  tally_name = heat_source
 []
 
 [Executioner]

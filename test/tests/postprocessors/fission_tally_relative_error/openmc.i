@@ -45,8 +45,6 @@
   output = 'unrelaxed_tally_std_dev'
   output_name = 'fission_tally_std_dev'
 
-  # This turns off the density and temperature update on the first syncSolutions;
-  # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   initial_properties = xml
 []
 

@@ -54,6 +54,7 @@
   tally_blocks = '0'
   tally_type = cell
   solid_cell_level = 1
+  tally_name = heat_source
   scaling = 100.0
 []
 

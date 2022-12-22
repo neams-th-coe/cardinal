@@ -34,6 +34,7 @@
   verbose = true
   solid_cell_level = 0
   normalize_by_global_tally = true
+  tally_name = heat_source
 
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'

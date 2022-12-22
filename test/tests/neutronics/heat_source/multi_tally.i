@@ -57,7 +57,6 @@
   tally_type = cell
 
   tally_score = 'kappa_fission heating'
-  tally_name = 'kappa_fission heating'
 
   initial_properties = xml
 []
