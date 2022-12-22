@@ -124,4 +124,11 @@
     requirement = "The wrapping shall allow output of the unrelaxed heat source for cell tallies"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [multi_tally]
+    type = CSVDiff
+    input = multi_tally.i
+    csvdiff = multi_tally_out.csv
+    requirement = "The wrapping shall allow output of multiple tally scores, with relaxation applied independently to each score"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
