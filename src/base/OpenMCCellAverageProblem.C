@@ -1836,6 +1836,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
       _current_tally.resize(1);
       _current_raw_tally.resize(1);
+      _current_raw_tally_std_dev.resize(1);
       _previous_tally.resize(1);
 
       std::vector<openmc::Filter *> filter = {cellInstanceFilter()};
@@ -1867,6 +1868,7 @@ OpenMCCellAverageProblem::initializeTallies()
 
       _current_tally.resize(n_translations);
       _current_raw_tally.resize(n_translations);
+      _current_raw_tally_std_dev.resize(n_translations);
       _previous_tally.resize(n_translations);
 
       auto filters = meshFilter();
@@ -2216,76 +2218,15 @@ OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result) const
 }
 
 void
-OpenMCCellAverageProblem::getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num)
-{
-  switch (_tally_type)
-  {
-    case tally::cell:
-    {
-      auto tally = _local_tally.at(0);
-      auto sum = tallySum(_local_tally.at(0));
-      auto sum_sq =
-          xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
-
-      int i = 0;
-      for (const auto & c : _cell_to_elem)
-      {
-        auto cell_info = c.first;
-
-        // if this cell doesn't have any tallies, skip it
-        if (!_cell_has_tally[cell_info])
-          continue;
-
-        // we make sure we have the right units by multiplying the percent error by the
-        // volumetric power in this tally bin
-        Real local_power = normalizeLocalTally(sum(i)) * tallyMultiplier() / _cell_to_elem_volume[cell_info];
-        Real std_dev = relativeError(sum(i), sum_sq(i), tally->n_realizations_) * local_power;
-        fillElementalAuxVariable(_external_vars[var_num], c.second, std_dev);
-        i++;
-      }
-      break;
-    }
-    case tally::mesh:
-    {
-      // TODO: this requires that the mesh exactly correspond to the mesh templates;
-      // for cases where they don't match, we'll need to do a nearest-node transfer or something
-
-      unsigned int offset = 0;
-      for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
-      {
-        const auto * filter = _mesh_filters[i];
-
-        auto tally = _local_tally.at(i);
-        auto sum = tallySum(_local_tally.at(i));
-        auto sum_sq =
-            xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
-
-        for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
-        {
-          // we make sure we have the right units by multiplying the percent error by the
-          // volumetric power in this tally bin
-          Real local_power = normalizeLocalTally(sum(e)) * tallyMultiplier() / _mesh_template->volume(e) *
-                             _scaling * _scaling * _scaling;
-          Real std_dev = relativeError(sum(e), sum_sq(e), tally->n_realizations_) * local_power;
-          std::vector<unsigned int> elem_ids = {offset + e};
-          fillElementalAuxVariable(_external_vars[var_num], elem_ids, std_dev);
-        }
-
-        offset += filter->n_bins();
-      }
-
-      break;
-    }
-    default:
-      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
-  }
-}
-
-void
 OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t)
 {
-  auto mean_tally = tallySum(_local_tally.at(t));
+  auto tally = _local_tally.at(t);
+  auto mean_tally = tallySum(tally);
   _current_raw_tally[t] = normalizeLocalTally(mean_tally);
+
+  auto sum_sq = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+  auto rel_err = relativeError(mean_tally, sum_sq, tally->n_realizations_);
+  _current_raw_tally_std_dev[t] = rel_err * _current_raw_tally[t];
 
   // if OpenMC has only run one time, or we don't have relaxation at all,
   // then we don't have a "previous" with which to relax, so we just copy the mean tally in and
@@ -2357,7 +2298,7 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
 
-  if (_check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+  if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
     mooseError("Tally normalization process failed! Total fraction of " +
                Moose::stringify(sum) + " does not match 1.0!");
 }
@@ -2546,7 +2487,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
           std::string out = (*_outputs)[i];
 
           if (out == "unrelaxed_tally_std_dev")
-            getUnrelaxedTallyStandardDeviationFromOpenMC(i);
+            getTally(_external_vars[i], _current_raw_tally_std_dev, false);
           if (out == "unrelaxed_tally")
             getTally(_external_vars[i], _current_raw_tally, false);
         }
