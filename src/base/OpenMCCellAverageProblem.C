@@ -1825,7 +1825,16 @@ OpenMCCellAverageProblem::initializeTallies()
 
     // we want to match the same estimator used for the local tally
     _global_tally->estimator_ = _tally_estimator;
+
+    _global_sum_tally.resize(_tally_score.size());
   }
+
+  _local_sum_tally.resize(_tally_score.size());
+  _local_mean_tally.resize(_tally_score.size());
+  _current_tally.resize(_tally_score.size());
+  _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_std_dev.resize(_tally_score.size());
+  _previous_tally.resize(_tally_score.size());
 
   // create the local tally
   switch (_tally_type)
@@ -1835,10 +1844,13 @@ OpenMCCellAverageProblem::initializeTallies()
       _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
                       Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
 
-      _current_tally.resize(1);
-      _current_raw_tally.resize(1);
-      _current_raw_tally_std_dev.resize(1);
-      _previous_tally.resize(1);
+      for (unsigned int i = 0; i < _tally_score.size(); ++i)
+      {
+        _current_tally[i].resize(1);
+        _current_raw_tally[i].resize(1);
+        _current_raw_tally_std_dev[i].resize(1);
+        _previous_tally[i].resize(1);
+      }
 
       std::vector<openmc::Filter *> filter = {cellInstanceFilter()};
       addLocalTally(_tally_score, filter);
@@ -1867,10 +1879,13 @@ OpenMCCellAverageProblem::initializeTallies()
                           VariadicTableColumnFormat::SCIENTIFIC,
                           VariadicTableColumnFormat::SCIENTIFIC});
 
-      _current_tally.resize(n_translations);
-      _current_raw_tally.resize(n_translations);
-      _current_raw_tally_std_dev.resize(n_translations);
-      _previous_tally.resize(n_translations);
+      for (unsigned int i = 0; i < _tally_score.size(); ++i)
+      {
+        _current_tally[i].resize(n_translations);
+        _current_raw_tally[i].resize(n_translations);
+        _current_raw_tally_std_dev[i].resize(n_translations);
+        _previous_tally[i].resize(n_translations);
+      }
 
       auto filters = meshFilter();
       for (const auto & m : filters)
@@ -2194,7 +2209,7 @@ OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
   if (_tally_score[score] == "flux")
   {
     // Flux tally has units of particle - cm / source particle; we also only get here for fixed source
-    return *_source_strength * _local_mean_tally / _scaling;
+    return *_source_strength * _local_mean_tally[score] / _scaling;
   }
   else
   {
@@ -2202,7 +2217,7 @@ OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
     if (_run_mode == openmc::RunMode::EIGENVALUE)
       return *_power;
     else
-      return *_source_strength * EV_TO_JOULE * _local_mean_tally;
+      return *_source_strength * EV_TO_JOULE * _local_mean_tally[score];
   }
 }
 
@@ -2210,7 +2225,7 @@ template <typename T>
 T
 OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result, const unsigned int & score) const
 {
-  Real comparison = _normalize_by_global ? _global_sum_tally : _local_sum_tally;
+  Real comparison = _normalize_by_global ? _global_sum_tally[score] : _local_sum_tally[score];
 
   if (std::abs(comparison) < 1e-12)
   {
@@ -2225,26 +2240,31 @@ OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result, const unsi
 void
 OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t, const unsigned int & score)
 {
+  auto & current = _current_tally[score][t];
+  auto & previous = _previous_tally[score][t];
+  auto & current_raw = _current_raw_tally[score][t];
+  auto & current_raw_std_dev = _current_raw_tally_std_dev[score][t];
+
   auto tally = _local_tally.at(t);
-  auto mean_tally = tallySum(tally);
-  _current_raw_tally[t] = normalizeLocalTally(mean_tally, score);
+  auto mean_tally = tallySum(tally, score);
+  current_raw = normalizeLocalTally(mean_tally, score);
 
   auto sum_sq = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
   auto rel_err = relativeError(mean_tally, sum_sq, tally->n_realizations_);
-  _current_raw_tally_std_dev[t] = rel_err * _current_raw_tally[t];
+  current_raw_std_dev = rel_err * current_raw;
 
   // if OpenMC has only run one time, or we don't have relaxation at all,
   // then we don't have a "previous" with which to relax, so we just copy the mean tally in and
   // return
   if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
   {
-    _current_tally[t] = _current_raw_tally[t];
-    _previous_tally[t] = _current_raw_tally[t];
+    current = current_raw;
+    previous = current_raw;
     return;
   }
 
   // save the current tally (from the previous iteration) into the previous one
-  std::copy(_current_tally[t].cbegin(), _current_tally[t].cend(), _previous_tally[t].begin());
+  std::copy(current.cbegin(), current.cend(), previous.begin());
 
   double alpha;
   switch (_relaxation)
@@ -2268,8 +2288,8 @@ OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t, const unsigned i
       mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
   }
 
-  auto relaxed_tally = (1.0 - alpha) * _previous_tally[t] + alpha * _current_raw_tally[t];
-  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), _current_tally[t].begin());
+  auto relaxed_tally = (1.0 - alpha) * previous + alpha * current_raw;
+  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), current.begin());
 }
 
 void
@@ -2455,17 +2475,17 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      // get the total tallies for normalization
-      if (_global_tally)
-        _global_sum_tally = tallySumAcrossBins({_global_tally});
-
-      _local_sum_tally = tallySumAcrossBins(_local_tally);
-      _local_mean_tally = tallyMeanAcrossBins(_local_tally);
-
       _console << "Extracting OpenMC tallies... " << printNewline();
 
       for (unsigned int score = 0; score < _tally_score.size(); ++score)
       {
+        // get the total tallies for normalization
+        if (_global_tally)
+          _global_sum_tally[score] = tallySumAcrossBins({_global_tally}, score);
+
+        _local_sum_tally[score] = tallySumAcrossBins(_local_tally, score);
+        _local_mean_tally[score] = tallyMeanAcrossBins(_local_tally, score);
+
         if (_check_tally_sum)
           checkTallySum(score);
 
@@ -2485,7 +2505,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
         }
 
-        getTally(_tally_var[score], _current_tally, score, true);
+        getTally(_tally_var[score], _current_tally[score], score, true);
 
         if (_outputs)
         {
@@ -2494,9 +2514,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             std::string out = (*_outputs)[i];
 
             if (out == "unrelaxed_tally_std_dev")
-              getTally(_external_vars[i], _current_raw_tally_std_dev, score, false);
+              getTally(_external_vars[i], _current_raw_tally_std_dev[score], score, false);
             if (out == "unrelaxed_tally")
-              getTally(_external_vars[i], _current_raw_tally, score, false);
+              getTally(_external_vars[i], _current_raw_tally[score], score, false);
           }
         }
       }
@@ -2516,13 +2536,13 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 void
 OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
 {
-  if (std::abs(_global_sum_tally - _local_sum_tally) / _global_sum_tally >
+  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] >
       openmc::FP_REL_PRECISION)
   {
     std::stringstream msg;
     msg << _tally_score[score] << " tallies do not match the global " << _tally_score[score] << " tally:\n"
-        << " Global value: " << Moose::stringify(_global_sum_tally)
-        << "\n Tally sum: " << Moose::stringify(_local_sum_tally)
+        << " Global value: " << Moose::stringify(_global_sum_tally[score])
+        << "\n Tally sum: " << Moose::stringify(_local_sum_tally[score])
         << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level

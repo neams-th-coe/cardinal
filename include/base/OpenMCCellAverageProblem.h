@@ -952,14 +952,14 @@ protected:
   /// Density variable, which must be in units of kg/m3 based on internal conversions
   unsigned int _density_var;
 
-  /// Sum value of the global tally, across all bins
-  Real _global_sum_tally;
+  /// Sum value of the global tally(s), across all bins
+  std::vector<Real> _global_sum_tally;
 
-  /// Sum value of the local tally, across all bins
-  Real _local_sum_tally;
+  /// Sum value of the local tally(s), across all bins
+  std::vector<Real> _local_sum_tally;
 
-  /// Mean value of the local tally, across all bins; only used for fixed source mode
-  Real _local_mean_tally;
+  /// Mean value of the local tally(s), across all bins; only used for fixed source mode
+  std::vector<Real> _local_mean_tally;
 
   /// When using mesh tallies, whether the mesh comes from the MOOSE [Mesh] block or from a file
   const bool _tally_mesh_from_moose;
@@ -1027,16 +1027,16 @@ protected:
    * is _previous_tally, and PHI is the most-recently-computed tally result
    * (the _current_raw_tally).
    */
-  std::vector<xt::xtensor<double, 1>> _current_tally;
+  std::vector<std::vector<xt::xtensor<double, 1>>> _current_tally;
 
   /// Previous fixed point iteration tally result (after relaxation)
-  std::vector<xt::xtensor<double, 1>> _previous_tally;
+  std::vector<std::vector<xt::xtensor<double, 1>>> _previous_tally;
 
   /// Current "raw" tally output from Monte Carlo solution
-  std::vector<xt::xtensor<double, 1>> _current_raw_tally;
+  std::vector<std::vector<xt::xtensor<double, 1>>> _current_raw_tally;
 
   /// Current "raw" tally standard deviation
-  std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
+  std::vector<std::vector<xt::xtensor<double, 1>>> _current_raw_tally_std_dev;
 
   /**
    * Variables to "collate" together (presumably from separate MOOSE apps)

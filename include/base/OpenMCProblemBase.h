@@ -58,23 +58,26 @@ public:
    * representing the sum for that bin.
    *
    * @param[in] tally OpenMC tally
+   * @param[in] score tally score
    * @return tally sum within each bin
    */
-  xt::xtensor<double, 1> tallySum(openmc::Tally * tally) const;
+  xt::xtensor<double, 1> tallySum(openmc::Tally * tally, const unsigned int & score) const;
 
   /**
    * Compute the sum of a tally across all of its bins
    * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
+   * @param[in] score tally score
    * @return tally sum
    */
-  double tallySumAcrossBins(std::vector<openmc::Tally *> tally) const;
+  double tallySumAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
 
   /**
    * Compute the mean of a tally across all of its bins
    * @param[in] tally OpenMC tallies (multiple if repeated mesh tallies)
+   * @param[in] score tally score
    * @return tally mean
    */
-  double tallyMeanAcrossBins(std::vector<openmc::Tally *> tally) const;
+  double tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const;
 
   /**
    * Type definition for storing the relevant aspects of the OpenMC geometry; the first
