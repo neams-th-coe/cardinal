@@ -2298,7 +2298,7 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
 
-  if (_check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+  if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
     mooseError("Tally normalization process failed! Total fraction of " +
                Moose::stringify(sum) + " does not match 1.0!");
 }
