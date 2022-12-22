@@ -242,7 +242,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     execute_on = 'transfer initial timestep_end'
   []
   [max_tally_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
     value_type = max
   []
   [k]

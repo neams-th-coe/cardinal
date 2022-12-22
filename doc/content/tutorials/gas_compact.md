@@ -326,7 +326,7 @@ in the reverse direction.
   end=Postprocessors
 
 We define a number of postprocessors to query the solution. The
-[FissionTallyRelativeError](/postprocessors/FissionTallyRelativeError.md)
+[TallyRelativeError](/postprocessors/TallyRelativeError.md)
 extracts the maximum fission tally relative error for monitoring active cycle convergence.
 The `max_power` and `min_power` [ElementExtremeValue](https://mooseframework.inl.gov/source/postprocessors/ElementExtremeValue.html)
 postprocessors compute the maximum and minimum fission power. And as already

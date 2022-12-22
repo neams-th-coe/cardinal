@@ -189,7 +189,7 @@ N = 1000
     execute_on = 'transfer initial timestep_end'
   []
   [max_tally_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
     value_type = max
   []
   [k]

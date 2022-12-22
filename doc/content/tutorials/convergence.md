@@ -116,7 +116,7 @@ You will also need to copy and paste the following into your input file:
 ```
 [Postprocessors]
   [max_tally_rel_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
     value_type = max
   []
   [k]

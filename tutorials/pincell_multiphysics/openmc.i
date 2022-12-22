@@ -198,7 +198,7 @@ dT = ${fparse power / mdot / Cp}
 
 [Postprocessors]
   [max_tally_rel_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
     value_type = max
   []
   [k]
