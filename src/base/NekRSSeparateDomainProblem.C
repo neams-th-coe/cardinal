@@ -56,7 +56,6 @@ NekRSSeparateDomainProblem::validParams()
 
 NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & params)
   : NekRSProblemBase(params),
-    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _coupling_type(getParam<MultiMooseEnum>("coupling_type")),
     _outlet_boundary(getParam<std::vector<int>>("outlet_boundary")),
     _inlet_boundary(getParam<std::vector<int>>("inlet_boundary")),

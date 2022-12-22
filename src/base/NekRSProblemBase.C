@@ -105,6 +105,7 @@ NekRSProblemBase::validParams()
 
 NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   : ExternalProblem(params),
+    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _nondimensional(getParam<bool>("nondimensional")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),
@@ -1043,6 +1044,115 @@ NekRSProblemBase::interpolateBoundarySolutionToNek(double * incoming_moose_value
       scratch, _interpolation_incoming, incoming_moose_value, _moose_Nq, outgoing_nek_value, mesh->Nq);
 
   freePointer(scratch);
+}
+
+void
+NekRSProblemBase::mapFaceDataToNekFace(const unsigned int & e, const unsigned int & var_num,
+  const Real & multiplier, double ** outgoing_data)
+{
+  auto sys_number = _aux->number();
+  auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
+
+  for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
+  {
+    auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+    {
+      libmesh_assert(!mesh.is_serial());
+      continue;
+    }
+
+    for (unsigned int n = 0; n < _n_vertices_per_surface; n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // convert libMesh node index into the ordering used by NekRS
+      int node_index = _nek_mesh->exactMirror() ?
+        indices[build][_nek_mesh->boundaryNodeIndex(n)] : _nek_mesh->boundaryNodeIndex(n);
+
+      auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
+      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx) * multiplier;
+    }
+  }
+}
+
+void
+NekRSProblemBase::mapVolumeDataToNekVolume(const unsigned int & e, const unsigned int & var_num,
+  const Real & multiplier, double ** outgoing_data)
+{
+  auto sys_number = _aux->number();
+  auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
+
+  for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
+  {
+    auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
+
+    // Only work on elements we can find on our local chunk of a
+    // distributed mesh
+    if (!elem_ptr)
+    {
+      libmesh_assert(!mesh.is_serial());
+      continue;
+    }
+
+    for (unsigned int n = 0; n < _n_vertices_per_volume; n++)
+    {
+      auto node_ptr = elem_ptr->node_ptr(n);
+
+      // convert libMesh node index into the ordering used by NekRS
+      int node_index = _nek_mesh->exactMirror() ?
+        indices[build][_nek_mesh->volumeNodeIndex(n)] : _nek_mesh->volumeNodeIndex(n);
+
+      auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
+      (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx) * multiplier;
+    }
+  }
+}
+
+void
+NekRSProblemBase::mapFaceDataToNekVolume(const unsigned int & e, const unsigned int & var_num,
+  const Real & multiplier, double ** outgoing_data)
+{
+  auto sys_number = _aux->number();
+  auto & mesh = _nek_mesh->getMesh();
+  auto indices = _nek_mesh->cornerIndices();
+
+  for (int build = 0; build < _nek_mesh->nMoosePerNek(); ++build)
+  {
+    int n_faces_on_boundary = _nek_mesh->facesOnBoundary(e);
+
+    // the only meaningful values are on the coupling boundaries, so we can skip this
+    // interpolation if this volume element isn't on a coupling boundary
+    if (n_faces_on_boundary > 0)
+    {
+      auto elem_ptr = mesh.query_elem_ptr(e * _nek_mesh->nMoosePerNek() + build);
+
+      // Only work on elements we can find on our local chunk of a
+      // distributed mesh
+      if (!elem_ptr)
+      {
+        libmesh_assert(!mesh.is_serial());
+        continue;
+      }
+
+      for (unsigned int n = 0; n < _n_vertices_per_volume; ++n)
+      {
+        auto node_ptr = elem_ptr->node_ptr(n);
+
+        // convert libMesh node index into the ordering used by NekRS
+        int node_index = _nek_mesh->exactMirror() ?
+          indices[build][_nek_mesh->volumeNodeIndex(n)] : _nek_mesh->volumeNodeIndex(n);
+
+        auto dof_idx = node_ptr->dof_number(sys_number, var_num, 0);
+        (*outgoing_data)[node_index] = (*_serialized_solution)(dof_idx) * multiplier;
+      }
+    }
+  }
 }
 
 #endif

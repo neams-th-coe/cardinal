@@ -42,6 +42,45 @@ public:
   ~NekRSProblemBase();
 
   /**
+   * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
+   * @param[in] e MOOSE element ID
+   * @param[in] var_num variable index to fetch MOOSE data from
+   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
+   */
+  void mapFaceDataToNekFace(const unsigned int & e, const unsigned int & var_num,
+    const Real & multiplier, double ** outgoing_data);
+
+  /**
+   * Map nodal points on a MOOSE volume element to the GLL points on a Nek volume element.
+   * @param[in] e MOOSE element ID
+   * @param[in] var_num variable index to fetch MOOSE data from
+   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
+   */
+  void mapVolumeDataToNekVolume(const unsigned int & e, const unsigned int & var_num,
+    const Real & multiplier, double ** outgoing_data);
+
+  /**
+   * \brief Map nodal points on a MOOSE face element to the GLL points on a Nek volume element.
+   *
+   * This function is to be used when MOOSE variables are defined over the entire volume
+   * (maybe the MOOSE transfer only sent meaningful values to the coupling boundaries), so we
+   * need to do a volume interpolation of the incoming MOOSE data into nrs->usrwrk, rather
+   * than a face interpolation. This could be optimized in the future to truly only just write
+   * the boundary values into the nekRS scratch space rather than the volume values, but it
+   * looks right now that our biggest expense occurs in the MOOSE transfer system, not these
+   * transfers internally to nekRS.
+   *
+   * @param[in] e MOOSE element ID
+   * @param[in] var_num variable index to fetch MOOSE data from
+   * @param[in] multiplier multiplier to apply to the MOOSE data before sending to Nek
+   * @param[out] outgoing_data data represented on Nek's GLL points, ready to be applied in Nek
+   */
+  void mapFaceDataToNekVolume(const unsigned int & e, const unsigned int & var_num,
+    const Real & multiplier, double ** outgoing_data);
+
+  /**
    * Check whether the user has already created a variable using one of the protected
    * names that the NekRS wrapping is using.
    * @param[in] name variable name
@@ -207,6 +246,8 @@ protected:
    * might already be adding a temperature variable for coupling purposes.
    */
   virtual void addTemperatureVariable();
+
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
    * Get a three-character prefix for use in writing output files for repeated
