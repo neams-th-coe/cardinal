@@ -121,7 +121,8 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<MultiMooseEnum>(
       "tally_score", scores, "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
   params.addParam<std::vector<std::string>>(
-      "tally_name", "Auxiliary variable name(s) to use for OpenMC tallies. If not specified, defaults to 'heat_source'");
+      "tally_name", "Auxiliary variable name(s) to use for OpenMC tallies. "
+      "If not specified, defaults to the names of the scores");
   params.addParam<std::string>("mesh_template",
                                "Mesh tally template for OpenMC when using mesh tallies; "
                                "at present, this mesh must exactly match the mesh used in the "
@@ -303,11 +304,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != tally::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
-  if (isParamValid("tally_name"))
-    _tally_name = getParam<std::vector<std::string>>("tally_name");
-  else
-    _tally_name = {"heat_source"};
-
   if (isParamValid("tally_score"))
   {
     auto scores = getParam<MultiMooseEnum>("tally_score");
@@ -317,6 +313,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       auto score = scores[i];
       std::transform(score.begin(), score.end(), score.begin(),
         [](unsigned char c){ return std::tolower(c); });
+
       std::replace(score.begin(), score.end(), '_', '-');
       _tally_score.push_back(score);
 
@@ -328,10 +325,22 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
+  if (isParamValid("tally_name"))
+    _tally_name = getParam<std::vector<std::string>>("tally_name");
+  else
+  {
+    for (auto score : _tally_score)
+    {
+      std::replace(score.begin(), score.end(), '-', '_');
+      _tally_name.push_back(score);
+    }
+  }
+
   std::set<std::string> name(_tally_name.begin(), _tally_name.end());
   std::set<std::string> score(_tally_score.begin(), _tally_score.end());
   if (_tally_name.size() != name.size())
     mooseError("'tally_name' cannot contain duplicate entries!");
+
   if (_tally_score.size() != score.size())
     mooseError("'tally_score' cannot contain duplicate entries!");
 

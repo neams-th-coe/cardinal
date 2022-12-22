@@ -42,8 +42,7 @@ the following variables will be added:
 
 - A variable representing the OpenMC tally; the score is selected with the `tally_score`
   parameter, while the name is selected with the `tally_name` parameter (which defaults to
-  `heat_source`). For simplicity, all references to this variable will just be referred to
-  as `heat_source`, even though the name is customizable.
+  the name of the score).
 - `temp`, the temperature to be sent to OpenMC
 - `density`, the density to be sent to OpenMC (fluid coupling only)
 
@@ -73,7 +72,7 @@ essentially adds the following to the input file:
     order = CONSTANT
     family = MONOMIAL
   []
-  [heat_source] # always added; the name is determined by the tally_name parameter
+  [kappa_fission] # always added; the name is determined by the tally_score
     order = CONSTANT
     family = MONOMIAL
   []
