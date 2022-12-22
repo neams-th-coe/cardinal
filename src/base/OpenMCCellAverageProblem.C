@@ -328,11 +328,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
+  std::set<std::string> name(_tally_name.begin(), _tally_name.end());
+  std::set<std::string> score(_tally_score.begin(), _tally_score.end());
+  if (_tally_name.size() != name.size())
+    mooseError("'tally_name' cannot contain duplicate entries!");
+  if (_tally_score.size() != score.size())
+    mooseError("'tally_score' cannot contain duplicate entries!");
+
   if (_tally_name.size() != _tally_score.size())
     mooseError("'tally_name' must be the same length as 'tally_score'!");
-
-  if (_tally_score.size() > 1)
-    mooseError("Invalid size!");
 
   if (_tally_type == tally::mesh)
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
