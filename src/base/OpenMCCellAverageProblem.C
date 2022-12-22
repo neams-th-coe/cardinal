@@ -2543,7 +2543,10 @@ OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
     msg << _tally_score[score] << " tallies do not match the global " << _tally_score[score] << " tally:\n"
         << " Global value: " << Moose::stringify(_global_sum_tally[score])
         << "\n Tally sum: " << Moose::stringify(_local_sum_tally[score])
-        << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.";
+        << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.\n"
+           "Or, if you're using mesh tallies that don't perfectly align with cell boundaries,\n"
+           "you could be missing a small portion of the tally scores. To normalize by the total\n"
+           "tally (and evade this error), you can set 'normalize_by_global_tally' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level
     // and cell tallies are used
@@ -2584,7 +2587,7 @@ OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
           missing_tallies = "solid";
 
         msg << "\n\nYour problem didn't add tallies for the " << missing_tallies
-            << "; this warning might be caused by\nheat sources in these regions that "
+            << "; this warning might be caused by\ntally hits in these regions that "
                "contribute to the global " << _tally_score[score] << " tally, without being\npart of the "
                "multiphysics setup.";
       }
