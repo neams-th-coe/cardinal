@@ -87,7 +87,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     execute_on = 'transfer initial timestep_end'
   []
   [max_tally_rel_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
     value_type = max
   []
   [max_power]

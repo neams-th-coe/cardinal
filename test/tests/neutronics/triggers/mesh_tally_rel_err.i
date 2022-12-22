@@ -46,7 +46,7 @@
 
 [Postprocessors]
   [max_tally_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
   []
 []
 

@@ -398,7 +398,7 @@ main application via subcycling, we would have a way to control that.
   end=Postprocessors
 
 Finally, we add a postprocessor to evaluate the total heat source computed by OpenMC.
-We also include a [FissionTallyRelativeError](/postprocessors/FissionTallyRelativeError.md)
+We also include a [TallyRelativeError](/postprocessors/TallyRelativeError.md)
 postprocessor to evaluate the maximum relative error of the cell tally and a third postprocessor
 to evaluate the maximum heat source.
 

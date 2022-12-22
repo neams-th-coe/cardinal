@@ -66,7 +66,7 @@
     variable = heat_source
   []
   [max_tally_rel_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
   []
   [max_heat_source]
     type = ElementExtremeValue

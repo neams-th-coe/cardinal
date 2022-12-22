@@ -210,7 +210,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     execute_on = 'transfer initial timestep_end'
   []
   [max_tally_rel_err]
-    type = FissionTallyRelativeError
+    type = TallyRelativeError
     value_type = max
   []
   [k]
