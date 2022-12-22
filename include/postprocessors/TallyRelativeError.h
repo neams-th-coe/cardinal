@@ -22,15 +22,14 @@
 #include "CardinalEnums.h"
 
 /**
- * Compute the max/min relative error of the tally
- * added to extract the heat source from OpenMC.
+ * Compute the max/min relative error of the tally coupling OpenMC to MOOSE.
  */
-class FissionTallyRelativeError : public OpenMCPostprocessor
+class TallyRelativeError : public OpenMCPostprocessor
 {
 public:
   static InputParameters validParams();
 
-  FissionTallyRelativeError(const InputParameters & parameters);
+  TallyRelativeError(const InputParameters & parameters);
 
   virtual Real getValue() override;
 

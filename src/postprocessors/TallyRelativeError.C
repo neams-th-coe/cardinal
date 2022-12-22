@@ -18,13 +18,18 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "FissionTallyRelativeError.h"
+#include "TallyRelativeError.h"
 #include "xtensor/xview.hpp"
 
-registerMooseObject("CardinalApp", FissionTallyRelativeError);
+registerMooseObject("CardinalApp", TallyRelativeError);
+
+registerMooseObjectRenamed("CardinalApp",
+                           FissionTallyRelativeError,
+                           "03/01/2023 24:00",
+                           TallyRelativeError);
 
 InputParameters
-FissionTallyRelativeError::validParams()
+TallyRelativeError::validParams()
 {
   InputParameters params = OpenMCPostprocessor::validParams();
   params.addParam<MooseEnum>("value_type",
@@ -34,14 +39,14 @@ FissionTallyRelativeError::validParams()
   return params;
 }
 
-FissionTallyRelativeError::FissionTallyRelativeError(const InputParameters & parameters)
+TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   : OpenMCPostprocessor(parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
 }
 
 Real
-FissionTallyRelativeError::getValue()
+TallyRelativeError::getValue()
 {
   const auto & tally = _openmc_problem->getLocalTally();
 
