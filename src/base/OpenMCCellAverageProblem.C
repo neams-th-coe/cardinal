@@ -301,41 +301,17 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
   _tally_name = getParam<std::string>("tally_name");
-  score::TallyScoreEnum score = getParam<MooseEnum>("tally_score").getEnum<score::TallyScoreEnum>();
+  std::string score = getParam<MooseEnum>("tally_score");
 
-  switch (score)
-  {
-    case score::heating:
-      _tally_score = "heating";
-      break;
-    case score::heating_local:
-      _tally_score = "heating-local";
-      break;
-    case score::kappa_fission:
-      _tally_score = "kappa-fission";
-      break;
-    case score::fission_q_prompt:
-      _tally_score = "fission-q-prompt";
-      break;
-    case score::fission_q_recoverable:
-      _tally_score = "fission-q-recoverable";
-      break;
-    case score::damage_energy:
-      _tally_score = "damage-energy";
-      break;
-    case score::flux:
-    {
-      _tally_score = "flux";
+  std::transform(score.begin(), score.end(), score.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+  std::replace(score.begin(), score.end(), '_', '-');
+  _tally_score = score;
 
-      if (_run_mode != openmc::RunMode::FIXED_SOURCE)
-        mooseError("The 'flux' tally score is only available when running OpenMC in fixed source mode!\n"
-          "Flux renormalization for eigenvalue runs has not been implemented yet.");
-
-      break;
-    }
-    default:
-      mooseError("Unhandled TallyScoreEnum in OpenMCCellAverageProblem!");
-  }
+  if (_tally_score == "flux")
+    if (_run_mode != openmc::RunMode::FIXED_SOURCE)
+      mooseError("The 'flux' tally score is only available when running OpenMC in fixed source mode!\n"
+        "Flux renormalization for eigenvalue runs has not been implemented yet.");
 
   if (_tally_type == tally::mesh)
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
