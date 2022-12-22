@@ -88,7 +88,8 @@ public:
    * @param[in] sum_sq sum of scores squared
    * @param[in] n_realizations number of realizations
    */
-  Real relativeError(const Real & sum, const Real & sum_sq, const int & n_realizations) const;
+  xt::xtensor<double, 1> relativeError(const xt::xtensor<double, 1> & sum,
+    const xt::xtensor<double, 1> & sum_sq, const int & n_realizations) const;
 
   /**
    * Get the density conversion factor (multiplicative factor)

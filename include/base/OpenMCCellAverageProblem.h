@@ -531,12 +531,6 @@ protected:
   void sendDensityToOpenMC();
 
   /**
-   * Get the (unrelaxed) tally standard deviation as a function of space and store into variable
-   * @param[in] var_num variable number to store the standard deviation in
-   */
-  void getUnrelaxedTallyStandardDeviationFromOpenMC(const unsigned int & var_num);
-
-  /**
    * Multiplier on the normalized tally results; for fixed source runs,
    * we multiply the tally (which has units of eV/source)
    * by the source strength and the eV to joule conversion, while for k-eigenvalue runs, we
@@ -1030,6 +1024,9 @@ protected:
 
   /// Current "raw" tally output from Monte Carlo solution
   std::vector<xt::xtensor<double, 1>> _current_raw_tally;
+
+  /// Current "raw" tally standard deviation
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
 
   /**
    * Variables to "collate" together (presumably from separate MOOSE apps)
