@@ -135,6 +135,17 @@
     requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [multi_tally_local_assume_separate]
+    type = CSVDiff
+    input = multi_tally_overlap_solid.i
+    cli_args = 'Problem/assume_separate=true'
+    csvdiff = multi_tally_overlap_solid_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally with the spatial separate assumption."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [multi_tally_global]
     type = CSVDiff
     input = multi_tally_overlap_solid.i
