@@ -43,7 +43,6 @@
 
   # this outputs the fission tally standard deviation in space
   output = 'unrelaxed_tally_std_dev'
-  output_name = 'fission_tally_std_dev'
 
   initial_properties = xml
 []
@@ -64,33 +63,33 @@
   []
   [power_1]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0 0 0'
   []
   [power_2]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0 0 4'
   []
   [power_3]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0 0 8'
   []
 
   [std_dev_1]
     type = PointValue
-    variable = fission_tally_std_dev
+    variable = kappa_fission_std_dev
     point = '0 0 0'
   []
   [std_dev_2]
     type = PointValue
-    variable = fission_tally_std_dev
+    variable = kappa_fission_std_dev
     point = '0 0 4'
   []
   [std_dev_3]
     type = PointValue
-    variable = fission_tally_std_dev
+    variable = kappa_fission_std_dev
     point = '0 0 8'
   []
 []

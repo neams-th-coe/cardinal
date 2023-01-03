@@ -15,6 +15,8 @@
     input = solid
     subdomain_id = '100'
   []
+
+  allow_renumbering = false
 []
 
 # This AuxVariable and AuxKernel is only here to get the postprocessors

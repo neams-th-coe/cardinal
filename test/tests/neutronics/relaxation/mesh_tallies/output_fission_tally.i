@@ -63,11 +63,35 @@
   scaling = 100.0
 
   output = 'unrelaxed_tally'
-  output_name = 'fission_tally'
   relaxation = constant
 
   check_tally_sum = false
 []
+
+# These two auxvariables and auxkernels are only here to avoid a re-gold (due to a
+# variable name change). The 'dummy' auxvariable is only here due to MOOSE issue #17534
+[AuxVariables]
+  [fission_tally]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [dummy]
+  []
+[]
+
+[AuxKernels]
+  [copy]
+    type = SelfAux
+    variable = fission_tally
+    v = heat_source_raw
+  []
+  [dummy]
+    type = ConstantAux
+    variable = dummy
+    value = 0.0
+  []
+[]
+
 
 [Executioner]
   type = Transient
@@ -76,5 +100,5 @@
 
 [Outputs]
   exodus = true
-  hide = 'cell_temperature'
+  hide = 'cell_temperature dummy heat_source_raw'
 []

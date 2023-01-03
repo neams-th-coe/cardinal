@@ -42,7 +42,6 @@
   check_zero_tallies = false
 
   output = 'unrelaxed_tally_std_dev'
-  output_name = 'fission_tally_std_dev'
 []
 
 [Executioner]
@@ -58,7 +57,7 @@
   []
   [std_dev_at_pt]
     type = PointValue
-    variable = fission_tally_std_dev
+    variable = kappa_fission_std_dev
     point = '0.896826 0.189852 0.608855'
   []
 []
