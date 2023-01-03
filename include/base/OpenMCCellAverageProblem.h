@@ -998,14 +998,11 @@ protected:
   /// OpenMC solution fields to output to the mesh mirror
   const MultiMooseEnum * _outputs = nullptr;
 
-  /**
-   * Auxiliary variable names to apply to each quantity in 'output'; if not specified,
-   * the names default to the string-conversion of the enum in 'output'
-   */
+  /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'
   std::vector<std::string> _output_name;
 
-  /// Numeric identifiers for the external variables
-  std::vector<unsigned int> _external_vars;
+  /// Numeric identifiers for the external variables (for each score)
+  std::vector<std::vector<unsigned int>> _external_vars;
 
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION{3};

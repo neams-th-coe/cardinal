@@ -200,9 +200,12 @@ OpenMCCellAverageProblem::validParams()
 
   MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
   params.addParam<MultiMooseEnum>(
-      "output", openmc_outputs, "Field(s) to output from OpenMC onto the mesh mirror.");
+      "output", openmc_outputs, "UNRELAXED field(s) to output from OpenMC for each tally score. "
+      "unrelaxed_tally_std_dev will write the standard deviation of each tally into auxiliary variables "
+      "named *_std_dev. Unrelaxed_tally will write the raw unrelaxed tally into auxiliary variables "
+      "named *_raw (replace * with 'tally_name').");
   params.addParam<std::vector<std::string>>("output_name", "Auxiliary variable name(s) to write "
-    "'output' into. If not specified, these default to the 'output' field names");
+    "'output' into. This class now sets up the variable names automatically so this parameter is unused.");
 
   params.addParam<MooseEnum>("relaxation",
                              getRelaxationEnum(),
@@ -490,26 +493,23 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _outputs = &getParam<MultiMooseEnum>("output");
 
     if (isParamValid("output_name"))
+      mooseError("The 'output_name' is deprecated. We now name the 'output' variables automatically. "
+        "Please check the documentation to see what the new names are, or look at the header "
+        "at the start of your Cardinal console output.");
+
+    // names of output are appended to ends of 'tally_name'
+    for (const auto & o : *_outputs)
     {
-      _output_name = getParam<std::vector<std::string>>("output_name");
-      if (_output_name.size() != _outputs->size())
-        mooseError("When specifying custom variable names for OpenMC outputs, "
-          "the 'output_name' must be the same length as 'output'!");
-    }
-    else
-    {
-      // default names are simply matched to the output enum string
-      for (const auto & o : *_outputs)
-      {
-        std::string name = o;
-        std::transform(name.begin(), name.end(), name.begin(),
-            [](unsigned char c){ return std::tolower(c); });
-        _output_name.push_back(name);
-      }
+      std::string name = o;
+
+      if (o == "UNRELAXED_TALLY_STD_DEV")
+        _output_name.push_back("std_dev");
+      else if (o == "UNRELAXED_TALLY")
+        _output_name.push_back("raw");
+      else
+        mooseError("Unhandled OutputEnum in OpenMCCellAverageProblem!");
     }
   }
-  else
-    checkUnusedParam(params, "output_name", "not specifying 'output'");
 
   setupProblem();
 
@@ -1985,11 +1985,24 @@ OpenMCCellAverageProblem::addExternalVariables()
   var_params.set<MooseEnum>("family") = "MONOMIAL";
   var_params.set<MooseEnum>("order") = "CONSTANT";
 
-  for (const auto & name : _tally_name)
+  _external_vars.resize(_tally_score.size());
+  for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
+    auto name = _tally_name[score];
     checkDuplicateVariableName(name);
     addAuxVariable("MooseVariable", name, var_params);
     _tally_var.push_back(_aux->getFieldVariable<Real>(0, name).number());
+
+    if (_outputs)
+    {
+      for (std::size_t i = 0; i < _outputs->size(); ++i)
+      {
+        std::string n = _tally_name[score] + "_" + _output_name[i];
+        checkDuplicateVariableName(n);
+        addAuxVariable("MooseVariable", n, var_params);
+        _external_vars[score].push_back(_aux->getFieldVariable<Real>(0, n).number());
+      }
+    }
   }
 
   checkDuplicateVariableName("temp");
@@ -2002,16 +2015,6 @@ OpenMCCellAverageProblem::addExternalVariables()
     checkDuplicateVariableName("density");
     addAuxVariable("MooseVariable", "density", var_params);
     _density_var = _aux->getFieldVariable<Real>(0, "density").number();
-  }
-
-  if (_outputs)
-  {
-    for (std::size_t i = 0; i < _outputs->size(); ++i)
-    {
-      checkDuplicateVariableName(_output_name[i]);
-      addAuxVariable("MooseVariable", _output_name[i], var_params);
-      _external_vars.push_back(_aux->getFieldVariable<Real>(0, _output_name[i]).number());
-    }
   }
 
   // if collating temperature from multiple variables, add the necessary
@@ -2523,9 +2526,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             std::string out = (*_outputs)[i];
 
             if (out == "unrelaxed_tally_std_dev")
-              getTally(_external_vars[i], _current_raw_tally_std_dev[score], score, false);
+              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score, false);
             if (out == "unrelaxed_tally")
-              getTally(_external_vars[i], _current_raw_tally[score], score, false);
+              getTally(_external_vars[score][i], _current_raw_tally[score], score, false);
           }
         }
       }
