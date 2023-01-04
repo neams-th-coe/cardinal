@@ -37,31 +37,42 @@ TallyRelativeError::validParams()
                              "Whether to give the maximum or minimum tally relative error");
 
   MooseEnum score(
-    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux",
-    "kappa_fission");
+    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux");
   params.addParam<MooseEnum>(
-      "tally_score", score, "Score to report the relative error.");
+      "tally_score", score, "Score to report the relative error. If there is just a single score, "
+      "this defaults to that value");
   params.addClassDescription("Extract the maximum/minimum tally relative error");
   return params;
 }
 
 TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   : OpenMCPostprocessor(parameters),
-    _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>()),
-    _tally_score(getParam<MooseEnum>("tally_score"))
+    _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
-  std::string score = _tally_score;
-  std::transform(score.begin(), score.end(), score.begin(),
-    [](unsigned char c){ return std::tolower(c); });
-  std::replace(score.begin(), score.end(), '_', '-');
-
   auto added_scores = _openmc_problem->getTallyScores();
-  auto it = std::find(added_scores.begin(), added_scores.end(), score);
-  if (it != added_scores.end())
-    _tally_index = it - added_scores.begin();
+  if (isParamValid("tally_score"))
+  {
+    auto tally_score = getParam<MooseEnum>("tally_score");
+    std::string score = tally_score;
+    std::transform(score.begin(), score.end(), score.begin(),
+      [](unsigned char c){ return std::tolower(c); });
+    std::replace(score.begin(), score.end(), '_', '-');
+
+    auto it = std::find(added_scores.begin(), added_scores.end(), score);
+    if (it != added_scores.end())
+      _tally_index = it - added_scores.begin();
+    else
+      mooseError("To extract the relative error of the '" + std::string(tally_score) + "' score,"
+        "that score must be included in the\n'tally_score' parameter of '" + _openmc_problem->type() + "'!");
+  }
   else
-    mooseError("To extract the relative error of the '" + std::string(_tally_score) + "' score,"
-      "that score must be included in the\n'tally_score' parameter of '" + _openmc_problem->type() + "'!");
+  {
+    if (added_scores.size() > 1)
+      checkRequiredParam(parameters, "tally_score", "'" + _openmc_problem->type() +
+        "' has more than one 'tally_score'");
+
+    _tally_index = 0;
+  }
 }
 
 Real
@@ -85,9 +96,9 @@ TallyRelativeError::getValue()
 
   for (const auto & t : tally)
   {
-    auto sum = xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+    auto sum = xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM));
     auto sum_sq =
-        xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+        xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
     auto rel_err = _openmc_problem->relativeError(sum, sum_sq, t->n_realizations_);
     for (int i = 0; i < t->n_filter_bins(); ++i)
