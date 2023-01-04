@@ -59,6 +59,7 @@
   normalize_by_global_tally = false
   mesh_translations_file = pebble_centers.txt
 
+  tally_name = heat_source
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'
   power = 100.0

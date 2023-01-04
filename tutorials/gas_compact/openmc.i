@@ -51,6 +51,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
   solid_blocks = '1 2'
   tally_blocks = '2'
   tally_type = cell
+  tally_name = heat_source
   solid_cell_level = 1
 []
 

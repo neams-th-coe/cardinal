@@ -59,6 +59,7 @@
   normalize_by_global_tally = false
 
   tally_type = mesh
+  tally_name = heat_source
 
   # Because the [Mesh] is in units of meters, the mesh translations and mesh template
   # must also be in units of meters

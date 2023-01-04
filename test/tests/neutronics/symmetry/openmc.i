@@ -81,18 +81,18 @@ height = 6.343                           # height of the full core (m)
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
 
   # check a few of the pins to be sure that the reflected heat source matches
   [pin1_l]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.0096 0.0489 4.0'
   []
   [pin1_r]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.0389 0.0326 4.0'
   []
   [diff1]
@@ -103,12 +103,12 @@ height = 6.343                           # height of the full core (m)
 
   [pin2_l]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '-0.019 0.0329 4.0'
   []
   [pin2_r]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.0363 0.0 4.0'
   []
   [diff2]
@@ -119,12 +119,12 @@ height = 6.343                           # height of the full core (m)
 
   [pin3_l]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.0463 0.115 4.0'
   []
   [pin3_r]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.0770 0.098 4.0'
   []
   [diff3]

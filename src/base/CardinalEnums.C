@@ -50,12 +50,6 @@ getOperationEnum()
 }
 
 MooseEnum
-getTallyScoreEnum()
-{
-  return MooseEnum("heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux", "kappa_fission");
-}
-
-MooseEnum
 getTallyTypeEnum()
 {
   return MooseEnum("cell mesh");

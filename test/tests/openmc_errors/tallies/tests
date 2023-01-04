@@ -14,11 +14,28 @@
     requirement = "The system shall error if attempting to use separate tallies when a global tally exists"
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [custom_name]
+  [invalid_length]
     type = RunException
-    input = output_name_length.i
-    expect_err = "When specifying custom variable names for OpenMC outputs, the 'output_name' must be the same length as 'output'!"
-    requirement = "The system shall error if custom names for additional tally output is not the correct length."
+    input = length.i
+    cli_args = 'Problem/tally_score="damage_energy kappa_fission" Problem/tally_name="heat_source"'
+    expect_err = "'tally_name' must be the same length as 'tally_score'!"
+    requirement = "The system shall error if tally_name and tally_score are not the same length."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [duplicate_name]
+    type = RunException
+    input = length.i
+    cli_args = 'Problem/tally_score="damage_energy kappa_fission" Problem/tally_name="heat_source heat_source"'
+    expect_err = "'tally_name' cannot contain duplicate entries!"
+    requirement = "The system shall error if tally_name has duplicate entries."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [duplicate_score]
+    type = RunException
+    input = length.i
+    cli_args = 'Problem/tally_score="damage_energy damage_energy" Problem/tally_name="heat1 heat2"'
+    expect_err = "'tally_score' cannot contain duplicate entries!"
+    requirement = "The system shall error if tally_score has duplicate entries."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

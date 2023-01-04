@@ -15,19 +15,8 @@
     input = solid
     subdomain_id = '100'
   []
-  [fluid]
-    type = FileMeshGenerator
-    file = stoplight.exo
-  []
-  [fluid_ids]
-    type = SubdomainIDGenerator
-    input = fluid
-    subdomain_id = '200'
-  []
-  [combine]
-    type = CombinerGenerator
-    inputs = 'solid_ids fluid_ids'
-  []
+
+  allow_renumbering = false
 []
 
 # This AuxVariable and AuxKernel is only here to get the postprocessors
@@ -45,24 +34,21 @@
   []
 []
 
-[Postprocessors]
-  [p]
-    type = Receiver
-    default = 100.0
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
-  power = p
+  power = 100.0
   solid_blocks = '100'
-  fluid_blocks = '200'
-  tally_blocks = '100 200'
   verbose = true
   solid_cell_level = 0
-  fluid_cell_level = 0
-  tally_type = cell
-  tally_name = heat_source
+
+  tally_type = mesh
+  mesh_template = ../meshes/sphere.e
+  mesh_translations = '0 0 0
+                       0 0 4
+                       0 0 8'
+  check_tally_sum = false
+
+  tally_score = 'kappa_fission heating'
 
   initial_properties = xml
 []
@@ -73,23 +59,16 @@
 []
 
 [Postprocessors]
-  [heat_source]
+  [kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
-  [fluid_heat_source]
+  [heating]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '200'
-  []
-  [solid_heat_source]
-    type = ElementIntegralVariablePostprocessor
-    variable = heat_source
-    block = '100'
+    variable = heating
   []
 []
 
 [Outputs]
-  exodus = true
-  hide = 'dummy density p'
+  csv = true
 []

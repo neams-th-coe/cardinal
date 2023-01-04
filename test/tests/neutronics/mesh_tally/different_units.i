@@ -35,6 +35,7 @@
   solid_cell_level = 0
 
   tally_type = mesh
+  tally_name = heat_source
   power = 100.0
   check_zero_tallies = false
 

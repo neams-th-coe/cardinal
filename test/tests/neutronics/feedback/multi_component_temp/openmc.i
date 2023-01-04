@@ -40,5 +40,5 @@ solid_blocks = '1 3'
 
 [Outputs]
   exodus = true
-  hide = 'heat_source'
+  hide = 'kappa_fission'
 []

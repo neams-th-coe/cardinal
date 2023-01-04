@@ -22,7 +22,8 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 0.0
-  tally_type = 'cell'
+  tally_type = cell
+  tally_name = heat_source
   solid_cell_level = 0
   solid_blocks = '1'
 []

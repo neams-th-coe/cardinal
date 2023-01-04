@@ -129,6 +129,7 @@ dT = ${fparse power / mdot / Cp}
   fluid_blocks = '1'
   tally_blocks = '2'
   tally_type = cell
+  tally_name = heat_source
   solid_cell_level = 0
   fluid_cell_level = 0
 

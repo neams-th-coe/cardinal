@@ -115,4 +115,67 @@
     requirement = "The mapped cell volumes shall be correctly computed by the wrapping."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [multi_tally]
+    type = CSVDiff
+    input = multi_tally.i
+    csvdiff = multi_tally_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall be able to write multiple different tally scores with normalization by a global tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_tally_local]
+    type = CSVDiff
+    input = multi_tally_overlap_solid.i
+    csvdiff = multi_tally_overlap_solid_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_tally_local_assume_separate]
+    type = CSVDiff
+    input = multi_tally_overlap_solid.i
+    cli_args = 'Problem/assume_separate=true'
+    csvdiff = multi_tally_overlap_solid_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally with the spatial separate assumption."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_tally_global]
+    type = CSVDiff
+    input = multi_tally_overlap_solid.i
+    cli_args = 'Problem/normalize_by_global_tally=true Outputs/file_base=multi_tally_overlap_global'
+    csvdiff = multi_tally_overlap_global.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall be able to write multiple different tally scores with normalization by a global tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_tally_global_mesh]
+    type = CSVDiff
+    input = multi_tally_mesh.i
+    csvdiff = multi_tally_mesh_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall be able to write multiple different tally scores with normalization by a global tally for mesh tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_tally_local_mesh]
+    type = CSVDiff
+    input = multi_tally_mesh.i
+    cli_args = 'Problem/normalize_by_global_tally=false Outputs/file_base=multi_tally_mesh_local_out'
+    csvdiff = multi_tally_mesh_local_out.csv
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall be able to write multiple different tally scores with normalization by a local tally for mesh tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

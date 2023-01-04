@@ -36,6 +36,7 @@
   normalize_by_global_tally = false
 
   tally_type = mesh
+  tally_name = heat_source
   mesh_template = '../meshes/sphere.e'
   power = 100.0
   check_zero_tallies = false

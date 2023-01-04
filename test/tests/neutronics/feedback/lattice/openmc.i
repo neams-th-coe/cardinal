@@ -57,6 +57,7 @@
   solid_blocks = '1 3'
   fluid_blocks = '2'
   tally_blocks = '1'
+  tally_name = heat_source
   verbose = true
   tally_type = cell
   solid_cell_level = 1

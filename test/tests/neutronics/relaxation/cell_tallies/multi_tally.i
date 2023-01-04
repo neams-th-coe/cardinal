@@ -7,7 +7,6 @@
     type = CombinerGenerator
     inputs = pebble
     positions = '0 0 0.02
-                 0 0 0.06
                  0 0 0.10'
   []
   [set_block_ids]
@@ -53,12 +52,15 @@
   solid_blocks = '0'
   tally_blocks = '0'
   tally_type = cell
-  tally_name = heat_source
   solid_cell_level = 1
   scaling = 100.0
 
-  relaxation = dufek_gudowski
-  first_iteration_particles = 1000
+  # our problem is missing overlap for fissile regions, so our local and global tallies
+  # wont match
+  check_tally_sum = false
+
+  tally_score = 'kappa_fission heating'
+  tally_name = 'heat_source heating'
 []
 
 [Executioner]
@@ -67,17 +69,36 @@
 []
 
 [Outputs]
-  exodus = true
-  hide = 'cell_temperature'
+  csv = true
 []
 
 [Postprocessors]
-  [heat_source]
+  [kf]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
   []
-  [k]
-    type = KEigenvalue
-    value_type = collision
+  [peb1_kf]
+    type = PointValue
+    variable = heat_source
+    point = '0 0 0.02'
+  []
+  [peb2_kf]
+    type = PointValue
+    variable = heat_source
+    point = '0 0 0.10'
+  []
+  [heating]
+    type = ElementIntegralVariablePostprocessor
+    variable = heating
+  []
+  [peb1_ht]
+    type = PointValue
+    variable = heating
+    point = '0 0 0.02'
+  []
+  [peb2_ht]
+    type = PointValue
+    variable = heating
+    point = '0 0 0.10'
   []
 []

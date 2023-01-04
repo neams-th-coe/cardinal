@@ -58,7 +58,6 @@
   initial_properties = xml
 
   tally_score = flux
-  tally_name = 'flux'
 []
 
 [Executioner]
@@ -98,6 +97,5 @@
 []
 
 [Outputs]
-  exodus = true
   csv = true
 []

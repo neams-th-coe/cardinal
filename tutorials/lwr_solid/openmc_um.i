@@ -43,6 +43,7 @@
   power = ${fparse 3000e6 / 273 / (17 * 17)}
   solid_blocks = '1 2 3'
   tally_type = mesh
+  tally_name = heat_source
   normalize_by_global_tally = false
   check_zero_tallies = false
   solid_cell_level = 0
