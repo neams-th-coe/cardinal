@@ -41,8 +41,6 @@
   tally_type = cell
   check_tally_sum = false
 
-  # This turns off the density and temperature update on the first syncSolutions;
-  # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   initial_properties = xml
 []
 

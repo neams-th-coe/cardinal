@@ -70,5 +70,5 @@
   exodus = true
 
   # we are only interested in the point transformation aspects here
-  hide = 'heat_source temp'
+  hide = 'kappa_fission temp'
 []

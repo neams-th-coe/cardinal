@@ -89,7 +89,7 @@
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
 []
 
@@ -97,5 +97,5 @@
   exodus = true
   # it is hard to get parallel-reproducible results with high-scattering TRISO
   # problems, so this input will only check on the mapping
-  hide = 'temp heat_source'
+  hide = 'temp kappa_fission'
 []

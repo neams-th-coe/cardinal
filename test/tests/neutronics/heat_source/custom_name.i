@@ -58,8 +58,6 @@
   # will be computed in the solid pebbles
   tally_blocks = '100'
 
-  # This turns off the density and temperature update on the first syncSolutions;
-  # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   initial_properties = xml
 
   # We are skipping some feedback with fissile regions, so we need to turn off the check

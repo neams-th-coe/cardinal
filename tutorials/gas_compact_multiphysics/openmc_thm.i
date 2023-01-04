@@ -132,6 +132,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
   fluid_blocks = ${fluid_blocks}
   tally_blocks = 'compacts'
   tally_type = cell
+  tally_name = heat_source
   solid_cell_level = 1
   fluid_cell_level = 1
 

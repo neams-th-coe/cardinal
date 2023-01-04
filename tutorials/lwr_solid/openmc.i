@@ -42,6 +42,7 @@
   solid_blocks = '1 2 3'
   tally_blocks = '2 3'
   tally_type = cell
+  tally_name = heat_source
   solid_cell_level = 0
 []
 

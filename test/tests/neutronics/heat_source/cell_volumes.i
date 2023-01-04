@@ -56,8 +56,6 @@
   fluid_blocks = '200'
   tally_blocks = '100 200'
   tally_type = cell
-  # This turns off the density and temperature update on the first syncSolutions;
-  # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   initial_properties = xml
 
   verbose = true
@@ -73,5 +71,5 @@
 [Outputs]
   execute_on = 'final'
   exodus = true
-  hide = 'density heat_source temp'
+  hide = 'density kappa_fission temp'
 []

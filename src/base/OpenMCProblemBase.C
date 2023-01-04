@@ -431,30 +431,37 @@ OpenMCProblemBase::cellHasFissileMaterials(const cellInfo & cell_info) const
   return false;
 }
 
-Real
-OpenMCProblemBase::relativeError(const Real & sum,
-                                        const Real & sum_sq,
-                                        const int & n_realizations) const
+xt::xtensor<double, 1>
+OpenMCProblemBase::relativeError(const xt::xtensor<double, 1> & sum,
+                                 const xt::xtensor<double, 1> & sum_sq,
+                                 const int & n_realizations) const
 {
-  Real mean = sum / n_realizations;
-  Real std_dev = std::sqrt((sum_sq / n_realizations - mean * mean) / (n_realizations - 1));
-  return mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+  xt::xtensor<double, 1> rel_err = xt::zeros<double>({sum.size()});
+
+  for (unsigned int i = 0; i < sum.size(); ++i)
+  {
+    auto mean = sum(i) / n_realizations;
+    auto std_dev = std::sqrt((sum_sq(i) / n_realizations - mean * mean) / (n_realizations - 1));
+    rel_err[i] = mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
+  }
+
+  return rel_err;
 }
 
 xt::xtensor<double, 1>
-OpenMCProblemBase::tallySum(openmc::Tally * tally) const
+OpenMCProblemBase::tallySum(openmc::Tally * tally, const unsigned int & score) const
 {
-  return xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM));
+  return xt::view(tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM));
 }
 
 double
-OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally) const
+OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const
 {
   double sum = 0.0;
 
   for (const auto & t : tally)
   {
-    auto mean = tallySum(t);
+    auto mean = tallySum(t, score);
     sum += xt::sum(mean)();
   }
 
@@ -462,13 +469,13 @@ OpenMCProblemBase::tallySumAcrossBins(std::vector<openmc::Tally *> tally) const
 }
 
 double
-OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally) const
+OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const unsigned int & score) const
 {
   int n = 0;
   for (const auto & t : tally)
     n += t->n_realizations_;
 
-  return tallySumAcrossBins(tally) / n;
+  return tallySumAcrossBins(tally, score) / n;
 }
 
 void

@@ -42,8 +42,7 @@ the following variables will be added:
 
 - A variable representing the OpenMC tally; the score is selected with the `tally_score`
   parameter, while the name is selected with the `tally_name` parameter (which defaults to
-  `heat_source`). For simplicity, all references to this variable will just be referred to
-  as `heat_source`, even though the name is customizable.
+  the name of the score).
 - `temp`, the temperature to be sent to OpenMC
 - `density`, the density to be sent to OpenMC (fluid coupling only)
 
@@ -73,7 +72,7 @@ essentially adds the following to the input file:
     order = CONSTANT
     family = MONOMIAL
   []
-  [heat_source] # always added; the name is determined by the tally_name parameter
+  [kappa_fission] # always added; the name is determined by the tally_score
     order = CONSTANT
     family = MONOMIAL
   []
@@ -560,8 +559,8 @@ minimal capabilities to extract other aspects of the OpenMC solution directly
 onto the mesh mirror for postprocessing or visualization. A list of parameters to
 output is provided to the `output` parameter:
 
-- `unrelaxed_tally`: unrelaxed tally
-- `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation
+- `unrelaxed_tally`: unrelaxed tally; this will append `_raw` to the tally name and output to the mesh mirror
+- `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation; this will append `_std_dev` to the tally and output to the mesh mirror
 
 #### Collating Temperatures from Multiple Apps
 

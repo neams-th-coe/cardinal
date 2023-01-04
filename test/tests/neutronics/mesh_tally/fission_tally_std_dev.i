@@ -42,7 +42,6 @@
   check_zero_tallies = false
 
   output = 'unrelaxed_tally_std_dev'
-  output_name = 'fission_tally_std_dev'
 []
 
 [Executioner]
@@ -53,12 +52,12 @@
 [Postprocessors]
   [heat_source_at_pt]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.896826 0.189852 0.608855' # centroid of first element in mesh
   []
   [std_dev_at_pt]
     type = PointValue
-    variable = fission_tally_std_dev
+    variable = kappa_fission_std_dev
     point = '0.896826 0.189852 0.608855'
   []
 []

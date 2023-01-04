@@ -45,24 +45,20 @@
   []
 []
 
-[Postprocessors]
-  [p]
-    type = Receiver
-    default = 100.0
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
-  power = p
+  power = 100.0
   solid_blocks = '100'
   fluid_blocks = '200'
-  tally_blocks = '100 200'
+  tally_blocks = '100'
   verbose = true
   solid_cell_level = 0
   fluid_cell_level = 0
   tally_type = cell
-  tally_name = heat_source
+  normalize_by_global_tally = false
+  check_tally_sum = false
+
+  tally_score = 'kappa_fission heating'
 
   initial_properties = xml
 []
@@ -73,23 +69,36 @@
 []
 
 [Postprocessors]
-  [heat_source]
+  [kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
-  [fluid_heat_source]
+  [fluid_kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '200'
   []
-  [solid_heat_source]
+  [solid_kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
+    block = '100'
+  []
+  [heating]
+    type = ElementIntegralVariablePostprocessor
+    variable = heating
+  []
+  [fluid_heating]
+    type = ElementIntegralVariablePostprocessor
+    variable = heating
+    block = '200'
+  []
+  [solid_heating]
+    type = ElementIntegralVariablePostprocessor
+    variable = heating
     block = '100'
   []
 []
 
 [Outputs]
-  exodus = true
-  hide = 'dummy density p'
+  csv = true
 []

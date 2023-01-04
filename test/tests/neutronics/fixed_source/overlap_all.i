@@ -66,21 +66,20 @@
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
   [heat_source_fluid]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '200'
   []
   [heat_source_solid]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '100'
   []
 []
 
 [Outputs]
-  exodus = true
   csv = true
 []

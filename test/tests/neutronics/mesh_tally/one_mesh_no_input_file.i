@@ -34,6 +34,7 @@
   verbose = true
   solid_cell_level = 0
   normalize_by_global_tally = false
+  tally_name = heat_source
 
   tally_type = mesh
   power = 100.0

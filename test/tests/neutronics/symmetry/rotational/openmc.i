@@ -84,19 +84,19 @@
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
 
   # check a few of the pins to be sure that the reflected heat source matches
   [pin]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.097 0.097 4.0'
   []
 
   [pin1]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.036 0.13 4.0'
   []
   [diff1]
@@ -107,7 +107,7 @@
 
   [pin2]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '-0.13 0.0313 4.0'
   []
   [diff2]
@@ -118,7 +118,7 @@
 
   [pin3]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '-0.13 -0.032 4.0'
   []
   [diff3]
@@ -129,7 +129,7 @@
 
   [pin4]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.039 -0.13 4.0'
   []
   [diff4]
@@ -140,7 +140,7 @@
 
   [pin5]
     type = PointValue
-    variable = heat_source
+    variable = kappa_fission
     point = '0.09 -0.1 4.0'
   []
   [diff5]

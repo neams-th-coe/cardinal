@@ -84,5 +84,5 @@
   exodus = true
 
   # makes the gold files smaller, since these are not of concern for the test
-  hide = 'temp heat_source'
+  hide = 'temp kappa_fission'
 []

@@ -70,6 +70,7 @@ TallyRelativeError::getValue()
     auto sum_sq =
         xt::view(t->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
 
+    auto rel_err = _openmc_problem->relativeError(sum, sum_sq, t->n_realizations_);
     for (int i = 0; i < t->n_filter_bins(); ++i)
     {
       // tallies without any scores to them will have zero error, which doesn't really make
@@ -77,15 +78,13 @@ TallyRelativeError::getValue()
       if (MooseUtils::absoluteFuzzyEqual(sum(i), 0))
         continue;
 
-      Real rel_err = _openmc_problem->relativeError(sum(i), sum_sq(i), t->n_realizations_);
-
       switch (_type)
       {
         case operation::max:
-          extreme_value = std::max(extreme_value, rel_err);
+          extreme_value = std::max(extreme_value, rel_err[i]);
           break;
         case operation::min:
-          extreme_value = std::min(extreme_value, rel_err);
+          extreme_value = std::min(extreme_value, rel_err[i]);
           break;
         default:
           mooseError("Unhandled OperationEnum!");

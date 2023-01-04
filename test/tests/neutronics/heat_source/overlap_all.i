@@ -55,9 +55,8 @@
   solid_cell_level = 0
   fluid_cell_level = 0
   tally_type = cell
+  tally_name = heat_source
 
-  # This turns off the density and temperature update on the first syncSolutions;
-  # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   initial_properties = xml
 []
 

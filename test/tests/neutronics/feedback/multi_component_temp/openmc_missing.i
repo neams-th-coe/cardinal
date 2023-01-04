@@ -30,7 +30,3 @@
 [Executioner]
   type = Transient
 []
-
-[Outputs]
-  exodus = true
-[]

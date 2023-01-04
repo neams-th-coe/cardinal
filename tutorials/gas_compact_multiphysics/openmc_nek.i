@@ -123,6 +123,7 @@ N = 1000
   fluid_blocks = ${fluid_blocks}
   tally_blocks = 'compacts'
   tally_type = cell
+  tally_name = heat_source
   solid_cell_level = 1
   fluid_cell_level = 1
 
