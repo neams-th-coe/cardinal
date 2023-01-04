@@ -19,6 +19,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "TallyRelativeError.h"
+#include "UserErrorChecking.h"
 #include "xtensor/xview.hpp"
 
 registerMooseObject("CardinalApp", TallyRelativeError);
