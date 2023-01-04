@@ -35,14 +35,33 @@ TallyRelativeError::validParams()
   params.addParam<MooseEnum>("value_type",
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
+
+  MooseEnum score(
+    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux",
+    "kappa_fission");
+  params.addParam<MooseEnum>(
+      "tally_score", score, "Score to report the relative error.");
   params.addClassDescription("Extract the maximum/minimum tally relative error");
   return params;
 }
 
 TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   : OpenMCPostprocessor(parameters),
-    _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
+    _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>()),
+    _tally_score(getParam<MooseEnum>("tally_score"))
 {
+  std::string score = _tally_score;
+  std::transform(score.begin(), score.end(), score.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+  std::replace(score.begin(), score.end(), '_', '-');
+
+  auto added_scores = _openmc_problem->getTallyScores();
+  auto it = std::find(added_scores.begin(), added_scores.end(), score);
+  if (it != added_scores.end())
+    _tally_index = it - added_scores.begin();
+  else
+    mooseError("To extract the relative error of the '" + std::string(_tally_score) + "' score,"
+      "that score must be included in the\n'tally_score' parameter of '" + _openmc_problem->type() + "'!");
 }
 
 Real
