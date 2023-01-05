@@ -181,7 +181,7 @@ OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
   }
 }
 
-const int &
+int
 OpenMCProblemBase::nParticles() const
 {
   return openmc::settings::n_particles;

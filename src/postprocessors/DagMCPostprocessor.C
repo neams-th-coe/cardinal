@@ -20,6 +20,8 @@
 
 #include "DagMCPostprocessor.h"
 
+registerMooseObject("CardinalApp", DagMCPostprocessor);
+
 InputParameters
 DagMCPostprocessor::validParams()
 {
