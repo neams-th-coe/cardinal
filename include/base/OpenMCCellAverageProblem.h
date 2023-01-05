@@ -109,6 +109,12 @@ public:
   virtual bool hasPointTransformations() const { return _symmetry != nullptr; }
 
   /**
+   * Get all the scores added to the tally
+   * @return scores
+   */
+  virtual const std::vector<std::string> & getTallyScores() const { return _tally_score; }
+
+  /**
    * Apply transformations to point
    * @param[in] point
    * @return transformed point

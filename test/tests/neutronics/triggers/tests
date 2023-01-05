@@ -66,4 +66,12 @@
     requirement = "The system shall allow the user to customize the tally estimator for mesh tallies"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [multi_rel_err]
+    type = CSVDiff
+    input = multi_rel_err.i
+    csvdiff = multi_rel_err_out.csv
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "tally relative error when applying the same trigger to multiple scores."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

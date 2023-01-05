@@ -9,4 +9,25 @@
     requirement = "The maximum and minimum tally relative errors shall be correctly retrieved from the OpenMC solution."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [multi_score]
+    type = CSVDiff
+    input = multi.i
+    csvdiff = 'multi_out.csv'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The maximum and minimum tally relative errors shall be correctly retrieved from the OpenMC solution when using multiple scores."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [nonexistent_score]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Postprocessors/max_rel_err/tally_score=flux'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    expect_err = "To extract the relative error of the 'flux' score"
+    requirement = "The system shall error if trying to extract score information that does not exist"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

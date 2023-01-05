@@ -141,7 +141,8 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<MooseEnum>("tally_trigger",
                              getTallyTriggerEnum(),
                              "Trigger criterion to determine when OpenMC simulation is complete "
-                             "based on tallies");
+                             "based on tallies. If multiple scores are specified in 'tally_score, "
+                             "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<Real>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
   params.addParam<MooseEnum>(
@@ -1937,27 +1938,30 @@ OpenMCCellAverageProblem::initializeTallies()
   if (_assume_separate_tallies)
     openmc::settings::assume_separate = true;
 
-  // add trigger information, if present; for each tally, we only have a single score,
-  // so i_score is always set to 0
+  // add trigger information, if present. TODO: we could have these triggers be individual
+  // for each score later if needed
   for (auto & t : _local_tally)
   {
-    switch (_tally_trigger)
+    for (int score = 0; score < _tally_score.size(); ++score)
     {
-      case tally::variance:
-        t->triggers_.push_back({openmc::TriggerMetric::variance, _tally_trigger_threshold, 0});
-        break;
-      case tally::std_dev:
-        t->triggers_.push_back(
-            {openmc::TriggerMetric::standard_deviation, _tally_trigger_threshold, 0});
-        break;
-      case tally::rel_err:
-        t->triggers_.push_back(
-            {openmc::TriggerMetric::relative_error, _tally_trigger_threshold, 0});
-        break;
-      case tally::none:
-        break;
-      default:
-        mooseError("Unhandled TallyTriggerTypeEnum!");
+      switch (_tally_trigger)
+      {
+        case tally::variance:
+          t->triggers_.push_back({openmc::TriggerMetric::variance, _tally_trigger_threshold, score});
+          break;
+        case tally::std_dev:
+          t->triggers_.push_back(
+              {openmc::TriggerMetric::standard_deviation, _tally_trigger_threshold, score});
+          break;
+        case tally::rel_err:
+          t->triggers_.push_back(
+              {openmc::TriggerMetric::relative_error, _tally_trigger_threshold, score});
+          break;
+        case tally::none:
+          break;
+        default:
+          mooseError("Unhandled TallyTriggerTypeEnum!");
+      }
     }
   }
 
