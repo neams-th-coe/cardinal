@@ -36,4 +36,7 @@ public:
 protected:
   /// type of extrema operation
   const operation::OperationEnum _type;
+
+  /// index of score in _tally_score of the problem
+  int _tally_index;
 };
