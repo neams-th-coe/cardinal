@@ -15,7 +15,7 @@ you can use the `utils/meshes/fuel_pins/mesh.py` script.
 !media pin_mesh.png
   id=pin_mesh
   caption=Example mesh which can be generated with the `fuel_pins` meshing script, shown for 7 assemblies each with 7 pins
-  style=width:80%;margin-left:auto;margin-right:auto;halign:center
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
 To create the mesh:
 
