@@ -1,0 +1,15 @@
+[Tests]
+  [specs]
+    type = RunCommand
+    command = 'python mesh.py'
+    requirement = 'The system shall be able to generate the preprocessing information for a hex pin bundle.'
+  []
+  [mesh]
+    type = RunApp
+    input = mesh_info.i
+    cli_args = "solid.i --mesh-only"
+    requirement = 'The system shall create a mesh of a hex pin bundle.'
+    mesh_mode = 'replicated'
+    prereq = specs
+  []
+[]
