@@ -12,7 +12,7 @@ pellet_radius = ${fparse pellet_diameter / 2.0}
 
     ring_radii = '${pellet_radius} ${pin_radius}'
     ring_intervals = '${e_per_pellet} ${e_per_clad}'
-    ring_block_ids = '${fuel_id} ${clad_id} 1'
+    ring_block_ids = '${fuel_id} ${fuel_id} ${clad_id}'
 
     background_block_ids = '${fluid_id}'
     background_intervals = 1

@@ -6,7 +6,7 @@ h = 0.28499                   # height
 n_pins = 7                    # number of pins
 n_bundles = 7                 # number of assemblies
 
-e_per_side = 2                # number of elements along each 1/6 of the pin
-e_per_pellet = 2              # number of elements along the radial direction in pellet
+e_per_side = 4                # number of elements along each 1/6 of the pin
+e_per_pellet = 4              # number of elements along the radial direction in pellet
 e_per_clad = 1                # number of elements along the radial direction in clad
 nl = 2                        # number of axial layers
