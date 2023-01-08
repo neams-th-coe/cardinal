@@ -43,43 +43,36 @@
     boundary = '1'
     use_displaced_mesh = true
     execute_on = INITIAL
-    displacements = 'disp_x disp_y disp_z'
   []
   [nekbdry_ar1]
     type = AreaPostprocessor
     boundary = '1'
     use_displaced_mesh = true
-    displacements = 'disp_x disp_y disp_z'
   []
   [nekbdry_ar2]
     type = AreaPostprocessor
     boundary = '2'
     use_displaced_mesh = true
-    displacements = 'disp_x disp_y disp_z'
   []
   [nekbdry_ar3]
     type = AreaPostprocessor
     boundary = '3'
     use_displaced_mesh = true
-    displacements = 'disp_x disp_y disp_z'
   []
   [nekbdry_ar4]
     type = AreaPostprocessor
     boundary = '4'
     use_displaced_mesh = true
-    displacements = 'disp_x disp_y disp_z'
   []
   [nekbdry_ar5]
     type = AreaPostprocessor
     boundary = '5'
     use_displaced_mesh = true
-    displacements = 'disp_x disp_y disp_z'
   []
   [nekbdry_ar6]
     type = AreaPostprocessor
     boundary = '6'
     use_displaced_mesh = true
-    displacements = 'disp_x disp_y disp_z'
   []
 []
 
