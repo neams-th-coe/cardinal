@@ -19,20 +19,7 @@
   allow_renumbering = false
 []
 
-# This AuxVariable and AuxKernel is only here to get the postprocessors
-# to evaluate correctly. This can be deleted after MOOSE issue #17534 is fixed.
-[AuxVariables]
-  [cell_temperature]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
 [AuxKernels]
-  [cell_temperature]
-    type = CellTemperatureAux
-    variable = cell_temperature
-  []
   [temp]
     type = FunctionAux
     variable = temp
@@ -68,14 +55,12 @@
   check_tally_sum = false
 []
 
-# These two auxvariables and auxkernels are only here to avoid a re-gold (due to a
-# variable name change). The 'dummy' auxvariable is only here due to MOOSE issue #17534
+# This auxvariable and auxkernel is only here to avoid a re-gold (due to a
+# variable name change).
 [AuxVariables]
   [fission_tally]
     family = MONOMIAL
     order = CONSTANT
-  []
-  [dummy]
   []
 []
 
@@ -84,11 +69,6 @@
     type = SelfAux
     variable = fission_tally
     v = heat_source_raw
-  []
-  [dummy]
-    type = ConstantAux
-    variable = dummy
-    value = 0.0
   []
 []
 
@@ -100,5 +80,5 @@
 
 [Outputs]
   exodus = true
-  hide = 'cell_temperature dummy heat_source_raw'
+  hide = 'heat_source_raw'
 []
