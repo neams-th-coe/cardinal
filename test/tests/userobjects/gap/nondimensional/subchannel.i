@@ -5,7 +5,6 @@
   pin_diameter = 7.646e-3
   n_rings = 2
   n_axial = 6
-  theta_res = 8
   height = 0.008
 []
 

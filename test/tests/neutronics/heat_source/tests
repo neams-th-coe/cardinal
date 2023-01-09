@@ -138,7 +138,7 @@
   [multi_tally_local_assume_separate]
     type = CSVDiff
     input = multi_tally_overlap_solid.i
-    cli_args = 'Problem/assume_separate=true'
+    cli_args = 'Problem/assume_separate_tallies=true'
     csvdiff = multi_tally_overlap_solid_out.csv
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
