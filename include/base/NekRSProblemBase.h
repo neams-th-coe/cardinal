@@ -477,4 +477,7 @@ protected:
 
   /// Maximum step solve time
   double _tSolveStepMax;
+
+  /// flag to indicate whether this is the first pass to serialize the solution
+  static bool _first;
 };

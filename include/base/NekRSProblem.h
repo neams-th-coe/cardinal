@@ -227,9 +227,6 @@ protected:
   /// volumetric heat source variable read from by nekRS
   unsigned int _heat_source_var;
 
-  /// flag to indicate whether this is the first pass to serialize the solution
-  static bool _first;
-
   /// quantities to write to  nrs->usrwrk (and the order to write them)
   MultiMooseEnum _usrwrk_indices;
 };

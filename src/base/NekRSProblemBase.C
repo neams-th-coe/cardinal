@@ -32,6 +32,8 @@
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
 
+bool NekRSProblemBase::_first = true;
+
 InputParameters
 NekRSProblemBase::validParams()
 {
@@ -555,6 +557,8 @@ NekRSProblemBase::externalSolve()
 void
 NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 {
+  auto & solution = _aux->solution();
+
   if (nekrs::buildOnly())
     return;
 
@@ -565,7 +569,14 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
       if (!synchronizeIn())
         return;
 
-      return;
+      if (_first)
+      {
+        _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
+        _first = false;
+      }
+
+      solution.localize(*_serialized_solution);
+      break;
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
@@ -574,18 +585,20 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 
       // extract the NekRS solution onto the mesh mirror, if specified
       extractOutputs();
-      return;
+      break;
     }
     default:
       mooseError("Unhandled Transfer::DIRECTION enum!");
   }
+
+  solution.close();
+  _aux->system().update();
 }
 
 bool
 NekRSProblemBase::synchronizeIn()
 {
   bool synchronize = true;
-  static bool first = true;
 
   switch (_synchronization_interval)
   {
@@ -595,7 +608,7 @@ NekRSProblemBase::synchronizeIn()
       // of the incoming postprocessor must not be zero. We only need to check this for the very
       // first time we evaluate this function. This ensures that you don't accidentally set a
       // zero value as a default in the master application's postprocessor.
-      if (first && *_transfer_in == false)
+      if (_first && *_transfer_in == false)
         mooseError("The default value for the 'transfer_in' postprocessor received by nekRS "
                    "must not be false! Make sure that the master application's "
                    "postprocessor is not zero.");
@@ -616,7 +629,6 @@ NekRSProblemBase::synchronizeIn()
       mooseError("Unhandled SynchronizationEnum in NekRSProblemBase!");
   }
 
-  first = false;
   return synchronize;
 }
 

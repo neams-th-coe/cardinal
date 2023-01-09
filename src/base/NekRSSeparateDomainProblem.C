@@ -29,8 +29,6 @@
 
 registerMooseObject("CardinalApp", NekRSSeparateDomainProblem);
 
-bool NekRSSeparateDomainProblem::_first = true;
-
 InputParameters
 NekRSSeparateDomainProblem::validParams()
 {
@@ -218,6 +216,8 @@ NekRSSeparateDomainProblem::initialSetup()
 void
 NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
 {
+  auto & solution = _aux->solution();
+
   if (nekrs::buildOnly())
     return;
 
@@ -263,6 +263,9 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
     default:
       mooseError("Unhandled 'Transfer::DIRECTION' enum!");
   }
+
+  solution.close();
+  _aux->system().update();
 }
 
 void
