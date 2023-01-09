@@ -57,6 +57,5 @@
 [Outputs]
   csv = true
   execute_on = 'final'
-  hide = 'flux_integral'
 []
 
