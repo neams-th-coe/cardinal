@@ -98,7 +98,7 @@ b=${fparse 300-500/(zmax-zmin)*zmin}
 
 [UserObjects]
   [average_temp]
-    type = CardinalNearestPointAverage
+    type = NearestPointAverage
     variable = temp
     points_file = pebble_centers_rescaled.txt
     execute_on = 'initial timestep_end'

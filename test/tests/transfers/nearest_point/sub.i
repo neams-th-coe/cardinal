@@ -73,7 +73,7 @@
                  8 1 0'
   []
   [./average_g_sub] # This computes the average that will be transferred to master
-    type = CardinalNearestPointAverage
+    type = NearestPointAverage
     variable = g
     points = '0 0 0
               4 0 0
