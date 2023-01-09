@@ -319,6 +319,16 @@ ifeq ($(ENABLE_NEK), yes)
   include            $(CARDINAL_DIR)/config/nekrs.mk
 else
 
+# autoconf-archive puts some arguments (e.g. -std=c++17) into the compiler
+# variable rather than the compiler flags variable.
+#
+# cmake allows this, but wants any compiler arguments to be
+# semicolon-separated, not space-separated
+space := $(subst ,, )
+LIBMESH_CC_LIST := $(subst $(space),;,$(libmesh_CC))
+LIBMESH_CXX_LIST := $(subst $(space),;,$(libmesh_CXX))
+LIBMESH_F90_LIST := $(subst $(space),;,$(libmesh_F90))
+
 build_nekrs:
 	$(info Skipping Nek build because ENABLE_NEK is not set to 'yes')
 
