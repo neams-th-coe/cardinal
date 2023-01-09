@@ -16,7 +16,7 @@
   [mesh_velocity_areas_vol]
     type = CSVDiff
     input = pipe.i
-    cli_args = "MultiApps/input_files='nek_vol.i'"
+    cli_args = "MultiApps/nek/input_files='nek_vol.i'"
     csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
     min_parallel = 4
     abs_zero = 1e-6
@@ -32,7 +32,7 @@
   [mesh_velocity_areas_bdry_vol]
     type = CSVDiff
     input = pipe.i
-    cli_args = "MultiApps/cli_args='Mesh/volume=true'"
+    cli_args = "MultiApps/nek/cli_args='Mesh/volume=true'"
     csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
     min_parallel = 4
     abs_zero = 1e-6
