@@ -31,6 +31,7 @@
   type = OpenMCCellAverageProblem
   verbose = true
   tally_type = mesh
+  tally_name = 'heat_source'
   solid_cell_level = 0
   solid_blocks = '2 3'
   check_tally_sum = false
