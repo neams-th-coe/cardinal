@@ -78,25 +78,9 @@ STOCHASTIC_TOOLS    := yes
 TENSOR_MECHANICS    := yes
 THERMAL_HYDRAULICS  := yes
 
-# First, we can find which submodules have been pulled in
-MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
-NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
-OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
-DAGMC_CONTENT     := $(shell ls $(DAGMC_DIR) 2> /dev/null)
-MOAB_CONTENT      := $(shell ls $(MOAB_DIR) 2> /dev/null)
-SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
-SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
-
-ifeq ($(THERMAL_HYDRAULICS), yes)
-  THM_CONTENT     := true
-endif
-
-SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
-POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
-IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
-
-# Print errors if some submodules are missing or various pre-reqs for Sockeye,
-# SAM, and THM optional submodules are missing or conflict with one another
+# Perform various checks on the dependencies: (i) error if dependencies are
+# missing or conflict with one another; (ii) warn if not using a paired
+# submodule hash; (iii) check that NEKRS_HOME points to the correct location
 include $(CARDINAL_DIR)/config/check_deps.mk
 
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE

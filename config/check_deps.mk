@@ -3,6 +3,23 @@ define n
 
 endef
 
+# First, we can find which submodules have been pulled in
+MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
+NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
+OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
+DAGMC_CONTENT     := $(shell ls $(DAGMC_DIR) 2> /dev/null)
+MOAB_CONTENT      := $(shell ls $(MOAB_DIR) 2> /dev/null)
+SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
+SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
+
+ifeq ($(THERMAL_HYDRAULICS), yes)
+  THM_CONTENT     := true
+endif
+
+SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
+POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
+IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
+
 ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
 endif
