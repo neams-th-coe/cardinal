@@ -39,7 +39,7 @@ ENABLE_NEK          ?= yes
 ENABLE_OPENMC       ?= yes
 
 # Whether you want to build OpenMC with DAGMC support; set to anything except 'yes' to skip
-ENABLE_DAGMC        ?= yes
+ENABLE_DAGMC        ?= no
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))/..
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
@@ -96,11 +96,9 @@ OCCA_OPENCL_ENABLED=0
 
 DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
 DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-DAGMC_LIBDIR := $(DAGMC_INSTALL_DIR)/lib
 
 MOAB_BUILDDIR := $(CARDINAL_DIR)/build/moab
 MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
-MOAB_LIBDIR := $(MOAB_INSTALL_DIR)/lib
 
 NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
 NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
