@@ -59,7 +59,7 @@ solid temperature is 500&deg;C and the initial power is zero.
 ### OpenMC Model
 
 The OpenMC model is built using DAGMC. Particles move through space with surface-to-surface
-tracking between tetrahedral surface meshes. Cells are the regions of space enclosed by
+tracking between triangle surface meshes. Cells are the regions of space enclosed by
 these surfaces. After building the DAGMC model with Cubit, we set up the OpenMC input files
 using the Python [!ac](API). First, we define
 materials, then fetch the geometry from the DAGMC geometry file (`dagmc.h5m`). Then, we

@@ -293,7 +293,7 @@ build_dagmc:
 	$(info Skipping DagMC build because ENABLE_DAGMC is not set to 'yes')
 
 build_moab:
-	$(info Skipping Moab build because ENABLE_DAGMC is not set to 'yes')
+	$(info Skipping MOAB build because ENABLE_DAGMC is not set to 'yes')
 
 endif
 

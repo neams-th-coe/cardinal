@@ -2,7 +2,7 @@ $(DAGMC_BUILDDIR)/Makefile: build_moab | $(DAGMC_DIR)/CMakeLists.txt
 	mkdir -p $(DAGMC_BUILDDIR)
 	cd $(DAGMC_BUILDDIR) && \
 	cmake -L \
-	-DBUILD_TALLY=ON \
+	-DBUILD_TALLY=OFF \
 	-DBUILD_TESTS=OFF \
 	-DBUILD_CI_TESTS=OFF \
 	-DBUILD_STATIC_LIBS=OFF \

@@ -15,7 +15,7 @@ set the following environment variable:
 export ENABLE_OPENMC=false
 ```
 
-We support an optional usage of DAGMC for CAD-based Monte Carlo transport.
+We support the optional usage of [DAGMC](https://svalinn.github.io/DAGMC/)'s CAD-based models in OpenMC.
 This capability is off by default, but to build with DAGMC support, set:
 
 ```
