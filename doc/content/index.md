@@ -15,7 +15,7 @@ An open-source coupling of NekRS and OpenMC to MOOSE
 !style halign=center
 Geometry-agnostic RANS and LES conjugate heat transfer,
 volumetric source term and multiscale closure coupling, and Monte Carlo nuclear
-heating feedback with cell and unstructured mesh tallies
+heating feedback with cell and unstructured mesh tallies and optional CAD geometry
 !col-end!
 
 !col! small=12 medium=4 large=4 icon=settings
