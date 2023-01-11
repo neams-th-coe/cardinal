@@ -57,6 +57,8 @@ SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+EIGEN3_DIR          ?= $(MOOSE_SUBMODULE)/libmesh/include/Eigen
+Eigen3_DIR          ?= $(MOOSE_SUBMODULE)/libmesh/include/Eigen
 
 # If HDF5_ROOT is set, use those settings to link HDF5 to OpenMC.
 # Otherwise, use where PETSc will put HDF5 if downloading it.
