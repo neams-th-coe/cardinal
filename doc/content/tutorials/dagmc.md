@@ -2,7 +2,7 @@
 
 In this tutorial, you will learn how to:
 
-- Couple DAGMC models via temperature and heat source feedback to MOOSE for a pincell
+- Couple [!ac](DAGMC) models via temperature and heat source feedback to MOOSE for a pincell
 
 To access this tutorial,
 

@@ -8,6 +8,7 @@ CFL: Courant-Friedrichs-Lewy
 CHT: Conjugate Heat Transfer
 CPU: Central Processing Unit
 CSG: Constructive Solid Geometry
+DAGMC: Direct Accelerated Geometry Monte Carlo
 ECP: Exascale Computing Project
 EOS: Equation of State
 GCE: General Computing Environment

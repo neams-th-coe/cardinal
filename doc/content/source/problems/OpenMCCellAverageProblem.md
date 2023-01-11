@@ -1,6 +1,6 @@
 # OpenMCCellAverageProblem
 
-This class couples OpenMC cell-based models (e.g. [!ac](CSG) or DAGMC) to MOOSE. The crux
+This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE. The crux
 is to identify a mapping between OpenMC cells and
 a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
 Then, field data on the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)

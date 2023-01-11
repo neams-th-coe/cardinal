@@ -34,7 +34,7 @@ Note that many of the features that are introduced in these
 tutorials are *general* features that also apply to fluid feedback in OpenMC.
 For instance, in the [pebble tutorial](triso.md), we describe how to
 couple an OpenMC solve in centimeters with a MOOSE solve in meters.
-Likewise, the [DAGMC pincell](dagmc.md) tutorial couples a DAGMC OpenMC
+Likewise, the [DAGMC pincell](dagmc.md) tutorial couples a [!ac](DAGMC) OpenMC
 model to MOOSE, which is also applicable to DAGMC cells representing fluids.
 These
 features are equally applicable to both solid and fluid feedback in OpenMC,
