@@ -30,3 +30,14 @@ name `cross_sections` one directory "above" the Cardinal repository.
 
 If you would prefer other libraries, please refer to the
 [OpenMC cross section documentation](https://docs.openmc.org/en/stable/usersguide/cross_sections.html).
+
+## Running out of Memory
+
+OpenMC replicates the geometry and material data on every MPI rank. For large problems
+(especially TRISO cases with lots of surfaces), you might run out of memory if MOOSE is
+also consuming a lot of memory (for instance, if the `[Mesh]` is really large). This will
+typically manifest as a crash of the simulation, usually before any time steps have run.
+
+Cardinal supports distributed mesh, allowing the `[Mesh]` to be split among MPI ranks.
+This is usually sufficient to address memory issues. See the MOOSE [mesh splitting](https://mooseframework.inl.gov/syntax/Mesh/splitting.html)
+documentation for more information on how to use this feature.
