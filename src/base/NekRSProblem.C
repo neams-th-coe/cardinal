@@ -237,6 +237,14 @@ NekRSProblem::initialSetup()
                  " in the [MESH] block.");
   }
 
+  if (!boundary && nekrs::hasElasticitySolver())
+    mooseError("Your nekRS .par file has 'solver = elasticity' in the [MESH] block. This solver uses\n"
+               "displacement values at a boundary of interest to calcualte the mesh velocity. This\n"
+               "mesh velocity is applied within nekRS on the same boundary to solve for fluid flow\n"
+               "in a moving mesh domain using the elasticity solver. Please indicate which boundary\n"
+               "is moving in your Cardinal sub-app input file's [Mesh] block, regardless of whether\n"
+               "you are using a volume mirror or not.");
+
   // For volume-based coupling, we should check that there is a udf function providing
   // the source for the passive scalar equations (this is the analogue of the boundary
   // condition check for boundary-based coupling). NOTE: This check is imperfect, because
