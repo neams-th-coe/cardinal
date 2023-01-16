@@ -3,7 +3,7 @@
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre mv_cyl 1'
     requirement = "The system shall precompile a Nek case."
-    required_objects = 'NekRSProblem'
+    required_objects = 'NekRSStandaloneProblem'
   []
   [volume]
     type = CSVDiff

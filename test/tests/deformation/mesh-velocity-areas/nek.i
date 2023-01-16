@@ -42,5 +42,6 @@
 [Outputs]
   csv = true
   execute_on = 'final'
+  show = 'nekbdry_ar nekbdry_icar'
 []
 

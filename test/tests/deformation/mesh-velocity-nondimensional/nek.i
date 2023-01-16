@@ -51,6 +51,6 @@
 [Outputs]
   csv = true
   execute_on = 'final'
-  hide = 'flux_integral'
+  show = 'nekbdry_ar nekbdry_icar'
 []
 
