@@ -319,7 +319,7 @@ public:
    * @param[in] e the element to which src belongs
    * @param[in] field the displacement field we are updating
    */
-  void updateDisplacement (const int e, const double *src, const field::NekWriteEnum field);
+  void updateDisplacement (const int e, const double *src, field::NekWriteEnum field);
 
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
