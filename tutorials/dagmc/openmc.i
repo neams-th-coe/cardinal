@@ -3,6 +3,8 @@
     type = FileMeshGenerator
     file = mesh_in.e
   []
+
+  allow_renumbering = false
 []
 
 [AuxVariables]
