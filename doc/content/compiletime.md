@@ -2,7 +2,7 @@
 
 This page collects some common issues encountered when compiling Cardinal.
 
-## Switching 3-rd Party Options
+## Switching 3rd Party Options
 
 If you are toggling `ENABLE_NEK`, `ENABLE_OPENMC` and/or `ENABLE_DAGMC`,
 you may need to clear out the `build/` and `install/` directories in-between

@@ -19,6 +19,9 @@
 # * POTASSIUM_DIR    : Top-level potassium dir (default: $(CONTRIB_DIR)/potassium)
 # * IAPWS95_DIR      : Top-level iapws95 dir (default: $(CONTRIB_DIR)/iapws95)
 
+# * EIGEN3_DIR       : Top-level eigen3 dir (should contain FindEigen3.cmake). This
+#                      is only needed if enabling DagMC.
+
 # To control where OpenMC grabs HDF5 from; you don't need to set any of these unless
 # you don't want to use the HDF5 that comes with PETSc
 
@@ -57,6 +60,12 @@ SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+
+# This is the Eigen3 location on CIVET. If you are using MOOSE's conda environment,
+# you don't need to set these variables, because conda sets them for you. The only
+# scenario where you might need to manually set these is if you're not using the
+# conda environment. You will get a compile error about FindEigen3.cmake if you
+# do indeed need to set these.
 EIGEN3_DIR          ?= $(LIBMESH_DIR)/include
 Eigen3_DIR          ?= $(EIGEN3_DIR)
 
@@ -254,7 +263,6 @@ ifeq ($(ENABLE_OPENMC), yes)
 endif
 
 ifeq ($(ENABLE_DAGMC), yes)
-  ADDITIONAL_CPPFLAGS += $(DAGMC_INCLUDES)
   libmesh_CXXFLAGS    += -DENABLE_DAGMC
 endif
 
