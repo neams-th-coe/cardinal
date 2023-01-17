@@ -238,4 +238,27 @@ Point rotatePointAboutAxis(const Point & p, const Real & angle, const Point & ax
   return pt;
 }
 
+std::vector<Point> boxCorners(const BoundingBox & box, const Real & factor)
+{
+  Point diff = (box.max() - box.min()) / 2.0;
+  Point origin = box.min() + diff;
+
+  // Rescale sidelength of box by specified factor
+  diff *= factor;
+
+  // Vectors for sides of box
+  Point dx(2.0 * diff(0), 0.0, 0.0);
+  Point dy(0.0, 2.0 * diff(1), 0.0);
+  Point dz(0.0, 0.0, 2.0 * diff(2));
+
+  std::vector<Point> verts(8, origin - diff);
+  const unsigned int pts_per_dim = 2;
+  for (unsigned int z = 0; z < pts_per_dim; z++)
+    for (unsigned int y = 0; y < pts_per_dim; y++)
+      for (unsigned int x = 0; x < pts_per_dim; x++)
+        verts[pts_per_dim * pts_per_dim * z + pts_per_dim * y + x] += x * dx + y * dy + z * dz;
+
+  return verts;
+}
+
 } // end namespace geom_utility

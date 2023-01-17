@@ -137,4 +137,11 @@ namespace geom_utility {
    */
   bool pointOnEdge(const Point & point, const std::vector<Point> & corners,
     const unsigned int & axis);
+
+  /**
+   * Get corner points of a bounding box, with side length re-scaled
+   * @param[in] box bounding box to start from
+   * @param[in] factor by which to multiply the bounding box side
+   */
+  std::vector<Point> boxCorners(const BoundingBox & box, const Real & factor);
 } // end of namespace geom_utility
