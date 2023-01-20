@@ -264,3 +264,43 @@ TEST_F(GeometryUtilityTest, point_in_polygon)
   EXPECT_FALSE(geom_utility::pointInPolygon(pt_not_in2, {pt8, pt9, pt10, pt11}, 2));
   EXPECT_TRUE(geom_utility::pointInPolygon(pt_edge2, {pt8, pt9, pt10, pt11}, 2));
 }
+
+TEST_F(GeometryUtilityTest, boxCorners)
+{
+  Point min(-1.0, -0.5, 4.0);
+  Point max(3.0, 0.5, 6.0);
+
+  BoundingBox box(min, max);
+  auto c = geom_utility::boxCorners(box, 0.85);
+  EXPECT_DOUBLE_EQ(c[0](0), -0.7);
+  EXPECT_DOUBLE_EQ(c[0](1), -0.425);
+  EXPECT_DOUBLE_EQ(c[0](2), 4.15);
+
+  EXPECT_DOUBLE_EQ(c[1](0), 2.7);
+  EXPECT_DOUBLE_EQ(c[1](1), -0.425);
+  EXPECT_DOUBLE_EQ(c[1](2), 4.15);
+
+  EXPECT_DOUBLE_EQ(c[2](0), -0.7);
+  EXPECT_DOUBLE_EQ(c[2](1), 0.425);
+  EXPECT_DOUBLE_EQ(c[2](2), 4.15);
+
+  EXPECT_DOUBLE_EQ(c[3](0), 2.7);
+  EXPECT_DOUBLE_EQ(c[3](1), 0.425);
+  EXPECT_DOUBLE_EQ(c[3](2), 4.15);
+
+  EXPECT_DOUBLE_EQ(c[4](0), -0.7);
+  EXPECT_DOUBLE_EQ(c[4](1), -0.425);
+  EXPECT_DOUBLE_EQ(c[4](2), 5.85);
+
+  EXPECT_DOUBLE_EQ(c[5](0), 2.7);
+  EXPECT_DOUBLE_EQ(c[5](1), -0.425);
+  EXPECT_DOUBLE_EQ(c[5](2), 5.85);
+
+  EXPECT_DOUBLE_EQ(c[6](0), -0.7);
+  EXPECT_DOUBLE_EQ(c[6](1), 0.425);
+  EXPECT_DOUBLE_EQ(c[6](2), 5.85);
+
+  EXPECT_DOUBLE_EQ(c[7](0), 2.7);
+  EXPECT_DOUBLE_EQ(c[7](1), 0.425);
+  EXPECT_DOUBLE_EQ(c[7](2), 5.85);
+}
