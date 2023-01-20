@@ -16,18 +16,6 @@
   [temp_ansol]
     order = SECOND
   []
-  [dummy]
-  []
-[]
-
-# This AuxVariable and AuxKernel is only here to get the postprocessors
-# to evaluate correctly. This can be deleted after MOOSE issue #17534 is fixed.
-[AuxKernels]
-  [dummy]
-    type = ConstantAux
-    variable = dummy
-    value = 0.0
-  []
 []
 
 [Executioner]
@@ -63,6 +51,6 @@
   execute_on = 'final'
 
   # uncomment the temp_ansol to see that the solution matches very well
-  hide = 'source_integral transfer_in heat_source dummy temp_ansol'
+  hide = 'source_integral transfer_in heat_source temp_ansol'
 []
 

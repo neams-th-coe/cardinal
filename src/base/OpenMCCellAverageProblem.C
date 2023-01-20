@@ -2547,6 +2547,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 
   _first_transfer = false;
   solution.close();
+  _aux->system().update();
 }
 
 void

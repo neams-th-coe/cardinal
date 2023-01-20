@@ -121,9 +121,6 @@ protected:
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
 
-  /// flag to indicate whether this is the first pass to serialize the solution
-  static bool _first;
-
   /// quantities to write to  nrs->usrwrk (and the order to write them)
   MultiMooseEnum _usrwrk_indices;
 

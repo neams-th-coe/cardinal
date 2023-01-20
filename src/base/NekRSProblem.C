@@ -34,7 +34,6 @@
 
 registerMooseObject("CardinalApp", NekRSProblem);
 
-bool NekRSProblem::_first = true;
 extern nekrs::usrwrkIndices indices;
 
 InputParameters
@@ -610,6 +609,8 @@ NekRSProblem::getVolumeTemperatureFromNek()
 void
 NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 {
+  auto & solution = _aux->solution();
+
   if (nekrs::buildOnly())
     return;
 
@@ -626,7 +627,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
         _first = false;
       }
 
-      _aux->solution().localize(*_serialized_solution);
+      solution.localize(*_serialized_solution);
 
       if (_boundary)
         sendBoundaryHeatFluxToNek();
@@ -689,6 +690,9 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
     default:
       mooseError("Unhandled 'Transfer::DIRECTION' enum!");
   }
+
+  solution.close();
+  _aux->system().update();
 }
 
 double
