@@ -128,12 +128,6 @@ NekTimeStepper::setReferenceTime(const Real & L, const Real & U)
 }
 
 Real
-NekTimeStepper::dimensionalDT(const Real & nondimensional_dt) const
-{
-  return nondimensional_dt * _t_ref;
-}
-
-Real
 NekTimeStepper::nondimensionalDT(const Real & dimensional_dt) const
 {
   return dimensional_dt / _t_ref;

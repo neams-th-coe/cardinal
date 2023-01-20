@@ -104,7 +104,7 @@ public:
    * Get the number of particles used in the current Monte Carlo calculation
    * @return number of particles
    */
-  const int64_t & nParticles() const;
+  int nParticles() const;
 
   /**
    * Get the cell ID from the cell index

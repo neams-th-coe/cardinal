@@ -93,7 +93,7 @@ The OpenMC geometry as produced via plots is shown in [mc_geom].
 
 !media pebble_openmc.png
   id=mc_geom
-  caption=OpenMC [!ac](CSG) geometry (colored by cell ID)
+  caption=OpenMC geometry (colored by cell ID)
   style=width:15%;margin-left:auto;margin-right:auto
 
 As you can see, there
@@ -203,7 +203,7 @@ The `scaling` parameter is used to indicate a multiplicative factor that should 
 applied to the `[Mesh]` in order to get to units of centimeters.
 Because the `[Mesh]` is in units of meters, we set `scaling = 100.0`.
 This scaling factor is
-applied within the `OpenMCCellAverageProblem::findCell` routine that maps MOOSE elements to OpenMC [!ac](CSG) cells -
+applied within the `OpenMCCellAverageProblem::findCell` routine that maps MOOSE elements to OpenMC cells -
 no actual changes are made to the mesh in the `[Mesh]` block.
 The scaling is also applied to ensure that the heat source is on the correct
 per-unit-volume scale that is expected by the `[Mesh]`.
@@ -297,9 +297,9 @@ translations to apply to replicate the mesh at the desired end positions in Open
 Note that the mesh template and mesh translations must be in the same
 units as the `[Mesh]` block.
 In addition, because our sphere mesh does not perfectly preserve the volume of the sphere
-[!ac](CSG) cells, we set `normalize_by_global_tally` to false so that we normalize only
+cells, we set `normalize_by_global_tally` to false so that we normalize only
 by the sum of the mesh tally. Otherwise, we would miss a small amount of power produced
-within the [!ac](CSG) spheres, but slightly outside the faceted surface of the sphere mesh. Setting this parameter to false ensures that the tally normalization is correct in that the heat sources are normalized by a tally sum over the same tally domain in the OpenMC model.
+within the spheres, but slightly outside the faceted surface of the sphere mesh. Setting this parameter to false ensures that the tally normalization is correct in that the heat sources are normalized by a tally sum over the same tally domain in the OpenMC model.
 
 To run this input,
 

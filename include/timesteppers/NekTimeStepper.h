@@ -57,13 +57,6 @@ public:
    */
   virtual Real nondimensionalDT(const Real & dimensional_dt) const;
 
-  /**
-   * Compute the dimensional version of a dt
-   * @param[in] nondimensional_dt time step in nondimensional form
-   * @return dimensional version of time step
-   */
-  virtual Real dimensionalDT(const Real & nondimensional_dt) const;
-
 protected:
   virtual Real computeInitialDT() override;
 

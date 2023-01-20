@@ -291,7 +291,7 @@ effect of non-equal mapped volumes, please see the
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) documentation.
 
 Because
-the [!ac](CSG) model is formed by creating axial layers in a lattice nested one level
+the OpenMC model is formed by creating axial layers in a lattice nested one level
 below the highest universe level, the solid cell level is set to 1. Because the fuel compacts
 contain [!ac](TRISO) particles, this indicates that *all* cells in a fuel compact "underneath"
 level 1 will be set to the same temperature. Because the fuel compacts are homogenized in the
