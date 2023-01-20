@@ -7,16 +7,6 @@ NEKRS_LIBP_DEFINES := -DUSE_NULL_PROJECTION=1
 USE_OCCA_MEM_BYTE_ALIGN := 64
 OCCA_CXXFLAGS := -O2 -ftree-vectorize -funroll-loops -march=native -mtune=native
 
-# autoconf-archive puts some arguments (e.g. -std=c++17) into the compiler
-# variable rather than the compiler flags variable.
-#
-# cmake allows this, but wants any compiler arguments to be
-# semicolon-separated, not space-separated
-space := $(subst ,, )
-LIBMESH_CC_LIST := $(subst $(space),;,$(libmesh_CC))
-LIBMESH_CXX_LIST := $(subst $(space),;,$(libmesh_CXX))
-LIBMESH_F90_LIST := $(subst $(space),;,$(libmesh_F90))
-
 $(NEKRS_BUILDDIR)/Makefile: $(NEKRS_DIR)/CMakeLists.txt
 	mkdir -p $(NEKRS_BUILDDIR)
 	cd $(NEKRS_BUILDDIR) && \

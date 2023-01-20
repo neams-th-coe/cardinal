@@ -11,11 +11,16 @@
 # * MOOSE_SUBMODULE  : Top-level MOOSE dir (default: $(CONTRIB_DIR)/moose)
 # * NEKRS_DIR        : Top-level NekRS dir (default: $(CONTRIB_DIR)/nekRS)
 # * OPENMC_DIR       : Top-level OpenMC dir (default: $(CONTRIB_DIR)/openmc)
+# * DAGMC_DIR        : Top-level DagMC dir (default: $(CONTRIB_DIR)/DAGMC)
+# * MOAB_DIR         : Top-level Moab dir (default: $(CONTRIB_DIR)/moab)
 # * SAM_DIR          : Top-level SAM dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR      : Top-level Sockeye dir (default: $(CONTRIB_DIR)/sockeye)
 # * SODIUM_DIR       : Top-level sodium dir (default: $(CONTRIB_DIR)/sodium)
 # * POTASSIUM_DIR    : Top-level potassium dir (default: $(CONTRIB_DIR)/potassium)
 # * IAPWS95_DIR      : Top-level iapws95 dir (default: $(CONTRIB_DIR)/iapws95)
+
+# * EIGEN3_DIR       : Top-level eigen3 dir (should contain FindEigen3.cmake). This
+#                      is only needed if enabling DagMC.
 
 # To control where OpenMC grabs HDF5 from; you don't need to set any of these unless
 # you don't want to use the HDF5 that comes with PETSc
@@ -36,11 +41,16 @@ ENABLE_NEK          ?= yes
 # Whether you want to build with OpenMC; set to anything except 'yes' to skip
 ENABLE_OPENMC       ?= yes
 
+# Whether you want to build OpenMC with DAGMC support; set to anything except 'yes' to skip
+ENABLE_DAGMC        ?= no
+
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
 MOOSE_SUBMODULE     ?= $(CONTRIB_DIR)/moose
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
+DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
+MOAB_DIR            ?= $(CONTRIB_DIR)/moab
 PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
@@ -50,6 +60,14 @@ SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+
+# This is the Eigen3 location on CIVET. If you are using MOOSE's conda environment,
+# you don't need to set these variables, because conda sets them for you. The only
+# scenario where you might need to manually set these is if you're not using the
+# conda environment. You will get a compile error about FindEigen3.cmake if you
+# do indeed need to set these.
+EIGEN3_DIR          ?= $(LIBMESH_DIR)/include
+Eigen3_DIR          ?= $(EIGEN3_DIR)
 
 # If HDF5_ROOT is set, use those settings to link HDF5 to OpenMC.
 # Otherwise, use where PETSc will put HDF5 if downloading it.
@@ -61,9 +79,14 @@ endif
 HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
 
-# HDF5 is only needed to be linked if using OpenMC
 ifeq ($(ENABLE_OPENMC), yes)
+  # HDF5 is only needed to be linked if using OpenMC
   $(info Cardinal is using HDF5 from $(HDF5_ROOT))
+else
+  ifeq ($(ENABLE_DAGMC), yes)
+    $(info Ignoring ENABLE_DAGMC because OpenMC is not enabled.)
+    ENABLE_DAGMC := no
+  endif
 endif
 
 # Check that NEKRS_HOME is set to the correct location
@@ -81,23 +104,9 @@ STOCHASTIC_TOOLS    := yes
 TENSOR_MECHANICS    := yes
 THERMAL_HYDRAULICS  := yes
 
-# First, we can find which submodules have been pulled in
-MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
-NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
-OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
-SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
-SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
-
-ifeq ($(THERMAL_HYDRAULICS), yes)
-  THM_CONTENT     := true
-endif
-
-SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
-POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
-IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
-
-# Print errors if some submodules are missing or various pre-reqs for Sockeye,
-# SAM, and THM optional submodules are missing or conflict with one another
+# Perform various checks on the dependencies: (i) error if dependencies are
+# missing or conflict with one another; (ii) warn if not using a paired
+# submodule hash; (iii) check that NEKRS_HOME points to the correct location
 include config/check_deps.mk
 
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
@@ -110,6 +119,12 @@ endif
 OCCA_CUDA_ENABLED=0
 OCCA_HIP_ENABLED=0
 OCCA_OPENCL_ENABLED=0
+
+DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
+DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
+
+MOAB_BUILDDIR := $(CARDINAL_DIR)/build/moab
+MOAB_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
 
 NEKRS_BUILDDIR := $(CARDINAL_DIR)/build/nekrs
 NEKRS_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
@@ -247,6 +262,10 @@ ifeq ($(ENABLE_OPENMC), yes)
   libmesh_CXXFLAGS    += -DENABLE_OPENMC_COUPLING
 endif
 
+ifeq ($(ENABLE_DAGMC), yes)
+  libmesh_CXXFLAGS    += -DENABLE_DAGMC
+endif
+
 # ======================================================================================
 # External apps
 # ======================================================================================
@@ -273,6 +292,30 @@ APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+
+ifeq ($(ENABLE_DAGMC), yes)
+  ENABLE_DAGMC     := ON
+  include          $(CARDINAL_DIR)/config/moab.mk
+  include          $(CARDINAL_DIR)/config/dagmc.mk
+else
+
+build_dagmc:
+	$(info Skipping DagMC build because ENABLE_DAGMC is not set to 'yes')
+
+build_moab:
+	$(info Skipping MOAB build because ENABLE_DAGMC is not set to 'yes')
+
+endif
+
+# autoconf-archive puts some arguments (e.g. -std=c++17) into the compiler
+# variable rather than the compiler flags variable.
+#
+# cmake allows this, but wants any compiler arguments to be
+# semicolon-separated, not space-separated
+space := $(subst ,, )
+LIBMESH_CC_LIST := $(subst $(space),;,$(libmesh_CC))
+LIBMESH_CXX_LIST := $(subst $(space),;,$(libmesh_CXX))
+LIBMESH_F90_LIST := $(subst $(space),;,$(libmesh_F90))
 
 ifeq ($(ENABLE_NEK), yes)
   include            $(CARDINAL_DIR)/config/nekrs.mk
@@ -312,8 +355,8 @@ include            $(FRAMEWORK_DIR)/app.mk
 
 # app_objects are defined in moose.mk and built according to the rules in build.mk
 # We need to build these first so we get include dirs
-$(app_objects): build_nekrs build_openmc
-$(test_objects): build_nekrs build_openmc
+$(app_objects): build_nekrs build_moab build_dagmc build_openmc
+$(test_objects): build_nekrs build_moab build_dagmc build_openmc
 
 CARDINAL_EXTERNAL_FLAGS := \
 	-L$(CARDINAL_DIR)/lib \

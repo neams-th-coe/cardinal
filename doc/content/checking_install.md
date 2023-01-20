@@ -38,10 +38,9 @@ cd test/tests/conduction/boundary_and_volume/prism
 exo2nek
 ```
 
-
-For developers, you will also find it useful to be able to run Cardinal's
-test suite, which consists of unit and regression tests.
-You can run Cardinal's test suite with the following:
+5. For developers, you will also find it useful to run Cardinal's
+   test suite, which consists of unit and regression tests.
+   You can run Cardinal's regression test suite with the following:
 
 ```
 ./run_tests -j8
@@ -54,6 +53,14 @@ Depending on the availability of various dependencies, some tests may be skipped
 The first time
 you run the test suite, the runtime will be very long due to the just-in-time compilation of
 NekRS. Subsequent runs will be much faster due to the use of cached build files.
+
+You can run the unit tests with the following:
+
+```
+cd unit
+make -j8
+./run_tests -j8
+```
 
 If you run into issues running the test suite, please check out our
 [run_tests troubleshooting page](run_tests_troubleshoot.md).

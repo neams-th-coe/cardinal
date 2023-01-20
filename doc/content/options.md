@@ -14,3 +14,10 @@ set the following environment variable:
 ```
 export ENABLE_OPENMC=false
 ```
+
+We support the optional usage of [DAGMC](https://svalinn.github.io/DAGMC/)'s CAD-based models in OpenMC.
+This capability is off by default, but to build with [!ac](DAGMC) support, set:
+
+```
+export ENABLE_DAGMC=yes
+```

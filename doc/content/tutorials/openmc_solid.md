@@ -23,16 +23,20 @@ extend equally to coupling OpenMC to any of these other MOOSE thermal-fluid code
   caption=Illustration of data transfers to couple OpenMC to MOOSE for solid feedback.
   style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
-Three examples are provided:
+Four examples are provided:
 
 - [LWR pincell](pincell1.md)
 - [Solid UO$_2$ pebbles](triso.md)
 - [TRISO compacts](gas_compact.md)
+- [DAGMC pincell](dagmc.md)
 
 Note that many of the features that are introduced in these
 tutorials are *general* features that also apply to fluid feedback in OpenMC.
 For instance, in the [pebble tutorial](triso.md), we describe how to
-couple an OpenMC solve in centimeters with a MOOSE solve in meters. This
-feature is equally applicable to both solid and fluid feedback in OpenMC,
+couple an OpenMC solve in centimeters with a MOOSE solve in meters.
+Likewise, the [DAGMC pincell](dagmc.md) tutorial couples a [!ac](DAGMC) OpenMC
+model to MOOSE, which is also applicable to DAGMC cells representing fluids.
+These
+features are equally applicable to both solid and fluid feedback in OpenMC,
 even though the examples here only focus on solid feedback. This allows
 the tutorials to slowly progress in complexity.

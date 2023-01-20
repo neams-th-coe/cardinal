@@ -425,9 +425,6 @@ NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> 
 
       unsigned int index = indices[0];
 
-      // use the element centroid for finding the closest origin
-      const Point centroid = elem->vertex_average();
-
       if (at_least_one_face_on_boundary)
         mooseError("This mesh generator cannot be applied to elements that have more than "
           "one face on the circular sideset!");

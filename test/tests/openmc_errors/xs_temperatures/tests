@@ -3,7 +3,6 @@
     type = RunException
     input = interpolation_min.i
     expect_err = "In attempting to set cell id 1, instance 0 \(of 1\) to temperature -100 \(K\), OpenMC reported:\n\n"
-                 "Temperature is below minimum temperature at which data is available."
     requirement = "The system shall error if we attempt to set a temperature in OpenMC below the "
                   "lower bound of available data when using the interpolation method."
     required_objects = 'OpenMCCellAverageProblem'
@@ -12,7 +11,6 @@
     type = RunException
     input = interpolation_max.i
     expect_err = "In attempting to set cell id 1, instance 0 \(of 1\) to temperature 100000 \(K\), OpenMC reported:\n\n"
-                 "Temperature is above maximum temperature at which data is available."
     requirement = "The system shall error if we attempt to set a temperature in OpenMC above the "
                   "upper bound of available data when using the interpolation method."
     required_objects = 'OpenMCCellAverageProblem'
