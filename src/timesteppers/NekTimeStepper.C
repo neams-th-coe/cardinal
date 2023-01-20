@@ -58,32 +58,14 @@ NekTimeStepper::NekTimeStepper(const InputParameters & parameters)
         "when other applications (i.e. MOOSE) are consuming the same wall time.\n\nPlease set "
         "'stopAt' to either 'numSteps' or 'endTime' in your .par file.");
 
-  // The NekTimeStepper will take the end simulation control from the nekRS .par file,
-  // unless NekRSProblem is a sub-app to a higher-up master app. In that case,
-  // we will use whatever end control is specified by the controlling app.
-  MooseApp & app = getMooseApp();
-  if (app.isUltimateMaster())
-  {
-    // The MOOSE Transient executioner will end the simulation if _either_ the number
-    // of time steps is greater than Transient::_num_steps or the time is greater than
-    // or equal to Transient::_end_time. To avoid conflicts with NekTimeStepper, below
-    // we throw an error if the user tries to set num_steps or end_time from the Nek
-    // input file. This guarantees that the MOOSE defaults of numeric_max are kept for
-    // both end_time and num_steps, such that our nekRS setting will prevail.
-    if (nekrs::endControlTime())
-      _end_time = nekrs::endTime();
+  // The NekTimeStepper will take the end simulation control from the nekRS .par file.
+  // If the Nek app is a sub-app, then the higher-up master app will automatically take
+  // control of when the overall simulation ends.
+  if (nekrs::endControlTime())
+    _end_time = nekrs::endTime();
 
-    if (nekrs::endControlNumSteps())
-      forceNumSteps(nekrs::numSteps());
-  }
-  else
-  {
-    // To allow the controlling app to dictate when the nekRS solution ends, we
-    // just need to have the Nek have a very large end_time (that presumably
-    // the controlling app would not try to simulate beyond). We don't need to do
-    // anything here, since the mooseError below ensures that we retain the MOOSE defaults
-    // of numeric_max for both end_time and num_steps.
-  }
+  if (nekrs::endControlNumSteps())
+    forceNumSteps(nekrs::numSteps());
 
   // If running in JIT build mode, we don't want to do any time steps
   if (nekrs::buildOnly())
