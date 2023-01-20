@@ -20,6 +20,7 @@
 
 #include "Moose.h"
 #include "libmesh/point.h"
+#include "libmesh/mesh_tools.h"
 
 namespace geom_utility {
   /**
