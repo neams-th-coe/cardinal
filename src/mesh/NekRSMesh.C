@@ -934,7 +934,7 @@ NekRSMesh::facesOnBoundary(const int elem_id) const
 }
 
 void
-NekRSMesh::updateDisplacement(const int e, const double *src, field::NekWriteEnum field)
+NekRSMesh::updateDisplacement(const int e, const double *src, const field::NekWriteEnum field)
 {
   int nsrc = _volume? _n_vertices_per_volume : _n_vertices_per_surface;
   int offset = e * nsrc;
