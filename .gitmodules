@@ -12,16 +12,16 @@
 	url = https://git-nse.egs.anl.gov/SAM/SAM.git
 [submodule "contrib/sockeye"]
 	path = contrib/sockeye
-	url = git@hpcgitlab.hpc.inl.gov:idaholab/sockeye.git
+	url = git@github.inl.gov:ncrc/sockeye.git
 [submodule "contrib/sodium"]
 	path = contrib/sodium
-	url = git@hpcgitlab.hpc.inl.gov:idaholab/sodium.git
+	url = git@github.inl.gov:ncrc/sodium.git
 [submodule "contrib/potassium"]
 	path = contrib/potassium
-	url = git@hpcgitlab.hpc.inl.gov:idaholab/potassium.git
+	url = git@github.inl.gov:ncrc/potassium.git
 [submodule "contrib/iapws95"]
 	path = contrib/iapws95
-	url = git@hpcgitlab.hpc.inl.gov:idaholab/iapws95.git
+	url = git@github.inl.gov:ncrc/iapws95.git
 [submodule "contrib/DAGMC"]
 	path = contrib/DAGMC
 	url = https://github.com/svalinn/DAGMC
