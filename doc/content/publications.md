@@ -103,6 +103,12 @@ A. Huxford, V. Petrov, A. Manera, V. Coppo Leite, E. Merzari, and L. Zou
 
 # Virtual Test Bed Documentation
 
+G.L. Giudicelli, A. Abou-Jaoude, A.J. Novak, A. Abdelhameed, P. Balestra, L. Charlot, J. Fang,
+B. Feng, T. Folk, R. Freile, T. Freyman, D. Gaston, L. Harbour, S. Harper, T. Hua, W. Jiang,
+N. Martin, Y. Miao, J. Miller, D. O'Grady, D. Reger, E. Shemon, N. Stauff, M. Tano, S. Walker, and C. Permann,
+["The Virtual Test Bed (VTB) Repository: A Library of Multiphysics Reference Reactor Models Using NEAMS Tools"](https://doi.org/10.1080/00295639.2022.2142440)
+*Nuclear Science and Engineering* (2023)
+
 A. Abou-Jaoude, E. Shemon, G. Giudicelli, S. Walker, T. Folk, M. Tano, J. Fang, and A. Novak,
 "Status of New Models Hosted on the Virtual Test Bed (VTB) in 2022"
 *Proceedings of ANS* (2022)
