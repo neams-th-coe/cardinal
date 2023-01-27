@@ -1,0 +1,18 @@
+[Tests]
+  [bins]
+    type = Exodiff
+    input = all_bins.i
+    exodiff = all_bins_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall bin elements according to temperature and density, on multiple subdomains, and be able to visualize the bins on the mesh volume."
+    required_objects = 'DagMCPostprocessor'
+  []
+  [bins_without_density]
+    type = Exodiff
+    input = sub_bins.i
+    exodiff = sub_bins_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall bin elements according to temperature, on multiple subdomains, and be able to visualize the bins."
+    required_objects = 'DagMCPostprocessor'
+  []
+[]
