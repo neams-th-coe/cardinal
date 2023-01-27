@@ -49,19 +49,19 @@
     execute_on = timestep_begin
   []
   [temp_bins]
-    type = MoabSkinnedBins
+    type = SkinnedBins
     variable = temp_bins
     skinner = moab
     skin_by = temperature
   []
   [subdomain_bins]
-    type = MoabSkinnedBins
+    type = SkinnedBins
     variable = subdomain_bins
     skinner = moab
     skin_by = subdomain
   []
   [bins]
-    type = MoabSkinnedBins
+    type = SkinnedBins
     variable = bins
     skinner = moab
   []
@@ -76,7 +76,7 @@
 
 [UserObjects]
   [moab]
-    type = MoabUserObject
+    type = MoabSkinner
     verbose = true
     material_names = "mat mat"
 

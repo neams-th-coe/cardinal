@@ -58,7 +58,7 @@
     input = skinner.i
     cli_args = 'Mesh/cube/file=../../../neutronics/meshes/sphere.e'
     mesh_mode = 'replicated'
-    expect_err = "The MoabUserObject can only be used with a tetrahedral \[Mesh\]!"
+    expect_err = "The MoabSkinner can only be used with a tetrahedral \[Mesh\]!"
     requirement = "The system shall error if the skinned mesh does not contain tetrahedral elements"
     required_objects = 'DagMCPostprocessor'
   []

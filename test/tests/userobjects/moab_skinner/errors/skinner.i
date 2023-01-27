@@ -25,7 +25,7 @@
 
 [UserObjects]
   [moab]
-    type = MoabUserObject
+    type = MoabSkinner
     material_names = "mat"
 
     temperature = temp

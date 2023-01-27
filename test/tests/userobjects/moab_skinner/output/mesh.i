@@ -32,7 +32,7 @@
 
 [UserObjects]
   [moab]
-    type = MoabUserObject
+    type = MoabSkinner
     verbose = true
     material_names = "mat mat"
 

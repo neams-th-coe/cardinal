@@ -16,29 +16,33 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "SpatialBinUserObject.h"
-#include "BinUtility.h"
+#pragma once
 
-InputParameters
-SpatialBinUserObject::validParams()
-{
-  InputParameters params = GeneralUserObject::validParams();
-  return params;
-}
+#include "AuxKernel.h"
+#include "MooseEnum.h"
+#include "MoabSkinner.h"
 
-SpatialBinUserObject::SpatialBinUserObject(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters)
+/**
+ * Auxkernel to display the mapping of [Mesh] elements to the spatial
+ * bins created by a mesh skinner which skins by subdomain, temperature,
+ * and density.
+ */
+class SkinnedBins : public AuxKernel
 {
-}
+public:
+  SkinnedBins(const InputParameters & parameters);
 
-Real
-SpatialBinUserObject::spatialValue(const Point & p) const
-{
-  return bin(p);
-}
+  static InputParameters validParams();
 
-unsigned int
-SpatialBinUserObject::binFromBounds(const Real & pt, const std::vector<Real> & bounds) const
-{
-  return bin_utility::linearBin(pt, bounds);
-}
+protected:
+  virtual Real computeValue();
+
+  /// Skinner object to be queried
+  const MoabSkinner * _skinner;
+
+  /**
+   * What skinning bins to display; this allows you to select just a single
+   * "dimension" of the skinning to explore more thoroughly.
+   */
+  const MooseEnum _skin_by;
+};
