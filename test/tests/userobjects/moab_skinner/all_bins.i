@@ -113,6 +113,8 @@
     n_density_bins = 5
     density_min = 445.0
     density_max = 655.0
+
+    output_skins = true
   []
 []
 
