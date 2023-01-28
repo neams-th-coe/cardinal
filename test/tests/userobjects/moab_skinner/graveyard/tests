@@ -2,6 +2,8 @@
   [graveyard]
     type = RunApp
     input = graveyard.i
+    mesh_mode = 'replicated'
+    required_objects = 'DagMCPostprocessor'
   []
   [convert_to_gmsh]
     type = RunCommand
