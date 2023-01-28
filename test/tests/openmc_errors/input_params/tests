@@ -22,4 +22,12 @@
     requirement = "The system shall error if a properties file is loaded but does not exist"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [no_dag]
+    type = RunException
+    input = no_dag.i
+    cli_args = '--error'
+    expect_err = "When the OpenMC model does not contain any DagMC universes, the 'skinner' parameter is unused!"
+    requirement = "The system shall warn the user if using a skinner without a DagMC geometry"
+    required_objects = 'DagMCPostprocessor'
+  []
 []

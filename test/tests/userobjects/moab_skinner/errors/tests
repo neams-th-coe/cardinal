@@ -102,7 +102,7 @@
     type = RunException
     input = skinner.i
     mesh_mode = 'distributed'
-    expect_err = "MoabUserObject does not yet support distributed meshes!"
+    expect_err = "MoabSkinner does not yet support distributed meshes!"
     requirement = "The system shall error if trying to run in distributed mesh mode"
     required_objects = 'DagMCPostprocessor'
   []
