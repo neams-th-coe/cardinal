@@ -212,7 +212,7 @@ protected:
   void createSurf(unsigned int id,moab::EntityHandle& surface_set, moab::Range& faces,  std::vector<VolData> & voldata);
 
   /// Helper method to create MOAB surfaces with no overlaps
-  moab::ErrorCode createSurfaces(moab::Range& reversed, VolData& voldata, unsigned int& surf_id);
+  void createSurfaces(moab::Range& reversed, VolData& voldata, unsigned int& surf_id);
 
   /**
    * Create a MOAB surface from a bounding box
@@ -275,7 +275,7 @@ protected:
   virtual void sortElemsByResults();
 
   /// Group the binned elems into local temperature regions and find their surfaces
-  bool findSurfaces();
+  void findSurfaces();
 
   /// Group a given bin into local regions
   /// NB elems in param is a copy, localElems is a reference
@@ -293,7 +293,7 @@ protected:
   bool resetMOAB();
 
   /// Find the surfaces for the provided range and add to group
-  bool findSurface(const moab::Range& region,moab::EntityHandle group, unsigned int & vol_id, unsigned int & surf_id,moab::EntityHandle& volume_set);
+  void findSurface(const moab::Range& region,moab::EntityHandle group, unsigned int & vol_id, unsigned int & surf_id,moab::EntityHandle& volume_set);
 
   /// Write MOAB volume and/or skin meshes to file
   virtual void write();

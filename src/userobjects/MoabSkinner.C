@@ -472,7 +472,6 @@ MoabSkinner::setTagData(moab::Tag tag,
   memset(namebuf, '\0', SIZE); // fill C char array with null
   strncpy(namebuf, data.c_str(), SIZE - 1);
   _moab->tag_set_data(tag, &ent, 1, namebuf);
-  // deallocate memory
   delete[] namebuf;
 }
 
@@ -615,75 +614,59 @@ MoabSkinner::getDensityBin(const Elem * const elem) const
   return bin_utility::linearBin(value, _density_bin_bounds);
 }
 
-bool
+void
 MoabSkinner::findSurfaces()
 {
+  // Find all neighbours in mesh
+  mesh().find_neighbors();
 
-  moab::ErrorCode rval = moab::MB_SUCCESS;
-  try
+  // Counter for volumes
+  unsigned int vol_id = 0;
+
+  // Counter for surfaces
+  unsigned int surf_id = 0;
+
+  // Loop over material bins
+  for (unsigned int iMat = 0; iMat < _n_block_bins; iMat++)
   {
-    // Find all neighbours in mesh
-    mesh().find_neighbors();
+    // Get the base material name:
+    std::string mat_name = "mat:" + _material_names.at(iMat);
 
-    // Counter for volumes
-    unsigned int vol_id = 0;
-
-    // Counter for surfaces
-    unsigned int surf_id = 0;
-
-    // Loop over material bins
-    for (unsigned int iMat = 0; iMat < _n_block_bins; iMat++)
+    // Loop over density bins
+    for (unsigned int iDen = 0; iDen < _n_density_bins; iDen++)
     {
-      // Get the base material name:
-      std::string mat_name = "mat:" + _material_names.at(iMat);
-
-      // Loop over density bins
-      for (unsigned int iDen = 0; iDen < _n_density_bins; iDen++)
+      // Loop over temperature bins
+      for (unsigned int iVar = 0; iVar < _n_temperature_bins; iVar++)
       {
+        // Update material name
+        auto updated_mat_name = mat_name + "_" + std::to_string(getMatBin(iDen));
 
-        // Loop over temperature bins
-        for (unsigned int iVar = 0; iVar < _n_temperature_bins; iVar++)
+        // Create a material group
+        int iSortBin = getBin(iVar, iDen, iMat);
+
+        moab::EntityHandle group_set;
+        unsigned int group_id = iSortBin + 1;
+        createGroup(group_id, updated_mat_name, group_set);
+
+        // Sort elems in this mat-density-temp bin into local regions
+        std::vector<moab::Range> regions;
+        groupLocalElems(_elem_bins.at(iSortBin), regions);
+
+        // Loop over all regions and find surfaces
+        for (const auto & region : regions)
         {
-
-          // Update material name
-          auto updated_mat_name = mat_name + "_" + std::to_string(getMatBin(iDen));
-
-          // Create a material group
-          // Todo set temp in metadata?
-          int iSortBin = getBin(iVar, iDen, iMat);
-          moab::EntityHandle group_set;
-          unsigned int group_id = iSortBin + 1;
-          createGroup(group_id, updated_mat_name, group_set);
-
-          // Sort elems in this mat-density-temp bin into local regions
-          std::vector<moab::Range> regions;
-          groupLocalElems(_elem_bins.at(iSortBin), regions);
-
-          // Loop over all regions and find surfaces
-          for (const auto & region : regions)
-          {
-            moab::EntityHandle volume_set;
-            if (!findSurface(region, group_set, vol_id, surf_id, volume_set))
-              return false;
-          }
+          moab::EntityHandle volume_set;
+          findSurface(region, group_set, vol_id, surf_id, volume_set);
         }
       }
     }
+  }
 
-    // Finally, build a graveyard
-    if (_build_graveyard)
-      buildGraveyard(vol_id, surf_id);
-  }
-  catch (std::exception & e)
-  {
-    std::cerr << e.what() << std::endl;
-    return false;
-  }
+  if (_build_graveyard)
+    buildGraveyard(vol_id, surf_id);
 
   // Write MOAB volume and/or skin meshes to file
   write();
-
-  return true;
 }
 
 void
@@ -827,16 +810,13 @@ MoabSkinner::getMatBin(const unsigned int & iDenBin) const
   return iDenBin;
 }
 
-bool
+void
 MoabSkinner::findSurface(const moab::Range & region,
                             moab::EntityHandle group,
                             unsigned int & vol_id,
                             unsigned int & surf_id,
                             moab::EntityHandle & volume_set)
 {
-
-  moab::ErrorCode rval;
-
   // Create a volume set
   vol_id++;
   createVol(vol_id, volume_set, group);
@@ -844,48 +824,33 @@ MoabSkinner::findSurface(const moab::Range & region,
   // Find surfaces from these regions
   moab::Range tris;  // The tris of the surfaces
   moab::Range rtris; // The tris which are reversed with respect to their surfaces
-  rval = skinner->find_skin(0, region, false, tris, &rtris);
-  if (rval != moab::MB_SUCCESS)
-    return false;
-  if (tris.size() == 0 && rtris.size() == 0)
-    return false;
+  skinner->find_skin(0, region, false, tris, &rtris);
 
   // Create surface sets for the forwards tris
   VolData vdata = {volume_set, Sense::FORWARDS};
-  rval = createSurfaces(tris, vdata, surf_id);
-  if (rval != moab::MB_SUCCESS)
-    return false;
+  createSurfaces(tris, vdata, surf_id);
 
   // Create surface sets for the reversed tris
   vdata.sense = Sense::BACKWARDS;
-  rval = createSurfaces(rtris, vdata, surf_id);
-  if (rval != moab::MB_SUCCESS)
-    return false;
-
-  return true;
+  createSurfaces(rtris, vdata, surf_id);
 }
 
-moab::ErrorCode
+void
 MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int & surf_id)
 {
-  moab::ErrorCode rval = moab::MB_SUCCESS;
-
   if (faces.empty())
-    return rval;
+    return;
 
   // Loop over the surfaces we have already created
   for (const auto & surfpair : surfsToVols)
   {
-
     // Local copies of surf/vols
     moab::EntityHandle surf = surfpair.first;
     std::vector<VolData> vols = surfpair.second;
 
     // First get the entities in this surface
     moab::Range tris;
-    rval = _moab->get_entities_by_handle(surf, tris);
-    if (rval != moab::MB_SUCCESS)
-      return rval;
+    _moab->get_entities_by_handle(surf, tris);
 
     // Find any tris that live in both surfs
     moab::Range overlap = moab::intersect(tris, faces);
@@ -901,9 +866,7 @@ MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int
       {
         // If overlap is subset, subtract shared tris from this surface and create a new shared
         // surface
-        rval = _moab->remove_entities(surf, overlap);
-        if (rval != moab::MB_SUCCESS)
-          return rval;
+        _moab->remove_entities(surf, overlap);
 
         // Append our new volume to the list that share this surf
         vols.push_back(voldata);
@@ -930,8 +893,6 @@ MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int
     surf_id++;
     createSurf(surf_id, surface_set, faces, voldatavec);
   }
-
-  return rval;
 }
 
 void

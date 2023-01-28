@@ -30,7 +30,7 @@ SkinnedBins::validParams()
 
   MooseEnum skin_type("temperature subdomain density all", "all");
   params.addParam<MooseEnum>("skin_by", skin_type, "Which skin distribution to display");
-  params.addClassDescription("Display the mapping of mesh elements to the skinned bins created by the MOAB skinner");
+  params.addClassDescription("Display the mapping of mesh elements to the skinned bins created by a skinner");
   return params;
 }
 
@@ -42,11 +42,6 @@ SkinnedBins::SkinnedBins(const InputParameters & parameters) :
   _skinner = dynamic_cast<const MoabSkinner *>(&base);
   if (!_skinner)
     paramError("skinner", "This userobject must be of type MoabSkinner!");
-
-  // TODO: test for correct variable type, since each element is only going to fall into one bin,
-  // the applied variable should be constant monomial
-
-  // TODO: check that the skinner has enabled the requested option
 }
 
 Real
