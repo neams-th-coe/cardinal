@@ -31,7 +31,7 @@ endif
 
 ifeq ($(ENABLE_NEK), yes)
   ifeq ($(NEKRS_CONTENT),)
-    $(error $n"NekRS does not seem to be available, but ENABLE_NEK is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
+    $(error $n"NekRS does not seem to be available, but ENABLE_NEK is enabled. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
   endif
 
   nek_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep nekRS | cut -c1)
@@ -42,7 +42,7 @@ endif
 
 ifeq ($(ENABLE_OPENMC), yes)
   ifeq ($(OPENMC_CONTENT),)
-    $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
+    $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
   endif
 
   openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
@@ -53,10 +53,10 @@ endif
 
 ifeq ($(ENABLE_DAGMC), yes)
   ifeq ($(DAGMC_CONTENT),)
-    $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts/get-dependencies.sh")
+    $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts/get-dependencies.sh")
   endif
   ifeq ($(MOAB_CONTENT),)
-    $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is set to 'yes'. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")
+    $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")
   endif
 
   DAGMC_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep DAGMC | cut -c1)
