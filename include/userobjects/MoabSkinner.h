@@ -7,13 +7,6 @@
 #include "moab/Skinner.hpp"
 #include "moab/GeomTopoTool.hpp"
 #include "MBTagConventions.hpp"
-#include "libmesh/mesh_function.h"
-
-/// Convenience struct
-struct MOABMaterialProperties{
-  double rel_density;
-  double temp;
-};
 
 /**
  * \brief Skins the [Mesh] according to individual bins for temperature, density, and subdomain ID
@@ -25,7 +18,6 @@ struct MOABMaterialProperties{
 class MoabSkinner : public GeneralUserObject
 {
 public:
-
   MoabSkinner(const InputParameters & parameters);
 
   static InputParameters validParams();
@@ -66,7 +58,10 @@ public:
    * @param[in] elem element
    * @return subdomain bin index
    */
-  virtual unsigned int getSubdomainBin(const Elem * const elem) const { return _blocks.at(elem->subdomain_id()); }
+  virtual unsigned int getSubdomainBin(const Elem * const elem) const
+  {
+    return _blocks.at(elem->subdomain_id());
+  }
 
   /**
    * Set the length multiplier to get from [Mesh] units into centimeters
@@ -98,7 +93,8 @@ public:
    * @param[in] param_name parameter name, for printing a helpful error message
    * @return variable number
    */
-  unsigned int getAuxiliaryVariableNumber(const std::string & name, const std::string & param_name) const;
+  unsigned int getAuxiliaryVariableNumber(const std::string & name,
+                                          const std::string & param_name) const;
 
   /// Clear mesh data
   void reset();
@@ -110,7 +106,9 @@ public:
    * @param[in] subdomain_bin subdomain ID bin
    * @return total bin index
    */
-  virtual unsigned int getBin(const unsigned int & temp_bin, const unsigned int & density_bin, const unsigned int & subdomain_bin) const;
+  virtual unsigned int getBin(const unsigned int & temp_bin,
+                              const unsigned int & density_bin,
+                              const unsigned int & subdomain_bin) const;
 
 protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
@@ -180,16 +178,21 @@ protected:
   bool _standalone;
 
   /// Encode the whether the surface normal faces into or out of the volume
-  enum Sense { BACKWARDS=-1, FORWARDS=1};
+  enum Sense
+  {
+    BACKWARDS = -1,
+    FORWARDS = 1
+  };
 
-  /// \brief Encode MOAB information about volumes needed when creating surfaces
-  struct VolData{
+  /// Encode MOAB information about volumes needed when creating surfaces
+  struct VolData
+  {
     moab::EntityHandle vol;
     Sense sense;
   };
 
   /// Get a modifyable reference to the underlying libmesh mesh.
-  MeshBase& mesh();
+  MeshBase & mesh();
 
   /**
    * Copy the libMesh [Mesh] into a MOAB mesh. This first loops through all of the
@@ -203,21 +206,28 @@ protected:
   virtual void createTags();
 
   /// Helper method to create MOAB group entity set
-  void createGroup(unsigned int id, std::string name,moab::EntityHandle& group_set);
+  void createGroup(unsigned int id, std::string name, moab::EntityHandle & group_set);
 
   /// Helper method to create MOAB volume entity set
-  void createVol(unsigned int id,moab::EntityHandle& volume_set,moab::EntityHandle group_set);
+  void createVol(unsigned int id, moab::EntityHandle & volume_set, moab::EntityHandle group_set);
 
   /// Helper method to create MOAB surface entity set
-  void createSurf(unsigned int id,moab::EntityHandle& surface_set, moab::Range& faces,  std::vector<VolData> & voldata);
+  void createSurf(unsigned int id,
+                  moab::EntityHandle & surface_set,
+                  moab::Range & faces,
+                  std::vector<VolData> & voldata);
 
   /// Helper method to create MOAB surfaces with no overlaps
-  void createSurfaces(moab::Range& reversed, VolData& voldata, unsigned int& surf_id);
+  void createSurfaces(moab::Range & reversed, VolData & voldata, unsigned int & surf_id);
 
   /**
    * Create a MOAB surface from a bounding box
    */
-  void createSurfaceFromBox(const BoundingBox& box, VolData& voldata, unsigned int& surf_id, bool normalout, const Real & factor);
+  void createSurfaceFromBox(const BoundingBox & box,
+                            VolData & voldata,
+                            unsigned int & surf_id,
+                            bool normalout,
+                            const Real & factor);
 
   /**
    * Create MOAB nodes from a bounding box
@@ -225,28 +235,36 @@ protected:
    * @param[in] factor multiplicative factor to resize the bounding box sides
    * @return nodes
    */
-  std::vector<moab::EntityHandle> createNodesFromBox(const BoundingBox & box, const Real & factor) const;
+  std::vector<moab::EntityHandle> createNodesFromBox(const BoundingBox & box,
+                                                     const Real & factor) const;
 
   /// Create 3 tri faces stemming from one corner of a cude (an open tetrahedron)
   void createCornerTris(const std::vector<moab::EntityHandle> & verts,
-                                   unsigned int corner, unsigned int v1,
-                                   unsigned int v2 ,unsigned int v3,
-                                   bool normalout, moab::Range &surface_tris);
+                        unsigned int corner,
+                        unsigned int v1,
+                        unsigned int v2,
+                        unsigned int v3,
+                        bool normalout,
+                        moab::Range & surface_tris);
 
   /// Create MOAB tri surface element
-  moab::EntityHandle createTri(const std::vector<moab::EntityHandle> & vertices,unsigned int v1, unsigned int v2 ,unsigned int v3);
+  moab::EntityHandle createTri(const std::vector<moab::EntityHandle> & vertices,
+                               unsigned int v1,
+                               unsigned int v2,
+                               unsigned int v3);
 
   /// Add parent-child metadata relating a surface to its volume
-  void updateSurfData(moab::EntityHandle surface_set,VolData data);
+  void updateSurfData(moab::EntityHandle surface_set, VolData data);
 
   /// Generic method to set the tags that DAGMC requires
-  void setTags(moab::EntityHandle ent,std::string name, std::string category, unsigned int id, int dim);
+  void
+  setTags(moab::EntityHandle ent, std::string name, std::string category, unsigned int id, int dim);
 
   /// Helper function to wrap moab::tag_set_data for a string
   void setTagData(moab::Tag tag, moab::EntityHandle ent, std::string data, unsigned int SIZE);
 
   /// Helper function to wrap moab::tag_set_data for a generic pointer
-  void setTagData(moab::Tag tag, moab::EntityHandle ent, void* data);
+  void setTagData(moab::Tag tag, moab::EntityHandle ent, void * data);
 
   /**
    * Get the node numberings for the MOAB TET4 elements to build for each [Mesh] element
@@ -279,7 +297,7 @@ protected:
 
   /// Group a given bin into local regions
   /// NB elems in param is a copy, localElems is a reference
-  void groupLocalElems(std::set<dof_id_type> elems, std::vector<moab::Range>& localElems);
+  void groupLocalElems(std::set<dof_id_type> elems, std::vector<moab::Range> & localElems);
 
   /**
    * Get a unique index for an OpenMC material (which we can simply take as the density bin,
@@ -293,7 +311,11 @@ protected:
   bool resetMOAB();
 
   /// Find the surfaces for the provided range and add to group
-  void findSurface(const moab::Range& region,moab::EntityHandle group, unsigned int & vol_id, unsigned int & surf_id,moab::EntityHandle& volume_set);
+  void findSurface(const moab::Range & region,
+                   moab::EntityHandle group,
+                   unsigned int & vol_id,
+                   unsigned int & surf_id,
+                   moab::EntityHandle & volume_set);
 
   /// Write MOAB volume and/or skin meshes to file
   virtual void write();
@@ -305,7 +327,7 @@ protected:
   std::unique_ptr<moab::GeomTopoTool> gtt;
 
   /// Map from libmesh id to MOAB element entity handles
-  std::map<dof_id_type,std::vector<moab::EntityHandle> > _id_to_elem_handles;
+  std::map<dof_id_type, std::vector<moab::EntityHandle>> _id_to_elem_handles;
 
   /// Save the first tet entity handle
   moab::EntityHandle offset;
@@ -338,7 +360,7 @@ protected:
   moab::EntityHandle _meshset;
 
   /// Save some topological data: map from surface handle to vol handle and sense
-  std::map<moab::EntityHandle, std::vector<VolData> > surfsToVols;
+  std::map<moab::EntityHandle, std::vector<VolData>> surfsToVols;
 
   /// Tag for dimension for geometry
   moab::Tag geometry_dimension_tag;
