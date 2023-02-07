@@ -182,8 +182,7 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
 }
 
 unsigned int
-MoabSkinner::getAuxiliaryVariableNumber(const std::string & name,
-                                           const std::string & param_name) const
+MoabSkinner::getAuxiliaryVariableNumber(const std::string & name, const std::string & param_name) const
 {
   if (!_fe_problem.getAuxiliarySystem().hasVariable(name))
     paramError(param_name, "Cannot find auxiliary variable '", name, "'!");
@@ -386,19 +385,16 @@ MoabSkinner::createTags()
 }
 
 void
-MoabSkinner::createGroup(unsigned int id, std::string name, moab::EntityHandle & group_set)
+MoabSkinner::createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set)
 {
-  // Create a new mesh set
   _moab->create_meshset(moab::MESHSET_SET, group_set);
-
-  // Set the tags for this material
   setTags(group_set, name, "Group", id, 4);
 }
 
 void
-MoabSkinner::createVol(unsigned int id,
-                          moab::EntityHandle & volume_set,
-                          moab::EntityHandle group_set)
+MoabSkinner::createVol(const unsigned int & id,
+                       moab::EntityHandle & volume_set,
+                       moab::EntityHandle group_set)
 {
   _moab->create_meshset(moab::MESHSET_SET, volume_set);
 
@@ -409,10 +405,10 @@ MoabSkinner::createVol(unsigned int id,
 }
 
 void
-MoabSkinner::createSurf(unsigned int id,
-                           moab::EntityHandle & surface_set,
-                           moab::Range & faces,
-                           std::vector<VolData> & voldata)
+MoabSkinner::createSurf(const unsigned int & id,
+                        moab::EntityHandle & surface_set,
+                        moab::Range & faces,
+                        const std::vector<VolData> & voldata)
 {
   // Create meshset
   _moab->create_meshset(moab::MESHSET_SET, surface_set);
@@ -432,7 +428,7 @@ MoabSkinner::createSurf(unsigned int id,
 }
 
 void
-MoabSkinner::updateSurfData(moab::EntityHandle surface_set, VolData data)
+MoabSkinner::updateSurfData(moab::EntityHandle surface_set, const VolData & data)
 {
   // Add the surface to the volume set
   _moab->add_parent_child(data.vol, surface_set);
@@ -920,10 +916,10 @@ MoabSkinner::buildGraveyard(unsigned int & vol_id, unsigned int & surf_id)
 
 void
 MoabSkinner::createSurfaceFromBox(const BoundingBox & box,
-                                     VolData & voldata,
-                                     unsigned int & surf_id,
-                                     bool normalout,
-                                     const Real & factor)
+                                  const VolData & voldata,
+                                  unsigned int & surf_id,
+                                  bool normalout,
+                                  const Real & factor)
 {
   std::vector<moab::EntityHandle> vert_handles = createNodesFromBox(box, factor);
 
@@ -981,9 +977,9 @@ MoabSkinner::createCornerTris(const std::vector<moab::EntityHandle> & verts,
   unsigned int indices[3] = {v1, v2, v3};
 
   // Create each tri by a cyclic permutation of indices
+  // Values of i1, i2 in the loop: 0,1; 1,2; 2;0
   for (unsigned int i = 0; i < 3; i++)
   {
-    // v1,v2 = 0,1; 1,2; 2;0
     int i1 = indices[i % 3];
     int i2 = indices[(i + 1) % 3];
     if (normalout) // anti-clockwise: normal points outwards
@@ -995,9 +991,9 @@ MoabSkinner::createCornerTris(const std::vector<moab::EntityHandle> & verts,
 
 moab::EntityHandle
 MoabSkinner::createTri(const std::vector<moab::EntityHandle> & vertices,
-                          unsigned int v1,
-                          unsigned int v2,
-                          unsigned int v3)
+                       unsigned int v1,
+                       unsigned int v2,
+                       unsigned int v3)
 {
   moab::EntityHandle triangle;
   moab::EntityHandle connectivity[3] = {vertices[v1], vertices[v2], vertices[v3]};

@@ -205,17 +205,22 @@ protected:
   /// Helper method to create MOAB tags
   virtual void createTags();
 
-  /// Helper method to create MOAB group entity set
-  void createGroup(unsigned int id, std::string name, moab::EntityHandle & group_set);
+  /**
+   * Helper method to create MOAB group entity set
+   * @param[in] id ID for the group
+   * @param[in] name name for the group
+   * @param[in] group_set group of entities
+   */
+  void createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set);
 
   /// Helper method to create MOAB volume entity set
-  void createVol(unsigned int id, moab::EntityHandle & volume_set, moab::EntityHandle group_set);
+  void createVol(const unsigned int & id, moab::EntityHandle & volume_set, moab::EntityHandle group_set);
 
   /// Helper method to create MOAB surface entity set
-  void createSurf(unsigned int id,
+  void createSurf(const unsigned int & id,
                   moab::EntityHandle & surface_set,
                   moab::Range & faces,
-                  std::vector<VolData> & voldata);
+                  const std::vector<VolData> & voldata);
 
   /// Helper method to create MOAB surfaces with no overlaps
   void createSurfaces(moab::Range & reversed, VolData & voldata, unsigned int & surf_id);
@@ -224,7 +229,7 @@ protected:
    * Create a MOAB surface from a bounding box
    */
   void createSurfaceFromBox(const BoundingBox & box,
-                            VolData & voldata,
+                            const VolData & voldata,
                             unsigned int & surf_id,
                             bool normalout,
                             const Real & factor);
@@ -254,7 +259,7 @@ protected:
                                unsigned int v3);
 
   /// Add parent-child metadata relating a surface to its volume
-  void updateSurfData(moab::EntityHandle surface_set, VolData data);
+  void updateSurfData(moab::EntityHandle surface_set, const VolData & data);
 
   /// Generic method to set the tags that DAGMC requires
   void
