@@ -10,6 +10,9 @@
   writeControl = steps
   writeInterval = 2
 
+[MESH]
+  file = ../from_restart/pyramid.re2
+
 [VELOCITY]
   solver = none
   viscosity = 1.0

@@ -8,8 +8,10 @@
   writeControl = steps
   writeInterval = 5
 
-  #dt = 5e-4
   dt = targetCFL=0.4 + max=1e-2 + initial=1e-4
+
+[MESH]
+  file = ../from_restart/pyramid.re2
 
 [VELOCITY]
   solver = none

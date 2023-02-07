@@ -1,19 +1,18 @@
-[GENERAL] 
-polynomialOrder = 7
-#startFrom = "restart.fld"
-numSteps = 100
-dt = 1e-03
-timeStepper = tombo2
-writeInterval = 0
+[GENERAL]
+  polynomialOrder = 7
+  numSteps = 100
+  dt = 1e-03
+  timeStepper = tombo2
+  writeInterval = 0
 
 [PROBLEMTYPE]
-equation = Stokes
-stressFormulation = true # required for variable viscosity
+  equation = Stokes
+  stressFormulation = true # required for variable viscosity
 
 [PRESSURE]
-residualTol = 1e-08
+  residualTol = 1e-08
 
 [VELOCITY]
-residualTol = 1e-12
-density = 1.0
-viscosity = 0.1
+  residualTol = 1e-12
+  density = 1.0
+  viscosity = 0.1

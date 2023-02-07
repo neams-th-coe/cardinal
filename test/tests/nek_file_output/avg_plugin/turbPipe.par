@@ -1,43 +1,31 @@
 [OCCA]
-#backend = CUDA
-#deviceNumber = LOCAL-RANK
+  backend = CPU
 
 [GENERAL]
-#verbose = true
-polynomialOrder = 7
-#startFrom = "restart.fld"
-stopAt = endTime
-endTime = 0.03
+  polynomialOrder = 3
+  stopAt = endTime
+  endTime = 0.03
 
-dt = 6.0e-3
-timeStepper = tombo2
-subCyclingSteps = 2
+  dt = 6.0e-3
+  timeStepper = tombo2
+  subCyclingSteps = 2
 
-writeControl = steps
-writeInterval = 3
+  writeControl = steps
+  writeInterval = 3
 
-filtering = hpfrt
-filterWeight = 0.1/${dt}
-filterModes = 1
+  filtering = hpfrt
+  filterWeight = 0.1/${dt}
+  filterModes = 1
 
 [PRESSURE]
-residualTol = 1e-04
-#preconditioner = multigrid+additive+overlapCrsSolve
-#smootherType = Chebyshev+ASM
-#pMultigridCoarsening = 7,3,1
-#galerkinCoarseOperator = true
+  residualTol = 1e-04
+
+[MESH]
+  file=../../cht/sfr_pincell/sfr_pin.re2
 
 [VELOCITY]
-#solver = pcg
-boundaryTypeMap = inlet, outlet, wall
-density = 1.0
-viscosity = -19000
-residualTol = 1e-06
-
-[BOOMERAMG]
-#coarsenType = 10
-#interpolationType = 6
-#smootherType = -1
-#iterations = 1
-#strongThreshold = 0.25
-#nonGalerkinTol = 0.1
+  boundaryTypeMap = wall, wall, inlet, outlet
+  density = 1.0
+  viscosity = -19000
+  residualTol = 1e-06
+  solver = none
