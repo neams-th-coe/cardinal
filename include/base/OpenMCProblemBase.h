@@ -46,6 +46,13 @@ public:
    */
   void catchOpenMCError(const int & err, const std::string descriptor) const;
 
+  /**
+   * Find the geometry type in the OpenMC model
+   * @param[out] has_csg_universe whether there is at least 1 CSG universe
+   * @param[out] has_dag_universe whether there is at least 1 DagMC universe
+   */
+  virtual void geometryType(bool & has_csg_universe, bool & has_dag_universe) const;
+
   /// Whether this is the first time OpenMC is running
   bool firstSolve() const;
 
