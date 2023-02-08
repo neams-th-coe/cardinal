@@ -567,12 +567,12 @@ is desired.
 
 !media lwr_solid_temp.png
   id=lwr_solid_temp
-  caption=Temperature computed by MOOSE, on the top of the pincell
+  caption=Temperature computed by MOOSE, on an $x-y$ slice
   style=width:45%;margin-left:auto;margin-right:auto
 
 !media lwr_solid_temp_openmc.png
   id=lwr_solid_temp_mc
-  caption=Temperature set in OpenMC cells (shown in terms of the `[Mesh]`), on the top of the pincell
+  caption=Temperature set in OpenMC cells (shown in terms of the `[Mesh]`), on the same $x-y$ slice shown in [lwr_solid_temp]
   style=width:45%;margin-left:auto;margin-right:auto
 
 ## Adding Mesh Tallies

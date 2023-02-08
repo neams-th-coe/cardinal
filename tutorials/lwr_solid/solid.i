@@ -48,7 +48,7 @@ T_fluid = ${fparse 280.0 + 273.15}
     # convert from W/m2/K to W/cm2/K
     coefficient = ${fparse 1000.0/100.0/100.0}
     variable = temp
-    boundary = '5'
+    boundary = 'rmax_c'
   []
 []
 
@@ -61,8 +61,8 @@ T_fluid = ${fparse 280.0 + 273.15}
   [one_to_two]
     type = GapHeatTransfer
     variable = temp
-    primary = '1'
-    secondary = '4'
+    primary = 'rmax'
+    secondary = 'rmin_c'
 
     # we will use a quadrature-based approach to find the gap width and cross-side temperature
     quadrature = true

@@ -116,7 +116,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
   []
   [avg_std_dev]
     type = NearestPointLayeredAverage
-    variable = unrelaxed_tally_std_dev
+    variable = heat_source_std_dev
     points = '0.0 0.0 0.0'
     num_layers = 30
     direction = z
