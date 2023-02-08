@@ -49,6 +49,13 @@ OCCA_OPENCL_ENABLED=0
 # Whether to enable AMGX in Nek (only available for Nvidia GPU)
 AMGX_ENABLED=0
 
+ifeq ($(AMGX_ENABLED),1)
+  ifeq ($(OCCA_CUDA_ENABLED),0)
+    $(info Turning on CUDA backend because AMGX was requested)
+    OCCA_CUDA_ENABLED=1
+  endif
+endif
+
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
 
