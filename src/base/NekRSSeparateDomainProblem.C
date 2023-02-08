@@ -29,6 +29,8 @@
 
 registerMooseObject("CardinalApp", NekRSSeparateDomainProblem);
 
+extern nekrs::usrwrkIndices indices;
+
 InputParameters
 NekRSSeparateDomainProblem::validParams()
 {
@@ -149,36 +151,41 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   //
   // The most we will do is skip allocating terms at the end of this ordering if we
   // don't need them. We never change the ordering of "earlier" terms.
-  std::vector<std::string> indices;
+  std::vector<std::string> str_indices;
 
   // there are no necessary coupling arrays if there is not inlet coupling
   if (_inlet_coupling)
   {
-    indices = {"velocity", "temperature", "scalar01", "scalar02", "scalar03"};
+    str_indices = {"velocity", "temperature", "scalar01", "scalar02", "scalar03"};
+    indices.boundary_velocity = 0 * nekrs::scalarFieldOffset();
+    indices.boundary_temperature = 1 * nekrs::scalarFieldOffset();
+    indices.boundary_scalar01 = 2 * nekrs::scalarFieldOffset();
+    indices.boundary_scalar02 = 3 * nekrs::scalarFieldOffset();
+    indices.boundary_scalar03 = 4 * nekrs::scalarFieldOffset();
 
     // progressively erase terms from the back if we don't need them
     if (!_scalar03_coupling)
     {
-      indices.erase(indices.end());
+      str_indices.erase(str_indices.end());
       if (!_scalar02_coupling)
       {
-        indices.erase(indices.end());
+        str_indices.erase(str_indices.end());
         if (!_scalar01_coupling)
         {
-          indices.erase(indices.end());
+          str_indices.erase(str_indices.end());
 
           if (!nekrs::hasTemperatureSolve())
-            indices.erase(indices.end());
+            str_indices.erase(str_indices.end());
         }
       }
     }
   }
 
-  _minimum_scratch_size_for_coupling = indices.size();
+  _minimum_scratch_size_for_coupling = str_indices.size();
   for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
-    indices.push_back("unused");
+    str_indices.push_back("unused");
 
-  _usrwrk_indices = indices;
+  _usrwrk_indices = str_indices;
 
   printScratchSpaceInfo(_usrwrk_indices);
 
@@ -461,7 +468,7 @@ NekRSSeparateDomainProblem::velocity(const MooseEnum & pp_mesh,
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id] = velocity; // send single velocity value to NekRS
+      nrs->usrwrk[indices.boundary_velocity + id] = velocity; // send single velocity value to NekRS
     }
   }
 }
@@ -479,8 +486,6 @@ NekRSSeparateDomainProblem::temperature(const MooseEnum & pp_mesh,
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
     mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
-    int scalarFieldOffset = nekrs::scalarFieldOffset();
-
     int end_1d = mesh->Nq;
     int end_2d = end_1d * end_1d;
 
@@ -491,7 +496,7 @@ NekRSSeparateDomainProblem::temperature(const MooseEnum & pp_mesh,
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id + scalarFieldOffset] = temperature; // send single temperature value to NekRS
+      nrs->usrwrk[indices.boundary_temperature + id] = temperature; // send single temperature value to NekRS
     }
   }
 }
@@ -510,8 +515,7 @@ NekRSSeparateDomainProblem::scalar(const MooseEnum & pp_mesh,
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
     mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
-    int scalarFieldOffset = nekrs::scalarFieldOffset();
-    int scalarWrkOffset = (scalarId + 1)*scalarFieldOffset; // offset by 1, first "scalar" is temperature
+    std::vector<int> offsets = {indices.boundary_scalar01, indices.boundary_scalar02, indices.boundary_scalar03};
 
     int end_1d = mesh->Nq;
     int end_2d = end_1d * end_1d;
@@ -523,7 +527,7 @@ NekRSSeparateDomainProblem::scalar(const MooseEnum & pp_mesh,
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[id + scalarWrkOffset] = scalar; // send single scalar value to NekRS
+      nrs->usrwrk[offsets[scalarId - 1] + id] = scalar; // send single scalar value to NekRS
     }
   }
 }
