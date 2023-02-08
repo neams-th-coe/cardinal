@@ -20,12 +20,25 @@ L = 300.0
     num_layers = '40'
     direction = '0 0 1'
   []
-  [rename_clad] # this renames some sidesets on the clad to avoid name clashes
+
+  # A sideset in MOOSE is both an ID and a name.
+  # This renames the sideset numbers on the clad inner surface (0) and outer surface (1)
+  # to (5) and (4), respectively. This is done to avoid name collisions with another
+  # AnnularMeshGenerator we use for the fuel pellet. After we rename the sideset IDs, we
+  # need another RenameBoundaryGenerator to rename the sideset names.
+  [rename_clad]
     type = RenameBoundaryGenerator
     input = extrude_clad
     old_boundary = '1 0' # outer surface, inner surface
     new_boundary = '5 4'
   []
+  [rename_clad_names]
+    type = RenameBoundaryGenerator
+    input = rename_clad
+    old_boundary = 'rmax rmin' # outer surface, inner surface
+    new_boundary = 'rmax_c rmin_c'
+  []
+
   [fuel] # this makes a circle that will represent the fuel
     type = AnnularMeshGenerator
     nr = 10
@@ -45,7 +58,7 @@ L = 300.0
   []
   [combine]
     type = CombinerGenerator
-    inputs = 'rename_clad extrude'
+    inputs = 'rename_clad_names extrude'
   []
 
   # one of the mesh generators does not work with distributed mesh
