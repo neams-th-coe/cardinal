@@ -361,10 +361,6 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
     mooseError("Cannot set density for cell " + printCell(cell_info) +
                " because this cell is void (vacuum)!");
 
-  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
-    mooseError(
-        "Density transfer does not currently support cells filled with universes or lattices!");
-
   // Multiply density by 0.001 to convert from kg/m3 (the units assumed in the 'density'
   // auxvariable as well as the MOOSE fluid properties module) to g/cm3
   const char * units = "g/cc";

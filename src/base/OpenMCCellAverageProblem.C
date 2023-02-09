@@ -1123,6 +1123,10 @@ OpenMCCellAverageProblem::getMaterialFills()
     int fill_type;
     std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
 
+    if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+      mooseError(
+          "Density transfer does not currently support cells filled with universes or lattices!");
+
     // OpenMC checks that for distributed cells, the number of materials either equals 1
     // or the number of distributed cells; therefore, we just need to index based on the cell
     // instance (zero for not-distributed cells, otherwise matches the material index)

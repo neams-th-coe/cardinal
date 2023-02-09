@@ -196,7 +196,7 @@ public:
    * Get the fill of an OpenMC cell
    * @param[in] cell_info cell ID, instance
    * @param[out] fill_type fill type of the cell, one of MATERIAL, UNIVERSE, or LATTICE
-   * @return indices of material fills
+   * @return indices of what is filling the cell
    */
   virtual std::vector<int32_t> cellFill(const cellInfo & cell_info, int & fill_type) const;
 
