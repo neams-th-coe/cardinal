@@ -20,18 +20,21 @@
 # in order to determine how many inactive cycles are needed to converge both the
 # Shannon entropy and k. This script is run with:
 #
-# python inactive_study.py -i <script_name> -input <file_name> [-n-threads <n_threads>]
+# python inactive_study.py -i <script_name> -input <file_name> --method=method [--winow_lenth=<LENGTH>]  [-n-threads <n_threads>]
 #
-# - the script used to create the OpenMC model is named <script_name>.py;
-#   this script MUST accept '-s' as an argument to add a Shannon entropy mesh
-#   AND '-n' to set the number of layers; please consult the tutorials for
-#   examples if you're unsure of how to do this
-# - the Cardinal input file to run is named <file_name>
-# - by default, the number of threads is taken as the maximum on your system;
-#   otherwise, you can set it by providing -n-threads <n_threads>
+# - The script used to create the OpenMC model is named <script_name>.py.
+#   This script MUST accept '-s' as an argument to add a Shannon entropy mesh
+#   AND '-n' to set the number of layers.
+#   Please consult the tutorials for examples if you're unsure of how to do this.
+# - The Cardinal input file to run is named <file_name>.
+# - By default, the number of threads is taken as the maximum on your system.
+#   Otherwise, you can set it by providing -n-threads <n_threads>.
+# - A detection method must be specified from (all, half, window). If window
+#   is selected, then --window_length must also be specified.
 #
 # This script will create plots named <script_name>_k_<layers>.pdf and
 # <script_name>_entropy_<layers>.pdf in a sub-directory named inactive_study/.
+# It will print reccomendations about the number of inactive batches to use.
 
 # Whether to use saved statepoint files to just generate plots, skipping transport solves
 use_saved_statepoints = False
