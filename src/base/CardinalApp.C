@@ -72,6 +72,7 @@ CardinalApp::validParams()
 
   params.set<bool>("use_legacy_material_output") = false;
   params.set<bool>("error_unused") = false;
+  params.set<bool>("allow_unused") = true;
   return params;
 }
 
