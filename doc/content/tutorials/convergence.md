@@ -62,6 +62,7 @@ To determine an appropriate number of inactive batches, you can use the
   of cell divisions to create
 - A Cardinal input file that runs your OpenMC model given some imposed
   temperature and density distribution
+- Criteria used to assess the convergence of the fission source
 
 For example, to run an inactive cycle study for the model developed
 for [the gas compact tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
@@ -69,7 +70,7 @@ we would run:
 
 ```
 cd tutorials/gas_compact
-python ../../scripts/inactive_study.py -i unit_cell -input openmc.i
+python ../../scripts/inactive_study.py -i unit_cell -input openmc.i --method=all
 ```
 
 since the Python script used to generate the OpenMC model is named
@@ -82,9 +83,10 @@ of cell layers and number of inactive cycles to consider:
 When the script finishes running, plots of Shannon entropy and $k$, along
 with the saved statepoint files from the simulations, will be available
 in a directory named `inactive_study`. Below are shown example images of
-the Shannon entropy and $k$ plots. You would then select the number of
-inactive cycles to be the point at which both the Shannon entropy and $k$
-reach stationarity.
+the Shannon entropy and $k$ plots. Based on the method of detecting stationarity,
+the script will recommend a minimum number of inactive batches to be used 
+in order to converge the fission source for each layer. Picking the most conservative
+answer will help ensure your simulation is discarding enough batches before tallying.
 
 !media example_entropy_plots.png
   id=entropy
