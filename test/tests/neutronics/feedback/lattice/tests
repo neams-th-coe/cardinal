@@ -65,4 +65,11 @@
     requirement = "The system shall error if the user adds a duplicate variable with a name Cardinal reserves for OpenMC coupling."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [nonmaterial_fluid]
+    type = RunException
+    input = non_material_fluid.i
+    expect_err = "Density transfer does not currently support cells filled with universes or lattices!"
+    requirement = "The system shall error if trying to set density in a cell filled by a universe or lattice."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
