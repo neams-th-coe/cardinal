@@ -1180,8 +1180,8 @@ OpenMCCellAverageProblem::getMaterialFills()
     int32_t material_index;
     auto is_material_cell = materialFill(cell_info, material_index);
 
-    if (!is_material_cell) // TODO: get here?
-      mooseError("Cannot get material fills of a non-material cell!");
+    if (!is_material_cell)
+      mooseError("Density transfer does not currently support cells filled with universes or lattices!");
 
     _cell_to_material[cell_info] = material_index;
     vt.addRow(printCell(cell_info), materialID(material_index));
