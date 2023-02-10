@@ -1,6 +1,7 @@
 [Mesh]
   type = FileMesh
   file = ../../meshes/pincell.e
+  allow_renumbering = false
 []
 
 [ICs]
