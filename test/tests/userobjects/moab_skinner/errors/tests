@@ -106,4 +106,12 @@
     requirement = "The system shall error if trying to run in distributed mesh mode"
     required_objects = 'DagMCPostprocessor'
   []
+  [incorrect_material_names]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/material_names="mat1 mat2"'
+    expect_err = "This parameter must be the same length as the number of subdomains in the mesh \(1\)"
+    requirement = "The system shall error if the material_names provided to the skinner do not match the required length"
+    required_objects = 'DagMCPostprocessor'
+  []
 []

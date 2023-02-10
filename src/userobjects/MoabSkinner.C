@@ -46,8 +46,10 @@ MoabSkinner::validParams()
   params.addRangeCheckedParam<unsigned int>(
       "n_density_bins", "n_density_bins > 0", "Number of density bins");
 
-  params.addRequiredParam<std::vector<std::string>>("material_names", "List of names for each subdomain "
-      "to use for naming the new volumes created in MOAB");
+  params.addParam<std::vector<std::string>>("material_names",
+      "List of names for each subdomain to use for naming the new volumes created in MOAB. "
+      "You only need to set this if using this skinner independent of OpenMC; otherwise, "
+      "these names are auto-deduced from OpenMC");
 
   params.addRangeCheckedParam<Real>(
       "faceting_tol", 1e-4, "faceting_tol > 0", "Faceting tolerance for DagMC");
@@ -90,7 +92,6 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _n_temperature_bins(getParam<unsigned int>("n_temperature_bins")),
     _temperature_bin_width((_temperature_max - _temperature_min) / _n_temperature_bins),
     _bin_by_density(isParamValid("density")),
-    _material_names(getParam<std::vector<std::string>>("material_names")),
     _faceting_tol(getParam<Real>("faceting_tol")),
     _geom_tol(getParam<Real>("geom_tol")),
     _graveyard_scale_inner(getParam<double>("graveyard_scale_inner")),
@@ -199,6 +200,23 @@ MoabSkinner::mesh()
 void
 MoabSkinner::initialize()
 {
+  findBlocks();
+
+  if (_standalone)
+  {
+    checkRequiredParam(parameters(), "material_names", "using skinner independent of an OpenMC [Problem]");
+    _material_names = getParam<std::vector<std::string>>("material_names");
+
+    if (_material_names.size() != _n_block_bins)
+      paramError("material_names", "This parameter must be the same length as the number of "
+        "subdomains in the mesh (" + Moose::stringify(_n_block_bins) + ")");
+  }
+  else
+  {
+    // the external class should have set the value of _material_names
+    checkUnusedParam(parameters(), "material_names", "using the skinner in conjunction with an OpenMC [Problem]");
+  }
+
   // Set spatial dimension in MOAB
   _moab->set_dimension(mesh().spatial_dimension());
 
@@ -208,8 +226,6 @@ MoabSkinner::initialize()
   createTags();
 
   createMOABElems();
-
-  findBlocks();
 }
 
 void
@@ -249,10 +265,6 @@ MoabSkinner::findBlocks()
     _blocks[b] = i++;
 
   _n_block_bins = _blocks.size();
-
-  if (_material_names.size() != _n_block_bins)
-    paramError("material_names", "This parameter must be the same length as the number of "
-      "subdomains in the mesh (" + Moose::stringify(_n_block_bins) + ")");
 }
 
 void

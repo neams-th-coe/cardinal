@@ -34,6 +34,13 @@ public:
   virtual void update();
 
   /**
+   * Set the names to be used for naming the subdomains in the skinned mesh;
+   * there should be one name per subdomain.
+   * @param[in] names names for subdomains
+   */
+  virtual void setMaterialNames(std::vector<std::string> names) { _material_names = names; }
+
+  /**
    * Get the total number of bins
    * @return total number of bins
    */
