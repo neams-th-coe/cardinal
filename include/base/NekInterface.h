@@ -695,18 +695,41 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int & N);
 
 } // end namespace mesh
 
-/// Integer indices in the usrwrk scratch space for writing solutions from MOOSE
+/**
+ * Integer indices in the usrwrk scratch space for writing solutions from MOOSE.
+ * These will be set from Cardinal. Not all will be used simultaneously.
+ */
 struct usrwrkIndices
 {
+  /// boundary heat flux (for conjugate heat transfer)
   int flux;
 
+  /// volumetric heat source (for volumetric heating)
   int heat_source;
 
+  /// x-velocity of moving boundary (for mesh elasticity)
   int mesh_velocity_x;
 
+  /// y-velocity of moving boundary (for mesh elasticity)
   int mesh_velocity_y;
 
+  /// z-velocity of moving boundary (for mesh elasticity)
   int mesh_velocity_z;
+
+  /// boundary velocity (for separate domain coupling)
+  int boundary_velocity;
+
+  /// boundary temperature (for separate domain coupling)
+  int boundary_temperature;
+
+  /// boundary scalar01 (for separate domain coupling)
+  int boundary_scalar01;
+
+  /// boundary scalar02 (for separate domain coupling)
+  int boundary_scalar02;
+
+  /// boundary scalar03 (for separate domain coupling)
+  int boundary_scalar03;
 };
 
 namespace solution
