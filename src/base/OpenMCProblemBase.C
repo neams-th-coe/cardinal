@@ -190,6 +190,11 @@ OpenMCProblemBase::nParticles() const
 std::string
 OpenMCProblemBase::materialName(const int32_t index) const
 {
+  // OpenMC uses -1 to indicate void materials, which don't have a name. So we return
+  // one ourselves, or else openmc_material_get_name will throw an error.
+  if (index == -1)
+    return "VOID";
+
   const char * name;
   int err = openmc_material_get_name(index, &name);
 
