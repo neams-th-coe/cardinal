@@ -764,7 +764,7 @@ OpenMCCellAverageProblem::getCellLevel(const std::string name, unsigned int & ce
     bool using_single_level = isParamValid(param_name);
     bool using_lowest_level = isParamValid(lowest_param_name);
 
-    if (using_single_level && using_lowest_level)
+    if (using_single_level == using_lowest_level)
       paramError(param_name,
                  "When specifying " + name + " blocks for coupling, either '" + param_name +
                      "' or '" + lowest_param_name +
