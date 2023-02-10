@@ -299,6 +299,15 @@ public:
   static constexpr int32_t UNMAPPED{-1};
 
 protected:
+  /// Loop over the mapped cells, and build a map between subdomains to OpenMC materials
+  void subdomainsToMaterials();
+
+  /**
+   * Get a set of all subdomains that have at least 1 element coupled to an OpenMC cell
+   * @return subdomains with at least 1 element coupled to OpenMC
+   */
+  std::set<SubdomainID> coupledSubdomains();
+
   /**
    * Gather a vector of values to be summed for each cell
    * @param[in] local local values to be summed for the cells
@@ -910,6 +919,9 @@ protected:
   /// Mapping of OpenMC cell indices to the subdomain IDs each maps to
   std::map<cellInfo, std::unordered_set<SubdomainID>> _cell_to_elem_subdomain;
 
+  /// Mapping of elem subdomains to materials
+  std::map<SubdomainID, std::unordered_set<int32_t>> _subdomain_to_material;
+
   /**
    * A point inside the cell, taken simply as the centroid of the first global
    * element inside the cell. This is stored to accelerate the particle search.
@@ -925,7 +937,11 @@ protected:
    */
   std::map<cellInfo, Real> _cell_to_elem_volume;
 
-  /// Material filling each cell
+  /**
+   * Material filling each cell to receive density & temperature feedback. We enforce
+   * that these "fluid" cells are filled with a material (cannot be filled with a lattice
+   * or universe).
+   */
   std::map<cellInfo, int32_t> _cell_to_material;
 
   /// Material-type cells contained within a cell
