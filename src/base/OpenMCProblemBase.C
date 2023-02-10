@@ -187,6 +187,25 @@ OpenMCProblemBase::nParticles() const
   return openmc::settings::n_particles;
 }
 
+std::string
+OpenMCProblemBase::materialName(const int32_t index) const
+{
+  const char * name;
+  int err = openmc_material_get_name(index, &name);
+
+  if (err)
+    mooseError("In attempting to get material name for material with index " +
+      Moose::stringify(index) + ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+
+  std::string n = name;
+
+  // if the material does not have a name, just return the ID instead
+  if (n.empty())
+    n = std::to_string(materialID(index));
+
+  return n;
+}
+
 int32_t
 OpenMCProblemBase::cellID(const int32_t index) const
 {
@@ -326,7 +345,6 @@ OpenMCProblemBase::setCellTemperature(const int32_t & id, const int32_t & instan
 std::vector<int32_t>
 OpenMCProblemBase::cellFill(const cellInfo & cell_info, int & fill_type) const
 {
-  fill_type = static_cast<int>(openmc::Fill::MATERIAL);
   int32_t * materials = nullptr;
   int n_materials = 0;
 
@@ -341,6 +359,25 @@ OpenMCProblemBase::cellFill(const cellInfo & cell_info, int & fill_type) const
   return material_indices;
 }
 
+bool
+OpenMCProblemBase::materialFill(const cellInfo & cell_info, int32_t & material_index) const
+{
+  int fill_type;
+  auto material_indices = cellFill(cell_info, fill_type);
+
+  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+    return false;
+
+  // The number of materials in a cell is either 1, or equal to the number of instances
+  // (if distributed materials were used).
+  if (material_indices.size() == 1)
+    material_index = material_indices[0];
+  else
+    material_index = material_indices[cell_info.second];
+
+  return true;
+}
+
 void
 OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_info) const
 {
@@ -352,12 +389,15 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
     mooseError("Densities less than or equal to zero cannot be set in the OpenMC model!\n cell " +
                printCell(cell_info) + " set to density " + Moose::stringify(density) + " (kg/m3)");
 
-  int fill_type;
-  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
+  int32_t material_index;
+  auto is_material_cell = materialFill(cell_info, material_index);
+
+  if (!is_material_cell)
+    mooseError("Density transfer does not currently support cells filled with universes or lattices!");
 
   // throw a special error if the cell is void, because the OpenMC error isn't very
   // clear what the mistake is
-  if (material_indices[0] == MATERIAL_VOID)
+  if (material_index == MATERIAL_VOID)
     mooseError("Cannot set density for cell " + printCell(cell_info) +
                " because this cell is void (vacuum)!");
 
@@ -365,11 +405,11 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   // auxvariable as well as the MOOSE fluid properties module) to g/cm3
   const char * units = "g/cc";
   int err = openmc_material_set_density(
-      material_indices[cell_info.second], density * _density_conversion_factor, units);
+      material_index, density * _density_conversion_factor, units);
 
   if (err)
     mooseError("In attempting to set material with index " +
-               Moose::stringify(material_indices[cell_info.second]) + " to density " +
+               Moose::stringify(material_index) + " to density " +
                Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n" +
                std::string(openmc_err_msg));
 }
@@ -403,25 +443,21 @@ OpenMCProblemBase::importProperties() const
 bool
 OpenMCProblemBase::cellHasFissileMaterials(const cellInfo & cell_info) const
 {
-  int fill_type;
-  std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
+  int32_t material_index;
+  auto is_material_cell = materialFill(cell_info, material_index);
 
   // TODO: for cells with non-material fills, we need to implement something that recurses
   // into the cell/universe fills to see if there's anything fissile; until then, just assume
   // that the cell has something fissile
-  if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
+  if (!is_material_cell)
     return true;
 
-  // for each material fill, check whether it is fissionable
-  for (const auto & index : material_indices)
+  // We know void cells certainly aren't fissionable; if not void, check if fissionable
+  if (material_index != MATERIAL_VOID)
   {
-    // We know void cells certainly aren't fissionable; if not void, check if fissionable
-    if (index != MATERIAL_VOID)
-    {
-      const auto & material = openmc::model::materials[index];
-      if (material->fissionable_)
-        return true;
-    }
+    const auto & material = openmc::model::materials[material_index];
+    if (material->fissionable_)
+      return true;
   }
 
   return false;

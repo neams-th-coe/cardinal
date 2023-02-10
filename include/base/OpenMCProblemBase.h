@@ -86,6 +86,14 @@ public:
   typedef std::pair<int32_t, int32_t> cellInfo;
 
   /**
+   * Get the material name given its index. If the material does not have a name,
+   * return the ID.
+   * @param[in] index
+   * @return material name
+   */
+  std::string materialName(const int32_t index) const;
+
+  /**
    * Compute relative error
    * @param[in] sum sum of scores
    * @param[in] sum_sq sum of scores squared
@@ -199,6 +207,14 @@ public:
    * @return indices of what is filling the cell
    */
   virtual std::vector<int32_t> cellFill(const cellInfo & cell_info, int & fill_type) const;
+
+  /**
+   * Whether the cell has a material fill (if so, then get the material index)
+   * @param[in] cell_info cell ID, instance
+   * @param[out] material_index material index in the cell
+   * @return whether the cell is filled by a material
+   */
+  bool materialFill(const cellInfo & cell_info, int32_t & material_index) const;
 
   /**
    * Whether a cell contains any fissile materials; for now, this simply returns true for

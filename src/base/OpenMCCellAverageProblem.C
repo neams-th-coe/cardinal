@@ -550,6 +550,8 @@ OpenMCCellAverageProblem::setupProblem()
 
     _cell_to_n_contained[cell_info] = n_contained;
   }
+
+  subdomainsToMaterials();
 }
 
 void
@@ -1060,6 +1062,61 @@ OpenMCCellAverageProblem::getCellMappedSubdomains()
   }
 }
 
+std::set<SubdomainID>
+OpenMCCellAverageProblem::coupledSubdomains()
+{
+  std::set<SubdomainID> subdomains;
+  for (const auto & c : _cell_to_elem)
+  {
+    auto subdomains_spanning_cell = _cell_to_elem_subdomain[c.first];
+    for (const auto & s : subdomains_spanning_cell)
+      subdomains.insert(s);
+  }
+
+  return subdomains;
+}
+
+void
+OpenMCCellAverageProblem::subdomainsToMaterials()
+{
+  for (const auto & c : _cell_to_elem)
+  {
+    auto contained_cells = _cell_to_contained_material_cells[c.first];
+    for (const auto & contained : contained_cells)
+    {
+      for (const auto & instance : contained.second)
+      {
+        // we know this is a material cell, so we don't need to check that the fill is material
+        int32_t material_index;
+        cellInfo cell_info = {contained.first, instance};
+        materialFill(cell_info, material_index);
+
+        for (const auto & s : _cell_to_elem_subdomain[c.first])
+          _subdomain_to_material[s].insert(material_index);
+      }
+    }
+  }
+
+  VariadicTable<int, std::string> vt({"Subdomain ID", "Contained OpenMC Materials"});
+  auto subdomains = coupledSubdomains();
+  for (const auto & i : subdomains)
+  {
+    std::string mats = "";
+    for (const auto & m : _subdomain_to_material[i])
+      mats += " " + materialName(m) + ",";
+
+    mats.pop_back();
+    vt.addRow(i, mats);
+  }
+
+  if (_verbose)
+  {
+    _console << "\nMapping of subdomains to OpenMC materials:" << std::endl;
+    vt.print(_console);
+    _console << std::endl;
+  }
+}
+
 void
 OpenMCCellAverageProblem::checkCellMappedSubdomains()
 {
@@ -1120,20 +1177,14 @@ OpenMCCellAverageProblem::getMaterialFills()
     if (cellCouplingFields(cell_info) != coupling::density_and_temperature)
       continue;
 
-    int fill_type;
-    std::vector<int32_t> material_indices = cellFill(cell_info, fill_type);
+    int32_t material_index;
+    auto is_material_cell = materialFill(cell_info, material_index);
 
-    if (fill_type != static_cast<int>(openmc::Fill::MATERIAL))
-      mooseError(
-          "Density transfer does not currently support cells filled with universes or lattices!");
+    if (!is_material_cell) // TODO: get here?
+      mooseError("Cannot get material fills of a non-material cell!");
 
-    // OpenMC checks that for distributed cells, the number of materials either equals 1
-    // or the number of distributed cells; therefore, we just need to index based on the cell
-    // instance (zero for not-distributed cells, otherwise matches the material index)
-    int32_t material_index = material_indices[cell_info.second];
     _cell_to_material[cell_info] = material_index;
-
-    vt.addRow(printCell(cell_info), material_index);
+    vt.addRow(printCell(cell_info), materialID(material_index));
 
     // check for each material that we haven't already discovered it; if we have, this means we
     // didnt set up the materials correctly
