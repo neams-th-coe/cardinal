@@ -64,7 +64,7 @@ OpenMCCellAverageProblem::validParams()
       "Subdomain ID(s) for which to add tallies in the OpenMC model; "
       "only used with cell tallies");
   params.addParam<bool>("check_tally_sum",
-                        "Whether to check consistency between the cell-wise tallies "
+                        "Whether to check consistency between the local tallies "
                         "with a global tally");
   params.addParam<bool>(
       "check_zero_tallies",
@@ -72,12 +72,6 @@ OpenMCCellAverageProblem::validParams()
       "Whether to throw an error if any tallies from OpenMC evaluate to zero; "
       "this can be helpful in reducing the number of tallies if you inadvertently add tallies "
       "to a non-fissile region, or for catching geomtery setup errors");
-  params.addParam<bool>(
-      "skip_first_incoming_transfer",
-      false,
-      "Whether to skip the very first density and temperature transfer into OpenMC; "
-      "this can be used to allow whatever initial condition is set in OpenMC's XML "
-      "files to be used in OpenMC's run the first time OpenMC is run");
   params.addParam<MooseEnum>(
       "initial_properties",
       getInitialPropertiesEnum(),
@@ -364,10 +358,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     paramError("assume_separate_tallies",
                "Cannot assume separate tallies when either of 'check_tally_sum' or"
                "'normalize_by_global_tally' is true!");
-
-  if (params.isParamSetByUser("skip_first_incoming_transfer"))
-    mooseError("The 'skip_first_incoming_transfer' parameter is deprecated and has been replaced "
-               "by the 'initial_properties' parameter!");
 
   // determine the number of particles set either through XML or the wrapping
   if (_relaxation == relaxation::dufek_gudowski)
