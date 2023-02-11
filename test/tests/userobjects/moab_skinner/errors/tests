@@ -110,6 +110,7 @@
     type = RunException
     input = skinner.i
     cli_args = 'UserObjects/moab/material_names="mat1 mat2"'
+    mesh_mode = 'replicated'
     expect_err = "This parameter must be the same length as the number of subdomains in the mesh \(1\)"
     requirement = "The system shall error if the material_names provided to the skinner do not match the required length"
     required_objects = 'DagMCPostprocessor'
