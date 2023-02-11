@@ -237,7 +237,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _export_properties(getParam<bool>("export_properties")),
     _specified_scaling(params.isParamSetByUser("scaling")),
     _scaling(getParam<Real>("scaling")),
-    _run_mode(openmc::settings::run_mode),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
                                       getParam<bool>("normalize_by_global_tally")),
     _fixed_mesh(getParam<bool>("fixed_mesh")),
@@ -254,7 +253,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _tally_mesh_from_moose(!isParamValid("mesh_template")),
-    _total_n_particles(0),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
     _symmetry(nullptr)
@@ -1772,26 +1770,8 @@ OpenMCCellAverageProblem::storeTallyCells()
 void
 OpenMCCellAverageProblem::addLocalTally(const std::vector<std::string> & score, std::vector<openmc::Filter *> & filters)
 {
-  auto tally = openmc::Tally::create();
-  tally->set_scores(score);
-  tally->estimator_ = _tally_estimator;
-  tally->set_filters(filters);
+  auto tally = addTally(score, filters, _tally_estimator);
   _local_tally.push_back(tally);
-}
-
-openmc::Filter *
-OpenMCCellAverageProblem::cellInstanceFilter()
-{
-  auto cell_filter =
-      dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
-
-  std::vector<openmc::CellInstance> cells;
-  for (const auto & c : _tally_cells)
-    cells.push_back(
-        {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
-
-  cell_filter->set_cell_instances(cells);
-  return cell_filter;
 }
 
 std::vector<openmc::Filter *>
@@ -1879,7 +1859,7 @@ OpenMCCellAverageProblem::initializeTallies()
         _previous_tally[i].resize(1);
       }
 
-      std::vector<openmc::Filter *> filter = {cellInstanceFilter()};
+      std::vector<openmc::Filter *> filter = {cellInstanceFilter(_tally_cells)};
       addLocalTally(_tally_score, filter);
 
       break;
@@ -2064,17 +2044,13 @@ OpenMCCellAverageProblem::addExternalVariables()
 void
 OpenMCCellAverageProblem::externalSolve()
 {
-  bool first_iteration = _fixed_point_iteration < 0;
-
   // if using Dufek-Gudowski acceleration and this is not the first iteration, update
   // the number of particles; we put this here so that changing the number of particles
   // doesn't intrude with any other postprocessing routines that happen outside this class's purview
-  if (_relaxation == relaxation::dufek_gudowski && !first_iteration)
+  if (_relaxation == relaxation::dufek_gudowski && !firstSolve())
     dufekGudowskiParticleUpdate();
 
   OpenMCProblemBase::externalSolve();
-
-  _total_n_particles += nParticles();
 }
 
 std::map<OpenMCCellAverageProblem::cellInfo, Real>
@@ -2477,11 +2453,11 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // transfer do we need to filter for the fluid cells
       sendTemperatureToOpenMC();
 
-      if (_export_properties)
-        openmc_properties_export("properties.h5");
-
       if (_has_fluid_blocks)
         sendDensityToOpenMC();
+
+      if (_export_properties)
+        openmc_properties_export("properties.h5");
 
       break;
     }
