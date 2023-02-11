@@ -2614,7 +2614,8 @@ OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
     std::stringstream msg;
     msg << _tally_score[score] << " tallies do not match the global " << _tally_score[score] << " tally:\n"
         << " Global value: " << Moose::stringify(_global_sum_tally[score])
-        << "\n Tally sum: " << Moose::stringify(_local_sum_tally[score])
+        << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
+        << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
         << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.\n"
            "Or, if you're using mesh tallies that don't perfectly align with cell boundaries,\n"
            "you could be missing a small portion of the tally scores. To normalize by the total\n"
