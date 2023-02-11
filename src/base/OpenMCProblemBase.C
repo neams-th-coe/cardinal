@@ -529,4 +529,38 @@ OpenMCProblemBase::checkDuplicateVariableName(const std::string & name) const
       "for the nonlinear variable you are adding.");
 }
 
+openmc::TallyEstimator
+OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
+{
+  switch (estimator)
+  {
+    case tally::tracklength:
+      return openmc::TallyEstimator::TRACKLENGTH;
+    case tally::collision:
+      return openmc::TallyEstimator::COLLISION;
+    case tally::analog:
+      return openmc::TallyEstimator::ANALOG;
+    default:
+      mooseError("Unhandled TallyEstimatorEnum!");
+  }
+}
+
+openmc::TriggerMetric
+OpenMCProblemBase::triggerMetric(tally::TallyTriggerTypeEnum trigger) const
+{
+  switch (trigger)
+  {
+    case tally::variance:
+      return openmc::TriggerMetric::variance;
+    case tally::std_dev:
+      return openmc::TriggerMetric::standard_deviation;
+    case tally::rel_err:
+      return openmc::TriggerMetric::relative_error;
+    case tally::none:
+      return openmc::TriggerMetric::not_active;
+    default:
+      mooseError("Unhandled TallyTriggerTypeEnum!");
+  }
+}
+
 #endif

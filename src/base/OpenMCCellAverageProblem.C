@@ -274,20 +274,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     if (_tally_type == tally::mesh && estimator == tally::tracklength)
       mooseError("Tracklength estimators are currently incompatible with mesh tallies!");
 
-    switch (estimator)
-    {
-      case tally::tracklength:
-        _tally_estimator = openmc::TallyEstimator::TRACKLENGTH;
-        break;
-      case tally::collision:
-        _tally_estimator = openmc::TallyEstimator::COLLISION;
-        break;
-      case tally::analog:
-        _tally_estimator = openmc::TallyEstimator::ANALOG;
-        break;
-      default:
-        mooseError("Unhandled TallyEstimatorEnum in OpenMCCellAverageProblem!");
-    }
+    _tally_estimator = tallyEstimator(estimator);
   }
   else
   {
@@ -1865,22 +1852,7 @@ void
 OpenMCCellAverageProblem::initializeTallies()
 {
   // add trigger information for k, if present
-  switch (_k_trigger)
-  {
-    case tally::variance:
-      openmc::settings::keff_trigger.metric = openmc::TriggerMetric::variance;
-      break;
-    case tally::std_dev:
-      openmc::settings::keff_trigger.metric = openmc::TriggerMetric::standard_deviation;
-      break;
-    case tally::rel_err:
-      openmc::settings::keff_trigger.metric = openmc::TriggerMetric::relative_error;
-      break;
-    case tally::none:
-      break;
-    default:
-      mooseError("Unhandled TallyTriggerTypeEnum!");
-  }
+  openmc::settings::keff_trigger.metric = triggerMetric(_k_trigger);
 
   // create the global tally for normalization
   if (_needs_global_tally)
@@ -1996,29 +1968,8 @@ OpenMCCellAverageProblem::initializeTallies()
   // add trigger information, if present. TODO: we could have these triggers be individual
   // for each score later if needed
   for (auto & t : _local_tally)
-  {
     for (int score = 0; score < _tally_score.size(); ++score)
-    {
-      switch (_tally_trigger)
-      {
-        case tally::variance:
-          t->triggers_.push_back({openmc::TriggerMetric::variance, _tally_trigger_threshold, score});
-          break;
-        case tally::std_dev:
-          t->triggers_.push_back(
-              {openmc::TriggerMetric::standard_deviation, _tally_trigger_threshold, score});
-          break;
-        case tally::rel_err:
-          t->triggers_.push_back(
-              {openmc::TriggerMetric::relative_error, _tally_trigger_threshold, score});
-          break;
-        case tally::none:
-          break;
-        default:
-          mooseError("Unhandled TallyTriggerTypeEnum!");
-      }
-    }
-  }
+      t->triggers_.push_back({triggerMetric(_tally_trigger), _tally_trigger_threshold, score});
 
   // if the tally sum check is turned off, write a message informing the user
   if (!_check_tally_sum)

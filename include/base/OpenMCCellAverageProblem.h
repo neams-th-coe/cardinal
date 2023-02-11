@@ -23,8 +23,6 @@
 #include "openmc/tallies/filter_cell_instance.h"
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/mesh.h"
-#include "openmc/tallies/tally.h"
-#include "CardinalEnums.h"
 #include "SymmetryPointGenerator.h"
 
 /**

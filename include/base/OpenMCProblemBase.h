@@ -22,6 +22,7 @@
 
 #include "ExternalProblem.h"
 #include "PostprocessorInterface.h"
+#include "CardinalEnums.h"
 #include "openmc/tallies/tally.h"
 
 /**
@@ -35,6 +36,20 @@ public:
   static InputParameters validParams();
 
   virtual ~OpenMCProblemBase() override;
+
+  /**
+   * Convert from a MooseEnum for a trigger metric to an OpenMC enum
+   * @param[in] trigger trigger metric
+   * @return OpenMC enum
+   */
+  openmc::TriggerMetric triggerMetric(tally::TallyTriggerTypeEnum trigger) const;
+
+  /**
+   * Convert from a MooseEnum for tally estimator to an OpenMC enum
+   * @param[in] estimator MOOSE estimator enum
+   * @return OpenMC enum
+   */
+  openmc::TallyEstimator tallyEstimator(tally::TallyEstimatorEnum estimator) const;
 
   /**
    * Check whether the user has already created a variable using one of the protected
