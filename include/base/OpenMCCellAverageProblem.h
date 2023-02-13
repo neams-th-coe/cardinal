@@ -19,12 +19,8 @@
 #pragma once
 
 #include "OpenMCProblemBase.h"
-#include "openmc/tallies/filter_cell.h"
-#include "openmc/tallies/filter_cell_instance.h"
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/mesh.h"
-#include "openmc/tallies/tally.h"
-#include "CardinalEnums.h"
 #include "SymmetryPointGenerator.h"
 
 /**
@@ -172,12 +168,6 @@ public:
    */
   void getTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
     const unsigned int & score, const bool & print_table);
-
-  /**
-   * Get the cell instance filter for tallies automatically constructed by Cardinal
-   * @return cell instance filter
-   */
-  openmc::Filter * cellInstanceFilter();
 
   /**
    * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
@@ -722,9 +712,6 @@ protected:
    */
   const Real & _scaling;
 
-  /// OpenMC run mode
-  const openmc::RunMode _run_mode;
-
   /**
    * How to normalize the OpenMC tally into units of W/volume. If 'true',
    * normalization is performed by dividing each local tally against a problem-global
@@ -1028,9 +1015,6 @@ protected:
 
   /// Spatial dimension of the Monte Carlo problem
   static constexpr int DIMENSION{3};
-
-  /// Total number of particles simulated
-  unsigned int _total_n_particles;
 
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;

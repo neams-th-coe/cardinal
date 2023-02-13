@@ -22,6 +22,9 @@
 
 #include "ExternalProblem.h"
 #include "PostprocessorInterface.h"
+#include "CardinalEnums.h"
+
+#include "openmc/tallies/filter_cell_instance.h"
 #include "openmc/tallies/tally.h"
 
 /**
@@ -35,6 +38,23 @@ public:
   static InputParameters validParams();
 
   virtual ~OpenMCProblemBase() override;
+
+  /// Whether this is the first time OpenMC is running
+  bool firstSolve() const;
+
+  /**
+   * Convert from a MooseEnum for a trigger metric to an OpenMC enum
+   * @param[in] trigger trigger metric
+   * @return OpenMC enum
+   */
+  openmc::TriggerMetric triggerMetric(tally::TallyTriggerTypeEnum trigger) const;
+
+  /**
+   * Convert from a MooseEnum for tally estimator to an OpenMC enum
+   * @param[in] estimator MOOSE estimator enum
+   * @return OpenMC enum
+   */
+  openmc::TallyEstimator tallyEstimator(tally::TallyEstimatorEnum estimator) const;
 
   /**
    * Check whether the user has already created a variable using one of the protected
@@ -84,6 +104,13 @@ public:
    * value is the cell index, while the second is the cell instance.
    */
   typedef std::pair<int32_t, int32_t> cellInfo;
+
+  /**
+   * Get the cell instance filter corresponding to provided cells
+   * @param[in] tally_cells cells to add to the filter
+   * @return cell instance filter
+   */
+  openmc::Filter * cellInstanceFilter(const std::vector<cellInfo> & tally_cells) const;
 
   /**
    * Get the material name given its index. If the material does not have a name,
@@ -227,6 +254,16 @@ public:
 
 protected:
   /**
+   * Add tally
+   * @param[in] score score type
+   * @param[in] filters tally filters
+   * @param[in] estimator estimator
+   * @return tally, which has been added to OpenMC, but may want to still be queried from Cardinal
+   */
+  openmc::Tally * addTally(const std::vector<std::string> & score,
+    std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator & estimator);
+
+  /**
    * Set an auxiliary elemental variable to a specified value
    * @param[in] var_num variable number
    * @param[in] elem_ids element IDs to set
@@ -290,6 +327,12 @@ protected:
    * total number of cells.
    */
   const int _n_cell_digits;
+
+  /// OpenMC run mode
+  const openmc::RunMode _run_mode;
+
+  /// Total number of particles simulated
+  unsigned int _total_n_particles;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;

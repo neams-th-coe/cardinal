@@ -78,7 +78,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _single_coord_level(openmc::model::n_coord_levels == 1),
     _fixed_point_iteration(-1),
     _path_output(openmc::settings::path_output),
-    _n_cell_digits(std::to_string(openmc::model::cells.size()).length())
+    _n_cell_digits(std::to_string(openmc::model::cells.size()).length()),
+    _run_mode(openmc::settings::run_mode),
+    _total_n_particles(0)
 {
   if (openmc::settings::run_mode == openmc::RunMode::FIXED_SOURCE)
   {
@@ -258,16 +260,20 @@ OpenMCProblemBase::printPoint(const Point & p) const
   return msg.str();
 }
 
+bool
+OpenMCProblemBase::firstSolve() const
+{
+  return _fixed_point_iteration < 0;
+}
+
 void
 OpenMCProblemBase::externalSolve()
 {
   TIME_SECTION("solveOpenMC", 1, "Solving OpenMC", false);
   _console << " Running OpenMC with " << nParticles() << " particles per batch..." << std::endl;
 
-  bool first_iteration = _fixed_point_iteration < 0;
-
   // apply a new starting fission source
-  if (_reuse_source && !first_iteration)
+  if (_reuse_source && !firstSolve())
   {
     openmc::free_memory_source();
     openmc::model::external_sources.push_back(
@@ -277,6 +283,8 @@ OpenMCProblemBase::externalSolve()
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
+
+  _total_n_particles += nParticles();
 
   err = openmc_reset_timers();
   if (err)
@@ -527,6 +535,66 @@ OpenMCProblemBase::checkDuplicateVariableName(const std::string & name) const
     mooseError("Cardinal is trying to add a nonlinear variable named '", name,
       "', but you already have a variable by this name. Please choose a different name "
       "for the nonlinear variable you are adding.");
+}
+
+openmc::TallyEstimator
+OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
+{
+  switch (estimator)
+  {
+    case tally::tracklength:
+      return openmc::TallyEstimator::TRACKLENGTH;
+    case tally::collision:
+      return openmc::TallyEstimator::COLLISION;
+    case tally::analog:
+      return openmc::TallyEstimator::ANALOG;
+    default:
+      mooseError("Unhandled TallyEstimatorEnum!");
+  }
+}
+
+openmc::TriggerMetric
+OpenMCProblemBase::triggerMetric(tally::TallyTriggerTypeEnum trigger) const
+{
+  switch (trigger)
+  {
+    case tally::variance:
+      return openmc::TriggerMetric::variance;
+    case tally::std_dev:
+      return openmc::TriggerMetric::standard_deviation;
+    case tally::rel_err:
+      return openmc::TriggerMetric::relative_error;
+    case tally::none:
+      return openmc::TriggerMetric::not_active;
+    default:
+      mooseError("Unhandled TallyTriggerTypeEnum!");
+  }
+}
+
+openmc::Filter *
+OpenMCProblemBase::cellInstanceFilter(const std::vector<cellInfo> & tally_cells) const
+{
+  auto cell_filter =
+      dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+
+  std::vector<openmc::CellInstance> cells;
+  for (const auto & c : tally_cells)
+    cells.push_back(
+        {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
+
+  cell_filter->set_cell_instances(cells);
+  return cell_filter;
+}
+
+openmc::Tally *
+OpenMCProblemBase::addTally(const std::vector<std::string> & score,
+  std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator & estimator)
+{
+  auto tally = openmc::Tally::create();
+  tally->set_scores(score);
+  tally->estimator_ = estimator;
+  tally->set_filters(filters);
+  return tally;
 }
 
 #endif
