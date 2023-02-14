@@ -2525,18 +2525,20 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 void
 OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
 {
-  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] >
-      openmc::FP_REL_PRECISION)
+  if (std::abs(_global_sum_tally[score] - _local_sum_tally[score]) / _global_sum_tally[score] > 1e-6)
   {
     std::stringstream msg;
     msg << _tally_score[score] << " tallies do not match the global " << _tally_score[score] << " tally:\n"
         << " Global value: " << Moose::stringify(_global_sum_tally[score])
         << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
         << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
-        << "\n\nYou can turn off this check by setting 'check_tally_sum' to false.\n"
-           "Or, if you're using mesh tallies that don't perfectly align with cell boundaries,\n"
-           "you could be missing a small portion of the tally scores. To normalize by the total\n"
-           "tally (and evade this error), you can set 'normalize_by_global_tally' to false.";
+        << "\n\nThis means that the tallies created by Cardinal are missing some hits over the domain.\n"
+        << "You can turn off this check by setting 'check_tally_sum' to false.";
+
+    if (_tally_type == tally::mesh)
+      msg << "\n\nOr, if your mesh tally doesn't perfectly align with cell boundaries, you could be\n"
+             "missing a portion of the scores. To normalize by the total tally (and evade this error),\n"
+             "you can set 'normalize_by_global_tally' to false.";
 
     // Add on extra helpful messages if the domain has a single coordinate level
     // and cell tallies are used
