@@ -170,8 +170,10 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   for (unsigned int i = 0; i < _n_density_bins + 1; ++i)
     _density_bin_bounds.push_back(_density_min + i * _density_bin_width);
 
+  // node numberings for first-order tets
   _tet4_nodes.push_back({0, 1, 2, 3});
 
+  // node numbers for second-order tets
   _tet10_nodes.push_back({0, 4, 6, 7});
   _tet10_nodes.push_back({1, 5, 4, 8});
   _tet10_nodes.push_back({2, 6, 5, 9});
@@ -531,23 +533,23 @@ MoabSkinner::sortElemsByResults()
     _elem_bins.at(iSortBin).insert(elem->id());
   }
 
-  VariadicTable<unsigned int, std::string, unsigned int> vtt({"Bin", "Range (K)", "# Elems"});
-  VariadicTable<unsigned int, std::string, unsigned int> vtd({"Bin", "Range (kg/m3)", "# Elems"});
-
-  for (unsigned int i = 0; i < _n_temperature_bins; ++i)
-    vtt.addRow(i,
-               std::to_string(_temperature_bin_bounds[i]) + " to " +
-                   std::to_string(_temperature_bin_bounds[i + 1]),
-               n_temp_hits[i]);
-
-  for (unsigned int i = 0; i < _n_density_bins; ++i)
-    vtd.addRow(i,
-               std::to_string(_density_bin_bounds[i]) + " to " +
-                   std::to_string(_density_bin_bounds[i + 1]),
-               n_density_hits[i]);
-
   if (_verbose)
   {
+    VariadicTable<unsigned int, std::string, unsigned int> vtt({"Bin", "Range (K)", "# Elems"});
+    VariadicTable<unsigned int, std::string, unsigned int> vtd({"Bin", "Range (kg/m3)", "# Elems"});
+
+    for (unsigned int i = 0; i < _n_temperature_bins; ++i)
+      vtt.addRow(i,
+                 std::to_string(_temperature_bin_bounds[i]) + " to " +
+                     std::to_string(_temperature_bin_bounds[i + 1]),
+                 n_temp_hits[i]);
+
+    for (unsigned int i = 0; i < _n_density_bins; ++i)
+      vtd.addRow(i,
+                 std::to_string(_density_bin_bounds[i]) + " to " +
+                     std::to_string(_density_bin_bounds[i + 1]),
+                 n_density_hits[i]);
+
     _console << "Mapping of Elements to Temperature Bins:" << std::endl;
     vtt.print(_console);
 
