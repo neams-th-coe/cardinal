@@ -221,7 +221,7 @@ MoabSkinner::initialize()
   _moab->set_dimension(mesh().spatial_dimension());
 
   // Create a meshset representing all of the MOAB tets
-  _moab->create_meshset(moab::MESHSET_SET, _meshset);
+  _moab->create_meshset(moab::MESHSET_SET, _all_tets);
 
   createTags();
 
@@ -333,7 +333,7 @@ MoabSkinner::createMOABElems()
   }
 
   // Add the elems to the full meshset
-  _moab->add_entities(_meshset, all_elems);
+  _moab->add_entities(_all_tets, all_elems);
 
   // Save the first elem
   offset = all_elems.front();
@@ -392,8 +392,8 @@ MoabSkinner::createTags()
                         moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT);
 
   // Set the values for DagMC faceting / geometry tolerance tags on the mesh entity set
-  _moab->tag_set_data(faceting_tol_tag, &_meshset, 1, &_faceting_tol);
-  _moab->tag_set_data(geometry_resabs_tag, &_meshset, 1, &_geom_tol);
+  _moab->tag_set_data(faceting_tol_tag, &_all_tets, 1, &_faceting_tol);
+  _moab->tag_set_data(geometry_resabs_tag, &_all_tets, 1, &_geom_tol);
 }
 
 void

@@ -369,7 +369,7 @@ protected:
   std::map<SubdomainID, unsigned int> _blocks;
 
   /// Entity handle to represent the set of all tets
-  moab::EntityHandle _meshset;
+  moab::EntityHandle _all_tets;
 
   /// Save some topological data: map from surface handle to vol handle and sense
   std::map<moab::EntityHandle, std::vector<VolData>> surfsToVols;
