@@ -268,7 +268,7 @@ public:
    * @param[in] cell_info cell index, instance pair
    * @return coupling fields
    */
-  const coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info);
+  coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info);
 
   const std::vector<openmc::Tally *> & getLocalTally() const { return _local_tally; }
 
@@ -320,7 +320,7 @@ protected:
    * @param[in] elem
    * @return coupling phase
    */
-  const coupling::CouplingFields elemPhase(const Elem * elem) const;
+  coupling::CouplingFields elemPhase(const Elem * elem) const;
 
   /**
    * Read the parameters needed for triggers

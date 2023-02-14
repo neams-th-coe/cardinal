@@ -333,7 +333,7 @@ OpenMCProblemBase::isLocalElem(const Elem * elem) const
   if (!elem)
   {
     // we should only not be able to find an element if the mesh is distributed
-    libmesh_assert(!_mesh.is_serial());
+    libmesh_assert(!_mesh.getMesh().is_serial());
     return false;
   }
 

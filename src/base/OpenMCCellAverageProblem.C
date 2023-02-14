@@ -636,7 +636,7 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
   {
     const auto & filter = _mesh_filters[i];
 
-    for (unsigned int e = 0; e < filter->n_bins(); ++e)
+    for (int e = 0; e < filter->n_bins(); ++e)
     {
       auto elem_ptr = _mesh.queryElemPtr(offset + e);
 
@@ -799,7 +799,7 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
   }
 }
 
-const coupling::CouplingFields
+coupling::CouplingFields
 OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
 {
   auto id = elem->subdomain_id();
@@ -886,7 +886,7 @@ OpenMCCellAverageProblem::gatherCellVector(std::vector<T> & local, std::vector<u
   }
 }
 
-const coupling::CouplingFields
+coupling::CouplingFields
 OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
 {
   // _cell_to_elem only holds cells that are coupled by feedback to the [Mesh] (for sake of
@@ -1938,7 +1938,7 @@ OpenMCCellAverageProblem::initializeTallies()
   // add trigger information, if present. TODO: we could have these triggers be individual
   // for each score later if needed
   for (auto & t : _local_tally)
-    for (int score = 0; score < _tally_score.size(); ++score)
+    for (std::size_t score = 0; score < _tally_score.size(); ++score)
       t->triggers_.push_back({triggerMetric(_tally_trigger), _tally_trigger_threshold, score});
 
   // if the tally sum check is turned off, write a message informing the user
@@ -2003,7 +2003,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     std::map<std::string, std::vector<SubdomainName>> vars_to_blocks;
     std::set<SubdomainName> blocks;
-    for (int i = 0; i < _temperature_vars->size(); ++i)
+    for (std::size_t i = 0; i < _temperature_vars->size(); ++i)
     {
       auto var = (*_temperature_vars)[i];
       auto block = (*_temperature_blocks)[i];
