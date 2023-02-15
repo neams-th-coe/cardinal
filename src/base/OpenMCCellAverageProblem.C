@@ -1281,10 +1281,9 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     int n_missing = 0;
     for (const auto & c : openmc::model::cells)
     {
-      if (c->n_instances_ > 1)
-        mooseError("Internal error: assumption that a single-level OpenMC model does not have "
-          "distributed cells was broken");
-
+      // for a single-level geometry, we know that all cells will have just 1 instance,
+      // because distributed cells are inherently tied to being repeated (which is not
+      // possible with a single universe)
       cellInfo cell {openmc::model::cell_map[c->id_], 0 /* instance */};
       if (!cellIsVoid(cell) && !_cell_to_elem.count(cell))
       {
