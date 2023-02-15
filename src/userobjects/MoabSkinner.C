@@ -22,12 +22,6 @@ MoabSkinner::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
-  params.addParam<bool>(
-      "fixed_mesh",
-      true,
-      "Whether the MooseMesh is unchanging during the simulation (true), or whether there is mesh "
-      "movement and/or adaptivity that is changing the mesh in time (false). When the mesh changes "
-      "during the simulation, the MOAB mesh is re-built every time step");
 
   // temperature binning
   params.addRequiredParam<std::string>("temperature",
@@ -84,7 +78,6 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _verbose(getParam<bool>("verbose")),
-    _fixed_mesh(getParam<bool>("fixed_mesh")),
     _build_graveyard(getParam<bool>("build_graveyard")),
     _temperature_name(getParam<std::string>("temperature")),
     _temperature_min(getParam<Real>("temperature_min")),
@@ -246,9 +239,8 @@ MoabSkinner::update()
   _serialized_solution->init(_fe_problem.getAuxiliarySystem().sys().n_dofs(), false, SERIAL);
   _fe_problem.getAuxiliarySystem().solution().localize(*_serialized_solution);
 
-  // Re-initialise the mesh data if the libMesh mesh has changed
-  if (!_fixed_mesh)
-    initialize();
+  // Re-initialise the mesh data
+  initialize();
 
   // Sort libMesh elements into bins
   sortElemsByResults();
@@ -795,12 +787,9 @@ MoabSkinner::groupLocalElems(std::set<dof_id_type> elems, std::vector<moab::Rang
 void
 MoabSkinner::reset()
 {
-  if (!_fixed_mesh)
-  {
-    _moab.reset(new moab::Core());
-    skinner.reset(new moab::Skinner(_moab.get()));
-    gtt.reset(new moab::GeomTopoTool(_moab.get()));
-  }
+  _moab.reset(new moab::Core());
+  skinner.reset(new moab::Skinner(_moab.get()));
+  gtt.reset(new moab::GeomTopoTool(_moab.get()));
 
   // Clear entity set maps
   surfsToVols.clear();

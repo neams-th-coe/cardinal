@@ -83,12 +83,6 @@ public:
   virtual void setVerbosity(const bool & verbose) { _verbose = verbose; }
 
   /**
-   * Set whether the libMesh mesh is fixed
-   * @param[in] fixed whether mesh is fixed
-   */
-  virtual void setFixedMesh(const bool & fixed) { _fixed_mesh = fixed; }
-
-  /**
    * Indicate whether this userobject is run by itself (for testing purposes)
    * or controlled by some other class.
    */
@@ -125,9 +119,6 @@ protected:
 
   /// Whether to print diagnostic information
   bool _verbose;
-
-  /// Whether the libMesh mesh is fixed in time (e.g. no spatial deformations or refinement)
-  bool _fixed_mesh;
 
   /**
    * Whether to build a graveyard as two additional cube surfaces surrounding the mesh.
