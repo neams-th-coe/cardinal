@@ -1273,12 +1273,44 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   // If there is a single coordinate level, we can print a helpful message if there are uncoupled
   // cells in the domain
-  if (_single_coord_level)
+  auto n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
+  if (_single_coord_level && n_uncoupled_cells)
   {
-    auto n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
-    if (n_uncoupled_cells)
-      mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(n_uncoupled_cells) +
-                   " OpenMC cells!");
+    // Get the number of uncoupled material cells (which we presumably want to include in our
+    // coupling). We don't care about VOID cells, because they will never have feedback.
+    VariadicTable<std::string, std::string> vt({"Cell", "Contained OpenMC Materials"});
+
+    std::vector<cellInfo> missing_cells;
+    int n_missing = 0;
+    for (const auto & c : openmc::model::cells)
+    {
+      if (c->n_instances_ > 1)
+        mooseError("Internal error: assumption that a single-level OpenMC model does not have "
+          "distributed cells was broken");
+
+      cellInfo cell {openmc::model::cell_map[c->id_], 0 /* instance */};
+      if (!cellIsVoid(cell) && !_cell_to_elem.count(cell))
+      {
+        n_missing++;
+
+        int32_t material_index;
+        materialFill(cell, material_index);
+        vt.addRow(printCell(cell), materialName(material_index));
+      }
+    }
+
+    if (n_missing)
+    {
+      std::stringstream msg;
+      msg << "Skipping multiphysics feedback for " << n_missing <<
+             " OpenMC cells!\n\nThis means that there are " << n_missing <<
+             " non-void cells in your OpenMC model that will not receive feedback\n"
+             "from MOOSE. This is normal if you are intentionally excluding some cells from feedback. The\n"
+             "unmapped cells are:\n\n";
+
+      vt.print(msg);
+      mooseWarning(msg.str());
+    }
   }
 
   // Check that each cell maps to a single phase
