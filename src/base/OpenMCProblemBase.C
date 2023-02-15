@@ -229,15 +229,15 @@ OpenMCProblemBase::cellID(const int32_t index) const
 int32_t
 OpenMCProblemBase::materialID(const int32_t index) const
 {
+  if (index == openmc::MATERIAL_VOID)
+    return -1;
+
   int32_t id;
   int err = openmc_material_get_id(index, &id);
 
   if (err)
-  {
-    std::stringstream msg;
-    msg << "In attempting to get ID for material with index " + Moose::stringify(index) +
-               ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
-  }
+    mooseError("In attempting to get ID for material with index ", Moose::stringify(index),
+               ", OpenMC reported:\n\n", std::string(openmc_err_msg));
 
   return id;
 }
@@ -595,6 +595,16 @@ OpenMCProblemBase::addTally(const std::vector<std::string> & score,
   tally->estimator_ = estimator;
   tally->set_filters(filters);
   return tally;
+}
+
+bool
+OpenMCProblemBase::cellIsVoid(const cellInfo & cell_info) const
+{
+  // material_index will be unchanged if the cell is filled by a universe or lattice.
+  // Otherwise, this will get set to the material index in the cell.
+  int32_t material_index = 0;
+  materialFill(cell_info, material_index);
+  return material_index == MATERIAL_VOID;
 }
 
 #endif
