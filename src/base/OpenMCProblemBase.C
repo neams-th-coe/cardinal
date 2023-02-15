@@ -130,10 +130,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     int err = openmc_set_n_batches(getParam<unsigned int>("batches"),
                                    true /* set the max batches */,
                                    true /* add the last batch for statepoint writing */);
-
-    if (err)
-      mooseError("In attempting to set the number of batches, OpenMC reported:\n\n" +
-                 std::string(openmc_err_msg));
+    catchOpenMCError(err, "set the number of batches");
 
     // if we set the batches from Cardinal, remove whatever statepoint file was
     // created for the #batches set in the XML files; this is just to reduce the
@@ -161,6 +158,14 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 }
 
 OpenMCProblemBase::~OpenMCProblemBase() { openmc_finalize(); }
+
+void
+OpenMCProblemBase::catchOpenMCError(const int & err, const std::string descriptor) const
+{
+  if (err)
+    mooseError("In attempting to ", descriptor, ", OpenMC reported:\n\n",
+      std::string(openmc_err_msg));
+}
 
 void
 OpenMCProblemBase::fillElementalAuxVariable(const unsigned int & var_num,
@@ -199,10 +204,7 @@ OpenMCProblemBase::materialName(const int32_t index) const
 
   const char * name;
   int err = openmc_material_get_name(index, &name);
-
-  if (err)
-    mooseError("In attempting to get material name for material with index " +
-      Moose::stringify(index) + ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+  catchOpenMCError(err, "get material name for material with index " + index);
 
   std::string n = name;
 
@@ -218,27 +220,19 @@ OpenMCProblemBase::cellID(const int32_t index) const
 {
   int32_t id;
   int err = openmc_cell_get_id(index, &id);
-
-  if (err)
-    mooseError("In attempting to get ID for cell with index " + Moose::stringify(index) +
-               " , OpenMC reported:\n\n" + std::string(openmc_err_msg));
-
+  catchOpenMCError(err, "get ID for cell with index " + index);
   return id;
 }
 
 int32_t
 OpenMCProblemBase::materialID(const int32_t index) const
 {
+  if (index == openmc::MATERIAL_VOID)
+    return -1;
+
   int32_t id;
   int err = openmc_material_get_id(index, &id);
-
-  if (err)
-  {
-    std::stringstream msg;
-    msg << "In attempting to get ID for material with index " + Moose::stringify(index) +
-               ", OpenMC reported:\n\n" + std::string(openmc_err_msg);
-  }
-
+  catchOpenMCError(err, "get ID for material with index " + index);
   return id;
 }
 
@@ -348,11 +342,7 @@ OpenMCProblemBase::setCellTemperature(const int32_t & id, const int32_t & instan
   const cellInfo & cell_info) const
 {
   int err = openmc_cell_set_temperature(id, T, &instance, false);
-
-  if (err)
-    mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
-               Moose::stringify(T) + " (K), OpenMC reported:\n\n" +
-               std::string(openmc_err_msg));
+  catchOpenMCError(err, "set cell " + printCell(cell_info) + " to temperature " + Moose::stringify(T) + " (K)");
 }
 
 std::vector<int32_t>
@@ -362,10 +352,7 @@ OpenMCProblemBase::cellFill(const cellInfo & cell_info, int & fill_type) const
   int n_materials = 0;
 
   int err = openmc_cell_get_fill(cell_info.first, &fill_type, &materials, &n_materials);
-
-  if (err)
-    mooseError("In attempting to get fill of cell " + printCell(cell_info) +
-               ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
+  catchOpenMCError(err, "get fill of cell " + printCell(cell_info));
 
   std::vector<int32_t> material_indices;
   material_indices.assign(materials, materials + n_materials);
@@ -420,11 +407,9 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   int err = openmc_material_set_density(
       material_index, density * _density_conversion_factor, units);
 
-  if (err)
-    mooseError("In attempting to set material with index " +
+  catchOpenMCError(err, "set material with index " +
                Moose::stringify(material_index) + " to density " +
-               Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n" +
-               std::string(openmc_err_msg));
+               Moose::stringify(density) + " (kg/m3)");
 }
 
 std::string
@@ -447,10 +432,7 @@ OpenMCProblemBase::importProperties() const
   _console << "Reading temperature and density from properties.h5" << std::endl;
 
   int err = openmc_properties_import("properties.h5");
-  if (err)
-    mooseError("In attempting to load temperature and density from a properties.h5 file, "
-               "OpenMC reported:\n\n" +
-               std::string(openmc_err_msg));
+  catchOpenMCError(err, "load temperature and density from a properties.h5 file");
 }
 
 bool
@@ -595,6 +577,16 @@ OpenMCProblemBase::addTally(const std::vector<std::string> & score,
   tally->estimator_ = estimator;
   tally->set_filters(filters);
   return tally;
+}
+
+bool
+OpenMCProblemBase::cellIsVoid(const cellInfo & cell_info) const
+{
+  // material_index will be unchanged if the cell is filled by a universe or lattice.
+  // Otherwise, this will get set to the material index in the cell.
+  int32_t material_index = 0;
+  materialFill(cell_info, material_index);
+  return material_index == MATERIAL_VOID;
 }
 
 #endif
