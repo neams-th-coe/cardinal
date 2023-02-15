@@ -566,10 +566,7 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     int err = openmc_set_n_batches(getParam<unsigned int>("max_batches"),
                                    true /* set the max batches */,
                                    true /* add the last batch for statepoint writing */);
-
-    if (err)
-      mooseError("In attempting to set the maximum number of batches, OpenMC reported:\n\n" +
-                 std::string(openmc_err_msg));
+    catchOpenMCError(err, "set the maximum number of batches");
 
     openmc::settings::trigger_batch_interval = getParam<unsigned int>("batch_interval");
   }
@@ -2695,11 +2692,7 @@ OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
 
   double T;
   int err = openmc_cell_get_temperature(material_cell.first, &material_cell.second, &T);
-
-  if (err)
-    mooseError("In attempting to get temperature of cell " + printCell(cell_info) +
-               ", OpenMC reported:\n\n" + std::string(openmc_err_msg));
-
+  catchOpenMCError(err, "get temperature of cell " + printCell(cell_info));
   return T;
 }
 

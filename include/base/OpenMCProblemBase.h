@@ -39,6 +39,13 @@ public:
 
   virtual ~OpenMCProblemBase() override;
 
+  /**
+   * Print a full error message when catching errors from OpenMC
+   * @param[in] err OpenMC error code
+   * @param[in] descriptor descriptive message for error
+   */
+  void catchOpenMCError(const int & err, const std::string descriptor) const;
+
   /// Whether this is the first time OpenMC is running
   bool firstSolve() const;
 
