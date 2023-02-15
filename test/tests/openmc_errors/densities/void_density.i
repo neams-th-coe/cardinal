@@ -40,7 +40,6 @@
   tally_blocks = '1'
   verbose = true
 
-  solid_cell_level = 0
   fluid_cell_level = 0
 []
 

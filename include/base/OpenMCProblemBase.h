@@ -39,6 +39,13 @@ public:
 
   virtual ~OpenMCProblemBase() override;
 
+  /**
+   * Print a full error message when catching errors from OpenMC
+   * @param[in] err OpenMC error code
+   * @param[in] descriptor descriptive message for error
+   */
+  void catchOpenMCError(const int & err, const std::string descriptor) const;
+
   /// Whether this is the first time OpenMC is running
   bool firstSolve() const;
 
@@ -106,6 +113,13 @@ public:
   typedef std::pair<int32_t, int32_t> cellInfo;
 
   /**
+   * Whether a cell is filled with VOID (vacuum)
+   * @param[in] cell_info cell ID, instance
+   * @return whether cell is void
+   */
+  bool cellIsVoid(const cellInfo & cell_info) const;
+
+  /**
    * Get the cell instance filter corresponding to provided cells
    * @param[in] tally_cells cells to add to the filter
    * @return cell instance filter
@@ -149,7 +163,7 @@ public:
   int32_t cellID(const int32_t index) const;
 
   /**
-   * Get the material ID from the material index
+   * Get the material ID from the material index; for VOID cells, this returns -1
    * @param[in] index material index
    * @return cell material ID
    */
@@ -236,7 +250,8 @@ public:
   virtual std::vector<int32_t> cellFill(const cellInfo & cell_info, int & fill_type) const;
 
   /**
-   * Whether the cell has a material fill (if so, then get the material index)
+   * Whether the cell has a material fill (if so, then get the material index). Void counts
+   * as a material, with a material index of -1.
    * @param[in] cell_info cell ID, instance
    * @param[out] material_index material index in the cell
    * @return whether the cell is filled by a material
