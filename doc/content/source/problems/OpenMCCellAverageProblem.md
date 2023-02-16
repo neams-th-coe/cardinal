@@ -622,55 +622,18 @@ reads from.
 #### Symmetric Data Transfers
 
 Many neutronics problems are symmetric - such as half-core or quarter-core symmetry.
-However, some MOOSE mesh generators (such asthe
-[Reactor module](https://mooseframework.inl.gov/modules/reactor/index.html) don't
-support generating symmetric geometries by slicing along arbitrary planes. This class supports
+However, some MOOSE mesh generators (such as in the
+[Reactor module](https://mooseframework.inl.gov/modules/reactor/index.html)) don't
+yet support symmetric geometries by slicing along arbitrary planes. This class supports
 both half-symmetric OpenMC models and general $n$-th symmetric rotational models by
 coupling symmetric OpenMC models to full-system thermal-fluid models.
 
-!alert note
-When using symmetric data transfers, elements with centroids that *perfectly* align with
-one of the symmetry planes in the OpenMC model can occasionally not map correctly, due
-to roundoff errors. It is recommended to use meshes that avoid this possibility.
-It can be helpful when setting up symmetric models to visualize the actual
-$x$, $y$, and $z$ coordinates that get sent into OpenMC - the
-[PointTransformationAux](/auxkernels/PointTransformationAux.md) can be used for
-this purpose.
-
-##### Half-Symmetry
-
-Half-symmetry allows you to reflect across a general plane. The point `(0.0, 0.0, 0.0)` is
-assumed as the origin of the plane, and the `symmetry_plane_normal` parameter provides the
-normal vector for the plane.
-Then, any points in the `[Mesh]` that are on the "positive"
-side of the plane (the direction in which the normal points) are reflected across
-the plane before they are mapped to OpenMC cells.
-For example, [symmetry] shows a half-symmetric OpenMC model of a fuel assembly
-and the mesh to which data is sent. The `symmetry_plane_normal` is shown as
-$\hat{n}$. If asymmetries exist in whatever
+The symmetric mapping is specified with the `symmetry_mapper` parameter, a
+[SymmetryPointGenerator](/userobjects/SymmetryPointGenerator.md) user object.
+Note that if asymmetries exist in whatever
 physics OpenMC is coupled to, they will be averaged on both sides of the plane
-before sending temperatures and densities to OpenMC.
-
-!media symmetry_transfers.png
-  id=symmetry
-  caption=Illustration of symmetric data transfers to/from OpenMC
-
-##### Rotational Symmetry
-
-This class also supports general rotational symmetry, such as to define quarter-symmetry
-in the unit circle.
-Again, you specify the `symmetry_plane_normal` to define *one*
-of the planes bounding the symmetric region. Then, you must also provide a
-`symmetry_axis` about which to rotate, and a `symmetry_angle` (in degrees) to indicate
-the angle of the symmetry sector (sweeping clockwise from the vector $\hat{n}\times\hat{m}$, where $\hat{m}$
-is the `symmetry_axis`). For example, [symmetry_b] shows a 1/6th symmetric OpenMC model
-of a fuel assembly and the mesh to which data is sent. The `symmetry_plane_normal` is
-shown as $\hat{n}$. For this case, the `symmetry_axis` is set to the positive $z$ axis,
-pointing out of the picture. The `symmetry_angle` is then 60 degrees.
-
-!media symmetry_transfers_b.png
-  id=symmetry_b
-  caption=Illustration of symmetric angular data transfers to/from OpenMC
+before sending temperatures and densities to OpenMC. Please consult the
+[SymmetryPointGenerator](/userobjects/SymmetryPointGenerator.md) for more information.
 
 !syntax parameters /Problem/OpenMCCellAverageProblem
 

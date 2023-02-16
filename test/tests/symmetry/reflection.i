@@ -52,10 +52,16 @@
   solid_cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
-
-  symmetry_plane_normal = '1.0 1.0 1.0'
-
   initial_properties = xml
+
+  symmetry_mapper = sym
+[]
+
+[UserObjects]
+  [sym]
+    type = SymmetryPointGenerator
+    normal = '1.0 1.0 1.0'
+  []
 []
 
 [Executioner]

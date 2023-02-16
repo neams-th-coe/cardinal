@@ -1053,8 +1053,8 @@ protected:
    */
   const std::vector<SubdomainName> * _temperature_blocks;
 
-  /// Helper utility to rotate [Mesh] points according to symmetry in OpenMC model
-  std::unique_ptr<SymmetryPointGenerator> _symmetry;
+  /// Userobject that maps from a partial-symmetry OpenMC model to a whole-domain [Mesh]
+  const SymmetryPointGenerator * _symmetry;
 
   /// Number of solid elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_solid;

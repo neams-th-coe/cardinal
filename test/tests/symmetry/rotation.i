@@ -53,12 +53,18 @@
   solid_cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
-
-  symmetry_plane_normal = '0.0 1.0 0.0'
-  symmetry_axis = '0.0 0.0 1.0'
-  symmetry_angle = ${fparse 360.0 / 6.0}
-
   initial_properties = xml
+
+  symmetry_mapper = sym
+[]
+
+[UserObjects]
+  [sym]
+    type = SymmetryPointGenerator
+    normal = '0.0 1.0 0.0'
+    rotation_axis = '0.0 0.0 1.0'
+    rotation_angle = ${fparse 360.0 / 6.0}
+  []
 []
 
 [Executioner]
