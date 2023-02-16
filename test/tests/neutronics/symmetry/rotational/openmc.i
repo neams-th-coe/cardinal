@@ -76,9 +76,16 @@
   tally_type = cell
   solid_cell_level = 1
 
-  symmetry_plane_normal = '${fparse -sqrt(3.0) / 2.0} 0.5 0.0'
-  symmetry_axis = '0.0 0.0 1.0'
-  symmetry_angle = 60.0
+  symmetry_mapper = sym
+[]
+
+[UserObjects]
+  [sym]
+    type = SymmetryPointGenerator
+    normal = '${fparse -sqrt(3.0) / 2.0} 0.5 0.0'
+    rotation_axis = '0.0 0.0 1.0'
+    rotation_angle = 60.0
+  []
 []
 
 [Postprocessors]
