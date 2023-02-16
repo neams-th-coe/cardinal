@@ -78,7 +78,14 @@
   tally_type = cell
   solid_cell_level = 1
 
-  symmetry_plane_normal = '-1.0 0.0 0.0'
+  symmetry_mapper = sym
+[]
+
+[UserObjects]
+  [sym]
+    type = SymmetryPointGenerator
+    normal = '-1.0 0.0 0.0'
+  []
 []
 
 [Executioner]

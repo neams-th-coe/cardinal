@@ -213,10 +213,13 @@ OpenMCCellAverageProblem::validParams()
                            "Number of particles to use for first iteration "
                            "when using Dufek-Gudowski relaxation");
 
+  params.addParam<UserObjectName>("symmetry_mapper", "User object (of type SymmetryPointGenerator) "
+    "to map from a symmetric OpenMC model to a full-domain [Mesh]. For example, you can use this "
+    "to map from a quarter-symmetric OpenMC model to a whole-domain [Mesh].");
   params.addParam<Point>("symmetry_plane_normal",
-                         "Normal that defines a symmetry plane in the OpenMC model");
+               "Normal that defines a symmetry plane in the OpenMC model");
   params.addParam<Point>("symmetry_axis",
-                         "Axis about which to rotate for angle-symmetric OpenMC models");
+               "Axis about which to rotate for angle-symmetric OpenMC models");
   params.addRangeCheckedParam<Real>(
       "symmetry_angle",
       "symmetry_angle > 0 & symmetry_angle <= 180",
@@ -334,23 +337,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
       mooseError("Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
 
-  if (isParamValid("symmetry_plane_normal"))
-  {
-    const auto & normal = getParam<Point>("symmetry_plane_normal");
-    _symmetry.reset(new SymmetryPointGenerator(normal));
-
-    checkJointParams(params, {"symmetry_axis", "symmetry_angle"}, "specifying angular symmetry");
-
-    if (isParamValid("symmetry_axis"))
-    {
-      const auto & axis = getParam<Point>("symmetry_axis");
-      const auto & angle = getParam<Real>("symmetry_angle");
-      _symmetry->initializeAngularSymmetry(axis, angle);
-    }
-  }
-  else
-    checkUnusedParam(params, {"symmetry_plane_normal", "symmetry_axis", "symmetry_angle"},
-                             "not setting a symmetry plane");
+  if (isParamValid("symmetry_plane_normal") || isParamValid("symmetry_axis") || isParamValid("symmetry_angle"))
+    mooseError("The 'symmetry_plane_normal', 'symmetry_axis', and 'symmetry_angle' functionality has been moved into the SymmetryPointGenerator user object. Please add a SymmetryPointGenerator user object and pass into the 'symmetry_mapper' parameter.");
 
   if (_assume_separate_tallies && _needs_global_tally)
     paramError("assume_separate_tallies",
@@ -486,12 +474,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         mooseError("Unhandled OutputEnum in OpenMCCellAverageProblem!");
     }
   }
-
-  setupProblem();
-
-  initializeTallies();
-
-  checkMeshTemplateAndTranslations();
 }
 
 void
@@ -501,6 +483,21 @@ OpenMCCellAverageProblem::initialSetup()
 
   if (_adaptivity.isOn() && _fixed_mesh)
     mooseError("When using mesh adaptivity, 'fixed_mesh' must be false!");
+
+  if (isParamValid("symmetry_mapper"))
+  {
+    auto name = getParam<UserObjectName>("symmetry_mapper");
+    _symmetry = &getUserObject<SymmetryPointGenerator>(name);
+
+    if (!_symmetry)
+      mooseError("The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!");
+  }
+
+  setupProblem();
+
+  initializeTallies();
+
+  checkMeshTemplateAndTranslations();
 }
 
 void

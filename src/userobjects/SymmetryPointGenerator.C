@@ -18,45 +18,70 @@
 
 #include "SymmetryPointGenerator.h"
 #include "GeometryUtility.h"
-#include "MooseUtils.h"
-#include "math.h"
+#include "UserErrorChecking.h"
 
-SymmetryPointGenerator::SymmetryPointGenerator(const Point & normal) : _rotational_symmetry(false)
+registerMooseObject("CardinalApp", SymmetryPointGenerator);
+
+InputParameters
+SymmetryPointGenerator::validParams()
 {
-  Point zero(0.0, 0.0, 0.0);
-  if (normal.absolute_fuzzy_equals(zero))
-    mooseError("The 'symmetry_plane_normal' cannot have zero norm!");
-
-  _normal = normal / normal.norm();
+  InputParameters params = GeneralUserObject::validParams();
+  params.addRequiredParam<Point>("normal", "Normal of the symmetry plane");
+  params.addParam<Point>("rotation_axis",
+                         "If rotationally symmetric, the axis about which to rotate. "
+                         "If not specified, then the geometry is mirror-symmetric.");
+  params.addRangeCheckedParam<Real>(
+      "rotation_angle",
+      "rotation_angle > 0 & rotation_angle <= 180",
+      "If rotationally symmetric, the angle (degrees) from the 'normal' plane "
+      "through which to rotate to form the symmetric wedge. If not specified, then the"
+      "geometry is mirror-symmetric.");
+  params.addClassDescription("Maps from a point (x, y, z) to a new point that is either "
+    "mirror-symmetric or rotationally-symmetric from the point.");
+  return params;
 }
 
-void
-SymmetryPointGenerator::initializeAngularSymmetry(const Point & axis, const Real & angle)
+SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
+  : ThreadedGeneralUserObject(params),
+    _rotational_symmetry(isParamValid("rotation_axis"))
 {
-  _rotational_symmetry = true;
+  checkJointParams(params, {"rotation_axis", "rotation_angle"}, "specifying rotational symmetry");
 
-  // symmetry axis cannot be zero norm
+  auto n = getParam<Point>("normal");
   Point zero(0.0, 0.0, 0.0);
-  if (axis.absolute_fuzzy_equals(zero))
-    mooseError("The 'symmetry_axis' cannot have zero norm!");
+  if (n.absolute_fuzzy_equals(zero))
+    mooseError("The 'normal' cannot have zero norm!");
 
-  // the symmetry axis needs to be perpendicular to the plane normal
-  if (!MooseUtils::absoluteFuzzyEqual(axis * _normal, 0.0))
-    mooseError("The 'symmetry_axis' must be perpendicular to the 'symmetry_plane_normal'!");
+  _normal = n / n.norm();
 
-  _rotational_axis = axis / axis.norm();
+  if (_rotational_symmetry)
+  {
+    const auto & axis = getParam<Point>("rotation_axis");
+    const auto & angle = getParam<Real>("rotation_angle");
 
-  // unit circle must be divisible by angle
-  if (!MooseUtils::absoluteFuzzyEqual(fmod(360.0, angle), 0))
-    mooseError("The unit circle must be divisible by the 'symmetry_angle'!");
+    // symmetry axis cannot be zero norm
+    Point zero(0.0, 0.0, 0.0);
+    if (axis.absolute_fuzzy_equals(zero))
+      mooseError("The 'rotation_axis' cannot have zero norm!");
 
-  _angle = angle * M_PI / 180.0;
+    // the symmetry axis needs to be perpendicular to the plane normal
+    if (!MooseUtils::absoluteFuzzyEqual(axis * _normal, 0.0))
+      mooseError("The 'rotation_axis' must be perpendicular to the 'normal'!");
 
-  _zero_theta = _normal.cross(_rotational_axis);
-  _zero_theta = _zero_theta / _zero_theta.norm();
+    _rotational_axis = axis / axis.norm();
 
-  _reflection_normal = geom_utility::rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
-  _reflection_normal = _reflection_normal / _reflection_normal.norm();
+    // unit circle must be divisible by angle
+    if (!MooseUtils::absoluteFuzzyEqual(fmod(360.0, angle), 0))
+      mooseError("The unit circle must be evenly divisible by the 'rotation_angle'!");
+
+    _angle = angle * M_PI / 180.0;
+
+    _zero_theta = _normal.cross(_rotational_axis);
+    _zero_theta = _zero_theta / _zero_theta.norm();
+
+    _reflection_normal = geom_utility::rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
+    _reflection_normal = _reflection_normal / _reflection_normal.norm();
+  }
 }
 
 bool

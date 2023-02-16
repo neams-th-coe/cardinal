@@ -18,25 +18,23 @@
 
 #pragma once
 
-#include "Moose.h"
-#include "MooseTypes.h"
-#include "libmesh/point.h"
+#include "ThreadedGeneralUserObject.h"
 
 /**
- * Class that rotates/reflects a point about symmetry planes; the origin
- * for reflection and rotation is (0.0, 0.0, 0.0)
+ * Class that maps from a point (x, y, z) to a new point that is
+ * either rotationally symmetry or mirrored. The origin for reflection
+ * and rotation is (0, 0, 0).
  */
-class SymmetryPointGenerator
+class SymmetryPointGenerator : public ThreadedGeneralUserObject
 {
 public:
-  SymmetryPointGenerator(const Point & normal);
+  static InputParameters validParams();
 
-  /**
-   * Initialize information needed to transform points with angular symmetry
-   * @param[in] axis axis of symmetry
-   * @param[in] angle angular sector width for symmetry
-   */
-  void initializeAngularSymmetry(const Point & axis, const Real & angle);
+  SymmetryPointGenerator(const InputParameters & parameters);
+
+  virtual void initialize() {}
+  virtual void finalize() {}
+  virtual void execute() {}
 
   /**
    * Whether point is on the positive side of a plane; points exactly on plane return false
@@ -69,6 +67,9 @@ public:
   int sector(const Point & p) const;
 
 protected:
+  /// Whether rotational symmetry is applied; otherwise, the domain is mirror-symmetric
+  const bool _rotational_symmetry;
+
   /// Normal defining the first symmetry plane
   Point _normal;
 
@@ -83,7 +84,4 @@ protected:
 
   /// Normal defining the reflection plane, for odd-numbered sectors
   Point _reflection_normal;
-
-  /// Whether rotational symmetry is applied
-  bool _rotational_symmetry;
 };
