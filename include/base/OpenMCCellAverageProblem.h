@@ -734,12 +734,12 @@ protected:
   const bool _normalize_by_global;
 
   /**
-   * Whether the [Mesh] is fixed and unchanging during the simulation, or whether
-   * the mesh moves spatially and/or is adaptively refine. When the mesh changes
-   * during the simulation, the mapping from OpenMC cells to the [Mesh] must be
-   * re-established after each OpenMC run.
+   * If 'fixed_mesh' is false, this indicates that the [Mesh] is changing during
+   * the simulation (either from adaptive refinement or from deformation).
+   * When the mesh changes during the simulation, the mapping from OpenMC cells to
+   * the [Mesh] must be re-established after each OpenMC run.
    */
-  const bool & _fixed_mesh;
+  const bool & _need_to_reinit_coupling;
 
   /**
    * Whether to check the tallies against the global tally;

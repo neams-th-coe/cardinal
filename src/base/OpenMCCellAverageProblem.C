@@ -99,6 +99,7 @@ OpenMCCellAverageProblem::validParams()
       "Whether to assume that all tallies added by in the XML files and automatically "
       "by Cardinal are spatially separate. This is a performance optimization");
 
+  // TODO: would be nice to auto-detect this
   params.addParam<bool>("fixed_mesh", true,
     "Whether the MooseMesh is unchanging during the simulation (true), or whether there is mesh "
     "movement and/or adaptivity that is changing the mesh in time (false). When the mesh changes "
@@ -242,7 +243,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _scaling(getParam<Real>("scaling")),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
                                       getParam<bool>("normalize_by_global_tally")),
-    _fixed_mesh(getParam<bool>("fixed_mesh")),
+    _need_to_reinit_coupling(!getParam<bool>("fixed_mesh")),
     _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") :
                                                        (_run_mode == openmc::RunMode::FIXED_SOURCE ?
                                                         true : _normalize_by_global)),
@@ -260,6 +261,29 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _temperature_blocks(nullptr),
     _symmetry(nullptr)
 {
+  // We need to clear and re-initialize the OpenMC tallies if
+  // fixed_mesh is false, which indicates at least one of the following:
+  //   - the [Mesh] is being adaptively refined
+  //   - the [Mesh] is deforming in space
+  //
+  // If the [Mesh] is changing, then we certainly know that the mesh tallies
+  // need to be re-initialized because (a) for file-based mesh tallies, we need
+  // to enforce that the mesh is identical to the [Mesh] and (b) for directly
+  // tallying on the [Mesh], we need to pass that mesh info into OpenMC. For good
+  // measure, we also need to re-initialize cell tallies because it's possible
+  // that as the [Mesh] changes, the mapping from OpenMC cells to the [Mesh]
+  // also changes, which could open the door to new cell IDs/instances being added
+  // to the cell instance filter. If we need to re-init tallies, then we can't
+  // guarantee that the tallies from iteration to iteration correspond to exactly
+  // the same number of bins or to exactly the same regions of space, so we must
+  // disable relaxation.
+  if (_need_to_reinit_coupling && _relaxation != relaxation::none)
+    mooseError("When 'fixed_mesh' is false, the mapping from the OpenMC model to the [Mesh] may "
+      "vary in time. This means that we have no guarantee that the number of tally bins (or even "
+      "the regions of space corresponding to each bin) are fixed. Therefore, it is not "
+      "possible to apply relaxation to the OpenMC tallies because you might end up trying to add vectors "
+      "of different length (and possibly spatial mapping).");
+
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
 
@@ -481,7 +505,7 @@ OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
 
-  if (_adaptivity.isOn() && _fixed_mesh)
+  if (_adaptivity.isOn() && _need_to_reinit_coupling)
     mooseError("When using mesh adaptivity, 'fixed_mesh' must be false!");
 
   if (isParamValid("symmetry_mapper"))
@@ -2444,7 +2468,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
-      if (!_first_transfer && !_fixed_mesh)
+      if (!_first_transfer && !_need_to_reinit_coupling)
         setupProblem();
 
       if (_first_transfer)
