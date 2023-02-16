@@ -36,6 +36,8 @@ SymmetryPointGenerator::validParams()
       "If rotationally symmetric, the angle (degrees) from the 'normal' plane "
       "through which to rotate to form the symmetric wedge. If not specified, then the"
       "geometry is mirror-symmetric.");
+  params.addClassDescription("Maps from a point (x, y, z) to a new point that is either "
+    "mirror-symmetric or rotationally-symmetric from the point.");
   return params;
 }
 
