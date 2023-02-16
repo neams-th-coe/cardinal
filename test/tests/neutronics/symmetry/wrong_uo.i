@@ -8,6 +8,8 @@ height = 6.343                           # height of the full core (m)
     type = FileMeshGenerator
     file = solid_mesh_in.e
   []
+
+  allow_renumbering = false
 []
 
 [Problem]
