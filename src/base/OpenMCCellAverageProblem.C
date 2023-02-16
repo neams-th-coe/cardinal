@@ -488,6 +488,9 @@ OpenMCCellAverageProblem::initialSetup()
   {
     auto name = getParam<UserObjectName>("symmetry_mapper");
     _symmetry = &getUserObject<SymmetryPointGenerator>(name);
+
+    if (!_symmetry)
+      mooseError("The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!");
   }
 
   setupProblem();
