@@ -589,4 +589,22 @@ OpenMCProblemBase::cellIsVoid(const cellInfo & cell_info) const
   return material_index == MATERIAL_VOID;
 }
 
+void
+OpenMCProblemBase::geometryType(bool & has_csg_universe, bool & has_dag_universe) const
+{
+  has_csg_universe = false;
+  has_dag_universe = false;
+
+  // Loop over universes and check if type is DAGMC
+  for (const auto& universe: openmc::model::universes)
+  {
+    if (universe->geom_type() == openmc::GeometryType::DAG)
+      has_dag_universe = true;
+    else if (universe->geom_type() == openmc::GeometryType::CSG)
+      has_csg_universe = true;
+    else
+      mooseError("Unhandled GeometryType enum!");
+  }
+}
+
 #endif
