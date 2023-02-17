@@ -505,7 +505,7 @@ OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
 
-  if (_adaptivity.isOn() && _need_to_reinit_coupling)
+  if (_adaptivity.isOn() && !_need_to_reinit_coupling)
     mooseError("When using mesh adaptivity, 'fixed_mesh' must be false!");
 
   if (isParamValid("symmetry_mapper"))
@@ -518,15 +518,22 @@ OpenMCCellAverageProblem::initialSetup()
   }
 
   setupProblem();
-
-  initializeTallies();
-
-  checkMeshTemplateAndTranslations();
 }
 
 void
 OpenMCCellAverageProblem::setupProblem()
 {
+  // establish the local -> global element mapping for convenience
+  _local_to_global_elem.clear();
+  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  {
+    const auto * elem = _mesh.queryElemPtr(e);
+    if (!isLocalElem(elem))
+      continue;
+
+    _local_to_global_elem.push_back(e);
+  }
+
   initializeElementToCellMapping();
 
   getMaterialFills();
@@ -548,6 +555,10 @@ OpenMCCellAverageProblem::setupProblem()
   }
 
   subdomainsToMaterials();
+
+  initializeTallies();
+
+  checkMeshTemplateAndTranslations();
 }
 
 void
@@ -1755,6 +1766,8 @@ OpenMCCellAverageProblem::storeTallyCells()
   cellInfo first_tally_cell;
   Real mapped_tally_volume;
 
+  _tally_cells.clear();
+
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -1850,7 +1863,7 @@ OpenMCCellAverageProblem::meshFilter()
   tally_mesh->output_ = false;
   _mesh_template = tally_mesh.get();
 
-  int32_t mesh_index = openmc::model::meshes.size();
+  _mesh_index = openmc::model::meshes.size();
   openmc::model::meshes.push_back(std::move(tally_mesh));
 
   std::vector<openmc::Filter *> mesh_filters;
@@ -1859,7 +1872,7 @@ OpenMCCellAverageProblem::meshFilter()
   {
     const auto & translation = _mesh_translations[i];
     auto meshFilter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
-    meshFilter->set_mesh(mesh_index);
+    meshFilter->set_mesh(_mesh_index);
     meshFilter->set_translation({translation(0), translation(1), translation(2)});
     mesh_filters.push_back(meshFilter);
   }
@@ -1868,22 +1881,66 @@ OpenMCCellAverageProblem::meshFilter()
 }
 
 void
+OpenMCCellAverageProblem::resetTallies()
+{
+  if (_needs_global_tally)
+  {
+    // erase tally
+    auto idx = openmc::model::tallies.begin() + _global_tally_index;
+    openmc::model::tallies.erase(idx);
+  }
+
+  auto idx = openmc::model::tallies.begin() + _local_tally_index;
+  switch (_tally_type)
+  {
+    case tally::cell:
+    {
+      // erase tally
+      openmc::model::tallies.erase(idx);
+
+      // erase filter
+      auto fidx = openmc::model::tally_filters.begin() + _filter_index;
+      openmc::model::tally_filters.erase(fidx);
+      break;
+    }
+    case tally::mesh:
+    {
+      // erase tallies
+      openmc::model::tallies.erase(idx, idx + _mesh_translations.size());
+
+      // erase filters
+      auto fidx = openmc::model::tally_filters.begin() + _filter_index;
+      openmc::model::tally_filters.erase(fidx, fidx + _mesh_translations.size());
+
+      // erase meshes
+      auto midx = openmc::model::meshes.begin() + _mesh_index;
+      openmc::model::meshes.erase(midx);
+      break;
+    }
+    default:
+      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+  }
+}
+
+void
 OpenMCCellAverageProblem::initializeTallies()
 {
   // add trigger information for k, if present
   openmc::settings::keff_trigger.metric = triggerMetric(_k_trigger);
 
-  // create the global tally for normalization
+  // create the global tally for normalization; we make sure to use the
+  // same estimator as the local tally
   if (_needs_global_tally)
   {
     _global_tally = openmc::Tally::create();
     _global_tally->set_scores(_tally_score);
-
-    // we want to match the same estimator used for the local tally
     _global_tally->estimator_ = _tally_estimator;
 
+    _global_tally_index = openmc::model::tallies.size();
     _global_sum_tally.resize(_tally_score.size());
   }
+
+  _local_tally.clear();
 
   _local_sum_tally.resize(_tally_score.size());
   _local_mean_tally.resize(_tally_score.size());
@@ -1891,6 +1948,10 @@ OpenMCCellAverageProblem::initializeTallies()
   _current_raw_tally.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
+
+  // we have not yet added the local tally, which is why we have +1 here
+  _local_tally_index = openmc::model::tallies.size() + 1;
+  _filter_index = openmc::model::tally_filters.size() + 1;
 
   // create the local tally
   switch (_tally_type)
@@ -1943,6 +2004,7 @@ OpenMCCellAverageProblem::initializeTallies()
         _previous_tally[i].resize(n_translations);
       }
 
+      _mesh_filters.clear();
       auto filters = meshFilter();
       for (const auto & m : filters)
         _mesh_filters.push_back(dynamic_cast<openmc::MeshFilter *>(m));
@@ -2468,8 +2530,11 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
       // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
-      if (!_first_transfer && !_need_to_reinit_coupling)
+      if (!_first_transfer && _need_to_reinit_coupling)
+      {
+        resetTallies();
         setupProblem();
+      }
 
       if (_first_transfer)
       {
