@@ -183,6 +183,11 @@ MoabSkinner::getAuxiliaryVariableNumber(const std::string & name, const std::str
   if (!_fe_problem.getAuxiliarySystem().hasVariable(name))
     paramError(param_name, "Cannot find auxiliary variable '", name, "'!");
 
+  // we require these variables to be constant monomial
+  auto type = _fe_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).feType();
+  if (type.family != MONOMIAL || type.order != 0)
+    paramError(param_name, "Auxiliary variable '", name, "' must be a CONSTANT MONOMIAL type!");
+
   return _fe_problem.getAuxiliarySystem().getFieldVariable<Real>(0, name).number();
 }
 

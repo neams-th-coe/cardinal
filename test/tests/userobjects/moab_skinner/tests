@@ -45,4 +45,11 @@
     cli_args = '--mesh-only'
     requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions. The bins shall be re-generated on each time step."
   []
+  [wrong_type]
+    type = RunException
+    input = wrong_type.i
+    expect_err = "Auxiliary variable 'temp' must be a CONSTANT MONOMIAL type!"
+    requirement = "The system shall error if the requirements for a binning variable type are violated."
+    required_objects = 'DagMCPostprocessor'
+  []
 []
