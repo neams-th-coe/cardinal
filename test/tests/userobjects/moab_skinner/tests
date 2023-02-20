@@ -48,6 +48,7 @@
   [wrong_type]
     type = RunException
     input = wrong_type.i
+    mesh_mode = 'replicated'
     expect_err = "Auxiliary variable 'temp' must be a CONSTANT MONOMIAL type!"
     requirement = "The system shall error if the requirements for a binning variable type are violated."
     required_objects = 'DagMCPostprocessor'
