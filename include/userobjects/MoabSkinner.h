@@ -26,9 +26,16 @@ public:
 
   virtual void initialize() override;
 
-  virtual void finalize() override {}
+  virtual void finalize() override;
 
   virtual void threadJoin(const UserObject & /* uo */) override {}
+
+  /**
+   * Wrap the error handling in MOAB to print errors to user
+   * @param[in] input MOAB error code
+   * @return error mode
+   */
+  virtual moab::ErrorCode check(const moab::ErrorCode input) const;
 
   /// Perform the skinning operation
   virtual void update();

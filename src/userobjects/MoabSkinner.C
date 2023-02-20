@@ -175,6 +175,23 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   _tet10_nodes.push_back({4, 5, 9, 8});
   _tet10_nodes.push_back({4, 7, 9, 6});
   _tet10_nodes.push_back({4, 9, 5, 6});
+
+  moab::MBErrorHandler_Init();
+}
+
+void
+MoabSkinner::finalize()
+{
+  moab::MBErrorHandler_Finalize();
+}
+
+moab::ErrorCode
+MoabSkinner::check(const moab::ErrorCode input) const
+{
+#ifdef DEBUG
+  MB_CHK_ERR(input);
+#endif
+  return moab::MB_SUCCESS;
 }
 
 unsigned int
@@ -218,10 +235,10 @@ MoabSkinner::initialize()
   }
 
   // Set spatial dimension in MOAB
-  _moab->set_dimension(mesh().spatial_dimension());
+  check(_moab->set_dimension(mesh().spatial_dimension()));
 
   // Create a meshset representing all of the MOAB tets
-  _moab->create_meshset(moab::MESHSET_SET, _all_tets);
+  check(_moab->create_meshset(moab::MESHSET_SET, _all_tets));
 
   createTags();
 
@@ -286,7 +303,7 @@ MoabSkinner::createMOABElems()
 
     // Add node to MOAB database and get handle
     moab::EntityHandle ent(0);
-    _moab->create_vertex(coords, ent);
+    check(_moab->create_vertex(coords, ent));
 
     // Save mapping of libMesh IDs to MOAB vertex handles
     node_id_to_handle[node->id()] = ent;
@@ -317,7 +334,7 @@ MoabSkinner::createMOABElems()
 
       // Create an element in MOAB database
       moab::EntityHandle ent(0);
-      _moab->create_element(moab::MBTET, conn.data(), NODES_PER_MOAB_TET, ent);
+      check(_moab->create_element(moab::MBTET, conn.data(), NODES_PER_MOAB_TET, ent));
 
       // Save mapping between libMesh ids and moab handles
       auto id = elem->id();
@@ -332,7 +349,7 @@ MoabSkinner::createMOABElems()
   }
 
   // Add the elems to the full meshset
-  _moab->add_entities(_all_tets, all_elems);
+  check(_moab->add_entities(_all_tets, all_elems));
 
   // Save the first elem
   offset = all_elems.front();
@@ -353,52 +370,52 @@ void
 MoabSkinner::createTags()
 {
   // First some built-in MOAB tag types
-  _moab->tag_get_handle(GEOM_DIMENSION_TAG_NAME,
+  check(_moab->tag_get_handle(GEOM_DIMENSION_TAG_NAME,
                         1,
                         moab::MB_TYPE_INTEGER,
                         geometry_dimension_tag,
-                        moab::MB_TAG_DENSE | moab::MB_TAG_CREAT);
+                        moab::MB_TAG_DENSE | moab::MB_TAG_CREAT));
 
-  _moab->tag_get_handle(GLOBAL_ID_TAG_NAME,
+  check(_moab->tag_get_handle(GLOBAL_ID_TAG_NAME,
                         1,
                         moab::MB_TYPE_INTEGER,
                         id_tag,
-                        moab::MB_TAG_DENSE | moab::MB_TAG_CREAT);
+                        moab::MB_TAG_DENSE | moab::MB_TAG_CREAT));
 
-  _moab->tag_get_handle(CATEGORY_TAG_NAME,
+  check(_moab->tag_get_handle(CATEGORY_TAG_NAME,
                         CATEGORY_TAG_SIZE,
                         moab::MB_TYPE_OPAQUE,
                         category_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT);
+                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
-  _moab->tag_get_handle(NAME_TAG_NAME,
+  check(_moab->tag_get_handle(NAME_TAG_NAME,
                         NAME_TAG_SIZE,
                         moab::MB_TYPE_OPAQUE,
                         name_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT);
+                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
   // Some tags needed for DagMC
-  _moab->tag_get_handle("FACETING_TOL",
+  check(_moab->tag_get_handle("FACETING_TOL",
                         1,
                         moab::MB_TYPE_DOUBLE,
                         faceting_tol_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT);
+                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
-  _moab->tag_get_handle("GEOMETRY_RESABS",
+  check(_moab->tag_get_handle("GEOMETRY_RESABS",
                         1,
                         moab::MB_TYPE_DOUBLE,
                         geometry_resabs_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT);
+                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
   // Set the values for DagMC faceting / geometry tolerance tags on the mesh entity set
-  _moab->tag_set_data(faceting_tol_tag, &_all_tets, 1, &_faceting_tol);
-  _moab->tag_set_data(geometry_resabs_tag, &_all_tets, 1, &_geom_tol);
+  check(_moab->tag_set_data(faceting_tol_tag, &_all_tets, 1, &_faceting_tol));
+  check(_moab->tag_set_data(geometry_resabs_tag, &_all_tets, 1, &_geom_tol));
 }
 
 void
 MoabSkinner::createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set)
 {
-  _moab->create_meshset(moab::MESHSET_SET, group_set);
+  check(_moab->create_meshset(moab::MESHSET_SET, group_set));
   setTags(group_set, name, "Group", id, 4);
 }
 
@@ -407,12 +424,12 @@ MoabSkinner::createVol(const unsigned int & id,
                        moab::EntityHandle & volume_set,
                        moab::EntityHandle group_set)
 {
-  _moab->create_meshset(moab::MESHSET_SET, volume_set);
+  check(_moab->create_meshset(moab::MESHSET_SET, volume_set));
 
   setTags(volume_set, "", "Volume", id, 3);
 
   // Add the volume to group
-  _moab->add_entities(group_set, &volume_set, 1);
+  check(_moab->add_entities(group_set, &volume_set, 1));
 }
 
 void
@@ -422,13 +439,13 @@ MoabSkinner::createSurf(const unsigned int & id,
                         const std::vector<VolData> & voldata)
 {
   // Create meshset
-  _moab->create_meshset(moab::MESHSET_SET, surface_set);
+  check(_moab->create_meshset(moab::MESHSET_SET, surface_set));
 
   // Set tags
   setTags(surface_set, "", "Surface", id, 2);
 
   // Add tris to the surface
-  _moab->add_entities(surface_set, faces);
+  check(_moab->add_entities(surface_set, faces));
 
   // Create entry in map
   surfsToVols[surface_set] = std::vector<VolData>();
@@ -442,7 +459,7 @@ void
 MoabSkinner::updateSurfData(moab::EntityHandle surface_set, const VolData & data)
 {
   // Add the surface to the volume set
-  _moab->add_parent_child(data.vol, surface_set);
+  check(_moab->add_parent_child(data.vol, surface_set));
 
   // Set the surfaces sense
   gtt->set_sense(surface_set, data.vol, int(data.sense));
@@ -478,14 +495,14 @@ MoabSkinner::setTagData(moab::Tag tag,
   auto namebuf = new char[SIZE];
   memset(namebuf, '\0', SIZE); // fill C char array with null
   strncpy(namebuf, data.c_str(), SIZE - 1);
-  _moab->tag_set_data(tag, &ent, 1, namebuf);
+  check(_moab->tag_set_data(tag, &ent, 1, namebuf));
   delete[] namebuf;
 }
 
 void
 MoabSkinner::setTagData(moab::Tag tag, moab::EntityHandle ent, void * data)
 {
-  _moab->tag_set_data(tag, &ent, 1, data);
+  check(_moab->tag_set_data(tag, &ent, 1, data));
 }
 
 unsigned int
@@ -697,7 +714,7 @@ MoabSkinner::write()
     if (_verbose)
       _console << "Writing MOAB skins to " << filename << "...";
 
-    _moab->write_mesh(filename.c_str(), surfs.data(), surfs.size());
+    check(_moab->write_mesh(filename.c_str(), surfs.data(), surfs.size()));
 
     if (_verbose)
       _console << "done" << std::endl;
@@ -710,7 +727,7 @@ MoabSkinner::write()
     if (_verbose)
       _console << "Writing MOAB mesh to " << filename << std::endl;
 
-    _moab->write_mesh(filename.c_str());
+    check(_moab->write_mesh(filename.c_str()));
 
     if (_verbose)
       _console << "done" << std::endl;
@@ -854,7 +871,7 @@ MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int
 
     // First get the entities in this surface
     moab::Range tris;
-    _moab->get_entities_by_handle(surf, tris);
+    check(_moab->get_entities_by_handle(surf, tris));
 
     // Find any tris that live in both surfs
     moab::Range overlap = moab::intersect(tris, faces);
@@ -870,7 +887,7 @@ MoabSkinner::createSurfaces(moab::Range & faces, VolData & voldata, unsigned int
       {
         // If overlap is subset, subtract shared tris from this surface and create a new shared
         // surface
-        _moab->remove_entities(surf, overlap);
+        check(_moab->remove_entities(surf, overlap));
 
         // Append our new volume to the list that share this surf
         vols.push_back(voldata);
@@ -963,7 +980,7 @@ MoabSkinner::createNodesFromBox(const BoundingBox & box, const Real & factor) co
     coord[2] = vert(2) * _scaling;
 
     moab::EntityHandle ent;
-    _moab->create_vertex(coord, ent);
+    check(_moab->create_vertex(coord, ent));
     vert_handles.push_back(ent);
   }
 
@@ -1005,7 +1022,7 @@ MoabSkinner::createTri(const std::vector<moab::EntityHandle> & vertices,
 {
   moab::EntityHandle triangle;
   moab::EntityHandle connectivity[3] = {vertices[v1], vertices[v2], vertices[v3]};
-  _moab->create_element(moab::MBTRI, connectivity, 3, triangle);
+  check(_moab->create_element(moab::MBTRI, connectivity, 3, triangle));
   return triangle;
 }
 
