@@ -1,6 +1,6 @@
 [GENERAL]
 #verbose=true
-polynomialOrder = 7
+polynomialOrder = 3
 stopAt = numSteps
 numSteps = 100
 dt = 1e-3
