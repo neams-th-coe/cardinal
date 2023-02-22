@@ -1,0 +1,32 @@
+[Tests]
+  [wrong_uo]
+    type = RunException
+    input = wrong_uo.i
+    expect_err = "The 'skinner' user object must be of type MoabSkinner!"
+    requirement = "The system shall error if the skinner user object is not the correct type"
+    required_objects = 'MoabSkinner'
+  []
+  [missing_graveyard]
+    type = RunException
+    input = missing_graveyard.i
+    cli_args = '--error'
+    expect_err = "Overriding graveyard setting on 'moab' user object because a graveyard must be present for OpenMC."
+    requirement = "The system shall warn if the graveyard is missing for OpenMC skinned models"
+    required_objects = 'MoabSkinner'
+  []
+  [no_symmetry]
+    type = RunException
+    input = no_symmetry.i
+    expect_err = "Cannot combine the 'skinner' with 'symmetry_mapper'!"
+    requirement = "The system shall error if applying a symmetry mapping to an OpenMC model which must "
+                  "already exactly match the mesh."
+    required_objects = 'MoabSkinner'
+  []
+  [density_bins]
+    type = RunException
+    input = density_bins.i
+    expect_err = "Density binning is not currently supported for the OpenMC wrapping!"
+    requirement = "The system shall error if using density bins, which are not yet supported."
+    required_objects = 'MoabSkinner'
+  []
+[]

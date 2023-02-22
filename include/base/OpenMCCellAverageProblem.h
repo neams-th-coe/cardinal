@@ -25,6 +25,11 @@
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/mesh.h"
 
+#ifdef ENABLE_DAGMC
+#include "MoabSkinner.h"
+#include "DagMC.hpp"
+#endif
+
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
  * on solid cells and both temperature and density feedback on fluid cells. The
@@ -307,10 +312,16 @@ public:
    */
   double cellMappedVolume(const cellInfo & cell_info);
 
+  /// Reconstruct the DAGMC geometry after skinning
+  void reloadDAGMC();
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
 
 protected:
+  /// Calculate the number of unique OpenMC cells (each with a unique ID & instance)
+  void calculateNumCells();
+
   /// Loop over the mapped cells, and build a map between subdomains to OpenMC materials
   void subdomainsToMaterials();
 
@@ -935,7 +946,7 @@ protected:
   std::map<cellInfo, std::unordered_set<SubdomainID>> _cell_to_elem_subdomain;
 
   /// Mapping of elem subdomains to materials
-  std::map<SubdomainID, std::unordered_set<int32_t>> _subdomain_to_material;
+  std::map<SubdomainID, std::set<int32_t>> _subdomain_to_material;
 
   /**
    * A point inside the cell, taken simply as the centroid of the first global
@@ -1116,6 +1127,20 @@ protected:
 
   /// Index in tally_score pointing to the score used for normalizing flux tallies in eigenvalue mode
   unsigned int _source_rate_index;
+
+#ifdef ENABLE_DAGMC
+  /// Optional skinner to re-generate the OpenMC geometry on-the-fly for DAGMC models
+  MoabSkinner * _skinner;
+
+  /// Pointer to DAGMC
+  std::shared_ptr<moab::DagMC> _dagmc;
+#endif
+
+  /// Total number of unique OpenMC cell IDs + instances combinations
+  long unsigned int _n_openmc_cells;
+
+  /// Index in the OpenMC universes corresponding to the DAGMC universe
+  int32_t _dagmc_universe_index;
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;

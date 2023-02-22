@@ -37,6 +37,8 @@ public:
    */
   virtual moab::ErrorCode check(const moab::ErrorCode input) const;
 
+  std::string materialName(const unsigned int & block, const unsigned int & density, const unsigned int & temp) const;
+
   /// Perform the skinning operation
   virtual void update();
 
@@ -118,6 +120,31 @@ public:
                               const unsigned int & density_bin,
                               const unsigned int & subdomain_bin) const;
 
+  /**
+   * Whether the skinner builds a graveyard
+   * @return whether a graveyard is built
+   */
+  virtual const bool & hasGraveyard() const { return _build_graveyard; }
+
+  /**
+   * Set the graveyard setting
+   * @param[in] build whether to build a graveyard
+   */
+  void setGraveyard(bool build) { _build_graveyard = build; }
+
+  /**
+   * Number of density bins; if greater than 1, this means we must be re-generating
+   * OpenMC materials during the course of the simulation.
+   * @return number of density bins
+   */
+  virtual unsigned int nDensityBins() const { return _n_density_bins; }
+
+  /**
+   * Get pointer to underlying moab interface
+   * @return pointer to moab interface
+   */
+  const std::shared_ptr<moab::Interface> & moabPtr() const { return _moab; }
+
 protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
@@ -126,12 +153,6 @@ protected:
 
   /// Whether to print diagnostic information
   bool _verbose;
-
-  /**
-   * Whether to build a graveyard as two additional cube surfaces surrounding the mesh.
-   * This is only needed if the skinned geometry is fed into a Monte Carlo code.
-   */
-  const bool & _build_graveyard;
 
   /// Name of the temperature variable
   const std::string & _temperature_name;
@@ -172,6 +193,12 @@ protected:
 
   /// Whether to output the MOAB mesh to a .h5m file
   const bool & _output_full;
+
+  /**
+   * Whether to build a graveyard as two additional cube surfaces surrounding the mesh.
+   * This is only needed if the skinned geometry is fed into a Monte Carlo code.
+   */
+  bool _build_graveyard;
 
   /// Length multiplier to get from [Mesh] units into OpenMC's centimeters
   Real _scaling;
@@ -308,14 +335,6 @@ protected:
   /// Group a given bin into local regions
   /// NB elems in param is a copy, localElems is a reference
   void groupLocalElems(std::set<dof_id_type> elems, std::vector<moab::Range> & localElems);
-
-  /**
-   * Get a unique index for an OpenMC material (which we can simply take as the density bin,
-   * because in OpenMC you can set a unique temperature on different cells filled with the
-   * same material, but this is not the case for density).
-   * @return OpenMC material index
-   */
-  unsigned int getMatBin(const unsigned int & iDenBin) const;
 
   /// Clear MOAB entity sets
   bool resetMOAB();
