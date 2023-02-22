@@ -232,6 +232,7 @@ module load cmake
 module load cuda
 module load hdf5
 module load python/3.7.0-anaconda3-5.3.0
+module load eigen/3.3.9
 
 export HDF5_ROOT=/sw/summit/spack-envs/base/opt/linux-rhel8-ppc64le/gcc-9.1.0/hdf5-1.10.7-yxvwkhm4nhgezbl2mwzdruwoaiblt6q2
 export HDF5_INCLUDE_DIR=$HDF5_ROOT/include
