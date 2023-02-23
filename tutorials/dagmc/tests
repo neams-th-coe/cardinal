@@ -13,6 +13,6 @@
     min_parallel = 2
     prereq = mesh
     requirement = 'The system shall couple DAGMC OpenMC models to MOOSE.'
-    required_objects = 'DagMCPostprocessor'
+    required_objects = 'MoabSkinner'
   []
 []
