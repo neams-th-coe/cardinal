@@ -1,0 +1,23 @@
+[Tests]
+  [graveyard]
+    type = RunApp
+    input = graveyard.i
+    mesh_mode = 'replicated'
+    required_objects = 'DagMCPostprocessor'
+  []
+  [convert_to_gmsh]
+    type = RunCommand
+    prereq = graveyard
+    command = '../../../../../install/bin/mbconvert moab_skins_0.h5m skins.msh'
+    requirement = "The system shall be able to convert a .h5m file to gmsh"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [check_skins]
+    type = Exodiff
+    prereq = convert_to_gmsh
+    input = read_skins.i
+    exodiff = read_skins_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions, with a graveyard region outside the original mesh."
+  []
+[]

@@ -1,17 +1,23 @@
 # Contact
 
-For questions, please contact the Cardinal development team.
+For questions, please contact the current Cardinal development team.
 
 - April Novak (ANL): anovak@anl.gov
 - Elia Merzari (PSU, ANL)
 - Patrick Shriwise (ANL)
-- Ron Rahaman (ANL)
-- Paul Romano (ANL)
-- Dillon Shaver (ANL)
-- Yu-Hsiang Lan (ANL)
-- Roy Stogner (INL)
 - Derek Gaston (INL)
-- Victor Coppo Leite (PSU)
+- Helen Brooks (UKAEA)
 - Aaron Huxford (UM)
 - Anshuman Chaube (UIUC)
-- Andy Lau (Boise State)
+- Paul Romano (ANL)
+- Dillon Shaver (ANL)
+
+Thank you to all of our past team members and contributors!
+
+- Ron Rahaman (Georgia Institute of Technology)
+- Roy Stogner (INL)
+- Lewis Gross (UW)
+- Logan Harbour (INL)
+- Guillaume Giudicelli (INL)
+- Alex Lindsay (INL)
+- Davis Andrs

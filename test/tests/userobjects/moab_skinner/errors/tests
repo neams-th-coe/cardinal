@@ -1,0 +1,118 @@
+[Tests]
+  [invalid_max_temp]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/temperature_max=350.0'
+    mesh_mode = 'replicated'
+    expect_err = "'temperature_max' must be greater than 'temperature_min'"
+    requirement = "The system shall error if the maximum temperature is lower than the minimum temperature for the skinner bins"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [invalid_max_density]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/density_max=-0.6'
+    mesh_mode = 'replicated'
+    expect_err = "'density_max' must be greater than 'density_min'"
+    requirement = "The system shall error if the maximum density is lower than the minimum density for the skinner bins"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [too_low_temp]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/temperature_min=550.0'
+    mesh_mode = 'replicated'
+    expect_err = "Variable 'temp' has value below minimum range of bins. Please decrease 'temperature_min'."
+    requirement = "The system shall error if the temperature is below the minimum bin bound"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [too_high_temp]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/temperature_max=450.0'
+    mesh_mode = 'replicated'
+    expect_err = "Variable 'temp' has value above maximum range of bins. Please increase 'temperature_max'."
+    requirement = "The system shall error if the temperature is above the maximum bin bound"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [too_low_density]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/density_min=1010.0'
+    mesh_mode = 'replicated'
+    expect_err = "Variable 'rho' has value below minimum range of bins. Please decrease 'density_min'."
+    requirement = "The system shall error if the density is below the minimum bin bound"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [too_high_density]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/density_max=950.0'
+    mesh_mode = 'replicated'
+    expect_err = "Variable 'rho' has value above maximum range of bins. Please increase 'density_max'."
+    requirement = "The system shall error if the density is above the maximum bin bound"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [invalid_mesh]
+    type = RunException
+    input = skinner.i
+    cli_args = 'Mesh/cube/file=../../../neutronics/meshes/sphere.e'
+    mesh_mode = 'replicated'
+    expect_err = "The MoabSkinner can only be used with a tetrahedral \[Mesh\]!"
+    requirement = "The system shall error if the skinned mesh does not contain tetrahedral elements"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [invalid_graveyard_scales]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/graveyard_scale_outer=1.01'
+    mesh_mode = 'replicated'
+    expect_err = "'graveyard_scale_outer' must be greater than 'graveyard_scale_inner'!"
+    requirement = "The system shall error if the outer graveyard surface is not larger than the inner graveyard surface"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [no_aux_temp]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/temperature=temperature'
+    expect_err = "Cannot find auxiliary variable 'temperature'!"
+    mesh_mode = 'replicated'
+    requirement = "The system shall error if the specified temperature auxiliary variable cannot be found"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [no_aux_density]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/density=den'
+    mesh_mode = 'replicated'
+    expect_err = "Cannot find auxiliary variable 'den'!"
+    requirement = "The system shall error if the specified density auxiliary variable cannot be found"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [overlap_t_rho]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/density=temp'
+    mesh_mode = 'replicated'
+    expect_err = "The 'temperature' and 'density' variables cannot be the same!"
+    requirement = "The system shall error if the specified density and temperature auxiliary variables are the same"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [distributed]
+    type = RunException
+    input = skinner.i
+    mesh_mode = 'distributed'
+    expect_err = "MoabSkinner does not yet support distributed meshes!"
+    requirement = "The system shall error if trying to run in distributed mesh mode"
+    required_objects = 'DagMCPostprocessor'
+  []
+  [incorrect_material_names]
+    type = RunException
+    input = skinner.i
+    cli_args = 'UserObjects/moab/material_names="mat1 mat2"'
+    mesh_mode = 'replicated'
+    expect_err = "This parameter must be the same length as the number of subdomains in the mesh \(1\)"
+    requirement = "The system shall error if the material_names provided to the skinner do not match the required length"
+    required_objects = 'DagMCPostprocessor'
+  []
+[]

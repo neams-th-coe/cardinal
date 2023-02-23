@@ -16,29 +16,26 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "SpatialBinUserObject.h"
-#include "BinUtility.h"
+#pragma once
 
-InputParameters
-SpatialBinUserObject::validParams()
-{
-  InputParameters params = GeneralUserObject::validParams();
-  return params;
-}
+#include "Moose.h"
 
-SpatialBinUserObject::SpatialBinUserObject(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters)
-{
-}
+namespace bin_utility {
 
-Real
-SpatialBinUserObject::spatialValue(const Point & p) const
-{
-  return bin(p);
-}
+/**
+ * Map value onto a linear binning
+ * @param[in] value input value
+ * @param[in] bounds bounds of the bins
+ * @return bin index
+ */
+unsigned int linearBin(const Real & value, const std::vector<Real> & bounds);
 
-unsigned int
-SpatialBinUserObject::binFromBounds(const Real & pt, const std::vector<Real> & bounds) const
-{
-  return bin_utility::linearBin(pt, bounds);
-}
+/**
+ * Get the midpoint of a bin
+ * @param[in] bin index
+ * @param[in] bounds bounds of the bins
+ * @return midpoint
+ */
+Real midpoint(const unsigned int & bin, const std::vector<Real> & bounds);
+
+} // end of namespace bin_utility
