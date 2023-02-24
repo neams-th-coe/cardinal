@@ -244,9 +244,10 @@ public:
   /**
    * Get a descriptive, formatted, string describing a cell
    * @param[in] cell_info cell index, instance pair
+   * @param[in] brief whether to print a shorter string
    * @return descriptive string describing cell
    */
-  virtual std::string printCell(const cellInfo & cell_info) const;
+  virtual std::string printCell(const cellInfo & cell_info, const bool brief = false) const;
 
   /**
    * Get the fill of an OpenMC cell

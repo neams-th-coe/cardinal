@@ -44,6 +44,15 @@
   tally_type = cell
   tally_name = heat_source
   solid_cell_level = 0
+
+  volume_calculation = vol
+[]
+
+[UserObjects]
+  [vol]
+    type = OpenMCVolumeCalculation
+    n_samples = 100000
+  []
 []
 
 [Executioner]

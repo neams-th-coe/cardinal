@@ -42,6 +42,15 @@
   tally_type = cell
   solid_cell_level = 1
   scaling = 100.0
+
+  volume_calculation = vol
+[]
+
+[UserObjects]
+  [vol]
+    type = OpenMCVolumeCalculation
+    n_samples = 1000
+  []
 []
 
 [Executioner]

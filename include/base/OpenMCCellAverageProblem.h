@@ -19,9 +19,11 @@
 #pragma once
 
 #include "OpenMCProblemBase.h"
+#include "SymmetryPointGenerator.h"
+#include "OpenMCVolumeCalculation.h"
+
 #include "openmc/tallies/filter_mesh.h"
 #include "openmc/mesh.h"
-#include "SymmetryPointGenerator.h"
 
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
@@ -92,6 +94,24 @@ public:
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
 
   virtual bool converged() override { return true; }
+
+  /**
+   * Reference to stochastic volume calculation
+   * @return reference to stochastic volume calculation
+   */
+  virtual const OpenMCVolumeCalculation * volumeCalculation() const { return _volume_calc; }
+
+  /**
+   * Get the mapping of cells to MOOSE elements
+   * @return mapping of cells to MOOSE elements
+   */
+  virtual const std::map<cellInfo, std::vector<unsigned int>> cellToElem() const { return _cell_to_elem; }
+
+  /**
+   * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
+   * @return scaling value
+   */
+  const Real & scaling() const { return _scaling; }
 
   /**
    * Whether transformations are applied to the [Mesh] points when mapping to OpenMC
@@ -1053,6 +1073,9 @@ protected:
    * together into the 'temp' variable that OpenMC reads from
    */
   const std::vector<SubdomainName> * _temperature_blocks;
+
+  /// Optional volume calculation for cells which map to MOOSE
+  OpenMCVolumeCalculation * _volume_calc;
 
   /// Userobject that maps from a partial-symmetry OpenMC model to a whole-domain [Mesh]
   const SymmetryPointGenerator * _symmetry;

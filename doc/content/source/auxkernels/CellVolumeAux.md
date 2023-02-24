@@ -4,12 +4,19 @@
 
 ## Description
 
-Displays the OpenMC cell mapped volumes (mesh units) on the mesh mirror.
-In other words, this auxiliary kernel can be used to visualize the magnitude of the volume
-that each OpenMC cell gets mapped to. This can be used to verify visually the volumes
-that each OpenMC cell maps to. Note that this auxiliary kernel does *not* display
-the actual volume of the OpenMC cells, but rather only the element volume
-that those cells map to.
+Displays the OpenMC cell mapped volumes (mesh units) on the mesh mirror. This auxkernel
+has two options:
+
+- `volume_type = mapped` will display the magnitude of the mesh element
+  volumes that each OpenMC cell maps to. So, if you have an sphere OpenMC cell with a
+  volume of 1.0 that maps to a set of MOOSE mesh elements with a total volume of 0.95,
+  this option will display 0.95 mapped to the `[Mesh]`.
+- `volume_type = actual` will display the actual OpenMC cell volumes, computed from
+  a stochastic volume calculation. Using the same sphere example, this will then display
+  the stochastic estimate of OpenMC's cell volume, which would be something like
+  0.98 +/- 0.0021 (with the magnitude of the standard deviation determined by the
+  number of samples taken in the stochastic volume calculation). With the `actual` option,
+  this auxkernel would display 0.98 mapped to the `[Mesh]`.
 
 If a MOOSE element did not map at all to an OpenMC cell,
 then this auxiliary kernel returns $-1$.

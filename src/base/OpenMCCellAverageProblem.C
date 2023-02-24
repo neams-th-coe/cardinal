@@ -41,6 +41,7 @@
 #include "openmc/settings.h"
 #include "openmc/summary.h"
 #include "openmc/tallies/trigger.h"
+#include "openmc/volume_calc.h"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
@@ -225,6 +226,11 @@ OpenMCCellAverageProblem::validParams()
       "symmetry_angle",
       "symmetry_angle > 0 & symmetry_angle <= 180",
       "Angle (degrees) from symmetry plane for which OpenMC model is symmetric");
+
+  params.addParam<UserObjectName>("volume_calculation",
+    "An optional user object that will perform a stochastic volume calculation to get the OpenMC "
+    "cell volumes. This can be used to check that the MOOSE regions to which the cells map are "
+    "of approximately the same volume.");
   return params;
 }
 
@@ -259,6 +265,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _tally_mesh_from_moose(!isParamValid("mesh_template")),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
+    _volume_calc(nullptr),
     _symmetry(nullptr)
 {
   // We need to clear and re-initialize the OpenMC tallies if
@@ -504,6 +511,16 @@ void
 OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
+
+  if (isParamValid("volume_calculation"))
+  {
+    auto name = getParam<UserObjectName>("volume_calculation");
+    _volume_calc = &getUserObject<OpenMCVolumeCalculation>(name);
+
+    if (!_volume_calc)
+      paramError("volume_calculation", "The 'volume_calculation' user object must be of type "
+        "OpenMCVolumeCalculation!");
+  }
 
   if (_adaptivity.isOn() && !_need_to_reinit_coupling)
     mooseError("When using mesh adaptivity, 'fixed_mesh' must be false!");
@@ -976,14 +993,14 @@ OpenMCCellAverageProblem::getCellMappedPhase()
 void
 OpenMCCellAverageProblem::checkCellMappedPhase()
 {
-  VariadicTable<std::string, int, int, int, Real> vt(
-      {"Cell", "# Solid", "# Fluid", "# Uncoupled", "Mapped Volume"});
+  if (_volume_calc)
+  {
+    _volume_calc->initializeVolumeCalculation();
+    _volume_calc->computeVolumes();
+  }
 
-  vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
-                      VariadicTableColumnFormat::AUTO,
-                      VariadicTableColumnFormat::AUTO,
-                      VariadicTableColumnFormat::AUTO,
-                      VariadicTableColumnFormat::SCIENTIFIC});
+  VariadicTable<std::string, int, int, int, std::string, std::string> vt(
+      {"Cell", "Solid", "Fluid", "Other", "Mapped Vol", "Actual Vol"});
 
   // whether the entire problem has identified any fluid or solid cells
   bool has_fluid_cells = false;
@@ -996,7 +1013,21 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     int n_fluid = _n_fluid[cell_info];
     int n_none = _n_none[cell_info];
 
-    vt.addRow(printCell(cell_info), n_solid, n_fluid, n_none, _cell_to_elem_volume[cell_info]);
+    Real mapped_volume = _cell_to_elem_volume[cell_info];
+
+    std::ostringstream vol;
+    vol << std::setprecision(3) << std::scientific << "";
+    if (_volume_calc)
+    {
+      Real v, std_dev;
+      _volume_calc->cellVolume(c.first.first, v, std_dev);
+      vol << v << " +/- " << std_dev;
+    }
+
+    std::ostringstream map;
+    map << std::setprecision(3) << std::scientific << _cell_to_elem_volume[cell_info];
+
+    vt.addRow(printCell(cell_info, true), n_solid, n_fluid, n_none, map.str(), vol.str());
 
     std::vector<bool> conditions = {n_fluid > 0, n_solid > 0, n_none > 0};
     if (std::count(conditions.begin(), conditions.end(), true) > 1)
@@ -1025,7 +1056,12 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
   if (_verbose)
   {
-    _console << "\nMapping of OpenMC cells to MOOSE mesh elements:" << std::endl;
+    _console << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n" << std::endl;
+    _console <<   "          Solid:  # elems in 'solid_blocks' each cell maps to" << std::endl;
+    _console <<   "          Fluid:  # elems in 'fluid_blocks' each cell maps to" << std::endl;
+    _console <<   "          Other:  # uncoupled elems each cell maps to" << std::endl;
+    _console <<   "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
+    _console <<   "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n" << std::endl;
     vt.print(_console);
   }
 
@@ -2532,8 +2568,11 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
       if (!_first_transfer && _need_to_reinit_coupling)
       {
-        resetTallies();
+        if (_volume_calc)
+          _volume_calc->resetVolumeCalculation();
+
         setupProblem();
+        resetTallies();
       }
 
       if (_first_transfer)
@@ -2665,38 +2704,6 @@ OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
                    "contributing\n" +
                    "to the global " << _tally_score[score] << " tally, without being part of the multiphysics "
                    "setup.";
-
-      // If there are cells in OpenMC's problem that we're not coupling with (and therefore not
-      // adding tallies for), it's possible that some of cells we're excluding have fissile
-      // material. This could also be caused by us not turning tallies on for the solid and/or fluid
-      // that have fissile material (note that this only catches cases where we added blocks in
-      // 'fluid_blocks' and 'solid_blocks', but forgot to add them to the 'tally_blocks'
-      bool missing_tallies_in_fluid = _has_fluid_blocks && std::includes(_tally_blocks.begin(),
-                                                                         _tally_blocks.end(),
-                                                                         _fluid_blocks.begin(),
-                                                                         _fluid_blocks.end());
-
-      bool missing_tallies_in_solid = _has_solid_blocks && std::includes(_tally_blocks.begin(),
-                                                                         _tally_blocks.end(),
-                                                                         _solid_blocks.begin(),
-                                                                         _solid_blocks.end());
-
-      if (missing_tallies_in_fluid || missing_tallies_in_solid)
-      {
-        std::string missing_tallies;
-
-        if (missing_tallies_in_fluid && missing_tallies_in_solid)
-          missing_tallies = "fluid and solid";
-        else if (missing_tallies_in_fluid)
-          missing_tallies = "fluid";
-        else if (missing_tallies_in_solid)
-          missing_tallies = "solid";
-
-        msg << "\n\nYour problem didn't add tallies for the " << missing_tallies
-            << "; this warning might be caused by\ntally hits in these regions that "
-               "contribute to the global " << _tally_score[score] << " tally, without being\npart of the "
-               "multiphysics setup.";
-      }
     }
 
     mooseError(msg.str());
