@@ -335,47 +335,6 @@ protected:
    */
   unsigned int _n_usrwrk_slots;
 
-  /**
-   * \brief When to synchronize the NekRS solution with the mesh mirror
-   *
-   * This parameter determines when to synchronize the NekRS solution with the mesh
-   * mirror - this entails:
-   *
-   *  - Mapping from the NekRS spectral element mesh to the finite element mesh mirror,
-   *    to extract information from NekRS and make it available to MOOSE
-   *  - Mapping from the finite element mesh mirror into the NekRS spectral element mesh,
-   *    to send information from MOOSE into NekRS
-   *
-   * Several options are available:
-   *  - 'constant' will simply keep the NekRS solution and the mesh mirror entirely
-   *    consistent with one another on a given constant frequency of time steps. By
-   *    default, the 'constant_interval' is 1, so that NekRS and MOOSE communicate
-   *    with each other on every single time step
-   *
-   *  - 'parent_app' will only send data between NekRS and a parent application
-   *    when (1) the main application has just sent "new" information to NekRS, and
-   *    when (2) the main application is just about to run a new time step (with
-   *    updated BCs/source terms from NekRS).
-   *
-   *    nekRS is often subcycled relative to the application controlling it -
-   *    that is, nekRS may be run with a time step 10x smaller than a conduction MOOSE app.
-   *    If 'interpolate_transfers = false'
-   *    in the master application, then the data going into nekRS is fixed for each
-   *    of the subcycled time steps it takes, so these extra data transfers are
-   *    completely unnecssary. This flag indicates that the information sent from MOOSE
-   *    to NekRS should only be updated if the data from MOOSE is "new", and likewise
-   *    whether the NekRS solution should only be interpolated to the mesh mirror once
-   *    MOOSE is actually "ready" to solve a time step using it.
-   *
-   *    NOTE: if 'interpolate_transfers = true' in the master application, then the data
-   *    coming into nekRS is _unique_ on each subcycled time step, so setting this to
-   *    true will in effect override `interpolate_transfers` to be false. For the best
-   *    performance, you should set `interpolate_transfers` to false so that you don't
-   *    even bother computing the interpolated data, since it's not used if this parameter
-   *    is set to true.
-   */
-  const synchronization::SynchronizationEnum _synchronization_interval;
-
   /// For constant synchronization intervals, the desired frequency (in units of Nek time steps)
   const unsigned int & _constant_interval;
 
@@ -477,6 +436,47 @@ protected:
 
   /// Maximum step solve time
   double _tSolveStepMax;
+
+  /**
+   * \brief When to synchronize the NekRS solution with the mesh mirror
+   *
+   * This parameter determines when to synchronize the NekRS solution with the mesh
+   * mirror - this entails:
+   *
+   *  - Mapping from the NekRS spectral element mesh to the finite element mesh mirror,
+   *    to extract information from NekRS and make it available to MOOSE
+   *  - Mapping from the finite element mesh mirror into the NekRS spectral element mesh,
+   *    to send information from MOOSE into NekRS
+   *
+   * Several options are available:
+   *  - 'constant' will simply keep the NekRS solution and the mesh mirror entirely
+   *    consistent with one another on a given constant frequency of time steps. By
+   *    default, the 'constant_interval' is 1, so that NekRS and MOOSE communicate
+   *    with each other on every single time step
+   *
+   *  - 'parent_app' will only send data between NekRS and a parent application
+   *    when (1) the main application has just sent "new" information to NekRS, and
+   *    when (2) the main application is just about to run a new time step (with
+   *    updated BCs/source terms from NekRS).
+   *
+   *    nekRS is often subcycled relative to the application controlling it -
+   *    that is, nekRS may be run with a time step 10x smaller than a conduction MOOSE app.
+   *    If 'interpolate_transfers = false'
+   *    in the master application, then the data going into nekRS is fixed for each
+   *    of the subcycled time steps it takes, so these extra data transfers are
+   *    completely unnecssary. This flag indicates that the information sent from MOOSE
+   *    to NekRS should only be updated if the data from MOOSE is "new", and likewise
+   *    whether the NekRS solution should only be interpolated to the mesh mirror once
+   *    MOOSE is actually "ready" to solve a time step using it.
+   *
+   *    NOTE: if 'interpolate_transfers = true' in the master application, then the data
+   *    coming into nekRS is _unique_ on each subcycled time step, so setting this to
+   *    true will in effect override `interpolate_transfers` to be false. For the best
+   *    performance, you should set `interpolate_transfers` to false so that you don't
+   *    even bother computing the interpolated data, since it's not used if this parameter
+   *    is set to true.
+   */
+  synchronization::SynchronizationEnum _synchronization_interval;
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
