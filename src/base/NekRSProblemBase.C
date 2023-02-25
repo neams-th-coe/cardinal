@@ -118,7 +118,6 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _write_fld_files(getParam<bool>("write_fld_files")),
     _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
-    _synchronization_interval(getParam<MooseEnum>("synchronization_interval").getEnum<synchronization::SynchronizationEnum>()),
     _constant_interval(getParam<unsigned int>("constant_interval")),
     _start_time(nekrs::startTime()),
     _elapsedStepSum(0.0),
@@ -134,6 +133,9 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     mooseError("The 'minimize_transfers_out' parameter has been replaced by "
       "'synchronization_interval = parent_app'! Please update your input files.");
 
+  _synchronization_interval = getParam<MooseEnum>("synchronization_interval").getEnum<
+    synchronization::SynchronizationEnum>();
+
    switch (_synchronization_interval)
    {
      case synchronization::parent_app:
@@ -143,9 +145,13 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
         // relax this in the future by reversing the synchronization step identification
         // from the nekRS-subapp case to the nekRS-master app case - it's just not implemented yet).
         if (_app.isUltimateMaster())
-          mooseError("The 'synchronization_interval = parent_app' capability "
+        {
+          mooseWarning("The 'synchronization_interval = parent_app' capability "
                      "requires that nekRS is receiving and sending data to a parent application, but "
-                     "in your case nekRS is the main application.");
+                     "in your case nekRS is the main application.\n\n"
+                     "We are reverting synchronization_interval to 'constant'.");
+          _synchronization_interval = synchronization::constant;
+        }
 
         checkUnusedParam(params, "constant_interval", "synchronizing based on the 'parent_app'");
         break;
