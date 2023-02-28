@@ -1963,7 +1963,7 @@ OpenMCCellAverageProblem::initializeTallies()
   // add trigger information, if present. TODO: we could have these triggers be individual
   // for each score later if needed
   for (auto & t : _local_tally)
-    for (std::size_t score = 0; score < _tally_score.size(); ++score)
+    for (int score = 0; score < _tally_score.size(); ++score)
       t->triggers_.push_back({triggerMetric(_tally_trigger), _tally_trigger_threshold, score});
 
   // if the tally sum check is turned off, write a message informing the user
