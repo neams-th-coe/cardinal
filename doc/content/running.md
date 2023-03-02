@@ -1,4 +1,4 @@
-The command to run Cardinal with `<n>` MPI ranks and `<s>` OpenMP threads is:
+The command to run Cardinal with an input file `input.i`, `<n>` MPI ranks, and `<s>` OpenMP threads is:
 
 ```
 mpiexec -np <n> cardinal-opt -i input.i --n-threads=<s>
@@ -24,6 +24,8 @@ command line options. For a full list:
 - You may also *optionally* use OpenMC's Python [!ac](API) to build models. To use
   this [!ac](API), follow
   [these instructions](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api).
+  The default location for all 3-rd party dependencies is `cardinal/contrib`, so OpenMC
+  is located at `cardinal/contrib/openmc`.
 
 !alert-end!
 
