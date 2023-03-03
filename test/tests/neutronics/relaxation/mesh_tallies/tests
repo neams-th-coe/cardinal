@@ -19,11 +19,11 @@
                   "additional command line parameters)."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [global_without_alignment_relax_null_fixed_mesh]
+  [none_fixed_mesh]
     type = Exodiff
     input = openmc.i
-    exodiff = relaxed_out.e
-    cli_args = "Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=relaxed_out Problem/fixed_mesh=false"
+    exodiff = openmc_out.e
+    cli_args = "Problem/relaxation=none Problem/fixed_mesh=false"
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
     required_objects = 'OpenMCCellAverageProblem'
