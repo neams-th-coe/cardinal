@@ -107,11 +107,11 @@
                   "openmc_nonaligned.i case with normalize_by_global_tally=false"
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [local_without_alignment_relax_null_fixed_mesh]
+  [none_fixed_mesh]
     type = Exodiff
-    input = openmc_nonaligned.i
-    exodiff = nonalignment_relaxation_out.e
-    cli_args = "Problem/normalize_by_global_tally=false Problem/relaxation=constant Problem/relaxation_factor=0.5 Outputs/file_base=nonalignment_relaxation_out Problem/fixed_mesh=false"
+    input = openmc.i
+    exodiff = openmc_out.e
+    cli_args = "Outputs/file_base=openmc_out Problem/fixed_mesh=false"
     min_parallel = 2
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
@@ -129,6 +129,15 @@
     input = multi_tally.i
     csvdiff = multi_tally_out.csv
     requirement = "The wrapping shall allow output of multiple tally scores, with relaxation applied independently to each score"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [no_relax_with_fixed_mesh]
+    type = RunException
+    input = openmc.i
+    cli_args = "Problem/relaxation=robbins_monro Problem/fixed_mesh=false"
+    expect_err = "When 'fixed_mesh' is false, the mapping from the OpenMC model to the \[Mesh\] may "
+      "vary in time."
+    requirement = "The system shall correctly error if trying to use relaxation with a time-varying mesh."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

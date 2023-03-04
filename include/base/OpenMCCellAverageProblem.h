@@ -72,13 +72,8 @@ public:
   static InputParameters validParams();
 
   /**
-   * \brief Initialize the mapping of OpenMC to the MooseMesh and perform any additional setup actions.
-   *
-   * When 'fixed_mesh' is false, this function is called at the start of _each_ OpenMC
-   * run to establish the mapping from the OpenMC cells to the [Mesh].
-   * TODO: this function currently does not re-initialize tallies based on the updated mapping
-   *       (which will certainly need to be updated for any mesh tallies on the [Mesh], and might
-   *       need updating for cell tallies if the identities of the coupled OpenMC cells changes).
+   * Initialize the mapping of OpenMC to the MooseMesh and perform any additional setup actions
+   * like creating tallies.
    */
   void setupProblem();
 
@@ -498,8 +493,14 @@ protected:
   /// Populate maps of MOOSE elements to OpenMC cells
   void mapElemsToCells();
 
-  /// Add tallies for the fluid and/or solid cells
+  /// Add OpenMC tallies to facilitate the coupling
   void initializeTallies();
+
+  /**
+   * Reset any tallies previously added by Cardinal, by deleting them from OpenMC.
+   * Also delete any mesh filters and meshes added to OpenMC for mesh filters.
+   */
+  void resetTallies();
 
   /// Find the material filling each fluid cell
   void getMaterialFills();
@@ -734,12 +735,12 @@ protected:
   const bool _normalize_by_global;
 
   /**
-   * Whether the [Mesh] is fixed and unchanging during the simulation, or whether
-   * the mesh moves spatially and/or is adaptively refine. When the mesh changes
-   * during the simulation, the mapping from OpenMC cells to the [Mesh] must be
-   * re-established after each OpenMC run.
+   * If 'fixed_mesh' is false, this indicates that the [Mesh] is changing during
+   * the simulation (either from adaptive refinement or from deformation).
+   * When the mesh changes during the simulation, the mapping from OpenMC cells to
+   * the [Mesh] must be re-established after each OpenMC run.
    */
-  const bool & _fixed_mesh;
+  const bool _need_to_reinit_coupling;
 
   /**
    * Whether to check the tallies against the global tally;
@@ -1064,6 +1065,18 @@ protected:
 
   /// Number of none elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_none;
+
+  /// Index in OpenMC tallies corresponding to the global tally added by Cardinal
+  unsigned int _global_tally_index;
+
+  /// Index in OpenMC tallies corresponding to the first local tally added by Cardinal
+  unsigned int _local_tally_index;
+
+  /// Index in OpenMC tally filters corresponding to the first filter added by Cardinal
+  unsigned int _filter_index;
+
+  /// Index in OpenMC meshes corresponding to the mesh tally (if used)
+  unsigned int _mesh_index;
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;
