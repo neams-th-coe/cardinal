@@ -21,25 +21,24 @@
   normalize_by_global_tally = false
 
   tally_type = mesh
-  tally_name = heat_source
   mesh_template = '../meshes/sphere.e'
   power = 100.0
   check_zero_tallies = false
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
 []
 
 [Outputs]
+  execute_on = final
   exodus = true
   hide = 'temp'
 []

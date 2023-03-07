@@ -44,7 +44,6 @@
   normalize_by_global_tally = false
   mesh_translations_file = pebble_centers.txt
 
-  tally_name = heat_source
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'
   power = 100.0
@@ -52,33 +51,33 @@
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Postprocessors]
-  [heat_source]
+  [kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
   [heat_pebble1]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '100'
   []
   [heat_pebble2]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '200'
   []
   [heat_pebble3]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '300'
   []
 []
 
 [Outputs]
+  execute_on = final
   exodus = true
   hide = 'temp'
 []

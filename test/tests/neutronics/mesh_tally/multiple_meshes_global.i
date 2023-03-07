@@ -49,7 +49,6 @@
                        0 0 8'
 
   tally_type = mesh
-  tally_name = heat_source
   mesh_template = '../meshes/sphere.e'
   power = 100.0
   check_tally_sum = false
@@ -57,33 +56,33 @@
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Postprocessors]
-  [heat_source]
+  [kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
   [heat_pebble1]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '100'
   []
   [heat_pebble2]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '200'
   []
   [heat_pebble3]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
     block = '300'
   []
 []
 
 [Outputs]
+  execute_on = final
   exodus = true
   hide = 'temp'
 []
