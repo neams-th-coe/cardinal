@@ -51,8 +51,7 @@
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Postprocessors]
@@ -73,6 +72,7 @@
 []
 
 [Outputs]
+  csv = true
   exodus = true
   hide = 'density'
 []
