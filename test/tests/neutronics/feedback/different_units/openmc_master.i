@@ -73,6 +73,7 @@
 
 [Outputs]
   exodus = true
+  hide = 'density heat_source'
 []
 
 [MultiApps]
@@ -92,7 +93,7 @@
     type = MultiAppCopyTransfer
     from_multi_app = openmc
     variable = heat_source
-    source_variable = heat_source
+    source_variable = kappa_fission
   []
   [temp_to_openmc]
     type = MultiAppNearestNodeTransfer
