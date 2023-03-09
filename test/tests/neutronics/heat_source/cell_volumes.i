@@ -64,12 +64,11 @@
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Outputs]
-  execute_on = 'final'
+  execute_on = final
   exodus = true
   hide = 'density kappa_fission temp'
 []

@@ -58,7 +58,6 @@
   tally_blocks = '1'
   verbose = true
   tally_type = cell
-  tally_name = 'heat_source'
   fluid_cell_level = 0
 
   scaling = 100.0
@@ -71,7 +70,7 @@
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
 []
 

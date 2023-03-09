@@ -112,7 +112,7 @@
 
 [Outputs]
   exodus = true
-  hide = 'source_integral'
+  hide = 'source_integral density'
 []
 
 [MultiApps]

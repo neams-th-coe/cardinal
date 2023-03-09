@@ -19,7 +19,6 @@
   verbose = true
   solid_cell_level = 0
   normalize_by_global_tally = true
-  tally_name = heat_source
 
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'
@@ -29,18 +28,18 @@
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
 []
 
 [Outputs]
+  execute_on = final
   exodus = true
   hide = 'temp'
 []

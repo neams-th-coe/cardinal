@@ -41,7 +41,6 @@
   power = 1500.0
   solid_blocks = '0'
   tally_type = mesh
-  tally_name = heat_source
   mesh_template = ../../meshes/sphere_in_m.e
   mesh_translations = '0.0 0.0 0.02
                        0.0 0.0 0.06
@@ -55,23 +54,6 @@
   check_tally_sum = false
 []
 
-# This auxvariable and auxkernel is only here to avoid a re-gold (due to a
-# variable name change).
-[AuxVariables]
-  [fission_tally]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [copy]
-    type = SelfAux
-    variable = fission_tally
-    v = heat_source_raw
-  []
-[]
-
 
 [Executioner]
   type = Transient
@@ -80,5 +62,4 @@
 
 [Outputs]
   exodus = true
-  hide = 'heat_source_raw'
 []
