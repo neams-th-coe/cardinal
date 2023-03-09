@@ -2087,10 +2087,6 @@ OpenMCCellAverageProblem::initializeTallies()
   for (auto & t : _local_tally)
     for (int score = 0; score < _tally_score.size(); ++score)
       t->triggers_.push_back({triggerMetric(_tally_trigger), _tally_trigger_threshold, score});
-
-  // if the tally sum check is turned off, write a message informing the user
-  if (!_check_tally_sum)
-    _console << "Turned OFF tally sum check against global tally" << std::endl;
 }
 
 bool
@@ -2571,8 +2567,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
 
-        setupProblem();
         resetTallies();
+        setupProblem();
       }
 
       if (_first_transfer)
@@ -2761,14 +2757,7 @@ void
 OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std::string & type)
 {
   if (volume_order < Moose::stringToEnum<Order>("SECOND"))
-  {
-    _console << "Increasing " << type << " volume quadrature order from "
-             << Moose::stringify(volume_order)
-             << " to 2 "
-                "to match MOOSE integrations"
-             << std::endl;
     volume_order = SECOND;
-  }
 }
 
 double
