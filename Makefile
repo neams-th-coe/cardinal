@@ -378,7 +378,7 @@ endif
 
 # Determin if we need libpng and where using pkg-config (if available)
 LIBPNG_FLAGS ?= $(shell pkg-config --libs libpng 2>/dev/null)
-ifdef LIBPNG_FLAGS
+ifneq (,$(findstring -lpng, $(LIBPNG_FLAGS)))
   ADDITIONAL_LIBS += $(LIBPNG_FLAGS)
   $(info Linking libpng: $(LIBPNG_FLAGS))
 endif
