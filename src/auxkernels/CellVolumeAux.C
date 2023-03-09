@@ -64,11 +64,7 @@ CellVolumeAux::computeValue()
   if (_volume_type == "mapped")
     return _openmc_problem->cellMappedVolume(cell_info);
   else if (_volume_type == "actual")
-  {
-    Real v, std_dev;
-    _openmc_problem->volumeCalculation()->cellVolume(cell_info.first, v, std_dev);
-    return v;
-  }
+    return _openmc_problem->cellVolume(cell_info);
   else
     mooseError("Unhandled vol_type enum in CellVolumeAux!");
 }

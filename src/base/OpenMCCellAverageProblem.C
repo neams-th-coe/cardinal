@@ -990,6 +990,15 @@ OpenMCCellAverageProblem::getCellMappedPhase()
   gatherCellSum(cells_n_none, _n_none);
 }
 
+Real
+OpenMCCellAverageProblem::cellVolume(const cellInfo & cell_info) const
+{
+  if (_cell_volume.count(cell_info))
+    return _cell_volume.at(cell_info);
+  else
+    return 0.0;
+}
+
 void
 OpenMCCellAverageProblem::checkCellMappedPhase()
 {
@@ -1006,6 +1015,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   bool has_fluid_cells = false;
   bool has_solid_cells = false;
 
+  std::vector<Real> cv;
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -1021,6 +1031,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     {
       Real v, std_dev;
       _volume_calc->cellVolume(c.first.first, v, std_dev);
+      cv.push_back(v);
       vol << v << " +/- " << std_dev;
     }
 
@@ -1052,6 +1063,18 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     }
     else
       _cell_phase[cell_info] = coupling::none;
+  }
+
+  // collect values from rank 0 onto all other ranks, then populate cell_volume
+  // (this is necessary because in OpenMC, the stochastic volume calculation only
+  // gets meaningful results on rank 0
+  if (_volume_calc)
+  {
+    _cell_volume.clear();
+    MPI_Bcast(cv.data(), cv.size(), MPI_DOUBLE, 0, _communicator.get());
+    int i = 0;
+    for (const auto & c : _cell_to_elem)
+      _cell_volume[c.first] = cv[++i];
   }
 
   if (_verbose)

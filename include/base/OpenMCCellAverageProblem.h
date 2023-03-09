@@ -96,6 +96,13 @@ public:
   virtual bool converged() override { return true; }
 
   /**
+   * Get the actual cell volume
+   * @param[in] cell_info cell index, instance
+   * @return stochastic OpenMC cell volume calculation
+   */
+  virtual Real cellVolume(const cellInfo & cell_info) const;
+
+  /**
    * Reference to stochastic volume calculation
    * @return reference to stochastic volume calculation
    */
@@ -944,6 +951,12 @@ protected:
    * for this volume is whatever is used in the [Mesh] block
    */
   std::map<cellInfo, Real> _cell_to_elem_volume;
+
+  /**
+   * Volume associated with the actual OpenMC cell, computed by an optional
+   * OpenMCVolumeCalculation user object
+   */
+  std::map<cellInfo, Real> _cell_volume;
 
   /**
    * Material filling each cell to receive density & temperature feedback. We enforce
