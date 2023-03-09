@@ -32,4 +32,7 @@ public:
 
 protected:
   virtual Real computeValue();
+
+  /// Interpretation of which volume to display on the Mesh
+  const MooseEnum _volume_type;
 };

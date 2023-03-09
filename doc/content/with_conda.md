@@ -97,7 +97,7 @@ export FC=mpif90
 
 # [OPTIONAL] if running with OpenMC, you will need cross section data at runtime;
 # you will need to set this variable to point to a 'cross_sections.xml' file.
-export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb71_hdf5/cross_sections.xml
+export OPENMC_CROSS_SECTIONS=${HOME}/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 ```
 
 !alert! tip title=Additional environment variables

@@ -403,12 +403,15 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
 }
 
 std::string
-OpenMCProblemBase::printCell(const cellInfo & cell_info) const
+OpenMCProblemBase::printCell(const cellInfo & cell_info, const bool brief) const
 {
   int32_t id = cellID(cell_info.first);
 
   std::stringstream msg;
-  msg << "id " << std::setw(_n_cell_digits) << Moose::stringify(id) << ", instance "
+  if (!brief)
+    msg << "id ";
+
+  msg << std::setw(_n_cell_digits) << Moose::stringify(id) << ", instance "
       << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) << " (of "
       << std::setw(_n_cell_digits)
       << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
