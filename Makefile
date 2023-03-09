@@ -71,6 +71,17 @@ IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 EIGEN3_DIR          ?= $(LIBMESH_DIR)/include
 Eigen3_DIR          ?= $(EIGEN3_DIR)
 
+# Determine if PETSC_ARCH physically exists in PETSC_DIR (some installations do not
+# use PETSC_ARCH). Error if not using default PETSC_ARCH
+ifeq ($(wildcard $(PETSC_DIR)/$(PETSC_ARCH)),)
+  ifneq ($(PETSC_ARCH), arch-moose)
+    $(error PETSC_ARCH $(PETSC_DIR)/$(PETSC_ARCH) does not exist)
+  else
+    $(info PETSC_ARCH does not exist, assuming $(PETSC_DIR) instead)
+    PETSC_ARCH        :=
+  endif
+endif
+
 # If HDF5_ROOT is set, use those settings to link HDF5 to OpenMC.
 # Otherwise, use where PETSc will put HDF5 if downloading it.
 ifeq ($(HDF5_ROOT),)
@@ -294,15 +305,6 @@ endif
 # External apps
 # ======================================================================================
 
-# libmesh_CXX, etc, were defined in build.mk
-export CXX := $(libmesh_CXX)
-export CC  := $(libmesh_CC)
-export FC  := $(libmesh_F90)
-export FFLAGS := $(libmesh_FFLAGS)
-export CFLAGS := $(libmesh_CFLAGS)
-export CXXFLAGS := $(libmesh_CXXFLAGS)
-export CPPFLAGS := $(libmesh_CPPFLAGS)
-export LDFLAGS := $(libmesh_LDFLAGS)
 export LIBS := $(libmesh_LIBS)
 
 export CARDINAL_DIR
@@ -364,11 +366,22 @@ endif
 ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib
 
 ifeq ($(ENABLE_NEK), yes)
-  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) -lnekrs -locca $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) -lnekrs-hypre -lnekrs-hypre-device -lnekrs -locca $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
-  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
+  ifeq ($(ENABLE_DAGMC), yes)
+    ADDITIONAL_LIBS += -luwuw -ldagmc -lpyne_dagmc -lMOAB
+  endif
+  ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+endif
+
+# Determin if we need libpng and where using pkg-config (if available)
+LIBPNG_FLAGS ?= $(shell pkg-config --libs libpng 2>/dev/null)
+ifdef LIBPNG_FLAGS
+  ADDITIONAL_LIBS += $(LIBPNG_FLAGS)
+  $(info Linking libpng: $(LIBPNG_FLAGS))
 endif
 
 include            $(FRAMEWORK_DIR)/app.mk
