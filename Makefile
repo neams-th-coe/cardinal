@@ -316,7 +316,6 @@ GEN_REVISION       := no
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
 
 ifeq ($(ENABLE_DAGMC), yes)
-  ENABLE_DAGMC     := ON
   include          $(CARDINAL_DIR)/config/moab.mk
   include          $(CARDINAL_DIR)/config/dagmc.mk
 else
