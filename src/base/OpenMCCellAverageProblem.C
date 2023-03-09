@@ -1038,6 +1038,8 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     std::ostringstream map;
     map << std::setprecision(3) << std::scientific << _cell_to_elem_volume[cell_info];
 
+    // okay to print vol.str() here because only rank 0 is printing (which is the only one
+    // with meaningful volume data from OpenMC)
     vt.addRow(printCell(cell_info, true), n_solid, n_fluid, n_none, map.str(), vol.str());
 
     std::vector<bool> conditions = {n_fluid > 0, n_solid > 0, n_none > 0};
