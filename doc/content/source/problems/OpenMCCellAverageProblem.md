@@ -562,6 +562,15 @@ output is provided to the `output` parameter:
 - `unrelaxed_tally`: unrelaxed tally; this will append `_raw` to the tally name and output to the mesh mirror
 - `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation; this will append `_std_dev` to the tally and output to the mesh mirror
 
+#### Volume Calculations
+
+It can be helpful for debugging problem setup to compare actual OpenMC cell volumes against
+the `[Mesh]` element volumes to which they map. A well-designed mapping should have good
+agreement between _actual_ cell volumes and the `[Mesh]` volumes they map to. To add a
+volume calculation, set the `volume_calculation` parameter to the name of a
+[OpenMCVolumeCalculation](/userobjects/OpenMCVolumeCalculation.md) object. If you then set
+`verbose = true`, you will be able to compare the cell volumes with the MOOSE elements.
+
 #### Collating Temperatures from Multiple Apps
 
 OpenMC is often coupled to multiple MOOSE applications providing temperature -

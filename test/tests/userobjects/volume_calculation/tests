@@ -1,0 +1,50 @@
+[Tests]
+  [incorrect_problem]
+    type = RunException
+    input = uo.i
+    expect_err = "This user object can only be used with wrapped OpenMC cases!"
+    requirement = "The system shall error if an OpenMC user object is used without the correct "
+                  "OpenMC wrapped problem."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [invalid_box]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/vol/lower_left="10.0 0.0 0.0"'
+    expect_err = "The 'upper_right' \(2.5, 2.5, 10\) must be greater than the 'lower_left' \(10, 0, 0\)!"
+    requirement = "The system shall error if an invalid bounding box is specified for volume calculations"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [single_level]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall map stochastic volumes for each OpenMC cell which maps to MOOSE."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [single_level_scaling]
+    type = CSVDiff
+    input = scaling.i
+    csvdiff = scaling_out.csv
+    requirement = "The system shall map stochastic volumes for each OpenMC cell which maps to MOOSE when the Mesh "
+                  "is not in units of centimeters"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [missing_vol]
+    type = RunException
+    input = no_vol.i
+    expect_err = "To display the actual OpenMC cell volumes, the \[Problem\] block needs to set the\n"
+                 "'volume_calculation' parameter."
+    requirement = "The system shall error if trying to view stochastic volumes without the stochastic "
+                  "volume calculation having been created."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [rel_err_trigger]
+    type = CSVDiff
+    input = scaling.i
+    csvdiff = rel_err_out.csv
+    cli_args = 'UserObjects/vol/trigger=rel_err UserObjects/vol/trigger_threshold=1e-2 Outputs/file_base=rel_err_out'
+    requirement = "The system shall terminate the stochastic volume calculation using a relative error metric."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

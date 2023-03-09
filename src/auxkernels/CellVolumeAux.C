@@ -28,18 +28,30 @@ InputParameters
 CellVolumeAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("Display the OpenMC cell mapped volumes");
+
+  MooseEnum vol_type("mapped actual");
+  params.addRequiredParam<MooseEnum>("volume_type", vol_type,
+    "Which notion of cell volume to display. For 'mapped', this shows only the volume of the "
+    "MOOSE elements which map to each cell (this is mostly for testing). For 'actual', this "
+    "will map to the [Mesh] the actual volumes of OpenMC cells obtained from a stochastic "
+    "calculation");
+  params.addClassDescription("Display the OpenMC cell volumes mapped to MOOSE");
   return params;
 }
 
 CellVolumeAux::CellVolumeAux(const InputParameters & parameters)
-  : OpenMCAuxKernel(parameters)
+  : OpenMCAuxKernel(parameters),
+    _volume_type(getParam<MooseEnum>("volume_type"))
 {
 }
 
 Real
 CellVolumeAux::computeValue()
 {
+  if (_volume_type == "actual" && !_openmc_problem->volumeCalculation())
+    mooseError("To display the actual OpenMC cell volumes, the [Problem] block needs to set the\n"
+      "'volume_calculation' parameter.");
+
   // if the element doesn't map to an OpenMC cell, return a volume of -1; this is required
   // because otherwise OpenMC would throw an error for an invalid instance, index pair passed to the
   // C-API
@@ -49,7 +61,12 @@ CellVolumeAux::computeValue()
   OpenMCCellAverageProblem::cellInfo cell_info =
       _openmc_problem->elemToCellInfo(_current_elem->id());
 
-  return _openmc_problem->cellMappedVolume(cell_info);
+  if (_volume_type == "mapped")
+    return _openmc_problem->cellMappedVolume(cell_info);
+  else if (_volume_type == "actual")
+    return _openmc_problem->cellVolume(cell_info);
+  else
+    mooseError("Unhandled vol_type enum in CellVolumeAux!");
 }
 
 #endif

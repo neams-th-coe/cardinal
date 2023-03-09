@@ -372,9 +372,16 @@ tallies by skipping tallies in those regions by setting
 `tally_blocks` to blocks 2 and 3.
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
 automatically add the necessary tallies.
-Finally, we specify the level in the geometry on which the solid cells
+We specify the level in the geometry on which the solid cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,
 the solid cell level is zero.
+
+Finally, we add a stochastic volume calculation in order to compare the actual
+volumes of OpenMC cells against the `[Mesh]` elements to which they map. A good
+mapping should show close agreement between these two values.
+
+!listing /tutorials/lwr_solid/openmc.i
+  block=UserObjects
 
 Next, we add a series of auxiliary variables for solution visualization
 (these are not requried for coupling). To help with understanding
@@ -448,91 +455,98 @@ First, let's examine how the mapping between OpenMC and MOOSE was established.
 When we run with `verbose = true`, you will see the following mapping information displayed:
 
 ```
-Mapping of OpenMC cells to MOOSE mesh elements:
------------------------------------------------------------------------------------
-|             Cell              | # Solid | # Fluid | # Uncoupled | Mapped Volume |
------------------------------------------------------------------------------------
-| id   1, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id   3, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id   5, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id   7, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id   9, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  11, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  13, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  15, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  17, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  19, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  21, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  23, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  25, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  27, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  29, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  31, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  33, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  35, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  37, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  39, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  41, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  43, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  45, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  47, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  49, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  51, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  53, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  55, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  57, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  59, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  61, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  63, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  65, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  67, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  69, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  71, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  73, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  75, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  77, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  79, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  81, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  83, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  85, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  87, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  89, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  91, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  93, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  95, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id  97, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id  99, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 101, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 103, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 105, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 107, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 109, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 111, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 113, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 115, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 117, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 119, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 121, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 123, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 125, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 127, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 129, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 131, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 133, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 135, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 137, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 139, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 141, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 143, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 145, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 147, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 149, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 151, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 153, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 155, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
-| id 157, instance   0 (of   1) |     200 |       0 |           0 |  3.564630e+00 |
-| id 159, instance   0 (of   1) |      60 |       0 |           0 |  1.135448e+00 |
------------------------------------------------------------------------------------
+ ===================>     MAPPING FROM OPENMC TO MOOSE     <===================
+
+          Solid:  # elems in 'solid_blocks' each cell maps to
+          Fluid:  # elems in 'fluid_blocks' each cell maps to
+          Other:  # uncoupled elems each cell maps to
+     Mapped Vol:  volume of MOOSE elems each cell maps to
+     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')
+
+---------------------------------------------------------------------------------------------
+|            Cell            | Solid | Fluid | Other | Mapped Vol |       Actual Vol        |
+---------------------------------------------------------------------------------------------
+|   1, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.534e+00 +/- 9.349e-02 |
+|   3, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.164e+00 +/- 5.391e-02 |
+|   5, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.823e+00 +/- 9.717e-02 |
+|   7, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.119e+00 +/- 5.286e-02 |
+|   9, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.916e+00 +/- 9.833e-02 |
+|  11, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.159e+00 +/- 5.379e-02 |
+|  13, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.554e+00 +/- 9.375e-02 |
+|  15, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.129e+00 +/- 5.309e-02 |
+|  17, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.620e+00 +/- 9.460e-02 |
+|  19, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.214e+00 +/- 5.505e-02 |
+|  21, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.607e+00 +/- 9.443e-02 |
+|  23, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.043e+00 +/- 5.105e-02 |
+|  25, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.589e+00 +/- 9.421e-02 |
+|  27, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.061e+00 +/- 5.148e-02 |
+|  29, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.622e+00 +/- 9.463e-02 |
+|  31, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.136e+00 +/- 5.327e-02 |
+|  33, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.635e+00 +/- 9.479e-02 |
+|  35, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.086e+00 +/- 5.208e-02 |
+|  37, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.700e+00 +/- 9.562e-02 |
+|  39, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.159e+00 +/- 5.379e-02 |
+|  41, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.549e+00 +/- 9.369e-02 |
+|  43, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.156e+00 +/- 5.373e-02 |
+|  45, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.630e+00 +/- 9.472e-02 |
+|  47, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.111e+00 +/- 5.268e-02 |
+|  49, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.509e+00 +/- 9.316e-02 |
+|  51, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.141e+00 +/- 5.338e-02 |
+|  53, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.743e+00 +/- 9.616e-02 |
+|  55, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.179e+00 +/- 5.425e-02 |
+|  57, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.534e+00 +/- 9.349e-02 |
+|  59, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.099e+00 +/- 5.238e-02 |
+|  61, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.707e+00 +/- 9.572e-02 |
+|  63, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.126e+00 +/- 5.303e-02 |
+|  65, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.667e+00 +/- 9.521e-02 |
+|  67, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.126e+00 +/- 5.303e-02 |
+|  69, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.680e+00 +/- 9.537e-02 |
+|  71, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.189e+00 +/- 5.448e-02 |
+|  73, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.537e+00 +/- 9.352e-02 |
+|  75, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.121e+00 +/- 5.291e-02 |
+|  77, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.755e+00 +/- 9.632e-02 |
+|  79, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.149e+00 +/- 5.356e-02 |
+|  81, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.707e+00 +/- 9.572e-02 |
+|  83, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.171e+00 +/- 5.408e-02 |
+|  85, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.660e+00 +/- 9.511e-02 |
+|  87, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.144e+00 +/- 5.344e-02 |
+|  89, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.467e+00 +/- 9.260e-02 |
+|  91, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.189e+00 +/- 5.448e-02 |
+|  93, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.605e+00 +/- 9.440e-02 |
+|  95, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.146e+00 +/- 5.350e-02 |
+|  97, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.620e+00 +/- 9.460e-02 |
+|  99, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.292e+00 +/- 5.678e-02 |
+| 101, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.682e+00 +/- 9.540e-02 |
+| 103, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.126e+00 +/- 5.303e-02 |
+| 105, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.622e+00 +/- 9.463e-02 |
+| 107, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.164e+00 +/- 5.391e-02 |
+| 109, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.627e+00 +/- 9.469e-02 |
+| 111, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.166e+00 +/- 5.396e-02 |
+| 113, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.645e+00 +/- 9.492e-02 |
+| 115, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.199e+00 +/- 5.471e-02 |
+| 117, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.715e+00 +/- 9.581e-02 |
+| 119, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.269e+00 +/- 5.628e-02 |
+| 121, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.416e+00 +/- 9.194e-02 |
+| 123, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.134e+00 +/- 5.321e-02 |
+| 125, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.532e+00 +/- 9.346e-02 |
+| 127, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.144e+00 +/- 5.344e-02 |
+| 129, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.607e+00 +/- 9.443e-02 |
+| 131, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.159e+00 +/- 5.379e-02 |
+| 133, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.419e+00 +/- 9.197e-02 |
+| 135, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.161e+00 +/- 5.385e-02 |
+| 137, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.707e+00 +/- 9.572e-02 |
+| 139, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.131e+00 +/- 5.315e-02 |
+| 141, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.635e+00 +/- 9.479e-02 |
+| 143, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.119e+00 +/- 5.286e-02 |
+| 145, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.642e+00 +/- 9.489e-02 |
+| 147, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.227e+00 +/- 5.533e-02 |
+| 149, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.642e+00 +/- 9.489e-02 |
+| 151, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.214e+00 +/- 5.505e-02 |
+| 153, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.702e+00 +/- 9.566e-02 |
+| 155, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.129e+00 +/- 5.309e-02 |
+| 157, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.512e+00 +/- 9.320e-02 |
+| 159, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.099e+00 +/- 5.238e-02 |
+---------------------------------------------------------------------------------------------
 ```
 
 This shows the OpenMC cells mapped to the MOOSE elements.
@@ -541,7 +555,10 @@ and cladding is un-meshed, the helium gap in the OpenMC model does not participa
 coupling.
 The above message also shows the
 volume that each OpenMC cell maps to. Because there are no distributed cells in this
-problem, each cell only has a single instance.
+problem, each cell only has a single instance. Since we added a stochastic volume
+calculation, the last column (`Actual Vol`) is populated with OpenMC's stochastic
+estimates for the cell volumes. You can increase the number of samples to drive the error
+lower to get more refined estimates of volumes.
 
 [lwr_heat_source] shows the heat source computed by OpenMC (units of W/cm$^3$)
 and mapped to the MOOSE mesh;
