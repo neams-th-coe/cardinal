@@ -9,3 +9,4 @@
 ```
 
 and then point `OPENMC_CROSS_SECTIONS` to that new location, `../cross_sections/endfb-vii.1-hdf5/cross_sections.xml`.
+- You can now use OpenMC's stochastic volume calculations to directly compare the volumes of OpenMC cells which map to MOOSE. This can be useful for debugging model preparation. Simply set `volume_calculation` on `OpenMCCellAverageProblem` to the [OpenMCVolumeCalculation](/userobjects/OpenMCVolumeCalculation.md) user object.
