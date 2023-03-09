@@ -1076,7 +1076,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     MPI_Bcast(cv.data(), cv.size(), MPI_DOUBLE, 0, _communicator.get());
     int i = 0;
     for (const auto & c : _cell_to_elem)
-      _cell_volume[c.first] = cv[++i];
+      _cell_volume[c.first] = cv[i++];
   }
 
   if (_verbose)
