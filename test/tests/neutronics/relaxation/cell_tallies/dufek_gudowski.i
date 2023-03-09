@@ -36,11 +36,10 @@
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  power = 1500.0
+  power = 100.0
   solid_blocks = '0'
   tally_blocks = '0'
   tally_type = cell
-  tally_name = heat_source
   solid_cell_level = 1
   scaling = 100.0
 
@@ -54,16 +53,28 @@
 []
 
 [Outputs]
+  csv = true
   exodus = true
 []
 
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
-  [k]
-    type = KEigenvalue
-    value_type = collision
+  [p1]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 0.02'
+  []
+  [p2]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 0.06'
+  []
+  [p3]
+    type = PointValue
+    variable = kappa_fission
+    point = '0.0 0.0 0.10'
   []
 []

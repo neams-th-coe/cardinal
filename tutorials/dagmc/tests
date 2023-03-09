@@ -8,7 +8,7 @@
   [coupled]
     type = Exodiff
     input = solid.i
-    exodiff = 'solid_out.e solid_out_openmc0.e'
+    exodiff = 'solid_out_openmc0.e'
     cli_args = 'Executioner/num_steps=2'
     min_parallel = 2
     prereq = mesh

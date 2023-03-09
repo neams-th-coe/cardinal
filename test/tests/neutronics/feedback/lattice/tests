@@ -13,6 +13,7 @@
     type = Exodiff
     input = openmc_master.i
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
+    cli_args = 'MultiApps/openmc/cli_args=Problem/fixed_mesh=false'
     requirement = "The system shall correctly re-initialize the same mapping when the MooseMesh does not change "
                   "during a simulation."
     required_objects = 'OpenMCCellAverageProblem'

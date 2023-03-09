@@ -124,7 +124,7 @@
 
 [Outputs]
   exodus = true
-  hide = 'source_integral'
+  hide = 'source_integral density'
 []
 
 [MultiApps]
@@ -141,7 +141,7 @@
     type = MultiAppMeshFunctionTransfer
     from_multi_app = openmc
     variable = heat_source
-    source_variable = heat_source
+    source_variable = kappa_fission
     from_postprocessors_to_be_preserved = heat_source
     to_postprocessors_to_be_preserved = source_integral
   []

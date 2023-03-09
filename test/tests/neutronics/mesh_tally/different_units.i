@@ -20,7 +20,6 @@
   solid_cell_level = 0
 
   tally_type = mesh
-  tally_name = heat_source
   power = 100.0
   check_zero_tallies = false
 
@@ -32,18 +31,18 @@
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Postprocessors]
-  [heat_source]
+  [kappa_fission]
     type = ElementIntegralVariablePostprocessor
-    variable = heat_source
+    variable = kappa_fission
   []
 []
 
 [Outputs]
+  execute_on = final
   exodus = true
   hide = 'temp'
 []

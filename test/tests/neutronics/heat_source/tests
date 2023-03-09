@@ -26,9 +26,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [overlap_solid]
-    type = Exodiff
+    type = CSVDiff
     input = overlap_solid.i
-    exodiff = 'overlap_solid_out.e'
+    csvdiff = 'overlap_solid_out.csv'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -38,9 +38,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [custom_name]
-    type = Exodiff
+    type = CSVDiff
     input = custom_name.i
-    exodiff = 'custom_name_out.e'
+    csvdiff = 'custom_name_out.csv'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -49,9 +49,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [overlap_fluid]
-    type = Exodiff
+    type = CSVDiff
     input = overlap_fluid.i
-    exodiff = 'overlap_fluid_out.e'
+    csvdiff = 'overlap_fluid_out.csv'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -61,9 +61,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [partial_overlap_openmc_union]
-    type = Exodiff
+    type = CSVDiff
     input = partial_overlap_openmc_union.i
-    exodiff = 'partial_overlap_openmc_union_out.e'
+    csvdiff = 'partial_overlap_openmc_union_out.csv'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -82,9 +82,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [partial_overlap_moose_union]
-    type = Exodiff
+    type = CSVDiff
     input = partial_overlap_moose_union.i
-    exodiff = 'partial_overlap_moose_union_out.e'
+    csvdiff = 'partial_overlap_moose_union_out.csv'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8

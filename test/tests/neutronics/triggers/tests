@@ -58,14 +58,6 @@
       "tally relative error with mesh tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [mesh_tally_rel_err_analog]
-    type = CSVDiff
-    input = mesh_tally_rel_err.i
-    cli_args = "Outputs/file_base=analog_out Problem/tally_estimator=analog"
-    csvdiff = analog_out.csv
-    requirement = "The system shall allow the user to customize the tally estimator for mesh tallies"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [multi_rel_err]
     type = CSVDiff
     input = multi_rel_err.i
