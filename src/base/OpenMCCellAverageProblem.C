@@ -2823,7 +2823,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       }
 #else
       // re-establish the mapping from the OpenMC cells to the [Mesh] (because the mesh changed)
-      if (!_fixed_mesh)
+      if (_need_to_reinit_coupling)
         setupProblem();
 #endif
 
