@@ -1,0 +1,25 @@
+[Tests]
+  [flux]
+    type = CSVDiff
+    input = flux.i
+    csvdiff = flux_out.csv
+    requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [flip_order]
+    type = CSVDiff
+    input = flux.i
+    cli_args = 'Problem/tally_score="flux heating"'
+    csvdiff = flux_out.csv
+    requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when listed in an arbitrary order."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [not_already_added]
+    type = CSVDiff
+    input = flux.i
+    cli_args = 'Problem/tally_score="flux" Problem/source_rate_normalization=heating'
+    csvdiff = flux_out.csv
+    requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when the source rate normalization tally is not already added."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

@@ -1114,6 +1114,9 @@ protected:
   /// Index in OpenMC meshes corresponding to the mesh tally (if used)
   unsigned int _mesh_index;
 
+  /// Index in tally_score pointing to the score used for normalizing flux tallies in eigenvalue mode
+  unsigned int _source_rate_index;
+
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;
 
