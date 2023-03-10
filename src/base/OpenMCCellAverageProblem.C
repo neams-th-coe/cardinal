@@ -619,9 +619,6 @@ OpenMCCellAverageProblem::initialSetup()
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
 
-    if (_tally_type == tally::cell)
-      mooseError("'skinner' does not yet support cell tallies. This will be relaxed soon.");
-
     if (_scaling != 1.0)
       mooseError("'skinner' currently requires 'scaling = 1.0' (with a [Mesh] in units of centimeters). This will be relaxed soon.");
 
