@@ -23,3 +23,15 @@
 [TEMPERATURE]
   residualTol = 1e-6
   boundaryTypeMap = t, f, f, f, f, f
+
+[SCALAR01]
+  residualTol = 1e-6
+  boundaryTypeMap = t, t, t, t, t, t
+
+[SCALAR02]
+  residualTol = 1e-6
+  boundaryTypeMap = t, t, t, t, t, t
+
+[SCALAR03]
+  residualTol = 1e-6
+  boundaryTypeMap = t, t, t, t, t, t

@@ -53,9 +53,9 @@
   [too_small_f]
     type = RunException
     input = nek_separate_domain.i
-    cli_args = "Problem/n_usrwrk_slots=3 Problem/coupled_scalars='scalar02'"
+    cli_args = "Problem/n_usrwrk_slots=2 Problem/coupled_scalars='scalar02'"
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
-                 "'n_usrwrk_slots' must be greater than or equal to 4"
+                 "'n_usrwrk_slots' must be greater than or equal to 3"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "
                   "NekRSSeparateDomainProblem always requires at least 4 slots if scalar02 is coupled "
     required_objects = 'NekRSProblem'
@@ -63,9 +63,9 @@
   [too_small_g]
     type = RunException
     input = nek_separate_domain.i
-    cli_args = "Problem/n_usrwrk_slots=4 Problem/coupled_scalars='scalar03'"
+    cli_args = "Problem/n_usrwrk_slots=2 Problem/coupled_scalars='scalar03'"
     expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
-                 "'n_usrwrk_slots' must be greater than or equal to 5"
+                 "'n_usrwrk_slots' must be greater than or equal to 3"
     requirement = "The system shall error if the user enters too small a scratch space allocation; "
                   "NekRSSeparateDomainProblem always requires at least 5 slots if scalar03 is coupled "
     required_objects = 'NekRSProblem'

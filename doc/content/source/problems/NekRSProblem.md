@@ -143,17 +143,17 @@ which NekRS makes available within the boundary condition functions in the `.oud
 [usrwrk_nrsp] shows the assignment of "slots" in the `nrs->usrwrk` scratch space
 array with quantities written by Cardinal. Because different quantities are written into
 Cardinal depending on the problem setup, if a particular slice is not needed for a
-case, it will just hold zero values. That is, the *order* of the various quantities
-is always the same in `nrs->usrwrk`.
+case, it will be skipped. That is, the *order* of the various quantities
+is always the same in `nrs->usrwrk`, but with any unused slots cleared out.
 
-!table id=usrwrk_nrsp caption=Quantities written into the scratch space array by Cardinal
-| Slice | Quantity | When Will There be Non-Zero Values? | How to Access in the `.oudf` File |
+!table id=usrwrk_nrsp caption=Quantities written into the scratch space array by Cardinal. In the last column, `n` indicates that the value is case-dependent depending on what features you have enabled.
+| Slice | Quantity | When Will It Be Created? | How to Access in the `.oudf` File |
 | :- | :- | :- | :- |
-| 0 | Boundary heat flux | if `boundary` is set on `NekRSMesh` | `bc->wrk[0 * bc->fieldOffset + bc->idM]` |
-| 1 | Volumetric heat source | if `volume` is true on `NekRSMesh` | `bc->wrk[1 * bc->fieldOffset + bc->idM]` |
-| 2 | Mesh x-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[2 * bc->fieldOffset + bc->idM]` |
-| 3 | Mesh y-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[3 * bc->fieldOffset + bc->idM]` |
-| 4 | Mesh z-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[4 * bc->fieldOffset + bc->idM]` |
+| 0 | Boundary heat flux | if `boundary` is set on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
+| 1 | Volumetric heat source | if `volume` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
+| 2 | Mesh x-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
+| 3 | Mesh y-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
+| 4 | Mesh z-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
 
 The total number of slots in the scratch space that are allocated by Cardinal
 is controlled with the `n_usrwrk_slots` parameter.
@@ -165,19 +165,17 @@ Any extra slots are noted as `unused`, and are free for non-coupling use.
 
 For example, if your case couples NekRS to MOOSE via volumes by
 setting `volume = true`, but has `boundary` unset and `moving_mesh = false`,
-the slice normally dedicated to storing heat flux is still allocated (because
-we keep the order the same in `nrs->usrwrk`, and the flux is earlier in the array than
-the volumetric heat source), but won't hold any meaningful information.
+the slice normally dedicated to storing heat flux is skipped.
 A table similar to the following
-would print out at the start of your simulation. You could use slices 2 onwards
+would print out at the start of your simulation. You could use slices 1 onwards
 for custom purposes.
 
 !listing id=l11 caption=Table printed at start of Cardinal simulation that describes available scratch space for a case that couples NekRS to MOOSE via volumetric power density, but not via boundaries or a moving mesh. A total of 7 slots are allocated by setting `n_usrwrk_slots` to 7
 ------------------------------------------------------------------
 | Slice |  Quantity   |        How to Access in NekRS BCs        |
 ------------------------------------------------------------------
-|     0 | flux        |  bc->wrk[0 * bc->fieldOffset + bc->idM]  |
-|     1 | heat_source |  bc->wrk[1 * bc->fieldOffset + bc->idM]  |
+|     0 | heat_source |  bc->wrk[0 * bc->fieldOffset + bc->idM]  |
+|     1 | unused      |  bc->wrk[1 * bc->fieldOffset + bc->idM]  |
 |     2 | unused      |  bc->wrk[2 * bc->fieldOffset + bc->idM]  |
 |     3 | unused      |  bc->wrk[3 * bc->fieldOffset + bc->idM]  |
 |     4 | unused      |  bc->wrk[4 * bc->fieldOffset + bc->idM]  |
@@ -185,27 +183,16 @@ for custom purposes.
 |     6 | unused      |  bc->wrk[6 * bc->fieldOffset + bc->idM]  |
 ------------------------------------------------------------------
 
-!alert warning
-Allocation of `nrs->usrwrk` and `nrs->o_usrwrk` is done automatically by
-`NekRSProblem`. If you attempt to run a NekRS input file that accesses `bc->wrk` in the
-`.oudf` file *without* a Cardinal executable (i.e. using something like
-`nrsmpi case 4`), then that scratch space will have to be manually allocated in
-the `.udf` file, or else your input will seg fault. This use case will not be typically
-encountered by most users, but if you really do want to run the NekRS input files
-intended for a Cardinal case with the NekRS executable (perhaps for debugging),
-we recommend simply replacing `bc->wrk` by a dummy value, such as `bc->flux = 0.0`
-for the boundary heat flux use case. This just replaces a value that normally comes from MOOSE by a fixed
-value. All other aspects of the NekRS case files should not require modification.
+!include seg_fault_warning.md
 
 #### Boundary Transfers
 
 If `boundary` was specified on [NekRSMesh](/mesh/NekRSMesh.md), then a heat flux
 (stored in the variable `avg_flux`) and the total heat flux integral over the
 boundary for normalization (stored in the postprocessor `flux_integral`) are sent
-to NekRS. The heat flux is written into the first "slot" of a NekRS scratch space array
-(`nrs->usrwrk`) by Cardinal.
+to NekRS.
 Then, all that is required to use a heat flux transferred by MOOSE is to
-apply it in the `scalarNeumannConditions` [!ac](OCCA) boundary condition.
+apply it in the `scalarNeumannConditions` boundary condition.
 Below, `bc->wrk` is the same as `nrs->o_usrwrk`, or the scratch space on the
 device; this function applies the heat flux computed by MOOSE to the flux boundaries.
 
@@ -217,13 +204,8 @@ device; this function applies the heat flux computed by MOOSE to the flux bounda
 If `volume = true` is specified on [NekRSMesh](/mesh/NekRSMesh.md), then a volumetric heat source
 (stored in the variable `heat_source`) and the total heat source integral over the
 volume for normalization (stored in the postprocessor `source_integral`) are sent
-to NekRS. The volumetric heat source is also written into the `nrs->usrwrk` scratch
-space array - offset by an appropriate index to be the "second" slot in the scratch
-space (recall that the heat flux is always written into the "first" field space in the
-scratch array).
-
-Then, all that is required to use a volumetric heat source transferred by MOOSE is to
-apply it with a custom source [!ac](OCCA) kernel in the `.oudf` file. Below is an example
+to NekRS. Then, all that is required to use a volumetric heat source transferred by MOOSE is to
+apply it with a custom source kernel in the `.oudf` file. Below is an example
 of a custom heat source kernel, arbitrarily named `mooseHeatSource` - this code is
 executed on the [!ac](GPU), and is written in OKL, a decorated C++ kernel language.
 This code loops over all the NekRS elements, loops over all the [!ac](GLL) points on
@@ -237,12 +219,13 @@ The actual passing of the `nrs->usrwrk` scratch space (that `NekRSProblem` write
 occurs in the `.udf` file. In the `.udf` file, you need to define a custom function,
 named artbirarily here to `userq`, with a signature that matches the user-defined source
 function expected by NekRS. This function should then pass the scratch space
-into the [!ac](OCCA) kernel we saw in the `.oudf` file.
+into the [!ac](OCCA) kernel we saw in the `.oudf` file. Note that the "offset"
+here should match the slice in the scratch space array which holds the volumetric heat source.
 
 !listing /test/tests/conduction/nonidentical_volume/cylinder/cylinder.udf language=cpp
   re=void\suserq.*?^}
 
-To finish the application of the heat source from MOOSE, you will need to be sure
+Finally, be sure
 to "load" the custom heat source kernel and create the pointer needed by NekRS
 to call that function. These two extra steps are quite small - the entire `.udf`
 file required to apply a MOOSE heat source is shown below (a large part of this
