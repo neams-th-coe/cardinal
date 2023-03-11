@@ -15,7 +15,6 @@
   stressFormulation = true
 
 [MESH]
-#  boundaryTypeMap = symy,symy,inlet,outlet,symz,symz
   solver = elasticity
   file = "brick.re2"
 
