@@ -512,6 +512,17 @@ OpenMCProblemBase::checkDuplicateVariableName(const std::string & name) const
       "for the nonlinear variable you are adding.");
 }
 
+std::string
+OpenMCProblemBase::tallyScore(const std::string & score) const
+{
+  std::string s = score;
+  std::transform(s.begin(), s.end(), s.begin(),
+    [](unsigned char c){ return std::tolower(c); });
+
+  std::replace(s.begin(), s.end(), '_', '-');
+  return s;
+}
+
 openmc::TallyEstimator
 OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
 {

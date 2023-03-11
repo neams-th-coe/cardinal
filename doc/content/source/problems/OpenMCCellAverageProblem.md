@@ -261,6 +261,47 @@ the normalization is done against a global tally added over the entire
 OpenMC domain. By setting `normalize_by_global_tally` to false, however, the fission tally is instead
 normalized by the sum of the fission tally itself.
 
+Cardinal also transforms the tallies in OpenMC into "physically meaningful" units.
+A full list of the tally units in OpenMC can be found [here](https://docs.openmc.org/en/stable/usersguide/tallies.html).
+For example a flux tally in OpenMC has units of particle-cm/source, which Cardinal will
+convert to particle/sec/area (where the area is given in the same length units as the
+`[Mesh]`). For all of the possible tally scores in Cardinal, this units-transformation
+process involves _division by a volume_. In Cardinal, there are two different notions of volume:
+
+- The volume of the `[Mesh]` elements which _map_ to a tally bin region
+- The actual volume of the tally bin region in OpenMC
+
+Take [sphere_compare] as an example; on the left is a MOOSE `[Mesh]`, and on the right is
+shown a spherical OpenMC cell we are mapping to the `[Mesh]`. For this case, the two volumes are
+different, because of the faceted nature of the sphere surface. The tallies in Cardinal
+are all normalized by the `[Mesh]` volume (0.96 cm$^3$ in this example).
+This is a good choice for heating-related tallies, because this will ensure
+we properly preserve a total integral (power) when integrated on the `[Mesh]`.
+For heating tallies, it is much more important
+to preserve the total power, as opposed to the raw pointwise value of the heat deposition (units
+of W/m$^3$).
+
+!media sphere_compare.png
+  id=sphere_compare
+  caption=Illustration of OpenMC particle transport geometry and the mapping of OpenMC cells to a user-supplied "mesh mirror."
+  style=width:60%;margin-left:auto;margin-right:auto
+
+However, for flux tallies,
+dividing by the `[Mesh]` volume indicates instead that we're normalizing flux so as
+to preserve a reaction rate (reactions/sec), as if you integrated $\int \Sigma\phi dV$ over the
+`[Mesh]`. This will _not_ give the same raw pointwise value of flux as what OpenMC is actually predicting,
+if the volumes of the `[Mesh]` and the tally bin regions are significantly different.
+If the pointwise value of flux is very important for your use case, you can post-multiply
+your flux values by $V_\text{moose}/V_\text{openmc}$ (in this example, 0.96 / 1.00), where $V_\text{moose}$ is the volume
+of the `[Mesh]` elements which map to the tally bin, and $V_\text{openmc}$ is the volume of the
+corresponding tally region.
+
+!alert note
+If your OpenMC tally bins and corresponding `[Mesh]` elements
+already are exactly the same volume, then no special thought is needed for the tally
+normalization, and the value will be exactly consistent with the interpretation
+used in OpenMC.
+
 #### Cell Tallies
 
 With cell tallies, `tally_blocks` specifies which blocks

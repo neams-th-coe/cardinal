@@ -47,6 +47,13 @@ public:
   void catchOpenMCError(const int & err, const std::string descriptor) const;
 
   /**
+   * Convert from a MOOSE-type enum into a valid OpenMC tally score string
+   * @param[in] score MOOSE-type enum string
+   * @return OpenMC tally score string
+   */
+  std::string tallyScore(const std::string & score) const;
+
+  /**
    * Find the geometry type in the OpenMC model
    * @param[out] has_csg_universe whether there is at least 1 CSG universe
    * @param[out] has_dag_universe whether there is at least 1 DagMC universe

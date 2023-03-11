@@ -116,6 +116,13 @@ OpenMCCellAverageProblem::validParams()
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux");
   params.addParam<MultiMooseEnum>(
       "tally_score", scores, "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
+
+  MooseEnum scores_heat(
+    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
+  params.addParam<MooseEnum>("source_rate_normalization", scores_heat, "Score to use for computing the "
+      "particle source rate (source/sec) for a flux tally in eigenvalue mode. In other words, the "
+      "source/sec is computed as power / the global value of this tally");
+
   params.addParam<std::vector<std::string>>(
       "tally_name", "Auxiliary variable name(s) to use for OpenMC tallies. "
       "If not specified, defaults to the names of the scores");
@@ -324,23 +331,39 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (isParamValid("tally_score"))
   {
     auto scores = getParam<MultiMooseEnum>("tally_score");
-
-    for (unsigned int i = 0; i < scores.size(); ++i)
-    {
-      auto score = scores[i];
-      std::transform(score.begin(), score.end(), score.begin(),
-        [](unsigned char c){ return std::tolower(c); });
-
-      std::replace(score.begin(), score.end(), '_', '-');
-      _tally_score.push_back(score);
-
-      if (score == "flux" && _run_mode != openmc::RunMode::FIXED_SOURCE)
-        mooseError("The 'flux' tally score is only available when running OpenMC in fixed source mode!\n"
-          "Flux renormalization for eigenvalue runs has not been implemented yet.");
-    }
+    for (const auto & score : scores)
+      _tally_score.push_back(tallyScore(score));
   }
   else
     _tally_score = {"kappa-fission"};
+
+  // need some special treatment for a flux score, in eigenvalue mode
+  bool has_flux_score = std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
+  if (has_flux_score && _run_mode == openmc::RunMode::EIGENVALUE)
+  {
+    checkRequiredParam(params, "source_rate_normalization", "using a flux tally in eigenvalue mode");
+    auto norm = getParam<MooseEnum>("source_rate_normalization");
+
+    // If the score is already in tally_score, no need to do anything special.
+    // Otherwise, we need to add that score.
+    std::string n = norm;
+    auto it = std::find(_tally_score.begin(), _tally_score.end(), n);
+    if (it != _tally_score.end())
+      _source_rate_index = it - _tally_score.begin();
+    else
+    {
+      _tally_score.push_back(tallyScore(n));
+      _source_rate_index = _tally_score.size() - 1;
+    }
+
+    // later, we populate the tally results in a loop. We will rely on the normalization
+    // tally being listed before the flux tally, so we swap entries so that the normalization
+    // tally is first
+    std::iter_swap(_tally_score.begin(), _tally_score.begin() + _source_rate_index);
+    _source_rate_index = 0;
+  }
+  else
+    checkUnusedParam(params, "source_rate_normalization", "not using a flux tally in eigenvalue mode");
 
   if (isParamValid("tally_name"))
     _tally_name = getParam<std::vector<std::string>>("tally_name");
@@ -2364,8 +2387,14 @@ OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
 {
   if (_tally_score[score] == "flux")
   {
-    // Flux tally has units of particle - cm / source particle; we also only get here for fixed source
-    return *_source_strength * _local_mean_tally[score] / _scaling;
+    // Flux tally has units of particle - cm / source particle
+    if (_run_mode == openmc::RunMode::EIGENVALUE)
+    {
+      Real source = *_power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
+      return source * _local_mean_tally[score] / _scaling;
+    }
+    else
+      return *_source_strength * _local_mean_tally[score] / _scaling;
   }
   else
   {
@@ -2517,8 +2546,12 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
 
   vt.addRow("total", total);
 
-  if (_verbose && print_table)
-    vt.print(_console);
+  // do not print a table showing the fractional values for flux, because this tally score
+  // itself is not renormalized to preserve some total integral of flux (so the "fraction"
+  // is a bit of a misnomer)
+  if (_tally_score[score] != "flux")
+    if (_verbose && print_table)
+      vt.print(_console);
 
   return total;
 }
