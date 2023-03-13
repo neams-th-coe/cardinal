@@ -366,7 +366,8 @@ endif
 ADDITIONAL_LIBS := -L$(CARDINAL_DIR)/lib $(CC_LINKER_SLFLAG)$(CARDINAL_DIR)/lib
 
 ifeq ($(ENABLE_NEK), yes)
-  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) -lnekrs-hypre -lnekrs-hypre-device -lnekrs -locca $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
+  ADDITIONAL_LIBS += -L$(NEKRS_LIBDIR) -lnekrs-hypre -lnekrs-hypre-device -lnekrs -locca \
+                     $(CC_LINKER_SLFLAG)$(NEKRS_LIBDIR)
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
@@ -402,12 +403,13 @@ ifeq ($(ENABLE_NEK), yes)
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
-  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc \
-	                           $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
+  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc
+  ifeq ($(ENABLE_DAGMC), ON)
+    CARDINAL_EXTERNAL_FLAGS += -luwuw -ldagmc -lpyne_dagmc -lMOAB
+  endif
+  CARDINAL_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
 endif
 
 # EXTERNAL_FLAGS are for rules in app.mk
-$(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
-$(app_EXEC): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)

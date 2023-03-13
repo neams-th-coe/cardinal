@@ -337,7 +337,7 @@ endif
 
 ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
-  ifeq ($(ENABLE_DAGMC), yes)
+  ifeq ($(ENABLE_DAGMC), ON)
     ADDITIONAL_LIBS += -luwuw -ldagmc -lpyne_dagmc -lMOAB
   endif
   ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
