@@ -44,21 +44,18 @@ bl_5 = 0.0052061600000000005
     transform = rotate
     vector_value = '45.0 0.0 0.0'
   []
-  [delete_extra_pin_surfaces] # this just makes sure boundary 2 and 3 are free for 'extrude'
-    type = RenameBoundaryGenerator
+
+  # We will name boundaries in the mesh for sidesets 2 - 7 using other MOOSE objects.
+  # The reactor module does its own sideset naming, so we make sure those IDs are
+  # free by deleting whatever the reactor module had.
+  [delete_extra_surfaces]
+    type = BoundaryDeletionGenerator
     input = rotate
-    old_boundary = '2 3'
-    new_boundary = '45 46'
-  []
-  [rename_pin_surface] # this just makes sure boundary 4 is free for 'top_boundary'
-    type = RenameBoundaryGenerator
-    input = delete_extra_pin_surfaces
-    old_boundary = '4'
-    new_boundary = '44'
+    boundary_names = '2 3 4 5 6 7'
   []
   [extrude]
     type = AdvancedExtruderGenerator
-    input = rename_pin_surface
+    input = delete_extra_surfaces
     direction = '0 0 1'
     num_layers = '${num_layers}'
     heights = '${height}'
@@ -76,4 +73,52 @@ bl_5 = 0.0052061600000000005
   []
 
   second_order = true
+[]
+
+# The following content is adding postprocessor(s) to check sideset areas.
+# The reactor module is unfortunately quite brittle in its assignment of sideset
+# IDs, so we want to be extra sure that any changes to sideset numbering are detected
+# in our test suite.
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
+[Postprocessors]
+  [area_1] # should approximate 0.015236724369910496
+    type = AreaPostprocessor
+    boundary = '1'
+  []
+  [area_2] # should approximate 8.994188680593409e-05
+    type = AreaPostprocessor
+    boundary = '2'
+  []
+  [area_3] # should approximate 8.994188680593409e-05
+    type = AreaPostprocessor
+    boundary = '3'
+  []
+  [area_4] # should approximate 0.0064
+    type = AreaPostprocessor
+    boundary = '4'
+  []
+  [area_5] # should approximate 0.0064
+    type = AreaPostprocessor
+    boundary = '5'
+  []
+  [area_6] # should approximate 0.0064
+    type = AreaPostprocessor
+    boundary = '6'
+  []
+  [area_7] # should approximate 0.0064
+    type = AreaPostprocessor
+    boundary = '7'
+  []
+[]
+
+[Executioner]
+  type = Steady
+[]
+
+[Outputs]
+  csv = true
 []

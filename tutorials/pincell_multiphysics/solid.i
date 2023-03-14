@@ -58,3 +58,27 @@ R = ${fparse pin_diameter / 2.0}
     vector_value = '45.0 0.0 0.0'
   []
 []
+
+# The following content is adding postprocessor(s) to check sideset areas.
+# The reactor module is unfortunately quite brittle in its assignment of sideset
+# IDs, so we want to be extra sure that any changes to sideset numbering are detected
+# in our test suite.
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
+[Postprocessors]
+  [area_5] # should approximate 0.015236724369910496
+    type = AreaPostprocessor
+    boundary = '5'
+  []
+[]
+
+[Executioner]
+  type = Steady
+[]
+
+[Outputs]
+  csv = true
+[]
