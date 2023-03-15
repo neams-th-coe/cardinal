@@ -109,3 +109,28 @@ n_layers = 100    # number of axial extrusion layers; for the converged case,
 
   construct_side_list_from_node_list = true
 []
+
+# The following content is adding postprocessor(s) to check sideset areas.
+# The reactor module is unfortunately quite brittle in its assignment of sideset
+# IDs, so we want to be extra sure that any changes to sideset numbering are detected
+# in our test suite.
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
+[Postprocessors]
+  [area_walls]
+    type = AreaPostprocessor
+    boundary = 'fluid_solid_interface'
+  []
+[]
+
+[Executioner]
+  type = Steady
+[]
+
+[Outputs]
+  csv = true
+  exodus = true
+[]

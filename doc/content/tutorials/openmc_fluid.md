@@ -123,6 +123,7 @@ meshes are then combined together into a bundle pattern and extruded into the $z
 direction.
 
 !listing /tutorials/gas_assembly/solid_mesh.i
+  end=Problem
 
 You can create this mesh by running:
 
