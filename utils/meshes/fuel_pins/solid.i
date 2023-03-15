@@ -53,3 +53,35 @@ pellet_radius = ${fparse pellet_diameter / 2.0}
     boundary_names = '1 2'
   []
 []
+
+# The following content is adding postprocessor(s) to check sideset areas.
+# The reactor module is unfortunately quite brittle in its assignment of sideset
+# IDs, so we want to be extra sure that any changes to sideset numbering are detected
+# in our test suite.
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
+[Postprocessors]
+  [area_clad]
+    type = AreaPostprocessor
+    boundary = '3'
+  []
+  [area_bot]
+    type = AreaPostprocessor
+    boundary = '4'
+  []
+  [area_top]
+    type = AreaPostprocessor
+    boundary = '5'
+  []
+[]
+
+[Executioner]
+  type = Steady
+[]
+
+[Outputs]
+  csv = true
+[]
