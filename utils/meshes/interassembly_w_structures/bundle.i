@@ -10,6 +10,7 @@ garbage_5 = 504
     polygon_size = ${fparse bundle_pitch / 2.0}
     num_sectors_per_side = '${e_per_side} ${e_per_side} ${e_per_side} ${e_per_side} ${e_per_side} ${e_per_side}'
     uniform_mesh_on_sides = true
+    create_inward_interface_boundaries = true
 
     # dummy values related to the pin that will be deleted
     ring_radii = ${fparse 0.8 * flat_to_flat / 2.0}

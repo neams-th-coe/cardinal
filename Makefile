@@ -13,6 +13,7 @@
 # * OPENMC_DIR       : Top-level OpenMC dir (default: $(CONTRIB_DIR)/openmc)
 # * DAGMC_DIR        : Top-level DagMC dir (default: $(CONTRIB_DIR)/DAGMC)
 # * MOAB_DIR         : Top-level Moab dir (default: $(CONTRIB_DIR)/moab)
+# * BISON_DIR        : Top-level Bison dir (default: $(CONTRIB_DIR)/bison)
 # * SAM_DIR          : Top-level SAM dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR      : Top-level Sockeye dir (default: $(CONTRIB_DIR)/sockeye)
 # * SODIUM_DIR       : Top-level sodium dir (default: $(CONTRIB_DIR)/sodium)
@@ -55,6 +56,7 @@ PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
+BISON_DIR           ?= $(CONTRIB_DIR)/bison
 SAM_DIR             ?= $(CONTRIB_DIR)/SAM
 SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
@@ -218,6 +220,14 @@ include $(FRAMEWORK_DIR)/moose.mk
 # ======================================================================================
 
 include $(MOOSE_DIR)/modules/modules.mk
+
+# Bison submodule
+ifneq ($(BISON_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_BISON_COUPLING
+  APPLICATION_DIR     := $(BISON_DIR)
+  APPLICATION_NAME    := bison
+  include             $(FRAMEWORK_DIR)/app.mk
+endif
 
 # SAM submodule
 ifneq ($(SAM_CONTENT),)

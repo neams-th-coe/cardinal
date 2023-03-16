@@ -31,6 +31,7 @@ n_layers = 100    # number of axial extrusion layers; for the converged case,
     background_block_ids = '1'
     background_block_names = 'graphite'
     interface_boundary_id_shift = 100
+    create_inward_interface_boundaries = true
     background_intervals = 2
   []
   [poison_pin]
