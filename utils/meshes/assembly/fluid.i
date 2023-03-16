@@ -83,19 +83,19 @@ solid_id = 15
 []
 
 [Postprocessors]
-  [area_pin]
+  [area_pin] # should match 0.05980442663288348
     type = AreaPostprocessor
     boundary = '1'
   []
-  [area_bot]
+  [area_bot] # should match 0.0005602900062067424
     type = AreaPostprocessor
     boundary = '2'
   []
-  [area_top]
+  [area_top] # should match 0.0005602900062067424
     type = AreaPostprocessor
     boundary = '3'
   []
-  [area_duct]
+  [area_duct] # should match 0.034552757579999996
     type = AreaPostprocessor
     boundary = '4'
   []

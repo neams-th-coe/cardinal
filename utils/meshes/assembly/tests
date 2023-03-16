@@ -8,8 +8,8 @@
     type = CSVDiff
     input = mesh_info.i
     csvdiff = fluid_in.csv
-    cli_args = "fluid.i Output/file_base=fluid_in"
-    requirement = 'The system shall create a mesh of a hex pin bundle.'
+    cli_args = "fluid.i Outputs/file_base=fluid_in"
+    requirement = 'The system shall create a mesh of a hex pin bundle. We check that the areas of various sidesets match expected values.'
     mesh_mode = 'replicated'
     prereq = specs
   []

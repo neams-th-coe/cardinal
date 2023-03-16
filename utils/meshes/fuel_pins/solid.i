@@ -29,7 +29,7 @@ pellet_radius = ${fparse pellet_diameter / 2.0}
   [core]
     type = PatternedHexMeshGenerator
     inputs = 'assembly'
-    pattern = ${pattern}
+    pattern = ${bundle_pattern}
     pattern_boundary = none
     generate_core_metadata = true
   []
@@ -64,15 +64,15 @@ pellet_radius = ${fparse pellet_diameter / 2.0}
 []
 
 [Postprocessors]
-  [area_clad]
+  [area_clad] # should match 0.41863098643018437
     type = AreaPostprocessor
     boundary = '3'
   []
-  [area_bot]
+  [area_bot] # should match 0.003504269956552803
     type = AreaPostprocessor
     boundary = '4'
   []
-  [area_top]
+  [area_top] # should match 0.003504269956552803
     type = AreaPostprocessor
     boundary = '5'
   []

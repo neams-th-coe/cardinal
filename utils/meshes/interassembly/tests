@@ -13,6 +13,15 @@
     mesh_mode = 'replicated'
     prereq = specs
   []
+  [check_sidesets]
+    type = CSVDiff
+    input = mesh_info.i
+    csvdiff = plane_in.csv
+    cli_args = "plane.i Outputs/file_base=plane_in"
+    requirement = 'The system shall create a mesh of the interassembly flow. We also check that sideset areas match expected values.'
+    mesh_mode = 'replicated'
+    prereq = specs
+  []
   [convert]
     type = Exodiff
     input = mesh_info.i

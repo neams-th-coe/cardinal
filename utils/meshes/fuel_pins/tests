@@ -8,7 +8,7 @@
     type = CSVDiff
     input = mesh_info.i
     cli_args = "solid.i"
-    csv_diff = solid_out.csv
+    csvdiff = solid_out.csv
     requirement = 'The system shall create a mesh of a hex pin bundle. We check that the areas of various sidesets match expected values.'
     mesh_mode = 'replicated'
     prereq = specs

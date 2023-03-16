@@ -1,5 +1,3 @@
-half_pitch = ${fparse bundle_pitch / 2.0}
-
 [Mesh]
   [gap]
     type = PolygonConcentricCircleMeshGenerator
@@ -62,7 +60,7 @@ half_pitch = ${fparse bundle_pitch / 2.0}
     input = delete_extra
     direction = '0 0 1'
     num_layers = '${nl}'
-    heights = '${h}'
+    heights = '${height}'
     bottom_boundary = 1
     top_boundary = 2
   []
@@ -74,4 +72,41 @@ half_pitch = ${fparse bundle_pitch / 2.0}
   []
 
   second_order = true
+[]
+
+# The following content is adding postprocessor(s) to check sideset areas.
+# The reactor module is unfortunately quite brittle in its assignment of sideset
+# IDs, so we want to be extra sure that any changes to sideset numbering are detected
+# in our test suite.
+[Problem]
+  type = FEProblem
+  solve = false
+[]
+
+[Postprocessors]
+  [area_inlet] # should match 0.30680546691106464
+    type = AreaPostprocessor
+    boundary = '1'
+  []
+  [area_outlet] # should match 0.30680546691106464
+    type = AreaPostprocessor
+    boundary = '2'
+  []
+  [area_ducts] # should match 0.73523856
+    type = AreaPostprocessor
+    boundary = '3'
+  []
+  [area_vessel] # should match 0.47877872040708447
+    type = AreaPostprocessor
+    boundary = '4'
+  []
+[]
+
+[Executioner]
+  type = Steady
+[]
+
+[Outputs]
+  csv = true
+  exodus = true
 []
