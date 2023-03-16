@@ -134,6 +134,7 @@ In this example, we use this module to set up just a single pincell.
 This mesh is described in the `solid.i` file,
 
 !listing tutorials/pincell_multiphysics/solid.i
+  block=Mesh
 
 You can generate this mesh by running
 
@@ -172,6 +173,7 @@ fluid receiving portion of the solid mesh is that we now set up some
 boundary layers on the pincell surfaces, by providing `ring_radii` (and other parameters) as vectors.
 
 !listing tutorials/pincell_multiphysics/fluid.i
+  block=Mesh
 
 However, NekRS requires a HEX20 mesh format. Therefore, we use a
 [NekMeshGenerator](/meshgenerators/NekMeshGenerator.md) to convert from HEX27 to HEX20 format,

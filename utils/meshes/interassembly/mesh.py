@@ -233,7 +233,6 @@ with open('mesh_info.i', 'w') as f:
   f.write(str.format("height={0}\n", h))
   f.write(str.format("hydraulic_diameter={0}\n", hydraulic_diameter))
   f.write(str.format("nl={0}\n", nl))
-  f.write(str.format("h={0}\n", h))
   f.write("bl_height=" + str(bl_radii) + "'\n")
   f.write("pad_ids=" + str(pad_ids) + "'\n")
   f.write("duct_ids=" + str(duct_ids) + "'\n")
