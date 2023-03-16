@@ -57,6 +57,22 @@ R = ${fparse pin_diameter / 2.0}
     transform = ROTATE
     vector_value = '45.0 0.0 0.0'
   []
+
+  # We want boundary 5 to be the clad surface, because at the time we made this tutorial
+  # that is what the reactor module named this boundary (so we drew that boundary in
+  # some figures). If you are making a mesh from scratch, you dont need to go through
+  # these gynmastics.
+  [delete_5]
+    type = BoundaryDeletionGenerator
+    input = rotate
+    boundary_names = '5'
+  []
+  [name_5]
+    type = RenameBoundaryGenerator
+    input = delete_5
+    old_boundary = '9'
+    new_boundary = '5'
+  []
 []
 
 # The following content is adding postprocessor(s) to check sideset areas.
