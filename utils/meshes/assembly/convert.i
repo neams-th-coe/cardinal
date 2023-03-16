@@ -6,9 +6,9 @@
   [to_hex20]
     type = NekMeshGenerator
     input = file
-    boundaries_to_rebuild = '8 2 3 4'
+    boundaries_to_rebuild = '1 2 3 4'
 
-    boundary = '8'
+    boundary = '1'
     radius = '${fparse pin_diameter / 2.0}'
     origins = '${pin_centers}'
     layers = '${e_per_bl}'
@@ -33,11 +33,5 @@
     input = scale
     transform = rotate
     vector_value = '30.0 0.0 0.0'
-  []
-  [rename]
-    type = RenameBoundaryGenerator
-    input = rotate
-    old_boundary = '8 2 3 4'
-    new_boundary = '1 2 3 4'
   []
 []
