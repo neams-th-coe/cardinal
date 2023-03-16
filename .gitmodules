@@ -28,3 +28,6 @@
 [submodule "contrib/moab"]
 	path = contrib/moab
 	url = https://bitbucket.org/fathomteam/moab
+[submodule "contrib/bison"]
+	path = contrib/bison
+	url = git@github.inl.gov:ncrc/bison.git
