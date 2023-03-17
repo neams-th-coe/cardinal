@@ -9,11 +9,21 @@ NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
 OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
 DAGMC_CONTENT     := $(shell ls $(DAGMC_DIR) 2> /dev/null)
 MOAB_CONTENT      := $(shell ls $(MOAB_DIR) 2> /dev/null)
+BISON_CONTENT     := $(shell ls $(BISON_DIR) 2> /dev/null)
 SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
 
 ifeq ($(THERMAL_HYDRAULICS), yes)
   THM_CONTENT     := true
+endif
+
+ifneq ($(BISON_CONTENT),)
+  CONTACT            := yes
+  MISC               := yes
+  PHASE_FIELD        := yes
+  XFEM               := yes
+  SOLID_PROPERTIES   := yes
+  LEVEL_SET          := yes
 endif
 
 SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
@@ -81,6 +91,14 @@ ifneq ($(SOCKEYE_CONTENT),)
   endif
   ifeq ($(IAPWS95_CONTENT),)
     $(error $n"IAPWS95 dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
+  endif
+endif
+
+# We can check that if it looks like we're going to build Bison, that
+# all of its dependencies are there
+ifneq ($(BISON_CONTENT),)
+  ifeq ($(IAPWS95_CONTENT),)
+    $(error $n"IAPWS95 dependency for Bison does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
   endif
 endif
 
