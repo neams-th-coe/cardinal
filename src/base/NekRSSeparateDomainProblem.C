@@ -142,42 +142,42 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
 
   // TODO, add checks of BCs if using inlet coupling
 
-  // Determine an appropriate default usrwrk indexing; the ordering will always be
-  //   0: velocity         (if _inlet_coupling is true)
-  //   1: temperature      (if _inlet_coupling is true and NekRS has temperature solve)
-  //   2: scalar01         (if _inlet_coupling is true and _scalar01_coupling is true)
-  //   3: scalar02         (if _inlet_coupling is true and _scalar02_coupling is true)
-  //   4: scalar03         (if _inlet_coupling is true and _scalar03_coupling is true)
-  //
-  // The most we will do is skip allocating terms at the end of this ordering if we
-  // don't need them. We never change the ordering of "earlier" terms.
+  // Determine an appropriate default usrwrk indexing; the ordering will always be as
+  // follows (except that unused terms will be deleted if not needed for coupling)
+  //   velocity         (if _inlet_coupling is true)
+  //   temperature      (if _inlet_coupling is true and NekRS has temperature solve)
+  //   scalar01         (if _inlet_coupling is true and _scalar01_coupling is true)
+  //   scalar02         (if _inlet_coupling is true and _scalar02_coupling is true)
+  //   scalar03         (if _inlet_coupling is true and _scalar03_coupling is true)
   std::vector<std::string> str_indices;
-
-  // there are no necessary coupling arrays if there is not inlet coupling
+  int start = 0;
   if (_inlet_coupling)
   {
-    str_indices = {"velocity", "temperature", "scalar01", "scalar02", "scalar03"};
-    indices.boundary_velocity = 0 * nekrs::scalarFieldOffset();
-    indices.boundary_temperature = 1 * nekrs::scalarFieldOffset();
-    indices.boundary_scalar01 = 2 * nekrs::scalarFieldOffset();
-    indices.boundary_scalar02 = 3 * nekrs::scalarFieldOffset();
-    indices.boundary_scalar03 = 4 * nekrs::scalarFieldOffset();
+    indices.boundary_velocity = start++ * nekrs::scalarFieldOffset();
+    str_indices.push_back("velocity");
 
-    // progressively erase terms from the back if we don't need them
-    if (!_scalar03_coupling)
+    if (nekrs::hasTemperatureSolve())
     {
-      str_indices.erase(str_indices.end());
-      if (!_scalar02_coupling)
-      {
-        str_indices.erase(str_indices.end());
-        if (!_scalar01_coupling)
-        {
-          str_indices.erase(str_indices.end());
+      indices.boundary_temperature = start++ * nekrs::scalarFieldOffset();
+      str_indices.push_back("temperature");
+    }
 
-          if (!nekrs::hasTemperatureSolve())
-            str_indices.erase(str_indices.end());
-        }
-      }
+    if (_scalar01_coupling)
+    {
+      indices.boundary_scalar01 = start++ * nekrs::scalarFieldOffset();
+      str_indices.push_back("scalar01");
+    }
+
+    if (_scalar02_coupling)
+    {
+      indices.boundary_scalar02 = start++ * nekrs::scalarFieldOffset();
+      str_indices.push_back("scalar02");
+    }
+
+    if (_scalar03_coupling)
+    {
+      indices.boundary_scalar03 = start++ * nekrs::scalarFieldOffset();
+      str_indices.push_back("scalar03");
     }
   }
 

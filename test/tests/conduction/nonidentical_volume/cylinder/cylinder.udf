@@ -14,7 +14,7 @@ void userq(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
   auto mesh = nrs->cds->mesh[0];
 
   // pass the necessary parameters into the kernel we define in the .oudf file
-  mooseHeatSourceKernel(mesh->Nelements, nrs->cds->fieldOffset[0], nrs->o_usrwrk, o_FS);
+  mooseHeatSourceKernel(mesh->Nelements, 0, nrs->o_usrwrk, o_FS);
 }
 
 void UDF_Setup(nrs_t *nrs)
