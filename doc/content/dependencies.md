@@ -15,4 +15,5 @@ Cardinal supports *optional* coupling to the following codes:
   SAM submodule.
 - *Sockeye*, a tool for modeling of heat pipe systems. Follow [these instructions](sockeye_instructions.md) to obtain the required dependencies for adding the
   Sockeye submodule.
+- *BISON*, a tool for modeling fuel performance and material behavior of nuclear fuels. Follow [these instructions](bison_instructions.md) to obtain the required dependencies for adding the BISON submodule.
 !alert-end!
