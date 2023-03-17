@@ -83,35 +83,35 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   if (!_boundary)
     checkUnusedParam(params, "conserve_flux_by_sideset", "coupling NekRS solely through a volume mesh mirror");
 
-  // Determine an appropriate default usrwrk indexing; the ordering will always be
-  //   0: flux             (if _boundary is true)
-  //   1: heat_source      (if _volume is true and _has_heat_source is true)
-  //   2: mesh_velocity_x   (if nekrs::hasElasticitySolver() is true)
-  //   3: mesh_velocity_y   (if nekrs::hasElasticitySolver() is true)
-  //   4: mesh_velocity_z   (if nekrs::hasElasticitySolver() is true)
-  //
-  // The most we will do is skip allocating terms at the end of this ordering if we
-  // don't need them. We never change the ordering of "earlier" terms.
-  std::vector<std::string> str_indices =
-    {"flux", "heat_source", "mesh_velocity_x", "mesh_velocity_y", "mesh_velocity_z"};
-  indices.flux = 0 * nekrs::scalarFieldOffset();
-  indices.heat_source = 1 * nekrs::scalarFieldOffset();
-  indices.mesh_velocity_x = 2 * nekrs::scalarFieldOffset();
-  indices.mesh_velocity_y = 3 * nekrs::scalarFieldOffset();
-  indices.mesh_velocity_z = 4 * nekrs::scalarFieldOffset();
-
-  // progressively erase terms from the back if we don't need them
-  if (!nekrs::hasElasticitySolver())
+  // Determine the usrwrk indexing; the ordering will always be as
+  // follows (except that unused terms will be deleted if not needed for coupling)
+  //   flux              (if _boundary is true)
+  //   heat_source       (if _volume is true and _has_heat_source is true)
+  //   mesh_velocity_x   (if nekrs::hasElasticitySolver() is true)
+  //   mesh_velocity_y   (if nekrs::hasElasticitySolver() is true)
+  //   mesh_velocity_z   (if nekrs::hasElasticitySolver() is true)
+  std::vector<std::string> str_indices;
+  int start = 0;
+  if (_boundary)
   {
-    str_indices.erase(str_indices.begin() + 2, str_indices.end());
+    indices.flux = start++ * nekrs::scalarFieldOffset();
+    str_indices.push_back("flux");
+  }
 
-    if (!_volume)
-    {
-      str_indices.erase(str_indices.end());
+  if (_volume && _has_heat_source)
+  {
+    indices.heat_source = start++ * nekrs::scalarFieldOffset();
+    str_indices.push_back("heat_source");
+  }
 
-      if (!_boundary)
-        str_indices.erase(str_indices.end());
-    }
+  if (nekrs::hasElasticitySolver())
+  {
+    indices.mesh_velocity_x = start++ * nekrs::scalarFieldOffset();
+    indices.mesh_velocity_y = start++ * nekrs::scalarFieldOffset();
+    indices.mesh_velocity_z = start++ * nekrs::scalarFieldOffset();
+    str_indices.push_back("mesh_velocity_x");
+    str_indices.push_back("mesh_velocity_y");
+    str_indices.push_back("mesh_velocity_z");
   }
 
   _minimum_scratch_size_for_coupling = str_indices.size();
