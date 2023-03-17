@@ -438,15 +438,12 @@ setup, achieve better iterative performance, and iteratively update the geometry
 #### CAD Geometry Skinning
   id=skinning
 
-For all cell-based OpenMC models, OpenMC is currently limited to settings a single
+For all cell-based OpenMC models, OpenMC is currently limited to setting a single
 constant temperature, and a single constant density, in each cell. For CSG geometries,
 the user needs to manually set up sub-divisions in the geometry in order to capture
 spatial variation in temperature and density (computed by some other MOOSE application).
 For DAGMC geometries, you can instead optionally re-generate the OpenMC cells after
-each Picard iteration according to contours in temperature and/or density - in other
-words, automatically setting up the OpenMC model so that it can receive spatially-varying
-temperature and density without the user needing to manually subdivide regions of space
-*a priori*.
+each Picard iteration according to contours in temperature and/or density. With this approach, the OpenMC model can receive spatially-varying temperature and density without the user needing to manually subdivide regions of space *a priori*.
 
 !alert note
 This skinning feature is only available for DAGMC geometries for which the `[Mesh]`

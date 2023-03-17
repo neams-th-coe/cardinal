@@ -457,7 +457,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
 #else
-  checkUnusedParam(params, "skinner", "the OpenMC model does not contain any DagMC universes");
+  checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
 #endif
 
   _n_particles_1 = nParticles();
