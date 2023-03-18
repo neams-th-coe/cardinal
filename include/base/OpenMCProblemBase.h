@@ -330,12 +330,6 @@ protected:
    */
   bool _reuse_source;
 
-  /**
-   * Whether the OpenMC model consists of a single coordinate level; this can
-   * in some cases be used for more verbose error messages
-   */
-  const bool _single_coord_level;
-
   /// Total number of unique OpenMC cell IDs + instances combinations
   long unsigned int _n_openmc_cells;
 
@@ -347,6 +341,15 @@ protected:
    */
   int _fixed_point_iteration;
 
+  /// Total number of particles simulated
+  unsigned int _total_n_particles;
+
+  /**
+   * Whether the OpenMC model consists of a single coordinate level; this can
+   * in some cases be used for more verbose error messages
+   */
+  bool _single_coord_level;
+
   /// Directory where OpenMC output files are written
   std::string _path_output;
 
@@ -356,13 +359,10 @@ protected:
    * may be distributed cells such that the maximum cell ID is far smaller than the
    * total number of cells.
    */
-  const int _n_cell_digits;
+  int _n_cell_digits;
 
   /// OpenMC run mode
-  const openmc::RunMode _run_mode;
-
-  /// Total number of particles simulated
-  unsigned int _total_n_particles;
+  openmc::RunMode _run_mode;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;
