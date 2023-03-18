@@ -327,12 +327,6 @@ protected:
   long unsigned int _n_openmc_cells;
 
   /**
-   * Whether the OpenMC model consists of a single coordinate level; this can
-   * in some cases be used for more verbose error messages
-   */
-  const bool _single_coord_level;
-
-  /**
    * Fixed point iteration index used in relaxation; because we sometimes run OpenMC
    * in a pseudo-transient coupling with NekRS, we simply increment this by 1 each
    * time we call openmc::run(). This uses a zero indexing, so after the first iteration,
