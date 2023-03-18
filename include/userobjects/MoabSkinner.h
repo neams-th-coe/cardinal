@@ -432,4 +432,7 @@ protected:
 
   /// Number of nodes per MOAB tet (which are first order, so TET4)
   const unsigned int NODES_PER_MOAB_TET = 4;
+
+  /// Tolerance to use for comparing values to bin bounds
+  const Real BIN_TOLERANCE = 1e-6;
 };
