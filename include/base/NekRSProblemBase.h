@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "ExternalProblem.h"
+#include "CardinalProblem.h"
 #include "NekTimeStepper.h"
 #include "NekRSMesh.h"
 #include "Transient.h"
@@ -32,7 +32,7 @@
  * - specifying nondimensional scales
  * - running a single time step of NekRS
  */
-class NekRSProblemBase : public ExternalProblem
+class NekRSProblemBase : public CardinalProblem
 {
 public:
   NekRSProblemBase(const InputParameters & params);
@@ -79,13 +79,6 @@ public:
    */
   void mapFaceDataToNekVolume(const unsigned int & e, const unsigned int & var_num,
     const Real & multiplier, double ** outgoing_data);
-
-  /**
-   * Check whether the user has already created a variable using one of the protected
-   * names that the NekRS wrapping is using.
-   * @param[in] name variable name
-   */
-  void checkDuplicateVariableName(const std::string & name) const;
 
   /**
    * Write NekRS solution field file

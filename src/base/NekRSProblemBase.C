@@ -37,7 +37,7 @@ bool NekRSProblemBase::_first = true;
 InputParameters
 NekRSProblemBase::validParams()
 {
-  InputParameters params = ExternalProblem::validParams();
+  InputParameters params = CardinalProblem::validParams();
   params.addParam<std::string>(
       "casename",
       "Case name for the NekRS input files; "
@@ -106,7 +106,7 @@ NekRSProblemBase::validParams()
 }
 
 NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
-  : ExternalProblem(params),
+  : CardinalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _nondimensional(getParam<bool>("nondimensional")),
     _U_ref(getParam<Real>("U_ref")),
@@ -416,7 +416,7 @@ NekRSProblemBase::fillAuxVariable(const unsigned int var_number, const double * 
 void
 NekRSProblemBase::initialSetup()
 {
-  ExternalProblem::initialSetup();
+  CardinalProblem::initialSetup();
 
   auto executioner = _app.getExecutioner();
   _transient_executioner = dynamic_cast<Transient *>(executioner);
@@ -756,20 +756,6 @@ NekRSProblemBase::addTemperatureVariable()
   // chose to name the temperature variable. For everything else, we just use
   // the name of the output parameter.
   _var_names.push_back("temp");
-}
-
-void
-NekRSProblemBase::checkDuplicateVariableName(const std::string & name) const
-{
-  if (_aux.get()->hasVariable(name))
-    mooseError("Cardinal is trying to add an auxiliary variable named '", name,
-      "', but you already have a variable by this name. Please choose a different name "
-      "for the auxiliary variable you are adding.");
-
-  if (_nl[0].get()->hasVariable(name))
-    mooseError("Cardinal is trying to add a nonlinear variable named '", name,
-      "', but you already have a variable by this name. Please choose a different name "
-      "for the nonlinear variable you are adding.");
 }
 
 void
