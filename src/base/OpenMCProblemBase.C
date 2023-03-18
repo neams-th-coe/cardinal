@@ -27,6 +27,7 @@
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/geometry.h"
+#include "openmc/geometry_aux.h"
 #include "openmc/hdf5_interface.h"
 #include "openmc/material.h"
 #include "openmc/mesh.h"
@@ -55,9 +56,9 @@ OpenMCProblemBase::validParams()
       "inactive_batches > 0",
       "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<int>("particles",
-                                       "particles > 0 ",
-                                       "Number of particles to run in each OpenMC batch; this "
-                                       "overrides the setting in the XML files.");
+                                   "particles > 0 ",
+                                   "Number of particles to run in each OpenMC batch; this "
+                                   "overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>(
       "batches",
       "batches > 0",
@@ -75,30 +76,64 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     PostprocessorInterface(this),
     _verbose(getParam<bool>("verbose")),
     _reuse_source(getParam<bool>("reuse_source")),
-    _single_coord_level(openmc::model::n_coord_levels == 1),
     _fixed_point_iteration(-1),
-    _path_output(openmc::settings::path_output),
-    _n_cell_digits(std::to_string(openmc::model::cells.size()).length()),
-    _run_mode(openmc::settings::run_mode),
     _total_n_particles(0)
 {
-  if (openmc::settings::run_mode == openmc::RunMode::FIXED_SOURCE)
-  {
-    checkRequiredParam(params, "source_strength", "running in fixed source mode");
-    _source_strength = &getPostprocessorValue("source_strength");
+  int argc = 1;
+  char openmc[] = "openmc";
+  char * argv[1] = {openmc};
 
-    checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
-    checkUnusedParam(params, "reuse_source", "running in fixed source mode");
-    checkUnusedParam(params, "power", "running in fixed source mode");
-    _reuse_source = false;
-  }
-  else
-  {
-    checkRequiredParam(params, "power", "running in k-eigenvalue mode");
-    _power = &getPostprocessorValue("power");
+  openmc_init(argc, argv, &_communicator.get());
 
-    checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
+  // ensure that any mapped cells have their distribcell indices generated in OpenMC
+  if (!openmc::settings::material_cell_offsets)
+  {
+    mooseWarning("Distributed properties for material cells are disabled "
+                 "in the OpenMC settings. Enabling...");
+    openmc::settings::material_cell_offsets = true;
+    openmc::prepare_distribcell();
   }
+
+  // ensure that unsupported run modes are not used, while also checking for
+  // necessary/unused input parameters for the valid run modes
+  auto run_mode = openmc::settings::run_mode;
+  switch (run_mode)
+  {
+    case openmc::RunMode::EIGENVALUE:
+    {
+      checkRequiredParam(params, "power", "running in k-eigenvalue mode");
+      _power = &getPostprocessorValue("power");
+      checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
+      break;
+    }
+    case openmc::RunMode::FIXED_SOURCE:
+    {
+      checkRequiredParam(params, "source_strength", "running in fixed source mode");
+      _source_strength = &getPostprocessorValue("source_strength");
+
+      checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
+      checkUnusedParam(params, "reuse_source", "running in fixed source mode");
+      checkUnusedParam(params, "power", "running in fixed source mode");
+      _reuse_source = false;
+      break;
+    }
+    case openmc::RunMode::PLOTTING:
+      mooseError("Running OpenMC in plotting mode is not supported through Cardinal!\n"
+        "Please just run using the OpenMC executable, like 'openmc --plot'");
+    case openmc::RunMode::PARTICLE:
+      mooseError("Running OpenMC in particle restart mode is not supported through Cardinal!\n"
+       "Please just run using the OpenMC executable, like 'openmc --restart <binary_file>'");
+    case openmc::RunMode::VOLUME:
+      mooseError("Running OpenMC in volume calculation mode is not supported through Cardinal!\n"
+        "Please just run using the OpenMC executable, like 'openmc --volume'");
+    default:
+      mooseError("Unhandled openmc::RunMode enum in OpenMCInitAction!");
+  }
+
+  _single_coord_level = openmc::model::n_coord_levels == 1;
+  _path_output = openmc::settings::path_output;
+  _n_cell_digits = std::to_string(openmc::model::cells.size()).length();
+  _run_mode = openmc::settings::run_mode;
 
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");
