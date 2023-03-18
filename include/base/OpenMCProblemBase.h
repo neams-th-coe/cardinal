@@ -20,7 +20,7 @@
 
 #define LIBMESH
 
-#include "ExternalProblem.h"
+#include "CardinalProblem.h"
 #include "PostprocessorInterface.h"
 #include "CardinalEnums.h"
 
@@ -30,7 +30,7 @@
 /**
  * Base class for all MOOSE wrappings of OpenMC
  */
-class OpenMCProblemBase : public ExternalProblem, public PostprocessorInterface
+class OpenMCProblemBase : public CardinalProblem, public PostprocessorInterface
 {
 public:
   OpenMCProblemBase(const InputParameters & params);
@@ -76,13 +76,6 @@ public:
    * @return OpenMC enum
    */
   openmc::TallyEstimator tallyEstimator(tally::TallyEstimatorEnum estimator) const;
-
-  /**
-   * Check whether the user has already created a variable using one of the protected
-   * names that the OpenMC wrapping is using.
-   * @param[in] name variable name
-   */
-  void checkDuplicateVariableName(const std::string & name) const;
 
   /// Run a k-eigenvalue OpenMC simulation
   void externalSolve() override;

@@ -39,7 +39,7 @@
 InputParameters
 OpenMCProblemBase::validParams()
 {
-  InputParameters params = ExternalProblem::validParams();
+  InputParameters params = CardinalProblem::validParams();
   params.addParam<PostprocessorName>(
       "power", "Power (Watts) to normalize the OpenMC tallies; only used for k-eigenvalue mode");
   params.addParam<PostprocessorName>(
@@ -72,7 +72,7 @@ OpenMCProblemBase::validParams()
 }
 
 OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
-  : ExternalProblem(params),
+  : CardinalProblem(params),
     PostprocessorInterface(this),
     _verbose(getParam<bool>("verbose")),
     _reuse_source(getParam<bool>("reuse_source")),
@@ -531,20 +531,6 @@ OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const
     n += t->n_realizations_;
 
   return tallySumAcrossBins(tally, score) / n;
-}
-
-void
-OpenMCProblemBase::checkDuplicateVariableName(const std::string & name) const
-{
-  if (_aux.get()->hasVariable(name))
-    mooseError("Cardinal is trying to add an auxiliary variable named '", name,
-      "', but you already have a variable by this name. Please choose a different name "
-      "for the auxiliary variable you are adding.");
-
-  if (_nl[0].get()->hasVariable(name))
-    mooseError("Cardinal is trying to add a nonlinear variable named '", name,
-      "', but you already have a variable by this name. Please choose a different name "
-      "for the nonlinear variable you are adding.");
 }
 
 std::string
