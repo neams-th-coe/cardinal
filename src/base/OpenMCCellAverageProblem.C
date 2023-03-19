@@ -419,40 +419,39 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled with DAGMC.
   // So we can assume that if we have a DAGMC geometry, that we will also by this point have DAGMC enabled.
-  if (openmc::DAGMC_ENABLED)
+#ifdef ENABLE_DAGMC
+  bool has_csg;
+  bool has_dag;
+  geometryType(has_csg, has_dag);
+
+  if (!has_dag)
+    checkUnusedParam(params, "skinner", "the OpenMC model does not contain any DagMC universes");
+  else if (isParamValid("skinner"))
   {
-    bool has_csg;
-    bool has_dag;
-    geometryType(has_csg, has_dag);
+    // TODO: we currently delete the entire OpenMC geometry, and only re-build the cells
+    // bounded by the skins. We can generalize this later to only regenerate DAGMC universes,
+    // so that CSG cells are untouched by the skinner. We'd also need to be careful with the
+    // relationships between the DAGMC universes and the CSG cells, because the DAGMC universes
+    // could be filled inside of the CSG cells.
+    if (has_csg && has_dag)
+      mooseError("The 'skinner' can only be used with OpenMC geometries that are entirely DAGMC based.\n"
+        "Your model contains a combination of both CSG and DAG cells.");
 
-    if (!has_dag)
-      checkUnusedParam(params, "skinner", "the OpenMC model does not contain any DagMC universes");
-    else if (isParamValid("skinner"))
-    {
-      // TODO: we currently delete the entire OpenMC geometry, and only re-build the cells
-      // bounded by the skins. We can generalize this later to only regenerate DAGMC universes,
-      // so that CSG cells are untouched by the skinner. We'd also need to be careful with the
-      // relationships between the DAGMC universes and the CSG cells, because the DAGMC universes
-      // could be filled inside of the CSG cells.
-      if (has_csg && has_dag)
-        mooseError("The 'skinner' can only be used with OpenMC geometries that are entirely DAGMC based.\n"
-          "Your model contains a combination of both CSG and DAG cells.");
+    // We know there will be a single DAGMC universe, because we already impose
+    // above that there cannot be CSG cells (and the only way to get >1 DAGMC
+    // universe is to fill it inside a CSG cell).
+    for (const auto& universe: openmc::model::universes)
+      if (universe->geom_type() == openmc::GeometryType::DAG)
+        _dagmc_universe_index = openmc::model::universe_map[universe->id_];
 
-      // We know there will be a single DAGMC universe, because we already impose
-      // above that there cannot be CSG cells (and the only way to get >1 DAGMC
-      // universe is to fill it inside a CSG cell).
-      for (const auto& universe: openmc::model::universes)
-        if (universe->geom_type() == openmc::GeometryType::DAG)
-          _dagmc_universe_index = openmc::model::universe_map[universe->id_];
-
-      const openmc::Universe * u = openmc::model::universes[_dagmc_universe_index].get();
-      const openmc::DAGUniverse * dag = dynamic_cast<const openmc::DAGUniverse *>(u);
-      if (dag->uses_uwuw()) // TODO: test
-        mooseError("The 'skinner' does not currently support the UWUW workflow.");
-    }
+    const openmc::Universe * u = openmc::model::universes[_dagmc_universe_index].get();
+    const openmc::DAGUniverse * dag = dynamic_cast<const openmc::DAGUniverse *>(u);
+    if (dag->uses_uwuw()) // TODO: test
+      mooseError("The 'skinner' does not currently support the UWUW workflow.");
   }
-  else
-    checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
+#else
+  checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
+#endif
 
   _n_particles_1 = nParticles();
 
@@ -604,8 +603,8 @@ OpenMCCellAverageProblem::initialSetup()
 
   setupProblem();
 
-  // basic error checking that does not need to know any specifics of the skinner class
-  if (openmc::DAGMC_ENABLED && isParamValid("skinner"))
+#ifdef ENABLE_DAGMC
+  if (isParamValid("skinner"))
   {
     if (_has_fluid_blocks)
       mooseError("'skinner' currently can only skin solid-only models, because we are not re-creating OpenMC materials for the newly-created cells. This will be relaxed soon.");
@@ -614,11 +613,7 @@ OpenMCCellAverageProblem::initialSetup()
       mooseError("Cannot combine the 'skinner' with 'symmetry_mapper'!\n\nWhen using a skinner, "
         "the [Mesh] must exactly match the underlying OpenMC model, so there is\n"
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
-  }
 
-#ifdef ENABLE_DAGMC
-  if (isParamValid("skinner"))
-  {
     auto name = getParam<UserObjectName>("skinner");
     _skinner = &getUserObject<MoabSkinner>(name);
 
