@@ -10,7 +10,7 @@
     type = RunException
     input = missing_graveyard.i
     cli_args = '--error'
-    expect_err = "Overriding graveyard setting on 'moab' user object because a graveyard must be present for OpenMC."
+    expect_err = "Overriding graveyard setting from false to true.\nTo hide this warning, set 'build_graveyard = true'"
     requirement = "The system shall warn if the graveyard is missing for OpenMC skinned models"
     required_objects = 'MoabSkinner'
   []

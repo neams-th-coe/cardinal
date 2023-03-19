@@ -1034,4 +1034,18 @@ MoabSkinner::createTri(const std::vector<moab::EntityHandle> & vertices,
   return triangle;
 }
 
+void
+MoabSkinner::setGraveyard(bool build)
+{
+  if (build != _build_graveyard)
+  {
+    std::string original = _build_graveyard ? "true" : "false";
+    std::string change = _build_graveyard ? "false" : "true";
+    mooseWarning("Overriding graveyard setting from ", original, " to ", change, ".\n"
+      "To hide this warning, set 'build_graveyard = ", change, "'");
+  }
+
+  _build_graveyard = build;
+}
+
 #endif

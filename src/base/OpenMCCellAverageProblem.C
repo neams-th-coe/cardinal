@@ -281,9 +281,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _temperature_blocks(nullptr),
     _volume_calc(nullptr),
     _symmetry(nullptr),
-#ifdef ENABLE_DAGMC
-    _skinner(nullptr),
-#endif
     _n_openmc_cells(0)
 {
   // We need to clear and re-initialize the OpenMC tallies if
@@ -421,18 +418,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
   // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled with DAGMC.
-  // So we can assume that if we have a DAGMC geometry, that we will also by this point have ENABLE_DAGMC.
-
-#ifdef ENABLE_DAGMC
-  bool has_csg;
-  bool has_dag;
-  geometryType(has_csg, has_dag);
-
-  if (!has_dag)
-    checkUnusedParam(params, "skinner", "the OpenMC model does not contain any DagMC universes");
-  else
+  // So we can assume that if we have a DAGMC geometry, that we will also by this point have DAGMC enabled.
+  if (openmc::DAGMC_ENABLED)
   {
-    if (isParamValid("skinner"))
+    bool has_csg;
+    bool has_dag;
+    geometryType(has_csg, has_dag);
+
+    if (!has_dag)
+      checkUnusedParam(params, "skinner", "the OpenMC model does not contain any DagMC universes");
+    else if (isParamValid("skinner"))
     {
       // TODO: we currently delete the entire OpenMC geometry, and only re-build the cells
       // bounded by the skins. We can generalize this later to only regenerate DAGMC universes,
@@ -446,7 +441,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       // We know there will be a single DAGMC universe, because we already impose
       // above that there cannot be CSG cells (and the only way to get >1 DAGMC
       // universe is to fill it inside a CSG cell).
-      for(const auto& universe: openmc::model::universes)
+      for (const auto& universe: openmc::model::universes)
         if (universe->geom_type() == openmc::GeometryType::DAG)
           _dagmc_universe_index = openmc::model::universe_map[universe->id_];
 
@@ -456,9 +451,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         mooseError("The 'skinner' does not currently support the UWUW workflow.");
     }
   }
-#else
-  checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
-#endif
+  else
+    checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
 
   _n_particles_1 = nParticles();
 
@@ -610,15 +604,9 @@ OpenMCCellAverageProblem::initialSetup()
 
   setupProblem();
 
-#ifdef ENABLE_DAGMC
-  if (isParamValid("skinner"))
+  // basic error checking that does not need to know any specifics of the skinner class
+  if (openmc::DAGMC_ENABLED && isParamValid("skinner"))
   {
-    auto name = getParam<UserObjectName>("skinner");
-    _skinner = &getUserObject<MoabSkinner>(name);
-
-    if (!_skinner)
-      paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
-
     if (_scaling != 1.0)
       mooseError("'skinner' currently requires 'scaling = 1.0' (with a [Mesh] in units of centimeters). This will be relaxed soon.");
 
@@ -629,6 +617,16 @@ OpenMCCellAverageProblem::initialSetup()
       mooseError("Cannot combine the 'skinner' with 'symmetry_mapper'!\n\nWhen using a skinner, "
         "the [Mesh] must exactly match the underlying OpenMC model, so there is\n"
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
+  }
+
+#ifdef ENABLE_DAGMC
+  if (isParamValid("skinner"))
+  {
+    auto name = getParam<UserObjectName>("skinner");
+    _skinner = &getUserObject<MoabSkinner>(name);
+
+    if (!_skinner)
+      paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
 
     // If the density bins are > 1, we need to re-init the OpenMC materials once (between
     // the first time we read the materials.xml and when we run the first skinned OpenMC
@@ -639,14 +637,7 @@ OpenMCCellAverageProblem::initialSetup()
     if (_skinner->nDensityBins() > 1)
       paramError("skinner", "Density binning is not currently supported for the OpenMC wrapping!");
 
-    if (!_skinner->hasGraveyard())
-    {
-      mooseWarning("Overriding graveyard setting on '", Moose::stringify(name), "' user object "
-        "because a graveyard must be present for OpenMC.\nYou can hide this warning by setting "
-        "'build_graveyard = true' for the '", Moose::stringify(name), "' user object.");
-      _skinner->setGraveyard(true);
-    }
-
+    _skinner->setGraveyard(true);
     _skinner->setScaling(_scaling);
     _skinner->setVerbosity(_verbose);
     _skinner->makeDependentOnExternalAction();
@@ -655,31 +646,36 @@ OpenMCCellAverageProblem::initialSetup()
     // indicates that our [Mesh] doesn't match the .h5m model, because DAGMC itself imposes
     // the one-material-per-cell case. In the future, if we generate DAGMC models directly
     // from the [Mesh] (bypassing the .h5m), we would not need this error check.
-    std::vector<std::string> mats;
-    for (const auto & s : _subdomain_to_material)
-    {
-      if (s.second.size() > 1)
-      {
-        std::stringstream msg;
-        msg << "The 'skinner' expects to find one OpenMC material mapped to each [Mesh] subdomain, but " <<
-          Moose::stringify(s.second.size()) << " materials\nmapped to subdomain " << s.first <<
-          ". This indicates your [Mesh] is not " <<
-          "consistent with the .h5m model.\n\nThe materials which mapped to subdomain " << s.first << " are:\n";
-
-        for (const auto & m : s.second)
-          msg << "\n" << materialName(m);
-
-        mooseError(msg.str());
-      }
-
-      mats.push_back(materialName(*(s.second.begin())));
-    }
-
-    _skinner->setMaterialNames(mats);
-
+    _skinner->setMaterialNames(getMaterialInEachSubdomain());
     _skinner->initialize();
   }
 #endif
+}
+
+std::vector<std::string>
+OpenMCCellAverageProblem::getMaterialInEachSubdomain() const
+{
+  std::vector<std::string> mats;
+  for (const auto & s : _subdomain_to_material)
+  {
+    if (s.second.size() > 1)
+    {
+      std::stringstream msg;
+      msg << "The 'skinner' expects to find one OpenMC material mapped to each [Mesh] subdomain, but " <<
+        Moose::stringify(s.second.size()) << " materials\nmapped to subdomain " << s.first <<
+        ". This indicates your [Mesh] is not " <<
+        "consistent with the .h5m model.\n\nThe materials which mapped to subdomain " << s.first << " are:\n";
+
+      for (const auto & m : s.second)
+        msg << "\n" << materialName(m);
+
+      mooseError(msg.str());
+    }
+
+    mats.push_back(materialName(*(s.second.begin())));
+  }
+
+  return mats;
 }
 
 void

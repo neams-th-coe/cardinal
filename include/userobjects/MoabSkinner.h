@@ -130,7 +130,7 @@ public:
    * Set the graveyard setting
    * @param[in] build whether to build a graveyard
    */
-  void setGraveyard(bool build) { _build_graveyard = build; }
+  void setGraveyard(bool build);
 
   /**
    * Number of density bins; if greater than 1, this means we must be re-generating

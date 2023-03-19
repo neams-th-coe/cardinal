@@ -120,6 +120,13 @@ public:
   virtual const std::map<cellInfo, std::vector<unsigned int>> cellToElem() const { return _cell_to_elem; }
 
   /**
+   * Get a list of each material in the problem, sorted by subdomain. This function also checks
+   * that there is just one OpenMC material in each subdomain, necessary for the DAGMC skinning.
+   * @return material in each subdomain
+   */
+  std::vector<std::string> getMaterialInEachSubdomain() const;
+
+  /**
    * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
    * @return scaling value
    */
@@ -1130,10 +1137,10 @@ protected:
 
 #ifdef ENABLE_DAGMC
   /// Optional skinner to re-generate the OpenMC geometry on-the-fly for DAGMC models
-  MoabSkinner * _skinner;
+  MoabSkinner * _skinner = nullptr;
 
   /// Pointer to DAGMC
-  std::shared_ptr<moab::DagMC> _dagmc;
+  std::shared_ptr<moab::DagMC> _dagmc = nullptr;
 #endif
 
   /// Total number of unique OpenMC cell IDs + instances combinations
