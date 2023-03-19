@@ -607,9 +607,6 @@ OpenMCCellAverageProblem::initialSetup()
   // basic error checking that does not need to know any specifics of the skinner class
   if (openmc::DAGMC_ENABLED && isParamValid("skinner"))
   {
-    if (_scaling != 1.0)
-      mooseError("'skinner' currently requires 'scaling = 1.0' (with a [Mesh] in units of centimeters). This will be relaxed soon.");
-
     if (_has_fluid_blocks)
       mooseError("'skinner' currently can only skin solid-only models, because we are not re-creating OpenMC materials for the newly-created cells. This will be relaxed soon.");
 
