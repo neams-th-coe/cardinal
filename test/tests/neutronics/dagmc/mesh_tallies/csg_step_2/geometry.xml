@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="2" region="1 -8 3 -5 6 -7" temperature="550.0" universe="1" />
+  <cell id="2" material="2" region="8 -9 3 -5 6 -7" temperature="600.0" universe="1" />
+  <cell id="3" material="2" region="9 -10 3 -5 6 -7" temperature="650.0" universe="1" />
+  <cell id="4" material="2" region="10 -2 3 -5 6 -7" temperature="700.0" universe="1" />
+  <cell id="5" material="1" region="1 -8 5 -4 6 -7" temperature="550.0" universe="1" />
+  <cell id="6" material="1" region="8 -9 5 -4 6 -7" temperature="600.0" universe="1" />
+  <cell id="7" material="1" region="9 -10 5 -4 6 -7" temperature="650.0" universe="1" />
+  <cell id="8" material="1" region="10 -2 5 -4 6 -7" temperature="700.0" universe="1" />
+  <surface boundary="vacuum" coeffs="-12.5" id="1" type="x-plane" />
+  <surface boundary="vacuum" coeffs="87.5" id="2" type="x-plane" />
+  <surface boundary="vacuum" coeffs="-12.5" id="3" type="y-plane" />
+  <surface boundary="vacuum" coeffs="37.5" id="4" type="y-plane" />
+  <surface coeffs="12.5" id="5" type="y-plane" />
+  <surface boundary="vacuum" coeffs="-12.5" id="6" type="z-plane" />
+  <surface boundary="vacuum" coeffs="12.5" id="7" type="z-plane" />
+  <surface coeffs="12.5" id="8" type="x-plane" />
+  <surface coeffs="37.5" id="9" type="x-plane" />
+  <surface coeffs="62.5" id="10" type="x-plane" />
+</geometry>

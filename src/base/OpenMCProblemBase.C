@@ -176,10 +176,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   // The OpenMC wrapping doesn't require material properties itself, but we might
   // define them on some blocks of the domain for other auxiliary kernel purposes
   setMaterialCoverageCheck(false);
-
-  _n_openmc_cells = 0.0;
-  for (const auto & c : openmc::model::cells)
-    _n_openmc_cells += c->n_instances_;
 }
 
 OpenMCProblemBase::~OpenMCProblemBase() { openmc_finalize(); }

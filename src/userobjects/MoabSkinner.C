@@ -78,7 +78,6 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _verbose(getParam<bool>("verbose")),
-    _build_graveyard(getParam<bool>("build_graveyard")),
     _temperature_name(getParam<std::string>("temperature")),
     _temperature_min(getParam<Real>("temperature_min")),
     _temperature_max(getParam<Real>("temperature_max")),
@@ -95,6 +94,8 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _n_write(0),
     _standalone(true)
 {
+  _build_graveyard = getParam<bool>("build_graveyard");
+
   // we can probably support this in the future, it's just not implemented yet
   if (!mesh().is_serial())
     mooseError("MoabSkinner does not yet support distributed meshes!");
@@ -255,6 +256,9 @@ MoabSkinner::execute()
 void
 MoabSkinner::update()
 {
+  _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, " <<
+    _n_density_bins << " density bins, and " << _n_block_bins << " block bins... ";
+
   // Clear MOAB mesh data from last timestep
   reset();
 
@@ -269,6 +273,8 @@ MoabSkinner::update()
 
   // Find the surfaces of local temperature regions
   findSurfaces();
+
+  _console << "done" << std::endl;
 }
 
 void
@@ -564,12 +570,12 @@ MoabSkinner::sortElemsByResults()
                      std::to_string(_density_bin_bounds[i + 1]),
                  n_density_hits[i]);
 
-    _console << "Mapping of Elements to Temperature Bins:" << std::endl;
+    _console << "\nMapping of Elements to Temperature Bins:" << std::endl;
     vtt.print(_console);
 
     if (_bin_by_density)
     {
-      _console << "\nMapping of Elements to Density Bins:" << std::endl;
+      _console << "\n\nMapping of Elements to Density Bins:" << std::endl;
       vtd.print(_console);
     }
   }
@@ -582,7 +588,7 @@ MoabSkinner::getTemperatureBin(const Elem * const elem) const
   auto value = (*_serialized_solution)(dof);
 
   // TODO: add option to truncate instead
-  if (value < _temperature_min)
+  if ((_temperature_min - value) > BIN_TOLERANCE)
     mooseError("Variable '",
                _temperature_name,
                "' has value below minimum range of bins. "
@@ -592,7 +598,7 @@ MoabSkinner::getTemperatureBin(const Elem * const elem) const
                "\n  temperature_min: ",
                _temperature_min);
 
-  if (value > _temperature_max)
+  if ((value - _temperature_max) > BIN_TOLERANCE)
     mooseError("Variable '",
                _temperature_name,
                "' has value above maximum range of bins. "
@@ -615,7 +621,7 @@ MoabSkinner::getDensityBin(const Elem * const elem) const
   auto value = (*_serialized_solution)(dof);
 
   // TODO: add option to truncate instead
-  if (value < _density_min)
+  if ((_density_min - value) > BIN_TOLERANCE)
     mooseError("Variable '",
                _density_name,
                "' has value below minimum range of bins. "
@@ -625,7 +631,7 @@ MoabSkinner::getDensityBin(const Elem * const elem) const
                "\n  density_min: ",
                _density_min);
 
-  if (value > _density_max)
+  if ((value - _density_max) > BIN_TOLERANCE)
     mooseError("Variable '",
                _density_name,
                "' has value above maximum range of bins. "
@@ -636,6 +642,15 @@ MoabSkinner::getDensityBin(const Elem * const elem) const
                _density_max);
 
   return bin_utility::linearBin(value, _density_bin_bounds);
+}
+
+std::string
+MoabSkinner::materialName(const unsigned int & block, const unsigned int & density, const unsigned int & temp) const
+{
+  if (_n_density_bins > 1)
+    return "mat:" + _material_names.at(block) + "_" + std::to_string(density);
+  else
+    return "mat:" + _material_names.at(block);
 }
 
 void
@@ -653,9 +668,6 @@ MoabSkinner::findSurfaces()
   // Loop over material bins
   for (unsigned int iMat = 0; iMat < _n_block_bins; iMat++)
   {
-    // Get the base material name:
-    std::string mat_name = "mat:" + _material_names.at(iMat);
-
     // Loop over density bins
     for (unsigned int iDen = 0; iDen < _n_density_bins; iDen++)
     {
@@ -663,11 +675,13 @@ MoabSkinner::findSurfaces()
       for (unsigned int iVar = 0; iVar < _n_temperature_bins; iVar++)
       {
         // Update material name
-        auto updated_mat_name = mat_name + "_" + std::to_string(getMatBin(iDen));
+        auto updated_mat_name = materialName(iMat, iDen, iVar);
 
         // Create a material group
         int iSortBin = getBin(iVar, iDen, iMat);
 
+        // For DagMC to fill a cell with a material, we first create a group
+        // with that name, and then assign it with createVol (called inside findSurface)
         moab::EntityHandle group_set;
         unsigned int group_id = iSortBin + 1;
         createGroup(group_id, updated_mat_name, group_set);
@@ -818,17 +832,11 @@ MoabSkinner::reset()
 }
 
 unsigned int
-MoabSkinner::getBin(const unsigned int & iVarBin,
-                       const unsigned int & iDenBin,
-                       const unsigned int & iMat) const
+MoabSkinner::getBin(const unsigned int & i_temp,
+                    const unsigned int & i_density,
+                    const unsigned int & i_block) const
 {
-  return _n_temperature_bins * (_n_density_bins * iMat + iDenBin) + iVarBin;
-}
-
-unsigned int
-MoabSkinner::getMatBin(const unsigned int & iDenBin) const
-{
-  return iDenBin;
+  return _n_temperature_bins * (_n_density_bins * i_block + i_density) + i_temp;
 }
 
 void
@@ -1024,6 +1032,20 @@ MoabSkinner::createTri(const std::vector<moab::EntityHandle> & vertices,
   moab::EntityHandle connectivity[3] = {vertices[v1], vertices[v2], vertices[v3]};
   check(_moab->create_element(moab::MBTRI, connectivity, 3, triangle));
   return triangle;
+}
+
+void
+MoabSkinner::setGraveyard(bool build)
+{
+  if (build != _build_graveyard)
+  {
+    std::string original = _build_graveyard ? "true" : "false";
+    std::string change = _build_graveyard ? "false" : "true";
+    mooseWarning("Overriding graveyard setting from ", original, " to ", change, ".\n"
+      "To hide this warning, set 'build_graveyard = ", change, "'");
+  }
+
+  _build_graveyard = build;
 }
 
 #endif
