@@ -285,6 +285,9 @@ endif
 
 ifeq ($(ENABLE_DAGMC), yes)
   libmesh_CXXFLAGS    += -DENABLE_DAGMC
+
+  # this flag is used in OpenMC
+  libmesh_CXXFLAGS    += -DDAGMC
 endif
 
 # ======================================================================================

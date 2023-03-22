@@ -432,7 +432,73 @@ element in the `[Mesh]`.
 
 While this class mainly facilitates data transfers to and from OpenMC, a number of
 other features are implemented in order to enable more convenient input file
-setup and achieve better iterative performance. These are described in this section.
+setup, achieve better iterative performance, and iteratively update the geometry
+(for CAD tracking only). These are described in this section.
+
+#### CAD Geometry Skinning
+  id=skinning
+
+For all cell-based OpenMC models, OpenMC is currently limited to setting a single
+constant temperature, and a single constant density, in each cell. For CSG geometries,
+the user needs to manually set up sub-divisions in the geometry in order to capture
+spatial variation in temperature and density (computed by some other MOOSE application).
+For DAGMC geometries, you can instead optionally re-generate the OpenMC cells after
+each Picard iteration according to contours in temperature and/or density. With this approach, the OpenMC model can receive spatially-varying temperature and density without the user needing to manually subdivide regions of space *a priori*.
+
+!alert note
+This skinning feature is only available for DAGMC geometries for which the `[Mesh]`
+obeys the same material boundaries in the starting `.h5m` file.
+
+To use this feature, provide the `skinner` user
+object parameter, of type [MoabSkinner](/userobjects/MoabSkinner.md). After each OpenMC
+run, this object will group elements in the `[Mesh]` into "bins" for temperature, density,
+and/or subdomain (mesh block). A new DAGMC cell will then be created by "skinning" the mesh
+elements according to the boundaries between the unique bin regions.
+For example, suppose the starting DAGMC model consists of two
+cells, each with a different material, as shown in [dagmc_model].
+
+!media dagmc_model.png
+  id=dagmc_model
+  style=width:50%;margin-left:auto;margin-right:auto
+  caption=Example illustration of a DAGMC model before a skinning operation is applied.
+
+Suppose this geometry is skinned with 4 temperature bins between 500 K and 700 K.
+The input syntax would look something like
+
+!listing test/tests/neutronics/dagmc/mesh_tallies/openmc.i
+  start=Problem
+  end=Postprocessors
+
+Elements will then be categorized as falling into one of these bins:
+
+- Bin 0, for $500\ K \leq T< 550\ K$.
+- Bin 1, for $550\ K \leq T< 600\ K$.
+- Bin 2, for $600\ K \leq T< 650\ K$.
+- Bin 3, for $650\ K \leq T\leq 700\ K$.
+
+The geometry will also be skinned according to the subdomain IDs, which align with the
+materials in the original DAGMC geometry. For this problem with two materials, elements
+will be categorized according to falling into one of two subdomain bins:
+
+- Bin 0, for elements in material A
+- Bin 1, for elements in material B
+
+Then, if the following temperature distribution is sent to OpenMC, the DAGMC geometry
+will be re-skinned into 8 unique cells, as shown in [skinning]. Depending on the
+temperature and material definitions, the problem would be skinned into more or less
+cells, depending on which temperatures are observed and whether those element "clumps"
+are contiguous or disjoint from one another.
+A "graveyard" volume is automatically built around the new DAGMC model between two bounding boxes. This
+region is used to apply vacuum boundary conditions by killing any particles that
+enter this region.
+
+!media skinning.png
+  id=skinning
+  caption=Example illustration of a DAGMC model after skinning
+
+Once the geometry has been re-created, the rest of the coupling proceeds as normal -
+the average temperature and density of each new DAGMC cell is set as a volume-average
+of the elements corresponding to each cell.
 
 #### Mesh Scaling
   id=scaling

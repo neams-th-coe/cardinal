@@ -1,0 +1,13 @@
+[Tests]
+  [mismatch]
+    type = RunException
+    input = openmc.i
+    expect_err = "The 'skinner' expects to find one OpenMC material mapped to each \[Mesh\] subdomain, but 2 materials\n"
+                 "mapped to subdomain 1. This indicates your \[Mesh\] is not consistent with the .h5m model.\n\n"
+                 "The materials which mapped to subdomain 1 are:\n\n1\n2"
+    requirement = "The system shall error if there is an obvious mismatch between the [Mesh] and "
+                  "DAGMC model for the case where the number of DAGMC materials which map to each "
+                  "[Mesh] subdomain do not match."
+    required_objects = 'MoabSkinner'
+  []
+[]
