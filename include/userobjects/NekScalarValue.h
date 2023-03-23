@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "NekUserObject.h"
+#include "ThreadedGeneralUserObject.h"
 
 /**
  * Opaque user object which will send a scalar value into NekRS through its
  * scratch space. The user then has infinite flexibility to use that value
  * in the NekRS case files.
  */
-class NekScalarValue : public NekUserObject
+class NekScalarValue : public ThreadedGeneralUserObject
 {
 public:
   static InputParameters validParams();
@@ -33,12 +33,13 @@ public:
   NekScalarValue(const InputParameters & parameters);
 
   /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override {};
+  virtual void execute() override {}
+
+  virtual void initialize() {}
+  virtual void finalize() {}
 
   /// Instead, we want to have a separate method that we can call from NekRSProblemBase
   virtual void setValue();
-
-  virtual void executeUserObject() override {};
 
   virtual unsigned int usrwrkSlot() const { return _usrwrk_slot; }
 
