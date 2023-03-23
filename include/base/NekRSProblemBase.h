@@ -42,6 +42,13 @@ public:
   ~NekRSProblemBase();
 
   /**
+   * Get the minimum scratch space required for coupling; this space is guaranteed to be filled
+   * with data incoming from MOOSE, like heat flux boundary conditions or mesh displacements
+   * @return minimum scratch space reserved for coupling
+   */
+  unsigned int minimumScratchSizeForCoupling() const { return _minimum_scratch_size_for_coupling; }
+
+  /**
    * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
    * @param[in] e MOOSE element ID
    * @param[in] var_num variable index to fetch MOOSE data from
@@ -476,4 +483,7 @@ protected:
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
+
+  /// Counter for any potential NekScalarValue objects in the input file
+  unsigned int _scratch_counter;
 };
