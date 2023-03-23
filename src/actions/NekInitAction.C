@@ -52,6 +52,7 @@ NekInitAction::validParams()
 NekInitAction::NekInitAction(const InputParameters & parameters)
   : MooseObjectAction(parameters),
     _casename_in_input_file(isParamValid("casename")),
+    _specified_scratch(parameters.isParamSetByUser("n_userwrk_slots")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots"))
 {
 }
@@ -155,11 +156,6 @@ NekInitAction::act()
 
   _n_cases++;
 
-  if (nekrs::hasMovingMesh() && _type == "NekRSSeparateDomainProblem")
-    mooseError("Your nekRS .par file indicates you wish to use one of nekRS's moving mesh solvers. Please switch"
-               " to type = NekRSProblem in the [Problem] block, or remove moving mesh solvers from your "
-               ".par file's [Mesh] block.");
-
   // copy-pasta from NekRS's main()
   double elapsedTime = 0;
   const auto timeStop = std::chrono::high_resolution_clock::now();
@@ -183,45 +179,28 @@ NekInitAction::act()
           "if you don't want to solve for temperature.");
   }
 
-  // setup actions only if couling with MOOSE or 1d thermal hydraulic code
-  if (_type == "NekRSProblem" || _type == "NekRSSeparateDomainProblem")
-  {
-    // Throw an error if the user tries to allocate the scratch separately in the user files
-    bool scratch_available = nekrs::scratchAvailable();
+  // Initialize default dimensional scales assuming a dimensional run is performed;
+  // these are overriden if using a non-dimensional solve
+  nekrs::solution::initializeDimensionalScales(1.0 /* U_ref */,
+                                               0.0 /* T_ref */,
+                                               1.0 /* dT_ref */,
+                                               1.0 /* L_ref */,
+                                               1.0 /* rho_ref */,
+                                               1.0 /* Cp_ref */);
 
-    if (!scratch_available)
+  bool always_allocate = _type == "NekRSProblem" || _type == "NekRSSeparateDomainProblem";
+  bool special_allocate = _type == "NekRSStandaloneProblem" && _specified_scratch;
+  if (always_allocate || special_allocate)
+  {
+    if (!nekrs::scratchAvailable())
       mooseError(
-          "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal!\n"
-          "The first 'slice' (i.e. first nrs->cds->fieldOffset[0] entries) is reserved for heat "
-          "flux from MOOSE\n"
-          "(if not using boundary coupling, this entry is not touched), while the second 'slice' "
-          "(i.e. the second\n"
-          "nrs->cds->fieldOffset[0] entries) is reserved for a volumetric heat source from MOOSE "
-          "(if not using\n"
-          "volume coupling, this entry is not touched).\n\n"
-          "At present, these scratch space arrays are allocated to have size 7 * "
-          "nrs->cds->fieldOffset[0];\n"
-          "if you wish to use this scratch space for other purposes, such as storing a wall "
-          "distance, please\n"
-          "remove the manual allocation of the space in your user files, and be sure to only write "
-          "beginning at\n"
-          "2 * nrs->cds->fieldOffset[0] such that the space reserved for coupling data is "
-          "untouched.");
+          "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal,\n"
+          "but you have tried allocating them separately inside your case files. Please remove the\n"
+          "manual allocation of the space in your user files, and be sure to only write such that\n"
+          "the space reserved for coupling data is untouched.");
 
     // Initialize scratch space in NekRS to write data incoming data from MOOSE
     nekrs::initializeScratch(_n_usrwrk_slots);
-
-    // Initialize default dimensional scales assuming a dimensional run is performed.
-    // We need to do this construction here so that any tests that *dont* use NekRSProblem
-    // (such as many of the mesh tests) have these scales initialized. If nekRS does indeed
-    // run in nondimensional form, then NekRSProblem is needed to specify those scales,
-    // and there we will again call initializeDimensionalScales.
-    nekrs::solution::initializeDimensionalScales(1.0 /* U_ref */,
-                                                 0.0 /* T_ref */,
-                                                 1.0 /* dT_ref */,
-                                                 1.0 /* L_ref */,
-                                                 1.0 /* rho_ref */,
-                                                 1.0 /* Cp_ref */);
   }
 }
 

@@ -71,6 +71,11 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   if (_nek_mesh->exactMirror())
     mooseError("An exact mesh mirror is not yet supported for NekRSSeparateDomainProblem!");
 
+  if (nekrs::hasMovingMesh())
+    mooseWarning("NekRSSeparateDomainProblem currently does not transfer mesh displacements "
+                 "from NekRS to Cardinal. The [Mesh] object in Cardinal won't reflect "
+                 "NekRS's internal mesh changes. This may affect your postprocessor values.");
+
   // check scalar01-03_coupling provided
   for (const auto & s : _coupled_scalars)
   {
