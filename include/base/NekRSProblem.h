@@ -226,7 +226,4 @@ protected:
 
   /// volumetric heat source variable read from by nekRS
   unsigned int _heat_source_var;
-
-  /// quantities to write to  nrs->usrwrk (and the order to write them)
-  MultiMooseEnum _usrwrk_indices;
 };

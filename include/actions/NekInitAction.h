@@ -21,9 +21,11 @@
 #include "MooseObjectAction.h"
 
 /**
- * Initialize Nek application by calling nekrs::setup.
- * This action detects whether Nek should be initialized based on whether
- * NekRSProblem or NekRSStandaloneProblem are used as the Problem.
+ * Initialize Nek application by calling nekrs::setup. This needs to be
+ * in an action so that it occurs before the [Mesh] is constructed (which
+ * is normally the first MOOSE object constructed) because we build the
+ * [Mesh] relying on internal stuff in NekRS, which needs to be initialized
+ * at that point.
  */
 class NekInitAction : public MooseObjectAction
 {
@@ -37,6 +39,9 @@ public:
 protected:
   /// whether a casename was provided in the input file
   const bool _casename_in_input_file;
+
+  /// whether the user specified how many scratch slots to allocate
+  const bool _specified_scratch;
 
   /**
    * Number of slices/slots to allocate in nrs->usrwrk to hold fields

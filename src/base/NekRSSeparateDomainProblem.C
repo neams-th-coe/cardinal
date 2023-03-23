@@ -65,11 +65,15 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     _scalar01_coupling(false),
     _scalar02_coupling(false),
     _scalar03_coupling(false),
-    _usrwrk_indices(MultiMooseEnum("velocity temperature scalar01 scalar02 scalar03 unused")),
     _pp_mesh(getParam<MooseEnum>("nek_mesh"))
 {
   if (_nek_mesh->exactMirror())
     mooseError("An exact mesh mirror is not yet supported for NekRSSeparateDomainProblem!");
+
+  if (nekrs::hasMovingMesh())
+    mooseWarning("NekRSSeparateDomainProblem currently does not transfer mesh displacements "
+                 "from NekRS to Cardinal. The [Mesh] object in Cardinal won't reflect "
+                 "NekRS's internal mesh changes. This may affect your postprocessor values.");
 
   // check scalar01-03_coupling provided
   for (const auto & s : _coupled_scalars)
@@ -149,49 +153,45 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   //   scalar01         (if _inlet_coupling is true and _scalar01_coupling is true)
   //   scalar02         (if _inlet_coupling is true and _scalar02_coupling is true)
   //   scalar03         (if _inlet_coupling is true and _scalar03_coupling is true)
-  std::vector<std::string> str_indices;
   int start = 0;
   if (_inlet_coupling)
   {
     indices.boundary_velocity = start++ * nekrs::scalarFieldOffset();
-    str_indices.push_back("velocity");
+    _usrwrk_indices.push_back("velocity");
 
     if (nekrs::hasTemperatureSolve())
     {
       indices.boundary_temperature = start++ * nekrs::scalarFieldOffset();
-      str_indices.push_back("temperature");
+      _usrwrk_indices.push_back("temperature");
     }
 
     if (_scalar01_coupling)
     {
       indices.boundary_scalar01 = start++ * nekrs::scalarFieldOffset();
-      str_indices.push_back("scalar01");
+      _usrwrk_indices.push_back("scalar01");
     }
 
     if (_scalar02_coupling)
     {
       indices.boundary_scalar02 = start++ * nekrs::scalarFieldOffset();
-      str_indices.push_back("scalar02");
+      _usrwrk_indices.push_back("scalar02");
     }
 
     if (_scalar03_coupling)
     {
       indices.boundary_scalar03 = start++ * nekrs::scalarFieldOffset();
-      str_indices.push_back("scalar03");
+      _usrwrk_indices.push_back("scalar03");
     }
   }
 
-  _minimum_scratch_size_for_coupling = str_indices.size();
+  _minimum_scratch_size_for_coupling = _usrwrk_indices.size();
   for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
-    str_indices.push_back("unused");
+    _usrwrk_indices.push_back("unused");
 
-  _usrwrk_indices = str_indices;
-
-  printScratchSpaceInfo(_usrwrk_indices);
+  printScratchSpaceInfo();
 
   if (_pp_mesh!="fluid")
     mooseError("NekRSSeparateDomainProblem should only act on the Nek fluid mesh.");
-
 }
 
 NekRSSeparateDomainProblem::~NekRSSeparateDomainProblem() { nekrs::freeScratch(); }
