@@ -46,12 +46,12 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
   if (nekrs::hasMovingMesh())
     mooseWarning("NekRSStandaloneProblem currently does not transfer mesh displacements "
                  "from NekRS to Cardinal. The [Mesh] object in Cardinal won't reflect "
-                 "nekRS's internal mesh changes. This may affect your postprocessor values.");
+                 "NekRS's internal mesh changes. This may affect your postprocessor values.");
 
-  // Cardinal does not automatically allocate any scratch space for this class
-  if (params.isParamSetByUser("n_usrwrk_slots"))
-    checkUnusedParam(params, "n_usrwrk_slots", "using running NekRS as a standalone "
-      "problem through Cardinal");
-  _n_usrwrk_slots = 0;
+  for (unsigned int i = 0; i < _n_usrwrk_slots; ++i)
+    _usrwrk_indices.push_back("unused");
+
+  _minimum_scratch_size_for_coupling = _n_usrwrk_slots;
+  printScratchSpaceInfo();
 }
 #endif
