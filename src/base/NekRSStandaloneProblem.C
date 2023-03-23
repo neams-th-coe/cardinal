@@ -47,5 +47,11 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
     mooseWarning("NekRSStandaloneProblem currently does not transfer mesh displacements "
                  "from NekRS to Cardinal. The [Mesh] object in Cardinal won't reflect "
                  "NekRS's internal mesh changes. This may affect your postprocessor values.");
+
+  for (unsigned int i = 0; i < _n_usrwrk_slots; ++i)
+    _usrwrk_indices.push_back("unused");
+
+  _minimum_scratch_size_for_coupling = _n_usrwrk_slots;
+  printScratchSpaceInfo();
 }
 #endif

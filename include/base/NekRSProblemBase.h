@@ -148,7 +148,7 @@ public:
    * Print information showing how the entries in nrs->usrwrk and nrs->o_usrwrk
    * are populated by Cardinal.
    */
-  void printScratchSpaceInfo(const MultiMooseEnum & indices) const;
+  void printScratchSpaceInfo() const;
 
   /**
    * Get the number of usrwrk slots allocated
@@ -470,6 +470,9 @@ protected:
    *    is set to true.
    */
   synchronization::SynchronizationEnum _synchronization_interval;
+
+  /// quantities to write to nrs->usrwrk (and the order to write them)
+  std::vector<std::string> _usrwrk_indices;
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;

@@ -315,7 +315,7 @@ NekRSProblemBase::writeFieldFile(const Real & step_end_time, const int & step) c
 }
 
 void
-NekRSProblemBase::printScratchSpaceInfo(const MultiMooseEnum & indices) const
+NekRSProblemBase::printScratchSpaceInfo() const
 {
   if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling)
     mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
@@ -326,16 +326,16 @@ NekRSProblemBase::printScratchSpaceInfo(const MultiMooseEnum & indices) const
                       VariadicTableColumnFormat::AUTO,
                       VariadicTableColumnFormat::AUTO});
 
-  for (int i = 0; i < indices.size(); ++i)
-    vt.addRow(i, indices[i], " bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM] ");
+  for (int i = 0; i < _usrwrk_indices.size(); ++i)
+    vt.addRow(i, _usrwrk_indices[i], " bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM] ");
 
-  if (indices.size() == 0)
+  if (_usrwrk_indices.size() == 0)
   {
     _console << "Skipping allocation of NekRS scratch space because 'n_usrwrk_slots' is 0\n" << std::endl;
   }
   else
   {
-    _console << "Quantities written into NekRS scratch space:" << std::endl;
+    _console << "\nQuantities written into NekRS scratch space:" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }

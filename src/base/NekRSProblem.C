@@ -74,8 +74,7 @@ NekRSProblem::validParams()
 NekRSProblem::NekRSProblem(const InputParameters & params)
   : NekRSProblemBase(params),
     _has_heat_source(getParam<bool>("has_heat_source")),
-    _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
-    _usrwrk_indices(MultiMooseEnum("flux heat_source mesh_velocity_x mesh_velocity_y mesh_velocity_z unused"))
+    _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
@@ -90,18 +89,17 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   //   mesh_velocity_x   (if nekrs::hasElasticitySolver() is true)
   //   mesh_velocity_y   (if nekrs::hasElasticitySolver() is true)
   //   mesh_velocity_z   (if nekrs::hasElasticitySolver() is true)
-  std::vector<std::string> str_indices;
   int start = 0;
   if (_boundary)
   {
     indices.flux = start++ * nekrs::scalarFieldOffset();
-    str_indices.push_back("flux");
+    _usrwrk_indices.push_back("flux");
   }
 
   if (_volume && _has_heat_source)
   {
     indices.heat_source = start++ * nekrs::scalarFieldOffset();
-    str_indices.push_back("heat_source");
+    _usrwrk_indices.push_back("heat_source");
   }
 
   if (nekrs::hasElasticitySolver())
@@ -109,18 +107,16 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     indices.mesh_velocity_x = start++ * nekrs::scalarFieldOffset();
     indices.mesh_velocity_y = start++ * nekrs::scalarFieldOffset();
     indices.mesh_velocity_z = start++ * nekrs::scalarFieldOffset();
-    str_indices.push_back("mesh_velocity_x");
-    str_indices.push_back("mesh_velocity_y");
-    str_indices.push_back("mesh_velocity_z");
+    _usrwrk_indices.push_back("mesh_velocity_x");
+    _usrwrk_indices.push_back("mesh_velocity_y");
+    _usrwrk_indices.push_back("mesh_velocity_z");
   }
 
-  _minimum_scratch_size_for_coupling = str_indices.size();
+  _minimum_scratch_size_for_coupling = _usrwrk_indices.size();
   for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
-    str_indices.push_back("unused");
+    _usrwrk_indices.push_back("unused");
 
-  _usrwrk_indices = str_indices;
-
-  printScratchSpaceInfo(_usrwrk_indices);
+  printScratchSpaceInfo();
 
   if (nekrs::hasMovingMesh())
   {

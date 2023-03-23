@@ -121,9 +121,6 @@ protected:
   /// Postprocessor containing the signal of when a synchronization has occurred
   const PostprocessorValue * _transfer_in = nullptr;
 
-  /// quantities to write to  nrs->usrwrk (and the order to write them)
-  MultiMooseEnum _usrwrk_indices;
-
   /// Which NekRS mesh to act on
   const MooseEnum _pp_mesh;
 };

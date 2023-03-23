@@ -52,7 +52,7 @@ NekInitAction::validParams()
 NekInitAction::NekInitAction(const InputParameters & parameters)
   : MooseObjectAction(parameters),
     _casename_in_input_file(isParamValid("casename")),
-    _specified_scratch(parameters.isParamSetByUser("n_userwrk_slots")),
+    _specified_scratch(parameters.isParamSetByUser("n_usrwrk_slots")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots"))
 {
 }
