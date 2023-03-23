@@ -48,10 +48,26 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
                  "from NekRS to Cardinal. The [Mesh] object in Cardinal won't reflect "
                  "NekRS's internal mesh changes. This may affect your postprocessor values.");
 
-  for (unsigned int i = 0; i < _n_usrwrk_slots; ++i)
+  auto n_slot = params.isParamSetByUser("n_usrwrk_slots") ? _n_usrwrk_slots : 0;
+  for (unsigned int i = 0; i < n_slot; ++i)
     _usrwrk_indices.push_back("unused");
 
   _minimum_scratch_size_for_coupling = 0;
   printScratchSpaceInfo();
+}
+
+void
+NekRSStandaloneProblem::initialSetup()
+{
+  NekRSProblemBase::initialSetup();
+
+  // For non-stochastic tools cases, we do allow the scratch space to be allocated
+  // manually by the user in their .udf file. But if we were to allow that option
+  // for the stochastic cases, we wouldn't know that they got the length correct,
+  // so here we simply disable that option (requiring the user to allocate the
+  // scratch from Cardinal).
+  if (_nek_uos.size() > 0 && !parameters().isParamSetByUser("n_usrwrk_slots"))
+    mooseError("When using a NekScalarValue user object with NekRSStandaloneProblem, you must set\n"
+      "'n_usrwrk_slots' in the [Problem] block");
 }
 #endif

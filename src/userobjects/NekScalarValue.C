@@ -52,7 +52,7 @@ NekScalarValue::NekScalarValue(const InputParameters & parameters)
 
   // check that we're not writing into space that's definitely being used for coupling
   if (nek_problem->minimumScratchSizeForCoupling() > 0)
-    if (_usrwrk_slot >= nek_problem->minimumScratchSizeForCoupling())
+    if (_usrwrk_slot < nek_problem->minimumScratchSizeForCoupling())
       mooseError("Cannot write into a scratch space slot reserved for Nek-MOOSE coupling!\n"
         "For this case, you must set 'usrwrk_slot' greater than or equal to ",
         Moose::stringify(nek_problem->minimumScratchSizeForCoupling()));

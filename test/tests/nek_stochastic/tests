@@ -1,0 +1,25 @@
+[Tests]
+  [exceed_available]
+    type = RunException
+    input = nek_error.i
+    cli_args = 'UserObjects/scalar1/usrwrk_slot=4'
+    expect_err = "This parameter cannot exceed the available pre-allocated slots \(1\)."
+    requirement = "The system shall error if trying to write stochastic input into a scratch space slot that has not been allocated"
+    required_objects = 'NekRSProblem'
+  []
+  [overlap_coupling]
+    type = RunException
+    input = nek_error.i
+    expect_err = "Cannot write into a scratch space slot reserved for Nek-MOOSE coupling"
+    requirement = "The system shall error if trying to write stochastic input into a scratch space slot that is needed for other physics coupling purposes."
+    required_objects = 'NekRSProblem'
+  []
+  [standalone_scratch]
+    type = RunException
+    input = nek_standalone_error.i
+    expect_err = "When using a NekScalarValue user object with NekRSStandaloneProblem, you must set\n"
+                 "'n_usrwrk_slots' in the \[Problem\] block"
+    requirement = "The system shall error if the scratch space is not allocated via Cardinal for stochastic cases for standalone Nek runs. We only need to test this for the standalone case because the other two coupling classes (NekRSProblem, NekRSSeparateDomainProblem) automatically require scratch allocated from Cardinal."
+    required_objects = 'NekRSProblem'
+  []
+[]
