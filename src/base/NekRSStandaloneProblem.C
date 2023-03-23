@@ -51,7 +51,7 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
   for (unsigned int i = 0; i < _n_usrwrk_slots; ++i)
     _usrwrk_indices.push_back("unused");
 
-  _minimum_scratch_size_for_coupling = _n_usrwrk_slots;
+  _minimum_scratch_size_for_coupling = 0;
   printScratchSpaceInfo();
 }
 #endif
