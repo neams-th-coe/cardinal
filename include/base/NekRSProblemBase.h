@@ -20,6 +20,7 @@
 
 #include "CardinalProblem.h"
 #include "NekTimeStepper.h"
+#include "NekScalarValue.h"
 #include "NekRSMesh.h"
 #include "Transient.h"
 
@@ -480,6 +481,9 @@ protected:
 
   /// quantities to write to nrs->usrwrk (and the order to write them)
   std::vector<std::string> _usrwrk_indices;
+
+  /// Userobjects containing stochastic input data
+  std::vector<NekScalarValue *> _nek_uos;
 
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;

@@ -123,7 +123,8 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _elapsedStepSum(0.0),
     _elapsedTime(nekrs::getNekSetupTime()),
     _tSolveStepMin(std::numeric_limits<double>::max()),
-    _tSolveStepMax(std::numeric_limits<double>::min())
+    _tSolveStepMax(std::numeric_limits<double>::min()),
+    _scratch_counter(0)
 {
   if (params.isParamSetByUser("minimize_transfers_in"))
     mooseError("The 'minimize_transfers_in' parameter has been replaced by "
@@ -451,6 +452,31 @@ NekRSProblemBase::initialSetup()
   if (_synchronization_interval == synchronization::parent_app)
     _transfer_in = &getPostprocessorValueByName("transfer_in");
 
+  // Find all of the NekScalarValue user objects so that we can print a table
+  TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("UserObject");
+  std::vector<UserObject *> userobjs;
+  uo_query.queryInto(userobjs);
+
+  VariadicTable<std::string, std::string> vt({"UserObject Name", "How to Access in NekRS BCs"});
+  for (const auto & u : userobjs)
+  {
+    NekScalarValue * c = dynamic_cast<NekScalarValue *>(u);
+    if (c)
+    {
+      vt.addRow(c->name(), "bc->wrk[" + std::to_string(c->usrwrkSlot()) + " * bc->fieldOffset + " +
+        std::to_string(_scratch_counter) + "]");
+      c->setCounter(_scratch_counter);
+      _nek_uos.push_back(c);
+      _scratch_counter++;
+    }
+  }
+
+  if (_scratch_counter > 0)
+  {
+    _console << "Mapping from NekScalarValue data into NekRS:" << std::endl;
+    vt.print(_console);
+  }
+
   // nekRS calls UDF_ExecuteStep once before the time stepping begins
   nekrs::udfExecuteStep(_timestepper->nondimensionalDT(_start_time), _t_step, false /* not an output step */);
   nekrs::resetTimer("udfExecuteStep");
@@ -582,7 +608,15 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
       }
 
       solution.localize(*_serialized_solution);
+
+      for (const auto & uo : _nek_uos)
+        uo->setValue();
+
+      //nekrs::copyScratchToDevice(
+
       break;
+
+      return;
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
