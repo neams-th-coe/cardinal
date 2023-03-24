@@ -1,0 +1,33 @@
+[OCCA]
+backend = CUDA
+deviceNumber = 0
+
+[GENERAL] 
+polynomialOrder = 7
+numSteps = 10000
+dt = 1.0e-03
+timeStepper = tombo2
+writeInterval = 1000
+
+filtering = hpfrt
+filterWeight = 0.2/${dt}
+filterModes = 1
+subCyclingSteps = 2
+
+[PRESSURE]
+residualTol = 1e-04
+preconditioner=multigrid
+smootherType = chebyshev+jac
+initialGuess = projectionAconj + nVector = 30
+
+[VELOCITY]
+boundaryTypeMap =  inlet, outlet, Wall, Wall
+residualTol = 1e-6
+density = 1.0
+viscosity = -100.0
+
+[TEMPERATURE]
+boundaryTypeMap = t, I, I, f
+rhoCp = 1.0
+conductivity = -71.0
+residualTol = 1.0e-6

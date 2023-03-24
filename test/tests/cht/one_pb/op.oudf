@@ -1,0 +1,113 @@
+// Boundary conditions
+void velocityDirichletConditions(bcData *bc)
+{                                                                        
+  bc->u = 0.0;
+  bc->v = 1.0;
+  bc->w = 0.0;
+}
+
+// Stabilized outflow (Dong et al)
+void pressureDirichletConditions(bcData *bc)
+{
+  const dfloat iU0delta = 20.0;
+  const dfloat un = bc->u*bc->nx + bc->v*bc->ny + bc->w*bc->nz;
+  const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta)); 
+  bc->p = -0.5 * (bc->u*bc->u + bc->v*bc->v + bc->w*bc->w) * s0;
+}
+
+void scalarDirichletConditions(bcData *bc)
+{                                                                        
+  bc->s = 0.0;
+}
+
+void scalarNeumannConditions(bcData *bc)
+{                                             
+  if (bc->id == 4) // for 'S  ', shell surface, coupled to MOOSE
+  {
+    bc->flux = bc->wrk[bc->idM]; 
+  }
+}
+
+@kernel void cliptOKL(const dlong Nelements,
+                   @restrict dfloat * TEMP)
+{
+ for(dlong e=0;e<Nelements;++e;@outer(0)){
+   for(int n=0;n<p_Np;++n;@inner(0)){
+     const int id = e*p_Np + n;
+     if(TEMP[id]>1.0)
+          {
+          TEMP[id] = 201.0;
+          }
+     if(TEMP[id]<0.0)
+          {
+          TEMP[id] = 0.0;
+          }
+   }
+ }
+}
+
+@kernel void clipOKL(const dlong Nelements,
+                    @restrict dfloat * VAR,
+					dfloat vmax,dfloat vmin)
+{
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      if(VAR[id]>vmax)
+	  {
+	  VAR[id] = vmax;
+	  }
+      if(VAR[id]<vmin)
+	  {
+	  VAR[id] = vmin;
+	  }
+    }
+  }
+}
+
+@kernel void userVp(const dlong Nelements,
+                    const dlong uOffset,
+                    const dlong sOffset,
+                    @restrict const dfloat * TEMP,
+                    @restrict dfloat * UPROP,
+                    @restrict dfloat * SPROP,
+                    @restrict const dlong * eInfo,
+                    @restrict const dfloat * Z)
+{ 
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    const dlong solid = eInfo[e];
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+ 
+      dfloat visc,cond,Re,Pr;
+      dfloat factor,z1,z2,local_z;
+
+      Re = 100.0;
+      Pr = 0.71;
+      visc = 1.0/Re;
+      cond = 1.0/(Re*Pr);
+      factor = 1.0;
+     
+      z1 = 0.75;
+      z2 = 2.0;
+      local_z = Z[id];
+      if (local_z <= z1) {factor = 1.0;}
+      else {factor = 1.0 + 100.0*(local_z-z1)/(z2-z1);}
+    
+      visc = factor*visc;
+	    cond = factor*cond;
+      
+      UPROP[id + 0*uOffset] = visc;  // viscosity
+      SPROP[id + 0*sOffset] = cond;  // thermal conductivity
+  
+      UPROP[id + 1*uOffset] = 1.0; //RHO
+      SPROP[id + 1*sOffset] = 1.0; //RHO*CP
+
+      if (solid) {
+      SPROP[id + 0*sOffset] = 0.0244;   // solid part conductivity
+      SPROP[id + 1*sOffset] = 0.3267;   // solid part rho*Cp
+      
+	  }
+    }
+  }
+}

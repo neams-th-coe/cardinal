@@ -1,0 +1,74 @@
+//
+// nekRS User Defined File
+//
+
+#include <math.h>
+#include "udf.hpp"
+#include "plugins/tavg.hpp"
+
+occa::kernel clipKernel;
+occa::kernel cliptKernel;
+occa::kernel userVpKernel;
+
+void clipt(nrs_t *nrs)
+{
+  mesh_t *mesh = nrs->meshV;
+  cds_t* cds = nrs->cds;
+  cliptKernel(mesh->Nelements, cds->o_S);
+}
+
+void clip(nrs_t *nrs)
+{
+  dfloat vmin, vmax;
+
+  mesh_t *mesh = nrs->meshV;
+  cds_t* cds = nrs->cds;
+
+  occa::memory o_UX = nrs->o_U + 0*nrs->fieldOffset*sizeof(dfloat);
+  occa::memory o_UY = nrs->o_U + 1*nrs->fieldOffset*sizeof(dfloat);
+  occa::memory o_UZ = nrs->o_U + 2*nrs->fieldOffset*sizeof(dfloat);
+
+  vmax = 25.0;
+  vmin = -25.0;
+
+  clipKernel(mesh->Nelements, o_UX, vmax, vmin);
+  clipKernel(mesh->Nelements, o_UY, vmax, vmin);
+  clipKernel(mesh->Nelements, o_UZ, vmax, vmin);
+}
+
+void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+            occa::memory o_UProp, occa::memory o_SProp)
+{
+  mesh_t *mesh = nrs->meshV;
+
+  //userVpKernel(mesh->Nelements,mesh->o_z,o_SProp);
+  userVpKernel(mesh->Nelements, nrs->fieldOffset, nrs->cds->fieldOffset[0], 
+               o_S, o_UProp, o_SProp,nrs->meshV->o_elementInfo, mesh->o_z);
+}
+
+
+void UDF_LoadKernels(occa::properties& kernelInfo)
+{
+   clipKernel = oudfBuildKernel(kernelInfo, "clipOKL");
+   cliptKernel = oudfBuildKernel(kernelInfo, "cliptOKL");
+   userVpKernel = oudfBuildKernel(kernelInfo, "userVp");
+
+}
+
+
+void UDF_Setup(nrs_t *nrs)
+{
+  udf.properties = &uservp; // link to uservp for variable properties
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+  // clip(nrs);  // clip velocity
+  //clipt(nrs);  // clip temperature
+  //nrs->flow = 0; // freeze flow
+   
+  if ((tstep%20 == 0) && (tstep > 1)) {
+    nek::ocopyToNek(time, tstep);
+    nek::userchk();
+  }
+}

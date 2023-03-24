@@ -1,0 +1,3 @@
+filetemplate: op%01d.f%05d
+firsttimestep: 1
+numtimesteps: 3

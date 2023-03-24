@@ -1,0 +1,214 @@
+c-----------------------------------------------------------------------
+c  nek5000 user-file template
+c
+c  user specified routines:
+c     - uservp  : variable properties
+c     - userf   : local acceleration term for fluid
+c     - userq   : local source term for scalars
+c     - userbc  : boundary conditions
+c     - useric  : initial conditions
+c     - userchk : general purpose routine for checking errors etc.
+c     - userqtl : thermal divergence for lowMach number flows 
+c     - usrdat  : modify element vertices 
+c     - usrdat2 : modify mesh coordinates
+c     - usrdat3 : general purpose routine for initialization
+c-----------------------------------------------------------------------
+      subroutine uservp(ix,iy,iz,eg) ! set variable properties
+
+c      implicit none
+
+      integer ix,iy,iz,eg
+     
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      integer e
+c     e = gllel(eg)
+
+      udiff  = 0.0
+      utrans = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userf(ix,iy,iz,eg) ! set acceleration term
+c
+c     Note: this is an acceleration term, NOT a force!
+c     Thus, ffx will subsequently be multiplied by rho(x,t).
+c
+c      implicit none
+
+      integer ix,iy,iz,eg
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      integer e
+c     e = gllel(eg)
+
+      ffx = 0.0
+      ffy = 0.0
+      ffz = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userq(ix,iy,iz,eg) ! set source term
+
+c      implicit none
+
+      integer ix,iy,iz,eg
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      integer e
+c     e = gllel(eg)
+
+      qvol   = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userbc(ix,iy,iz,iside,eg) ! set up boundary conditions
+c
+c     NOTE ::: This subroutine MAY NOT be called by every process
+c
+c      implicit none
+
+      integer ix,iy,iz,iside,eg
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+c      if (cbc(iside,gllel(eg),ifield).eq.'v01')
+
+      ux   = 0.0
+      uy   = 0.0
+      uz   = 0.0
+      temp = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine useric(ix,iy,iz,eg) ! set up initial conditions
+
+c      implicit none
+
+      integer ix,iy,iz,eg
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      ux   = 0.0
+      uy   = 0.0
+      uz   = 1.0
+      temp = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userchk()
+
+c      implicit none
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userqtl ! Set thermal divergence
+
+      call userqtl_scig 
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat()   ! This routine to modify element vertices
+
+c      implicit none
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2()  ! This routine to modify mesh coordinates
+
+c      implicit none
+
+      include 'SIZE'
+      include 'TOTAL'
+
+C for velocity bc
+
+      do iel=1,nelv
+      do ifc=1,2*ndim
+        id_face = bc(5,ifc,iel,1)
+        if (id_face.eq.2) then        ! surface 2 for inlet 
+           cbc(ifc,iel,1) = 'v  '
+           boundaryID(ifc,iel)=1
+        elseif (id_face.eq.3) then    ! surface 3 for outlet
+           cbc(ifc,iel,1) = 'O  '
+           boundaryID(ifc,iel)=2
+        elseif (id_face.eq.4) then    ! surface 4 for pebble wall
+           cbc(ifc,iel,1) = 'W  '
+           boundaryID(ifc,iel)=3
+        elseif (id_face.eq.5) then    ! surface 5 for side wall
+           cbc(ifc,iel,1) = 'W  '
+           boundaryID(ifc,iel)=4
+        endif
+      enddo
+      enddo
+
+C for thermal bc
+
+      do iel=1,nelt
+      eg = lglel(iel)                 ! get global element number from local element number
+      do ifc=1,2*ndim
+        id_face = bc(5,ifc,iel,2)
+        if (eg.le.nelgv) then           ! for fluid domain
+        if (id_face.eq.2) then        ! surface 2 for inlet 
+           cbc(ifc,iel,1) = 't  '
+           boundaryIDt(ifc,iel)=1
+        elseif (id_face.eq.3) then    ! surface 3 for outlet
+           cbc(ifc,iel,1) = 'O  '
+           boundaryIDt(ifc,iel)=2
+        elseif (id_face.eq.4) then    ! surface 4 for pebble wall
+           cbc(ifc,iel,1) = 'E  '
+           boundaryID(ifc,iel)=3
+        elseif (id_face.eq.5) then    ! surface 5 for side wall
+           cbc(ifc,iel,1) = 'f  '
+           boundaryIDt(ifc,iel)=3
+        endif
+        else                                          ! for solid domain
+          if (id_face.eq.2) then         ! surface 2 for pebble wall,
+             cbc(ifc,iel,2) = 'E  '
+          elseif (id_face.eq.3) then    ! surface 3 for shell inner surface
+             cbc(ifc,iel,2) = 'f  '
+             boundaryIDt(ifc,iel)=4
+          endif
+        endif
+      enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3()
+
+c      implicit none
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
