@@ -31,6 +31,7 @@ NekScalarValue::validParams()
   params.addRequiredParam<Real>("value", "Scalar value to pass into NekRS");
   params.addRequiredParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value");
   params.declareControllable("value");
+  params.addClassDescription("Writes a scalar value from MOOSE into NekRS's scratch space");
   return params;
 }
 
