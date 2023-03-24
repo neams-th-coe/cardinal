@@ -45,6 +45,12 @@ public:
 
   virtual void setCounter(const unsigned int & counter) { _counter = counter; }
 
+  /**
+   * Get the index in usrwrk for which this scalar value is held
+   * @return usrwrk index
+   */
+  virtual const unsigned int & counter() const { return _counter; }
+
 protected:
   /// The value to send into NekRS
   const Real & _value;

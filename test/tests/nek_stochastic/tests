@@ -17,8 +17,7 @@
   [standalone_scratch]
     type = RunException
     input = nek_standalone_error.i
-    expect_err = "When using a NekScalarValue user object with NekRSStandaloneProblem, you must set\n"
-                 "'n_usrwrk_slots' in the \[Problem\] block"
+    expect_err = "This parameter cannot exceed the available pre-allocated slots \(0\)."
     requirement = "The system shall error if the scratch space is not allocated via Cardinal for stochastic cases for standalone Nek runs. We only need to test this for the standalone case because the other two coupling classes (NekRSProblem, NekRSSeparateDomainProblem) automatically require scratch allocated from Cardinal."
     required_objects = 'NekRSProblem'
   []

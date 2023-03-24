@@ -316,33 +316,6 @@ NekRSProblemBase::writeFieldFile(const Real & step_end_time, const int & step) c
 }
 
 void
-NekRSProblemBase::printScratchSpaceInfo() const
-{
-  if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling)
-    mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
-      "'n_usrwrk_slots' must be greater than or equal to ", _minimum_scratch_size_for_coupling, "!");
-
-  VariadicTable<int, std::string, std::string> vt({"Slice", "Quantity", "How to Access in NekRS BCs"});
-  vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
-                      VariadicTableColumnFormat::AUTO,
-                      VariadicTableColumnFormat::AUTO});
-
-  for (int i = 0; i < _usrwrk_indices.size(); ++i)
-    vt.addRow(i, _usrwrk_indices[i], " bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM] ");
-
-  if (_usrwrk_indices.size() == 0)
-  {
-    _console << "Skipping allocation of NekRS scratch space because 'n_usrwrk_slots' is 0\n" << std::endl;
-  }
-  else
-  {
-    _console << "\nQuantities written into NekRS scratch space:" << std::endl;
-    vt.print(_console);
-    _console << std::endl;
-  }
-}
-
-void
 NekRSProblemBase::initializeInterpolationMatrices()
 {
   mesh_t * mesh = nekrs::entireMesh();
@@ -415,6 +388,60 @@ NekRSProblemBase::fillAuxVariable(const unsigned int var_number, const double * 
 }
 
 void
+NekRSProblemBase::getNekScalarValueUserObjects()
+{
+  // Find all of the NekScalarValue user objects so that we can print a table
+  TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("UserObject");
+  std::vector<UserObject *> userobjs;
+  uo_query.queryInto(userobjs);
+
+  std::set<unsigned int> slots;
+  for (const auto & u : userobjs)
+  {
+    NekScalarValue * c = dynamic_cast<NekScalarValue *>(u);
+    if (c)
+    {
+      slots.insert(c->usrwrkSlot());
+      c->setCounter(_scratch_counter);
+      _nek_uos.push_back(c);
+      _scratch_counter++;
+    }
+  }
+
+  if (slots.size() == 0)
+    return;
+
+  auto min_for_uo = *slots.begin();
+  if (min_for_uo > _minimum_scratch_size_for_coupling)
+  {
+    std::stringstream coupling_slots;
+    coupling_slots << "0";
+    for (unsigned int i = 1; i < _minimum_scratch_size_for_coupling; ++i)
+      coupling_slots << ", " << i;
+
+    mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
+      "any gaps between the slots used for multiphysics coupling (", coupling_slots.str(), ") and the "
+      "first\nslot used for NekScalarValue (", min_for_uo, "). Please adjust the 'usrwrk_slot' choices\n"
+      "for the NekScalarValue user objects.");
+  }
+
+  auto max_for_uo = *slots.rbegin();
+  _n_uo_slots = slots.size();
+  if (max_for_uo - min_for_uo >= _n_uo_slots)
+  {
+    std::stringstream coupling_slots;
+    for (const auto & s : slots)
+      coupling_slots << s << ", ";
+
+    std::string str = coupling_slots.str();
+    str.pop_back();
+    str.pop_back();
+    mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
+      "any gaps. You are currently allocating scalar values into non-contiguous slots (", str, ")");
+  }
+}
+
+void
 NekRSProblemBase::initialSetup()
 {
   CardinalProblem::initialSetup();
@@ -452,60 +479,46 @@ NekRSProblemBase::initialSetup()
   if (_synchronization_interval == synchronization::parent_app)
     _transfer_in = &getPostprocessorValueByName("transfer_in");
 
-  // Find all of the NekScalarValue user objects so that we can print a table
-  TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("UserObject");
-  std::vector<UserObject *> userobjs;
-  uo_query.queryInto(userobjs);
+  getNekScalarValueUserObjects();
 
-  VariadicTable<std::string, std::string> vt({"UserObject Name", "How to Access in NekRS BCs"});
-  std::set<unsigned int> slots;
-  for (const auto & u : userobjs)
+  VariadicTable<std::string, std::string, std::string> vt({"Quantity", "How to Access (.oudf)", "How to Access (.udf)"});
+
+  // add rows for the coupling data
+  for (int i = 0; i < _minimum_scratch_size_for_coupling; ++i)
+    vt.addRow(_usrwrk_indices[i], "bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
+      "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
+
+  // add rows for the NekScalarValue(s)
+  for (const auto & uo : _nek_uos)
   {
-    NekScalarValue * c = dynamic_cast<NekScalarValue *>(u);
-    if (c)
-    {
-      slots.insert(c->usrwrkSlot());
-      vt.addRow(c->name(), "bc->wrk[" + std::to_string(c->usrwrkSlot()) + " * bc->fieldOffset + " +
-        std::to_string(_scratch_counter) + "]");
-      c->setCounter(_scratch_counter);
-      _nek_uos.push_back(c);
-      _scratch_counter++;
-    }
+    auto slot = uo->usrwrkSlot();
+    auto count = uo->counter();
+    vt.addRow(uo->name(), "bc->wrk[" + std::to_string(slot) + " * bc->fieldOffset + " + std::to_string(count) + "]",
+      "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " + std::to_string(count) + "]");
   }
 
-  auto min_for_uo = *slots.begin();
-  if (min_for_uo > _minimum_scratch_size_for_coupling)
-  {
-    std::stringstream coupling_slots;
-    coupling_slots << "0";
-    for (unsigned int i = 1; i < _minimum_scratch_size_for_coupling; ++i)
-      coupling_slots << ", " << i;
+  // add rows for the extra slices
+  for (unsigned int i = _minimum_scratch_size_for_coupling + _n_uo_slots; i < _n_usrwrk_slots; ++i)
+    vt.addRow("unused", "bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
+      "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
-    mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
-      "any gaps between the slots used for multiphysics coupling (", coupling_slots.str(), ") and the "
-      "first\nslot used for NekScalarValue (", min_for_uo, "). Please adjust the 'usrwrk_slot' choices\n"
-      "for the NekScalarValue user objects.");
+  if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling)
+    mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
+      "'n_usrwrk_slots' must be greater than or equal to ", _minimum_scratch_size_for_coupling, "!");
+
+  if (_n_usrwrk_slots == 0)
+  {
+    _console << "Skipping allocation of NekRS scratch space because 'n_usrwrk_slots' is 0\n" << std::endl;
   }
-
-  auto max_for_uo = *slots.rbegin();
-  auto n_uo_slots = slots.size();
-  if (max_for_uo - min_for_uo >= n_uo_slots)
+  else
   {
-    std::stringstream coupling_slots;
-    for (const auto & s : slots)
-      coupling_slots << s << ", ";
-
-    std::string str = coupling_slots.str();
-    str.pop_back();
-    str.pop_back();
-    mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
-      "any gaps. You are currently allocating scalar values into non-contiguous slots (", str, ")");
-  }
-
-  if (_scratch_counter > 0)
-  {
-    _console << "Mapping from NekScalarValue data into NekRS:" << std::endl;
+    _console << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n" << std::endl;
+    _console <<   "          Slice:  entry in NekRS scratch space" << std::endl;
+    _console <<   "       Quantity:  physical meaning or name of data in this slice" << std::endl;
+    _console <<   "  How to Access:  C++ code to use in NekRS files; for the .udf instructions," << std::endl;
+    _console <<   "                  'n' indicates a loop variable over GLL points\n" << std::endl;
     vt.print(_console);
+    _console << std::endl;
   }
 
   // nekRS calls UDF_ExecuteStep once before the time stepping begins

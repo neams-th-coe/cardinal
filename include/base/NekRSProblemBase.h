@@ -49,6 +49,9 @@ public:
    */
   unsigned int minimumScratchSizeForCoupling() const { return _minimum_scratch_size_for_coupling; }
 
+  /// Setup to fetch NekScalarValue user objects for sending scalar values into NekRS scratch space
+  void getNekScalarValueUserObjects();
+
   /**
    * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
    * @param[in] e MOOSE element ID
@@ -151,12 +154,6 @@ public:
    * @return characteristic length
    */
   double L_ref() const { return _L_ref; }
-
-  /**
-   * Print information showing how the entries in nrs->usrwrk and nrs->o_usrwrk
-   * are populated by Cardinal.
-   */
-  void printScratchSpaceInfo() const;
 
   /**
    * Get the number of usrwrk slots allocated
@@ -416,6 +413,9 @@ protected:
 
   /// Minimum allowable scratch space size, strictly what is needed by Cardinal for coupling
   unsigned int _minimum_scratch_size_for_coupling;
+
+  /// Number of scratch space slots used for NekScalarValue usage
+  unsigned int _n_uo_slots;
 
   /// For the MOOSE mesh, the number of quadrature points in each coordinate direction
   int _moose_Nq;

@@ -185,10 +185,6 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   }
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size();
-  for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
-    _usrwrk_indices.push_back("unused");
-
-  printScratchSpaceInfo();
 
   if (_pp_mesh!="fluid")
     mooseError("NekRSSeparateDomainProblem should only act on the Nek fluid mesh.");

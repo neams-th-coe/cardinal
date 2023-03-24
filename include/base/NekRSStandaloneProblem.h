@@ -30,6 +30,4 @@ public:
   NekRSStandaloneProblem(const InputParameters & params);
 
   static InputParameters validParams();
-
-  virtual void initialSetup() override;
 };

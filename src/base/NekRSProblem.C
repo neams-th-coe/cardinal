@@ -113,10 +113,6 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   }
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size();
-  for (unsigned int i = _minimum_scratch_size_for_coupling; i < _n_usrwrk_slots; ++i)
-    _usrwrk_indices.push_back("unused");
-
-  printScratchSpaceInfo();
 
   if (nekrs::hasMovingMesh())
   {
