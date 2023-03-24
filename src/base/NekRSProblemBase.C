@@ -45,7 +45,7 @@ NekRSProblemBase::validParams()
       "Can also be provided on the command line with --nekrs-setup, which will override this "
       "setting");
 
-  params.addRangeCheckedParam<unsigned int>("n_usrwrk_slots", 7, "n_usrwrk_slots > 0",
+  params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
     "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
 
@@ -458,17 +458,48 @@ NekRSProblemBase::initialSetup()
   uo_query.queryInto(userobjs);
 
   VariadicTable<std::string, std::string> vt({"UserObject Name", "How to Access in NekRS BCs"});
+  std::set<unsigned int> slots;
   for (const auto & u : userobjs)
   {
     NekScalarValue * c = dynamic_cast<NekScalarValue *>(u);
     if (c)
     {
+      slots.insert(c->usrwrkSlot());
       vt.addRow(c->name(), "bc->wrk[" + std::to_string(c->usrwrkSlot()) + " * bc->fieldOffset + " +
         std::to_string(_scratch_counter) + "]");
       c->setCounter(_scratch_counter);
       _nek_uos.push_back(c);
       _scratch_counter++;
     }
+  }
+
+  auto min_for_uo = *slots.begin();
+  if (min_for_uo > _minimum_scratch_size_for_coupling)
+  {
+    std::stringstream coupling_slots;
+    coupling_slots << "0";
+    for (unsigned int i = 1; i < _minimum_scratch_size_for_coupling; ++i)
+      coupling_slots << ", " << i;
+
+    mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
+      "any gaps between the slots used for multiphysics coupling (", coupling_slots.str(), ") and the "
+      "first\nslot used for NekScalarValue (", min_for_uo, "). Please adjust the 'usrwrk_slot' choices\n"
+      "for the NekScalarValue user objects.");
+  }
+
+  auto max_for_uo = *slots.rbegin();
+  auto n_uo_slots = slots.size();
+  if (max_for_uo - min_for_uo >= n_uo_slots)
+  {
+    std::stringstream coupling_slots;
+    for (const auto & s : slots)
+      coupling_slots << s << ", ";
+
+    std::string str = coupling_slots.str();
+    str.pop_back();
+    str.pop_back();
+    mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
+      "any gaps. You are currently allocating scalar values into non-contiguous slots (", str, ")");
   }
 
   if (_scratch_counter > 0)

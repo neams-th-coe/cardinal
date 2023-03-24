@@ -42,7 +42,7 @@ NekInitAction::validParams()
       "Can also be provided on the command line with --nekrs-setup, which will override this "
       "setting");
 
-  params.addRangeCheckedParam<unsigned int>("n_usrwrk_slots", 7, "n_usrwrk_slots > 0",
+  params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
     "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
 

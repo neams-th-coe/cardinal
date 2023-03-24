@@ -17,7 +17,7 @@ density = 1.0
 viscosity = -100
 
 [TEMPERATURE]
-boundaryTypeMap = inlet
+boundaryTypeMap = flux
 residualTol = 1e-12
 rhoCp = 1.0
 conductivity = -100
