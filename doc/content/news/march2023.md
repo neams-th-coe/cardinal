@@ -9,4 +9,6 @@
 ```
 
 and then point `OPENMC_CROSS_SECTIONS` to that new location, `../cross_sections/endfb-vii.1-hdf5/cross_sections.xml`.
+
 - You can now use OpenMC's stochastic volume calculations to directly compare the volumes of OpenMC cells which map to MOOSE. This can be useful for debugging model preparation. Simply set `volume_calculation` on `OpenMCCellAverageProblem` to the [OpenMCVolumeCalculation](/userobjects/OpenMCVolumeCalculation.md) user object.
+- NekRS can now interface to MOOSE's [Controls](https://mooseframework.inl.gov/syntax/Controls/index.html) system, allowing any arbitrary parameter in the NekRS input files be controlled by MOOSE. For an example where MOOSE changes a NekRS boundary condition part-way through a solve, see documentation for the [NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html) user object.

@@ -5,16 +5,27 @@
 ## Description
 
 This user object sends a scalar value from MOOSE into NekRS's scratch space.
-Among other uses, one example application is coupling NekRS to the MOOSE stochastic tools
-module, where MOOSE perturbs scalar values that get consumed in NekRS (such as in
-boundary conditions or material properties).
+This can be used to control NekRS simulations using MOOSE's
+[Controls](https://mooseframework.inl.gov/syntax/Controls/index.html) system
+or stochastically perturb NekRS simulations using the
+[MOOSE stochastic tools module](https://mooseframework.inl.gov/modules/stochastic_tools/index.html).
 
 ## Example Input Syntax
 
-Below is an example input file that defines two arbitrary scalar user objects.
+Below is an example input file that defines two scalar user objects that we will use
+to control a NekRS boundary condition from MOOSE using the `Controls` system.
 
-!listing test/tests/nek_stochastic/nek.i
+!listing test/tests/userobjects/nek_scalar_value/nek.i
   block=UserObjects
+
+We will control the `value` in each of these parameters using a
+[RealFunctionControl](https://mooseframework.inl.gov/source/controls/RealFunctionControl.html),
+a MOOSE object that lets us define a scalar value using a function. Here, we will use a simple
+constant value function, which changes value partway through the simulation.
+
+!listing test/tests/userobjects/nek_scalar_value/nek.i
+  start=Controls
+  end=Postprocessors
 
 When running the input file, you will then see a table like the following print:
 
@@ -32,19 +43,18 @@ When running the input file, you will then see a table like the following print:
 | scalar1  | bc->wrk[0 * bc->fieldOffset + 0]       | nrs->usrwrk[0 * nrs->fieldOffset + 0] |
 | scalar2  | bc->wrk[0 * bc->fieldOffset + 1]       | nrs->usrwrk[0 * nrs->fieldOffset + 1] |
 | unused   | bc->wrk[1 * bc->fieldOffset + bc->idM] | nrs->usrwrk[1 * nrs->fieldOffset + n] |
+| unused   | bc->wrk[2 * bc->fieldOffset + bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
+| unused   | bc->wrk[3 * bc->fieldOffset + bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
+| unused   | bc->wrk[4 * bc->fieldOffset + bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
+| unused   | bc->wrk[5 * bc->fieldOffset + bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
+| unused   | bc->wrk[6 * bc->fieldOffset + bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
 ---------------------------------------------------------------------------------------------
 ```
 
-Then, if you want to use the `value` set in the `scalar1` postprocessor in the `.oudf` file,
-you would access as `bc->wrk[0 * bc->fieldOffset + 0]`. For example, if the `scalar1` object
-held a value that represented an inlet temperature, you could apply that as a BC like:
+Suppose we want to use these two scalar values to set a Dirichlet temperature boundary
+condition in NekRS. We would simply follow the instructions for the `.oudf`, and do:
 
-```
-void scalarDirichletConditions(bcData * bc)
-{
-  bc->s = bc->wrk[0 * bc->fieldOffset + 0];
-}
-```
+!listing test/tests/userobjects/nek_scalar_value/pyramid.oudf language=cpp
 
 !syntax parameters /UserObjects/NekScalarValue
 
