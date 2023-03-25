@@ -589,7 +589,7 @@ NekRSProblem::getBoundaryTemperatureFromNek()
 void
 NekRSProblem::getVolumeTemperatureFromNek()
 {
-  _console << "Extracting NekRS temperature volume" << std::endl;
+  _console << "Extracting NekRS temperature from volume" << std::endl;
 
   // Get the temperature solution from nekRS. Note that nekRS performs a global communication
   // here such that each nekRS process has all the volume temperature information. In
@@ -603,16 +603,13 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
 
-  if (nekrs::buildOnly())
+  if (!isDataTransferHappening(direction))
     return;
 
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      if (!synchronizeIn())
-        return;
-
       if (_first)
       {
         _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
@@ -632,9 +629,12 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       else if (nekrs::hasElasticitySolver())
         sendBoundaryDeformationToNek();
 
+      for (const auto & uo : _nek_uos)
+        uo->setValue();
+
       // copy the boundary heat flux, volume heat source, and/or volume
       // mesh displacements in the scratch space to device
-      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
+      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
 
       // We update geometric factors from the host to the device for all
       // moving mesh problems after every displacement transfer because NekRS has
@@ -652,9 +652,6 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      if (!synchronizeOut())
-        return;
-
       if (!_volume)
         getBoundaryTemperatureFromNek();
 

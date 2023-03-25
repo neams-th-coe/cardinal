@@ -221,16 +221,13 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
 
-  if (nekrs::buildOnly())
+  if (!isDataTransferHappening(direction))
     return;
 
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      if (!synchronizeIn())
-        return;
-
       // transfer data to wrk array for NekRS inlet BCs
       if (_inlet_coupling)
       {
@@ -247,20 +244,19 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
           sendBoundaryScalarToNek(_pp_mesh, 3, *_toNekRS_scalar03);
       }
 
+      for (const auto & uo : _nek_uos)
+        uo->setValue();
+
       // copy scratch to device
-      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling);
+      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
 
       break;
     }
 
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      if (!synchronizeOut())
-        return;
-
       // extract desired data from NekRS solution
       extractOutputs();
-
       break;
     }
     default:

@@ -43,6 +43,13 @@ public:
   ~NekRSProblemBase();
 
   /**
+   * Whether a data transfer to/from Nek is occurring
+   * @param[in] direction direction of data transfer
+   * @return whether a data transfer to Nek is about to occur
+   */
+  bool isDataTransferHappening(ExternalProblem::Direction direction);
+
+  /**
    * Get the minimum scratch space required for coupling; this space is guaranteed to be filled
    * with data incoming from MOOSE, like heat flux boundary conditions or mesh displacements
    * @return minimum scratch space reserved for coupling

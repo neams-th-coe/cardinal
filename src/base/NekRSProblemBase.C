@@ -630,21 +630,35 @@ NekRSProblemBase::externalSolve()
   _time += _dt;
 }
 
+bool
+NekRSProblemBase::isDataTransferHappening(ExternalProblem::Direction direction)
+{
+  if (nekrs::buildOnly())
+    return false;
+
+  switch (direction)
+  {
+    case ExternalProblem::Direction::TO_EXTERNAL_APP:
+      return synchronizeIn();
+    case ExternalProblem::Direction::FROM_EXTERNAL_APP:
+      return synchronizeOut();
+    default:
+      mooseError("Unhandled DirectionEnum in NekRSProblemBase!");
+  }
+}
+
 void
 NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
 
-  if (nekrs::buildOnly())
+  if (!isDataTransferHappening(direction))
     return;
 
   switch (direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      if (!synchronizeIn())
-        return;
-
       if (_first)
       {
         _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
@@ -656,7 +670,7 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
       for (const auto & uo : _nek_uos)
         uo->setValue();
 
-      //nekrs::copyScratchToDevice(
+      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
 
       break;
 
@@ -664,9 +678,6 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
-      if (!synchronizeOut())
-        return;
-
       // extract the NekRS solution onto the mesh mirror, if specified
       extractOutputs();
       break;
