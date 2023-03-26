@@ -22,11 +22,4 @@
                   "already exactly match the mesh."
     required_objects = 'MoabSkinner'
   []
-  [density_bins]
-    type = RunException
-    input = density_bins.i
-    expect_err = "Density binning is not currently supported for the OpenMC wrapping!"
-    requirement = "The system shall error if using density bins, which are not yet supported."
-    required_objects = 'MoabSkinner'
-  []
 []
