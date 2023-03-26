@@ -93,6 +93,12 @@ public:
    */
   virtual void addExternalVariables() override;
 
+  /**
+   * Re-generate the OpenMC materials in-place, needed for skinning operation where
+   * we create new OpenMC materials on-the-fly in order to receive density feedback.
+   */
+  virtual void updateMaterials();
+
   virtual void externalSolve() override;
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;

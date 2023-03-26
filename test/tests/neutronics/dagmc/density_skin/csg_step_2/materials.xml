@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1">
+    <density units="kg/m3" value="550.0" />
+    <nuclide ao="1.0" name="U235" />
+  </material>
+  <material depletable="true" id="2">
+    <density units="kg/m3" value="600.0" />
+    <nuclide ao="1.0" name="U235" />
+  </material>
+  <material depletable="true" id="3">
+    <density units="kg/m3" value="650.0" />
+    <nuclide ao="1.0" name="U235" />
+  </material>
+  <material depletable="true" id="4">
+    <density units="kg/m3" value="700.0" />
+    <nuclide ao="1.0" name="U235" />
+  </material>
+  <material depletable="true" id="5">
+    <density units="kg/m3" value="550.0" />
+    <nuclide ao="0.5" name="U235" />
+    <nuclide ao="0.5" name="U238" />
+  </material>
+  <material depletable="true" id="6">
+    <density units="kg/m3" value="600.0" />
+    <nuclide ao="0.5" name="U235" />
+    <nuclide ao="0.5" name="U238" />
+  </material>
+  <material depletable="true" id="7">
+    <density units="kg/m3" value="650.0" />
+    <nuclide ao="0.5" name="U235" />
+    <nuclide ao="0.5" name="U238" />
+  </material>
+  <material depletable="true" id="8">
+    <density units="kg/m3" value="700.0" />
+    <nuclide ao="0.5" name="U235" />
+    <nuclide ao="0.5" name="U238" />
+  </material>
+</materials>

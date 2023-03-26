@@ -716,8 +716,10 @@ OpenMCCellAverageProblem::initialSetup()
 #ifdef ENABLE_DAGMC
   if (isParamValid("skinner"))
   {
-    if (_has_fluid_blocks)
-      mooseError("'skinner' currently can only skin solid-only models, because we are not re-creating OpenMC materials for the newly-created cells. This will be relaxed soon.");
+    if (_has_fluid_blocks && _has_solid_blocks)
+      mooseError("The 'skinner' currently does not distinguish between fluid vs. solid blocks "
+        "(and will apply density skinning over the entire domain). For now, just set your entire "
+        "domain to fluid, by setting a density on the MOOSE side to send into OpenMC.");
 
     if (_symmetry)
       mooseError("Cannot combine the 'skinner' with 'symmetry_mapper'!\n\nWhen using a skinner, "
@@ -729,15 +731,6 @@ OpenMCCellAverageProblem::initialSetup()
 
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
-
-    // If the density bins are > 1, we need to re-init the OpenMC materials once (between
-    // the first time we read the materials.xml and when we run the first skinned OpenMC
-    // geometry) so that we have unique materials that can be set to individual densities.
-    // This is just not yet implemented. I think it'd be worthwhile to just allow OpenMC
-    // to set densities of cells filled by the same material, i.e. have the "density"
-    // construct attached to the cell, not material.
-    if (_skinner->nDensityBins() > 1)
-      paramError("skinner", "Density binning is not currently supported for the OpenMC wrapping!");
 
     _skinner->setGraveyard(true);
     _skinner->setScaling(_scaling);
@@ -2953,6 +2946,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         openmc::model::surfaces.clear();
         openmc::model::surface_map.clear();
 
+        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
+        updateMaterials();
+
         // regenerate the DAGMC geometry
         reloadDAGMC();
 
@@ -3190,4 +3186,67 @@ OpenMCCellAverageProblem::reloadDAGMC()
 #endif
 }
 
+void
+OpenMCCellAverageProblem::updateMaterials()
+{
+  // We currently only re-init the materials one time, because we create one new
+  // material for every density bin, even if that density bin doesn't actually
+  // appear in the problem. TODO: we could probably reduce memory usage
+  // if we only re-generated materials we strictly needed for the model.
+  if (!_first_transfer)
+    return;
+
+#ifdef ENABLE_DAGMC
+  // only need to create new materials if we have density skinning
+  if (_skinner->nDensityBins() == 1)
+    return;
+#endif
+
+  // map from IDs to names (names used by the skinner, not necessarily any internal
+  // name in OpenMC, because you're not strictly required to add names for materials
+  // with the OpenMC input files)
+  std::map<int32_t, std::string> ids_to_names;
+  for (const auto & m : openmc::model::material_map)
+  {
+    auto id = m.first;
+    auto idx = m.second;
+    if (ids_to_names.count(id))
+      mooseError("Internal error: material_map has more than one material with the same ID");
+
+    ids_to_names[id] = materialName(idx);
+  }
+
+  openmc::free_memory_material();
+
+  // get the original materials from XML
+  pugi::xml_document doc;
+  std::string filename = openmc::settings::path_input + "materials.xml";
+  doc.load_file(filename.c_str());
+
+  // Loop over all the materials in the XML file; create the "first" bin for each, since
+  // the constructor for openmc::Material will automatically try setting the ID from the
+  // XML file (required), which in set_id will override any previous materials with that ID.
+  pugi::xml_node root = doc.document_element();
+  for (pugi::xml_node material_node : root.children("material"))
+  {
+    // this makes a material from the XML
+    int32_t id = std::stoi(openmc::get_node_value(material_node, "id"));
+    openmc::model::materials.push_back(std::make_unique<openmc::Material>(material_node));
+
+    openmc::Material & mat = *openmc::model::materials.back();
+    mat.set_name(ids_to_names[id] + "_0");
+  }
+
+  // Then, create the n - 1 copies of each material
+  for (pugi::xml_node material_node : root.children("material"))
+  {
+    int32_t id = std::stoi(openmc::get_node_value(material_node, "id"));
+    for (unsigned int j = 1; j < _skinner->nDensityBins(); ++j)
+    {
+      openmc::model::materials.push_back(std::make_unique<openmc::Material>(material_node, true));
+      openmc::Material & new_mat = *openmc::model::materials.back();
+      new_mat.set_name(ids_to_names[id] + "_" + std::to_string(j));
+    }
+  }
+}
 #endif
