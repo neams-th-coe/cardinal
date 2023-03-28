@@ -124,7 +124,8 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _elapsedTime(nekrs::getNekSetupTime()),
     _tSolveStepMin(std::numeric_limits<double>::max()),
     _tSolveStepMax(std::numeric_limits<double>::min()),
-    _scratch_counter(0)
+    _scratch_counter(0),
+    _n_uo_slots(0)
 {
   if (params.isParamSetByUser("minimize_transfers_in"))
     mooseError("The 'minimize_transfers_in' parameter has been replaced by "

@@ -421,9 +421,6 @@ protected:
   /// Minimum allowable scratch space size, strictly what is needed by Cardinal for coupling
   unsigned int _minimum_scratch_size_for_coupling;
 
-  /// Number of scratch space slots used for NekScalarValue usage
-  unsigned int _n_uo_slots;
-
   /// For the MOOSE mesh, the number of quadrature points in each coordinate direction
   int _moose_Nq;
 
@@ -497,4 +494,7 @@ protected:
 
   /// Counter for any potential NekScalarValue objects in the input file
   unsigned int _scratch_counter;
+
+  /// Number of scratch space slots used for NekScalarValue usage
+  unsigned int _n_uo_slots;
 };

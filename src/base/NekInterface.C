@@ -640,7 +640,7 @@ limitTemperature(const double * min_T, const double * max_T)
 }
 
 void
-copyScratchToDevice(const unsigned int & slots_reserved_by_cardinal)
+copyScratchToDevice(const unsigned int slots_reserved_by_cardinal)
 {
   if (slots_reserved_by_cardinal > 0)
   {
