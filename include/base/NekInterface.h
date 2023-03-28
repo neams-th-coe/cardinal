@@ -284,7 +284,7 @@ double Pr();
  * transfers into NekRS)
  * @param[in] slots_reserved_by_cardinal number of slots holding data written by Cardinal
  */
-void copyScratchToDevice(const unsigned int & slots_reserved_by_cardinal);
+void copyScratchToDevice(const unsigned int slots_reserved_by_cardinal);
 
 /// Copy the boundary deformation from host to device
 void copyDeformationToDevice();
