@@ -3216,36 +3216,20 @@ OpenMCCellAverageProblem::updateMaterials()
     ids_to_names[id] = materialName(idx);
   }
 
-  openmc::free_memory_material();
+  // append _0 to all existing material names
+  for (const auto & mat : openmc::model::materials)
+    mat->set_name(ids_to_names[mat->id()] + "_0");
 
-  // get the original materials from XML
-  pugi::xml_document doc;
-  std::string filename = openmc::settings::path_input + "materials.xml";
-  doc.load_file(filename.c_str());
-
-  // Loop over all the materials in the XML file; create the "first" bin for each, since
-  // the constructor for openmc::Material will automatically try setting the ID from the
-  // XML file (required), which in set_id will override any previous materials with that ID.
-  pugi::xml_node root = doc.document_element();
-  for (pugi::xml_node material_node : root.children("material"))
+  // Then, create the copies of each material
+  int n_mats = openmc::model::materials.size();
+  for (unsigned int n = 0; n < n_mats; ++n)
   {
-    // this makes a material from the XML
-    int32_t id = std::stoi(openmc::get_node_value(material_node, "id"));
-    openmc::model::materials.push_back(std::make_unique<openmc::Material>(material_node));
-
-    openmc::Material & mat = *openmc::model::materials.back();
-    mat.set_name(ids_to_names[id] + "_0");
-  }
-
-  // Then, create the n - 1 copies of each material
-  for (pugi::xml_node material_node : root.children("material"))
-  {
-    int32_t id = std::stoi(openmc::get_node_value(material_node, "id"));
+    auto name = ids_to_names[openmc::model::materials[n]->id()];
     for (unsigned int j = 1; j < _skinner->nDensityBins(); ++j)
     {
-      openmc::model::materials.push_back(std::make_unique<openmc::Material>(material_node, true));
+      openmc::model::materials[n]->clone();
       openmc::Material & new_mat = *openmc::model::materials.back();
-      new_mat.set_name(ids_to_names[id] + "_" + std::to_string(j));
+      new_mat.set_name(name + "_" + std::to_string(j));
     }
   }
 }
