@@ -20,6 +20,7 @@
 
 #include "CardinalProblem.h"
 #include "NekTimeStepper.h"
+#include "NekScalarValue.h"
 #include "NekRSMesh.h"
 #include "Transient.h"
 
@@ -40,6 +41,23 @@ public:
   static InputParameters validParams();
 
   ~NekRSProblemBase();
+
+  /**
+   * Whether a data transfer to/from Nek is occurring
+   * @param[in] direction direction of data transfer
+   * @return whether a data transfer to Nek is about to occur
+   */
+  bool isDataTransferHappening(ExternalProblem::Direction direction);
+
+  /**
+   * Get the minimum scratch space required for coupling; this space is guaranteed to be filled
+   * with data incoming from MOOSE, like heat flux boundary conditions or mesh displacements
+   * @return minimum scratch space reserved for coupling
+   */
+  unsigned int minimumScratchSizeForCoupling() const { return _minimum_scratch_size_for_coupling; }
+
+  /// Setup to fetch NekScalarValue user objects for sending scalar values into NekRS scratch space
+  void getNekScalarValueUserObjects();
 
   /**
    * Map nodal points on a MOOSE face element to the GLL points on a Nek face element.
@@ -143,12 +161,6 @@ public:
    * @return characteristic length
    */
   double L_ref() const { return _L_ref; }
-
-  /**
-   * Print information showing how the entries in nrs->usrwrk and nrs->o_usrwrk
-   * are populated by Cardinal.
-   */
-  void printScratchSpaceInfo() const;
 
   /**
    * Get the number of usrwrk slots allocated
@@ -474,6 +486,15 @@ protected:
   /// quantities to write to nrs->usrwrk (and the order to write them)
   std::vector<std::string> _usrwrk_indices;
 
+  /// Userobjects containing stochastic input data
+  std::vector<NekScalarValue *> _nek_uos;
+
   /// flag to indicate whether this is the first pass to serialize the solution
   static bool _first;
+
+  /// Counter for any potential NekScalarValue objects in the input file
+  unsigned int _scratch_counter;
+
+  /// Number of scratch space slots used for NekScalarValue usage
+  unsigned int _n_uo_slots;
 };
