@@ -1,0 +1,8 @@
+[Tests]
+  [solid_mesh]
+    type = RunApp
+    input = solid.i
+    cli_args = '--mesh-only'
+    requirement = "The system shall be able to mesh the solid regions of a pin bundle."
+  []
+[]

@@ -2,7 +2,7 @@
 
 In this tutorial, you will learn how to:
 
-- Couple NekRS with MOOSE for [!ac](CHT) for a 7-pin bundle
+- Couple NekRS with MOOSE for [!ac](CHT) in a 7-pin bundle
 - Solve both NekRS and MOOSE in dimensional form
 - Control how flux normalization is performed in NekRS (by either lumping all sidesets together,
   or preserving for each sideset individually)
@@ -30,7 +30,8 @@ No special computing needs are required for this tutorial.
 The geometry
 is a shorter, 7-pin version of the fuel bundles in the [!ac](ABTR) [!cite](abtr).
 Relevant dimensions are summarized in
-[table1].
+[table1]. More details on the solid heat conduction and NekRS fluid  model are described
+in the following sections.
 
 !table id=table1 caption=Geometric and operating conditions for the [!ac](ABTR), based on [!cite](abtr)
 | Parameter | Value |
@@ -38,28 +39,19 @@ Relevant dimensions are summarized in
 | Pellet diameter | 6.03 mm |
 | Clad diameter | 8.00 mm |
 | Clad thickness | 0.52 mm |
-| Wire axial lead length | 0.2032 m |
-| Core power | 250 MWth |
-| Core inlet temperature | 350&deg;C |
-
-Heat is produced in the pellet region and transfers by radiation and conduction across
-the pellet-clad gap to the cladding. Sodium flows around the pins to remove the fission heat.
-The power in the solid phase is set equal to
-
-\begin{equation}
-\dot{q}_s=\frac{250 \text{ MWth}}{n_b n_p H \pi R_p^2}
-\end{equation}
-
-where $n_b=54$ is the number of power-producing bundles, $n_p=217$ is the (nominal) number of
-fuel pins per bundle, $H=0.8$ is the height of the active region, and $R_p$ is the outer
-radius of the fuel pellet.
+| Height | 0.2032 m |
+| Flat-to-flat distance inside duct | 0.02625 m |
+| Bundle power | 21 kW |
+| Core inlet temperature | 355&deg;C |
+| Mass flowrate | 0.1 kg/s |
+| Coolant | sodium |
 
 ### Heat Conduction Model
 
 The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
 The outer surface of the duct and the tops and bottoms of the
-pins and ducts are assumed insulated. At fluid-solid interfaces, the solid temperature
-is imposed as a Dirichlet condition, where NekRS computes the surface temperature.
+pins and ducts are insulated. At fluid-solid interfaces, the solid temperature
+is imposed as a Dirichlet condition (computed by NekRS).
 
 The gap region between the pellet and the cladding is unmeshed, and a quadrature-based
 thermal contact model is applied based on the sum of thermal conduction and thermal radiation
@@ -77,15 +69,14 @@ q^{''}=\sigma\frac{T^4-T_{gap}^4}{\frac{1}{\sigma_A}+\frac{1}{\sigma_B}-1}+\frac
 where $\sigma$ is the Stefan-Boltzmann constant, $T$ is the temperature at a quadrature
 point, $T_{gap}$ is the temperature of the nearest quadrature point across the gap,
 $\sigma_A$ and $\sigma_B$ are emissivities of boundaries $A$ and $B$, respectively, and
-$r_{th}$ is the conduction resistance. For cylindrical geometries, the conduction
-resistance is given as
+$r_{th}$ is the conduction resistance. For cylinders, the conduction is
 
 \begin{equation}
 \label{eq:2}
-r_{th}=\frac{ln{\left(\frac{r_2}{r_1}\right)}}{2\pi L k}
+r_{th}=\frac{\ln{\left(\frac{r_2}{r_1}\right)}}{2\pi L k}
 \end{equation}
 
-where $r_2>r_1$ are the radial coordinates associated with the outer and inner radii
+where $r_2>r_1$ are the outer and inner radii
 of the cylindrical annulus, $L$ is the height of the annulus, and $k$ is the
 thermal conductivity of the annulus material.
 
@@ -95,14 +86,13 @@ be provided by NekRS) are set to an initial condition of 500 K.
 ### NekRS Model
 
 NekRS is used to solve the [incompressible Navier-Stokes equations](theory/ins.md).
-At the inlet, the fluid temperature is taken as 355&deg;C. The inlet velocity
+The inlet velocity
 is selected such that the mass flowrate is 0.1 kg/s, which is low enough that the flow is
-laminar and a turbulence model is not required for this pedagogical example.
-
-At the outlet, a zero pressure is imposed and an outflow condition is applied for
+laminar and a turbulence model is not required for this example.
+At the outlet, a zero (gage) pressure is imposed and an outflow condition is applied for
 the energy conservation equation. On all solid-fluid interfaces, the velocity is set
-to the no-slip condition and a heat flux is imposed in the energy conservation equation,
-where MOOSE computes the surface heat flux.
+to the no-slip condition and a heat flux is imposed in the energy conservation equation
+(computed by MOOSE).
 
 The initial pressure is set to zero. Both the velocity and temperature
 are set to uniform initial conditions that match the inlet conditions.
@@ -110,18 +100,17 @@ are set to uniform initial conditions that match the inlet conditions.
 ## Meshing
   id=meshing
 
-A combination of Cubit [!cite](cubit) and MOOSE
-[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html)
+MOOSE [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html)
 are used to generate the meshes for the fluid and solid phases.
 
 ### Solid Mesh
 
-The solid mesh is shown in [solid_mesh]; because this mesh is generated using
-a combination of Cubit-generated meshes (for the duct) and
-MOOSE [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/) (for everything else), so you can
-view the mesh by running the simulation (and viewing the mesh
-on which the results are displayed), or simply by running the solid input file in
-mesh generation mode:
+The solid mesh is shown in [solid_mesh]; the different regions in this mesh are first
+created in 2-D, and then extruded into 3-D.
+You can view this mesh by either (i) running the
+simulation (and viewing the mesh on which the results are displayed), or (ii) by running
+the solid input file in mesh generation mode, which will create an output file named
+`solid_in.e`:
 
 !listing
 cardinal-opt -i solid.i --mesh-only
@@ -140,12 +129,14 @@ The pellet-clad gap is unmeshed.
 
 Unique boundary names are set for each boundary to which we will apply a unique boundary
 condition. Because we will apply insulated boundary conditions on the top and bottom
-surfaces, as well as on the outside of the duct, we don't need to define sidesets (because
+surfaces, as well as on the outside of the duct, we don't need to define sidesets (
 the "do-nothing" boundary condition in the finite element method is a zero-flux condition).
 
 ### Fluid Mesh
 
-The complete fluid mesh is shown in [fluid_mesh]; the boundary names are illustrated towards the right
+The complete fluid mesh is shown in [fluid_mesh]; this is first created using meshing
+software, and then converted into a NekRS mesh (.re2 format).
+The boundary names are illustrated towards the right
 by showing only the highlighted surface to which each boundary corresponds.
 
 !media sfr_fluid_mesh.png
@@ -161,8 +152,7 @@ handle any differences in the mesh.
 
 ## CHT Coupling
 
-In this section, NekRS and MOOSE are coupled for [!ac](CHT) between the sodium
-coolant and the solid pincells and duct.
+In this section, NekRS and MOOSE are coupled for [!ac](CHT).
 
 ### Solid Input Files
 
@@ -175,14 +165,9 @@ source in the fuel.
   end=Mesh
 
 Next, the solid mesh is specified through a combination of
-[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) and Exodus
-mesh files. First, we make a circular annulus that is a 2-D representation of the clad.
-We then extrude it into a 3-D shape, and change the numeric values associated with some
-sidesets so that we have unique sidesets for all boundaries of interest (we are going
-to use more mesh generators). A similar process is then performed to create the mesh
-for the pincell. We then combine the clad and pincell together and translate this combined
-mesh to the locations of the seven pins. Finally, we combine the seven pins with a
-pre-generated duct mesh.
+[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html).
+First, we make the geometry in 2-D, and then extrude it into 3-D. Many of the mesh
+generator objects are customizing the sideset names.
 
 !listing tutorials/sfr_7pin/solid.i
   block=Mesh
@@ -198,7 +183,7 @@ system in MOOSE is used to communicate auxiliary variables across applications; 
 heat flux will be computed by MOOSE and applied as a boundary condition in NekRS. In the
 opposite direction, NekRS will compute a surface temperature that will be applied as a
 boundary condition in MOOSE. Therefore, we define auxiliary variables to hold the flux
-computation by MOOSE (`avg_flux`) and the surface temperature received from NekRS
+computed by MOOSE (`avg_flux`) and the surface temperature received from NekRS
 (`nek_temp`).
 
 !listing tutorials/sfr_7pin/solid.i
@@ -206,7 +191,7 @@ computation by MOOSE (`avg_flux`) and the surface temperature received from NekR
 
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as
 the [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
- kernel with a uniform volumetric heat source in the pellets with the
+ kernel with a volumetric heat source in the pellets with the
 [BodyForce](https://mooseframework.inl.gov/source/kernels/BodyForce.html) kernel.
 Notice how we can do math with the file-local variables that were defined at the
 top of the file, with `${fparse <math statement>}` syntax.
