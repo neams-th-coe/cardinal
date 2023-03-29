@@ -199,14 +199,10 @@ fi
 module purge
 module load use.moose
 module load moose-dev
-export HDF5_ROOT=/apps/moose/stack/miniconda3
-
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
 
 # Revise for your repository location
 export NEKRS_HOME=$HOME/projects/cardinal/install
+export OPENMC_CROSS_SECTIONS=$HOME/projects/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 !listing-end!
 
 !listing scripts/job_sawtooth language=bash caption=Sample job script with the `moose` project code id=st2
