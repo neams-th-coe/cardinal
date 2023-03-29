@@ -3227,8 +3227,7 @@ OpenMCCellAverageProblem::updateMaterials()
     auto name = ids_to_names[openmc::model::materials[n]->id()];
     for (unsigned int j = 1; j < _skinner->nDensityBins(); ++j)
     {
-      openmc::model::materials[n]->clone();
-      openmc::Material & new_mat = *openmc::model::materials.back();
+      openmc::Material & new_mat = openmc::model::materials[n]->clone();
       new_mat.set_name(name + "_" + std::to_string(j));
     }
   }
