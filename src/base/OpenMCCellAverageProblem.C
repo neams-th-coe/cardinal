@@ -1394,7 +1394,8 @@ OpenMCCellAverageProblem::getMaterialFills()
       mooseError(printMaterial(material_index) + " is present in more than one "
                                                  "fluid cell.\nThis means that your model cannot "
                                                  "independently change the density in cells filled "
-                                                 "with this material.");
+                                                 "with this material.\nYou need to edit your OpenMC "
+                                                 "model to create additional materials unique to each fluid cell.");
   }
 
   if (_verbose && _has_fluid_blocks)
