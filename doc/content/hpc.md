@@ -66,11 +66,6 @@ export HDF5_ROOT=/opt/moose/seacas
 export HDF5_INCLUDE_DIR=$HDF5_ROOT/include
 export HDF5_LIBDIR=$HDF5_ROOT/lib
 
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-export F77=mpif77
-
 # Revise for your Cardinal repository location
 DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
 
