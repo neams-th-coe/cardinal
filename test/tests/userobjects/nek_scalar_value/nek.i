@@ -22,12 +22,10 @@
   [scalar1]
     type = NekScalarValue
     value = 1.0
-    usrwrk_slot = 0
   []
   [scalar2]
     type = NekScalarValue
     value = 1.0
-    usrwrk_slot = 0
   []
 []
 

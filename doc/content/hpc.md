@@ -57,67 +57,25 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 [!ac](ANL) with eleven 32-core nodes, five 40-core nodes, and six 80-core nodes.
 
 !listing! language=bash caption=Sample `~/.bashrc` for Eddy id=e1
+
 module purge
-module load moose/.mpich-3.3_gcc-9.2.0
-module load miniconda moose-tools
+module load moose-dev-gcc
+module load cmake/3.25.0
 
-export CC=mpicc
-export CXX=mpicxx
-export FC=mpif90
-export F77=mpif77
-
-export PETSC_ARCH=arch-moose
 export HDF5_ROOT=/opt/moose/seacas
+export HDF5_INCLUDE_DIR=$HDF5_ROOT/include
+export HDF5_LIBDIR=$HDF5_ROOT/lib
 
 # Revise for your Cardinal repository location
-export PETSC_DIR=$HOME/cardinal/contrib/moose/petsc
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Eddy is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 !listing-end!
 
-!listing! language=bash caption=Sample job script for Eddy id=e3
-#!/bin/bash
-#PBS -k o
-#PBS -l nodes=1:ppn=32
-#PBS -l walltime=5:00
-#PBS -M email@address.gov
-#PBS -m ae
-#PBS -N lattice
-#PBS -j oe
-#PBS -q eddy32core
-
-module purge
-module load moose/.mpich-3.3_gcc-9.2.0
-module load miniconda moose-tools
-
-# Revise for your cross section data location
-export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/neutronics/feedback/lattice
-mpirun -np 1 $HOME/cardinal/cardinal-opt -i openmc_master.i --n-threads=32 > logfile
-!listing-end!
-
-!listing! language=bash caption=Sample job script to run Nek coupled to MOOSE on one node of the 32-core partition (`eddy32core`) with 32 MPI ranks id=e2
-#!/bin/bash
-#PBS -k o
-#PBS -l nodes=1:ppn=32
-#PBS -l walltime=5:00
-#PBS -M email@address.gov
-#PBS -m ae
-#PBS -N sfr_pin
-#PBS -j oe
-#PBS -q eddy32core
-
-module purge
-module load moose/.mpich-3.3_gcc-9.2.0
-module load miniconda moose-tools
-
-# Revise for your Cardinal repository location
-export NEKRS_HOME=$HOME/cardinal/install
-
-# Revise for your input file and executable locations
-cd $HOME/cardinal/test/tests/cht/sfr_pincell
-mpirun $HOME/cardinal/cardinal-opt -i nek_master.i  > logfile
-!listing-end!
+!listing! scripts/job_eddy language=bash caption=Sample job script for Eddy with the 32-core partition id=e2
 
 ## Nek5k
 
