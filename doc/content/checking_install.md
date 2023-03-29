@@ -2,7 +2,7 @@ If you would like to check that Cardinal was built correctly and that you
 have all the basic requirements in place, you can try running a few input files.
 
 1. If you are using OpenMC, try the following. If you run into any issues, check out our
-[troubleshooting OpenMC](openmc_runtime.md) page.
+   [troubleshooting OpenMC](openmc_runtime.md) page.
 
 ```
 cd test/tests/neutronics/feedback/lattice
@@ -19,7 +19,7 @@ python make_openmc_model.py
 ```
 
 3. If you are using NekRS, try the following. If you run into any issues, check out our
-[troubleshooting NekRS](nekrs_runtime.md) page.
+   [troubleshooting NekRS](nekrs_runtime.md) page.
 
 ```
 cd test/tests/cht/sfr_pincell
