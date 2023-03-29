@@ -29,7 +29,8 @@ NekScalarValue::validParams()
 {
   InputParameters params = ThreadedGeneralUserObject::validParams();
   params.addRequiredParam<Real>("value", "Scalar value to pass into NekRS");
-  params.addRequiredParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value");
+  params.addParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value; "
+    "if not specified, this defaults to the first unused slot");
   params.declareControllable("value");
   params.addClassDescription("Writes a scalar value from MOOSE into NekRS's scratch space");
   return params;
@@ -37,8 +38,7 @@ NekScalarValue::validParams()
 
 NekScalarValue::NekScalarValue(const InputParameters & parameters)
   : ThreadedGeneralUserObject(parameters),
-    _value(getParam<Real>("value")),
-    _usrwrk_slot(getParam<unsigned int>("usrwrk_slot"))
+    _value(getParam<Real>("value"))
 {
   const NekRSProblemBase * nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!nek_problem)
@@ -50,6 +50,12 @@ NekScalarValue::NekScalarValue(const InputParameters & parameters)
                " to a Nek-wrapped problem.\n\n"
                "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
   }
+
+  // pick a reasonable default if not specified
+  if (isParamValid("usrwrk_slot"))
+    _usrwrk_slot = getParam<unsigned int>("usrwrk_slot");
+  else
+    _usrwrk_slot = nek_problem->minimumScratchSizeForCoupling();
 
   // check that we're not writing into space that's definitely being used for coupling
   if (nek_problem->minimumScratchSizeForCoupling() > 0)

@@ -56,7 +56,7 @@ protected:
   const Real & _value;
 
   /// Slot in usrwrk to write the scalar value
-  const unsigned int & _usrwrk_slot;
+  unsigned int _usrwrk_slot;
 
   /// Counter of this object, to be set by NekRSProblem
   unsigned int _counter;
