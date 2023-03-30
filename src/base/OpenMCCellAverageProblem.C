@@ -355,6 +355,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     // If the score is already in tally_score, no need to do anything special.
     // Otherwise, we need to add that score.
     std::string n = norm;
+    std::replace(n.begin(), n.end(), '_', '-');
     auto it = std::find(_tally_score.begin(), _tally_score.end(), n);
     if (it != _tally_score.end())
       _source_rate_index = it - _tally_score.begin();
@@ -362,13 +363,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     {
       _tally_score.push_back(tallyScore(n));
       _source_rate_index = _tally_score.size() - 1;
-    }
 
-    // later, we populate the tally results in a loop. We will rely on the normalization
-    // tally being listed before the flux tally, so we swap entries so that the normalization
-    // tally is first
-    std::iter_swap(_tally_score.begin(), _tally_score.begin() + _source_rate_index);
-    _source_rate_index = 0;
+      if (isParamValid("tally_name"))
+        mooseError("When specifying 'tally_name', the score indicated in 'source_rate_normalization' must be\n"
+          "listed in 'tally_score' so that we know what you want to name that score (", tallyScore(n), ")");
+    }
   }
   else
     checkUnusedParam(params, "source_rate_normalization", "not using a flux tally in eigenvalue mode");
@@ -384,6 +383,31 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
 
+  if (_tally_name.size() != _tally_score.size())
+    mooseError("'tally_name' must be the same length as 'tally_score'!");
+
+  if (_verbose)
+  {
+    VariadicTable<std::string, std::string> tallies({"OpenMC tally score", "MOOSE AuxVariable name"});
+    for (unsigned int i = 0; i < _tally_name.size(); ++i)
+      tallies.addRow(_tally_score[i], _tally_name[i]);
+
+    _console << std::endl;
+    tallies.print(_console);
+    _console << std::endl;
+  }
+
+  if (has_flux_score && _run_mode == openmc::RunMode::EIGENVALUE)
+  {
+    // later, we populate the tally results in a loop. We will rely on the normalization
+    // tally being listed before the flux tally, so we swap entries so that the normalization
+    // tally is first
+    std::iter_swap(_tally_score.begin(), _tally_score.begin() + _source_rate_index);
+    std::iter_swap(_tally_name.begin(), _tally_name.begin() + _source_rate_index);
+  }
+
+  _source_rate_index = 0;
+
   std::set<std::string> name(_tally_name.begin(), _tally_name.end());
   std::set<std::string> score(_tally_score.begin(), _tally_score.end());
   if (_tally_name.size() != name.size())
@@ -392,8 +416,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_tally_score.size() != score.size())
     mooseError("'tally_score' cannot contain duplicate entries!");
 
-  if (_tally_name.size() != _tally_score.size())
-    mooseError("'tally_name' must be the same length as 'tally_score'!");
 
   if (_tally_type == tally::mesh)
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
