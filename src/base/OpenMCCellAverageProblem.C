@@ -3189,6 +3189,7 @@ OpenMCCellAverageProblem::reloadDAGMC()
 void
 OpenMCCellAverageProblem::updateMaterials()
 {
+#ifdef ENABLE_DAGMC
   // We currently only re-init the materials one time, because we create one new
   // material for every density bin, even if that density bin doesn't actually
   // appear in the problem. TODO: we could probably reduce memory usage
@@ -3196,11 +3197,9 @@ OpenMCCellAverageProblem::updateMaterials()
   if (!_first_transfer)
     return;
 
-#ifdef ENABLE_DAGMC
   // only need to create new materials if we have density skinning
   if (_skinner->nDensityBins() == 1)
     return;
-#endif
 
   // map from IDs to names (names used by the skinner, not necessarily any internal
   // name in OpenMC, because you're not strictly required to add names for materials
@@ -3231,5 +3230,6 @@ OpenMCCellAverageProblem::updateMaterials()
       new_mat.set_name(name + "_" + std::to_string(j));
     }
   }
+#endif
 }
 #endif
