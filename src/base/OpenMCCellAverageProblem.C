@@ -88,12 +88,6 @@ OpenMCCellAverageProblem::validParams()
       false,
       "Whether to export OpenMC's temperature and density properties after updating "
       "them from MOOSE.");
-  params.addRangeCheckedParam<Real>(
-      "scaling",
-      1.0,
-      "scaling > 0.0",
-      "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
-      "setting 'scaling = 100.0', for instance, indicates that the mesh is in units of meters");
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -259,8 +253,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
     _check_zero_tallies(getParam<bool>("check_zero_tallies")),
     _export_properties(getParam<bool>("export_properties")),
-    _specified_scaling(params.isParamSetByUser("scaling")),
-    _scaling(getParam<Real>("scaling")),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
                                       getParam<bool>("normalize_by_global_tally")),
     _need_to_reinit_coupling(!getParam<bool>("fixed_mesh")),
@@ -276,12 +268,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
-    _tally_mesh_from_moose(!isParamValid("mesh_template")),
     _temperature_vars(nullptr),
     _temperature_blocks(nullptr),
     _volume_calc(nullptr),
-    _symmetry(nullptr),
-    _n_openmc_cells(0)
+    _symmetry(nullptr)
 {
   // We need to clear and re-initialize the OpenMC tallies if
   // fixed_mesh is false, which indicates at least one of the following:
@@ -523,15 +513,26 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     {
       checkUnusedParam(params, "tally_blocks", "using mesh tallies");
 
-      if (!_tally_mesh_from_moose)
+      if (isParamValid("mesh_template"))
       {
-        _mesh_template_filename = getParam<std::string>("mesh_template");
+        _mesh_template_filename = &getParam<std::string>("mesh_template");
 
         if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
           mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
       }
       else
       {
+         if (std::abs(_scaling - 1.0) > 1e-6)
+           mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity,\n"
+             "because we multiply the [Mesh] by 'scaling' when tallying on it in OpenMC.");
+
+         // for distributed meshes, each rank only owns a portion of the mesh information, but
+         // OpenMC wants the entire mesh to be available on every rank. We might be able to add
+         // this feature in the future, but will need to investigate
+         if (!_mesh.getMesh().is_replicated())
+           mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
+             "for distributed meshes!");
+
         // if user does not provide a 'mesh_template', just use the [Mesh] block, which means these
         // other parameters are ignored. To simplify logic elsewhere in the code, we throw an error
         if (isParamValid("mesh_translations"))
@@ -706,7 +707,7 @@ OpenMCCellAverageProblem::setupProblem()
     _local_to_global_elem.push_back(e);
   }
 
-  calculateNumCells();
+  _n_openmc_cells = numCells();
 
   initializeElementToCellMapping();
 
@@ -2062,30 +2063,9 @@ OpenMCCellAverageProblem::addLocalTally(const std::vector<std::string> & score, 
 std::vector<openmc::Filter *>
 OpenMCCellAverageProblem::meshFilter()
 {
-  std::unique_ptr<openmc::LibMesh> tally_mesh;
-  if (_tally_mesh_from_moose)
-  {
-    if (std::abs(_scaling - 1.0) > 1e-6)
-      mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity,\n"
-        "because we multiply the [Mesh] by 'scaling' when tallying on it in OpenMC.");
+  std::unique_ptr<openmc::LibMesh> tally_mesh = tallyMesh(_mesh_template_filename);
 
-    // for distributed meshes, each rank only owns a portion of the mesh information, but
-    // OpenMC wants the entire mesh to be available on every rank. We might be able to add
-    // this feature in the future, but will need to investigate
-    if (!_mesh.getMesh().is_replicated())
-      mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
-        "for distributed meshes!");
-
-    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
-  }
-  else
-    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh_template_filename, _scaling);
-
-  // by setting the ID to -1, OpenMC will automatically detect the next available ID
-  tally_mesh->set_id(-1);
-  tally_mesh->output_ = false;
   _mesh_template = tally_mesh.get();
-
   _mesh_index = openmc::model::meshes.size();
   openmc::model::meshes.push_back(std::move(tally_mesh));
 
@@ -2201,7 +2181,7 @@ OpenMCCellAverageProblem::initializeTallies()
     {
       int n_translations = _mesh_translations.size();
 
-      std::string name = _tally_mesh_from_moose ? "the MOOSE [Mesh]" : _mesh_template_filename;
+      std::string name = _mesh_template_filename ? *_mesh_template_filename : "the MOOSE [Mesh]";
       _console << "Adding mesh tally based on " + name + " at " +
                       Moose::stringify(n_translations) + " locations"
                << std::endl;
@@ -3057,14 +3037,6 @@ OpenMCCellAverageProblem::reloadDAGMC()
 
   _console << "done" << std::endl;
 #endif
-}
-
-void
-OpenMCCellAverageProblem::calculateNumCells()
-{
-  _n_openmc_cells = 0.0;
-  for (const auto & c : openmc::model::cells)
-    _n_openmc_cells += c->n_instances_;
 }
 
 #endif

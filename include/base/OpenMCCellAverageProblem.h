@@ -23,7 +23,6 @@
 #include "OpenMCVolumeCalculation.h"
 
 #include "openmc/tallies/filter_mesh.h"
-#include "openmc/mesh.h"
 
 #ifdef ENABLE_DAGMC
 #include "MoabSkinner.h"
@@ -125,12 +124,6 @@ public:
    * @return material in each subdomain
    */
   std::vector<std::string> getMaterialInEachSubdomain() const;
-
-  /**
-   * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
-   * @return scaling value
-   */
-  const Real & scaling() const { return _scaling; }
 
   /**
    * Whether transformations are applied to the [Mesh] points when mapping to OpenMC
@@ -326,9 +319,6 @@ public:
   static constexpr int32_t UNMAPPED{-1};
 
 protected:
-  /// Calculate the number of unique OpenMC cells (each with a unique ID & instance)
-  void calculateNumCells();
-
   /// Loop over the mapped cells, and build a map between subdomains to OpenMC materials
   void subdomainsToMaterials();
 
@@ -731,33 +721,6 @@ protected:
    */
   const bool & _export_properties;
 
-  /// Whether a mesh scaling was specified by the user
-  const bool _specified_scaling;
-
-  /**
-   * Multiplicative factor to apply to the mesh in the [Mesh] block in order to convert
-   * whatever units that mesh is in into OpenMC's length scale of centimeters. For instance,
-   * it is commonplace to develop fuel performance models with a length scale of meters.
-   * Rather than onerously convert all MOOSE inputs to which OpenMC will be coupled to units
-   * of centimeters (which might not even be possible depending on how material properties are
-   * calculated for those other applications, like if thermal conductivity is computed by a
-   * module in units of W/m/K), this parameter allows us to scale the mesh over which we loop
-   * to identify a coupling to OpenMC. Note that this does not actually scale the mesh itself,
-   * but simply multiplies the mesh coordinates by this parameter when identifying the mapping
-   * between elements and cells.
-   *
-   * By default, this parameter is set to 1.0, meaning that OpenMC is coupled to another
-   * MOOSE application with an input written in terms of centimeters. Set this parameter to 100
-   * if the coupled MOOSE application is in units of meters, for instance.
-   *
-   * To summarize by example - if the MOOSE application uses units of meters, with a mesh
-   * named mesh.exo, then the OpenMC-wrapped input file should also use that mesh (with
-   * units of meters) in its [Mesh] block (or perhaps a coarser version of that mesh if
-   * the resolution of coupling does not need to match - the units just have to be the same).
-   * Then, you should set 'scaling = 100.0' so that the mapping is performed correctly.
-   */
-  const Real & _scaling;
-
   /**
    * How to normalize the OpenMC tally into units of W/volume. If 'true',
    * normalization is performed by dividing each local tally against a problem-global
@@ -1022,18 +985,16 @@ protected:
   /// Mean value of the local tally(s), across all bins; only used for fixed source mode
   std::vector<Real> _local_mean_tally;
 
-  /// When using mesh tallies, whether the mesh comes from the MOOSE [Mesh] block or from a file
-  const bool _tally_mesh_from_moose;
-
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
    * must be identical to the mesh used in the [Mesh] block because a simple copy transfer
    * is used to extract the tallies and put on the application's mesh in preparation for
-   * a transfer to another MOOSE app.
+   * a transfer to another MOOSE app. If not set, this indicates that tallying will be
+   * performed directly on the [Mesh].
    * TODO: allow the mesh to not be identical, both in terms of using different units
    * and more general differences like not having a particular phase present
    */
-  std::string _mesh_template_filename;
+  const std::string * _mesh_template_filename = nullptr;
 
   /**
    * Whether the present transfer is the first transfer; because ExternalProblem::solve

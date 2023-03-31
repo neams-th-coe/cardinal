@@ -25,6 +25,7 @@
 #include "CardinalEnums.h"
 
 #include "openmc/tallies/filter_cell_instance.h"
+#include "openmc/mesh.h"
 #include "openmc/tallies/tally.h"
 
 /**
@@ -45,6 +46,19 @@ public:
    * @param[in] descriptor descriptive message for error
    */
   void catchOpenMCError(const int & err, const std::string descriptor) const;
+
+  /**
+   * Create an openmc::LibMesh mesh
+   * @param[in] filename file name to construct the mesh from; if nullptr, uses [Mesh]
+   * @return OpenMC libMesh mesh
+   */
+  std::unique_ptr<openmc::LibMesh> tallyMesh(const std::string * filename = nullptr) const;
+
+  /**
+   * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
+   * @return scaling value
+   */
+  const Real & scaling() const { return _scaling; }
 
   /**
    * Convert from a MOOSE-type enum into a valid OpenMC tally score string
@@ -275,6 +289,12 @@ public:
    */
   virtual bool cellHasFissileMaterials(const cellInfo & cell_info) const;
 
+  /**
+   * Calculate the number of unique OpenMC cells (each with a unique ID & instance)
+   * @return number of unique OpenMC Cells in entire model
+   */
+  long unsigned int numCells() const;
+
 protected:
   /**
    * Add tally
@@ -323,8 +343,29 @@ protected:
    */
   bool _reuse_source;
 
-  /// Total number of unique OpenMC cell IDs + instances combinations
-  long unsigned int _n_openmc_cells;
+  /// Whether a mesh scaling was specified by the user
+  const bool _specified_scaling;
+
+  /**
+   * Multiplicative factor to apply to the mesh in the [Mesh] block in order to convert
+   * whatever units that mesh is in into OpenMC's length scale of centimeters. For instance,
+   * it is commonplace to develop fuel performance models with a length scale of meters.
+   * Rather than onerously convert all MOOSE inputs to which OpenMC will be coupled to units
+   * of centimeters, this parameter allows us to scale the mesh we couple to OpenMC.
+   * Note that this does not actually scale the mesh itself, but simply multiplies the mesh
+   * coordinates by this parameter when identifying the mapping between elements and cells.
+   *
+   * By default, this parameter is set to 1.0, meaning that OpenMC is coupled to another
+   * MOOSE application with an input written in terms of centimeters. Set this parameter to 100
+   * if the coupled MOOSE application is in units of meters, for instance.
+   *
+   * To summarize by example - if the MOOSE application uses units of meters, with a mesh
+   * named mesh.exo, then the OpenMC-wrapped input file should also use that mesh (with
+   * units of meters) in its [Mesh] block (or perhaps a coarser version of that mesh if
+   * the resolution of coupling does not need to match - the units just have to be the same).
+   * Then, you should set 'scaling = 100.0' so that the mapping is performed correctly.
+   */
+  const Real & _scaling;
 
   /**
    * Fixed point iteration index used in relaxation; because we sometimes run OpenMC
@@ -336,6 +377,9 @@ protected:
 
   /// Total number of particles simulated
   unsigned int _total_n_particles;
+
+  /// Total number of unique OpenMC cell IDs + instances combinations
+  long unsigned int _n_openmc_cells;
 
   /**
    * Whether the OpenMC model consists of a single coordinate level; this can
