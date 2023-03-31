@@ -46,6 +46,13 @@ OpenMCProblemBase::validParams()
       "source_strength", "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
+  params.addRangeCheckedParam<Real>(
+      "scaling",
+      1.0,
+      "scaling > 0.0",
+      "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
+      "setting 'scaling = 100.0', for instance, indicates that the [Mesh] is in units of meters");
+
   // interfaces to directly set some OpenMC parameters
   params.addRangeCheckedParam<unsigned int>(
       "openmc_verbosity",
@@ -76,6 +83,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     PostprocessorInterface(this),
     _verbose(getParam<bool>("verbose")),
     _reuse_source(getParam<bool>("reuse_source")),
+    _specified_scaling(params.isParamSetByUser("scaling")),
+    _scaling(getParam<Real>("scaling")),
     _fixed_point_iteration(-1),
     _total_n_particles(0)
 {
@@ -626,6 +635,31 @@ OpenMCProblemBase::geometryType(bool & has_csg_universe, bool & has_dag_universe
     else
       mooseError("Unhandled GeometryType enum!");
   }
+}
+
+std::unique_ptr<openmc::LibMesh>
+OpenMCProblemBase::tallyMesh(const std::string * filename) const
+{
+  std::unique_ptr<openmc::LibMesh> mesh;
+  if (!filename)
+    mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
+  else
+    mesh = std::make_unique<openmc::LibMesh>(*filename, _scaling);
+
+  // by setting the ID to -1, OpenMC will automatically detect the next available ID
+  mesh->set_id(-1);
+  mesh->output_ = false;
+  return mesh;
+}
+
+long unsigned int
+OpenMCProblemBase::numCells() const
+{
+  long unsigned int n_openmc_cells = 0;
+  for (const auto & c : openmc::model::cells)
+    n_openmc_cells += c->n_instances_;
+
+  return n_openmc_cells;
 }
 
 #endif
