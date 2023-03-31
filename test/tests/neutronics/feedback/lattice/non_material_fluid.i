@@ -22,6 +22,7 @@
   power = 500.0
   fluid_blocks = '2'
   tally_type = mesh
+  mesh_template = ../../meshes/pincell.e
   fluid_cell_level = 0
 []
 
