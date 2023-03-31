@@ -9,4 +9,12 @@
     mesh_mode = 'replicated'
     required_objects = 'MoabSkinner'
   []
+  [cannot_skin_solid]
+    type = RunException
+    input = only_solid.i
+    expect_err = "Attempting to apply density skinning with the 'skinner', but you have not specified any 'fluid_blocks'"
+    requirement = "The system shall error if attempting to apply density skinning without any fluid blocks ready to receive variable density."
+    mesh_mode = 'replicated'
+    required_objects = 'MoabSkinner'
+  []
 []
