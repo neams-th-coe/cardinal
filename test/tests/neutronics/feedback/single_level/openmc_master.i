@@ -29,7 +29,7 @@
     type = ParsedAux
     variable = density
     function = '-0.4884*temp+2413.0'
-    args = 'temp'
+    coupled_variables = 'temp'
   []
 []
 

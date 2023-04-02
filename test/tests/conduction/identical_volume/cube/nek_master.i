@@ -30,7 +30,7 @@
     type = ParsedAux
     variable = source
     function = 'nek_temp*7'
-    args = 'nek_temp'
+    coupled_variables = 'nek_temp'
     execute_on = 'timestep_end'
   []
 []
