@@ -19,6 +19,11 @@
   [TimeStepper]
     type = NekTimeStepper
   []
+
+  [Quadrature]
+    type = GAUSS_LOBATTO
+    order = THIRD
+  []
 []
 
 [Postprocessors]
@@ -37,7 +42,7 @@
     value_type = max
   []
   [max_Vx_output]
-    type = ElementExtremeValue
+    type = NodalExtremeValue
     variable = vel_x
     value_type = max
   []
@@ -53,7 +58,7 @@
     value_type = min
   []
   [min_Vx_output]
-    type = ElementExtremeValue
+    type = NodalExtremeValue
     variable = vel_x
     value_type = min
   []
@@ -69,7 +74,7 @@
     value_type = max
   []
   [max_p_output]
-    type = ElementExtremeValue
+    type = NodalExtremeValue
     variable = P
     value_type = max
   []
@@ -85,7 +90,7 @@
     value_type = min
   []
   [min_p_output]
-    type = ElementExtremeValue
+    type = NodalExtremeValue
     variable = P
     value_type = min
   []
@@ -101,7 +106,7 @@
     value_type = max
   []
   [max_T_output]
-    type = ElementExtremeValue
+    type = NodalExtremeValue
     variable = temp
     value_type = max
   []
@@ -117,7 +122,7 @@
     value_type = min
   []
   [min_T_output]
-    type = ElementExtremeValue
+    type = NodalExtremeValue
     variable = temp
     value_type = min
   []
@@ -170,6 +175,4 @@
 [Outputs]
   csv = true
   execute_on = 'final'
-
-  hide = 'max_Vx_output min_Vx_output max_p_output min_p_output volume_output avg_Vx avg_Vx_output max_T_output min_T_output avg_T avg_T_output'
 []
