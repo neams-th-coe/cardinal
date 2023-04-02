@@ -217,9 +217,9 @@ OpenMCCellAverageProblem::validParams()
                                     0.5,
                                     "relaxation_factor > 0.0 & relaxation_factor < 2.0",
                                     "Relaxation factor for use with constant relaxation");
-  params.addParam<int64_t>("first_iteration_particles",
-                           "Number of particles to use for first iteration "
-                           "when using Dufek-Gudowski relaxation");
+  params.addParam<int>("first_iteration_particles",
+                       "Number of particles to use for first iteration "
+                       "when using Dufek-Gudowski relaxation");
 
   params.addParam<UserObjectName>("symmetry_mapper", "User object (of type SymmetryPointGenerator) "
     "to map from a symmetric OpenMC model to a full-domain [Mesh]. For example, you can use this "
@@ -424,7 +424,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   {
     checkUnusedParam(params, "particles", "using Dufek-Gudowski relaxation");
     checkRequiredParam(params, "first_iteration_particles", "using Dufek-Gudowski relaxation");
-    openmc::settings::n_particles = getParam<int64_t>("first_iteration_particles");
+    openmc::settings::n_particles = getParam<int>("first_iteration_particles");
   }
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
