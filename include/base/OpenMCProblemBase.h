@@ -177,6 +177,12 @@ public:
   int nParticles() const;
 
   /**
+   * Total number of particles run (not multiplied by batches)
+   * @return total number of particles
+   */
+  int nTotalParticles() const { return _total_n_particles; }
+
+  /**
    * Get the cell ID from the cell index
    * @param[in] index cell index
    * @return cell ID
