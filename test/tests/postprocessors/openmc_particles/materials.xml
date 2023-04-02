@@ -1,0 +1,19 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1">
+    <density units="g/cc" value="10.0" />
+    <nuclide ao="0.0004523305496680539" name="U234" />
+    <nuclide ao="0.05060678290832386" name="U235" />
+    <nuclide ao="0.948709083169038" name="U238" />
+    <nuclide ao="0.00023180337297007338" name="U236" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material id="2" name="2LiF-BeF2">
+    <density units="kg/m3" value="1960" />
+    <nuclide ao="1.9999" name="Li7" />
+    <nuclide ao="9.999999999998899e-05" name="Li6" />
+    <nuclide ao="1.0" name="Be9" />
+    <nuclide ao="4.0" name="F19" />
+  </material>
+</materials>
