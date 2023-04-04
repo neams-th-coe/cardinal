@@ -23,6 +23,7 @@
 #include "DelimitedFileReader.h"
 #include "TimedPrint.h"
 #include "MooseUtils.h"
+#include "MooseMeshUtils.h"
 #include "NonlinearSystemBase.h"
 #include "Conversion.h"
 #include "VariadicTable.h"
@@ -2298,11 +2299,16 @@ OpenMCCellAverageProblem::addExternalVariables()
   std::vector<SubdomainName> t;
   std::vector<SubdomainName> d;
   for (const auto & i : _solid_blocks)
-    t.push_back(_mesh.getSubdomainName(i));
+  {
+    auto s = MooseMeshUtils::hasSubdomainName(_mesh, i) ? _mesh.getSubdomainName(i) : i;
+    t.push_back(s);
+  }
+
   for (const auto & i : _fluid_blocks)
   {
-    t.push_back(_mesh.getSubdomainName(i));
-    d.push_back(_mesh.getSubdomainName(i));
+    auto s = MooseMeshUtils::hasSubdomainName(_mesh, i) ? _mesh.getSubdomainName(i) : i;
+    t.push_back(s);
+    d.push_back(s);
   }
 
   // create a temperature variable, but only on the blocks with temperature
