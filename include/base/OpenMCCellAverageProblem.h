@@ -362,17 +362,18 @@ protected:
    * Read the block parameters and tally information based on user settings
    * @param[in] name phase that these blocks will be mapped to
    * @param[in] blocks list of block ids to write
+   * @param[out] names subdomain names
    */
-  void readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks);
+  void readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks, std::vector<SubdomainName> & names);
 
   /// Read the parameters for 'fluid_blocks'
-  void readFluidBlocks() { readBlockParameters("fluid", _fluid_blocks); }
+  void readFluidBlocks() { readBlockParameters("fluid", _fluid_blocks, _fluid_block_names); }
 
   /// Read the parameters for 'solid_blocks'
-  void readSolidBlocks() { readBlockParameters("solid", _solid_blocks); }
+  void readSolidBlocks() { readBlockParameters("solid", _solid_blocks, _solid_block_names); }
 
   /// Read the parameters for 'tally_blocks'
-  void readTallyBlocks() { readBlockParameters("tally", _tally_blocks); }
+  void readTallyBlocks() { readBlockParameters("tally", _tally_blocks, _tally_block_names); }
 
   /**
    * Cache the material cells contained within each coupling cell;
@@ -875,6 +876,15 @@ protected:
 
   /// Blocks (mapped to OpenMC cells) for which to add tallies
   std::unordered_set<SubdomainID> _tally_blocks;
+
+  /// Blocks in MOOSE mesh that correspond to the fluid phase
+  std::vector<SubdomainName> _fluid_block_names;
+
+  /// Blocks in MOOSE mesh that correspond to the solid phase
+  std::vector<SubdomainName> _solid_block_names;
+
+  /// Blocks in MOOSE mesh that correspond to the solid phase
+  std::vector<SubdomainName> _tally_block_names;
 
   /// Mapping of MOOSE elements to the OpenMC cell they map to (if any)
   std::vector<cellInfo> _elem_to_cell{};

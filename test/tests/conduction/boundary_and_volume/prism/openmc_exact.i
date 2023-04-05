@@ -46,14 +46,14 @@
   [source1]
     type = ParsedAux
     variable = source_nek
-    args = 'nek_temp'
+    coupled_variables = 'nek_temp'
     function = 'nek_temp+50'
     block = '1'
   []
   [source2]
     type = ParsedAux
     variable = source_bison
-    args = 'bison_temp'
+    coupled_variables = 'bison_temp'
     function = '0.5*bison_temp+10'
     block = '2'
   []

@@ -23,6 +23,7 @@
 #include "DelimitedFileReader.h"
 #include "TimedPrint.h"
 #include "MooseUtils.h"
+#include "MooseMeshUtils.h"
 #include "NonlinearSystemBase.h"
 #include "Conversion.h"
 #include "VariadicTable.h"
@@ -982,16 +983,17 @@ OpenMCCellAverageProblem::getCellLevel(const std::string name, unsigned int & ce
 
 void
 OpenMCCellAverageProblem::readBlockParameters(const std::string name,
-                                              std::unordered_set<SubdomainID> & blocks)
+                                              std::unordered_set<SubdomainID> & blocks,
+                                              std::vector<SubdomainName> & names)
 {
   std::string param_name = name + "_blocks";
 
   if (isParamValid(param_name))
   {
-    std::vector<SubdomainName> b = getParam<std::vector<SubdomainName>>(param_name);
-    checkEmptyVector(b, param_name);
+    names = getParam<std::vector<SubdomainName>>(param_name);
+    checkEmptyVector(names, param_name);
 
-    auto b_ids = _mesh.getSubdomainIDs(b);
+    auto b_ids = _mesh.getSubdomainIDs(names);
 
     std::copy(b_ids.begin(), b_ids.end(), std::inserter(blocks, blocks.end()));
 
@@ -1180,8 +1182,6 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     int n_solid = _n_solid[cell_info];
     int n_fluid = _n_fluid[cell_info];
     int n_none = _n_none[cell_info];
-
-    Real mapped_volume = _cell_to_elem_volume[cell_info];
 
     std::ostringstream vol;
     vol << std::setprecision(3) << std::scientific << "";
@@ -2295,15 +2295,29 @@ OpenMCCellAverageProblem::addExternalVariables()
     }
   }
 
+  std::vector<SubdomainName> t;
+  for (const auto & i : _solid_block_names)
+    t.push_back(i);
+
+  for (const auto & i : _fluid_block_names)
+    t.push_back(i);
+
+  // create a temperature variable, but only on the blocks with temperature
+  // feedback to OpenMC; this should be explicitly clear about the data transfer
   checkDuplicateVariableName("temp");
-  addAuxVariable("MooseVariable", "temp", var_params);
+  auto temp_params = var_params;
+  temp_params.set<std::vector<SubdomainName>>("block") = t;
+  addAuxVariable("MooseVariable", "temp", temp_params);
   _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
 
-  // we need a density variable if we are transferring density into OpenMC
   if (_has_fluid_blocks)
   {
+    // create a density variable, but only on the blocks with density
+    // feedback to OpenMC; this should be explicitly clear about the data transfer
     checkDuplicateVariableName("density");
-    addAuxVariable("MooseVariable", "density", var_params);
+    auto rho_params = var_params;
+    rho_params.set<std::vector<SubdomainName>>("block") = _fluid_block_names;
+    addAuxVariable("MooseVariable", "density", rho_params);
     _density_var = _aux->getFieldVariable<Real>(0, "density").number();
   }
 

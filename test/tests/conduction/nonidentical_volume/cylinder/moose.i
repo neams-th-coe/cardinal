@@ -66,7 +66,7 @@ o=0.15
     type = ParsedAux
     variable = source
     function = 'axial+temperature'
-    args = 'axial temperature'
+    coupled_variables = 'axial temperature'
     execute_on = 'linear'
   []
 []

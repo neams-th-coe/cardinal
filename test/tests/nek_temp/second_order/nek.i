@@ -38,7 +38,7 @@
   [difference]
     type = ParsedAux
     variable = difference
-    args = 'analytic temp'
+    coupled_variables = 'analytic temp'
     function = 'temp-analytic'
   []
 []
