@@ -34,7 +34,7 @@
     type = ParsedAux
     variable = source
     function = 'temperature*7'
-    args = 'temperature'
+    coupled_variables = 'temperature'
     execute_on = 'linear'
   []
 []

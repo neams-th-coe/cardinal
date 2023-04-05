@@ -114,7 +114,7 @@
     type = ParsedAux
     variable = difference
     function = 'temp - temp_ansol'
-    args = 'temp temp_ansol'
+    coupled_variables = 'temp temp_ansol'
   []
 []
 

@@ -57,37 +57,37 @@
     type = ParsedAux
     variable = weighted_temp_xp
     function = '834.5*vel_x*temp_test'
-    args='vel_x temp_test'
+    coupled_variables='vel_x temp_test'
   []
   [weighted_temp_xm]
     type = ParsedAux
     variable = weighted_temp_xm
     function = '-834.5*vel_x*temp_test'
-    args='vel_x temp_test'
+    coupled_variables='vel_x temp_test'
   []
   [weighted_temp_yp]
     type = ParsedAux
     variable = weighted_temp_yp
     function = '834.5*vel_y*temp_test'
-    args='vel_y temp_test'
+    coupled_variables='vel_y temp_test'
   []
   [weighted_temp_ym]
     type = ParsedAux
     variable = weighted_temp_ym
     function = '-834.5*vel_y*temp_test'
-    args='vel_y temp_test'
+    coupled_variables='vel_y temp_test'
   []
   [weighted_temp_zp]
     type = ParsedAux
     variable = weighted_temp_zp
     function = '834.5*vel_z*temp_test'
-    args='vel_z temp_test'
+    coupled_variables='vel_z temp_test'
   []
   [weighted_temp_zm]
     type = ParsedAux
     variable = weighted_temp_zm
     function = '-834.5*vel_z*temp_test'
-    args='vel_z temp_test'
+    coupled_variables='vel_z temp_test'
   []
 []
 

@@ -31,14 +31,14 @@
   [source1]
     type = ParsedAux
     variable = source
-    args = 'temperature'
+    coupled_variables = 'temperature'
     function = 'temperature+50'
     block = '1'
   []
   [source2]
     type = ParsedAux
     variable = source
-    args = 'temperature'
+    coupled_variables = 'temperature'
     function = '0.5*temperature+10'
     block = '2'
   []
