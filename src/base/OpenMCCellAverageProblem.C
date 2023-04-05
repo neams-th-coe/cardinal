@@ -2296,17 +2296,11 @@ OpenMCCellAverageProblem::addExternalVariables()
   }
 
   std::vector<SubdomainName> t;
-  std::vector<SubdomainName> d;
   for (const auto & i : _solid_block_names)
-  {
     t.push_back(i);
-  }
 
   for (const auto & i : _fluid_block_names)
-  {
     t.push_back(i);
-    d.push_back(i);
-  }
 
   // create a temperature variable, but only on the blocks with temperature
   // feedback to OpenMC; this should be explicitly clear about the data transfer
@@ -2322,7 +2316,7 @@ OpenMCCellAverageProblem::addExternalVariables()
     // feedback to OpenMC; this should be explicitly clear about the data transfer
     checkDuplicateVariableName("density");
     auto rho_params = var_params;
-    rho_params.set<std::vector<SubdomainName>>("block") = d;
+    rho_params.set<std::vector<SubdomainName>>("block") = _fluid_block_names;
     addAuxVariable("MooseVariable", "density", rho_params);
     _density_var = _aux->getFieldVariable<Real>(0, "density").number();
   }
