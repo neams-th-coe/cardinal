@@ -1,0 +1,32 @@
+Applications:
+    cardinal:
+        exe_name: cardinal
+        app_types:
+            - CardinalApp
+        content_directory: ${ROOT_DIR}/doc/content
+        remove:
+            - ${MOOSE_DIR}/framework/doc/remove.yml
+        log_default: WARNING
+        show_warning: false
+
+Documents:
+    software_requirements_specification: sqa/cardinal_srs.md
+    software_design_description: sqa/cardinal_sdd.md
+    software_test_plan: sqa/cardinal_stp.md
+    requirements_traceablity_matrix: sqa/cardinal_rtm.md
+    verification_validation_report: sqa/cardinal_vvr.md
+    failure_analysis_report: sqa/cardinal_far.md
+    user_manual: user_guide/index.md
+    theory_manual: theory_manual/index.md
+    log_default: WARNING
+    show_warning: false
+
+Requirements:
+    cardinal:
+        working_dirs:
+            - ${ROOT_DIR}/doc/content
+#            - ${MOOSE_DIR}/modules/thermal_hydraulics/doc/content
+        directories:
+            - ${ROOT_DIR}/test
+        log_default: WARNING
+        show_warning: false

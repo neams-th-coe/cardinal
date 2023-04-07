@@ -1,0 +1,19 @@
+directories:
+    - ${CARDINAL_DIR}/test/tests
+specs:
+    - tests
+dependencies:
+    - framework
+    - fluid_properties
+    - heat_conduction
+    - misc
+    - navier_stokes
+    - ray_tracing
+    - rdg
+    - reactor
+    - solid_properties
+    - stochastic_tools
+    - thermal_hydraulics
+repos:
+    default: https://github.com/landibarraANL/cardinal
+reports: !include ${ROOT_DIR}/doc/sqa_reports.yml
