@@ -732,8 +732,10 @@ OpenMCCellAverageProblem::initialSetup()
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
 
-    if (_skinner->nDensityBins() > 1 && !_has_fluid_blocks)
-      paramError("Attempting to apply density skinning with the 'skinner', but you have not specified any 'fluid_blocks'!");
+    if (_skinner->hasDensitySkinning() != _has_fluid_blocks)
+      mooseError("Detected inconsistent settings for density skinning and 'fluid_blocks'. If applying "
+        "density feedback with 'fluid_blocks', then you must apply density skinning in the '",
+        name, "' user object (and vice versa)");
 
     _skinner->setGraveyard(true);
     _skinner->setScaling(_scaling);

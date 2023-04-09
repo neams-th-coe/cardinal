@@ -140,6 +140,12 @@ public:
   virtual unsigned int nDensityBins() const { return _n_density_bins; }
 
   /**
+   * Whether density skinning is applied
+   * @return using density skinning
+   */
+  virtual bool hasDensitySkinning() const { return _bin_by_density; }
+
+  /**
    * Get pointer to underlying moab interface
    * @return pointer to moab interface
    */
