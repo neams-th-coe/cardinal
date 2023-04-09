@@ -100,6 +100,14 @@ OpenMCCellAverageProblem::validParams()
       "Whether to assume that all tallies added by in the XML files and automatically "
       "by Cardinal are spatially separate. This is a performance optimization");
 
+  params.addParam<bool>("map_density_by_cell",
+      true,
+      "Whether to try applying a unique density to every OpenMC cell (the default), or "
+      "instead try applying a unique density to every OpenMC material. This latter option "
+      "exists if you want to fill the same material in multiple cells, but only set that "
+      "material to one density based on feedback. If your OpenMC model has a unique material "
+      "in every cell you want to receive density feedback, these two options are IDENTICAL");
+
   // TODO: would be nice to auto-detect this
   params.addParam<bool>("fixed_mesh", true,
     "Whether the MooseMesh is unchanging during the simulation (true), or whether there is mesh "
@@ -266,6 +274,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
     _check_identical_tally_cell_fills(getParam<bool>("check_identical_tally_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
+    _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
@@ -406,7 +415,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (_tally_score.size() != score.size())
     mooseError("'tally_score' cannot contain duplicate entries!");
-
 
   if (_tally_type == tally::mesh)
     if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
@@ -1390,35 +1398,44 @@ OpenMCCellAverageProblem::getMaterialFills()
 {
   VariadicTable<std::string, int> vt({"Cell", "Fluid Material"});
 
-  std::set<int32_t> materials;
+  std::set<int32_t> materials_in_fluid;
+  std::set<int32_t> other_materials;
 
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
 
-    // skip if the cell isn't fluid
-    if (cellCouplingFields(cell_info) != coupling::density_and_temperature)
-      continue;
-
     int32_t material_index;
     auto is_material_cell = materialFill(cell_info, material_index);
+
+    if (cellCouplingFields(cell_info) != coupling::density_and_temperature)
+    {
+      // TODO: this check should be extended for non-fluid cells which may contain
+      // lattices or  universes
+      if (is_material_cell)
+        other_materials.insert(material_index);
+      continue;
+    }
+
+    // check for each material that we haven't already discovered it; if we have, this means we
+    // didnt set up the materials correctly (if mapping by cell)
+    if (materials_in_fluid.find(material_index) == materials_in_fluid.end())
+      materials_in_fluid.insert(material_index);
+    else if (_map_density_by_cell)
+      mooseError(printMaterial(material_index) + " is present in more than one "
+                                                 "fluid cell.\nThis means that your model cannot "
+                                                 "independently change the density in cells filled "
+                                                 "with this material.\nYou need to edit your OpenMC "
+                                                 "model to create additional materials unique to each fluid cell.\n\n"
+                                                 "Or, if you want to apply feedback to a material spanning multiple "
+                                                 "cells, set 'map_density_by_cell' to false.");
+
 
     if (!is_material_cell)
       mooseError("Density transfer does not currently support cells filled with universes or lattices!");
 
     _cell_to_material[cell_info] = material_index;
     vt.addRow(printCell(cell_info), materialID(material_index));
-
-    // check for each material that we haven't already discovered it; if we have, this means we
-    // didnt set up the materials correctly
-    if (materials.find(material_index) == materials.end())
-      materials.insert(material_index);
-    else
-      mooseError(printMaterial(material_index) + " is present in more than one "
-                                                 "fluid cell.\nThis means that your model cannot "
-                                                 "independently change the density in cells filled "
-                                                 "with this material.\nYou need to edit your OpenMC "
-                                                 "model to create additional materials unique to each fluid cell.");
   }
 
   if (_verbose && _has_fluid_blocks)
@@ -1426,6 +1443,23 @@ OpenMCCellAverageProblem::getMaterialFills()
     _console << "\nMaterials in each OpenMC fluid cell:" << std::endl;
     vt.print(_console);
   }
+
+  // check that the same material is not present in both the density feedback regions and the
+  // no-density-feedback regions, because this would give unintended consequences where
+  // density is indeed actually changing in parts of the OpenMC model where the user doesn't
+  // want that to happen; TODO: we technically should also check that the materials receiving
+  // density feedback are not present in parts of the OpenMC which totally do not overlap with
+  // the [Mesh] (but we are not tracking their behavior anywhere, we could do this but we'd
+  // need to loop over ALL OpenMC cells, get their fills, and check)
+  for (const auto & f : materials_in_fluid)
+    if (other_materials.count(f))
+      mooseError(printMaterial(f) + " is present in more than one OpenMC cell with different "
+        "density feedback settings!\nIn other words, this material will have its density changed "
+        "by Cardinal (because it is\ncontained in cells which map to the 'fluid_blocks'), but "
+        "this material is also present in\nOTHER OpenMC cells, which will give unintended behavior "
+        "by changing density in ALL parts of the\ndomain containing this material (some of which have not been coupled via Cardinal).\n\n"
+        "Please change your OpenMC model so that unique materials are used in regions which receive "
+        "density feedback.");
 }
 
 void
@@ -2476,6 +2510,12 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
   auto phase = coupling::density_and_temperature;
   std::map<cellInfo, Real> cell_vol_density = computeVolumeWeightedCellInput(_density_var, &phase);
 
+  // in case multiple cells are filled by this material, assemble the sum of
+  // the rho-V product and V for each of those cells. If _map_density_by_cell
+  // is true, then the numerator and denominator are populated from just a single
+  // value (no sum)
+  std::map<int32_t, Real> numerator;
+  std::map<int32_t, Real> denominator;
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -2484,7 +2524,30 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     if (cellCouplingFields(cell_info) != phase)
       continue;
 
-    Real average_density = cell_vol_density[cell_info] / _cell_to_elem_volume[cell_info];
+    auto mat_idx = _cell_to_material[cell_info];
+
+    if (numerator.count(mat_idx))
+    {
+      numerator[mat_idx] += cell_vol_density[cell_info];
+      denominator[mat_idx] += _cell_to_elem_volume[cell_info];
+    }
+    else
+    {
+      numerator[mat_idx] = cell_vol_density[cell_info];
+      denominator[mat_idx] = _cell_to_elem_volume[cell_info];
+    }
+  }
+
+  for (const auto & c : _cell_to_elem)
+  {
+    auto cell_info = c.first;
+
+    // dummy values fill cell_vol_density for the non-fluid cells
+    if (cellCouplingFields(cell_info) != phase)
+      continue;
+
+    auto mat_idx = _cell_to_material[cell_info];
+    Real average_density = numerator[mat_idx] / denominator[mat_idx];
 
     minimum = std::min(minimum, average_density);
     maximum = std::max(maximum, average_density);
