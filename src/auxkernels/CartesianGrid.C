@@ -28,6 +28,7 @@ CartesianGrid::validParams()
   params.addRequiredRangeCheckedParam<unsigned int>("nx", "nx > 0", "Number of bins in x direction");
   params.addRequiredRangeCheckedParam<unsigned int>("ny", "ny > 0", "Number of bins in y direction");
   params.addRequiredRangeCheckedParam<unsigned int>("nz", "nz > 0", "Number of bins in z direction");
+  params.addParam<Real>("shift", 0.0, "Optional shift to add to bin value");
   params.addClassDescription("Divide space into 3-D Cartesian bins");
   return params;
 }
@@ -36,7 +37,8 @@ CartesianGrid::CartesianGrid(const InputParameters & parameters) :
   AuxKernel(parameters),
   _nx(getParam<unsigned int>("nx")),
   _ny(getParam<unsigned int>("ny")),
-  _nz(getParam<unsigned int>("nz"))
+  _nz(getParam<unsigned int>("nz")),
+  _shift(getParam<Real>("shift"))
 {
   BoundingBox bounding_box = MeshTools::create_bounding_box(_mesh);
   _min = bounding_box.min();
@@ -53,5 +55,5 @@ CartesianGrid::computeValue()
   int x = (pt(0) - _min(0))/ _dx;
   int y = (pt(1) - _min(1))/ _dy;
   int z = (pt(2) - _min(2))/ _dz;
-  return x + y * _nx + z * _nx * _ny;
+  return x + y * _nx + z * _nx * _ny + _shift;
 }
