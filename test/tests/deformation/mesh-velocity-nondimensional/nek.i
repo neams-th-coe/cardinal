@@ -9,7 +9,6 @@
 
 [Problem]
   type = NekRSProblem
-  casename = 'pipe'
   synchronization_interval = parent_app
 
   nondimensional = true
