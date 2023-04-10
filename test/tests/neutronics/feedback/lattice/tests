@@ -9,6 +9,17 @@
                   "a case built without distributed cells in ../single_level."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [pincell_null_mat]
+    type = Exodiff
+    input = openmc_master.i
+    cli_args = 'MultiApps/openmc/Problem/map_density_by_cell=false'
+    exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
+    requirement = "Temperatures, densities, and a heat source shall be coupled between OpenMC "
+                  "and MOOSE and a solid pincell model when the model is set up with distributed cells, "
+                  "but with material feedback applied by material. The gold file is identical to a cell-based "
+                  "feedback because we still have one unique material per cell."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [pincell_null_fixed_mesh]
     type = Exodiff
     input = openmc_master.i
