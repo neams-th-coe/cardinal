@@ -754,6 +754,11 @@ OpenMCCellAverageProblem::initialSetup()
         "density feedback with 'fluid_blocks', then you must apply density skinning in the '",
         name, "' user object (and vice versa)");
 
+    if (_initial_condition == coupling::hdf5)
+      paramError("initial_properties", "Cannot load initial temperature and density properties from "
+        "HDF5 files because there is no guarantee that the geometry (which is adaptively changing) matches "
+        "that used to write the HDF5 file.");
+
     _skinner->setGraveyard(true);
     _skinner->setScaling(_scaling);
     _skinner->setVerbosity(_verbose);

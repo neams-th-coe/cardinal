@@ -22,4 +22,11 @@
                   "already exactly match the mesh."
     required_objects = 'MoabSkinner'
   []
+  [properties]
+    type = RunException
+    input = properties.i
+    expect_err = "Cannot load initial temperature and density properties from HDF5 files"
+    requirement = "The system shall error if loading properties from HDF5 for skinned problems"
+    required_objects = 'MoabSkinner'
+  []
 []
