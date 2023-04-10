@@ -90,12 +90,12 @@
 
   l_max_its = 1000
   nl_max_its = 50
-  nl_rel_tol = 1e-4
-  nl_abs_tol = 1e-4
-  l_tol = 1e-4
-  l_abs_tol = 1e-4
+  nl_rel_tol = 1e-8
+  nl_abs_tol = 1e-8
+  l_tol = 1e-8
+  l_abs_tol = 1e-8
 
-  end_time = 0.1
+  end_time = 0.05
   dt = 0.001
   [Quadrature]
     type = GAUSS_LOBATTO
@@ -170,7 +170,7 @@
   [bdry_ar]
     type = AreaPostprocessor
     boundary = '2'
-    use_displaced_mesh = true 
+    use_displaced_mesh = true
   []
 []
 
