@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="1" name="Fuel0" region="-2 4 -5" universe="1" />
+  <cell id="2" material="3" name="Clad0" region="2 -1 4 -5" universe="1" />
+  <cell id="3" material="2" name="Water0" region="1 4 -5 -3" universe="1" />
+  <cell id="4" material="1" name="Fuel1" region="-2 5 -6" universe="1" />
+  <cell id="5" material="3" name="Clad1" region="2 -1 5 -6" universe="1" />
+  <cell id="6" material="2" name="Water1" region="1 5 -6 -3" universe="1" />
+  <cell id="7" material="1" name="Fuel2" region="-2 6 -7" universe="1" />
+  <cell id="8" material="3" name="Clad2" region="2 -1 6 -7" universe="1" />
+  <cell id="9" material="2" name="Water2" region="1 6 -7 -3" universe="1" />
+  <cell id="10" material="1" name="Fuel3" region="-2 7 -8" universe="1" />
+  <cell id="11" material="3" name="Clad3" region="2 -1 7 -8" universe="1" />
+  <cell id="12" material="2" name="Water3" region="1 7 -8 -3" universe="1" />
+  <cell id="13" material="1" name="Fuel4" region="-2 8 -9" universe="1" />
+  <cell id="14" material="3" name="Clad4" region="2 -1 8 -9" universe="1" />
+  <cell id="15" material="2" name="Water4" region="1 8 -9 -3" universe="1" />
+  <cell id="16" material="1" name="Fuel5" region="-2 9 -10" universe="1" />
+  <cell id="17" material="3" name="Clad5" region="2 -1 9 -10" universe="1" />
+  <cell id="18" material="2" name="Water5" region="1 9 -10 -3" universe="1" />
+  <cell id="19" material="1" name="Fuel6" region="-2 10 -11" universe="1" />
+  <cell id="20" material="3" name="Clad6" region="2 -1 10 -11" universe="1" />
+  <cell id="21" material="2" name="Water6" region="1 10 -11 -3" universe="1" />
+  <cell id="22" material="1" name="Fuel7" region="-2 11 -12" universe="1" />
+  <cell id="23" material="3" name="Clad7" region="2 -1 11 -12" universe="1" />
+  <cell id="24" material="2" name="Water7" region="1 11 -12 -3" universe="1" />
+  <cell id="25" material="1" name="Fuel8" region="-2 12 -13" universe="1" />
+  <cell id="26" material="3" name="Clad8" region="2 -1 12 -13" universe="1" />
+  <cell id="27" material="2" name="Water8" region="1 12 -13 -3" universe="1" />
+  <cell id="28" material="1" name="Fuel9" region="-2 13 -14" universe="1" />
+  <cell id="29" material="3" name="Clad9" region="2 -1 13 -14" universe="1" />
+  <cell id="30" material="2" name="Water9" region="1 13 -14 -3" universe="1" />
+  <surface coeffs="0.0 0.0 0.485" id="1" name="Pincell outer radius" type="z-cylinder" />
+  <surface coeffs="0.0 0.0 0.4125" id="2" name="Pellet outer radius" type="z-cylinder" />
+  <surface boundary="white" coeffs="0.0 0.0 0.64" id="3" name="Water surface" type="z-cylinder" />
+  <surface boundary="vacuum" coeffs="0.0" id="4" type="z-plane" />
+  <surface coeffs="1.0" id="5" type="z-plane" />
+  <surface coeffs="2.0" id="6" type="z-plane" />
+  <surface coeffs="3.0" id="7" type="z-plane" />
+  <surface coeffs="4.0" id="8" type="z-plane" />
+  <surface coeffs="5.0" id="9" type="z-plane" />
+  <surface coeffs="6.0" id="10" type="z-plane" />
+  <surface coeffs="7.0" id="11" type="z-plane" />
+  <surface coeffs="8.0" id="12" type="z-plane" />
+  <surface coeffs="9.0" id="13" type="z-plane" />
+  <surface boundary="vacuum" coeffs="10.0" id="14" type="z-plane" />
+</geometry>
