@@ -44,6 +44,9 @@ protected:
   /// Number of divisions along z direction
   const unsigned int & _nz;
 
+  /// Optional shift to add to each bin index
+  const Real & _shift;
+
   /// Width of x regions
   Real _dx;
 
