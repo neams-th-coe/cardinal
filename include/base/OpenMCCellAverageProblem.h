@@ -836,6 +836,12 @@ protected:
   const bool & _assume_separate_tallies;
 
   /**
+   * Whether to map density according to each individual OpenMC cell (in which case an
+   * error is thrown if you don't have a unique material in each cell) or by material.
+   */
+  const bool & _map_density_by_cell;
+
+  /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */
