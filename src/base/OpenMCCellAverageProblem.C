@@ -443,7 +443,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
    if (_has_fluid_blocks)
      _map_density_by_cell = getParam<bool>("map_density_by_cell");
    else
-     checkUnusedParam(params, "map_density_by_cell", "not applying and 'fluid_blocks' feedback");
+     checkUnusedParam(params, "map_density_by_cell", "not applying any 'fluid_blocks' feedback");
 
   // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled with DAGMC.
   // So we can assume that if we have a DAGMC geometry, that we will also by this point have DAGMC enabled.
