@@ -27,6 +27,8 @@ Extensions:
                 Code Theory: theory/index.md
                 Running on HPC: hpc.md
                 Doxygen: doxygen.md
+            Status:
+                SQA: sqa/index.md
             Publications: publications.md
             Contact: contact.md
             Help: faq.md
@@ -36,6 +38,16 @@ Extensions:
         includes:
             - include
         active: true
+    MooseDocs.extensions.template:
+        active: true
+    MooseDocs.extensions.algorithm:
+        active: true
+    MooseDocs.extensions.sqa:
+        active: True
+        reports: !include ${ROOT_DIR}/doc/sqa_reports.yml
+        categories:
+            cardinal: !include ${ROOT_DIR}/doc/sqa_cardinal.yml
+            framework: !include ${MOOSE_DIR}/framework/doc/sqa_framework.yml
     MooseDocs.extensions.acronym:
         acronyms:
             moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
