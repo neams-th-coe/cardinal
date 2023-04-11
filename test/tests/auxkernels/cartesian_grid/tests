@@ -1,0 +1,8 @@
+[Tests]
+  [grid]
+    type = Exodiff
+    input = grid.i
+    exodiff = grid_out.e
+    requirement = "The system shall divide space into a 3-D Cartesian grid and assign an integer value for each bin to an auxiliary variable."
+  []
+[]
