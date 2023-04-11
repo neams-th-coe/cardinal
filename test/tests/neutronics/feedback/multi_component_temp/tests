@@ -13,6 +13,14 @@
     requirement = "The system shall error if the blocks and variables are not the same length"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [noncoupled_block]
+    type = RunException
+    input = openmc_incorrect_length.i
+    cli_args = 'Problem/temperature_blocks="1 8"'
+    expect_err = "Each entry in 'temperature_blocks' should be in either 'fluid_blocks' or 'solid_blocks'. Could not find '8' in either!"
+    requirement = "The system shall error if setting a temperature_block which was not already established for coupling"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [block_already_used]
     type = RunException
     input = openmc.i

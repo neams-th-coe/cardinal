@@ -503,6 +503,13 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(
         params, "check_identical_tally_cell_fills", "'identical_tally_cell_fills' is false");
 
+  if (!isParamValid("fluid_blocks") && !isParamValid("solid_blocks"))
+    mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
+               "establish the mapping from MOOSE to OpenMC.");
+
+  readFluidBlocks();
+  readSolidBlocks();
+
   checkJointParams(params,
                    {"temperature_variables", "temperature_blocks"},
                    "assembling temperature from multiple variables");
@@ -517,6 +524,19 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
     if (_temperature_vars->size() != _temperature_blocks->size())
       mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
+
+    // as sanity check, shouldn't have any entries in temperature_blocks which are not
+    // also in fluid_blocks or solid_blocks. TODO: eventually, we will deprecate solid_blocks
+    auto t_ids = _mesh.getSubdomainIDs(*_temperature_blocks);
+    for (const auto & t : t_ids)
+      if (!_fluid_blocks.count(t) && !_solid_blocks.count(t))
+        mooseError("Each entry in 'temperature_blocks' should be in either 'fluid_blocks' or "
+          "'solid_blocks'. Could not find '", t, "' in either!");
+  }
+  else
+  {
+    // set reasonable defaults
+    
   }
 
   switch (_tally_type)
@@ -581,13 +601,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
-
-  if (!isParamValid("fluid_blocks") && !isParamValid("solid_blocks"))
-    mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
-               "establish the mapping from MOOSE to OpenMC.");
-
-  readFluidBlocks();
-  readSolidBlocks();
 
   // Make sure the same block ID doesn't appear in both the fluid and solid blocks,
   // or else we won't know how to send feedback into OpenMC.

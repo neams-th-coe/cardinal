@@ -3,13 +3,17 @@
   file = ../../meshes/pincell.e
 []
 
-[AuxVariables]
+[ICs]
   [solid_temp]
-    initial_condition = 800
+    type = ConstantIC
+    variable = solid_temp
+    value = 800
     blocks = '1 3'
   []
   [fluid_temp]
-    initial_condition = 600
+    type = ConstantIC
+    variable = fluid_temp
+    value = 600
     blocks = '2'
   []
 []
