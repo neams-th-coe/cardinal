@@ -1,6 +1,10 @@
 Content:
     cardinal:
         root_dir: doc/content
+    framework:
+        root_dir: ${MOOSE_DIR}/framework/doc/content
+    python:
+        root_dir: ${MOOSE_DIR}/python/doc/content
     moose:
         root_dir: ${MOOSE_DIR}/framework/doc/content
         content:
