@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "NekPostprocessor.h"
+#include "NekSidePostprocessor.h"
 #include "CardinalEnums.h"
 
 /**
