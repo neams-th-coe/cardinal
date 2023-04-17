@@ -21,13 +21,22 @@
   tally_type = cell
   initial_properties = xml
   source_strength = 1e6
+
+  # this problem has no fissile material
+  check_zero_tallies = false
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
 []
 
 [Outputs]
-  exodus = true
+  csv = true
+[]
+
+[Postprocessors]
+  [power]
+    type = ElementIntegralVariablePostprocessor
+    variable = kappa_fission
+  []
 []

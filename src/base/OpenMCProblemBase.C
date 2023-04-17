@@ -662,4 +662,12 @@ OpenMCProblemBase::numCells() const
   return n_openmc_cells;
 }
 
+bool
+OpenMCProblemBase::isHeatingScore(const std::string & score) const
+{
+  std::set<std::string> viable_scores = {"heating", "heating-local", "kappa-fission",
+    "fission-q-prompt", "fission-q-recoverable", "damage-energy"};
+  return viable_scores.count(score);
+}
+
 #endif

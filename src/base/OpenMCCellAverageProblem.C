@@ -2602,20 +2602,26 @@ OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
   }
 }
 
+Real
+OpenMCCellAverageProblem::tallyNormalization(const unsigned int & score) const
+{
+  return _normalize_by_global ? _global_sum_tally[score] : _local_sum_tally[score];
+}
+
 template <typename T>
 T
 OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result, const unsigned int & score) const
 {
-  Real comparison = _normalize_by_global ? _global_sum_tally[score] : _local_sum_tally[score];
+  Real comparison = tallyNormalization(score);
 
-  if (std::abs(comparison) < 1e-12)
+  if (std::abs(comparison) < ZERO_TALLY_THRESHOLD)
   {
-    std::string descriptor = _normalize_by_global ? "global" : "local";
-    mooseError("Cannot normalize tally by " + descriptor + " sum: ", comparison, " due to divide-by-zero.\n"
-      "This means that the ", _tally_score[score], " tally over the entire domain is zero.");
+    // If the value over the whole domain is zero, then the values in the individual bins must be zero.
+    // We need to avoid divide-by-zero
+    return tally_result * 0.0;
   }
-
-  return tally_result / comparison;
+  else
+    return tally_result / comparison;
 }
 
 void
@@ -2704,9 +2710,10 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
 
-  if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
-    mooseError("Tally normalization process failed for " + _tally_score[score] + " score! Total fraction of " +
-               Moose::stringify(sum) + " does not match 1.0!");
+  if (tallyNormalization(score) > ZERO_TALLY_THRESHOLD)
+    if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+      mooseError("Tally normalization process failed for " + _tally_score[score] + " score! Total fraction of " +
+                 Moose::stringify(sum) + " does not match 1.0!");
 }
 
 Real
