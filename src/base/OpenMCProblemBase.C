@@ -545,6 +545,10 @@ OpenMCProblemBase::tallyScore(const std::string & score) const
   std::transform(s.begin(), s.end(), s.begin(),
     [](unsigned char c){ return std::tolower(c); });
 
+  // we need to revert back to some letters being uppercase for certain scores
+  if (s == "h3_production")
+    s = "H3_production";
+
   std::replace(s.begin(), s.end(), '_', '-');
   return s;
 }

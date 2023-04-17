@@ -121,14 +121,14 @@ OpenMCCellAverageProblem::validParams()
       "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
 
   MultiMooseEnum scores(
-    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux");
+    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux H3_production");
   params.addParam<MultiMooseEnum>(
       "tally_score", scores, "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
 
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
   params.addParam<MooseEnum>("source_rate_normalization", scores_heat, "Score to use for computing the "
-      "particle source rate (source/sec) for a flux tally in eigenvalue mode. In other words, the "
+      "particle source rate (source/sec) for a certain tallies in eigenvalue mode. In other words, the "
       "source/sec is computed as power / the global value of this tally");
 
   params.addParam<std::vector<std::string>>(
@@ -345,11 +345,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
-  // need some special treatment for a flux score, in eigenvalue mode
-  bool has_flux_score = std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
-  if (has_flux_score && _run_mode == openmc::RunMode::EIGENVALUE)
+  // need some special treatment for non-heating scores, in eigenvalue mode
+  bool has_non_heating_score = false;
+  for (const auto & t : _tally_score)
+    if (!isHeatingScore(t))
+      has_non_heating_score = true;
+
+  if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
   {
-    checkRequiredParam(params, "source_rate_normalization", "using a flux tally in eigenvalue mode");
+    checkRequiredParam(params, "source_rate_normalization", "using a 'flux' or 'H3-production' tally in eigenvalue mode");
     auto norm = getParam<MooseEnum>("source_rate_normalization");
 
     // If the score is already in tally_score, no need to do anything special.
@@ -370,7 +374,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
   else
-    checkUnusedParam(params, "source_rate_normalization", "not using a flux tally in eigenvalue mode");
+    checkUnusedParam(params, "source_rate_normalization", "not all tallies in eigenvalue mode have OpenMC units of eV/src");
 
   if (isParamValid("tally_name"))
     _tally_name = getParam<std::vector<std::string>>("tally_name");
@@ -397,10 +401,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _console << std::endl;
   }
 
-  if (has_flux_score && _run_mode == openmc::RunMode::EIGENVALUE)
+  if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
   {
     // later, we populate the tally results in a loop. We will rely on the normalization
-    // tally being listed before the flux tally, so we swap entries so that the normalization
+    // tally being listed before the non-heating tally, so we swap entries so that the normalization
     // tally is first
     std::iter_swap(_tally_score.begin(), _tally_score.begin() + _source_rate_index);
     std::iter_swap(_tally_name.begin(), _tally_name.begin() + _source_rate_index);
@@ -2581,20 +2585,26 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 Real
 OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
 {
-  if (_tally_score[score] == "flux")
+  if (!isHeatingScore(_tally_score[score]))
   {
-    // Flux tally has units of particle - cm / source particle
+    // we need to get an effective source rate (particles / second) in order to
+    // normalize the tally
+    Real source = _local_mean_tally[score];
     if (_run_mode == openmc::RunMode::EIGENVALUE)
-    {
-      Real source = *_power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
-      return source * _local_mean_tally[score] / _scaling;
-    }
+      source *= *_power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
     else
-      return *_source_strength * _local_mean_tally[score] / _scaling;
+      source *= *_source_strength;
+
+    if (_tally_score[score] == "flux")
+      return source / _scaling;
+    else if (_tally_score[score] == "H3-production")
+      return source;
+    else
+      mooseError("Unhandled tally score enum!");
   }
   else
   {
-    // All other tally score options have units of eV / source particle
+    // Heating tallies have units of eV / source particle
     if (_run_mode == openmc::RunMode::EIGENVALUE)
       return *_power;
     else

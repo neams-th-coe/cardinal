@@ -247,25 +247,37 @@ locally "deepest" coordinate level.
 
 ## Adding Tallies
 
-This class automatically creates tallies
-to compute the power distribution, with
-two options:
+This class automatically creates tallies with scores specified by the user. There
+are two spatial options:
 
 1. cell tallies
 2. libMesh unstructured mesh tallies
 
 The tally type is specified with the `tally_type` parameter.
-The fission tally is normalized according to the specified `power` or `source_strength`
+The tally is normalized according to the specified `power` or `source_strength`
 (depending on whether you are running a $k$-eigenvalue or fixed-source problem). By default,
 the normalization is done against a global tally added over the entire
 OpenMC domain. By setting `normalize_by_global_tally` to false, however, the fission tally is instead
-normalized by the sum of the fission tally itself.
+normalized by the sum of the tally itself.
 
 Cardinal also transforms the tallies in OpenMC into "physically meaningful" units.
-A full list of the tally units in OpenMC can be found [here](https://docs.openmc.org/en/stable/usersguide/tallies.html).
-For example a flux tally in OpenMC has units of particle-cm/source, which Cardinal will
-convert to particle/sec/area (where the area is given in the same length units as the
-`[Mesh]`). For all of the possible tally scores in Cardinal, this units-transformation
+A full list of the tally units in OpenMC can be found [here](https://docs.openmc.org/en/stable/usersguide/tallies.html). For the scores supported in Cardinal, the table below compares the units from OpenMC
+and the units of the AuxVariables created by Cardinal. Note that for all area or
+volume units in [tally_units], that those units match whatever unit is used in the `[Mesh]`.
+
+!table id=tally_units caption=Tally units from OpenMC and the conversion in Cardinal.
+| Tally score | OpenMC Units | Cardinal Units |
+| :- | :- | :- | :- |
+| `heating` | eV / source particle | W / volume |
+| `heating_local` | eV / source particle | W / volume |
+| `kappa_fission` | eV / source particle | W / volume |
+| `fission_q_prompt` | eV / source particle | W / volume |
+| `fission_q_recoverable` | eV / source particle | W / volume |
+| `damage_energy` | eV / source particle | W / volume |
+| `flux` | particle - cm / source particle | particle / area / second |
+| `H3_production` | tritium / source particle | tritium / volume / second |
+
+For all of the possible tally scores in Cardinal, this units-transformation
 process involves _division by a volume_. In Cardinal, there are two different notions of volume:
 
 - The volume of the `[Mesh]` elements which _map_ to a tally bin region
@@ -286,13 +298,13 @@ of W/m$^3$).
   caption=Illustration of OpenMC particle transport geometry and the mapping of OpenMC cells to a user-supplied "mesh mirror."
   style=width:60%;margin-left:auto;margin-right:auto
 
-However, for flux tallies,
-dividing by the `[Mesh]` volume indicates instead that we're normalizing flux so as
+However, for other tallies (e.g. the 'flux' and 'H3_production' tallies),
+dividing by the `[Mesh]` volume indicates instead that we're normalizing so as
 to preserve a reaction rate (reactions/sec), as if you integrated $\int \Sigma\phi dV$ over the
-`[Mesh]`. This will _not_ give the same raw pointwise value of flux as what OpenMC is actually predicting,
+`[Mesh]`. This will _not_ give the same raw pointwise tally value as what OpenMC is actually predicting,
 if the volumes of the `[Mesh]` and the tally bin regions are significantly different.
-If the pointwise value of flux is very important for your use case, you can post-multiply
-your flux values by $V_\text{moose}/V_\text{openmc}$ (in this example, 0.96 / 1.00), where $V_\text{moose}$ is the volume
+If the pointwise value is very important for your use case, you can post-multiply
+your AuxVariables by $V_\text{moose}/V_\text{openmc}$ (in this example, 0.96 / 1.00), where $V_\text{moose}$ is the volume
 of the `[Mesh]` elements which map to the tally bin, and $V_\text{openmc}$ is the volume of the
 corresponding tally region.
 
