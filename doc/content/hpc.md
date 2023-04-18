@@ -32,8 +32,8 @@ on the login nodes, but you need to explicitly load it for compute nodes.
 
 !listing! language=bash caption=Sample `~/.bashrc` for Bebop id=bb1
 module purge
-module load gcc/8.2.0-g7hppkz
-module load openmpi/3.1.4
+module load gcc/8.2.0-xhxgy33
+module load openmpi/4.1.1-x5n4m36
 module load cmake/3.20.3-vedypwm
 module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
@@ -47,6 +47,9 @@ DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
 # This is needed because your home directory on Bebop is actually a symlink
 HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
 export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 !listing-end!
 
 !listing scripts/job_bebop language=bash caption=Sample job script for Bebop with the `startup` project code id=bb2
