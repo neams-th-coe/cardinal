@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../../neutronics/meshes/sphere.e
+    file = ../meshes/sphere.e
   []
   [solid]
     type = CombinerGenerator
@@ -10,33 +10,26 @@
                  0 0 4
                  0 0 8'
   []
+  [solid_ids]
+    type = SubdomainIDGenerator
+    input = solid
+    subdomain_id = '100'
+  []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  power = 100.0
-  solid_blocks = '1'
-  tally_blocks = '1'
+  verbose = true
+  power = 1e4
+  solid_blocks = '100'
+  tally_blocks = '100'
   solid_cell_level = 0
   tally_type = cell
   initial_properties = xml
-  source_strength = 1e6
 
-  # this problem has no fissile material
-  check_zero_tallies = false
+  tally_score = 'heating flux H3_production'
 []
 
 [Executioner]
   type = Steady
-[]
-
-[Outputs]
-  csv = true
-[]
-
-[Postprocessors]
-  [power]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-  []
 []

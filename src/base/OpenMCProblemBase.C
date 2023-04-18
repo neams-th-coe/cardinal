@@ -545,6 +545,10 @@ OpenMCProblemBase::tallyScore(const std::string & score) const
   std::transform(s.begin(), s.end(), s.begin(),
     [](unsigned char c){ return std::tolower(c); });
 
+  // we need to revert back to some letters being uppercase for certain scores
+  if (s == "h3_production")
+    s = "H3_production";
+
   std::replace(s.begin(), s.end(), '_', '-');
   return s;
 }
@@ -660,6 +664,14 @@ OpenMCProblemBase::numCells() const
     n_openmc_cells += c->n_instances_;
 
   return n_openmc_cells;
+}
+
+bool
+OpenMCProblemBase::isHeatingScore(const std::string & score) const
+{
+  std::set<std::string> viable_scores = {"heating", "heating-local", "kappa-fission",
+    "fission-q-prompt", "fission-q-recoverable", "damage-energy"};
+  return viable_scores.count(score);
 }
 
 #endif
