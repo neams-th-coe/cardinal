@@ -19,6 +19,7 @@
 #pragma once
 
 #include "MooseEnum.h"
+#include "MultiMooseEnum.h"
 
 MooseEnum getSynchronizationEnum();
 MooseEnum getNekOrderEnum();
@@ -31,6 +32,7 @@ MooseEnum getEigenvalueEnum();
 MooseEnum getRelaxationEnum();
 MooseEnum getTallyTriggerEnum();
 MooseEnum getInitialPropertiesEnum();
+MultiMooseEnum getTallyScoreEnum();
 
 namespace synchronization
 {
@@ -131,6 +133,18 @@ enum TallyTriggerTypeEnum
   std_dev,
   rel_err,
   none
+};
+
+enum TallyScoreEnum
+{
+  heating,
+  heating_local,
+  kappa_fission,
+  fission_q_prompt,
+  fission_q_recoverable,
+  damage_energy,
+  flux,
+  H3_production
 };
 } // namespace tally
 

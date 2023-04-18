@@ -48,6 +48,12 @@ public:
   void catchOpenMCError(const int & err, const std::string descriptor) const;
 
   /**
+   * Whether the score is a heating-type score
+   * @return whether tally from OpenMC has units of eV/src
+   */
+  bool isHeatingScore(const std::string & score) const;
+
+  /**
    * Create an openmc::LibMesh mesh
    * @param[in] filename file name to construct the mesh from; if nullptr, uses [Mesh]
    * @return OpenMC libMesh mesh
