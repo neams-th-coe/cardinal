@@ -120,10 +120,8 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<MooseEnum>(
       "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
 
-  MultiMooseEnum scores(
-    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux H3_production");
   params.addParam<MultiMooseEnum>(
-      "tally_score", scores, "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
+      "tally_score", getTallyScoreEnum(), "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
 
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
@@ -353,7 +351,22 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
   {
-    checkRequiredParam(params, "source_rate_normalization", "using a 'flux' or 'H3-production' tally in eigenvalue mode");
+    std::string non_heating_scores;
+    for (const auto & e : _tally_score)
+    {
+      if (!isHeatingScore(e))
+      {
+        std::string l = e;
+        std::replace(l.begin(), l.end(), '-', '_');
+        non_heating_scores += "" + l + ", ";
+      }
+    }
+
+    if (non_heating_scores.length() > 0)
+      non_heating_scores.erase(non_heating_scores.length() - 2);
+
+    checkRequiredParam(params, "source_rate_normalization", "using a non-heating tally (" +
+      non_heating_scores + ") in eigenvalue mode");
     auto norm = getParam<MooseEnum>("source_rate_normalization");
 
     // If the score is already in tally_score, no need to do anything special.
