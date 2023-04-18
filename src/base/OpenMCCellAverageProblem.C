@@ -387,7 +387,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
   else
-    checkUnusedParam(params, "source_rate_normalization", "not all tallies in eigenvalue mode have OpenMC units of eV/src");
+    checkUnusedParam(params, "source_rate_normalization", "either running in fixed-source mode, or all tallies have units of eV/src");
 
   if (isParamValid("tally_name"))
     _tally_name = getParam<std::vector<std::string>>("tally_name");
