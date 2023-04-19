@@ -39,4 +39,11 @@
     requirement = "The system shall error if the user tries to name only a partial set of the total tally scores."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [missing_norm]
+    type = RunException
+    input = missing_norm.i
+    expect_err = "When using a non-heating tally \(flux, H3_production\) in eigenvalue mode"
+    requirement = "The system shall error if the user omits the required normalization tally for non-heating scores in eigenvalue mode"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

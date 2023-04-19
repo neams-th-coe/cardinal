@@ -120,15 +120,13 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<MooseEnum>(
       "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
 
-  MultiMooseEnum scores(
-    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux");
   params.addParam<MultiMooseEnum>(
-      "tally_score", scores, "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
+      "tally_score", getTallyScoreEnum(), "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
 
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
   params.addParam<MooseEnum>("source_rate_normalization", scores_heat, "Score to use for computing the "
-      "particle source rate (source/sec) for a flux tally in eigenvalue mode. In other words, the "
+      "particle source rate (source/sec) for a certain tallies in eigenvalue mode. In other words, the "
       "source/sec is computed as power / the global value of this tally");
 
   params.addParam<std::vector<std::string>>(
@@ -345,11 +343,30 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
-  // need some special treatment for a flux score, in eigenvalue mode
-  bool has_flux_score = std::find(_tally_score.begin(), _tally_score.end(), "flux") != _tally_score.end();
-  if (has_flux_score && _run_mode == openmc::RunMode::EIGENVALUE)
+  // need some special treatment for non-heating scores, in eigenvalue mode
+  bool has_non_heating_score = false;
+  for (const auto & t : _tally_score)
+    if (!isHeatingScore(t))
+      has_non_heating_score = true;
+
+  if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
   {
-    checkRequiredParam(params, "source_rate_normalization", "using a flux tally in eigenvalue mode");
+    std::string non_heating_scores;
+    for (const auto & e : _tally_score)
+    {
+      if (!isHeatingScore(e))
+      {
+        std::string l = e;
+        std::replace(l.begin(), l.end(), '-', '_');
+        non_heating_scores += "" + l + ", ";
+      }
+    }
+
+    if (non_heating_scores.length() > 0)
+      non_heating_scores.erase(non_heating_scores.length() - 2);
+
+    checkRequiredParam(params, "source_rate_normalization", "using a non-heating tally (" +
+      non_heating_scores + ") in eigenvalue mode");
     auto norm = getParam<MooseEnum>("source_rate_normalization");
 
     // If the score is already in tally_score, no need to do anything special.
@@ -370,7 +387,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
   else
-    checkUnusedParam(params, "source_rate_normalization", "not using a flux tally in eigenvalue mode");
+    checkUnusedParam(params, "source_rate_normalization", "either running in fixed-source mode, or all tallies have units of eV/src");
 
   if (isParamValid("tally_name"))
     _tally_name = getParam<std::vector<std::string>>("tally_name");
@@ -397,10 +414,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _console << std::endl;
   }
 
-  if (has_flux_score && _run_mode == openmc::RunMode::EIGENVALUE)
+  if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
   {
     // later, we populate the tally results in a loop. We will rely on the normalization
-    // tally being listed before the flux tally, so we swap entries so that the normalization
+    // tally being listed before the non-heating tally, so we swap entries so that the normalization
     // tally is first
     std::iter_swap(_tally_score.begin(), _tally_score.begin() + _source_rate_index);
     std::iter_swap(_tally_name.begin(), _tally_name.begin() + _source_rate_index);
@@ -2581,20 +2598,26 @@ OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
 Real
 OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
 {
-  if (_tally_score[score] == "flux")
+  if (!isHeatingScore(_tally_score[score]))
   {
-    // Flux tally has units of particle - cm / source particle
+    // we need to get an effective source rate (particles / second) in order to
+    // normalize the tally
+    Real source = _local_mean_tally[score];
     if (_run_mode == openmc::RunMode::EIGENVALUE)
-    {
-      Real source = *_power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
-      return source * _local_mean_tally[score] / _scaling;
-    }
+      source *= *_power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
     else
-      return *_source_strength * _local_mean_tally[score] / _scaling;
+      source *= *_source_strength;
+
+    if (_tally_score[score] == "flux")
+      return source / _scaling;
+    else if (_tally_score[score] == "H3-production")
+      return source;
+    else
+      mooseError("Unhandled tally score enum!");
   }
   else
   {
-    // All other tally score options have units of eV / source particle
+    // Heating tallies have units of eV / source particle
     if (_run_mode == openmc::RunMode::EIGENVALUE)
       return *_power;
     else
@@ -2602,20 +2625,26 @@ OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
   }
 }
 
+Real
+OpenMCCellAverageProblem::tallyNormalization(const unsigned int & score) const
+{
+  return _normalize_by_global ? _global_sum_tally[score] : _local_sum_tally[score];
+}
+
 template <typename T>
 T
 OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result, const unsigned int & score) const
 {
-  Real comparison = _normalize_by_global ? _global_sum_tally[score] : _local_sum_tally[score];
+  Real comparison = tallyNormalization(score);
 
-  if (std::abs(comparison) < 1e-12)
+  if (std::abs(comparison) < ZERO_TALLY_THRESHOLD)
   {
-    std::string descriptor = _normalize_by_global ? "global" : "local";
-    mooseError("Cannot normalize tally by " + descriptor + " sum: ", comparison, " due to divide-by-zero.\n"
-      "This means that the ", _tally_score[score], " tally over the entire domain is zero.");
+    // If the value over the whole domain is zero, then the values in the individual bins must be zero.
+    // We need to avoid divide-by-zero
+    return tally_result * 0.0;
   }
-
-  return tally_result / comparison;
+  else
+    return tally_result / comparison;
 }
 
 void
@@ -2704,9 +2733,10 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
 
-  if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
-    mooseError("Tally normalization process failed for " + _tally_score[score] + " score! Total fraction of " +
-               Moose::stringify(sum) + " does not match 1.0!");
+  if (tallyNormalization(score) > ZERO_TALLY_THRESHOLD)
+    if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+      mooseError("Tally normalization process failed for " + _tally_score[score] + " score! Total fraction of " +
+                 Moose::stringify(sum) + " does not match 1.0!");
 }
 
 Real

@@ -590,6 +590,13 @@ protected:
   Real tallyMultiplier(const unsigned int & score) const;
 
   /**
+   * Factor by which to normalize a tally
+   * @param[in] score tally score
+   * @return value to divide tally sum by for normalization
+   */
+  Real tallyNormalization(const unsigned int & score) const;
+
+  /**
    * Normalize the local tally by either the global tally, or the sum
    * of the local tally. For fixed source simulations, do nothing because the
    * tally result is not re-normalized to any integral quantity.
@@ -1128,6 +1135,9 @@ protected:
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;
+
+  /// Tolerance for setting zero tally
+  static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
 
 private:
   /**
