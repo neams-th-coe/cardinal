@@ -346,11 +346,11 @@ protected:
   void gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local, std::map<cellInfo, std::vector<T>> & global);
 
   /**
-   * Get the element coupling phase
+   * Get the feedback which this element provides to OpenMC
    * @param[in] elem
    * @return coupling phase
    */
-  coupling::CouplingFields elemPhase(const Elem * elem) const;
+  coupling::CouplingFields elemFeedback(const Elem * elem) const;
 
   /**
    * Read the parameters needed for triggers

@@ -1092,7 +1092,7 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
 }
 
 coupling::CouplingFields
-OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
+OpenMCCellAverageProblem::elemFeedback(const Elem * elem) const
 {
   auto id = elem->subdomain_id();
 
@@ -1210,7 +1210,7 @@ OpenMCCellAverageProblem::getCellMappedPhase()
       // we are looping over local elements, so no need to check for nullptr
       const Elem * elem = _mesh.queryElemPtr(globalElemID(e));
 
-      switch (elemPhase(elem))
+      switch (elemFeedback(elem))
       {
         case coupling::temperature:
           n_solid++;
@@ -1989,7 +1989,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // on coupling for this region; first, determine the phase of this element
     // and store the information
     int level;
-    auto phase = elemPhase(elem);
+    auto phase = elemFeedback(elem);
 
     switch (phase)
     {
