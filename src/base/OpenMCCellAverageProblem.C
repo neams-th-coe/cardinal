@@ -502,29 +502,29 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (isParamValid("temperature_variables"))
   {
-    _temperature_vars = getParam<std::vector<std::vector<std::string>>>("temperature_variables");
-    _temperature_blocks = getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
+    auto temperature_vars = getParam<std::vector<std::vector<std::string>>>("temperature_variables");
+    auto temperature_blocks = getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
 
-    checkEmptyVector(_temperature_vars, "'temperature_variables'");
-    checkEmptyVector(_temperature_blocks, "'temperature_blocks'");
-    for (const auto & t : _temperature_vars)
+    checkEmptyVector(temperature_vars, "'temperature_variables'");
+    checkEmptyVector(temperature_blocks, "'temperature_blocks'");
+    for (const auto & t : temperature_vars)
       checkEmptyVector(t, "Entries in 'temperature_variables'");
-    for (const auto & t : _temperature_blocks)
+    for (const auto & t : temperature_blocks)
       checkEmptyVector(t, "Entries in 'temperature_blocks'");
 
-    if (_temperature_vars.size() != _temperature_blocks.size())
+    if (temperature_vars.size() != temperature_blocks.size())
       mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
 
     // TODO: for now, we restrict each set of blocks to map to a single temperature variable
-    for (std::size_t i = 0; i < _temperature_vars.size(); ++i)
-      if (_temperature_vars[i].size() > 1)
+    for (std::size_t i = 0; i < temperature_vars.size(); ++i)
+      if (temperature_vars[i].size() > 1)
         mooseError("Each entry in 'temperature_variables' must be of length 1. "
-          "Entry " + std::to_string(i) + " is of length ", _temperature_vars[i].size(), ".");
+          "Entry " + std::to_string(i) + " is of length ", temperature_vars[i].size(), ".");
 
     // as sanity check, shouldn't have any entries in temperature_blocks which are not
     // also in fluid_blocks or solid_blocks. TODO: eventually, we will deprecate solid_blocks
     std::vector<SubdomainName> flattened_tb;
-    for (const auto & slice : _temperature_blocks)
+    for (const auto & slice : temperature_blocks)
       for (const auto & i : slice)
         flattened_tb.push_back(i);
 
@@ -561,21 +561,18 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         mooseError("Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '", b, "' is duplicated.");
       names.insert(b);
     }
+
+    for (std::size_t i = 0; i < temperature_vars.size(); ++i)
+      for (std::size_t j = 0; j < temperature_blocks[i].size(); ++j)
+        _temp_vars_to_blocks[temperature_vars[i][0]].push_back(temperature_blocks[i][j]);
   }
   else
   {
-    // default to 'temperature_blocks' being the union of fluid_blocks and solid_blocks
-    _temperature_blocks.resize(1);
-    _temperature_vars.resize(1);
-
+    // default to the union of fluid_blocks and solid_blocks, all being named 'temp'
     for (const auto & b : _solid_block_names)
-      _temperature_blocks[0].push_back(b);
+      _temp_vars_to_blocks["temp"].push_back(b);
     for (const auto & b : _fluid_block_names)
-      _temperature_blocks[0].push_back(b);
-
-    // default to every entry being a variable 'temp'
-    for (const auto & i : _temperature_blocks[0])
-      _temperature_vars[0].push_back("temp");
+      _temp_vars_to_blocks["temp"].push_back(b);
   }
 
   switch (_tally_type)
@@ -2438,13 +2435,8 @@ OpenMCCellAverageProblem::addExternalVariables()
       _subdomain_to_density_vars[s] = {number, "density"};
   }
 
-  std::map<std::string, std::vector<SubdomainName>> vars_to_blocks;
-  for (std::size_t i = 0; i < _temperature_vars.size(); ++i)
-    for (std::size_t j = 0; j < _temperature_blocks[i].size(); ++j)
-      vars_to_blocks[_temperature_vars[i][0]].push_back(_temperature_blocks[i][j]);
-
   // create the variable(s) that will be used to receive temperature
-  for (const auto & v : vars_to_blocks)
+  for (const auto & v : _temp_vars_to_blocks)
   {
     auto number = addExternalVariable(v.first, &v.second);
 
