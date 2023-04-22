@@ -16,7 +16,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  solid_blocks = '0'
+  solid_blocks = '1'
   solid_cell_level = 0
   mesh_translations_file = pebble_centers.txt
 

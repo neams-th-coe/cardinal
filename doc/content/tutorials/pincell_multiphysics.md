@@ -256,15 +256,8 @@ to OpenMC from block 1 (which represents the fluid region). We will have
 Cardinal automatically set up cell tallies.
 
 For this problem, the temperature that gets mapped into OpenMC is sourced
-from the `temp` auxiliary variable (which Cardinal automatically creates
-for you). However, when multiple applications are writing into a single auxiliary
-variable, it can be easy to accidentally overwrite nodal values from application $A$ with nodal values from application $B$, unless you carefully use block restriction in the MOOSE transfers (which not all transfers support). Therefore, we provide a convenient syntax that will
-automatically "populate" the `temp` variable using temperature fields obtained
-from multiple different applications. This is shown with the
-`temperature_variables` and `temperature_blocks` parameters. This essentially
-means that Cardinal will create auxiliary variables named `solid_temp` and
-`nek_temp` (note that you don't see these in the `AuxVariables` block) and create
-auxiliary kernels to fill the union `temp` variable with these components. Later
+from two different applications, which we can customize using the
+`temperature_variables` and `temperature_blocks` parameters. Later
 in the `Transfers` block, all data transfers from the sub-applications will write
 into either `solid_temp` or `nek_temp`.
 
