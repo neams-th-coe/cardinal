@@ -70,8 +70,8 @@ Suppose our `[Problem]` block looks like the following:
   fluid_blocks = 'water helium'
   solid_blocks = 'fuel cladding'
 
-  temperature_variables = 'temp0 temp0 t_water nek_temp'
-  temperature_blocks = 'fuel cladding water helium'
+  temperature_variables = 'temp0;         t_water;  nek_temp'
+  temperature_blocks    = 'fuel cladding;   water;    helium'
 
   tally_score = 'heating flux'
   tally_name = 'power openmc_flux'

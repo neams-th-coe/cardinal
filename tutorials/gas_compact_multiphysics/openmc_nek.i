@@ -129,8 +129,8 @@ N = 1000
 
   relaxation = robbins_monro
 
-  temperature_variables = 'solid_temp solid_temp nek_temp nek_temp'
-  temperature_blocks = '${solid_blocks} ${fluid_blocks}'
+  temperature_variables = 'solid_temp;   nek_temp'
+  temperature_blocks = '${solid_blocks}; ${fluid_blocks}'
 
   k_trigger = std_dev
   k_trigger_threshold = 7.5e-4

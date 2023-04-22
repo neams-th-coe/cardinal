@@ -28,7 +28,7 @@
   solid_cell_level = 1
   fluid_cell_level = 1
 
-  temperature_variables = 'solid_temp fluid_temp'
+  temperature_variables = 'solid_temp; fluid_temp'
   temperature_blocks = '1'
 []
 

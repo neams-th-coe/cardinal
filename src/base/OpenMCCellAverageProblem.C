@@ -165,11 +165,11 @@ OpenMCCellAverageProblem::validParams()
   params.addRangeCheckedParam<unsigned int>(
       "batch_interval", 1, "batch_interval > 0", "Trigger batch interval");
 
-  params.addParam<std::vector<std::string>>(
+  params.addParam<std::vector<std::vector<std::string>>>(
       "temperature_variables",
       "Vector of variable names corresponding to the temperatures sent into OpenMC. Each entry maps to "
       "the corresponding entry in 'temperature_blocks.' If not specified, each entry defaults to 'temp'");
-  params.addParam<std::vector<SubdomainName>>(
+  params.addParam<std::vector<std::vector<SubdomainName>>>(
       "temperature_blocks", "Blocks corresponding to each of the 'temperature_variables'. If not specified, "
       "defaults to the set union of 'fluid_blocks' and 'solid_blocks'");
 
@@ -502,18 +502,33 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (isParamValid("temperature_variables"))
   {
-    _temperature_vars = getParam<std::vector<std::string>>("temperature_variables");
-    _temperature_blocks = getParam<std::vector<SubdomainName>>("temperature_blocks");
+    _temperature_vars = getParam<std::vector<std::vector<std::string>>>("temperature_variables");
+    _temperature_blocks = getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
 
-    checkEmptyVector(_temperature_vars, "temperature_variables");
-    checkEmptyVector(_temperature_blocks, "temperature_blocks");
+    checkEmptyVector(_temperature_vars, "'temperature_variables'");
+    checkEmptyVector(_temperature_blocks, "'temperature_blocks'");
+    for (const auto & t : _temperature_vars)
+      checkEmptyVector(t, "Entries in 'temperature_variables'");
+    for (const auto & t : _temperature_blocks)
+      checkEmptyVector(t, "Entries in 'temperature_blocks'");
 
     if (_temperature_vars.size() != _temperature_blocks.size())
       mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
 
+    // TODO: for now, we restrict each set of blocks to map to a single temperature variable
+    for (std::size_t i = 0; i < _temperature_vars.size(); ++i)
+      if (_temperature_vars[i].size() > 1)
+        mooseError("Each entry in 'temperature_variables' must be of length 1. "
+          "Entry " + std::to_string(i) + " is of length ", _temperature_vars[i].size(), ".");
+
     // as sanity check, shouldn't have any entries in temperature_blocks which are not
     // also in fluid_blocks or solid_blocks. TODO: eventually, we will deprecate solid_blocks
-    auto t_ids = _mesh.getSubdomainIDs(_temperature_blocks);
+    std::vector<SubdomainName> flattened_tb;
+    for (const auto & slice : _temperature_blocks)
+      for (const auto & i : slice)
+        flattened_tb.push_back(i);
+
+    auto t_ids = _mesh.getSubdomainIDs(flattened_tb);
     for (const auto & t : t_ids)
       if (!_fluid_blocks.count(t) && !_solid_blocks.count(t))
         mooseError("Each entry in 'temperature_blocks' should be in either 'fluid_blocks' or "
@@ -524,23 +539,23 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     // that block would secretly not participate in coupling
     for (const auto & t : _fluid_block_names)
     {
-      auto it = std::find(_temperature_blocks.begin(), _temperature_blocks.end(), t);
-      if (it == _temperature_blocks.end())
+      auto it = std::find(flattened_tb.begin(), flattened_tb.end(), t);
+      if (it == flattened_tb.end())
         mooseError("Each entry in 'fluid_blocks' must be included in 'temperature_blocks'!\n"
           "Block '", t, "' is in 'fluid_blocks' but not 'temperature_blocks'.");
     }
 
     for (const auto & t : _solid_block_names)
     {
-      auto it = std::find(_temperature_blocks.begin(), _temperature_blocks.end(), t);
-      if (it == _temperature_blocks.end())
+      auto it = std::find(flattened_tb.begin(), flattened_tb.end(), t);
+      if (it == flattened_tb.end())
         mooseError("Each entry in 'solid_blocks' must be included in 'temperature_blocks'!\n"
           "Block '", t, "' is in 'solid_blocks' but not 'temperature_blocks'.");
     }
 
     // should not be any duplicate blocks, otherwise it is not clear which temperature variable to use
     std::set<SubdomainName> names;
-    for (const auto & b : _temperature_blocks)
+    for (const auto & b : flattened_tb)
     {
       if (names.count(b))
         mooseError("Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '", b, "' is duplicated.");
@@ -550,14 +565,17 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
   {
     // default to 'temperature_blocks' being the union of fluid_blocks and solid_blocks
+    _temperature_blocks.resize(1);
+    _temperature_vars.resize(1);
+
     for (const auto & b : _solid_block_names)
-      _temperature_blocks.push_back(b);
+      _temperature_blocks[0].push_back(b);
     for (const auto & b : _fluid_block_names)
-      _temperature_blocks.push_back(b);
+      _temperature_blocks[0].push_back(b);
 
     // default to every entry being a variable 'temp'
-    for (const auto & i : _temperature_blocks)
-      _temperature_vars.push_back("temp");
+    for (const auto & i : _temperature_blocks[0])
+      _temperature_vars[0].push_back("temp");
   }
 
   switch (_tally_type)
@@ -851,7 +869,7 @@ OpenMCCellAverageProblem::checkEmptyVector(const std::vector<T> & vector,
                                            const std::string & name) const
 {
   if (vector.empty())
-    paramError(name, "Vector cannot be empty!");
+    mooseError(name + " cannot be empty!");
 }
 
 void
@@ -1050,7 +1068,7 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
   if (isParamValid(param_name))
   {
     names = getParam<std::vector<SubdomainName>>(param_name);
-    checkEmptyVector(names, param_name);
+    checkEmptyVector(names, "'" + param_name + "'");
 
     auto b_ids = _mesh.getSubdomainIDs(names);
 
@@ -2422,7 +2440,8 @@ OpenMCCellAverageProblem::addExternalVariables()
 
   std::map<std::string, std::vector<SubdomainName>> vars_to_blocks;
   for (std::size_t i = 0; i < _temperature_vars.size(); ++i)
-    vars_to_blocks[_temperature_vars[i]].push_back(_temperature_blocks[i]);
+    for (std::size_t j = 0; j < _temperature_blocks[i].size(); ++j)
+      vars_to_blocks[_temperature_vars[i][0]].push_back(_temperature_blocks[i][j]);
 
   // create the variable(s) that will be used to receive temperature
   for (const auto & v : vars_to_blocks)

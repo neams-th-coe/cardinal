@@ -39,8 +39,8 @@
   solid_cell_level = 1
   verbose = true
 
-  temperature_variables = 'solid_temp solid_temp fluid_temp'
-  temperature_blocks = '1 3 2'
+  temperature_variables = 'solid_temp; fluid_temp'
+  temperature_blocks = '1 3; 2'
 []
 
 [Executioner]

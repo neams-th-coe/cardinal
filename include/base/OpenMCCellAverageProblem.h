@@ -1075,16 +1075,16 @@ protected:
   /**
    * Variable to read temperature, from each corresponding entry 'temperature_blocks'.
    * So, if you have:
-   *   temperature_blocks = '3 5 6'
-   *   temperature_variables = 'r s t'
+   *   temperature_blocks = '3 4; 5; 6'
+   *   temperature_variables = 'r; s; t'
    *
-   * Then Cardinal will read temperature from a variable named 'r' on block 3,
+   * Then Cardinal will read temperature from a variable named 'r' on block 3 and 4,
    * from a variable named 's' on block 5, etc.
    */
-  std::vector<std::string> _temperature_vars;
+  std::vector<std::vector<std::string>> _temperature_vars;
 
   /// Subdomain names corresponding to the temperature variables set in 'temperature_variables'
-  std::vector<SubdomainName> _temperature_blocks;
+  std::vector<std::vector<SubdomainName>> _temperature_blocks;
 
   /// Optional volume calculation for cells which map to MOOSE
   OpenMCVolumeCalculation * _volume_calc;
