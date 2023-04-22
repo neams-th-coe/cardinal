@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="1" region="1 -2 3 -4 6 -5 -7" temperature="500.0" universe="1" />
+  <cell id="2" material="1" region="1 -2 3 -4 6 -5 7" temperature="800.0" universe="1" />
+  <surface boundary="vacuum" coeffs="-50.0" id="1" name="minimum x" type="x-plane" />
+  <surface boundary="vacuum" coeffs="50.0" id="2" name="maximum x" type="x-plane" />
+  <surface boundary="vacuum" coeffs="-25.0" id="3" name="minimum y" type="y-plane" />
+  <surface boundary="vacuum" coeffs="25.0" id="4" name="maximum y" type="y-plane" />
+  <surface boundary="vacuum" coeffs="50.0" id="5" type="z-plane" />
+  <surface boundary="vacuum" coeffs="0.0" id="6" type="z-plane" />
+  <surface coeffs="0.0" id="7" type="x-plane" />
+</geometry>

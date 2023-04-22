@@ -496,30 +496,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   readFluidBlocks();
   readSolidBlocks();
 
-  checkJointParams(params,
-                   {"temperature_variables", "temperature_blocks"},
-                   "assembling temperature from multiple variables");
+  if (!isParamValid("temperature_blocks"))
+    checkUnusedParam(params, "temperature_variables", "not setting 'temperature_blocks'");
 
-  if (isParamValid("temperature_variables"))
+  if (isParamValid("temperature_blocks"))
   {
-    auto temperature_vars = getParam<std::vector<std::vector<std::string>>>("temperature_variables");
     auto temperature_blocks = getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
-
-    checkEmptyVector(temperature_vars, "'temperature_variables'");
     checkEmptyVector(temperature_blocks, "'temperature_blocks'");
-    for (const auto & t : temperature_vars)
-      checkEmptyVector(t, "Entries in 'temperature_variables'");
     for (const auto & t : temperature_blocks)
       checkEmptyVector(t, "Entries in 'temperature_blocks'");
-
-    if (temperature_vars.size() != temperature_blocks.size())
-      mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
-
-    // TODO: for now, we restrict each set of blocks to map to a single temperature variable
-    for (std::size_t i = 0; i < temperature_vars.size(); ++i)
-      if (temperature_vars[i].size() > 1)
-        mooseError("Each entry in 'temperature_variables' must be of length 1. "
-          "Entry " + std::to_string(i) + " is of length ", temperature_vars[i].size(), ".");
 
     // as sanity check, shouldn't have any entries in temperature_blocks which are not
     // also in fluid_blocks or solid_blocks. TODO: eventually, we will deprecate solid_blocks
@@ -560,6 +545,33 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       if (names.count(b))
         mooseError("Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '", b, "' is duplicated.");
       names.insert(b);
+    }
+
+    // now, get the names of those temperature variables
+    std::vector<std::vector<std::string>> temperature_vars;
+    if (isParamValid("temperature_variables"))
+    {
+      temperature_vars = getParam<std::vector<std::vector<std::string>>>("temperature_variables");
+
+      checkEmptyVector(temperature_vars, "'temperature_variables'");
+      for (const auto & t : temperature_vars)
+        checkEmptyVector(t, "Entries in 'temperature_variables'");
+
+      if (temperature_vars.size() != temperature_blocks.size())
+        mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
+
+      // TODO: for now, we restrict each set of blocks to map to a single temperature variable
+      for (std::size_t i = 0; i < temperature_vars.size(); ++i)
+        if (temperature_vars[i].size() > 1)
+          mooseError("Each entry in 'temperature_variables' must be of length 1. "
+            "Entry " + std::to_string(i) + " is of length ", temperature_vars[i].size(), ".");
+    }
+    else
+    {
+      // set a reasonable default, if not specified
+      temperature_vars.resize(temperature_blocks.size(), std::vector<std::string>(1));
+      for (std::size_t i = 0; i < temperature_blocks.size(); ++i)
+        temperature_vars[i][0] = "temp";
     }
 
     for (std::size_t i = 0; i < temperature_vars.size(); ++i)
@@ -1080,7 +1092,7 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
 }
 
 coupling::CouplingFields
-OpenMCCellAverageProblem::elemPhase(const Elem * elem) const
+OpenMCCellAverageProblem::elemFeedback(const Elem * elem) const
 {
   auto id = elem->subdomain_id();
 
@@ -1198,7 +1210,7 @@ OpenMCCellAverageProblem::getCellMappedPhase()
       // we are looping over local elements, so no need to check for nullptr
       const Elem * elem = _mesh.queryElemPtr(globalElemID(e));
 
-      switch (elemPhase(elem))
+      switch (elemFeedback(elem))
       {
         case coupling::temperature:
           n_solid++;
@@ -1977,7 +1989,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // on coupling for this region; first, determine the phase of this element
     // and store the information
     int level;
-    auto phase = elemPhase(elem);
+    auto phase = elemFeedback(elem);
 
     switch (phase)
     {
