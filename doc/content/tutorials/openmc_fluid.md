@@ -503,11 +503,10 @@ receive temperatures from different applications, we use the
 `temperature_variables` and `temperature_blocks` parameters of
 [OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html)
 to automatically create separate variables to hold the temperatures from
-THM and MOOSE (`thm_temp`, `solid_temp`) and create several
-[SelfAux](https://mooseframework.inl.gov/source/auxkernels/SelfAux.html)
-auxiliary kernels to write into `temp`. The `temperature_blocks` and
-`temperature_variables` parameters simply allow shorter input syntax by creating
-the variables and their auxiliary kernels for you.
+THM and MOOSE (`thm_temp`, `solid_temp`).
+The `temperature_blocks` and
+`temperature_variables` parameters allow you to customize exactly the variable names from
+which to read temperature.
 
 Finally, we apply a constant relaxation model to the heat source. A constant
 relaxation will compute the heat source in iteration $i+1$ as an average

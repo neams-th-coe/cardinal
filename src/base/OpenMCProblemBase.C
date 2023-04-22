@@ -674,4 +674,19 @@ OpenMCProblemBase::isHeatingScore(const std::string & score) const
   return viable_scores.count(score);
 }
 
+unsigned int
+OpenMCProblemBase::addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block)
+{
+  auto var_params = _factory.getValidParams("MooseVariable");
+  var_params.set<MooseEnum>("family") = "MONOMIAL";
+  var_params.set<MooseEnum>("order") = "CONSTANT";
+
+  if (block)
+    var_params.set<std::vector<SubdomainName>>("block") = *block;
+
+  checkDuplicateVariableName(name);
+  addAuxVariable("MooseVariable", name, var_params);
+  return _aux->getFieldVariable<Real>(0, name).number();
+}
+
 #endif

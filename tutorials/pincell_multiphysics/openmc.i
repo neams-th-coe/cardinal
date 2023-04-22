@@ -80,7 +80,7 @@ dT = ${fparse power / mdot / Cp}
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
-    T = temp
+    T = nek_temp
     fp = sodium
     execute_on = 'INITIAL TIMESTEP_END'
   []
@@ -133,10 +133,9 @@ dT = ${fparse power / mdot / Cp}
   solid_cell_level = 0
   fluid_cell_level = 0
 
-  # This automatically creates these variables are puts together an auxkernel
-  # that sets 'temp' based on these variables and their block assignments
-  temperature_variables = 'solid_temp solid_temp nek_temp'
-  temperature_blocks = '2 3 1'
+  # This automatically creates these variables and will read from the non-default choice of 'temp'
+  temperature_variables = 'solid_temp; nek_temp'
+  temperature_blocks    = '2 3;        1'
 
   relaxation = robbins_monro
 

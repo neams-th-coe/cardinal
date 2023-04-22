@@ -3,13 +3,17 @@
   file = ../../meshes/pincell.e
 []
 
-[AuxVariables]
+[ICs]
   [solid_temp]
-    initial_condition = 800
+    type = ConstantIC
+    variable = solid_temp
+    value = 800
     blocks = '1 3'
   []
   [fluid_temp]
-    initial_condition = 600
+    type = ConstantIC
+    variable = fluid_temp
+    value = 600
     blocks = '2'
   []
 []
@@ -24,7 +28,7 @@
   solid_cell_level = 1
   fluid_cell_level = 1
 
-  temperature_variables = 'solid_temp fluid_temp'
+  temperature_variables = 'solid_temp; fluid_temp'
   temperature_blocks = '1'
 []
 

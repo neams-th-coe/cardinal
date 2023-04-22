@@ -38,7 +38,7 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
-  solid_blocks = '100 500'
+  solid_blocks = '100'
   fluid_blocks = '200'
   tally_type = cell
   tally_blocks = '100 200 500'
