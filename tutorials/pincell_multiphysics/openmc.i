@@ -80,7 +80,7 @@ dT = ${fparse power / mdot / Cp}
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
-    T = temp
+    T = nek_temp
     fp = sodium
     execute_on = 'INITIAL TIMESTEP_END'
   []
