@@ -360,7 +360,7 @@ temperatures to OpenMC, we need to "collate" those temperatures into the single
 `temp` variable that OpenMC reads from (otherwise, MOOSE will write into `temp`,
 which would just be overwritten by NekRS writing into `temp` later in the Picard
 step). Cardinal contains convenient syntax to automatically set up the necessary
-receiver variables and the auxiliary kernels to write into `temp`, by using
+receiver variables for temperature, by using
 the `temperature_variables` and `temperature_blocks` parameters.
 
 Finally, a number of "triggers" are used to automatically terminate OpenMC's
@@ -391,9 +391,7 @@ Next, we define the MOOSE heat conduction sub-application and data transfers to/
 that application. Most important to note is that while the MOOSE heat conduction module
 does not itself compute fluid temperature, we see a transfer getting the fluid temperature
 that has been transferred to the MOOSE heat conduction module by the doubly-nested NekRS
-sub-application. Note that the temperature transfers do *not* write straight into `temp`,
-but instead into the scratch space variables we set up with the `temperature_variables`
-parameter of [OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html).
+sub-application.
 
 !listing /tutorials/gas_compact_multiphysics/openmc_nek.i
   start=MultiApp

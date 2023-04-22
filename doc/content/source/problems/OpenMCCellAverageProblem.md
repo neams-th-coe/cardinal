@@ -3,11 +3,13 @@
 This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE. The crux
 is to identify a mapping between OpenMC cells and
 a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
-Then, field data on the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
-is volume-averaged and applied to the
-corresponding OpenMC cells, while field data in OpenMC is directly applied
-as `CONSTANT MONOMIAL` fields on the
-[MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
+The data flow between OpenMC and MOOSE contains two major steps:
+
+- Temperature and/or density field data on the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+  are volume-averaged and applied to the corresponding OpenMC cells.
+- Tallies are mapped from OpenMC into `CONSTANT MONOMIAL` fields on the
+  [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
+
 The smallest possible input file to run OpenMC
 is shown below.
 The remainder of this page describes how `OpenMCCellAverageProblem` wraps
@@ -19,31 +21,31 @@ OpenMC as a MOOSE application.
 
 !alert warning
 OpenMC as a standalone application has several
-[command line parameters](https://docs.openmc.org/en/stable/usersguide/scripts.html). Because
-all of these settings can also be controlled through the XML files, and
-most of OpenMC's command line parameters control features related to debugging,
+[command line parameters](https://docs.openmc.org/en/stable/usersguide/scripts.html). For simplicity,
 Cardinal does not propagate any *OpenMC* command line parameters down to OpenMC
-when using Cardinal. The only exception
+when using the Cardinal executable. The only exception
 is that we specify the number of threads on the command line with
 `--n-threads=<threads>`, a MOOSE command line parameter (in other words, OpenMC's
 command line specification of threads with `-s <threads>` is ignored). If you want to use
 any of OpenMC's command line features, we recommend running with the `openmc`
 executable built as part of Cardinal's compilation process.
 
-## Initializing MOOSE-type Field Interfaces
+## Initializing Variables
 
-When coupling OpenMC to MOOSE, the first
-action taken by this class is to initialize MOOSE-type variables
+When coupling OpenMC to MOOSE, we first
+initialize MOOSE-type variables
 ([MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html))
 needed to
 communicate OpenMC's solution with a general MOOSE application.
 Depending on the user settings,
-the following variables will be added:
+the following `CONSTANT MONOMIAL` variables will be added:
 
-- A variable representing the OpenMC tally; the score is selected with the `tally_score`
+- Variable(s) representing the OpenMC tally(s); the score is selected with the `tally_score`
   parameter, while the name is selected with the `tally_name` parameter (which defaults to
   the name of the score).
-- `temp`, the temperature to be sent to OpenMC
+- Variable(s) representing the temperature to read into OpenMC. This is selected with the
+  `temperature_variables` parameter (which defaults to `temp`). If you have more than one
+  temperature variable to read from, you will then also need to set `temperature_blocks`.
 - `density`, the density to be sent to OpenMC (fluid coupling only)
 
 Here, "fluid coupling" refers to the case where part of the MOOSE domain
@@ -52,34 +54,104 @@ because doing so would require on-line modification of OpenMC's geometry to
 properly preserve the solid mass (as opposed to the fluid case, which is assumed
 to be flowing and continually entering/exiting the domain).
 
-The order of all of these variables is `CONSTANT MONOMIAL` to simplify the
-averaging performed in space (for data going *in* to OpenMC) and to simplify the
-application of the cell or element-average tally (for data going *out* of OpenMC)
-to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
-The initialization of these MOOSE variables happens behind the scenes -
-for instance, in [openmc1], we have indicated that we are coupling OpenMC via
-a tally (by setting `tally_blocks`) to both fluid and solid regions (by setting
-`solid_blocks` and `fluid_blocks`). Therefore, `OpenMCCellAverageProblem`
-essentially adds the following to the input file:
+!alert tip
+If you are ever unsure of which auxiliary variables are being added by Cardinal,
+run with `verbose = true`, which will print out tables showing (i) how OpenMC's
+tallies get mapped into auxiliary variables, and (ii) which auxiliary variables
+are used to read temperature and/or density from.
 
-!listing
+The initialization of all coupling auxiliary variables happens behind the scenes.
+Let's start with a complicated case first.
+Suppose our `[Problem]` block looks like the following:
+
+```
+[Problem]
+  type = OpenMCCellAverageProblem
+  fluid_blocks = 'water helium'
+  solid_blocks = 'fuel cladding'
+
+  temperature_variables = 'temp0 temp0 t_water nek_temp'
+  temperature_blocks = 'fuel cladding water helium'
+
+  tally_score = 'heating flux'
+  tally_name = 'power openmc_flux'
+[]
+```
+
+Then Cardinal is building the following automatically for you:
+
+```
 [AuxVariables]
-  [temp] # always added
-    order = CONSTANT
+  [temp0] # added for all corresponding 'temperature_blocks'
     family = MONOMIAL
+    order = CONSTANT
+    block = 'fuel cladding'
   []
-  [density] # only added if fluid_blocks is specified
-    order = CONSTANT
+  [t_water] # added for all corresponding 'temperature_blocks'
     family = MONOMIAL
+    order = CONSTANT
+    block = 'water'
   []
-  [kappa_fission] # always added; the name is determined by the tally_score
-    order = CONSTANT
+  [nek_temp] # added for all corresponding 'temperature_blocks'
     family = MONOMIAL
+    order = CONSTANT
+    block = 'helium'
+  []
+  [power] # the first tally we added (score is 'heating', but we set a custom name)
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [openmc_flux] # the second tally we added (score is 'flux', but we set a custom name)
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [density] # density is always named 'density'
+    family = MONOMIAL
+    order = CONSTANT
+    blocks = 'water helium'
   []
 []
+```
 
-This auxiliary variable addition happens automatically,
-so you don't need to add these variables yourself.
+You normally don't need to be this verbose, and can rely on defaults. By default,
+Cardinal will name *all* temperature feedback with the `temp` variable, and all
+tally scores with the same name as the score. Suppose we instead wanted to rely
+on defaults; we would set our `[Problem]` block as:
+
+```
+[Problem]
+  type = OpenMCCellAverageProblem
+  fluid_blocks = 'water helium'
+  solid_blocks = 'fuel cladding'
+
+  tally_score = 'heating flux'
+[]
+```
+
+Then Cardinal is instead building the following automatically for you:
+
+```
+[AuxVariables]
+  [temp] # added for the union of 'fluid_blocks' and 'solid_blocks'
+    family = MONOMIAL
+    order = CONSTANT
+    block = 'fuel cladding water helium'
+  []
+  [heating] # the first tally we added (score is 'heating')
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [flux] # the second tally we added (score is 'flux')
+    family = MONOMIAL
+    order = CONSTANT
+  []
+  [density] # density is always named 'density'
+    family = MONOMIAL
+    order = CONSTANT
+    blocks = 'water helium'
+  []
+[]
+```
 
 ## Cell to Element Mapping
 
@@ -689,63 +761,6 @@ agreement between _actual_ cell volumes and the `[Mesh]` volumes they map to. To
 volume calculation, set the `volume_calculation` parameter to the name of a
 [OpenMCVolumeCalculation](/userobjects/OpenMCVolumeCalculation.md) object. If you then set
 `verbose = true`, you will be able to compare the cell volumes with the MOOSE elements.
-
-#### Collating Temperatures from Multiple Apps
-
-OpenMC is often coupled to multiple MOOSE applications providing temperature -
-fluid temperature might be provided by NekRS (wrapped via Cardinal), while the solid
-temperature might be provided by BISON. In all situations, OpenMC always reads temperatures
-from the `temp` variable. However, if you have multiple applications that are trying
-to write into the same `temp` variable, because many of MOOSE's transfers are not
-block-restricted, the temperature from one application can overwrite that of another
-application. To get around this, you could use several [SelfAux](https://mooseframework.inl.gov/source/auxkernels/SelfAux.html)
-auxiliary kernels. Suppose fluid temperature is provided by a variable
-`nek_temp`, while the solid temperature is provided by a variable
-`bison_temp` - a proper collation of temperatures into a single `temp` variable could
-be achieved with:
-
-```
-[AuxVariables]
-  [nek_temp]
-    block = '1'
-  []
-  [bison_temp]
-    block = '2 3'
-  []
-[]
-
-[AuxKernels]
-  [assign_fluid_temps]
-    type = SelfAux
-    variable = temp
-    v = nek_temp
-    block = '1'
-  []
-  [assign_solid_temps]
-    type = SelfAux
-    variable = temp
-    v = bison_temp
-    block = '2 3'
-  []
-[]
-```
-
-This class conveniently has shortcut syntax to do all of the above:
-
-```
-[Problem]
-  type = OpenMCCellAverageProblem
-
-  temperature_variables = 'nek_temp bison_temp bison_temp'
-  temperature_blocks = '1 2 3'
-[]
-```
-
-In other words, Cardinal will create the variables specified with the
-`temperature_variables` parameter and then also set up the
-[SelfAux](https://mooseframework.inl.gov/source/auxkernels/SelfAux.html)
-auxiliary kernels to assign those variables into the `temp` variable that OpenMC
-reads from.
 
 #### Symmetric Data Transfers
 

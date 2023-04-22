@@ -24,16 +24,41 @@
   [block_already_used]
     type = RunException
     input = openmc.i
-    cli_args = 'Problem/temperature_blocks="1 2 2"'
-    expect_err = "Block 2 can only point to a single variable name in 'temperature_variables'!"
+    cli_args = 'Problem/temperature_variables="solid_temp solid_temp solid_temp solid_temp" Problem/temperature_blocks="1 2 2 3"'
+    expect_err = "Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '2' is duplicated."
     requirement = "The system shall error if trying to collate multiple temperature variables onto the same block due to undefined behavior"
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [collate_temps]
-    type = Exodiff
+  [missing_solid]
+    type = RunException
     input = openmc.i
-    exodiff = openmc_out.e
-    requirement = "The system shall collate temperatures from multiple MOOSE applications with convenient syntax."
+    cli_args = 'Problem/temperature_variables="solid_temp solid_temp" Problem/temperature_blocks="1 3"'
+    expect_err = "Each entry in 'solid_blocks' must be included in 'temperature_blocks'!\n"
+                 "Block '2' is in 'solid_blocks' but not 'temperature_blocks'."
+    requirement = "The system shall error if each entry in solid_blocks is not repeated on temperature_blocks"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [missing_fluid]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/solid_blocks="1" Problem/fluid_blocks="2 3" Problem/temperature_variables="solid_temp solid_temp" Problem/temperature_blocks="1 3"'
+    expect_err = "Each entry in 'fluid_blocks' must be included in 'temperature_blocks'!\n"
+                 "Block '2' is in 'fluid_blocks' but not 'temperature_blocks'."
+    requirement = "The system shall error if each entry in fluid_blocks is not repeated on temperature_blocks"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [collate_temps]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall allow reading temperature from user-defined names, with one temperature variable per cell"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_vars]
+    type = CSVDiff
+    input = multi_vars.i
+    csvdiff = multi_vars_out.csv
+    requirement = "The system shall allow reading temperature from user-defined names, with more than one temperature variable per cell"
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

@@ -167,12 +167,11 @@ OpenMCCellAverageProblem::validParams()
 
   params.addParam<std::vector<std::string>>(
       "temperature_variables",
-      "Vector of variable names corresponding to the temperatures that should be assembled into "
-      "the 'temp' variable from which OpenMC reads cell temperatures. You may use this if "
-      "multiple applications are providing temperature to OpenMC, which need to be collated "
-      "together into a single variable");
+      "Vector of variable names corresponding to the temperatures sent into OpenMC. Each entry maps to "
+      "the corresponding entry in 'temperature_blocks.' If not specified, each entry defaults to 'temp'");
   params.addParam<std::vector<SubdomainName>>(
-      "temperature_blocks", "Blocks corresponding to each of the 'temperature_variables'");
+      "temperature_blocks", "Blocks corresponding to each of the 'temperature_variables'. If not specified, "
+      "defaults to the set union of 'fluid_blocks' and 'solid_blocks'");
 
   params.addParam<bool>(
       "check_equal_mapped_tally_volumes",
@@ -276,8 +275,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
-    _temperature_vars(nullptr),
-    _temperature_blocks(nullptr),
     _volume_calc(nullptr),
     _symmetry(nullptr)
 {
@@ -403,17 +400,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_tally_name.size() != _tally_score.size())
     mooseError("'tally_name' must be the same length as 'tally_score'!");
 
-  if (_verbose)
-  {
-    VariadicTable<std::string, std::string> tallies({"OpenMC tally score", "MOOSE AuxVariable name"});
-    for (unsigned int i = 0; i < _tally_name.size(); ++i)
-      tallies.addRow(_tally_score[i], _tally_name[i]);
-
-    _console << std::endl;
-    tallies.print(_console);
-    _console << std::endl;
-  }
-
   if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
   {
     // later, we populate the tally results in a loop. We will rely on the normalization
@@ -516,27 +502,62 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (isParamValid("temperature_variables"))
   {
-    _temperature_vars = &getParam<std::vector<std::string>>("temperature_variables");
-    _temperature_blocks = &getParam<std::vector<SubdomainName>>("temperature_blocks");
+    _temperature_vars = getParam<std::vector<std::string>>("temperature_variables");
+    _temperature_blocks = getParam<std::vector<SubdomainName>>("temperature_blocks");
 
-    checkEmptyVector(*_temperature_vars, "temperature_variables");
-    checkEmptyVector(*_temperature_blocks, "temperature_blocks");
+    checkEmptyVector(_temperature_vars, "temperature_variables");
+    checkEmptyVector(_temperature_blocks, "temperature_blocks");
 
-    if (_temperature_vars->size() != _temperature_blocks->size())
+    if (_temperature_vars.size() != _temperature_blocks.size())
       mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
 
     // as sanity check, shouldn't have any entries in temperature_blocks which are not
     // also in fluid_blocks or solid_blocks. TODO: eventually, we will deprecate solid_blocks
-    auto t_ids = _mesh.getSubdomainIDs(*_temperature_blocks);
+    auto t_ids = _mesh.getSubdomainIDs(_temperature_blocks);
     for (const auto & t : t_ids)
       if (!_fluid_blocks.count(t) && !_solid_blocks.count(t))
         mooseError("Each entry in 'temperature_blocks' should be in either 'fluid_blocks' or "
           "'solid_blocks'. Could not find '", t, "' in either!");
+
+    // because this is the mechanism by which we will impose temperatures, we also need to have
+    // all the listed blocks match those given in the 'fluid_blocks' and 'solid_blocks', or else
+    // that block would secretly not participate in coupling
+    for (const auto & t : _fluid_block_names)
+    {
+      auto it = std::find(_temperature_blocks.begin(), _temperature_blocks.end(), t);
+      if (it == _temperature_blocks.end())
+        mooseError("Each entry in 'fluid_blocks' must be included in 'temperature_blocks'!\n"
+          "Block '", t, "' is in 'fluid_blocks' but not 'temperature_blocks'.");
+    }
+
+    for (const auto & t : _solid_block_names)
+    {
+      auto it = std::find(_temperature_blocks.begin(), _temperature_blocks.end(), t);
+      if (it == _temperature_blocks.end())
+        mooseError("Each entry in 'solid_blocks' must be included in 'temperature_blocks'!\n"
+          "Block '", t, "' is in 'solid_blocks' but not 'temperature_blocks'.");
+    }
+
+    // should not be any duplicate blocks, otherwise it is not clear which temperature variable to use
+    std::set<SubdomainName> names;
+    for (const auto & b : _temperature_blocks)
+    {
+      if (names.count(b))
+        mooseError("Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '", b, "' is duplicated.");
+      names.insert(b);
+    }
   }
   else
   {
-    // set reasonable defaults
-    
+    // default to 'temperature_blocks' being the union of fluid_blocks and solid_blocks
+    for (const auto & b : _solid_block_names)
+      _temperature_blocks.push_back(b);
+    for (const auto & b : _fluid_block_names)
+      _temperature_blocks.push_back(b);
+
+    // default to every entry being a variable 'temp'
+    for (const auto & i : _temperature_blocks)
+      _temperature_vars.push_back("temp");
   }
 
   switch (_tally_type)
@@ -1284,6 +1305,37 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     _console <<   "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
     _console <<   "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n" << std::endl;
     vt.print(_console);
+
+    _console << "\n ===================>     AUXVARIABLES INPUT TO OPENMC     <===================\n" << std::endl;
+    _console <<   "      Subdomain:  subdomain name; if unnamed, we show the ID" << std::endl;
+    _console <<   "    Temperature:  AuxVariable to read temperature from" << std::endl;
+    _console <<   "        Density:  AuxVariable to read density from (empty if no density feedback)\n" << std::endl;
+
+    VariadicTable<std::string, std::string, std::string> aux({"Subdomain", "Temperature", "Density"});
+
+    for (const auto & s : _fluid_block_names)
+    {
+      auto id = _mesh.getSubdomainID(s);
+      aux.addRow(s, _subdomain_to_temp_vars[id].second, _subdomain_to_density_vars[id].second);
+    }
+
+    for (const auto & s : _solid_block_names)
+    {
+      auto id = _mesh.getSubdomainID(s);
+      aux.addRow(s, _subdomain_to_temp_vars[id].second, "");
+    }
+
+    aux.print(_console);
+
+    _console << "\n ===================>     AUXVARIABLES OUTPUT BY OPENMC     <===================\n" << std::endl;
+    _console <<   "    Tally Score:  OpenMC tally score" << std::endl;
+    _console <<   "    AuxVariable:  AuxVariable holding this score\n" << std::endl;
+
+    VariadicTable<std::string, std::string> tallies({"Tally Score", "AuxVariable"});
+    for (unsigned int i = 0; i < _tally_name.size(); ++i)
+      tallies.addRow(_tally_score[i], _tally_name[i]);
+
+    tallies.print(_console);
   }
 
   if (_has_fluid_blocks && !has_fluid_cells)
@@ -1358,7 +1410,7 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
     }
   }
 
-  VariadicTable<int, std::string> vt({"Subdomain ID", "Contained OpenMC Materials"});
+  VariadicTable<std::string, std::string> vt({"Subdomain", "Material"});
   auto subdomains = coupledSubdomains();
   for (const auto & i : subdomains)
   {
@@ -1367,12 +1419,17 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
       mats += " " + materialName(m) + ",";
 
     mats.pop_back();
-    vt.addRow(i, mats);
+    std::string name = _mesh.getSubdomainName(i);
+    if (name.empty())
+      name = std::to_string(i);
+    vt.addRow(name, mats);
   }
 
   if (_verbose)
   {
-    _console << "\nMapping of subdomains to OpenMC materials:" << std::endl;
+    _console << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n" << std::endl;
+    _console <<   "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
+    _console <<   "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we show the ID\n" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }
@@ -1426,7 +1483,7 @@ OpenMCCellAverageProblem::checkCellMappedSubdomains()
 void
 OpenMCCellAverageProblem::getMaterialFills()
 {
-  VariadicTable<std::string, int> vt({"Cell", "Fluid Material"});
+  VariadicTable<std::string, int> vt({"Cell", "Material"});
 
   std::set<int32_t> materials_in_fluid;
   std::set<int32_t> other_materials;
@@ -1470,7 +1527,9 @@ OpenMCCellAverageProblem::getMaterialFills()
 
   if (_verbose && _has_fluid_blocks)
   {
-    _console << "\nMaterials in each OpenMC fluid cell:" << std::endl;
+    _console << "\n ===================>       OPENMC MATERIAL MAPPING       <====================\n" << std::endl;
+    _console <<   "           Cell:  OpenMC cell receiving density feedback" << std::endl;
+    _console <<   "       Material:  OpenMC material ID in this cell\n" << std::endl;
     vt.print(_console);
   }
 
@@ -2332,100 +2391,47 @@ OpenMCCellAverageProblem::findCell(const Point & point)
   return !openmc::exhaustive_find_cell(_particle);
 }
 
+
+
 void
 OpenMCCellAverageProblem::addExternalVariables()
 {
-  auto var_params = _factory.getValidParams("MooseVariable");
-  var_params.set<MooseEnum>("family") = "MONOMIAL";
-  var_params.set<MooseEnum>("order") = "CONSTANT";
-
   _external_vars.resize(_tally_score.size());
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
     auto name = _tally_name[score];
-    checkDuplicateVariableName(name);
-    addAuxVariable("MooseVariable", name, var_params);
-    _tally_var.push_back(_aux->getFieldVariable<Real>(0, name).number());
+    _tally_var.push_back(addExternalVariable(name) /* all blocks */);
 
     if (_outputs)
     {
       for (std::size_t i = 0; i < _outputs->size(); ++i)
       {
-        std::string n = _tally_name[score] + "_" + _output_name[i];
-        checkDuplicateVariableName(n);
-        addAuxVariable("MooseVariable", n, var_params);
-        _external_vars[score].push_back(_aux->getFieldVariable<Real>(0, n).number());
+        std::string n = name + "_" + _output_name[i];
+        _external_vars[score].push_back(addExternalVariable(n) /* all blocks */);
       }
     }
   }
 
-  std::vector<SubdomainName> t;
-  for (const auto & i : _solid_block_names)
-    t.push_back(i);
-
-  for (const auto & i : _fluid_block_names)
-    t.push_back(i);
-
-  // create a temperature variable, but only on the blocks with temperature
-  // feedback to OpenMC; this should be explicitly clear about the data transfer
-  checkDuplicateVariableName("temp");
-  auto temp_params = var_params;
-  temp_params.set<std::vector<SubdomainName>>("block") = t;
-  addAuxVariable("MooseVariable", "temp", temp_params);
-  _temp_var = _aux->getFieldVariable<Real>(0, "temp").number();
-
+  // create the variable that will be used to receive density
   if (_has_fluid_blocks)
   {
-    // create a density variable, but only on the blocks with density
-    // feedback to OpenMC; this should be explicitly clear about the data transfer
-    checkDuplicateVariableName("density");
-    auto rho_params = var_params;
-    rho_params.set<std::vector<SubdomainName>>("block") = _fluid_block_names;
-    addAuxVariable("MooseVariable", "density", rho_params);
-    _density_var = _aux->getFieldVariable<Real>(0, "density").number();
+    auto number = addExternalVariable("density", &_fluid_block_names);
+    for (const auto & s : _fluid_blocks)
+      _subdomain_to_density_vars[s] = {number, "density"};
   }
 
-  // if collating temperature from multiple variables, add the necessary
-  // auxiliary kernels and variables to do so
-  if (_temperature_vars)
+  std::map<std::string, std::vector<SubdomainName>> vars_to_blocks;
+  for (std::size_t i = 0; i < _temperature_vars.size(); ++i)
+    vars_to_blocks[_temperature_vars[i]].push_back(_temperature_blocks[i]);
+
+  // create the variable(s) that will be used to receive temperature
+  for (const auto & v : vars_to_blocks)
   {
-    std::map<std::string, std::vector<SubdomainName>> vars_to_blocks;
-    std::set<SubdomainName> blocks;
-    for (std::size_t i = 0; i < _temperature_vars->size(); ++i)
-    {
-      auto var = (*_temperature_vars)[i];
-      auto block = (*_temperature_blocks)[i];
-      vars_to_blocks[var].push_back(block);
+    auto number = addExternalVariable(v.first, &v.second);
 
-      bool already_in_set = blocks.find(block) != blocks.end();
-      blocks.insert(block);
-      if (already_in_set)
-        mooseError("Block " + Moose::stringify(block) +
-                   " can only point to a single variable name "
-                   "in 'temperature_variables'!");
-    }
-
-    // create the variables that will be used to temporarily store temperature;
-    // TODO: could allow the order and family to be user-specified
-    for (const auto & v : vars_to_blocks)
-    {
-      auto var_params = _factory.getValidParams("MooseVariable");
-      var_params.set<MooseEnum>("family") = "LAGRANGE";
-      var_params.set<MooseEnum>("order") = "FIRST";
-      var_params.set<std::vector<SubdomainName>>("block") = v.second;
-      checkDuplicateVariableName(v.first);
-      addAuxVariable("MooseVariable", v.first, var_params);
-    }
-
-    for (const auto & v : vars_to_blocks)
-    {
-      auto params = _factory.getValidParams("SelfAux");
-      params.set<AuxVariableName>("variable") = "temp";
-      params.set<std::vector<SubdomainName>>("block") = v.second;
-      params.set<std::vector<VariableName>>("v") = {v.first};
-      params.set<ExecFlagEnum>("execute_on") = {EXEC_INITIAL, EXEC_TIMESTEP_BEGIN};
-      addAuxKernel("SelfAux", "collated_temp_from_" + v.first, params);
-    }
+    auto ids = _mesh.getSubdomainIDs(v.second);
+    for (const auto & s : ids)
+      _subdomain_to_temp_vars[s] = {number, v.first};
   }
 }
 
@@ -2442,7 +2448,8 @@ OpenMCCellAverageProblem::externalSolve()
 }
 
 std::map<OpenMCCellAverageProblem::cellInfo, Real>
-OpenMCCellAverageProblem::computeVolumeWeightedCellInput(const unsigned int & var_num,
+OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
+  const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
   const coupling::CouplingFields * phase = nullptr)
 {
   const auto sys_number = _aux->number();
@@ -2469,7 +2476,8 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(const unsigned int & va
     {
       // we are only accessing local elements here, so no need to check for nullptr
       const auto * elem = _mesh.queryElemPtr(globalElemID(e));
-      auto dof_idx = elem->dof_number(sys_number, var_num, 0);
+      auto v = var_num.at(elem->subdomain_id()).first;
+      auto dof_idx = elem->dof_number(sys_number, v, 0);
       product += (*_serialized_solution)(dof_idx) * elem->volume();
     }
 
@@ -2491,7 +2499,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
   double minimum = std::numeric_limits<double>::max();
 
   // collect the volume-temperature product across local ranks
-  std::map<cellInfo, Real> cell_vol_temp = computeVolumeWeightedCellInput(_temp_var);
+  std::map<cellInfo, Real> cell_vol_temp = computeVolumeWeightedCellInput(_subdomain_to_temp_vars);
 
   for (const auto & c : _cell_to_elem)
   {
@@ -2538,7 +2546,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
 
   // collect the volume-density product across local ranks
   auto phase = coupling::density_and_temperature;
-  std::map<cellInfo, Real> cell_vol_density = computeVolumeWeightedCellInput(_density_var, &phase);
+  std::map<cellInfo, Real> cell_vol_density = computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase);
 
   // in case multiple cells are filled by this material, assemble the sum of
   // the rho-V product and V for each of those cells. If _map_density_by_cell

@@ -191,7 +191,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   inactive_batches = 200
   batches = 1000
 
-  # we will collate temperature from THM (for the fluid) and MOOSE (for the solid)
+  # we will read temperature from THM (for the fluid) and MOOSE (for the solid)
   # into variables we name as 'solid_temp' and 'thm_temp'. This syntax will automatically
   # create those variabes for us
   temperature_variables = 'solid_temp solid_temp solid_temp thm_temp'
