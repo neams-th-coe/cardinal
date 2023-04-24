@@ -138,8 +138,8 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 
   relaxation = robbins_monro
 
-  temperature_variables = 'solid_temp solid_temp thm_temp thm_temp'
-  temperature_blocks = '${solid_blocks} ${fluid_blocks}'
+  temperature_variables = 'solid_temp; thm_temp'
+  temperature_blocks = '${solid_blocks}; ${fluid_blocks}'
 
   k_trigger = std_dev
   k_trigger_threshold = 7.5e-4

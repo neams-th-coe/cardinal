@@ -24,7 +24,7 @@
   [empty_block]
     type = RunException
     input = empty_block.i
-    expect_err = "Vector cannot be empty!"
+    expect_err = "'solid_blocks' cannot be empty!"
     requirement = "The system shall error if an empty vector is provided for the blocks"
     required_objects = 'OpenMCCellAverageProblem'
   []

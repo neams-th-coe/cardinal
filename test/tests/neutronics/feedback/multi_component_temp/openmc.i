@@ -3,6 +3,20 @@
   file = ../../meshes/pincell.e
 []
 
+[AuxVariables]
+  [cell_temp]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[AuxKernels]
+  [cell_temp]
+    type = CellTemperatureAux
+    variable = cell_temp
+  []
+[]
+
 [ICs]
   [solid_temp]
     type = ConstantIC
@@ -19,24 +33,60 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
-  solid_blocks = '1 3'
-  fluid_blocks = '2'
+  solid_blocks = '1 3 2'
   tally_blocks = '1'
   tally_type = cell
   solid_cell_level = 1
-  fluid_cell_level = 1
-  initial_properties = xml
+  verbose = true
 
-  temperature_variables = 'solid_temp solid_temp fluid_temp'
-  temperature_blocks = '1 3 2'
+  temperature_variables = 'solid_temp; fluid_temp'
+  temperature_blocks = '1 3; 2'
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
+  type = Steady
+[]
+
+[Postprocessors]
+  [max_temp_1]
+    type = ElementExtremeValue
+    variable = cell_temp
+    value_type = max
+    block = '1'
+  []
+  [min_temp_1]
+    type = ElementExtremeValue
+    variable = cell_temp
+    value_type = min
+    block = '1'
+  []
+  [max_temp_2]
+    type = ElementExtremeValue
+    variable = cell_temp
+    value_type = max
+    block = '2'
+  []
+  [min_temp_2]
+    type = ElementExtremeValue
+    variable = cell_temp
+    value_type = min
+    block = '2'
+  []
+  [max_temp_3]
+    type = ElementExtremeValue
+    variable = cell_temp
+    value_type = max
+    block = '3'
+  []
+  [min_temp_3]
+    type = ElementExtremeValue
+    variable = cell_temp
+    value_type = min
+    block = '3'
+  []
 []
 
 [Outputs]
   exodus = true
-  hide = 'kappa_fission'
+  csv = true
 []

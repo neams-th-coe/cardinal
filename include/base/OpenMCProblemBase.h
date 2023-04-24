@@ -54,6 +54,14 @@ public:
   bool isHeatingScore(const std::string & score) const;
 
   /**
+   * Add a constant monomial auxiliary variable
+   * @param[in] name name of the variable
+   * @param[in] block optional subdomain names on which to restrict the variable
+   * @return numeric index for the variable in the auxiliary system
+   */
+  unsigned int addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block = nullptr);
+
+  /**
    * Create an openmc::LibMesh mesh
    * @param[in] filename file name to construct the mesh from; if nullptr, uses [Mesh]
    * @return OpenMC libMesh mesh

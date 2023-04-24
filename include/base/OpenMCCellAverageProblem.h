@@ -346,11 +346,11 @@ protected:
   void gatherCellVector(std::vector<T> & local, std::vector<unsigned int> & n_local, std::map<cellInfo, std::vector<T>> & global);
 
   /**
-   * Get the element coupling phase
+   * Get the feedback which this element provides to OpenMC
    * @param[in] elem
    * @return coupling phase
    */
-  coupling::CouplingFields elemPhase(const Elem * elem) const;
+  coupling::CouplingFields elemFeedback(const Elem * elem) const;
 
   /**
    * Read the parameters needed for triggers
@@ -560,11 +560,12 @@ protected:
 
   /**
    * Compute the product of volume with a field across ranks and sum into a global map
-   * @param[in] var_num variable to weight with volume
+   * @param[in] var_num variable to weight with volume, mapped by subdomain ID
    * @param[in] phase phase to compute the operation for
    * @return volume-weighted field for each cell, in a global sense
    */
-  std::map<cellInfo, Real> computeVolumeWeightedCellInput(const unsigned int & var_num,
+  std::map<cellInfo, Real> computeVolumeWeightedCellInput(
+    const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
     const coupling::CouplingFields * phase);
 
   /**
@@ -993,12 +994,6 @@ protected:
   /// Tally variable(s)
   std::vector<unsigned int> _tally_var;
 
-  /// Temperature variable
-  unsigned int _temp_var;
-
-  /// Density variable, which must be in units of kg/m3 based on internal conversions
-  unsigned int _density_var;
-
   /// Sum value of the global tally(s), across all bins
   std::vector<Real> _global_sum_tally;
 
@@ -1077,17 +1072,8 @@ protected:
   /// Current "raw" tally standard deviation
   std::vector<std::vector<xt::xtensor<double, 1>>> _current_raw_tally_std_dev;
 
-  /**
-   * Variables to "collate" together (presumably from separate MOOSE apps)
-   * together into the 'temp' variable that OpenMC reads from
-   */
-  const std::vector<std::string> * _temperature_vars;
-
-  /**
-   * Blocks of temperature to "collate" together (presumably from separate MOOSE apps)
-   * together into the 'temp' variable that OpenMC reads from
-   */
-  const std::vector<SubdomainName> * _temperature_blocks;
+  /// Mapping from temperature variable name to the subdomains on which to read it from
+  std::map<std::string, std::vector<SubdomainName>> _temp_vars_to_blocks;
 
   /// Optional volume calculation for cells which map to MOOSE
   OpenMCVolumeCalculation * _volume_calc;
@@ -1150,4 +1136,10 @@ private:
 
   /// Flattened cell instancess collected after parallel communication
   std::vector<int32_t> _flattened_instances;
+
+  /// Mapping from subdomain IDs to which aux variable to read temperature (K) from
+  std::map<SubdomainID, std::pair<unsigned int, std::string>> _subdomain_to_temp_vars;
+
+  /// Mapping from subdomain IDs to which aux variable to read density (kg/m3) from
+  std::map<SubdomainID, std::pair<unsigned int, std::string>> _subdomain_to_density_vars;
 };

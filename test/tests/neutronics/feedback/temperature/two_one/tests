@@ -1,0 +1,25 @@
+[Tests]
+  [two_to_one]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall exactly predict eigenvalue when sending temperatures which map from multiple subdomains to one cell. We compare against a standalone OpenMC case to exactly match k."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [two_to_one_multi]
+    type = CSVDiff
+    input = openmc_multi_temp.i
+    cli_args = 'Outputs/file_base=openmc_out'
+    csvdiff = openmc_out.csv
+    requirement = "The system shall exactly predict eigenvalue when sending temperatures which map from multiple subdomains to one cell, when different temperature variables are used on each subdomain. This gold file exactly matches that used in the 'two_to_one' test."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [default]
+    type = CSVDiff
+    input = openmc_default.i
+    cli_args = 'Outputs/file_base=openmc_out'
+    csvdiff = openmc_out.csv
+    requirement = "The system shall exactly predict eigenvalue when sending temperatures which map from multiple subdomains to one cell, when using the default name of 'temp' for the temperature field."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
