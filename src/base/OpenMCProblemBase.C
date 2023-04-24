@@ -234,7 +234,7 @@ OpenMCProblemBase::materialName(const int32_t index) const
 
   const char * name;
   int err = openmc_material_get_name(index, &name);
-  catchOpenMCError(err, "get material name for material with index " + index);
+  catchOpenMCError(err, "get material name for material with index " + std::to_string(index));
 
   std::string n = name;
 
@@ -250,7 +250,7 @@ OpenMCProblemBase::cellID(const int32_t index) const
 {
   int32_t id;
   int err = openmc_cell_get_id(index, &id);
-  catchOpenMCError(err, "get ID for cell with index " + index);
+  catchOpenMCError(err, "get ID for cell with index " + std::to_string(index));
   return id;
 }
 
@@ -262,7 +262,7 @@ OpenMCProblemBase::materialID(const int32_t index) const
 
   int32_t id;
   int err = openmc_material_get_id(index, &id);
-  catchOpenMCError(err, "get ID for material with index " + index);
+  catchOpenMCError(err, "get ID for material with index " + std::to_string(index));
   return id;
 }
 
