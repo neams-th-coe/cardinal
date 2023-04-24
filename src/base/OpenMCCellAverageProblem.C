@@ -340,6 +340,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
+  if (std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end())
+    if (!openmc::settings::photon_transport)
+      mooseWarning("When using the 'heating' score with photon transport disabled, energy deposition\n"
+        "from photons is neglected unless you specifically ran NJOY to produce MT=301 with\n"
+        "photon energy deposited locally (not true for any pre-packaged OpenMC data libraries\n"
+        "on openmc.org).\n\n"
+        "If you did NOT specifically run NJOY yourself with this customization, we recommend\n"
+        "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
+        "Otherwise, you will underpredict the true energy deposition.");
+
   // need some special treatment for non-heating scores, in eigenvalue mode
   bool has_non_heating_score = false;
   for (const auto & t : _tally_score)
