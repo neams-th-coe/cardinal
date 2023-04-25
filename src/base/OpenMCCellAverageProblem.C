@@ -702,7 +702,9 @@ OpenMCCellAverageProblem::initialSetup()
   if (isParamValid("volume_calculation"))
   {
     auto name = getParam<UserObjectName>("volume_calculation");
-    _volume_calc = &getUserObject<OpenMCVolumeCalculation>(name);
+    auto base = &getUserObject<UserObject>(name);
+
+    _volume_calc = dynamic_cast<OpenMCVolumeCalculation *>(base);
 
     if (!_volume_calc)
       paramError("volume_calculation", "The 'volume_calculation' user object must be of type "
@@ -715,7 +717,9 @@ OpenMCCellAverageProblem::initialSetup()
   if (isParamValid("symmetry_mapper"))
   {
     auto name = getParam<UserObjectName>("symmetry_mapper");
-    _symmetry = &getUserObject<SymmetryPointGenerator>(name);
+    auto base = &getUserObject<UserObject>(name);
+
+    _symmetry = dynamic_cast<SymmetryPointGenerator *>(base);
 
     if (!_symmetry)
       mooseError("The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!");
@@ -735,7 +739,9 @@ OpenMCCellAverageProblem::initialSetup()
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
 
     auto name = getParam<UserObjectName>("skinner");
-    _skinner = &getUserObject<MoabSkinner>(name);
+    auto base = &getUserObject<UserObject>(name);
+
+    _skinner = dynamic_cast<MoabSkinner *>(base);
 
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
