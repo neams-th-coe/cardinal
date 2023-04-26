@@ -340,6 +340,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
+  if (std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end())
+    if (!openmc::settings::photon_transport)
+      mooseWarning("When using the 'heating' score with photon transport disabled, energy deposition\n"
+        "from photons is neglected unless you specifically ran NJOY to produce MT=301 with\n"
+        "photon energy deposited locally (not true for any pre-packaged OpenMC data libraries\n"
+        "on openmc.org).\n\n"
+        "If you did NOT specifically run NJOY yourself with this customization, we recommend\n"
+        "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
+        "Otherwise, you will underpredict the true energy deposition.");
+
   // need some special treatment for non-heating scores, in eigenvalue mode
   bool has_non_heating_score = false;
   for (const auto & t : _tally_score)
@@ -692,7 +702,9 @@ OpenMCCellAverageProblem::initialSetup()
   if (isParamValid("volume_calculation"))
   {
     auto name = getParam<UserObjectName>("volume_calculation");
-    _volume_calc = &getUserObject<OpenMCVolumeCalculation>(name);
+    auto base = &getUserObject<UserObject>(name);
+
+    _volume_calc = dynamic_cast<OpenMCVolumeCalculation *>(base);
 
     if (!_volume_calc)
       paramError("volume_calculation", "The 'volume_calculation' user object must be of type "
@@ -705,7 +717,9 @@ OpenMCCellAverageProblem::initialSetup()
   if (isParamValid("symmetry_mapper"))
   {
     auto name = getParam<UserObjectName>("symmetry_mapper");
-    _symmetry = &getUserObject<SymmetryPointGenerator>(name);
+    auto base = &getUserObject<UserObject>(name);
+
+    _symmetry = dynamic_cast<SymmetryPointGenerator *>(base);
 
     if (!_symmetry)
       mooseError("The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!");
@@ -725,7 +739,9 @@ OpenMCCellAverageProblem::initialSetup()
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
 
     auto name = getParam<UserObjectName>("skinner");
-    _skinner = &getUserObject<MoabSkinner>(name);
+    auto base = &getUserObject<UserObject>(name);
+
+    _skinner = dynamic_cast<MoabSkinner *>(base);
 
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
@@ -2236,12 +2252,8 @@ OpenMCCellAverageProblem::meshFilter()
 void
 OpenMCCellAverageProblem::resetTallies()
 {
-  if (_needs_global_tally)
-  {
-    // erase tally
-    auto idx = openmc::model::tallies.begin() + _global_tally_index;
-    openmc::model::tallies.erase(idx);
-  }
+  // We create the global tally, and THEN the local tally. So we need to delete in
+  // reverse order
 
   auto idx = openmc::model::tallies.begin() + _local_tally_index;
   switch (_tally_type)
@@ -2259,19 +2271,34 @@ OpenMCCellAverageProblem::resetTallies()
     case tally::mesh:
     {
       // erase tallies
-      openmc::model::tallies.erase(idx, idx + _mesh_translations.size());
+      for (int i = _mesh_translations.size() + _local_tally_index - 1; i >= _local_tally_index; --i)
+      {
+        auto midx = openmc::model::tallies.begin() + i;
+        openmc::model::tallies.erase(midx);
+      }
 
       // erase filters
-      auto fidx = openmc::model::tally_filters.begin() + _filter_index;
-      openmc::model::tally_filters.erase(fidx, fidx + _mesh_translations.size());
+      int fi = _filter_index; // to get signed int for loop to work
+      for (int i = _mesh_translations.size() + fi - 1; i >= fi; i--)
+      {
+        auto fidx = openmc::model::tally_filters.begin() + i;
+        openmc::model::tally_filters.erase(fidx);
+      }
 
-      // erase meshes
+      // erase mesh
       auto midx = openmc::model::meshes.begin() + _mesh_index;
       openmc::model::meshes.erase(midx);
       break;
     }
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
+  }
+
+  if (_needs_global_tally)
+  {
+    // erase tally
+    auto idx = openmc::model::tallies.begin() + _global_tally_index;
+    openmc::model::tallies.erase(idx);
   }
 }
 
@@ -2289,7 +2316,7 @@ OpenMCCellAverageProblem::initializeTallies()
     _global_tally->set_scores(_tally_score);
     _global_tally->estimator_ = _tally_estimator;
 
-    _global_tally_index = openmc::model::tallies.size();
+    _global_tally_index = openmc::model::tallies.size() - 1;
     _global_sum_tally.resize(_tally_score.size());
   }
 
@@ -2302,9 +2329,10 @@ OpenMCCellAverageProblem::initializeTallies()
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 
-  // we have not yet added the local tally, which is why we have +1 here
-  _local_tally_index = openmc::model::tallies.size() + 1;
-  _filter_index = openmc::model::tally_filters.size() + 1;
+  // we have not added the local tally yet, so we do not have the "-1" here. This needs
+  // to be before the switch-case statement, because we may add > 1 mesh tally
+  _local_tally_index = openmc::model::tallies.size();
+  _filter_index = openmc::model::tally_filters.size();
 
   // create the local tally
   switch (_tally_type)
@@ -3123,7 +3151,7 @@ OpenMCCellAverageProblem::createQRules(QuadratureType type,
 }
 
 void
-OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std::string & type)
+OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std::string & /* type */)
 {
   if (volume_order < Moose::stringToEnum<Order>("SECOND"))
     volume_order = SECOND;
