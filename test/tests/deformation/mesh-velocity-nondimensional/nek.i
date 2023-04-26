@@ -9,7 +9,6 @@
 
 [Problem]
   type = NekRSProblem
-  casename = 'pipe'
   synchronization_interval = parent_app
 
   nondimensional = true
@@ -51,6 +50,6 @@
 [Outputs]
   csv = true
   execute_on = 'final'
-  hide = 'flux_integral'
+  show = 'nekbdry_ar nekbdry_icar'
 []
 

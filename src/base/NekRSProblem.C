@@ -159,8 +159,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _displacement_z = (double *)calloc(n_entries, sizeof(double));
 
     if (nekrs::hasElasticitySolver())
-      _mesh_velocity_elem = (double *)calloc((_nek_mesh->nekPolynomialOrder() + 1) *
-        (_nek_mesh->nekPolynomialOrder() + 1), sizeof(double));
+      _mesh_velocity_elem = (double *)calloc(n_entries, sizeof(double));
   }
 
   // regardless of the boundary/volume coupling, we will always exchange temperature
@@ -237,6 +236,14 @@ NekRSProblem::initialSetup()
                  "boundary in the NekRS .par file to be of the type 'fixedValue'"
                  " in the [MESH] block.");
   }
+
+  if (!boundary && nekrs::hasElasticitySolver())
+    mooseError("Your nekRS .par file has 'solver = elasticity' in the [MESH] block. This solver uses\n"
+               "displacement values at a boundary of interest to calcualte the mesh velocity. This\n"
+               "mesh velocity is applied within nekRS on the same boundary to solve for fluid flow\n"
+               "in a moving mesh domain using the elasticity solver. If you intend to use the elasticity\n"
+               "solver, please indicate at least one 'boundary' of interest in your Cardinal sub-app\n"
+               "input file's [Mesh] block, regardless of whether you are using a volume mirror or not.");
 
   // For volume-based coupling, we should check that there is a udf function providing
   // the source for the passive scalar equations (this is the analogue of the boundary
@@ -316,7 +323,7 @@ NekRSProblem::adjustNekSolution()
 void
 NekRSProblem::sendBoundaryDeformationToNek()
 {
-  _console << "Sending boundary deformation to NekRS boundary " << Moose::stringify(*_boundary) << std::endl;
+  _console << "Sending boundary deformation to NekRS..." <<std::endl;
 
   if (!_volume)
   {
@@ -778,37 +785,36 @@ NekRSProblem::addExternalVariables()
 void
 NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
 {
-  int len = _nek_mesh->nekPolynomialOrder() + 1;
+  int len = _volume? _n_vertices_per_volume : _n_vertices_per_surface;
   double dt = _timestepper->getCurrentDT();
+
+  double * displacement = nullptr, *prev_disp = nullptr;
+  field::NekWriteEnum disp_field;
 
   switch (field)
   {
     case field::mesh_velocity_x:
-      for (int i=0; i <len * len; i++)
-      {
-        _mesh_velocity_elem[i] = ( _displacement_x[i]-_nek_mesh->prev_disp_x().at((e*len*len) + i))
-                           /dt/_U_ref;
-      }
-      _nek_mesh->updateDisplacement(e, _displacement_x, field::x_displacement);
+      displacement = _displacement_x;
+      prev_disp = _nek_mesh->prev_disp_x().data();
+      disp_field = field::x_displacement;
       break;
     case field::mesh_velocity_y:
-      for (int i=0; i <len * len; i++)
-      {
-        _mesh_velocity_elem[i] = ( _displacement_y[i]-_nek_mesh->prev_disp_y().at((e*len*len) + i))
-                           /dt/_U_ref;
-      }
-      _nek_mesh->updateDisplacement(e, _displacement_y, field::y_displacement);
+      displacement = _displacement_y;
+      prev_disp = _nek_mesh->prev_disp_y().data();
+      disp_field = field::y_displacement;
       break;
     case field::mesh_velocity_z:
-      for (int i=0; i <len * len; i++)
-      {
-        _mesh_velocity_elem[i] = ( _displacement_z[i]-_nek_mesh->prev_disp_z().at((e*len*len) + i))
-                           /dt/_U_ref;
-      }
-      _nek_mesh->updateDisplacement(e, _displacement_z, field::z_displacement);
+      displacement = _displacement_z;
+      prev_disp = _nek_mesh->prev_disp_z().data();
+      disp_field = field::z_displacement;
       break;
     default:
       mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
   }
+
+  for (int i=0; i <len; i++)
+    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e*len) + i])/dt/_U_ref;
+
+  _nek_mesh->updateDisplacement(e, displacement, disp_field);
 }
 #endif

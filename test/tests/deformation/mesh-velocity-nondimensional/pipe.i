@@ -85,18 +85,20 @@
 
 [Executioner]
   type = Transient
+
   petsc_options_iname = '-pc_type'
   petsc_options_value = 'lu'
 
   l_max_its = 1000
   nl_max_its = 50
-  nl_rel_tol = 1e-4
-  nl_abs_tol = 1e-4
-  l_tol = 1e-4
-  l_abs_tol = 1e-4
+  nl_rel_tol = 1e-8
+  nl_abs_tol = 1e-8
+  l_tol = 1e-8
+  l_abs_tol = 1e-8
 
-  end_time = 0.1
-  dt = 0.001
+  end_time = 5e-2
+  dt = 1e-3
+
   [Quadrature]
     type = GAUSS_LOBATTO
     order = SECOND
@@ -170,7 +172,7 @@
   [bdry_ar]
     type = AreaPostprocessor
     boundary = '2'
-    use_displaced_mesh = true 
+    use_displaced_mesh = true
   []
 []
 

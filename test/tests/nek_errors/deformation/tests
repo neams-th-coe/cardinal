@@ -74,4 +74,15 @@
                   "but the nekRS .par file has no moving mesh (fixedValue) boundary in the"
                   " [Mesh] block."
   []
+  [missing_boundary_with_elasticity_solver]
+    type = RunException
+    input = nek.i
+    cli_args = "Mesh/volume=true Mesh/displacements='disp_x disp_y disp_z' Problem/casename='elast' Problem/has_heat_source=false"
+    required_objects = 'NekRSProblem'
+
+    # nekRS can't use more processors than elements
+    max_parallel = 64
+    expect_err = "Your nekRS .par file has 'solver = elasticity' in the \[MESH\] block. This solver uses"
+    requirement = "The system shall error if Cardinal is using the NekRS elasticity solver without indicating the moving boundary of interest"
+  []
 []

@@ -2,9 +2,9 @@
   [bdry]
     type = CSVDiff
     input = pipe.i
-    csvdiff = 'pipe_out_nek0.csv'
+    cli_args = "--nekrs-setup pipe"
+    csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
     min_parallel = 4
-    abs_zero = 1e-6
     requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
                   "in the sub-app equivalently at each time-step. The displacement is"
                   "transferred across a boundary mesh mirror in the form of non-dimensionalised"
@@ -14,31 +14,12 @@
                   "with diameter = 1 and length = 4."
     required_objects = 'NekRSProblem'
   []
-  [vol]
-    type = CSVDiff
-    input = pipe.i
-    cli_args = "MultiApps/nek/input_files='nek_vol.i'"
-    csvdiff = 'pipe_out_nek0.csv'
-    min_parallel = 4
-    abs_zero = 1e-6
-    requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
-                  "in the sub-app equivalently at each time-step using the volume mesh"
-                  "mirror enabled while the boundary mesh mirror is disabled. The displacement is"
-                  "transferred across a boundary mesh mirror in the form of non-dimensionalised"
-                  "mesh velocities, as the sub-app (nekRS) is running in non-dimensional mode."
-                  "This shall be verified by comparing the areas of each sideset in both the"
-                  "main and the sub-app. The domain is a cylinder centred on the origin,"
-                  "with diameter = 1 and length = 4."
-    required_objects = 'NekRSProblem'
-    skip = 'Need to resolve volume transfer issue'
-  []
   [bdry_vol]
     type = CSVDiff
     input = pipe.i
-    cli_args = "MultiApps/nek/cli_args='Mesh/volume=true'"
-    csvdiff = 'pipe_out_nek0.csv'
+    cli_args = "--nekrs-setup pipe_vol MultiApps/nek/cli_args='Mesh/volume=true'"
+    csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
     min_parallel = 4
-    abs_zero = 1e-6
     requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
                   "in the sub-app equivalently at each time-step while having the volume mesh"
                   "mirror enabled at the same time as the boundary mesh mirror. The displacement is"
@@ -48,6 +29,5 @@
                   "main and the sub-app. The domain is a cylinder centred on the origin,"
                   "with diameter = 1 and length = 4."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve volume transfer issue'
   []
 []
