@@ -101,6 +101,10 @@ Y. Yu, A. Novak, D. Shaver, and E. Merzari,
 
 # Systems-Level Analysis
 
+A. Huxford, V. Coppo Leite, E. Merzari, L. Zou, V. Petrov, and A. Manera
+["A Hybrid Domain Overlapping Method for Coupling System Thermal Hydraulics and CFD Codes"](https://www.sciencedirect.com/science/article/pii/S0306454923001615)
+*Annals of Nuclear Energy* (2023)
+
 A. Huxford, V. Petrov, A. Manera, V. Coppo Leite, E. Merzari, and L. Zou
 "Development of Innovative Overlapping-Domain Coupling Between SAM and nekRS"
 *Proceedings of Nureth* (2022)

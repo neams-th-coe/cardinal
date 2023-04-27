@@ -3,7 +3,7 @@
 # Cardinal class=center style=font-weight:200;font-size:400%
 
 !style halign=center fontsize=120%
-An open-source coupling of NekRS and OpenMC to MOOSE
+High-Fidelity Multiscale and Multiphysics Analysis with NekRS and OpenMC
 
 !media assembly_fluid_temp_fine.png
   style=width:100%;margin-left:auto;margin-right:auto
@@ -13,9 +13,8 @@ An open-source coupling of NekRS and OpenMC to MOOSE
 ### Flexible Multiphysics class=center style=font-weight:200
 
 !style halign=center
-Geometry-agnostic RANS and LES conjugate heat transfer,
-volumetric source term and multiscale closure coupling, and Monte Carlo nuclear
-heating feedback with cell and unstructured mesh tallies and optional CAD geometry
+Geometry-agnostic multiphysics with (i) Computational Fluid Dynamics (CFD)
+and (ii) Monte Carlo radiation transport on CSG and CAD geometry
 !col-end!
 
 !col! small=12 medium=4 large=4 icon=settings
@@ -33,8 +32,8 @@ and on heterogeneous CPU-GPU systems
 ### Powerful Postprocessing class=center style=font-weight:200
 
 !style halign=center
-Leverages MOOSE user object and postprocessing systems to gain improved
-insight into NekRS and OpenMC solutions and provide multiscale closures
+Leverages MOOSE postprocessing systems for improved data analysis and to
+provide multiscale closures
 to other MOOSE applications
 !col-end!
 
@@ -42,29 +41,35 @@ Cardinal is a wrapping of the GPU-oriented spectral element [!ac](CFD) code
 [NekRS](https://github.com/Nek5000/NekRS) and the Monte Carlo particle
 transport code [OpenMC](https://github.com/openmc-dev/openmc) within the
 MOOSE framework. Cardinal provides high-resolution
-thermal-hydraulics and/or nuclear heating feedback to MOOSE multiphysics
+thermal-hydraulics and/or radiation transport feedback to MOOSE multiphysics
 simulations. Multiphysics feedback is implemented in a geometry-agnostic manner
-with virtually no requirements on node/element/cell alignment, eliminating
+which eliminates
 the need for rigid one-to-one mappings. A generic data transfer implementation
-also allows NekRS and OpenMC to be coupled to *any* MOOSE application, enabling
+also allows NekRS and OpenMC to couple to *any* MOOSE application, enabling
 a broad set of multiphysics capabilities. Simulations can also leverage combinations
 of MPI, OpenMP, and GPU resources.
 
 !gallery! large=6
 !card media/full_pbr.png title=Pebble Bed Reactors
-Full-core PBR simulations with NekRS [!cite](lan); MOOSE multiphysics feedback can be incorporated with NekRS and OpenMC simulations via Cardinal and have been applied to fully-coupled OpenMC-NekRS-MOOSE simulations with up to 127,000 pebbles [!cite](fischer_2021). Figure shows fluid velocity predicted by NekRS.
+Full-core PBR simulations with NekRS [!cite](lan); MOOSE finite element heat conduction is coupled with NekRS and OpenMC for up to 127,000 pebbles [!cite](fischer_2021). Figure shows fluid velocity predicted by NekRS.
+
+!card media/cooling_plates.png title=Fusion Components
+Multiphysics model of a Helium Cooled Lead Lithium (HCLL) tritium breeder blanket module from the EU DEMO using OpenMC and MOOSE heat conduction [!cite](novak_2023). Image shows the solid temperature in the cooling plates. The OpenMC model uses CAD geometry, capable of highly complex geometry.
+
+!card media/assembly_solid_temp_fine.png title=Prismatic Gas Reactors
+Full-core multiphysics model of a high temperature gas reactor using OpenMC-THM-MOOSE [!cite](novak2022_cardinal); figure shows the OpenMC power and MOOSE solid temperature.
+
+!card media/msr_skin.png title=Molten Salt Reactors
+Multiphysics model of a Molten Salt Fast Reactor using NekRS-OpenMC [!cite](novak_2023). OpenMC geometry uses CAD, with on-the-fly adaptive re-generation of the OpenMC cells according to contours in temperature and/or density feedback.
 
 !card media/sfr_fluid_planes.png title=Fast Reactors
 Multiphysics model of a 7-pin SFR fuel bundle using NekRS-OpenMC-MOOSE [!cite](novak2022); figure shows fluid temperature predicted by a momentum source NekRS model with solid duct temperature predicted by BISON.
-
-!card media/assembly_solid_temp_fine.png title=Prismatic Gas Reactors
-Multiphysics model of a prismatic hexagonal assembly with TRISO fuel using THM-OpenMC-MOOSE [!cite](novak_2021c); figure shows the solid temperature predicted by BISON.
 
 !card media/pts.png title=Pressurized Thermal Shock
 Coupled NekRS [!ac](CFD) simulations with the MOOSE tensor mechanics module for predicting stress-strain response in [!ac](LWR) reactor vessels [!cite](yu_2022). Figure shows the fluid velocity and temperature predicted by NekRS, which are then fed to a solid mechanics model.
 
 !card media/sam_nek.png title=Systems Analysis
-Coupled NekRS [!ac](CFD) simulations with systems-level feedback from SAM, for predicting tracer concentration in a loop with a double T-junction [!cite](huxford).
+Coupled NekRS [!ac](CFD) simulations with systems-level feedback from SAM, for predicting tracer concentration in a loop with a double T-junction [!cite](huxford2023).
 !gallery-end!
 
 
