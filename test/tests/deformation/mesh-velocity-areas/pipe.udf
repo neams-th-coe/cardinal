@@ -46,7 +46,7 @@ void UDF_Setup(nrs_t *nrs)
 
     nrs->U[n + 0 * nrs->fieldOffset] = 0;
     nrs->U[n + 1 * nrs->fieldOffset] = 0;
-    nrs->U[n + 2 * nrs->fieldOffset] = 0;//(4.0*xx*xx)+(4.0*yy*yy);
+    nrs->U[n + 2 * nrs->fieldOffset] = 0;
 
     nrs->P[n] = 1.0;
 

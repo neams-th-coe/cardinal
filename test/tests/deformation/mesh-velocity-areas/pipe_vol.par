@@ -6,10 +6,14 @@ dt = 1e-3
 timeStepper = tombo2
 writeInterval = 50
 
+oudf = "pipe_vol.oudf"
+udf = "pipe.udf"
+
 [MESH]
 boundaryTypeMap = zeroValue,fixedValue,zeroValue
 solver = elasticity
 residualTol = 1e-6
+file = "pipe.re2"
 
 [PROBLEMTYPE]
 stressFormulation = true

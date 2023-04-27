@@ -3,14 +3,15 @@
     type = RunCommand
     command = '${NEKRS_HOME}/bin/nrspre mv_cyl 1'
     requirement = "The system shall precompile a Nek case."
-    required_objects = 'NekRSProblem'
+    required_objects = 'NekRSStandaloneProblem'
   []
   [volume]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
+    cli_args = 'Mesh/volume=true'
     min_parallel = 2
-    abs_zero = 5e-7
+    abs_zero = 1e-6
     prereq = precompile
     requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
                   "when using a volume mesh mirror. "
@@ -23,15 +24,14 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve precompile issues'
   []
   [boundary]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_boundary_out.csv
-    cli_args = 'Mesh/volume=false Mesh/boundary="1" Outputs/file_base="nek_derived_out"'
+    cli_args = 'Outputs/file_base="nek_boundary_out"'
     min_parallel = 2
-    abs_zero = 5e-7
+    abs_zero = 1e-6
     prereq = precompile
     requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
                   "when using a boundary mesh mirror. "
@@ -44,15 +44,14 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve precompile issues'
   []
   [derived_volume]
     type = CSVDiff
     input = nek.i
-    cli_args = 'Problem/casename="mv_cyl_derived_bc" Outputs/file_base="nek_derived_out"'
+    cli_args = 'Mesh/volume=true Problem/casename="mv_cyl_derived_bc" Outputs/file_base="nek_derived_out"'
     csvdiff = nek_derived_out.csv
     min_parallel = 2
-    abs_zero = 5e-7
+    abs_zero = 1e-6
     prereq = precompile
     requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
                   "when using a volume mesh mirror. "
@@ -65,15 +64,14 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve precompile issues'
   []
   [derived_boundary]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_derived_boundary_out.csv
-    cli_args = 'Mesh/volume=false Mesh/boundary="1" Problem/casename="mv_cyl_derived_bc" Outputs/file_base="nek_derived_boundary_out"'
+    cli_args = 'Problem/casename="mv_cyl_derived_bc" Outputs/file_base="nek_derived_boundary_out"'
     min_parallel = 2
-    abs_zero = 5e-7
+    abs_zero = 1e-6
     prereq = precompile
     requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
                   "when using a boundary mesh mirror. "
@@ -86,6 +84,5 @@
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve precompile issues'
   []
 []

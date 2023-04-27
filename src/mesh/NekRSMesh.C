@@ -128,15 +128,8 @@ NekRSMesh::saveInitialVolMesh()
 void
 NekRSMesh::initializePreviousDisplacements()
 {
-  long disp_length = 0;
-  if(!_volume)
-  {
-    disp_length = _nek_internal_mesh->NboundaryFaces * (_order + 2) * (_order + 2);
-  }
-  else if (_volume)
-  {
-    disp_length = _nek_internal_mesh->Nelements * (_order + 2) * (_order + 2);
-  }
+  long disp_length = _volume ? _n_vertices_per_volume * _n_volume_elems
+           : _n_vertices_per_surface * _n_surface_elems;
   _prev_disp_x.resize(disp_length,0.0);
   _prev_disp_y.resize(disp_length,0.0);
   _prev_disp_z.resize(disp_length,0.0);
@@ -943,7 +936,7 @@ NekRSMesh::facesOnBoundary(const int elem_id) const
 void
 NekRSMesh::updateDisplacement(const int e, const double *src, const field::NekWriteEnum field)
 {
-  int nsrc = (_order + 2) * (_order + 2);
+  int nsrc = _volume? _n_vertices_per_volume : _n_vertices_per_surface;
   int offset = e * nsrc;
 
   switch (field)

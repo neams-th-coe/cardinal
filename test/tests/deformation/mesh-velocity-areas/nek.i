@@ -8,7 +8,6 @@
 
 [Problem]
   type = NekRSProblem
-  casename = 'pipe'
   synchronization_interval = parent_app
 []
 
@@ -42,5 +41,6 @@
 [Outputs]
   csv = true
   execute_on = 'final'
+  show = 'nekbdry_ar nekbdry_icar'
 []
 
