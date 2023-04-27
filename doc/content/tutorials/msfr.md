@@ -150,7 +150,7 @@ Finally, we have a `.usr` file with Fortran code which accesses from features in
 which have not yet been fully ported over to NekRS. The code in this file is being used
 to apply the recycling boundary conditions.
 
-!listing /tutorials/msfr/msfr.udf language=fortran
+!listing /tutorials/msfr/msfr.usr language=fortran
 
 ## Multiphysics Coupling
 
