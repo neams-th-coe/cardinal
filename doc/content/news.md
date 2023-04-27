@@ -1,18 +1,7 @@
 # News
 
-This page summarizes recent changes to Cardinal and outlines a number of up-and-coming
-features.
-
-## Up-and-Coming
-
-- OpenMC will soon support unstructured mesh tracking; we will extend the OpenMC
-  wrapping to support tracking directly on a `MooseMesh`, combined with mesh
-  deformations from MOOSE's tensor mechanics module.
-
-## Latest News
-
-Below are updates on developments from Cardinal. Any months not included did not
-have significant software updates to report.
+This page summarizes recent changes to Cardinal. Any months not included did not have
+significant changes to report.
 
 ### 2023
 
