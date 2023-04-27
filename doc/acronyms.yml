@@ -9,6 +9,7 @@ CHT: Conjugate Heat Transfer
 CPU: Central Processing Unit
 CSG: Constructive Solid Geometry
 DAGMC: Direct Accelerated Geometry Monte Carlo
+DNPs: Delayed Neutron Precursors
 ECP: Exascale Computing Project
 EOS: Equation of State
 GCE: General Computing Environment
@@ -16,7 +17,9 @@ GLL: Gauss-Lobatto-Legendre
 GPU: Graphics Processing Unit
 HTGR: High Temperature Gas Reactor
 HPC: High-Performance Computing
+LES: Large Eddy Simulation
 LWR: Light Water Reactor
+MSFR: Molten Salt Fast Reactor
 NEAMS: Nuclear Energy Advanced Modeling and Simulation
 NRIC: National Reactor Innovation Center
 OCCA: Open Concurrent Compute Abstraction

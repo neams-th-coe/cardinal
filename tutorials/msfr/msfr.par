@@ -1,0 +1,28 @@
+[GENERAL]
+  polynomialOrder = 7
+  startFrom = restart.fld
+  numSteps = 16000
+  dt = 2.0e-4
+  timeStepper = tombo2
+  writeInterval = 2000
+
+  filtering = hpfrt
+  filterWeight = 0.1/${dt}
+  filterModes = 2
+
+  subCyclingSteps = 2
+
+[PRESSURE]
+  residualTol = 1.0e-4
+
+[VELOCITY]
+  boundaryTypeMap = inlet, outlet, wall
+  residualTol = 1e-6
+  density = 1.0
+  viscosity = -4.8e4
+
+[TEMPERATURE]
+  boundaryTypeMap = inlet, outlet, flux
+  rhoCp = 1.0
+  conductivity = -818400.0
+  residualTol = 1.0e-6
