@@ -10,7 +10,7 @@ rho = 4147.3                            # kg/m3
 
 [Problem]
   type = NekRSProblem
-  casename = 'msfr_v2'
+  casename = 'msfr'
   output = 'temperature'
 
   synchronization_interval = parent_app
