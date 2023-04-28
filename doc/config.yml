@@ -56,6 +56,3 @@ Extensions:
         acronyms:
             moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
             vtb: !include ${ROOT_DIR}/doc/acronyms.yml
-    MooseDocs.extensions.analytics:
-        active: True
-        google_measurement_id: G-FDCX1GZ9HF
