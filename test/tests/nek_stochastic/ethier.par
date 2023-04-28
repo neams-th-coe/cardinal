@@ -1,7 +1,7 @@
 [GENERAL]
 polynomialOrder = 5
 stopAt = numSteps
-numSteps = 20
+numSteps = 5
 dt = 2e-03
 timeStepper = tombo3
 writeControl = steps

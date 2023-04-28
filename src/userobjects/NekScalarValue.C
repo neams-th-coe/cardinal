@@ -77,4 +77,11 @@ NekScalarValue::setValue()
   nrs->usrwrk[_usrwrk_slot * nekrs::scalarFieldOffset() + _counter] = _value;
 }
 
+Real
+NekScalarValue::getValue() const
+{
+  nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+  return nrs->usrwrk[_usrwrk_slot * nekrs::scalarFieldOffset() + _counter];
+}
+
 #endif

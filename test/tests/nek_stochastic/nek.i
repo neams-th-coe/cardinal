@@ -21,12 +21,6 @@
   [scalar1]
     type = NekScalarValue
     value = 1
-    usrwrk_slot = 0
-  []
-  [scalar2]
-    type = NekScalarValue
-    value = 2
-    usrwrk_slot = 0
   []
 []
 
@@ -34,4 +28,15 @@
   [stochastic]
     type = SamplerReceiver
   []
+[]
+
+[Postprocessors]
+  [s1]
+    type = NekScalarValuePostprocessor
+    userobject = scalar1
+  []
+[]
+
+[Outputs]
+  csv = true
 []

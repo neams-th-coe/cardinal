@@ -41,4 +41,11 @@
                   "because this would mess up the host to device data transfer."
     required_objects = 'NekRSProblem'
   []
+  [postprocessor]
+    type = CSVDiff
+    input = driver.i
+    csvdiff = driver_out_nek0.csv
+    requirement = "The system shall allow the NekScalarValue user objects to be represented as postprocessors."
+    required_objects = 'NekRSProblem'
+  []
 []
