@@ -21,6 +21,7 @@
 #include "OpenMCProblemBase.h"
 #include "SymmetryPointGenerator.h"
 #include "OpenMCVolumeCalculation.h"
+#include "Function.h"
 
 #include "openmc/tallies/filter_mesh.h"
 
@@ -1124,6 +1125,8 @@ protected:
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
+
+  const Function * _a_function;
 
 private:
   /**

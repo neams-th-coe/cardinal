@@ -30,6 +30,13 @@
   []
 []
 
+[Functions]
+  [f]
+    type = ParsedFunction
+    value = '1 + 2*t'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -41,6 +48,7 @@
   fluid_cell_level = 0
   tally_type = cell
   tally_name = heat_source
+  a_function = f
 
   initial_properties = xml
 []

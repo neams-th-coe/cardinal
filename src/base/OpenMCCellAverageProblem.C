@@ -245,6 +245,8 @@ OpenMCCellAverageProblem::validParams()
     "of approximately the same volume.");
   params.addParam<UserObjectName>("skinner", "When using DAGMC geometries, an optional skinner that will "
     "regenerate the OpenMC geometry on-the-fly according to iso-contours of temperature and density");
+
+  params.addParam<FunctionName>("a_function", "Which does something cool");
   return params;
 }
 
@@ -698,6 +700,14 @@ void
 OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
+
+  if (isParamValid("a_function"))
+  {
+    auto name = getParam<FunctionName>("a_function");
+    _a_function = &getFunction(name);
+    Point p(0.0, 0.0, 0.0);
+    std::cout << "value: " << _a_function->value(_time, p) << std::endl;
+  }
 
   if (isParamValid("volume_calculation"))
   {
