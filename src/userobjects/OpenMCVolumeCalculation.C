@@ -27,7 +27,7 @@ registerMooseObject("CardinalApp", OpenMCVolumeCalculation);
 InputParameters
 OpenMCVolumeCalculation::validParams()
 {
-  InputParameters params = ThreadedGeneralUserObject::validParams();
+  InputParameters params = GeneralUserObject::validParams();
   params.addParam<Point>("lower_left", "Lower left of the bounding box inside of which to "
     "compute volumes. If not specified, this will default to the lower left of the [Mesh] "
     "(which will NOT capture any OpenMC geometry that lies outside the [Mesh] extents.");
@@ -47,7 +47,7 @@ OpenMCVolumeCalculation::validParams()
 }
 
 OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters),
+  : GeneralUserObject(parameters),
     _n_samples(getParam<unsigned int>("n_samples")),
     _trigger(getParam<MooseEnum>("trigger"))
 {

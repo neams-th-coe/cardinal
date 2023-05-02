@@ -93,6 +93,12 @@ public:
    */
   virtual void addExternalVariables() override;
 
+  /**
+   * Re-generate the OpenMC materials in-place, needed for skinning operation where
+   * we create new OpenMC materials on-the-fly in order to receive density feedback.
+   */
+  virtual void updateMaterials();
+
   virtual void externalSolve() override;
 
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
@@ -847,7 +853,7 @@ protected:
    * Whether to map density according to each individual OpenMC cell (in which case an
    * error is thrown if you don't have a unique material in each cell) or by material.
    */
-  const bool & _map_density_by_cell;
+  bool _map_density_by_cell;
 
   /**
    * Whether the problem has fluid blocks specified; note that this is NOT necessarily
