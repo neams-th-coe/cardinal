@@ -17,16 +17,16 @@
   []
 []
 
+[Controls]
+  [stochastic]
+    type = SamplerReceiver
+  []
+[]
+
 [UserObjects]
   [scalar1]
     type = NekScalarValue
     value = 1
-  []
-[]
-
-[Controls]
-  [stochastic]
-    type = SamplerReceiver
   []
 []
 

@@ -9,13 +9,12 @@ for diagnostic purposes.
 
 ## Example Input Syntax
 
-As an example, the `flux1` and `flux2` postprocessors
-below will evaluate the integral of the first slot in `nrs->usrwrk`
-over two different boundaries in NekRS's mesh. For conjugate heat transfer,
-this particular slot represents the heat flux boundary condition sent to NekRS.
+As an example, the `s1` postprocessor will grab the value held by the
+`scalar1` userobject.
 
-!listing test/tests/conduction/zero_flux/nek_disjoint.i
-  block=Postprocessors
+!listing test/tests/nek_stochastic/nek.i
+  start=UserObjects
+  end=Outputs
 
 !syntax parameters /Postprocessors/NekScalarValuePostprocessor
 
