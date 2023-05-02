@@ -67,7 +67,6 @@ dT = 50.0
   power = 100.0
 
   skinner = moab
-  map_density_by_cell = false
 []
 
 [UserObjects]

@@ -102,10 +102,9 @@ OpenMCCellAverageProblem::validParams()
 
   params.addParam<bool>("map_density_by_cell",
       true,
-      "Whether to try applying a unique density to every OpenMC cell (the default), or "
-      "instead try applying a unique density to every OpenMC material. This latter option "
-      "exists if you want to fill the same material in multiple cells, but only set that "
-      "material to one density based on feedback. If your OpenMC model has a unique material "
+      "Whether to apply a unique density to every OpenMC cell (the default), or "
+      "instead apply a unique density to every OpenMC material (even if that material is "
+      "filled into more than one cell). If your OpenMC model has a unique material "
       "in every cell you want to receive density feedback, these two options are IDENTICAL");
 
   // TODO: would be nice to auto-detect this
@@ -271,6 +270,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
     _check_identical_tally_cell_fills(getParam<bool>("check_identical_tally_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
+    _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
     _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
@@ -440,10 +440,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-   if (_has_fluid_blocks)
-     _map_density_by_cell = getParam<bool>("map_density_by_cell");
-   else
-     checkUnusedParam(params, "map_density_by_cell", "not applying any 'fluid_blocks' feedback");
+   if (!_has_fluid_blocks || isParamValid("skinner"))
+     checkUnusedParam(params, "map_density_by_cell", "either (i) applying geometry skinning or (ii) 'fluid_blocks' is empty");
 
   // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled with DAGMC.
   // So we can assume that if we have a DAGMC geometry, that we will also by this point have DAGMC enabled.
@@ -479,16 +477,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
     // The newly-generated DAGMC cells could be disjoint in space, in which case
     // it is impossible for us to know with 100% certainty a priori how many materials
-    // we would need to create. It's also true that even if we had a single density
-    // bin, that we'd still need to create one material for every new temperature
-    // cell. So, we require the user to have map_density_by_cell to false if there
-    // is going to be any density feedback at all
-    if (_map_density_by_cell && _has_fluid_blocks)
-    {
-      _map_density_by_cell = false;
-      mooseWarning("When skinning by density, 'map_density_by_cell' is overridden to be false!\n"
-        "You can silence this warning by setting 'map_density_by_cell' to false.");
-    }
+    // we would need to create.
+    _map_density_by_cell = false;
   }
 #else
   checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
