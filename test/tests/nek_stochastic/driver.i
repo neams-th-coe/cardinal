@@ -1,5 +1,4 @@
 [StochasticTools]
-  auto_create_executioner = false
 []
 
 [Distributions]
@@ -15,8 +14,6 @@
     type = MonteCarlo
     num_rows = 1
     distributions = 'uniform'
-    execute_on = INITIAL # create random numbers on initial and use them for each timestep
-    min_procs_per_row = 1
   []
 []
 
@@ -40,13 +37,6 @@
   []
 []
 
-[Executioner]
-  type = Transient
-  num_steps = 1
-
-  # the time step size here has no effect for SamplerFullSolveMultiApp
-[]
-
 [Outputs]
-  execute_on = 'INITIAL TIMESTEP_END'
+  execute_on = final
 []

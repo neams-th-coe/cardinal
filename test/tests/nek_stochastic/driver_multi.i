@@ -1,8 +1,6 @@
 [StochasticTools]
-  auto_create_executioner = false
 []
 
-# Define distributions for random quantities
 [Distributions]
   [uniform]
     type = Uniform
@@ -11,16 +9,14 @@
   []
 []
 
-# Sample those distributions to get num_rows unique sets of inputs
 [Samplers]
   [sample]
     type = MonteCarlo
 
-    # will work okay if the input file is run with at least 2 MPI ranks (one rank per Nek solve)
+    # will work okay if the input file is run with at least 3 MPI ranks (one rank per Nek solve)
     num_rows = 3
 
     distributions = 'uniform'
-    execute_on = INITIAL # create random numbers on initial and use them for each timestep
   []
 []
 
@@ -39,9 +35,8 @@
     to_multi_app = nek
     sampler = sample
     parameters = 'UserObjects/scalar1/value'
-    check_multiapp_execute_on = false
   []
-  [get_qois]
+  [results]
     type = SamplerReporterTransfer
     from_multi_app = nek
     sampler = sample
@@ -56,21 +51,15 @@
   []
   [stats]
     type = StatisticsReporter
-    reporters = 'results/get_qois:max_scalar:value'
+    reporters = 'results/results:max_scalar:value'
     compute = 'mean stddev'
+    ci_method = 'percentile'
+    ci_levels = '0.05 0.95'
   []
 []
 
-[Executioner]
-  type = Transient
-  num_steps = 1
-
-  # The time step size here has no effect for SamplerFullSolveMultiApp. If we use > 1
-  # time step, it will try to run the same full nek.i simulation that many times.
-[]
-
 [Outputs]
-  execute_on = 'INITIAL TIMESTEP_END'
+  execute_on = final
 
   [reporter]
     type = JSON

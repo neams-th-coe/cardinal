@@ -1,8 +1,15 @@
 [Tests]
+  [precompile]
+    type = RunCommand
+    command = '${NEKRS_HOME}/bin/nrspre ethier 1'
+    requirement = "The system shall precompile the ethier case."
+    required_objects = 'NekRSProblem'
+  []
   [exceed_available]
     type = RunException
     input = nek_error.i
     cli_args = 'UserObjects/scalar1/usrwrk_slot=4'
+    prereq = precompile
     expect_err = "This parameter cannot exceed the available pre-allocated slots \(1\)."
     requirement = "The system shall error if trying to write stochastic input into a scratch space slot that has not been allocated"
     required_objects = 'NekRSProblem'
@@ -10,6 +17,7 @@
   [overlap_coupling]
     type = RunException
     input = nek_error.i
+    prereq = precompile
     expect_err = "Cannot write into a scratch space slot reserved for Nek-MOOSE coupling"
     requirement = "The system shall error if trying to write stochastic input into a scratch space slot that is needed for other physics coupling purposes."
     required_objects = 'NekRSProblem'
@@ -17,6 +25,7 @@
   [standalone_scratch]
     type = RunException
     input = nek_standalone_error.i
+    prereq = precompile
     expect_err = "This parameter cannot exceed the available pre-allocated slots \(0\)."
     requirement = "The system shall error if the scratch space is not allocated via Cardinal for stochastic cases for standalone Nek runs. We only need to test this for the standalone case because the other two coupling classes (NekRSProblem, NekRSSeparateDomainProblem) automatically require scratch allocated from Cardinal."
     required_objects = 'NekRSProblem'
@@ -24,6 +33,7 @@
   [lower_gap]
     type = RunException
     input = min_gap.i
+    prereq = precompile
     expect_err = "The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
                  "any gaps between the slots used for multiphysics coupling \(0, 1\) and the first\n"
                  "slot used for NekScalarValue \(3\)"
@@ -35,6 +45,7 @@
   [interior_gap]
     type = RunException
     input = gap.i
+    prereq = precompile
     expect_err = "The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
                  "any gaps. You are currently allocating scalar values into non-contiguous slots \(2, 4, 5\)"
     requirement = "The system shall error if there is a gap between the slots used for NekScalarValues, "
@@ -44,6 +55,7 @@
   [postprocessor]
     type = CSVDiff
     input = driver.i
+    prereq = precompile
     csvdiff = driver_out_nek0.csv
     requirement = "The system shall allow the NekScalarValue user objects to be represented as postprocessors."
     required_objects = 'NekRSProblem'
@@ -51,6 +63,7 @@
   [driver_multi]
     type = CSVDiff
     input = driver_multi.i
+    prereq = precompile
     min_parallel = 3
     csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
@@ -61,6 +74,7 @@
   [driver_multi_fld]
     type = CheckFiles
     input = driver_multi.i
+    prereq = precompile
     min_parallel = 3
     cli_args = 'MultiApps/nek/cli_args="Problem/write_fld_files=true"'
     check_files = 'a00ethier0.f00001 a01ethier0.f00001 a02ethier0.f00001'
