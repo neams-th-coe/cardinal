@@ -3,41 +3,28 @@
     type = FileMeshGenerator
     file = ../meshes/tet_cube.e
   []
-
-  allow_renumbering = false
   parallel_type = replicated
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = mesh
-  mesh_template = ../meshes/tet_cube.e
+  tally_type = cell
   solid_cell_level = 0
+  tally_blocks = '1'
   solid_blocks = '1'
   power = 1000.0
   skinner = moab
-[]
 
-[AuxVariables]
-  [density]
-    family = MONOMIAL
-    order = CONSTANT
-  []
+  initial_properties = hdf5
 []
 
 [UserObjects]
   [moab]
     type = MoabSkinner
     temperature = temp
-    temperature_min = 0.0
-    temperature_max = 900.0
     n_temperature_bins = 1
-    build_graveyard = true
-
-    density = density
-    density_min = 0.0
-    density_max = 1000.0
-    n_density_bins = 4
+    temperature_min = 0.0
+    temperature_max = 100.0
   []
 []
 

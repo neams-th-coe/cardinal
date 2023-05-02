@@ -102,10 +102,9 @@ OpenMCCellAverageProblem::validParams()
 
   params.addParam<bool>("map_density_by_cell",
       true,
-      "Whether to try applying a unique density to every OpenMC cell (the default), or "
-      "instead try applying a unique density to every OpenMC material. This latter option "
-      "exists if you want to fill the same material in multiple cells, but only set that "
-      "material to one density based on feedback. If your OpenMC model has a unique material "
+      "Whether to apply a unique density to every OpenMC cell (the default), or "
+      "instead apply a unique density to every OpenMC material (even if that material is "
+      "filled into more than one cell). If your OpenMC model has a unique material "
       "in every cell you want to receive density feedback, these two options are IDENTICAL");
 
   // TODO: would be nice to auto-detect this
@@ -451,6 +450,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
+   if (!_has_fluid_blocks || isParamValid("skinner"))
+     checkUnusedParam(params, "map_density_by_cell", "either (i) applying geometry skinning or (ii) 'fluid_blocks' is empty");
+
   // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled with DAGMC.
   // So we can assume that if we have a DAGMC geometry, that we will also by this point have DAGMC enabled.
 #ifdef ENABLE_DAGMC
@@ -482,6 +484,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     const openmc::DAGUniverse * dag = dynamic_cast<const openmc::DAGUniverse *>(u);
     if (dag->uses_uwuw()) // TODO: test
       mooseError("The 'skinner' does not currently support the UWUW workflow.");
+
+    // The newly-generated DAGMC cells could be disjoint in space, in which case
+    // it is impossible for us to know with 100% certainty a priori how many materials
+    // we would need to create.
+    _map_density_by_cell = false;
   }
 #else
   checkUnusedParam(params, "skinner", "DAGMC geometries in OpenMC are not enabled in this build of Cardinal");
@@ -730,8 +737,10 @@ OpenMCCellAverageProblem::initialSetup()
 #ifdef ENABLE_DAGMC
   if (isParamValid("skinner"))
   {
-    if (_has_fluid_blocks)
-      mooseError("'skinner' currently can only skin solid-only models, because we are not re-creating OpenMC materials for the newly-created cells. This will be relaxed soon.");
+    if (_has_fluid_blocks && _has_solid_blocks)
+      mooseError("The 'skinner' currently does not distinguish between fluid vs. solid blocks "
+        "(and will apply density skinning over the entire domain). For now, just set your entire "
+        "domain to fluid, by setting a density on the MOOSE side to send into OpenMC.");
 
     if (_symmetry)
       mooseError("Cannot combine the 'skinner' with 'symmetry_mapper'!\n\nWhen using a skinner, "
@@ -746,14 +755,15 @@ OpenMCCellAverageProblem::initialSetup()
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
 
-    // If the density bins are > 1, we need to re-init the OpenMC materials once (between
-    // the first time we read the materials.xml and when we run the first skinned OpenMC
-    // geometry) so that we have unique materials that can be set to individual densities.
-    // This is just not yet implemented. I think it'd be worthwhile to just allow OpenMC
-    // to set densities of cells filled by the same material, i.e. have the "density"
-    // construct attached to the cell, not material.
-    if (_skinner->nDensityBins() > 1)
-      paramError("skinner", "Density binning is not currently supported for the OpenMC wrapping!");
+    if (_skinner->hasDensitySkinning() != _has_fluid_blocks)
+      mooseError("Detected inconsistent settings for density skinning and 'fluid_blocks'. If applying "
+        "density feedback with 'fluid_blocks', then you must apply density skinning in the '",
+        name, "' user object (and vice versa)");
+
+    if (_initial_condition == coupling::hdf5)
+      paramError("initial_properties", "Cannot load initial temperature and density properties from "
+        "HDF5 files because there is no guarantee that the geometry (which is adaptively changing) matches "
+        "that used to write the HDF5 file.");
 
     _skinner->setGraveyard(true);
     _skinner->setScaling(_scaling);
@@ -2981,6 +2991,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         openmc::model::surfaces.clear();
         openmc::model::surface_map.clear();
 
+        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
+        updateMaterials();
+
         // regenerate the DAGMC geometry
         reloadDAGMC();
 
@@ -3218,4 +3231,50 @@ OpenMCCellAverageProblem::reloadDAGMC()
 #endif
 }
 
+void
+OpenMCCellAverageProblem::updateMaterials()
+{
+#ifdef ENABLE_DAGMC
+  // We currently only re-init the materials one time, because we create one new
+  // material for every density bin, even if that density bin doesn't actually
+  // appear in the problem. TODO: we could probably reduce memory usage
+  // if we only re-generated materials we strictly needed for the model.
+  if (!_first_transfer)
+    return;
+
+  // only need to create new materials if we have density skinning
+  if (_skinner->nDensityBins() == 1)
+    return;
+
+  // map from IDs to names (names used by the skinner, not necessarily any internal
+  // name in OpenMC, because you're not strictly required to add names for materials
+  // with the OpenMC input files)
+  std::map<int32_t, std::string> ids_to_names;
+  for (const auto & m : openmc::model::material_map)
+  {
+    auto id = m.first;
+    auto idx = m.second;
+    if (ids_to_names.count(id))
+      mooseError("Internal error: material_map has more than one material with the same ID");
+
+    ids_to_names[id] = materialName(idx);
+  }
+
+  // append _0 to all existing material names
+  for (const auto & mat : openmc::model::materials)
+    mat->set_name(ids_to_names[mat->id()] + "_0");
+
+  // Then, create the copies of each material
+  int n_mats = openmc::model::materials.size();
+  for (unsigned int n = 0; n < n_mats; ++n)
+  {
+    auto name = ids_to_names[openmc::model::materials[n]->id()];
+    for (unsigned int j = 1; j < _skinner->nDensityBins(); ++j)
+    {
+      openmc::Material & new_mat = openmc::model::materials[n]->clone();
+      new_mat.set_name(name + "_" + std::to_string(j));
+    }
+  }
+#endif
+}
 #endif

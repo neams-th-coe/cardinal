@@ -1,0 +1,30 @@
+[Tests]
+  [skin]
+    type = Exodiff
+    input = openmc.i
+    exodiff = openmc_out.e
+    requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when skinning "
+                  "by density as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
+                  "directory."
+    mesh_mode = 'replicated'
+    required_objects = 'MoabSkinner'
+  []
+  [disjoint_bins]
+    type = Exodiff
+    input = disjoint_bins.i
+    exodiff = disjoint_bins_out.e
+    requirement = "The system shall give identical Monte Carlo solution when skinning "
+                  "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
+                  "directory. For this case, a bin is split across disjoint elements."
+    mesh_mode = 'replicated'
+    required_objects = 'MoabSkinner'
+  []
+  [cannot_skin_solid]
+    type = RunException
+    input = only_solid.i
+    expect_err = "Detected inconsistent settings for density skinning and 'fluid_blocks'"
+    requirement = "The system shall error if attempting to apply density skinning without any fluid blocks ready to receive variable density."
+    mesh_mode = 'replicated'
+    required_objects = 'MoabSkinner'
+  []
+[]
