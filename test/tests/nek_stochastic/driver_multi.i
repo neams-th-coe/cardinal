@@ -25,10 +25,9 @@
 [MultiApps]
   [nek]
     type = SamplerFullSolveMultiApp
-    input_files = nek.i
+    input_files = nek_multi.i
     sampler = sample
     mode = normal
-    #min_procs_per_app = 1
   []
 []
 

@@ -54,7 +54,17 @@
     min_parallel = 3
     csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
-                  "3 unique NekRS solves, without any restart or overlap of MPI communicators."
+                  "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
+                  "are properly received in the scratch space by using that value to set a dummy scalar01."
+    required_objects = 'NekRSProblem'
+  []
+  [driver_multi_fld]
+    type = CheckFiles
+    input = driver_multi.i
+    min_parallel = 3
+    cli_args = 'MultiApps/nek/cli_args="Problem/write_fld_files=true"'
+    check_files = 'a00ethier0.f00001 a01ethier0.f00001 a02ethier0.f00001'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS and write unique NekRS field files for each."
     required_objects = 'NekRSProblem'
   []
 []
