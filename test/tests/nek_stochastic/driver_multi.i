@@ -2,6 +2,7 @@
   auto_create_executioner = false
 []
 
+# Define distributions for random quantities
 [Distributions]
   [uniform]
     type = Uniform
@@ -10,6 +11,7 @@
   []
 []
 
+# Sample those distributions to get num_rows unique sets of inputs
 [Samplers]
   [sample]
     type = MonteCarlo
@@ -32,12 +34,30 @@
 []
 
 [Transfers]
-  [nek]
+  [transer_random_inputs_to_nek]
     type = SamplerParameterTransfer
     to_multi_app = nek
     sampler = sample
     parameters = 'UserObjects/scalar1/value'
     check_multiapp_execute_on = false
+  []
+  [get_qois]
+    type = SamplerReporterTransfer
+    from_multi_app = nek
+    sampler = sample
+    stochastic_reporter = results
+    from_reporter = 'max_scalar/value'
+  []
+[]
+
+[Reporters]
+  [results]
+    type = StochasticReporter
+  []
+  [stats]
+    type = StatisticsReporter
+    reporters = 'results/get_qois:max_scalar:value'
+    compute = 'mean stddev'
   []
 []
 
@@ -51,4 +71,8 @@
 
 [Outputs]
   execute_on = 'INITIAL TIMESTEP_END'
+
+  [reporter]
+    type = JSON
+  []
 []
