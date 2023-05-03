@@ -81,4 +81,14 @@
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS and write unique NekRS field files for each."
     required_objects = 'NekRSProblem'
   []
+  [driver_multi_transient]
+    type = CSVDiff
+    input = driver_transient.i
+    prereq = precompile
+    min_parallel = 3
+    csvdiff = 'driver_transient_out_nek0.csv driver_transient_out_nek1.csv driver_transient_out_nek2.csv'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends time-dependent "
+                  "random values from MOOSE to NekRS, where time synchronization is driven by the main app"
+    required_objects = 'NekRSProblem'
+  []
 []
