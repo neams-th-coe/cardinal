@@ -21,11 +21,9 @@
 [UserObjects]
   [scalar1]
     type = NekScalarValue
-    value = 1.0
   []
   [scalar2]
     type = NekScalarValue
-    value = 1.0
   []
 []
 

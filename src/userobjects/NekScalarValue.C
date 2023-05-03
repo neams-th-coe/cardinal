@@ -28,7 +28,7 @@ InputParameters
 NekScalarValue::validParams()
 {
   InputParameters params = ThreadedGeneralUserObject::validParams();
-  params.addRequiredParam<Real>("value", "Scalar value to pass into NekRS");
+  params.addParam<Real>("value", 0.0, "Scalar value to pass into NekRS");
   params.addParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value; "
     "if not specified, this defaults to the first unused slot");
   params.declareControllable("value");
