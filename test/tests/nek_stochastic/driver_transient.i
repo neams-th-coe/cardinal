@@ -12,10 +12,7 @@
 [Samplers]
   [sample]
     type = MonteCarlo
-
-    # will work okay if the input file is run with at least 3 MPI ranks (one rank per Nek solve)
     num_rows = 3
-
     distributions = 'uniform'
     execute_on = timestep_begin
   []
@@ -26,8 +23,9 @@
     type = SamplerTransientMultiApp
     input_files = nek_multi.i
     sampler = sample
-    mode = normal
+    mode = batch-restore
     sub_cycling = true
+    force_safe_app_init = true
   []
 []
 

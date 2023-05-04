@@ -22,8 +22,8 @@
     type = SamplerFullSolveMultiApp
     input_files = nek.i
     sampler = sample
-    mode = normal
-    min_procs_per_app = 1
+    mode = batch-restore
+    force_safe_app_init = true
   []
 []
 
