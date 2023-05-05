@@ -41,6 +41,13 @@ public:
   virtual ~OpenMCProblemBase() override;
 
   /**
+   * Get the subdomain name for a given ID. If not named, we return the ID
+   * @param[in] id subdomain ID
+   * @return name
+   */
+  std::string subdomainName(const SubdomainID & id) const;
+
+  /**
    * Print a full error message when catching errors from OpenMC
    * @param[in] err OpenMC error code
    * @param[in] descriptor descriptive message for error

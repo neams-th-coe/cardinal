@@ -1366,17 +1366,11 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
     VariadicTable<std::string, std::string, std::string> aux({"Subdomain", "Temperature", "Density"});
 
-    for (const auto & s : _fluid_block_names)
-    {
-      auto id = _mesh.getSubdomainID(s);
-      aux.addRow(s, _subdomain_to_temp_vars[id].second, _subdomain_to_density_vars[id].second);
-    }
+    for (const auto & s : _fluid_blocks)
+      aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, _subdomain_to_density_vars[s].second);
 
-    for (const auto & s : _solid_block_names)
-    {
-      auto id = _mesh.getSubdomainID(s);
-      aux.addRow(s, _subdomain_to_temp_vars[id].second, "");
-    }
+    for (const auto & s : _solid_blocks)
+      aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, "");
 
     aux.print(_console);
 
@@ -1486,10 +1480,7 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
     }
 
     mats.pop_back();
-    std::string name = _mesh.getSubdomainName(i);
-    if (name.empty())
-      name = std::to_string(i);
-    vt.addRow(name, mats);
+    vt.addRow(subdomainName(i), mats);
   }
 
   if (_verbose)
@@ -2922,8 +2913,12 @@ OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
     offset += filter->n_bins();
   }
 
-  if (_verbose && print_table)
-    vt.print(_console);
+  // do not print a table showing the fractional values for flux, because this tally score
+  // itself is not renormalized to preserve some total integral of flux (so the "fraction"
+  // is a bit of a misnomer)
+  if (_tally_score[score] != "flux")
+    if (_verbose && print_table)
+      vt.print(_console);
 
   return total;
 }

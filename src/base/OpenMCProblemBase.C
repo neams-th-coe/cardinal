@@ -689,4 +689,13 @@ OpenMCProblemBase::addExternalVariable(const std::string & name, const std::vect
   return _aux->getFieldVariable<Real>(0, name).number();
 }
 
+std::string
+OpenMCProblemBase::subdomainName(const SubdomainID & id) const
+{
+  std::string name = _mesh.getSubdomainName(id);
+  if (name.empty())
+    name = std::to_string(id);
+  return name;
+}
+
 #endif
