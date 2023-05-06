@@ -1467,9 +1467,23 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
   auto subdomains = coupledSubdomains();
   for (const auto & i : subdomains)
   {
-    std::string mats = "";
+    std::map<std::string, int> mat_to_num;
+
     for (const auto & m : _subdomain_to_material[i])
-      mats += " " + materialName(m) + ",";
+    {
+      auto name = materialName(m);
+      if (mat_to_num.count(name))
+        mat_to_num[name] += 1;
+      else
+        mat_to_num[name] = 1;
+    }
+
+    std::string mats = "";
+    for (const auto & m : mat_to_num)
+    {
+      std::string extra = m.second > 1 ? " (" + std::to_string(m.second) + ")" : "";
+      mats += " " + m.first + extra + ",";
+    }
 
     mats.pop_back();
     std::string name = _mesh.getSubdomainName(i);
@@ -1482,7 +1496,8 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
   {
     _console << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n" << std::endl;
     _console <<   "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
-    _console <<   "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we show the ID\n" << std::endl;
+    _console <<   "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we show the ID." << std::endl;
+    _console <<   "                  If N duplicate material names, we show the number in ( ).\n" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }
