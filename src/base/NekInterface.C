@@ -1713,7 +1713,6 @@ initializeDimensionalScales(const double U_ref,
   scales.V_ref = L_ref * L_ref * L_ref;
   scales.rho_ref = rho_ref;
   scales.Cp_ref = Cp_ref;
-  scales.p_ref = rho_ref * U_ref * U_ref;
 
   scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
   scales.source_ref = scales.flux_ref / L_ref;

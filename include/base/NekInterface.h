@@ -764,8 +764,6 @@ struct characteristicScales
 
   double Cp_ref;
 
-  double p_ref;
-
   double flux_ref;
 
   double source_ref;
