@@ -40,12 +40,16 @@ NekPressureSurfaceForce::NekPressureSurfaceForce(const InputParameters & paramet
     mooseError("The 'direction' cannot have zero norm!");
 
   _direction = d / d.norm();
+
+  if (_pp_mesh != "fluid")
+    mooseError("The 'NekPressureSurfaceForce' postprocessor can only be applied to the fluid mesh boundaries!\n"
+      "Please change 'mesh' to 'fluid'.");
 }
 
 Real
 NekPressureSurfaceForce::getValue()
 {
-  return nekrs::pressureSurfaceForce(_boundary, _direction);
+  return nekrs::pressureSurfaceForce(_boundary, _direction, _pp_mesh);
 }
 
 #endif

@@ -1205,9 +1205,9 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 }
 
 double
-pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction)
+pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction, const MooseEnum & pp_mesh)
 {
-  mesh_t * mesh = entireMesh();
+  mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
   double integral = 0.0;
@@ -1241,8 +1241,7 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
   double total_integral;
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
-  // multiply by the reference pressure and area to normalize
-  total_integral *= scales.p_ref * scales.A_ref;
+  dimensionalizeSideIntegral(field::pressure, boundary_id, total_integral, pp_mesh);
 
   return total_integral;
 }
