@@ -2,11 +2,17 @@
   type = NekRSStandaloneProblem
   casename = 'brick'
   output = 'pressure'
+
+  nondimensional = true
+  L_ref = 0.5
+  U_ref = 0.9
+  rho_0 = 0.8
 []
 
 [Mesh]
   type = NekRSMesh
   volume = true
+  scaling = 0.5
 []
 
 [Executioner]

@@ -15,7 +15,7 @@ void UDF_Setup(nrs_t *nrs)
     dfloat y = mesh->y[n];
     dfloat z = mesh->z[n];
 
-    nrs->P[n] = x + y * z + cos(x) + 25; // pressure
+    nrs->P[n] = x + 2*y + 3*z + cos(x) + 25; // pressure
   }
 }
 
