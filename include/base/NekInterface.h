@@ -532,6 +532,13 @@ double sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
                                     const MooseEnum & pp_mesh);
 
 /**
+ * Compute the integral of pressure on a surface, multiplied by the unit normal
+ * of the surface with a specified direction vector.
+ * @return pressure surface force, along a particular direction
+ */
+double pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction);
+
+/**
  * Compute the heat flux over a set of boundary IDs
  * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
  * @param[in] pp_mesh which NekRS mesh to operate on
@@ -753,6 +760,8 @@ struct characteristicScales
   double rho_ref;
 
   double Cp_ref;
+
+  double p_ref;
 
   double flux_ref;
 

@@ -1,0 +1,19 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 1
+  dt = 5.0e-4
+  polynomialOrder = 1
+  writeControl = steps
+  writeInterval = 2
+
+[VELOCITY]
+  viscosity = 1.0
+  density = 834.5
+  residualTol = 1.0e-6
+  boundaryTypeMap = wall, wall, wall, wall, wall, wall
+
+[PRESSURE]
+  residualTol = 1.0e-5

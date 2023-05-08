@@ -1,0 +1,10 @@
+[Tests]
+  [pressure]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    abs_zero = 1e-16
+    requirement = "The system shall allow pressure drag to be computed in the x, y, and z directions in dimensional form."
+    required_objects = 'NekRSProblem'
+  []
+[]
