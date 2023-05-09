@@ -238,3 +238,4 @@ mesh_info.i
 *.re2
 *.h5m
 *.msh
+*.nek5000

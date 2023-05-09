@@ -1205,6 +1205,48 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
 }
 
 double
+pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & direction, const MooseEnum & pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  double integral = 0.0;
+
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+
+      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          int vol_id = mesh->vmapM[offset + v];
+          int surf_offset = mesh->Nsgeo * (offset + v);
+
+          double p_normal = nrs->P[vol_id] *
+                            (mesh->sgeo[surf_offset + NXID] * direction(0) +
+                             mesh->sgeo[surf_offset + NYID] * direction(1) +
+                             mesh->sgeo[surf_offset + NZID] * direction(2));
+
+          integral += -1.0 * p_normal * mesh->sgeo[surf_offset + WSJID];
+        }
+      }
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  dimensionalizeSideIntegral(field::pressure, boundary_id, total_integral, pp_mesh);
+
+  return total_integral;
+}
+
+double
 heatFluxIntegral(const std::vector<int> & boundary_id, const MooseEnum & pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
