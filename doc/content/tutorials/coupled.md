@@ -20,3 +20,4 @@ Two examples are provided:
 
 - [TRISO gas-cooled compact](triso_multiphysics.md)
 - [SFR pincell](pincell_multiphysics.md)
+- [MSFR](msfr.md)

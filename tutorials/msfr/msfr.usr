@@ -1,0 +1,273 @@
+c-----------------------------------------------------------------------
+c  nek5000 user-file template
+c
+c  user specified routines:
+c     - uservp  : variable properties
+c     - userf   : local acceleration term for fluid
+c     - userq   : local source term for scalars
+c     - userbc  : boundary conditions
+c     - useric  : initial conditions
+c     - userchk : general purpose routine for checking errors etc.
+c     - userqtl : thermal divergence for lowMach number flows
+c     - usrdat  : modify element vertices
+c     - usrdat2 : modify mesh coordinates
+c     - usrdat3 : general purpose routine for initialization
+c
+c-----------------------------------------------------------------------
+      include "recycle.f"
+c-----------------------------------------------------------------------
+      subroutine uservp(ix,iy,iz,eg) ! set variable properties
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      integer ix,iy,iz,e,eg
+
+      udiff =0.0
+      utrans=0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userf(ix,iy,iz,eg) ! set acceleration term
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+c
+c     Note: this is an acceleration term, NOT a force!
+c     Thus, ffx will subsequently be multiplied by rho(x,t).
+c
+      integer ix,iy,iz,e,eg
+
+      ffx = 0.0
+      ffy = 0.0
+      ffz = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userq(ix,iy,iz,eg) ! set source term
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      integer ix,iy,iz,e,eg
+
+      qvol = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userbc(ix,iy,iz,iside,eg) ! set up boundary conditions
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      integer ix,iy,iz,iside,e,eg
+
+      e = gllel(eg)
+
+      ux   = 0.0
+      uy   =-1.54261473197
+      uz   = 0.0
+      temp = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine useric(ix,iy,iz,eg) ! set up initial conditions
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      integer ix,iy,iz,e,eg
+
+      e = gllel(eg)
+
+      ux   = 0.0
+      uy   = 0.0
+      uz   = 0.0
+      temp = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userchk()
+C      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      real mass_flow_rate
+
+      COMMON /NRSSCPTR/ nrs_scptr(4)
+      integer*8         nrs_scptr	
+	
+      real qt
+      common /mauricio/ qt(lx1,ly1,lz1,lelv)
+
+
+      common /cvelbc/ uin(lx1,ly1,lz1,lelv)
+     &              , vin(lx1,ly1,lz1,lelv)
+     &              , win(lx1,ly1,lz1,lelv)
+     &              , tin(lx1,ly1,lz1,lelt,ldimt)
+
+c recycling boundary conditions
+      data ubar / 1.54261473197 /
+      data tbar / 0.0 /
+      save ubar,tbar
+
+      nxyz = nx1*ny1*nz1
+      ntot = nxyz*nelt
+
+      if(istep.eq.0) then
+        nrs_scptr(2) = loc(uin(1,1,1,1)) ! pass to udf
+        nrs_scptr(3) = loc(vin(1,1,1,1)) ! pass to udf
+        nrs_scptr(4) = loc(win(1,1,1,1)) ! pass to udf
+      endif
+
+      call set_inflow_fpt(0.0,-0.8,0.0,ubar,tbar) ! for unextruded inlet channels
+
+      call outlet_avgs()
+
+      nrs_scptr(2) = loc(uin(1,1,1,1)) ! pass to udf
+      nrs_scptr(3) = loc(vin(1,1,1,1)) ! pass to udf
+      nrs_scptr(4) = loc(win(1,1,1,1)) ! pass to udf
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userqtl ! Set thermal divergence
+
+      call userqtl_scig 
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat()   ! This routine to modify element vertices
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2()  ! This routine to modify mesh coordinates
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      integer iel, ifc, id_face
+      integer i, e, f, n
+      real Dhi
+      real xx,yy,zz,dr
+
+      do iel=1,nelv
+      do ifc=1,2*ndim
+        id_face = bc(5,ifc,iel,1)
+        if (id_face.eq.1) then        ! surface 1 for inlet
+           cbc(ifc,iel,1) = 'v  '
+        elseif (id_face.eq.2) then    ! surface 2 for outlet
+           cbc(ifc,iel,1) = 'O  '
+        elseif (id_face.eq.3) then    ! surface 3 for wall
+           cbc(ifc,iel,1) = 'W  '
+        endif
+      enddo
+      enddo
+
+      do i=2,2      !ldimt1
+      do e=1,nelt
+      do f=1,ldim*2
+        cbc(f,e,i)=cbc(f,e,1)
+        if(cbc(f,e,1).eq.'W  ') cbc(f,e,i)='t  '
+        if(cbc(f,e,1).eq.'v  ') cbc(f,e,i)='t  '
+      enddo
+      enddo
+      enddo
+
+c for boundaryTypeMap in par file 
+      do iel=1,nelv
+      do ifc=1,2*ndim
+          boundaryID(ifc,iel) = 0
+          boundaryID(ifc,iel) =  bc(5,ifc,iel,1)
+          boundaryIDt(ifc,iel) = 0
+          boundaryIDt(ifc,iel) =  bc(5,ifc,iel,1)
+      enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3()
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+C-----------------------------------------------------------------------
+      subroutine inlet_avgs(mass_flow_rate)
+      include 'SIZE'
+      include 'TOTAL'
+
+      real sint2,sarea2
+      real tout,touta,TAA,mass_flow_rate
+	  
+      ntot = lx1*ly1*lz1*nelv
+      
+      touta = 0.0
+      TAA = 0.0
+
+      do ie=1,nelv
+      do ifc=1,2*ldim
+        if(cbc(ifc,ie,1).eq.'v  ') then
+        call surface_int(sint2,sarea2,vy,ie,ifc)
+        TAA= TAA + sarea2
+        touta= touta + sint2
+        endif
+      enddo
+      enddo
+
+      touta = glsum(touta,1)
+      TAA = glsum(TAA,1)
+
+      mass_flow_rate = touta
+
+      return
+      end
+c-----------------------------------------------------------------------
+c-----------------------------------------------------------------------
+      subroutine outlet_avgs()
+c      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      real tout,touta,TAA
+      real sint2,sarea2
+
+      ntot = lx1*ly1*lz1*nelv
+      
+      touta = 0.0
+      TAA = 0.0
+
+      do ie=1,nelv
+      do ifc=1,2*ldim
+        if(cbc(ifc,ie,1).eq.'O  ') then
+        call surface_int(sint2,sarea2,t(1,1,1,1,1),ie,ifc)
+        TAA= TAA + sarea2
+        touta= touta + sint2
+        endif
+      enddo
+      enddo
+
+      touta = glsum(touta,1)
+      TAA = glsum(TAA,1)
+      touta = touta/TAA
+
+      return
+      end  
+c-----------------------------------------------------------------------
