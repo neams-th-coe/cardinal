@@ -25,7 +25,7 @@
     sampler = sample
     mode = batch-restore
     sub_cycling = true
-    force_safe_app_init = true
+    wait_for_first_app_init = true
   []
 []
 

@@ -23,7 +23,7 @@
     input_files = nek.i
     sampler = sample
     mode = batch-restore
-    force_safe_app_init = true
+    wait_for_first_app_init = true
   []
 []
 
