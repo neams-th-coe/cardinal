@@ -1,0 +1,35 @@
+void velocityDirichletConditions(bcData *bc)
+{
+  bc->u =  bc->wrk[bc->idM + 2*bc->fieldOffset];
+  bc->v =  bc->wrk[bc->idM + 3*bc->fieldOffset];
+  bc->w =  bc->wrk[bc->idM + 4*bc->fieldOffset];
+}
+
+// Stabilized outflow (Dong et al)
+void pressureDirichletConditions(bcData *bc)
+{
+  const dfloat iU0delta = 20.0;
+  const dfloat un = bc->u*bc->nx + bc->v*bc->ny + bc->w*bc->nz;
+  const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta));
+  bc->p = -0.5 * (bc->u*bc->u + bc->v*bc->v + bc->w*bc->w) * s0;
+}
+
+void scalarDirichletConditions(bcData *bc)
+{
+  bc->s = 0.0;
+}
+
+void scalarNeumannConditions(bcData *bc)
+{
+  bc->flux = 0.0;
+}
+
+@kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)
+{
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      QVOL[id] = source[offset + id];
+    }
+  }
+}

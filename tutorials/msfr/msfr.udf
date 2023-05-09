@@ -1,0 +1,40 @@
+#include <math.h>
+#include "udf.hpp"
+
+static occa::kernel mooseHeatSourceKernel;
+
+void userq(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
+{
+  auto mesh = nrs->cds->mesh[0];
+  mooseHeatSourceKernel(mesh->Nelements, 0, nrs->o_usrwrk, o_FS);
+}
+
+void UDF_LoadKernels(occa::properties& kernelInfo)
+{
+   mooseHeatSourceKernel = oudfBuildKernel(kernelInfo, "mooseHeatSource");
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  udf.sEqnSource = &userq;
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+  // call userchk every step for recycle inlet
+  nek::ocopyToNek(time, tstep);
+  nek::userchk();
+
+ 	mesh_t *mesh = nrs->meshV;
+  if (tstep == 0)
+  {
+    double *uin= (double *) nek::scPtr(2);
+    nrs->o_usrwrk.copyFrom(uin, mesh->Nelements * mesh->Np * sizeof(dfloat), 2*nrs->fieldOffset*sizeof(dfloat));
+
+    double *vin= (double *) nek::scPtr(3);
+    nrs->o_usrwrk.copyFrom(vin, mesh->Nelements * mesh->Np * sizeof(dfloat), 3*nrs->fieldOffset*sizeof(dfloat));
+
+    double *win= (double *) nek::scPtr(4);
+    nrs->o_usrwrk.copyFrom(win, mesh->Nelements * mesh->Np * sizeof(dfloat), 4*nrs->fieldOffset*sizeof(dfloat));
+  }
+}

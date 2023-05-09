@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1" name="salt">
+    <density units="g/cm3" value="4.1249" />
+    <nuclide ao="0.779961" name="Li7" />
+    <nuclide ao="3.89999999999957e-05" name="Li6" />
+    <nuclide ao="0.02515" name="U233" />
+    <nuclide ao="1.66" name="F19" />
+    <nuclide ao="3.9970000000000005e-05" name="Th230" />
+    <nuclide ao="0.19981003" name="Th232" />
+  </material>
+</materials>
