@@ -105,6 +105,9 @@ The NekRS input files needed to solve the incompressible Navier-Stokes equations
 - `msfr.par`: High-level settings for the solver, boundary condition mappings to sidesets, and the equations to solve
 - `msfr.udf`: User-defined C++ functions for on-line postprocessing and model setup
 - `msfr.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and source terms
+- `msfr.usr`: User-defined Fortran functions; these are used to apply the recycling boundary condition.
+  Long term, eventually all Nek5000 capabilities will be ported to NekRS, and this fortran file would
+  not be necessary.
 
 A detailed description of all of the available parameters, settings, and use
 cases for these input files is available on the
@@ -119,11 +122,13 @@ In the nondimensional formulation,
 the "viscosity" becomes $1/Re$, where $Re$ is the Reynolds number, while the
 "thermal conductivity" becomes $1/Pe$, where $Pe$ is the Peclet number. These nondimensional
 numbers are used to set various diffusion coefficients in the governing equations
-with syntax like `-500.0`, which is equivalent in NekRS syntax to $\frac{1}{500.0}$.
+with syntax like `-4.8e4`, which is equivalent in NekRS syntax to $Re=\frac{1}{4.8e4}$.
 
 We use the [high-pass filter](https://nek5000.github.io/NekDoc/problem_setup/filter.html)
  in NekRS for the [!ac](LES), and filter the highest two modes. We set a Reynolds number of
-$4.8\times10^{4}$ and a Prandtl number of 17.05.
+$4.8\times10^{4}$ and a Prandtl number of 17.05. We restart this simulation from a previous
+standalone NekRS run, which used a "frozen" power distribution given in the literature
+[!cite](rouch).
 
 !listing /tutorials/msfr/msfr.par
 
@@ -132,7 +137,8 @@ use to send OpenMC's heat source from Cardinal into NekRS. As we will show later
 this heat source is occupying the first (0-indexed) slot of the scratch space. In
 the `UDF_ExecuteStep`, we also do some special copies from some Nek5000 backend data
 (special usage here to accomplish the recycling boundary conditions) into the 3rd, 4th,
-and 5th slots of the scratch space. As shown in the `.par` file, we will read initial
+and 5th slots of the scratch space (the scratch space is zero-indexed).
+As shown in the `.par` file, we will read initial
 conditions for velocity, pressure, and temperature from a restart file, `restart.fld`,
 so we don't need to set any other initial conditions here.
 

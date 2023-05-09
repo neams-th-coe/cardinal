@@ -23,7 +23,7 @@ settings.source = openmc.source.Source(space=uniform_dist)
 
 settings.batches = 1500
 settings.inactive = 500
-settings.particles = 10000
+settings.particles = 50000
 
 settings.temperature = {'default': 898.0,
                         'method': 'interpolation',

@@ -37,4 +37,5 @@ rho = 4147.3                            # kg/m3
 
 [Outputs]
   exodus = true
+  hide = 'source_integral'
 []

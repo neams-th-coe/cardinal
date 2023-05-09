@@ -8,11 +8,11 @@ c     - userq   : local source term for scalars
 c     - userbc  : boundary conditions
 c     - useric  : initial conditions
 c     - userchk : general purpose routine for checking errors etc.
-c     - userqtl : thermal divergence for lowMach number flows 
-c     - usrdat  : modify element vertices 
+c     - userqtl : thermal divergence for lowMach number flows
+c     - usrdat  : modify element vertices
 c     - usrdat2 : modify mesh coordinates
 c     - usrdat3 : general purpose routine for initialization
-c     
+c
 c-----------------------------------------------------------------------
       include "recycle.f"
 c-----------------------------------------------------------------------
@@ -102,7 +102,7 @@ C      implicit none
       include 'SIZE'
       include 'TOTAL'
 
-      real mass_flow_rate, QTOT
+      real mass_flow_rate
 
       COMMON /NRSSCPTR/ nrs_scptr(4)
       integer*8         nrs_scptr	
@@ -116,7 +116,7 @@ C      implicit none
      &              , win(lx1,ly1,lz1,lelv)
      &              , tin(lx1,ly1,lz1,lelt,ldimt)
 
-c recycling BC
+c recycling boundary conditions
       data ubar / 1.54261473197 /
       data tbar / 0.0 /
       save ubar,tbar
@@ -124,113 +124,19 @@ c recycling BC
       nxyz = nx1*ny1*nz1
       ntot = nxyz*nelt
 
-      if (mod(istep,20).eq.0) then
-      varmin = glmin(vx,ntot)
-      varmax = glmax(vx,ntot)
-      if (nid.eq.0) write(6,*) 'vx min/max: ',varmin,'-',varmax
-	  
-      varmin = glmin(vy,ntot)
-      varmax = glmax(vy,ntot)
-      if (nid.eq.0) write(6,*) 'vy min/max: ',varmin,'-',varmax
-
-      varmin = glmin(vz,ntot)
-	  varmax = glmax(vz,ntot)
-      if (nid.eq.0) write(6,*) 'vz min/max: ',varmin,'-',varmax
-	  
-      varmin = glmin(pr,ntot)
-	  varmax = glmax(pr,ntot)
-      if (nid.eq.0) write(6,*) 'pr min/max: ',varmin,'-',varmax
-
-      varmin = glmin(t(1,1,1,1,1),ntot)
-	  varmax = glmax(t(1,1,1,1,1),ntot)
-      if (nid.eq.0) write(6,*) 'temp min/max: ',varmin,'-',varmax	
-      endif
-	
-C  compute the heat source term at the beginning
-C  store it for all the subsequent time steps
       if(istep.eq.0) then
+        nrs_scptr(2) = loc(uin(1,1,1,1)) ! pass to udf
+        nrs_scptr(3) = loc(vin(1,1,1,1)) ! pass to udf
+        nrs_scptr(4) = loc(win(1,1,1,1)) ! pass to udf
+      endif
 
-c        call rzero(t(1,1,1,1,1), ntot)
-
-        call rzero(qt,ntot)
-
-        fc0  =  9.0598E+08
-        fc1  = -2.8371E-02
-        fc2  = -5.0560E-02
-        fc3  = -1.3396E+00
-        fc4  = -6.3452E-03
-        fc5  = -1.1533E+00
-        fc6  =  7.6823E-01
-        fc7  =  4.4223E-02
-        fc8  =  1.2867E+00
-        fc9  =  6.5014E-02
-        fc10 = -1.4560E-01
-        fc11 = -9.5125E-03
-        fc12 = -2.2533E-01
-        fc13 = -4.6725E-02
-        fc14 = -1.0218E-01
-
-        do i=1,ntot
-           ! rr=ym1(i,1,1,1)
-           ! zz=xm1(i,1,1,1)
-		   
-		   rr = (xm1(i,1,1,1)**2.0 + zm1(i,1,1,1)**2.0)**0.5
-		   zz = ym1(i,1,1,1)
-		   
-           qt(i,1,1,1) = fc0 * (
-     &                   1.0377388808236376 +
-     &                   fc1 * rr +
-     &                   fc2 * zz +
-     &                   fc3 * rr**2.0 +
-     &                   fc4 * rr * zz +
-     &                   fc5 * zz**2.0 +
-     &                   fc6 * rr**3.0 +
-     &                   fc7 * rr**2.0 * zz +
-     &                   fc8 * rr * zz**2.0 +
-     &                   fc9 * zz**3.0 +
-     &                   fc10* rr**4.0 +
-     &                   fc11* rr**3.0 * zz +
-     &                   fc12* rr**2.0 * zz**2.0 +
-     &                   fc13* rr * zz**3.0 +
-     &                   fc14* zz**4.0 )
-          qt(i,1,1,1) = max(0.0, qt(i,1,1,1)) !ensure qt .ge. 0
-          qt(i,1,1,1) = 1.18697E-09*qt(i,1,1,1)
-      enddo
-        if(nio.eq.0) write(6,*) "Heat source computed."
-        ! call copy(t(1,1,1,1,4),qt(1,1,1,1),ntot)
-
-        QTOT = glsc2(qt,bm1,ntot)
-	
-       if(nio.eq.0) write(6,*) "QTOT: ", QTOT
-
-      call inlet_avgs(mass_flow_rate)
-
-      do i=1,ntot 
-       qt(i,1,1,1)  =  qt(i,1,1,1) *(-mass_flow_rate/QTOT) 
-      enddo
-
-      QTOT = glsc2(qt,bm1,ntot)
-
-       if(nio.eq.0) write(6,*) "QTOT new: ", QTOT
-
-      nrs_scptr(1) = loc(qt(1,1,1,1)) ! pass to udf
-      nrs_scptr(2) = loc(uin(1,1,1,1)) ! pass to udf
-      nrs_scptr(3) = loc(vin(1,1,1,1)) ! pass to udf
-      nrs_scptr(4) = loc(win(1,1,1,1)) ! pass to udf
-
-	  endif
-
-c recycling boundary condition
-      ! call set_inflow_fpt(0.0,-1.2,0.0,ubar,tbar)
       call set_inflow_fpt(0.0,-0.8,0.0,ubar,tbar) ! for unextruded inlet channels
 
       call outlet_avgs()
 
-      nrs_scptr(1) = loc(qt(1,1,1,1)) ! pass to udf
       nrs_scptr(2) = loc(uin(1,1,1,1)) ! pass to udf
       nrs_scptr(3) = loc(vin(1,1,1,1)) ! pass to udf
       nrs_scptr(4) = loc(win(1,1,1,1)) ! pass to udf
-
 
       return
       end
@@ -283,19 +189,6 @@ c-----------------------------------------------------------------------
       enddo
       enddo
 
-cc this part extrude the mesh at inlet...
-c      n=nx1*ny1*nz1*nelv
-c      Dhi = 1.0 !the geometric scaling factor
-c      do i=1,n
-c        xx = xm1(i,1,1,1)
-c        yy = ym1(i,1,1,1)
-c        zz = zm1(i,1,1,1)
-c        dr = sqrt(xx*xx+zz*zz)
-c        if(dr.gt.1.785 .and. yy.gt.(-0.94) .and. yy.lt.0.261) then
-c          ym1(i,1,1,1) = 2.0*(yy+0.94)-0.94
-c        endif      
-c      enddo
-
 c for boundaryTypeMap in par file 
       do iel=1,nelv
       do ifc=1,2*ndim
@@ -314,14 +207,10 @@ c-----------------------------------------------------------------------
       include 'SIZE'
       include 'TOTAL'
 
-c      call count_boundaries
-
       return
       end
 C-----------------------------------------------------------------------
-c-----------------------------------------------------------------------
       subroutine inlet_avgs(mass_flow_rate)
-c      implicit none
       include 'SIZE'
       include 'TOTAL'
 
@@ -346,15 +235,10 @@ c      implicit none
       touta = glsum(touta,1)
       TAA = glsum(TAA,1)
 
-      if(nid.eq.0) then
-      write(6,*) 'inlet area: ',TAA
-      write(6,*) 'inlet mass flow rate: ',touta
-      endif
-    
       mass_flow_rate = touta
 
       return
-      end  
+      end
 c-----------------------------------------------------------------------
 c-----------------------------------------------------------------------
       subroutine outlet_avgs()
