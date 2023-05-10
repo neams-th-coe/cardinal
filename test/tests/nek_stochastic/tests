@@ -64,9 +64,8 @@
     type = CSVDiff
     input = driver_transient.i
 
-    # the particular files we compare against assume that we made 3 sub-apps
-    min_parallel = 3
-    max_parallel = 3
+    # We do not need to restrict this test to specific numbers of processes, because the number of
+    # CSV files will equal 'num_rows'
     csvdiff = 'driver_transient_out_nek0.csv driver_transient_out_nek1.csv driver_transient_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends time-dependent "
                   "random values from MOOSE to NekRS, where time synchronization is driven by the main app"
