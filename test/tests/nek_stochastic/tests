@@ -83,7 +83,7 @@
   [read1]
     type = CSVDiff
     input = read.i
-    cli_args = 'Problem/casename="read1" Outputs/file_base=read1_out"
+    cli_args = 'Problem/casename="read1" Outputs/file_base=read1_out'
     csvdiff = read_out1.csv
     prereq = driver_multi_fld
     requirement = "The system shall launch multiple independent Nek solves (with multiple separate "
@@ -96,7 +96,7 @@
   [read2]
     type = CSVDiff
     input = read.i
-    cli_args = 'Problem/casename="read2" Outputs/file_base=read2_out"
+    cli_args = 'Problem/casename="read2" Outputs/file_base=read2_out'
     csvdiff = read_out2.csv
     prereq = driver_multi_fld
     requirement = "The system shall launch multiple independent Nek solves (with multiple separate "
