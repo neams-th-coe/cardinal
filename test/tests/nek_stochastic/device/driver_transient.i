@@ -24,7 +24,6 @@
     input_files = nek_multi.i
     sampler = sample
     mode = batch-restore
-    sub_cycling = true
     wait_for_first_app_init = true
   []
 []
