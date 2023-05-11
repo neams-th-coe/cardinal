@@ -41,7 +41,7 @@
                   "because this would mess up the host to device data transfer."
     required_objects = 'NekRSProblem'
   []
-  [driver_multi_transient]
+  [driver_transient]
     type = CSVDiff
     input = driver_transient.i
     csvdiff = 'driver_transient_out_nek0.csv driver_transient_out_nek1.csv driver_transient_out_nek2.csv'
@@ -60,7 +60,7 @@
     # we want to produce 3 unique output files because we have num_rows = 3, but by forcing this
     # to run on 1 rank, we can check that we get the correct naming convention when a single app
     # runs multiple sim
-    max_parallel = 2
+    max_parallel = 1
 
     check_files = 'a00ethier0.f00001 a01ethier0.f00001 a02ethier0.f00001'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS and write unique "
