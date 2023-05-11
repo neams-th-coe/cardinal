@@ -1,0 +1,28 @@
+[GENERAL]
+  startFrom = a02ethier0.f00001
+  polynomialOrder = 5
+  stopAt = numSteps
+  numSteps = 1
+  dt = 2e-03
+  timeStepper = tombo3
+  writeControl = steps
+  writeInterval = 5
+
+[MESH]
+  file="ethier.re2"
+
+[PRESSURE]
+  residualTol = 1e-08
+
+[VELOCITY]
+  solver = none
+  boundaryTypeMap = inlet
+
+[TEMPERATURE]
+  solver = none
+
+[SCALAR01]
+  solver = none
+
+[SCALAR02]
+  solver = none

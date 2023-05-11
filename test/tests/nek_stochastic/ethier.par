@@ -5,7 +5,7 @@ numSteps = 5
 dt = 2e-03
 timeStepper = tombo3
 writeControl = steps
-writeInterval = 20
+writeInterval = 5
 
 [PRESSURE]
 residualTol = 1e-08
