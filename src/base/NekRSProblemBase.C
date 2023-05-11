@@ -678,6 +678,16 @@ NekRSProblemBase::isDataTransferHappening(ExternalProblem::Direction direction)
 }
 
 void
+NekRSProblemBase::sendScalarValuesToNek()
+{
+  if (_nek_uos.size() == 0)
+    return;
+
+  for (const auto & uo : _nek_uos)
+    uo->setValue();
+}
+
+void
 NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
@@ -697,8 +707,7 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 
       solution.localize(*_serialized_solution);
 
-      for (const auto & uo : _nek_uos)
-        uo->setValue();
+      sendScalarValuesToNek();
 
       nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
 

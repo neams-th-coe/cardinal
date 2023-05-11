@@ -56,6 +56,9 @@ public:
    */
   unsigned int minimumScratchSizeForCoupling() const { return _minimum_scratch_size_for_coupling; }
 
+  /// Send values from NekScalarValue userobjects to NekRS
+  void sendScalarValuesToNek();
+
   /// Setup to fetch NekScalarValue user objects for sending scalar values into NekRS scratch space
   void getNekScalarValueUserObjects();
 
