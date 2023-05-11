@@ -343,6 +343,9 @@ protected:
   /// For constant synchronization intervals, the desired frequency (in units of Nek time steps)
   const unsigned int & _constant_interval;
 
+  /// Whether to skip writing a field file on NekRS's last time steo
+  const bool & _skip_final_field_file;
+
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;
 
@@ -369,9 +372,6 @@ protected:
 
   /// Whether the most recent time step was an output file writing step
   bool _is_output_step;
-
-  /// Prefix to apply to field files when writing automatically from Cardinal
-  std::string _prefix;
 
   /**
    * Underlying mesh object on which NekRS exchanges fields with MOOSE
