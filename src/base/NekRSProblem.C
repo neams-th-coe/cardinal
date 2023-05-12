@@ -636,8 +636,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       else if (nekrs::hasElasticitySolver())
         sendBoundaryDeformationToNek();
 
-      for (const auto & uo : _nek_uos)
-        uo->setValue();
+      sendScalarValuesToNek();
 
       // copy the boundary heat flux, volume heat source, and/or volume
       // mesh displacements in the scratch space to device

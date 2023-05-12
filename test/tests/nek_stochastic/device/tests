@@ -1,0 +1,12 @@
+[Tests]
+  [device]
+    type = CSVDiff
+    input = driver_transient.i
+    csvdiff = 'driver_transient_out_nek0.csv driver_transient_out_nek1.csv driver_transient_out_nek2.csv'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends time-dependent "
+                  "random values from MOOSE to NekRS. The values of the random variables are used to apply a "
+                  "Dirichlet boundary condition on temperature, which we confirm by looking at the value of "
+                  "temperature on the boundary using postprocessors."
+    required_objects = 'NekRSProblem'
+  []
+[]

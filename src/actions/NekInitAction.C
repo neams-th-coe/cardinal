@@ -141,7 +141,10 @@ NekInitAction::act()
                std::to_string(size) +
                " ranks and is trying to "
                "construct " +
-               std::to_string(_n_cases + 1) + "+ cases.");
+               std::to_string(_n_cases + 1) + "+ cases.\n\n"
+               "If you are running a Stochastic Tools simulation in either 'normal' or 'batch-reset'\n"
+               "mode, you will need at least 'min_procs_per_app' * 'num_rows' MPI ranks. OR, we\n"
+               "recommend using the 'batch-restore' mode, which does not have any such limitations.");
   }
 
   nekrs::setup(comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,

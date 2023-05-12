@@ -1,12 +1,11 @@
 [Mesh]
   type = NekRSMesh
-  boundary = '1'
   volume = true
 []
 
 [Problem]
   type = NekRSProblem
-  n_usrwrk_slots = 7
+  n_usrwrk_slots = 1
   casename = 'ethier'
 []
 
@@ -21,17 +20,6 @@
 [UserObjects]
   [scalar1]
     type = NekScalarValue
-    value = 1
-    usrwrk_slot = 2
-  []
-  [scalar2]
-    type = NekScalarValue
-    value = 1
-    usrwrk_slot = 4
-  []
-  [scalar3]
-    type = NekScalarValue
-    value = 1
-    usrwrk_slot = 5
+    usrwrk_slot = 0
   []
 []

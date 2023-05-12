@@ -1,16 +1,7 @@
 [Tests]
-  [precompile]
-    type = RunCommand
-    command = '${NEKRS_HOME}/bin/nrspre pin 1'
-    requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
-    required_objects = 'NekRSProblem'
-  []
   [invalid_write_fld]
     type = RunException
     input = nek.i
-    # needs a unique communicator for each Nek app
-    min_parallel = 2
-    prereq = precompile
     expect_err = "The 'write_fld_files' setting should only be true when multiple Nek simulations "
                  "are run as sub-apps on a master app.\n"
                  "Your input has Nek as the master app."
@@ -23,7 +14,6 @@
     exodiff = 'nek_master_out.e nek_master_out_nek0.e nek_master_out_nek1.e'
     # needs a unique communicator for each Nek app
     min_parallel = 2
-    prereq = precompile
     requirement = "The system shall be able to run multiple Nek simulations translated throughout "
                   "a master app's domain. This test compares against a MOOSE standalone case, and "
                   "gives less than 0.3% difference in various temperature metrics."
@@ -35,7 +25,6 @@
     check_files = 'a00pin0.f00001 a00pin0.f00002 a00pin0.f00003 a00pin0.f00004 a00pin0.f00005 a01pin0.f00001 a01pin0.f00002 a01pin0.f00003 a01pin0.f00004 a01pin0.f00005'
     # needs a unique communicator for each Nek app
     min_parallel = 2
-    prereq = precompile
     requirement = "The correct output files shall be written when writing separate output files for repeated "
                   "Nek simulation instances."
     required_objects = 'NekRSProblem'

@@ -41,6 +41,12 @@ public:
   /// Instead, we want to have a separate method that we can call from NekRSProblemBase
   virtual void setValue();
 
+  /**
+   * Get the value currently held by this user object
+   * @return value
+   */
+  Real getValue() const;
+
   virtual unsigned int usrwrkSlot() const { return _usrwrk_slot; }
 
   virtual void setCounter(const unsigned int & counter) { _counter = counter; }

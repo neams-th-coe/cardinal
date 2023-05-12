@@ -20,7 +20,6 @@
 [UserObjects]
   [scalar1]
     type = NekScalarValue
-    value = 1
     usrwrk_slot = 0
   []
 []

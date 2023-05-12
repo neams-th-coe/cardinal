@@ -20,6 +20,7 @@ static dfloat P_AMP;
 occa::kernel dpdxKernel; 
 occa::kernel exactUVWPKernel; 
 occa::kernel userMeshVelocityKernel;
+static occa::kernel cFillKernel;
 occa::memory o_x0, o_y0, o_z0;
 
 @oklBegin {
@@ -185,6 +186,16 @@ void scalarNeumannConditions(bcData *bc)
   bc->flux = p_nu * (grad_u_x * bc->nx + grad_u_y * bc->ny + grad_u_z * bc->nz);
 }
 
+@kernel void cFillKernel(const dlong Nelements, const dlong offset, const dfloat value, @restrict dfloat * source)
+{
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      source[offset + id] = value;
+    }
+  }
+}
+
 @kernel void userMeshVelocity(const dlong Ntotal,
                     const dlong offset,
                     const dfloat time,
@@ -242,6 +253,7 @@ void UDF_LoadKernels(occa::properties& kernelInfo)
   dpdxKernel = oudfBuildKernel(kernelInfo, "dpdx");
   exactUVWPKernel = oudfBuildKernel(kernelInfo, "exactUVWP"); 
   userMeshVelocityKernel = oudfBuildKernel(kernelInfo, "userMeshVelocity");
+  cFillKernel = oudfBuildKernel(kernelInfo, "cFillKernel");
 }
 
 void UDF_Setup0(MPI_Comm comm, setupAide &options)
@@ -281,6 +293,9 @@ void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
 {
   mesh_t *mesh = nrs->meshV;
   cds_t *cds = nrs->cds;
+
+  // set scalar1 value to the 3rd slot (zero-indexed)
+  cFillKernel(mesh->Nelements, 2 * nrs->fieldOffset, nrs->usrwrk[0], nrs->cds->o_S);
 
   if (tstep <= 5) {
     exactUVWPKernel(mesh->Nlocal, time, mesh->o_x, mesh->o_y, mesh->o_z, nrs->fieldOffset, nrs->o_P, nrs->o_U);

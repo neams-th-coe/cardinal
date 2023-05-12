@@ -97,6 +97,9 @@ NekRSProblemBase::validParams()
                         "Whether to only synchronize nekRS "
                         "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
 
+  params.addParam<bool>("skip_final_field_file", false, "By default, we write a NekRS field file "
+    "on the last time step; set this to true to disable");
+
   params.addParam<MooseEnum>("synchronization_interval", getSynchronizationEnum(),
     "When to synchronize the NekRS solution with the mesh mirror. By default, the NekRS solution "
     "is mapped to/receives data from the mesh mirror for every time step.");
@@ -119,6 +122,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
     _constant_interval(getParam<unsigned int>("constant_interval")),
+    _skip_final_field_file(getParam<bool>("skip_final_field_file")),
     _start_time(nekrs::startTime()),
     _elapsedStepSum(0.0),
     _elapsedTime(nekrs::getNekSetupTime()),
@@ -171,8 +175,6 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   if (_app.isUltimateMaster() && _write_fld_files)
     mooseError("The 'write_fld_files' setting should only be true when multiple Nek simulations "
                "are run as sub-apps on a master app.\nYour input has Nek as the master app.");
-
-  _prefix = fieldFilePrefix(_app.multiAppNumber());
 
   _nek_mesh = dynamic_cast<NekRSMesh *>(&mesh());
 
@@ -287,9 +289,20 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
 
 NekRSProblemBase::~NekRSProblemBase()
 {
-  // write nekRS solution to output if not already written for this step
-  if (!_is_output_step)
-    writeFieldFile(_time, _t_step);
+  // write nekRS solution to output if not already written for this step; nekRS does this
+  // behavior, so we duplicate it
+  if (!_is_output_step && !_skip_final_field_file)
+  {
+    if (_write_fld_files)
+      mooseWarning("When 'write_fld_files' is enabled, we skip Nek field file writing on end time!\n"
+                   "Depending on how many ranks you used, MOOSE may use the same object to run multiple\n"
+                   "sub-applications. By the time we get to the last time step, we've collapsed back to\n"
+                   "this singular state and don't have access to the individual Nek solves, so we cannot\n"
+                   "write the last time step solution to field files.\n\n"
+                   "To hide this warning, set 'skip_final_field_file = true'.");
+    else
+      writeFieldFile(_time, _t_step);
+  }
 
   if (nekrs::runTimeStatFreq())
     if (_t_step % nekrs::runTimeStatFreq())
@@ -311,7 +324,23 @@ NekRSProblemBase::writeFieldFile(const Real & step_end_time, const int & step) c
   Real t = _timestepper->nondimensionalDT(step_end_time);
 
   if (_write_fld_files)
-    nekrs::write_field_file(_prefix, t, step);
+  {
+    // this is the app number, but a single app may run Nek multiple times
+    auto app_number = std::to_string(_app.multiAppNumber());
+
+    // apps may also have numbers in their names, so we first need to get the actual raw app name;
+    // we strip out the app_number from the end of the app name
+    if (!stringHasEnding(_app.name(), app_number))
+      mooseError("Internal error: app name '" + _app.name() + "' does not end with app number: " + app_number);
+
+    auto name = _app.name().substr(0, _app.name().size() - app_number.size());
+    auto full_path = _app.getOutputFileBase();
+    std::string last_element(full_path.substr(full_path.rfind(name) + name.size()));
+
+    auto prefix = fieldFilePrefix(std::stoi(last_element));
+
+    nekrs::write_field_file(prefix, t, step);
+  }
   else
     nekrs::outfld(t, step);
 }
@@ -649,6 +678,16 @@ NekRSProblemBase::isDataTransferHappening(ExternalProblem::Direction direction)
 }
 
 void
+NekRSProblemBase::sendScalarValuesToNek()
+{
+  if (_nek_uos.size() == 0)
+    return;
+
+  for (const auto & uo : _nek_uos)
+    uo->setValue();
+}
+
+void
 NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
@@ -668,8 +707,7 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 
       solution.localize(*_serialized_solution);
 
-      for (const auto & uo : _nek_uos)
-        uo->setValue();
+      sendScalarValuesToNek();
 
       nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
 

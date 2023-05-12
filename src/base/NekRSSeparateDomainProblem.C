@@ -244,8 +244,7 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
           sendBoundaryScalarToNek(_pp_mesh, 3, *_toNekRS_scalar03);
       }
 
-      for (const auto & uo : _nek_uos)
-        uo->setValue();
+      sendScalarValuesToNek();
 
       // copy scratch to device
       nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
