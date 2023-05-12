@@ -12,7 +12,7 @@ for diagnostic purposes.
 As an example, the `s1` postprocessor will grab the value held by the
 `scalar1` userobject.
 
-!listing test/tests/nek_stochastic/nek.i
+!listing test/tests/nek_stochastic/nek_multi.i
   start=UserObjects
   end=Outputs
 
