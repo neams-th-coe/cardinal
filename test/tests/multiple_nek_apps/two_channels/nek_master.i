@@ -92,6 +92,7 @@ c = 450
     positions = '-0.5 0.0 0.0
                   0.5 0.0 0.0'
     output_in_position = true
+    wait_for_first_app_init = true
   []
 []
 

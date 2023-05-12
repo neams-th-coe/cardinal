@@ -239,3 +239,4 @@ mesh_info.i
 *.h5m
 *.msh
 *.nek5000
+*.json*

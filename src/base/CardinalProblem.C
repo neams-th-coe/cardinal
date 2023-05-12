@@ -63,3 +63,12 @@ CardinalProblem::checkDuplicateVariableName(const std::string & name) const
       "', but you already have a variable by this name. Please choose a different name "
       "for the nonlinear variable you are adding.");
 }
+
+bool
+CardinalProblem::stringHasEnding(std::string const & full, std::string const & ending) const
+{
+  if (full.length() >= ending.length())
+      return 0 == full.compare(full.length() - ending.length(), ending.length(), ending);
+
+  return false;
+}

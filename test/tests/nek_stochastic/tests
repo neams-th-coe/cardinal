@@ -1,44 +1,70 @@
 [Tests]
-  [exceed_available]
-    type = RunException
-    input = nek_error.i
-    cli_args = 'UserObjects/scalar1/usrwrk_slot=4'
-    expect_err = "This parameter cannot exceed the available pre-allocated slots \(1\)."
-    requirement = "The system shall error if trying to write stochastic input into a scratch space slot that has not been allocated"
+  [driver_transient]
+    type = CSVDiff
+    input = driver_transient.i
+    csvdiff = 'driver_transient_out_nek0.csv driver_transient_out_nek1.csv driver_transient_out_nek2.csv'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends time-dependent "
+                  "random values from MOOSE to NekRS, where time synchronization is driven by the main app. "
+                  "The values of the random variables are used to fill SCALAR02 with a constant value, which we "
+                  "then measure by outputting the scalar and applying postprocessors to it. This confirms that "
+                  "the random data we send to NekRS does correctly make it to device"
     required_objects = 'NekRSProblem'
   []
-  [overlap_coupling]
-    type = RunException
-    input = nek_error.i
-    expect_err = "Cannot write into a scratch space slot reserved for Nek-MOOSE coupling"
-    requirement = "The system shall error if trying to write stochastic input into a scratch space slot that is needed for other physics coupling purposes."
+  [driver_multi_fld]
+    type = CheckFiles
+    input = driver_multi.i
+    cli_args = 'MultiApps/nek/cli_args="Problem/write_fld_files=true"'
+
+    # we want to produce 3 unique output files because we have num_rows = 3, but by forcing this
+    # to run on 1 rank, we can check that we get the correct naming convention when a single app
+    # runs multiple sim
+    max_parallel = 1
+
+    check_files = 'a00ethier0.f00001 a01ethier0.f00001 a02ethier0.f00001'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS and write unique "
+                  "NekRS field files for each. By limiting this test to fewer MPI ranks than Apps, we "
+                  "also check that we still get the correct naming scheme"
     required_objects = 'NekRSProblem'
   []
-  [standalone_scratch]
-    type = RunException
-    input = nek_standalone_error.i
-    expect_err = "This parameter cannot exceed the available pre-allocated slots \(0\)."
-    requirement = "The system shall error if the scratch space is not allocated via Cardinal for stochastic cases for standalone Nek runs. We only need to test this for the standalone case because the other two coupling classes (NekRSProblem, NekRSSeparateDomainProblem) automatically require scratch allocated from Cardinal."
+  [read0]
+    type = CSVDiff
+    input = read.i
+    csvdiff = read_out.csv
+    prereq = driver_multi_fld
+    working_directory = 'read'
+    requirement = "The system shall launch multiple independent Nek solves (with multiple separate "
+                  "output files) when running in stochastic mode. We check this by loading the field "
+                  "files created by the driver_multi_fld test into new NekRS runs (the read0, read1, "
+                  "and read2 tests) tests as initial conditions "
+                  "and check that the values of the loaded fields match the stochastic values sent there."
     required_objects = 'NekRSProblem'
   []
-  [lower_gap]
-    type = RunException
-    input = min_gap.i
-    expect_err = "The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
-                 "any gaps between the slots used for multiphysics coupling \(0, 1\) and the first\n"
-                 "slot used for NekScalarValue \(3\)"
-    requirement = "The system shall error if there is a gap between the slots used for coupling (0 to n) "
-                  "and the slots needed for NekScalarValue, because this would mess up the host to device "
-                  "data transfer."
+  [read1]
+    type = CSVDiff
+    input = read.i
+    cli_args = 'Problem/casename="read1" Outputs/file_base=read1_out'
+    csvdiff = read1_out.csv
+    prereq = driver_multi_fld
+    working_directory = 'read'
+    requirement = "The system shall launch multiple independent Nek solves (with multiple separate "
+                  "output files) when running in stochastic mode. We check this by loading the field "
+                  "files created by the driver_multi_fld test into new NekRS runs (the read0, read1, "
+                  "and read2 tests) tests as initial conditions "
+                  "and check that the values of the loaded fields match the stochastic values sent there."
     required_objects = 'NekRSProblem'
   []
-  [interior_gap]
-    type = RunException
-    input = gap.i
-    expect_err = "The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
-                 "any gaps. You are currently allocating scalar values into non-contiguous slots \(2, 4, 5\)"
-    requirement = "The system shall error if there is a gap between the slots used for NekScalarValues, "
-                  "because this would mess up the host to device data transfer."
+  [read2]
+    type = CSVDiff
+    input = read.i
+    cli_args = 'Problem/casename="read2" Outputs/file_base=read2_out'
+    csvdiff = read2_out.csv
+    prereq = driver_multi_fld
+    working_directory = 'read'
+    requirement = "The system shall launch multiple independent Nek solves (with multiple separate "
+                  "output files) when running in stochastic mode. We check this by loading the field "
+                  "files created by the driver_multi_fld test into new NekRS runs (the read0, read1, "
+                  "and read2 tests) tests as initial conditions "
+                  "and check that the values of the loaded fields match the stochastic values sent there."
     required_objects = 'NekRSProblem'
   []
 []

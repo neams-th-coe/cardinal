@@ -6,7 +6,7 @@
 
 [Problem]
   type = NekRSProblem
-  n_usrwrk_slots = 4
+  n_usrwrk_slots = 7
   casename = 'ethier'
 []
 
@@ -21,7 +21,14 @@
 [UserObjects]
   [scalar1]
     type = NekScalarValue
-    value = 1
-    usrwrk_slot = 3
+    usrwrk_slot = 2
+  []
+  [scalar2]
+    type = NekScalarValue
+    usrwrk_slot = 4
+  []
+  [scalar3]
+    type = NekScalarValue
+    usrwrk_slot = 5
   []
 []

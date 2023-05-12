@@ -36,4 +36,12 @@ public:
    * @param[in] name variable name
    */
   void checkDuplicateVariableName(const std::string & name) const;
+
+  /**
+   * Whether a string ends in a particular sub-string
+   * @param[in] full full string
+   * @param[in] ending sub-string ending
+   * @return whether full string has ending
+   */
+  bool stringHasEnding(std::string const & full, std::string const & ending) const;
 };
