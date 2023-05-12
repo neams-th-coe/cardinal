@@ -63,7 +63,7 @@
     type = CSVDiff
     input = read.i
     cli_args = 'Problem/casename="read2" Outputs/file_base=read2_out'
-    csvdiff = read_out2.csv
+    csvdiff = read2_out.csv
     prereq = clear_cache
     requirement = "The system shall launch multiple independent Nek solves (with multiple separate "
                   "output files) when running in stochastic mode. We check this by loading the field "
