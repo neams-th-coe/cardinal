@@ -164,8 +164,8 @@ NekInitAction::act()
       mooseError(
           "To properly transfer temperature and heat flux between nekRS and MOOSE, "
           "your nekRS model must include a solution for temperature.\n\nDid you forget the "
-          "TEMPERATURE block in the .par file?\nNote: you can set 'solver = none' in the .par file "
-          "if you don't want to solve for temperature.");
+          "TEMPERATURE block in '" + setup_file + ".par'?\nNote: you can set 'solver = none' in '" +
+          setup_file + ".par' if you don't want to solve for temperature.");
   }
 
   // Initialize default dimensional scales assuming a dimensional run is performed;

@@ -109,6 +109,7 @@ NekRSProblemBase::validParams()
 NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   : CardinalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+    _casename(getParam<std::string>("casename")),
     _nondimensional(getParam<bool>("nondimensional")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),

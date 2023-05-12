@@ -1,40 +1,26 @@
 [Tests]
-  [missing_displacements]
+  [displacements]
     type = RunException
     input = nek.i
-    cli_args = "Problem/has_heat_source=false"
     required_objects = 'NekRSProblem'
-
-    # nekRS can't use more processors than elements
-    max_parallel = 64
-
     expect_err = "Moving mesh problems require displacements in the \[Mesh\] block!"
     requirement = "The system shall error if NekRSMesh is not paired with displacements for moving mesh problems."
   []
-  [missing_volume_for_user_solver]
+  [volume_for_user_solver]
     type = RunException
     input = nek.i
-    cli_args = "Mesh/volume=false Mesh/boundary='2' Mesh/displacements='disp_x disp_y disp_z' Problem/has_heat_source=false"
+    cli_args = "Mesh/volume=false Mesh/displacements='disp_x disp_y disp_z'"
     required_objects = 'NekRSProblem'
-
-    # nekRS can't use more processors than elements
-    max_parallel = 64
-    expect_err ="Your nekRS .par file has 'solver = user' in the \[MESH\] block."
-    requirement = "The system shall error if Cardinal has solver=user in the par file's MESH block, but there is no volume mesh mirror"
-                  "in the nekRS [MESH] block."
+    expect_err ="'user.par' has 'solver = user' in the \[MESH\] block."
+    requirement = "The system shall error if Cardinal has solver=user in the par file's MESH block, but there is no volume mesh mirror."
   []
-  [missing_nekrsproblem]
+  [separate_domain]
     type = RunException
     input = nek.i
-    cli_args = "Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSSeparateDomainProblem' Problem/casename='user' Problem/coupling_type='inlet' Problem/inlet_boundary='1' Problem/outlet_boundary='2'"
+    cli_args = "Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSSeparateDomainProblem' Problem/coupling_type='inlet' Problem/inlet_boundary='1' Problem/outlet_boundary='2'"
     required_objects = 'NekRSProblem'
-
-    # nekRS can't use more processors than elements
-    max_parallel = 64
-
     expect_err = "NekRSSeparateDomainProblem currently does not transfer mesh displacements"
-
     requirement = "The system shall error if the nekRS .par file has a moving mesh solver"
-                  "but the problem type in Cardinal is not NekRSProblem."
+                  "but the problem type in Cardinal is NekRSSeprateDomainProblem."
   []
 []

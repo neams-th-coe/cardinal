@@ -125,11 +125,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   }
 
   if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
-      mooseWarning("Your NekRSMesh has 'displacements', but your nekRS .par file does not have a\n"
-        "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
-
-  if (_app.actionWarehouse().displacedMesh() && !nekrs::hasMovingMesh())
-      mooseWarning("Your NekRSMesh has 'displacements', but your nekRS .par file does not have a\n"
+      mooseWarning("Your NekRSMesh has 'displacements', but '" + _casename + ".par' does not have a\n"
         "solver in the [MESH] block! The displacements transferred to NekRS will be unused.");
 
   if (nekrs::hasMovingMesh() && _nek_mesh->exactMirror())
@@ -197,7 +193,7 @@ NekRSProblem::initialSetup()
   bool has_temperature_solve = nekrs::hasTemperatureSolve();
   if (!has_temperature_solve)
     mooseWarning(
-        "By setting 'solver = none' for temperature in the .par file, nekRS "
+        "By setting 'solver = none' for temperature in '" + _casename + ".par', nekRS "
         "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
         "fixed at its initial condition, and the heat flux and power transferred to nekRS will be "
         "unused.");
@@ -233,12 +229,12 @@ NekRSProblem::initialSetup()
 
     if (!has_one_mv_bc)
       mooseError("For boundary-coupled moving mesh problems, you need at least one "
-                 "boundary in the NekRS .par file to be of the type 'fixedValue'"
+                 "boundary in '" + _casename + ".par' to be of the type 'fixedValue'"
                  " in the [MESH] block.");
   }
 
   if (!boundary && nekrs::hasElasticitySolver())
-    mooseError("Your nekRS .par file has 'solver = elasticity' in the [MESH] block. This solver uses\n"
+    mooseError("'" + _casename + ".par' has 'solver = elasticity' in the [MESH] block. This solver uses\n"
                "displacement values at a boundary of interest to calcualte the mesh velocity. This\n"
                "mesh velocity is applied within nekRS on the same boundary to solve for fluid flow\n"
                "in a moving mesh domain using the elasticity solver. If you intend to use the elasticity\n"
@@ -258,12 +254,12 @@ NekRSProblem::initialSetup()
           "in your NekRS domain, you can disable this error with 'has_heat_source = false'.");
 
   if (!_volume && nekrs::hasUserMeshSolver())
-    mooseError("Your nekRS .par file has 'solver = user' in the [MESH] block. With this solver,\n"
-               "displacement values are sent to every GLL point in NekRS. If you only are building\n"
-               "a boundary mesh mirror, it's very likely that some displacement values could result\n"
+    mooseError("'" + _casename + ".par' has 'solver = user' in the [MESH] block. With this solver,\n"
+               "displacement values are sent to every GLL point in NekRS's volume. If you only are building\n"
+               "a boundary mesh mirror, it's possible that some displacement values could result\n"
                "in negative Jacobians if a sideset moves beyond the bounds of an undeformed element.\n"
                "To eliminate this possibility, please enable 'volume = true' for NekRSMesh and send a\n"
-               "whole-domain displacement to NekRS. Or, switch to another mesh solver in your .par file.");
+               "whole-domain displacement to NekRS.");
 
   if (_boundary)
   {
