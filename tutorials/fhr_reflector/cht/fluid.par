@@ -27,12 +27,10 @@
   viscosity = -100.0
   density = 1.0
   residualTol = 1.0e-8
-  residualProj = false
   boundaryTypeMap = W, W, symy, W, v, o, W, W
 
 [PRESSURE]
   residualTol = 1.0e-8
-  residualProj = false
 
 [TEMPERATURE]
   conductivity = -1500.5

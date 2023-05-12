@@ -14,11 +14,9 @@
   density = 834.5
   boundaryTypeMap = W, W, v, O
   residualTol = 1.0e-6
-  residualProj = false
 
 [PRESSURE]
   residualTol = 1.0e-6
-  residualProj = false
 
 [TEMPERATURE]
   solver = none
