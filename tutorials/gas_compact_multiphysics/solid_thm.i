@@ -57,15 +57,15 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
 [Functions]
   [k_graphite]
     type = ParsedFunction
-    value = '${matrix_k}'
+    expression = '${matrix_k}'
   []
   [k_TRISO]
     type = ParsedFunction
-    value = '${kernel_fraction} * ${kernel_k} + ${buffer_fraction} * ${buffer_k} + ${fparse ipyc_fraction + opyc_fraction} * ${PyC_k} + ${sic_fraction} * ${SiC_k}'
+    expression = '${kernel_fraction} * ${kernel_k} + ${buffer_fraction} * ${buffer_k} + ${fparse ipyc_fraction + opyc_fraction} * ${PyC_k} + ${sic_fraction} * ${SiC_k}'
   []
   [k_compacts]
     type = ParsedFunction
-    value = '${triso_pf} * k_TRISO + ${fparse 1.0 - triso_pf} * k_graphite'
+    expression = '${triso_pf} * k_TRISO + ${fparse 1.0 - triso_pf} * k_graphite'
     vars = 'k_TRISO k_graphite'
     vals = 'k_TRISO k_graphite'
   []

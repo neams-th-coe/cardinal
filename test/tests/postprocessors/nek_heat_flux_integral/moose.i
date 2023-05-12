@@ -51,7 +51,7 @@
 [Functions]
   [temp]
     type = ParsedFunction
-    value = '100*(exp(x)+exp(y)+exp(z)+sin(y)+x*y*z)+500*y+500*x'
+    expression = '100*(exp(x)+exp(y)+exp(z)+sin(y)+x*y*z)+500*y+500*x'
   []
 []
 

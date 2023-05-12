@@ -115,19 +115,19 @@
 [Functions]
   [temp]
     type = ParsedFunction
-    value = 'exp(x)+sin(y)+x*y*z'
+    expression = 'exp(x)+sin(y)+x*y*z'
   []
   [vel_x]
     type = ParsedFunction
-    value = '1+x*y*z'
+    expression = '1+x*y*z'
   []
   [vel_y]
     type = ParsedFunction
-    value = '2+y*exp(z)'
+    expression = '2+y*exp(z)'
   []
   [vel_z]
     type = ParsedFunction
-    value = '3+z*x'
+    expression = '3+z*x'
   []
 []
 

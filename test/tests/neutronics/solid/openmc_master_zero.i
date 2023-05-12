@@ -60,7 +60,7 @@ b=${fparse 300-500/(zmax-zmin)*zmin}
 [Functions]
   [axial]
     type = ParsedFunction
-    value = '${m}*z+${b}'
+    expression = '${m}*z+${b}'
   []
 []
 

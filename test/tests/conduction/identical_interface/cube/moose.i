@@ -32,7 +32,7 @@
 [Functions]
   [k]
     type = ParsedFunction
-    value = 'if (x<0, 1.5, 2.5)'
+    expression = 'if (x<0, 1.5, 2.5)'
   []
 []
 
