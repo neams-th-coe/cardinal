@@ -222,7 +222,7 @@ and temperature to a linear variation from 0 at the inlet to 1 at the outlet.
 
 In the `.oudf` file, we define boundary conditions. On the flux boundary, we will
 be sending a heat flux from MOOSE into NekRS, so we set the flux equal to the scratch
-space array, `bc->wrk[bc->idM]`.
+space array, `bc->usrwrk[bc->idM]`.
 
 !listing /tutorials/pincell_multiphysics/fluid.oudf language=cpp
 

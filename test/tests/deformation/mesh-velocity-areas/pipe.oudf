@@ -13,9 +13,9 @@ void meshVelocityDirichletConditions(bcData *bc)
 {
   if(bc->id==2)
   {
-    bc->meshu = bc->wrk[bc->idM + 1*bc->fieldOffset];
-    bc->meshv = bc->wrk[bc->idM + 2*bc->fieldOffset];
-    bc->meshw = bc->wrk[bc->idM + 3*bc->fieldOffset];
+    bc->meshu = bc->usrwrk[bc->idM + 1*bc->fieldOffset];
+    bc->meshv = bc->usrwrk[bc->idM + 2*bc->fieldOffset];
+    bc->meshw = bc->usrwrk[bc->idM + 3*bc->fieldOffset];
   }
 }
 

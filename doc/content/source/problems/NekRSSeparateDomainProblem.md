@@ -142,11 +142,11 @@ is always the same in `nrs->usrwrk`, but with any unused slots cleared out.
 !table id=usrwrk_nrssdp caption=Quantities written into the scratch space array by Cardinal. In the last column, `n` indicates that the value is case-dependent depending on what features you have enabled.
 | Slice | Quantity | When Will It Be Created? | How to Access in the `.oudf` File |
 | :- | :- | :- | :- |
-| 0 | Inlet velocity | if `coupling_type` includes `inlet`  | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 1 | Inlet temperature | if `coupling_type` includes `inlet` and NekRS's case files include a temperature solve | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 2 | Inlet scalar01 | if `coupling_type` includes `inlet` and `coupled_scalars` includes `scalar01` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 3 | Inlet scalar02 | if `coupling_type` includes `inlet` and `coupled_scalars` includes `scalar02` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 4 | Inlet scalar03 | if `coupling_type` includes `inlet` and `coupled_scalars` includes `scalar03` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
+| 0 | Inlet velocity | if `coupling_type` includes `inlet`  | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 1 | Inlet temperature | if `coupling_type` includes `inlet` and NekRS's case files include a temperature solve | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 2 | Inlet scalar01 | if `coupling_type` includes `inlet` and `coupled_scalars` includes `scalar01` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 3 | Inlet scalar02 | if `coupling_type` includes `inlet` and `coupled_scalars` includes `scalar02` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 4 | Inlet scalar03 | if `coupling_type` includes `inlet` and `coupled_scalars` includes `scalar03` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
 
 The total number of slots in the scratch space that are allocated by Cardinal
 is controlled with the `n_usrwrk_slots` parameter.
@@ -163,17 +163,17 @@ A table similar to the following would print out at the start of your simulation
 You could use slices 2 onwards for custom purposes.
 
 !listing id=l11 caption=Table printed at start of Cardinal simulation that describes available scratch space for a case that couples NekRS to MOOSE via an inlet and with the second passive scalar, but without the first passive scalar or a temperature solve. A total of 7 slots are allocated by setting `n_usrwrk_slots` to 7
-------------------------------------------------------------------
-| Slice |  Quantity   |        How to Access in NekRS BCs        |
-------------------------------------------------------------------
-|     0 | velocity    |  bc->wrk[0 * bc->fieldOffset + bc->idM]  |
-|     1 | scalar02    |  bc->wrk[1 * bc->fieldOffset + bc->idM]  |
-|     2 | unused      |  bc->wrk[2 * bc->fieldOffset + bc->idM]  |
-|     3 | unused      |  bc->wrk[3 * bc->fieldOffset + bc->idM]  |
-|     4 | unused      |  bc->wrk[4 * bc->fieldOffset + bc->idM]  |
-|     5 | unused      |  bc->wrk[5 * bc->fieldOffset + bc->idM]  |
-|     6 | unused      |  bc->wrk[6 * bc->fieldOffset + bc->idM]  |
-------------------------------------------------------------------
+------------------------------------------------------------------------------------------------
+| Quantity |           How to Access (.oudf)           |         How to Access (.udf)          |
+------------------------------------------------------------------------------------------------
+| velocity | bc->usrwrk[0 * bc->fieldOffset + bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
+| scalar02 | bc->usrwrk[1 * bc->fieldOffset + bc->idM] | nrs->usrwrk[1 * nrs->fieldOffset + n] |
+| unused   | bc->usrwrk[2 * bc->fieldOffset + bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
+| unused   | bc->usrwrk[3 * bc->fieldOffset + bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
+| unused   | bc->usrwrk[4 * bc->fieldOffset + bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
+| unused   | bc->usrwrk[5 * bc->fieldOffset + bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
+| unused   | bc->usrwrk[6 * bc->fieldOffset + bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
+------------------------------------------------------------------------------------------------
 
 !include seg_fault_warning.md
 
@@ -194,7 +194,7 @@ Example for a flat velocity(x) profile:
 !listing language=cpp
 void velocityDirichletConditions(bcData *bc)
 {
-  bc->u = bc->wrk[bc->idM];
+  bc->u = bc->usrwrk[bc->idM];
   bc->v = 0.0;
   bc->w = 0.0;
 }
@@ -204,10 +204,10 @@ Example for a flat temperature and scalar profiles:
 !listing language=cpp
 void scalarDirichletConditions(bcData *bc)
 {
-  if(bc->scalarId==0) bc->s  = bc->wrk[bc->idM + bc->fieldOffset];   // temperature
-  if(bc->scalarId==1) bc->s  = bc->wrk[bc->idM + 2*bc->fieldOffset]; // scalar01
-  if(bc->scalarId==2) bc->s  = bc->wrk[bc->idM + 3*bc->fieldOffset]; // scalar02
-  if(bc->scalarId==3) bc->s  = bc->wrk[bc->idM + 4*bc->fieldOffset]; // scalar03
+  if(bc->scalarId==0) bc->s  = bc->usrwrk[bc->idM + bc->fieldOffset];   // temperature
+  if(bc->scalarId==1) bc->s  = bc->usrwrk[bc->idM + 2*bc->fieldOffset]; // scalar01
+  if(bc->scalarId==2) bc->s  = bc->usrwrk[bc->idM + 3*bc->fieldOffset]; // scalar02
+  if(bc->scalarId==3) bc->s  = bc->usrwrk[bc->idM + 4*bc->fieldOffset]; // scalar03
 }
 
 Example for fully-developed velocity(x) profile for laminar pipe flow:
@@ -219,7 +219,7 @@ void velocityDirichletConditions(bcData *bc)
   dfloat zi = bc->z;
   dfloat rsq  = yi*yi + zi*zi;
   dfloat Rsq  = 0.5*0.5; // Radius^2
-  dfloat Uavg  = bc->wrk[bc->idM];
+  dfloat Uavg  = bc->usrwrk[bc->idM];
 
   bc->u = 2*Uavg*(1-rsq/Rsq);
   bc->v = 0.0;

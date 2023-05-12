@@ -641,7 +641,7 @@ input in the `.oudf` file. For each function, the `bcData` object contains all i
 about the current boundary that is "calling" the function; `bc->id` is the boundary ID,
 `bc->s` is the scalar (temperature) solution at the present [!ac](GLL) point, and
 `bc->flux` is the flux (of temperature) at the present [!ac](GLL) point. The
-`bc->wrk` array is a scratch space to which the heat flux values coming from MOOSE are
+`bc->usrwrk` array is a scratch space to which the heat flux values coming from MOOSE are
 written. These OCCA functions then get called directly within NekRS.
 
 Finally, the `fluid.udf` file contains user-defined C++ functions through

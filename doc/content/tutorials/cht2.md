@@ -364,7 +364,7 @@ flux boundaries, or `f` for the `[TEMPERATURE]` block. Other settings are largel
 
 The assignment of boundary condition values is performed in the
 `sfr_7pin.oudf` file, shown below. Note that for boundaries 1 and 2, where we want to receive
-heat flux from MOOSE, we set the value of the flux equal to `bc->wrk[bc->idM]`, or
+heat flux from MOOSE, we set the value of the flux equal to `bc->usrwrk[bc->idM]`, or
 the scratch array that is written by [NekRSProblem](/problems/NekRSProblem.md).
 
 !listing /tutorials/sfr_7pin/sfr_7pin.oudf language=cpp

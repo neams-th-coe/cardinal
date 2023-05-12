@@ -5,9 +5,9 @@ void velocityDirichletConditions(bcData *bc)
 void scalarDirichletConditions(bcData *bc)
 {
   if (bc->id == 5)
-    bc->s = bc->wrk[0 * bc->fieldOffset + 0]; // this is the value of scalar1
+    bc->s = bc->usrwrk[0 * bc->fieldOffset + 0]; // this is the value of scalar1
   else if (bc->id == 6)
-    bc->s = bc->wrk[0 * bc->fieldOffset + 1]; // this is the value of scalar2
+    bc->s = bc->usrwrk[0 * bc->fieldOffset + 1]; // this is the value of scalar2
 }
 
 void scalarNeumannConditions(bcData *bc)
