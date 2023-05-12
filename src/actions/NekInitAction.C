@@ -35,7 +35,7 @@ NekInitAction::validParams()
 {
   InputParameters params = MooseObjectAction::validParams();
   params.addParam<std::string>("type", "Problem type");
-  params.addRequiredParam<std::string>(
+  params.addParam<std::string>(
       "casename",
       "Case name for the NekRS input files; "
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
