@@ -13,14 +13,11 @@
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
-  residualProj = false
   boundaryTypeMap = symy, symy, inlet, outlet, symz, symz
 
 [PRESSURE]
   residualTol = 1.0e-5
-  residualProj = false
 
 [TEMPERATURE]
   residualTol = 1.0e-5
-  residualProj  = no
   boundaryTypeMap = f, f, f, f, f, f

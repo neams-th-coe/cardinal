@@ -9,7 +9,6 @@ writeInterval = 5
 
 [PRESSURE]
 residualTol = 1e-06
-residualProj = false
 
 [VELOCITY]
 boundaryTypeMap = W, O, v

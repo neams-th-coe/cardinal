@@ -18,7 +18,6 @@
 [VELOCITY]
   solver = none
   residualTol = 1.0e-6
-  residualProj = false
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall
 
 [PRESSURE]
@@ -29,5 +28,4 @@
 #  conductivity = 1.0
 #  rhoCp = 0.0
 #  residualTol = 1.0e-5
-#  residualProj = false
 #  boundaryTypeMap = I, f, I, I, I, I
