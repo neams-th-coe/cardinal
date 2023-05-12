@@ -27,6 +27,7 @@ NekScalarValuePostprocessor::validParams()
 {
   InputParameters params = NekPostprocessor::validParams();
   params.addRequiredParam<UserObjectName>("userobject", "NekScalarValue userobject to report value for");
+  params.suppressParameter<MooseEnum>("mesh");
   params.addClassDescription("Reports the current value held by a NekScalarValue userobject");
   return params;
 }
