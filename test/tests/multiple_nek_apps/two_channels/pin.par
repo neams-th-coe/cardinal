@@ -16,11 +16,9 @@
   density = 834.5
   boundaryTypeMap = W, W, W
   residualTol = 1.0e-6
-  residualProj = false
 
 [PRESSURE]
   residualTol = 1.0e-6
-  residualProj = false
 
 [TEMPERATURE]
   conductivity = 0.1
