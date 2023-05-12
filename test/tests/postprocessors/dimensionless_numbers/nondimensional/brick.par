@@ -20,5 +20,3 @@
 
 [TEMPERATURE]
   solver = none
-  residualTol = 1.0e-5
-  boundaryTypeMap = t, t, t
