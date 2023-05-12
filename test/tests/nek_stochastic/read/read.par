@@ -1,5 +1,5 @@
 [GENERAL]
-  startFrom = a00ethier0.f00001
+  startFrom = ../a00ethier0.f00001
   polynomialOrder = 5
   stopAt = numSteps
   numSteps = 1
@@ -9,7 +9,7 @@
   writeInterval = 5
 
 [MESH]
-  file="ethier.re2"
+  file="../ethier.re2"
 
 [PRESSURE]
   residualTol = 1e-08
