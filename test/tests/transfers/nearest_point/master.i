@@ -52,7 +52,7 @@
 [Functions]
   [f]
     type = ParsedFunction
-    value = 'x'
+    expression = 'x'
   []
 []
 

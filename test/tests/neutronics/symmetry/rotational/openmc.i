@@ -57,11 +57,11 @@
 [Functions]
   [temp]
     type = ParsedFunction
-    value = '500+(exp(10*x)+exp(10*y))*50'
+    expression = '500+(exp(10*x)+exp(10*y))*50'
   []
   [temp_fuel]
     type = ParsedFunction
-    value = '500+(exp(10*x)+exp(10*y))*50 + 100'
+    expression = '500+(exp(10*x)+exp(10*y))*50 + 100'
   []
 []
 

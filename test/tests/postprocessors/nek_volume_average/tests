@@ -3,7 +3,6 @@
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
-    cli_args = '--nekrs-setup pyramid'
     rel_err = 3e-3
     requirement = "NekVolumeAverage shall correctly compute"
                   "volume-averaged temperatures on the nekRS mesh. The gold file was created "
@@ -12,14 +11,13 @@
                   "the functional form of the solution fields initialized in the pyramid.udf. "
                   "Perfect agreement is not to be expected, since the underlying basis functions "
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
-                  "variables - we just require that they are reasonably close. This input also "
-                  "confirms that the case name can still be passed on the command line."
+                  "variables - we just require that they are reasonably close."
     required_objects = 'NekRSProblem'
   []
   [zero_direction_vector]
     type = RunException
     input = nek.i
-    cli_args = "Postprocessors/velocity_component/velocity_direction='0.0 0.0 0.0' --nekrs-setup pyramid "
+    cli_args = "Postprocessors/velocity_component/velocity_direction='0.0 0.0 0.0'"
     expect_err = "The 'velocity_direction' vector cannot be the zero-vector!"
     requirement = "System shall error if direction vector has zero length."
     required_objects = 'NekRSProblem'

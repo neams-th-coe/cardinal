@@ -71,7 +71,7 @@ c = 450
 [Functions]
   [bottom]
     type = ParsedFunction
-    value = '${a}*x*x+${b}*x+${c}'
+    expression = '${a}*x*x+${b}*x+${c}'
   []
 []
 

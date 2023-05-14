@@ -117,7 +117,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 [Functions]
   [temp_ic]
     type = ParsedFunction
-    value = '${inlet_T} + z / ${unit_cell_height} * ${unit_cell_power} / (${mdot} / ${n_bundles} / ${n_coolant_channels_per_block}) / ${fluid_Cp}'
+    expression = '${inlet_T} + z / ${unit_cell_height} * ${unit_cell_power} / (${mdot} / ${n_bundles} / ${n_coolant_channels_per_block}) / ${fluid_Cp}'
   []
 []
 

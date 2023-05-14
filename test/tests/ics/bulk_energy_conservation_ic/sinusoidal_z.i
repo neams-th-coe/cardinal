@@ -31,7 +31,7 @@
 [Functions]
   [power_shape]
     type = ParsedFunction
-    value = 'sin(pi * z / 1.9)'
+    expression = 'sin(pi * z / 1.9)'
   []
 []
 

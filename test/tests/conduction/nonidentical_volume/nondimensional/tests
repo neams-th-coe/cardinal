@@ -6,7 +6,6 @@
     # we are only comparing against the nek solution because the dimensionality check is only
     # on the nekRS side
     exodiff = 'nek_master_out_nek0.e'
-    cli_args = '--nekrs-setup cylinder'
     rel_err = 1e-5
 
     min_parallel = 8
@@ -14,9 +13,7 @@
                   "temperature distribution when a heat source is applied to the nekRS problem, "
                   "and the nekRS solve is conducted in nondimensional scales. "
                   "Temperatures match to within 0.1% between the nondimensional version and the "
-                  "dimensional version in ../cylinder. This test also confirms that passing the "
-                  "casename on the command line will override whatever is in the input file "
-                  "(which here is provided as invalid value)."
+                  "dimensional version in ../cylinder."
     required_objects = 'NekRSProblem'
   []
 []

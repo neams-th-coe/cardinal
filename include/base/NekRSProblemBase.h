@@ -264,6 +264,9 @@ protected:
    */
   std::string fieldFilePrefix(const int & number) const;
 
+  /// NekRS casename
+  const std::string & _casename;
+
   /**
    * \brief Whether the nekRS solution is performed in nondimensional scales
    *

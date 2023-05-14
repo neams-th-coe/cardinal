@@ -146,7 +146,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 [Functions]
   [temp_ic]
     type = ParsedFunction
-    value = '${inlet_T} + (${height} - z) / ${height} * ${power} / ${mdot} / ${fluid_Cp}'
+    expression = '${inlet_T} + (${height} - z) / ${height} * ${power} / ${mdot} / ${fluid_Cp}'
   []
 []
 

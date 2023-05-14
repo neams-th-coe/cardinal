@@ -75,21 +75,21 @@
 [Functions]
   [f]
     type = ParsedFunction
-    value = 'exp(x)+sin(y)+x*y*z'
+    expression = 'exp(x)+sin(y)+x*y*z'
   []
   [velocity]
      type = ParsedFunction
-     value = 'sqrt(3.0)*exp(-r*r)'
+     expression = 'sqrt(3.0)*exp(-r*r)'
      vars = 'r'
      vals = 'r'
   []
   [r]
     type = ParsedFunction
-    value = 'sqrt(x*x+y*y+z*z)'
+    expression = 'sqrt(x*x+y*y+z*z)'
   []
   [velocity_component]
     type = ParsedFunction
-    value = 'exp(-r*r)'
+    expression = 'exp(-r*r)'
     vars = 'r'
     vals = 'r'
   []

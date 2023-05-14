@@ -114,7 +114,7 @@ dT = ${fparse power / mdot / Cp}
 [Functions]
   [temp_ic]
     type = ParsedFunction
-    value = '${inlet_T} + z / ${height} * ${dT}'
+    expression = '${inlet_T} + z / ${height} * ${dT}'
   []
 []
 

@@ -28,7 +28,7 @@
 [Functions]
   [axial]
     type = ParsedFunction
-    value = '500 + z / 0.10 * 100'
+    expression = '500 + z / 0.10 * 100'
   []
 []
 

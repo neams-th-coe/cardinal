@@ -55,7 +55,7 @@
 [Functions]
   [analytic]
     type = ParsedFunction
-    value = 'exp(x)+sin(y)+x*y*z'
+    expression = 'exp(x)+sin(y)+x*y*z'
   []
 []
 

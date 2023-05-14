@@ -38,12 +38,10 @@ InputParameters
 NekRSProblemBase::validParams()
 {
   InputParameters params = CardinalProblem::validParams();
-  params.addParam<std::string>(
+  params.addRequiredParam<std::string>(
       "casename",
       "Case name for the NekRS input files; "
-      "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
-      "Can also be provided on the command line with --nekrs-setup, which will override this "
-      "setting");
+      "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
@@ -111,6 +109,7 @@ NekRSProblemBase::validParams()
 NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   : CardinalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+    _casename(getParam<std::string>("casename")),
     _nondimensional(getParam<bool>("nondimensional")),
     _U_ref(getParam<Real>("U_ref")),
     _T_ref(getParam<Real>("T_ref")),

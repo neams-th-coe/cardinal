@@ -9,6 +9,9 @@
   writeControl = steps
   writeInterval = 2
 
+[MESH]
+  file=../../common_inputs/brick.re2
+
 [VELOCITY]
   viscosity = 1.0
   density = 1.0

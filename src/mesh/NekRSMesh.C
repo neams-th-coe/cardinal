@@ -89,7 +89,6 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   // if doing a JIT build, the boundary information does not exist yet
   if (!nekrs::buildOnly() && _boundary)
   {
-    const auto & filename = getMooseApp().getInputFileName();
     int first_invalid_id, n_boundaries;
     bool valid_ids = nekrs::mesh::validBoundaryIDs(*_boundary, first_invalid_id, n_boundaries);
 
@@ -101,8 +100,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
                  "For this problem, nekRS has ",
                  n_boundaries,
                  " boundaries. "
-                 "Did you enter a valid 'boundary' in '" +
-                     filename + "'?");
+                 "Did you enter a valid 'boundary'?");
   }
 
   _corner_indices = nekrs::cornerGLLIndices(nekrs::entireMesh()->N, _exact);
