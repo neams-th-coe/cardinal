@@ -191,16 +191,16 @@ pin_power = 21e3                              # bundle power (kW)
 [Functions]
   [k_sodium]
     type = ParsedFunction
-    value = '1.1045e2 + -6.5112e-2 * t + 1.5430e-5 * t * t + -2.4617e-9 * t * t * t'
+    expression = '1.1045e2 + -6.5112e-2 * t + 1.5430e-5 * t * t + -2.4617e-9 * t * t * t'
   []
   [k_HT9]
     type = ParsedFunction
-    value = 'if (t < 1030, 17.622 + 2.428e-2 * t - 1.696e-5 * t * t,
+    expression = 'if (t < 1030, 17.622 + 2.428e-2 * t - 1.696e-5 * t * t,
                            12.027 + 1.218e-2 * t)'
   []
   [k_U]
     type = ParsedFunction
-    value = 'if (t < 255.4, 16.170,
+    expression = 'if (t < 255.4, 16.170,
                             if (t < 1173.2, (5.907e-6 * t * t + 1.591e-2 * t + 11.712),
                                              38.508))'
   []

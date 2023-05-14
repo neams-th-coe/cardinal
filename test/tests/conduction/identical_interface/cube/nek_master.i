@@ -123,7 +123,7 @@
 [Functions]
   [bison_analytic]
     type = ParsedFunction
-    value = '125.0*x+562.5'
+    expression = '125.0*x+562.5'
   []
 []
 

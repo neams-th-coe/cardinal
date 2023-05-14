@@ -36,7 +36,7 @@ T_fluid = ${fparse 280.0 + 273.15}
 [Functions]
   [T_fluid]
     type = ParsedFunction
-    value = '573.0 + 50.0 * (z / 300.0)'
+    expression = '573.0 + 50.0 * (z / 300.0)'
   []
 []
 

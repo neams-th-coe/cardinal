@@ -16,7 +16,7 @@
 [Functions]
   [u]
     type = ParsedFunction
-    value = 'exp(x)*exp(y)'
+    expression = 'exp(x)*exp(y)'
   []
 []
 

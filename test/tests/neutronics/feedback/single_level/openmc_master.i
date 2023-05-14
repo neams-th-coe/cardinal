@@ -76,7 +76,7 @@
 [Functions]
   [axial]
     type = ParsedFunction
-    value = '400+z*(1000-400)/10.0'
+    expression = '400+z*(1000-400)/10.0'
   []
 []
 

@@ -36,7 +36,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 [Functions]
   [temp_ic]
     type = ParsedFunction
-    value = '${inlet_T} + z / ${height} * ${power} / ${mdot} / ${fluid_Cp}'
+    expression = '${inlet_T} + z / ${height} * ${power} / ${mdot} / ${fluid_Cp}'
   []
 []
 

@@ -46,7 +46,7 @@
 [Functions]
   [temp_ic]
     type = ParsedFunction
-    value = '500.0'
+    expression = '500.0'
   []
 []
 

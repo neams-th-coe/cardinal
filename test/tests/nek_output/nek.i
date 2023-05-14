@@ -12,15 +12,15 @@
 [Functions]
   [s01]
     type = ParsedFunction
-    value = 'sin(x)'
+    expression = 'sin(x)'
   []
   [s02]
     type = ParsedFunction
-    value = 'y+1'
+    expression = 'y+1'
   []
   [s03]
     type = ParsedFunction
-    value = 'exp(x*y*z)'
+    expression = 'exp(x*y*z)'
   []
 []
 

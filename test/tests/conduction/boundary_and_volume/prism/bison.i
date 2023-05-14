@@ -27,7 +27,7 @@
 [Functions]
   [vol2_top]
     type = ParsedFunction
-    value = '500.0+500*exp(y)'
+    expression = '500.0+500*exp(y)'
   []
 []
 

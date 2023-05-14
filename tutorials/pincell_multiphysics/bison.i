@@ -97,7 +97,7 @@ dT = ${fparse power / mdot / Cp}
 [Functions]
   [axial_fluid_temp]
     type = ParsedFunction
-    value = '${inlet_T} + z / ${height} * ${dT}'
+    expression = '${inlet_T} + z / ${height} * ${dT}'
   []
 []
 

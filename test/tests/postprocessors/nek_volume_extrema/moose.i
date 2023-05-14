@@ -75,27 +75,27 @@
 [Functions]
   [temp]
     type = ParsedFunction
-    value = 'exp(x)+sin(y)+x*y*z'
+    expression = 'exp(x)+sin(y)+x*y*z'
   []
   [pressure]
     type = ParsedFunction
-    value = 'x+y+z*z+exp(x)'
+    expression = 'x+y+z*z+exp(x)'
   []
   [velocity]
      type = ParsedFunction
-     value = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
+     expression = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
   []
   [x_velocity]
     type = ParsedFunction
-    value = 'sin(x)'
+    expression = 'sin(x)'
   []
   [y_velocity]
     type = ParsedFunction
-    value = 'y+1'
+    expression = 'y+1'
   []
   [z_velocity]
     type = ParsedFunction
-    value = 'exp(x*y*z)'
+    expression = 'exp(x*y*z)'
   []
 []
 
