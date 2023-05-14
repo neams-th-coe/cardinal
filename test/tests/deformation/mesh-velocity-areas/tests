@@ -2,7 +2,6 @@
   [bdry]
     type = CSVDiff
     input = pipe.i
-    cli_args = "--nekrs-setup pipe"
     csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
     min_parallel = 4
     requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
@@ -16,7 +15,7 @@
   [bdry_vol]
     type = CSVDiff
     input = pipe.i
-    cli_args = "--nekrs-setup pipe_vol MultiApps/nek/cli_args='Mesh/volume=true'"
+    cli_args = "MultiApps/nek/cli_args='Mesh/volume=true;Problem/casename=pipe_vol'"
     csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
     min_parallel = 4
     requirement = "An arbitrary mesh displacement in the main app will displace the mesh"

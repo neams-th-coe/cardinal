@@ -9,6 +9,7 @@
 [Problem]
   type = NekRSProblem
   synchronization_interval = parent_app
+  casename = 'pipe'
 []
 
 [Executioner]

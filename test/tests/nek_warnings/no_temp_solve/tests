@@ -6,7 +6,7 @@
     # nekRS can't use more processors than elements
     max_parallel = 8
 
-    expect_err = "By setting 'solver = none' for temperature in the .par file, nekRS "
+    expect_err = "By setting 'solver = none' for temperature in 'brick.par', nekRS "
       "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
       "fixed at its initial condition, and the heat flux and power transferred to nekRS will be unused."
     cli_args = '--error'

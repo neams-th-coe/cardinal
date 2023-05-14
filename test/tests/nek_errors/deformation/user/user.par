@@ -8,12 +8,12 @@
   polynomialOrder = 2
   writeControl = steps
   writeInterval = 1
-  oudf = "nekbox.oudf"
-  udf = "nekbox.udf"
-  verbose = true
+  oudf = "../nekbox.oudf"
+  udf = "../nekbox.udf"
+
 [MESH]
   solver = user
-  file = "nekbox.re2"
+  file = "../nekbox.re2"
 
 [VELOCITY]
   solver = none
@@ -25,7 +25,3 @@
 
 [TEMPERATURE]
   solver = none
-#  conductivity = 1.0
-#  rhoCp = 0.0
-#  residualTol = 1.0e-5
-#  boundaryTypeMap = I, f, I, I, I, I

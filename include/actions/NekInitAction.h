@@ -37,9 +37,6 @@ public:
   virtual void act() override;
 
 protected:
-  /// whether a casename was provided in the input file
-  const bool _casename_in_input_file;
-
   /// whether the user specified how many scratch slots to allocate
   const bool _specified_scratch;
 

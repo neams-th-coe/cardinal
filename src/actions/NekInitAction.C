@@ -38,9 +38,7 @@ NekInitAction::validParams()
   params.addParam<std::string>(
       "casename",
       "Case name for the NekRS input files; "
-      "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2. "
-      "Can also be provided on the command line with --nekrs-setup, which will override this "
-      "setting");
+      "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
@@ -51,7 +49,6 @@ NekInitAction::validParams()
 
 NekInitAction::NekInitAction(const InputParameters & parameters)
   : MooseObjectAction(parameters),
-    _casename_in_input_file(isParamValid("casename")),
     _specified_scratch(parameters.isParamSetByUser("n_usrwrk_slots")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots"))
 {
@@ -79,19 +76,7 @@ NekInitAction::act()
   if (!ptr)
     mooseError("Cannot find '", bin, "'! Did you set NEKRS_HOME to the correct location?");
 
-  std::shared_ptr<CommandLine> cl = _app.commandLine();
-  bool casename_on_command_line = cl->search("nekrs_setup");
-
-  if (!casename_on_command_line && !_casename_in_input_file)
-    mooseError("All inputs using '", _type, "' must pass '--nekrs-setup <case>' on "
-               "the command line\nor set casename = '<case>' in the [Problem] block in the "
-               "Nek-wrapped input file!");
-
-  std::string setup_file;
-  if (casename_on_command_line)
-    cl->search("nekrs_setup", setup_file);
-  else
-    setup_file = getParam<std::string>("casename");
+  std::string setup_file = getParam<std::string>("casename");
 
   // If the casename is a directory path (i.e. not just a file name), then standalone
   // NekRS will cd into that directory so that the casename really is just the case file name,
@@ -114,6 +99,7 @@ NekInitAction::act()
   std::string backend = "";
   std::string device_id = "";
 
+  std::shared_ptr<CommandLine> cl = _app.commandLine();
   cl->search("nekrs_buildonly", size_target);
   cl->search("nekrs_cimode", ci_mode);
   cl->search("nekrs_backend", backend);
@@ -178,8 +164,8 @@ NekInitAction::act()
       mooseError(
           "To properly transfer temperature and heat flux between nekRS and MOOSE, "
           "your nekRS model must include a solution for temperature.\n\nDid you forget the "
-          "TEMPERATURE block in the .par file?\nNote: you can set 'solver = none' in the .par file "
-          "if you don't want to solve for temperature.");
+          "TEMPERATURE block in '" + setup_file + ".par'?\nNote: you can set 'solver = none' in '" +
+          setup_file + ".par' if you don't want to solve for temperature.");
   }
 
   // Initialize default dimensional scales assuming a dimensional run is performed;
