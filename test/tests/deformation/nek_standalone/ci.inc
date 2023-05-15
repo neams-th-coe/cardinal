@@ -1,1 +1,0 @@
-../../../../contrib/nekRS/examples/mv_cyl/ci.inc
