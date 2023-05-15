@@ -1,6 +1,6 @@
 [Mesh]
   type = NekRSMesh
-  volume = true
+  boundary = '1 2 3'
 []
 
 [Problem]
@@ -29,12 +29,8 @@
 
   # these will not reflect the changing mesh, because we do not copy displacements
   # from NekRS to MOOSE
-  [volume_moose]
-    type = VolumePostprocessor
-  []
   [area_moose]
-    type = AreaPostprocessor
-    boundary = '1 2 3'
+    type = VolumePostprocessor
   []
 []
 

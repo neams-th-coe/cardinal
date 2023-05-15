@@ -286,7 +286,7 @@ double Pr();
  */
 void copyScratchToDevice(const unsigned int slots_reserved_by_cardinal);
 
-/// Copy the boundary deformation from host to device
+/// Copy the deformation from host to device
 void copyDeformationToDevice();
 
 template <typename T>
