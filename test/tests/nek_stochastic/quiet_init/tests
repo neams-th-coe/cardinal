@@ -1,7 +1,74 @@
 [Tests]
-  [driver_multi]
+  [clear0]
+    type = RunCommand
+    command = 'rm -rf .cache/'
+    requirement = "The system shall clear the cache before attempting the test with another set of ranks."
+    required_objects = 'NekRSProblem'
+  []
+  [driver_multi_1]
     type = CSVDiff
     input = driver_multi.i
+    min_parallel = 1
+    max_parallel = 1
+    prereq = clear0
+    csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
+                  "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
+                  "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
+                  "put this test in its own directory to prove that there are no requirements on precompilation."
+    required_objects = 'NekRSProblem'
+  []
+  [clear1]
+    type = RunCommand
+    command = 'rm -rf .cache/'
+    requirement = "The system shall clear the cache before attempting the test with another set of ranks."
+    required_objects = 'NekRSProblem'
+  []
+  [driver_multi_2]
+    type = CSVDiff
+    input = driver_multi.i
+    min_parallel = 2
+    max_parallel = 2
+    prereq = clear1
+    csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
+                  "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
+                  "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
+                  "put this test in its own directory to prove that there are no requirements on precompilation."
+    required_objects = 'NekRSProblem'
+  []
+  [clear2]
+    type = RunCommand
+    command = 'rm -rf .cache/'
+    prereq = driver_multi_2
+    requirement = "The system shall clear the cache before attempting the test with another set of ranks."
+    required_objects = 'NekRSProblem'
+  []
+  [driver_multi_3]
+    type = CSVDiff
+    input = driver_multi.i
+    min_parallel = 3
+    max_parallel = 3
+    prereq = clear2
+    csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
+    requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
+                  "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
+                  "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
+                  "put this test in its own directory to prove that there are no requirements on precompilation."
+    required_objects = 'NekRSProblem'
+  []
+  [clear3]
+    type = RunCommand
+    command = 'rm -rf .cache/'
+    prereq = driver_multi_3
+    requirement = "The system shall clear the cache before attempting the test with another set of ranks."
+    required_objects = 'NekRSProblem'
+  []
+  [driver_multi_4]
+    type = CSVDiff
+    input = driver_multi.i
+    min_parallel = 4
+    prereq = clear3
     csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
