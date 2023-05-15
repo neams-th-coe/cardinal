@@ -457,17 +457,8 @@ NekRSProblemBase::getNekScalarValueUserObjects()
   auto max_for_uo = *slots.rbegin();
   _n_uo_slots = slots.size();
   if (max_for_uo - min_for_uo >= _n_uo_slots)
-  {
-    std::stringstream coupling_slots;
-    for (const auto & s : slots)
-      coupling_slots << s << ", ";
-
-    std::string str = coupling_slots.str();
-    str.pop_back();
-    str.pop_back();
     mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
-      "any gaps. You are currently allocating scalar values into non-contiguous slots (", str, ")");
-  }
+      "any gaps. You are currently allocating scalar values into non-contiguous slots (", listify(slots), ")");
 }
 
 void

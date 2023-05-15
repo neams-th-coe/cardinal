@@ -18,6 +18,7 @@
 
 #include "UserErrorChecking.h"
 #include "CardinalApp.h"
+#include "CardinalUtils.h"
 
 void
 checkUnusedParam(const InputParameters & p,
@@ -62,12 +63,9 @@ checkJointParams(const InputParameters & p,
 {
   bool at_least_one_present = false;
   bool at_least_one_not_present = false;
-  std::string name_list = "";
 
   for (const auto & s : name)
   {
-    name_list += " '" + s + "',";
-
     if (p.isParamValid(s))
       at_least_one_present = true;
     else
@@ -75,10 +73,7 @@ checkJointParams(const InputParameters & p,
   }
 
   if (at_least_one_present && at_least_one_not_present)
-  {
-    name_list.pop_back();
-    mooseError("When " + explanation + ", the" + name_list +
+    mooseError("When " + explanation + ", the" + listify(name) +
                " parameters\nmust either ALL "
                "be specified or ALL omitted; you have only provided a subset of parameters!");
-  }
 }

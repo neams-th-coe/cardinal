@@ -25,3 +25,15 @@ freePointer(T * ptr)
   free(ptr);
   ptr = nullptr;
 };
+
+std::string
+listify(std::vector<T> & vec)
+{
+  std::string list = "";
+  for (const auto & v : vec)
+    list += std::to_string(v) + ", ";
+  list.pop_back();
+  list.pop_back();
+
+  return list;
+}
