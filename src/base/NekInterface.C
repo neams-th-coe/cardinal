@@ -647,6 +647,9 @@ copyScratchToDevice(const unsigned int slots_reserved_by_cardinal)
     nrs_t * nrs = (nrs_t *)nrsPtr();
     nrs->o_usrwrk.copyFrom(nrs->usrwrk, slots_reserved_by_cardinal * scalarFieldOffset() * sizeof(dfloat), 0);
   }
+
+  if (hasMovingMesh())
+    copyDeformationToDevice();
 }
 
 void
@@ -657,6 +660,7 @@ copyDeformationToDevice()
   mesh->o_y.copyFrom(mesh->y);
   mesh->o_z.copyFrom(mesh->z);
   mesh->update();
+
   // update host geometric and volume factors from device in case of mesh deformation
   mesh->o_sgeo.copyTo(mesh->sgeo);
   mesh->o_vgeo.copyTo(mesh->vgeo);
