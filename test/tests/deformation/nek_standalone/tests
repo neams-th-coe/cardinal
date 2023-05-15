@@ -1,88 +1,24 @@
 [Tests]
-  [precompile]
-    type = RunCommand
-    command = '${NEKRS_HOME}/bin/nrspre mv_cyl 1'
-    requirement = "The system shall precompile a Nek case."
-    required_objects = 'NekRSStandaloneProblem'
-  []
   [volume]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
-    cli_args = 'Mesh/volume=true'
     min_parallel = 2
-    abs_zero = 1e-6
-    prereq = precompile
-    requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
-                  "when using a volume mesh mirror. "
-                  "We add postprocessors to let us compare min/max values printed to the screen by "
-                  "NekRS. We also check postprocessor differences between equivalent operations "
-                  "taken directly on the NekRS solution arrays (for instance, a NekVolumeAverage) "
-                  "and directly on the extracted solution (for instance, an ElementAverageValue). "
-                  "To accommodate changes by NekRS developers to NekRs's test suite, we simply "
-                  "require that all the postprocessors match between these two renderings of the "
-                  "solution (on the GLL points versus on the mesh mirror). This verifies "
-                  "correct extraction of the NekRS solution with the 'output' parameter feature."
+    requirement = "The system shall be able to run the mv_cyl NekRS example with a thin wrapper "
+                  "when using a volume mesh mirror. We show that the volume and area on the NekRS side is "
+                  "changing, whereas the volume/area in MOOSE will not change because we currently do not "
+                  "send displacements from NekRS to MOOSE."
     required_objects = 'NekRSProblem'
   []
   [boundary]
     type = CSVDiff
-    input = nek.i
+    input = nek_boundary.i
     csvdiff = nek_boundary_out.csv
-    cli_args = 'Outputs/file_base="nek_boundary_out"'
     min_parallel = 2
-    abs_zero = 1e-6
-    prereq = precompile
-    requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
-                  "when using a boundary mesh mirror. "
-                  "We add postprocessors to let us compare min/max values printed to the screen by "
-                  "NekRS. We also check postprocessor differences between equivalent operations "
-                  "taken directly on the NekRS solution arrays (for instance, a NekSideAverage) "
-                  "and directly on the extracted solution (for instance, an ElementAverageValue). "
-                  "To accommodate changes by NekRS developers to NekRs's test suite, we simply "
-                  "require that all the postprocessors match between these two renderings of the "
-                  "solution (on the GLL points versus on the mesh mirror). This verifies "
-                  "correct extraction of the NekRS solution with the 'output' parameter feature."
-    required_objects = 'NekRSProblem'
-  []
-  [derived_volume]
-    type = CSVDiff
-    input = nek.i
-    cli_args = 'Mesh/volume=true Problem/casename="mv_cyl_derived_bc" Outputs/file_base="nek_derived_out"'
-    csvdiff = nek_derived_out.csv
-    min_parallel = 2
-    abs_zero = 1e-6
-    prereq = precompile
-    requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
-                  "when using a volume mesh mirror. "
-                  "We add postprocessors to let us compare min/max values printed to the screen by "
-                  "NekRS. We also check postprocessor differences between equivalent operations "
-                  "taken directly on the NekRS solution arrays (for instance, a NekVolumeAverage) "
-                  "and directly on the extracted solution (for instance, an ElementAverageValue). "
-                  "To accommodate changes by NekRS developers to NekRs's test suite, we simply "
-                  "require that all the postprocessors match between these two renderings of the "
-                  "solution (on the GLL points versus on the mesh mirror). This verifies "
-                  "correct extraction of the NekRS solution with the 'output' parameter feature."
-    required_objects = 'NekRSProblem'
-  []
-  [derived_boundary]
-    type = CSVDiff
-    input = nek.i
-    csvdiff = nek_derived_boundary_out.csv
-    cli_args = 'Problem/casename="mv_cyl_derived_bc" Outputs/file_base="nek_derived_boundary_out"'
-    min_parallel = 2
-    abs_zero = 1e-6
-    prereq = precompile
-    requirement = "Cardinal shall be able to run the mv_cyl NekRS example with a thin wrapper "
-                  "when using a boundary mesh mirror. "
-                  "We add postprocessors to let us compare min/max values printed to the screen by "
-                  "NekRS. We also check postprocessor differences between equivalent operations "
-                  "taken directly on the NekRS solution arrays (for instance, a NekSideAverage) "
-                  "and directly on the extracted solution (for instance, an ElementAverageValue). "
-                  "To accommodate changes by NekRS developers to NekRs's test suite, we simply "
-                  "require that all the postprocessors match between these two renderings of the "
-                  "solution (on the GLL points versus on the mesh mirror). This verifies "
-                  "correct extraction of the NekRS solution with the 'output' parameter feature."
+    requirement = "The system shall be able to run the mv_cyl NekRS example with a thin wrapper "
+                  "when using a boundary mesh mirror. We show that the volume and area on the NekRS side is "
+                  "changing, whereas the volume/area in MOOSE will not change because we currently do not "
+                  "send displacements from NekRS to MOOSE."
     required_objects = 'NekRSProblem'
   []
 []
