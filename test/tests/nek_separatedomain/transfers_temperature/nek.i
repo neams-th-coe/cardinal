@@ -9,7 +9,7 @@
 
 [Mesh]
   type = NekRSMesh
-  boundary = 1
+  boundary = '1'
 []
 
 [Executioner]
@@ -21,25 +21,58 @@
 []
 
 [Postprocessors]
-  [inlet_V_check]
-    type = NekSideAverage
+  [inlet_V_max]
+    type = NekSideExtremeValue
     boundary = '1'
     field = velocity
+    value_type = max
   []
-  [inlet_T_check]
-    type = NekSideAverage
+  [inlet_V_min]
+    type = NekSideExtremeValue
     boundary = '1'
-    field = temperature
+    field = velocity
+    value_type = min
   []
-  [outlet_V_check]
-    type = NekSideAverage
+  [outlet_V_max]
+    type = NekSideExtremeValue
     boundary = '2'
     field = velocity
+    value_type = max
   []
-  [outlet_T_check]
-    type = NekSideAverage
+  [outlet_V_min]
+    type = NekSideExtremeValue
+    boundary = '2'
+    field = velocity
+    value_type = min
+  []
+  [inlet_T_max]
+    type = NekSideExtremeValue
+    boundary = '1'
+    field = temperature
+    value_type = max
+  []
+  [inlet_T_min]
+    type = NekSideExtremeValue
+    boundary = '1'
+    field = temperature
+    value_type = min
+  []
+  [outlet_T_max]
+    type = NekSideExtremeValue
     boundary = '2'
     field = temperature
+    value_type = max
+  []
+  [outlet_T_min]
+    type = NekSideExtremeValue
+    boundary = '2'
+    field = temperature
+    value_type = min
+  []
+  [P_check]
+    type = ParsedPostprocessor
+    function = 'inlet_P - outlet_P - dP'
+    pp_names = 'inlet_P outlet_P dP'
   []
 []
 
@@ -47,33 +80,28 @@
 [MultiApps]
   [sub]
     type = FullSolveMultiApp
-    app_type = CardinalApp
     input_files = 'cardinal_sub.i'
+    sub_cycling = true
   []
 []
 
 [Transfers]
   [toNekRS_velocity_trans]
     type = MultiAppPostprocessorTransfer
-    multi_app = sub
-    direction = from_multiapp
+    from_multi_app = sub
     reduction_type = average
     from_postprocessor = toNekRS_velocity
     to_postprocessor   = inlet_V
-    execute_on = 'INITIAL TIMESTEP_END'
   []
   [toNekRS_temperature_trans]
     type = MultiAppPostprocessorTransfer
-    multi_app = sub
-    direction = from_multiapp
+    from_multi_app = sub
     reduction_type = average
     from_postprocessor = toNekRS_temperature
     to_postprocessor   = inlet_T
-    execute_on = 'INITIAL TIMESTEP_END'
   []
 []
 
 [Outputs]
   csv = true
 []
-
