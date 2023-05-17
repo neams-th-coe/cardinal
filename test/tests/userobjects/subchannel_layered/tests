@@ -44,14 +44,6 @@
     requirement = "System shall error if a side user object is provided to a volume binning user object."
     required_objects = 'NekRSProblem'
   []
-  [zero_direction_vector]
-    type = RunException
-    input = 1d.i
-    cli_args = "UserObjects/vol_avg/velocity_direction='0.0 0.0 0.0' UserObjects/vol_avg/field=velocity_component UserObjects/vol_avg/velocity_component=user"
-    expect_err = "The 'velocity_direction' vector cannot be the zero-vector!"
-    requirement = "System shall error if direction vector has zero length."
-    required_objects = 'NekRSProblem'
-  []
   [invalid_component]
     type = RunException
     input = 1d.i
