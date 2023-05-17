@@ -16,9 +16,9 @@
   boundaryTypeMap = inlet, outlet, wall, wall, wall, wall, wall, wall
 
 [PRESSURE]
-  residualTol = 1.0e-5
 
 [TEMPERATURE]
   boundaryTypeMap = inlet, I, I, I, I, I, I, I
   rhoCp = 1.0
   conductivity = 1.0
+  residualTol = 1.0e-6

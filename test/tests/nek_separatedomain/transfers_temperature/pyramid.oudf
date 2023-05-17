@@ -7,5 +7,5 @@ void velocityDirichletConditions(bcData *bc)
 
 void scalarDirichletConditions(bcData *bc)
 {
-  if(bc->scalarId==0) bc->s = bc->wrk[bc->idM + bc->fieldOffset]; // temperature
+  if (bc->scalarId == 0) bc->s = bc->wrk[bc->idM + bc->fieldOffset];
 }
