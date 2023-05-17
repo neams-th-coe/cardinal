@@ -47,28 +47,17 @@ SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
 {
   checkJointParams(params, {"rotation_axis", "rotation_angle"}, "specifying rotational symmetry");
 
-  auto n = getParam<Point>("normal");
-  Point zero(0.0, 0.0, 0.0);
-  if (n.absolute_fuzzy_equals(zero))
-    mooseError("The 'normal' cannot have zero norm!");
-
-  _normal = n / n.norm();
+  _normal = geom_utility::unitVector(getParam<Point>("normal"), "normal");
 
   if (_rotational_symmetry)
   {
-    const auto & axis = getParam<Point>("rotation_axis");
     const auto & angle = getParam<Real>("rotation_angle");
 
-    // symmetry axis cannot be zero norm
-    Point zero(0.0, 0.0, 0.0);
-    if (axis.absolute_fuzzy_equals(zero))
-      mooseError("The 'rotation_axis' cannot have zero norm!");
+    _rotational_axis = geom_utility::unitVector(getParam<Point>("rotation_axis"), "rotation_axis");
 
     // the symmetry axis needs to be perpendicular to the plane normal
-    if (!MooseUtils::absoluteFuzzyEqual(axis * _normal, 0.0))
+    if (!MooseUtils::absoluteFuzzyEqual(_rotational_axis * _normal, 0.0))
       mooseError("The 'rotation_axis' must be perpendicular to the 'normal'!");
-
-    _rotational_axis = axis / axis.norm();
 
     // unit circle must be divisible by angle
     if (!MooseUtils::absoluteFuzzyEqual(fmod(360.0, angle), 0))

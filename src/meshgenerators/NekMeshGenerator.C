@@ -142,9 +142,7 @@ NekMeshGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem,
 
   // if the point is exactly on the origin, we don't know in which direction to move
   // it so that it lands up on the circle
-  if ((MooseUtils::absoluteFuzzyEqual(xy_plane(0), 0)) &&
-      (MooseUtils::absoluteFuzzyEqual(xy_plane(1), 0)) &&
-      (MooseUtils::absoluteFuzzyEqual(xy_plane(2), 0)))
+  if (geom_utility::isPointZero(xy_plane))
     mooseError("Node ID ", node_id, " of element ", elem->id(), " is already on the origin (",
       pt(0), ", ", pt(1), ", ", pt(2), ").\n"
       "This node lacks the nonzero unit vector needed to move it.");

@@ -1,24 +1,10 @@
 [Tests]
-  [zero_normal_norm]
-    type = RunException
-    input = test.i
-    cli_args = 'UserObjects/spg/normal="0.0 0.0 0.0"'
-    expect_err = "The 'normal' cannot have zero norm!"
-    requirement = "The system shall error if the normal has zero length"
-  []
   [non_perpendicular_axis]
     type = RunException
     input = test.i
     cli_args = 'UserObjects/spg/rotation_axis="1.0 0.0 0.0" UserObjects/spg/rotation_angle=90.0'
     expect_err = "The 'rotation_axis' must be perpendicular to the 'normal'!"
     requirement = "The system shall error if the rotation axis is not perpendicular to the symmetry normal"
-  []
-  [zero_axis_norm]
-    type = RunException
-    input = test.i
-    cli_args = 'UserObjects/spg/rotation_axis="0.0 0.0 0.0" UserObjects/spg/rotation_angle=90.0'
-    expect_err = "The 'rotation_axis' cannot have zero norm!"
-    requirement = "The system shall error if the rotation axis has zero length"
   []
   [non_integer_angle]
     type = RunException
