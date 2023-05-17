@@ -34,12 +34,7 @@ NekPressureSurfaceForce::validParams()
 NekPressureSurfaceForce::NekPressureSurfaceForce(const InputParameters & parameters)
   : NekSidePostprocessor(parameters)
 {
-  auto d = getParam<Point>("direction");
-  Point zero(0.0, 0.0, 0.0);
-  if (d.absolute_fuzzy_equals(zero))
-    mooseError("The 'direction' cannot have zero norm!");
-
-  _direction = d / d.norm();
+  _direction = geom_utility::unitVector(getParam<Point>("direction"), "direction");
 
   if (_pp_mesh != "fluid")
     mooseError("The 'NekPressureSurfaceForce' postprocessor can only be applied to the fluid mesh boundaries!\n"

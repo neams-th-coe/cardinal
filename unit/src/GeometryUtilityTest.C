@@ -19,6 +19,30 @@
 #include "GeometryUtilityTest.h"
 #include "HexagonalLatticeUtility.h"
 
+TEST_F(GeometryUtilityTest, norm)
+{
+  Point n(0.0, 0.0, 0.0);
+  Point pt;
+  try
+  {
+    pt = geom_utility::unitVector(n, "n");
+    FAIL() << "missing expected error";
+  }
+  catch (const std::exception & e)
+  {
+    std::string msg(e.what());
+    ASSERT_NE(msg.find("'n' cannot have zero norm!"),
+              std::string::npos)
+      << "failed with unexpected error: " << msg;
+  }
+
+  Point m(5.0, 0.0, 0.0);
+  pt = geom_utility::unitVector(m, "m");
+  EXPECT_DOUBLE_EQ(pt(0), 1.0);
+  EXPECT_DOUBLE_EQ(pt(1), 0.0);
+  EXPECT_DOUBLE_EQ(pt(2), 0.0);
+}
+
 TEST_F(GeometryUtilityTest, rotate_about_y)
 {
   Point n(0.0, 0.0, -1.0);

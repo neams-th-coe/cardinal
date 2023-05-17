@@ -24,6 +24,20 @@
 
 namespace geom_utility {
   /**
+   * Check whether a point is equal to zero
+   * @param[in] pt point
+   * @return whether point is equal to the zero point
+   */
+  bool isPointZero(const Point & pt);
+
+  /**
+   * Get the unit vector for a point parameter
+   * @param[in] pt point
+   * @param[in] name name of the parameter
+   */
+  Point unitVector(const Point & pt, const std::string & name);
+
+  /**
    * Rotate point about an axis
    * @param[in] p point
    * @param[in] angle angle to rotate (radians)

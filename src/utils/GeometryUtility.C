@@ -17,8 +17,23 @@
 /********************************************************************/
 
 #include "GeometryUtility.h"
+#include "MooseUtils.h"
 
 namespace geom_utility {
+
+bool isPointZero(const Point & pt)
+{
+  Point zero(0.0, 0.0, 0.0);
+  return pt.absolute_fuzzy_equals(zero);
+}
+
+Point unitVector(const Point & pt, const std::string & name)
+{
+  if (isPointZero(pt))
+    mooseError("'" + name + "' cannot have zero norm!");
+
+  return pt.unit();
+}
 
 Real minDistanceToPoints(const Point & pt, const std::vector<Point> & candidates,
   const unsigned int & axis)
