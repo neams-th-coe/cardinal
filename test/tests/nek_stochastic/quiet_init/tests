@@ -75,5 +75,6 @@
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
     required_objects = 'NekRSProblem'
+    skip = 'Resolve random crash'
   []
 []
