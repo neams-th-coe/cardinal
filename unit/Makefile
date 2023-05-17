@@ -13,11 +13,15 @@
 # * OPENMC_DIR       : Top-level OpenMC dir (default: $(CONTRIB_DIR)/openmc)
 # * DAGMC_DIR        : Top-level DagMC dir (default: $(CONTRIB_DIR)/DAGMC)
 # * MOAB_DIR         : Top-level Moab dir (default: $(CONTRIB_DIR)/moab)
+# * BISON_DIR        : Top-level Bison dir (default: $(CONTRIB_DIR)/bison)
 # * SAM_DIR          : Top-level SAM dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR      : Top-level Sockeye dir (default: $(CONTRIB_DIR)/sockeye)
 # * SODIUM_DIR       : Top-level sodium dir (default: $(CONTRIB_DIR)/sodium)
 # * POTASSIUM_DIR    : Top-level potassium dir (default: $(CONTRIB_DIR)/potassium)
 # * IAPWS95_DIR      : Top-level iapws95 dir (default: $(CONTRIB_DIR)/iapws95)
+
+# * EIGEN3_DIR       : Top-level eigen3 dir (should contain FindEigen3.cmake). This
+#                      is only needed if enabling DagMC.
 
 # To control where OpenMC grabs HDF5 from; you don't need to set any of these unless
 # you don't want to use the HDF5 that comes with PETSc
@@ -52,11 +56,20 @@ PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
+BISON_DIR           ?= $(CONTRIB_DIR)/bison
 SAM_DIR             ?= $(CONTRIB_DIR)/SAM
 SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
 SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
 POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
 IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+
+# This is the Eigen3 location on CIVET. If you are using MOOSE's conda environment,
+# you don't need to set these variables, because conda sets them for you. The only
+# scenario where you might need to manually set these is if you're not using the
+# conda environment. You will get a compile error about FindEigen3.cmake if you
+# do indeed need to set these.
+EIGEN3_DIR          ?= $(LIBMESH_DIR)/include
+Eigen3_DIR          ?= $(EIGEN3_DIR)
 
 # If HDF5_ROOT is set, use those settings to link HDF5 to OpenMC.
 # Otherwise, use where PETSc will put HDF5 if downloading it.
@@ -182,6 +195,14 @@ include $(FRAMEWORK_DIR)/moose.mk
 
 include $(MOOSE_DIR)/modules/modules.mk
 
+# Bison submodule
+ifneq ($(BISON_CONTENT),)
+  libmesh_CXXFLAGS    += -DENABLE_BISON_COUPLING
+  APPLICATION_DIR     := $(BISON_DIR)
+  APPLICATION_NAME    := bison
+  include             $(FRAMEWORK_DIR)/app.mk
+endif
+
 # SAM submodule
 ifneq ($(SAM_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
@@ -237,8 +258,10 @@ ifeq ($(ENABLE_OPENMC), yes)
 endif
 
 ifeq ($(ENABLE_DAGMC), yes)
-  ADDITIONAL_CPPFLAGS += $(DAGMC_INCLUDES)
   libmesh_CXXFLAGS    += -DENABLE_DAGMC
+
+  # this flag is used in OpenMC
+  libmesh_CXXFLAGS    += -DDAGMC
 endif
 
 # ======================================================================================
@@ -255,10 +278,6 @@ export CXXFLAGS := $(libmesh_CXXFLAGS)
 export CPPFLAGS := $(libmesh_CPPFLAGS)
 export LDFLAGS := $(libmesh_LDFLAGS)
 export LIBS := $(libmesh_LIBS)
-
-CXXFLAGS += -DNEKRS_VERSION=21
-CXXFLAGS += -DNEKRS_SUBVERSION=1
-CXXFLAGS += -DGITCOMMITHASH=\"51d5bf5f2042e231d1770400c160d5623b19b4c8\"
 
 export CARDINAL_DIR
 
@@ -338,7 +357,6 @@ ADDITIONAL_LIBS     += $(FRAMEWORK_DIR)/contrib/gtest/libgtest.la
 # We need to build these first so we get include dirs
 $(app_objects): build_nekrs build_moab build_dagmc build_openmc
 $(test_objects): build_nekrs build_moab build_dagmc build_openmc
-
 
 CARDINAL_EXTERNAL_FLAGS := \
   -L$(CARDINAL_DIR)/lib \

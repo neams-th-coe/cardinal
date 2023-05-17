@@ -23,6 +23,7 @@
 #include "NekInterface.h"
 #include "NekRSProblemBase.h"
 #include "CardinalEnums.h"
+#include "GeometryUtility.h"
 
 /**
  * Base class for providing common information to postprocessors

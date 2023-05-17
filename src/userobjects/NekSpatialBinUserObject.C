@@ -164,13 +164,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
       mooseError("The 'velocity_direction' parameter must be provided when using "
                  "'velocity_component = user'!");
 
-    Point direction = getParam<Point>("velocity_direction");
-
-    Point zero(0.0, 0.0, 0.0);
-    if (direction.absolute_fuzzy_equals(zero))
-      mooseError("The 'velocity_direction' vector cannot be the zero-vector!");
-
-    direction = direction.unit();
+    Point direction = geom_utility::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
 
     // with a user-specified direction, the direction for each bin is the same
     for (unsigned int i = 0; i < _n_bins; ++i)
