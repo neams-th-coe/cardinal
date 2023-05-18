@@ -468,29 +468,6 @@ OpenMCProblemBase::importProperties() const
   catchOpenMCError(err, "load temperature and density from a properties.h5 file");
 }
 
-bool
-OpenMCProblemBase::cellHasFissileMaterials(const cellInfo & cell_info) const
-{
-  int32_t material_index;
-  auto is_material_cell = materialFill(cell_info, material_index);
-
-  // TODO: for cells with non-material fills, we need to implement something that recurses
-  // into the cell/universe fills to see if there's anything fissile; until then, just assume
-  // that the cell has something fissile
-  if (!is_material_cell)
-    return true;
-
-  // We know void cells certainly aren't fissionable; if not void, check if fissionable
-  if (material_index != MATERIAL_VOID)
-  {
-    const auto & material = openmc::model::materials[material_index];
-    if (material->fissionable_)
-      return true;
-  }
-
-  return false;
-}
-
 xt::xtensor<double, 1>
 OpenMCProblemBase::relativeError(const xt::xtensor<double, 1> & sum,
                                  const xt::xtensor<double, 1> & sum_sq,

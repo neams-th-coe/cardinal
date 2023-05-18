@@ -308,15 +308,6 @@ public:
   bool materialFill(const cellInfo & cell_info, int32_t & material_index) const;
 
   /**
-   * Whether a cell contains any fissile materials; for now, this simply returns true for
-   * cells filled by universes or lattices because we have yet to implement something more
-   * sophisticated that recurses down into all the fills
-   * @param[in] cell_info cell ID, instance
-   * @return whether cell contains fissile material
-   */
-  virtual bool cellHasFissileMaterials(const cellInfo & cell_info) const;
-
-  /**
    * Calculate the number of unique OpenMC cells (each with a unique ID & instance)
    * @return number of unique OpenMC Cells in entire model
    */
