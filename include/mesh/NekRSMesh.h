@@ -470,6 +470,15 @@ protected:
   int _nek_n_flow_elems;
 
   /**
+   * \brief "Phase" for each element (fluid = 0, solid = 1)
+   *
+   * TODO: This could be improved so that we don't need to collect this information,
+   * but would require rewriting of a lot of the code used to assemble the members in
+   * NekVolumeCoupling.
+   */
+  std::vector<int> _phase;
+
+  /**
    * \brief \f$x\f$ coordinates of the current GLL points (which can move in time), for this rank
    *
    * This is ordered according to nekRS's internal geometry layout, and is indexed

@@ -126,33 +126,29 @@
    [bdisp_x_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_x_o
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = disp_x
      source_boundary = 2
    []
    [bdisp_y_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_y_o
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = disp_y
      source_boundary = 2
    []
    [bdisp_z_to_nek]
      type = MultiAppNearestNodeTransfer
      source_variable = disp_z_o
-     direction = to_multiapp
-     multi_app = nek
+     to_multi_app = nek
      variable = disp_z
      source_boundary = 2
    []
    [synchronize]
     type = MultiAppPostprocessorTransfer
     to_postprocessor = transfer_in
-    direction = to_multiapp
     from_postprocessor = synchronize
-    multi_app = nek
+    to_multi_app = nek
   []
 []
 

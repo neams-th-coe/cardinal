@@ -673,10 +673,10 @@ NekRSMesh::addElems()
           }
         }
 
-        if (e < _nek_n_flow_elems)
-          elem->subdomain_id() = _fluid_block_id;
-        else
+        if (_phase[e])
           elem->subdomain_id() = _solid_block_id;
+        else
+          elem->subdomain_id() = _fluid_block_id;
       }
     }
   }
@@ -772,6 +772,7 @@ NekRSMesh::volumeVertices()
   double * x = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
+  double * p = (double *) malloc(_n_build_per_volume_elem * _n_volume_elems * sizeof(double));
 
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
   int rank = nekrs::commRank();
@@ -800,14 +801,17 @@ NekRSMesh::volumeVertices()
   double * xtmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ztmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
+  double * ptmp = (double *) malloc(_n_build_per_volume_elem * _volume_coupling.n_elems * sizeof(double));
 
   int c = 0;
+  int d = 0;
   for (int k = 0; k < _volume_coupling.total_n_elems; ++k)
   {
     if (_volume_coupling.process[k] == rank)
     {
       int i = _volume_coupling.element[k];
       int offset = i * mesh->Np;
+      ptmp[d++] = i >= nekrs::flowMesh()->Nelements;
 
       for (int build = 0; build < _n_build_per_volume_elem; ++build)
       {
@@ -827,6 +831,10 @@ NekRSMesh::volumeVertices()
   nekrs::allgatherv(_volume_coupling.mirror_counts, xtmp, x, Np_mirror);
   nekrs::allgatherv(_volume_coupling.mirror_counts, ytmp, y, Np_mirror);
   nekrs::allgatherv(_volume_coupling.mirror_counts, ztmp, z, Np_mirror);
+  nekrs::allgatherv(_volume_coupling.mirror_counts, ptmp, p);
+
+  for (int i = 0; i < _n_volume_elems; ++i)
+    _phase.push_back(p[i]);
 
   for (int i = 0; i < n_vertices_in_mirror; ++i)
   {
@@ -838,9 +846,11 @@ NekRSMesh::volumeVertices()
   freePointer(x);
   freePointer(y);
   freePointer(z);
+  freePointer(p);
   freePointer(xtmp);
   freePointer(ytmp);
   freePointer(ztmp);
+  freePointer(ptmp);
 }
 
 void
