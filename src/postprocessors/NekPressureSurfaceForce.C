@@ -36,7 +36,7 @@ NekPressureSurfaceForce::NekPressureSurfaceForce(const InputParameters & paramet
 {
   _direction = geom_utility::unitVector(getParam<Point>("direction"), "direction");
 
-  if (_pp_mesh != "fluid")
+  if (_pp_mesh != nek_mesh::fluid)
     mooseError("The 'NekPressureSurfaceForce' postprocessor can only be applied to the fluid mesh boundaries!\n"
       "Please change 'mesh' to 'fluid'.");
 }
