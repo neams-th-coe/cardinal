@@ -43,9 +43,6 @@ protected:
   /// Base mesh this postprocessor acts on
   const MooseMesh & _mesh;
 
-  /// Whether the mesh this postprocessor operates on is fixed, allowing caching of volumes and areas
-  bool _fixed_mesh;
-
   /// Underlying NekRSMesh, if present
   const NekRSMesh * _nek_mesh;
 
