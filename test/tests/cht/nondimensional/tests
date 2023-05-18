@@ -14,10 +14,10 @@
                   "conservation of energy and realistic thermal solutions when nekRS is run in "
                   "nondimensional form. A wide variety of postprocessors are measured and compared "
                   "against the same problem in dimensional form in the ../sfr_pincell directory. "
-                  "Most measurements match exactly, but there is about a 1% difference in pressures "
-                  "and a 0.1% difference in temperatures (this is to be expected, though, because "
+                  "Most measurements match exactly, but there is about a "
+                  "0.1% difference in temperatures (this is to be expected, though, because "
                   "the _solve_ is not exactly the same between a nondimensional and dimensional case - "
-                  "the governing equation is the same, but not necessarily the number of iterations, etc."
+                  "the governing equation is the same, but not necessarily the number of iterations, etc. "
     required_objects = 'NekRSProblem'
   []
   [sfr_pincell_exact]
@@ -26,7 +26,6 @@
     csvdiff = 'nek_master_exact_out.csv nek_master_exact_out_nek0.csv'
     min_parallel = 6
     heavy = true
-    prereq = sfr_pincell
     rel_err = 5e-5
     requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
                   "conservation of energy and realistic thermal solutions when nekRS is run in "

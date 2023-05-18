@@ -5,27 +5,20 @@ TIME STEPS relative 5.5e-6 floor 1e-10
 GLOBAL VARIABLES relative 5.5e-5 floor 1e-10
 	area_1
 	avg_area_1
-	avg_pressure_1 relative 1.e-3
-	avg_pressure_vol 1.e-3
 	avg_temperature_1
 	avg_temperature_vol
 	avg_volume
 	flux_integral
-	inlet_P_avg
 	inlet_mdot
 	inlet_mdot_avg
 	max_1
 	max_1_in
 	max_T
 	max_T_out
-	max_p relative 2.e-3
-	max_p_in relative 2.e-3
 	min_1
 	min_1_in
 	min_T
 	min_T_out
-	min_p
-	min_p_in relative 2.e-3
 	nek_flux relative 5.e-3
 	outlet_T_avg
 	volume
