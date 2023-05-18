@@ -33,15 +33,12 @@ NekVolumeIntegral::validParams()
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters)
 {
-  if (_fixed_mesh)
-    _volume = nekrs::volume(_pp_mesh);
 }
 
 Real
 NekVolumeIntegral::getValue()
 {
-  if (!_fixed_mesh)
-    _volume = nekrs::volume(_pp_mesh);
+  _volume = nekrs::volume(_pp_mesh);
 
   if (_field == field::velocity_component)
   {
