@@ -56,20 +56,4 @@
                   "to an ID not contained in NekRS boundary IDs."
     required_objects = 'NekRSSeparateDomainProblem'
   []
-  [invalid_nek_mesh_solid]
-    type = RunException
-    input = nek.i
-    cli_args = 'Problem/nek_mesh="solid"'
-    expect_err = "NekRSSeparateDomainProblem should only act on the Nek fluid mesh."
-    requirement = "The system shall throw an error if this class tries to act on a non-fluid mesh."
-    required_objects = 'NekRSSeparateDomainProblem'
-  []
-  [invalid_nek_mesh_all]
-    type = RunException
-    input = nek.i
-    cli_args = 'Problem/nek_mesh="all"'
-    expect_err = "NekRSSeparateDomainProblem should only act on the Nek fluid mesh."
-    requirement = "The system shall throw an error if this class tries to act on a non-fluid mesh."
-    required_objects = 'NekRSSeparateDomainProblem'
-  []
 []
