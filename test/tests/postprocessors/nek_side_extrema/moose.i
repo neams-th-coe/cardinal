@@ -80,8 +80,8 @@
   [velocity]
      type = ParsedFunction
      expression = 'sqrt(3.0)*exp(-r*r)'
-     vars = 'r'
-     vals = 'r'
+     symbol_names = 'r'
+     symbol_values = 'r'
   []
   [r]
     type = ParsedFunction
@@ -90,8 +90,8 @@
   [velocity_component]
     type = ParsedFunction
     expression = 'exp(-r*r)'
-    vars = 'r'
-    vals = 'r'
+    symbol_names = 'r'
+    symbol_values = 'r'
   []
 []
 
