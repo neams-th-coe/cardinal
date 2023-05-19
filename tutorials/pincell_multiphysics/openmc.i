@@ -164,10 +164,12 @@ dT = ${fparse power / mdot / Cp}
 
 [Transfers]
   [solid_temp_to_openmc]
-    type = MultiAppCopyTransfer
+    type = MultiAppShapeEvaluationTransfer
     source_variable = T
     variable = solid_temp
     from_multi_app = bison
+    to_blocks = '2 3'
+    from_blocks = '2 3'
   []
   [source_to_bison]
     type = MultiAppCopyTransfer
@@ -176,10 +178,12 @@ dT = ${fparse power / mdot / Cp}
     to_multi_app = bison
   []
   [temp_from_nek]
-    type = MultiAppCopyTransfer
+    type = MultiAppShapeEvaluationTransfer
     source_variable = nek_temp
     from_multi_app = bison
     variable = nek_temp
+    to_blocks = '1'
+    from_blocks = '1'
   []
 []
 
