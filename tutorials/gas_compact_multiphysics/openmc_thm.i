@@ -83,15 +83,13 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
   []
 []
 
-[Modules]
-  [FluidProperties]
-    [helium]
-      type = IdealGasFluidProperties
-      molar_mass = 4e-3
-      gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
-      k = 0.2556
-      mu = 3.22639e-5
-    []
+[FluidProperties]
+  [helium]
+    type = IdealGasFluidProperties
+    molar_mass = 4e-3
+    gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
+    k = 0.2556
+    mu = 3.22639e-5
   []
 []
 
@@ -177,7 +175,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 
 [Transfers]
   [solid_temp_to_openmc]
-    type = MultiAppInterpolationTransfer
+    type = MultiAppGeometricInterpolationTransfer
     source_variable = T
     variable = solid_temp
     from_multi_app = bison
@@ -194,7 +192,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     to_postprocessors_to_be_preserved = flux_integral
   []
   [source_to_bison]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     source_variable = heat_source
     variable = power
     to_multi_app = bison
@@ -202,7 +200,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     to_postprocessors_to_be_preserved = power
   []
   [thm_temp_to_bison]
-    type = MultiAppInterpolationTransfer
+    type = MultiAppGeometricInterpolationTransfer
     source_variable = thm_temp_wall
     variable = fluid_temp
     to_multi_app = bison

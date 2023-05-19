@@ -52,11 +52,9 @@ initial_T = 1200
   closures = sockeye
 []
 
-[Modules]
-  [FluidProperties]
-    [fp_2phase]
-      type = SodiumTwoPhaseFluidProperties
-    []
+[FluidProperties]
+  [fp_2phase]
+    type = SodiumTwoPhaseFluidProperties
   []
 []
 

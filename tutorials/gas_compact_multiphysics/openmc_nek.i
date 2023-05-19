@@ -80,15 +80,13 @@ N = 1000
   []
 []
 
-[Modules]
-  [FluidProperties]
-    [helium]
-      type = IdealGasFluidProperties
-      molar_mass = 4e-3
-      gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
-      k = 0.2556
-      mu = 3.22639e-5
-    []
+[FluidProperties]
+  [helium]
+    type = IdealGasFluidProperties
+    molar_mass = 4e-3
+    gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
+    k = 0.2556
+    mu = 3.22639e-5
   []
 []
 
@@ -162,13 +160,13 @@ N = 1000
 
 [Transfers]
   [solid_temp_to_openmc]
-    type = MultiAppInterpolationTransfer
+    type = MultiAppGeometricInterpolationTransfer
     source_variable = T
     variable = solid_temp
     from_multi_app = bison
   []
   [source_to_bison]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     source_variable = heat_source
     variable = power
     to_multi_app = bison
@@ -176,7 +174,7 @@ N = 1000
     to_postprocessors_to_be_preserved = power
   []
   [temp_from_nek]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     source_variable = nek_bulk_temp
     from_multi_app = bison
     variable = nek_temp

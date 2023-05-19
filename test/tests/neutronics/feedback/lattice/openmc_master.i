@@ -126,7 +126,7 @@
 
 [Transfers]
   [heat_source_from_openmc]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     from_multi_app = openmc
     variable = heat_source
     source_variable = heat_source
@@ -134,13 +134,13 @@
     to_postprocessors_to_be_preserved = source_integral
   []
   [temp_to_openmc]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     to_multi_app = openmc
     variable = temp
     source_variable = temp
   []
   [density_to_openmc]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     to_multi_app = openmc
     variable = density
     source_variable = density
