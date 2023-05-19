@@ -168,8 +168,6 @@ dT = ${fparse power / mdot / Cp}
     source_variable = T
     variable = solid_temp
     from_multi_app = bison
-    to_blocks = '2 3'
-    from_blocks = '2 3'
   []
   [source_to_bison]
     type = MultiAppCopyTransfer
@@ -182,13 +180,12 @@ dT = ${fparse power / mdot / Cp}
     source_variable = nek_temp
     from_multi_app = bison
     variable = nek_temp
-    to_blocks = '1'
-    from_blocks = '1'
   []
 []
 
 [Outputs]
   exodus = true
+  csv = true
 []
 
 [Executioner]
