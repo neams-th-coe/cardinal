@@ -150,15 +150,13 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   []
 []
 
-[Modules]
-  [FluidProperties]
-    [helium]
-      type = IdealGasFluidProperties
-      molar_mass = 4e-3
-      gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
-      k = 0.2556
-      mu = 3.22639e-5
-    []
+[FluidProperties]
+  [helium]
+    type = IdealGasFluidProperties
+    molar_mass = 4e-3
+    gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
+    k = 0.2556
+    mu = 3.22639e-5
   []
 []
 

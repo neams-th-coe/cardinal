@@ -34,11 +34,9 @@
   []
 []
 
-[Modules]
-  [FluidProperties]
-    [sodium]
-      type = IAPWS95LiquidFluidProperties
-    []
+[FluidProperties]
+  [sodium]
+    type = IAPWS95LiquidFluidProperties
   []
 []
 

@@ -447,7 +447,7 @@ using a [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/Fluid
 with the same [!ac](EOS) as used in the [!ac](THM) input files.
 
 !listing /tutorials/gas_assembly/openmc.i
-  block=Modules
+  block=FluidProperties
 
 Next, we set initial conditions for the fluid wall temperature, the fluid bulk
 temperature, and the heat source. We set these initial conditions in the OpenMC
@@ -456,7 +456,7 @@ conduction module and to [!ac](THM) occur, these initial conditions will be pass
 
 !listing /tutorials/gas_assembly/openmc.i
   start=ICs
-  end=Modules
+  end=FluidProperties
 
 The `[Problem]` block is then used to specify settings for the OpenMC wrapping. We
 define the total power for normalization, indicate that blocks 1, 2, and 4 are solid
