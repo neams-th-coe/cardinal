@@ -16,7 +16,7 @@
     type = CSVDiff
     input = pipe.i
     cli_args = "MultiApps/nek/cli_args='Mesh/volume=true;Postprocessors/moose_area_initial/type=AreaPostprocessor;Postprocessors/moose_area_initial/boundary=2;Postprocessors/moose_area/type=AreaPostprocessor;Postprocessors/moose_area/boundary=2'"
-    csvdiff = pipe_out_nek0.csv pipe_out.csv
+    csvdiff = pipe_out_nek0.csv
     min_parallel = 2
     requirement = "A boundary displacement in the main app will displace the mesh in NekRS "
                   "when using a volume mesh mirror. We use the same gold file as for the boundary test, "
