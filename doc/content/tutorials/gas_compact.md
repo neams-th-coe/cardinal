@@ -314,11 +314,11 @@ with the function given by [eq:fluid].
 We run OpenMC as the main application, so we next need to define a
 [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html) that will run
 the solid heat conduction model as the sub-application. We also require two transfers. To get the fission
-power into the solid model, we use a [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
+power into the solid model, we use a [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
 and ensure conservation of the total power by specifying postprocessors
 to be preserved in the OpenMC wrapping (`heat_source`) and in the sub-application
 (`power`). To get the solid temperature into the OpenMC model, we also use
-a [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
+a [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
 in the reverse direction.
 
 !listing /tutorials/gas_compact/openmc.i
