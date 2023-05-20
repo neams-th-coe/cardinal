@@ -1,7 +1,7 @@
 [Mesh]
   [pebble]
     type = FileMeshGenerator
-    file = sphere_in_m.e
+    file = mesh_in.e
   []
   [repeat]
     type = CombinerGenerator
@@ -9,11 +9,6 @@
     positions = '0 0 0.02
                  0 0 0.06
                  0 0 0.10'
-  []
-  [set_block_ids]
-    type = SubdomainIDGenerator
-    input = repeat
-    subdomain_id = 0
   []
 
   allow_renumbering = false
@@ -57,7 +52,7 @@
   solid_blocks = '0'
   tally_type = mesh
   tally_name = heat_source
-  mesh_template = sphere_in_m.e
+  mesh_template = mesh_in.e
   mesh_translations = '0 0 0.02
                        0 0 0.06
                        0 0 0.10'
@@ -72,6 +67,7 @@
 
 [Outputs]
   exodus = true
+  csv = true
 []
 
 [Postprocessors]
@@ -81,5 +77,8 @@
   []
   [max_tally_rel_err]
     type = TallyRelativeError
+  []
+  [k]
+    type = KEigenvalue
   []
 []

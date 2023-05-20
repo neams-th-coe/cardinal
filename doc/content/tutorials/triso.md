@@ -13,11 +13,6 @@ To access this tutorial,
 cd cardinal/tutorials/pebbles
 ```
 
-This
-tutorial also requires you to download a mesh file from Box. Please download
-the files from the `pebbles` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
-and place these files within the same directory structure in `tutorials/pebbles`.
-
 !alert! note title=Computing Needs
 No special computing needs are required for this tutorial.
 !alert-end!
@@ -42,7 +37,7 @@ and unstructured mesh tallies.
 
 !include steady_hc.md
 
-The solid mesh is shown in [solid_mesh]. The pebble surface is sideset 1.
+The solid mesh is shown in [solid_mesh]. The pebble surface is sideset 0.
 The MOOSE solid problem is set up with a length unit of meters,
 which is convenient
 for heat transfer applications because
@@ -121,8 +116,6 @@ To create the XML files required to run OpenMC, run the script:
 ```
 python make_openmc_model.py
 ```
-
-You can also use the XML files checked in to the `tutorials/pebbles` directory.
 
 ## Multiphysics Coupling
 
@@ -244,9 +237,9 @@ When we run with `verbose = true`, you will see the following mapping informatio
 --------------------------------------------------------------------------
 |         Cell         | Solid | Fluid | Other | Mapped Vol | Actual Vol |
 --------------------------------------------------------------------------
-| 1, instance 0 (of 3) |   256 |     0 |     0 | 1.322e-05  |            |
-| 1, instance 1 (of 3) |   256 |     0 |     0 | 1.322e-05  |            |
-| 1, instance 2 (of 3) |   256 |     0 |     0 | 1.322e-05  |            |
+| 1, instance 0 (of 3) |   448 |     0 |     0 | 1.322e-05  |            |
+| 1, instance 1 (of 3) |   448 |     0 |     0 | 1.322e-05  |            |
+| 1, instance 2 (of 3) |   448 |     0 |     0 | 1.322e-05  |            |
 --------------------------------------------------------------------------
 ```
 
@@ -287,9 +280,9 @@ input file.
 !listing /tutorials/pebbles/solid_um.i
   block=MultiApps
 
-We also use a finer solid pebble mesh to provide an example of the
+We also use a finer solid pebble heat conduction mesh to provide an example of the
 case where the OpenMC `[Mesh]` block differs from the mesh used in the coupled MOOSE
-application.
+application. To do this, we increase `nr` to add more radial discretization.
 
 !listing /tutorials/pebbles/solid_um.i
   block=Mesh
@@ -297,6 +290,17 @@ application.
 For the OpenMC wrapping, the only changes required are
 that we set the type of tally to `mesh`, provide a mesh template with the mesh, and specify the
 translations to apply to replicate the mesh at the desired end positions in OpenMC's domain.
+For the mesh tally, let's create a mesh for a single pebble using MOOSE's mesh generators. We simply
+need to run the `mesh.i` file in `--mesh-only` mode:
+
+!listing /tutorials/pebbles/mesh.i
+
+```
+cardinal-opt -i mesh.i --mesh-only
+```
+
+which will create a mesh file named `mesh_in.e`. We then list that mesh as the
+`mesh_template` in the `[Problem]` block.
 
 !listing /tutorials/pebbles/openmc_um.i
   block=Problem

@@ -1,7 +1,8 @@
 [Mesh]
   [pebble]
-    type = FileMeshGenerator
-    file = sphere_in_m.e
+    type = SphereMeshGenerator
+    nr = 2
+    radius = 0.015
   []
   [repeat]
     type = CombinerGenerator
@@ -10,13 +11,7 @@
                  0 0 0.06
                  0 0 0.10'
   []
-  [set_block_ids]
-    type = SubdomainIDGenerator
-    input = repeat
-    subdomain_id = 0
-  []
 []
-
 
 [AuxVariables]
   [cell_id]
@@ -66,6 +61,7 @@
 
 [Outputs]
   exodus = true
+  csv = true
 []
 
 [Postprocessors]
@@ -75,5 +71,8 @@
   []
   [max_tally_rel_err]
     type = TallyRelativeError
+  []
+  [k]
+    type = KEigenvalue
   []
 []
