@@ -2,8 +2,9 @@ T_fluid = ${fparse 650.0 + 273.15}
 
 [Mesh]
   [pebble]
-    type = FileMeshGenerator
-    file = sphere_in_m.e
+    type = SphereMeshGenerator
+    nr = 2
+    radius = 0.015
   []
   [repeat]
     type = CombinerGenerator
@@ -45,7 +46,7 @@ T_fluid = ${fparse 650.0 + 273.15}
     T_infinity = T_fluid
     coefficient = 1000.0
     variable = temp
-    boundary = '1'
+    boundary = '0'
   []
 []
 
