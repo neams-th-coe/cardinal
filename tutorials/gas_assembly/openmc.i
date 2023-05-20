@@ -150,15 +150,13 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   []
 []
 
-[Modules]
-  [FluidProperties]
-    [helium]
-      type = IdealGasFluidProperties
-      molar_mass = 4e-3
-      gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
-      k = 0.2556
-      mu = 3.22639e-5
-    []
+[FluidProperties]
+  [helium]
+    type = IdealGasFluidProperties
+    molar_mass = 4e-3
+    gamma = 1.668282 # should correspond to  Cp = 5189 J/kg/K
+    k = 0.2556
+    mu = 3.22639e-5
   []
 []
 
@@ -277,7 +275,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 
 [Transfers]
   [solid_temp_to_openmc]
-    type = MultiAppInterpolationTransfer
+    type = MultiAppGeometricInterpolationTransfer
     source_variable = T
     variable = solid_temp
     from_multi_app = bison
@@ -294,7 +292,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     to_postprocessors_to_be_preserved = flux_integral
   []
   [source_to_bison]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     source_variable = heat_source
     variable = power
     to_multi_app = bison
@@ -302,7 +300,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     to_postprocessors_to_be_preserved = power
   []
   [thm_temp_to_bison]
-    type = MultiAppInterpolationTransfer
+    type = MultiAppGeometricInterpolationTransfer
     source_variable = thm_temp_wall
     variable = thm_temp
     to_multi_app = bison

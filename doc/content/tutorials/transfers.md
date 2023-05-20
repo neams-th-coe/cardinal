@@ -61,26 +61,26 @@ We will then send this variable using a few different transfers to a sub-applica
 !listing /tutorials/transfers/main.i
   block=Transfers
 
-## [MultiAppInterpolationTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppInterpolationTransfer.html)
+## [MultiAppGeometricInterpolationTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppGeometricInterpolationTransfer.html)
 
-The [MultiAppInterpolationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppInterpolationTransfer.html) transfers the nearest node's source variable to the nearest node on the target mesh
+The [MultiAppGeometricInterpolationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeometricInterpolationTransfer.html) transfers the nearest node's source variable to the nearest node on the target mesh
 using mesh interpolation. Any non-overlapping domains are set values using extrapolation.
 
 !media volume_interpolation.png
   id=volume_interpolation
-  caption=Results of a `MultiAppInterpolationTransfer` from the main app to the sub app
+  caption=Results of a `MultiAppGeometricInterpolationTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
-## [MultiAppMeshFunctionTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
+## [MultiAppShapeEvaluationTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
 
-The [MultiAppMeshFunctionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppMeshFunctionTransfer.html)
+The [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
 queries the finite element solution from the source variable at each receiving point in
 the receiving application. Any non-overlapping domains will simply be set to a value of zero,
 so this transfer is only recommended for meshes that share the same outer boundary.
 
 !media volume_mesh_function.png
   id=volume_mesh_function
-  caption=Results of a `MultiAppMeshFunctionTransfer` from the main app to the sub app
+  caption=Results of a `MultiAppShapeEvaluationTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
 ## [MultiAppNearestNodeTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)

@@ -66,7 +66,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 
 [Transfers]
   [heat_source_to_solid]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     to_multi_app = solid
     variable = power
     source_variable = heat_source
@@ -74,7 +74,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     to_postprocessors_to_be_preserved = power
   []
   [temperature_to_openmc]
-    type = MultiAppMeshFunctionTransfer
+    type = MultiAppShapeEvaluationTransfer
     from_multi_app = solid
     variable = temp
     source_variable = T
