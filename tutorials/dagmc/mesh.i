@@ -1,16 +1,15 @@
-r_pin = ${fparse 14 / 2.0}
+r_pin = ${fparse 18 / 2.0}
 L = 40.0
 
 [Mesh]
   [fuel] # this makes a circle that will represent the fuel
     type = AnnularMeshGenerator
-    nr = 6
+    nr = 9
     nt = 20
     rmin = 0
     rmax = ${r_pin}
     quad_subdomain_id = 2
     tri_subdomain_id = 3
-    growth_r = -1.2
   []
   [extrude] # this extrudes the circle in the axial direction
     type = AdvancedExtruderGenerator

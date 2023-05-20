@@ -45,5 +45,12 @@ p1.pixels = (400, 400)
 p1.color_by = 'material'
 p1.colors = {u235: 'yellow', water: 'blue'}
 
-plots = openmc.Plots([p1])
+p2 = openmc.Plot()
+p2.filename = 'plot2'
+p2.basis = 'xy'
+p2.width = (18.0, 18.0)
+p2.pixels = (400, 400)
+p2.color_by = 'cell'
+
+plots = openmc.Plots([p1, p2])
 plots.export_to_xml()

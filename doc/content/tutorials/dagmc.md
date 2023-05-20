@@ -2,7 +2,7 @@
 
 In this tutorial, you will learn how to:
 
-- Couple [!ac](DAGMC) models via temperature and heat source feedback to MOOSE for a pincell
+- Couple CAD Monte Carlo models via temperature and heat source feedback to MOOSE
 
 To access this tutorial,
 
@@ -18,17 +18,27 @@ No special computing needs are required for this tutorial.
 
 This model consists of a pincell, taken directly from an
 [OpenMC DAGMC tutorial](https://github.com/openmc-dev/openmc-notebooks/blob/main/cad-based-geometry.ipynb).
+[!ac](DAGMC) is a package for Monte Carlo transport on [!ac](CAD) geometry.
 We will not go into detail on how the DAGMC model was generated, but instead
 refer you to the [DAGMC documentation](https://svalinn.github.io/DAGMC/usersguide/index.html).
 
 The geometry consists of a U-235 cylinder enclosed in an annulus of water. The height is 40
-cm, and the outer diameter of the fuel cylinder is 14 cm.
+cm, and the outer diameter of the fuel cylinder is 18 cm.
 The total power is set to 1000 W. An image of the geometry is shown on the $x$-$y$ plane in
 [dagmc_geom].
 
 !media dagmc_pincell.png
   id=dagmc_geom
-  caption=OpenMC DAGMC geometry, on the $x$-$y$ plane.
+  caption=OpenMC DAGMC geometry colored by material, on the $x$-$y$ plane.
+  style=width:30%;margin-left:auto;margin-right:auto
+
+[dagmc_cells] shows the same DAGMC model, colored instead by cell. The two green regions
+are both U-235, while the purple is water. There is no particular reason why the model is
+built this way, since we are just fetching it from an existing OpenMC tutorial.
+
+!media dagmc_pincell_cell.png
+  id=dagmc_cells
+  caption=OpenMC DAGMC geometry colored by cell, on the $x$-$y$ plane.
   style=width:30%;margin-left:auto;margin-right:auto
 
 ### MOOSE Heat Conduction Model
@@ -36,7 +46,8 @@ The total power is set to 1000 W. An image of the geometry is shown on the $x$-$
 !include steady_hc.md
 
 [MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
-the solid mesh. [solid_mesh2] shows the solid mesh with block IDs and sidesets.
+the solid mesh. [solid_mesh2] shows the solid mesh with block IDs and sidesets. We will
+not model any heat transfer in the water region, for simplicity.
 Different block IDs are used for the hexahedral and prism elements
 in the pellet region because libMesh does not allow different element types
 to exist on the same block ID. To generate the mesh,
@@ -211,7 +222,8 @@ main application via subcycling, we would have a way to control that.
   start=Executioner
   end=Postprocessors
 
-Finally, we add a postprocessor to evaluate the total heat source computed by OpenMC.
+Finally, we add a postprocessor to evaluate the total heat source computed by OpenMC
+and query other parts of the solution.
 
 !listing /tutorials/dagmc/openmc.i
   block=Postprocessors
@@ -236,12 +248,13 @@ When the simulation has completed, you will have created a number of different o
 [dagmc_heat_source] shows the heat source computed by OpenMC (units of W/cm$^3$)
 and mapped to the MOOSE mesh, the solid temperature computed by MOOSE, and the
 temperature imposed in OpenMC. The two images showing temperature share a color scale,
-and are depicted as a slice through the pellet. Because the DAGMC model only has a single cell to
+and are depicted as a slice through the pellet. Because the DAGMC model only has two cells to
 represent the fuel region, the temperature imposed in OpenMC is a volume average
-over this entire region.
+over the elements corresponding to each of those two cells.
 If you want to resolve the solid temperature
 with more detail in the OpenMC model, simply add OpenMC cells where finer feedback
-is desired.
+is desired - *or*, you can adaptively re-generate the OpenMC cells using
+the [MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html).
 
 !media dagmc_heat_source.png
   id=dagmc_heat_source
