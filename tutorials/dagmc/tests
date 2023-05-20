@@ -2,15 +2,21 @@
   [mesh]
     type = RunApp
     input = mesh.i
-    cli_args = 'Mesh/fuel/nr=2 Mesh/fuel/nt=8 --mesh-only'
+    cli_args = '--mesh-only'
     requirement = 'The system shall generate a mesh for a pincell.'
   []
+  [skip_water]
+    type = RunException
+    input = openmc.i
+    cli_args = '--error'
+    expect_err = "Skipping multiphysics feedback for 1 OpenMC cells!"
+    requirement = "The system shall warn that we are skipping feedback for one cell in a partially-coupled DAGMC model."
+    required_objects = 'MoabSkinner'
+  []
   [coupled]
-    type = Exodiff
+    type = CSVDiff
     input = solid.i
-    exodiff = 'solid_out_openmc0.e'
-    cli_args = 'Executioner/num_steps=2'
-    min_parallel = 2
+    csvdiff = solid_out_openmc0.csv
     prereq = mesh
     requirement = 'The system shall couple DAGMC OpenMC models to MOOSE.'
     required_objects = 'MoabSkinner'
