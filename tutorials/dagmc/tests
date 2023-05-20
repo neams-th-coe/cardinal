@@ -11,6 +11,7 @@
     cli_args = '--error'
     expect_err = "Skipping multiphysics feedback for 1 OpenMC cells!"
     requirement = "The system shall warn that we are skipping feedback for one cell in a partially-coupled DAGMC model."
+    required_objects = 'MoabSkinner'
   []
   [coupled]
     type = CSVDiff
