@@ -28,7 +28,7 @@ users have to run at least one CFD time step, and then can only visualize the
 *output file*. This can be tedious if you need to achieve a viable CFD solve
 just to visualize a mesh.
 
-Cardinal conveniently provides a way to visualize the NekRS CFD mesh. Simply
+Cardinal provides a way to visualize the NekRS CFD mesh. Simply
 set `exact = true` for [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html)
 and then run in `--mesh-only` mode. For example, you can create a small Cardinal
 input file,
@@ -202,7 +202,7 @@ We will run this NekRS case with a thin wrapper input file, shown below.
 Of note are the user objects, multiapps, and transfers. In this file, we will compute
 three different postprocessing operations:
 
-- *Average temperature over subchannel volumes*:
+- **Average temperature over subchannel volumes**:
   We will use a user object to
   conduct a binned spatial average of the NekRS temperature. We first form these bins
   as the product of unique indices for each subchannel with unique indices for each
@@ -222,7 +222,7 @@ three different postprocessing operations:
   some of the axial bins not mapping to any elements, since the NekRS mesh is coarser
   than the specified number of bins).
 
-- *Average temperature over subchannel gaps*:
+- **Average temperature over subchannel gaps**:
   We form the bins as the product of unique
   indices for each subchannel gap with unique indices for each axial layers.
   The [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
@@ -235,7 +235,7 @@ three different postprocessing operations:
   only requirement being that one and only one of these distribution is a "side" distribution, which
   for this example is the `HexagonalSubchannelGapBin`).
 
-- *Average the normal velocity over subchannel gaps*:
+- **Average the normal velocity over subchannel gaps**:
   We reuse the same previous bins, but set
   `field = velocity_component` for a [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md).
 
