@@ -42,12 +42,23 @@
   check_zero_tallies = false
 
   power = 1000.0
+  volume_calculation = vol
+[]
+
+[UserObjects]
+  [vol]
+    type = OpenMCVolumeCalculation
+    n_samples = 200000
+  []
 []
 
 [Postprocessors]
   [heat_source]
     type = ElementIntegralVariablePostprocessor
     variable = heat_source
+  []
+  [k]
+    type = KEigenvalue
   []
 []
 
@@ -57,4 +68,5 @@
 
 [Outputs]
   exodus = true
+  csv = true
 []

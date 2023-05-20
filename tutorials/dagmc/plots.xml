@@ -7,4 +7,9 @@
     <color id="40" rgb="255 255 0" />
     <color id="41" rgb="0 0 255" />
   </plot>
+  <plot basis="xy" color_by="cell" filename="plot2" id="2" type="slice">
+    <origin>0.0 0.0 0.0</origin>
+    <width>18.0 18.0</width>
+    <pixels>400 400</pixels>
+  </plot>
 </plots>
