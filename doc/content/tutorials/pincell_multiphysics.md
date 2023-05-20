@@ -275,10 +275,7 @@ Next, we set up some initial conditions for the various fields used for coupling
   start=ICs
   end=Problem
 
-Next, we create a MOOSE heat conduction sub-application, and set up transfers of data between OpenMC and MOOSE. These transfers will send solid temperature and fluid temperature from MOOSE up to OpenMC, and a power distribution to MOOSE. Because the solid mesh is exactly the same as the OpenMC mesh mirror, we can use
-simple [MultiAppCopyTransfers](https://mooseframework.inl.gov/source/transfers/MultiAppCopyTransfer.html),
-though you can of course use [other transfers](https://cardinal.cels.anl.gov/tutorials/transfers.html)
-if the meshes were different.
+Next, we create a MOOSE heat conduction sub-application, and set up transfers of data between OpenMC and MOOSE. These transfers will send solid temperature and fluid temperature from MOOSE up to OpenMC, and a power distribution to MOOSE.
 
 !listing tutorials/pincell_multiphysics/openmc.i
   start=MultiApps

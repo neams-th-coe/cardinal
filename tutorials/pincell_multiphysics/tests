@@ -32,13 +32,13 @@
     prereq = fluid_mesh
   []
   [openmc]
-    type = RunApp
+    type = CSVDiff
     input = openmc.i
-    cli_args = 'Problem/particles=100 MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Problem/max_batches=100'
-    min_parallel = 4
+    csvdiff = openmc_out.csv
+    cli_args = 'Problem/particles=100 MultiApps/bison/cli_args="MultiApps/active='';Transfers/active=''" Executioner/num_steps=1 Problem/max_batches=100'
     requirement = "The system shall be able to run a 3-way coupling of OpenMC, MOOSE, and NekRS for a pincell. "
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
-                  "also splits tests this way."
+                  "also splits tests this way. This test runs OpenMC and heat conduction for one step."
     prereq = 'solid_mesh fluid_mesh_to_hex20'
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -49,7 +49,7 @@
     min_parallel = 4
     requirement = "The system shall be able to run a 3-way coupling of OpenMC, MOOSE, and NekRS for a pincell. "
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
-                  "also splits tests this way."
+                  "also splits tests this way. This test runs heat conduction and NekRS for one step."
     prereq = 'solid_mesh'
     required_objects = 'NekRSProblem'
   []
