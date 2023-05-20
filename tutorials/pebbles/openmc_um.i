@@ -67,6 +67,7 @@
 
 [Outputs]
   exodus = true
+  csv = true
 []
 
 [Postprocessors]
@@ -76,5 +77,8 @@
   []
   [max_tally_rel_err]
     type = TallyRelativeError
+  []
+  [k]
+    type = KEigenvalue
   []
 []
