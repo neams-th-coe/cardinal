@@ -1,18 +1,66 @@
-d_pellet = 0.603e-2                           # pellet diameter
-d_pin = 8.0e-3                                # pin (clad) diameter
-t_clad = 0.52e-3                              # clad thickness
-L = 20.32e-2                                  # height of one wire pitch
-power = 250e6                                 # total core power
-n_bundles = 54                                # number of fueled (driver) assemblies
-n_pins = 217                                  # number of pins per bundle
-active_height = 0.8                           # active height of fuel pins
-n_axial_pitches = ${fparse active_height / L} # number of wire pitches per height
-
-# approximate total power per axial pitch per pin
-pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
+d_pellet = 0.603e-2                           # pellet diameter (m)
+d_pin = 8.0e-3                                # pin (clad) diameter (m)
+t_clad = 0.52e-3                              # clad thickness (m)
+L = 20.32e-2                                  # height (m)
+bundle_pitch = 0.02625                        # flat-to-flat distance inside the duct (m)
+duct_thickness = 0.004                        # duct thickness (m)
+pin_power = 21e3                              # bundle power (kW)
 
 [Mesh]
-  [clad] # This makes a circular annulus that will represent the clad
+
+# --- DUCT --- #
+
+  # Make the duct mesh in 2-D; we first create a "solid" hexagon with two blocks
+  # so that we can set the inner wall sideset as the boundary between these two blocks,
+  # and then delete an inner block to get just the duct walls
+  [duct]
+    type = PolygonConcentricCircleMeshGenerator
+    num_sides = 6
+    polygon_size = ${fparse bundle_pitch / 2.0 + duct_thickness}
+    num_sectors_per_side = '14 14 14 14 14 14'
+    uniform_mesh_on_sides = true
+
+    duct_sizes = '${fparse bundle_pitch / 2.0}'
+    duct_block_ids = '10'
+    duct_intervals = '4'
+    duct_sizes_style = apothem
+  []
+  [inner_sideset]
+    type = SideSetsBetweenSubdomainsGenerator
+    input = duct
+    new_boundary = '10'
+    primary_block = '10'
+    paired_block = '1'
+  []
+  [delete_inside_block]
+    type = BlockDeletionGenerator
+    input = inner_sideset
+    block = '1'
+  []
+
+  # rotate the duct by 30 degrees, then add names for sidesets. Delete sideset 1 because
+  # we will name some other part of our mesh with sideset 1.
+  [rotate]
+    type = TransformGenerator
+    input = delete_inside_block
+    transform = rotate
+    vector_value = '30.0 0.0 0.0'
+  []
+  [rename_sideset_names]
+    type = RenameBoundaryGenerator
+    input = rotate
+    old_boundary = '10000 10'
+    new_boundary = 'duct_outer duct_inner'
+  []
+  [delete_extraneous]
+    type = BoundaryDeletionGenerator
+    input = rename_sideset_names
+    boundary_names = '1'
+  []
+
+# --- CLAD --- #
+
+  [clad]
     type = AnnularMeshGenerator
     nr = 3
     nt = 20
@@ -21,20 +69,22 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
     quad_subdomain_id = 1
     tri_subdomain_id = 0
   []
-  [extrude_clad] # this extrudes the circular annulus in the axial direction
-    type = AdvancedExtruderGenerator
-    input = clad
-    heights = '${L}'
-    num_layers = '40'
-    direction = '0 0 1'
-  []
   [rename_clad] # this renames some sidesets on the clad to avoid name clashes
     type = RenameBoundaryGenerator
-    input = extrude_clad
+    input = clad
     old_boundary = '1 0' # outer surface, inner surface
     new_boundary = '5 4'
   []
-  [fuel] # this makes a circle that will represent the fuel
+  [rename_clad_names] # this renames some names on the clad to avoid name clashes
+    type = RenameBoundaryGenerator
+    input = rename_clad
+    old_boundary = '5 4' # outer surface, inner surface
+    new_boundary = 'clad_outer clad_inner'
+  []
+
+# --- FUEL --- #
+
+  [fuel]
     type = AnnularMeshGenerator
     nr = 10
     nt = 20
@@ -44,40 +94,32 @@ pin_power = ${fparse power / (n_bundles * n_pins) / n_axial_pitches}
     tri_subdomain_id = 3
     growth_r = -1.2
   []
-  [extrude] # this extrudes the circle in the axial direction
-    type = AdvancedExtruderGenerator
-    input = fuel
-    heights = '${L}'
-    num_layers = '40'
-    direction = '0 0 1'
-  []
+
+# --- COMBINE --- #
+
   [combine] # this combines the fuel and clad together to make one pin
     type = CombinerGenerator
-    inputs = 'rename_clad extrude'
+    inputs = 'rename_clad_names fuel'
   []
-  [repeat] # this repeats the pincell 7 times to get the 7 pins
+  [repeat] # this repeats the pincell 7 times to get the 7 pins, and adds the duct
     type = CombinerGenerator
-    inputs = combine
+    inputs = 'combine combine combine combine combine combine combine delete_extraneous'
     positions = '+0.00000000 +0.00000000 +0.00000000
                  +0.00452000 +0.00782887 +0.00000000
                  -0.00452000 +0.00782887 +0.00000000
                  -0.00904000 +0.00000000 +0.00000000
                  -0.00452000 -0.00782887 +0.00000000
                  +0.00452000 -0.00782887 +0.00000000
-                 +0.00904000 +0.00000000 +0.00000000'
+                 +0.00904000 +0.00000000 +0.00000000
+                 +0.0        +0.0        +0.0'
   []
-  [duct] # this reads a duct mesh from a file
-    type = FileMeshGenerator
-    file = duct.exo
+  [extrude]
+    type = AdvancedExtruderGenerator
+    input = repeat
+    direction = '0 0 1'
+    num_layers = '40'
+    heights = '${L}'
   []
-  [pins_and_duct] # this combines the 7 pins with the duct
-    type = CombinerGenerator
-    inputs = 'repeat duct'
-  []
-
-  # this just represents the node sets as side sets for visualization
-  # in Paraview - this has nothing to do with the actual problem setup
-  construct_side_list_from_node_list = true
 []
 
 [Variables]
