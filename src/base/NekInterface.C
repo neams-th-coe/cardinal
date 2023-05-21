@@ -123,7 +123,7 @@ hasVariableDt()
 }
 
 bool
-hasElasticitySolver()
+hasBlendingSolver()
 {
   return platform->options.compareArgs("MESH SOLVER", "ELASTICITY");
 }

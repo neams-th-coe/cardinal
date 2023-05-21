@@ -142,7 +142,7 @@ bool hasVariableDt();
  * Whether nekRS's input file has the elasticity mesh solver
  * @return whether nekRS's input file has [MESH] solver = elasticity
  */
-bool hasElasticitySolver();
+bool hasBlendingSolver();
 
 /**
  * Whether nekRS's input file has the user mesh solver
