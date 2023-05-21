@@ -5,10 +5,18 @@
     cli_args = '--mesh-only'
     requirement = "The system shall create the mesh for the OpenMC and solid domains."
   []
+  [skip_gap_and_water]
+    type = RunException
+    input = openmc.i
+    cli_args = '--error'
+    expect_err = "Skipping multiphysics feedback for 80 OpenMC cells!"
+    requirement = "The system shall warn about uncoupled OpenMC cells in the gap and water"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [lwr_pincell]
-    type = RunApp
+    type = CSVDiff
     input = solid.i
-    min_parallel = 4
+    csvdiff = solid_out_openmc0.csv
     prereq = make_mesh
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
@@ -16,9 +24,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [lwr_pincell_mesh]
-    type = RunApp
+    type = CSVDiff
     input = solid_um.i
-    min_parallel = 4
+    csvdiff = solid_um_out_openmc0.csv
     prereq = make_mesh
     mesh_mode = 'replicated'
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"

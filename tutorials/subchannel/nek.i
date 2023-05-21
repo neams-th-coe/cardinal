@@ -97,12 +97,14 @@
     app_type = CardinalApp
     input_files = 'subchannel.i'
     execute_on = timestep_end
+    sub_cycling = true
   []
   [subchannel_gap]
     type = TransientMultiApp
     app_type = CardinalApp
     input_files = 'subchannel_gap.i'
     execute_on = timestep_end
+    sub_cycling = true
   []
 []
 
