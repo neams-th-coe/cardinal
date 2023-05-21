@@ -16,7 +16,7 @@
   [lwr_pincell]
     type = CSVDiff
     input = solid.i
-    csvdiff = solid_out_openmc.csv
+    csvdiff = solid_out_openmc0.csv
     prereq = make_mesh
     cli_args = "Executioner/num_steps=1 openmc:Problem/particles=1000 openmc:Problem/inactive_batches=5 openmc:Problem/batches=10"
     requirement = "The OpenMC wrapping shall provide heat source and temperature coupling "
