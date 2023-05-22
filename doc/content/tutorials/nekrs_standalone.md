@@ -120,7 +120,7 @@ which will run with 4 MPI ranks. This will create a number of output files:
 - `nek_out_sub0.` shows the result of a postprocessing operation, mapped to a
   different MOOSE mesh
 - `nek_out.csv` shows the CSV postprocessor values
-- `
+- `turbPipe0.f<n>` are the NekRS output files, where `<n>` is an integer representing output step index in NekRS
 
 When running this tutorial, the NekRS output file is the `nek_out.e` file,
 while the output of the sub-application is the `nek_out_sub0.e` file.
