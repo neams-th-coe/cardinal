@@ -3,18 +3,19 @@
 # Usage:
 # 1. Copy to the directory where you have your files
 # 2. Update any needed environment variables and input files names in this script
-# 3. ./job_summit <casename> <nodes> <hh:mm>
-#    where <casename> is the NekRS case (used for precompiling). If you are not using
-#                     NekRS, just enter any dummy text here and then do NOT precompile
+# 3. ./job_summit [casename] <nodes> <hh:mm>
+#    where [casename] is the NekRS case (used for precompiling). If you are not using
+#                     NekRS, omit this field.
 #          <nodes> is the number of nodes you want to use
 #          <hh::mm> is the maximum wall time you want
 
 # additional variables you may want to change
 : ${PROJ_ID:=""}
-: ${NEKRS_HOME:=/autofs/nccs-svm1_home1/novak/cardinal/install}
-: ${OCCA_CACHE_DIR:="$PWD/.cache/occa"}
-: ${CARDINAL_BIN:=/autofs/nccs-svm1_home1/novak/cardinal/cardinal-opt}
 : ${CARDINAL_I:=nek_master.i}
+: ${CARDINAL_DIR:=/gpfs/alpine/cfd151/scratch/novak/cardinal}
+: ${NEKRS_HOME:="$CARDINAL_DIR/install"}
+: ${OCCA_CACHE_DIR:="$PWD/.cache/occa"}
+: ${CARDINAL_BIN:="$CARDINAL_DIR/cardinal-opt"}
 : ${OPENMC_CROSS_SECTIONS:=/autofs/nccs-svm1_home1/novak/cross_sections/endfb71_hdf5/cross_sections.xml}
 
 # =============================================================================
@@ -26,8 +27,8 @@ if [ -z "$PROJ_ID" ]; then
   exit 1
 fi
 
-if [ $# -ne 3 ]; then
-  echo "usage: [PROJ_ID] [CPUONLY=1] $0 <casename> <number of compute nodes> <hh:mm>"
+if [ $# -lt 2 ] || [ $# -gt 3 ]; then
+  echo "usage: [PROJ_ID] [CPUONLY=1] $0 [casename] <number of compute nodes> <hh:mm>"
   exit 0
 fi
 
@@ -61,11 +62,18 @@ export OMPI_MCA_coll_ibm_collselect_mode_barrier=failsafe
 bin=$CARDINAL_BIN
 case=$1
 nodes=$2
+time=$3
 gpu_per_node=6
 cores_per_socket=21
+
+# special rules for OpenMC-only cases
+if [ $# -eq 2 ]; then
+  nodes=$1
+  time=$2
+fi
+
 let nn=$nodes*$gpu_per_node
 let ntasks=nn
-time=$3
 backend=CUDA
 
 if [ $CPUONLY -eq 1 ]; then
@@ -79,43 +87,46 @@ if [ ! -f $bin ]; then
   exit 1
 fi
 
-if [ ! -f $case.par ]; then
-  echo "Cannot find" $case.par
-  exit 1
-fi
+if [ $# -ne 2 ]; then
+  if [ ! -f $case.par ]; then
+    echo "Cannot find" $case.par
+    exit 1
+  fi
 
+  if [ ! -f $case.udf ]; then
+    echo "Cannot find" $case.udf
+    exit 1
+  fi
 
-if [ ! -f $case.udf ]; then
-  echo "Cannot find" $case.udf
-  exit 1
-fi
+  if [ ! -f $case.oudf ]; then
+    echo "Cannot find" $case.oudf
+    exit 1
+  fi
 
-if [ ! -f $case.oudf ]; then
-  echo "Cannot find" $case.oudf
-  exit 1
-fi
-
-if [ ! -f $case.re2 ]; then
-  echo "Cannot find" $case.re2
-  exit 1
+  if [ ! -f $case.re2 ]; then
+    echo "Cannot find" $case.re2
+    exit 1
+  fi
 fi
 
 mkdir -p $OCCA_CACHE_DIR 2>/dev/null
 
-while true; do
-  read -p "Do you want precompile (enter N if not running Nek)? [N]" yn
-  case $yn in
-    [Yy]* )
-      echo $NEKRS_HOME
-      mpirun -pami_noib -np 1 $NEKRS_HOME/bin/nekrs --setup $case --build-only $ntasks --backend $backend;
-      if [ $? -ne 0 ]; then
-        exit 1
-      fi
-      break ;;
-    * )
-      break ;;
-  esac
-done
+if [ $# -eq 3 ]; then
+  while true; do
+    read -p "Do you want precompile? [Y/N]" yn
+    case $yn in
+      [Yy]* )
+        echo $NEKRS_HOME
+        mpirun -pami_noib -np 1 $NEKRS_HOME/bin/nekrs --setup $case --build-only $ntasks --backend $backend;
+        if [ $? -ne 0 ]; then
+          exit 1
+        fi
+        break ;;
+      * )
+        break ;;
+    esac
+  done
+fi
 
 if [ $CPUONLY -eq 1 ]; then
   jsrun="jsrun -X 1 -n$nodes -r1 -a1 -c1 -g0 -b packed:1 -d packed cp -a $OCCA_CACHE_DIR/* $NVME_HOME; export OCCA_CACHE_DIR=$NVME_HOME; jsrun -X 1 -n$nn -a$cores_per_socket -c$cores_per_socket -g0 -b packed:1 -d packed $bin -i $CARDINAL_I"
