@@ -32,7 +32,7 @@ cd contrib/nekRS/examples/ethier
 nrsmpi ethier 4
 ```
 
-And that's it! No need to separately compile NekRS if you don't want to use Cardinal.
+And that's it! No need to separately compile NekRS.
 
 ## Thinly-Wrapped Simulations
 
@@ -42,14 +42,14 @@ To access this tutorial:
 cd cardinal/tutorials/standalone
 ```
 
-To contrast with the previous example, you can basically achieve the same "standalone"
+To contrast with the previous example, you can achieve the same "standalone"
 calculations via Cardinal, which you might be interested in to leverage Cardinal's
 postprocessing and data I/O features. Some useful features include:
 
 - Postprocessors to evaluate max/mins, area/volume integrals and averages,
-  and mass flux-weighted side integrals of various quantities in the [!ac](CFD) solution
+  and mass flux-weighted side integrals of the NekRS solution
 - Extracting the NekRS solution into any output format supported by MOOSE (such as
-  Exodus and VTK - see the full list of formats supported by MOOSE
+  Exodus and VTK - see the full list of formats
   [here](https://mooseframework.inl.gov/syntax/Outputs/index.html)).
 
 Instead of running a NekRS input
@@ -61,12 +61,12 @@ during the simulation as specified by settings in the `.par` file.
 
 To run NekRS via MOOSE, without any physics coupling,
 Cardinal simply replaces calls to MOOSE solve methods with NekRS solve methods available
-through an [!ac](API) (without any data transfers). A
+through an [!ac](API). There are no data transfers to/from NekRS. A
 thinly-wrapped simulation uses:
 
 1. [NekRSMesh](/mesh/NekRSMesh.md): create a "mirror" of the NekRS mesh, which can *optionally* be used to interpolate
    a high-order NekRS solution into a lower-order mesh (in any MOOSE-supported format).
-2. [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md): allow MOOSE to access the NekRS solution, providing access to a wide variety of postprocessors and user objects that can be used to analyze a NekRS simulation.
+2. [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md): allow MOOSE to run NekRS
 
 For this tutorial, we will use the `turbPipe` example that ships with the NekRS repository
 as an example case. This case models
@@ -114,10 +114,20 @@ This input file is run with:
 mpiexec -np 4 cardinal-opt -i nek.i
 ```
 
-which will run with 4 MPI ranks.
-We will use a few postprocessing operations to illustrate
-the utility of wrapping NekRS simulations in Cardinal. First we add several
-postprocessors to compute:
+which will run with 4 MPI ranks. This will create a number of output files:
+
+- `nek_out.e` shows the NekRS solution mapped to a MOOSE mesh
+- `nek_out_sub0.` shows the result of a postprocessing operation, mapped to a
+  different MOOSE mesh
+- `nek_out.csv` shows the CSV postprocessor values
+- `turbPipe0.f<n>` are the NekRS output files, where `<n>` is an integer representing output step index in NekRS
+
+When running this tutorial, the NekRS output file is the `nek_out.e` file,
+while the output of the sub-application is the `nek_out_sub0.e` file.
+
+Now that you know how to run, let's describe
+the rest of the contents in the `nek.i` input file.
+This file adds a few additional postprocessing operations to compute:
 
 - pressure drop, computed by subtracting the inlet average pressure from the outlet
   average pressure with two [NekSideAverage](/postprocessors/NekSideAverage.md)
@@ -172,12 +182,18 @@ the mesh mirror, are shown in [nek_vels].
   caption=NekRS computed axial velocity (top) and the velocity interpolated onto the [NekRSMesh](/mesh/NekRSMesh.md) mirror (bottom)
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
-We can also apply several userobjects directly to the NekRS solution for a
+We can also apply several userobjects *directly* to the NekRS solution for a
 number of postprocessing operations. Below, we perform a volume average
 of $V_z$ in 12 radial bins discretized into 20 axial layers.
 
 !listing /tutorials/standalone/nek.i
   block=UserObjects
+
+!alert note
+In Cardinal, and Postprocessors or UserObjects which begin with `Nek` in their name
+are not performing operations on the lower-order mapping
+of the NekRS solution - they are *directly* doing integrals/averages/etc. on
+the [!ac](GLL) points.
 
 If we want to view the output of this averaging on the
 [NekRSMesh](/mesh/NekRSMesh.md), we could visualize it with a
@@ -199,7 +215,7 @@ be seen).
 !media vol_avgs_master.png
   id=avg1
   caption=Representation of the `volume_averages` binned averaging on the NekRS mesh mirror
-  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+  style=width:65%;margin-left:auto;margin-right:auto;halign:center
 
 Instead, we can
 leverage MOOSE's [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
@@ -207,7 +223,7 @@ system to transfer the user object to a sub-application with a different mesh
 than what is used in NekRS. Then we can visualize the averaging operation
 perfectly without concern for the fact that the NekRS mesh doesn't have elements
 that fall nicely into the 12 radial bins. To do this,
-we create a sub-application with a mesh created with elements exactly matching
+we create a sub-application with mesh elements exactly matching
 the user object binning and turn the solve off by setting `solve = false`, so that
 this input file only serves to receive data onto a different mesh.
 
@@ -225,7 +241,4 @@ which exactly represents the 12 radial averaging bins.
 !media vol_avgs_sub.png
   id=avg2
   caption=Representation of the `volume_averages` binned exactly as computed by user object
-  style=width:60%;margin-left:auto;margin-right:auto;halign:center
-
-When running this tutorial, the NekRS output file is the `nek_out.e` file,
-while the output of the sub-application is the `nek_out_sub0.e` file.
+  style=width:65%;margin-left:auto;margin-right:auto;halign:center

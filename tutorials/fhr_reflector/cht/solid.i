@@ -24,8 +24,8 @@ core_heat_flux = 5e3
   [nek_temp_ic]
     type = ParsedFunction
     value = 923.0-50.0*(r-3.348)
-    vars = 'r'
-    vals = 'r'
+    symbol_names = 'r'
+    symbol_values = 'r'
   []
   [r]
     type = ParsedFunction

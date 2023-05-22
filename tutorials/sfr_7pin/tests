@@ -1,8 +1,14 @@
 [Tests]
-  [solid_mesh]
+  [solid]
     type = RunApp
     input = solid.i
-    cli_args = '--mesh-only'
-    requirement = "The system shall be able to mesh the solid regions of a pin bundle."
+    cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Mesh/fuel/nt=4 Mesh/extrude/num_layers=5'
+    requirement = "The system shall be able to solve heat conduction in a pin bundle."
+  []
+  [solid_vpp]
+    type = RunApp
+    input = solid_vpp.i
+    cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Mesh/fuel/nt=4 Mesh/extrude/num_layers=5'
+    requirement = "The system shall be able to solve heat conduction in a pin bundle."
   []
 []

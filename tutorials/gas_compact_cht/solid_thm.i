@@ -76,8 +76,8 @@ q0 = ${fparse unit_cell_power / (4.0 * unit_cell_height * compact_diameter * com
   [k_compacts]
     type = ParsedFunction
     expression = '${triso_pf} * k_TRISO + ${fparse 1.0 - triso_pf} * k_graphite'
-    vars = 'k_TRISO k_graphite'
-    vals = 'k_TRISO k_graphite'
+    symbol_names = 'k_TRISO k_graphite'
+    symbol_values = 'k_TRISO k_graphite'
   []
   [axial_power] # volumetric power density
     type = ParsedFunction
