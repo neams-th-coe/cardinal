@@ -96,8 +96,8 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
   [k_compacts]
     type = ParsedFunction
     expression = '${triso_pf} * k_TRISO + ${fparse 1.0 - triso_pf} * k_graphite'
-    vars = 'k_TRISO k_graphite'
-    vals = 'k_TRISO k_graphite'
+    symbol_names = 'k_TRISO k_graphite'
+    symbol_values = 'k_TRISO k_graphite'
   []
   [axial_fluid_temp]
     type = ParsedFunction

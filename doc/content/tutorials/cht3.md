@@ -3,7 +3,7 @@
 
 In this tutorial, you will learn how to:
 
-- Couple NekRS to MOOSE for [!ac](CHT) for turbulent flow in a [!ac](TRISO) compact
+- Couple NekRS to MOOSE for [!ac](CHT) for turbulent flow in a [!ac](TRISO) fuel unit cell
 - Extract an initial condition from a NekRS restart file
 - Swap out NekRS for a different thermal-fluid MOOSE application, the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
 - Compute heat transfer coefficients with NekRS
@@ -72,8 +72,6 @@ The solid mesh is shown in [solid_mesh].
 The [!ac](TRISO) particles are homogenized into
 the compact regions - all material properties in the heterogeneous regions
 are taken as volume averages of the various constituent materials.
-To simplify the specification of
-material properties, the solid geometry uses a length unit of meters.
 
 !media compact_solid_mesh.png
   id=solid_mesh
@@ -89,7 +87,6 @@ The volumetric power density $\dot{q}_s$ is set to a sinusoidal function of $z$,
 where $q_0$ is a coefficient used to ensure that the total power produced is 38 kW
 and $H$ is the domain height. The power is uniform
 in the radial direction in each compact.
-
 On the coolant channel surface, a Dirichlet temperature is provided by NekRS/THM.
 All other boundaries are insulated. We will run the solid model first, so we must specify
 an initial condition for the wall temperature, which we simply set to a linear variation
@@ -105,7 +102,7 @@ The inlet mass flowrate is 0.0905 kg/s; with the channel diameter of 1.6 cm and 
 properties of helium, this results in a Reynolds number of 223214 and a Prandtl number
 of 0.655. This highly-turbulent flow results in extremely thin momentum and thermal boundary
 layers on the no-slip surfaces forming the periphery of the coolant channel. In order to
-resolve the near-wall behavior with a wall-resolved model, an extremely fine mesh is
+resolve the near-wall behavior, an extremely fine mesh is
 required in the NekRS simulation. To accelerate the overall coupled [!ac](CHT) case
 that is of interest in this tutorial, the NekRS model is split into a series of calculations:
 
@@ -116,8 +113,8 @@ that is of interest in this tutorial, the NekRS model is split into a series of 
    to transport a temperature passive scalar in a [!ac](CHT) calculation with MOOSE.
 
 As a rough estimate, solving the coupled mass-momentum equations requires about an
-order of magnitude more compute time than a passive scalar equation in NekRS, assuming
-an identical time step size. Therefore, by "freezing" the $\vec{u}$ and $\mu_T$ solutions,
+order of magnitude more compute time than a passive scalar equation in NekRS.
+Therefore, by "freezing" the $\vec{u}$ and $\mu_T$ solutions,
 we can dramatically reduce the total cost of the coupled [!ac](CHT) calculation.
 
 The periodic flow model has a height of $\frac{H}{10}$ and takes about 10,000 core hours
@@ -128,16 +125,12 @@ and 2 from this tutorial. Instead, we begin straight away from a full-height per
 file with the $k$-$\tau$ [!ac](RANS) model. This restart file is the
 `periodic_flow_solve.f00001` file. If you open the restart file, you will see the following
 converged NekRS predictions of velocity, $k$, and $\tau$.
+[nek_line_plots] shows the axial velocity, $k$, and $\tau$ on a line plot through the center of the channel.
 
 !media nek_uc_results.png
   id=nek_restart
   caption=Converged NekRS predictions of velocity magnitude (left), $k$ (middle), and $\tau$ (right) for the periodic case (all in non-dimensional form)
   style=width:80%;margin-left:auto;margin-right:auto
-
-[nek_line_plots] shows the axial velocity, $k$, and $\tau$ on a line plot through the center of the channel.
-All quantities display the expected physical behavior -
- the peak axial velocity is about 1.15 times the uniform inlet velocity, the turbulent
-kinetic energy reaches a peak very close to the wall and decreases towards the centerline, while $\tau$ peaks at the centerline.
 
 !media nek_line_plots.png
   id=nek_line_plots
@@ -146,8 +139,7 @@ kinetic energy reaches a peak very close to the wall and decreases towards the c
 
 For the conjugate heat transfer case, we will load this restart file, compute $k_T$ from the
 loaded solutions for $k$ and $\tau$, and then transport temperature with coupling to MOOSE
-heat conduction. Let's now describe the NekRS input files needed for the passive scalar solve.
-These files are:
+heat conduction. The NekRS files are:
 
 - `ranstube.re2`: NekRS mesh
 - `ranstube.par`: High-level settings for the solver, boundary condition mappings to sidesets, and the equations to solve
@@ -206,8 +198,7 @@ THM solves the [1-D area averages of the Navier-Stokes equations](theory/thm.md)
 The Churchill correlation is used for $f$ and the Dittus-Boelter correlation is used for $H_w$ [!cite](relap7).
 
 The THM mesh contains 150 elements; the mesh is constucted automatically
-within THM. To simplify the specification of material properties, the fluid geometry
-uses a length unit of meters. The heat flux imposed in the THM elements is obtained
+within THM. The heat flux imposed in the THM elements is obtained
 by area averaging the heat flux from the heat conduction model in 150 layers along
 the fluid-solid interface. For the reverse transfer, the wall temperature sent to MOOSE
 heat conduction is set to a uniform value along the fluid-solid interface according to
@@ -255,7 +246,7 @@ boundary conditions we will apply.
 The MOOSE heat conduction module will receive a wall temperature from NekRS in
 the form of an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
 so we define a receiver variable for the temperature, as `fluid_temp`. The MOOSE
-heat conduction module will also send heat flux to NekRS, which will will compute as
+heat conduction module will also send heat flux to NekRS, which we compute as
 another [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
 named `flux`, which we compute with a
 [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)
@@ -343,8 +334,8 @@ a few file-local variables, and then build a mesh mirror with a
 [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html). By setting
 `boundary = '3'`, we indicate that boundary 3 will be coupled via [!ac](CHT).
 In this example, we don't have any volume-based coupling, but we set
-`volume = true` just to be able to visualize quickly the NekRS solution over
-the entire NekRS volume (as a first-order interpolation of the 7-th order polynomial
+`volume = true` to visualize the NekRS solution in Exodus format
+(as a first-order interpolation of the 7-th order polynomial
 solution).
 
 !listing /tutorials/gas_compact_cht/nek.i
@@ -382,7 +373,7 @@ coefficient in a series of equally-spaced axial layers along the flow direction 
 q_i^{''}=h_i\left(T_{\text{wall},i}-T_{\text{bulk},i}\right)
 \end{equation}
 
-where $i$ is the layer index, $q_i^{''}$ is the average wall heat flux in layer $i$, $h$ is the heat transfer coefficient in layer $i$, $T_\text{wall}$ is the average wall temperature in layer $i$, and $T_\text{bulk}$ is the volume-averaged temperature in layer $i$.
+where $i$ is the layer index, $q_i^{''}$ is the average wall heat flux in layer $i$, $h$ is the heat transfer coefficient in layer $i$, $T_{\text{wall},i}$ is the average wall temperature in layer $i$, and $T_{\text{bulk},i}$ is the volume-averaged temperature in layer $i$.
 All terms in [eq:htc2] can be computed using objects in the MOOSE and NekRS-wrapped input files.
 In the NekRS input file, we add userobjects to compute average wall temperatures
 and bulk fluid temperatures in axial layers with [NekBinnedSideAverage](https://cardinal.cels.anl.gov/source/userobjects/NekBinnedSideAverage.html#)
@@ -398,7 +389,8 @@ coefficients in [#htc].
 
 ### THM-MOOSE
 
-In this section, we describe the coupling of MOOSE and THM.
+In the previous section, we described a coupling of NekRS and MOOSE.
+In this section, we describe the coupling of MOOSE and THM, a lower-order fluid solver.
 
 #### Solid Input Files
 

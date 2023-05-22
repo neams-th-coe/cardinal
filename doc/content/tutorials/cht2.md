@@ -30,8 +30,7 @@ No special computing needs are required for this tutorial.
 The geometry
 is a shorter, 7-pin version of the fuel bundles in the [!ac](ABTR) [!cite](abtr).
 Relevant dimensions are summarized in
-[table1]. More details on the solid heat conduction and NekRS fluid  model are described
-in the following sections.
+[table1].
 
 !table id=table1 caption=Geometric and operating conditions for the [!ac](ABTR), based on [!cite](abtr)
 | Parameter | Value |
@@ -116,7 +115,7 @@ the solid input file in mesh generation mode, which will create an output file n
 cardinal-opt -i solid.i --mesh-only
 
 The boundary names are illustrated towards
-the right by showing only the highlighted surface to which each boundary corresponds.
+the right by showing the highlighted surface to which each boundary corresponds.
 A unique block ID is used for the set of elements in the cladding,
 the duct, and for the pellet elements. Two block IDs are required to describe the pellet
 regions because two different element types (quads and prisms) are present in the pellet region.
@@ -135,20 +134,19 @@ the "do-nothing" boundary condition in the finite element method is a zero-flux 
 ### Fluid Mesh
 
 The complete fluid mesh is shown in [fluid_mesh]; this is first created using meshing
-software, and then converted into a NekRS mesh (.re2 format).
-The boundary names are illustrated towards the right
-by showing only the highlighted surface to which each boundary corresponds.
-
-!media sfr_fluid_mesh.png
-  id=fluid_mesh
-  caption=Mesh for the fluid portions of the 7-pin bare [!ac](SFR) bundle
-  style=halign:center
-
+software, and then converted into a NekRS mesh (`.re2` format).
+The boundary names are illustrated
+by showing the highlighted surface to which each corresponds.
 Note that the meshes in [solid_mesh] and [fluid_mesh]
 do not need to share nodes between the fluid and solid
 boundaries through which [!ac](CHT) coupling will be performed - interpolations
 using MOOSE's [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 handle any differences in the mesh.
+
+!media sfr_fluid_mesh.png
+  id=fluid_mesh
+  caption=Mesh for the fluid portions of the 7-pin bare [!ac](SFR) bundle
+  style=halign:center
 
 ## CHT Coupling
 
@@ -179,7 +177,7 @@ variable.
   block=Variables
 
 The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
-system in MOOSE is used to communicate auxiliary variables across applications; a boundary
+system is used to communicate variables across applications; a boundary
 heat flux will be computed by MOOSE and applied as a boundary condition in NekRS. In the
 opposite direction, NekRS will compute a surface temperature that will be applied as a
 boundary condition in MOOSE. Therefore, we define auxiliary variables to hold the flux
@@ -231,7 +229,7 @@ blocks describe the interaction between Cardinal
 and MOOSE. The MOOSE heat conduction module is here run as the main application, with
 the NekRS wrapping run as the sub-application.
 Three transfers are required to couple Cardinal and MOOSE; the first is a transfer
-of surface temperature from Cardinal (specifically, the NekRS wrapping) to MOOSE.
+of surface temperature from Cardinal to MOOSE.
 The second is a transfer of heat flux from
 MOOSE to Cardinal. And the third is a transfer of the total integrated heat flux from MOOSE
 to Cardinal (computed as a postprocessor), which is then used internally by NekRS to re-normalize the heat flux (after
@@ -252,10 +250,10 @@ at 1.
 !listing tutorials/sfr_7pin/solid.i
   block=synchronize
 
-To understand the purpose of this transfer, we need to describe in more
+To understand the purpose of this (optional) transfer, we need to describe in more
 detail the data transfers that occur when sub-cycling. Please note that this is an
 advanced feature added for very large runs to squeeze out as much performance as possible -
-understanding this feature is not necessary for using Cardinal.
+understanding this feature is not necessary for beginner users.
 
 Consider the case where the main application has a time step of 1,
 but NekRS has a time step of 0.2. After the solution of the main application, the heat flux
@@ -273,16 +271,16 @@ transfer into NekRS consists of several steps:
 If NekRS is run with a much smaller time step than the main application,
 steps 2 and 3 can be omitted to save on the interpolation from the [NekRSMesh](/mesh/NekRSMesh.md)
 to NekRS's [!ac](GLL) points *and* on the copy from the host to the device.
-Unfortunately, MOOSE's design does not propagate any information about the
-coupling hierarchy from a main application to its sub-application(s). So, the use
+However, MOOSE's design means that the sub-application doesn't really know anything
+about how it fits into the hierarchical multiapp tree - it is agnostic. So, the user
 of this postprocessor (plus some settings in [NekRSProblem](/problems/NekRSProblem.md), to be
-discussed shortly) can be used to only perform steps 2 and 3 *if the time stepping
-is on the synchronization points* between NekRS and MOOSE. In other words,
+discussed shortly) can be used to only perform steps 2 and 3 *only
+on the synchronization points* between NekRS and MOOSE. In other words,
 if NekRS runs with a time step 100 times smaller than a main application,
-this feature of [NekRSProblem](/problems/NekRSProblem.md) can be used to reduce the mesh interpolation
+this feature reduces the mesh interpolation
 and host-to-device copying by a factor of 100. By transferring this "dummy"
-postprocessor to the NekRS wrapping, a signal of the synchronization points,
-and therefore the need to actually send data into NekRS, will be available.
+postprocessor to the NekRS wrapping, NekRS will have a signal of when
+the synchronization points occur.
 
 Finally, we specify an executioner and an exodus output for the solid solution.
 
@@ -306,9 +304,8 @@ NekRS wrapping.
   block=Problem
 
 We use `synchronization_interval = parent_app` to
-indicate that we want to limit the data interpolations from NekRS's [!ac](GLL) points
-to the mesh mirror, and the copies between CPU/GPU, to only occur when new coupling data is
-to be sent/received from the coupled MOOSE application. When this option is used,
+indicate that we want to transfer data into NekRS's `.oudf` backend only when new coupling data is
+available from the parent application. When this option is used,
 [NekRSProblem](/problems/NekRSProblem.md) automatically adds a
 [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessor named `transfer_in`, as if the following were added to the input file:
@@ -323,8 +320,7 @@ postprocessor named `transfer_in`, as if the following were added to the input f
 The `transfer_in` postprocessor simply receives
 the `synchronize` postprocessor from the main application, as shown in
 the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
-in the solid input file. The value of this postprocessor is then used to
-infer whether new data is available/requested from the coupled MOOSE application.
+in the solid input file.
 
 We specify a number of other postprocessors in order to query the NekRS solution
 for each time step. Note that the
@@ -386,7 +382,7 @@ To run the pseudo-steady model,
 mpiexec -np 4 cardinal-opt -i solid.i
 ```
 
-By using the `synchronization_interval = parent_app` feature, you will see in the screen output
+Because we used `synchronization_interval = parent_app`, you will see in the screen output
 that the data transfers into NekRS only occur on synchronization points with the
 main application - all other time steps will omit the messages about normalizing
 heat flux and extracting temperatures from NekRS.
@@ -411,8 +407,7 @@ temperature color scale is the same in both figures.
 
 ## Preserving Flux on Individual Sidesets
 
-In the first part of this tutorial, we used default settings for how to renormalize
-flux sent from MOOSE to NekRS in order to conserve power. By default,
+By default,
 [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
 will lump all "receiving" sidesets in NekRS together for the purpose of normalization.
 For this example, this means that the pin outer surface flux will not *exactly*
@@ -425,7 +420,7 @@ are almost identical to the files described in the previous section, so we only
 emphasize the differences. First, in the solid model we need to set up individual
 postprocessors for the heat flux corresponding to each NekRS boundary.
 Then, we need to set up a [VectorOfPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/VectorOfPostprocessors.html)
-to basically fill a vector with each flux postprocessor. Note that the order
+to fill a vector with each flux postprocessor. Note that the order
 of the postprocessors must match the boundaries they get mapped to in
 [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html).
 

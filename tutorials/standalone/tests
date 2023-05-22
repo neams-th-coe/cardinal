@@ -8,9 +8,9 @@
   [standalone]
     type = RunApp
     input = nek.i
-    cli_args = "MultiApps/active='' Transfers/active=''"
-    min_parallel = 8
+    min_parallel = 4
     requirement = 'Cardinal shall be able to run a NekRS standalone simulation.'
+    mesh_mode = 'replicated'
     required_objects = 'NekRSProblem'
   []
 []

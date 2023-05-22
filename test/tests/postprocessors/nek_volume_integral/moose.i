@@ -86,8 +86,8 @@
   [velocity_component] # velocity along some generic direction (0.1, 0.2, 0.3)
     type = ParsedFunction
     expression = '(vel_x * 0.1 + vel_y * 0.2 + vel_z * 0.3) / sqrt(0.1*0.1 + 0.2*0.2 + 0.3*0.3)'
-    vars = 'vel_x vel_y vel_z'
-    vals = 'velocity_x velocity_y velocity_z'
+    symbol_names = 'vel_x vel_y vel_z'
+    symbol_values = 'velocity_x velocity_y velocity_z'
   []
 []
 

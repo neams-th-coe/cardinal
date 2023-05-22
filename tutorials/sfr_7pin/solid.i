@@ -174,17 +174,11 @@ pin_power = 21e3                              # bundle power (kW)
 []
 
 [BCs]
-  [pin_outer]
+  [pin_and_duct]
     type = MatchedValueBC
     variable = T
     v = nek_temp
-    boundary = '5'
-  []
-  [duct_inner]
-    type = MatchedValueBC
-    variable = T
-    v = nek_temp
-    boundary = '10'
+    boundary = '5 10'
   []
 []
 
