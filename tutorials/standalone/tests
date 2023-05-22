@@ -10,6 +10,7 @@
     input = nek.i
     min_parallel = 4
     requirement = 'Cardinal shall be able to run a NekRS standalone simulation.'
+    parallel_type = 'replicated'
     required_objects = 'NekRSProblem'
   []
 []
