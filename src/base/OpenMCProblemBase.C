@@ -24,6 +24,7 @@
 #include "UserErrorChecking.h"
 
 #include "mpi.h"
+#include "openmc/bank.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/geometry.h"
@@ -32,6 +33,7 @@
 #include "openmc/material.h"
 #include "openmc/mesh.h"
 #include "openmc/settings.h"
+#include "openmc/simulation.h"
 #include "openmc/source.h"
 #include "openmc/state_point.h"
 #include "xtensor/xview.hpp"
@@ -326,7 +328,8 @@ OpenMCProblemBase::writeSourceBank(const std::string & filename)
 {
   hid_t file_id = openmc::file_open(filename, 'w', true);
   openmc::write_attribute(file_id, "filetype", "source");
-  openmc::write_source_bank(file_id, false);
+  openmc::write_source_bank(file_id, openmc::simulation::source_bank,
+    openmc::simulation::work_index);
   openmc::file_close(file_id);
 }
 
