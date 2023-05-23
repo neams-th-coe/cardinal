@@ -210,7 +210,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = MultiAppGeneralFieldUserObjectTransfer
     variable = q_wall
     to_multi_app = thm
-    user_object = q_wall_avg
+    source_user_object = q_wall_avg
   []
   [T_wall_from_thm]
     type = MultiAppNearestNodeTransfer

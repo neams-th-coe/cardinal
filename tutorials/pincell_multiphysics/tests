@@ -27,6 +27,7 @@
     type = RunApp
     input = convert.i
     cli_args = '--mesh-only'
+    parallel_type = 'replicated' # for NekMeshGenerator
     requirement = "The system shall be able to convert a HEX27 fluid mesh into a HEX20 mesh suitable for Nek."
     prereq = fluid_mesh
   []

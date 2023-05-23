@@ -106,13 +106,13 @@
 [Transfers]
   [uo1_to_sub]
     type = MultiAppGeneralFieldUserObjectTransfer
-    user_object = vol_avg
+    source_user_object = vol_avg
     to_multi_app = subchannel
     variable = vol_avg
   []
   [uo2_to_sub]
     type = MultiAppGeneralFieldUserObjectTransfer
-    user_object = vol_integral
+    source_user_object = vol_integral
     to_multi_app = subchannel
     variable = vol_integral
   []

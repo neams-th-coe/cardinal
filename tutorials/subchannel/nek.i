@@ -110,19 +110,19 @@
 [Transfers]
   [uo_to_sub]
     type = MultiAppGeneralFieldUserObjectTransfer
-    user_object = average_T
+    source_user_object = average_T
     to_multi_app = subchannel
     variable = average_T
   []
   [uo_to_sub2]
     type = MultiAppGeneralFieldUserObjectTransfer
-    user_object = average_T_gaps
+    source_user_object = average_T_gaps
     to_multi_app = subchannel_gap
     variable = average_T
   []
   [uo1_to_sub]
     type = MultiAppGeneralFieldUserObjectTransfer
-    user_object = avg_gap_velocity
+    source_user_object = avg_gap_velocity
     to_multi_app = subchannel_gap
     variable = avg_gap_velocity
   []
