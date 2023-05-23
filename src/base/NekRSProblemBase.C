@@ -203,7 +203,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   }
 
   // inform NekRS of the scaling that we are using if solving in non-dimensional form
-  nekrs::solution::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
+  nekrs::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
 
   if (_nondimensional)
   {
@@ -944,7 +944,7 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
   auto vc = _nek_mesh->volumeCoupling();
 
   double (*f)(int);
-  f = nekrs::solution::solutionPointer(field);
+  f = nekrs::solutionPointer(field);
 
   int start_1d = mesh->Nq;
   int end_1d = _moose_Nq;
@@ -990,7 +990,7 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
   // dimensionalize the solution if needed
   for (int v = 0; v < n_to_write; ++v)
   {
-    nekrs::solution::dimensionalize(field, Ttmp[v]);
+    nekrs::dimensionalize(field, Ttmp[v]);
 
     // if temperature, we need to add the reference temperature
     if (field == field::temperature)
@@ -1010,7 +1010,7 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
   auto bc = _nek_mesh->boundaryCoupling();
 
   double (*f)(int);
-  f = nekrs::solution::solutionPointer(field);
+  f = nekrs::solutionPointer(field);
 
   int start_1d = mesh->Nq;
   int end_1d = _moose_Nq;
@@ -1070,7 +1070,7 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
   // dimensionalize the solution if needed
   for (int v = 0; v < n_to_write; ++v)
   {
-    nekrs::solution::dimensionalize(field, Ttmp[v]);
+    nekrs::dimensionalize(field, Ttmp[v]);
 
     // if temperature, we need to add the reference temperature
     if (field == field::temperature)
@@ -1092,7 +1092,7 @@ NekRSProblemBase::writeVolumeSolution(const int elem_id,
 {
   mesh_t * mesh = nekrs::entireMesh();
   void (*write_solution)(int, dfloat);
-  write_solution = nekrs::solution::solutionPointer(field);
+  write_solution = nekrs::solutionPointer(field);
 
   auto vc = _nek_mesh->volumeCoupling();
   int id = vc.element[elem_id] * mesh->Np;
@@ -1129,7 +1129,7 @@ NekRSProblemBase::writeBoundarySolution(const int elem_id, const field::NekWrite
 {
   mesh_t * mesh = nekrs::temperatureMesh();
   void (*write_solution)(int, dfloat);
-  write_solution = nekrs::solution::solutionPointer(field);
+  write_solution = nekrs::solutionPointer(field);
 
   const auto & bc = _nek_mesh->boundaryCoupling();
   int offset = bc.element[elem_id] * mesh->Nfaces * mesh->Nfp + bc.face[elem_id] * mesh->Nfp;

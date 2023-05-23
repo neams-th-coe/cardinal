@@ -100,7 +100,7 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   else
   {
     int invalid_id, n_boundaries;
-    bool valid_ids = nekrs::mesh::validBoundaryIDs(_outlet_boundary, invalid_id, n_boundaries);
+    bool valid_ids = nekrs::validBoundaryIDs(_outlet_boundary, invalid_id, n_boundaries);
 
     if (!valid_ids)
       mooseError("Invalid 'outlet_boundary' entry: ", invalid_id, "\n\n"
@@ -119,7 +119,7 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   else
   {
     int invalid_id, n_boundaries;
-    bool valid_ids = nekrs::mesh::validBoundaryIDs(_inlet_boundary, invalid_id, n_boundaries);
+    bool valid_ids = nekrs::validBoundaryIDs(_inlet_boundary, invalid_id, n_boundaries);
 
     if (!valid_ids)
       mooseError("Invalid 'inlet_boundary' entry: ", invalid_id, "\n\n"

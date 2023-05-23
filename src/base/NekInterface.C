@@ -21,7 +21,7 @@
 #include "NekInterface.h"
 #include "CardinalUtils.h"
 
-static nekrs::solution::characteristicScales scales;
+static nekrs::characteristicScales scales;
 nekrs::usrwrkIndices indices;
 
 namespace nekrs
@@ -676,7 +676,7 @@ sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
   double value = -std::numeric_limits<double>::max();
 
   double (*f)(int);
-  f = solution::solutionPointer(field);
+  f = solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -698,7 +698,7 @@ sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  solution::dimensionalize(field, reduced_value);
+  dimensionalize(field, reduced_value);
 
   // if temperature, we need to add the reference temperature
   if (field == field::temperature)
@@ -715,7 +715,7 @@ volumeMaxValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp
   double value = -std::numeric_limits<double>::max();
 
   double (*f)(int);
-  f = solution::solutionPointer(field);
+  f = solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -731,7 +731,7 @@ volumeMaxValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  solution::dimensionalize(field, reduced_value);
+  dimensionalize(field, reduced_value);
 
   // if temperature, we need to add the reference temperature
   if (field == field::temperature)
@@ -748,7 +748,7 @@ volumeMinValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp
   double value = std::numeric_limits<double>::max();
 
   double (*f)(int);
-  f = solution::solutionPointer(field);
+  f = solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -764,7 +764,7 @@ volumeMinValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  solution::dimensionalize(field, reduced_value);
+  dimensionalize(field, reduced_value);
 
   // if temperature, we need to add the reference temperature
   if (field == field::temperature)
@@ -782,7 +782,7 @@ sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
   double value = std::numeric_limits<double>::max();
 
   double (*f)(int);
-  f = solution::solutionPointer(field);
+  f = solutionPointer(field);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -806,7 +806,7 @@ sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
   MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  solution::dimensionalize(field, reduced_value);
+  dimensionalize(field, reduced_value);
 
   // if temperature, we need to add the reference temperature
   if (field == field::temperature)
@@ -929,7 +929,7 @@ dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand,
                              double & integral)
 {
   // dimensionalize the field if needed
-  solution::dimensionalize(integrand, integral);
+  dimensionalize(integrand, integral);
 
   // scale the volume integral
   integral *= scales.V_ref;
@@ -945,7 +945,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
                            double & integral)
 {
   // dimensionalize the field if needed
-  solution::dimensionalize(integrand, integral);
+  dimensionalize(integrand, integral);
 
   // scale the boundary integral
   integral *= scales.A_ref;
@@ -962,7 +962,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 			                     const nek_mesh::NekMeshEnum pp_mesh)
 {
   // dimensionalize the field if needed
-  solution::dimensionalize(integrand, integral);
+  dimensionalize(integrand, integral);
 
   // scale the boundary integral
   integral *= scales.A_ref;
@@ -981,7 +981,7 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
   double integral = 0.0;
 
   double (*f)(int);
-  f = solution::solutionPointer(integrand);
+  f = solutionPointer(integrand);
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
@@ -1075,7 +1075,7 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
   double integral = 0.0;
 
   double (*f)(int);
-  f = solution::solutionPointer(integrand);
+  f = solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1167,7 +1167,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   double integral = 0.0;
 
   double (*f)(int);
-  f = solution::solutionPointer(integrand);
+  f = solutionPointer(integrand);
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1197,7 +1197,7 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
-  solution::dimensionalize(integrand, total_integral);
+  dimensionalize(integrand, total_integral);
 
   // dimensionalize the mass flux and area
   total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
@@ -1368,9 +1368,6 @@ gradient(const int offset, const double * f, double * grad_f, const nek_mesh::Ne
   }
 }
 
-namespace mesh
-{
-
 bool
 isHeatFluxBoundary(const int boundary)
 {
@@ -1471,11 +1468,6 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 
   return valid_boundary_ids;
 }
-
-} // end namespace mesh
-
-namespace solution
-{
 
 double
 scalar01(const int id)
@@ -1613,16 +1605,16 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
   switch (field)
   {
     case field::velocity_x:
-      f = &solution::velocity_x;
+      f = &velocity_x;
       break;
     case field::velocity_y:
-      f = &solution::velocity_y;
+      f = &velocity_y;
       break;
     case field::velocity_z:
-      f = &solution::velocity_z;
+      f = &velocity_z;
       break;
     case field::velocity:
-      f = &solution::velocity;
+      f = &velocity;
       break;
     case field::velocity_component:
       mooseError("The 'velocity_component' field is not compatible with the solutionPointer "
@@ -1632,31 +1624,31 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
       if (!hasTemperatureVariable())
         mooseError("Cardinal cannot find 'temperature' "
                    "because your Nek case files do not have a temperature variable!");
-      f = &solution::temperature;
+      f = &temperature;
       break;
     case field::pressure:
-      f = &solution::pressure;
+      f = &pressure;
       break;
     case field::scalar01:
       if (!hasScalarVariable(1))
         mooseError("Cardinal cannot find 'scalar01' "
                    "because your Nek case files do not have a scalar01 variable!");
-      f = &solution::scalar01;
+      f = &scalar01;
       break;
     case field::scalar02:
       if (!hasScalarVariable(2))
         mooseError("Cardinal cannot find 'scalar02' "
                    "because your Nek case files do not have a scalar02 variable!");
-      f = &solution::scalar02;
+      f = &scalar02;
       break;
     case field::scalar03:
       if (!hasScalarVariable(3))
         mooseError("Cardinal cannot find 'scalar03' "
                    "because your Nek case files do not have a scalar03 variable!");
-      f = &solution::scalar03;
+      f = &scalar03;
       break;
     case field::unity:
-      f = &solution::unity;
+      f = &unity;
       break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
@@ -1672,28 +1664,28 @@ void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
   switch (field)
   {
     case field::flux:
-      f = &solution::flux;
+      f = &flux;
       break;
     case field::heat_source:
-      f = &solution::heat_source;
+      f = &heat_source;
       break;
     case field::x_displacement:
-      f = &solution::x_displacement;
+      f = &x_displacement;
       break;
     case field::y_displacement:
-      f = &solution::y_displacement;
+      f = &y_displacement;
       break;
     case field::z_displacement:
-      f = &solution::z_displacement;
+      f = &z_displacement;
       break;
     case field::mesh_velocity_x:
-      f = &solution::mesh_velocity_x;
+      f = &mesh_velocity_x;
       break;
     case field::mesh_velocity_y:
-      f = &solution::mesh_velocity_y;
+      f = &mesh_velocity_y;
       break;
     case field::mesh_velocity_z:
-      f = &solution::mesh_velocity_z;
+      f = &mesh_velocity_z;
       break;
     default:
       throw std::runtime_error("Unhandled NekWriteEnum!");
@@ -1792,7 +1784,6 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
 }
-} // end namespace solution
 
 template <>
 MPI_Datatype

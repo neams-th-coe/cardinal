@@ -83,7 +83,7 @@ NekBinnedVolumeIntegral::binnedVolumeIntegral(const field::NekFieldEnum & integr
   resetPartialStorage();
 
   mesh_t * mesh = nekrs::entireMesh();
-  double (*f)(int) = nekrs::solution::solutionPointer(integrand);
+  double (*f)(int) = nekrs::solutionPointer(integrand);
 
   for (int k = 0; k < mesh->Nelements; ++k)
   {
