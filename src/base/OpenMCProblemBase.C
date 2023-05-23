@@ -33,6 +33,7 @@
 #include "openmc/material.h"
 #include "openmc/mesh.h"
 #include "openmc/settings.h"
+#include "openmc/simulation.h"
 #include "openmc/source.h"
 #include "openmc/state_point.h"
 #include "xtensor/xview.hpp"
