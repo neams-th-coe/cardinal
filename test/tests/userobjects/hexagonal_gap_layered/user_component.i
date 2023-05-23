@@ -3,7 +3,6 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 [Mesh]
   type = NekRSMesh
   volume = true
-  parallel_type = replicated
 []
 
 [Problem]
@@ -95,7 +94,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 
 [Transfers]
   [uo1_to_sub]
-    type = MultiAppUserObjectTransfer
+    type = MultiAppGeneralFieldUserObjectTransfer
     user_object = avg_velocity_component
     to_multi_app = subchannel
     variable = avg_velocity_component

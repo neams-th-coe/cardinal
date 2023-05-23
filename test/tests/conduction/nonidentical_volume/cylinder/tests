@@ -9,7 +9,7 @@
                   "and when the meshes do not perfectly line up (i.e. the volumes are different). "
                   "A reference MOOSE standalone problem (in moose.i) solves the equation "
                   "k*nabla(T)=7*T, i.e. the 'heat source' is f(T,x,z). This surrogate problem is then "
-                  "replicated with Cardinal, where nekRS solves the k*nabla(T)=q, where q is a "
+                  "repeated with Cardinal, where nekRS solves the k*nabla(T)=q, where q is a "
                   "heat source 'computed' by MOOSE to be f(T_n,x,z), where T_n is the temperature from "
                   "nekRS. This problem does not really represent any interesting physical case, but "
                   "is solely intended to show that nekRS correctly solves the heat equation with a "

@@ -549,7 +549,7 @@ to MOOSE heat conduction, we use four transfers:
 
 To couple OpenMC to [!ac](THM), we require three transfers:
 
-- [MultiAppUserObjectTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppUserObjectTransfer.html)
+- [MultiAppGeneralFieldUserObjectTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldUserObjectTransfer.html)
   to send the layer-averaged wall heat flux from OpenMC (which computes the layered-average heat flux from the heat
   flux received from MOOSE heat conduction) to [!ac](THM)
 - [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)

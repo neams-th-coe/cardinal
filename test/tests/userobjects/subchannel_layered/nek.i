@@ -1,7 +1,6 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  parallel_type = replicated
 []
 
 [Problem]
@@ -106,13 +105,13 @@
 
 [Transfers]
   [uo1_to_sub]
-    type = MultiAppUserObjectTransfer
+    type = MultiAppGeneralFieldUserObjectTransfer
     user_object = vol_avg
     to_multi_app = subchannel
     variable = vol_avg
   []
   [uo2_to_sub]
-    type = MultiAppUserObjectTransfer
+    type = MultiAppGeneralFieldUserObjectTransfer
     user_object = vol_integral
     to_multi_app = subchannel
     variable = vol_integral

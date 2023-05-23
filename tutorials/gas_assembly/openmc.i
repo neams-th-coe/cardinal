@@ -307,7 +307,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   []
 
   [q_wall_to_thm]
-    type = MultiAppUserObjectTransfer
+    type = MultiAppGeneralFieldUserObjectTransfer
     variable = q_wall
     to_multi_app = thm
     user_object = q_wall_avg

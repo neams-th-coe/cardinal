@@ -137,7 +137,7 @@ q0 = ${fparse unit_cell_power / (4.0 * unit_cell_height * compact_diameter * com
 
 [Transfers]
   [q_wall_to_thm]
-    type = MultiAppUserObjectTransfer
+    type = MultiAppGeneralFieldUserObjectTransfer
     variable = q_wall
     to_multi_app = thm
     user_object = q_wall_avg
