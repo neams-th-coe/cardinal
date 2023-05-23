@@ -32,8 +32,8 @@ on the login nodes, but you need to explicitly load it for compute nodes.
 
 !listing! language=bash caption=Sample `~/.bashrc` for Bebop id=bb1
 module purge
-module load gcc/8.2.0-xhxgy33
-module load openmpi/4.1.1-x5n4m36
+module load gcc/9.2.0-pkmzczt
+module load openmpi/4.1.1-bebop-ckyrlu7
 module load cmake/3.20.3-vedypwm
 module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
