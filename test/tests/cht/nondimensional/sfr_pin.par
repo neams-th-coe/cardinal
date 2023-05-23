@@ -17,7 +17,6 @@
   stopAt = numSteps
   numSteps = 2000
   dt = 0.05233843612334802
-  variableDT = no
   timeStepper = tombo2
   writeControl = steps
   writeInterval = 100
