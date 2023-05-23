@@ -21,7 +21,7 @@
 #include "NekInterface.h"
 #include "CardinalUtils.h"
 
-static nekrs::solution::characteristicScales scales;
+static nekrs::characteristicScales scales;
 nekrs::usrwrkIndices indices;
 
 namespace nekrs
@@ -1368,9 +1368,6 @@ gradient(const int offset, const double * f, double * grad_f, const nek_mesh::Ne
   }
 }
 
-namespace mesh
-{
-
 bool
 isHeatFluxBoundary(const int boundary)
 {
@@ -1471,11 +1468,6 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
 
   return valid_boundary_ids;
 }
-
-} // end namespace mesh
-
-namespace solution
-{
 
 double
 scalar01(const int id)
@@ -1792,7 +1784,6 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
 }
-} // end namespace solution
 
 template <>
 MPI_Datatype

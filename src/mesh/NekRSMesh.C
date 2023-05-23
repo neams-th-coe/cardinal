@@ -80,7 +80,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   // nekRS will only ever support 3-D meshes. Just to be sure that this remains
   // the case for future Cardinal developers, throw an error if the mesh isn't 3-D
   // (since this would affect how we construct the mesh here).
-  int dimension = nekrs::mesh::dim();
+  int dimension = nekrs::dim();
   if (dimension != 3)
     mooseError("This mesh assumes that the nekRS mesh dimension is 3!\n\nYour mesh is "
                "dimension " +
@@ -90,7 +90,7 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
   if (!nekrs::buildOnly() && _boundary)
   {
     int first_invalid_id, n_boundaries;
-    bool valid_ids = nekrs::mesh::validBoundaryIDs(*_boundary, first_invalid_id, n_boundaries);
+    bool valid_ids = nekrs::validBoundaryIDs(*_boundary, first_invalid_id, n_boundaries);
 
     if (!valid_ids)
       mooseError("Invalid 'boundary' entry: ",
@@ -141,11 +141,11 @@ NekRSMesh::printMeshInfo() const
       {"", "Order", "Boundaries", "# Side Elems", "# Volume Elems"});
 
   std::vector<int> nek_bids;
-  for (int i = 1; i <= nekrs::mesh::NboundaryID(); ++i)
+  for (int i = 1; i <= nekrs::NboundaryID(); ++i)
     nek_bids.push_back(i);
 
   vt.addRow("NekRS mesh",
-            nekrs::mesh::polynomialOrder(),
+            nekrs::polynomialOrder(),
             Moose::stringify(nek_bids),
             _nek_n_surface_elems,
             _nek_n_volume_elems);
@@ -182,7 +182,7 @@ NekRSMesh::nekNumQuadraturePoints1D() const
 void
 NekRSMesh::initializeMeshParams()
 {
-  _nek_polynomial_order = nekrs::mesh::polynomialOrder();
+  _nek_polynomial_order = nekrs::polynomialOrder();
   _n_build_per_surface_elem = _exact ? _nek_polynomial_order * _nek_polynomial_order : 1;
   _n_build_per_volume_elem = _exact ? std::pow(_nek_polynomial_order, 3) : 1;
 
@@ -571,9 +571,9 @@ NekRSMesh::buildMesh()
     return;
   }
 
-  _nek_n_surface_elems = nekrs::mesh::NboundaryFaces();
-  _nek_n_volume_elems = nekrs::mesh::Nelements();
-  _nek_n_flow_elems = nekrs::mesh::NflowElements();
+  _nek_n_surface_elems = nekrs::NboundaryFaces();
+  _nek_n_volume_elems = nekrs::Nelements();
+  _nek_n_flow_elems = nekrs::NflowElements();
 
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
@@ -657,7 +657,7 @@ NekRSMesh::addElems()
       // sidesets associated with the coupling)
       if (_volume)
       {
-        for (int f = 0; f < nekrs::mesh::Nfaces(); ++f)
+        for (int f = 0; f < nekrs::Nfaces(); ++f)
         {
           int b_id = boundary_id(e, f);
           if (b_id != -1 /* NekRS's setting to indicate not on a sideset */)

@@ -170,12 +170,12 @@ NekInitAction::act()
 
   // Initialize default dimensional scales assuming a dimensional run is performed;
   // these are overriden if using a non-dimensional solve
-  nekrs::solution::initializeDimensionalScales(1.0 /* U_ref */,
-                                               0.0 /* T_ref */,
-                                               1.0 /* dT_ref */,
-                                               1.0 /* L_ref */,
-                                               1.0 /* rho_ref */,
-                                               1.0 /* Cp_ref */);
+  nekrs::initializeDimensionalScales(1.0 /* U_ref */,
+                                     0.0 /* T_ref */,
+                                     1.0 /* dT_ref */,
+                                     1.0 /* L_ref */,
+                                     1.0 /* rho_ref */,
+                                     1.0 /* Cp_ref */);
 
   bool always_allocate = _type == "NekRSProblem" || _type == "NekRSSeparateDomainProblem";
   bool special_allocate = _type == "NekRSStandaloneProblem" && _specified_scratch;

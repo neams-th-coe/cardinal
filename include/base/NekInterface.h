@@ -605,8 +605,6 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
                     const nek_mesh::NekMeshEnum pp_mesh);
 
-namespace mesh
-{
 /**
  * Number of faces per element; because NekRS only supports HEX20, this should be 6
  * @return number of faces per mesh element
@@ -703,8 +701,6 @@ validBoundaryIDs(const std::vector<int> & boundary_id, int & first_invalid_id, i
  */
 void storeBoundaryCoupling(const std::vector<int> & boundary_id, int & N);
 
-} // end namespace mesh
-
 /**
  * Integer indices in the usrwrk scratch space for writing solutions from MOOSE.
  * These will be set from Cardinal. Not all will be used simultaneously.
@@ -741,9 +737,6 @@ struct usrwrkIndices
   /// boundary scalar03 (for separate domain coupling)
   int boundary_scalar03;
 };
-
-namespace solution
-{
 
 /// Characteristic scales assumed in nekRS if using a non-dimensional solution
 struct characteristicScales
@@ -950,8 +943,6 @@ double referenceLength();
  * @return reference area scale
  */
 double referenceArea();
-
-} // end namespace solution
 
 // useful concept from Stack Overflow for templating MPI calls
 template <typename T>

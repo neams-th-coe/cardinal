@@ -34,7 +34,7 @@ NekSideSpatialBinUserObject::NekSideSpatialBinUserObject(const InputParameters &
   : NekVolumeSpatialBinUserObject(parameters), _boundary(getParam<std::vector<int>>("boundary"))
 {
   int first_invalid_id, n_boundaries;
-  bool valid_ids = nekrs::mesh::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
+  bool valid_ids = nekrs::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
 
   if (!valid_ids)
     mooseError("Invalid 'boundary' entry: ",

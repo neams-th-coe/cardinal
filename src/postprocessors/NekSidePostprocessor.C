@@ -37,7 +37,7 @@ NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters)
   // check that each specified boundary is within the range [1, n_fluid_boundaries]
   // that nekRS recognizes for its problem
   int first_invalid_id, n_boundaries;
-  bool valid_ids = nekrs::mesh::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
+  bool valid_ids = nekrs::validBoundaryIDs(_boundary, first_invalid_id, n_boundaries);
 
   if (!valid_ids)
     mooseError("Invalid 'boundary' entry: ",
