@@ -24,6 +24,7 @@
 #include "UserErrorChecking.h"
 
 #include "mpi.h"
+#include "openmc/bank.h"
 #include "openmc/capi.h"
 #include "openmc/cell.h"
 #include "openmc/geometry.h"
