@@ -14,7 +14,7 @@
   [volume]
     type = RunApp
     input = main.i
-    mesh_mode = 'replicated'
+    mesh_mode = 'replicated' # for MultiAppGeometricInterpolationTransfer
     requirement = "The system shall be able to transfer fields between two volume meshes in several different ways."
     prereq = 'mesh1 mesh2'
   []

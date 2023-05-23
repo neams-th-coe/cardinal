@@ -5,7 +5,6 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  parallel_type = replicated
 []
 
 [Problem]

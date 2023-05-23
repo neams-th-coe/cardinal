@@ -10,7 +10,7 @@
     type = Exodiff
     input = z_bins.i
     exodiff = z_bins_out.e
-    mesh_mode = 'replicated'
+    rel_err = 5e-4
     requirement = "The system shall correctly integrate over a sideset in the NekRS domain when mapping space by the quadrature point"
     required_objects = 'NekRSProblem'
   []

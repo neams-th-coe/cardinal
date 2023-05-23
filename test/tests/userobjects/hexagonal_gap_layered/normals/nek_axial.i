@@ -3,7 +3,6 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 [Mesh]
   type = NekRSMesh
   volume = true
-  parallel_type = replicated
 []
 
 [Problem]
