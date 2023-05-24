@@ -15,9 +15,9 @@
 #SBATCH --time=00:10:00
 
 module purge
-module load gcc/8.2.0-xhxgy33
-module load openmpi/4.1.1-x5n4m36
 module load cmake/3.20.3-vedypwm
+module load gcc/9.2.0-pkmzczt
+module load openmpi/4.1.1-bebop-ckyrlu7
 module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
 # Revise for your repository and cross section data locations
@@ -31,4 +31,4 @@ export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
 input_file=openmc.i
 
 # Run a Cardinal case
-mpiexec -np 36 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile
+srun -n 36 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile
