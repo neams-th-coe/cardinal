@@ -10,7 +10,7 @@
                   "temperature distribution when a heat source is applied to the nekRS problem. "
                   "A reference MOOSE standalone problem (in moose.i) solves the equation "
                   "k*nabla(T)=7*T, i.e. the 'heat source' is 7*T. This surrogate problem is then "
-                  "replicated with Cardinal, where nekRS solves the k*nabla(T)=q, where q is a "
+                  "repeated with Cardinal, where nekRS solves the k*nabla(T)=q, where q is a "
                   "heat source 'computed' by MOOSE to be 7*T_n, where T_n is the temperature from "
                   "nekRS. This problem does not really represent any interesting physical case, but "
                   "is solely intended to show that nekRS correctly solves the heat equation with a "

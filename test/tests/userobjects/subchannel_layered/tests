@@ -65,7 +65,6 @@
     type = CSVDiff
     input = pin_1d.i
     csvdiff = pin_1d_out_from_uo_0002.csv
-    mesh_mode = 'replicated'
     requirement = "A pin-centered subchannel bin shall give correct results for side averages of temperature."
     required_objects = 'NekRSProblem'
   []

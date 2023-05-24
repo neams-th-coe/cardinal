@@ -4,7 +4,6 @@
     input = nek.i
     csvdiff = nek_out.csv
     min_parallel = 2
-    mesh_mode = 'replicated'
     requirement = "Cardinal shall be able to run the ethier NekRS example with a thin wrapper. "
                   "We add postprocessors to let us compare min/max values printed to the screen by NekRS."
     required_objects = 'NekRSProblem'

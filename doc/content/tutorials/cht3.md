@@ -407,7 +407,7 @@ Because THM is a 1-D code, we must perform an averaging operation on the surface
 heat flux computed by MOOSE before it is sent to THM. This requires us to use
 slightly different MOOSE transfers to couple THM and MOOSE. Instead of sending
 a 2-D surface flux distribution, we now compute the wall average heat flux in layers
-and send to THM with a [MultiAppUserObjectTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppUserObjectTransfer.html).
+and send to THM with a [MultiAppGeneralFieldUserObjectTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldUserObjectTransfer.html).
 To receive temperature from THM, we use the same
 [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
 that we used when coupling to NekRS - but now, we are coupling a 1-D model to a 3-D model

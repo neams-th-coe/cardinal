@@ -1,7 +1,6 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  parallel_type = replicated
 []
 
 [Problem]
@@ -110,20 +109,20 @@
 
 [Transfers]
   [uo_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = average_T
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = average_T
     to_multi_app = subchannel
     variable = average_T
   []
   [uo_to_sub2]
-    type = MultiAppUserObjectTransfer
-    user_object = average_T_gaps
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = average_T_gaps
     to_multi_app = subchannel_gap
     variable = average_T
   []
   [uo1_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = avg_gap_velocity
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = avg_gap_velocity
     to_multi_app = subchannel_gap
     variable = avg_gap_velocity
   []

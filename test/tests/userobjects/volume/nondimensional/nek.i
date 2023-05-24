@@ -1,7 +1,6 @@
 [Mesh]
   type = NekRSMesh
   volume = true
-  parallel_type = replicated
   scaling = 7.646e-3
 []
 
@@ -135,38 +134,38 @@
 
 [Transfers]
   [uo1_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = avg_T
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = avg_T
     to_multi_app = subchannel
     variable = avg_T
   []
   [uo2_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = avg_p
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = avg_p
     to_multi_app = subchannel
     variable = avg_p
   []
   [uo3_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = avg_v
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = avg_v
     to_multi_app = subchannel
     variable = avg_v
   []
   [uo4_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = integral_T
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = integral_T
     to_multi_app = subchannel
     variable = integral_T
   []
   [uo5_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = integral_p
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = integral_p
     to_multi_app = subchannel
     variable = integral_p
   []
   [uo6_to_sub]
-    type = MultiAppUserObjectTransfer
-    user_object = integral_v
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = integral_v
     to_multi_app = subchannel
     variable = integral_v
   []
