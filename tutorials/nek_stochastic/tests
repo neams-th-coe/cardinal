@@ -1,0 +1,8 @@
+[Tests]
+  [mesh]
+    type = CSVDiff
+    input = channel.i
+    csvdiff = channel.csv
+    requirement = "The system shall generate a mesh for the NekRS domain."
+  []
+[]
