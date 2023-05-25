@@ -708,9 +708,13 @@ NekRSMesh::faceVertices()
   {
     // Create a duplicate of the solution mesh, but with the desired order of the mesh
     // interpolation. Then we can just read the coordinates of the GLL points to find the libMesh
-    // node positions.
-    mesh =
-        createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
+    // node positions. We only need to do this if the NekRS mesh is not already order 2.
+    if (_nek_internal_mesh->N == 2)
+      mesh = _nek_internal_mesh;
+    else
+      mesh =
+          createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
+
     Nfp_mirror = mesh->Nfp;
   }
 
@@ -792,7 +796,11 @@ NekRSMesh::volumeVertices()
   {
     // Create a duplicate of the solution mesh, but with the desired order of the mesh interpolation.
     // Then we can just read the coordinates of the GLL points to find the libMesh node positions.
-    mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
+    // We only need to do this if the mesh is not already N = 2.
+    if (_nek_internal_mesh->N == 2)
+      mesh = _nek_internal_mesh;
+    else
+      mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
     Np_mirror = mesh->Np;
   }
 
