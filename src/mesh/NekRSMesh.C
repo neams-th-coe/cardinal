@@ -713,7 +713,7 @@ NekRSMesh::faceVertices()
       mesh = _nek_internal_mesh;
     else
       mesh =
-          createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
+          createMesh(platform->comm.mpiComm, _order + 1, 0, nrs->cht, *(nrs->kernelInfo));
 
     Nfp_mirror = mesh->Nfp;
   }
@@ -800,7 +800,7 @@ NekRSMesh::volumeVertices()
     if (_nek_internal_mesh->N == 2)
       mesh = _nek_internal_mesh;
     else
-      mesh = createMesh(platform->comm.mpiComm, _order + 1, 1 /* dummy */, nrs->cht, *(nrs->kernelInfo));
+      mesh = createMesh(platform->comm.mpiComm, _order + 1, 0, nrs->cht, *(nrs->kernelInfo));
     Np_mirror = mesh->Np;
   }
 
