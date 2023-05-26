@@ -94,6 +94,7 @@ namespace geom_utility {
    * the unit normal with the line from pt1 to pt2 has a positive 'axis' component.
    * @param[in] pt1 first point for line
    * @param[in] pt2 second point for line
+   * @param[in] axis project points onto plane perpendicular to this axis
    * @return unit normal
    */
   Point projectedUnitNormal(Point pt1, Point pt2, const unsigned int & axis);

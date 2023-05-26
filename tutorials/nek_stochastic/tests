@@ -1,0 +1,36 @@
+[Tests]
+  [mesh]
+    type = CSVDiff
+    input = channel.i
+    csvdiff = channel.csv
+    requirement = "The system shall generate a mesh for the NekRS domain."
+  []
+  [single]
+    type = CSVDiff
+    input = ht.i
+    csvdiff = ht_out_nek0.csv
+    cli_args = 'MultiApps/nek/cli_args="UserObjects/k/value=6.5"'
+    requirement = "The system shall reproduce analytic temperature distributions in a two-slab domain with "
+                  "MOOSE solving heat conduction in part of the domain, and NekRS solving for heat conduction "
+                  "in the remaining, with coupling via flux and temperature boundary conditions at the interface. "
+                  "We compare against analytic solutions for steady-state heat transfer."
+    required_objects = 'NekRSProblem'
+  []
+  [multi]
+    type = CSVDiff
+    input = driver.i
+    csvdiff = 'driver_out_ht0_nek0.csv driver_out_ht1_nek0.csv driver_out_ht2_nek0.csv'
+
+    # This is only because when we run in parallel, the order that each app executes in
+    # is not determinstic. So the initial condition each app uses will be a little bit different
+    # depending on which physics simulation occurred just before it. This artificially causes diffs
+    # on our outputs on the first time step, just due to that ordering. The end pseudo-steady solution
+    # is not affected.
+    max_parallel = 1
+
+    requirement = "The system shall allow NekRS thermal conductivity to be perturbed by the stochastic tools "
+                  "module. We compare peak temperature against an analytic solution to confirm that NekRS "
+                  "is solving the correct model."
+    required_objects = 'NekRSProblem'
+  []
+[]

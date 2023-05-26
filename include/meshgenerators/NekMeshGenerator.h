@@ -73,7 +73,7 @@ public:
   /**
    * Get a pointer to the next element in the boundary layer
    * @param[in] elem current element in the boundary layer
-   * @param[in] primary_face face of the element that touches the "next" element
+   * @param[in] touching_face face of the element that touches the "next" element
    * @param[out] next_touching_face face ID of the "next" element
    */
   const Elem * getNextLayerElem(const Elem & elem, const unsigned int & touching_face,
@@ -112,6 +112,7 @@ public:
    * @param[in] elem element on the primary 'boundary'
    * @param[in] boundary_index index of the 'boundary'
    * @param[in] primary_face face ID of the element on the 'boundary'
+   * @param[in] polygon_layer_smoothing multiplicate values to apply to boundary layer widths
    */
   void moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face,
     const std::vector<Real> & polygon_layer_smoothing);
@@ -175,6 +176,8 @@ public:
    * Adjust the point to which a face node should move to fit onto the circle
    * @param[in] node_id node ID
    * @param[in] elem element of interest
+   * @param[in] radius radius of circle
+   * @param[in] origin origin of circle
    * @return adjustment made to point, for use when shifting other boundary layers
    */
   Point adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const;

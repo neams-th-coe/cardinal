@@ -145,7 +145,7 @@ public:
 
   /**
    * Apply transformations to point
-   * @param[in] point
+   * @param[in] pt point
    * @return transformed point
    */
   virtual Point transformPoint(const Point & pt) const
@@ -155,7 +155,7 @@ public:
 
   /**
    * Apply transformations and scale point from MOOSE into the OpenMC domain
-   * @param[in] point
+   * @param[in] pt point
    * @return transformed point
    */
   Point transformPointToOpenMC(const Point & pt) const
