@@ -3,8 +3,8 @@
     type = GeneratedMeshGenerator
     dim = 3
     nx = 10
-    ny = 10
-    nz = 10
+    ny = 4
+    nz = 4
     xmin = 0.0
     xmax = 1.0
     ymin = 0.0
@@ -21,6 +21,10 @@
     new_boundary = '1 2 3 4 5 6'
   []
 []
+
+# The following blocks only exist here for testing purposes, to have some
+# postprocessors we check with a CSVDiff test to ensure this tutorial
+# stays up to date with future possible syntax changes in MOOSE.
 
 [Problem]
   type = FEProblem
