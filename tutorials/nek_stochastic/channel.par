@@ -1,0 +1,28 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 400
+  dt = 1.0
+  timeStepper = tombo2
+  writeControl = steps
+  writeInterval = 500
+  polynomialOrder = 5
+
+[VELOCITY]
+  solver = none
+  boundaryTypeMap = wall, wall, wall, wall, wall, wall
+
+[PRESSURE]
+
+[TEMPERATURE]
+  rhoCp = 50.0
+  boundaryTypeMap = insulated, insulated, t, insulated, flux, insulated
+  residualTol = 1.0e-6
+
+  # You should set the mean values for any material properties you are
+  # perturbing, because these are used to initialize the elliptic solvers
+  # for the entire simulation, and you want to use a reasonably representative
+  # value here.
+  conductivity = 5.0

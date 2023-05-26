@@ -1,0 +1,9 @@
+void scalarDirichletConditions(bcData * bc)
+{
+  bc->s = 500.0;
+}
+
+void scalarNeumannConditions(bcData * bc)
+{
+  bc->flux = bc->wrk[bc->idM];
+}

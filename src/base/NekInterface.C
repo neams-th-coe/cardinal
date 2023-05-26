@@ -518,7 +518,7 @@ normalizeFluxBySideset(const NekBoundaryCoupling & nek_boundary_coupling,
                      std::abs(normalized_nek_integral - total_moose_integral) / total_moose_integral < rel_tol : true;
   bool low_abs_err = std::abs(normalized_nek_integral - total_moose_integral) < abs_tol;
 
-  return low_rel_err && low_abs_err;
+  return low_rel_err || low_abs_err;
 }
 
 
@@ -564,7 +564,7 @@ normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < rel_tol;
   bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < abs_tol;
 
-  return low_rel_err && low_abs_err;
+  return low_rel_err || low_abs_err;
 }
 
 bool

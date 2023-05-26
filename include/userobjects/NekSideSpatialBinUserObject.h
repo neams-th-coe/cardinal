@@ -35,6 +35,7 @@ public:
   /**
    * Get the point at which to evaluate the user object
    * @param[in] local_elem_id local element ID on the Nek rank
+   * @param[in] local_face_id local face ID on the element
    * @param[in] local_node_id local node ID on the element
    * @return point, in dimensional form
    */

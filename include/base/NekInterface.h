@@ -89,7 +89,7 @@ bool isInitialized();
  * @param[in] prefix prefix for file name
  * @param[in] time simulation time to write file for
  * @param[in] step time step index
- * @parma[in] write_coords whether to write the mesh coordinates
+ * @param[in] write_coords whether to write the mesh coordinates
  */
 void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords);
 
@@ -600,7 +600,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
  * @param[in] boundary_id nekRS boundary IDs for which to find the extreme value
  * @param[in] field field to find the maximum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
- * @param maximum value of field on boundary
+ * @return maximum value of field on boundary
  */
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
                     const nek_mesh::NekMeshEnum pp_mesh);

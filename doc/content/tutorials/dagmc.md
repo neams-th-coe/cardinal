@@ -11,7 +11,9 @@ cd cardinal/tutorials/dagmc
 ```
 
 !alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
+No special computing needs are required for this tutorial. To run this tutorial,
+you need to have built Cardinal with DAGMC support enabled, by setting
+`export ENABLE_DAGMC=true`.
 !alert-end!
 
 ## Geometry and Computational Models

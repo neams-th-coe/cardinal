@@ -40,6 +40,7 @@ public:
   /**
    * When using 'field = velocity_component', get the spatial value for a
    * particular component
+   * @param[in] p point
    * @param[in] component component
    * @return value along direction of component
    */
