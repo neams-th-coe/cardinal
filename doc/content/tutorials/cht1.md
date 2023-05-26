@@ -669,7 +669,18 @@ mpiexec -np 48 cardinal-opt -i solid.i
 
 where `mpiexec` is an [!ac](MPI) compiler wrapper, `-np 48` indicates that the input
 should be run with 48 processes, and `-i solid.i` specifies the input file to run in Cardinal.
-Both MOOSE and NekRS will be run with 48 processes.
+Both MOOSE and NekRS will be run with 48 processes. When you run this file, Cardinal will
+print out a table summarizing all of the non-dimensional scales that are used to re-scale
+the non-dimensional NekRS solution when it gets mapped to MOOSE. This can be used to quickly
+see the various scales, and understand how time is dimensionalized with the $t_{ref}$.
+
+```
+ ------------------------------------------------------------------------------------------------
+ |   Time    |  Length   | Velocity  | Temperature | d(Temperature) |  Density  | Specific Heat |
+ ------------------------------------------------------------------------------------------------
+ | 1.043e-01 | 6.000e-03 | 5.750e-02 | 9.231e+02   | 1.000e+01      | 1.962e+03 | 2.416e+03     |
+ ------------------------------------------------------------------------------------------------
+```
 
 When the simulation has completed, you will have created a number of different output files:
 
