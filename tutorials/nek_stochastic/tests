@@ -5,4 +5,30 @@
     csvdiff = channel.csv
     requirement = "The system shall generate a mesh for the NekRS domain."
   []
+  [single]
+    type = CSVDiff
+    input = ht.i
+    csvdiff = ht_out_nek0.csv
+    cli_args = 'MultiApps/nek/cli_args="UserObjects/k/value=6.5"'
+    requirement = "The system shall reproduce analytic temperature distributions in a two-slab domain with "
+                  "MOOSE solving heat conduction in part of the domain, and NekRS solving for heat conduction "
+                  "in the remaining, with coupling via flux and temperature boundary conditions at the interface. "
+                  "We compare against analytic solutions for steady-state heat transfer."
+    required_objects = 'NekRSProblem'
+  []
+  [multi]
+    type = CSVDiff
+    input = driver.i
+    csvdiff = 'driver_out_ht0_nek0.csv driver_out_ht1_nek0.csv driver_out_ht2_nek0.csv'
+    requirement = "The system shall allow NekRS thermal conductivity to be perturbed by the stochastic tools "
+                  "module. We compare peak temperature against an analytic solution to confirm that NekRS "
+                  "is solving the correct model."
+    required_objects = 'NekRSProblem'
+  []
+  [qoi_histogram]
+    type = RunCommand
+    prereq = multi
+    command = "python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py driver_out.json* -v results:receive:nek_max_T --xlabel 'Interface Temperature' --output Ti.pdf"
+    requirement = "The system shall plot histograms of QOIs for stochastic simulations."
+  []
 []
