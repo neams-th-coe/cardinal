@@ -28,11 +28,14 @@ ORNL: Oak Ridge National Laboratory
 PB-FHR: Pebble Bed Fluoride-Salt-Cooled High-Temperature Reactor
 PBR: Pebble Bed Reactor
 PyC: Pyrolitic Carbon
+QOI: Quantity of Interest
 RANS: Reynolds Averaged Navier-Stokes
 RSA: Random Sequential Addition
 SFR: Sodium Fast Reactor
+STM: Stochastic Tools Module
 T/H: Thermal-Hydraulic
 THM: Thermal Hydraulics Module
 THTR: Thorium High Temperature Reactor
 TRISO: Tri-Structural Isotropic
+UQ: Uncertainty Quantification
 VTB: Virtual Test Bed
