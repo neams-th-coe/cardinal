@@ -370,7 +370,7 @@ std::string
 NekRSProblemBase::fieldFilePrefix(const int & number) const
 {
   const std::string alphabet = "abcdefghijklmnopqrstuvwxyz";
-  int letter = number / 100;
+  int letter = number / 26;
   int remainder = number % 100;
   std::string s = remainder < 10 ? "0" : "";
 
