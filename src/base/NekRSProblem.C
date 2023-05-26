@@ -461,6 +461,8 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
                " MOOSE integrated flux: ",
                total_moose_flux, ".\n",
                "There are a few reason this might happen:\n\n"
+               "- You have a mismatch between the NekRS mesh and the MOOSE mesh. Try visualizing the\n"
+               "  meshes in Paraview by running your input files with the --mesh-only flag.\n\n"
                "- Your tolerances for comparing the re-normalized NekRS flux with the incoming MOOSE\n"
                "  flux are too tight. If the NekRS flux is acceptably close to the MOOSE flux, you can\n"
                "  try relaxing the 'normalization_abs_tol' and/or 'normalization_rel_tol' parameters\n\n"

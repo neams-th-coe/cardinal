@@ -207,15 +207,20 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
 
   if (_nondimensional)
   {
-    VariadicTable<Real, Real, Real, Real, Real> vt(
-        {"Time        ", "Length      ", "Velocity    ", "Temperature ", "d(Temperature)"});
-    vt.setColumnFormat({VariadicTableColumnFormat::SCIENTIFIC,
-                        VariadicTableColumnFormat::SCIENTIFIC,
-                        VariadicTableColumnFormat::SCIENTIFIC,
-                        VariadicTableColumnFormat::SCIENTIFIC,
-                        VariadicTableColumnFormat::SCIENTIFIC});
+    VariadicTable<std::string, std::string, std::string, std::string,
+      std::string, std::string, std::string> vt(
+      {"Time", "Length", "Velocity", "Temperature", "d(Temperature)",
+       "Density", "Specific Heat"});
 
-    vt.addRow(_L_ref / _U_ref, _L_ref, _U_ref, _T_ref, _dT_ref);
+    auto compress = [] (Real a)
+    {
+      std::ostringstream v;
+      v << std::setprecision(3) << std::scientific << a;
+      return v.str();
+    };
+
+    vt.addRow(compress(_L_ref / _U_ref), compress(_L_ref), compress(_U_ref),
+      compress(_T_ref), compress(_dT_ref), compress(_rho_0), compress(_Cp_0));
     _console << "\nNekRS characteristic scales:" << std::endl;
     vt.print(_console);
     _console << std::endl;
