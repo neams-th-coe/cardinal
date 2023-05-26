@@ -245,7 +245,7 @@ public:
   /**
    * Get the total (i.e. summed across all ranks, if distributed)
    * number of elements in a given block
-   * @param[in] block_id subdomainID
+   * @param[in] id subdomainID
    * return number of elements in block
    */
   unsigned int numElemsInSubdomain(const SubdomainID & id) const;

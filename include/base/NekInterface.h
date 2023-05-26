@@ -89,7 +89,7 @@ bool isInitialized();
  * @param[in] prefix prefix for file name
  * @param[in] time simulation time to write file for
  * @param[in] step time step index
- * @parma[in] write_coords whether to write the mesh coordinates
+ * @param[in] write_coords whether to write the mesh coordinates
  */
 void write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords);
 
