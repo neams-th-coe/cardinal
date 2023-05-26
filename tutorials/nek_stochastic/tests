@@ -31,4 +31,10 @@
     command = "python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py driver_out.json* -v results:receive:nek_max_T --xlabel 'Interface Temperature' --output Ti.pdf"
     requirement = "The system shall plot histograms of QOIs for stochastic simulations."
   []
+  [input_histogram]
+    type = RunCommand
+    prereq = multi
+    command = "python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py driver_out.json* -v sample_0 --xlabel 'Input Distribution' --output samples.pdf"
+    requirement = "The system shall plot histograms of input distributions for stochastic simulations."
+  []
 []

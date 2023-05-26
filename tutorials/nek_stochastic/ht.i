@@ -114,7 +114,6 @@
     to_multi_app = nek
     variable = avg_flux
     source_boundary = 'right'
-    target_boundary = '5'
   []
   [flux_integral]
     type = MultiAppPostprocessorTransfer
@@ -131,7 +130,6 @@
 []
 
 [Outputs]
-  #exodus = true
   print_linear_residuals = false
   hide = 'flux_integral'
 []

@@ -47,7 +47,8 @@
 
 [Reporters]
   [storage]
-    type = StochasticReporter
+    type = StochasticMatrix
+    sampler = sample
     parallel_type = ROOT
   []
   [stats]

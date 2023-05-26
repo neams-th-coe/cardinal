@@ -14,16 +14,16 @@ stochastically sample a parameter (the thermal conductivity in the NekRS model)
 from a distribution $N$ times, each time re-running the multiphysics simulation.
 For each independent run, we will compute a [!ac](QOI) (maximum NekRS temperature)
 and evaluate various statistical quantities for that [!ac](QOI)
-(e.g. mean, standard deviation).
+(e.g. mean, standard deviation, confidence intervals).
 
 Cardinal's interface between NekRS and the [!ac](STM) is designed in an
 infinitely-flexible manner. *Any* quantity in NekRS which can be modified from
-the `<case>.udf` file can be stochastically perturbed by MOOSE. In this example,
+the `.udf` and `.oudf` files can be stochastically perturbed by MOOSE. In this example,
 we will just perturb one quantity (thermal conductivity), though you can simultaneously
 perturb an arbitrary number of parameters. Other notable features include:
 
 - You can perturb parameters nested arbitrarily "beneath" the driver stochastic
-  application. We will use this in this example to send a thermal conductivity value
+  application. We will use this to send a thermal conductivity value
   from the [!ac](STM), to a solid heat conduction sub-app, which then passes the
   value to a NekRS sub-sub app.
 - You can use a single perturbed value in multiple locations in dependent applications.
@@ -43,12 +43,11 @@ To access this tutorial,
 
 ```
 cd cardinal/tutorials/nek_stochastic
-
 ```
 
 ## Problem Setup
 
-In this problem, we are coupling a MOOSE solid heat conduction model with a NekRS
+In this problem, we couple a MOOSE solid heat conduction model with a NekRS
 heat conduction model in two adjacent domains, shown in [slab_model]. A uniform heat
 flux of 1000 W/m$^2$ is applied on the left face of the MOOSE region, whereas a fixed
 Dirichlet temperature of 500 K is applied on the right face of the NekRS region.
@@ -59,11 +58,13 @@ temperature to MOOSE for use as a Dirichlet condition. All other surfaces are in
 !media slab_model.png
   id=slab_model
   caption=Two-region heat conduction model used for demonstrating stochastic simulations
-  style=width:50%;margin-left:auto;margin-right:auto;halign:center
+  style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
 We choose this problem for demonstration because the steady-state solution has a simple
 analytic form. The general shape for the temperature distribution is shown as the orange
-line in the right of [slab_model]. The temperature at the interface, $T_i$, between MOOSE and
+line in the right of [slab_model],
+where the slopes of the temperature in the two blocks are governed by their respective
+thermal conductivities. The temperature at the interface, $T_i$, between MOOSE and
 NekRS is governed by
 
 \begin{equation}
@@ -105,7 +106,6 @@ mv channel_in.e channel.exo
 Then, we convert into NekRS's custom `.re2` mesh format by running the `exo2nek`
 script. Alternatively, you can simply use the `channel.re2` file already checked
 into the repository.
-
 The remaining NekRS input files are:
 
 - `channel.par`: High-level settings for the solver, boundary
@@ -123,11 +123,18 @@ solving for solid heat conduction,
 \rho C_p\frac{\partial T}{\partial t}-\nabla\cdot\left(k_n\nabla T\right)=0
 \end{equation}
 
-where $\rho C_p=50$ and $k_n$ will be specified by MOOSE. In previous tutorials,
-you saw that we would always set thermal conductivity using the `conductivity`
-parameter in the `[TEMPERATURE]` block. In this case, we're going to instead be
-passing in a value through the `channel.udf` instead, so we can leave that field
-empty.
+where $\rho C_p=50$ and $k_n$ will be specified by MOOSE. Normally, all that
+you need to do to set thermal conductivity in NekRS is to set the
+`conductivity` parameter in the `[TEMPERATURE]` block. Here, we will instead
+retrieve this value from MOOSE through the `.udf`.
+
+!alert warning
+However, the user must still set `conductivity` in the `.par` file because
+this value is used to initialize the elliptic solvers in NekRS. Do not
+simply put an arbitrary value here, because an unrealistic value will hamper
+the convergence of the elliptic solvers for the entire NekRS simulation.
+In order to initialize the elliptic solvers and preconditioners, we recommend
+setting the properties in the `.par` file to their mean values.
 
 !listing /tutorials/nek_stochastic/channel.par
 
@@ -153,22 +160,26 @@ at the end of this tutorial.
 
 !listing /tutorials/nek_stochastic/channel.udf language=cpp
 
-The `udf.properties` is called:
+In order to ensure that the most up-to-date stochastic data from MOOSE is used
+in each scalar and flow solver, we add an extra call to `udf.properties` in Cardinal
+*each time* MOOSE sends new data to NekRS. So,
+`udf.properties` is called:
 
-- Once before time stepping begins
-- After each scalar solve, but before each flow solve
+1. Once before time stepping begins (within `nekrs::setup`). At this point,
+  `nrs->usrwrk` does not exist yet, which is why we return without doing anything
+  if `nrs->usrwrk` is a null pointer (the `if (!nrs->usrwrk)` line). This means that
+  when the elliptic solvers are initialized, they are using whatever property values
+  are set in the `.par` file (as already described).
+2. (*special to Cardinal*) Immediately after MOOSE sends new stochastic data to NekRS
+3. Between each scalar solve and the ensuing flow solve
 
-Unfortunately, the call which occurs before time stepping starts occurs *before*
-MOOSE has had a chance to send any data into NekRS. So, the very first time that
-`udf.properties` is called, `nrs->usrwrk` does not exist -- so we need to set
-some other value for thermal conductivity, which will be used for that first solve.
+Steps 1 and 3 already occur in standalone NekRS simulations, so Cardinal is just adding
+an extra call to ensure consistency.
 
-For Cardinal, the last thing we need is the thin wrapper input file which runs NekRS.
+The last thing we need is the thin wrapper input file which runs NekRS.
 We start by building a mesh mirror of the NekRS mesh, as a
 [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html). We will couple
-via conjugate heat transfer through boundary 5 in the NekRS domain; for quick visualization
-of the NekRS solution in a convenient Exodus mesh format, we set `volume = true` so that
-the mesh mirror has a volumetric representation. Next, we use
+via conjugate heat transfer through boundary 5 in the NekRS domain. Next, we use
 [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
 to specify that we will replace MOOSE solves with NekRS solves. The
 [NekTimeStepper](https://cardinal.cels.anl.gov/source/timesteppers/NekTimeStepper.html)
@@ -195,9 +206,12 @@ Lastly, we need to have a [SamplerReceiver](https://mooseframework.inl.gov/sourc
 [NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
 object. *Any* input file receiving stochastic data just needs to have one of these objects.
 
+!listing /tutorials/nek_stochastic/nek.i
+  block=Controls
+
 ## Heat Conduction Model
 
-The heat conduction MOOSE model is described in the `ht.i` file. First, we set up a
+For the MOOSE heat conduction model, we firt set up a
 mesh and create the nonlinear variables, kernels, and boundary conditions to solve
 the solid heat conduction equation. The `flux` auxiliary variable will be used to
 compute the interface heat flux (which will get sent to NekRS), while the `nek_temp`
@@ -227,12 +241,15 @@ in this input file because the MOOSE heat conduction model itself is not receivi
 stochastic inputs - the NekRS thermal conductivity passes straight from the [!ac](STM)
 to NekRS.
 
+!listing /tutorials/nek_stochastic/ht.i
+  block=Reporters
+
 ## Stochastic Tools Module
 
 For stochastic simulations, a [!ac](STM) input "drives" the entire simulation as the
 main app. First, we define random distributions and sampling methods for our random
 data. Here, we will use a normal distribution for $k_n$. We choose a
-[MonteCarlo](https://mooseframework.inl.gov/source/samplers/MonteCarloSampler.html)
+[MonteCarlo](https://mooseframework.inl.gov/source/samplers/MonteCarloSampler.html) sampler
 to randomly sample from this normal distribution. Here, `num_rows` is the number
 of independent samples to take.
 
@@ -245,16 +262,16 @@ We next use a [SamplerParameterTransfer](https://mooseframework.inl.gov/source/t
 to send the random numbers from the `sample` object into the `k` UserObject
 in the sub-sub app named `nek`. In order to fetch the [!ac](QOI) from the
 nested physics apps, we use a [SamplerReporterTransfer](https://mooseframework.inl.gov/source/transfers/SamplerReporterTransfer.html)
-to get the $T_i$ from the sub-app. This will be held by the `storage` [StochasticReporter](https://mooseframework.inl.gov/source/reporters/StochasticReporter.html). Finally, we
+to get the $T_i$ from the sub-app. This will be held by the `storage` [StochasticMatrix](https://mooseframework.inl.gov/source/reporters/StochasticMatrix.html). Finally, we
 use a [StatisticsReporter](https://mooseframework.inl.gov/source/reporters/StatisticsReporter.html)
 to conduct some statistical analysis on our [!ac](QOI).
 
 !listing /tutorials/nek_stochastic/driver.i
-  start=Reporters
+  start=MultiApps
 
 ## Summary
 
-[summary] summarizes the data flow for stochastic simulations. The only specialization for
+[summary] summarizes the data flow for this stochastic simulation. The only specialization for
 NekRS is the use of [NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
 to receive the data, which the user is then responsible for applying in the NekRS input files
 as appropriate.
@@ -262,7 +279,7 @@ as appropriate.
 !media summary_st.png
   id=summary
   caption=Summary of major data transfers and objects used to accomplish stochastic simulations with NekRS
-  style=width:50%;margin-left:auto;margin-right:auto;halign:center
+  style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
 ## Execution and Postprocessing
 
@@ -296,27 +313,33 @@ solve which shows:
  ---------------------------------------------------------------------------------------------
 ```
 
-This table will show you how the [NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
+This table will show you how the [NekScalarValues](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
 map to particular locations in the scratch space. It is from this table that we knew the
 value of thermal conductivity would be located at `nrs->usrwrk[1 * nrs->fieldOffset + 0]`,
 which is what we used in the `channel.udf`.
 
-The screen output from NekRS itself is very messy, because they will output any print
-statements which occur on rank 0 of the local communicator. But for running stochastic simulations
+!alert note
+When you run this input file,
+the screen output from NekRS itself is very messy, because NekRS will output any print
+statements which occur on rank 0 of the local communicator. For running stochastic simulations
 via MOOSE, we split a starting communicator into smaller pieces, which means that multiple NekRS
-cases are all trying to print to the console at the same time, clobbering each other.
+cases are all trying to print to the console at the same time, clobbering each other. We are
+working on a better solution.
 
 Because we specified JSON output in the `driver.i`, this will create a number of output files:
 
-- `driver_out.json`, which contains the stochastic results for [!ac](QOI)s. We had used
-  `parallel_type = ROOT` in the [StochasticReporter](https://mooseframework.inl.gov/source/reporters/StochasticReporter.html), which will collect all the stochastic data into one file at the end of
+- `driver_out.json`, which contains the stochastic results for [!ac](QOI)s. We used
+  `parallel_type = ROOT` in the [StochasticMatrix](https://mooseframework.inl.gov/source/reporters/StochasticMatrix.html), which will collect all the stochastic data into one file at the end of
   the simulation. If you had omitted this value, you would end up with $n$ JSON output
-  files, where $n$ is the processor ID.
+  files, where $n$ is the number of processors.
+- `driver_out_ht<n>_nek0.csv`, CSV files with the NekRS postprocessors, where `<n>` is
+  each independent coupled simulation (i.e. each represents a conjugate heat transfer
+  simulation with a different value for $k_n$).
 
-We can use Python scripts in the MOOST stochastic tools module to plot our
+We can use Python scripts in the MOOSE stochastic tools module to plot our
 [!ac](QOI) as a histogram. Using the `make_histogram.py` script, we can indicate
 that we want to plot the `results:receive:nek_max_T` data we fetched with the
-[StochasticReporter](https://mooseframework.inl.gov/source/reporters/StochasticReporter.html),
+[StochasticMatrix](https://mooseframework.inl.gov/source/reporters/StochasticMatrix.html),
 and save the histogram in a file named `Ti.pdf`, shown in [Ti_img] for 200 samples.
 
 ```
@@ -328,9 +351,21 @@ python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py dri
   caption=Histogram of $T_i$ when running with `num_rows = 200` samples
   style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
+We can also directly plot the random values sampled, i.e. the input distribution. These
+are shown in [samples].
+
+```
+python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py driver_out.json* -v sample_0 --xlabel 'Input Distribution' --output samples.pdf
+```
+
+!media samples.png
+  id=samples
+  caption=Actual sampled input distribution for $k_n$
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
+
 Because we added the the [StatisticsReporter](https://mooseframework.inl.gov/source/reporters/StatisticsReporter.html),
 we also have access to the mean, standard deviation, and confidence intervals automatically
-(of course, you could post-compute those given the JSON output too). We can output this
+(of course, you could post-compute those as well). We can output this
 data as a table, using the `visualize_statistics.py` script.
 
 ```
@@ -349,14 +384,11 @@ We invite you to explore these plotting scripts and documentation in the [!ac](S
 as this tutorial only scratches the surface with the simulations performed. You can make bar plots
 and many other data presentation formats.
 
-The analytic mean value of the true $T_i$ distribution is 700 K, if evaluating [analytic_ti]
-using a mean value of $k_n=5$. If we increase the number of samples, our mean will more closely
-approach this distribution.
-
 ## Other Features
 
-By default, when you run NekRS in a stochastic simulation, each individual run is going
-to write the NekRS solution to the same field files -- `<case>0.f*`. If you want to preserve
+By default, when you run NekRS in a stochastic simulation, each individual run will
+write the NekRS solution to the same field files -- `<case>0.f*`. These will all clobber eachother.
+If you want to preserve
 a unique output file for each of the NekRS runs, you can set `write_fld_files = true`
 in the `[Problem]` block, which will write output files labeled as `a00case`, `a01case`, ...,
 `z98case`, `z99case`, giving you 2574 possible output files.
@@ -365,8 +397,8 @@ in the `[Problem]` block, which will write output files labeled as `a00case`, `a
 
 In this example, we perturbed the thermal conductivity, but there are many other parameters
 which can be modified in NekRS via the `udf.properties` function.
-[perturbed_params] summarizes some of the more common parameters
-you may wish to modify in NekRS, and how you access them. Because NekRS simulations can
+[perturbed_params] summarizes the parameters which can be modified by the `udf.properties` function.
+Because NekRS simulations can
 be run with any number of passive scalars, the content and ordering will depend on how many
 scalars you have. So, to be as general as possible, we've written [perturbed_params]
 assuming you have a simulation with 3 passive scalars.
@@ -386,5 +418,5 @@ assuming you have a simulation with 3 passive scalars.
 Other quantities which you can perturb include:
 
 - Boundary conditions
-- Anything in a GPU kernel, such as a momentum or heat source term
+- Anything in a GPU kernel, such as momentum or heat source terms
 - Geometry

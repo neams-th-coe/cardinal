@@ -1,13 +1,11 @@
 [Mesh]
   type = NekRSMesh
-  volume = true
   boundary = '5'
 []
 
 [Problem]
   type = NekRSProblem
   casename = 'channel'
-  has_heat_source = false
 []
 
 [Executioner]

@@ -5,12 +5,12 @@ void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S, occa::m
   if (!nrs->usrwrk)
     return;
 
-  dfloat k = nrs->usrwrk[1 * nrs->cds->fieldOffset[0] + 0];
+  dfloat k = nrs->usrwrk[1 * nrs->fieldOffset + 0];
 
   // apply that value; in nekRS, the 0th slot in o_SProp represents the 'conductivity'
   // field in the par file
   auto mesh = nrs->cds->mesh[0];
-  auto o_diff = o_SProp + 0 * nrs->cds->fieldOffset[0] * sizeof(dfloat);
+  auto o_diff = o_SProp + 0 * nrs->fieldOffset * sizeof(dfloat);
   platform->linAlg->fill(mesh->Nlocal, k, o_diff);
 }
 
