@@ -600,7 +600,7 @@ double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldE
  * @param[in] boundary_id nekRS boundary IDs for which to find the extreme value
  * @param[in] field field to find the maximum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
- * @param maximum value of field on boundary
+ * @return maximum value of field on boundary
  */
 double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
                     const nek_mesh::NekMeshEnum pp_mesh);
