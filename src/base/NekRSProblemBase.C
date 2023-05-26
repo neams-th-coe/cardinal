@@ -689,6 +689,12 @@ NekRSProblemBase::sendScalarValuesToNek()
 
   for (const auto & uo : _nek_uos)
     uo->setValue();
+
+  if (udf.properties)
+  {
+    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    evaluateProperties(nrs, _timestepper->nondimensionalDT(_time));
+  }
 }
 
 void
