@@ -29,7 +29,7 @@ core_heat_flux = 5e3
   []
   [r]
     type = ParsedFunction
-    value = sqrt(x*x+y*y)
+    expression = sqrt(x*x+y*y)
   []
 []
 
