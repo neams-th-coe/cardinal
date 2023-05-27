@@ -74,7 +74,7 @@ CardinalApp::validParams()
 
 CardinalApp::CardinalApp(InputParameters parameters) : MooseApp(parameters)
 {
-  ModulesApp::registerAll(_factory, _action_factory, _syntax);
+  ModulesApp::registerAllObjects<CardinalApp>(_factory, _action_factory, _syntax);
   CardinalApp::registerAll(_factory, _action_factory, _syntax);
 
 #ifdef ENABLE_BISON_COUPLING
