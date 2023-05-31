@@ -17,3 +17,23 @@ do want to build PETSc and libMesh from the scripts, you should either:
 - Turn off the conda environment and just use your system's compilers and libraries
 - Only install the `moose-mpich` conda package, or equivalently slim conda package that
   does not include PETSc/libMesh
+
+## PTScotch needs bison installed
+
+When building PETSc, if you get an error like
+
+```
+*******************************************************************************
+ UNABLE to CONFIGURE with GIVEN OPTIONS    (see configure.log for details):
+-------------------------------------------------------------------------------
+PTScotch needs bison installed
+*******************************************************************************
+```
+
+this is referring to the [bison GNU package](https://www.gnu.org/software/bison/) -
+not the MOOSE application which also happens to be named Bison. To skip
+PTScotch, re-run the PETSc script with this option:
+
+```
+./contrib/moose/update_and_rebuild_petsc.sh --download-ptscotch=0
+```
