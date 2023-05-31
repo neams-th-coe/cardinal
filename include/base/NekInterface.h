@@ -568,42 +568,26 @@ void gradient(const int offset, const double * f, double * grad_f,
               const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
- * Find the minimum of a given field over the entire nekRS domain
+ * Find the extreme value of a given field over the entire nekRS domain
  * @param[in] field field to find the minimum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
- * @return minimum value of field in volume
+ * @param[in] max whether to take the maximum (or if false, the minimum)
+ * @return max or min value of field in volume
  */
-double volumeMinValue(const field::NekFieldEnum & field,
-                      const nek_mesh::NekMeshEnum pp_mesh);
+double volumeExtremeValue(const field::NekFieldEnum & field,
+                          const nek_mesh::NekMeshEnum pp_mesh,
+                          const bool max);
 
 /**
- * Find the maximum of a given field over the entire nekRS domain
- * @param[in] field field to find the minimum value of
- * @param[in] pp_mesh which NekRS mesh to operate on
- * @return maximum value of field in volume
- */
-double volumeMaxValue(const field::NekFieldEnum & field,
-                      const nek_mesh::NekMeshEnum pp_mesh);
-
-/**
- * Find the minimum of a given field over a set of boundary IDs
- * @param[in] boundary_id nekRS boundary IDs for which to find the extreme value
- * @param[in] field field to find the minimum value of
- * @param[in] pp_mesh which NekRS mesh to operate on
- * @return minimum value of field on boundary
- */
-double sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-                    const nek_mesh::NekMeshEnum pp_mesh);
-
-/**
- * Find the maximum of a given field over a set of boundary IDs
+ * Find the extreme of a given field over a set of boundary IDs
  * @param[in] boundary_id nekRS boundary IDs for which to find the extreme value
  * @param[in] field field to find the maximum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
- * @return maximum value of field on boundary
+ * @param[in] max whether to take the maximum (or if false, the minimum)
+ * @return max or min value of field on boundary
  */
-double sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-                    const nek_mesh::NekMeshEnum pp_mesh);
+double sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
+                        const nek_mesh::NekMeshEnum pp_mesh, const bool max);
 
 /**
  * Number of faces per element; because NekRS only supports HEX20, this should be 6

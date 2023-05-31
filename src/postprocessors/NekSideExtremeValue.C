@@ -49,10 +49,10 @@ NekSideExtremeValue::getValue()
   switch (_type)
   {
     case operation::max:
-      return nekrs::sideMaxValue(_boundary, _field, _pp_mesh);
+      return nekrs::sideExtremeValue(_boundary, _field, _pp_mesh, true /* max */);
       break;
     case operation::min:
-      return nekrs::sideMinValue(_boundary, _field, _pp_mesh);
+      return nekrs::sideExtremeValue(_boundary, _field, _pp_mesh, false /* min */);
       break;
     default:
       mooseError("Unhandled 'OperationEnum'!");
