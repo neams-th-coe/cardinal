@@ -3,7 +3,7 @@
 # Cardinal class=center style=font-weight:200;font-size:400%
 
 !style halign=center fontsize=120%
-High-Fidelity Multiscale and Multiphysics Analysis with NekRS and OpenMC
+Accelerating Discovery in Fusion and Fission Energy
 
 !media assembly_fluid_temp_fine.png
   style=width:100%;margin-left:auto;margin-right:auto
