@@ -23,13 +23,13 @@ core_heat_flux = 5e3
 [Functions]
   [nek_temp_ic]
     type = ParsedFunction
-    value = 923.0-50.0*(r-3.348)
+    expression = 923.0-50.0*(r-3.348)
     symbol_names = 'r'
     symbol_values = 'r'
   []
   [r]
     type = ParsedFunction
-    value = sqrt(x*x+y*y)
+    expression = sqrt(x*x+y*y)
   []
 []
 
