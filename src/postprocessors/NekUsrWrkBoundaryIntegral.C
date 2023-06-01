@@ -43,7 +43,8 @@ NekUsrWrkBoundaryIntegral::NekUsrWrkBoundaryIntegral(const InputParameters & par
 Real
 NekUsrWrkBoundaryIntegral::getValue()
 {
-  return nekrs::usrWrkSideIntegral(_boundary, _usrwrk_slot, _pp_mesh);
+  auto integrals = nekrs::usrwrkSideIntegral(_usrwrk_slot, _boundary, _pp_mesh);
+  return std::accumulate(integrals.begin(), integrals.end(), 0.0);
 }
 
 #endif

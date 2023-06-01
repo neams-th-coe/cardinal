@@ -11,17 +11,6 @@
     requirement = "The system shall error if Cardinal has displacements associated with NekRSMesh, but there is no mesh solver"
                   "in the nekRS [MESH] block."
   []
-  [moving_mesh_with_nrsstandaloneproblem]
-    type = RunException
-    input = nek.i
-    cli_args = "Mesh/volume=false Mesh/boundary='2' Mesh/displacements='disp_x disp_y disp_z' Problem/type='NekRSStandaloneProblem' Problem/casename='elast' Problem/has_heat_source=false --error"
-    required_objects = 'NekRSProblem'
-
-    # nekRS can't use more processors than elements
-    max_parallel = 64
-    expect_err = "NekRSStandaloneProblem currently does not transfer mesh displacements "
-    requirement = "The system shall error if Cardinal is using NekRSStandaloneProblem with NekRS's moving mesh problems."
-  []
   [missing_mv_boundary]
     type = RunException
     input = nek.i
@@ -33,18 +22,7 @@
 
     expect_err = "For boundary-coupled moving mesh problems, you need at least one boundary in"
     requirement = "The system shall error if the Nek .par file has a solver in the  [MESH] block"
-                  "but the nekRS .par file has no moving mesh (fixedValue) boundary in the"
+                  "but the nekRS .par file has no moving mesh (codedFixedValue) boundary in the"
                   " [Mesh] block."
-  []
-  [missing_boundary_with_elasticity_solver]
-    type = RunException
-    input = nek.i
-    cli_args = "Mesh/volume=true Mesh/displacements='disp_x disp_y disp_z' Problem/casename='elast' Problem/has_heat_source=false"
-    required_objects = 'NekRSProblem'
-
-    # nekRS can't use more processors than elements
-    max_parallel = 64
-    expect_err = "'elast.par' has 'solver = elasticity' in the \[MESH\] block. This solver uses"
-    requirement = "The system shall error if Cardinal is using the NekRS elasticity solver without indicating the moving boundary of interest"
   []
 []

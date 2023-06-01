@@ -5,7 +5,7 @@
   stopAt = numSteps
   numSteps = 10
   dt = 0.1
-  polynomialOrder = 3
+  polynomialOrder = 5
   writeControl = steps
   writeInterval = 2
 
@@ -14,11 +14,8 @@
 
 [VELOCITY]
   solver = none
-  residualTol = 1.0e-6
-  boundaryTypeMap = wall, wall, wall
 
 [PRESSURE]
-  residualTol = 1.0e-5
 
 [TEMPERATURE]
   conductivity = 1.5

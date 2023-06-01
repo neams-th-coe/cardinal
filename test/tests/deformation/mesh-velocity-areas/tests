@@ -1,30 +1,26 @@
 [Tests]
-  [bdry]
+  [boundary]
     type = CSVDiff
     input = pipe.i
-    csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
-    min_parallel = 4
-    requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
-                  "in the sub-app equivalently at each time-step. The displacement is"
-                  "transferred across a boundary mesh mirror in the form of mesh velocities."
-                  "This shall be verified by comparing the areas of each sideset in both the"
-                  "main and the sub-app. The domain is a cylinder centred on the origin,"
-                  "with diameter = 1 and length = 4."
+    csvdiff = pipe_out_nek0.csv
+    min_parallel = 2
+    requirement = "A boundary displacement in the main app will displace the mesh in NekRS "
+                  "when using a boundary mesh mirror. The deformation is verified by looking at "
+                  "the change in area on the (i) main app, (ii) mesh mirror, and (iii) internal "
+                  "NekRS meshes, which agree very well. Improved agreement is obtained by decreasing "
+                  "the time step of the data transfers, due to the first-order finite difference "
+                  "approximation made for velocity."
     required_objects = 'NekRSProblem'
   []
-  [bdry_vol]
+  [volume]
     type = CSVDiff
     input = pipe.i
-    cli_args = "MultiApps/nek/cli_args='Mesh/volume=true;Problem/casename=pipe_vol'"
-    csvdiff = 'pipe_out_nek0.csv pipe_out.csv'
-    min_parallel = 4
-    requirement = "An arbitrary mesh displacement in the main app will displace the mesh"
-                  "in the sub-app equivalently at each time-step while having the volume mesh"
-                  "mirror enabled at the same time as the volume mesh mirror. The displacement is"
-                  "transferred across a boundary mesh mirror in the form of mesh velocities."
-                  "This shall be verified by comparing the areas of each sideset in both the"
-                  "main and the sub-app. The domain is a cylinder centred on the origin,"
-                  "with diameter = 1 and length = 4."
+    cli_args = "MultiApps/nek/cli_args='Mesh/volume=true;Postprocessors/moose_area_initial/type=AreaPostprocessor;Postprocessors/moose_area_initial/boundary=2;Postprocessors/moose_area/type=AreaPostprocessor;Postprocessors/moose_area/boundary=2'"
+    csvdiff = pipe_out_nek0.csv
+    min_parallel = 2
+    requirement = "A boundary displacement in the main app will displace the mesh in NekRS "
+                  "when using a volume mesh mirror. We use the same gold file as for the boundary test, "
+                  "proving equivalence."
     required_objects = 'NekRSProblem'
   []
 []

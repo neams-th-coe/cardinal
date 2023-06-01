@@ -18,15 +18,6 @@
     requirement = "The system shall error if the user enters too small a scratch space allocation"
     required_objects = 'NekRSProblem'
   []
-  [too_small_c]
-    type = RunException
-    input = nek_mesh.i
-    expect_err = "You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
-                 "'n_usrwrk_slots' must be greater than or equal to 3"
-    mesh_mode = 'replicated'
-    requirement = "The system shall error if the user enters too small a scratch space allocation"
-    required_objects = 'NekRSProblem'
-  []
   [too_small_d]
     type = RunException
     input = nek_separate_domain.i

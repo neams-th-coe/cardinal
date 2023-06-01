@@ -16,9 +16,9 @@
 # Pe = 146205
 
 [GENERAL]
-  startFrom = converged_cht.fld
+  #startFrom = converged_cht.fld
 
-  polynomialOrder = 7
+  polynomialOrder = 2
   dt = 6e-3
   timeStepper = BDF2
 

@@ -30,8 +30,8 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   [rename]
     type = RenameBlockGenerator
     input = extrude
-    old_block_id = '1'
-    new_block_id = '101'
+    old_block = '1'
+    new_block = '101'
   []
 
   # repeat the coolant channels and then combine together to get a combined mesh mirror
@@ -112,7 +112,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
-    T = temp
+    T = thm_temp
     fp = helium
     execute_on = 'timestep_begin linear'
   []
@@ -120,7 +120,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = ParsedAux
     variable = z
     use_xyzt = true
-    function = 'z'
+    expression = 'z'
   []
 []
 
@@ -193,7 +193,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   # into variables we name as 'solid_temp' and 'thm_temp'. This syntax will automatically
   # create those variabes for us
   temperature_variables = 'solid_temp;            thm_temp'
-  temperature_blocks = 'graphite compacts poison; 101'
+  temperature_blocks = '1 2 4; 101'
 []
 
 [Postprocessors]
@@ -348,7 +348,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 [UserObjects]
   [q_wall_avg]
     type = NearestPointLayeredSideAverage
-    boundary = fluid_solid_interface
+    boundary = 'fluid_solid_interface'
     variable = flux
 
     # Note: make this to match the num_elems in the channel

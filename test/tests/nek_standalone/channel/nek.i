@@ -7,9 +7,6 @@
   type = NekRSStandaloneProblem
   casename = 'channel'
   output = 'pressure velocity'
-
-  # We omit the non-dimensional settings here in order to just extract the
-  # non-dimensional solution as-is, without dimensionalizing it.
 []
 
 [Executioner]
@@ -21,15 +18,6 @@
 []
 
 [Postprocessors]
-  # All the following postprocessors are applying operations both (a) directly to the NekRS
-  # solution arrays, and (b) to the variables extracted with the 'outputs = ...' syntax.
-  # Rather than check the actual values of these postprocessors (which might change if the
-  # NekRS development team changes the nature of their CI tests), we can just check that
-  # the difference between the Nek-style postprocessors from the MOOSE-style postprocessors
-  # (acting on the extract solution) are nearly zero. We only check the absolute value of
-  # the min/max volume values for Vx, Vy, and pressure because those values are printed to
-  # the screen and offer quick confirmation of any changes that are due to changes in NekRS itself.
-
   [max_Vx]
     type = NekVolumeExtremeValue
     field = velocity_x
@@ -353,5 +341,5 @@
   exodus = true
   execute_on = 'final'
 
-  hide = 'max_Vx_output min_Vx_output max_Vy_output min_Vy_output max_p_output min_p_output area_output volume_output max_Vx_side max_Vx_side_output max_Vy_side max_Vy_side_output max_p_side max_p_side_output min_Vx_side min_Vx_side_output min_Vy_side min_Vy_side_output min_p_side min_p_side_output avg_p avg_p_output avg_Vx avg_Vx_output avg_Vy avg_Vy_output avg_Vx_side avg_Vx_side_output avg_Vy_side avg_Vy_side_output avg_p_side avg_p_side_output'
+  hide = 'max_Vx_output min_Vx_output max_Vy_output min_Vy_output max_p_output min_p_output area_output volume_output max_Vx_side max_Vx_side_output max_Vy_side max_Vy_side_output max_p_side max_p_side_output min_Vx_side min_Vx_side_output min_Vy_side min_Vy_side_output min_p_side min_p_side_output avg_p avg_p_output avg_Vx avg_Vx_output avg_Vy avg_Vy_output avg_Vx_side avg_Vx_side_output avg_Vy_side avg_Vy_side_output avg_p_side avg_p_side_output max_Vx max_Vy max_p min_Vx min_Vy min_p area'
 []

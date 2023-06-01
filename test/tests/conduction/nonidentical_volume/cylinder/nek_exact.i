@@ -1,6 +1,6 @@
 [Problem]
   type = NekRSProblem
-  casename = 'cylinder_low'
+  casename = 'cylinder'
   usrwrk_output = '1'
   usrwrk_output_prefix = 'src'
 []

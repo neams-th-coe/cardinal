@@ -44,9 +44,8 @@ NekRSStandaloneProblem::NekRSStandaloneProblem(const InputParameters & params)
                  "Boundary IDs will be ignored.");
 
   if (nekrs::hasMovingMesh())
-    mooseWarning("NekRSStandaloneProblem currently does not transfer mesh displacements "
-                 "from NekRS to Cardinal. The [Mesh] object in Cardinal won't reflect "
-                 "NekRS's internal mesh changes. This may affect your postprocessor values.");
+    mooseWarning("This class does not transfer mesh displacements from NekRS to Cardinal.\n"
+                 "The [Mesh] in Cardinal won't reflect NekRS's internal mesh changes.");
 
   _minimum_scratch_size_for_coupling = 0;
   if (!params.isParamSetByUser("n_usrwrk_slots"))

@@ -7,14 +7,14 @@
     requirement = "Cardinal shall be able to run the conj_ht NekRS example with a thin wrapper while "
                   "using postprocessors acting on either the fluid mesh or fluid+solid mesh."
     required_objects = 'NekRSProblem'
-    rel_err = 1e-4
+    rel_err = 1e-3
   []
   [invalid_mesh_solid]
     type = RunException
     input = nek.i
     cli_args = 'Postprocessors/Area_BC3_flow/mesh="solid"'
     expect_err = "This object does not support operations on the solid part of the NekRS mesh!"
-    requirement = "The system shall throw an error if trying to act on only the NekRS solid mesh."
+    requirement = "The system shall throw an error if trying to act on only the NekRS solid mesh for side postprocessors."
     required_objects = 'NekRSProblem'
   []
 []

@@ -52,14 +52,14 @@
 
 [Executioner]
   type = Transient
-  num_steps = 1
+  #num_steps = 1
   dt = 0.2
   nl_abs_tol = 1e-8
 
   # In order to obtain the pseudo-steady converged case, run this until steady state is
   # detected and remove the num_steps
-  #steady_state_detection = true
-  #steady_state_tolerance = 1e-3
+  steady_state_detection = true
+  steady_state_tolerance = 1e-3
 []
 
 [MultiApps]
