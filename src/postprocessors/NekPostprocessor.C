@@ -27,7 +27,6 @@ NekPostprocessor::validParams()
 
   params.addParam<MooseEnum>(
       "mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
-
   return params;
 }
 
@@ -50,6 +49,10 @@ NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
   // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that
   // this pointer isn't NULL
   _nek_mesh = dynamic_cast<const NekRSMesh *>(&_mesh);
+
+  if (isParamSetByUser("use_displaced_mesh"))
+    mooseWarning("'use_displaced_mesh' is unused, because this postprocessor acts directly\n"
+      "on the NekRS internal mesh");
 }
 
 #endif

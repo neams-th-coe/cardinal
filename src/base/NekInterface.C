@@ -668,118 +668,12 @@ copyDeformationToDevice()
 }
 
 double
-sideMaxValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-             const nek_mesh::NekMeshEnum pp_mesh)
+sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
+             const nek_mesh::NekMeshEnum pp_mesh, const bool max)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
-  double value = -std::numeric_limits<double>::max();
-
-  double (*f)(int);
-  f = solutionPointer(field);
-
-  for (int i = 0; i < mesh->Nelements; ++i)
-  {
-    for (int j = 0; j < mesh->Nfaces; ++j)
-    {
-      int face_id = mesh->EToB[i * mesh->Nfaces + j];
-
-      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
-      {
-        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
-        for (int v = 0; v < mesh->Nfp; ++v)
-          value = std::max(value, f(mesh->vmapM[offset + v]));
-      }
-    }
-  }
-
-  // find extreme value across all processes
-  double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
-
-  // dimensionalize the field if needed
-  dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
-
-  return reduced_value;
-}
-
-double
-volumeMaxValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh)
-{
-  mesh_t * mesh = getMesh(pp_mesh);
-
-  double value = -std::numeric_limits<double>::max();
-
-  double (*f)(int);
-  f = solutionPointer(field);
-
-  for (int i = 0; i < mesh->Nelements; ++i)
-  {
-    for (int j = 0; j < mesh->Np; ++j)
-    {
-      int id = i * mesh->Np + j;
-      value = std::max(value, f(id));
-    }
-  }
-
-  // find extreme value across all processes
-  double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MAX, platform->comm.mpiComm);
-
-  // dimensionalize the field if needed
-  dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
-
-  return reduced_value;
-}
-
-double
-volumeMinValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh)
-{
-  mesh_t * mesh = getMesh(pp_mesh);
-
-  double value = std::numeric_limits<double>::max();
-
-  double (*f)(int);
-  f = solutionPointer(field);
-
-  for (int i = 0; i < mesh->Nelements; ++i)
-  {
-    for (int j = 0; j < mesh->Np; ++j)
-    {
-      int id = i * mesh->Np + j;
-      value = std::min(value, f(id));
-    }
-  }
-
-  // find extreme value across all processes
-  double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
-
-  // dimensionalize the field if needed
-  dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
-
-  return reduced_value;
-}
-
-double
-sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & field,
-             const nek_mesh::NekMeshEnum pp_mesh)
-{
-  mesh_t * mesh = getMesh(pp_mesh);
-
-  double value = std::numeric_limits<double>::max();
+  double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
   double (*f)(int);
   f = solutionPointer(field);
@@ -795,7 +689,10 @@ sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
         {
-          value = std::min(value, f(mesh->vmapM[offset + v]));
+          if (max)
+            value = std::max(value, f(mesh->vmapM[offset + v]));
+          else
+            value = std::min(value, f(mesh->vmapM[offset + v]));
         }
       }
     }
@@ -803,7 +700,64 @@ sideMinValue(const std::vector<int> & boundary_id, const field::NekFieldEnum & f
 
   // find extreme value across all processes
   double reduced_value;
-  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, MPI_MIN, platform->comm.mpiComm);
+  auto op = max ? MPI_MAX : MPI_MIN;
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
+
+  // dimensionalize the field if needed
+  dimensionalize(field, reduced_value);
+
+  // if temperature, we need to add the reference temperature
+  if (field == field::temperature)
+    reduced_value += scales.T_ref;
+
+  return reduced_value;
+}
+
+double
+volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const bool max)
+{
+  double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
+
+  double (*f)(int);
+  f = solutionPointer(field);
+
+  mesh_t * mesh;
+  int start_id;
+
+  switch (pp_mesh)
+  {
+    case nek_mesh::fluid:
+    case nek_mesh::all:
+    {
+      mesh = getMesh(pp_mesh);
+      start_id = 0;
+      break;
+    }
+    case nek_mesh::solid:
+    {
+      mesh = entireMesh();
+      start_id = flowMesh()->Nelements;
+      break;
+    }
+    default:
+      mooseError("Unhandled NekMeshEnum in volumeExtremeValue");
+  }
+
+  for (int i = start_id; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Np; ++j)
+    {
+      if (max)
+        value = std::max(value, f(i * mesh->Np + j));
+      else
+        value = std::min(value, f(i * mesh->Np + j));
+    }
+  }
+
+  // find extreme value across all processes
+  double reduced_value;
+  auto op = max ? MPI_MAX : MPI_MIN;
+  MPI_Allreduce(&value, &reduced_value, 1, MPI_DOUBLE, op, platform->comm.mpiComm);
 
   // dimensionalize the field if needed
   dimensionalize(field, reduced_value);
