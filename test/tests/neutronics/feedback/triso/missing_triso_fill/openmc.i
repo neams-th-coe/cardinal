@@ -25,7 +25,7 @@
   # in a TRISO universe cant account for the fact that we are skipping some of the
   # TRISO universes from the tally setup
   identical_tally_cell_fills = true
-  check_identical_tally_cell_fills = true
+  check_identical_cell_fills = true
 []
 
 [Executioner]

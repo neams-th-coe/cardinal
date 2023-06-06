@@ -811,18 +811,18 @@ protected:
    * calls (which are required in order to figure out the pattern by which pebble N is
    * incremented relative to pebble 1).
    *
-   * When using this parameter, we HIGHLY recommend setting 'check_identical_tally_cell_fills =
+   * When using this parameter, we HIGHLY recommend setting 'check_identical_cell_fills =
    * true' the first time you run your model. This will figure out the material cell fills using a
    * method that calls openmc::Cell::get_contained_cells for every tally cell, i.e. without assuming
    * anything about repeated structure in your OpenMC model. Setting 'identical_tally_cell_fills =
-   * true' without also setting 'check_identical_tally_cell_fills = true' may result in SILENT
+   * true' without also setting 'check_identical_cell_fills = true' may result in SILENT
    * errors!!! So it is essential to be sure you've removed any error sources before you turn the
    * error check off to actually leverage the speedup.
    *
    * Note: for any tally cells that are just filled with a material, we use the approach
    * where openmc::Cell::get_contained_cells is called in full.
    *
-   * This optimization will not work (and 'check_identical_tally_cells = true' *will*
+   * This optimization will not work (and 'check_identical_cell_fills = true' *will*
    * catch these) for:
    * - any situation where tallied, non-material-fill pebbles have different fills
    *   (such as if you have different TRISO lattices in each pebble)
@@ -838,7 +838,7 @@ protected:
    * 'identical_tally_cell_fills = true'. Please set this parameter to 'true' at least
    * once before running production cases to be sure the optimization can be applied.
    */
-  const bool & _check_identical_tally_cell_fills;
+  const bool & _check_identical_cell_fills;
 
   /**
    * Whether it can be assumed that all of the tallies (both those set by the user

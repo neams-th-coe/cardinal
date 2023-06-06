@@ -166,7 +166,6 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   check_equal_mapped_tally_volumes = true
 
   identical_tally_cell_fills = true
-  check_identical_tally_cell_fills = false
 
   power = ${fparse power / n_bundles}
   scaling = 100.0

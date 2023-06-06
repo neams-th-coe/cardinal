@@ -203,6 +203,10 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>(
       "check_identical_tally_cell_fills",
       false,
+      "deprecated");
+  params.addParam<bool>(
+      "check_identical_cell_fills",
+      false,
       "Whether to check that your model does indeed have identical tally cell fills, allowing "
       "you to set 'identical_tally_cell_fills = true' to speed up initialization");
 
@@ -268,7 +272,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol")),
     _relaxation_factor(getParam<Real>("relaxation_factor")),
     _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
-    _check_identical_tally_cell_fills(getParam<bool>("check_identical_tally_cell_fills")),
+    _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
@@ -277,6 +281,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _volume_calc(nullptr),
     _symmetry(nullptr)
 {
+  if (isParamSetByUser("check_identical_tally_cell_fills"))
+    mooseError("'check_identical_tally_cell_fills' has been renamed to 'check_identical_cell_fills'");
+
   // We need to clear and re-initialize the OpenMC tallies if
   // fixed_mesh is false, which indicates at least one of the following:
   //   - the [Mesh] is being adaptively refined
@@ -504,7 +511,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (!_identical_tally_cell_fills)
     checkUnusedParam(
-        params, "check_identical_tally_cell_fills", "'identical_tally_cell_fills' is false");
+        params, "check_identical_cell_fills", "'identical_tally_cell_fills' is false");
 
   if (!isParamValid("fluid_blocks") && !isParamValid("solid_blocks"))
     mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
@@ -1879,7 +1886,7 @@ OpenMCCellAverageProblem::cacheContainedCells()
   }
 
   // only need to check if we were attempting the shortcut
-  if (_check_identical_tally_cell_fills)
+  if (_check_identical_cell_fills)
   {
     TIME_SECTION("verifyCacheContainedCells", 4, "Verifying Cached Contained Cells", true);
 

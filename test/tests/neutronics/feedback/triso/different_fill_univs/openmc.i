@@ -13,7 +13,7 @@
   # this input should error because the universes filling the tally cells
   # dont match identically
   identical_tally_cell_fills = true
-  check_identical_tally_cell_fills = true
+  check_identical_cell_fills = true
 
   power = 100.0
   scaling = 100.0

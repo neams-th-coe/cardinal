@@ -493,10 +493,11 @@ to use the same [!ac](TRISO) universe in each layer of each fuel compact. This m
 the cells filling each [!ac](TRISO) compact can be deduced by following a pattern based
 on the first two fuel compacts, letting us omit 10,498 of the contained cell searches.
 When first using this optimization for a new problem, we recommend setting
-`check_identical_tally_cell_fills = true` so that you can do an exact comparison
+`check_identical_cell_fills = true` so that you can do an exact comparison
 against the "rigorous" approach to be sure that your problem setup has the necessary
 prerequisites to use this feature. After you verify that no errors are thrown during
-setup, set `check_identical_tally_cell_fills` to `false` to use this initialization speedup feature.
+setup, set `check_identical_cell_fills` to `false` (the default)
+to use this initialization speedup feature.
 
 Because the blocks in the OpenMC mesh mirror
 receive temperatures from different applications, we use the
