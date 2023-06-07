@@ -105,7 +105,7 @@ fuel_channel_diam = specs.compact_diameter * m
 
 hex_orientation = 'x'
 
-def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
+def unit_cell(n_ax_zones, n_inactive, n_active):
     axial_section_height = reactor_height / n_ax_zones
 
     # superimposed search lattice
@@ -246,19 +246,6 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     source = openmc.Source(space=source_dist)
     settings.source = source
 
-    if (add_entropy_mesh):
-        entropy_mesh = openmc.RegularMesh()
-        entropy_mesh.lower_left = lower_left
-        entropy_mesh.upper_right = upper_right
-        entropy_mesh.dimension = (5, 5, 20)
-        settings.entropy_mesh = entropy_mesh
-
-    vol_calc = openmc.VolumeCalculation([hex_cell] + fuel_ch_cells,
-                                        100_000_000,
-                                        (-cell_edge_length, -cell_edge_length, reactor_bottom),
-                                        (cell_edge_length, cell_edge_length, reactor_top))
-    settings.volume_calculations = [vol_calc]
-
     model.settings = settings
 
     m_colors = {}
@@ -304,8 +291,6 @@ def main():
     ap = ArgumentParser()
     ap.add_argument('-n', dest='n_axial', type=int, default=50,
                     help='Number of axial cell divisions')
-    ap.add_argument('-s', '--entropy', action='store_true',
-                    help='Whether to add a Shannon entropy mesh')
     ap.add_argument('-i', dest='n_inactive', type=int, default=20,
                     help='Number of inactive cycles')
     ap.add_argument('-a', dest='n_active', type=int, default=45,
@@ -313,7 +298,7 @@ def main():
 
     args = ap.parse_args()
 
-    model = unit_cell(args.n_axial, args.n_inactive, args.n_active, args.entropy)
+    model = unit_cell(args.n_axial, args.n_inactive, args.n_active)
     model.export_to_xml()
 
 if __name__ == "__main__":
