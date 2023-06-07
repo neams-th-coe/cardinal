@@ -30,8 +30,8 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   [rename]
     type = RenameBlockGenerator
     input = extrude
-    old_block_id = '1'
-    new_block_id = '101'
+    old_block = '1'
+    new_block = '101'
   []
 
   # repeat the coolant channels and then combine together to get a combined mesh mirror

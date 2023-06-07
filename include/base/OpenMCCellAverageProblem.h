@@ -261,7 +261,8 @@ protected:
    * @param[in] id subdomain IDs
    * @return whether the cell overlaps with the subdomain
    */
-  bool cellMapsToSubdomain(const cellInfo & cell_info, const std::unordered_set<SubdomainID> & id) const;
+  bool cellMapsToSubdomain(const cellInfo & cell_info,
+                           const std::unordered_set<SubdomainID> & id) const;
 
   /**
    * Get the first material cell contained in the given cell
@@ -305,8 +306,10 @@ protected:
    * @param[in] print_table whether to print the diagnostic table showing tally values by bin
    * @return sum of the tally
    */
-  Real getCellTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
-    const unsigned int & score, const bool & print_table);
+  Real getCellTally(const unsigned int & var_num,
+                    const std::vector<xt::xtensor<double, 1>> & tally,
+                    const unsigned int & score,
+                    const bool & print_table);
 
   /**
    * Read from an OpenMC mesh tally and write into an elemental aux variable
@@ -316,20 +319,24 @@ protected:
    * @param[in] print_table whether to print the diagnostic table showing tally values by bin
    * @return sum of the tally
    */
-  Real getMeshTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
-    const unsigned int & score, const bool & print_table);
+  Real getMeshTally(const unsigned int & var_num,
+                    const std::vector<xt::xtensor<double, 1>> & tally,
+                    const unsigned int & score,
+                    const bool & print_table);
 
   /**
-   * Extract the (cell or mesh) tally from OpenMC and then apply to the corresponding MOOSE elements.
-   * We also check that the tally normalization gives a total tally sum of 1.0 (when normalized against
-   * the total tally value).
+   * Extract the (cell or mesh) tally from OpenMC and then apply to the corresponding MOOSE
+   * elements. We also check that the tally normalization gives a total tally sum of 1.0 (when
+   * normalized against the total tally value).
    * @param[in] var_num variable name to write
    * @param[in] tally tally values to write
    * @param[in] score tally score
    * @param[in] print_table whether to print the diagnostic table showing tally values by bin
    */
-  void getTally(const unsigned int & var_num, const std::vector<xt::xtensor<double, 1>> & tally,
-    const unsigned int & score, const bool & print_table);
+  void getTally(const unsigned int & var_num,
+                const std::vector<xt::xtensor<double, 1>> & tally,
+                const unsigned int & score,
+                const bool & print_table);
 
   /**
    * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
@@ -344,9 +351,11 @@ protected:
    * because they are not 100% applicable all the time). So, we print out a message to
    * the user to point them in the right direction if their initialization is taking a
    * long time.
-   * @param[in] start time to use for evaluating whether we've exceeded our limit for printing the message
+   * @param[in] start time to use for evaluating whether we've exceeded our limit for printing the
+   * message
    */
-  void printTrisoHelp(const std::chrono::time_point<std::chrono::high_resolution_clock> & start) const;
+  void
+  printTrisoHelp(const std::chrono::time_point<std::chrono::high_resolution_clock> & start) const;
 
   /**
    * Get all the material indices within the set of cells
@@ -491,10 +500,10 @@ protected:
    * NOTE: This function relaxes the tally _distribution_, and not the actual magnitude of the sum.
    * That is, we relax the shape distribution and then multiply it by the power
    * (for k-eigenvalue) or source strength (for fixed source) of the current step before
-   * applying it to MOOSE. If the magnitude of the power or source strength is constant in time, there is zero
-   * error in this. But if the magnitude of the tally varies in time,
-   * we are basically relaxing the distribution of the tally,
-   * but then multiplying it by the _current_ mean tally magnitude.
+   * applying it to MOOSE. If the magnitude of the power or source strength is constant in time,
+   * there is zero error in this. But if the magnitude of the tally varies in time, we are basically
+   * relaxing the distribution of the tally, but then multiplying it by the _current_ mean tally
+   * magnitude.
    *
    * There will be very small errors in these approximations unless the power/source strength
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
@@ -580,8 +589,8 @@ protected:
    * @return volume-weighted field for each cell, in a global sense
    */
   std::map<cellInfo, Real> computeVolumeWeightedCellInput(
-    const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
-    const coupling::CouplingFields * phase) const;
+      const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
+      const coupling::CouplingFields * phase) const;
 
   /**
    * Send temperature from MOOSE to the OpenMC cells by computing a volume average
