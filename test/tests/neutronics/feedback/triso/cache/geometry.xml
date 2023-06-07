@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell id="1" material="1" region="-5" temperature="1000.0" universe="1" />
+  <cell id="2" material="2" region="5" temperature="1000.0" universe="1" />
+  <cell fill="1" id="3" region="6 -7 1 -2 3 -4" universe="10" />
+  <cell id="4" material="1" region="-5" temperature="1000.0" universe="2" />
+  <cell id="5" material="2" region="5" temperature="1000.0" universe="2" />
+  <cell fill="2" id="6" region="7 -8 1 -2 3 -4" universe="10" />
+  <cell id="7" material="1" region="-5" temperature="1000.0" universe="3" />
+  <cell id="8" material="2" region="5" temperature="1000.0" universe="3" />
+  <cell fill="3" id="9" region="8 -9 1 -2 3 -4" universe="10" />
+  <cell id="10" material="1" region="-5" temperature="1000.0" universe="4" />
+  <cell id="11" material="2" region="5" temperature="1000.0" universe="4" />
+  <cell fill="4" id="12" region="9 -10 1 -2 3 -4" universe="10" />
+  <cell id="13" material="1" region="-5" temperature="1000.0" universe="5" />
+  <cell id="14" material="2" region="5" temperature="1000.0" universe="5" />
+  <cell fill="5" id="15" region="10 -11 1 -2 3 -4" universe="10" />
+  <cell id="16" material="1" region="-5" temperature="1000.0" universe="6" />
+  <cell id="17" material="2" region="5" temperature="1000.0" universe="6" />
+  <cell fill="6" id="18" region="11 -12 1 -2 3 -4" universe="10" />
+  <cell id="19" material="1" region="-5" temperature="1000.0" universe="7" />
+  <cell id="20" material="2" region="5" temperature="1000.0" universe="7" />
+  <cell fill="7" id="21" region="12 -13 1 -2 3 -4" universe="10" />
+  <cell id="22" material="1" region="-5" temperature="1000.0" universe="8" />
+  <cell id="23" material="2" region="5" temperature="1000.0" universe="8" />
+  <cell fill="8" id="24" region="13 -14 1 -2 3 -4" universe="10" />
+  <cell id="25" material="1" region="-5" temperature="1000.0" universe="9" />
+  <cell id="26" material="2" region="5" temperature="1000.0" universe="9" />
+  <cell fill="9" id="27" region="14 -15 1 -2 3 -4" universe="10" />
+  <cell id="28" material="1" region="-5 15 -16 1 -2 3 -4" temperature="1000.0" universe="10" />
+  <cell id="29" material="2" region="5 15 -16 1 -2 3 -4" temperature="1000.0" universe="10" />
+  <surface boundary="reflective" coeffs="-10.0" id="1" name="minimum x" type="x-plane" />
+  <surface boundary="reflective" coeffs="10.0" id="2" name="maximum x" type="x-plane" />
+  <surface boundary="reflective" coeffs="-10.0" id="3" name="minimum y" type="y-plane" />
+  <surface boundary="reflective" coeffs="10.0" id="4" name="maximum y" type="y-plane" />
+  <surface coeffs="0.0" id="5" type="x-plane" />
+  <surface boundary="reflective" coeffs="0.0" id="6" type="z-plane" />
+  <surface coeffs="10.0" id="7" type="z-plane" />
+  <surface coeffs="20.0" id="8" type="z-plane" />
+  <surface coeffs="30.0" id="9" type="z-plane" />
+  <surface coeffs="40.0" id="10" type="z-plane" />
+  <surface coeffs="50.0" id="11" type="z-plane" />
+  <surface coeffs="60.0" id="12" type="z-plane" />
+  <surface coeffs="70.0" id="13" type="z-plane" />
+  <surface coeffs="80.0" id="14" type="z-plane" />
+  <surface coeffs="90.0" id="15" type="z-plane" />
+  <surface boundary="reflective" coeffs="100.0" id="16" type="z-plane" />
+</geometry>
