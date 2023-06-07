@@ -1,0 +1,26 @@
+[Tests]
+  [mesh]
+    type = CSVDiff
+    input = mesh.i
+    csvdiff = mesh_out.csv
+    requirement = 'The system shall generate a mesh for a TRISO gas compact unit cell.'
+  []
+  [gen_mesh]
+    type = RunApp
+    input = mesh.i
+    cli_args = 'ns=4 --mesh-only'
+    requirement = 'The system shall generate a mesh for a TRISO gas compact unit cell.'
+  []
+  [gas_compact]
+    type = CSVDiff
+    prereq = gen_mesh
+    input = openmc.i
+    csvdiff = 'openmc_out.csv openmc_out_avg_q_0002.csv openmc_out_solid0_block_axial_avg_0002.csv openmc_out_solid0_fuel_axial_avg_0002.csv openmc_out_solid0.csv openmc_out_stdev_0002.csv'
+    cli_args = 'Problem/particles=100 Problem/inactive_batches=10 Problem/batches=20 Executioner/num_steps=2 Problem/identical_cell_fills="compacts compacts_trimmer_tri"'
+    min_parallel = 2
+    requirement = 'The system shall couple OpenMC to a solid heat conduction model for a TRISO compact. The gold '
+                  'files were created for an input that did not leverage the TRISO optimization, so here we also '
+                  'prove that the identical_cell_fills option works properly.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

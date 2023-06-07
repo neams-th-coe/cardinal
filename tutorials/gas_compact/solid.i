@@ -35,8 +35,10 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
 q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)}
 
 [Mesh]
-  type = FileMesh
-  file = solid_rotated.e
+  [file]
+    type = FileMeshGenerator
+    file = mesh_in.e
+  []
 []
 
 [Variables]
@@ -54,7 +56,7 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
     type = CoupledForce
     variable = T
     v = power
-    block = 'compacts'
+    block = 'compacts compacts_trimmer_tri'
   []
 []
 
@@ -116,7 +118,7 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
     type = HeatConductionMaterial
     thermal_conductivity_temperature_function = k_TRISO
     temp = T
-    block = 'compacts'
+    block = 'compacts compacts_trimmer_tri'
   []
 []
 
@@ -125,7 +127,7 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
     type = ElementExtremeValue
     variable = T
     value_type = max
-    block = 'compacts'
+    block = 'compacts compacts_trimmer_tri'
   []
   [max_block_T]
     type = ElementExtremeValue
@@ -136,7 +138,7 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
   [power]
     type = ElementIntegralVariablePostprocessor
     variable = power
-    block = 'compacts'
+    block = 'compacts compacts_trimmer_tri'
     execute_on = transfer
   []
 []
@@ -162,7 +164,7 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
     points = '0.0 0.0 0.0'
     direction = z
     num_layers = 30
-    block = 'compacts'
+    block = 'compacts compacts_trimmer_tri'
   []
   [average_block_axial]
     type = NearestPointLayeredAverage
@@ -170,7 +172,7 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
     points = '0.0 0.0 0.0'
     direction = z
     num_layers = 30
-    block = 'graphite'
+    block = 'graphite compacts_trimmer_tri'
   []
 []
 

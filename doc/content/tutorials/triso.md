@@ -15,6 +15,8 @@ cd cardinal/tutorials/pebbles
 
 !alert! note title=Computing Needs
 No special computing needs are required for this tutorial.
+For testing purposes, you may choose to decrease the number of particles to
+solve faster.
 !alert-end!
 
 ## Geometry and Computational Models

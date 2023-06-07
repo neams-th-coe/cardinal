@@ -12,40 +12,38 @@ To access this tutorial,
 cd cardinal/tutorials/gas_compact
 ```
 
-This tutorial also requires you to download a
-mesh file from Box. Please download the files from the
-`gas_compact` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
-and place these files within the same directory structured
-in `tutorials/gas_compact`.
-
 !alert! note title=Computing Needs
 No special computing needs are required for this tutorial.
+For testing purposes, you may choose to decrease the number of particles to
+solve faster.
 !alert-end!
 
 Cardinal contains convenient features for applying multiphysics
 feedback to heterogeneous domains, when a coupled physics application (such as the MOOSE
 heat conduction module) might *not* also resolve the heterogeneities. For instance, the
-fuel pebble model in the coarse-mesh thermal-hydraulic tool Pronghorn
+fuel pebble model in Pronghorn
 [!cite](novak2021b) uses the Heat Source Decomposition method to predict pebble
 interior temperatures, which does not explicitly resolve the [!ac](TRISO) particles
-in the pebble. Cardinal allows temperatures to be applied to OpenMC cells
+in the pebble. However, it is usually important to explicitly resolve the particles
+for Monte Carlo simulations, to correctly capture self-shielding.
+Cardinal allows temperatures to be applied to OpenMC cells
 that contain nested universes or lattices by recursing through all the cells
 filling the given cell and setting the temperature of all contained cells.
-This tutorial describes how to use this feature for homogenized
-temperature and heat source coupling of OpenMC to MOOSE for a [!ac](TRISO)
-fueled gas reactor compact. This example only considers coupling of OpenMC to the solid
-phase - in [Tutorial 9B](triso_multiphysics.md), we extend this example to consider
+This tutorial describes how to use this feature for
+coupling of OpenMC to MOOSE for a [!ac](TRISO)
+fuel compact. This example only considers coupling of OpenMC to the solid
+phase - in [a later tutorial](triso_multiphysics.md), we extend this example to consider
 feedback with the fluid phase as well.
 
 This tutorial was developed with support from the NEAMS Thermal Fluids
-Center of Excellence. A technical report [!cite](novak_coe) describing the physics models,
+Center of Excellence. A journal article [!cite](novak2022_cardinal) describing the physics models,
 mesh refinement studies, and auxiliary analyses provides additional context
 and application examples beyond the scope of this tutorial.
 
 ## Geometry and Computational Model
 
 The geometry consists of a unit cell of a [!ac](TRISO)-fueled
-gas reactor compact, loosely based on a point design available in the literature
+gas reactor compact
 [!cite](sterbentz).
 A top-down view of the geometry is shown in
 [unit_cell]. The fuel is cooled by helium flowing in a cylindrical channel
@@ -83,14 +81,31 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 30 kW.
 !include steady_hc.md
 
 The solid mesh is shown in [solid_mesh]; the only sideset defined in the domain
-is the coolant channel surface.
-To simplify the specification of
-material properties, the solid geometry uses a length unit of meters.
+is the coolant channel surface. The
+solid geometry uses a length unit of meters.
 
-!media compact_solid_mesh.png
+!media compact_solid_mesh2.png
   id=solid_mesh
   caption=Mesh for the solid heat conduction model
   style=width:60%;margin-left:auto;margin-right:auto
+
+This mesh is generated using MOOSE mesh generators in the `mesh.i` file.
+
+!listing /tutorials/gas_compact/mesh.i
+  block=Mesh
+
+We first create a full 7-pin bundle,
+and then apply a trimming operation to split the compacts. Because MOOSE does not
+support multiple element types (e.g. tets, hexes) on the same block ID, the trimmer
+automatically creates an additional block (`compacts_trimmer_tri`) to represent
+the triangular prism elements formed in the compacts.
+You can generate this mesh by running
+
+```
+cardinal-opt -i mesh.i --mesh-only
+```
+
+which will create the mesh, named `mesh_in.e`.
 
 Because this tutorial only considers solid coupling, no fluid flow and heat transfer in the
 helium is modeled. Therefore, heat removal by the fluid is approximated by setting the
@@ -133,8 +148,7 @@ region representing a fuel compact, setting each sphere to be filled with the
 
 Finally, we loop over
 $n_l$ axial layers and create unique cells for each of the six compacts, the graphite
-block, and the coolant. This means that each fuel compact and graphite block receives
-a unique temperature from MOOSE in each axial layer. The level on which we will apply
+block, and the coolant. The level on which we will apply
 feedback from MOOSE is set to 1 because each layer is a component in a lattice nested once
 with respect to the highest level. To accelerate the particle tracking, we:
 
@@ -213,12 +227,11 @@ normalizing the fission power, to be described at greater length in
 !listing /tutorials/gas_compact/solid.i
   block=Postprocessors
 
-Even though there are no time-dependent kernels in [eq:hc], we must use a
+Even though there are no time-dependent kernels in [eq:hc], we use a
 [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
-executioner because the solid physics is run as a sub-application to OpenMC,
-which we run multiple times by specifying a number of "pseudo" time steps
-("pseudo" because neither the OpenMC or solid model have any notion of time as a
-state variable).
+such that each Picard iteration between OpenMC and MOOSE heat conduction
+is essentially one "pseduo" time step
+("pseudo" because neither the OpenMC or solid model have any notion of time derivatives).
 
 !listing /tutorials/gas_compact/solid.i
   start=Executioner
@@ -266,11 +279,11 @@ mapped to the OpenMC cells.
   end=ICs
 
 The `[Problem]` block is then used to specify settings for the OpenMC wrapping. We define a total power
-of 30 kW and indicate that we'd like to add tallies to block 2 (the fuel compacts). The cell
+of 30 kW and indicate that we'd like to add tallies to the fuel compacts. The cell
 tally setup in Cardinal will then automatically add a tally for each unique cell ID+instance
-combination. By setting `solid_blocks` to blocks 1 and 2, OpenMC will then receive temperature
+combination. By setting `solid_blocks` to all blocks, OpenMC will then receive temperature
 from MOOSE for the entire solid domain (because the mesh mirror consists of these
-two blocks). Importantly, note that the `[Mesh]` must always be in units that match
+three blocks). Importantly, note that the `[Mesh]` must always be in units that match
 the coupled MOOSE application. But because OpenMC solves in units of centimeters,
 we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
 `[Mesh]` to get into OpenMC's centimeter units.
@@ -280,7 +293,7 @@ we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
 
 Other features we use include an output of the fission tally standard deviation
 in units of W/m$^3$ to the `[Mesh]` by setting the `output` parameter. This is used to
-obtain uncertainty estimates of the heat source distribution from OpenMC in the same
+obtain the standard deviation of the heat source distribution from OpenMC in the same
 units as the heat source. We also leverage a helper utility in Cardinal by setting
 `check_equal_mapped_tally_volumes` to `true`. This parameter will throw an error if
 the tallied OpenMC cells map to different volumes in the MOOSE domain. Because we know
@@ -296,8 +309,7 @@ below the highest universe level, the solid cell level is set to 1. Because the 
 contain [!ac](TRISO) particles, this indicates that *all* cells in a fuel compact "underneath"
 level 1 will be set to the same temperature. Because the fuel compacts are homogenized in the
 heat conduction model, this multiphysics coupling is just an approximation to the true
-physics, where each layer in the [!ac](TRISO) particles, as well as the graphite matrix, have
-different average temperatures. Cardinal supports resolved [!ac](TRISO) multiphysics coupling,
+physics. Cardinal supports resolved [!ac](TRISO) multiphysics coupling,
 provided the solid mesh explicitly resolves the [!ac](TRISO) particles.
 
 Because OpenMC is coupled by temperature to MOOSE, Cardinal automatically
@@ -338,7 +350,7 @@ for normalization purposes.
 
 We use a [NearestPointLayeredAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredAverage.html)
 to radially average the OpenMC heat source
-and its standard deviation in 30 axial layers across the 6 compacts.
+and its standard deviation in axial layers across the 6 compacts.
 We output the result to CSV using
 [SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html). Note that this user object is strictly used for visualization purposes
 to generate the plot in [heat_source] - the heat source applied to the MOOSE
@@ -371,6 +383,8 @@ When the simulation has completed, you will have created a number of different o
 - `openmc_out.e`, an Exodus file with the OpenMC solution and the data that was
   ultimately transferred in/out of OpenMC
 - `openmc_out_solid0.e`, an Exodus file with the solid solution
+- `openmc_out.csv`, a CSV output with the postprocessors from `openmc.i`
+- `openmc_out_solid0.csv`, a CSV output with the postprocessors from `solid.i`
 - `openmc_out_avg_q_<n>.csv`, CSV output at time step `<n>` with the
    radially-averaged fission power
 - `openmc_out_stdev_<n>.csv`, CSV output at time step `<n>` with the
@@ -386,11 +400,11 @@ displayed:
 
 !include logfile.md
 
-The cells with instances ranging from 0 to 5 represent the six fuel compacts. The other
-cells represent the two pure-graphite cells in each layer. [heat_source] shows the heat source computed by OpenMC
+The cells with instances ranging from 0 to 5 represent the six fuel compacts
+and the graphite surrounding the fuel compacts (in those hex lattice positions). The other
+cells represent the single pure-graphite cell immediately hugging the coolant channel
+(the 0, 0 position in the hex lattice). [heat_source] shows the heat source computed by OpenMC
 on the mesh mirror (left) and radially averaged as a function of axial position (right).
-The radially-averaged plot is created using a separate Python script to postprocess
-the CSV output from the [SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html).
 The error bars on the heat source are smaller than the marker size, so are not shown.
 Due to the negative temperature coefficient, the power distribution is shifted
 slightly downwards towards regions of lower temperature.
@@ -403,21 +417,21 @@ slightly downwards towards regions of lower temperature.
 the OpenMC cells both as volume plots (left) and as slices at the top of the unit cell
 (right). In the volume plots, a zoomed-in view of the temperature near the midplane
 is shown on a different color scale to better illustrate the high temperatures in the
-compacts and the lower temperatures in the surrounding graphite block. The axial
-variation in temperature occurs due to the combined effects of the imposed Dirichlet
-temperature on the coolant channel and the axially-varying heat source shown in
-[heat_source].
+compacts and the lower temperatures in the surrounding graphite block.
 
 In the right image, black lines denote the boundaries of the OpenMC cells
 mapped to the solid domain. The inner hexagon enclosing the coolant channel is shown
 as the sage green color in [openmc_model]. For each unique cell ID+instance combination,
 a unique volume-average temperature is performed of the MOOSE solution according to the
 mapping of element centroids to the OpenMC cells. Therefore, on any given $x$-$y$ plane,
-eight temperatures are applied to the OpenMC model - one temperature for each of the
-six fuel compacts, one temperature for the hexagon-enclosed graphite region
-surrounding the coolant channel, and one temperature for the remaining graphite region.
+38 temperatures are applied to the OpenMC model
+
+- one temperature for each of the fuel compacts (6)
+- one temperature for the graphite surrounding each fuel compact (6)
+- one temperature for the graphite surrounding the coolant channel (1)
+
 The inset in the bottom right image in [temperature] shows the temperatures imposed
-in each fuel compact, on a different color scale than the main image. Although the
+in each fuel compact, on a different color scale. Although the
 geometry contains several planes of symmetry, because we created unique tallies for
 each fuel compact (which have a small uncertainty of less than 1%), there are
 small asymmetries less than 0.4 K in magnitude in the temperature in the six compacts.
@@ -429,7 +443,7 @@ small asymmetries less than 0.4 K in magnitude in the temperature in the six com
 [temperature_axial] shows the fuel and graphite block temperatures as a function of
 axial position; each point is obtained by averaging over a slice parallel to the
 $x$-$y$ plane. The graphite block temperature largely follows the imposed fluid
-temperature distribution, while the fuel comapct temperature reaches a peak below
+temperature distribution, while the fuel compact temperature reaches a peak below
 the outlet because the fission power distribution is highest just slightly
 below the core mid-plane, as shown in [heat_source].
 

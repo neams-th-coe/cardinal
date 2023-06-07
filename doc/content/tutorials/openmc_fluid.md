@@ -21,8 +21,9 @@ and place these files within the same directory structure
 in `tutorials/gas_assembly`.
 
 !alert! note title=Computing Needs
-No special computing needs are required for this tutorial. If the as-is files
-are too slow, simply decrease the resolution of the solid mesh.
+No special computing needs are required for this tutorial.
+For testing purposes, you may choose to decrease the number of particles to
+solve faster, or decrease the resolution of the solid mesh.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module
