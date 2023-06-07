@@ -742,7 +742,7 @@ OpenMCCellAverageProblem::initialSetup()
   if (isParamValid("symmetry_mapper"))
   {
     const auto & name = getParam<UserObjectName>("symmetry_mapper");
-    const auto * base = &getUserObject<UserObject>(name);
+    auto base = &getUserObject<UserObject>(name);
 
     _symmetry = dynamic_cast<SymmetryPointGenerator *>(base);
 
@@ -766,7 +766,7 @@ OpenMCCellAverageProblem::initialSetup()
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
 
     const auto & name = getParam<UserObjectName>("skinner");
-    const auto * base = &getUserObject<UserObject>(name);
+    auto base = &getUserObject<UserObject>(name);
 
     _skinner = dynamic_cast<MoabSkinner *>(base);
 
