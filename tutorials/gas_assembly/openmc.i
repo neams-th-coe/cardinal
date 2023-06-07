@@ -112,7 +112,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
-    T = temp
+    T = thm_temp
     fp = helium
     execute_on = 'timestep_begin linear'
   []
@@ -165,7 +165,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   output = 'unrelaxed_tally_std_dev'
   check_equal_mapped_tally_volumes = true
 
-  identical_tally_cell_fills = true
+  identical_cell_fills = '2'
 
   power = ${fparse power / n_bundles}
   scaling = 100.0
@@ -192,7 +192,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   # into variables we name as 'solid_temp' and 'thm_temp'. This syntax will automatically
   # create those variabes for us
   temperature_variables = 'solid_temp;            thm_temp'
-  temperature_blocks = 'graphite compacts poison; 101'
+  temperature_blocks = '1 2 4; 101'
 []
 
 [Postprocessors]

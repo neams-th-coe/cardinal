@@ -457,7 +457,7 @@ OpenMCProblemBase::printCell(const cellInfo & cell_info, const bool brief) const
   msg << std::setw(_n_cell_digits) << Moose::stringify(id) << ", instance "
       << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) << " (of "
       << std::setw(_n_cell_digits)
-      << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
+      << Moose::stringify(openmc::model::cells.at(cell_info.first)->n_instances_) << ")";
 
   return msg.str();
 }

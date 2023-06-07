@@ -77,7 +77,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
-    T = temp
+    T = thm_temp
     fp = helium
     execute_on = 'timestep_begin linear'
   []

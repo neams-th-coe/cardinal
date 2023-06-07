@@ -480,18 +480,21 @@ are also all equal. For further discussion of this setting and a pictorial descr
 of the possible effect of non-equal mapped vlumes, please see the
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) documentation.
 
-We also set `identical_tally_cell_fills = true`. This is an optimization that greatly
+We also set `identical_cell_fills` to the set of subdomains for which OpenMC's
+cells have identical fills. This is an optimization that greatly
 reduces the initialization time for large [!ac](TRISO) problems. During setup of an
 OpenMC wrapping, we need to cache all the cells contained within the [!ac](TRISO) compacts
 so that we know all the contained cells to set the temperatures for. This process can
 be quite time-consuming if the search needs to be repeated for every single [!ac](TRISO)
 compact cell (210 compacts times 50 axial layers = 10,500 contained cell searches).
-The `identical_tally_cell_fills` option is used to indicate whether your problem can
+The `identical_cell_fills` option is used to indicate whether your problem can
 leverage a speedup that applies to models where *every lattice/universe-filled tally cell*
 has *exactly* the same filling lattice/universe. In other words, we set up our problem
 to use the same [!ac](TRISO) universe in each layer of each fuel compact. This means that
 the cells filling each [!ac](TRISO) compact can be deduced by following a pattern based
 on the first two fuel compacts, letting us omit 10,498 of the contained cell searches.
+
+!alert note
 When first using this optimization for a new problem, we recommend setting
 `check_identical_cell_fills = true` so that you can do an exact comparison
 against the "rigorous" approach to be sure that your problem setup has the necessary
