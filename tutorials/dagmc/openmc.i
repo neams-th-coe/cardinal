@@ -39,7 +39,6 @@
   solid_blocks = '2 3'
   check_tally_sum = false
   normalize_by_global_tally = false
-  check_zero_tallies = false
 
   power = 1000.0
   volume_calculation = vol

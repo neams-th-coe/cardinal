@@ -22,7 +22,6 @@
   tally_type = mesh
   power = 100.0
   check_tally_sum = false
-  check_zero_tallies = false
 
   scaling = 100.0
   normalize_by_global_tally = false

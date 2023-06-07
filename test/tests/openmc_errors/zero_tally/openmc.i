@@ -21,9 +21,6 @@
   tally_type = cell
   initial_properties = xml
   source_strength = 1e6
-
-  # this problem has no fissile material
-  check_zero_tallies = false
 []
 
 [Executioner]

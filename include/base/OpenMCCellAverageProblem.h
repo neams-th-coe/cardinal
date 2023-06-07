@@ -555,16 +555,6 @@ protected:
   void getPointInCell();
 
   /**
-   * Check whether the power in a particular tally bin is zero, which will throw
-   * an error if 'check_zero_tallies = true'.
-   * @param[in] power_fraction fractional power of the bin
-   * @param[in] descriptor string to use in formatting the error message content
-   * @param[in] score score to check
-   */
-  void checkZeroTally(const Real & power_fraction, const std::string & descriptor,
-    const unsigned int & score) const;
-
-  /**
    * Compute the product of volume with a field across ranks and sum into a global map
    * @param[in] var_num variable to weight with volume, mapped by subdomain ID
    * @param[in] phase phase to compute the operation for
@@ -691,25 +681,10 @@ protected:
    */
   const tally::TallyTriggerTypeEnum _k_trigger;
 
-  /**
-   * Whether to check if any of the tallies evaluate to zero; if set to true,
-   * and a tally is zero, an error is thrown. This can be helpful in identifying
-   * cases where you added tallies, but there isn't any fissile material, or
-   * if you have an error in the geometry or tally setup (such as using a CellFilter
-   * when you should be using a CellInstanceFilter).
-   */
-  const bool & _check_zero_tallies;
-
-  /**
-   * Coordinate level in the OpenMC domain that fluid cells are located on,
-   * for the purpose of setting up a cell filter for the fluid phase.
-   */
+  /// Coordinate level in the OpenMC domain that fluid cells are located on
   unsigned int _fluid_cell_level;
 
-  /**
-   * Coordinate level in the OpenMC domain that solid cells are located on,
-   * for the purpose of setting up a cell filter for the solid phase.
-   */
+  /// Coordinate level in the OpenMC domain that solid cells are located on
   unsigned int _solid_cell_level;
 
   /**

@@ -22,7 +22,6 @@
 
   tally_type = mesh
   power = 100.0
-  check_zero_tallies = false
 []
 
 [Executioner]

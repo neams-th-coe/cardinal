@@ -52,7 +52,6 @@
   mesh_template = '../meshes/sphere_in_m.e'
 
   power = 100.0
-  check_zero_tallies = false
 []
 
 [Executioner]

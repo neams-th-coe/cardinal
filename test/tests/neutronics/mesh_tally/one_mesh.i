@@ -23,7 +23,6 @@
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'
   power = 100.0
-  check_zero_tallies = false
 []
 
 [Executioner]

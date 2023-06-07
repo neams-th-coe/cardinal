@@ -73,12 +73,6 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>("check_tally_sum",
                         "Whether to check consistency between the local tallies "
                         "with a global tally");
-  params.addParam<bool>(
-      "check_zero_tallies",
-      true,
-      "Whether to throw an error if any tallies from OpenMC evaluate to zero; "
-      "this can be helpful in reducing the number of tallies if you inadvertently add tallies "
-      "to a non-fissile region, or for catching geomtery setup errors");
   params.addParam<MooseEnum>(
       "initial_properties",
       getInitialPropertiesEnum(),
@@ -260,7 +254,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
     _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
-    _check_zero_tallies(getParam<bool>("check_zero_tallies")),
     _export_properties(getParam<bool>("export_properties")),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
                                       getParam<bool>("normalize_by_global_tally")),
@@ -2676,20 +2669,6 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
   _console << std::endl;
 }
 
-void
-OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
-                                         const std::string & descriptor,
-                                         const unsigned int & score) const
-{
-  if (_check_zero_tallies && power_fraction < 1e-12)
-    mooseError(
-        _tally_score[score] + " computed for " + descriptor + " is zero!\n\n" +
-        "This may occur if there is no fissile material in this region, if you have very few "
-        "particles, "
-        "or if you have a geometry "
-        "setup error. You can turn off this check by setting 'check_zero_tallies' to false.");
-}
-
 Real
 OpenMCCellAverageProblem::tallyMultiplier(const unsigned int & score) const
 {
@@ -2860,8 +2839,6 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
     total += local;
 
     vt.addRow(printCell(cell_info), local);
-
-    checkZeroTally(local, "cell " + printCell(cell_info), score);
     fillElementalAuxVariable(var_num, c.second, volumetric_power);
   }
 
@@ -2907,9 +2884,6 @@ OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
           power_fraction * tallyMultiplier(score) / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
       total += power_fraction;
       template_power_fraction += power_fraction;
-
-      checkZeroTally(power_fraction,
-                     "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e), score);
 
       std::vector<unsigned int> elem_ids = {offset + e};
       fillElementalAuxVariable(var_num, elem_ids, volumetric_power);

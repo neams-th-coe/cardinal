@@ -21,7 +21,6 @@
 
   tally_type = mesh
   power = 100.0
-  check_zero_tallies = false
 
   # the [Mesh] is in units of meters, so the mesh_template must also be in units of meters
   scaling = 100.0
