@@ -120,7 +120,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     type = ParsedAux
     variable = z
     use_xyzt = true
-    function = 'z'
+    expression = 'z'
   []
 []
 
@@ -191,8 +191,8 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   # we will read temperature from THM (for the fluid) and MOOSE (for the solid)
   # into variables we name as 'solid_temp' and 'thm_temp'. This syntax will automatically
   # create those variabes for us
-  temperature_variables = 'solid_temp;            thm_temp'
-  temperature_blocks = '1 2 4; 101'
+  temperature_variables = 'solid_temp; thm_temp'
+  temperature_blocks =    '1 2 4;      101'
 []
 
 [Postprocessors]

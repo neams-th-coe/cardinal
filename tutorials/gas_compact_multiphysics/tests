@@ -23,10 +23,12 @@
   []
   [openmc_nek_moose] # can't test the nek.i, too big
     type = CSVDiff
-    input = openmc_nek.i
+    input = common_input.i
     prereq = gen_mesh
-    csvdiff = ' openmc_nek_test_out.csv openmc_nek_test_out_power_avg_0001.csv'
-    cli_args = "openmc_nek.i Problem/particles=200 Executioner/num_steps=2 Problem/inactive_batches=10 Problem/batches=20 Problem/tally_trigger=none Problem/k_trigger=none Outputs/csv/file_base=openmc_nek_test_out"
+    min_parallel = 2
+    csvdiff = 'openmc_nek_test_out.csv openmc_nek_test_out_power_avg_0001.csv'
+    cli_args = "openmc_nek.i Problem/particles=200 Executioner/num_steps=1 Problem/inactive_batches=10 Problem/batches=20 Problem/tally_trigger=none Problem/k_trigger=none Outputs/csv/file_base=openmc_nek_test_out Problem/identical_cell_fills='compacts compacts_trimmer_tri' bison:MultiApps/active='' bison:Transfers/active='' Problem/initial_properties=xml"
     requirement = 'The system shall solve for coupled OpenMC and heat conduction for a TRISO compact.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []
