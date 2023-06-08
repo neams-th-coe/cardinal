@@ -62,7 +62,6 @@ To determine an appropriate number of inactive batches, you can use the
   of cell divisions to create
 - A Cardinal input file that runs your OpenMC model given some imposed
   temperature and density distribution
-- Criteria used to assess the convergence of the fission source
 
 For example, to run an inactive cycle study for the model developed
 for [the gas compact tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),

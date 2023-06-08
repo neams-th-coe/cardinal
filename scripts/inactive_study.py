@@ -20,7 +20,7 @@
 # in order to determine how many inactive cycles are needed to converge both the
 # Shannon entropy and k. This script is run with:
 #
-# python inactive_study.py -i <script_name> -input <file_name> --method=method [--winow_lenth=<LENGTH>]  [-n-threads <n_threads>]
+# python inactive_study.py -i <script_name> -input <file_name> --method=method [--window_lenth=<LENGTH>]  [-n-threads <n_threads>]
 #
 # - The script used to create the OpenMC model is named <script_name>.py.
 #   This script MUST accept '-s' as an argument to add a Shannon entropy mesh
@@ -30,7 +30,7 @@
 # - By default, the number of threads is taken as the maximum on your system.
 #   Otherwise, you can set it by providing -n-threads <n_threads>.
 # - A detection method must be specified from (all, half, window). If window
-#   is selected, then --window_length must also be specified.
+#   is selected, then --window_length must also be specified. TODO revise
 #
 # This script will create plots named <script_name>_k_<layers>.pdf and
 # <script_name>_entropy_<layers>.pdf in a sub-directory named inactive_study/.
@@ -67,23 +67,29 @@ program_description = ("Script for determining required number of inactive batch
                        "for an OpenMC model divided into a number of layers")
 ap = ArgumentParser(description=program_description)
 
-ap.add_argument('-n-threads', dest='n_threads', type=int,
-                default=multiprocessing.cpu_count(), help='Number of threads to run Cardinal with')
 ap.add_argument('-i', dest='script_name', type=str, required=True,
                 help='Name of the OpenMC python script to run (without .py extension)')
+ap.add_argument('-n-threads', dest='n_threads', type=int,
+                default=multiprocessing.cpu_count(), help='Number of threads to run Cardinal with')
 ap.add_argument('-input', dest='input_file', type=str, required=True,
                 help='Name of the Cardinal input file to run')
-ap.add_argument('--method', dest = 'method', choices =['all','half','window'], required=True,
-                help = "The type of way to detect steady state. Options are all, half, or window")
-opts, rem_args = ap.parse_known_args()
-if(opts.method == "window"):
-    ap.add_argument('--window_length', dest = 'window_length',required = True, type = int,
-                    help =" The window length must be specified if window is the detectio method")
+ap.add_argument('--method', dest = 'method', choices =['all','half','window','none'], default='none',
+                help = 'The method to estimate the number of sufficient inactive batches to discard before tallying in k-eigenvalue mode. ' + 
+                'This number is determined by the first batch at which a running average of the Shannon Entropy falls within the standard ' +
+                'deviation of the run. Options are all, half, and window; all uses all batches, half uses the last half of the batches, and ' +
+                'window uses a user-specified number. Additionally, none can be specified if the feature is undesired.')
+ap.add_argument('--window_length', dest = 'window_length', type = int,
+                help =' When the window method is selected, the window length must be specified. The window length is a number of batches '
+                ' before the current batch to use when computing the running average and standard deviation.')
 args = ap.parse_args()
 # variable to be used in logic for which way to detect steady state
 method = args.method
-if(args.method == "window"):
-    window_length = args.window_length
+
+if(args.method == 'window' and args.window_length == None):
+    raise TypeError('The method specified was window, but window_length = None. Please specify --window_length = LENGTH, where LENGTH is an integer')
+else:
+    if(args.method == 'window'):
+        window_length = args.window_length
 
 input_file = args.input_file
 script_name = args.script_name + ".py"
@@ -175,59 +181,60 @@ for i in range(len(n_layers)):
     plt.savefig('inactive_study/' + args.script_name + '_k' + str(nl) + '.pdf', bbox_inches='tight')
     plt.close()
 
-# loop over each layer (index i) and report inactive batch (index j) that satisfies
-# convergence criteria for the selected method (window,half, or all)
-for i in range(len(n_layers)):
-  nl = n_layers[i]
-  if(method == "window"):
-      # detect when entropy of current batch is within window (mean +/- std of window)
-      for j in range(window_length,len(entropy[i])):
-          window = entropy[i][(j-window_length):j]
-          window_mean = np.average(window)
-          window_dev = np.std(window)
-          window_low = window_mean - window_dev
-          window_high = window_mean + window_dev
-          # print("window bounds: ", window_low , " to ", window_high )
-          if(window_high - entropy[0][j] > 0 and entropy[0][j]-window_low > 0):
-              # if entropy[j] is less than window_high and greater than
-              # window_low, then it is within the window and we've succeeded
-              print("For layer", nl, ", batch", j, "produced a value within one "
-                    "standard deviation of the window mean. It is recommended to do "
-                    "at least this many inactive cycles for this layer.")
-              break
-          else:
-              continue
-  elif(method == "half"):
-      #  Accordinig to Brown, the below is done in MCNP5:
-      # find the first cycle when Hsrc is within one standard deviation of its average for the last half of cycles
-      # compute on the fly the average of the eigenvalue (last half batches) +/- the std dev of the last half cycles
-      # and see if the current k is within this interval
-      for j in range(1,len(entropy[i])):
-          last_half_idx = int(np.floor(j/2))
-          last_half_vals = entropy[0][last_half_idx:j]
-          stdev = np.std(last_half_vals)
-          mean = np.mean(last_half_vals)
-          low =  mean - stdev
-          high = mean + stdev
-          if(high - entropy[0][j] > 0 and entropy[0][j]-low > 0):
-              print("For layer", nl, ", batch", j, "produced a value within one "
-                    "standard deviation of the mean for the last half of entropy values. "
-                    "It is recommended to do at least this many inactive cycles for this layer.")
-              break
-          else:
-              continue
-  else:
-      # use all batches as data points
-      for j in range(1,len(entropy[i])):
-          entropy_slice = entropy[i][0:j]
-          stdev = np.std(entropy_slice)
-          mean = np.mean(entropy_slice)
-          low =  mean - stdev
-          high = mean + stdev
-          if(high - entropy[i][j] > 0 and entropy[i][j]-low > 0):
-              print("For layer", nl, ", batch", j, "produced a value within one "
-                    "standard deviation of the mean of the last", j ,"entropy values. "
-                    "It is recommended to do at least this many inactive cycles for this layer.")
-              break
-          else:
-              continue
+
+if(method != 'none'):
+    # loop over each layer (index i) and report inactive batch (index j) that satisfies
+    # convergence criteria for the selected method (window,half, or all)
+    for i in range(len(n_layers)):
+        nl = n_layers[i]
+        if(method == "window"):
+            # detect when the entropy of current batch is within the mean +/- std of window (last window_length batches)
+            for j in range(window_length,len(entropy[i])):
+                window = entropy[i][(j-window_length):j]
+                window_mean = np.average(window)
+                window_dev = np.std(window)
+                window_low = window_mean - window_dev
+                window_high = window_mean + window_dev
+                if(window_high - entropy[i][j] > 0 and entropy[i][j]-window_low > 0):
+                    # if entropy[i][j] is less than window_high and greater than
+                    # window_low, then it is within the window and we've succeeded
+                    print("For layer", nl, ", batch", j, "produced a value within one "
+                            "standard deviation of the window mean. It is recommended to do "
+                            "at least this many inactive cycles for this layer.")
+                    break
+                else:
+                    continue
+        elif(method == "half"):
+            # Brown (2006) "On the Use of Shannon Entropy of the Fission Distribution for Assessing Convergence
+            # of Monte Carlo Criticality Calculations", the following is done in MCNP5:
+            # Find the first cycle when Hsrc is within one standard deviation of its average for the last half of cycles
+            for j in range(1,len(entropy[i])):
+                last_half_idx = int(np.floor(j/2))
+                last_half_vals = entropy[i][last_half_idx:j]
+                stdev = np.std(last_half_vals)
+                mean = np.mean(last_half_vals)
+                low =  mean - stdev
+                high = mean + stdev
+                if(high - entropy[i][j] > 0 and entropy[i][j]-low > 0):
+                    print("For layer", nl, ", batch", j, "produced a value within one "
+                            "standard deviation of the mean for the last half of entropy values. "
+                            "It is recommended to do at least this many inactive cycles for this layer.")
+                    break
+                else:
+                    continue
+        else:
+            # use all batches as data points for computing mean and standard deviation
+            # this is the most conservative option
+            for j in range(1,len(entropy[i])):
+                entropy_slice = entropy[i][0:j]
+                stdev = np.std(entropy_slice)
+                mean = np.mean(entropy_slice)
+                low =  mean - stdev
+                high = mean + stdev
+                if(high - entropy[i][j] > 0 and entropy[i][j]-low > 0):
+                    print("For layer", nl, ", batch", j, "produced a value within one "
+                            "standard deviation of the mean of the last", j ,"entropy values. "
+                            "It is recommended to do at least this many inactive cycles for this layer.")
+                    break
+                else:
+                    continue
