@@ -172,7 +172,7 @@ q0 = ${fparse power / (4.0 * height * compact_diameter * compact_diameter / 4.0)
     points = '0.0 0.0 0.0'
     direction = z
     num_layers = 30
-    block = 'graphite compacts_trimmer_tri'
+    block = 'graphite'
   []
 []
 

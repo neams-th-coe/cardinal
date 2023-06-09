@@ -81,7 +81,7 @@ num_layers_for_plots = 50
     type = ADParsedMaterial
     block = channel
     # Dittus-Boelter
-    function = '0.023 * pow(Re, 0.8) * pow(Pr, 0.4)'
+    expression = '0.023 * pow(Re, 0.8) * pow(Pr, 0.4)'
     property_name = 'Nu'
     material_property_names = 'Re Pr'
   []
