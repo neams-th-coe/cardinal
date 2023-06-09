@@ -371,8 +371,10 @@ OpenMCProblemBase::isLocalElem(const Elem * elem) const
 }
 
 void
-OpenMCProblemBase::setCellTemperature(const int32_t & index, const int32_t & instance, const Real & T,
-  const cellInfo & cell_info) const
+OpenMCProblemBase::setCellTemperature(const int32_t & index,
+                                      const int32_t & instance,
+                                      const Real & T,
+                                      const cellInfo & cell_info) const
 {
   int err = openmc_cell_set_temperature(index, T, &instance, false);
   catchOpenMCError(err, "set cell " + printCell(cell_info) + " to temperature " + Moose::stringify(T) + " (K)");
