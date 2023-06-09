@@ -93,22 +93,3 @@ settings.source = source
 model.settings = settings
 
 model.export_to_xml()
-
-p1 = openmc.Plot()
-p1.filename = 'plot1'
-p1.basis = 'xz'
-p1.origin = (0.0, 0.0, h / 2.0)
-p1.width = (1.1*h, 1.1*h)
-p1.pixels = (400, 400)
-p1.color_by = 'cell'
-
-p2 = openmc.Plot()
-p2.filename = 'plot2'
-p2.basis = 'xy'
-p2.origin = (0.0, 0.0, h / 2.0)
-p2.width = (1.1*l, 1.1*l)
-p2.pixels = (400, 400)
-p2.color_by = 'cell'
-
-plots = openmc.Plots([p2, p1])
-plots.export_to_xml()
