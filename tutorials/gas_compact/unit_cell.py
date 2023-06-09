@@ -365,7 +365,7 @@ def main():
 
     args = ap.parse_args()
 
-    model = unit_cell(args.n_axial, args.n_inactive, args.n_active, args.entropy)
+    model = unit_cell(args.n_axial, args.n_inactive, args.n_active)
     model.export_to_xml()
 
 if __name__ == "__main__":
