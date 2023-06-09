@@ -54,6 +54,7 @@
 registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 
 bool OpenMCCellAverageProblem::_first_transfer = true;
+bool OpenMCCellAverageProblem::_printed_triso_warning = false;
 
 InputParameters
 OpenMCCellAverageProblem::validParams()
@@ -73,12 +74,6 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>("check_tally_sum",
                         "Whether to check consistency between the local tallies "
                         "with a global tally");
-  params.addParam<bool>(
-      "check_zero_tallies",
-      true,
-      "Whether to throw an error if any tallies from OpenMC evaluate to zero; "
-      "this can be helpful in reducing the number of tallies if you inadvertently add tallies "
-      "to a non-fissile region, or for catching geomtery setup errors");
   params.addParam<MooseEnum>(
       "initial_properties",
       getInitialPropertiesEnum(),
@@ -194,17 +189,22 @@ OpenMCCellAverageProblem::validParams()
       "lowest_fluid_cell_level",
       "Lowest coordinate level in OpenMC to use for identifying fluid cells");
 
+  params.addParam<bool>("identical_tally_cell_fills", false, "deprecated");
+  params.addParam<std::vector<SubdomainName>>(
+      "identical_cell_fills",
+      "Blocks on which the OpenMC cells have identical fill universes; this is an optimization to "
+      "speed up initialization for TRISO problems while also reducing memory usage. It is assumed "
+      "that any cell which maps to one of these subdomains has exactly the same universe filling "
+      "it "
+      "as all other cells which map to these subdomains. We HIGHLY recommend that the first time "
+      "you try using this, that you also set 'check_identical_cell_fills = true' to catch any "
+      "possible user errors which would exclude you from using this option safely.");
+  params.addParam<bool>("check_identical_tally_cell_fills", false, "deprecated");
   params.addParam<bool>(
-      "identical_tally_cell_fills",
-      false,
-      "Whether the tallied cells have identical "
-      "fill universes; this is an optimization to speed up initialization for TRISO problems "
-      "where each TRISO pebble/compact/plate/etc. has exactly the same universe filling it.");
-  params.addParam<bool>(
-      "check_identical_tally_cell_fills",
+      "check_identical_cell_fills",
       false,
       "Whether to check that your model does indeed have identical tally cell fills, allowing "
-      "you to set 'identical_tally_cell_fills = true' to speed up initialization");
+      "you to set 'identical_cell_fills' to speed up initialization");
 
   MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
   params.addParam<MultiMooseEnum>(
@@ -256,19 +256,20 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
     _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
-    _check_zero_tallies(getParam<bool>("check_zero_tallies")),
     _export_properties(getParam<bool>("export_properties")),
-    _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE ? false :
-                                      getParam<bool>("normalize_by_global_tally")),
+    _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
+                             ? false
+                             : getParam<bool>("normalize_by_global_tally")),
     _need_to_reinit_coupling(!getParam<bool>("fixed_mesh")),
-    _check_tally_sum(isParamValid("check_tally_sum") ? getParam<bool>("check_tally_sum") :
-                                                       (_run_mode == openmc::RunMode::FIXED_SOURCE ?
-                                                        true : _normalize_by_global)),
+    _check_tally_sum(
+        isParamValid("check_tally_sum")
+            ? getParam<bool>("check_tally_sum")
+            : (_run_mode == openmc::RunMode::FIXED_SOURCE ? true : _normalize_by_global)),
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
     _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol")),
     _relaxation_factor(getParam<Real>("relaxation_factor")),
-    _identical_tally_cell_fills(getParam<bool>("identical_tally_cell_fills")),
-    _check_identical_tally_cell_fills(getParam<bool>("check_identical_tally_cell_fills")),
+    _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
+    _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
@@ -332,7 +333,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (isParamValid("tally_score"))
   {
-    auto scores = getParam<MultiMooseEnum>("tally_score");
+    const auto & scores = getParam<MultiMooseEnum>("tally_score");
     for (const auto & score : scores)
       _tally_score.push_back(tallyScore(score));
   }
@@ -373,7 +374,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
     checkRequiredParam(params, "source_rate_normalization", "using a non-heating tally (" +
       non_heating_scores + ") in eigenvalue mode");
-    auto norm = getParam<MooseEnum>("source_rate_normalization");
+    const auto & norm = getParam<MooseEnum>("source_rate_normalization");
 
     // If the score is already in tally_score, no need to do anything special.
     // Otherwise, we need to add that score.
@@ -476,11 +477,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     // We know there will be a single DAGMC universe, because we already impose
     // above that there cannot be CSG cells (and the only way to get >1 DAGMC
     // universe is to fill it inside a CSG cell).
-    for (const auto& universe: openmc::model::universes)
+    for (const auto & universe : openmc::model::universes)
       if (universe->geom_type() == openmc::GeometryType::DAG)
-        _dagmc_universe_index = openmc::model::universe_map[universe->id_];
+        _dagmc_universe_index = openmc::model::universe_map.at(universe->id_);
 
-    const openmc::Universe * u = openmc::model::universes[_dagmc_universe_index].get();
+    const openmc::Universe * u = openmc::model::universes.at(_dagmc_universe_index).get();
     const openmc::DAGUniverse * dag = dynamic_cast<const openmc::DAGUniverse *>(u);
     if (dag->uses_uwuw()) // TODO: test
       mooseError("The 'skinner' does not currently support the UWUW workflow.");
@@ -502,23 +503,42 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
-  if (!_identical_tally_cell_fills)
-    checkUnusedParam(
-        params, "check_identical_tally_cell_fills", "'identical_tally_cell_fills' is false");
-
   if (!isParamValid("fluid_blocks") && !isParamValid("solid_blocks"))
     mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
                "establish the mapping from MOOSE to OpenMC.");
 
-  readFluidBlocks();
-  readSolidBlocks();
+  readBlockParameters("fluid_blocks", _fluid_blocks, _fluid_block_names);
+  readBlockParameters("solid_blocks", _solid_blocks, _solid_block_names);
+
+  if (isParamSetByUser("check_identical_tally_cell_fills"))
+    mooseError(
+        "'check_identical_tally_cell_fills' has been renamed to 'check_identical_cell_fills'");
+
+  if (isParamSetByUser("identical_tally_cell_fills"))
+    mooseError(
+        "'identical_tally_cell_fills' has been replaced by 'identical_cell_fills', "
+        "where you now specify the block names for which cell fills are identical universes");
+
+  std::vector<SubdomainName> dummy;
+  readBlockParameters("identical_cell_fills", _identical_cell_fill_blocks, dummy /* not needed */);
+
+  for (const auto & i : _identical_cell_fill_blocks)
+    if (_solid_blocks.find(i) == _solid_blocks.end())
+      mooseError(
+          "Each entry in 'identical_cell_fills' must be contained in 'solid_blocks'; the\n"
+          "identical fill universe optimization is not yet implemented for density feedback.");
+
+  if (!_has_identical_cell_fills)
+    checkUnusedParam(
+        params, "check_identical_cell_fills", "'identical_cell_fills' is not specified");
 
   if (!isParamValid("temperature_blocks"))
     checkUnusedParam(params, "temperature_variables", "not setting 'temperature_blocks'");
 
   if (isParamValid("temperature_blocks"))
   {
-    auto temperature_blocks = getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
+    const auto & temperature_blocks =
+        getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
     checkEmptyVector(temperature_blocks, "'temperature_blocks'");
     for (const auto & t : temperature_blocks)
       checkEmptyVector(t, "Entries in 'temperature_blocks'");
@@ -611,7 +631,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
                                "using cell tallies");
 
-      readTallyBlocks();
+      readBlockParameters("tally_blocks", _tally_blocks, _tally_block_names);
 
       // If not specified, add tallies to all MOOSE blocks
       if (!isParamValid("tally_blocks"))
@@ -674,8 +694,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // get the coordinate level to find cells on for each phase, and warn if invalid or not used
   _using_lowest_solid_level = isParamValid("lowest_solid_cell_level");
   _using_lowest_fluid_level = isParamValid("lowest_fluid_cell_level");
-  getCellLevel("fluid", _fluid_cell_level);
-  getCellLevel("solid", _solid_cell_level);
+  _fluid_cell_level = getCellLevel("fluid");
+  _solid_cell_level = getCellLevel("solid");
 
   if (isParamValid("output"))
   {
@@ -708,8 +728,8 @@ OpenMCCellAverageProblem::initialSetup()
 
   if (isParamValid("volume_calculation"))
   {
-    auto name = getParam<UserObjectName>("volume_calculation");
-    auto base = &getUserObject<UserObject>(name);
+    const auto & name = getParam<UserObjectName>("volume_calculation");
+    auto * base = &getUserObject<UserObject>(name);
 
     _volume_calc = dynamic_cast<OpenMCVolumeCalculation *>(base);
 
@@ -723,7 +743,7 @@ OpenMCCellAverageProblem::initialSetup()
 
   if (isParamValid("symmetry_mapper"))
   {
-    auto name = getParam<UserObjectName>("symmetry_mapper");
+    const auto & name = getParam<UserObjectName>("symmetry_mapper");
     auto base = &getUserObject<UserObject>(name);
 
     _symmetry = dynamic_cast<SymmetryPointGenerator *>(base);
@@ -747,7 +767,7 @@ OpenMCCellAverageProblem::initialSetup()
         "the [Mesh] must exactly match the underlying OpenMC model, so there is\n"
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
 
-    auto name = getParam<UserObjectName>("skinner");
+    const auto & name = getParam<UserObjectName>("skinner");
     auto base = &getUserObject<UserObject>(name);
 
     _skinner = dynamic_cast<MoabSkinner *>(base);
@@ -833,10 +853,10 @@ OpenMCCellAverageProblem::setupProblem()
   // save the number of contained cells for printing in every transfer if verbose
   for (const auto & c : _cell_to_elem)
   {
-    auto cell_info = c.first;
+    const auto & cell_info = c.first;
     int32_t n_contained = 0;
 
-    for (const auto & cc : _cell_to_contained_material_cells[cell_info])
+    for (const auto & cc : containedMaterialCells(cell_info))
       n_contained += cc.second.size();
 
     _cell_to_n_contained[cell_info] = n_contained;
@@ -940,7 +960,7 @@ OpenMCCellAverageProblem::fillMeshTranslations()
 }
 
 void
-OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
+OpenMCCellAverageProblem::checkMeshTemplateAndTranslations() const
 {
   // we can do some rudimentary checking on the mesh template by comparing the centroid
   // coordinates compared to centroids in the [Mesh] (because right now, we just doing a simple
@@ -961,7 +981,7 @@ OpenMCCellAverageProblem::checkMeshTemplateAndTranslations()
       if (!elem_ptr)
         continue;
 
-      auto pt = _mesh_template->centroid(e);
+      const auto pt = _mesh_template->centroid(e);
       Point centroid_template = {pt[0], pt[1], pt[2]};
 
       // The translation applied in OpenMC isn't actually registered in the mesh itself;
@@ -1031,7 +1051,7 @@ OpenMCCellAverageProblem::readMeshTranslations(const std::vector<std::vector<dou
 }
 
 void
-OpenMCCellAverageProblem::checkBlockOverlap()
+OpenMCCellAverageProblem::checkBlockOverlap() const
 {
   std::vector<SubdomainID> intersection;
   std::set_intersection(_fluid_blocks.begin(),
@@ -1045,11 +1065,12 @@ OpenMCCellAverageProblem::checkBlockOverlap()
                " cannot be present in both the 'fluid_blocks' and 'solid_blocks'!");
 }
 
-void
-OpenMCCellAverageProblem::getCellLevel(const std::string name, unsigned int & cell_level)
+unsigned int
+OpenMCCellAverageProblem::getCellLevel(const std::string name) const
 {
   std::string param_name = name + "_cell_level";
   std::string lowest_param_name = "lowest_" + name + "_cell_level";
+  unsigned int cell_level;
 
   if (isParamValid(name + "_blocks"))
   {
@@ -1091,6 +1112,8 @@ OpenMCCellAverageProblem::getCellLevel(const std::string name, unsigned int & ce
       mooseWarning("Without setting any '" + name + "_blocks', the '" + lowest_param_name +
                    "' parameter is unused!");
   }
+
+  return cell_level;
 }
 
 void
@@ -1098,12 +1121,10 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
                                               std::unordered_set<SubdomainID> & blocks,
                                               std::vector<SubdomainName> & names)
 {
-  std::string param_name = name + "_blocks";
-
-  if (isParamValid(param_name))
+  if (isParamValid(name))
   {
-    names = getParam<std::vector<SubdomainName>>(param_name);
-    checkEmptyVector(names, "'" + param_name + "'");
+    names = getParam<std::vector<SubdomainName>>(name);
+    checkEmptyVector(names, "'" + name + "'");
 
     auto b_ids = _mesh.getSubdomainIDs(names);
 
@@ -1112,15 +1133,15 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
     const auto & subdomains = _mesh.meshSubdomains();
     for (const auto & b : blocks)
       if (subdomains.find(b) == subdomains.end())
-        mooseError("Block " + Moose::stringify(b) + " specified in '" + name +
-                   "_blocks' not found in mesh!");
+        mooseError("Block " + Moose::stringify(b) + " specified in '" + name + "' " +
+                   "not found in mesh!");
   }
 }
 
 coupling::CouplingFields
 OpenMCCellAverageProblem::elemFeedback(const Elem * elem) const
 {
-  auto id = elem->subdomain_id();
+  const auto & id = elem->subdomain_id();
 
   if (_fluid_blocks.count(id))
     return coupling::density_and_temperature;
@@ -1167,7 +1188,8 @@ OpenMCCellAverageProblem::computeCellMappedVolumes()
 
 template <typename T>
 void
-OpenMCCellAverageProblem::gatherCellSum(std::vector<T> & local, std::map<cellInfo, T> & global)
+OpenMCCellAverageProblem::gatherCellSum(std::vector<T> & local,
+                                        std::map<cellInfo, T> & global) const
 {
   global.clear();
   _communicator.allgather(local);
@@ -1205,7 +1227,7 @@ OpenMCCellAverageProblem::gatherCellVector(std::vector<T> & local, std::vector<u
 }
 
 coupling::CouplingFields
-OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
+OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info) const
 {
   // _cell_to_elem only holds cells that are coupled by feedback to the [Mesh] (for sake of
   // efficiency in cell-based loops for updating temperatures, densities and
@@ -1216,7 +1238,7 @@ OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info)
   if (!_cell_phase.count(cell_info))
     return coupling::none;
   else
-    return _cell_phase[cell_info];
+    return _cell_phase.at(cell_info);
 }
 
 void
@@ -1415,20 +1437,57 @@ OpenMCCellAverageProblem::getCellMappedSubdomains()
   // convert to a set
   _cell_to_elem_subdomain.clear();
   for (const auto & c : cell_to_subdomain_vec)
-  {
-    auto cell_info = c.first;
     for (const auto & s : c.second)
-      _cell_to_elem_subdomain[cell_info].insert(s);
+      _cell_to_elem_subdomain[c.first].insert(s);
+
+  // each cell must map to a consistent setting for identical_cell_fills
+  // (all of the blocks it maps to must either _all_ be in the identical blocks,
+  // or all excluded)
+  if (_has_identical_cell_fills)
+  {
+    for (const auto & c : _cell_to_elem)
+    {
+      auto cell_info = c.first;
+      bool at_least_one_in = false;
+      bool at_least_one_out = false;
+      SubdomainID in;
+      SubdomainID out;
+      auto subdomains = _cell_to_elem_subdomain[cell_info];
+      for (const auto & s : subdomains)
+      {
+        if (_identical_cell_fill_blocks.find(s) == _identical_cell_fill_blocks.end())
+        {
+          at_least_one_out = true;
+          out = s;
+        }
+        else
+        {
+          at_least_one_in = true;
+          in = s;
+        }
+      }
+
+      if (at_least_one_in && at_least_one_out)
+      {
+        std::stringstream msg;
+        msg << "Cell " << printCell(cell_info)
+            << " mapped to inconsistent 'identical_cell_fills' settings.\n"
+            << "Subdomain " << in << " is in 'identical_cell_fills', but " << out << " is not.\n\n"
+            << "All subdomains to which this cell maps must either ALL be in "
+               "'identical_cell_fills' or ALL excluded.";
+        mooseError(msg.str());
+      }
+    }
   }
 }
 
 std::set<SubdomainID>
-OpenMCCellAverageProblem::coupledSubdomains()
+OpenMCCellAverageProblem::coupledSubdomains() const
 {
   std::set<SubdomainID> subdomains;
   for (const auto & c : _cell_to_elem)
   {
-    auto subdomains_spanning_cell = _cell_to_elem_subdomain[c.first];
+    const auto & subdomains_spanning_cell = _cell_to_elem_subdomain.at(c.first);
     for (const auto & s : subdomains_spanning_cell)
       subdomains.insert(s);
   }
@@ -1439,52 +1498,52 @@ OpenMCCellAverageProblem::coupledSubdomains()
 void
 OpenMCCellAverageProblem::subdomainsToMaterials()
 {
+  const auto time_start = std::chrono::high_resolution_clock::now();
+  bool print_long = false;
+
+  TIME_SECTION("subdomainsToMaterials", 3, "Mapping OpenMC Materials to Mesh", true);
+
   for (const auto & c : _cell_to_elem)
   {
-    auto contained_cells = _cell_to_contained_material_cells[c.first];
-    for (const auto & contained : contained_cells)
-    {
-      for (const auto & instance : contained.second)
-      {
-        // we know this is a material cell, so we don't need to check that the fill is material
-        int32_t material_index;
-        cellInfo cell_info = {contained.first, instance};
-        materialFill(cell_info, material_index);
+    printTrisoHelp(time_start);
 
-        for (const auto & s : _cell_to_elem_subdomain[c.first])
-          _subdomain_to_material[s].insert(material_index);
-      }
-    }
-  }
+    const auto mats = cellHasIdenticalFill(c.first)
+                          ? _first_identical_cell_materials
+                          : materialsInCells(containedMaterialCells(c.first));
 
-  VariadicTable<std::string, std::string> vt({"Subdomain", "Material"});
-  auto subdomains = coupledSubdomains();
-  for (const auto & i : subdomains)
-  {
-    std::map<std::string, int> mat_to_num;
-
-    for (const auto & m : _subdomain_to_material[i])
-    {
-      auto name = materialName(m);
-      if (mat_to_num.count(name))
-        mat_to_num[name] += 1;
-      else
-        mat_to_num[name] = 1;
-    }
-
-    std::string mats = "";
-    for (const auto & m : mat_to_num)
-    {
-      std::string extra = m.second > 1 ? " (" + std::to_string(m.second) + ")" : "";
-      mats += " " + m.first + extra + ",";
-    }
-
-    mats.pop_back();
-    vt.addRow(subdomainName(i), mats);
+    for (const auto & s : _cell_to_elem_subdomain.at(c.first))
+      for (const auto & m : mats)
+        _subdomain_to_material[s].insert(m);
   }
 
   if (_verbose)
   {
+    VariadicTable<std::string, std::string> vt({"Subdomain", "Material"});
+    auto subdomains = coupledSubdomains();
+    for (const auto & i : subdomains)
+    {
+      std::map<std::string, int> mat_to_num;
+
+      for (const auto & m : _subdomain_to_material[i])
+      {
+        auto name = materialName(m);
+        if (mat_to_num.count(name))
+          mat_to_num[name] += 1;
+        else
+          mat_to_num[name] = 1;
+      }
+
+      std::string mats = "";
+      for (const auto & m : mat_to_num)
+      {
+        std::string extra = m.second > 1 ? " (" + std::to_string(m.second) + ")" : "";
+        mats += " " + m.first + extra + ",";
+      }
+
+      mats.pop_back();
+      vt.addRow(subdomainName(i), mats);
+    }
+
     _console << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n" << std::endl;
     _console <<   "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
     _console <<   "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we show the ID." << std::endl;
@@ -1750,13 +1809,9 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // Check that each cell maps to a single phase
   checkCellMappedPhase();
 
-  // Check that each cell maps to subdomain IDs that all have the same tally setting,
-  // and then store which cells should have tallies added to them
+  // Check that each cell maps to subdomain IDs that all have the same tally setting
   if (_tally_type == tally::cell)
-  {
     checkCellMappedSubdomains();
-    storeTallyCells();
-  }
 }
 
 void
@@ -1781,105 +1836,94 @@ OpenMCCellAverageProblem::setContainedCells(const cellInfo & cell_info,
 }
 
 void
+OpenMCCellAverageProblem::printTrisoHelp(
+    const std::chrono::time_point<std::chrono::high_resolution_clock> & start) const
+{
+  if (!_printed_triso_warning)
+  {
+    auto stop = std::chrono::high_resolution_clock::now();
+    auto elapsed = std::chrono::duration<double, std::milli>(stop - start).count() / 1e3;
+    if (elapsed > 120.0)
+    {
+      _printed_triso_warning = true;
+      _console << "\nThis is taking a long time. Does your problem have TRISOs/other "
+               << "highly heterogeneous geometry?\nIf you are repeating the same TRISO/etc. "
+                  "universe many times "
+               << "through your OpenMC model, setting\n'identical_cell_fills' will give you a big "
+                  "speedup.\n\n"
+               << "For more information, consult the Cardinal documentation: "
+                  "https://tinyurl.com/54kz9aw8"
+               << std::endl;
+    }
+  }
+}
+
+void
 OpenMCCellAverageProblem::cacheContainedCells()
 {
   TIME_SECTION("cacheContainedCells", 3, "Caching Contained Cells", true);
 
-  // if we're not taking the shortcut assuming each tally cell has identical fills,
-  // just compute and then exit
-  if (!_identical_tally_cell_fills)
-  {
-    for (const auto & c : _cell_to_elem)
-      setContainedCells(c.first, transformPointToOpenMC(_cell_to_point[c.first]), _cell_to_contained_material_cells);
-    return;
-  }
+  bool first_cell = true;
+  bool second_cell = false;
+  containedCells first_cell_cc;
+  containedCells second_cell_cc;
+  bool used_cache_shortcut = false;
 
-  bool first_tally_cell = true;
-  bool second_tally_cell = false;
-  containedCells first_tally_cell_cc;
-  containedCells second_tally_cell_cc;
-  containedCells instance_offsets;
-
-  int n = 0;
+  int n = -1;
+  const auto time_start = std::chrono::high_resolution_clock::now();
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
     Point hint = transformPointToOpenMC(_cell_to_point[cell_info]);
 
-    // if the cell doesn't have a tally, default to normal behavior
-    if (!_cell_has_tally[cell_info])
+    printTrisoHelp(time_start);
+
+    // default to the normal behavior
+    if (!cellHasIdenticalFill(cell_info))
       setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
     else
     {
-      const auto & cell = openmc::model::cells[cell_info.first];
-      if (cell->type_ == openmc::Fill::MATERIAL)
+      used_cache_shortcut = true;
+      _n_offset[cell_info] = ++n;
+
+      if (first_cell)
       {
-        // behavior is the same for material-filled cells
         setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
+        first_cell_cc = _cell_to_contained_material_cells[cell_info];
+        _first_identical_cell = cell_info;
+        _first_identical_cell_materials = materialsInCells(first_cell_cc);
+        first_cell = false;
+        second_cell = true;
       }
-      else
+      else if (second_cell)
       {
-        if (first_tally_cell)
+        setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
+        second_cell_cc = _cell_to_contained_material_cells[cell_info];
+        second_cell = false;
+
+        // we will check for equivalence in the end mapping later; but here we still need
+        // some checks to make sure the structure is compatible
+        checkContainedCellsStructure(cell_info, first_cell_cc, second_cell_cc);
+
+        // get the offset for each instance for each contained cell
+        for (const auto & f : first_cell_cc)
         {
-          setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
-          first_tally_cell_cc = _cell_to_contained_material_cells[cell_info];
-          first_tally_cell = false;
-          second_tally_cell = true;
-        }
-        else if (second_tally_cell)
-        {
-          n++;
-          setContainedCells(cell_info, hint, _cell_to_contained_material_cells);
-          second_tally_cell_cc = _cell_to_contained_material_cells[cell_info];
-          second_tally_cell = false;
+          const auto id = f.first;
+          const auto & instances = f.second;
+          const auto & new_instances = second_cell_cc[id];
 
-          // we will check for equivalence in the end mapping later; but here we still need
-          // some checks to make sure the structure is compatible
-          checkContainedCellsStructure(cell_info, first_tally_cell_cc, second_tally_cell_cc);
+          std::vector<int32_t> offsets;
+          for (unsigned int i = 0; i < instances.size(); ++i)
+            offsets.push_back(new_instances[i] - instances[i]);
 
-          // get the offset for each instance for each contained cell
-          for (const auto & f : first_tally_cell_cc)
-          {
-            const auto id = f.first;
-            const auto & instances = f.second;
-            const auto & new_instances = second_tally_cell_cc[id];
-
-            std::vector<int32_t> offsets;
-            for (unsigned int i = 0; i < instances.size(); ++i)
-              offsets.push_back(new_instances[i] - instances[i]);
-
-            instance_offsets[id] = offsets;
-          }
-        }
-        else
-        {
-          n++;
-
-          int int_offset = n;
-
-          containedCells contained_cells;
-          for (const auto & cc : first_tally_cell_cc)
-          {
-            const auto & index = cc.first;
-            const auto & instances = cc.second;
-            auto n_instances = instances.size();
-            const auto & shifts = instance_offsets[index];
-
-            std::vector<int32_t> shifted_instances;
-            for (unsigned int inst = 0; inst < n_instances; ++inst)
-              shifted_instances.push_back(instances[inst] + int_offset * shifts[inst]);
-
-            contained_cells[index] = shifted_instances;
-          }
-
-          _cell_to_contained_material_cells[cell_info] = contained_cells;
+          _instance_offsets[id] = offsets;
         }
       }
     }
   }
 
   // only need to check if we were attempting the shortcut
-  if (_check_identical_tally_cell_fills)
+  if (_check_identical_cell_fills)
   {
     TIME_SECTION("verifyCacheContainedCells", 4, "Verifying Cached Contained Cells", true);
 
@@ -1887,37 +1931,47 @@ OpenMCCellAverageProblem::cacheContainedCells()
     for (const auto & c : _cell_to_elem)
       setContainedCells(c.first, transformPointToOpenMC(_cell_to_point[c.first]), checking_cell_fills);
 
+    std::map<cellInfo, containedCells> current_cell_fills;
+    for (const auto & c : _cell_to_elem)
+      current_cell_fills[c.first] = containedMaterialCells(c.first);
+
     std::map<cellInfo, containedCells> ordered_reference(checking_cell_fills.begin(),
                                                          checking_cell_fills.end());
-    std::map<cellInfo, containedCells> ordered(_cell_to_contained_material_cells.begin(),
-                                               _cell_to_contained_material_cells.end());
+    std::map<cellInfo, containedCells> ordered(current_cell_fills.begin(),
+                                               current_cell_fills.end());
     compareContainedCells(ordered_reference, ordered);
   }
+
+  if (_has_identical_cell_fills && !used_cache_shortcut)
+    mooseWarning("You specified 'identical_cell_fills', but all cells which mapped to these "
+                 "subdomains were filled \n"
+                 "by a material (as opposed to a universe/lattice), so the 'identical_cell_fills' "
+                 "parameter is unused.");
 }
 
 void
 OpenMCCellAverageProblem::checkContainedCellsStructure(const cellInfo & cell_info,
                                                        containedCells & reference,
-                                                       containedCells & compare)
+                                                       containedCells & compare) const
 {
   // make sure the number of keys is the same
   if (reference.size() != compare.size())
     mooseError("The cell caching failed to identify identical number of cell IDs filling cell " +
-               printCell(cell_info) + "\nYou must set 'identical_tally_cell_fills' to false");
+               printCell(cell_info) + "\nYou must unset 'identical_cell_fills'");
 
   for (const auto & entry : reference)
   {
-    auto key = entry.first;
+    const auto & key = entry.first;
 
     // check that each key exists
     if (!compare.count(key))
-      mooseError("Not all tally cells contain cell ID " + Moose::stringify(cellID(key)) +
+      mooseError("Not all cells contain cell ID " + Moose::stringify(cellID(key)) +
                  ". The offender is: cell " + printCell(cell_info) +
-                 ".\nYou must set 'identical_tally_cell_fills' to false!");
+                 ".\nYou must unset 'identical_cell_fills'!");
 
     // for each int32_t key, compare the std::vector<int32_t> map
-    auto reference_instances = entry.second;
-    auto compare_instances = compare[key];
+    const auto & reference_instances = entry.second;
+    const auto & compare_instances = compare[key];
 
     // they should have the same number of instances
     if (reference_instances.size() != compare_instances.size())
@@ -1925,14 +1979,13 @@ OpenMCCellAverageProblem::checkContainedCellsStructure(const cellInfo & cell_inf
                  Moose::stringify(reference_instances.size()) + "cell instances in cell ID " +
                  Moose::stringify(cellID(key)) + ", but instead found " +
                  Moose::stringify(compare_instances.size()) +
-                 "\nYou must set 'identical_tally_cell_fills' to false");
-    ;
+                 "\nYou must unset 'identical_cell_fills'");
   }
 }
 
 void
 OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCells> & reference,
-                                                std::map<cellInfo, containedCells> & compare)
+                                                std::map<cellInfo, containedCells> & compare) const
 {
   // check that the number of keys matches
   if (reference.size() != compare.size())
@@ -1970,10 +2023,11 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
       if (reference_instances != compare_instances)
         mooseError("The cell caching failed to get correct instances for material cell ID " +
                    Moose::stringify(cellID(nested_entry.first)) + " within cell " +
-                   printCell(cell_info) + ".\nYou must set 'identical_tally_cell_fills' to false!" +
+                   printCell(cell_info) + ".\nYou must unset 'identical_cell_fills'!" +
                    "\n\nThis error might appear if there are OpenMC cells filled with the same "
                    "universe/lattice "
-                   "\nfilling the tally cells, but that don't have tallies added to them.");
+                   "\nfilling the identical-fill cells, but that weren't specified in "
+                   "'identical_cell_fills'.");
     }
   }
 }
@@ -2163,44 +2217,43 @@ OpenMCCellAverageProblem::getPointInCell()
   }
 }
 
-void
-OpenMCCellAverageProblem::storeTallyCells()
+std::vector<OpenMCCellAverageProblem::cellInfo>
+OpenMCCellAverageProblem::getTallyCells() const
 {
-  std::stringstream warning;
-
   bool is_first_tally_cell = true;
   cellInfo first_tally_cell;
   Real mapped_tally_volume;
 
-  _tally_cells.clear();
+  std::vector<cellInfo> tally_cells;
 
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
 
-    if (_cell_has_tally[cell_info])
+    if (_cell_has_tally.at(cell_info))
     {
-      _tally_cells.push_back(cell_info);
+      tally_cells.push_back(cell_info);
 
       if (is_first_tally_cell)
       {
         is_first_tally_cell = false;
         first_tally_cell = cell_info;
-        mapped_tally_volume = _cell_to_elem_volume[cell_info];
+        mapped_tally_volume = _cell_to_elem_volume.at(cell_info);
       }
 
       if (_check_equal_mapped_tally_volumes)
       {
-        Real diff = std::abs(mapped_tally_volume - _cell_to_elem_volume[cell_info]);
+        Real diff = std::abs(mapped_tally_volume - _cell_to_elem_volume.at(cell_info));
         bool absolute_diff = diff > _equal_tally_volume_abs_tol;
         bool relative_diff = diff / mapped_tally_volume > 1e-3;
         if (absolute_diff && relative_diff)
         {
           std::stringstream msg;
           msg << "Detected un-equal mapped tally volumes!\n cell " << printCell(first_tally_cell)
-              << " maps to a volume of " << Moose::stringify(_cell_to_elem_volume[first_tally_cell])
-              << " (cm3)\n cell " << printCell(cell_info) << " maps to a volume of "
-              << Moose::stringify(_cell_to_elem_volume[cell_info])
+              << " maps to a volume of "
+              << Moose::stringify(_cell_to_elem_volume.at(first_tally_cell)) << " (cm3)\n cell "
+              << printCell(cell_info) << " maps to a volume of "
+              << Moose::stringify(_cell_to_elem_volume.at(cell_info))
               << " (cm3).\n\n"
                  "If the tallied cells in your OpenMC model are of identical volumes, this means "
                  "that you can get\n"
@@ -2233,6 +2286,8 @@ OpenMCCellAverageProblem::storeTallyCells()
       }
     }
   }
+
+  return tally_cells;
 }
 
 void
@@ -2355,8 +2410,10 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     case tally::cell:
     {
+      auto tally_cells = getTallyCells();
       _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
-                      Moose::stringify(_tally_cells.size()) + " cells..." << std::endl;
+                      Moose::stringify(tally_cells.size()) + " cells..."
+               << std::endl;
 
       for (unsigned int i = 0; i < _tally_score.size(); ++i)
       {
@@ -2366,7 +2423,7 @@ OpenMCCellAverageProblem::initializeTallies()
         _previous_tally[i].resize(1);
       }
 
-      std::vector<openmc::Filter *> filter = {cellInstanceFilter(_tally_cells)};
+      std::vector<openmc::Filter *> filter = {cellInstanceFilter(tally_cells)};
       addLocalTally(_tally_score, filter);
 
       break;
@@ -2402,7 +2459,7 @@ OpenMCCellAverageProblem::initializeTallies()
       }
 
       _mesh_filters.clear();
-      auto filters = meshFilter();
+      const auto & filters = meshFilter();
       for (const auto & m : filters)
         _mesh_filters.push_back(dynamic_cast<openmc::MeshFilter *>(m));
 
@@ -2516,10 +2573,10 @@ OpenMCCellAverageProblem::externalSolve()
 
 std::map<OpenMCCellAverageProblem::cellInfo, Real>
 OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
-  const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
-  const coupling::CouplingFields * phase = nullptr)
+    const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
+    const coupling::CouplingFields * phase = nullptr) const
 {
-  const auto sys_number = _aux->number();
+  const auto & sys_number = _aux->number();
 
   // collect the volume-weighted product across local ranks
   std::vector<Real> volume_product;
@@ -2558,7 +2615,7 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
 }
 
 void
-OpenMCCellAverageProblem::sendTemperatureToOpenMC()
+OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 {
   _console << "Sending temperature to OpenMC cells... " << printNewline();
 
@@ -2571,17 +2628,19 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
-    Real average_temp = cell_vol_temp[cell_info] / _cell_to_elem_volume[cell_info];
+    Real average_temp = cell_vol_temp.at(cell_info) / _cell_to_elem_volume.at(cell_info);
 
     minimum = std::min(minimum, average_temp);
     maximum = std::max(maximum, average_temp);
 
     if (_verbose)
-      _console << "Setting cell " << printCell(cell_info) << " [" << _cell_to_n_contained[cell_info]
+      _console << "Setting cell " << printCell(cell_info) << " ["
+               << _cell_to_n_contained.at(cell_info)
                << " contained cells] to temperature (K): " << std::setw(4) << average_temp
                << std::endl;
 
-    auto contained_cells = _cell_to_contained_material_cells[cell_info];
+    containedCells contained_cells = containedMaterialCells(cell_info);
+
     for (const auto & contained : contained_cells)
     {
       for (const auto & instance : contained.second)
@@ -2595,16 +2654,16 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC()
 }
 
 OpenMCCellAverageProblem::cellInfo
-OpenMCCellAverageProblem::containedMaterialCell(const cellInfo & cell_info)
+OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info) const
 {
-  auto contained_cells = _cell_to_contained_material_cells[cell_info];
-  auto instances = contained_cells.begin()->second;
+  const auto & contained_cells = containedMaterialCells(cell_info);
+  const auto & instances = contained_cells.begin()->second;
   cellInfo first_cell = {contained_cells.begin()->first, instances[0]};
   return first_cell;
 }
 
 void
-OpenMCCellAverageProblem::sendDensityToOpenMC()
+OpenMCCellAverageProblem::sendDensityToOpenMC() const
 {
   _console << "Sending density to OpenMC cells... " << printNewline();
 
@@ -2629,17 +2688,17 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     if (cellCouplingFields(cell_info) != phase)
       continue;
 
-    auto mat_idx = _cell_to_material[cell_info];
+    auto mat_idx = _cell_to_material.at(cell_info);
 
     if (numerator.count(mat_idx))
     {
-      numerator[mat_idx] += cell_vol_density[cell_info];
-      denominator[mat_idx] += _cell_to_elem_volume[cell_info];
+      numerator[mat_idx] += cell_vol_density.at(cell_info);
+      denominator[mat_idx] += _cell_to_elem_volume.at(cell_info);
     }
     else
     {
-      numerator[mat_idx] = cell_vol_density[cell_info];
-      denominator[mat_idx] = _cell_to_elem_volume[cell_info];
+      numerator[mat_idx] = cell_vol_density.at(cell_info);
+      denominator[mat_idx] = _cell_to_elem_volume.at(cell_info);
     }
   }
 
@@ -2651,7 +2710,7 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
     if (cellCouplingFields(cell_info) != phase)
       continue;
 
-    auto mat_idx = _cell_to_material[cell_info];
+    auto mat_idx = _cell_to_material.at(cell_info);
     Real average_density = numerator[mat_idx] / denominator[mat_idx];
 
     minimum = std::min(minimum, average_density);
@@ -2667,20 +2726,6 @@ OpenMCCellAverageProblem::sendDensityToOpenMC()
   if (!_verbose)
     _console << "done. Sent cell-averaged min/max (kg/m3): " << minimum << ", " << maximum;
   _console << std::endl;
-}
-
-void
-OpenMCCellAverageProblem::checkZeroTally(const Real & power_fraction,
-                                         const std::string & descriptor,
-                                         const unsigned int & score) const
-{
-  if (_check_zero_tallies && power_fraction < 1e-12)
-    mooseError(
-        _tally_score[score] + " computed for " + descriptor + " is zero!\n\n" +
-        "This may occur if there is no fissile material in this region, if you have very few "
-        "particles, "
-        "or if you have a geometry "
-        "setup error. You can turn off this check by setting 'check_zero_tallies' to false.");
 }
 
 Real
@@ -2743,7 +2788,7 @@ OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t, const unsigned i
   auto & current_raw = _current_raw_tally[score][t];
   auto & current_raw_std_dev = _current_raw_tally_std_dev[score][t];
 
-  auto tally = _local_tally.at(t);
+  auto & tally = _local_tally.at(t);
   auto mean_tally = tallySum(tally, score);
   current_raw = normalizeLocalTally(mean_tally, score);
 
@@ -2853,8 +2898,6 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
     total += local;
 
     vt.addRow(printCell(cell_info), local);
-
-    checkZeroTally(local, "cell " + printCell(cell_info), score);
     fillElementalAuxVariable(var_num, c.second, volumetric_power);
   }
 
@@ -2900,9 +2943,6 @@ OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
           power_fraction * tallyMultiplier(score) / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
       total += power_fraction;
       template_power_fraction += power_fraction;
-
-      checkZeroTally(power_fraction,
-                     "mesh " + Moose::stringify(i) + ", element " + Moose::stringify(e), score);
 
       std::vector<unsigned int> elem_ids = {offset + e};
       fillElementalAuxVariable(var_num, elem_ids, volumetric_power);
@@ -3181,15 +3221,15 @@ OpenMCCellAverageProblem::setMinimumVolumeQRules(Order & volume_order, const std
 }
 
 double
-OpenMCCellAverageProblem::cellMappedVolume(const cellInfo & cell_info)
+OpenMCCellAverageProblem::cellMappedVolume(const cellInfo & cell_info) const
 {
-  return _cell_to_elem_volume[cell_info];
+  return _cell_to_elem_volume.at(cell_info);
 }
 
 double
-OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info)
+OpenMCCellAverageProblem::cellTemperature(const cellInfo & cell_info) const
 {
-  auto material_cell = containedMaterialCell(cell_info);
+  auto material_cell = firstContainedMaterialCell(cell_info);
 
   double T;
   int err = openmc_cell_get_temperature(material_cell.first, &material_cell.second, &T);
@@ -3286,5 +3326,94 @@ OpenMCCellAverageProblem::updateMaterials()
     }
   }
 #endif
+}
+
+bool
+OpenMCCellAverageProblem::cellMapsToSubdomain(const cellInfo & cell_info,
+                                              const std::unordered_set<SubdomainID> & id) const
+{
+  auto s = _cell_to_elem_subdomain.at(cell_info);
+  for (const auto & i : id)
+    if (s.find(i) != s.end())
+      return true;
+
+  return false;
+}
+
+bool
+OpenMCCellAverageProblem::cellHasIdenticalFill(const cellInfo & cell_info) const
+{
+  // material cells are discounted as identical fill
+  const auto & cell = openmc::model::cells[cell_info.first];
+  if (!_has_identical_cell_fills || cell->type_ == openmc::Fill::MATERIAL)
+    return false;
+
+  return cellMapsToSubdomain(cell_info, _identical_cell_fill_blocks);
+}
+
+OpenMCCellAverageProblem::containedCells
+OpenMCCellAverageProblem::shiftCellInstances(const cellInfo & cell_info) const
+{
+  if (!_has_identical_cell_fills)
+    mooseError("Internal error: should not call shiftCellInstances!");
+
+  auto offset = _n_offset.at(cell_info);
+
+  containedCells contained_cells;
+  const auto & first_cell_cc = _cell_to_contained_material_cells.at(_first_identical_cell);
+  for (const auto & cc : first_cell_cc)
+  {
+    const auto & index = cc.first;
+    const auto & instances = cc.second;
+    auto n_instances = instances.size();
+    const auto & shifts = _instance_offsets.at(index);
+
+    std::vector<int32_t> shifted_instances;
+    for (unsigned int inst = 0; inst < n_instances; ++inst)
+      shifted_instances.push_back(instances[inst] + offset * shifts[inst]);
+
+    contained_cells[index] = shifted_instances;
+  }
+
+  return contained_cells;
+}
+
+OpenMCCellAverageProblem::containedCells
+OpenMCCellAverageProblem::containedMaterialCells(const cellInfo & cell_info) const
+{
+  if (!cellHasIdenticalFill(cell_info))
+    return _cell_to_contained_material_cells.at(cell_info);
+  else
+    return shiftCellInstances(cell_info);
+}
+
+std::vector<int32_t>
+OpenMCCellAverageProblem::materialsInCells(const containedCells & contained_cells) const
+{
+  std::vector<int32_t> mats;
+  for (const auto & contained : contained_cells)
+  {
+    for (const auto & instance : contained.second)
+    {
+      // we know this is a material cell, so we don't need to check that the fill is material
+      int32_t material_index;
+      cellInfo cell_info = {contained.first, instance};
+      materialFill(cell_info, material_index);
+      mats.push_back(material_index);
+    }
+  }
+
+  return mats;
+}
+
+Point
+OpenMCCellAverageProblem::transformPointToOpenMC(const Point & pt) const
+{
+  Point pnt_out = transformPoint(pt);
+
+  // scale point to OpenMC domain
+  pnt_out *= _scaling;
+
+  return pnt_out;
 }
 #endif

@@ -21,9 +21,18 @@ ipyc_fraction = ${fparse (iPyC_radius^3 - buffer_radius^3) / oPyC_radius^3}
 sic_fraction = ${fparse (SiC_radius^3 - iPyC_radius^3) / oPyC_radius^3}
 opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
 
+fuel_blocks = 'compacts compacts_trimmer_tri'
+
 [Mesh]
-  type = FileMesh
-  file = solid_rotated.e
+  [mesh]
+   type = FileMeshGenerator
+   file = solid_mesh_in.e
+  []
+  [delete_coolant]
+    type = BlockDeletionGenerator
+    input = mesh
+    block = 'coolant'
+  []
 []
 
 [Variables]
@@ -41,7 +50,7 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
     type = CoupledForce
     variable = T
     v = power
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
 []
 
@@ -82,7 +91,7 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
     type = HeatConductionMaterial
     thermal_conductivity_temperature_function = k_TRISO
     temp = T
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
 []
 
@@ -97,7 +106,7 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
     type = ElementExtremeValue
     variable = T
     value_type = max
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
   [max_block_T]
     type = ElementExtremeValue
@@ -108,7 +117,7 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
   [power]
     type = ElementIntegralVariablePostprocessor
     variable = power
-    block = 'compacts'
+    block = ${fuel_blocks}
     execute_on = 'transfer'
   []
 []
@@ -151,7 +160,7 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
     variable = T
     direction = z
     num_layers = ${num_layers_for_plots}
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
   [average_block_axial]
     type = LayeredAverage

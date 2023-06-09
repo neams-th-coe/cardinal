@@ -371,10 +371,12 @@ OpenMCProblemBase::isLocalElem(const Elem * elem) const
 }
 
 void
-OpenMCProblemBase::setCellTemperature(const int32_t & id, const int32_t & instance, const Real & T,
-  const cellInfo & cell_info) const
+OpenMCProblemBase::setCellTemperature(const int32_t & index,
+                                      const int32_t & instance,
+                                      const Real & T,
+                                      const cellInfo & cell_info) const
 {
-  int err = openmc_cell_set_temperature(id, T, &instance, false);
+  int err = openmc_cell_set_temperature(index, T, &instance, false);
   catchOpenMCError(err, "set cell " + printCell(cell_info) + " to temperature " + Moose::stringify(T) + " (K)");
 }
 
@@ -457,7 +459,7 @@ OpenMCProblemBase::printCell(const cellInfo & cell_info, const bool brief) const
   msg << std::setw(_n_cell_digits) << Moose::stringify(id) << ", instance "
       << std::setw(_n_cell_digits) << Moose::stringify(cell_info.second) << " (of "
       << std::setw(_n_cell_digits)
-      << Moose::stringify(openmc::model::cells[cell_info.first]->n_instances_) << ")";
+      << Moose::stringify(openmc::model::cells.at(cell_info.first)->n_instances_) << ")";
 
   return msg.str();
 }

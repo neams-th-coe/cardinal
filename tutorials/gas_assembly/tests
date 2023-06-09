@@ -1,5 +1,5 @@
 [Tests]
-  [check_solid_mesh]
+  [mesh]
     type = CSVDiff
     input = common_input.i
     cli_args = "solid_mesh.i Outputs/file_base=coarse_mesh n_layers=1"
@@ -14,23 +14,11 @@
     requirement = "THM shall be able to solve for fluid flow and heat transfer in a pipe."
   []
   [run_solid]
-    type = RunApp
+    type = CSVDiff
     input = solid.i
-    check_input = true
-    prereq = check_solid_mesh
-    cli_args = 'Executioner/num_steps=1 Mesh/file=coarse_mesh.e Outputs/exodus=false Outputs/csv=false'
+    csvdiff = solid_test_out.csv
+    prereq = mesh
+    cli_args = 'Executioner/num_steps=1 Mesh/file=coarse_mesh.e Outputs/file_base=solid_test_out AuxVariables/power/initial_condition=1e8'
     requirement = "MOOSE shall be able to solve for heat conduction for a TRISO compact."
   []
-  #[run_openmc]
-  #  type = RunCommand
-  #  method = opt
-
-  #  # we need to use a RunCommand type test because MOOSE wont let us put common_input.i before openmc.i
-  #  # with cli_args; because this tutorial takes a long time to run, we also restrict this check to just a
-  #  # single time step, and turn off the coupling to THM and MOOSE heat conduction (we cover those input
-  #  # files in the other tests here).
-  #  command = '../../cardinal-opt -i common_input.i openmc.i Mesh/solid/file=coarse_mesh.e Problem/inactive_batches=5 Problem/batches=10 Outputs/exodus=false Outputs/csv=false MultiApps/active='' Transfers/active='' Executioner/num_steps=1 Problem/initial_properties=xml Problem/check_tally_sum=false'
-  #  prereq = create_solid_mesh
-  #  requirement = "Cardinal shall be able to solve OpenMC neutron transport for a TRISO compact."
-  #[]
 []

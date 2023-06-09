@@ -10,7 +10,6 @@ fluid_Cp = 5189.0                        # fluid isobaric specific heat (J/kg/K)
 n_bundles = 12                           # number of bundles in the full core
 n_coolant_channels_per_block = 108       # number of coolant channels per assembly
 unit_cell_height = 1.6                   # unit cell height - arbitrarily selected
-num_layers_for_plots = 50                # number of layers to average fields over for plotting
 
 [Mesh]
   type = NekRSMesh
@@ -23,6 +22,7 @@ num_layers_for_plots = 50                # number of layers to average fields ov
   type = NekRSProblem
   casename = 'ranstube'
   has_heat_source = false
+  n_usrwrk_slots = 2
 
   nondimensional = true
   U_ref = ${fparse mdot / (n_bundles * n_coolant_channels_per_block) / fluid_density / (pi * channel_diameter * channel_diameter / 4.0)}

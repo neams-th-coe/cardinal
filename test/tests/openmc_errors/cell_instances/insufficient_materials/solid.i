@@ -14,7 +14,6 @@
 
   verbose = true
   check_tally_sum = false
-  check_zero_tallies = false
   initial_properties = xml
 []
 

@@ -2,8 +2,7 @@
 
 In this tutorial, you will learn how to:
 
-- Couple OpenMC via temperature and density to separate MOOSE applications
-  solving for the thermal physics in the solid and fluid, for an [!ac](HTGR) fuel assembly
+- Couple OpenMC to 2 separate MOOSE applications solving for the solid and fluid thermal-fluids
 - Couple OpenMC to mixed-dimension feedback with 3-D heat conduction and 1-D fluid flow
 - Establish coupling between OpenMC and MOOSE for nested universe OpenMC models
 - Apply homogenized temperature feedback to heterogeneous OpenMC cells
@@ -14,28 +13,28 @@ To access this tutorial:
 cd cardinal/tutorials/gas_assembly
 ```
 
-This tutorial also requires you to download a
-mesh file and an OpenMC XML file from Box. Please download the files from the
+This tutorial also requires you to download
+an OpenMC XML file from Box. Please download the files from the
 `gas_assembly` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within the same directory structure
 in `tutorials/gas_assembly`.
 
 !alert! note title=Computing Needs
-No special computing needs are required for this tutorial. If the as-is files
-are too slow, simply decrease the resolution of the solid mesh.
+No special computing needs are required for this tutorial.
+For testing purposes, you may choose to decrease the number of particles to
+solve faster, or decrease the resolution of the solid mesh.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module
 and the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
-, a set of 1-D systems-level thermal-hydraulics kernels in MOOSE
-[!cite](relap7).
+, a set of 1-D systems-level thermal-hydraulics kernels.
 OpenMC will receive temperature feedback from both
-the MOOSE heat conduction module (for the solid regions) and from [!ac](THM)
-(for the fluid regions). Density feedback will be provided by [!ac](THM)
+the MOOSE heat conduction module (for the solid regions) and from THM
+(for the fluid regions). Density feedback will be provided by THM
 for the fluid regions.
 This tutorial models a full-height [!ac](TRISO)-fueled prismatic gas reactor
 fuel assembly, and is
-an extension of [Tutorial 6C](gas_compact.md), which coupled
+an extension of [an earlier tutorial](gas_compact.md) which coupled
 OpenMC and MOOSE heat conduction (i.e. without an application providing fluid
 feedback) for a unit cell version of the same geometry. In this
 tutorial, we add fluid feedback and also describe several nuances associated with
@@ -48,17 +47,15 @@ context beyond the scope of this tutorial.
 
 Due to the tall height of the full
 assembly (about 6 meters), the converged results shown in [!cite](novak_2021c)
-and in the figures in this tutorial require a finer mesh and more particles
+and in the figures in this tutorial used a finer mesh and more particles
 than in the input files
 we set up for this tutorial - the input files in this tutorial still require
 parallel resources to run, but should be faster-running.
-Parameters that have been set to coarser values than what was used for the plots
-in this tutorial and in [!cite](novak_2021c) are noted where applicable.
+Parameters that have been set to coarser values are noted where applicable.
 
 ## Geometry and Computational Model
 
-The geometry consists of a [!ac](TRISO)-fueled gas reactor assembly, loosely
-based on a point design available in the literature [!cite](sterbentz).
+The geometry consists of a [!ac](TRISO)-fueled gas reactor assembly [!cite](sterbentz).
 A top-down view of the geometry is shown in [assembly].
 The assembly is a graphite prismatic hexagonal block with 108 helium coolant channels,
 210 fuel compacts, and 6 poison compacts. Each fuel compact contains [!ac](TRISO)
@@ -104,8 +101,7 @@ To greatly reduce meshing requirements, the [!ac](TRISO) particles
 are homogenized into the compact regions by volume-averaging material properties.
 The solid mesh is shown in [solid_mesh]. The only sideset in the domain
 is the coolant channel surface, which is named `fluid_solid_interface`.
-To simplify the specification of
-material properties, the solid geometry uses a length unit of meters.
+The solid geometry uses a length unit of meters.
 The solid mesh is created using the MOOSE reactor module [!cite](shemon_2021),
 which provides easy-to-use
 mesh generators to programmatically construct reactor core meshes as building blocks of bundle
@@ -119,8 +115,7 @@ and pincell meshes.
 The file used to generate the solid mesh is shown below. The mesh is created
 by first building pincell meshes for a fuel pin, a coolant pin, a poison pin,
 and a graphite "pin" (to represent the central graphite region). The pin
-meshes are then combined together into a bundle pattern and extruded into the $z$
-direction.
+meshes are then combined together into a bundle pattern and extruded.
 
 !listing /tutorials/gas_assembly/solid_mesh.i
   end=Problem
@@ -132,7 +127,6 @@ cardinal-opt -i common_input.i solid_mesh.i --mesh-only
 ```
 
 which will create a mesh named `solid_mesh_in.e`.
-Alternatively, you can download this mesh from Box.
 Note that the above command
 takes advantage of a MOOSE feature for combining input files together by placing
 some common parameters used by the other applications into a file named `common_input.i`.
@@ -234,10 +228,9 @@ from Box; this file is large due to the saved [!ac](TRISO) geometry information.
 
 ### THM Model
 
-!include thm.md
+!include thm_eqns.md
 
-The converged [!ac](THM) mesh for each flow channel contains 150 elements - for our tutorial,
-we will only use 50 elements.
+In this tutorial, we use 50 elements for each channel.
 The mesh is constructed automatically within [!ac](THM).
 To simplify the specification of
 material properties, the fluid geometry uses a length unit of meters.
@@ -251,10 +244,6 @@ fluid temperature, and velocity, which are set to uniform distributions.
 
 ## Multiphysics Coupling
 
-In this section, OpenMC, MOOSE, and [!ac](THM) are coupled for heat source,
-temperature, and density feedback for the fluid and solid regions of a [!ac](TRISO)-fueled
-gas reactor assembly. For this system, fluid density and temperature reactivity
-feedback is quite weak, but is included anyways to be comprehensive.
 A summary of the data transfers between the three applications is shown in
 [data_transfers]. The inset describes the 1-D/3-D data transfers with [!ac](THM).
 
@@ -337,7 +326,8 @@ relative to the OpenMC solve
 
 The fluid phase is solved with [!ac](THM), and is described in the `thm.i` input.
 This input file is built using syntax specific to [!ac](THM) - we will only briefly
-cover this syntax, and instead refer users to the [!ac](THM) manuals for more information.
+cover this syntax, and instead refer users to the [THM documentation](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+ for more information.
 First we define a number of constants at the beginning of the file and apply
 some global settings. We set the initial conditions for pressure, velocity,
 and temperature and indicate the fluid [!ac](EOS) object
@@ -410,11 +400,16 @@ repeat it for the 108 coolant channels.
 Before progressing further, we first need to describe the multiapp structure
 connecting OpenMC, MOOSE heat conduction, and [!ac](THM). We set the main application
 to OpenMC, and will have both MOOSE heat conduction and [!ac](THM) as
-"sibling" sub-applications. At the time of writing, the MOOSE framework
+"sibling" sub-applications.
+
+!alert note
+At the time of writing, the MOOSE framework
 does not support "sibling" multiapp transfers, meaning that the data to be
 communicated between MOOSE heat conduction and [!ac](THM)
 (the heat flux and wall temperature data transfers in [data_transfers]) must go "up a level"
-to their common main application. Therefore, we will see in the OpenMC
+to their common main application. This has since been relaxed.
+
+Therefore, we will see in the OpenMC
 input file information related to data transfers between MOOSE heat
 conduction and [!ac](THM). The auxiliary variables defined for the OpenMC
 model are shown below.
@@ -435,10 +430,6 @@ Next, we add a receiver
 `flux` variable that will hold the heat flux received from MOOSE (and sent
 to [!ac](THM)) and another receiver variable `thm_temp_wall` that will hold
 the wall temperature received from [!ac](THM) (and sent to MOOSE).
-In addition,
-recall that the OpenMC wrapping automatically
-adds auxiliary variables named `temp` and `density` when receiving feedback
-from coupled applications.
 
 Finally, to reduce the number
 of transfers from [!ac](THM), we will receive fluid temperature from
@@ -480,30 +471,34 @@ are also all equal. For further discussion of this setting and a pictorial descr
 of the possible effect of non-equal mapped vlumes, please see the
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) documentation.
 
-We also set `identical_tally_cell_fills = true`. This is an optimization that greatly
+We also set `identical_cell_fills` to the set of subdomains for which OpenMC's
+cells have identical fills. This is an optimization that greatly
 reduces the initialization time for large [!ac](TRISO) problems. During setup of an
 OpenMC wrapping, we need to cache all the cells contained within the [!ac](TRISO) compacts
 so that we know all the contained cells to set the temperatures for. This process can
 be quite time-consuming if the search needs to be repeated for every single [!ac](TRISO)
 compact cell (210 compacts times 50 axial layers = 10,500 contained cell searches).
-The `identical_tally_cell_fills` option is used to indicate whether your problem can
+The `identical_cell_fills` option is used to indicate whether your problem can
 leverage a speedup that applies to models where *every lattice/universe-filled tally cell*
 has *exactly* the same filling lattice/universe. In other words, we set up our problem
 to use the same [!ac](TRISO) universe in each layer of each fuel compact. This means that
 the cells filling each [!ac](TRISO) compact can be deduced by following a pattern based
 on the first two fuel compacts, letting us omit 10,498 of the contained cell searches.
+
+!alert note
 When first using this optimization for a new problem, we recommend setting
-`check_identical_tally_cell_fills = true` so that you can do an exact comparison
+`check_identical_cell_fills = true` so that you can do an exact comparison
 against the "rigorous" approach to be sure that your problem setup has the necessary
 prerequisites to use this feature. After you verify that no errors are thrown during
-setup, set `check_identical_tally_cell_fills` to `false` to use this initialization speedup feature.
+setup, set `check_identical_cell_fills` to `false` (the default)
+to use this initialization speedup feature.
 
 Because the blocks in the OpenMC mesh mirror
 receive temperatures from different applications, we use the
 `temperature_variables` and `temperature_blocks` parameters of
 [OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html)
-to automatically create separate variables to hold the temperatures from
-THM and MOOSE (`thm_temp`, `solid_temp`).
+to automatically create separate variables for OpenMC to read temperature from
+in different parts of the domain.
 The `temperature_blocks` and
 `temperature_variables` parameters allow you to customize exactly the variable names from
 which to read temperature.
@@ -706,7 +701,7 @@ that are sufficiently close to the periphery to be affected by the lateral insul
   id=fluid_temp
   caption=Fluid temperature predicted by [!ac](THM) (tubes and inset) and solid temperature predicted by MOOSE (five slices). Note the use of three separate color scales.
 
-Finally, Fig. [assembly_averages] shows the radially-averaged fission distribution and fluid, compact, and graphite temperatures (left);
+Finally, [assembly_averages] shows the radially-averaged fission distribution and fluid, compact, and graphite temperatures (left);
 and velocity and pressure (right) as a function of axial position. The negative
 temperature feedback results in a top-peaked power distribution. The fuel temperature
 peaks near the mid-plane due to the combined effects of the relatively high power

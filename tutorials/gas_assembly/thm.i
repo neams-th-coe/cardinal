@@ -24,7 +24,7 @@ num_layers_for_THM = 50                  # number of elements in the THM model; 
   []
 []
 
-[Modules/FluidProperties]
+[FluidProperties]
   [helium]
     type = IdealGasFluidProperties
     molar_mass = 4e-3

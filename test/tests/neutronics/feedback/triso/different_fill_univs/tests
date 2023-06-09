@@ -2,9 +2,26 @@
   [different_fill_universes]
     type = RunException
     input = openmc.i
-    expect_err = "Not all tally cells contain cell ID 2."
-    requirement = "The system shall error if trying to utilize identical tally cell fills "
-                  "but the filling cell IDs are not identical among the tally cells"
+    expect_err = "Not all cells contain cell ID 2."
+    requirement = "The system shall error if trying to utilize identical cell fills "
+                  "but the filling cell IDs are not identical among the cells"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [non_solid]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/solid_blocks="1" Problem/fluid_blocks="2" Problem/identical_cell_fills="2"'
+    expect_err = "Each entry in 'identical_cell_fills' must be contained in 'solid_blocks'"
+    requirement = "The system shall error if trying to utilize identical cell fills for a non-solid block"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [inconsistent_map]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/solid_cell_level=0'
+    expect_err = "Cell id 22, instance  0 \(of  1\) mapped to inconsistent 'identical_cell_fills' settings.\n"
+                 "Subdomain 2 is in 'identical_cell_fills', but 1 is not."
+    requirement = "The system shall error if inconsistent settings are applied for the identical cell mapping"
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

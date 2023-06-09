@@ -14,6 +14,8 @@ cd cardinal/tutorials/lwr_solid
 
 !alert! note title=Computing Needs
 No special computing needs are required for this tutorial.
+For testing purposes, you may choose to decrease the number of particles to
+solve faster.
 !alert-end!
 
 At a high level, Cardinal's wrapping of OpenMC consists of two major stages - first, establishing

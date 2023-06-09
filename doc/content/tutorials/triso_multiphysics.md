@@ -19,18 +19,16 @@ folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89) and pl
 these within the same directory structure in `tutorials/gas_compact_multiphysics`.
 
 !alert! note title=Computing Needs
-This tutorial requires [!ac](HPC) resources to run. Please still read this tutorial
-if you do not have resources, because you will apply some concepts from this tutorial
-in [Tutorial 8B](pincell_multiphysics.md), which you can run on a typical personal
-computer.
+This tutorial requires [!ac](HPC) resources to run the NekRS cases.
+You will be able to run the OpenMC-THM-MOOSE files without any special resources.
+For testing purposes, you may choose to decrease the number of particles.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat conduction module, with fluid
 feedback provided by *either* NekRS or THM,
 
-- NekRS: we solve the wall-resolved $k$-\$tau$ [!ac](RANS) equations
-- THM: we solve the 1-D area-averaged Navier-Stokes equations using the
-  [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+- NekRS: wall-resolved $k$-$\tau$ [!ac](RANS) equations
+- [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html): 1-D area-averaged Navier-Stokes equations
 
 Two different multiapp hierarchies will be used in order
 to demonstrate the flexibility of the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
@@ -41,7 +39,10 @@ In this tutorial, OpenMC receives temperature feedback from the MOOSE heat
 conduction module (for the solid regions) and NekRS/THM (for the fluid regions). Density
 feedback is provided by NekRS/THM for the fluid regions. This tutorial models a
 partial-height [!ac](TRISO)-fueled unit cell of a prismatic gas reactor assembly, and is
-a continuation of the [!ac](CHT) [Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html).
+a continuation of the [conjugate heat transfer tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html)
+(where we coupled NekRS and MOOSE heat conduction) and the
+[OpenMC-heat conduction tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html)
+(where we coupled OpenMC and MOOSE heat conduction) for this geometry.
 
 This tutorial was developed with support from the NEAMS Thermal Fluids Center
 of Excellence and is described in more detail in our journal article [!cite](novak2022_cardinal).
@@ -72,7 +73,7 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 | :- | :- |
 | Coolant channel diameter, $d_c$ | 1.6 |
 | Fuel compact diameter, $d_f$ | 1.27 |
-| Fuel-to-coolant center distance, $p_{cf}$ | 1.628 |
+| Fuel-to-coolant center distance, $p_{cf}$ | 1.88 |
 | Height | 160 |
 | TRISO kernel radius | 214.85e-4 |
 | Buffer layer radius | 314.85e-4 |
@@ -81,10 +82,10 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 | Outer PyC layer radius | 429.85e-4 |
 
 Two different [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-hierarchies are used in this tutorial:
+hierarchies are used:
 
 - A "single stack" design where each application
-  has either a single "parent" application or "child" application
+  has either a single "parent" application or a single "child" application
 - A "tree" design where each application has a single "parent" application,
   but multiple "child" applications
 
@@ -98,7 +99,7 @@ Solid lines
 depict transfers that occur directly from application $A$ to application $B$, or between
 the source and receiver of that field. Dashed lines, on the other hand, depict transfers
 that do not occur directly between the source and receiver of the field - for instance,
-in the shown "single stack" hierarchy, the NekRS application can only communicate data
+in the "single stack" hierarchy, the NekRS application can only communicate data
 with it's immediate parent application. Therefore, to send fluid density and temperature from
 NekRS to OpenMC, there are actually two transfers - 1) sending fluid density and temperature from
 NekRS to the MOOSE heat conduction module, and 2) sending fluid density and temperature from
@@ -109,11 +110,16 @@ the MOOSE heat conduction module to OpenMC.
   caption=MultiApp hierarchies used in this tutorial; data transfers are shown with solid and dashed lines. Solid lines indicate transfers that occur directly from application A to application B, while dashed lines show transfers that have to first pass through an intermediate application to get to the eventual target application.
   style=width:80%;margin-left:auto;margin-right:auto
 
-Conversely, with the "tree" hierarhcy, MOOSE MultiApps can currently only
-communicate with parent/child applications -- *not* sibling applications.
+Conversely, with the "tree" hierarhcy, MOOSE MultiApps
+communicate with parent/child applications.
 Therefore, all data communicated between the MOOSE heat conduction module and
 THM actually has to first pass through their common parent application before reaching
 the desired target application.
+
+!alert note
+In the time since we originally developed this tutorial, MOOSE has been extended
+to support *sibling* transfers, which would allow MOOSE and THM to communicate
+data directly to one another (in the "tree" hierarchy shown in [multiapps]).
 
 ### OpenMC Model
 
@@ -154,7 +160,7 @@ For the "single-stack" MultiApp hierarchy, OpenMC runs first, so the initial
 temperature is set to uniform in the radial direction and given by a linear variation
 between the inlet and outlet fluid temperatures. The fluid density is then set using
 the ideal gas [!ac](EOS) with pressure taken as the fixed outlet of 7.1 MPa given the
-temperature, i.e. $\rho_f(P, T)$. For the "tree" MultiApp hierarchy, OpenMC insteady runs
+temperature, i.e. $\rho_f(P, T)$. For the "tree" MultiApp hierarchy, OpenMC instead runs
 after the MOOSE heat conduction module, but before THM. For this structure, initial
 conditions are only required for fluid temperature and density, which are taken as the
 same initial conditions as for the "single-stack" case.
@@ -170,17 +176,35 @@ You can also use the XML files checked in to the `tutorials/gas_compact_multiphy
 ### Heat Conduction Model
 
 The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
-The solid mesh is shown in [solid_mesh].
-The [!ac](TRISO) particles are homogenized into
-the compact regions - all material properties in the heterogeneous regions
-are taken as volume averages of the various constituent materials.
-To simplify the specification of
-material properties, the solid geometry uses a length unit of meters.
+The solid mesh is shown in [solid_mesh]; the only sideset defined in the domain
+is the coolant channel surface. The
+solid geometry uses a length unit of meters.
 
-!media compact_solid_mesh.png
+!media compact_solid_mesh3.png
   id=solid_mesh
   caption=Mesh for the solid heat conduction model
   style=width:60%;margin-left:auto;margin-right:auto
+
+This mesh is generated using MOOSE mesh generators in the `solid_mesh.i` file.
+
+!listing /tutorials/gas_compact_multiphysics/solid_mesh.i
+  block=Mesh
+
+We first create a full 7-pin bundle,
+and then apply a trimming operation to split the compacts. Because MOOSE does not
+support multiple element types (e.g. tets, hexes) on the same block ID, the trimmer
+automatically creates an additional block (`compacts_trimmer_tri`) to represent
+the triangular prism elements formed in the compacts. Note that within this mesh,
+we include the fluid region - for the "single stack" MultiApp hierarchy, we will
+need somewhere for NekRS to write the fluid temperature solution. So, while this block
+does not participate in the solid solve, we include it in the mesh just for data transfers.
+You can generate this mesh by running
+
+```
+cardinal-opt -i solid_mesh.i --mesh-only
+```
+
+which will create the mesh, named `solid_mesh_in.e`.
 
 On the coolant channel surface, a Dirichlet temperature is provided by NekRS/THM.
 All other boundaries are insulated. The volumetric power density is provided by OpenMC,
@@ -210,7 +234,7 @@ that is of interest in this tutorial, the NekRS model is split into a series of 
 4. Finally, we use the converged [!ac](CHT) case as an initial condition for the multiphysics
    simulation with OpenMC and MOOSE feedback.
 
-Steps 1-3 were performed in [Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html) -
+Steps 1-3 were performed in [an earlier tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html) -
 for brevity, we skip repeating the discussion of steps 1-3.
 
 For the multiphysics case, we will load the restart file produced from step 3, compute $k_T$ from the
@@ -280,8 +304,8 @@ and $\mu_T$ taken from the `converged_cht.fld` restart file on Box.
 
 THM is used to solve the [1-D area-averaged Navier-Stokes equations](theory/thm.md).
 The THM mesh contains 150 elements; the mesh is constucted automatically
-within THM. To simplify the specification of material properties, the fluid geometry
-uses a length unit of meters. The heat flux imposed in the THM elements is obtained
+within THM. The fluid geometry uses a length unit of meters.
+The heat flux imposed in the THM elements is obtained
 by area averaging the heat flux from the heat conduction model in 150 layers along
 the fluid-solid interface. For the reverse transfer, the wall temperature sent to MOOSE
 heat conduction is set to a uniform value along the fluid-solid interface according to
@@ -299,7 +323,7 @@ modeling of the [!ac](TRISO) gas compact.
 Two separate simulations are performed here:
 
 - Coupling of OpenMC, NekRS, and MOOSE heat conduction in a "single-stack" MultiApp hierarchy
-- Coupling of OpenMC, THM, a MOOSE heat conduction in a "tree" MultiApp hierarchy
+- Coupling of OpenMC, THM, and MOOSE heat conduction in a "tree" MultiApp hierarchy
 
 By individually describing the two setups, you will understand the customizability
 of the MultiApp system and the flexibility shared by all MOOSE applications for seamlessly
@@ -314,16 +338,13 @@ in the "single-stack" MultiApp hierarchy shown in [multiapps].
 
 The neutronics physics is solved over the entire domain with OpenMC.
 The OpenMC wrapping used for the OpenMC-NekRS-MOOSE coupling is described in
-the `openm_nek.i` input file.
+the `openmc_nek.i` input file.
 We begin by defining a number of constants
 and by setting up the mesh mirror on which OpenMC will receive temperature
 and density from THM-MOOSE, and on which OpenMC will write the fission heat
 source. Because the coupled applications use length units of meters, the mesh mirror
-must also be in units of meters in order to obtained correct data transfers.
-For simplicity, the solid regions use the same mesh as used for solving the
-solid heat conduction; for the fluid regions, we use MOOSE
-[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html)
-to form a 2-D circular disk and extrude it into the $z$ direction.
+must also be in units of meters. For simplicity, we just use the same mesh
+as generated with `solid_mesh.i` earlier, though this it not necessary.
 
 !listing /tutorials/gas_compact_multiphysics/openmc_nek.i
   end=AuxVariables
@@ -332,10 +353,7 @@ Next, we define a number of auxiliary variables to query the OpenMC solution
 and set up multiphysics coupling. We add `cell_temperature` and
 `cell_density` in order to read the cell temperatures and densities directly
 from OpenMC in order to visualize the temperatures and densities ultimately applied
-to OpenMC's cells. Recall that [OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html)
-automatically adds variables named `temp`, `density`, and `heat_source` to receive
-the temperature and density *sent* to OpenMC and the heat source *extracted*
-from OpenMC. In order to compute density using the ideal gas [!ac](EOS) given a temperature
+to OpenMC's cells. In order to compute density using the ideal gas [!ac](EOS) given a temperature
 and a fixed pressure, we use a [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html)
 to set density.
 
@@ -355,11 +373,13 @@ The wrapping of OpenMC is specified in the `[Problem]` block. Here, we
 indicate that we will provide both fluid and solid feedback to OpenMC. In order to
 visualize the tally standard deviation, we output the fission tally standard
 deviation using the `output` parameter. The heat source from OpenMC will be relaxed
-using Robbins-Monro relaxation. Because two different applications are providing
-temperatures to OpenMC, we need to "collate" those temperatures into the single
-`temp` variable that OpenMC reads from (otherwise, MOOSE will write into `temp`,
-which would just be overwritten by NekRS writing into `temp` later in the Picard
-step). Cardinal contains convenient syntax to automatically set up the necessary
+using Robbins-Monro relaxation.
+
+By default, OpenMC will try to read temperature from the `temp` variable. However, in
+this case we have multiple applications (NekRS/THM for the fluids, MOOSE for the solids)
+which want to send temperatures into OpenMC. To be sure one data transfer does not overwrite
+the second, we need to tell OpenMC the names of the variables to read temperature
+from. Cardinal contains convenient syntax to automatically set up the necessary
 receiver variables for temperature, by using
 the `temperature_variables` and `temperature_blocks` parameters.
 
@@ -418,16 +438,13 @@ in combination with a CSV output.
 The solid heat conduction physics is solved over the solid regions of the unit cell
 using the MOOSE heat conduction module. The input file for this portion of the physics is the
 `solid_nek.i` input. We begin by defining a number of constants and by setting up
-the mesh for solving heat conduction. Note that a mesh region is added to represent the
-coolant channel, *even though no solve occurs on it*. The coolant region must be meshed
-so that NekRS, a sub-application to this solid application, can send a coolant temperature
-somewhere so that the OpenMC parent application has somewhere to read from.
+the mesh for solving heat conduction.
 
 !listing /tutorials/gas_compact_multiphysics/solid_nek.i
   end=Problem
 
 Because we have a block in the problem that we don't need to define any material
-properties on, we technically need to turn of a material coverage check, or else we're
+properties on, we technically need to turn off a material coverage check, or else we're
 going to get an error from MOOSE. [FEProblem](https://mooseframework.inl.gov/source/problems/FEProblem.html)
 is just the default problem, which we need to list in order to turn off the
 material coverage check.
@@ -435,11 +452,11 @@ material coverage check.
 !listing /tutorials/gas_compact_multiphysics/solid_nek.i
   block=Problem
 
-Next, we define the nonlinear variable that this application will solve for - `T`,
+Next, we define the nonlinear variable that this application will solve for (`T`),
 the solid temperature. On the solid blocks, we solve the heat equation, but
 on the fluid blocks that exist exclusively for transferring data, we add a
 [NullKernel](https://mooseframework.inl.gov/source/kernels/NullKernel.html)
-to essentially skip the solve in those regions. On the channel wall, the temperature from
+to skip the solve in those regions. On the channel wall, the temperature from
 NekRS is applied as a Dirichlet condition.
 
 !listing /tutorials/gas_compact_multiphysics/solid_nek.i
@@ -563,8 +580,7 @@ in the "tree" MultiApp hierarchy shown in [multiapps]. For the most part,
 the OpenMC and MOOSE heat conduction input files only have small differences
 from those presented earlier for the OpenMC-NekRS-MOOSE coupling. Therefore,
 for the OpenMC and MOOSE heat conduction cases, we only point out the aspects
-that differ from the earlier presentation. Differences will exist in three main
-areas:
+that differ from the earlier presentation. Differences will exist in several areas:
 
 - Due to the use of the "tree" MultiApp hierarchy, different initial conditions
   are required because the applications execute in a different order
@@ -602,10 +618,9 @@ beginning of a time step, we also need to set an initial condition on the heat s
   end=Problem
 
 The `[Problem]` block is identical to that shown earlier for the OpenMC-NekRS-MOOSE
-coupling. Next, we define the two sub-applications and the transfers. It is important
-to note that (at least at the time of writing this tutorial) THM and the MOOSE heat
-conduction module cannot "talk" directly to one another, so there are transfers
-of wall heat flux and wall temperature to and from OpenMC to one of the sub-applications,
+coupling. Next, we define the two sub-applications and the transfers. The transfers
+of wall heat flux and wall temperature between MOOSE and THM
+first pass up through OpenMC to one of the sub-applications,
 giving four additional transfers in the main application's input file than we saw
 for the "single-stack" hierarchy.
 
@@ -645,14 +660,17 @@ except for:
   a sub-application
 
 Because all of these differences are simply *omissions*, this concludes
-the discussion of the solid input file.
+the discussion of the solid input file. For reference, the full file is below.
+
+!listing /tutorials/gas_compact_multiphysics/solid_thm.i
 
 #### Fluid Input Files
 
 The fluid mass, momentum, and energy transport physics are solved using THM. The input
 file for this portion of the physics is the `thm.i` input.
 The THM input file is built using syntax specific to THM - we will only briefly
-cover the syntax, and instead refer users to the THM manuals for more information.
+cover the syntax, and instead refer users to the [THM documentation](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+ for more information.
 First, we define a number of constants at the beginning of the file and apply
 some global settings. We set the initial conditions for pressure, velocity, and
 temperature and indicate the fluid [!ac](EOS) object using
@@ -675,7 +693,7 @@ We set up the Churchill correlation for the friction factor and the Dittus-Boelt
 correlation for the convective heat transfer coefficient. For the Dittus-Boelter
 correlation, we use a corrected version of the closure (with the leading coefficient
 changed from 0.023 to 0.021) based on the NekRS simulations described in
-[Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html).
+[an earlier tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html).
 Additional materials are
 created to represent dimensionless numbers and other auxiliary terms, such as the
 wall temperature. As can be seen here, the [Material](https://mooseframework.inl.gov/syntax/Materials/index.html)
@@ -697,7 +715,7 @@ Finally, we set the preconditioner, a [Transient](https://mooseframework.inl.gov
 executioner, and set an Exodus output. We will run THM to convergence based on a tight
 steady state relative tolerance of $10^{-8}$.
 
-!listing /tutorials/gas_compact_cht/thm.i
+!listing /tutorials/gas_compact_multiphysics/thm.i
   start=Preconditioning
 
 ## Execution and Postprocessing
@@ -718,9 +736,7 @@ mpiexec -np 2 cardinal-opt -i common_input.i openmc_thm.i --n-threads=36
 ```
 
 which will run with 2 [!ac](MPI) ranks with 36 threads each (again, these parallel
-resource choices are only examples). Large computational resources are not required
-for the THM-based model due to the much fewer degrees of freedom with the THM model.
-
+resource choices are only examples).
 When the two simulations have completed, you will have created a number of different
 output files. For the OpenMC-NekRS-MOOSE calculation:
 
@@ -734,7 +750,7 @@ And for the OpenMC-THM-MOOSE calculation:
 - `openmc_thm_out.e`, an Exodus file with the OpenMC solution
 - `openmc_thm_out_bison0.e`, an Exodus file with the MOOSE heat conduction solution
 - `openmc_thm_out_thm0.e`, an Exodus file with the THM solution
-- `csv_thm/*`, CSV files with various postprocessors and userobjectsA
+- `csv_thm/*`, CSV files with various postprocessors and userobjects
 
 We now briefly present the coupled physics predictions.
 [unit_cell_power] shows the fission power predicted by OpenMC with
@@ -758,8 +774,8 @@ inlet do cause power to shift slightly downwards, the magnitude of the shift is
 moderated by the effect of pushing the fission source closer to external
 boundaries, where those neutrons would be more likely to exit the domain.
 
-This tutorial is an extension of [Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html);
-in that tutorial, we showed that [!ac](CHT) calculations with NekRS-MOOSE and THM-MOOSE
+In the earlier [conjugate heat transfer tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html),
+we showed that [!ac](CHT) calculations with NekRS-MOOSE and THM-MOOSE
 agree very well with one another in terms of fluid temperature, solid temperature, and fluid density.
 Especially when considering that the neutronics feedback due to fluid temperature
 and density are very small for gas-cooled systems, the excellent agreement in
@@ -770,8 +786,7 @@ cases agree to within 1%, which is within the range of the uncertainty in the fi
 
 [unit_cell_solid_temp] shows the solid temperature predicted by the
 MOOSE heat conduction module, with physics feedback provided by either NekRS-OpenMC or THM-OpenMC.
-Similar to the [!ac](CHT) case in [Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html)
-, the solid temperature peaks
+The solid temperature peaks
 slightly downstream of the maximum OpenMC power due to the combined effects
 of the power distribution and convective heat transfer at the wall.
 [unit_cell_solid_temp] helps explain the trend in the power difference shown in
@@ -789,8 +804,7 @@ but a lower power than THM near the outlet.
 [unit_cell_solid_temp_midplane] shows the solid temperature predictions
 on the axial midplane with physics feedback provided by either NekRS-OpenMC or THM-OpenMC.
 Also shown is the difference between the two (NekRS-based case minus the THM-based case).
-Similar to the [!ac](CHT) case in [Tutorial 2C](https://cardinal.cels.anl.gov/tutorials/cht3.html)
-, the THM simulations are unable to capture the radial variation in heat flux along
+The THM simulations are unable to capture the radial variation in heat flux along
 the channel wall, causing THM to underpredict temperatures near the channel wall
 close to the fuel compacts. However, an additional source of difference is now
 also present - small radial asymmetries in OpenMC's fission distribution contribute
@@ -802,9 +816,10 @@ fission power uncertainty can simply be increased in order to push down this con
   caption=Solid temperature predicted by the MOOSE heat conduction module with physics feedback from either OpenMC-NekRS or OpenMC-THM on the axial mid-plane.
   style=width:100%;margin-left:auto;margin-right:auto
 
-The OpenMC model receives a total of 400 solid temperatures (six compacts
-plus two graphite cells, for each of the 50 axial layers), 50 fluid temperatures,
-and 50 fluid densities from the thermal-fluid applications. [unit_cell_openmc_temp]
+On each axial layer, the OpenMC model receives a total of 14 temperatures
+(six compacts plus six graphite regions around them, one graphite cell surrounding
+the coolant channel, and the coolant channel).
+[unit_cell_openmc_temp]
 shows the solid temperature predicted by the NekRS-MOOSE-OpenMC high-resolution
 simulations along with the actual cell temperature imposed in OpenMC for a
 half-height slice of the unit cell. OpenMC sets a volume-average temperature for
@@ -831,10 +846,9 @@ the maximum power due to the combined effects of convective heat transfer and th
 
 [unit_cell_coupled_axial_T] shows the radially-averaged temperatures for the two
 thermal-fluid feedback options.
-As already shown, the solid and fluid temperatures match very well between the two thermal-fluid feedback options. The fluid bulk temperature increases along the flow direction, with a faster rate of increase where the power density is highest.
+The fluid bulk temperature increases along the flow direction, with a faster rate of increase where the power density is highest.
 
 !media unit_cell_coupled_axial_T.png
   id=unit_cell_coupled_axial_T
   caption=Radially-averaged temperatures for the NekRS-MOOSE-OpenMC and THM-MOOSE-OpenMC simulations.
   style=width:50%;margin-left:auto;margin-right:auto
-

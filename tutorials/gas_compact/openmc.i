@@ -7,7 +7,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 [Mesh]
   [solid]
     type = FileMeshGenerator
-    file = solid_rotated.e
+    file = mesh_in.e
   []
 []
 
@@ -42,14 +42,13 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 
 [Problem]
   type = OpenMCCellAverageProblem
-  verbose = true
   output = 'unrelaxed_tally_std_dev'
   check_equal_mapped_tally_volumes = true
 
   power = ${power}
   scaling = 100.0
-  solid_blocks = '1 2'
-  tally_blocks = '2'
+  solid_blocks = 'graphite compacts compacts_trimmer_tri'
+  tally_blocks = 'compacts compacts_trimmer_tri'
   tally_type = cell
   tally_name = heat_source
   solid_cell_level = 1
@@ -95,13 +94,13 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     type = ElementExtremeValue
     variable = heat_source
     value_type = max
-    block = 2
+    block = 'compacts compacts_trimmer_tri'
   []
   [min_power]
     type = ElementExtremeValue
     variable = heat_source
     value_type = min
-    block = 2
+    block = 'compacts compacts_trimmer_tri'
   []
 []
 
@@ -112,7 +111,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     points = '0.0 0.0 0.0'
     num_layers = 30
     direction = z
-    block = 2
+    block = 'compacts compacts_trimmer_tri'
   []
   [avg_std_dev]
     type = NearestPointLayeredAverage
@@ -120,7 +119,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
     points = '0.0 0.0 0.0'
     num_layers = 30
     direction = z
-    block = 2
+    block = 'compacts compacts_trimmer_tri'
   []
 []
 
@@ -143,5 +142,4 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 [Outputs]
   exodus = true
   csv = true
-  perf_graph_live = false
 []

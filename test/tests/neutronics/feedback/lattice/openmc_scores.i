@@ -28,7 +28,6 @@
   fluid_cell_level = 1
   initial_properties = xml
   check_tally_sum = false
-  check_zero_tallies = false
 
   tally_score = heating
   tally_name = heat_source

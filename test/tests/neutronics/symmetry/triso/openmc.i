@@ -67,8 +67,8 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  identical_tally_cell_fills = true
-  check_identical_tally_cell_fills = true
+  identical_cell_fills = 'compacts'
+  check_identical_cell_fills = true
   check_equal_mapped_tally_volumes = true
 
   power = 1000.0

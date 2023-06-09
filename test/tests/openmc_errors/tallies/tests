@@ -1,12 +1,4 @@
 [Tests]
-  [zero_tallies]
-    type = RunException
-    input = zero_tallies.i
-    expect_err = "kappa-fission computed for cell id 4, instance 0 \(of 1\) is zero!\n\n"
-                 "This may occur if there is no fissile material in this region, if you have very few particles, or if you have a geometry setup error."
-    requirement = "The system shall error if a tally is zero because this probably indicates a mistake."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [separate_tallies]
     type = RunException
     input = separate_tallies.i

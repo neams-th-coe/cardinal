@@ -54,8 +54,8 @@
   type = OpenMCCellAverageProblem
   verbose = true
   check_equal_mapped_tally_volumes = true
-  identical_tally_cell_fills = true
-  check_identical_tally_cell_fills = true
+  identical_cell_fills = '2'
+  check_identical_cell_fills = true
 
   power = 100.0
   scaling = 100.0
