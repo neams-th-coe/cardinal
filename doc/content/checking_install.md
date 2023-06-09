@@ -43,8 +43,7 @@ exo2nek
 ```
 
 which will run the tests in parallel with 8 processes. OpenMC's tests require
-you to use the ENDF/B7-II.1 data set, which you can download following
-the instructions [here](cross_sections.md).
+you to use [this data set](cross_sections.md).
 Depending on the availability of various dependencies, some tests may be skipped.
 The first time
 you run the test suite, the runtime will be very long due to the just-in-time compilation of

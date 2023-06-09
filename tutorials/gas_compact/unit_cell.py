@@ -310,8 +310,13 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
     settings.particles = 10000
     settings.inactive = n_inactive
     settings.batches = settings.inactive + n_active
-    settings.temperature['method'] = 'interpolation'
+
+    # the only reason we use 'nearest' here is to be sure we have a robust test for CI;
+    # otherwise, 1e-16 differences in temperature (due to numerical roundoff when using
+    # different MPI ranks) do change the tracking do to the stochastic interpolation
+    settings.temperature['method'] = 'nearest'
     settings.temperature['range'] = (294.0, 1500.0)
+    settings.temperature['tolerance'] = 200.0
 
     hexagon_half_flat = math.sqrt(3.0) / 2.0 * cell_edge_length
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
