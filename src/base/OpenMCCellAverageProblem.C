@@ -3354,6 +3354,9 @@ OpenMCCellAverageProblem::cellHasIdenticalFill(const cellInfo & cell_info) const
 OpenMCCellAverageProblem::containedCells
 OpenMCCellAverageProblem::shiftCellInstances(const cellInfo & cell_info) const
 {
+  if (!_has_identical_cell_fills)
+    mooseError("Internal error: should not call shiftCellInstances!");
+
   auto offset = _n_offset.at(cell_info);
 
   containedCells contained_cells;
