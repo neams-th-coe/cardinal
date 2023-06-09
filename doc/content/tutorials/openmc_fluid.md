@@ -228,7 +228,7 @@ from Box; this file is large due to the saved [!ac](TRISO) geometry information.
 
 ### THM Model
 
-!include thm.md
+!include thm_eqns.md
 
 In this tutorial, we use 50 elements for each channel.
 The mesh is constructed automatically within [!ac](THM).
