@@ -10,8 +10,7 @@
     </space>
   </source>
   <temperature_default>573.0</temperature_default>
-  <temperature_method>nearest</temperature_method>
+  <temperature_method>interpolation</temperature_method>
   <temperature_multipole>true</temperature_multipole>
   <temperature_range>294.0 3000.0</temperature_range>
-  <temperature_tolerance>200.0</temperature_tolerance>
 </settings>

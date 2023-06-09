@@ -91,8 +91,7 @@ settings.inactive = 10
 settings.particles = 10000
 
 settings.temperature = {'default': T_inlet,
-                        'method': 'nearest',
-                        'tolerance': 200.0,
+                        'method': 'interpolation',
                         'multipole': True,
                         'range': (294.0, 3000.0)}
 
