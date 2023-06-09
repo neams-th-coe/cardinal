@@ -17,6 +17,11 @@ import materials as mats
 
 def coolant_temp(t_in, t_out, l, z):
     """
+    THIS IS ONLY USED FOR SETTING AN INITIAL CONDITION IN OPENMC's XML FILES -
+    the coolant temperature will be applied from MOOSE, we just set an initial
+    value here in case you want to run these files in standalone mode (i.e. with
+    the "openmc" executable).
+
     Computes the coolant temperature based on an expected cosine power distribution
     for a specified temperature rise. The total core temperature rise is governed
     by energy conservation as dT = Q / m / Cp, where dT is the total core temperature
@@ -54,6 +59,11 @@ def coolant_temp(t_in, t_out, l, z):
 
 def coolant_density(t):
   """
+    THIS IS ONLY USED FOR SETTING AN INITIAL CONDITION IN OPENMC's XML FILES -
+    the coolant density will be applied from MOOSE, we just set an initial
+    value here in case you want to run these files in standalone mode (i.e. with
+    the "openmc" executable).
+
   Computes the helium density from temperature assuming a fixed operating pressure.
 
   Parameters
@@ -95,18 +105,14 @@ fuel_channel_diam = specs.compact_diameter * m
 
 hex_orientation = 'x'
 
-def unit_cell(n_ax_zones, n_inactive, n_active, face_centered=False, add_entropy_mesh=False):
+def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     axial_section_height = reactor_height / n_ax_zones
 
     # superimposed search lattice
     triso_lattice_shape = (4, 4, int(axial_section_height))
 
-    if face_centered:
-        lattice_orientation = 'y'
-        cell_edge_length = 2.0 * cell_pitch * math.tan(math.pi / 6)
-    else:
-        lattice_orientation = 'x'
-        cell_edge_length = cell_pitch
+    lattice_orientation = 'x'
+    cell_edge_length = cell_pitch
 
     model = openmc.model.Model()
 
@@ -296,8 +302,6 @@ def unit_cell(n_ax_zones, n_inactive, n_active, face_centered=False, add_entropy
 def main():
 
     ap = ArgumentParser()
-    ap.add_argument('-f','--face_centered', action='store_true',
-                    help='Center fuel channels on the faces of the unit cell.')
     ap.add_argument('-n', dest='n_axial', type=int, default=50,
                     help='Number of axial cell divisions')
     ap.add_argument('-s', '--entropy', action='store_true',
@@ -309,7 +313,7 @@ def main():
 
     args = ap.parse_args()
 
-    model = unit_cell(args.n_axial, args.n_inactive, args.n_active, args.face_centered, args.entropy)
+    model = unit_cell(args.n_axial, args.n_inactive, args.n_active, args.entropy)
     model.export_to_xml()
 
 if __name__ == "__main__":
