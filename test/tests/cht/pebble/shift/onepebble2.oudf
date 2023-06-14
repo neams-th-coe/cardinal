@@ -1,0 +1,17 @@
+// Boundary conditions
+void velocityDirichletConditions(bcData *bc)
+{
+  bc->u = 0.0;
+  bc->v = 0.0;
+  bc->w = 0.17;
+}
+
+void scalarDirichletConditions(bcData *bc)
+{
+  bc->s = 573.0;
+}
+
+void scalarNeumannConditions(bcData *bc)
+{
+  bc->flux = bc->wrk[1 * bc->fieldOffset + bc->idM];
+}

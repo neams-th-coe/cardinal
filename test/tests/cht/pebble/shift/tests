@@ -1,0 +1,13 @@
+[Tests]
+  [pebble]
+    type = CSVDiff
+    input = nek_master.i
+    csvdiff = nek_master_out_nek0.csv
+    min_parallel = 4
+
+    requirement = "A coupled MOOSE-nekRS pebble flow problem shall predict physically realistic "
+                  "conjugate heat transfer when using an initial offset in the scratch space. "
+                  "The gold file was created when using no offset to prove equivalence."
+    required_objects = 'NekRSProblem'
+  []
+[]
