@@ -46,8 +46,12 @@ NekRSProblemBase::validParams()
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
     "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
-  params.addParam<unsigned int>("first_reserved_usrwrk_slot", 0,
-    "Slice (zero-indexed) in nrs->usrwrk where Cardinal will begin reading/writing data; this can be used to shift the usrwrk slots reserved by Cardinal, so that you can use earlier slices for custom purposes");
+  params.addParam<unsigned int>(
+      "first_reserved_usrwrk_slot",
+      0,
+      "Slice (zero-indexed) in nrs->usrwrk where Cardinal will begin reading/writing data; this "
+      "can be used to shift the usrwrk slots reserved by Cardinal, so that you can use earlier "
+      "slices for custom purposes");
 
   params.addParam<bool>("nondimensional", false, "Whether NekRS is solved in non-dimensional form");
   params.addRangeCheckedParam<Real>(
@@ -144,8 +148,10 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   if (_n_usrwrk_slots == 0)
     checkUnusedParam(params, "first_reserved_usrwrk_slot", "not reserving any scratch space");
   else if (_first_reserved_usrwrk_slot >= _n_usrwrk_slots)
-    mooseError("The 'first_reserved_usrwrk_slot' (" + std::to_string(_first_reserved_usrwrk_slot) + ") "
-      "must be less than 'n_usrwrk_slots' (" + std::to_string(_n_usrwrk_slots) + ")!");
+    mooseError("The 'first_reserved_usrwrk_slot' (" + std::to_string(_first_reserved_usrwrk_slot) +
+               ") "
+               "must be less than 'n_usrwrk_slots' (" +
+               std::to_string(_n_usrwrk_slots) + ")!");
 
   for (unsigned int i = 0; i < _first_reserved_usrwrk_slot; ++i)
     _usrwrk_indices.push_back("unused");
@@ -462,7 +468,8 @@ NekRSProblemBase::getNekScalarValueUserObjects()
   {
     std::stringstream coupling_slots;
     coupling_slots << "0";
-    for (unsigned int i = 1; i < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot; ++i)
+    for (unsigned int i = 1; i < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot;
+         ++i)
       coupling_slots << ", " << i;
 
     mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
@@ -544,13 +551,18 @@ NekRSProblemBase::initialSetup()
   }
 
   // add rows for the extra slices
-  for (unsigned int i = _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot + _n_uo_slots; i < _n_usrwrk_slots; ++i)
+  for (unsigned int i =
+           _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot + _n_uo_slots;
+       i < _n_usrwrk_slots;
+       ++i)
     vt.addRow("unused", "bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
       "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
   if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot)
     mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
-      "'n_usrwrk_slots' must be greater than or equal to ", _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot, "!");
+               "'n_usrwrk_slots' must be greater than or equal to ",
+               _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot,
+               "!");
 
   if (_n_usrwrk_slots == 0)
   {
@@ -1317,10 +1329,10 @@ NekRSProblemBase::copyScratchToDevice()
     auto n = nekrs::scalarFieldOffset();
     auto nbytes = n * sizeof(dfloat);
 
-    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
     nrs->o_usrwrk.copyFrom(nrs->usrwrk + _first_reserved_usrwrk_slot * n,
-      (_minimum_scratch_size_for_coupling + _n_uo_slots) * nbytes,
-      _first_reserved_usrwrk_slot * nbytes);
+                           (_minimum_scratch_size_for_coupling + _n_uo_slots) * nbytes,
+                           _first_reserved_usrwrk_slot * nbytes);
   }
 
   if (nekrs::hasMovingMesh())

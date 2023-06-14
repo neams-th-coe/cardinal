@@ -277,7 +277,7 @@ initializeScratch(const unsigned int & n_slots)
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
-  nrs->usrwrk = (double *) calloc(n_slots * scalarFieldOffset(), sizeof(double));
+  nrs->usrwrk = (double *)calloc(n_slots * scalarFieldOffset(), sizeof(double));
   nrs->o_usrwrk = platform->device.malloc(n_slots * scalarFieldOffset() * sizeof(double),
                                           nrs->usrwrk);
 }
