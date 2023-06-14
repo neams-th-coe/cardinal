@@ -641,19 +641,6 @@ limitTemperature(const double * min_T, const double * max_T)
 }
 
 void
-copyScratchToDevice(const unsigned int slots_reserved_by_cardinal)
-{
-  if (slots_reserved_by_cardinal > 0)
-  {
-    nrs_t * nrs = (nrs_t *)nrsPtr();
-    nrs->o_usrwrk.copyFrom(nrs->usrwrk, slots_reserved_by_cardinal * scalarFieldOffset() * sizeof(dfloat), 0);
-  }
-
-  if (hasMovingMesh())
-    copyDeformationToDevice();
-}
-
-void
 copyDeformationToDevice()
 {
   mesh_t * mesh = entireMesh();
