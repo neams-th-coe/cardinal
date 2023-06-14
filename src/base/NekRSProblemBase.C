@@ -1324,7 +1324,7 @@ NekRSProblemBase::mapFaceDataToNekVolume(const unsigned int & e, const unsigned 
 void
 NekRSProblemBase::copyScratchToDevice()
 {
-  if (_minimum_scratch_size_for_coupling > 0)
+  if (_minimum_scratch_size_for_coupling + _n_uo_slots > 0)
   {
     auto n = nekrs::scalarFieldOffset();
     auto nbytes = n * sizeof(dfloat);
