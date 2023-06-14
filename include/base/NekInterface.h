@@ -275,17 +275,6 @@ double viscosity();
  */
 double Pr();
 
-/**
- * Copy the data interpolated from MOOSE->Nek from host to device.
- * From Cardinal, we only write to the first 'slots_reserved_by_cardinal' in nrs->usrwrk. But, the user might
- * be writing other parts of this scratch space from the .udf file. So, we need to be sure
- * to only copy the slices reserved for Cardinal, so that we don't accidentally overwrite other
- * parts of o_usrwrk (which from the order of the UDF calls, would always happen *after* the
- * transfers into NekRS)
- * @param[in] slots_reserved_by_cardinal number of slots holding data written by Cardinal
- */
-void copyScratchToDevice(const unsigned int slots_reserved_by_cardinal);
-
 /// Copy the deformation from host to device
 void copyDeformationToDevice();
 

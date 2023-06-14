@@ -89,7 +89,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   //   mesh_velocity_x   (if nekrs::hasBlendingSolver() is true)
   //   mesh_velocity_y   (if nekrs::hasBlendingSolver() is true)
   //   mesh_velocity_z   (if nekrs::hasBlendingSolver() is true)
-  int start = 0;
+  int start = _usrwrk_indices.size();
   if (_boundary)
   {
     indices.flux = start++ * nekrs::scalarFieldOffset();
@@ -112,7 +112,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _usrwrk_indices.push_back("mesh_velocity_z");
   }
 
-  _minimum_scratch_size_for_coupling = _usrwrk_indices.size();
+  _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
 
   if (nekrs::hasMovingMesh())
   {
@@ -636,9 +636,7 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
 
       sendScalarValuesToNek();
 
-      // copy the boundary heat flux, volume heat source, and/or volume
-      // mesh displacements in the scratch space to device
-      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
+      copyScratchToDevice();
 
       break;
     }

@@ -56,6 +56,12 @@ public:
    */
   unsigned int minimumScratchSizeForCoupling() const { return _minimum_scratch_size_for_coupling; }
 
+  /**
+   * Get the index of the first slot in the usrwrk that Cardinal is managing
+   * @return index of first slot
+   */
+  unsigned int firstReservedUsrwrkSlot() const { return _first_reserved_usrwrk_slot; }
+
   /// Send values from NekScalarValue userobjects to NekRS
   void sendScalarValuesToNek();
 
@@ -172,6 +178,11 @@ public:
   unsigned int nUsrWrkSlots() const { return _n_usrwrk_slots; }
 
 protected:
+  /**
+   * Copy the data sent from MOOSE->Nek from host to device.
+   */
+  void copyScratchToDevice();
+
   /**
    * Interpolate the MOOSE mesh mirror solution onto the NekRS boundary mesh (mirror -> re2)
    * @param[in] incoming_moose_value MOOSE face values
@@ -351,6 +362,9 @@ protected:
 
   /// Whether to skip writing a field file on NekRS's last time steo
   const bool & _skip_final_field_file;
+
+  /// First slice in usrwrk for Cardinal to read/write data from
+  const unsigned int & _first_reserved_usrwrk_slot;
 
   /// Number of surface elements in the data transfer mesh, across all processes
   int _n_surface_elems;

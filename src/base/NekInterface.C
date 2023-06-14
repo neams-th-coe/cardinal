@@ -277,7 +277,7 @@ initializeScratch(const unsigned int & n_slots)
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
-  nrs->usrwrk = (double *)calloc(n_slots * scalarFieldOffset(), sizeof(double));
+  nrs->usrwrk = (double *) calloc(n_slots * scalarFieldOffset(), sizeof(double));
   nrs->o_usrwrk = platform->device.malloc(n_slots * scalarFieldOffset() * sizeof(double),
                                           nrs->usrwrk);
 }
@@ -638,19 +638,6 @@ limitTemperature(const double * min_T, const double * max_T)
 
   // when complete, copy to device
   nrs->cds->o_S.copyFrom(nrs->cds->S);
-}
-
-void
-copyScratchToDevice(const unsigned int slots_reserved_by_cardinal)
-{
-  if (slots_reserved_by_cardinal > 0)
-  {
-    nrs_t * nrs = (nrs_t *)nrsPtr();
-    nrs->o_usrwrk.copyFrom(nrs->usrwrk, slots_reserved_by_cardinal * scalarFieldOffset() * sizeof(dfloat), 0);
-  }
-
-  if (hasMovingMesh())
-    copyDeformationToDevice();
 }
 
 void
