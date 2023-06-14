@@ -1,0 +1,30 @@
+#include "udf.hpp"
+
+static occa::kernel cFillKernel;
+static double * slice;
+
+void UDF_LoadKernels(occa::properties & kernelInfo)
+{
+  cFillKernel = oudfBuildKernel(kernelInfo, "cFillKernel");
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  slice = (double *) calloc(nrs->fieldOffset, sizeof(double));
+  for (int i = 0; i < nrs->fieldOffset; ++i)
+    slice[i] = 1.5;
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+  mesh_t *mesh = nrs->meshV;
+  cds_t *cds = nrs->cds;
+
+  // set scalar1 value, which should not be affected by the incoming data from MOOSE
+  if (tstep == 0)
+    nrs->o_usrwrk.copyFrom(slice, nrs->fieldOffset * sizeof(dfloat));
+
+  // set scalar2 and scalar3 values
+  cFillKernel(mesh->Nelements, 2 * nrs->fieldOffset, nrs->usrwrk[1 * nrs->fieldOffset + 0], nrs->cds->o_S);
+  cFillKernel(mesh->Nelements, 3 * nrs->fieldOffset, nrs->usrwrk[1 * nrs->fieldOffset + 1], nrs->cds->o_S);
+}

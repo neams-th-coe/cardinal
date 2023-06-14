@@ -1,0 +1,26 @@
+@kernel void cFillKernel(const dlong Nelements, const dlong offset, const dfloat value, @restrict dfloat * source)
+{
+  for(dlong e=0;e<Nelements;++e;@outer(0)){
+    for(int n=0;n<p_Np;++n;@inner(0)){
+      const int id = e*p_Np + n;
+      source[offset + id] = value;
+    }
+  }
+}
+
+void velocityDirichletConditions(bcData *bc)
+{
+  bc->u = 0.1;
+  bc->v = 0.0;
+  bc->w = 0.0;
+}
+
+void scalarDirichletConditions(bcData *bc)
+{
+  bc->s = bc->wrk[bc->idM];
+}
+
+void scalarNeumannConditions(bcData *bc)
+{
+  bc->flux = 0.0;
+}
