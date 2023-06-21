@@ -8,7 +8,7 @@ In this tutorial, you will learn how to:
 To access this tutorial,
 
 ```
-cd cardinal/gas_compact
+cd cardinal/tutorials/gas_compact
 ```
 
 !alert! note title=Computing Needs
@@ -83,7 +83,7 @@ When the script finishes running, plots of Shannon entropy and $k$, along
 with the saved statepoint files from the simulations, will be available
 in a directory named `inactive_study`. Below are shown example images of
 the Shannon entropy and $k$ plots. Based on the method of detecting stationarity,
-the script will recommend a minimum number of inactive batches to be used 
+the script will recommend a minimum number of inactive batches to be used
 in order to converge the fission source for each layer. Picking the most conservative
 answer will help ensure your simulation is discarding enough batches before tallying.
 
