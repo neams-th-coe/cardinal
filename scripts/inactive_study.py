@@ -29,8 +29,9 @@
 # - The Cardinal input file to run is named <file_name>.
 # - By default, the number of threads is taken as the maximum on your system.
 #   Otherwise, you can set it by providing -n-threads <n_threads>.
-# - A detection method must be specified from (all, half, window). If window
-#   is selected, then --window_length must also be specified. TODO revise
+# - If a detection method is desired it can be specified from all, half, or window.
+#   The default method is none. If the window method is selected, then window_length
+#   must also be specified.
 #
 # This script will create plots named <script_name>_k_<layers>.pdf and
 # <script_name>_entropy_<layers>.pdf in a sub-directory named inactive_study/.
@@ -74,7 +75,7 @@ ap.add_argument('-n-threads', dest='n_threads', type=int,
 ap.add_argument('-input', dest='input_file', type=str, required=True,
                 help='Name of the Cardinal input file to run')
 ap.add_argument('--method', dest = 'method', choices =['all','half','window','none'], default='none',
-                help = 'The method to estimate the number of sufficient inactive batches to discard before tallying in k-eigenvalue mode. ' + 
+                help = 'The method to estimate the number of sufficient inactive batches to discard before tallying in k-eigenvalue mode. ' +
                 'This number is determined by the first batch at which a running average of the Shannon Entropy falls within the standard ' +
                 'deviation of the run. Options are all, half, and window; all uses all batches, half uses the last half of the batches, and ' +
                 'window uses a user-specified number. Additionally, none can be specified if the feature is undesired.')
@@ -203,6 +204,10 @@ if(method != 'none'):
                             "at least this many inactive cycles for this layer.")
                     break
                 else:
+                    if(j == len(entropy[i]) - 1):
+                        print("For layer", nl, ", despite searching over all the batches, no batch"
+                            "produced an entropy value within the window. This can happpen if "
+                            "too few batches are specified. Try again with more batches.") # TODO test this prints in the right place
                     continue
         elif(method == "half"):
             # Brown (2006) "On the Use of Shannon Entropy of the Fission Distribution for Assessing Convergence
@@ -221,6 +226,11 @@ if(method != 'none'):
                             "It is recommended to do at least this many inactive cycles for this layer.")
                     break
                 else:
+                    if(j == len(entropy[i]) -1):
+                        print("For layer", nl, ", despite searching over all the batches, no batch"
+                            "produced an entropy value within one standard deviation of the last "
+                            "half batches This can happpen if too few batches are specified. Try "
+                            "again with more batches.") # TODO test this prints in the right place
                     continue
         else:
             # use all batches as data points for computing mean and standard deviation
@@ -237,4 +247,9 @@ if(method != 'none'):
                             "It is recommended to do at least this many inactive cycles for this layer.")
                     break
                 else:
+                    if(j == len(entropy[i]) -1):
+                        print("For layer", nl, ", despite searching over all the batches, no batch"
+                            "produced an entropy value within one standard deviation of all "
+                            "preceeding batches This can happpen if too few batches are specified."
+                            " Try again with more batches.") # TODO test this prints in the right place
                     continue
