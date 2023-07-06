@@ -1,7 +1,3 @@
-# ======================================================================================
-# Cardinal Makefile
-# ======================================================================================
-#
 # Optional environment variables:
 #
 # To control where various third-party dependencies are. You don't need to set
