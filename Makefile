@@ -8,7 +8,7 @@
 # any of these unless you want to use non-submodule third-party dependencies:
 
 # * CONTRIB_DIR      : Dir with third-party dependencies (default: contrib)
-# * MOOSE_SUBMODULE  : Top-level MOOSE dir (default: $(CONTRIB_DIR)/moose)
+# * MOOSE_DIR        : Top-level MOOSE dir (default: $(CONTRIB_DIR)/moose)
 # * NEKRS_DIR        : Top-level NekRS dir (default: $(CONTRIB_DIR)/nekRS)
 # * OPENMC_DIR       : Top-level OpenMC dir (default: $(CONTRIB_DIR)/openmc)
 # * DAGMC_DIR        : Top-level DagMC dir (default: $(CONTRIB_DIR)/DAGMC)
@@ -32,7 +32,7 @@
 #                       libraries from $(HDF5_ROOT)/lib.
 # * HDF5_INCLUDE_DIR  : Top-level HDF5 header dir (default: $(HDF5_ROOT)/include)
 # * HDF5_LIBDIR       : Top-level HDF5 lib dir (default: $(HDF5_ROOT)/lib)
-# * PETSC_DIR         : Top-level PETSc dir (default: $(MOOSE_SUBMODULE)/petsc)
+# * PETSC_DIR         : Top-level PETSc dir (default: $(MOOSE_DIR)/petsc)
 # * PETSC_ARCH        : PETSc architecture (default: arch-moose)
 # ======================================================================================
 
@@ -47,14 +47,22 @@ ENABLE_DAGMC        ?= no
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
+
+# Use the MOOSE submodule if it exists and MOOSE_DIR is not set
 MOOSE_SUBMODULE     ?= $(CONTRIB_DIR)/moose
+ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
+	MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
+else
+	MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
+endif
+
 NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
 OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
 DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
 MOAB_DIR            ?= $(CONTRIB_DIR)/moab
-PETSC_DIR           ?= $(MOOSE_SUBMODULE)/petsc
+PETSC_DIR           ?= $(MOOSE_DIR)/petsc
 PETSC_ARCH          ?= arch-moose
-LIBMESH_DIR         ?= $(MOOSE_SUBMODULE)/libmesh/installed/
+LIBMESH_DIR         ?= $(MOOSE_DIR)/libmesh/installed/
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 BISON_DIR           ?= $(CONTRIB_DIR)/bison
 SAM_DIR             ?= $(CONTRIB_DIR)/SAM
@@ -202,13 +210,6 @@ endif
 # ======================================================================================
 # MOOSE core objects
 # ======================================================================================
-
-# Use the MOOSE submodule if it exists and MOOSE_DIR is not set
-ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
-	MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
-else
-	MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
-endif
 
 # framework
 FRAMEWORK_DIR      := $(MOOSE_DIR)/framework
