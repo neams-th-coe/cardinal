@@ -18,13 +18,11 @@
                   "We add postprocessors to let us compare min/max values printed to the screen by "
                   "NekRS. We also check postprocessor differences between equivalent operations "
                   "taken directly on the NekRS solution arrays (for instance, a NekVolumeAverage) "
-                  "and directly on the extracted solution (for instance, an ElementAverageValue). "
-                  "To accommodate changes by NekRS developers to NekRs's test suite, we simply "
+                  "and directly on the extracted solution (for instance, an ElementAverageValue). We "
                   "require that all the postprocessors match between these two renderings of the "
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve precompile issues'
   []
   [boundary]
     type = CSVDiff
@@ -38,12 +36,10 @@
                   "We add postprocessors to let us compare min/max values printed to the screen by "
                   "NekRS. We also check postprocessor differences between equivalent operations "
                   "taken directly on the NekRS solution arrays (for instance, a NekSideAverage) "
-                  "and directly on the extracted solution (for instance, an ElementAverageValue). "
-                  "To accommodate changes by NekRS developers to NekRs's test suite, we simply "
+                  "and directly on the extracted solution (for instance, an ElementAverageValue). We "
                   "require that all the postprocessors match between these two renderings of the "
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve precompile issues'
   []
 []

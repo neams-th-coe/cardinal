@@ -53,7 +53,7 @@ c-----------------------------------------------------------------------
       if (l2_err.gt.0) l2_err = sqrt(l2_err)
       if(nid.eq.0)
      & write(6,1) istep,time,max_err,l2_err
-    1 format(i8,1p3e12.4,' ERROR VX: MAX/L2')
+    1 format(i8,1p3e12.4,' err VX: MAX/L2')
 
       max_err = glmax(T_err,ntot)
       err(3) = max_err
@@ -61,14 +61,14 @@ c-----------------------------------------------------------------------
       if (l2_err.gt.0) l2_err = sqrt(l2_err)
       if(nid.eq.0)
      & write(6,2) istep,time,max_err,l2_err
-    2 format(i8,1p3e12.4,' ERROR T: MAX/L2')
+    2 format(i8,1p3e12.4,' err T: MAX/L2')
 
 c      max_err = glmax(QTL_err,ntot)
 c      l2_err  = glsc3(QTL_err,bm1,QTL_err,ntot)/VOLVM1
 c      if (l2_err.gt.0) l2_err = sqrt(l2_err)
 c      if(nid.eq.0)
 c     & write(6,3) istep,time,max_err,l2_err
-c    3 format(i8,1p3e12.4,' ERROR QTL: MAX/L2')
+c    3 format(i8,1p3e12.4,' err QTL: MAX/L2')
 
       pbar  = glsc2(pr ,bm2,ntot)/volvm1
       pbre  = glsc2(pre,bm2,ntot)/volvm1
@@ -82,7 +82,7 @@ c    3 format(i8,1p3e12.4,' ERROR QTL: MAX/L2')
       if (l2_err.gt.0) l2_err = sqrt(l2_err)
       if(nid.eq.0)
      & write(6,4) istep,time,max_err,l2_err
-    4 format(i8,1p3e12.4,' ERROR PR: MAX/L2')
+    4 format(i8,1p3e12.4,' err PR: MAX/L2')
 
 
       RETURN
@@ -95,11 +95,13 @@ C   Set initial conditions
       integer ix,iy,iz,ieg
 
       INCLUDE 'SIZE'
-      INCLUDE 'TSTEP'
+      INCLUDE 'TOTAL'
       INCLUDE 'NEKUSE'
       INCLUDE 'CASEDATA'
 
       real xd
+
+      p0th = 1.0
 
       XD = X/P_DELTA
 
