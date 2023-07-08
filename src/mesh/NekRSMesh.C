@@ -77,6 +77,9 @@ NekRSMesh::NekRSMesh(const InputParameters & parameters)
 
   _nek_internal_mesh = nekrs::entireMesh();
 
+  nekrs::initializeHostMeshParameters();
+  nekrs::updateHostMeshParameters();
+
   // nekRS will only ever support 3-D meshes. Just to be sure that this remains
   // the case for future Cardinal developers, throw an error if the mesh isn't 3-D
   // (since this would affect how we construct the mesh here).
@@ -573,7 +576,6 @@ NekRSMesh::buildMesh()
 
   _nek_n_surface_elems = nekrs::NboundaryFaces();
   _nek_n_volume_elems = nekrs::Nelements();
-  _nek_n_flow_elems = nekrs::NflowElements();
 
   // initialize the mesh mapping parameters that depend on order
   initializeMeshParams();
@@ -673,7 +675,7 @@ NekRSMesh::addElems()
           }
         }
 
-        if (_phase[e])
+        if (_phase[e * _n_moose_per_nek + build])
           elem->subdomain_id() = _solid_block_id;
         else
           elem->subdomain_id() = _fluid_block_id;
@@ -771,7 +773,7 @@ void
 NekRSMesh::volumeVertices()
 {
   // nekRS has already performed a global operation such that all processes know the
-  // toal number of volume elements.
+  // toal number of volume elements and their phase
   int n_vertices_in_mirror = _n_build_per_volume_elem * _n_volume_elems * _n_vertices_per_volume;
   double * x = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
@@ -804,7 +806,7 @@ NekRSMesh::volumeVertices()
     Np_mirror = mesh->Np;
   }
 
-  // Allocate space for the coordinates that are on this rank
+  // Allocate space for the coordinates and phase that are on this rank
   int n_vertices_on_rank = _n_build_per_volume_elem * _volume_coupling.n_elems * Np_mirror;
   double * xtmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
   double * ytmp = (double *) malloc(n_vertices_on_rank * sizeof(double));
@@ -819,10 +821,10 @@ NekRSMesh::volumeVertices()
     {
       int i = _volume_coupling.element[k];
       int offset = i * mesh->Np;
-      ptmp[d++] = i >= nekrs::flowMesh()->Nelements;
 
       for (int build = 0; build < _n_build_per_volume_elem; ++build)
       {
+        ptmp[d++] = i >= nekrs::flowMesh()->Nelements;
         for (int v = 0; v < Np_mirror; ++v, ++c)
         {
           int vertex_offset = _order == 0 ? _corner_indices[build][v] : v;
@@ -841,7 +843,7 @@ NekRSMesh::volumeVertices()
   nekrs::allgatherv(_volume_coupling.mirror_counts, ztmp, z, Np_mirror);
   nekrs::allgatherv(_volume_coupling.mirror_counts, ptmp, p);
 
-  for (int i = 0; i < _n_volume_elems; ++i)
+  for (int i = 0; i < _n_build_per_volume_elem * _n_volume_elems; ++i)
     _phase.push_back(p[i]);
 
   for (int i = 0; i < n_vertices_in_mirror; ++i)
