@@ -319,7 +319,7 @@ public:
    * @param[in] e the element to which src belongs
    * @param[in] field the displacement field we are updating
    */
-  void updateDisplacement (const int e, const double *src, const field::NekWriteEnum field);
+  void updateDisplacement(const int e, const double *src, const field::NekWriteEnum field);
 
 protected:
   /// Store the rank-local element and rank ownership for volume coupling
@@ -465,9 +465,6 @@ protected:
 
   /// Total number of volume elements in the nekRS problem
   int _nek_n_volume_elems;
-
-  /// Number of volume elements in the flow portion of the NekRS mesh
-  int _nek_n_flow_elems;
 
   /**
    * \brief "Phase" for each element (fluid = 0, solid = 1)
