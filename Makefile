@@ -32,14 +32,29 @@
 # * PETSC_ARCH        : PETSc architecture (default: arch-moose)
 # ======================================================================================
 
-# Whether you want to build with NekRS; set to anything except 'yes' to skip
+# Whether you want to build with NekRS
 ENABLE_NEK          ?= yes
 
-# Whether you want to build with OpenMC; set to anything except 'yes' to skip
+# Whether you want to build with OpenMC
 ENABLE_OPENMC       ?= yes
 
-# Whether you want to build OpenMC with DAGMC support; set to anything except 'yes' to skip
+# Whether you want to build OpenMC with DAGMC support
 ENABLE_DAGMC        ?= no
+
+# What GPU backends to enable for Nek (if any)
+OCCA_CUDA_ENABLED=0
+OCCA_HIP_ENABLED=0
+OCCA_OPENCL_ENABLED=0
+
+# Whether to enable AMGX in Nek (only available for Nvidia GPU)
+AMGX_ENABLED=0
+
+ifeq ($(AMGX_ENABLED),1)
+  ifeq ($(OCCA_CUDA_ENABLED),0)
+    $(info Turning on CUDA backend because AMGX was requested)
+    OCCA_CUDA_ENABLED=1
+  endif
+endif
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
@@ -132,10 +147,6 @@ ifeq ($(METHOD),dbg)
 else
 	BUILD_TYPE := Release
 endif
-
-OCCA_CUDA_ENABLED=0
-OCCA_HIP_ENABLED=0
-OCCA_OPENCL_ENABLED=0
 
 DAGMC_BUILDDIR := $(CARDINAL_DIR)/build/DAGMC
 DAGMC_INSTALL_DIR := $(CONTRIB_INSTALL_DIR)
