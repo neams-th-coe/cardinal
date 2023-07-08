@@ -3,7 +3,7 @@
     type = CSVDiff
     input = nek_volume.i
     csvdiff = nek_volume_out.csv
-    min_parallel = 2
+    min_parallel = 4
 
     # nekRS can't use more processors than elements
     max_parallel = 12
@@ -17,7 +17,7 @@
     type = CSVDiff
     input = exact_volume.i
     csvdiff = nek_volume_out.csv
-    min_parallel = 2
+    min_parallel = 4
 
     # nekRS can't use more processors than elements
     max_parallel = 12

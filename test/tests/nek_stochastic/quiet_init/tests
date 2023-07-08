@@ -30,6 +30,7 @@
     min_parallel = 2
     max_parallel = 2
     prereq = clear1
+    max_time = 400
     csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
