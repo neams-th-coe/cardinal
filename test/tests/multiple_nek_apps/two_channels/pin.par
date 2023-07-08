@@ -12,13 +12,8 @@
 
 [VELOCITY]
   solver = none
-  viscosity = 2.37e-4
-  density = 834.5
-  boundaryTypeMap = W, W, W
-  residualTol = 1.0e-6
 
 [PRESSURE]
-  residualTol = 1.0e-6
 
 [TEMPERATURE]
   conductivity = 0.1
