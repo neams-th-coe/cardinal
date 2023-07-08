@@ -347,7 +347,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 [UserObjects]
   [q_wall_avg]
     type = NearestPointLayeredSideAverage
-    boundary = fluid_solid_interface
+    boundary = 'fluid_solid_interface'
     variable = flux
 
     # Note: make this to match the num_elems in the channel
