@@ -4,6 +4,7 @@
     command = '${NEKRS_HOME}/bin/nrspre lowMach 1'
     requirement = "The system shall precompile a Nek case."
     required_objects = 'NekRSProblem'
+    max_time = 400
   []
   [volume]
     type = CSVDiff
