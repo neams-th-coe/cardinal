@@ -22,6 +22,8 @@
 #include "CardinalUtils.h"
 
 static nekrs::characteristicScales scales;
+static dfloat * sgeo;
+static dfloat * vgeo;
 nekrs::usrwrkIndices indices;
 
 namespace nekrs
@@ -125,13 +127,13 @@ hasVariableDt()
 bool
 hasBlendingSolver()
 {
-  return platform->options.compareArgs("MESH SOLVER", "ELASTICITY");
+  return !platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
 hasUserMeshSolver()
 {
-  return platform->options.compareArgs("MESH SOLVER", "USER");
+  return platform->options.compareArgs("MESH SOLVER", "NONE") && hasMovingMesh();
 }
 
 bool
@@ -176,7 +178,7 @@ hasScalarVariable(int scalarId)
 bool
 hasHeatSourceKernel()
 {
-  return udf.sEqnSource;
+  return static_cast<bool>(udf.sEqnSource);
 }
 
 bool
@@ -407,24 +409,20 @@ displacementAndCounts(const std::vector<int> & base_counts,
 }
 
 double
-sourceIntegral(const NekVolumeCoupling & nek_volume_coupling)
+usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_mesh)
 {
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  nrs_t * nrs = (nrs_t *) nrsPtr();
+  const auto & mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
 
-  for (int k = 0; k < nek_volume_coupling.total_n_elems; ++k)
+  for (int k = 0; k < mesh->Nelements; ++k)
   {
-    if (nek_volume_coupling.process[k] == commRank())
-    {
-      int i = nek_volume_coupling.element[k];
-      int offset = i * mesh->Np;
+    int offset = k * mesh->Np;
 
-      for (int v = 0; v < mesh->Np; ++v)
-        integral += nrs->usrwrk[indices.heat_source + offset + v] *
-                    mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
-    }
+    for (int v = 0; v < mesh->Np; ++v)
+      integral += nrs->usrwrk[slot + offset + v] *
+                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
 
   // sum across all processes
@@ -434,30 +432,46 @@ sourceIntegral(const NekVolumeCoupling & nek_volume_coupling)
   return total_integral;
 }
 
-std::vector<double>
-fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling, const std::vector<int> & boundary)
+void
+scaleUsrwrk(const unsigned int & slot, const dfloat & value)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = getMesh(nek_mesh::all);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int id = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+      nrs->usrwrk[slot + id + v] *= value;
+  }
+}
+
+std::vector<double>
+usrwrkSideIntegral(const unsigned int & slot, const std::vector<int> & boundary, const nek_mesh::NekMeshEnum pp_mesh)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  const auto & mesh = getMesh(pp_mesh);
 
   std::vector<double> integral(boundary.size(), 0.0);
 
-  for (int k = 0; k < nek_boundary_coupling.total_n_faces; ++k)
+  for (int i = 0; i < mesh->Nelements; ++i)
   {
-    if (nek_boundary_coupling.process[k] == commRank())
+    for (int j = 0; j < mesh->Nfaces; ++j)
     {
-      int i = nek_boundary_coupling.element[k];
-      int j = nek_boundary_coupling.face[k];
-
       int face_id = mesh->EToB[i * mesh->Nfaces + j];
-      auto it = std::find(boundary.begin(), boundary.end(), face_id);
-      auto b_index = it - boundary.begin();
 
-      int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+      if (std::find(boundary.begin(), boundary.end(), face_id) != boundary.end())
+      {
+        auto it = std::find(boundary.begin(), boundary.end(), face_id);
+        auto b_index = it - boundary.begin();
 
-      for (int v = 0; v < mesh->Nfp; ++v)
-        integral[b_index] +=
-            nrs->usrwrk[indices.flux + mesh->vmapM[offset + v]] * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
+        for (int v = 0; v < mesh->Nfp; ++v)
+          integral[b_index] +=
+              nrs->usrwrk[slot + mesh->vmapM[offset + v]] * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+      }
     }
   }
 
@@ -511,7 +525,7 @@ normalizeFluxBySideset(const NekBoundaryCoupling & nek_boundary_coupling,
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = fluxIntegral(nek_boundary_coupling, boundary);
+  auto integrals = usrwrkSideIntegral(indices.flux, boundary, nek_mesh::all);
   normalized_nek_integral = std::accumulate(integrals.begin(), integrals.end(), 0.0) * scales.A_ref * scales.flux_ref;
   double total_moose_integral = std::accumulate(moose_integral.begin(), moose_integral.end(), 0.0);
   bool low_rel_err = std::abs(total_moose_integral) > abs_tol ?
@@ -559,51 +573,12 @@ normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
   }
 
   // check that the normalization worked properly - confirm against dimensional form
-  auto integrals = fluxIntegral(nek_boundary_coupling, boundary);
+  auto integrals = usrwrkSideIntegral(indices.flux, boundary, nek_mesh::all);
   normalized_nek_integral = std::accumulate(integrals.begin(), integrals.end(), 0.0) * scales.A_ref * scales.flux_ref;
   bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < rel_tol;
   bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < abs_tol;
 
   return low_rel_err || low_abs_err;
-}
-
-bool
-normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling,
-                    const double moose_integral,
-                    double nek_integral,
-                    double & normalized_nek_integral)
-{
-  // scale the nek source to dimensional form for the sake of normalizing against
-  // a dimensional MOOSE source
-  nek_integral *= scales.V_ref * scales.source_ref;
-
-  // avoid divide-by-zero
-  if (std::abs(nek_integral) < abs_tol)
-    return true;
-
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
-
-  const double ratio = moose_integral / nek_integral;
-
-  for (int k = 0; k < nek_volume_coupling.total_n_elems; ++k)
-  {
-    if (nek_volume_coupling.process[k] == commRank())
-    {
-      int i = nek_volume_coupling.element[k];
-      int id = i * mesh->Np;
-
-      for (int v = 0; v < mesh->Np; ++v)
-        nrs->usrwrk[indices.heat_source + id + v] *= ratio;
-    }
-  }
-
-  // check that the normalization worked properly
-  normalized_nek_integral = sourceIntegral(nek_volume_coupling) * scales.V_ref * scales.source_ref;
-  bool low_rel_err = std::abs(normalized_nek_integral - moose_integral) / moose_integral < rel_tol;
-  bool low_abs_err = std::abs(normalized_nek_integral - moose_integral) < abs_tol;
-
-  return low_rel_err && low_abs_err;
 }
 
 void
@@ -649,9 +624,35 @@ copyDeformationToDevice()
   mesh->o_z.copyFrom(mesh->z);
   mesh->update();
 
-  // update host geometric and volume factors from device in case of mesh deformation
-  mesh->o_sgeo.copyTo(mesh->sgeo);
-  mesh->o_vgeo.copyTo(mesh->vgeo);
+  updateHostMeshParameters();
+}
+
+void
+initializeHostMeshParameters()
+{
+  mesh_t * mesh = entireMesh();
+  sgeo = (dfloat *) calloc(mesh->o_sgeo.size(), sizeof(dfloat));
+  vgeo = (dfloat *) calloc(mesh->o_vgeo.size(), sizeof(dfloat));
+}
+
+void
+updateHostMeshParameters()
+{
+  mesh_t * mesh = entireMesh();
+  mesh->o_sgeo.copyTo(sgeo);
+  mesh->o_vgeo.copyTo(vgeo);
+}
+
+dfloat *
+getSgeo()
+{
+  return sgeo;
+}
+
+dfloat *
+getVgeo()
+{
+  return vgeo;
 }
 
 double
@@ -793,7 +794,7 @@ centroidFace(int local_elem_id, int local_face_id)
   for (int v = 0; v < mesh->Np; ++v)
   {
     int id = mesh->vmapM[offset + v];
-    double mass_matrix = mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+    double mass_matrix = sgeo[mesh->Nsgeo * (offset + v) + WSJID];
     x_c += mesh->x[id] * mass_matrix;
     y_c += mesh->y[id] * mass_matrix;
     z_c += mesh->z[id] * mass_matrix;
@@ -817,7 +818,7 @@ centroid(int local_elem_id)
   for (int v = 0; v < mesh->Np; ++v)
   {
     int id = local_elem_id * mesh->Np + v;
-    double mass_matrix = mesh->vgeo[local_elem_id * mesh->Np * mesh->Nvgeo + JWID * mesh->Np + v];
+    double mass_matrix = vgeo[local_elem_id * mesh->Np * mesh->Nvgeo + JWID * mesh->Np + v];
     x_c += mesh->x[id] * mass_matrix;
     y_c += mesh->y[id] * mass_matrix;
     z_c += mesh->z[id] * mass_matrix;
@@ -832,7 +833,6 @@ double
 volume(const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
-
   double integral = 0.0;
 
   for (int k = 0; k < mesh->Nelements; ++k)
@@ -840,7 +840,7 @@ volume(const nek_mesh::NekMeshEnum pp_mesh)
     int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-      integral += mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
 
   // sum across all processes
@@ -929,7 +929,7 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
     int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-      integral += f(offset + v) * mesh->vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += f(offset + v) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
 
   // sum across all processes
@@ -959,7 +959,7 @@ area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
         {
-          integral += mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          integral += sgeo[mesh->Nsgeo * (offset + v) + WSJID];
         }
       }
     }
@@ -971,39 +971,6 @@ area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 
   dimensionalizeSideIntegral(field::unity, boundary_id, total_integral, pp_mesh);
 
-  return total_integral;
-}
-
-double
-usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot,
-                   const nek_mesh::NekMeshEnum pp_mesh)
-{
-  mesh_t * mesh = getMesh(pp_mesh);
-  nrs_t * nrs = (nrs_t *) nrsPtr();
-
-  double integral = 0.0;
-
-  for (int i = 0; i < mesh->Nelements; ++i)
-  {
-    for (int j = 0; j < mesh->Nfaces; ++j)
-    {
-      int face_id = mesh->EToB[i * mesh->Nfaces + j];
-
-      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
-      {
-        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
-        for (int v = 0; v < mesh->Nfp; ++v)
-        {
-          integral += nrs->usrwrk[slot * scalarFieldOffset() + mesh->vmapM[offset + v]] *
-                      mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
-        }
-      }
-    }
-  }
-
-  // sum across all processes
-  double total_integral;
-  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
   return total_integral;
 }
 
@@ -1029,7 +996,7 @@ sideIntegral(const std::vector<int> & boundary_id, const field::NekFieldEnum & i
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
         for (int v = 0; v < mesh->Nfp; ++v)
         {
-          integral += f(mesh->vmapM[offset + v]) * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          integral += f(mesh->vmapM[offset + v]) * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
         }
       }
     }
@@ -1072,11 +1039,11 @@ massFlowrate(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum p
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_velocity =
-              nrs->U[vol_id + 0 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
-              nrs->U[vol_id + 1 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
-              nrs->U[vol_id + 2 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NZID];
+              nrs->U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
+              nrs->U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
+              nrs->U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
 
-          integral += rho * normal_velocity * mesh->sgeo[surf_offset + WSJID];
+          integral += rho * normal_velocity * sgeo[surf_offset + WSJID];
         }
       }
     }
@@ -1124,10 +1091,10 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
           double normal_velocity =
-              nrs->U[vol_id + 0 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
-              nrs->U[vol_id + 1 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
-              nrs->U[vol_id + 2 * velocityFieldOffset()] * mesh->sgeo[surf_offset + NZID];
-          integral += f(vol_id) * rho * normal_velocity * mesh->sgeo[surf_offset + WSJID];
+              nrs->U[vol_id + 0 * velocityFieldOffset()] * sgeo[surf_offset + NXID] +
+              nrs->U[vol_id + 1 * velocityFieldOffset()] * sgeo[surf_offset + NYID] +
+              nrs->U[vol_id + 2 * velocityFieldOffset()] * sgeo[surf_offset + NZID];
+          integral += f(vol_id) * rho * normal_velocity * sgeo[surf_offset + WSJID];
         }
       }
     }
@@ -1173,11 +1140,11 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double p_normal = nrs->P[vol_id] *
-                            (mesh->sgeo[surf_offset + NXID] * direction(0) +
-                             mesh->sgeo[surf_offset + NYID] * direction(1) +
-                             mesh->sgeo[surf_offset + NZID] * direction(2));
+                            (sgeo[surf_offset + NXID] * direction(0) +
+                             sgeo[surf_offset + NYID] * direction(1) +
+                             sgeo[surf_offset + NZID] * direction(2));
 
-          integral += -1.0 * p_normal * mesh->sgeo[surf_offset + WSJID];
+          integral += -1.0 * p_normal * sgeo[surf_offset + WSJID];
         }
       }
     }
@@ -1223,11 +1190,11 @@ heatFluxIntegral(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEn
           int surf_offset = mesh->Nsgeo * (offset + v);
 
           double normal_grad_T =
-              grad_T[vol_id + 0 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NXID] +
-              grad_T[vol_id + 1 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NYID] +
-              grad_T[vol_id + 2 * scalarFieldOffset()] * mesh->sgeo[surf_offset + NZID];
+              grad_T[vol_id + 0 * scalarFieldOffset()] * sgeo[surf_offset + NXID] +
+              grad_T[vol_id + 1 * scalarFieldOffset()] * sgeo[surf_offset + NYID] +
+              grad_T[vol_id + 2 * scalarFieldOffset()] * sgeo[surf_offset + NZID];
 
-          integral += -k * normal_grad_T * mesh->sgeo[surf_offset + WSJID];
+          integral += -k * normal_grad_T * sgeo[surf_offset + WSJID];
         }
       }
     }
@@ -1275,15 +1242,15 @@ gradient(const int offset, const double * f, double * grad_f, const nek_mesh::Ne
         for (int i = 0; i < mesh->Nq; ++i)
         {
           const int gid = e * mesh->Np * mesh->Nvgeo + k * mesh->Nq * mesh->Nq + j * mesh->Nq + i;
-          const double drdx = mesh->vgeo[gid + RXID * mesh->Np];
-          const double drdy = mesh->vgeo[gid + RYID * mesh->Np];
-          const double drdz = mesh->vgeo[gid + RZID * mesh->Np];
-          const double dsdx = mesh->vgeo[gid + SXID * mesh->Np];
-          const double dsdy = mesh->vgeo[gid + SYID * mesh->Np];
-          const double dsdz = mesh->vgeo[gid + SZID * mesh->Np];
-          const double dtdx = mesh->vgeo[gid + TXID * mesh->Np];
-          const double dtdy = mesh->vgeo[gid + TYID * mesh->Np];
-          const double dtdz = mesh->vgeo[gid + TZID * mesh->Np];
+          const double drdx = vgeo[gid + RXID * mesh->Np];
+          const double drdy = vgeo[gid + RYID * mesh->Np];
+          const double drdz = vgeo[gid + RZID * mesh->Np];
+          const double dsdx = vgeo[gid + SXID * mesh->Np];
+          const double dsdy = vgeo[gid + SYID * mesh->Np];
+          const double dsdz = vgeo[gid + SZID * mesh->Np];
+          const double dtdx = vgeo[gid + TXID * mesh->Np];
+          const double dtdy = vgeo[gid + TYID * mesh->Np];
+          const double dtdz = vgeo[gid + TZID * mesh->Np];
 
           // compute 'r' and 's' derivatives of (q_m) at node n
           double dpdr = 0.f, dpds = 0.f, dpdt = 0.f;
@@ -1321,7 +1288,7 @@ isHeatFluxBoundary(const int boundary)
 bool
 isMovingMeshBoundary(const int boundary)
 {
-  return ( bcMap::text(boundary, "mesh") == "fixedValue" || bcMap::text(boundary, "mesh") == "codedFixedValue");
+  return bcMap::text(boundary, "mesh") == "codedFixedValue";
 }
 
 bool
@@ -1340,14 +1307,6 @@ int
 polynomialOrder()
 {
   return entireMesh()->N;
-}
-
-int NflowElements()
-{
-  int n_local = flowMesh()->Nelements;
-  int n_global;
-  MPI_Allreduce(&n_local, &n_global, 1, MPI_INT, MPI_SUM, platform->comm.mpiComm);
-  return n_global;
 }
 
 int
@@ -1680,6 +1639,12 @@ double
 referenceArea()
 {
   return scales.A_ref;
+}
+
+double
+referenceVolume()
+{
+  return scales.V_ref;
 }
 
 void

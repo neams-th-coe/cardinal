@@ -25,7 +25,6 @@
 #include "nekrs.hpp"
 #include "bcMap.hpp"
 #include "udf.hpp"
-#include "meshSetup.hpp"
 #include "libmesh/point.h"
 #include "mesh.h"
 #include <string>
@@ -42,6 +41,15 @@ namespace nekrs
 {
 
 static int build_only;
+
+/// Allocate memory for the host mesh parameters
+void initializeHostMeshParameters();
+
+/// Update the mesh parameters on host
+void updateHostMeshParameters();
+
+dfloat * getSgeo();
+dfloat * getVgeo();
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -139,8 +147,8 @@ bool hasMovingMesh();
 bool hasVariableDt();
 
 /**
- * Whether nekRS's input file has the elasticity mesh solver
- * @return whether nekRS's input file has [MESH] solver = elasticity
+ * Whether nekRS's input file has the blending mesh solver
+ * @return whether nekRS's input file has a non-user [MESH] solver
  */
 bool hasBlendingSolver();
 
@@ -352,20 +360,29 @@ Point gllPoint(int local_elem_id, int local_node_id);
 Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
 
 /**
- * Integrate the interpolated flux over the boundaries of the data transfer mesh
- * @param[in] nek_boundary_coupling data structure holding boundary coupling info
- * @param[in] boundary boundaries over which to integrate the flux
- * @return boundary integrated flux
+ * Integrate the scratch space over boundaries
+ * @param[in] slot slot in scratch space
+ * @param[in] boundary boundaries over which to integrate the scratch space
+ * @param[in] pp_mesh portion of NekRS mesh to integrate over
+ * @return boundary integrated scratch space, with one value per sideset
  */
-std::vector<double> fluxIntegral(const NekBoundaryCoupling & nek_boundary_coupling,
-                                 const std::vector<int> & boundary);
+std::vector<double> usrwrkSideIntegral(const unsigned int & slot, const std::vector<int> & boundary,
+  const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
- * Integrate the interpolated heat source over the volume of the data transfer mesh
- * @param[in] nek_volume_coupling data structure holding volume coupling info
- * @return volume integrated heat source
+ * Volume integrate the scratch space
+ * @param[in] slot slot in scratch space to i ntegrat
+ * @param[in] pp_mesh NekRS mesh to integrate over
+ * @return volume integrated scratch space
  */
-double sourceIntegral(const NekVolumeCoupling & nek_volume_coupling);
+double usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Scale a slot in the usrwrk by a fixed value (multiplication)
+ * @param[in] slot slot in usrwrk to modify
+ * @param[in] value value to multiply on scratch slot
+ */
+void scaleUsrwrk(const unsigned int & slot, const dfloat & value);
 
 /**
  * Normalize the flux sent to nekRS to conserve the total flux
@@ -398,35 +415,12 @@ bool normalizeFlux(const NekBoundaryCoupling & nek_boundary_coupling,
                    double & normalized_nek_integral);
 
 /**
- * Normalize the heat source sent to nekRS to conserve the total heat source
- * @param[in] nek_volume_coupling data structure holding volume coupling info
- * @param[in] moose_integral total integrated heat source from MOOSE to conserve
- * @param[in] nek_integral total integrated heat source in nekRS to adjust
- * @param[out] normalized_nek_integral final normalized nek source integral
- * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
- */
-bool normalizeHeatSource(const NekVolumeCoupling & nek_volume_coupling,
-                         const double moose_integral,
-                         const double nek_integral,
-                         double & normalized_nek_integral);
-
-/**
  * Compute the area of a set of boundary IDs
  * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @return area integral
  */
 double area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh);
-
-/**
- * Compute the area integral of a given slot in the usrwrk array over a set of boundary IDs
- * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
- * @param[in] slot slot in usrwrk array
- * @param[in] pp_mesh which NekRS mesh to operate on
- * @return area integral of a component of the usrwrk array
- */
-double usrWrkSideIntegral(const std::vector<int> & boundary_id, const unsigned int & slot,
-                          const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
  * Compute the area integral of a given integrand over a set of boundary IDs
@@ -625,12 +619,6 @@ int polynomialOrder();
 int Nelements();
 
 /**
- * Total number of volume elements in the flow portion of the NekRS mesh, summed over all processes
- * @return number of flow volume elements
- */
-int NflowElements();
-
-/**
  * Mesh dimension
  * @return mesh dimension
  */
@@ -686,13 +674,13 @@ struct usrwrkIndices
   /// volumetric heat source (for volumetric heating)
   int heat_source;
 
-  /// x-velocity of moving boundary (for mesh elasticity)
+  /// x-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_x;
 
-  /// y-velocity of moving boundary (for mesh elasticity)
+  /// y-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_y;
 
-  /// z-velocity of moving boundary (for mesh elasticity)
+  /// z-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_z;
 
   /// boundary velocity (for separate domain coupling)
@@ -916,6 +904,12 @@ double referenceLength();
  * @return reference area scale
  */
 double referenceArea();
+
+/**
+ * Get the reference volume scale
+ * @return reference volume scale
+ */
+double referenceVolume();
 
 // useful concept from Stack Overflow for templating MPI calls
 template <typename T>
