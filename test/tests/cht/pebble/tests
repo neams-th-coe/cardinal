@@ -12,9 +12,7 @@
     custom_cmp = exodiff.cmp
 
     requirement = "A coupled MOOSE-nekRS pebble flow problem shall predict physically realistic "
-                  "conjugate heat transfer. This test is simply a modernized version of the "
-                  "onepebble2 case in the problems/spherical_heat_conduction directory, but with "
-                  "fewer time steps."
+                  "conjugate heat transfer."
     required_objects = 'NekRSProblem'
   []
 []

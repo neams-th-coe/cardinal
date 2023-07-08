@@ -9,7 +9,7 @@
 	url = https://github.com/idaholab/moose.git
 [submodule "contrib/SAM"]
 	path = contrib/SAM
-	url = https://git-nse.egs.anl.gov/SAM/SAM.git
+	url = git@gitlab-nse.egs.anl.gov:SAM/SAM.git
 [submodule "contrib/sockeye"]
 	path = contrib/sockeye
 	url = git@github.inl.gov:ncrc/sockeye.git

@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1" name="fuel">
+    <density units="kg/m3" value="1000.0" />
+    <nuclide ao="0.0001" name="U235" />
+    <nuclide ao="0.4998105" name="O16" />
+    <nuclide ao="0.0001895" name="O17" />
+  </material>
+  <material id="2" name="water">
+    <density units="kg/m3" value="100.0" />
+    <nuclide ao="1.99968852" name="H1" />
+    <nuclide ao="0.00031148" name="H2" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+  </material>
+</materials>

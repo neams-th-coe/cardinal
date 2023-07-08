@@ -18,6 +18,7 @@ Please download the files from the `msfr` folder [here](https://anl.app.box.com/
 !alert! note title=Computing Needs
 This tutorial requires [!ac](HPC) for running the NekRS model. You will be able to run
 the OpenMC model without [!ac](HPC) resources.
+You may choose to decrease the number of particles to solve faster.
 Note that you need to have built Cardinal with DAGMC support enabled, by setting
 `export ENABLE_DAGMC=true`.
 !alert-end!

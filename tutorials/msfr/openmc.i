@@ -55,10 +55,6 @@
   # this will start each Picard iteration from the fission source from the previous one
   reuse_source = true
 
-  # initially, in our Picard iterations we start with few particles, so some tally bins
-  # may not have any scores
-  check_zero_tallies = false
-
   scaling = 100.0
   tally_type = mesh
   mesh_template = msr.e

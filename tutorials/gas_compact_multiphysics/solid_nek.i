@@ -1,5 +1,4 @@
 channel_diameter = 0.016                 # diameter of the coolant channels (m)
-compact_diameter = 0.0127                # diameter of fuel compacts (m)
 n_bundles = 12                           # number of bundles in the full core
 n_coolant_channels_per_block = 108       # number of coolant channels per assembly
 unit_cell_height = 1.6                   # unit cell height - arbitrarily selected
@@ -22,9 +21,9 @@ fluid_density = 5.5508                   # fluid density (kg/m3)
 fluid_Cp = 5189.0                        # fluid isobaric specific heat (J/kg/K)
 triso_pf = 0.15                          # TRISO packing fraction (%)
 
-num_layers_for_THM = 150
-fluid_blocks = '101 102'
-solid_blocks = 'graphite compacts'
+fluid_blocks = 'coolant'
+solid_blocks = 'graphite compacts compacts_trimmer_tri'
+fuel_blocks = 'compacts compacts_trimmer_tri'
 
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
 unit_cell_mdot = ${fparse mdot / (n_bundles * n_coolant_channels_per_block)}
@@ -44,37 +43,9 @@ t0 = ${fparse channel_diameter / U_ref}
 nek_dt = 6e-3
 
 [Mesh]
-  [coolant_face]
-    type = AnnularMeshGenerator
-    nr = 4
-    nt = 16
-    rmin = 0.0
-    rmax = ${fparse channel_diameter / 2.0}
-    quad_subdomain_id = 101
-    tri_subdomain_id = 102
-  []
-  [extrude]
-    type = AdvancedExtruderGenerator
-    input = coolant_face
-    num_layers = ${num_layers_for_THM}
-    direction = '0 0 1'
-    heights = '${unit_cell_height}'
-    top_boundary = '300' # inlet
-    bottom_boundary = '400' # outlet
-  []
-  [rename] # we need to rename the outer surface of the coolant channel to not conflict with ID 1 which we use in solid_rotated.e
-    type = RenameBoundaryGenerator
-    input = extrude
-    old_boundary = '1'
-    new_boundary = '10000'
-  []
   [solid]
     type = FileMeshGenerator
-    file = solid_rotated.e
-  []
-  [add]
-    type = CombinerGenerator
-    inputs = 'solid rename'
+    file = solid_mesh_in.e
   []
 []
 
@@ -99,9 +70,9 @@ nek_dt = 6e-3
     type = CoupledForce
     variable = T
     v = power
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
-  [null]
+  [null] # The value of T on the fluid blocks is meaningless
     type = NullKernel
     variable = T
     block = ${fluid_blocks}
@@ -157,12 +128,13 @@ nek_dt = 6e-3
     type = HeatConductionMaterial
     thermal_conductivity_temperature_function = k_TRISO
     temp = T
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
 []
 
 [AuxVariables]
   [nek_temp]
+    block = ${fluid_blocks}
   []
   [nek_bulk_temp]
     block = ${fluid_blocks}
@@ -199,7 +171,7 @@ nek_dt = 6e-3
     type = ElementExtremeValue
     variable = T
     value_type = max
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
   [max_block_T]
     type = ElementExtremeValue
@@ -214,7 +186,7 @@ nek_dt = 6e-3
   [power]
     type = ElementIntegralVariablePostprocessor
     variable = power
-    block = 'compacts'
+    block = ${fuel_blocks}
     execute_on = transfer
   []
 []
@@ -284,7 +256,7 @@ nek_dt = 6e-3
     variable = T
     direction = z
     num_layers = ${num_layers_for_plots}
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
   [average_block_axial]
     type = LayeredAverage

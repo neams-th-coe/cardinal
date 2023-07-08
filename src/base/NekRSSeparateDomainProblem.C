@@ -148,7 +148,7 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
   //   scalar01         (if _inlet_coupling is true and _scalar01_coupling is true)
   //   scalar02         (if _inlet_coupling is true and _scalar02_coupling is true)
   //   scalar03         (if _inlet_coupling is true and _scalar03_coupling is true)
-  int start = 0;
+  int start = _usrwrk_indices.size();
   if (_inlet_coupling)
   {
     indices.boundary_velocity = start++ * nekrs::scalarFieldOffset();
@@ -179,7 +179,7 @@ NekRSSeparateDomainProblem::NekRSSeparateDomainProblem(const InputParameters & p
     }
   }
 
-  _minimum_scratch_size_for_coupling = _usrwrk_indices.size();
+  _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
 }
 
 NekRSSeparateDomainProblem::~NekRSSeparateDomainProblem() { nekrs::freeScratch(); }
@@ -239,7 +239,7 @@ NekRSSeparateDomainProblem::syncSolutions(ExternalProblem::Direction direction)
       sendScalarValuesToNek();
 
       // copy scratch to device
-      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
+      copyScratchToDevice();
 
       break;
     }

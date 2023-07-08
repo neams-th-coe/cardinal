@@ -11,7 +11,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   tally_type = mesh
-  check_zero_tallies = false
   solid_cell_level = 0
   solid_blocks = '1'
   power = 1000.0

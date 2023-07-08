@@ -30,7 +30,6 @@
   mesh_template = '../../neutronics/meshes/sphere.e'
   power = 100.0
   check_tally_sum = false
-  check_zero_tallies = false
 
   # Make the mistake of listing the mesh template translations in a different order than
   # was used to create the [Mesh]. This should catch that the mesh template does not

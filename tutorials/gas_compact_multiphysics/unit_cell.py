@@ -17,6 +17,11 @@ import materials as mats
 
 def coolant_temp(t_in, t_out, l, z):
     """
+    THIS IS ONLY USED FOR SETTING AN INITIAL CONDITION IN OPENMC's XML FILES -
+    the coolant temperature will be applied from MOOSE, we just set an initial
+    value here in case you want to run these files in standalone mode (i.e. with
+    the "openmc" executable).
+
     Computes the coolant temperature based on an expected cosine power distribution
     for a specified temperature rise. The total core temperature rise is governed
     by energy conservation as dT = Q / m / Cp, where dT is the total core temperature
@@ -54,6 +59,11 @@ def coolant_temp(t_in, t_out, l, z):
 
 def coolant_density(t):
   """
+    THIS IS ONLY USED FOR SETTING AN INITIAL CONDITION IN OPENMC's XML FILES -
+    the coolant density will be applied from MOOSE, we just set an initial
+    value here in case you want to run these files in standalone mode (i.e. with
+    the "openmc" executable).
+
   Computes the helium density from temperature assuming a fixed operating pressure.
 
   Parameters
@@ -95,18 +105,14 @@ fuel_channel_diam = specs.compact_diameter * m
 
 hex_orientation = 'x'
 
-def unit_cell(n_ax_zones, n_inactive, n_active, face_centered=False, add_entropy_mesh=False):
+def unit_cell(n_ax_zones, n_inactive, n_active):
     axial_section_height = reactor_height / n_ax_zones
 
     # superimposed search lattice
     triso_lattice_shape = (4, 4, int(axial_section_height))
 
-    if face_centered:
-        lattice_orientation = 'y'
-        cell_edge_length = 2.0 * cell_pitch * math.tan(math.pi / 6)
-    else:
-        lattice_orientation = 'x'
-        cell_edge_length = cell_pitch
+    lattice_orientation = 'x'
+    cell_edge_length = cell_pitch
 
     model = openmc.model.Model()
 
@@ -230,8 +236,13 @@ def unit_cell(n_ax_zones, n_inactive, n_active, face_centered=False, add_entropy
     settings.particles = 150000
     settings.inactive = n_inactive
     settings.batches = settings.inactive + n_active
-    settings.temperature['method'] = 'interpolation'
+
+    # the only reason we use 'nearest' here is to be sure we have a robust test for CI;
+    # otherwise, 1e-16 differences in temperature (due to numerical roundoff when using
+    # different MPI ranks) do change the tracking do to the stochastic interpolation
+    settings.temperature['method'] = 'nearest'
     settings.temperature['range'] = (294.0, 1500.0)
+    settings.temperature['tolerance'] = 200.0
 
     hexagon_half_flat = math.sqrt(3.0) / 2.0 * cell_edge_length
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
@@ -239,19 +250,6 @@ def unit_cell(n_ax_zones, n_inactive, n_active, face_centered=False, add_entropy
     source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
     source = openmc.Source(space=source_dist)
     settings.source = source
-
-    if (add_entropy_mesh):
-        entropy_mesh = openmc.RegularMesh()
-        entropy_mesh.lower_left = lower_left
-        entropy_mesh.upper_right = upper_right
-        entropy_mesh.dimension = (5, 5, 20)
-        settings.entropy_mesh = entropy_mesh
-
-    vol_calc = openmc.VolumeCalculation([hex_cell] + fuel_ch_cells,
-                                        100_000_000,
-                                        (-cell_edge_length, -cell_edge_length, reactor_bottom),
-                                        (cell_edge_length, cell_edge_length, reactor_top))
-    settings.volume_calculations = [vol_calc]
 
     model.settings = settings
 
@@ -296,12 +294,8 @@ def unit_cell(n_ax_zones, n_inactive, n_active, face_centered=False, add_entropy
 def main():
 
     ap = ArgumentParser()
-    ap.add_argument('-f','--face_centered', action='store_true',
-                    help='Center fuel channels on the faces of the unit cell.')
     ap.add_argument('-n', dest='n_axial', type=int, default=50,
                     help='Number of axial cell divisions')
-    ap.add_argument('-s', '--entropy', action='store_true',
-                    help='Whether to add a Shannon entropy mesh')
     ap.add_argument('-i', dest='n_inactive', type=int, default=20,
                     help='Number of inactive cycles')
     ap.add_argument('-a', dest='n_active', type=int, default=45,
@@ -309,7 +303,7 @@ def main():
 
     args = ap.parse_args()
 
-    model = unit_cell(args.n_axial, args.n_inactive, args.n_active, args.face_centered, args.entropy)
+    model = unit_cell(args.n_axial, args.n_inactive, args.n_active)
     model.export_to_xml()
 
 if __name__ == "__main__":

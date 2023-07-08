@@ -52,17 +52,19 @@ NekScalarValue::NekScalarValue(const InputParameters & parameters)
   }
 
   // pick a reasonable default if not specified
+  auto first_available_slot =
+      nek_problem->minimumScratchSizeForCoupling() + nek_problem->firstReservedUsrwrkSlot();
   if (isParamValid("usrwrk_slot"))
     _usrwrk_slot = getParam<unsigned int>("usrwrk_slot");
   else
-    _usrwrk_slot = nek_problem->minimumScratchSizeForCoupling();
+    _usrwrk_slot = first_available_slot;
 
   // check that we're not writing into space that's definitely being used for coupling
-  if (nek_problem->minimumScratchSizeForCoupling() > 0)
-    if (_usrwrk_slot < nek_problem->minimumScratchSizeForCoupling())
+  if (first_available_slot > 0)
+    if (_usrwrk_slot < first_available_slot)
       mooseError("Cannot write into a scratch space slot reserved for Nek-MOOSE coupling!\n"
-        "For this case, you must set 'usrwrk_slot' greater than or equal to ",
-        Moose::stringify(nek_problem->minimumScratchSizeForCoupling()));
+                 "For this case, you must set 'usrwrk_slot' greater than or equal to ",
+                 Moose::stringify(first_available_slot));
 
   if (_usrwrk_slot >= nek_problem->nUsrWrkSlots())
     paramError("usrwrk_slot", "This parameter cannot exceed the available pre-allocated slots (",

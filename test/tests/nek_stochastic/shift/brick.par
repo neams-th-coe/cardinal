@@ -1,0 +1,37 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  stopAt = numSteps
+  numSteps = 3
+  dt = 5.0e-1
+  polynomialOrder = 3
+  writeControl = steps
+  writeInterval = 2
+
+[MESH]
+  file = ../../nek_warnings/no_temp_solve/brick.re2
+
+[VELOCITY]
+  viscosity = 1.0
+  density = 1.0
+  residualTol = 1.0e-6
+  boundaryTypeMap = symy, symy, inlet, outlet, symz, symz
+
+[PRESSURE]
+  residualTol = 1.0e-5
+
+[TEMPERATURE]
+  solver = none
+
+[SCALAR01]
+  boundaryTypeMap = t, t, t, t, t, t
+  residualTol = 1e-5
+  diffusivity = 1000.0
+
+[SCALAR02]
+  solver = none
+
+[SCALAR03]
+  solver = none
+

@@ -87,7 +87,6 @@ n_layers = 100    # number of axial extrusion layers; for the converged case,
     rotate_angle = 0
 
     background_block_id = '1'
-    background_block_names = 'graphite'
   []
   [extrude]
     type = AdvancedExtruderGenerator

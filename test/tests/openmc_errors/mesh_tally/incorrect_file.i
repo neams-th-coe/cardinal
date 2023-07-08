@@ -22,7 +22,6 @@
   tally_type = mesh
   power = 100.0
   check_tally_sum = false
-  check_zero_tallies = false
 
   # make the mistake of clearly using a totally different mesh
   mesh_template = '../../neutronics/meshes/pincell.e'

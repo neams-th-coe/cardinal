@@ -46,6 +46,12 @@ NekRSProblemBase::validParams()
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
     "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
+  params.addParam<unsigned int>(
+      "first_reserved_usrwrk_slot",
+      0,
+      "Slice (zero-indexed) in nrs->usrwrk where Cardinal will begin reading/writing data; this "
+      "can be used to shift the usrwrk slots reserved by Cardinal, so that you can use earlier "
+      "slices for custom purposes");
 
   params.addParam<bool>("nondimensional", false, "Whether NekRS is solved in non-dimensional form");
   params.addRangeCheckedParam<Real>(
@@ -122,6 +128,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
     _constant_interval(getParam<unsigned int>("constant_interval")),
     _skip_final_field_file(getParam<bool>("skip_final_field_file")),
+    _first_reserved_usrwrk_slot(getParam<unsigned int>("first_reserved_usrwrk_slot")),
     _start_time(nekrs::startTime()),
     _elapsedStepSum(0.0),
     _elapsedTime(nekrs::getNekSetupTime()),
@@ -137,6 +144,17 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   if (params.isParamSetByUser("minimize_transfers_out"))
     mooseError("The 'minimize_transfers_out' parameter has been replaced by "
       "'synchronization_interval = parent_app'! Please update your input files.");
+
+  if (_n_usrwrk_slots == 0)
+    checkUnusedParam(params, "first_reserved_usrwrk_slot", "not reserving any scratch space");
+  else if (_first_reserved_usrwrk_slot >= _n_usrwrk_slots)
+    mooseError("The 'first_reserved_usrwrk_slot' (" + std::to_string(_first_reserved_usrwrk_slot) +
+               ") "
+               "must be less than 'n_usrwrk_slots' (" +
+               std::to_string(_n_usrwrk_slots) + ")!");
+
+  for (unsigned int i = 0; i < _first_reserved_usrwrk_slot; ++i)
+    _usrwrk_indices.push_back("unused");
 
   _synchronization_interval = getParam<MooseEnum>("synchronization_interval").getEnum<
     synchronization::SynchronizationEnum>();
@@ -446,11 +464,12 @@ NekRSProblemBase::getNekScalarValueUserObjects()
     return;
 
   auto min_for_uo = *slots.begin();
-  if (min_for_uo > _minimum_scratch_size_for_coupling)
+  if (min_for_uo > _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot)
   {
     std::stringstream coupling_slots;
     coupling_slots << "0";
-    for (unsigned int i = 1; i < _minimum_scratch_size_for_coupling; ++i)
+    for (unsigned int i = 1; i < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot;
+         ++i)
       coupling_slots << ", " << i;
 
     mooseError("The 'usrwrk_slot' specified for the NekScalarValue user objects must not exhibit\n"
@@ -518,7 +537,7 @@ NekRSProblemBase::initialSetup()
   VariadicTable<std::string, std::string, std::string> vt({"Quantity", "How to Access (.oudf)", "How to Access (.udf)"});
 
   // add rows for the coupling data
-  for (int i = 0; i < _minimum_scratch_size_for_coupling; ++i)
+  for (int i = 0; i < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot; ++i)
     vt.addRow(_usrwrk_indices[i], "bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
       "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
@@ -532,13 +551,18 @@ NekRSProblemBase::initialSetup()
   }
 
   // add rows for the extra slices
-  for (unsigned int i = _minimum_scratch_size_for_coupling + _n_uo_slots; i < _n_usrwrk_slots; ++i)
+  for (unsigned int i =
+           _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot + _n_uo_slots;
+       i < _n_usrwrk_slots;
+       ++i)
     vt.addRow("unused", "bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
       "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
-  if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling)
+  if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot)
     mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
-      "'n_usrwrk_slots' must be greater than or equal to ", _minimum_scratch_size_for_coupling, "!");
+               "'n_usrwrk_slots' must be greater than or equal to ",
+               _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot,
+               "!");
 
   if (_n_usrwrk_slots == 0)
   {
@@ -719,7 +743,7 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 
       sendScalarValuesToNek();
 
-      nekrs::copyScratchToDevice(_minimum_scratch_size_for_coupling + _n_uo_slots);
+      copyScratchToDevice();
 
       break;
 
@@ -1295,6 +1319,24 @@ NekRSProblemBase::mapFaceDataToNekVolume(const unsigned int & e, const unsigned 
       }
     }
   }
+}
+
+void
+NekRSProblemBase::copyScratchToDevice()
+{
+  if (_minimum_scratch_size_for_coupling + _n_uo_slots > 0)
+  {
+    auto n = nekrs::scalarFieldOffset();
+    auto nbytes = n * sizeof(dfloat);
+
+    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+    nrs->o_usrwrk.copyFrom(nrs->usrwrk + _first_reserved_usrwrk_slot * n,
+                           (_minimum_scratch_size_for_coupling + _n_uo_slots) * nbytes,
+                           _first_reserved_usrwrk_slot * nbytes);
+  }
+
+  if (nekrs::hasMovingMesh())
+    nekrs::copyDeformationToDevice();
 }
 
 #endif

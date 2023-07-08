@@ -5,8 +5,9 @@
 # cardinal-opt -i common_input.i openmc_nek.i
 
 num_layers_for_THM = 150
-fluid_blocks = '101 102'
-solid_blocks = 'graphite compacts'
+fluid_blocks = 'coolant'
+solid_blocks = 'graphite compacts compacts_trimmer_tri'
+fuel_blocks = 'compacts compacts_trimmer_tri'
 
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
 
@@ -16,37 +17,9 @@ nek_dt = 6e-3
 N = 1000
 
 [Mesh]
-  [coolant_face]
-    type = AnnularMeshGenerator
-    nr = 4
-    nt = 16
-    rmin = 0.0
-    rmax = ${fparse channel_diameter / 2.0}
-    quad_subdomain_id = 101
-    tri_subdomain_id = 102
-  []
-  [extrude]
-    type = AdvancedExtruderGenerator
-    input = coolant_face
-    num_layers = ${num_layers_for_THM}
-    direction = '0 0 1'
-    heights = '${unit_cell_height}'
-    top_boundary = '300' # inlet
-    bottom_boundary = '400' # outlet
-  []
-  [rename] # we need to rename the outer surface of the coolant channel to not conflict with ID 1 which we use in solid_rotated.e
-    type = RenameBoundaryGenerator
-    input = extrude
-    old_boundary = '1'
-    new_boundary = '10000'
-  []
   [solid]
     type = FileMeshGenerator
-    file = solid_rotated.e
-  []
-  [add]
-    type = CombinerGenerator
-    inputs = 'solid rename'
+    file = solid_mesh_in.e
   []
 []
 
@@ -74,7 +47,7 @@ N = 1000
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
-    T = temp
+    T = nek_temp
     fp = helium
     execute_on = 'timestep_begin'
   []
@@ -119,7 +92,7 @@ N = 1000
   scaling = 100.0
   solid_blocks = ${solid_blocks}
   fluid_blocks = ${fluid_blocks}
-  tally_blocks = 'compacts'
+  tally_blocks = ${fuel_blocks}
   tally_type = cell
   tally_name = heat_source
   solid_cell_level = 1
@@ -143,6 +116,8 @@ N = 1000
   type = Transient
   dt = ${fparse N * nek_dt * t0}
 
+  # This is somewhat loose, and you should use a tighter tolerance for production runs;
+  # we use 1e-2 to obtain a faster tutorial
   steady_state_detection = true
   check_aux = true
   steady_state_tolerance = 1e-2
@@ -201,13 +176,13 @@ N = 1000
     type = ElementExtremeValue
     variable = heat_source
     value_type = min
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
   [max_power]
     type = ElementExtremeValue
     variable = heat_source
     value_type = max
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
 []
 
@@ -217,7 +192,7 @@ N = 1000
     variable = heat_source
     direction = z
     num_layers = ${num_layers_for_plots}
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
 []
 

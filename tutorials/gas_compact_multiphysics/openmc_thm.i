@@ -6,43 +6,16 @@
 
 num_layers_for_THM = 150
 num_layers = 50
-fluid_blocks = '101 102'
-solid_blocks = 'graphite compacts'
+fluid_blocks = 'coolant'
+solid_blocks = 'graphite compacts compacts_trimmer_tri'
+fuel_blocks = 'compacts compacts_trimmer_tri'
 
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
 
 [Mesh]
-  [coolant_face]
-    type = AnnularMeshGenerator
-    nr = 4
-    nt = 16
-    rmin = 0.0
-    rmax = ${fparse channel_diameter / 2.0}
-    quad_subdomain_id = 101
-    tri_subdomain_id = 102
-  []
-  [extrude]
-    type = AdvancedExtruderGenerator
-    input = coolant_face
-    num_layers = ${num_layers_for_THM}
-    direction = '0 0 1'
-    heights = '${unit_cell_height}'
-    top_boundary = '300' # inlet
-    bottom_boundary = '400' # outlet
-  []
-  [rename] # we need to rename the outer surface of the coolant channel to not conflict with ID 1 which we use in solid_rotated.e
-    type = RenameBoundaryGenerator
-    input = extrude
-    old_boundary = '1'
-    new_boundary = '10000'
-  []
   [solid]
     type = FileMeshGenerator
-    file = solid_rotated.e
-  []
-  [add]
-    type = CombinerGenerator
-    inputs = 'solid rename'
+    file = solid_mesh_in.e
   []
 []
 
@@ -77,7 +50,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = FluidDensityAux
     variable = density
     p = ${outlet_P}
-    T = temp
+    T = thm_temp
     fp = helium
     execute_on = 'timestep_begin linear'
   []
@@ -107,7 +80,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
   [heat_source]
     type = ConstantIC
     variable = heat_source
-    block = 'compacts'
+    block = ${fuel_blocks}
     value = ${fparse unit_cell_power / (2.0 * pi * compact_diameter * compact_diameter / 4.0 * unit_cell_height)}
   []
 []
@@ -128,7 +101,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
   scaling = 100.0
   solid_blocks = ${solid_blocks}
   fluid_blocks = ${fluid_blocks}
-  tally_blocks = 'compacts'
+  tally_blocks = ${fuel_blocks}
   tally_type = cell
   tally_name = heat_source
   solid_cell_level = 1
@@ -151,9 +124,11 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 [Executioner]
   type = Transient
 
+  # We use a fairly loose tolerance here for a tutorial; you may consider increasing this
+  # for production runs
   steady_state_detection = true
   check_aux = true
-  steady_state_tolerance = 1e-2
+  steady_state_tolerance = 5e-3
 []
 
 [MultiApps]
@@ -254,13 +229,13 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     type = ElementExtremeValue
     variable = heat_source
     value_type = min
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
   [max_power]
     type = ElementExtremeValue
     variable = heat_source
     value_type = max
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
 []
 
@@ -296,7 +271,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     variable = heat_source
     direction = z
     num_layers = ${num_layers}
-    block = 'compacts'
+    block = ${fuel_blocks}
   []
 []
 
@@ -308,10 +283,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 []
 
 [Outputs]
-  [out]
-    type = Exodus
-    hide = 'solid_temp thm_temp'
-  []
+  exodus = true
 
   [csv]
     type = CSV

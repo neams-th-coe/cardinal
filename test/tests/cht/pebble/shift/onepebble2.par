@@ -1,0 +1,26 @@
+[OCCA]
+backend = CPU
+
+[GENERAL]
+polynomialOrder = 5
+numSteps = 5
+dt = 1e-04
+writeInterval = 20
+
+[MESH]
+file = ../onepebble2.re2
+
+[PRESSURE]
+residualTol = 1e-06
+
+[VELOCITY]
+boundaryTypeMap = W, O, v
+residualTol = 1e-07
+density = 1.0
+viscosity = 0.00005
+
+[TEMPERATURE]
+boundaryTypeMap = f, I, t
+rhoCp = 100000.0
+conductivity = 5.0
+residualTol = 1e-07
