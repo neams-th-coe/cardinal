@@ -1,27 +1,17 @@
 [Tests]
-  [precompile]
-    type = RunCommand
-    command = '${NEKRS_HOME}/bin/nrspre channel 1'
-    requirement = "The system shall precompile a Nek case."
-    required_objects = 'NekRSProblem'
-  []
   [test]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
     min_parallel = 2
-    abs_zero = 5e-7
-    prereq = precompile
+    abs_zero = 1e-7
     requirement = "Cardinal shall be able to run the channel NekRS example with a thin wrapper. "
-                  "We add postprocessors to let us compare min/max values printed to the screen by "
-                  "NekRS. We also check postprocessor differences between equivalent operations "
+                  "We check postprocessor differences between equivalent operations "
                   "taken directly on the NekRS solution arrays (for instance, a NekVolumeAverage) "
-                  "and directly on the extracted solution (for instance, an ElementAverageValue). "
-                  "To accommodate changes by NekRS developers to NekRs's test suite, we simply "
+                  "and directly on the extracted solution (for instance, an ElementAverageValue). We "
                   "require that all the postprocessors match between these two renderings of the "
                   "solution (on the GLL points versus on the mesh mirror). This verifies "
                   "correct extraction of the NekRS solution with the 'output' parameter feature."
     required_objects = 'NekRSProblem'
-    skip = 'Need to resolve precompile issues'
   []
 []

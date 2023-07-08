@@ -341,5 +341,5 @@
   exodus = true
   execute_on = 'final'
 
-  hide = 'max_Vx_output min_Vx_output max_Vy_output min_Vy_output max_p_output min_p_output area_output volume_output max_Vx_side max_Vx_side_output max_Vy_side max_Vy_side_output max_p_side max_p_side_output min_Vx_side min_Vx_side_output min_Vy_side min_Vy_side_output min_p_side min_p_side_output avg_p avg_p_output avg_Vx avg_Vx_output avg_Vy avg_Vy_output avg_Vx_side avg_Vx_side_output avg_Vy_side avg_Vy_side_output avg_p_side avg_p_side_output'
+  hide = 'max_Vx_output min_Vx_output max_Vy_output min_Vy_output max_p_output min_p_output area_output volume_output max_Vx_side max_Vx_side_output max_Vy_side max_Vy_side_output max_p_side max_p_side_output min_Vx_side min_Vx_side_output min_Vy_side min_Vy_side_output min_p_side min_p_side_output avg_p avg_p_output avg_Vx avg_Vx_output avg_Vy avg_Vy_output avg_Vx_side avg_Vx_side_output avg_Vy_side avg_Vy_side_output avg_p_side avg_p_side_output max_Vx max_Vy max_p min_Vx min_Vy min_p area'
 []
