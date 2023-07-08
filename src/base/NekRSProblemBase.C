@@ -537,8 +537,9 @@ NekRSProblemBase::initialSetup()
   VariadicTable<std::string, std::string, std::string> vt({"Quantity", "How to Access (.oudf)", "How to Access (.udf)"});
 
   // add rows for the coupling data
-  for (int i = 0; i < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot; ++i)
-    vt.addRow(_usrwrk_indices[i], "bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
+  int end = _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot;
+  for (int i = 0; i < end; ++i)
+    vt.addRow(_usrwrk_indices[i], "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
       "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
   // add rows for the NekScalarValue(s)
@@ -546,16 +547,13 @@ NekRSProblemBase::initialSetup()
   {
     auto slot = uo->usrwrkSlot();
     auto count = uo->counter();
-    vt.addRow(uo->name(), "bc->wrk[" + std::to_string(slot) + " * bc->fieldOffset + " + std::to_string(count) + "]",
+    vt.addRow(uo->name(), "bc->usrwrk[" + std::to_string(slot) + " * bc->fieldOffset + " + std::to_string(count) + "]",
       "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " + std::to_string(count) + "]");
   }
 
   // add rows for the extra slices
-  for (unsigned int i =
-           _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot + _n_uo_slots;
-       i < _n_usrwrk_slots;
-       ++i)
-    vt.addRow("unused", "bc->wrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
+  for (unsigned int i = end + _n_uo_slots; i < _n_usrwrk_slots; ++i)
+    vt.addRow("unused", "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
       "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
   if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot)
@@ -579,7 +577,14 @@ NekRSProblemBase::initialSetup()
     _console << std::endl;
   }
 
-  // nekRS calls UDF_ExecuteStep once before the time stepping begins
+  // nekRS calls UDF_ExecuteStep once before the time stepping begins; the isLastStep stuff is
+  // copy-pasta from NekRS main(), except that if Nek is a sub-app, we give full control of
+  // time stepping to the main app
+  bool isLastStep = false;
+  if (_app.isUltimateMaster())
+    isLastStep = !((nekrs::endTime() > nekrs::startTime() || nekrs::numSteps() > _t_step));
+  nekrs::lastStep(isLastStep);
+
   nekrs::udfExecuteStep(_timestepper->nondimensionalDT(_start_time), _t_step, false /* not an output step */);
   nekrs::resetTimer("udfExecuteStep");
 }
@@ -619,14 +624,30 @@ NekRSProblemBase::externalSolve()
   if (_t_step <= 1000)
     nekrs::verboseInfo(true);
 
-  // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
-  // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
-  nekrs::runStep(_timestepper->nondimensionalDT(step_start_time),
+  // Tell NekRS what the time step size is
+  nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
                  _timestepper->nondimensionalDT(_dt),
                  _t_step);
 
+  // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
+  // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
+  int corrector = 1;
+  bool converged = false;
+  do {
+    converged = nekrs::runStep(corrector++);
+  }
+  while (!converged);
+
+  // TODO: time is somehow corrected here
+  nekrs::finishStep();
+
   // optional entry point to adjust the recently-computed NekRS solution
   adjustNekSolution();
+
+  // copy-pasta from Nek's main() for calling timers and printing
+  if (nekrs::updateFileCheckFreq())
+    if (_t_step % nekrs::updateFileCheckFreq())
+      nekrs::processUpdFile();
 
   // Note: here, we copy to both the nrs solution arrays and to the Nek5000 backend arrays,
   // because it is possible that users may interact using the legacy usr-file approach.
@@ -636,6 +657,10 @@ NekRSProblemBase::externalSolve()
   // postprocessors that touch the `nrs` arrays that can be called in an arbitrary fashion
   // by the user.
   nek::ocopyToNek(_timestepper->nondimensionalDT(step_end_time), _t_step);
+
+  if (nekrs::printInfoFreq())
+    if (_t_step % nekrs::printInfoFreq() == 0)
+      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step, false, true);
 
   if (_is_output_step)
   {
@@ -659,11 +684,6 @@ NekRSProblemBase::externalSolve()
     }
   }
 
-  // copy-pasta from Nek's main() for calling timers and printing
-  if (nekrs::updateFileCheckFreq())
-    if (_t_step % nekrs::updateFileCheckFreq())
-      nekrs::processUpdFile();
-
   MPI_Barrier(comm().get());
   const double elapsedStep = MPI_Wtime() - timeStartStep;
   _tSolveStepMin = std::min(elapsedStep, _tSolveStepMin);
@@ -679,7 +699,7 @@ NekRSProblemBase::externalSolve()
 
   if (nekrs::printInfoFreq())
     if (_t_step % nekrs::printInfoFreq() == 0)
-      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step);
+      nekrs::printInfo(_timestepper->nondimensionalDT(_time), _t_step, true, false);
 
   if (nekrs::runTimeStatFreq())
     if (_t_step % nekrs::runTimeStatFreq() == 0)
