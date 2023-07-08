@@ -7,9 +7,6 @@
   type = NekRSStandaloneProblem
   casename = 'channel'
   output = 'pressure velocity'
-
-  # We omit the non-dimensional settings here in order to just extract the
-  # non-dimensional solution as-is, without dimensionalizing it.
 []
 
 [Executioner]
@@ -21,15 +18,6 @@
 []
 
 [Postprocessors]
-  # All the following postprocessors are applying operations both (a) directly to the NekRS
-  # solution arrays, and (b) to the variables extracted with the 'outputs = ...' syntax.
-  # Rather than check the actual values of these postprocessors (which might change if the
-  # NekRS development team changes the nature of their CI tests), we can just check that
-  # the difference between the Nek-style postprocessors from the MOOSE-style postprocessors
-  # (acting on the extract solution) are nearly zero. We only check the absolute value of
-  # the min/max volume values for Vx, Vy, and pressure because those values are printed to
-  # the screen and offer quick confirmation of any changes that are due to changes in NekRS itself.
-
   [max_Vx]
     type = NekVolumeExtremeValue
     field = velocity_x
