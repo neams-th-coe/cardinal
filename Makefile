@@ -1,6 +1,6 @@
 # Optional environment variables:
 #
-# To control where various third-party dependencies are. You don't need to set
+# To control third-party dependencie locations. You don't need to set
 # any of these unless you want to use non-submodule third-party dependencies:
 
 # * CONTRIB_DIR      : Dir with third-party dependencies (default: contrib)
