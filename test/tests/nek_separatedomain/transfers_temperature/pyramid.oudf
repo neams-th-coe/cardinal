@@ -1,11 +1,11 @@
 void velocityDirichletConditions(bcData *bc)
 {
-  bc->u = bc->wrk[bc->idM];
+  bc->u = bc->usrwrk[bc->idM];
   bc->v = 0.0;
   bc->w = 0.0;
 }
 
 void scalarDirichletConditions(bcData *bc)
 {
-  if (bc->scalarId == 0) bc->s = bc->wrk[bc->idM + bc->fieldOffset];
+  if (bc->scalarId == 0) bc->s = bc->usrwrk[bc->idM + bc->fieldOffset];
 }
