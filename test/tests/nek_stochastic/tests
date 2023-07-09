@@ -3,6 +3,7 @@
     type = CSVDiff
     input = driver_transient.i
     csvdiff = 'driver_transient_out_nek0.csv driver_transient_out_nek1.csv driver_transient_out_nek2.csv'
+    max_time = 400
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends time-dependent "
                   "random values from MOOSE to NekRS, where time synchronization is driven by the main app. "
                   "The values of the random variables are used to fill SCALAR02 with a constant value, which we "
