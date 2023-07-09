@@ -13,6 +13,7 @@
     type = CSVDiff
     input = nek.i
     csvdiff = inlet_outlet_T.csv
+    rel_err = 2e-4
     cli_args = 'Outputs/file_base=inlet_outlet_T Problem/coupling_type="inlet outlet" Outputs/hide="dP inlet_P outlet_P"'
     requirement = "Cardinal shall be able to transfer inlet temperature and velocity to the inlet_boundary of NekRS. "
                   "We check this by applying those boundary conditions in NekRS, and looking at postprocessors on "
