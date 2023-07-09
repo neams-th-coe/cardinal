@@ -195,7 +195,8 @@ NekRSProblem::initialSetup()
   bool has_temperature_solve = nekrs::hasTemperatureSolve();
   if (!has_temperature_solve)
     mooseWarning(
-        "By setting 'solver = none' for temperature in '" + _casename + ".par', nekRS "
+        "By setting 'solver = none' for temperature in '" + _casename +
+        ".par', nekRS "
         "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
         "fixed at its initial condition, and the heat flux\nand power transferred to nekRS will be "
         "unused.");
@@ -218,7 +219,8 @@ NekRSProblem::initialSetup()
   }
 
   if (!boundary && nekrs::hasBlendingSolver())
-    mooseError("'" + _casename + ".par' has a solver in the [MESH] block. This solver uses\n"
+    mooseError("'" + _casename +
+               ".par' has a solver in the [MESH] block. This solver uses\n"
                "boundary displacement values from MOOSE to move the NekRS mesh. Please indicate\n"
                "the 'boundary' for which mesh motion is coupled from MOOSE to NekRS.");
 
@@ -236,7 +238,9 @@ NekRSProblem::initialSetup()
 
     if (!has_one_mv_bc)
       mooseError("For boundary-coupled moving mesh problems, you need at least one "
-                 "boundary in '" + _casename + ".par'\nto be of the type 'codedFixedValue'"
+                 "boundary in '" +
+                 _casename +
+                 ".par'\nto be of the type 'codedFixedValue'"
                  " in the [MESH] block.");
   }
 
@@ -369,7 +373,8 @@ NekRSProblem::sendBoundaryDeformationToNek()
 void
 NekRSProblem::sendBoundaryHeatFluxToNek()
 {
-  _console << "Sending heat flux to NekRS boundary " << Moose::stringify(*_boundary) << "..." << std::endl;
+  _console << "Sending heat flux to NekRS boundary " << Moose::stringify(*_boundary) << "..."
+           << std::endl;
 
   if (!_volume)
   {
@@ -405,7 +410,8 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
   const double nek_flux_print_mult = scale_squared * nekrs::referenceFlux();
 
   // integrate the flux over each individual boundary
-  std::vector<double> nek_flux_sidesets = nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
+  std::vector<double> nek_flux_sidesets =
+      nekrs::usrwrkSideIntegral(indices.flux, *_boundary, nek_mesh::all);
 
   bool successful_normalization;
   double normalized_nek_flux = 0.0;
@@ -442,7 +448,8 @@ NekRSProblem::sendBoundaryHeatFluxToNek()
     auto moose_flux = *_flux_integral;
     const double nek_flux = std::accumulate(nek_flux_sidesets.begin(), nek_flux_sidesets.end(), 0.0);
 
-    _console << "[boundary " << Moose::stringify(*_boundary) << "]: Normalizing total NekRS flux of "
+    _console << "[boundary " << Moose::stringify(*_boundary)
+             << "]: Normalizing total NekRS flux of "
              << Moose::stringify(nek_flux * nek_flux_print_mult)
              << " to the conserved MOOSE value of " << Moose::stringify(moose_flux) << std::endl;
 
@@ -530,7 +537,8 @@ NekRSProblem::normalizeHeatSource(const double moose, double nek, double & norma
   nekrs::scaleUsrwrk(indices.heat_source, moose / nek);
 
   // check that the normalization worked properly
-  normalized_nek = nekrs::usrwrkVolumeIntegral(indices.heat_source, nek_mesh::all) * dimension_multiplier;
+  normalized_nek =
+      nekrs::usrwrkVolumeIntegral(indices.heat_source, nek_mesh::all) * dimension_multiplier;
   bool low_rel_err = std::abs(normalized_nek - moose) / moose < _rel_tol;
   bool low_abs_err = std::abs(normalized_nek - moose) < _abs_tol;
 

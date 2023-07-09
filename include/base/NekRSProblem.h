@@ -121,10 +121,12 @@ protected:
    * @param[in] moose_integral total integrated value from MOOSE to conserve
    * @param[in] nek_integral total integrated value in nekRS to adjust
    * @param[out] normalized_nek_integral final normalized value
-   * @return whether normalization was successful, i.e. normalized_nek_integral equals moose_integral
+   * @return whether normalization was successful, i.e. normalized_nek_integral equals
+   * moose_integral
    */
-  bool normalizeHeatSource(const double moose_integral, const double nek_integral,
-    double & normalized_nek_integral);
+  bool normalizeHeatSource(const double moose_integral,
+                           const double nek_integral,
+                           double & normalized_nek_integral);
 
   /**
    * Print a warning to the user if the initial fluxes (before normalization) differ
@@ -137,8 +139,8 @@ protected:
   virtual void addTemperatureVariable() override { return; }
 
   /**
-   * Calculate mesh velocity for NekRS's blending solver using current and previous displacement values
-   * and write it to nrs->usrwrk, from where it can be accessed in nekRS's .oudf file.
+   * Calculate mesh velocity for NekRS's blending solver using current and previous displacement
+   * values and write it to nrs->usrwrk, from where it can be accessed in nekRS's .oudf file.
    * @param[in] e Boundary element that the displacement values belong to
    * @param[in] field NekWriteEnum mesh_velocity_x/y/z field
    */

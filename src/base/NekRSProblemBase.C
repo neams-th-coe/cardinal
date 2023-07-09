@@ -539,22 +539,27 @@ NekRSProblemBase::initialSetup()
   // add rows for the coupling data
   int end = _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot;
   for (int i = 0; i < end; ++i)
-    vt.addRow(_usrwrk_indices[i], "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
-      "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
+    vt.addRow(_usrwrk_indices[i],
+              "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
+              "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
   // add rows for the NekScalarValue(s)
   for (const auto & uo : _nek_uos)
   {
     auto slot = uo->usrwrkSlot();
     auto count = uo->counter();
-    vt.addRow(uo->name(), "bc->usrwrk[" + std::to_string(slot) + " * bc->fieldOffset + " + std::to_string(count) + "]",
-      "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " + std::to_string(count) + "]");
+    vt.addRow(uo->name(),
+              "bc->usrwrk[" + std::to_string(slot) + " * bc->fieldOffset + " +
+                  std::to_string(count) + "]",
+              "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " +
+                  std::to_string(count) + "]");
   }
 
   // add rows for the extra slices
   for (unsigned int i = end + _n_uo_slots; i < _n_usrwrk_slots; ++i)
-    vt.addRow("unused", "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
-      "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
+    vt.addRow("unused",
+              "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
+              "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
   if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot)
     mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
@@ -626,17 +631,17 @@ NekRSProblemBase::externalSolve()
 
   // Tell NekRS what the time step size is
   nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
-                 _timestepper->nondimensionalDT(_dt),
-                 _t_step);
+                  _timestepper->nondimensionalDT(_dt),
+                  _t_step);
 
   // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
   // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
   int corrector = 1;
   bool converged = false;
-  do {
+  do
+  {
     converged = nekrs::runStep(corrector++);
-  }
-  while (!converged);
+  } while (!converged);
 
   // TODO: time is somehow corrected here
   nekrs::finishStep();

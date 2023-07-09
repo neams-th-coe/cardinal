@@ -94,8 +94,7 @@ NekBinnedVolumeIntegral::binnedVolumeIntegral(const field::NekFieldEnum & integr
     {
       Point p = nekPoint(k, v);
       unsigned int b = bin(p);
-      _bin_partial_values[b] +=
-          f(offset + v) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      _bin_partial_values[b] += f(offset + v) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 

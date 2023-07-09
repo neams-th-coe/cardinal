@@ -411,7 +411,7 @@ displacementAndCounts(const std::vector<int> & base_counts,
 double
 usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_mesh)
 {
-  nrs_t * nrs = (nrs_t *) nrsPtr();
+  nrs_t * nrs = (nrs_t *)nrsPtr();
   const auto & mesh = getMesh(pp_mesh);
 
   double integral = 0.0;
@@ -421,8 +421,7 @@ usrwrkVolumeIntegral(const unsigned int & slot, const nek_mesh::NekMeshEnum pp_m
     int offset = k * mesh->Np;
 
     for (int v = 0; v < mesh->Np; ++v)
-      integral += nrs->usrwrk[slot + offset + v] *
-                  vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += nrs->usrwrk[slot + offset + v] * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
   }
 
   // sum across all processes
@@ -448,7 +447,9 @@ scaleUsrwrk(const unsigned int & slot, const dfloat & value)
 }
 
 std::vector<double>
-usrwrkSideIntegral(const unsigned int & slot, const std::vector<int> & boundary, const nek_mesh::NekMeshEnum pp_mesh)
+usrwrkSideIntegral(const unsigned int & slot,
+                   const std::vector<int> & boundary,
+                   const nek_mesh::NekMeshEnum pp_mesh)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   const auto & mesh = getMesh(pp_mesh);
@@ -469,8 +470,8 @@ usrwrkSideIntegral(const unsigned int & slot, const std::vector<int> & boundary,
         int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
 
         for (int v = 0; v < mesh->Nfp; ++v)
-          integral[b_index] +=
-              nrs->usrwrk[slot + mesh->vmapM[offset + v]] * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          integral[b_index] += nrs->usrwrk[slot + mesh->vmapM[offset + v]] *
+                               sgeo[mesh->Nsgeo * (offset + v) + WSJID];
       }
     }
   }
@@ -631,8 +632,8 @@ void
 initializeHostMeshParameters()
 {
   mesh_t * mesh = entireMesh();
-  sgeo = (dfloat *) calloc(mesh->o_sgeo.size(), sizeof(dfloat));
-  vgeo = (dfloat *) calloc(mesh->o_vgeo.size(), sizeof(dfloat));
+  sgeo = (dfloat *)calloc(mesh->o_sgeo.size(), sizeof(dfloat));
+  vgeo = (dfloat *)calloc(mesh->o_vgeo.size(), sizeof(dfloat));
 }
 
 void
@@ -1139,10 +1140,9 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          double p_normal = nrs->P[vol_id] *
-                            (sgeo[surf_offset + NXID] * direction(0) +
-                             sgeo[surf_offset + NYID] * direction(1) +
-                             sgeo[surf_offset + NZID] * direction(2));
+          double p_normal = nrs->P[vol_id] * (sgeo[surf_offset + NXID] * direction(0) +
+                                              sgeo[surf_offset + NYID] * direction(1) +
+                                              sgeo[surf_offset + NZID] * direction(2));
 
           integral += -1.0 * p_normal * sgeo[surf_offset + WSJID];
         }

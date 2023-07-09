@@ -366,8 +366,9 @@ Point gllPointFace(int local_elem_id, int local_face_id, int local_node_id);
  * @param[in] pp_mesh portion of NekRS mesh to integrate over
  * @return boundary integrated scratch space, with one value per sideset
  */
-std::vector<double> usrwrkSideIntegral(const unsigned int & slot, const std::vector<int> & boundary,
-  const nek_mesh::NekMeshEnum pp_mesh);
+std::vector<double> usrwrkSideIntegral(const unsigned int & slot,
+                                       const std::vector<int> & boundary,
+                                       const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
  * Volume integrate the scratch space
