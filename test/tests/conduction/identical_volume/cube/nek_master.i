@@ -69,13 +69,13 @@
 
 [Transfers]
   [temperature]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
   []
   [source]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = source
     to_multi_app = nek
     variable = heat_source

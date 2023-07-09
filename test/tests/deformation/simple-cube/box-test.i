@@ -155,13 +155,13 @@
 
 [Transfers]
    [analytic_sol_to_nek]
-     type = MultiAppNearestNodeTransfer
+     type = MultiAppGeneralFieldNearestNodeTransfer
      source_variable = temp_ansol
      to_multi_app = nek
      variable = temp_ansol
    []
    [source_to_nek]
-     type = MultiAppNearestNodeTransfer
+     type = MultiAppGeneralFieldNearestNodeTransfer
      source_variable = source_auxvar
      to_multi_app = nek
      variable = heat_source

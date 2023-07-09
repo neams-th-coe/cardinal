@@ -160,7 +160,7 @@
 
 [Transfers]
   [nek_temp_to_bison]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = nek_temp
     variable = nek_temp
     to_multi_app = bison
@@ -172,7 +172,7 @@
     target_boundary = '2'
   []
   [source_to_bison]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = source_bison
     variable = source
     to_multi_app = bison
@@ -181,7 +181,7 @@
     allow_skipped_adjustment = true
   []
   [bison_flux_to_openmc]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = flux
     from_multi_app = bison
     variable = bison_flux
@@ -200,7 +200,7 @@
     reduction_type = 'average' # not used when only one sub-app
   []
   [bison_temp_to_openmc]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = temp
     variable = bison_temp
     from_multi_app = bison
@@ -210,7 +210,7 @@
   []
 
   [bison_flux_to_nek]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = bison_flux
     variable = avg_flux
     to_multi_app = nek
@@ -228,7 +228,7 @@
     to_multi_app = nek
   []
   [source_to_nek]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = source_nek
     variable = heat_source
     to_multi_app = nek
@@ -240,7 +240,7 @@
     to_multi_app = nek
   []
   [nek_temp_to_openmc]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = temp
     variable = nek_temp
     from_multi_app = nek
