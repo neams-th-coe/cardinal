@@ -83,15 +83,15 @@ so this transfer is only recommended for meshes that share the same outer bounda
   caption=Results of a `MultiAppShapeEvaluationTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
-## [MultiAppNearestNodeTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+## [MultiAppGeneralFieldNearestNodeTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestNodeTransfer.html)
 
-The [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html) transfers a variable between the target and source domains using a nearest node lookup.
+The [MultiAppGeneralFieldNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestNodeTransfer.html) transfers a variable between the target and source domains using a nearest node lookup.
 For performance, we highly recommend setting the `fixed_meshes = true` parameter to cache
 the nearest node matches after the first transfer.
 
 !media volume_nearest_node.png
   id=volume_nearest_node
-  caption=Results of a `MultiAppNearestNodeTransfer` from the main app to the sub app
+  caption=Results of a `MultiAppGeneralFieldNearestNodeTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
 ## [MultiAppProjectionTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppProjectionTransfer.html)
