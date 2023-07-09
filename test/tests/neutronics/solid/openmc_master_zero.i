@@ -141,7 +141,7 @@ b=${fparse 300-500/(zmax-zmin)*zmin}
     source_variable = heat_source
   []
   [average_temp_to_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     to_multi_app = openmc
     source_variable = temp
     variable = temp

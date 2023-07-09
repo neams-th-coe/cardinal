@@ -173,19 +173,19 @@
      to_multi_app = nek
    []
    [disp_x_to_nek]
-     type = MultiAppNearestNodeTransfer
+     type = MultiAppGeneralFieldNearestNodeTransfer
      source_variable = disp_x_o
      to_multi_app = nek
      variable = disp_x
    []
    [disp_y_to_nek]
-     type = MultiAppNearestNodeTransfer
+     type = MultiAppGeneralFieldNearestNodeTransfer
      source_variable = disp_y_o
      to_multi_app = nek
      variable = disp_y
    []
    [disp_z_to_nek]
-     type = MultiAppNearestNodeTransfer
+     type = MultiAppGeneralFieldNearestNodeTransfer
      source_variable = disp_z_o
      to_multi_app = nek
      variable = disp_z

@@ -96,25 +96,25 @@
     variable = vol_avg
   []
   [uox_to_sub]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = uo_x
     to_multi_app = subchannel
     variable = uo_x
   []
   [uoy_to_sub]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = uo_y
     to_multi_app = subchannel
     variable = uo_y
   []
   [uoz_to_sub]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = uo_z
     to_multi_app = subchannel
     variable = uo_z
   []
   [analytic_to_sub]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = velocity_component
     to_multi_app = subchannel
     variable = velocity_component
