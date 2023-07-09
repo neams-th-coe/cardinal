@@ -98,14 +98,14 @@ c = 450
 
 [Transfers]
   [temperature]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
     target_boundary = 'left_pin right_pin'
   []
   [flux]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppNearestNodeTransfer
     source_variable = flux
     to_multi_app = nek
     variable = avg_flux
