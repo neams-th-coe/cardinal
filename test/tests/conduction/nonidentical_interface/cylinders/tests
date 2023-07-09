@@ -54,6 +54,7 @@
     csvdiff = 'nek_master_subcycle_out.csv'
     min_parallel = 8
     rel_err = 1.5e-5
+    max_time = 400
     requirement = "The same solution shall be obtained when nekRS is run as a sub-app with minimized transfers "
                   "for in the incoming and outgoing data transfers. We compare against the same CSV file used "
                   "for the cylinder_conduction_subcycle case because the results should be exactly the same."
