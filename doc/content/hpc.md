@@ -158,8 +158,8 @@ if [ -f  ~/.bashrc_local ]; then
 fi
 
 module purge
-module load use.moose
-module load moose-dev
+module load openmpi/4.0.2-gcc-9.2.0-cuda-10.1-5xzs
+module load cmake/3.22.3-gcc-9.2.0-5mqh
 
 # Revise for your repository location
 export NEKRS_HOME=$HOME/projects/cardinal/install
