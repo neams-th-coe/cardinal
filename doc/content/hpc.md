@@ -158,7 +158,7 @@ if [ -f  ~/.bashrc_local ]; then
 fi
 
 module purge
-module load openmpi/4.0.2-gcc-9.2.0-cuda-10.1-5xzs
+module load openmpi/3.1.6-gcc-10.4.0-psnb
 module load cmake/3.22.3-gcc-9.2.0-5mqh
 
 # Revise for your repository location
