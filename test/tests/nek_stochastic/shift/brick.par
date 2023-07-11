@@ -13,10 +13,7 @@
   file = ../../nek_warnings/no_temp_solve/brick.re2
 
 [VELOCITY]
-  viscosity = 1.0
-  density = 1.0
-  residualTol = 1.0e-6
-  boundaryTypeMap = symy, symy, inlet, outlet, symz, symz
+  solver = none
 
 [PRESSURE]
   residualTol = 1.0e-5
@@ -34,4 +31,3 @@
 
 [SCALAR03]
   solver = none
-

@@ -156,7 +156,7 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     from_multi_app = bison
   []
   [heat_flux_to_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     fixed_meshes = true
     source_variable = flux
     variable = flux
@@ -188,14 +188,14 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     source_user_object = q_wall_avg
   []
   [T_wall_from_thm]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = T_wall
     from_multi_app = thm
     variable = thm_temp_wall
     fixed_meshes = true
   []
   [T_bulk_from_thm]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = T
     from_multi_app = thm
     variable = thm_temp

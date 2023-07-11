@@ -11,11 +11,11 @@
 [VELOCITY]
   boundaryTypeMap = v, O, W
   residualTol = 1e-08
-  density = 1.0     # added for Reynolds number
-  viscosity = 0.001 # added for Reynolds number
+  density = 1.0
+  viscosity = 0.001
 
 [TEMPERATURE]
   boundaryTypeMap = t, O, I
   residualTol = 1e-08
-  rhoCp = 1.0          # added for Peclet Number
-  conductivity = 0.001 # added for Peclet Number
+  rhoCp = 1.0
+  conductivity = 0.001

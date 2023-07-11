@@ -203,7 +203,7 @@ nek_dt = 6e-3
 
 [Transfers]
   [heat_flux_to_nek]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = flux
     variable = avg_flux
     source_boundary = 'fluid_solid_interface'
@@ -218,7 +218,7 @@ nek_dt = 6e-3
     to_multi_app = nek
   []
   [temperature_to_bison]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = temp
     variable = nek_temp
     source_boundary = '3'
@@ -227,7 +227,7 @@ nek_dt = 6e-3
     fixed_meshes = true
   []
   [bulk_temperature_to_bison]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = temp
     variable = nek_bulk_temp
     from_multi_app = nek

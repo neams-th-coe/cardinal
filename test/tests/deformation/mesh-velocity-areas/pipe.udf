@@ -36,7 +36,7 @@ void UDF_Setup(nrs_t *nrs)
   nrs->p0th[1] = 1.0;
   nrs->p0th[2] = 1.0;
 
-  mesh_t* mesh = nrs->_mesh;
+  mesh_t* mesh = nrs->cds->mesh[0];
   int num_quadrature_points = mesh->Np * mesh->Nelements;
 
   for (int n = 0; n < num_quadrature_points; n++) {

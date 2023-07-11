@@ -9,6 +9,11 @@ void UDF_Setup(nrs_t *nrs)
   auto mesh = nrs->cds->mesh[0];
   int n_gll_points = mesh->Np * mesh->Nelements;
 
+  // This is only here to avoid a re-gold, because in a later version of NekRS
+  // they changed the default time adaptivity scheme
+  platform->options.setArgs("MAX ADJUST DT RATIO", "1.25"); // limit step size increase
+  platform->options.setArgs("MIN ADJUST DT RATIO", "0");    // no-limit for step size reduction
+
   bool has_restart;
   platform->options.getArgs("RESTART FROM FILE", has_restart);
   if (has_restart)

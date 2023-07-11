@@ -7,8 +7,8 @@
 
 [Problem]
   type = NekRSProblem
-  casename = 'user'
   has_heat_source = false
+  casename = 'elast_nomv'
 []
 
 [Executioner]

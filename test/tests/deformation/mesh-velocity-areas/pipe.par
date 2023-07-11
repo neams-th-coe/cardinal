@@ -1,29 +1,30 @@
 [GENERAL]
-polynomialOrder = 2
-stopAt = numSteps
-numSteps = 50
-dt = 1e-3
-timeStepper = tombo2
-writeInterval = 50
+  polynomialOrder = 2
+  stopAt = numSteps
+  numSteps = 50
+  dt = 2e-3
+  timeStepper = tombo2
+  writeInterval = 50
 
 [MESH]
-boundaryTypeMap = zeroValue,fixedValue,zeroValue
-solver = elasticity
-residualTol = 1e-6
+  boundaryTypeMap = zeroValue,codedFixedValue,zeroValue
+  solver = pcg+block
+  initialGuess = projection+nVector=1
+  residualTol = 1e-6
 
 [PROBLEMTYPE]
-stressFormulation = true
+  stressFormulation = true
 
 [PRESSURE]
-residualTol = 1e-4
-preconditioner = multigrid
-initialGuess = previous
+  residualTol = 1e-4
+  preconditioner = multigrid
+  initialGuess = previous
 
 [VELOCITY]
-density = 1.0
-viscosity = -100.0
-boundaryTypeMap = fixedValue,fixedValue,zeroGradient
-residualTol = 1e-6
+  density = 1.0
+  viscosity = 0.01
+  boundaryTypeMap = codedFixedValue,codedFixedValue,zeroGradient
+  residualTol = 1e-6
 
 [TEMPERATURE]
-solver = none
+  solver = none

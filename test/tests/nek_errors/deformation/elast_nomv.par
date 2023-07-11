@@ -10,7 +10,7 @@ udf = "nekbox.udf"
 
 [MESH]
 boundaryTypeMap = zeroValue,zeroValue,zeroValue,zeroValue,zeroValue,zeroValue
-solver = elasticity
+solver = pcg+block
 file = "nekbox.re2"
 
 [PROBLEMTYPE]
@@ -22,7 +22,7 @@ residualTol = 1e-4
 [VELOCITY]
 density = 1.0
 viscosity = -100.0
-boundaryTypeMap = zeroValue,fixedValue,zeroValue,zeroValue,zeroValue,zeroGradient
+boundaryTypeMap = zeroValue,codedFixedValue,zeroValue,zeroValue,zeroValue,zeroGradient
 residualTol = 1e-5
 
 [TEMPERATURE]

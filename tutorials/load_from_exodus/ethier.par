@@ -1,25 +1,23 @@
 [GENERAL]
-#verbose = true 
-polynomialOrder = 9
-#startFrom = "restart.fld"
+polynomialOrder = 5
 stopAt = numSteps
-numSteps = 100 
+numSteps = 100
 dt = 2e-03
 timeStepper = tombo3
-writeControl = simulationTime 
-writeInterval = 0.1
+writeControl = steps
+writeInterval = 5
 
 [PRESSURE]
 residualTol = 1e-08
 
 [VELOCITY]
-boundaryTypeMap = inlet 
+boundaryTypeMap = inlet
 residualTol = 1e-12
 density = 1.0
 viscosity = -100
 
 [TEMPERATURE]
-boundaryTypeMap = inlet 
+boundaryTypeMap = flux
 residualTol = 1e-12
 rhoCp = 1.0
 conductivity = -100

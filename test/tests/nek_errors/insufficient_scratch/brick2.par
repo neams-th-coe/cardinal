@@ -15,14 +15,14 @@
   stressFormulation = true
 
 [MESH]
-  solver = elasticity
+  solver = pcg+block
   file = "brick.re2"
 
 [VELOCITY]
   viscosity = 1.0
   density = 1.0
   residualTol = 1.0e-6
-  boundaryTypeMap = symy, symy, fixedValue+moving, outlet, symz, symz
+  boundaryTypeMap = symy, symy, codedFixedValue+moving, outlet, symz, symz
 
 [PRESSURE]
   residualTol = 1.0e-5

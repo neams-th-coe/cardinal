@@ -7,5 +7,5 @@ void scalarDirichletConditions(bcData * bc)
 void scalarNeumannConditions(bcData * bc)
 {
   if (bc->id == 1 || bc->id == 2 || bc->id == 7)
-    bc->flux = bc->wrk[bc->idM];
+    bc->flux = bc->usrwrk[bc->idM];
 }

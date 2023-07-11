@@ -37,6 +37,13 @@ public:
 
   virtual Real getValue() override;
 
+  /**
+   * Integrate the field over the specified mesh
+   * @param[in] mesh mesh
+   * @return field integrated over the mesh
+   */
+  Real getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh);
+
 protected:
   /// Volume by which to normalize
   Real _volume;

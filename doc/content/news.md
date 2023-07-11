@@ -5,6 +5,8 @@ significant changes to report.
 
 ### 2023
 
+- [July 2023](news/july2023.md)
+- [June 2023](news/june2023.md)
 - [May 2023](news/may2023.md)
 - [April 2023](news/april2023.md)
 - [March 2023](news/march2023.md)

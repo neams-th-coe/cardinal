@@ -1,10 +1,3 @@
-void velocityDirichletConditions(bcData *bc)
-{
-  bc->u = 0.1;
-  bc->v = 0.0;
-  bc->w = 0.0;
-}
-
 void scalarDirichletConditions(bcData *bc)
 {
   if (bc->id == 1)
@@ -14,7 +7,7 @@ void scalarDirichletConditions(bcData *bc)
 void scalarNeumannConditions(bcData *bc)
 {
   if (bc->id == 2)
-    bc->flux = bc->wrk[bc->idM];
+    bc->flux = bc->usrwrk[bc->idM];
 }
 
 @kernel void mooseHeatSource(const dlong Nelements, const dlong offset, @restrict const dfloat * source, @restrict dfloat * QVOL)

@@ -328,7 +328,7 @@ Note that the heat sources on the OpenMC `[Mesh]` and on the MOOSE heat conducti
 are shown on a different color scale - the volumetric power density on the MOOSE mesh is
 lower than that on the OpenMC mesh because the MOOSE mesh has a greater volume
 (since there is a better approximation of the sphere volume). The conservative
-[MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+[MultiAppGeneralFieldNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestNodeTransfer.html)
 conserves total integrated power.
 
 !media pebble_hs_mesh3.png

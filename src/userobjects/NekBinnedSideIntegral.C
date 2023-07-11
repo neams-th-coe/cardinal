@@ -45,6 +45,7 @@ NekBinnedSideIntegral::getBinVolumes()
   resetPartialStorage();
 
   mesh_t * mesh = nekrs::entireMesh();
+  const auto & sgeo = nekrs::getSgeo();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -58,7 +59,7 @@ NekBinnedSideIntegral::getBinVolumes()
         {
           Point p = nekPoint(i, j, v);
           unsigned int b = bin(p);
-          _bin_partial_values[b] += mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+          _bin_partial_values[b] += sgeo[mesh->Nsgeo * (offset + v) + WSJID];
           _bin_partial_counts[b]++;
         }
       }
@@ -84,6 +85,7 @@ NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand,
 
   mesh_t * mesh = nekrs::entireMesh();
   double (*f)(int) = nekrs::solutionPointer(integrand);
+  const auto & sgeo = nekrs::getSgeo();
 
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -98,7 +100,7 @@ NekBinnedSideIntegral::binnedSideIntegral(const field::NekFieldEnum & integrand,
           Point p = nekPoint(i, j, v);
           unsigned int b = bin(p);
           _bin_partial_values[b] +=
-              f(mesh->vmapM[offset + v]) * mesh->sgeo[mesh->Nsgeo * (offset + v) + WSJID];
+              f(mesh->vmapM[offset + v]) * sgeo[mesh->Nsgeo * (offset + v) + WSJID];
         }
       }
     }

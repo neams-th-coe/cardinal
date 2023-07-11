@@ -83,8 +83,8 @@ num_layers_for_THM = 50                  # number of elements in the THM model; 
     type = ADParsedMaterial
     block = channel
     # Dittus-Boelter
-    function = '0.022 * pow(Re, 0.8) * pow(Pr, 0.4)'
-    f_name = 'Nu'
+    expression = '0.022 * pow(Re, 0.8) * pow(Pr, 0.4)'
+    property_name = 'Nu'
     material_property_names = 'Re Pr'
   []
   [Hw_mat]

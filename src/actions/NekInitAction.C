@@ -133,15 +133,18 @@ NekInitAction::act()
                "recommend using the 'batch-restore' mode, which does not have any such limitations.");
   }
 
-  nekrs::setup(comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
-               comm /* local communicator */,
-               build_only,
-               size_target,
-               ci_mode,
-               casename,
-               backend,
-               device_id,
-               0 /* debug mode */);
+  nekrs::setup(
+      comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
+      comm /* local communicator */,
+      build_only,
+      size_target,
+      ci_mode,
+      casename,
+      backend,
+      device_id,
+      1 /* n sessions */,
+      0 /* session ID */,
+      0 /* debug mode */);
 
   _n_cases++;
 

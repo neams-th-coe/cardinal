@@ -149,11 +149,11 @@ is always the same in `nrs->usrwrk`, but with any unused slots cleared out.
 !table id=usrwrk_nrsp caption=Quantities written into the scratch space array by Cardinal. In the last column, `n` indicates that the value is case-dependent depending on what features you have enabled.
 | Slice | Quantity | When Will It Be Created? | How to Access in the `.oudf` File |
 | :- | :- | :- | :- |
-| 0 | Boundary heat flux | if `boundary` is set on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 1 | Volumetric heat source | if `volume` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 2 | Mesh x-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 3 | Mesh y-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
-| 4 | Mesh z-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->wrk[n * bc->fieldOffset + bc->idM]` |
+| 0 | Boundary heat flux | if `boundary` is set on `NekRSMesh` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 1 | Volumetric heat source | if `volume` is true on `NekRSMesh` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 2 | Mesh x-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 3 | Mesh y-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
+| 4 | Mesh z-displacement | if `moving_mesh` is true on `NekRSMesh` | `bc->usrwrk[n * bc->fieldOffset + bc->idM]` |
 
 The total number of slots in the scratch space that are allocated by Cardinal
 is controlled with the `n_usrwrk_slots` parameter.
@@ -171,17 +171,17 @@ would print out at the start of your simulation. You could use slices 1 onwards
 for custom purposes.
 
 !listing id=l11 caption=Table printed at start of Cardinal simulation that describes available scratch space for a case that couples NekRS to MOOSE via volumetric power density, but not via boundaries or a moving mesh. A total of 7 slots are allocated by setting `n_usrwrk_slots` to 7
-------------------------------------------------------------------
-| Slice |  Quantity   |        How to Access in NekRS BCs        |
-------------------------------------------------------------------
-|     0 | heat_source |  bc->wrk[0 * bc->fieldOffset + bc->idM]  |
-|     1 | unused      |  bc->wrk[1 * bc->fieldOffset + bc->idM]  |
-|     2 | unused      |  bc->wrk[2 * bc->fieldOffset + bc->idM]  |
-|     3 | unused      |  bc->wrk[3 * bc->fieldOffset + bc->idM]  |
-|     4 | unused      |  bc->wrk[4 * bc->fieldOffset + bc->idM]  |
-|     5 | unused      |  bc->wrk[5 * bc->fieldOffset + bc->idM]  |
-|     6 | unused      |  bc->wrk[6 * bc->fieldOffset + bc->idM]  |
-------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+|  Quantity   |           How to Access (.oudf)           |         How to Access (.udf)          |
+---------------------------------------------------------------------------------------------------
+| heat_source | bc->usrwrk[0 * bc->fieldOffset + bc->idM] | nrs->usrwrk[0 * nrs->fieldOffset + n] |
+| unused      | bc->usrwrk[1 * bc->fieldOffset + bc->idM] | nrs->usrwrk[1 * nrs->fieldOffset + n] |
+| unused      | bc->usrwrk[2 * bc->fieldOffset + bc->idM] | nrs->usrwrk[2 * nrs->fieldOffset + n] |
+| unused      | bc->usrwrk[3 * bc->fieldOffset + bc->idM] | nrs->usrwrk[3 * nrs->fieldOffset + n] |
+| unused      | bc->usrwrk[4 * bc->fieldOffset + bc->idM] | nrs->usrwrk[4 * nrs->fieldOffset + n] |
+| unused      | bc->usrwrk[5 * bc->fieldOffset + bc->idM] | nrs->usrwrk[5 * nrs->fieldOffset + n] |
+| unused      | bc->usrwrk[6 * bc->fieldOffset + bc->idM] | nrs->usrwrk[6 * nrs->fieldOffset + n] |
+---------------------------------------------------------------------------------------------------
 
 !include seg_fault_warning.md
 
@@ -193,7 +193,7 @@ boundary for normalization (stored in the postprocessor `flux_integral`) are sen
 to NekRS.
 Then, all that is required to use a heat flux transferred by MOOSE is to
 apply it in the `scalarNeumannConditions` boundary condition.
-Below, `bc->wrk` is the same as `nrs->o_usrwrk`, or the scratch space on the
+Below, `bc->usrwrk` is the same as `nrs->o_usrwrk`, or the scratch space on the
 device; this function applies the heat flux computed by MOOSE to the flux boundaries.
 
 !listing /test/tests/cht/pebble/onepebble2.oudf language=cpp

@@ -143,7 +143,7 @@ q0 = ${fparse unit_cell_power / (4.0 * unit_cell_height * compact_diameter * com
     source_user_object = q_wall_avg
   []
   [T_wall_from_thm]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = T_wall
     from_multi_app = thm
     variable = fluid_temp

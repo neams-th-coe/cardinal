@@ -35,6 +35,10 @@
 []
 
 [Postprocessors]
+# pressure is not a reliable quantity to compare in a short, few-timestep regression test.
+# This line can be uncommented for comparing with the dimensional version.
+inactive = 'avg_pressure_1 avg_pressure_vol max_p max_p_in min_p_in pressure_1 pressure_vol'
+
   [synchronization_in]
     type = Receiver
   []

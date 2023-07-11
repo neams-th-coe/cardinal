@@ -12,7 +12,6 @@
 
 [VELOCITY]
   solver = none
-  boundaryTypeMap = wall, wall, wall, wall, wall, wall
 
 [PRESSURE]
 

@@ -6,6 +6,10 @@ dt = 2e-03
 timeStepper = tombo3
 writeControl = steps
 writeInterval = 5
+udf = "../ethier.udf"
+
+[MESH]
+file = "../ethier.re2"
 
 [PRESSURE]
 residualTol = 1e-08
