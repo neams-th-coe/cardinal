@@ -277,14 +277,14 @@ pin_power = 21e3                              # bundle power (kW)
 
 [Transfers]
   [nek_temp] # grabs temperature from nekRS and stores it in nek_temp
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
     fixed_meshes = true
   []
   [avg_flux] # sends heat flux in avg_flux to nekRS
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = avg_flux
     to_multi_app = nek
     variable = avg_flux

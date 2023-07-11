@@ -50,12 +50,5 @@ void scalarDirichletConditions(bcData * bc)
 
 void scalarNeumannConditions(bcData * bc)
 {
-  if (bc->scalarId == 0) // temperature
-  {
-    if (bc->id == 1)
-    {
-      bc->flux = 0.0;
-      //bc->flux = bc->wrk[bc->idM];
-    }
-  }
+  bc->flux = 0.0;
 }

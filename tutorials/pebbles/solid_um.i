@@ -76,7 +76,7 @@ T_fluid = ${fparse 650.0 + 273.15}
 
 [Transfers]
   [heat_source_from_openmc]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     from_multi_app = openmc
     variable = heat_source
     source_variable = heat_source

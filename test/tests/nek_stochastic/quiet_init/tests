@@ -51,6 +51,7 @@
     min_parallel = 3
     max_parallel = 3
     prereq = clear2
+    max_time = 400
     csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
@@ -70,12 +71,13 @@
     input = driver_multi.i
     min_parallel = 4
     prereq = clear3
+    max_time = 400
     csvdiff = 'driver_multi_out_nek0.csv driver_multi_out_nek1.csv driver_multi_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends 3 values to "
                   "3 unique NekRS solves, without any restart or overlap of MPI communicators. We check that the values "
                   "are properly received in the scratch space by using that value to set a dummy scalar01. We purposefully "
                   "put this test in its own directory to prove that there are no requirements on precompilation."
     required_objects = 'NekRSProblem'
-    skip = 'Resolve random crash'
+    skip = 'Need to resolve random failure'
   []
 []

@@ -16,25 +16,12 @@
 
 [VELOCITY]
   solver = none
-  boundaryTypeMap = inlet
-  density = 1.0
-  viscosity = -100
 
 [TEMPERATURE]
   solver = none
-  boundaryTypeMap = t
-  rhoCp = 1.0
-  conductivity = -100
 
 [SCALAR01]
   solver = none
-  boundaryTypeMap = t
-  rho = 1.0
-  diffusivity = -100
 
 [SCALAR02]
   solver = none
-  boundaryTypeMap = t
-  rho = 1.0
-  diffusivity = -100
-

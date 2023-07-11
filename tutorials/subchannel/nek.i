@@ -127,13 +127,13 @@
     variable = avg_gap_velocity
   []
   [uox_to_sub]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     to_multi_app = subchannel_gap
     source_variable = uo_x
     variable = uo_x
   []
   [uoy_to_sub]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     to_multi_app = subchannel_gap
     source_variable = uo_y
     variable = uo_y

@@ -6,7 +6,7 @@
     csvdiff = coarse_mesh.csv
     requirement = "The MOOSE mesh generators shall be able to create the solid mesh for a TRISO gas compact."
   []
-  [run_thm]
+  [thm]
     type = RunApp
     input = thm.i
     check_input = true

@@ -132,14 +132,14 @@ dT = ${fparse power / mdot / Cp}
 
 [Transfers]
   [temperature]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
     fixed_meshes = true
   []
   [flux]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     source_variable = flux
     to_multi_app = nek
     variable = avg_flux

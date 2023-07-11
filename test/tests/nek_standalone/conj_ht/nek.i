@@ -6,6 +6,7 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'conj_ht'
+  output = 'temperature'
 []
 
 [Executioner]
@@ -17,9 +18,6 @@
 []
 
 [Postprocessors]
-#
-# Side post processors
-#
  [Area_BC3_flow]
    type = NekSideIntegral
    boundary = '3'
@@ -115,18 +113,6 @@
    field = unity
    mesh = 'all'
  []
- [minVol_T_flow] # same value as allMesh
-   type = NekVolumeExtremeValue
-   field = temperature
-   value_type = min
-   mesh = 'fluid'
- []
- [minVol_T_all] # same value as flowMesh
-   type = NekVolumeExtremeValue
-   field = temperature
-   value_type = min
-   mesh = 'all'
- []
  [maxVol_T_flow]
    type = NekVolumeExtremeValue
    field = temperature
@@ -153,4 +139,6 @@
 
 [Outputs]
   csv = true
+  exodus = true
+  execute_on = final
 []

@@ -87,7 +87,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
     variable = gap_area
   []
   [temp_to_sub]
-    type = MultiAppNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestNodeTransfer
     to_multi_app = subchannel
     variable = temp
     source_variable = temp

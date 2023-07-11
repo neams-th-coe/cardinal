@@ -4,8 +4,3 @@ void velocityDirichletConditions(bcData *bc)
   bc->v = 0.0;
   bc->w = 1.0;
 }
-
-void scalarDirichletConditions(bcData *bc)
-{
-  bc->s = 0.0;
-}

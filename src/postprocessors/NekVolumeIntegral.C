@@ -38,18 +38,35 @@ NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
 Real
 NekVolumeIntegral::getValue()
 {
-  _volume = nekrs::volume(_pp_mesh);
+  switch (_pp_mesh)
+  {
+    case nek_mesh::fluid:
+    case nek_mesh::all:
+      _volume = nekrs::volume(_pp_mesh);
+      return getIntegralOnMesh(_pp_mesh);
+    case nek_mesh::solid:
+      _volume = nekrs::volume(nek_mesh::all) - nekrs::volume(nek_mesh::fluid);
+      return getIntegralOnMesh(nek_mesh::all) - getIntegralOnMesh(nek_mesh::fluid);
+    default:
+      mooseError("Unhandled NekMeshEnum in getValue()!");
+  }
+}
+
+Real
+NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh)
+{
+  Real vol = nekrs::volume(mesh);
 
   if (_field == field::velocity_component)
   {
-    Real vx = nekrs::volumeIntegral(field::velocity_x, _volume, _pp_mesh);
-    Real vy = nekrs::volumeIntegral(field::velocity_y, _volume, _pp_mesh);
-    Real vz = nekrs::volumeIntegral(field::velocity_z, _volume, _pp_mesh);
+    Real vx = nekrs::volumeIntegral(field::velocity_x, vol, mesh);
+    Real vy = nekrs::volumeIntegral(field::velocity_y, vol, mesh);
+    Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh);
     Point velocity(vx, vy, vz);
     return _velocity_direction * velocity;
   }
 
-  return nekrs::volumeIntegral(_field, _volume, _pp_mesh);
+  return nekrs::volumeIntegral(_field, vol, mesh);
 }
 
 #endif

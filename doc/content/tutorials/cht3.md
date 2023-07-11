@@ -289,9 +289,9 @@ Finally, we add a [TransientMultiApp](https://mooseframework.inl.gov/source/mult
 that will run a MOOSE-wrapped NekRS simulation. Then, we add four different
 transfers to/from NekRS:
 
-- [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+- [MultiAppGeneralFieldNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestNodeTransfer.html)
   to send the heat flux from MOOSE to NekRS
-- [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+- [MultiAppGeneralFieldNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestNodeTransfer.html)
   to send temperature from NekRS to MOOSE
 - [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
   to normalize the heat flux sent to NekRS
@@ -409,7 +409,7 @@ slightly different MOOSE transfers to couple THM and MOOSE. Instead of sending
 a 2-D surface flux distribution, we now compute the wall average heat flux in layers
 and send to THM with a [MultiAppGeneralFieldUserObjectTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldUserObjectTransfer.html).
 To receive temperature from THM, we use the same
-[MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+[MultiAppGeneralFieldNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestNodeTransfer.html)
 that we used when coupling to NekRS - but now, we are coupling a 1-D model to a 3-D model
 instead of a 3-D model to a 3-D model. MOOSE's transfers are generally dimension agnostic.
 

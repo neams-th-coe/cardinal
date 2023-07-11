@@ -20,4 +20,3 @@
 
 [TEMPERATURE]
   solver = none
-  residualTol = 1e-5

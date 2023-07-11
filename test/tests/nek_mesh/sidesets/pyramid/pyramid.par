@@ -10,15 +10,9 @@
   writeInterval = 2
 
 [VELOCITY]
-  viscosity = 1.0
-  density = 1.0
-  residualTol = 1.0e-6
-  boundaryTypeMap = inlet, outlet, wall, wall, wall, wall, wall, wall
+  solver = none
 
 [PRESSURE]
-  residualTol = 1.0e-5
 
 [TEMPERATURE]
   solver = none
-  residualTol = 1.0e-5
-  boundaryTypeMap = f, f, f, f, I, I, I, I

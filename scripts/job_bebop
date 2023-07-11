@@ -17,7 +17,7 @@
 module purge
 module load cmake/3.20.3-vedypwm
 module load gcc/9.2.0-pkmzczt
-module load openmpi/4.1.1-bebop-ckyrlu7
+module load openmpi/4.1.1-ckyrlu7
 module load python/intel-parallel-studio-cluster.2019.5-zqvneip/3.6.9
 
 # Revise for your repository and cross section data locations

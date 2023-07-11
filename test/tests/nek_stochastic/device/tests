@@ -1,7 +1,14 @@
 [Tests]
+  [precompile]
+    type = RunCommand
+    command = '${NEKRS_HOME}/bin/nrspre pyramid 1'
+    requirement = "The system shall precompile a NekRS case."
+    required_objects = 'NekRSProblem'
+  []
   [device]
     type = CSVDiff
     input = driver_transient.i
+    prereq = precompile
     csvdiff = 'driver_transient_out_nek0.csv driver_transient_out_nek1.csv driver_transient_out_nek2.csv'
     requirement = "The system shall stochastic values to be sent from MOOSE to NekRS. This example sends time-dependent "
                   "random values from MOOSE to NekRS. The values of the random variables are used to apply a "

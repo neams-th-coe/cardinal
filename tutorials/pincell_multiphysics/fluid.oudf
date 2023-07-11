@@ -12,5 +12,5 @@ void scalarDirichletConditions(bcData * bc)
 
 void scalarNeumannConditions(bcData * bc)
 {
-  bc->flux = bc->wrk[bc->idM];
+  bc->flux = bc->usrwrk[bc->idM];
 }

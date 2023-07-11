@@ -11,15 +11,8 @@
 
 [VELOCITY]
   solver = none
-  viscosity = -880.2742616033756
-  density = 1.0
-  residualTol = 1.0e-6
-  boundaryTypeMap = inlet, outlet, wall
 
 [PRESSURE]
-  residualTol = 1.0e-5
 
 [TEMPERATURE]
   solver = none
-  residualTol = 1.0e-5
-  boundaryTypeMap = t, t, t
