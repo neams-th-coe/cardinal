@@ -1,0 +1,11 @@
+[Tests]
+  [volume_pp]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = "The system shall correctly evaluate volume postprocessors for a dimensional NekRS "
+                  "solve on a conjugate heat transfer mesh. We test this by repeating the same integrals "
+                  "of the mapped data on the MOOSE mesh, and show exact equivalence."
+    required_objects = 'NekRSProblem'
+  []
+[]

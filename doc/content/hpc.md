@@ -157,8 +157,9 @@ if [ -f  ~/.bashrc_local ]; then
        . ~/.bashrc_local
 fi
 
-module purge
-module load openmpi/3.1.6-gcc-10.4.0-psnb
+module load use.moose
+module load mambaforge3
+module load mvapich2/2.3.3-gcc-9.2.0-xpjm
 module load cmake/3.22.3-gcc-9.2.0-5mqh
 
 # Revise for your repository location

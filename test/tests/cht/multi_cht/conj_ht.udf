@@ -1,0 +1,28 @@
+#include "udf.hpp"
+
+void UDF_LoadKernels(occa::properties& kernelInfo)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    dfloat x = mesh->x[n];
+    dfloat y = mesh->y[n];
+    dfloat z = mesh->z[n];
+
+    nrs->P[n] = cos(y); // pressure
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 100 * sin(y) + 100*y; // temperature
+
+    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = ((y - 0.5) * (y - 0.5)) + 0.1; // scalar01
+  }
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+}
