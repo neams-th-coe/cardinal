@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "ThreadedGeneralUserObject.h"
+#include "GeneralUserObject.h"
 
 /**
  * Opaque user object which will send a scalar value into NekRS through its
  * scratch space. The user then has infinite flexibility to use that value
  * in the NekRS case files.
  */
-class NekScalarValue : public ThreadedGeneralUserObject
+class NekScalarValue : public GeneralUserObject
 {
 public:
   static InputParameters validParams();

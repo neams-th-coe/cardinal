@@ -23,6 +23,7 @@
 #include "CardinalProblem.h"
 #include "PostprocessorInterface.h"
 #include "CardinalEnums.h"
+#include "OpenMCNuclideDensities.h"
 
 #include "openmc/tallies/filter_cell_instance.h"
 #include "openmc/mesh.h"
@@ -314,6 +315,9 @@ public:
   long unsigned int numCells() const;
 
 protected:
+  void getOpenMCNuclideDensitiesUserObjects();
+  void sendNuclideDensitiesToOpenMC();
+
   /**
    * Add tally
    * @param[in] score score type
@@ -418,6 +422,9 @@ protected:
 
   /// OpenMC run mode
   openmc::RunMode _run_mode;
+
+  /// Userobjects for changing OpenMC material compositions
+  std::vector<OpenMCNuclideDensities *> _nuclide_densities_uos;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;

@@ -41,6 +41,20 @@
                   "are modified, but there are no nuclides added or removed."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [thermal_density]
+    type = CSVDiff
+    input = thermal_density.i
+    csvdiff = thermal_density_out.csv
+    requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide densities and nuclides are modified, after which the total density is modified due to thermal effects."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [nuclide_and_density]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide densities and nuclides are modified."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [different_length]
     type = RunException
     input = only_density.i
