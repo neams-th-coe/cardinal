@@ -39,12 +39,6 @@ public:
   /// Instead, we want to have a separate method that we can call from the OpenMC problem
   virtual void setValue();
 
-  /**
-   * Get material index
-   * @return material index
-   */
-  int32_t materialIndex() const { return _material_index; }
-
 protected:
   /// The material ID
   const int32_t & _material_id;
