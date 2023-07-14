@@ -315,7 +315,10 @@ public:
   long unsigned int numCells() const;
 
 protected:
+  /// Find all userobjects which are changing nuclide densities
   void getOpenMCNuclideDensitiesUserObjects();
+
+  /// Set the nuclide densities for any materials being modified via MOOSE
   void sendNuclideDensitiesToOpenMC();
 
   /**
