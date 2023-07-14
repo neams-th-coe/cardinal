@@ -27,7 +27,7 @@ registerMooseObject("CardinalApp", NekScalarValue);
 InputParameters
 NekScalarValue::validParams()
 {
-  InputParameters params = ThreadedGeneralUserObject::validParams();
+  InputParameters params = GeneralUserObject::validParams();
   params.addParam<Real>("value", 0.0, "Scalar value to pass into NekRS");
   params.addParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value; "
     "if not specified, this defaults to the first unused slot");
@@ -37,7 +37,7 @@ NekScalarValue::validParams()
 }
 
 NekScalarValue::NekScalarValue(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters),
+  : GeneralUserObject(parameters),
     _value(getParam<Real>("value"))
 {
   const NekRSProblemBase * nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);

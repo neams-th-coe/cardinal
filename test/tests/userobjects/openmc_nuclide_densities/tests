@@ -1,0 +1,52 @@
+[Tests]
+  [wrong_problem]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/type=FEProblem Variables/u/order=FIRST Kernels/d/type=Diffusion Kernels/d/variable=u'
+    expect_err = 'This user object can only be used with wrapped OpenMC cases!'
+    requirement = 'The system shall error if a userobject is not used with a compatible problem class.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [nonexistent_id]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/mat1/material_id=3'
+    expect_err = 'In attempting to get the material index for material with ID 3, OpenMC reported:\n\n'
+                 'No material exists with ID=3.'
+    requirement = 'The system shall error if trying to change nuclide densities for a non-existing material ID.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [nonexistent_nuclide]
+    type = RunException
+    input = openmc.i
+    cli_args = 'UserObjects/mat1/names="fake"'
+    expect_err = "In attempting to set nuclide densities in the 'mat1' UserObject, OpenMC reported:\n\n"
+                 "Nuclide 'fake' is not present in library."
+    requirement = "The system shall error if trying to add a nuclide not accessible in the cross section library."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [no_change]
+    type = CSVDiff
+    input = no_change.i
+    csvdiff = no_change_out.csv
+    requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide compositions "
+                  "are modified, but are still set to their initial values."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [no_composition_change]
+    type = CSVDiff
+    input = only_density.i
+    csvdiff = only_density_out.csv
+    requirement = "The system shall give identical results to a standalone OpenMC run if the nuclide densities "
+                  "are modified, but there are no nuclides added or removed."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [different_length]
+    type = RunException
+    input = only_density.i
+    cli_args = 'UserObjects/mat1/names="a b" UserObjects/mat1/densities="1.0"'
+    expect_err = "'names' and 'densities' must be the same length!"
+    requirement = "The system shall error if inconsistent lengths for names and densities are provided."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
