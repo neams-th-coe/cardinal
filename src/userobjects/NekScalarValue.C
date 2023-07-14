@@ -37,8 +37,7 @@ NekScalarValue::validParams()
 }
 
 NekScalarValue::NekScalarValue(const InputParameters & parameters)
-  : GeneralUserObject(parameters),
-    _value(getParam<Real>("value"))
+  : GeneralUserObject(parameters), _value(getParam<Real>("value"))
 {
   const NekRSProblemBase * nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!nek_problem)

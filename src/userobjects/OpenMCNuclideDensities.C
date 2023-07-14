@@ -36,8 +36,7 @@ OpenMCNuclideDensities::validParams()
 }
 
 OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameters)
-  : GeneralUserObject(parameters),
-    _material_id(getParam<int32_t>("material_id"))
+  : GeneralUserObject(parameters), _material_id(getParam<int32_t>("material_id"))
 {
   const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
   if (!openmc_problem)
@@ -45,11 +44,12 @@ OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameter
     std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
     mooseError("This user object can only be used with wrapped OpenMC cases! "
                "You need to change the\nproblem type from '" +
-               _fe_problem.type() + "'" + extra_help +
-               " to OpenMCCellAverageProblem.");
+               _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
 
-  openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index), "get the material index for material with ID " + std::to_string(_material_id));
+  openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
+                                   "get the material index for material with ID " +
+                                       std::to_string(_material_id));
 
   if (isParamValid("names"))
     _names = getParam<std::vector<std::string>>("names");
@@ -73,7 +73,8 @@ OpenMCNuclideDensities::setValue()
   }
   catch (const std::exception & e)
   {
-    mooseError("In attempting to set nuclide densities in the '" + name() + "' UserObject, OpenMC reported:\n\n" + e.what());
+    mooseError("In attempting to set nuclide densities in the '" + name() +
+               "' UserObject, OpenMC reported:\n\n" + e.what());
   }
 }
 
