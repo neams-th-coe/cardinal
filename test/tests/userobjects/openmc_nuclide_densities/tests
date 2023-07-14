@@ -19,7 +19,7 @@
   [nonexistent_nuclide]
     type = RunException
     input = openmc.i
-    cli_args = 'UserObjects/mat1/names="fake"'
+    cli_args = 'UserObjects/mat1/names="fake fake2"'
     expect_err = "In attempting to set nuclide densities in the 'mat1' UserObject, OpenMC reported:\n\n"
                  "Nuclide 'fake' is not present in library."
     requirement = "The system shall error if trying to add a nuclide not accessible in the cross section library."
