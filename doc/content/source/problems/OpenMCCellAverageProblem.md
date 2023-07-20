@@ -350,7 +350,7 @@ volume units in [tally_units], that those units match whatever unit is used in t
 | `H3_production` | tritium / source particle | tritium / volume / second |
 
 For all of the possible tally scores in Cardinal, this units-transformation
-process involves _division by a volume_. In Cardinal, there are two different notions of volume:
+process involves *division by a volume*. In Cardinal, there are two different notions of volume:
 
 - The volume of the `[Mesh]` elements which _map_ to a tally bin region
 - The actual volume of the tally bin region in OpenMC
