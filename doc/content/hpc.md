@@ -161,6 +161,7 @@ module load use.moose
 module load mambaforge3
 module load mvapich2/2.3.3-gcc-9.2.0-xpjm
 module load cmake/3.22.3-gcc-9.2.0-5mqh
+module load gitlfs/3.2.0
 
 # Revise for your repository location
 export NEKRS_HOME=$HOME/projects/cardinal/install
