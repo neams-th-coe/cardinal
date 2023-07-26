@@ -702,4 +702,31 @@ OpenMCProblemBase::subdomainName(const SubdomainID & id) const
   return name;
 }
 
+void
+OpenMCProblemBase::getOpenMCNuclideDensitiesUserObjects()
+{
+  TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("UserObject");
+  std::vector<UserObject *> userobjs;
+  uo_query.queryInto(userobjs);
+
+  for (const auto & u : userobjs)
+  {
+    OpenMCNuclideDensities * c = dynamic_cast<OpenMCNuclideDensities *>(u);
+    if (c)
+      _nuclide_densities_uos.push_back(c);
+  }
+}
+
+void
+OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
+{
+  if (_nuclide_densities_uos.size() == 0)
+    return;
+
+  _console << "Sending nuclide compositions to OpenMC... ";
+  for (const auto & uo : _nuclide_densities_uos)
+    uo->setValue();
+  _console << "done" << std::endl;
+}
+
 #endif
