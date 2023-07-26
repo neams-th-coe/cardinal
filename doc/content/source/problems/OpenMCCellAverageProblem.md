@@ -350,7 +350,7 @@ volume units in [tally_units], that those units match whatever unit is used in t
 | `H3_production` | tritium / source particle | tritium / volume / second |
 
 For all of the possible tally scores in Cardinal, this units-transformation
-process involves _division by a volume_. In Cardinal, there are two different notions of volume:
+process involves *division by a volume*. In Cardinal, there are two different notions of volume:
 
 - The volume of the `[Mesh]` elements which _map_ to a tally bin region
 - The actual volume of the tally bin region in OpenMC
@@ -684,7 +684,7 @@ Options include:
 
 \begin{equation}
 \label{eq:rm}
-\dot{q}^{n+1}=\frac{1}{n+1}\sum_{i=0}^n\Phi^n
+\dot{q}^{n+1}=\frac{1}{n+1}\sum_{i=0}^n\Phi^i
 \end{equation}
 
 - `dufek_gudowski`: variable $\alpha$ and $s$; the step size is selected based
