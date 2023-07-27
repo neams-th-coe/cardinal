@@ -69,7 +69,7 @@ we would run:
 
 ```
 cd tutorials/gas_compact
-python ../../scripts/inactive_study.py -i unit_cell -input openmc.i --method=all
+python ../../scripts/inactive_study.py -i unit_cell -input openmc.i
 ```
 
 since the Python script used to generate the OpenMC model is named
@@ -82,10 +82,16 @@ of cell layers and number of inactive cycles to consider:
 When the script finishes running, plots of Shannon entropy and $k$, along
 with the saved statepoint files from the simulations, will be available
 in a directory named `inactive_study`. Below are shown example images of
-the Shannon entropy and $k$ plots. Based on the method of detecting stationarity,
-the script will recommend a minimum number of inactive batches to be used
-in order to converge the fission source for each layer. Picking the most conservative
-answer will help ensure your simulation is discarding enough batches before tallying.
+the Shannon entropy and $k$ plots. If a method to detect convergence of
+the fission source is supplied (the default is none), then the script will
+report whether the chosen metric succeeded or not. Note, there could be various
+factors affecting whether the metric succeeded or not, and based on user choices,
+it is possible for a metric to succeed when more batches or more particles per
+batch are truly needed. These metrics should be considered along side inspection
+of the plots of the Shannon Entropy, which typically takes longer than the
+eigenvalue to converge. Having a converged fission source is important so that
+when the active batches begin tallying, there is no contamination from the 
+source's initial guess impacting the tallies.
 
 !media example_entropy_plots.png
   id=entropy
