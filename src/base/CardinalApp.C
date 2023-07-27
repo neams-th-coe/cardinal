@@ -26,6 +26,11 @@
 #include "NekSyntax.h"
 #endif
 
+#ifdef ENABLE_GRIFFIN_COUPLING
+#include "GriffinApp.h"
+#include "RadiationTransportApp.h"
+#endif
+
 #ifdef ENABLE_BISON_COUPLING
 #include "BisonApp.h"
 #endif
@@ -77,6 +82,13 @@ CardinalApp::CardinalApp(InputParameters parameters) : MooseApp(parameters)
   ModulesApp::registerAllObjects<CardinalApp>(_factory, _action_factory, _syntax);
   CardinalApp::registerAll(_factory, _action_factory, _syntax);
 
+#ifdef ENABLE_GRIFFIN_COUPLING
+  GriffinApp::registerApps();
+  GriffinApp::registerAll(_factory, _action_factory, _syntax);
+  RadiationTransportApp::registerApps();
+  RadiationTransportApp::registerAll(_factory, _action_factory, _syntax);
+#endif
+
 #ifdef ENABLE_BISON_COUPLING
   BisonApp::registerApps();
   BisonApp::registerAll(_factory, _action_factory, _syntax);
@@ -126,6 +138,11 @@ void
 CardinalApp::registerApps()
 {
   registerApp(CardinalApp);
+
+#ifdef ENABLE_GRIFFIN_COUPLING
+  GriffinApp::registerApps();
+  RadiationTransportApp::registerApps();
+#endif
 
 #ifdef ENABLE_BISON_COUPLING
   BisonApp::registerApps();
