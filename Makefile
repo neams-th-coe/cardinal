@@ -9,6 +9,7 @@
 # * OPENMC_DIR       : Top-level OpenMC dir (default: $(CONTRIB_DIR)/openmc)
 # * DAGMC_DIR        : Top-level DagMC dir (default: $(CONTRIB_DIR)/DAGMC)
 # * MOAB_DIR         : Top-level Moab dir (default: $(CONTRIB_DIR)/moab)
+# * GRIFFIN_DIR      : Top-level Griffin dir (default: $(CONTRIB_DIR)/griffin)
 # * BISON_DIR        : Top-level Bison dir (default: $(CONTRIB_DIR)/bison)
 # * SAM_DIR          : Top-level SAM dir (default: $(CONTRIB_DIR)/SAM)
 # * SOCKEYE_DIR      : Top-level Sockeye dir (default: $(CONTRIB_DIR)/sockeye)
@@ -75,6 +76,7 @@ PETSC_DIR           ?= $(MOOSE_DIR)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_DIR)/libmesh/installed/
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
+GRIFFIN_DIR         ?= $(CONTRIB_DIR)/griffin
 BISON_DIR           ?= $(CONTRIB_DIR)/bison
 SAM_DIR             ?= $(CONTRIB_DIR)/SAM
 SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
@@ -228,6 +230,29 @@ include $(FRAMEWORK_DIR)/moose.mk
 # ======================================================================================
 
 include $(MOOSE_DIR)/modules/modules.mk
+
+# Griffin submodule
+ifneq ($(GRIFFIN_CONTENT),)
+ libmesh_CXXFLAGS    += -DENABLE_GRIFFIN_COUPLING
+
+ APPLICATION_DIR    := $(GRIFFIN_DIR)/isoxml
+ APPLICATION_NAME   := isoxml
+ include            $(FRAMEWORK_DIR)/app.mk
+ #ADDITIONAL_DEPEND_LIBS += $(CURDIR)/isoxml/lib/libisoxml-$(METHOD).la
+
+ APPLICATION_DIR    := $(GRIFFIN_DIR)/xs_generation
+ APPLICATION_NAME   := mcc3
+ include            $(APPLICATION_DIR)/mcc3.dep
+ include            $(FRAMEWORK_DIR)/app.mk
+
+ APPLICATION_DIR    := $(GRIFFIN_DIR)/radiation_transport
+ APPLICATION_NAME   := radiation_transport
+ include            $(FRAMEWORK_DIR)/app.mk
+
+ APPLICATION_DIR     := $(GRIFFIN_DIR)
+ APPLICATION_NAME    := griffin
+ include             $(FRAMEWORK_DIR)/app.mk
+endif
 
 # Bison submodule
 ifneq ($(BISON_CONTENT),)
