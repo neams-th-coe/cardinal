@@ -35,7 +35,7 @@
 #
 # This script will create plots named <script_name>_k_<layers>.pdf and
 # <script_name>_entropy_<layers>.pdf in a sub-directory named inactive_study/.
-# It will print reccomendations about the number of inactive batches to use.
+
 
 # Whether to use saved statepoint files to just generate plots, skipping transport solves
 use_saved_statepoints = False
@@ -200,14 +200,13 @@ if(method != 'none'):
                     # if entropy[i][j] is less than window_high and greater than
                     # window_low, then it is within the window and we've succeeded
                     print("For layer", nl, ", batch", j, "produced a value within one "
-                            "standard deviation of the window mean. It is recommended to do "
-                            "at least this many inactive cycles for this layer.")
+                            "standard deviation of the window mean.")
                     break
                 else:
                     if(j == len(entropy[i]) - 1):
                         print("For layer", nl, ", despite searching over all the batches, no batch"
-                            "produced an entropy value within the window. This can happpen if "
-                            "too few batches are specified. Try again with more batches.") # TODO test this prints in the right place
+                            "produced an entropy value within the window. This can happpen if too few" 
+                            "batches or particles per batch are specified.")
                     continue
         elif(method == "half"):
             # Brown (2006) "On the Use of Shannon Entropy of the Fission Distribution for Assessing Convergence
@@ -222,15 +221,14 @@ if(method != 'none'):
                 high = mean + stdev
                 if(high - entropy[i][j] > 0 and entropy[i][j]-low > 0):
                     print("For layer", nl, ", batch", j, "produced a value within one "
-                            "standard deviation of the mean for the last half of entropy values. "
-                            "It is recommended to do at least this many inactive cycles for this layer.")
+                            "standard deviation of the mean for the last half of entropy values.")
                     break
                 else:
                     if(j == len(entropy[i]) -1):
                         print("For layer", nl, ", despite searching over all the batches, no batch"
                             "produced an entropy value within one standard deviation of the last "
-                            "half batches This can happpen if too few batches are specified. Try "
-                            "again with more batches.") # TODO test this prints in the right place
+                            "half batches. This can happpen if too few batches or particles per batch "
+                            "are specified.")
                     continue
         else:
             # use all batches as data points for computing mean and standard deviation
@@ -243,13 +241,12 @@ if(method != 'none'):
                 high = mean + stdev
                 if(high - entropy[i][j] > 0 and entropy[i][j]-low > 0):
                     print("For layer", nl, ", batch", j, "produced a value within one "
-                            "standard deviation of the mean of the last", j ,"entropy values. "
-                            "It is recommended to do at least this many inactive cycles for this layer.")
+                            "standard deviation of the mean of the last", j ,"entropy values.")
                     break
                 else:
                     if(j == len(entropy[i]) -1):
                         print("For layer", nl, ", despite searching over all the batches, no batch"
                             "produced an entropy value within one standard deviation of all "
-                            "preceeding batches This can happpen if too few batches are specified."
-                            " Try again with more batches.") # TODO test this prints in the right place
+                            "preceeding batches. This can happpen if too few batches or particles per batch "
+                            "are specified.")
                     continue
