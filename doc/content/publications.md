@@ -1,6 +1,9 @@
 # Publications
 
-This page contains an inexhaustive list of publications using Cardinal.
+This page contains an inexhaustive list of publications using Cardinal,
+categorized according to which type of system they are modeling. Because some
+papers cover multiple applications, they may be repeated under different categories.
+
 If you use Cardinal for your work, please consider citing the following.
 
 ```tex
@@ -45,6 +48,12 @@ If you use OpenMC for your work, please consider citing the following.
 }
 ```
 
+# Overview
+
+A.J. Novak, P. Shriwise, P. Romano, D. Shaver, J. Fang, H. Yuan, D. Gaston, E. Merzari, H. Brooks, and A. Huxford,
+"High-Fidelity Multiphysics for Fission: Challenges, Accomplishments, and Future Directions"
+*Proceedings of Nureth* (2023)
+
 # Pebble Bed Reactors
 
 E. Merzari, H. Yuan, M. Min, D. Shaver, R. Rahaman, P. Shriwise, P. Romano, A. Talamo, Y. Lan, D. Gaston,
@@ -69,13 +78,27 @@ A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Ke
 ["Coupled Monte Carlo and Thermal-Hydraulics Modeling of a Prismatic Gas Reactor Fuel Assembly Using Cardinal"](https://www.researchgate.net/publication/360681454_Coupled_Monte_Carlo_and_Thermal-Hydraulics_Modeling_of_a_Prismatic_Gas_Reactor_Fuel_Assembly_Using_Cardinal?_sg%5B1%5D=1Iq-lQWwadAANa8I10BgfiSiL9agM7rVq-JhJIgNRg2JQgPqQEq6hU82MhzPEQphXzZrYciSQA)
 *Proceedings of PHYSOR* (2022)
 
+# Molten Salt Reactors
+
+A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
+"Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"
+*Proceedings of M&C* (2023)
+
 # Lead Fast Reactors
+
+H. Park, Y. Yu, E. Shemon, and A. Novak,
+"Development of a Coupled Code System with Griffin, MOOSE and NekRS for Hot Channel Factor Evaluation in Fast Reactor"
+*Proceedings of M&C* (2023)
 
 H. Park, Y. Yu, E. Shemon, and A. Novak,
 "Progress on Demonstration of a MOOSE-Based Coupled Capability for Hot Channel Factors in Fast Reactors"
 *Argonne National Laboratory*, ANL/NSE-22/45 (2022)
 
 # Sodium Fast Reactors
+
+A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
+"NekRS CFD Simulations of Interassembly Flow in Sodium Fast Reactors"
+*Proceedings of Nureth* (2023)
 
 A.J. Novak, P. Shriwise, P.K. Romano, R. Rahaman, E. Merzari, and D. Gaston,
 ["Coupled Monte Carlo Transport and Conjugate Heat Transfer for Wire-Wrapped Bundles Within the MOOSE Framework](https://www.tandfonline.com/doi/epdf/10.1080/00295639.2022.2158715?needAccess=true&role=button)
@@ -88,6 +111,12 @@ A.J. Novak, A. Chaube, D.R. Shaver, C.S. Brooks,
 A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 ["Coupled Monte Carlo Transport and Conjugate Heat Transfer for Wire-Wrapped Bundles Within the MOOSE Framework"](https://www.researchgate.net/publication/359121160_COUPLED_MONTE_CARLO_TRANSPORT_AND_CONJUGATE_HEAT_TRANSFER_FOR_WIRE-WRAPPED_BUNDLES_WITHIN_THE_MOOSE_FRAMEWORK)
 *Proceedings of Nureth* (2022)
+
+# Fusion Devices
+
+A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
+"Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"
+*Proceedings of M&C* (2023)
 
 # Pressurized Thermal Shock
 
@@ -108,6 +137,38 @@ A. Huxford, V. Coppo Leite, E. Merzari, L. Zou, V. Petrov, and A. Manera
 A. Huxford, V. Petrov, A. Manera, V. Coppo Leite, E. Merzari, and L. Zou
 "Development of Innovative Overlapping-Domain Coupling Between SAM and nekRS"
 *Proceedings of Nureth* (2022)
+
+# Fluid-Structure Interaction
+
+A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Brooks,
+"A Preliminary Fluid-Structure Coupling of NekRS and MOOSE via Cardinal"
+*Proceedings of M&C* (2023)
+
+# AI/ML
+
+V.C. Leite, E. Merzari, A. Novak, R. Ponciroli, and L. Ibarra,
+"Application of a Physically Informed Convolutional Neural Network for Monitoring the Temperature Field in Advanced Reactors"
+*Proceedings of Nureth* (2023)
+
+# Verification and Validation
+
+L. Gross, A.J. Novak, P. Shriwise, and P.P.H. Wilson,
+"Verification of the Cardinal Multiphysics Solver for 1-D Coupled Heat Transfer and Neutron Transport"
+*Proceedings of M&C* (2023)
+
+A. Hegazy and A.J. Novak,
+"Verification of the Cardinal Multiphysics Solver with the Doppler Slab Benchmark"
+*Proceedings of M&C* (2023)
+
+A.J. Novak, P. Shriwise, P.K. Romano, R. Rahaman, E. Merzari, and D. Gaston,
+["Coupled Monte Carlo Transport and Conjugate Heat Transfer for Wire-Wrapped Bundles Within the MOOSE Framework](https://www.tandfonline.com/doi/epdf/10.1080/00295639.2022.2158715?needAccess=true&role=button)
+*Nuclear Science and Engineering* (2023)
+
+E. Merzari, H. Yuan, M. Min, D. Shaver, R. Rahaman, P. Shriwise, P. Romano, A. Talamo, Y. Lan, D. Gaston,
+R. Martineau, P. Fischer, and Y. Hassan,
+["Cardinal: A Lower Length-Scale Multiphysics Simulator for Pebble Bed Reactors"](https://www.tandfonline.com/doi/full/10.1080/00295450.2020.1824471)
+*Nuclear Technology* (2021)
+
 
 # Virtual Test Bed Documentation
 
