@@ -19,6 +19,24 @@ If you use Cardinal for your work, please consider citing the following.
 }
 ```
 
+If you use MOOSE for your work, please consider citing the following.
+
+```tex
+@article{moose2020,
+   title = {{MOOSE}: Enabling massively parallel multiphysics simulation},
+  author = {C.J. Permann and D.R. Gaston and D. Andr{\v{s}} and R.W. Carlsen and F.
+            Kong and A.D. Lindsay and J.M. Miller and J.W. Peterson and A.
+            E. Slaughter and R.H. Stogner and R.C. Martineau},
+    year = {2020},
+ journal = {{SoftwareX}},
+  volume = {11},
+   pages = {100430},
+    issn = {2352-7110},
+     doi = {https://doi.org/10.1016/j.softx.2020.100430},
+keywords = {Framework, Finite-element, Parallel, Multiphysics, Multiscale}
+}
+```
+
 If you use NekRS for your work, please consider citing the following.
 
 ```tex
