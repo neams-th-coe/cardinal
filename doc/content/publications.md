@@ -22,14 +22,14 @@ If you use Cardinal for your work, please consider citing the following.
 If you use NekRS for your work, please consider citing the following.
 
 ```tex
-@misc{nekrs,
+@Article{nekrs,
    author = {P. Fischer and S. Kerkemeier and M. Min and Y. Lan and M. Phillips and T. Rathnayake and E. Merzari and A. Tomboulides and A. Karakus and N. Chalmers and T. Warburton},
     title = {{NekRS, a GPU-Accelerated Spectral Element Navier-Stokes Solver}},
-archivePrefix = "arXiv",
-     year = 2021,
-    month = apr,
-     note = {arXiv:2104.05829},
-      url = {https://arxiv.org/abs/2104.05829}
+  journal = {Parallel Computing},
+     year = 2022,
+   volume = 114,
+    pages = {102982},
+      doi = {10.1016/j.parco.2022.102982}
 }
 ```
 
