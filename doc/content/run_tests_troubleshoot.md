@@ -3,6 +3,19 @@
 This page addresses errors commonly encountered when running the regression
 test suite, with `./run_tests`.
 
+## All the OpenMC tests Exodiff/CSVDiff
+
+There are two general reasons why all of the OpenMC tests might fail with
+an Exodiff or CSVDiff (meaning that the test *ran*, but the code results
+do not match what the test suite expects to encounter for tally values):
+
+- You did not use the cross section set that Cardinal expects to use for the test suite.
+  You can find this test suite [here](https://cardinal.cels.anl.gov/cross_sections.html).
+- If you are on a Mac, it is known that OpenMC itself does not output identical solutions
+  when compared to Linux operating systems. See [this issue](https://github.com/openmc-dev/openmc/issues/801)
+  on the OpenMC github for more information. In this case, as long as the tests ran
+  (i.e. they did not crash or abort, but did run successfully), you can proceed as normal.
+
 ## Missing Python dependencies
 
 Cardinal's test suite requires some Python dependencies that ship with MOOSE. You
