@@ -19,17 +19,35 @@ If you use Cardinal for your work, please consider citing the following.
 }
 ```
 
+If you use MOOSE for your work, please consider citing the following.
+
+```tex
+@article{moose2020,
+   title = {{MOOSE}: Enabling massively parallel multiphysics simulation},
+  author = {C.J. Permann and D.R. Gaston and D. Andr{\v{s}} and R.W. Carlsen and F.
+            Kong and A.D. Lindsay and J.M. Miller and J.W. Peterson and A.
+            E. Slaughter and R.H. Stogner and R.C. Martineau},
+    year = {2020},
+ journal = {{SoftwareX}},
+  volume = {11},
+   pages = {100430},
+    issn = {2352-7110},
+     doi = {https://doi.org/10.1016/j.softx.2020.100430},
+keywords = {Framework, Finite-element, Parallel, Multiphysics, Multiscale}
+}
+```
+
 If you use NekRS for your work, please consider citing the following.
 
 ```tex
-@misc{nekrs,
+@Article{nekrs,
    author = {P. Fischer and S. Kerkemeier and M. Min and Y. Lan and M. Phillips and T. Rathnayake and E. Merzari and A. Tomboulides and A. Karakus and N. Chalmers and T. Warburton},
     title = {{NekRS, a GPU-Accelerated Spectral Element Navier-Stokes Solver}},
-archivePrefix = "arXiv",
-     year = 2021,
-    month = apr,
-     note = {arXiv:2104.05829},
-      url = {https://arxiv.org/abs/2104.05829}
+  journal = {Parallel Computing},
+     year = 2022,
+   volume = 114,
+    pages = {102982},
+      doi = {10.1016/j.parco.2022.102982}
 }
 ```
 
