@@ -17,6 +17,7 @@ hydraulic_diameter = ${fparse 4.0 * flow_area / wetted_perimeter}
     radius = ${fparse pin_diameter / 2.0}
     boundaries_to_rebuild = '1 2 3 4 5 6 7'
     layers = '4'
+    geometry_type = cylinder
   []
   [scale]
     type = TransformGenerator

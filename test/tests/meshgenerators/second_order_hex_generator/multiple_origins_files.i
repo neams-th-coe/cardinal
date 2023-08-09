@@ -9,6 +9,7 @@
     boundary = '1'
     radius = '${fparse 7.646e-3 / 2.0}'
     origins_files = "origins_file.txt"
+    geometry_type = cylinder
   []
 
   parallel_type = replicated

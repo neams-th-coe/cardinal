@@ -16,6 +16,7 @@
                +0.00776452 -0.00448285 +0.00000000
                +0.00776452 +0.00448285 +0.00000000'
     layers = '1'
+    geometry_type = cylinder
   []
 
   parallel_type = replicated

@@ -186,6 +186,9 @@ protected:
   /// Mesh to modify
   std::unique_ptr<MeshBase> & _input;
 
+  /// Geometry type to curve boundaries to
+  const MooseEnum & _geometry_type;
+
   /// Axis of the mesh about which to build the circular surface
   const MooseEnum & _axis;
 

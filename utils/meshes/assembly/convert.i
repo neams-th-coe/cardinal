@@ -7,6 +7,7 @@
     type = NekMeshGenerator
     input = file
     boundaries_to_rebuild = '1 2 3 4'
+    geometry_type = cylinder
 
     boundary = '1'
     radius = '${fparse pin_diameter / 2.0}'
