@@ -44,44 +44,72 @@ NekMeshGenerator::validParams()
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
 
   MooseEnum geom("cylinder sphere");
-  params.addParam<MooseEnum>("geometry_type", geom, "Geometry type to use for moving boundary nodes");
+  params.addParam<MooseEnum>(
+      "geometry_type", geom, "Geometry type to use for moving boundary nodes");
 
   // optional parameters if fitting sidesets to a circular surface
   MooseEnum axis("x y z", "z");
-  params.addParam<MooseEnum>("axis", axis, "If 'geometry_type = cylinder', the axis of the mesh about which to build "
-    "the cylinder surface(s)");
-  params.addParam<std::vector<BoundaryName>>("boundary", "Boundary(s) to enforce the curved surface");
+  params.addParam<MooseEnum>(
+      "axis",
+      axis,
+      "If 'geometry_type = cylinder', the axis of the mesh about which to build "
+      "the cylinder surface(s)");
+  params.addParam<std::vector<BoundaryName>>("boundary",
+                                             "Boundary(s) to enforce the curved surface");
   params.addParam<std::vector<Real>>("radius", "Radius(es) of the surfaces");
-  params.addParam<std::vector<std::vector<Real>>>("origins", "Origin(s) about which to form the curved surfaces; "
-    "if not specified, all values default to (0, 0, 0)");
-  params.addParam<std::vector<std::string>>("origins_files", "Origin(s) about which to form the curved surfaces, "
-    "with a file of points provided for each boundary. If not specified, all values default to (0, 0, 0)");
-  params.addParam<std::vector<unsigned int>>("layers", "Number of layers to sweep for each "
-    "boundary when forming the curved surfaces; if not specified, all values default to 0");
+  params.addParam<std::vector<std::vector<Real>>>(
+      "origins",
+      "Origin(s) about which to form the curved surfaces; "
+      "if not specified, all values default to (0, 0, 0)");
+  params.addParam<std::vector<std::string>>("origins_files",
+                                            "Origin(s) about which to form the curved surfaces, "
+                                            "with a file of points provided for each boundary. If "
+                                            "not specified, all values default to (0, 0, 0)");
+  params.addParam<std::vector<unsigned int>>(
+      "layers",
+      "Number of layers to sweep for each "
+      "boundary when forming the curved surfaces; if not specified, all values default to 0");
 
   // optional parameters if fitting corners of a polygon to radius of curvature
-  params.addParam<bool>("curve_corners", false,
-    "If 'geometry_type = cylinder', whether to move elements to respect radius of curvature of polygon corners");
-  params.addRangeCheckedParam<unsigned int>("polygon_sides", "polygon_sides > 2",
-    "If 'geometry_type = cylinder' and when curving corners, the number of sides of the polygon to use for identifying corners");
-  params.addRangeCheckedParam<Real>("polygon_size", "polygon_size > 0.0",
-    "If 'geometry_type = cylinder' and when curving corners, the size of the polygon (measured as distance from center to a "
-    "corner) to use for identifying corners");
-  params.addRangeCheckedParam<Real>("corner_radius", "corner_radius > 0.0",
-    "If 'geometry_type = cylinder' and when curving corners, the radius of curvature of the corners");
-  params.addParam<unsigned int>("polygon_layers", 0,
-    "If 'geometry_type = cylinder' and when curving corners, the number of layers to sweep for each polygon corner");
-  params.addParam<std::vector<Real>>("polygon_layer_smoothing",
-    "If 'geometry_type = cylinder' and when curving corners, the multiplicative factor to apply to each boundary layer; if not "
-    "specified, all values default to 1.0");
-  params.addParam<BoundaryName>("polygon_boundary",
-    "If 'geometry_type = cylinder', boundary to enforce radius of curvature for polygon corners");
-  params.addParam<std::vector<std::vector<Real>>>("polygon_origins",
-    "If 'geometry_type = cylinder', origin(s) about which to curve "
-    "the polygon corners; if not specified, defaults to (0, 0, 0)");
-  params.addParam<Real>("rotation_angle", 0,
-    "If 'geometry_type = cylinder' and when curving corners, the rotation angle (degrees) "
-    "needed to apply to the original mesh to get a polygon boundary with one side horizontal");
+  params.addParam<bool>("curve_corners",
+                        false,
+                        "If 'geometry_type = cylinder', whether to move elements to respect radius "
+                        "of curvature of polygon corners");
+  params.addRangeCheckedParam<unsigned int>(
+      "polygon_sides",
+      "polygon_sides > 2",
+      "If 'geometry_type = cylinder' and when curving corners, the number of sides of the polygon "
+      "to use for identifying corners");
+  params.addRangeCheckedParam<Real>("polygon_size",
+                                    "polygon_size > 0.0",
+                                    "If 'geometry_type = cylinder' and when curving corners, the "
+                                    "size of the polygon (measured as distance from center to a "
+                                    "corner) to use for identifying corners");
+  params.addRangeCheckedParam<Real>("corner_radius",
+                                    "corner_radius > 0.0",
+                                    "If 'geometry_type = cylinder' and when curving corners, the "
+                                    "radius of curvature of the corners");
+  params.addParam<unsigned int>("polygon_layers",
+                                0,
+                                "If 'geometry_type = cylinder' and when curving corners, the "
+                                "number of layers to sweep for each polygon corner");
+  params.addParam<std::vector<Real>>(
+      "polygon_layer_smoothing",
+      "If 'geometry_type = cylinder' and when curving corners, the multiplicative factor to apply "
+      "to each boundary layer; if not "
+      "specified, all values default to 1.0");
+  params.addParam<BoundaryName>(
+      "polygon_boundary",
+      "If 'geometry_type = cylinder', boundary to enforce radius of curvature for polygon corners");
+  params.addParam<std::vector<std::vector<Real>>>(
+      "polygon_origins",
+      "If 'geometry_type = cylinder', origin(s) about which to curve "
+      "the polygon corners; if not specified, defaults to (0, 0, 0)");
+  params.addParam<Real>(
+      "rotation_angle",
+      0,
+      "If 'geometry_type = cylinder' and when curving corners, the rotation angle (degrees) "
+      "needed to apply to the original mesh to get a polygon boundary with one side horizontal");
 
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
   // of clearing out lingering sidesets used for stitching, but not for actual BCs/physics
@@ -111,21 +139,36 @@ NekMeshGenerator::NekMeshGenerator(const InputParameters & params)
 {
   if (_geometry_type == "sphere")
   {
-    checkUnusedParam(params, {"axis", "curve_corners", "polygon_sides", "polygon_size",
-                              "corner_radius", "polygon_layers", "polygon_layer_smoothing",
-                              "polygon_boundary", "polygon_origins", "rotation_angle"},
-                              "'geometry_type = sphere'");
+    checkUnusedParam(params,
+                     {"axis",
+                      "curve_corners",
+                      "polygon_sides",
+                      "polygon_size",
+                      "corner_radius",
+                      "polygon_layers",
+                      "polygon_layer_smoothing",
+                      "polygon_boundary",
+                      "polygon_origins",
+                      "rotation_angle"},
+                     "'geometry_type = sphere'");
   }
   else
   {
     if (_curve_corners)
-      checkRequiredParam(params, {"polygon_sides", "polygon_size", "polygon_boundary", "corner_radius"},
-                                 "'curve_corners' is true");
+      checkRequiredParam(params,
+                         {"polygon_sides", "polygon_size", "polygon_boundary", "corner_radius"},
+                         "'curve_corners' is true");
     else
-      checkUnusedParam(params, {"polygon_sides", "polygon_size", "polygon_boundary",
-                                "corner_radius", "polygon_layers", "rotation_angle",
-                                "polygon_layer_smoothing", "polygon_origins"},
-                                "'curve_corners' is false");
+      checkUnusedParam(params,
+                       {"polygon_sides",
+                        "polygon_size",
+                        "polygon_boundary",
+                        "corner_radius",
+                        "polygon_layers",
+                        "rotation_angle",
+                        "polygon_layer_smoothing",
+                        "polygon_origins"},
+                       "'curve_corners' is false");
   }
 
   if (isParamValid("boundary"))
