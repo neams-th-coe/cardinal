@@ -15,6 +15,7 @@
     input = exterior
     boundary = '1 50'
     radius = '2.0 2.0'
+    geometry_type = cylinder
   []
 
   parallel_type = replicated

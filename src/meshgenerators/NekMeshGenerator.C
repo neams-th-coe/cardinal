@@ -43,39 +43,44 @@ NekMeshGenerator::validParams()
   InputParameters params = MeshGenerator::validParams();
   params.addRequiredParam<MeshGeneratorName>("input", "The mesh we want to modify");
 
+  MooseEnum geom("cylinder sphere");
+  params.addParam<MooseEnum>("geometry_type", geom, "Geometry type to use for moving boundary nodes");
+
   // optional parameters if fitting sidesets to a circular surface
   MooseEnum axis("x y z", "z");
-  params.addParam<MooseEnum>("axis", axis, "Axis of the mesh about which to build "
-    "the circular surface(s)");
-  params.addParam<std::vector<BoundaryName>>("boundary", "Boundary(s) to enforce a circular surface");
-  params.addParam<std::vector<Real>>("radius", "Radius(es) of the circular surfaces");
-  params.addParam<std::vector<std::vector<Real>>>("origins", "Origin(s) about which to form the circular surfaces; "
+  params.addParam<MooseEnum>("axis", axis, "If 'geometry_type = cylinder', the axis of the mesh about which to build "
+    "the cylinder surface(s)");
+  params.addParam<std::vector<BoundaryName>>("boundary", "Boundary(s) to enforce the curved surface");
+  params.addParam<std::vector<Real>>("radius", "Radius(es) of the surfaces");
+  params.addParam<std::vector<std::vector<Real>>>("origins", "Origin(s) about which to form the curved surfaces; "
     "if not specified, all values default to (0, 0, 0)");
-  params.addParam<std::vector<std::string>>("origins_files", "Origin(s) about which to form the circular surfaces, "
+  params.addParam<std::vector<std::string>>("origins_files", "Origin(s) about which to form the curved surfaces, "
     "with a file of points provided for each boundary. If not specified, all values default to (0, 0, 0)");
   params.addParam<std::vector<unsigned int>>("layers", "Number of layers to sweep for each "
-    "boundary when forming the circular surfaces; if not specified, all values default to 0");
+    "boundary when forming the curved surfaces; if not specified, all values default to 0");
 
   // optional parameters if fitting corners of a polygon to radius of curvature
   params.addParam<bool>("curve_corners", false,
-    "Whether to move elements to respect radius of curvature of polygon corners");
+    "If 'geometry_type = cylinder', whether to move elements to respect radius of curvature of polygon corners");
   params.addRangeCheckedParam<unsigned int>("polygon_sides", "polygon_sides > 2",
-    "When curving corners, the number of sides of the polygon to use for identifying corners");
+    "If 'geometry_type = cylinder' and when curving corners, the number of sides of the polygon to use for identifying corners");
   params.addRangeCheckedParam<Real>("polygon_size", "polygon_size > 0.0",
-    "When curving corners, the size of the polygon (measured as distance from center to a "
+    "If 'geometry_type = cylinder' and when curving corners, the size of the polygon (measured as distance from center to a "
     "corner) to use for identifying corners");
   params.addRangeCheckedParam<Real>("corner_radius", "corner_radius > 0.0",
-    "When curving corners, the radius of curvature of the corners");
+    "If 'geometry_type = cylinder' and when curving corners, the radius of curvature of the corners");
   params.addParam<unsigned int>("polygon_layers", 0,
-    "When curving corners, the number of layers to sweep for each polygon corner");
+    "If 'geometry_type = cylinder' and when curving corners, the number of layers to sweep for each polygon corner");
   params.addParam<std::vector<Real>>("polygon_layer_smoothing",
-    "When curving corners, the multiplicative factor to apply to each boundary layer; if not "
+    "If 'geometry_type = cylinder' and when curving corners, the multiplicative factor to apply to each boundary layer; if not "
     "specified, all values default to 1.0");
-  params.addParam<BoundaryName>("polygon_boundary", "Boundary to enforce radius of curvature "
-    "for polygon corners");
-  params.addParam<std::vector<std::vector<Real>>>("polygon_origins", "Origin(s) about which to curve "
+  params.addParam<BoundaryName>("polygon_boundary",
+    "If 'geometry_type = cylinder', boundary to enforce radius of curvature for polygon corners");
+  params.addParam<std::vector<std::vector<Real>>>("polygon_origins",
+    "If 'geometry_type = cylinder', origin(s) about which to curve "
     "the polygon corners; if not specified, defaults to (0, 0, 0)");
-  params.addParam<Real>("rotation_angle", 0, "When curving corners, the rotation angle (degrees) "
+  params.addParam<Real>("rotation_angle", 0,
+    "If 'geometry_type = cylinder' and when curving corners, the rotation angle (degrees) "
     "needed to apply to the original mesh to get a polygon boundary with one side horizontal");
 
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
@@ -90,33 +95,47 @@ NekMeshGenerator::validParams()
 
   params.addClassDescription(
       "Converts MOOSE meshes to element types needed for Nek (Quad8 or Hex20), "
-      "while optionally preserving circular edges (which were faceted) in the original mesh.");
+      "while optionally preserving curved edges (which were faceted) in the original mesh.");
   return params;
 }
 
 NekMeshGenerator::NekMeshGenerator(const InputParameters & params)
   : MeshGenerator(params),
     _input(getMesh("input")),
+    _geometry_type(getParam<MooseEnum>("geometry_type")),
     _axis(getParam<MooseEnum>("axis")),
     _curve_corners(getParam<bool>("curve_corners")),
     _rotation_angle(getParam<Real>("rotation_angle")),
     _retain_original_elem_type(getParam<bool>("retain_original_elem_type")),
     _has_moving_boundary(isParamValid("boundary") || _curve_corners)
 {
-  if (_curve_corners)
-    checkRequiredParam(params, {"polygon_sides", "polygon_size", "polygon_boundary", "corner_radius"},
-                               "'curve_corners' is true");
+  if (_geometry_type == "sphere")
+  {
+    checkUnusedParam(params, {"axis", "curve_corners", "polygon_sides", "polygon_size",
+                              "corner_radius", "polygon_layers", "polygon_layer_smoothing",
+                              "polygon_boundary", "polygon_origins", "rotation_angle"},
+                              "'geometry_type = sphere'");
+  }
   else
-    checkUnusedParam(params, {"polygon_sides", "polygon_size", "polygon_boundary",
-                              "corner_radius", "polygon_layers", "rotation_angle",
-                              "polygon_layer_smoothing", "polygon_origins"},
-                              "'curve_corners' is false");
+  {
+    if (_curve_corners)
+      checkRequiredParam(params, {"polygon_sides", "polygon_size", "polygon_boundary", "corner_radius"},
+                                 "'curve_corners' is true");
+    else
+      checkUnusedParam(params, {"polygon_sides", "polygon_size", "polygon_boundary",
+                                "corner_radius", "polygon_layers", "rotation_angle",
+                                "polygon_layer_smoothing", "polygon_origins"},
+                                "'curve_corners' is false");
+  }
 
   if (isParamValid("boundary"))
     checkRequiredParam(params, "radius", "specifying a 'boundary'");
 
   if (isParamValid("radius"))
     checkRequiredParam(params, "boundary", "specifying a 'radius'");
+
+  if (isParamValid("radius") || _curve_corners)
+    checkRequiredParam(params, "geometry_type", "specifying a 'radius' or 'curve_corners = true'");
 
   if (!isParamValid("boundary") && !isParamValid("radius"))
     checkUnusedParam(params, {"axis", "origins", "origins_files", "layers"},
@@ -127,7 +146,10 @@ Point
 NekMeshGenerator::projectPoint(const Point & origin, const Point & pt) const
 {
   Point vec = pt - origin;
-  vec(_axis) = 0.0;
+
+  if (_geometry_type == "cylinder")
+    vec(_axis) = 0.0;
+
   return vec;
 }
 
@@ -230,8 +252,7 @@ NekMeshGenerator::getClosestOrigin(const unsigned int & index, const Point & pt)
     Point origin(candidates[3 * i], candidates[3 * i + 1], candidates[3 * i + 2]);
 
     // get the distance to this origin
-    Point d = pt - origin;
-    d(_axis) = 0.0;
+    Point d = projectPoint(origin, pt);
     Real current_distance = d.norm();
 
     if (current_distance < distance)

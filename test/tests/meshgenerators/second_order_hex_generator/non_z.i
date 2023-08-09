@@ -15,6 +15,7 @@
     boundary = 'rmax'
     radius = '0.25'
     axis = y
+    geometry_type = cylinder
   []
 
   parallel_type = replicated
