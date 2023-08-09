@@ -89,7 +89,7 @@ fuel_blocks = 'compacts compacts_trimmer_tri'
   []
   [compacts]
     type = HeatConductionMaterial
-    thermal_conductivity_temperature_function = k_TRISO
+    thermal_conductivity_temperature_function = k_compacts
     temp = T
     block = ${fuel_blocks}
   []

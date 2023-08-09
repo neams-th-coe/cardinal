@@ -136,7 +136,7 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 
 [Executioner]
   type = Transient
-  num_steps = 4
+  num_steps = 2
 []
 
 [Outputs]

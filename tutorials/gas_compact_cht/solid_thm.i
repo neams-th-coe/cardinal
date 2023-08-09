@@ -98,7 +98,7 @@ q0 = ${fparse unit_cell_power / (4.0 * unit_cell_height * compact_diameter * com
   []
   [compacts]
     type = HeatConductionMaterial
-    thermal_conductivity_temperature_function = k_TRISO
+    thermal_conductivity_temperature_function = k_comapcts
     temp = T
     block = 'compacts'
   []

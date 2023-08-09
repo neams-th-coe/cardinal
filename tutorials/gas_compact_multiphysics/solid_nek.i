@@ -126,7 +126,7 @@ nek_dt = 6e-3
   []
   [compacts]
     type = HeatConductionMaterial
-    thermal_conductivity_temperature_function = k_TRISO
+    thermal_conductivity_temperature_function = k_compacts
     temp = T
     block = ${fuel_blocks}
   []
