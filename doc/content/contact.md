@@ -11,13 +11,13 @@ For questions, please contact the current Cardinal development team.
 - Anshuman Chaube (UIUC)
 - Paul Romano (ANL)
 - Dillon Shaver (ANL)
+- Lewis Gross (UW)
 
 Thank you to all of our past team members and contributors!
 
 - Ron Rahaman (Georgia Institute of Technology)
 - Roy Stogner (INL)
-- Lewis Gross (UW)
 - Logan Harbour (INL)
 - Guillaume Giudicelli (INL)
 - Alex Lindsay (INL)
-- Davis Andrs
+- David Andrs (Sawtooth Simulation)

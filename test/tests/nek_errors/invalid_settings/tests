@@ -84,4 +84,13 @@
     max_parallel = 12
     required_objects = 'NekRSProblem'
   []
+  [scaling_mismatch]
+    type = RunException
+    input = mesh.i
+    cli_args = 'Mesh/type=NekRSMesh Mesh/scaling=0.1 Problem/nondimensional=true Problem/L_ref=0.2 Mesh/volume=true'
+    expect_err = "If solving NekRS in nondimensional form, you must choose"
+    requirement = "The system shall error if there is a mismatch between the scaling of the mesh and NekRS problem."
+    max_parallel = 12
+    required_objects = 'NekRSProblem'
+  []
 []

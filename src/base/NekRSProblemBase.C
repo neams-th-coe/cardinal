@@ -247,13 +247,10 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   // It's too complicated to make sure that the dimensional form _also_ works when our
   // reference coordinates are different from what MOOSE is expecting, so just throw an error
   if (_nondimensional && !MooseUtils::absoluteFuzzyEqual(_nek_mesh->scaling(), _L_ref))
-    paramError(
-        "L_ref",
-        "When solving in non-dimensional form, no capability exists to allow "
-        "a nondimensional solution based on reference scales that are not in the same units as the "
-        "coupled MOOSE application!\n\nIf solving nekRS in nondimensional form, you must choose "
-        "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L_ref' "
-        "must match 'scaling' in 'NekRSMesh'.");
+    paramError("L_ref",
+               "If solving NekRS in nondimensional form, you must choose "
+               "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L_ref' "
+               "must match 'scaling' in 'NekRSMesh'.");
 
   // boundary-specific data
   _boundary = _nek_mesh->boundary();

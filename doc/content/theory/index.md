@@ -24,3 +24,4 @@ Some common features used in Cardinal include:
 - [Incompressible Navier-Stokes equations](theory/ins.md)
 - [Solution in non-dimensional form](theory/nondimensional_ns.md)
 - [k-tau RANS model](theory/ktau.md)
+- [LES filtering](theory/les_filter.md)
