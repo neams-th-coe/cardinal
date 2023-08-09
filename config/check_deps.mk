@@ -110,9 +110,3 @@ ifneq ($(SOCKEYE_CONTENT),)
     $(error Cannot build Cardinal with both SAM and Sockeye due to a conflict)
   endif
 endif
-
-ifneq ($(THM_CONTENT),)
-  ifneq ($(SAM_CONTENT),)
-    $(error Cannot build Cardinal with both SAM and the Thermal Hydraulic Module due to a conflict. To build with SAM, you must set 'THERMAL_HYDRAULICS := no' in Cardinal's Makefile)
-  endif
-endif
