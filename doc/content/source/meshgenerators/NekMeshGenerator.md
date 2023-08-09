@@ -150,7 +150,7 @@ surface to a new radius, say $r=0.6$.
 !media sphere_convert.png
   id=sphere_convert
   caption=Input and output meshes when enforcing sphere radius
-  style=width:90%;margin-left:auto;margin-right:auto
+  style=width:60%;margin-left:auto;margin-right:auto
 
 !syntax parameters /Mesh/NekMeshGenerator
 
