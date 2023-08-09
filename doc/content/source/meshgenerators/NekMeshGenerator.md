@@ -16,14 +16,18 @@ but the QUAD9 to QUAD8 conversion features are identical, just executed in 2-D.
 This mesh generator will:
 
 - Take a HEX27 mesh and convert it into an equivalent HEX20 mesh
-- *Optionally* move nodes to be conformal with a cylinder. NekRS uses a high-order
-  spectral element solution, which will exactly represent the cylinder surface with
-  its [!ac](GLL) points (as long as the HEX20 elements have their mid-side nodes
-  one the cylinder, which is what this mesh generator does for you)
-- *Optionally* move nodes at polygon corners to a cylindrical radius of curvature.
+- *Optionally* move nodes to be conformal with a cylinder.
+  You can also *optionally* move nodes at polygon corners to a cylindrical radius of curvature.
   This allows NekRS to exactly represent curved corners of meshes that represent
   regular polygons, such as for curving the corners of a mesh representing a
-  six-sided duct.
+  six-sided duct. Set `geometry_type = cylinder` for either of these.
+- *Optionally* move nodes to be conformal with a sphere surface.
+
+NekRS uses a high-order
+spectral element solution, which will exactly represent circular surfaces
+(e.g. circles, cylinders, spheres)
+its [!ac](GLL) points (as long as the HEX20 elements have their mid-side nodes
+one the curve, which is what this mesh generator does for you).
 
 !alert! note title="Have a HEX8 mesh instead of a HEX27 mesh?
 
@@ -54,8 +58,9 @@ This mesh generator has very limited error checking, and will not protect you
 from inverted elements or other errors. Always be sure to check your mesh output
 for correct behavior.
 
-## Example
+## Cylinder Examples
 
+All examples in this section use `geometry_type = cylinder`.
 This example converts from a HEX27 mesh to a HEX20 mesh, while also moving the outer boundary
 (`rmax`) to a cylinder with radius of 0.25.
 
@@ -132,6 +137,19 @@ as well as attached boundary layers, to have a radius of curvature.
 !media hex_generator_corners.png
   id=rebuilt_mesh5
   caption=Input and output meshes when enforcing radius of curvature at polygon corners
+  style=width:90%;margin-left:auto;margin-right:auto
+
+## Sphere Example
+
+All examples in this section use `geometry_type = sphere`.
+For example, if you have a sphere of radius $r=0.5$, you can move the nodes on the sphere
+surface to a new radius, say $r=0.6$.
+
+!listing test/tests/meshgenerators/sphere/convert.i
+
+!media sphere_convert.png
+  id=sphere_convert
+  caption=Input and output meshes when enforcing sphere radius
   style=width:90%;margin-left:auto;margin-right:auto
 
 !syntax parameters /Mesh/NekMeshGenerator
