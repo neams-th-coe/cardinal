@@ -1,36 +1,24 @@
-# Conjugate Heat Transfer for Reflector Bypass Flow
+# Conjugate Heat Transfer for Flow Over a Pebble
 
 In this tutorial, you will learn how to:
 
-- Couple NekRS with MOOSE for [!ac](CHT) in a pebble bed reactor reflector block
+- Couple NekRS with MOOSE for [!ac](CHT) for laminar flow over a single heated pebble
 - Solve NekRS in non-dimensional form while MOOSE solves in dimensional form
 
 To access this tutorial,
 
 ```
-cd cardinal/tutorials/fhr_reflector
+cd cardinal/tutorials/pebble_1
 ```
 
-This tutorial also requires you to download
-some mesh files and restart files from Box. Please download the files
-from the `fhr_reflector` folder [here](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499)
-and place these files within the same directory structure
-in `tutorials/fhr_reflector`.
-
-This tutorial was developed with funding from the NRIC [!ac](VTB). You can
-find additional context on this model in our conference publication
-[!cite](novak_ans_2021).
-
 !alert! note title=Computing Needs
-This tutorial requires [!ac](HPC) resources to run. Please still read this
-tutorial if you do not have resources, because you will apply some concepts
-from this tutorial in [Tutorial 2B](cht2.md), which you can run on a typical
-personal computer.
+No special computing needs are required for this tutorial.
 !alert-end!
 
 At a high level, Cardinal's wrapping of NekRS consists of:
 
-1. Construct a "mirror" of the NekRS mesh through which data transfers occur
+1. Construct a "mirror" of the NekRS mesh ([NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html))
+  through which data transfers occur
   with MOOSE. A
   [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
    is created by copying the NekRS mesh into a format that
@@ -41,8 +29,7 @@ At a high level, Cardinal's wrapping of NekRS consists of:
   with each
   entry corresponding to a NekRS node, then a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
    is created that represents
-  the same data, but which can be accessed in relation to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
-   mirror.
+  the same data, but which is exposed to the MOOSE input files.
 3. Write multiphysics feedback fields in/out of NekRS's internal data structures.
    In other words, if NekRS represents a heat flux boundary condition internally
   as an `std::vector<double>`,
@@ -58,80 +45,10 @@ specifications.
 ## Geometry and Computational Model
   id=model
 
-The pebble region in the [!ac](PB-FHR) is enclosed by an outer graphite reflector.
-In order to keep the graphite reflector within
-allowable design temperatures, the reflector contains several bypass flow
-paths so that a small percentage of the coolant flow can
-maintain the graphite within allowable temperature ranges. This
-bypass flow
-is important to quantify so that accurate
-estimates of core cooling and reflector temperatures can be obtained. By repeating
-these calculations for a range of Reynolds numbers and geometries, this model
-can be used to provide friction factor and Nusselt number correlations.
-
-This section describes the [!ac](PB-FHR) reflector geometry and our computational model.
-A top-down view of the [!ac](PB-FHR) reactor is shown in [top_down], with important
-specifications summarized in [table1].
-The center region
-is the pebble bed core, which is surrounded by two rings of graphite reflector blocks,
-staggered in a brick-like fashion. The nominal
-gap size between blocks is 0.002 m, but to ease meshing and make model depiction easier,
-the gap between blocks is increased to 0.006 m
-(which could be interpreted as an end-of-life, maximum-swelling condition
-[!cite](novak2021)).
-Each ring contains 24 blocks. In black is shown the core barrel.
-To form the entire axial height of the reflector, rings of blocks are stacked
-vertically. The entire core height is 5.3175 m, or
-about 10 vertical rings of blocks. Additional structures are present as well,
-but are not considered here.
-
-!media top_down.png
-  id=top_down
-  caption=Top-down schematic of the [!ac](PB-FHR) reactor core.
-  style=width:40%;margin-left:auto;margin-right:auto;halign:center
-
-!table id=table1 caption=Geometric and operating conditions relevant to reflector block modeling, based on [!cite](shaver)
-| Parameter | Value |
-| :- | :- |
-| Pebble core radius | 2.6 m |
-| Inner block radial thickness | 0.3 m |
-| Outer block radial thickness | 0.4 m |
-| Barrel thickness | 0.022 m |
-| Gap between blocks | 0.006 m |
-| Gap between blocks and barrel | 0.02 m |
-| Block height | 0.52 m |
-| Core inlet temperature | 600&deg;C |
-| Core outlet temperature | 700&deg;C |
-
-FLiBe flows through the pebble bed, through small gaps between reflector
-blocks, and between small gaps between the reflector blocks and the barrel. These bypass paths are
-shown as yellow dashed lines in [top_down]. Due to the top-down orientation of [top_down],
-flow paths radially (i.e. from lower to higher $r$ at a fixed $z$ between stacks
-of reflector blocks) are not shown. While
-such radial bypass paths contribute to bypass flow, they are not considered here.
-
-The coupled NekRS-MOOSE simulation is conducted
-for a single ring of reflector blocks (i.e. a height of 0.52 m), with azimuthal symmetry assumed to further
-reduce the domain to half of an inner ring block, half of an outer ring block,
-and the vertical bypass flow paths between the blocks and the barrel. This
-computational domain is shown outlined with a red dotted line in [top_down].
-
 ### Heat Conduction Model
 
 The MOOSE heat conduction module is used to solve for
 [energy conservation in the solid](theory/heat_eqn.md).
-A fixed heat flux of 5 kW/m$^2$ is imposed on the block surface facing the pebble bed.
-On the surface of the barrel, a heat convection boundary condition is imposed,
-
-\begin{equation}
-\label{eq:hfc}
-q^{''}=h\left(T_s-T_\infty\right)
-\end{equation}
-
-where $q^{''}$ is the heat flux, $h$ is the convective heat transfer coefficient, and $T_\infty$
-is the far-field ambient temperature.
-At fluid-solid interfaces, the solid temperature is imposed as a Dirichlet condition,
-where NekRS computes the surface temperature. All other solid boundaries are treated as insulated.
 
 ### NekRS Model
 
@@ -144,17 +61,6 @@ In this tutorial, the following characteristic scales are selected:
 - $T_{ref} = 923.15$ K, the inlet temperature
 - $\Delta T=10$ K, an arbitrary selection
 
-A Reynolds number of 100 corresponds to a bypass fraction of about 7%, considering
-that $Re$ can be written equivalently as
-
-\begin{equation}
-\label{eq:Re2}
-Re\equiv\frac{\dot{m}L_{ref}}{A\mu}
-\end{equation}
-
-where $\dot{m}$ is the mass flowrate (a fraction of the total core mass flowrate, distributed
-among 48 half-reflector blocks) and $A$ is the inlet flow area.
-
 The only characteristic scale that requires additional comment is $\Delta T$ -
 this parameter truly is arbitrary, since it does not appear in the definitions of
 $Re$ or $Pe$. That is, if the converged solution has an inlet temperature of 400 K
@@ -163,111 +69,6 @@ range from 0 to 1. Setting a different value, such as $\Delta T=50$, means that
 $T^\dagger$ will instead range from 0 to 2. The only scenario where $\Delta T$ is
 of consequences is if you are setting initial conditions for temperature or have
 imposed a heat source yourself within the `.oudf` file.
-
-At the inlet, the fluid temperature is taken as 650&deg;C, or the nominal
-median fluid temperature. The inlet velocity is set to a uniform value such that the Reynolds number is 100.
-At the outlet, a zero pressure is imposed. On the $\theta=0^\circ$ boundary (i.e. the $y=0$ boundary), symmetry is imposed
-such that all derivatives in the $y$ direction are zero. All other boundaries are treated as no-slip.
-
-!alert note
-The $\theta=7.5^\circ$ boundary (i.e. $360^\circ$ divided by 24 blocks, divided
-in half because we are modeling only half a block) should also be imposed as a symmetry
-boundary in the NekRS model. However, at the time when we first made this tutorial,
-NekRS only supported symmetry
-boundaries for sidesets aligned with the $x$, $y$, and $z$ coordinate
-axes. Here, a no-slip boundary condition is used instead, so the correspondence of
-the NekRS computational model to the depiction in [#model] is imperfect. This is no
-longer a restriction in NekRS.
-
-At fluid-solid interfaces, the heat flux is imposed as a Neumann condition, where MOOSE
-computes the surface heat flux.
-
-Because the NekRS mesh contains very small elements in the fluid phase, fairly small time
-steps are required to meet [!ac](CFL) conditions related to stability. Therefore,
-the approach to the coupled, pseudo-steady [!ac](CHT) solution can be
-accelerated by obtaining initial conditions from a pure conduction simulation. Then, the
-initial conditions for the [!ac](CHT) simulation will begin from the temperature obtained
-from the conduction simulation, with a uniform axial velocity and zero pressure.
-The process to run Cardinal in conduction mode is described in [#part1], while the process
-to run Cardinal in [!ac](CHT) mode is described in [#part2].
-
-## Meshing
-  id=meshes
-
-Cubit [!cite](cubit) is used to
-programmatically create meshes with user-defined geometry and customizable
-boundary layers. Journal files, or Python-scripted Cubit inputs, are used
-to create meshes in Exodus II format. The MOOSE framework accepts meshes in
-a wide range of formats that can be generated with many commercial and free
-meshing tools; other tutorials will make meshes natively within MOOSE.
-
-### Solid Mesh
-  id=solid_mesh
-
-The Cubit script used to generate the solid mesh is
-shown below. To run this script yourself, you will need to update
-the `directory` variable to point to the tutorials directory on your machine.
-
-!listing /tutorials/fhr_reflector/meshes/solid.jou language=python
-
-The solid mesh (before a series of refinements) is shown below; the boundary names are illustrated
-by showing only the highlighted surface to which each boundary corresponds.
-A unique block ID is used for the set of elements
-corresponding to the inner ring, outer ring, and barrel. Material properties in MOOSE
-are typically restricted by block, and setting three separate IDs allows us to set
-different properties in each of these blocks.
-
-!media solid_mesh.png
-  id=solid_mesh
-  caption=Solid mesh for the reflector blocks and barrel and a subset of the boundary names, before a series of mesh refinements
-  style=halign:center
-
-Unique boundary names are set for each boundary to which we will apply a unique
-boundary condition; we define the boundaries on the top and bottom of the block,
-the symmetry boundaries,
-and boundaries at the interface between the
-reflector and the bed and on the barrel surface.
-
-One convenient aspect of MOOSE is that the same elements
-can be assigned to more than one boundary ID. To help in applying heat flux and
-temperature boundary conditions between NekRS and MOOSE, we define another boundary
-that contains all of the fluid-solid interfaces through which we will exchange
-heat flux and temperature, as `fluid_solid_interface`.
-
-### Fluid Mesh
-  id=fluid_mesh
-
-The Cubit script used to generate the fluid mesh is shown below.
-To run this script yourself, you will need to update
-the `directory` variable to point to the tutorials directory on your machine.
-
-!listing /tutorials/fhr_reflector/meshes/fluid.jou language=python
-
-The fluid mesh is shown below; the boundary names are illustrated towards
-the right by showing the highlighted surface to which each boundary corresponds.
-While the names of the surfaces are shown,
-NekRS does not directly use these names - rather, NekRS assigns boundary
-conditions based on the boundary ID.
-An important restriction in NekRS is that the boundary IDs be ordered
-sequentially beginning from 1.
-
-!media fluid_mesh.png
-  id=fluid_mesh
-  caption=Fluid mesh for the FLiBe flowing around the reflector blocks, along with boundary names and IDs. It is difficult to see, but the `porous_inner_surface` boundary corresponds to the thin surface at the interface between the reflector region and the pebble bed.
-  style=halign:center
-
-One strength of Cardinal for [!ac](CHT) applications
-is that the fluid and solid meshes do not need to share nodes on a common surface; MOOSE
-mesh-to-mesh data interpolations can communicate between surfaces with different refinement and position in
-space; meshes may even overlap or share no nodes at all, such as
-for curvilinear applications. [zoom_mesh] shows
-a zoom-in of the two mesh files (for the fluid and solid phases). Each phase
-can be meshed according to its physics requirements.
-
-!media zoom_mesh.png
-  id=zoom_mesh
-  caption=Zoomed-in view of the fluid and solid meshes, overlaid in Paraview. Lines are element boundaries.
-  style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
 Because NekRS uses a custom binary mesh format with a `.re2` extension, the `exo2nek` utility
 must be used to convert an Exodus II format to `.re2` format.
@@ -288,15 +89,7 @@ The last part of the `exo2nek` program will request
 a name for the fluid `.re2` mesh; providing `fluid` then will create the NekRS
 mesh, named `fluid.re2`.
 
-## Part 1: Initial Conduction Coupling
-  id=part1
-
-In this section, NekRS and MOOSE are coupled for conduction heat transfer in the solid reflector
-blocks and barrel, and through a stagnant fluid. The purpose of this stage of
-the analysis is to obtain a restart file for use as an initial condition in [#part2] to accelerate the NekRS
-calculation for [!ac](CHT).
-All input files for this stage are present in the
-`tutorials/fhr_reflector/conduction` directory. The following sub-sections describe these files.
+## CHT Coupling
 
 ### Solid Input Files
 
@@ -368,10 +161,7 @@ Next, the boundary conditions on the solid are applied. On the fluid-solid inter
 a [MatchedValueBC](https://mooseframework.inl.gov/source/bcs/MatchedValueBC.html)
  applies the value of the `nek_temp` receiver auxiliary variable
 to the temperature in a strong Dirichlet sense. Insulated boundary conditions are applied on the `symmetry`,
-`top`, and `bottom` boundaries. On the boundary at the bed-reflector interface, the
-core heat flux is specified as a [NeumannBC](https://mooseframework.inl.gov/source/bcs/NeumannBC.html). Finally, on the surface of the barrel,
-a heat flux of $h(T-T_\infty)$ is specified, where both $h$ and $T_\infty$ are specified
-as material properties.
+`top`, and `bottom` boundaries.
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
   start=BCs
