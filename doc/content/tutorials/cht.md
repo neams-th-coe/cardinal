@@ -21,8 +21,9 @@ coupling NekRS to any of these other MOOSE thermal-fluid codes.
   caption=NekRS integrates with *any* MOOSE application that can compute a heat flux
   style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
-Three examples are provided:
+Four examples are provided:
 
 - [Reflector Bypass Flow](cht1.md) around a reflector block in a pebble bed reactor
 - [Pin Bundle Flow](cht2.md) in a bare 7-pin geometry
-- [Turbulent Channel Flow](cht3.md) in a [!ac](TRISO) compact
+- [Turbulent RANS Channel Flow](cht3.md) in a heated [!ac](TRISO) compact
+- [Turbulent LES Flow](cht4.md) in a heated 67-pebble [!ac](HTGR)

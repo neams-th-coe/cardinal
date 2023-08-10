@@ -1,0 +1,93 @@
+void velocityDirichletConditions(bcData *bc)
+{
+  bc->u = 0.0;
+  bc->v = 0.0;
+  bc->w = 1.0;
+}
+
+// Stabilized outflow (Dong et al)
+void pressureDirichletConditions(bcData *bc)
+{
+  const dfloat iU0delta = 20.0;
+  const dfloat un = bc->u*bc->nx + bc->v*bc->ny + bc->w*bc->nz;
+  const dfloat s0 = 0.5 * (1.0 - tanh(un*iU0delta));
+  bc->p = -0.5 * (bc->u*bc->u + bc->v*bc->v + bc->w*bc->w) * s0;
+}
+
+void scalarDirichletConditions(bcData *bc)
+{
+  bc->s = 0.0;
+}
+
+void scalarNeumannConditions(bcData *bc)
+{
+  bc->flux = bc->usrwrk[bc->idM];
+}
+
+@kernel void clipTemperature(const dlong Nelements,
+                 @restrict dfloat * TEMP)
+{
+
+  for (dlong e=0;e<Nelements;++e;@outer(0))
+  {
+    for (int n=0;n<p_Np;++n;@inner(0))
+    {
+      const int id = e * p_Np + n;
+      const dfloat clip_temperature_max = 100.0;
+      const dfloat clip_temperature_min = 0.0;
+
+      if (TEMP[id] > clip_temperature_max)
+        TEMP[id] = clip_temperature_max;
+      if (TEMP[id] < clip_temperature_min)
+        TEMP[id] = clip_temperature_min;
+    }
+  }
+}
+
+@kernel void manipulateOutlet(const dlong Nelements,
+                    const dlong uOffset,
+                    const dlong sOffset,
+                    @restrict const dfloat * TEMP,
+                    @restrict dfloat * UPROP,
+                    @restrict dfloat * SPROP,
+                    @restrict const dfloat * Z)
+{
+  for (dlong e=0;e<Nelements;++e;@outer(0))
+  {
+    for (int n=0;n<p_Np;++n;@inner(0))
+    {
+      const int id = e*p_Np + n;
+
+       // change outlet viscosity/conductivity
+
+      // my current z position
+      dfloat local_z = Z[id];
+
+      // height above which I want to manipulate viscosity and conductivity;
+      // I will apply a ramping of viscosity between z1 and z2, and set a very
+      // high value above z2
+      dfloat z1 = 4.6;
+      dfloat z2 = 5.0;
+
+      dfloat rho = 1.0;
+      dfloat visc = 1.0 / 10000.0;
+      dfloat cond = 1.0 / 7100.0;
+      dfloat Cp = 1.0;
+
+      // increase viscosity and conductivity near outlet
+      dfloat factor = 1.0;
+      if (local_z >= z2)
+        factor = 101.0;
+      else if (local_z > z1 && local_z < z2)
+        factor = 1.0 + 100.0 * (local_z - z1) / (z2 - z1);
+
+      visc = factor * visc;
+      cond = factor * cond;
+
+      UPROP[id + 0*uOffset] = visc;
+      SPROP[id + 0*sOffset] = cond;
+      UPROP[id + 1*uOffset] = rho;
+      SPROP[id + 1*sOffset] = rho*Cp;
+    }
+  }
+}

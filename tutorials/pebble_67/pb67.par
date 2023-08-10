@@ -1,0 +1,33 @@
+[GENERAL]
+  polynomialOrder = 7
+  stopAt = endTime
+  endTime = 500
+
+  dt = 2.0e-05
+  timeStepper = tombo2
+  subCyclingSteps = 2
+
+  writeControl = steps
+  writeInterval = 2000
+
+  filtering = hpfrt
+  filterWeight = 0.2/${dt}
+  filterModes = 2
+
+[PRESSURE]
+  residualTol = 1e-04
+  preconditioner = multigrid
+  smootherType = chebyshev+jac
+  initialGuess = projectionAconj + nVector = 30
+
+[VELOCITY]
+  boundaryTypeMap = inlet, outlet, wall, wall
+  density = 1.0
+  viscosity = -1460.0
+  residualTol = 1e-06
+
+[TEMPERATURE]
+  boundaryTypeMap = t, I, I, f
+  residualTol = 1e-06
+  rhoCp = 1.0
+  conductivity = -1036.0

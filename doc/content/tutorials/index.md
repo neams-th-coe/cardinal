@@ -1,14 +1,13 @@
 # Tutorials
 
-This page provides tutorials that cover all major use cases of Cardinal.
-By design, Cardinal treats its NekRS and OpenMC wrappings similar to native
+Cardinal treats its NekRS and OpenMC wrappings similar to native
 MOOSE applications - NekRS and OpenMC can be combined with *any* other MOOSE application
-to provide multiphysics feedback either together or individually. In addition,
+to provide multiphysics feedback (either together or individually). In addition,
 NekRS and OpenMC can be run as standalone applications using Cardinal, if you would
 like to leverage Cardinal's postprocessing and/or Exodus mesh projection features.
 There are no limitations on
 how NekRS and OpenMC can interact with the MOOSE framework - as long as you can
-construct a MultiApp heirarchy that addresses your physics of interest, the existing
+construct a MultiApp hierarchy that addresses your physics of interest, the existing
 [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html) in the MOOSE
 framework are all that are needed to send data to/from NekRS and OpenMC and MOOSE.
 
@@ -21,9 +20,7 @@ to understand is how NekRS and OpenMC *individually* couple to MOOSE, which is
 covered by the [#nekrs] and [#openmc] sections
 below. Nevertheless, we do also include some tutorials that specifically couple both
 NekRS and OpenMC simultaneously, in the [#multi] section.
-Within each category, we do recommend moving sequentially;
-but with the exception of the tutorials listed in [#multi], the OpenMC tutorials
-do not have the NekRS tutorials as pre-requisites, and vice versa.
+Within each category, we do recommend moving sequentially.
 
 !media framework.png
   id=cardinal_multiapp
@@ -69,10 +66,9 @@ We recommend quickly reading this documentation before proceeding.
 
 1. [Running as a standalone application](tutorials/nekrs_standalone.md)
 2. [Conjugate heat transfer coupling to MOOSE](tutorials/cht.md)
-3. [Volumetric heat source coupling to chemical species transport](tutorials/volumetric.md)
-4. [Multiscale coupling to SAM for primary loop modeling](tutorials/sam_coupling.md)
-5. [Forward uncertainty quantification](tutorials/nekrs_stochastic.md)
-6. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
+3. [Multiscale coupling to SAM for primary loop modeling](tutorials/sam_coupling.md)
+4. [Forward uncertainty quantification](tutorials/nekrs_stochastic.md)
+5. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
 
 ## Tutorials for OpenMC
   id=openmc
@@ -86,17 +82,17 @@ quickly reading this documentation before proceeding.
 Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://www.flexiquiz.com/SC/N/30fc79f0-f9a5-4cfc-b140-c07dda3bdf0b)!
 !alert-end!
 
-7. [Solid coupling to MOOSE](tutorials/openmc_solid.md)
-8. [Solid and fluid coupling to MOOSE](tutorials/openmc_fluid.md)
+6. [Solid coupling to MOOSE](tutorials/openmc_solid.md)
+7. [Solid and fluid coupling to MOOSE](tutorials/openmc_fluid.md)
 
 ## Tutorials for Coupling NekRS and OpenMC
   id=multi
 
-9. [Coupling of NekRS, OpenMC, and MOOSE](tutorials/coupled.md)
+8. [Coupling of NekRS, OpenMC, and MOOSE](tutorials/coupled.md)
 
 ## Miscellaneous
 
-10. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
-12. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
-12. [Assessing convergence](tutorials/convergence.md)
-13. [What Transfer should I use?](tutorials/transfers.md)
+9. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
+10. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
+11. [Assessing convergence for OpenMC calculations](tutorials/convergence.md)
+12. [What Transfer should I use?](tutorials/transfers.md)
