@@ -246,6 +246,16 @@ must contain 3 functions (they can be empty):
 - `UDF_Setup` is called on initialization time, and is typically where initial conditions are applied
 - `UDF_ExecuteStep` is called once on each time step, and is typically where postprocessing is applied
 
+!listing /tutorials/pebble_1/pebble.udf language=cpp
+
+Here, we only use the `UDF_Setup` function to set initial conditions (to the same values
+we applied as our inlet boundary conditions). NekRS stores velocity as `nrs->U` (all three
+components are packed one after another, with each "slice" of length `nrs->fieldOffset`).
+Pressure is represented as `nrs->P`, and the passive scalars (of which our problem only has one,
+i.e. temperature) are stored in `nrs->cds->S` (packed sequentially one after another, each
+of length `nrs->cds->fieldOffset[i]`). We apply the initial condition by looping over all the
+elements in the mesh, and in each element for all the [!ac](GLL) points.
+
 ### Execution and Postprocessing
 
 When you compile Cardinal, you automatically also get a standalone NekRS executable.
@@ -258,7 +268,34 @@ $NEKRS_HOME/bin/nrsmpi pebble 4
 where `pebble` is the case name and `4` is the number of MPI ranks you would like to use.
 Note that NekRS does not use any shared memory parallelism (e.g. OpenMP).
 Running this case will produce NekRS output files named
-`pebble0.f<n>`, where `<n>` is a 5-digit integer indicating the time step number.
+`pebble0.f<n>`, where `<n>` is a 5-digit integer indicating the output file number
+(i.e. they will be sequentially-ordered based on when you told NekRS to write output files).
+
+These files (often referred to as "field" files) need to be accompanied by a small
+"configuration" file in order to load into Paraview. To generate that file, we need to
+use the `visnek` script like so
+
+```
+cardinal/contrib/nekRS/3rd_party/nek5000/bin/visnek pebble
+```
+
+(We recommend adding that location to your path). This will create a file named
+`pebble.nek5000`, which has very simple contents:
+
+```
+ filetemplate: pebble%01d.f%05d
+ firsttimestep: 1
+ numtimesteps:            20
+```
+
+To open the NekRS output files, you then need to open the `pebble.nek5000` file.
+
+!alert note
+To open the files in a tool like Paraview or Visit, you must also be sure to
+have co-located with the `pebble.nek5000` files your actual output files from NekRS
+(e.g. the `pebble0.f<n>` files).
+
+
 
 
 ## NekRS-MOOSE Coupling
