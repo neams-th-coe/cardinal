@@ -19,15 +19,13 @@ No special computing needs are required for this tutorial.
 At a high level, Cardinal's wrapping of NekRS consists of:
 
 1. Construct a "mirror" of the NekRS mesh ([NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html))
-  through which data transfers occur
-  with MOOSE. A
+  through which data transfers occur with MOOSE. A
   [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
    is created by copying the NekRS mesh into a format that
   all native MOOSE applications can understand.
 2. Add [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
   to represent the NekRS solution. In other words,
-  if NekRS stores the temperature internally as an `std::vector<double>`,
-  with each
+  if NekRS stores the temperature internally as an `std::vector<double>`, with each
   entry corresponding to a NekRS node, then a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
    is created that represents
   the same data, but which is exposed to the MOOSE input files.
@@ -35,8 +33,7 @@ At a high level, Cardinal's wrapping of NekRS consists of:
    In other words, if NekRS represents a heat flux boundary condition internally
   as an `std::vector<double>`,
   this involves reading from a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html) representing
-  heat flux
-  and writing into NekRS's internal vectors.
+  heat flux and writing into NekRS's internal vectors.
 
 Cardinal developers have an intimate knowledge of how NekRS stores its
 solution fields and mesh, so this entire process is automated for you!
@@ -45,7 +42,19 @@ specifications.
 
 ## Geometry
 
-The domain consists of
+The domain consists of a single pebble within a rectangular box; the pebble
+origin is at $(0, 0, 0)$. [pebble_1] shows the fluid portion of the domain (the
+pebble is not shown). The sideset numbering in the fluid domain is:
+
+- 1: inlet
+- 2: pebble surface
+- 3: outlet
+- 4: lateral walls
+
+!media pebble_1.png
+  id=pebble_1
+  caption=Single pebble (red) and flow domain outside pebble (gray). Sidesets in the fluid domain are colored on the right.
+  style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 ## "Standalone" NekRS Case
 
@@ -222,6 +231,11 @@ and are paired up to the character strings you set earlier. These function names
 [vel_bcs] and [temp_bcs]. Note that a `---` indicates that no user-defined kernels are necessary
 to define that boundary condition.
 
+!listing /tutorials/pebble_1/pebble.oudf language=cpp
+
+Here, we set a uniform inlet velocity of $V_z=1$ (non-dimensional), a zero value for temperature
+(non-dimensional), and a heat flux of 1.0 (non-dimensional).
+
 #### .udf File
 
 The `.udf` file contains additional C++ code which is typically used for setting initial conditions,
@@ -243,7 +257,8 @@ $NEKRS_HOME/bin/nrsmpi pebble 4
 
 where `pebble` is the case name and `4` is the number of MPI ranks you would like to use.
 Note that NekRS does not use any shared memory parallelism (e.g. OpenMP).
-
+Running this case will produce NekRS output files named
+`pebble0.f<n>`, where `<n>` is a 5-digit integer indicating the time step number.
 
 
 ## NekRS-MOOSE Coupling
@@ -464,8 +479,8 @@ application is in dimensional units). This scaling is specified by the
   end=Problem
 
 !alert note
-Note that `fluid.re2` does not appear anywhere in `nek.i` - the `fluid.re2` file is
-a mesh used directly by NekRS, while [NekRSMesh](/mesh/NekRSMesh.md) is a mirror of the boundaries in `fluid.re2`
+Note that `pebble.re2` does not appear anywhere in `nek.i` - the `pebble.re2` file is
+a mesh used directly by NekRS, while [NekRSMesh](/mesh/NekRSMesh.md) is a mirror of the boundaries in `pebble.re2`
 through which boundary coupling with MOOSE will be performed.
 
 Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
@@ -553,38 +568,6 @@ You will see both `temp` and `avg_flux` referred to in the solid input file `[Tr
 in addition to the `flux_integral` [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessor that receives the integrated heat flux for normalization.
 
-The `nek.i` input file only describes how NekRS is *wrapped* within the MOOSE framework;
-each NekRS simulation requires additional files
-that share the same case name `fluid` but with different extensions.
-The additional NekRS files are:
-
-- `fluid.re2`: Mesh file
-- `fluid.par`: High-level settings for the solver, boundary
-  condition mappings to sidesets, and the equations to solve
-- `fluid.udf`: User-defined C++ functions for on-line postprocessing and model setup
-- `fluid.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and
-  source terms
-
-A detailed description of all of the available parameters, settings, and use cases
-for these input files is available on the
-[NekRS documentation website](https://nekrsdoc.readthedocs.io/en/latest/input_files.html).
-Because this is a Cardinal tutorial, only
-the aspects of NekRS required to understand the present case will be covered. First,
-begin with the `fluid.par` file.
-
-!listing /tutorials/pebble_1/fluid.par
-
-Boundaries 1, 2, and 7 are flux boundaries
-(these boundaries will receive a heat flux from MOOSE), boundaries 3, 4, and 8 are
-insulated, boundary 5 is a specified temperature, and boundary 6 is a zero-gradient
-outlet. The actual assignment of values for these boundary conditions is then
-performed in the `fluid.oudf` file. The `fluid.oudf` file contains [!ac](OCCA) kernels that
-will be run on a [!ac](GPU) (if present). If no [!ac](GPU) is present,
-these kernels are simply run with MPI.
-Because this case does not have any user-defined
-source terms in NekRS, these [!ac](OCCA) kernels are only used to apply boundary conditions.
-
-!listing /tutorials/pebble_1/fluid.oudf language=cpp
 
 The names of these functions correspond to the boundary conditions that were applied
 in the `.par` file - only the user-defined temperature and flux boundaries require user
@@ -595,12 +578,12 @@ about the current boundary that is "calling" the function; `bc->id` is the bound
 `bc->usrwrk` array is a scratch space to which the heat flux values coming from MOOSE are
 written. These OCCA functions then get called directly within NekRS.
 
-Finally, the `fluid.udf` file contains user-defined C++ functions through
+Finally, the `pebble.udf` file contains user-defined C++ functions through
 which other interactions with the NekRS solution are performed. Here, the `UDF_Setup` function
 is called once at the very start of the NekRS simulation, and it is here that initial
 conditions are applied.
 
-!listing /tutorials/pebble_1/fluid.udf language=cpp
+!listing /tutorials/pebble_1/pebble.udf language=cpp
 
 The initial condition is applied by looping over all
 the [!ac](GLL) points and setting zero to each (recall that this is a non-dimensional
@@ -635,7 +618,7 @@ When the simulation has completed, you will have created a number of different o
 
 - `fluid0.f<n>`, where `<n>` is a five-digit number indicating the output file number
   created by NekRS (a separate output file is written for each time step
-  according to the settings in the `fluid.par` file). An extra program is required to visualize
+  according to the settings in the `pebble.par` file). An extra program is required to visualize
   NekRS output files in Paraview; see the instructions [here](https://nekrsdoc.readthedocs.io/en/latest/detailed_usage.html#visualizing-output-files).
 - `solid_out.e`, an Exodus II output file with the solid mesh and solution.
 - `solid_out_nek0.e`, an Exodus II output file with the fluid mirror mesh
@@ -676,7 +659,6 @@ In this section, NekRS and MOOSE are coupled for [!ac](CHT) with fluid flow.
 All input files for this stage of the analysis are present in the
 `tutorials/fhr_reflector/cht` directory. The following sub-sections describe all of these files; for
 brevity, most emphasis will be placed on input file setup that is different or extends the
-conduction case in [#part1].
 
 ### Solid Input Files
 
@@ -701,30 +683,19 @@ inlet and outlet mass flowrates. Like the [NekVolumeExtremeValue](/postprocessor
 postprocessor, these postprocessors
 operate directly on NekRS's internal solution arrays to provide diagnostic information.
 Because the outlet pressure is set to zero, `pressure_in` corresponds to the pressure
-drop in the fluid.
-
-As in [#part1], additional files are required to set up the NekRS simulation -
-`fluid.re2`, `fluid.par`, `fluid.udf`, and `fluid.oudf`. These files are largely the
-same as those used in the steady conduction model, so only the differences will be
-emphasized here.
-The `fluid.par` file is shown below. Here, `startFrom` provides a restart file (that
-we generated from [#part1]),
-`conduction.fld` and specifies that we only want to read temperature from the
-file (by appending `+T` to the file name). We increase the polynomial order as well.
-
-!listing /tutorials/fhr_reflector/cht/fluid.par
+drop in the pebble.
 
 Because NekRS is run as a sub-application to MOOSE, the `stopAt` and `numSteps`
 fields are actually ignored, so that the steady state tolerance in the MOOSE main
 application dictates when a simulation terminates. Because the purpose of this
 
-The `fluid.udf` file is shown below. The `UDF_Setup` function is again used to apply initial
+The `pebble.udf` file is shown below. The `UDF_Setup` function is again used to apply initial
 conditions; because temperature is read from the restart file, only initial conditions on
 velocity and pressure are required. `nrs->U` is an array storing the three components of
 velocity (padded with length `nrs->fieldOffset`), while `nrs->P` is the array storing the
 pressure solution.
 
-!listing /tutorials/fhr_reflector/cht/fluid.udf language=cpp
+!listing /tutorials/fhr_reflector/cht/pebble.udf language=cpp
 
 This file also includes the `UDF_LoadKernels` function, which is used to propagate
 quantities to variables accessible through [!ac](OCCA) kernels. The `kernelInfo`
@@ -732,17 +703,17 @@ object is used to define two variables - `Vz` and `inlet_T` that will be accessi
 through the [!ac](GPU) kernels, eliminating some burden on the user if the problem
 setup must be changed in multiple locations throughout the NekRS input files.
 
-Finally, the `fluid.oudf` file is shown below. Because the velocity is enabled,
+Finally, the `pebble.oudf` file is shown below. Because the velocity is enabled,
 additional boundary condition functions must be specified.
 The `velocityDirichletConditions` function applies Dirichlet
 conditions to velocity, where `bc->u` is the $x$-component of velocity,
 `bc->v` is the $y$-component of velocity, and `bc->z` is the $z$-component of velocity.
-In this function, the kernel variable `Vz` was defined in the `fluid.udf` file.
+In this function, the kernel variable `Vz` was defined in the `pebble.udf` file.
 The other boundary conditions -
 the Dirichlet temperature conditions and the Neumann heat flux conditions - are the
 same as for the steady conduction case.
 
-!listing /tutorials/fhr_reflector/cht/fluid.oudf language=cpp
+!listing /tutorials/fhr_reflector/cht/pebble.oudf language=cpp
 
 ### Execution and Postprocessing
 
