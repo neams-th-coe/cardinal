@@ -2,7 +2,7 @@
   [solid]
     type = CSVDiff
     input = moose.i
-    output = moose_out.csv
+    csvdiff = moose_out.csv
     cli_args = 'Outputs/csv=true Outputs/interval=1 Executioner/num_steps=1 MultiApps/active="" Transfers/active=""'
     requirement = "The system shall solve heat conduction in 67 independent pebbles."
   []
