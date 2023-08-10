@@ -145,25 +145,36 @@ to apply to each sideset (you only specify boundary conditions in the `[VELOCITY
 together a solution to the momentum conservation equation).
 The `boundaryTypeMap` is used to specify the mapping of
 boundary IDs to types of boundary conditions. NekRS uses short character strings
-to represent the type of boundary condition. For velocity, these boundary condition strings are:
+to represent the type of boundary condition. For velocity, these boundary condition strings are
+show in [vel_bcs].
 
-- `v`: Dirichlet velocity
-- `w`: No-slip wall
-- `o`: Outflow velocity + Dirichlet pressure
-- `symx`: symmetry in the $x$-direction
-- `symy`: symmetry in the $y$-direction
-- `symz`: symmetry in the $z$-direction
-- `sym`: general symmetry boundary
+!table id=vel_bcs caption=Velocity boundary conditions in NekRS
+| Meaning | How to set in `.par` File | Function name in `.oudf` File |
+| :- | :- | :- |
+| `v` | Dirichlet velocity | `velocityDirichletConditions` |
+| `w` | No-slip wall | --- |
+| `o` | Outflow velocity + Dirichlet pressure | `pressureDirichletConditions` (nothing needed for velocity outflow) |
+| `symx` | symmetry in the $x$-direction | --- |
+| `symy` | symmetry in the $y$-direction | --- |
+| `symz` | symmetry in the $z$-direction | --- |
+| `sym` | general symmetry boundary | --- |
 
-For temperature, these boundary condition strings are:
+For temperature, these boundary condition strings are shown in [temp_bcs].
 
-- `t`: Dirichlet temperature
-- `f`: Neumann flux
-- `I`: insulated
-- `symx`: symmetry in the $x$-direction
-- `symy`: symmetry in the $y$-direction
-- `symz`: symmetry in the $z$-direction
-- `sym`: general symmetry boundary
+!table id=temp_bcs caption=Temperature/scalar boundary conditions in NekRS
+| Meaning | How to set in `.par` File | Function name in `.oudf` File |
+| :- | :- | :- |
+| `t` | Dirichlet temperature | `scalarDirichletConditions` |
+| `f` | Neumann flux | `scalarNeumannConditions` |
+| `I` | insulated | --- |
+| `symx` | symmetry in the $x$-direction | --- |
+| `symy` | symmetry in the $y$-direction | --- |
+| `symz` | symmetry in the $z$-direction | --- |
+| `sym` | general symmetry boundary | --- |
+
+When you populate `boundaryTypeMap` in the input file, you simply list the
+character string for your desired boundary condition in the same order as the sidesets
+(which as you recall are numbered sequentially).
 
 In the `[VELOCITY]` block, the `density` parameter is used to specify density,
 and `viscosity` is used to specify viscosity. When the Navier-Stokes equations
@@ -193,7 +204,47 @@ form is equal to $1/Pe$, where $Pe$ is the Peclet number. In NekRS, specifying `
 to specifying `conductivity = 0.00066644` (i.e. $1/1500.5$), or a Peclet number of
 1500.5.
 
+!alert! tip
+You can get a comprehensive list of all the syntax supported by the `.par` file by running
+
+```
+$NEKRS_HOME/bin/nekrs --help par
+```
+!alert-end!
+
+
+#### .oudf File
+
+The `.oudf` file contains all of the boundary conditions. When you defined the boundary
+condition types in the `.par` file, you also need to set the *values* of those boundary conditions
+(if required) in the `.oudf` file. The names of these functions are pre-defined by NekRS,
+and are paired up to the character strings you set earlier. These function names are shown in
+[vel_bcs] and [temp_bcs]. Note that a `---` indicates that no user-defined kernels are necessary
+to define that boundary condition.
+
+#### .udf File
+
+The `.udf` file contains additional C++ code which is typically used for setting initial conditions,
+postprocessing, and adding custom physics kernels (not used in this tutorial). This file at a minimum
+must contain 3 functions (they can be empty):
+
+- `UDF_LoadKernels` will load any user-defined physics kernels
+- `UDF_Setup` is called on initialization time, and is typically where initial conditions are applied
+- `UDF_ExecuteStep` is called once on each time step, and is typically where postprocessing is applied
+
 ### Execution and Postprocessing
+
+When you compile Cardinal, you automatically also get a standalone NekRS executable.
+You can run the NekRS case with
+
+```
+$NEKRS_HOME/bin/nrsmpi pebble 4
+```
+
+where `pebble` is the case name and `4` is the number of MPI ranks you would like to use.
+Note that NekRS does not use any shared memory parallelism (e.g. OpenMP).
+
+
 
 ## NekRS-MOOSE Coupling
 
