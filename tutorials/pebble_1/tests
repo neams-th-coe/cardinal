@@ -1,0 +1,8 @@
+[Mesh]
+  [solid_mesh]
+    type = RunApp
+    input = mesh.i
+    cli_args = '--mesh-only'
+    requirement = 'The system shall generate a mesh for the solid heat conduction.'
+  []
+[]
