@@ -10,6 +10,7 @@
     radius = ${fparse vessel_inner_diameter / 2.0}
     boundaries_to_rebuild = '1 2 3 4'
     layers = '${e_per_bl}'
+    geometry_type = cylinder
 
     curve_corners = true
     polygon_sides = 6

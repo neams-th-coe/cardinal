@@ -16,6 +16,7 @@
     radius = '0.05 0.2'
     origins = '1.0 0.0 0.0;
                1.0 0.0 0.0'
+    geometry_type = cylinder
   []
 
   parallel_type = replicated

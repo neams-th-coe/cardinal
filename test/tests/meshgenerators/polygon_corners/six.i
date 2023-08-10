@@ -13,6 +13,7 @@
     type = NekMeshGenerator
     input = rotate
     boundaries_to_rebuild = '1 2 3 10000'
+    geometry_type = cylinder
 
     curve_corners = true
     polygon_sides = 6

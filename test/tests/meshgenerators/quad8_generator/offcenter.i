@@ -16,6 +16,7 @@
     input = offcenter
     boundary = '2'
     radius = '2.0'
+    geometry_type = cylinder
   []
 
   parallel_type = replicated
