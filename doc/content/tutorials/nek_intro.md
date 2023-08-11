@@ -98,7 +98,7 @@ cd Nek5000/tools
 Running the above will place a binary named `exo2nek` at `Nek5000/bin/exo2nek`. We recommend
 adding this to your path.
 
-Now that you have `exo2nek`, we are ready to convert your mesh (`pebble.exo`) into `.re2` format. This mesh is Hex8 (we will show you how a Hex20 mesh would look for this geometry later). Run the following from the `pebble_1`	directory:
+Now that you have `exo2nek`, we are ready to convert your mesh (`pebble.exo`) into `.re2` format. This mesh is Hex8. Run the following:
 
 ```
 exo2nek
@@ -116,7 +116,7 @@ This will create a mesh named `pebble.re2`.
 
 NekRS is a spectral element code, which means that the solution in each element is represented
 as an $N$-th order Lagrange polynomial (in each direction).
-An illustration for a 5th-order NekRS solution is shown in [gll] for a 2-D element. Each
+An illustration for a 5th-order NekRS solution is shown in [gll_mesh] for a 2-D element. Each
 red dot is a node ([!ac](GLL) quadrature). When you create a mesh for NekRS, you do not
 see these [!ac](GLL) points in your starting Exodus/Gmsh mesh. Instead, they will be created
 when you launch NekRS (in other words, you do not need to create unique meshes if you want
@@ -124,7 +124,7 @@ to run NekRS at different polynomial orders).
 
 !media gll.png
   id=gll_mesh
-  caption=Illustration of nodal positions for a $N=5$ polynomial solution.
+  caption=Illustration of nodal positions for a 5-th order polynomial solution.
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 ### .par File
@@ -132,7 +132,7 @@ to run NekRS at different polynomial orders).
 The `.par` file is used to set up the high-level settings for the case.
 This file consists of blocks (in square brackets) and parameters.
 
-!include /tutorials/pebble_1/pebble.par
+!listing /tutorials/pebble_1/pebble.par
 
 !alert! tip
 You can get a comprehensive list of all the syntax supported by running
@@ -251,7 +251,7 @@ we applied as our inlet boundary conditions). NekRS stores the various solution 
 - `nrs->U` is velocity (all three components are packed one after another, with each "slice" of length `nrs->fieldOffset`)
 - `nrs->P` is pressure
 - `nrs->cds->S` are the passive scalars (packed sequentially one after another, each
-of length `nrs->cds->fieldOffset[i]`)
+  of length `nrs->cds->fieldOffset[i]`)
 
 Our problem only has one passive scalar (temperature). You will have additional
 passive scalars if doing [!ac](RANS) modeling (e.g. $k$ and $\tau$ would be passive
@@ -327,7 +327,7 @@ element are connecting the nodes.
 
 !media zoom_pebble_mesh.png
   id=zoom_pebble_mesh
-  caption=NekRS spectral mesh, for $N=5$
+  caption=NekRS spectral mesh, for polynomial order 5
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 Note that the pebble surface is "faceted" in the same way as our starting Exodus mesh.
@@ -350,7 +350,7 @@ mid-side node in our starting Hex20 mesh "knows about" the curve in the mesh at 
 
 !media hex20.png
   id=hex20
-  caption=NekRS mesh for $N=5$ when using a Hex20 input mesh
+  caption=NekRS mesh for polynomial order 5 when using a Hex20 input mesh
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 !bibtex bibliography

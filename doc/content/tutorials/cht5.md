@@ -85,7 +85,7 @@ Our `.par` file is the same as the [standalone NekRS tutorial](tutorials/nek_int
 except that we will point to the same mesh and `.udf` file from before by specifying
 the `file` and `udf` parameters.
 
-!include /tutorials/pebble_1/pebble_cht.par
+!listing /tutorials/pebble_1/pebble_cht.par
 
 ### .oudf File
 
