@@ -291,11 +291,9 @@ cardinal/contrib/nekRS/3rd_party/nek5000/bin/visnek pebble
 To open the NekRS output files, you then need to open the `pebble.nek5000` file.
 
 !alert note
-To open the files in a tool like Paraview or Visit, you must also be sure to
+To open the files in Paraview or Visit, you must also be sure to
 have co-located with the `pebble.nek5000` files your actual output files from NekRS
 (e.g. the `pebble0.f<n>` files).
-
-
 
 
 ## NekRS-MOOSE Coupling
