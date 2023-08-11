@@ -5,7 +5,7 @@ thermal_conductivity = 2.0
   [sphere]
     type = SphereMeshGenerator
     radius = ${fparse pebble_diameter / 2.0}
-    nr = 2
+    nr = 3
   []
 []
 
@@ -49,11 +49,11 @@ thermal_conductivity = 2.0
   petsc_options_iname = '-pc_type -pc_hypre_type'
   petsc_options_value = 'hypre boomeramg'
 
-  dt = 10.0
+  dt = 5.0
   nl_abs_tol = 1e-8
 
   steady_state_detection = true
-  steady_state_tolerance = 1e-5
+  steady_state_tolerance = 1e-4
 []
 
 [Outputs]
