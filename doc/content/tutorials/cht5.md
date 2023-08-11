@@ -377,12 +377,22 @@ First, let's take a look at the two meshes *together*. [fluid_and_solid] shows a
 through the NekRS mesh (with quadrature points shown) and the solid pebble mesh
 (in yellow). Cardinal does *not* require conformality between the meshes - by using
 MOOSE's nearest node transfer, we don't even require overlap between the meshes.
+Of course there will be some interpolation error when the meshes are not exactly
+the same, but you can always conduct a mesh refinement study until you are happy with
+the numerical error in the mapping.
 
 !media fluid_and_solid.png
   id=fluid_and_solid
   caption=NekRS mesh (gray) and solid mesh (yellow)
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
+[temperature_cht5] shows the fluid temperature (NekRS) and solid temperature (MOOSE).
+The conjugate heat transfer coupling between the two phases is evident from the continuity
+in temperature on the pebble surface.
 
+!media temperature_cht5.png
+  id=temperature_cht5
+  caption=Fluid temperature (NekRS) and solid temperature (MOOSE)
+  style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
 !bibtex bibliography
