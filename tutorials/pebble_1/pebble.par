@@ -3,21 +3,21 @@
 
 [GENERAL]
   polynomialOrder = 5
-  numSteps = 20000
-  dt = 2e-3
-  writeInterval = 5000
+  numSteps = 8000
+  dt = targetCFL=2.0 + initial=1e-4
+  writeInterval = 1000
 
 [PRESSURE]
   residualTol = 1e-06
 
 [VELOCITY]
-  boundaryTypeMap = v, o, sym, W
+  boundaryTypeMap = v, o, W, sym
   residualTol = 1e-07
-  density = 1.0
-  viscosity = -50.0
+  density = 1000.0
+  viscosity = 1e-3
 
 [TEMPERATURE]
-  boundaryTypeMap = t, I, I, f
-  rhoCp = 1
-  conductivity = -35.0
+  boundaryTypeMap = t, I, f, I
+  rhoCp = 4186000
+  conductivity = 0.6
   residualTol = 1e-07

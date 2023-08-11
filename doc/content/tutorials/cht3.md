@@ -4,6 +4,7 @@
 In this tutorial, you will learn how to:
 
 - Couple NekRS to MOOSE for [!ac](CHT) for turbulent flow in a [!ac](TRISO) fuel unit cell
+- Couple NekRS to MOOSE for solving NekRS in non-dimensional form
 - Extract an initial condition from a NekRS restart file
 - Swap out NekRS for a different thermal-fluid MOOSE application, the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
 - Compute heat transfer coefficients with NekRS
@@ -98,6 +99,37 @@ NekRS solves the [incompressible k-tau RANS equations](theory/ktau.md).
 To relate $\mu_T$ to $k_T$, $Pr_T=0.91$ is selected. The resolution of the mesh near all no-slip boundaries
 ensures that $y^+<1$ such that the NekRS model is a wall-resolved model.
 
+Here, the NekRS case will be set up in [non-dimensional form](nondimensional_ns.md).
+This is a convenient technique for fluid solvers, because the solution will be correct
+for *any* flow at a given Reynolds/Peclet/etc. number in this geometry. A common user
+operation is also to "ramp" up a CFD solve for stability purposes. Solving in non-dimensional
+form means that you do not need to also "ramp" absolute values for velocity/pressure/temperature/etc. - switching to a different set of non-dimensional numbers is as simple
+as just modifying the thermophysical "properties" of the fluid (e.g. viscosity, conductivity, etc.).
+
+When the Navier-Stokes equations
+are written in [non-dimensional form](nondimensional_ns.md), the "density" in the `[VELOCITY]` block becomes unity because
+
+\begin{equation}
+\label{eq:nondim_p}
+\rho^\dagger\equiv\frac{\rho_f}{\rho_0}=1
+\end{equation}
+
+The "viscosity" becomes the coefficient on the
+viscous stress term ($1/Re$, where $Re$ is the Reynolds number).
+In NekRS, specifying `diffusivity = -50.0` is equivalent to specifying
+`diffusivity = 0.02` (i.e. $1/50.0$), or a Reynolds number of 50.0.
+
+In non-dimensional form, the `rhoCp` term in the `[TEMPERATURE]` block becomes unity because
+
+\begin{equation}
+\label{eq:nek1}
+\rho^\dagger C_{p,f}^\dagger\equiv\frac{\rho_fC_{p,f}}{\rho_0C_{p,0}}=1
+\end{equation}
+
+The "conductivity" indicates the coefficient on the diffusion kernel, which in non-dimensional
+form is equal to $1/Pe$, where $Pe$ is the Peclet number. In NekRS, specifying `conductivity = -35` is equivalent
+to specifying `conductivity = 0.02857` (i.e. $1/35.0$), or a Peclet number of 35.
+
 The inlet mass flowrate is 0.0905 kg/s; with the channel diameter of 1.6 cm and material
 properties of helium, this results in a Reynolds number of 223214 and a Prandtl number
 of 0.655. This highly-turbulent flow results in extremely thin momentum and thermal boundary
@@ -159,11 +191,7 @@ Next, the `.par` file contains problem setup information.
 This input sets up a nondimensional passive scalar solution, loading $P$, $\vec{u}$,
 $k$, and $\tau$ from a restart file. In order to "freeze," or turn off the $P$, $\vec{u}$,
 $k$, and $\tau$ solves, we set `solver = none` in the `[VELOCITY]`, `[SCALAR01]` ($k$ passive scalar),
-and `[SCALAR02]` ($\tau$ passive scalar) blocks. In the nondimensional formulation,
-the "viscosity" becomes $1/Re$, where $Re$ is the Reynolds number, while the
-"thermal conductivity" becomes $1/Pe$, where $Pe$ is the Peclet number. There nondimensional
-numbers are used to set various diffusion coefficients in the governing equations
-with syntax like `-223214`, which is equivalent in NekRS syntax to $\frac{1}{223214}$.
+and `[SCALAR02]` ($\tau$ passive scalar) blocks.
 The only equation that NekRS will solve is for temperature.
 
 !listing /tutorials/gas_compact_cht/ranstube.par
@@ -338,14 +366,34 @@ In this example, we don't have any volume-based coupling, but we set
 (as a first-order interpolation of the 7-th order polynomial
 solution).
 
+When solving in MOOSE, all the coupled applications must either be in non-dimensional form,
+or all in dimensional form. In this tutorial, we have set up the MOOSE input file
+in dimensional form, but the NekRS case files were set up in non-dimensional form.
+In order for MOOSE's transfers
+to correctly find the closest nodes in the solid mesh to corresponding locations in NekRS, the entire mesh "mirror" through which data transfers occur must be
+scaled by a factor of $L_{ref}$ to return to dimensional units (because the coupled MOOSE
+application is in dimensional units). This scaling is specified by the
+`scaling` parameter. In other words, the `scaling` indicates by what factor
+we should internally scale spatial lengths by to correctly send data
+between NekRS and MOOSE.
+
 !listing /tutorials/gas_compact_cht/nek.i
   end=Problem
 
 Next, we define additional parameters to describe how NekRS interacts with MOOSE
 with the [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html).
-The NekRS input files are in nondimensional form, so we must indicate all the characteristic
-scales so that data transfers with a dimensional MOOSE application are performed
-correctly. We also indicate that we are going to restrict the data copies to/from
+
+To allow conversion between a non-dimensional NekRS solve and a dimensional MOOSE coupled
+heat conduction application, the characteristic scales used to establish the non-dimensional
+problem are provided. Definitions for these non-dimensional scales are
+available [here](theory/nondimensional_ns.md).
+
+!alert warning
+These characteristic scales are used by Cardinal to dimensionalize the NekRS solution
+into the units that the coupled MOOSE application expects. *You* still need to properly
+non-dimensionalize the NekRS input files (to be discussed later).
+
+We also indicate that we are going to restrict the data copies to/from
 GPU to only occur on the time steps that NekRS is coupled to MOOSE.
 
 !listing /tutorials/gas_compact_cht/nek.i

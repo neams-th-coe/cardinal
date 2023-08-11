@@ -13,7 +13,7 @@ void UDF_Setup(nrs_t *nrs)
   {
     nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
     nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
-    nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = 0.001666; // z-velocity
 
     nrs->P[n] = 0.0; // pressure
 
