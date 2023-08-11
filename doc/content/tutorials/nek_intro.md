@@ -274,6 +274,13 @@ must be present, but can be empty).
 
 !listing /tutorials/pebble_1/pebble.usr language=fortran
 
+The various terms in this function are:
+
+- `iel` is a loop variable name used to indicate a loop over elements
+- `ifc` is a loop variable name used to indicate a loop over the faces on an element
+- `bc(5, ifc, iel, 1)` is the sideset ID for velocity from the mesh
+- `boundaryID(ifc, iel)` is the sideset ID for velocity used internally
+
 ## Execution and Postprocessing
 
 When you compile Cardinal, you automatically also get a standalone NekRS executable.
@@ -302,7 +309,7 @@ This will create a file named `pebble.nek5000`, which has very simple contents:
 ```
  filetemplate: pebble%01d.f%05d
  firsttimestep: 1
- numtimesteps: 4
+ numtimesteps: 8
 ```
 
 This file tells Paraview how many time steps there are to load and the naming pattern for those files. To open the NekRS output files, you then need to open the `pebble.nek5000` file.
@@ -329,5 +336,21 @@ This is the case because we used a first-order Hex8 mesh.
 [standalone_pebble] shows the velocity, pressure, and temperature predicted
 by NekRS.
 
+!media standalone_pebble.png
+  id=standalone_pebble
+  caption=NekRS predicted velocity, pressure, and temperature
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+
+## Hex8 vs Hex20
+
+To appreciate the difference between Hex8 and Hex20 meshes, [hex20] shows the [!ac](GLL)
+points which would be used by NekRS if our input mesh was instead in Hex20 format. As you
+can see, the mid-side nodes follow the curvature of the sphere because the (single)
+mid-side node in our starting Hex20 mesh "knows about" the curve in the mesh at this point.
+
+!media hex20.png
+  id=hex20
+  caption=NekRS mesh for $N=5$ when using a Hex20 input mesh
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 !bibtex bibliography
