@@ -44,7 +44,7 @@ At a minimum, the NekRS model will constitute the following files:
 - `pebble.par`: High-level settings for the solver, boundary
   conditions, and the equations to solve
 - `pebble.udf`: User-defined C++ functions for on-line postprocessing and model setup
-- `pebble.oudf`: User-defined [!ac](OCCA) kernels for boundary conditions and
+- `pebblesoudf`: User-defined [!ac](OCCA) kernels for boundary conditions and
   source terms
 
 The default case file naming scheme used by NekRS is to use a common "casename"
@@ -243,8 +243,8 @@ Here, we set a uniform inlet velocity of $V_z=1$ (non-dimensional), a zero value
 
 ### .udf File
 
-The `.udf` file contains additional C++ code which is typically used for setting initial conditions,
-postprocessing, and adding custom physics kernels (not used in this tutorial). This file at a minimum
+The `.udf` file contains additional C++ code which is typically used for setting initial conditions and
+postprocessing. This file at a minimum
 must contain 3 functions (they can be empty):
 
 - `UDF_LoadKernels` will load any user-defined physics kernels
@@ -254,11 +254,17 @@ must contain 3 functions (they can be empty):
 !listing /tutorials/pebble_1/pebble.udf language=cpp
 
 Here, we only use the `UDF_Setup` function to set initial conditions (to the same values
-we applied as our inlet boundary conditions). NekRS stores velocity as `nrs->U` (all three
-components are packed one after another, with each "slice" of length `nrs->fieldOffset`).
-Pressure is represented as `nrs->P`, and the passive scalars (of which our problem only has one,
-i.e. temperature) are stored in `nrs->cds->S` (packed sequentially one after another, each
-of length `nrs->cds->fieldOffset[i]`). We apply the initial condition by looping over all the
+we applied as our inlet boundary conditions). NekRS stores the various solution components on the host as
+
+- `nrs->U` is velocity (all three components are packed one after another, with each "slice" of length `nrs->fieldOffset`)
+- `nrs->P` is pressure
+- `nrs->cds->S` are the passive scalars (packed sequentially one after another, each
+of length `nrs->cds->fieldOffset[i]`)
+
+Our problem only has one passive scalar (temperature). You will have additional
+passive scalars if doing [!ac](RANS) modeling (e.g. $k$ and $\tau$ would be passive
+scalars) or if you have additional conservation equations for mass transport, etc.
+We apply the initial condition by looping over all the
 elements in the mesh, and in each element for all the [!ac](GLL) points.
 
 ## Execution and Postprocessing
@@ -276,29 +282,27 @@ Running this case will produce NekRS output files named
 `pebble0.f<n>`, where `<n>` is a 5-digit integer indicating the output file number
 (i.e. they will be sequentially-ordered based on when you told NekRS to write output files).
 
-These files (often referred to as "field" files) need to be accompanied by a small
+These files (referred to as "field" files) need to be accompanied by a small
 "configuration" file in order to load into Paraview. To generate that file, we need to
 use the `visnek` script like so
 
 ```
-cardinal/contrib/nekRS/3rd_party/nek5000/bin/visnek pebble
+cardinal/scripts/visnek pebble
 ```
 
-(We recommend adding that location to your path). This will create a file named
-`pebble.nek5000`, which has very simple contents:
+This will create a file named `pebble.nek5000`, which has very simple contents:
 
 ```
  filetemplate: pebble%01d.f%05d
  firsttimestep: 1
- numtimesteps:            20
+ numtimesteps: 4
 ```
 
-To open the NekRS output files, you then need to open the `pebble.nek5000` file.
+This file basically tells Paraview how many time steps there are to load. To open the NekRS output files, you then need to open the `pebble.nek5000` file.
 
 !alert note
 To open the files in Paraview or Visit, you must also be sure to
 have co-located with the `pebble.nek5000` files your actual output files from NekRS
 (e.g. the `pebble0.f<n>` files).
-
 
 !bibtex bibliography
