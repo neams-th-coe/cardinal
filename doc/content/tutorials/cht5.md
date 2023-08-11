@@ -373,5 +373,16 @@ When the simulation has completed, you will have created a number of different o
 - `solid_out_nek0.e`, an Exodus II output file with the fluid mirror mesh
   and data that was ultimately transferred in/out of NekRS
 
+First, let's take a look at the two meshes *together*. [fluid_and_solid] shows a slice
+through the NekRS mesh (with quadrature points shown) and the solid pebble mesh
+(in yellow). Cardinal does *not* require conformality between the meshes - by using
+MOOSE's nearest node transfer, we don't even require overlap between the meshes.
+
+!media fluid_and_solid.png
+  id=fluid_and_solid
+  caption=NekRS mesh (gray) and solid mesh (yellow)
+  style=width:30%;margin-left:auto;margin-right:auto;halign:center
+
+
 
 !bibtex bibliography
