@@ -21,7 +21,7 @@ coupling NekRS to any of these other MOOSE thermal-fluid codes.
   caption=NekRS integrates with *any* MOOSE application that can compute a heat flux
   style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
-Four examples are provided:
+Five examples are provided:
 
 - [Laminar Flow](cht5.md) over a heated pebble
 - [Reflector Bypass Flow](cht1.md) around a reflector block in a pebble bed reactor
