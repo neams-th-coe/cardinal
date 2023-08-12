@@ -31,7 +31,7 @@ pebbles; we assume the total power is 1500 W.
 While "pebbles" in nuclear applications typically refer to
 [!ac](TRISO) fuel geometries, this tutorial only considers homogeneous
 pebbles so as to serve as a stepping stone to modeling heterogeneous
-[!ac](TRISO) geometries in [Tutorial 6C](gas_compact.md). Here, we first emphasize
+[!ac](TRISO) geometries in [a later tutorial](gas_compact.md). Here, we first emphasize
 important features of the OpenMC wrapping having to do with lattices
 and unstructured mesh tallies.
 
