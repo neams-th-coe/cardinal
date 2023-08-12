@@ -240,16 +240,12 @@ variable.
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as the
 [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
  kernel plus the
-[BodyForce](https://mooseframework.inl.gov/source/kernels/BodyForce.html) kernel, or
+[BodyForce](https://mooseframework.inl.gov/source/kernels/BodyForce.html) kernel.
 On the fluid-solid interface,
 a [MatchedValueBC](https://mooseframework.inl.gov/source/bcs/MatchedValueBC.html)
  applies the value of a variable named `nek_temp` (discussed soon) as a Dirichlet condition.
 The [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
  kernel requires a material property for the thermal conductivity.
-
-\begin{equation}
--\nabla\cdot(k\nabla T)-\dot{q}=0$
-\end{equation}
 
 !listing /tutorials/pebble_1/solid.i
   start=Kernels
