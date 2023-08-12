@@ -2482,12 +2482,7 @@ OpenMCCellAverageProblem::initializeTallies()
           for (int32_t e = 0; e < num_elems; ++e)
             volume += _mesh_template->volume(e);
 
-          vt.addRow(i,
-                    num_elems,
-                    translation(0),
-                    translation(1),
-                    translation(2),
-                    volume);
+          vt.addRow(i, num_elems, translation(0), translation(1), translation(2), volume);
         }
 
         vt.print(_console);
