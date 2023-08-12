@@ -572,9 +572,11 @@ NekRSProblemBase::initialSetup()
   {
     _console << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n" << std::endl;
     _console <<   "          Slice:  entry in NekRS scratch space" << std::endl;
-    _console <<   "       Quantity:  physical meaning or name of data in this slice. If 'unused',\n" << std::endl;
-    _console <<   "                  this means that the space has been allocated, but Cardinal\n" << std::endl;
-    _console <<   "                  is not otherwise using it for coupling\n" << std::endl;
+    _console << "       Quantity:  physical meaning or name of data in this slice. If 'unused',\n"
+             << std::endl;
+    _console << "                  this means that the space has been allocated, but Cardinal\n"
+             << std::endl;
+    _console << "                  is not otherwise using it for coupling\n" << std::endl;
     _console <<   "  How to Access:  C++ code to use in NekRS files; for the .udf instructions," << std::endl;
     _console <<   "                  'n' indicates a loop variable over GLL points\n" << std::endl;
     vt.print(_console);
