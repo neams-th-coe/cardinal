@@ -2478,11 +2478,12 @@ OpenMCCellAverageProblem::initializeTallies()
           const auto & translation = _mesh_translations[i];
 
           Real volume = 0.0;
-          for (int32_t e = 0; e < _local_tally.at(i)->n_filter_bins(); ++e)
+          int32_t num_elems = _mesh_template->n_bins();
+          for (int32_t e = 0; e < num_elems; ++e)
             volume += _mesh_template->volume(e);
 
           vt.addRow(i,
-                    _local_tally.at(i)->n_filter_bins(),
+                    num_elems,
                     translation(0),
                     translation(1),
                     translation(2),
