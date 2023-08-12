@@ -2,6 +2,7 @@
   [solid]
     type = CSVDiff
     input = solid.i
+    csvdiff = solid_out.csv
     cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Outputs/csv=true'
     requirement = 'The system shall run heat conduction in a solid pebble.'
   []
