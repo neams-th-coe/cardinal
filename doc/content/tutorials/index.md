@@ -64,11 +64,12 @@ We recommend quickly reading this documentation before proceeding.
 - [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md)
 !alert-end!
 
-1. [Running as a standalone application](tutorials/nekrs_standalone.md)
-2. [Conjugate heat transfer coupling to MOOSE](tutorials/cht.md)
-3. [Multiscale coupling to SAM for primary loop modeling](tutorials/sam_coupling.md)
-4. [Forward uncertainty quantification](tutorials/nekrs_stochastic.md)
-5. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
+1. [Introduction to NekRS](tutorials/nek_intro.md)
+2. [Running as a standalone application](tutorials/nekrs_standalone.md)
+3. [Conjugate heat transfer coupling to MOOSE](tutorials/cht.md)
+5. [Multiscale coupling to SAM](tutorials/sam_coupling.md)
+6. [Forward uncertainty quantification](tutorials/nekrs_stochastic.md)
+7. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
 
 ## Tutorials for OpenMC
   id=openmc
@@ -82,17 +83,17 @@ quickly reading this documentation before proceeding.
 Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://www.flexiquiz.com/SC/N/30fc79f0-f9a5-4cfc-b140-c07dda3bdf0b)!
 !alert-end!
 
-6. [Solid coupling to MOOSE](tutorials/openmc_solid.md)
-7. [Solid and fluid coupling to MOOSE](tutorials/openmc_fluid.md)
+8. [Solid coupling to MOOSE](tutorials/openmc_solid.md)
+9. [Solid and fluid coupling to MOOSE](tutorials/openmc_fluid.md)
 
 ## Tutorials for Coupling NekRS and OpenMC
   id=multi
 
-8. [Coupling of NekRS, OpenMC, and MOOSE](tutorials/coupled.md)
+10. [Coupling of NekRS, OpenMC, and MOOSE](tutorials/coupled.md)
 
 ## Miscellaneous
 
-9. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
-10. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
-11. [Assessing convergence for OpenMC calculations](tutorials/convergence.md)
-12. [What Transfer should I use?](tutorials/transfers.md)
+11. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
+12. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
+13. [Assessing convergence](tutorials/convergence.md)
+14. [What Transfer should I use?](tutorials/transfers.md)

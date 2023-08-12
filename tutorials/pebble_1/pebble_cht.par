@@ -1,0 +1,28 @@
+[OCCA]
+  backend = CPU
+
+[GENERAL]
+  polynomialOrder = 5
+  numSteps = 8000
+  dt = targetCFL=2.0 + initial=1e-4
+  writeInterval = 1000
+
+  udf="pebble.udf"
+
+[MESH]
+  file="pebble.re2"
+
+[PRESSURE]
+  residualTol = 1e-06
+
+[VELOCITY]
+  boundaryTypeMap = v, o, W, sym
+  residualTol = 1e-07
+  density = 1000.0
+  viscosity = 1e-3
+
+[TEMPERATURE]
+  boundaryTypeMap = t, I, f, I
+  rhoCp = 4186000
+  conductivity = 0.6
+  residualTol = 1e-07

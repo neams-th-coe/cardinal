@@ -266,7 +266,7 @@ This will produce a number of output files,
 - `openmc_out.e`, OpenMC simulation results
 - `openmc_out_nek0.e`, NekRS simulation results, mapped to a `SECOND` order Lagrange basis
 - `moab_skins_*.h5m`, OpenMC cell surfaces (in units of centimeters), which can be converted to `.vtk` format using the `mbconvert` script
-- `msfr0.f*`, NekRS output files (which you can visualize in Paraview/other software by using the `visnek` [NekRS script](https://cardinal.cels.anl.gov/nek_tools.html)
+- `msfr0.f*`, NekRS output files
 
 [msfr_results] shows the OpenMC power (on a mesh tally), NekRS fluid temperature, and
 the OpenMC cell temperatures for the last Picard iteration. The black lines delineate the edges of

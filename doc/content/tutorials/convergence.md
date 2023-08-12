@@ -64,7 +64,7 @@ To determine an appropriate number of inactive batches, you can use the
   temperature and density distribution
 
 For example, to run an inactive cycle study for the model developed
-for [Tutorial 6C](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
+for [the gas compact tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
 we would run:
 
 ```
@@ -178,7 +178,7 @@ to be the blocks on which the heat source is defined, as well as the `direction`
 for the [LayeredAverage](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html).
 
 For example, to run a cell discretization study for the model developed
-for [Tutorial 6C](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
+for [the gas compact tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
 we would run:
 
 ```

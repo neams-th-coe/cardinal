@@ -403,7 +403,7 @@ This will produce a number of output files,
 - `openmc_out.e`, OpenMC simulation results, mapped to a mesh mirror
 - `openmc_out_bison0.e`, MOOSE heat conduction simulation results
 - `openmc_out_bison0_nek0.e`, NekRS simulation results, mapped to a mesh mirror
-- `fluid0.f*`, NekRS output files (which you can visualize in Paraview/other software by using the `visnek` [NekRS script](https://cardinal.cels.anl.gov/nek_tools.html)
+- `fluid0.f*`, NekRS output files
 
 [pincell_temp] shows the temperature (a) imposed in OpenMC (the output
 of the [CellTemperatureAux](https://cardinal.cels.anl.gov/source/auxkernels/CellTemperatureAux.html))
