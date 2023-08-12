@@ -394,5 +394,3 @@ in temperature on the pebble surface.
   id=temperature_cht5
   caption=Fluid temperature (NekRS) and solid temperature (MOOSE)
   style=width:50%;margin-left:auto;margin-right:auto;halign:center
-
-!bibtex bibliography

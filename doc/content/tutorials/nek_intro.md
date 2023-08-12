@@ -352,5 +352,3 @@ mid-side node in our starting Hex20 mesh "knows about" the curve in the mesh at 
   id=hex20
   caption=NekRS mesh for polynomial order 5 when using a Hex20 input mesh
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
-
-!bibtex bibliography
