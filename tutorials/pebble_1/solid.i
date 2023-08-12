@@ -118,4 +118,8 @@ thermal_conductivity = 2.0
     variable = temp
     boundary = '0'
   []
+  [max_T]
+    type = NodalExtremeValue
+    variable = temp
+  []
 []

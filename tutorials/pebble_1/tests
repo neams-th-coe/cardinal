@@ -1,8 +1,8 @@
 [Mesh]
-  [solid_mesh]
-    type = RunApp
-    input = mesh.i
-    cli_args = '--mesh-only'
-    requirement = 'The system shall generate a mesh for the solid heat conduction.'
+  [solid]
+    type = CSVDiff
+    input = solid.i
+    cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Outputs/csv=true'
+    requirement = 'The system shall run heat conduction in a solid pebble.'
   []
 []
