@@ -264,15 +264,6 @@ a monomial field due to the nature of how MOOSE computes material properties.
   start=AuxVariables
   end=Postprocessors
 
-For the very first
-time step, an initial condition should be set for `nek_temp`, because we will be running
-the MOOSE heat conduction simulation first. An initial condition is set using an arbitrary
-function guess.
-
-!listing /tutorials/pebble_1/solid.i
-  start=Functions
-  end=Kernels
-
 Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
  and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal

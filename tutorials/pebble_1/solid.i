@@ -31,7 +31,7 @@ thermal_conductivity = 2.0
     type = MatchedValueBC
     variable = temp
     boundary = '0'
-    v = 'nek_temp'
+    v = nek_temp
   []
 []
 
