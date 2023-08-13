@@ -129,6 +129,39 @@ aspects in order to JIT-compile our kernels.
 
 !listing /tutorials/pebble_67/pb67.udf language=cpp
 
+Note that our two custom kernels are fundamentally different in character. The
+`clipTemperature` kernel is a postprocessing activity, so we explicitly call that
+kernel on each time step in the `UDF_ExecuteStep` function. Alternatively, the
+`manipulateOutletKernel` is changing the viscosity and conductivity near the outlet,
+which is modifying the actual governing equations themselves. NekRS contains a
+`udf` object which has multiple pointers to kernels which actually touch the governing
+equations. For our case, the `udf.properties` pointer is the interface for modifying
+the fluid properties, so we pass a function wrapping our kernel (`uservp`) to that
+variable so that NekRS can call the kernel at the appropriate location during
+execution. You can find the function signatures for the other interfaces in
+`nekRS/src/udf/udf.hpp`:
+
+```
+struct UDF {
+  udfsetup0 setup0;
+  udfsetup setup;
+  udfloadKernels loadKernels;
+  udfautoloadKernels autoloadKernels;
+  udfautoloadPlugins autoloadPlugins;
+  udfexecuteStep executeStep;
+  udfuEqnSource uEqnSource;
+  udfsEqnSource sEqnSource;
+  udfproperties properties;
+  udfdiv div;
+  udfconv timeStepConverged;
+  udfPreFluid preFluid;
+  udfPostScalar postScalar;
+};
+```
+
+You have already seen the `udf.sEqnSource` for applying a volumetric heat source
+in NekRS from MOOSE.
+
 Finally, for this tutorial we are also using the legacy Fortran backend to modify
 some of our boundary condition sidesets (for demonstration's sake, the mesh may have
 been generated without sideset numbers, which NekRS needs). We do this manipulation

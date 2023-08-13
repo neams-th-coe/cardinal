@@ -4,15 +4,6 @@
 static occa::kernel cliptKernel;  // clipping
 static occa::kernel manipulateOutletKernel; // variable conductivity at the outlet
 
-void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
-            occa::memory o_UProp, occa::memory o_SProp)
-{
-  // pass the needed info into the outlet kernel
-  mesh_t *mesh = nrs->meshV;
-  manipulateOutletKernel(mesh->Nelements, nrs->fieldOffset, nrs->cds->fieldOffset[0],
-               o_S, o_UProp, o_SProp, mesh->o_z);
-}
-
 void UDF_LoadKernels(occa::properties & kernelInfo)
 {
   // tell NekRS to JIT compile our two kernels
@@ -32,6 +23,9 @@ void UDF_Setup(nrs_t *nrs)
     nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
     nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
   }
+
+  // set the udf.properties so that NekRS will modify the diffusive properties
+  udf.properties = &uservp;
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
@@ -40,4 +34,13 @@ void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
   mesh_t *mesh = nrs->cds->mesh[0];
   cds_t* cds = nrs->cds;
   cliptKernel(mesh->Nelements, cds->o_S);
+}
+
+void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+            occa::memory o_UProp, occa::memory o_SProp)
+{
+  // pass the needed info into the outlet kernel
+  mesh_t *mesh = nrs->meshV;
+  manipulateOutletKernel(mesh->Nelements, nrs->fieldOffset, nrs->cds->fieldOffset[0],
+               o_S, o_UProp, o_SProp, mesh->o_z);
 }
