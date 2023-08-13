@@ -82,8 +82,8 @@ In order to keep our files separate, we will use `pebble_cht` as our casename he
 #### .par File
 
 Our `.par` file is the same as the [standalone NekRS tutorial](tutorials/nek_intro.md)
-except that we will point to the same mesh and `.udf` file from before by specifying
-the `file` and `udf` parameters.
+except that we will point to the same mesh, `.udf`, and `.usr` files from before by specifying
+the `file`, `udf`, and `usr` parameters.
 
 !listing /tutorials/pebble_1/pebble_cht.par
 
