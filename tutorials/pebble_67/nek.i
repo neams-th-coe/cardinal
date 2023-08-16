@@ -10,8 +10,6 @@ inlet_area = ${fparse pi * cylinder_diameter^2 / 4.0}
 [Mesh]
   type = NekRSMesh
   boundary = 4
-  volume = true
-  order = SECOND
   scaling = ${dp}
 []
 

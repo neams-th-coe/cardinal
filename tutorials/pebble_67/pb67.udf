@@ -32,6 +32,9 @@ void UDF_Setup(nrs_t *nrs)
     nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
     nrs->U[n + 2 * nrs->fieldOffset] = 1.0; // z-velocity
   }
+
+  // set the udf.properties so that NekRS will modify the diffusive properties
+  udf.properties = &uservp;
 }
 
 void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)

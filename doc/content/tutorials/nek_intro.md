@@ -278,8 +278,7 @@ The various terms in this function are:
 
 - `iel` is a loop variable name used to indicate a loop over elements
 - `ifc` is a loop variable name used to indicate a loop over the faces on an element
-- `bc(5, ifc, iel, 1)` is the sideset ID for velocity from the mesh
-- `boundaryID(ifc, iel)` is the sideset ID for velocity used internally
+- `boundaryID(ifc, iel)` is the sideset ID for velocity
 
 ## Execution and Postprocessing
 

@@ -99,7 +99,7 @@ A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Ke
 # Molten Salt Reactors
 
 A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
-"Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"
+["Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"](https://www.researchgate.net/publication/373157683_Multiphysics_Coupling_of_OpenMC_CAD-Based_Transport_to_MOOSE_using_Cardinal_and_Aurora)
 *Proceedings of M&C* (2023)
 
 # Lead Fast Reactors
@@ -133,7 +133,7 @@ A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 # Fusion Devices
 
 A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
-"Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"
+["Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"](https://www.researchgate.net/publication/373157683_Multiphysics_Coupling_of_OpenMC_CAD-Based_Transport_to_MOOSE_using_Cardinal_and_Aurora)
 *Proceedings of M&C* (2023)
 
 # Pressurized Thermal Shock

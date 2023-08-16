@@ -82,8 +82,8 @@ In order to keep our files separate, we will use `pebble_cht` as our casename he
 #### .par File
 
 Our `.par` file is the same as the [standalone NekRS tutorial](tutorials/nek_intro.md)
-except that we will point to the same mesh and `.udf` file from before by specifying
-the `file` and `udf` parameters.
+except that we will point to the same mesh, `.udf`, and `.usr` files from before by specifying
+the `file`, `udf`, and `usr` parameters.
 
 !listing /tutorials/pebble_1/pebble_cht.par
 
@@ -263,15 +263,6 @@ a monomial field due to the nature of how MOOSE computes material properties.
 !listing /tutorials/pebble_1/solid.i
   start=AuxVariables
   end=Postprocessors
-
-For the very first
-time step, an initial condition should be set for `nek_temp`, because we will be running
-the MOOSE heat conduction simulation first. An initial condition is set using an arbitrary
-function guess.
-
-!listing /tutorials/pebble_1/solid.i
-  start=Functions
-  end=Kernels
 
 Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
  and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
