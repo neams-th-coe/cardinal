@@ -28,13 +28,13 @@ c-----------------------------------------------------------------------
 
       do iel=1,nelt
       do ifc=1,2*ndim
-      if (bc(5,ifc,iel,1).eq.2) then ! rename sideset 2 to 1 (inlet)
+      if (boundaryID(ifc,iel).eq.2) then ! rename sideset 2 to 1 (inlet)
           boundaryID(ifc,iel) = 1
-       else if (bc(5,ifc,iel,1).eq.3) then ! rename sideset 3 to 2 (outlet)
+       else if (boundaryID(ifc,iel).eq.3) then ! rename sideset 3 to 2 (outlet)
           boundaryID(ifc,iel) = 2
-       else if (bc(5,ifc,iel,1).eq.4) then ! rename sideset 4 to 3 (pebble surface)
+       else if (boundaryID(ifc,iel).eq.4) then ! rename sideset 4 to 3 (pebble surface)
           boundaryID(ifc,iel) = 3
-       else if (bc(5,ifc,iel,1).eq.5) then ! rename sideset 5 to 4 (side walls)
+       else if (boundaryID(ifc,iel).eq.5) then ! rename sideset 5 to 4 (side walls)
           boundaryID(ifc,iel) = 4
        else ! NekRS wants all non-sideset faces to be boundary 0
           boundaryID(ifc,iel) = 0

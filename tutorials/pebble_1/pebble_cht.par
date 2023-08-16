@@ -8,6 +8,7 @@
   writeInterval = 1000
 
   udf="pebble.udf"
+  usr="pebble.usr"
 
 [MESH]
   file="pebble.re2"

@@ -16,10 +16,10 @@ u=\sum_{i=0}^NC_i\phi_i
 where $C$ are coefficients. A filtered version of $u$, or $\tilde{u}$, can then be represented as
 
 \begin{equation}
-\tilde{u}=\sum_{i=0}^N\sigma_iC_iN_i
+\tilde{u}=\sum_{i=0}^N\sigma_iu_iN_i
 \end{equation}
 
-where $\sigma$ are weighting factors and $N$ are the Legendre polynomials. In other
+where $\sigma$ are weighting factors, $N$ are the Legendre polynomials, and $u_i$ are coefficients. In other
 words, the nodal solution (Lagrange basis) is first interpolated to the modal Legendre basis,
 the filtering is applied there, and then interpolated back.
 
