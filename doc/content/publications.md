@@ -171,11 +171,11 @@ V.C. Leite, E. Merzari, A. Novak, R. Ponciroli, and L. Ibarra,
 # Verification and Validation
 
 L. Gross, A.J. Novak, P. Shriwise, and P.P.H. Wilson,
-"Verification of the Cardinal Multiphysics Solver for 1-D Coupled Heat Transfer and Neutron Transport"
+["Verification of the Cardinal Multiphysics Solver for 1-D Coupled Heat Transfer and Neutron Transport"](https://www.researchgate.net/publication/373173646_Verification_of_the_Cardinal_Multiphysics_Solver_for_1-D_Coupled_Heat_Transfer_and_Neutron_Transport)
 *Proceedings of M&C* (2023)
 
 A. Hegazy and A.J. Novak,
-"Verification of the Cardinal Multiphysics Solver with the Doppler Slab Benchmark"
+["Verification of the Cardinal Multiphysics Solver with the Doppler Slab Benchmark"](https://www.researchgate.net/publication/373238841_Verification_of_the_Cardinal_Multiphysics_Solver_with_the_Doppler_Slab_Benchmark)
 *Proceedings of M&C* (2023)
 
 A.J. Novak, P. Shriwise, P.K. Romano, R. Rahaman, E. Merzari, and D. Gaston,
