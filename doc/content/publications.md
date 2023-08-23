@@ -69,7 +69,7 @@ If you use OpenMC for your work, please consider citing the following.
 # Overview
 
 A.J. Novak, P. Shriwise, P. Romano, D. Shaver, J. Fang, H. Yuan, D. Gaston, E. Merzari, H. Brooks, and A. Huxford,
-"High-Fidelity Multiphysics for Fission: Challenges, Accomplishments, and Future Directions"
+["High-Fidelity Multiphysics for Fission: Challenges, Accomplishments, and Future Directions"](https://www.researchgate.net/publication/373330891_High-Fidelity_Multiphysics_for_Fission_Challenges_Accomplishments_and_Future_Directions)
 *Proceedings of Nureth* (2023)
 
 # Pebble Bed Reactors
@@ -105,7 +105,7 @@ A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
 # Lead Fast Reactors
 
 H. Park, Y. Yu, E. Shemon, and A. Novak,
-"Development of a Coupled Code System with Griffin, MOOSE and NekRS for Hot Channel Factor Evaluation in Fast Reactor"
+["Development of a Coupled Code System with Griffin, MOOSE and NekRS for Hot Channel Factor Evaluation in Fast Reactor"](https://www.researchgate.net/publication/373330910_Development_of_Coupled_Code_System_with_Griffin_MOOSE_and_NekRS_for_Hot_Channel_Factor_Evaluation_in_Fast_Reactors)
 *Proceedings of M&C* (2023)
 
 H. Park, Y. Yu, E. Shemon, and A. Novak,
@@ -115,7 +115,7 @@ H. Park, Y. Yu, E. Shemon, and A. Novak,
 # Sodium Fast Reactors
 
 A.J. Novak, C. Bourdot Dutra, D. Shaver, and E. Merzari,
-"NekRS CFD Simulations of Interassembly Flow in Sodium Fast Reactors"
+["NekRS CFD Simulations of Interassembly Flow in Sodium Fast Reactors"](https://www.researchgate.net/publication/373331042_NekRS_CFD_Simulations_of_Interassembly_Flow_in_Sodium_Fast_Reactors)
 *Proceedings of Nureth* (2023)
 
 A.J. Novak, P. Shriwise, P.K. Romano, R. Rahaman, E. Merzari, and D. Gaston,
