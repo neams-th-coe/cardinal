@@ -2,7 +2,7 @@
 
 For questions, please contact the current Cardinal development team.
 
-- April Novak (ANL): anovak@anl.gov
+- April Novak (UIUC, ANL): ajnovak2@illinois.edu
 - Elia Merzari (PSU, ANL)
 - Patrick Shriwise (ANL)
 - Derek Gaston (INL)
