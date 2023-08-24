@@ -130,6 +130,12 @@ A.J. Novak, P. Shriwise, R. Rahaman, P.K. Romano, E. Merzari, and D. Gaston,
 ["Coupled Monte Carlo Transport and Conjugate Heat Transfer for Wire-Wrapped Bundles Within the MOOSE Framework"](https://www.researchgate.net/publication/359121160_COUPLED_MONTE_CARLO_TRANSPORT_AND_CONJUGATE_HEAT_TRANSFER_FOR_WIRE-WRAPPED_BUNDLES_WITHIN_THE_MOOSE_FRAMEWORK)
 *Proceedings of Nureth* (2022)
 
+# Research Reactors
+
+D. Jiang and P. Xu and T. Hu and X. Jiang and L. Wang and D. Li and X. Zhang and L. Cao,
+["Coupled Monte Carlo and Thermal-Hydraulics Modeling for the Three-Dimensional Steady-State Analysis of the Xi'an Pulsed Reactor"](https://www.mdpi.com/1996-1073/16/16/6046)
+16 (6046) *Energies* (2023)
+
 # Fusion Devices
 
 A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
