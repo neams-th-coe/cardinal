@@ -572,6 +572,9 @@ pressures, and velocities that we will use later in making axial plots
 of the solution. We can automatically output these user objects into
 CSV format by translating the user objects into
 [SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html).
+A number of postprocessors are included related to the Monte Carlo
+solution, as well as inlet pressure and pressure drop. See the next section
+for further description.
 
 !listing /tutorials/gas_assembly/openmc.i
   start=UserObjects
