@@ -18,7 +18,7 @@
     input = solid.i
     csvdiff = solid_test_out.csv
     prereq = mesh
-    cli_args = 'Executioner/num_steps=1 Mesh/file=coarse_mesh.e Outputs/file_base=solid_test_out AuxVariables/power/initial_condition=1e8'
+    cli_args = 'Executioner/num_steps=1 Mesh/file=coarse_mesh.e Outputs/file_base=solid_test_out AuxVariables/thm_temp/initial_condition=598.0 AuxVariables/power/initial_condition=1e8'
     requirement = "MOOSE shall be able to solve for heat conduction for a TRISO compact."
   []
 []
