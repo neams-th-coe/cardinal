@@ -29,7 +29,11 @@ NekScalarValue::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addParam<Real>("value", 0.0, "Scalar value to pass into NekRS");
-  params.addParam<Real>("scaling", 1.0, "Multiplier on 'value', typically used to convert from dimensional form into NekRS's non-dimensional form, if using a non-dimensional NekRS solve.");
+  params.addParam<Real>(
+      "scaling",
+      1.0,
+      "Multiplier on 'value', typically used to convert from dimensional form into NekRS's "
+      "non-dimensional form, if using a non-dimensional NekRS solve.");
   params.addParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk into which to write the value; "
     "if not specified, this defaults to the first unused slot");
   params.declareControllable("value");
@@ -38,8 +42,9 @@ NekScalarValue::validParams()
 }
 
 NekScalarValue::NekScalarValue(const InputParameters & parameters)
-  : GeneralUserObject(parameters), _value(getParam<Real>("value")),
-  _scaling(getParam<Real>("scaling"))
+  : GeneralUserObject(parameters),
+    _value(getParam<Real>("value")),
+    _scaling(getParam<Real>("scaling"))
 {
   const NekRSProblemBase * nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!nek_problem)
