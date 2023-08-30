@@ -61,6 +61,9 @@ protected:
   /// The value to send into NekRS
   const Real & _value;
 
+  /// A multiplier to apply to 'value'
+  const Real & _scaling;
+
   /// Slot in usrwrk to write the scalar value
   unsigned int _usrwrk_slot;
 
