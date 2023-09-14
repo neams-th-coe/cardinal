@@ -401,7 +401,18 @@ ifeq ($(ENABLE_NEK), yes)
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
-  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+  ADDITIONAL_LIBS += -L$(OPENMC_LIBDIR) -lopenmc -lhdf5_hl
+  ifeq ($(ENABLE_DAGMC), ON)
+    ADDITIONAL_LIBS += -luwuw -ldagmc -lpyne_dagmc -lMOAB
+  endif
+  ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
+endif
+
+# Determin if we need libpng and where using pkg-config (if available)
+LIBPNG_FLAGS ?= $(shell pkg-config --libs libpng 2>/dev/null)
+ifneq (,$(findstring -lpng, $(LIBPNG_FLAGS)))
+  ADDITIONAL_LIBS += $(LIBPNG_FLAGS)
+  $(info Linking libpng: $(LIBPNG_FLAGS))
 endif
 
 include            $(FRAMEWORK_DIR)/app.mk
@@ -422,8 +433,11 @@ ifeq ($(ENABLE_NEK), yes)
 endif
 
 ifeq ($(ENABLE_OPENMC), yes)
-  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc \
-	                           $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
+  CARDINAL_EXTERNAL_FLAGS += -L$(OPENMC_LIBDIR) -L$(HDF5_LIBDIR) -lopenmc
+  ifeq ($(ENABLE_DAGMC), ON)
+    CARDINAL_EXTERNAL_FLAGS += -luwuw -ldagmc -lpyne_dagmc -lMOAB
+  endif
+  CARDINAL_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
 endif
 
