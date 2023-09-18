@@ -30,4 +30,17 @@ public:
   NekRSStandaloneProblem(const InputParameters & params);
 
   static InputParameters validParams();
+
+  void addROSTensorVariables();
+
+  void addTractionVariables();
+
+  void addExternalVariables();
+
+protected:
+  /// whether to calculate rate-of-strain tensor or not
+  bool _calculate_ros_tensor;
+
+  /// whether to calculate traction on a sideset/boundary or not
+  bool _traction_on_boundary;
 };

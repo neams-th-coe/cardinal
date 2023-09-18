@@ -64,6 +64,8 @@ NekRSProblem::validParams()
                                      "If provided, postprocessor used to limit the maximum "
                                      "temperature (in dimensional form) in the nekRS problem");
 
+  params.addParam<MooseEnum>("fsi_type", getFsiTypeEnum(), "Type of FSI Coupling");
+
   params.addParam<bool>("conserve_flux_by_sideset", false,
     "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
     "together). Setting this option to true requires syntax changes in the input file to use "
