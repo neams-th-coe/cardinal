@@ -27,6 +27,10 @@ ifneq ($(BISON_CONTENT),)
   LEVEL_SET          := yes
 endif
 
+ifneq ($(GRIFFIN_CONTENT),)
+  PHASE_FIELD        := yes
+endif
+
 SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
 POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
 IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
