@@ -68,7 +68,7 @@ NekVolumeIntegral::getValue() const
 }
 
 Real
-NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh)
+NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const
 {
   Real vol = nekrs::volume(mesh);
 

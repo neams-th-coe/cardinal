@@ -42,7 +42,7 @@ public:
    * @param[in] mesh mesh
    * @return field integrated over the mesh
    */
-  Real getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh);
+  Real getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const;
 
   /**
    * Volume by which to normalize
