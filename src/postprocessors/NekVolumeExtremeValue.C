@@ -44,7 +44,7 @@ NekVolumeExtremeValue::NekVolumeExtremeValue(const InputParameters & parameters)
 }
 
 Real
-NekVolumeExtremeValue::getValue()
+NekVolumeExtremeValue::getValue() const
 {
   switch (_type)
   {

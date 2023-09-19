@@ -35,7 +35,7 @@ public:
 
   NekSideExtremeValue(const InputParameters & parameters);
 
-  virtual Real getValue() override;
+  virtual Real getValue() const override;
 
 protected:
   /// type of extrema operation

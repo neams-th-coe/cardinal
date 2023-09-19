@@ -36,7 +36,7 @@ NekSideIntegral::NekSideIntegral(const InputParameters & parameters)
 }
 
 Real
-NekSideIntegral::getValue()
+NekSideIntegral::getValue() const
 {
   if (_field == field::velocity_component)
   {

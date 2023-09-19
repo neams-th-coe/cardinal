@@ -36,7 +36,7 @@ public:
 
   NekPressureSurfaceForce(const InputParameters & parameters);
 
-  virtual Real getValue() override;
+  virtual Real getValue() const override;
 
 protected:
   /// Unit direction with which to dot the surface normal

@@ -52,7 +52,7 @@ KStandardDeviation::stdev(const double & mean, const double & sum_sq) const
 }
 
 Real
-KStandardDeviation::getValue()
+KStandardDeviation::getValue() const
 {
   const auto & gt = openmc::simulation::global_tallies;
   int n = openmc::simulation::n_realizations;

@@ -39,7 +39,7 @@ NekScalarValuePostprocessor::NekScalarValuePostprocessor(const InputParameters &
 }
 
 Real
-NekScalarValuePostprocessor::getValue()
+NekScalarValuePostprocessor::getValue() const
 {
   return _uo.getValue();
 }

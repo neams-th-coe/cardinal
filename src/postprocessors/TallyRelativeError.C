@@ -77,7 +77,7 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
 }
 
 Real
-TallyRelativeError::getValue()
+TallyRelativeError::getValue() const
 {
   const auto & tally = _openmc_problem->getLocalTally();
 

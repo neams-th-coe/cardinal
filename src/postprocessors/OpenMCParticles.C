@@ -43,7 +43,7 @@ OpenMCParticles::OpenMCParticles(const InputParameters & parameters)
 }
 
 Real
-OpenMCParticles::getValue()
+OpenMCParticles::getValue() const
 {
   switch (_type)
   {

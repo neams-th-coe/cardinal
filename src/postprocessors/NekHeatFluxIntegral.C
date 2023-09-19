@@ -41,7 +41,7 @@ NekHeatFluxIntegral::NekHeatFluxIntegral(const InputParameters & parameters)
 }
 
 Real
-NekHeatFluxIntegral::getValue()
+NekHeatFluxIntegral::getValue() const
 {
   return nekrs::heatFluxIntegral(_boundary, _pp_mesh);
 }

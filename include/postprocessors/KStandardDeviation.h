@@ -31,7 +31,7 @@ public:
 
   KStandardDeviation(const InputParameters & parameters);
 
-  virtual Real getValue() override;
+  virtual Real getValue() const override;
 
 protected:
   /**
