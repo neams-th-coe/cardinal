@@ -55,7 +55,7 @@ The basic prerequisites for building Cardinal are summarized in [prereq_table].
 |    | Building with NekRS | Building with OpenMC | Both |
 | :- | :- | :- | :- |
 | CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
-| GNU fortran compilers | $\checkmark$ | &nbsp; | $\checkmark$  |
+| GNU fortran >= 9.0 compiler | $\checkmark$ | &nbsp; | $\checkmark$  |
 | HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
 | MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
 

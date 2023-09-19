@@ -44,7 +44,9 @@ public:
    */
   Real getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh);
 
-protected:
-  /// Volume by which to normalize
-  Real _volume;
+  /**
+   * Volume by which to normalize
+   * @return volume
+   */
+  Real volume() const;
 };
