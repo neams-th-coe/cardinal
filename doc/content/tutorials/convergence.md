@@ -5,10 +5,12 @@ In this tutorial, you will learn how to:
 - Use helper scripts in Cardinal to assess convergence of the OpenMC solution
   and of a general MOOSE application
 
-To access this tutorial,
+To access this tutorial, enter the following directory and then also generate
+the necessary mesh file,
 
 ```
-cd cardinal/gas_compact
+cd cardinal/tutorials/gas_compact
+cardinal-opt -i mesh.i --mesh-only
 ```
 
 !alert! note title=Computing Needs
@@ -82,9 +84,16 @@ of cell layers and number of inactive cycles to consider:
 When the script finishes running, plots of Shannon entropy and $k$, along
 with the saved statepoint files from the simulations, will be available
 in a directory named `inactive_study`. Below are shown example images of
-the Shannon entropy and $k$ plots. You would then select the number of
-inactive cycles to be the point at which both the Shannon entropy and $k$
-reach stationarity.
+the Shannon entropy and $k$ plots. If a method to detect convergence of
+the fission source is supplied (the default is none), then the script will
+report whether the chosen metric succeeded or not. Note, there could be various
+factors affecting whether the metric succeeded or not, and based on user choices,
+it is possible for a metric to succeed when more batches or more particles per
+batch are truly needed. These metrics should be considered along side inspection
+of the plots of the Shannon Entropy, which typically takes longer than the
+eigenvalue to converge. Having a converged fission source is important so that
+when the active batches begin tallying, there is no contamination from the 
+source's initial guess impacting the tallies.
 
 !media example_entropy_plots.png
   id=entropy
