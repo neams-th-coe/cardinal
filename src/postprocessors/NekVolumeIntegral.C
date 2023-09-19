@@ -41,9 +41,9 @@ NekVolumeIntegral::volume() const
   switch (_pp_mesh)
   {
     case nek_mesh::fluid:
-      return nekrs::volume(fluid);
+      return nekrs::volume(nek_mesh::fluid);
     case nek_mesh::all:
-      return nekrs::volume(all);
+      return nekrs::volume(nek_mesh::all);
     case nek_mesh::solid:
       return nekrs::volume(nek_mesh::all) - nekrs::volume(nek_mesh::fluid);
     default:
