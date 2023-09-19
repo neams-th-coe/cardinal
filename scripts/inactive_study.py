@@ -20,7 +20,7 @@
 # in order to determine how many inactive cycles are needed to converge both the
 # Shannon entropy and k. This script is run with:
 #
-# python inactive_study.py -i <script_name> -input <file_name> --method=method [--window_lenth=<LENGTH>]  [-n-threads <n_threads>]
+# python inactive_study.py -i <script_name> -input <file_name> --method=<method> [--window_length=<LENGTH>]  [-n-threads <n_threads>]
 #
 # - The script used to create the OpenMC model is named <script_name>.py.
 #   This script MUST accept '-s' as an argument to add a Shannon entropy mesh
@@ -29,8 +29,9 @@
 # - The Cardinal input file to run is named <file_name>.
 # - By default, the number of threads is taken as the maximum on your system.
 #   Otherwise, you can set it by providing -n-threads <n_threads>.
-# - If a detection method is desired it can be specified from all, half, or window.
-#   The default method is none. If the window method is selected, then window_length
+# - A method to assist the user in detecting convergence is <method>, which
+#   can be specified from all, half, window, or none (default).
+#   If the window method is selected, then window_length
 #   must also be specified.
 #
 # This script will create plots named <script_name>_k_<layers>.pdf and
@@ -83,13 +84,14 @@ ap.add_argument('--window_length', dest = 'window_length', type = int,
                 help =' When the window method is selected, the window length must be specified. The window length is a number of batches '
                 ' before the current batch to use when computing the running average and standard deviation.')
 args = ap.parse_args()
+
 # variable to be used in logic for which way to detect steady state
 method = args.method
 
-if(args.method == 'window' and args.window_length == None):
+if (args.method == 'window' and args.window_length == None):
     raise TypeError('The method specified was window, but window_length = None. Please specify --window_length = LENGTH, where LENGTH is an integer')
 else:
-    if(args.method == 'window'):
+    if (args.method == 'window'):
         window_length = args.window_length
 
 input_file = args.input_file
@@ -183,70 +185,37 @@ for i in range(len(n_layers)):
     plt.close()
 
 
-if(method != 'none'):
+if (method != 'none'):
     # loop over each layer (index i) and report inactive batch (index j) that satisfies
-    # convergence criteria for the selected method (window,half, or all)
+    # convergence criteria for the selected method
     for i in range(len(n_layers)):
         nl = n_layers[i]
-        if(method == "window"):
-            # detect when the entropy of current batch is within the mean +/- std of window (last window_length batches)
-            for j in range(window_length,len(entropy[i])):
-                window = entropy[i][(j-window_length):j]
-                window_mean = np.average(window)
-                window_dev = np.std(window)
-                window_low = window_mean - window_dev
-                window_high = window_mean + window_dev
-                if(window_high - entropy[i][j] > 0 and entropy[i][j]-window_low > 0):
-                    # if entropy[i][j] is less than window_high and greater than
-                    # window_low, then it is within the window and we've succeeded
-                    print("For layer", nl, ", batch", j, "produced a value within one "
-                            "standard deviation of the window mean.")
-                    break
-                else:
-                    if(j == len(entropy[i]) - 1):
-                        print("For layer", nl, ", despite searching over all the batches, no batch"
-                            "produced an entropy value within the window. This can happpen if too few" 
-                            "batches or particles per batch are specified.")
-                    continue
-        elif(method == "half"):
-            # Brown (2006) "On the Use of Shannon Entropy of the Fission Distribution for Assessing Convergence
-            # of Monte Carlo Criticality Calculations", the following is done in MCNP5:
-            # Find the first cycle when Hsrc is within one standard deviation of its average for the last half of cycles
-            for j in range(1,len(entropy[i])):
-                last_half_idx = int(np.floor(j/2))
-                last_half_vals = entropy[i][last_half_idx:j]
-                stdev = np.std(last_half_vals)
-                mean = np.mean(last_half_vals)
-                low =  mean - stdev
-                high = mean + stdev
-                if(high - entropy[i][j] > 0 and entropy[i][j]-low > 0):
-                    print("For layer", nl, ", batch", j, "produced a value within one "
-                            "standard deviation of the mean for the last half of entropy values.")
-                    break
-                else:
-                    if(j == len(entropy[i]) -1):
-                        print("For layer", nl, ", despite searching over all the batches, no batch"
-                            "produced an entropy value within one standard deviation of the last "
-                            "half batches. This can happpen if too few batches or particles per batch "
-                            "are specified.")
-                    continue
-        else:
-            # use all batches as data points for computing mean and standard deviation
-            # this is the most conservative option
-            for j in range(1,len(entropy[i])):
-                entropy_slice = entropy[i][0:j]
-                stdev = np.std(entropy_slice)
-                mean = np.mean(entropy_slice)
-                low =  mean - stdev
-                high = mean + stdev
-                if(high - entropy[i][j] > 0 and entropy[i][j]-low > 0):
-                    print("For layer", nl, ", batch", j, "produced a value within one "
-                            "standard deviation of the mean of the last", j ,"entropy values.")
-                    break
-                else:
-                    if(j == len(entropy[i]) -1):
-                        print("For layer", nl, ", despite searching over all the batches, no batch"
-                            "produced an entropy value within one standard deviation of all "
-                            "preceeding batches. This can happpen if too few batches or particles per batch "
-                            "are specified.")
-                    continue
+        print("\nLayers: ", nl)
+        print("----------------------")
+        start = 1
+        if (method == "window"):
+          start = window_length
+
+        for j in range(start, len(entropy[i])):
+            if (method == "window"):
+                # moving window, of constant width
+                window = entropy[i][(j - window_length):j]
+            elif (method == "half"):
+                # Brown (2006) "On the Use of Shannon Entropy of the Fission Distribution for
+                # Assessing Convergence of Monte Carlo Criticality Calculations"
+                # window is half of the previous cycles
+                idx = int(np.floor(j/2))
+                window = entropy[i][idx:j]
+            else:
+                # window is all previous cycles
+                window = entropy[i][0:j]
+
+            window_mean = np.average(window)
+            window_dev = np.std(window)
+            window_low = window_mean - window_dev
+            window_high = window_mean + window_dev
+            extra_str = "    "
+            if (entropy[i][j] <= window_high and entropy[i][j] >= window_low):
+                extra_str = "--> "
+
+            print(extra_str + "Inactive batch: {:6d} Entropy: {:.6f} Window mean: {:.6f} +/- {:.6f}".format(j, entropy[i][j], window_mean, window_dev))

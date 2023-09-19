@@ -5,10 +5,12 @@ In this tutorial, you will learn how to:
 - Use helper scripts in Cardinal to assess convergence of the OpenMC solution
   and of a general MOOSE application
 
-To access this tutorial,
+To access this tutorial, enter the following directory and then also generate
+the necessary mesh file,
 
 ```
 cd cardinal/tutorials/gas_compact
+cardinal-opt -i mesh.i --mesh-only
 ```
 
 !alert! note title=Computing Needs
