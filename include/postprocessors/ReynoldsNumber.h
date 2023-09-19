@@ -43,7 +43,4 @@ public:
 protected:
   /// Characteristic length
   const Real * _L_ref;
-
-  /// Area by which to compute the Reynolds number
-  Real _area;
 };
