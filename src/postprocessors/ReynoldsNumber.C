@@ -48,7 +48,7 @@ ReynoldsNumber::ReynoldsNumber(const InputParameters & parameters)
 }
 
 Real
-ReynoldsNumber::getValue()
+ReynoldsNumber::getValue() const
 {
   _area = nekrs::area(_boundary, _pp_mesh);
   Real mdot = std::abs(nekrs::sideMassFluxWeightedIntegral(_boundary, field::unity, _pp_mesh));

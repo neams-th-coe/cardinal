@@ -32,7 +32,7 @@ public:
 
   NekScalarValuePostprocessor(const InputParameters & parameters);
 
-  virtual Real getValue() override;
+  virtual Real getValue() const override;
 
 protected:
   /// Userobject to report contained value

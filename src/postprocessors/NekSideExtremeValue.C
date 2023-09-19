@@ -44,7 +44,7 @@ NekSideExtremeValue::NekSideExtremeValue(const InputParameters & parameters)
 }
 
 Real
-NekSideExtremeValue::getValue()
+NekSideExtremeValue::getValue() const
 {
   switch (_type)
   {

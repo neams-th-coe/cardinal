@@ -35,7 +35,7 @@ public:
 
   NekUsrWrkBoundaryIntegral(const InputParameters & parameters);
 
-  virtual Real getValue() override;
+  virtual Real getValue() const override;
 
 protected:
   /// Slot in usrwrk array to integrate

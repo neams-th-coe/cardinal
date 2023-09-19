@@ -43,7 +43,7 @@ PecletNumber::PecletNumber(const InputParameters & parameters) : ReynoldsNumber(
 }
 
 Real
-PecletNumber::getValue()
+PecletNumber::getValue() const
 {
   return ReynoldsNumber::getValue() * nekrs::Pr();
 }

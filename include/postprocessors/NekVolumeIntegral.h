@@ -35,7 +35,7 @@ public:
 
   NekVolumeIntegral(const InputParameters & parameters);
 
-  virtual Real getValue() override;
+  virtual Real getValue() const override;
 
   /**
    * Integrate the field over the specified mesh

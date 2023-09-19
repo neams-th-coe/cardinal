@@ -36,7 +36,7 @@ NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
 }
 
 Real
-NekVolumeIntegral::getValue()
+NekVolumeIntegral::getValue() const
 {
   switch (_pp_mesh)
   {

@@ -37,7 +37,7 @@ NekNumRanks::NekNumRanks(const InputParameters & parameters)
 }
 
 Real
-NekNumRanks::getValue()
+NekNumRanks::getValue() const
 {
   return nekrs::commSize();
 }

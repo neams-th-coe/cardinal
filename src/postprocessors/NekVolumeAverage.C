@@ -36,7 +36,7 @@ NekVolumeAverage::NekVolumeAverage(const InputParameters & parameters)
 }
 
 Real
-NekVolumeAverage::getValue()
+NekVolumeAverage::getValue() const
 {
   return NekVolumeIntegral::getValue() / _volume;
 }

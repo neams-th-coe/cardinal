@@ -42,7 +42,7 @@ NekPressureSurfaceForce::NekPressureSurfaceForce(const InputParameters & paramet
 }
 
 Real
-NekPressureSurfaceForce::getValue()
+NekPressureSurfaceForce::getValue() const
 {
   return nekrs::pressureSurfaceForce(_boundary, _direction, _pp_mesh);
 }
