@@ -219,3 +219,4 @@ if (method != 'none'):
                 extra_str = "--> "
 
             print(extra_str + "Inactive batch: {:6d} Entropy: {:.6f} Window mean: {:.6f} +/- {:.6f}".format(j, entropy[i][j], window_mean, window_dev))
+    print("--> indicates batch which satisfies method. DOES NOT necessarily indicate a converged fission source.")
