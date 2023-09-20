@@ -48,14 +48,14 @@ ReynoldsNumber::ReynoldsNumber(const InputParameters & parameters)
 }
 
 Real
-ReynoldsNumber::getValue()
+ReynoldsNumber::getValue() const
 {
-  _area = nekrs::area(_boundary, _pp_mesh);
+  Real area = nekrs::area(_boundary, _pp_mesh);
   Real mdot = std::abs(nekrs::sideMassFluxWeightedIntegral(_boundary, field::unity, _pp_mesh));
   Real mu = nekrs::viscosity();
   Real L = _nek_problem->nondimensional() ? _nek_problem->L_ref() : *_L_ref;
 
-  return mdot * L / (_area * mu);
+  return mdot * L / (area * mu);
 }
 
 #endif

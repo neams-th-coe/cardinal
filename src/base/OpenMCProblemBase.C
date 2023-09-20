@@ -62,7 +62,7 @@ OpenMCProblemBase::validParams()
       "OpenMC verbosity level; this overrides the setting in the XML files");
   params.addRangeCheckedParam<unsigned int>(
       "inactive_batches",
-      "inactive_batches > 0",
+      "inactive_batches >= 0",
       "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
   params.addRangeCheckedParam<int>("particles",
                                    "particles > 0 ",

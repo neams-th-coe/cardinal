@@ -82,7 +82,7 @@ NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & param
 }
 
 Real
-NekMeshInfoPostprocessor::getValue()
+NekMeshInfoPostprocessor::getValue() const
 {
 
   if (_test_type == "num_elems")

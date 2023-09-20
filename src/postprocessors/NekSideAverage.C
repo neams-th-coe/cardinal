@@ -35,10 +35,10 @@ NekSideAverage::NekSideAverage(const InputParameters & parameters) : NekSideInte
 }
 
 Real
-NekSideAverage::getValue()
+NekSideAverage::getValue() const
 {
-  _area = nekrs::area(_boundary, _pp_mesh);
-  return NekSideIntegral::getValue() / _area;
+  Real area = nekrs::area(_boundary, _pp_mesh);
+  return NekSideIntegral::getValue() / area;
 }
 
 #endif

@@ -36,16 +36,31 @@ NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
 }
 
 Real
-NekVolumeIntegral::getValue()
+NekVolumeIntegral::volume() const
 {
   switch (_pp_mesh)
   {
     case nek_mesh::fluid:
+      return nekrs::volume(nek_mesh::fluid);
     case nek_mesh::all:
-      _volume = nekrs::volume(_pp_mesh);
-      return getIntegralOnMesh(_pp_mesh);
+      return nekrs::volume(nek_mesh::all);
     case nek_mesh::solid:
-      _volume = nekrs::volume(nek_mesh::all) - nekrs::volume(nek_mesh::fluid);
+      return nekrs::volume(nek_mesh::all) - nekrs::volume(nek_mesh::fluid);
+    default:
+      mooseError("Unhandled NekMeshEnum in volume()!");
+  }
+}
+
+Real
+NekVolumeIntegral::getValue() const
+{
+  switch (_pp_mesh)
+  {
+    case nek_mesh::fluid:
+      return getIntegralOnMesh(nek_mesh::fluid);
+    case nek_mesh::all:
+      return getIntegralOnMesh(nek_mesh::all);
+    case nek_mesh::solid:
       return getIntegralOnMesh(nek_mesh::all) - getIntegralOnMesh(nek_mesh::fluid);
     default:
       mooseError("Unhandled NekMeshEnum in getValue()!");
@@ -53,7 +68,7 @@ NekVolumeIntegral::getValue()
 }
 
 Real
-NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh)
+NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const
 {
   Real vol = nekrs::volume(mesh);
 

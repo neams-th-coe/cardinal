@@ -35,16 +35,18 @@ public:
 
   NekVolumeIntegral(const InputParameters & parameters);
 
-  virtual Real getValue() override;
+  virtual Real getValue() const override;
 
   /**
    * Integrate the field over the specified mesh
    * @param[in] mesh mesh
    * @return field integrated over the mesh
    */
-  Real getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh);
+  Real getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const;
 
-protected:
-  /// Volume by which to normalize
-  Real _volume;
+  /**
+   * Volume by which to normalize
+   * @return volume
+   */
+  Real volume() const;
 };

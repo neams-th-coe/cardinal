@@ -43,7 +43,7 @@ KEigenvalue::KEigenvalue(const InputParameters & parameters)
 }
 
 Real
-KEigenvalue::getValue()
+KEigenvalue::getValue() const
 {
   int n = openmc::simulation::n_realizations;
   const auto & gt = openmc::simulation::global_tallies;
