@@ -918,7 +918,7 @@ NekRSProblem::velocityIntegral(const std::vector<int> & boundary_id)
   }
 }
 
-//This function updates the values stores in previous_displacement. This was added to make sure that I only update at the start of a timestep rather than at the start of each picard iteration
+//This function updates the values stores in previous_displacement. This was added to make sure that I only update at the start of a timestep rather than at the start of each picard iteration.
 void NekRSProblem::prev_disp_update(int e, const field::NekWriteEnum & field)
 {
   int len = _volume? _n_vertices_per_volume : _n_vertices_per_surface;
