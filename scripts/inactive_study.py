@@ -20,18 +20,23 @@
 # in order to determine how many inactive cycles are needed to converge both the
 # Shannon entropy and k. This script is run with:
 #
-# python inactive_study.py -i <script_name> -input <file_name> [-n-threads <n_threads>]
+# python inactive_study.py -i <script_name> -input <file_name> --method=<method> [--window_length=<LENGTH>]  [-n-threads <n_threads>]
 #
-# - the script used to create the OpenMC model is named <script_name>.py;
-#   this script MUST accept '-s' as an argument to add a Shannon entropy mesh
-#   AND '-n' to set the number of layers; please consult the tutorials for
-#   examples if you're unsure of how to do this
-# - the Cardinal input file to run is named <file_name>
-# - by default, the number of threads is taken as the maximum on your system;
-#   otherwise, you can set it by providing -n-threads <n_threads>
+# - The script used to create the OpenMC model is named <script_name>.py.
+#   This script MUST accept '-s' as an argument to add a Shannon entropy mesh
+#   AND '-n' to set the number of layers.
+#   Please consult the tutorials for examples if you're unsure of how to do this.
+# - The Cardinal input file to run is named <file_name>.
+# - By default, the number of threads is taken as the maximum on your system.
+#   Otherwise, you can set it by providing -n-threads <n_threads>.
+# - A method to assist the user in detecting convergence is <method>, which
+#   can be specified from all, half, window, or none (default).
+#   If the window method is selected, then window_length
+#   must also be specified.
 #
 # This script will create plots named <script_name>_k_<layers>.pdf and
 # <script_name>_entropy_<layers>.pdf in a sub-directory named inactive_study/.
+
 
 # Whether to use saved statepoint files to just generate plots, skipping transport solves
 use_saved_statepoints = False
@@ -64,14 +69,30 @@ program_description = ("Script for determining required number of inactive batch
                        "for an OpenMC model divided into a number of layers")
 ap = ArgumentParser(description=program_description)
 
-ap.add_argument('-i', dest='script_name', type=str,
+ap.add_argument('-i', dest='script_name', type=str, required=True,
                 help='Name of the OpenMC python script to run (without .py extension)')
 ap.add_argument('-n-threads', dest='n_threads', type=int,
                 default=multiprocessing.cpu_count(), help='Number of threads to run Cardinal with')
-ap.add_argument('-input', dest='input_file', type=str,
+ap.add_argument('-input', dest='input_file', type=str, required=True,
                 help='Name of the Cardinal input file to run')
-
+ap.add_argument('--method', dest = 'method', choices =['all','half','window','none'], default='none',
+                help = 'The method to estimate the number of sufficient inactive batches to discard before tallying in k-eigenvalue mode. ' +
+                'This number is determined by the first batch at which a running average of the Shannon Entropy falls within the standard ' +
+                'deviation of the run. Options are all, half, and window; all uses all batches, half uses the last half of the batches, and ' +
+                'window uses a user-specified number. Additionally, none can be specified if the feature is undesired.')
+ap.add_argument('--window_length', dest = 'window_length', type = int,
+                help =' When the window method is selected, the window length must be specified. The window length is a number of batches '
+                ' before the current batch to use when computing the running average and standard deviation.')
 args = ap.parse_args()
+
+# variable to be used in logic for which way to detect steady state
+method = args.method
+
+if (args.method == 'window' and args.window_length == None):
+    raise TypeError('The method specified was window, but window_length = None. Please specify --window_length = LENGTH, where LENGTH is an integer')
+else:
+    if (args.method == 'window'):
+        window_length = args.window_length
 
 input_file = args.input_file
 script_name = args.script_name + ".py"
@@ -162,3 +183,40 @@ for i in range(len(n_layers)):
     plt.legend(loc='lower right')
     plt.savefig('inactive_study/' + args.script_name + '_k' + str(nl) + '.pdf', bbox_inches='tight')
     plt.close()
+
+
+if (method != 'none'):
+    # loop over each layer (index i) and report inactive batch (index j) that satisfies
+    # convergence criteria for the selected method
+    for i in range(len(n_layers)):
+        nl = n_layers[i]
+        print("\nLayers: ", nl)
+        print("----------------------")
+        start = 1
+        if (method == "window"):
+          start = window_length
+
+        for j in range(start, len(entropy[i])):
+            if (method == "window"):
+                # moving window, of constant width
+                window = entropy[i][(j - window_length):j]
+            elif (method == "half"):
+                # Brown (2006) "On the Use of Shannon Entropy of the Fission Distribution for
+                # Assessing Convergence of Monte Carlo Criticality Calculations"
+                # window is half of the previous cycles
+                idx = int(np.floor(j/2))
+                window = entropy[i][idx:j]
+            else:
+                # window is all previous cycles
+                window = entropy[i][0:j]
+
+            window_mean = np.average(window)
+            window_dev = np.std(window)
+            window_low = window_mean - window_dev
+            window_high = window_mean + window_dev
+            extra_str = "    "
+            if (entropy[i][j] <= window_high and entropy[i][j] >= window_low):
+                extra_str = "--> "
+
+            print(extra_str + "Inactive batch: {:6d} Entropy: {:.6f} Window mean: {:.6f} +/- {:.6f}".format(j, entropy[i][j], window_mean, window_dev))
+    print("--> indicates batch which satisfies method. DOES NOT necessarily indicate a converged fission source.")
