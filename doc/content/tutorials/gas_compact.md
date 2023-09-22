@@ -364,7 +364,8 @@ the `heat_source_to_solid` transfer.
 This input will run OpenMC and the MOOSE heat conduction model in Picard iterations
 via pseudo time-stepping. We specify a fixed number of time steps by running
 OpenMC with a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
-executioner. Finally, we specify Exodus and CSV output formats.
+executioner. Finally, we specify Exodus and CSV output formats. Note, only four Picard
+iterations are shown here, but generally, more will be necessary to converge the physics.
 
 !listing /tutorials/gas_compact/openmc.i
   start=Executioner

@@ -84,7 +84,7 @@ opyc_fraction = ${fparse (oPyC_radius^3 - SiC_radius^3) / oPyC_radius^3}
   []
   [compacts]
     type = HeatConductionMaterial
-    thermal_conductivity_temperature_function = k_TRISO
+    thermal_conductivity_temperature_function = k_compacts
     temp = T
     block = 'compacts'
   []
