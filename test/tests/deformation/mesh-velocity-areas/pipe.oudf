@@ -11,6 +11,10 @@ void velocityDirichletConditions(bcData *bc)
 
 void meshVelocityDirichletConditions(bcData *bc)
 {
+  // note: when running with Cardinal, Cardinal will allocate the usrwrk
+  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
+  // replace the usrwrk with some other value or allocate it youself from
+  // the udf and populate it with values.
   if (bc->id==2)
   {
     bc->meshu = bc->usrwrk[bc->idM + 1*bc->fieldOffset];

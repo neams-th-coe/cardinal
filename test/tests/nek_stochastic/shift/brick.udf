@@ -20,6 +20,11 @@ void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
   mesh_t *mesh = nrs->meshV;
   cds_t *cds = nrs->cds;
 
+  // note: when running with Cardinal, Cardinal will allocate the usrwrk
+  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
+  // replace the usrwrk with some other value or allocate it youself from
+  // the udf and populate it with values.
+
   // set scalar1 value, which should not be affected by the incoming data from MOOSE
   if (tstep == 0)
     nrs->o_usrwrk.copyFrom(slice, nrs->fieldOffset * sizeof(dfloat));
