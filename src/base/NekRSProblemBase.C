@@ -70,7 +70,7 @@ NekRSProblemBase::validParams()
   params.addRangeCheckedParam<Real>(
       "Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
 
-  MultiMooseEnum nek_outputs("temperature pressure velocity scalar01 scalar02 scalar03");
+  MultiMooseEnum nek_outputs("temperature pressure velocity scalar01 scalar02 scalar03 traction ros_tensor");
   params.addParam<MultiMooseEnum>(
       "output", nek_outputs, "Field(s) to output from NekRS onto the mesh mirror");
 
@@ -751,7 +751,6 @@ void
 NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
-
   if (!isDataTransferHappening(direction))
     return;
 
@@ -777,6 +776,13 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
+
+      if(_outputs->contains("traction"))
+        nekrs::calculateTraction(nekrs::getTraction(), *_boundary, nek_mesh::fluid);
+
+      if(_outputs->contains("ros_tensor"))
+        nekrs::computeRateOfStrainTensor(nekrs::getRateOfStrainTensor(), nek_mesh::fluid);
+
       // extract the NekRS solution onto the mesh mirror, if specified
       extractOutputs();
       break;
@@ -901,6 +907,24 @@ NekRSProblemBase::extractOutputs()
         field_enum = field::scalar02;
       else if (_var_names[i] == "scalar03")
         field_enum = field::scalar03;
+      else if (_var_names[i] == "traction_x")
+        field_enum = field::traction_x;
+      else if (_var_names[i] == "traction_y")
+        field_enum = field::traction_y;
+      else if (_var_names[i] == "traction_z")
+        field_enum = field::traction_z;
+      else if (_var_names[i] == "ros_s11")
+        field_enum = field::ros_s11;
+      else if (_var_names[i] == "ros_s22")
+        field_enum = field::ros_s22;
+      else if (_var_names[i] == "ros_s33")
+        field_enum = field::ros_s33;
+      else if (_var_names[i] == "ros_s12")
+        field_enum = field::ros_s12;
+      else if (_var_names[i] == "ros_s23")
+        field_enum = field::ros_s23;
+      else if (_var_names[i] == "ros_s13")
+        field_enum = field::ros_s13;
       else
         mooseError("Unhandled NekFieldEnum in NekRSProblemBase!");
 
@@ -975,6 +999,23 @@ NekRSProblemBase::addExternalVariables()
         _var_names.push_back("scalar02");
       else if (output == "scalar03")
         _var_names.push_back("scalar03");
+      else if (output == "traction")
+      {
+        _var_names.push_back("traction_x");
+        _var_names.push_back("traction_y");
+        _var_names.push_back("traction_z");
+        nekrs::initializeTraction();
+      }
+      else if (output == "ros_tensor")
+      {
+        _var_names.push_back("ros_s11");
+        _var_names.push_back("ros_s22");
+        _var_names.push_back("ros_s33");
+        _var_names.push_back("ros_s12");
+        _var_names.push_back("ros_s23");
+        _var_names.push_back("ros_s13");
+        nekrs::initializeRateOfStrainTensor();
+      }
     }
 
     _var_string = "";
@@ -983,7 +1024,6 @@ NekRSProblemBase::addExternalVariables()
       checkDuplicateVariableName(name);
       addAuxVariable("MooseVariable", name, var_params);
       _external_vars.push_back(_aux->getFieldVariable<Real>(0, name).number());
-
       _var_string += " " + name + ",";
     }
 

@@ -51,7 +51,7 @@ static int build_only;
 void initializeTraction();
 
 /// initialize rate of strain tensor components
-void initializeROSTensor();
+void initializeRateOfStrainTensor();
 
 /// Allocate memory for the host mesh parameters
 void initializeHostMeshParameters();
@@ -61,6 +61,8 @@ void updateHostMeshParameters();
 
 dfloat * getSgeo();
 dfloat * getVgeo();
+double * getTraction();
+double * getRateOfStrainTensor();
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -565,10 +567,9 @@ void gradient(const int offset, const double * f, double * grad_f,
 /**
  * Compute the direct stiffness sum (dssum) and then average at element boundaries. Similar to the dsavg subroutine from Nek5000
  * @param[in] u field to perform the dssum and average on
- * @param[in] offset in the u field
  * @param[in] pp_mesh NekRS mesh to operate on
  */
-void nekDirectStiffnessAvg(double * u, const int offset, const nek_mesh::NekMeshEnum pp_mesh);
+void nekDirectStiffnessAvg(double * u, const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
  * Compute the rate of strain tensor on the Nek mesh

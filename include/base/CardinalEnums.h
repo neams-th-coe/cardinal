@@ -108,6 +108,7 @@ enum NekFieldEnum
   ros_s12,
   ros_s23,
   ros_s13,
+  ros_tensor,
   unity
 };
 
