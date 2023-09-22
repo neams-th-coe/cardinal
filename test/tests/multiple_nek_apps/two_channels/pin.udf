@@ -9,6 +9,10 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
 
 void userq(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
 {
+  // note: when running with Cardinal, Cardinal will allocate the usrwrk
+  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
+  // replace the usrwrk with some other value or allocate it youself from
+  // the udf and populate it with values.
   auto mesh = nrs->cds->mesh[0];
   mooseHeatSourceKernel(mesh->Nelements, nrs->cds->fieldOffset[0], nrs->o_usrwrk, o_FS);
 }

@@ -1,5 +1,9 @@
 void velocityDirichletConditions(bcData *bc)
 {
+  // note: when running with Cardinal, Cardinal will allocate the usrwrk
+  // array. If running with NekRS standalone (e.g. nrsmpi), you need to
+  // replace the usrwrk with some other value or allocate it youself from
+  // the udf and populate it with values.
   bc->u =  bc->usrwrk[bc->idM + 2*bc->fieldOffset];
   bc->v =  bc->usrwrk[bc->idM + 3*bc->fieldOffset];
   bc->w =  bc->usrwrk[bc->idM + 4*bc->fieldOffset];
