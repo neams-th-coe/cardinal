@@ -20,6 +20,8 @@
 
 #include "NekInterface.h"
 #include "CardinalUtils.h"
+#include <dlfcn.h>
+
 
 static nekrs::characteristicScales scales;
 static dfloat * sgeo;
@@ -35,7 +37,7 @@ static double abs_tol;
 static double rel_tol;
 
 /// traction variable for FSI or standalone traction calculations
-static double * _traction;
+static double * _traction = NULL;
 
 /** 6 components of the rate-of-strain tensor variable calculated in Nek.
   * Each component is the size of the velocity field, and the component
@@ -47,7 +49,7 @@ static double * _traction;
   * _ros_tensor[4*velocityFieldOffset()] is the S_{23} component
   * _ros_tensor[5*velocityFieldOffset()] is the S_{13} component
   */
-static double * _ros_tensor;
+static double * _ros_tensor = NULL;
 
 void
 setAbsoluteTol(double tol)
@@ -652,7 +654,7 @@ initializeHostMeshParameters()
 }
 
 void
-initializeROSTensor()
+initializeRateOfStrainTensor()
 {
   nekrs::_ros_tensor = (double *)calloc(6*velocityFieldOffset(), sizeof(double));
 }
@@ -681,6 +683,18 @@ dfloat *
 getVgeo()
 {
   return vgeo;
+}
+
+double *
+getTraction()
+{
+  return _traction;
+}
+
+double *
+getRateOfStrainTensor()
+{
+  return _ros_tensor;
 }
 
 double
@@ -1303,9 +1317,31 @@ gradient(const int offset, const double * f, double * grad_f, const nek_mesh::Ne
   }
 }
 
+
 void
-nekDirectStiffnessAvg(double * u, const int offset, const nek_mesh::NekMeshEnum pp_mesh)
+nekDirectStiffnessAvg(double * u, const nek_mesh::NekMeshEnum pp_mesh)
 {
+#define nrsCheck(_nrsCheckCond, _nrsCheckComm, _nrsCheckExitCode, _nrsCheckMessage, ...) \
+  do { \
+    int _nrsCheckErr = 0; \
+    if(_nrsCheckCond) _nrsCheckErr = 1; \
+    if(_nrsCheckComm != MPI_COMM_SELF) MPI_Allreduce(MPI_IN_PLACE, &_nrsCheckErr, 1, MPI_INT, MPI_SUM, _nrsCheckComm); \
+    if(_nrsCheckErr) { \
+      int rank = 0; \
+      MPI_Comm_rank(_nrsCheckComm, &rank); \
+      if(rank == 0) { \
+        fprintf(stderr, "Error in %s: ", __func__);\
+        fprintf(stderr, _nrsCheckMessage, __VA_ARGS__); \
+      } \
+      fflush(stderr); \
+      fflush(stdout); \
+      MPI_Barrier(_nrsCheckComm); \
+      MPI_Abort(MPI_COMM_WORLD, _nrsCheckExitCode); \
+    } \
+  } while (0)
+
+#define fname(s) (strcpy(func, (s)), strcat(func, us), func)
+
   mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
@@ -1326,8 +1362,8 @@ nekDirectStiffnessAvg(double * u, const int offset, const nek_mesh::NekMeshEnum 
     std::cout << "\nloading " << lib << std::endl;
   void *handle = dlopen(lib.c_str(), RTLD_NOW | RTLD_LOCAL);
 
-//  nrsCheck(!handle, MPI_COMM_SELF, EXIT_FAILURE,
-//           "%s\n", dlerror());
+  nrsCheck(!handle, MPI_COMM_SELF, EXIT_FAILURE,
+           "%s\n", dlerror());
 
   // check if we need to append an underscore
   auto us = [handle]
@@ -1341,7 +1377,6 @@ nekDirectStiffnessAvg(double * u, const int offset, const nek_mesh::NekMeshEnum 
   dlerror(); /* Clear any existing error */
 
   char func[100];
-#define fname(s) (strcpy(func, (s)), strcat(func, us), func)
 
   nek_dssum_ptr = (void (*)(double *))dlsym(handle, fname("nekf_dssum"));
   (*nek_dssum_ptr)(u);
@@ -1353,7 +1388,7 @@ nekDirectStiffnessAvg(double * u, const int offset, const nek_mesh::NekMeshEnum 
     for (int n = 0; n < mesh->Np; ++n)
     {
       int id = e * mesh->Np + n;
-      u[offset + id] *= mult[id];
+      u[id] *= mult[id];
     }
   }
 
@@ -1366,41 +1401,39 @@ computeRateOfStrainTensor(double * S_ij, const nek_mesh::NekMeshEnum pp_mesh)
   nrs_t * nrs = (nrs_t *)nrsPtr();
 
   // calculate velocity gradients
-
   const int offset = nrs->fieldOffset;
 
-  double * grad_u = (double *) calloc(offset, sizeof(double));
-  double * grad_v = (double *) calloc(offset, sizeof(double));
-  double * grad_w = (double *) calloc(offset, sizeof(double));
+  double * grad_u = (double *) calloc(3*offset, sizeof(double));
+  double * grad_v = (double *) calloc(3*offset, sizeof(double));
+  double * grad_w = (double *) calloc(3*offset, sizeof(double));
 
   //TODO: do we need to get the latest velocity from the device?
-  gradient(0*offset, &nrs->U[0*offset], grad_u, pp_mesh);
-  gradient(1*offset, &nrs->U[1*offset], grad_v, pp_mesh);
-  gradient(2*offset, &nrs->U[2*offset], grad_w, pp_mesh);
+  gradient(offset, &nrs->U[0*offset], grad_u, pp_mesh);
+  gradient(offset, &nrs->U[1*offset], grad_v, pp_mesh);
+  gradient(offset, &nrs->U[2*offset], grad_w, pp_mesh);
 
   // calculating the six S_ij components
-  // conditional allocation of S_ij somewhere else
-
-//  double * S_ij = (double *) calloc(6*offset, sizeof(double));
-
   for (int e = 0; e < mesh->Nelements; ++e)
   {
     for (int n = 0; n < mesh->Np; ++n)
     {
       int id = e * mesh->Np + n;
 
-      S_ij[0*offset + id] = grad_u[0*offset + id];
-      S_ij[1*offset + id] = grad_v[1*offset + id];
-      S_ij[2*offset + id] = grad_w[2*offset + id];
-      S_ij[3*offset + id] = 0.5*(grad_u[1*offset + id] + grad_v[0*offset + id]);
-      S_ij[4*offset + id] = 0.5*(grad_v[2*offset + id] + grad_w[1*offset + id]);
-      S_ij[5*offset + id] = 0.5*(grad_u[2*offset + id] + grad_w[0*offset + id]);
+      S_ij[0*offset + id] = grad_u[0*offset + id]; // 0.5*(du/dx+du/dx) = S_11
+      S_ij[1*offset + id] = grad_v[1*offset + id]; // 0.5*(dv/dy+dv/dy) = S_22
+      S_ij[2*offset + id] = grad_w[2*offset + id]; // 0.5*(dw/dz+dw/dz) = S_22
+      S_ij[3*offset + id] = 0.5*(grad_u[1*offset + id] + grad_v[0*offset + id]); // 0.5*(du/dy+dv/dx) = S_12
+      S_ij[4*offset + id] = 0.5*(grad_v[2*offset + id] + grad_w[1*offset + id]); // 0.5*(dv/dz+dw/dy) = S_23
+      S_ij[5*offset + id] = 0.5*(grad_u[2*offset + id] + grad_w[0*offset + id]); // 0.5*(du/dz+dw/dx) = S_13
     }
   }
 
   for (int i = 0; i < 6; ++i)
-    nekDirectStiffnessAvg(&S_ij[i*offset], offset, pp_mesh);
+    nekDirectStiffnessAvg(&S_ij[i*offset], pp_mesh);
 
+  freePointer(grad_u);
+  freePointer(grad_v);
+  freePointer(grad_w);
 }
 
 void
@@ -1440,6 +1473,8 @@ computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh)
       }
     }
   }
+  freePointer(viscosity);
+  freePointer(pressure);
 }
 
 void
@@ -1482,7 +1517,7 @@ calculateTraction(double * traction, const std::vector<int> & boundary_id, const
       }
     }
   }
-
+  freePointer(Tau_ij);
 }
 
 bool
@@ -1996,6 +2031,36 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       break;
     case field::scalar03:
       // no dimensionalization needed
+      break;
+    case field::traction_x:
+      // TODO: add dimensionalization
+      break;
+    case field::traction_y:
+      // TODO: add dimensionalization
+      break;
+    case field::traction_z:
+      // TODO: add dimensionalization
+      break;
+    case field::traction:
+      // TODO: add dimensionalization
+      break;
+    case field::ros_s11:
+      // TODO: add dimensionalization
+      break;
+    case field::ros_s22:
+      // TODO: add dimensionalization
+      break;
+    case field::ros_s33:
+      // TODO: add dimensionalization
+      break;
+    case field::ros_s12:
+      // TODO: add dimensionalization
+      break;
+    case field::ros_s23:
+      // TODO: add dimensionalization
+      break;
+    case field::ros_s13:
+      // TODO: add dimensionalization
       break;
     case field::unity:
       // no dimensionalization needed
