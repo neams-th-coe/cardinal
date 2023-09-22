@@ -15,5 +15,6 @@
                   "Dirichlet boundary condition on temperature, which we confirm by looking at the value of "
                   "temperature on the boundary using postprocessors."
     required_objects = 'NekRSProblem'
+    mesh_mode = replicated
   []
 []
