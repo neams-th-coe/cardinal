@@ -331,7 +331,7 @@ protected:
   const Real & _Cp_0;
 
   /// If Nek is being run with fixed point iterations
-  bool _fp_iteration; 
+  bool _fp_iteration;
 
   /**
    * Whether to disable output file writing by NekRS and replace it by output

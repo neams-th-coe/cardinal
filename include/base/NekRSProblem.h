@@ -141,20 +141,19 @@ protected:
    */
   void calculateMeshVelocity(int e, const field::NekWriteEnum & field);
 
-  //TODO: Update doxygen entry for velocity integral and prev_disp_update
-                                      /**
-  * Compute the mass flux weighted integral of a given integrand over a set of boundary IDs
-  * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
-  * @param[in] integrand field to integrate and weight by mass flux
-  * @param[in] pp_mesh which NekRS mesh to operate on
-  * @return mass flux weighted area average of a field
-  */
+  // TODO: Update doxygen entry for velocity integral and prev_disp_update
+  /**
+   * Compute the mass flux weighted integral of a given integrand over a set of boundary IDs
+   * @param[in] boundary_id nekRS boundary IDs for which to perform the integral
+   * @param[in] integrand field to integrate and weight by mass flux
+   * @param[in] pp_mesh which NekRS mesh to operate on
+   * @return mass flux weighted area average of a field
+   */
   void velocityIntegral(const std::vector<int> & boundary_id);
 
-
   /**
-   * Calculate mesh velocity for NekRS's elasticity solver using current and previous displacement values
-   * and write it to nrs->usrwrk, from where it can be accessed in nekRS's .oudf file.
+   * Calculate mesh velocity for NekRS's elasticity solver using current and previous displacement
+   * values and write it to nrs->usrwrk, from where it can be accessed in nekRS's .oudf file.
    * @param[in] e Boundary element that the displacement values belong to
    * @param[in] field NekWriteEnum mesh_velocity_x/y/z field
    */
