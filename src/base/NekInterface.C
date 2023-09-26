@@ -1421,16 +1421,30 @@ computeRateOfStrainTensor(double * S_ij, const nek_mesh::NekMeshEnum pp_mesh)
 
       S_ij[0*offset + id] = grad_u[0*offset + id]; // 0.5*(du/dx+du/dx) = S_11
       S_ij[1*offset + id] = grad_v[1*offset + id]; // 0.5*(dv/dy+dv/dy) = S_22
-      S_ij[2*offset + id] = grad_w[2*offset + id]; // 0.5*(dw/dz+dw/dz) = S_22
+      S_ij[2*offset + id] = grad_w[2*offset + id]; // 0.5*(dw/dz+dw/dz) = S_33
       S_ij[3*offset + id] = 0.5*(grad_u[1*offset + id] + grad_v[0*offset + id]); // 0.5*(du/dy+dv/dx) = S_12
       S_ij[4*offset + id] = 0.5*(grad_v[2*offset + id] + grad_w[1*offset + id]); // 0.5*(dv/dz+dw/dy) = S_23
       S_ij[5*offset + id] = 0.5*(grad_u[2*offset + id] + grad_w[0*offset + id]); // 0.5*(du/dz+dw/dx) = S_13
     }
   }
 
-  for (int i = 0; i < 6; ++i)
-    nekDirectStiffnessAvg(&S_ij[i*offset], pp_mesh);
+//  for (int i = 0; i < 6; ++i)
+//    nekDirectStiffnessAvg(&S_ij[i*offset], pp_mesh);
 
+  for (int e = 0; e < mesh->Nelements; ++e)
+  {
+    for (int n = 0; n < mesh->Np; ++n)
+    {
+      int id = e * mesh->Np + n;
+
+      nrs->usrwrk[0*offset + id] = S_ij[0*offset + id];
+      nrs->usrwrk[1*offset + id] = S_ij[1*offset + id];
+      nrs->usrwrk[2*offset + id] = S_ij[2*offset + id];
+      nrs->usrwrk[3*offset + id] = S_ij[3*offset + id];
+      nrs->usrwrk[4*offset + id] = S_ij[4*offset + id];
+      nrs->usrwrk[5*offset + id] = S_ij[5*offset + id];
+    }
+  }
   freePointer(grad_u);
   freePointer(grad_v);
   freePointer(grad_w);
