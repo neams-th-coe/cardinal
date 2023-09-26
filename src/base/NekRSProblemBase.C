@@ -109,8 +109,12 @@ NekRSProblemBase::validParams()
     "is mapped to/receives data from the mesh mirror for every time step.");
   params.addParam<unsigned int>("constant_interval", 1,
     "Constant interval (in units of number of time steps) with which to synchronize the NekRS solution");
-  params.addParam<bool>("fixed_point_iterations",false,"Whether or not fixed point iterations will be used. Cardinal will look for a Postprocessor called "
-  " 'fp_iteration' that receives the current iteration number from the top-level application.");
+  params.addParam<bool>(
+      "fixed_point_iterations",
+      false,
+      "Whether or not fixed point iterations will be used. Cardinal will look for a Postprocessor "
+      "called "
+      " 'fp_iteration' that receives the current iteration number from the top-level application.");
   return params;
 }
 
@@ -634,28 +638,28 @@ NekRSProblemBase::externalSolve()
 
   // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
   // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
-  if(_fp_iteration)
+  if (_fp_iteration)
   {
     const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
-    std::cout << "Current fixed point iteration number read in NekRSProblemBase is " << *iter << std::endl; //JUST FOR TESTING 
+    std::cout << "Current fixed point iteration number read in NekRSProblemBase is " << *iter
+              << std::endl; // JUST FOR TESTING
     if (*iter == 1)
     {
       nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
-                  _timestepper->nondimensionalDT(_dt),
-                  _t_step);
+                      _timestepper->nondimensionalDT(_dt),
+                      _t_step);
     }
     bool converged = false;
     converged = nekrs::runStep(*iter);
 
     nekrs::finishStep();
-
   }
   else
   {
     // Tell NekRS what the time step size is
     nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
-                  _timestepper->nondimensionalDT(_dt),
-                  _t_step);
+                    _timestepper->nondimensionalDT(_dt),
+                    _t_step);
     int corrector = 1;
     bool converged = false;
     do
