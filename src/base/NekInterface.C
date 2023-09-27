@@ -1429,23 +1429,6 @@ computeRateOfStrainTensor(double * S_ij, const nek_mesh::NekMeshEnum pp_mesh)
     }
   }
 
-//  for (int i = 0; i < 6; ++i)
-//    nekDirectStiffnessAvg(&S_ij[i*offset], pp_mesh);
-
-  for (int e = 0; e < mesh->Nelements; ++e)
-  {
-    for (int n = 0; n < mesh->Np; ++n)
-    {
-      int id = e * mesh->Np + n;
-
-      nrs->usrwrk[0*offset + id] = S_ij[0*offset + id];
-      nrs->usrwrk[1*offset + id] = S_ij[1*offset + id];
-      nrs->usrwrk[2*offset + id] = S_ij[2*offset + id];
-      nrs->usrwrk[3*offset + id] = S_ij[3*offset + id];
-      nrs->usrwrk[4*offset + id] = S_ij[4*offset + id];
-      nrs->usrwrk[5*offset + id] = S_ij[5*offset + id];
-    }
-  }
   freePointer(grad_u);
   freePointer(grad_v);
   freePointer(grad_w);
@@ -1502,7 +1485,7 @@ calculateTraction(double * traction, const std::vector<int> & boundary_id, const
   int nrs_offset = nrs->fieldOffset;
   double * Tau_ij = (double *) calloc(6*nrs_offset, sizeof(double));
 
-  // multiply with normal components ON MOVING BOUNDARIES
+  // multiply with normal on moving boundary
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
