@@ -69,8 +69,11 @@ NekRSProblem::validParams()
     "vector postprocessors, and places restrictions on how the sidesets are set up.");
   params.addParam<Real>(
       "initial_mesh_vel", 0.0, "Initial mesh velocity to pass to NekRS on the first timestep");
-  params.addParam<bool>("calculate_filtered_velocity", false,
-    "Whether to conserve determine the filtered velocity for FSI calculations. This can be useful if there is significant mesh compression in the solid.");
+  params.addParam<bool>(
+      "calculate_filtered_velocity",
+      false,
+      "Whether to conserve determine the filtered velocity for FSI calculations. This can be "
+      "useful if there is significant mesh compression in the solid.");
   return params;
 }
 
@@ -126,7 +129,6 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
       _usrwrk_indices.push_back("filtered_velocity_y");
       _usrwrk_indices.push_back("filtered_velocity_z");
     }
-    
   }
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
