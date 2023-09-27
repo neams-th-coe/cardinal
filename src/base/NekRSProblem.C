@@ -858,7 +858,7 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
     _nek_mesh->updateDisplacement(e, displacement, disp_field);
   }
   for (int i=0; i <len; i++)
-      _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e * len) + i]) / dt / _U_ref;
+    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e * len) + i]) / dt / _U_ref;
   if (!_fp_iteration)
     _nek_mesh->updateDisplacement(e, displacement, disp_field);
 }
