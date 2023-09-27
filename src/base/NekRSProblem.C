@@ -83,7 +83,6 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _abs_tol(getParam<Real>("normalization_abs_tol")),
     _rel_tol(getParam<Real>("normalization_rel_tol")),
-    _initial_mesh_vel(getParam<Real>("initial_mesh_vel")),
     _calc_filtered_velocity(getParam<bool>("calculate_filtered_velocity"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
@@ -859,9 +858,6 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
     _nek_mesh->updateDisplacement(e, displacement, disp_field);
   }
   for (int i=0; i <len; i++)
-    if (_t_step == 1 && *iter == 1)
-      _mesh_velocity_elem[i] = _initial_mesh_vel;
-    else
       _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e * len) + i]) / dt / _U_ref;
   if (!_fp_iteration)
     _nek_mesh->updateDisplacement(e, displacement, disp_field);

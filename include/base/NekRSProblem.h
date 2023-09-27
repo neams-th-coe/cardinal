@@ -257,7 +257,6 @@ protected:
   /// volumetric heat source variable read from by nekRS
   unsigned int _heat_source_var;
 
-  const Real & _initial_mesh_vel;
-
+  /// whether or not to calculate filtered velocity for FSI problems
   const bool & _calc_filtered_velocity;
 };
