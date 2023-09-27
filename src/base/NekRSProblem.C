@@ -70,6 +70,8 @@ NekRSProblem::validParams()
     "vector postprocessors, and places restrictions on how the sidesets are set up.");
   params.addParam<Real>(
       "initial_mesh_vel", 0.0, "Initial mesh velocity to pass to NekRS on the first timestep");
+  params.addParam<bool>("calculate_filtered_velocity", false,
+    "Whether to conserve determine the filtered velocity for FSI calculations. This can be useful if there is significant mesh compression in the solid.");
   return params;
 }
 
@@ -79,7 +81,8 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _abs_tol(getParam<Real>("normalization_abs_tol")),
     _rel_tol(getParam<Real>("normalization_rel_tol")),
-    _initial_mesh_vel(getParam<Real>("initial_mesh_vel"))
+    _initial_mesh_vel(getParam<Real>("initial_mesh_vel")),
+    _calc_filtered_velocity(getParam<bool>("calculate_filtered_velocity"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
@@ -112,15 +115,19 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     indices.mesh_velocity_x = start++ * nekrs::scalarFieldOffset();
     indices.mesh_velocity_y = start++ * nekrs::scalarFieldOffset();
     indices.mesh_velocity_z = start++ * nekrs::scalarFieldOffset();
-    indices.filtered_velocity_x = start++ * nekrs::scalarFieldOffset();
-    indices.filtered_velocity_y = start++ * nekrs::scalarFieldOffset();
-    indices.filtered_velocity_z = start++ * nekrs::scalarFieldOffset();
     _usrwrk_indices.push_back("mesh_velocity_x");
     _usrwrk_indices.push_back("mesh_velocity_y");
     _usrwrk_indices.push_back("mesh_velocity_z");
-    _usrwrk_indices.push_back("filtered_velocity_x");
-    _usrwrk_indices.push_back("filtered_velocity_y");
-    _usrwrk_indices.push_back("filtered_velocity_z");
+    if (_calc_filtered_velocity)
+    {
+      indices.filtered_velocity_x = start++ * nekrs::scalarFieldOffset();
+      indices.filtered_velocity_y = start++ * nekrs::scalarFieldOffset();
+      indices.filtered_velocity_z = start++ * nekrs::scalarFieldOffset();
+      _usrwrk_indices.push_back("filtered_velocity_x");
+      _usrwrk_indices.push_back("filtered_velocity_y");
+      _usrwrk_indices.push_back("filtered_velocity_z");
+    }
+    
   }
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
@@ -360,7 +367,10 @@ NekRSProblem::sendBoundaryDeformationToNek()
       if (*iter != 1 || !_fp_iteration || _t_step == 1)
         writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
-    velocityIntegral(*_boundary);
+    if (_calc_filtered_velocity)
+    {
+      calculateFilteredVelocity(*_boundary);
+    }
   }
   else
   {
@@ -857,7 +867,7 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
 }
 
 void
-NekRSProblem::velocityIntegral(const std::vector<int> & boundary_id)
+NekRSProblem::calculateFilteredVelocity(const std::vector<int> & boundary_id)
 {
   // TODO:VERIFY THAT THIS IS WORKING CORRECTLY
   mesh_t * mesh = nekrs::flowMesh(); // NOTE: assuming to only use fluid mesh here, this might not

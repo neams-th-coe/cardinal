@@ -154,7 +154,7 @@ protected:
    * @param[in] pp_mesh which NekRS mesh to operate on
    * @return mass flux weighted area average of a field
    */
-  void velocityIntegral(const std::vector<int> & boundary_id);
+  void calculateFilteredVelocity(const std::vector<int> & boundary_id);
 
   /**
    * Calculate mesh velocity for NekRS's elasticity solver using current and previous displacement
@@ -263,4 +263,6 @@ protected:
   unsigned int _heat_source_var;
 
   const Real & _initial_mesh_vel;
+
+  const bool & _calc_filtered_velocity;
 };
