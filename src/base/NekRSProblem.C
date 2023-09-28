@@ -68,8 +68,6 @@ NekRSProblem::validParams()
     "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
     "together). Setting this option to true requires syntax changes in the input file to use "
     "vector postprocessors, and places restrictions on how the sidesets are set up.");
-  params.addParam<Real>(
-      "initial_mesh_vel", 0.0, "Initial mesh velocity to pass to NekRS on the first timestep");
   params.addParam<bool>(
       "calculate_filtered_velocity",
       false,
