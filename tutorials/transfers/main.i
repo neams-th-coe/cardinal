@@ -51,7 +51,7 @@
     to_multi_app = sub
   []
   [nearest_node]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = u
     variable = u_nearest_node
     to_multi_app = sub
