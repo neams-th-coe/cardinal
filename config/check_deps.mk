@@ -29,6 +29,9 @@ endif
 
 ifneq ($(GRIFFIN_CONTENT),)
   PHASE_FIELD        := yes
+  CONTACT            := yes
+  XFEM               := yes
+  LEVEL_SET          := yes
 endif
 
 SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
