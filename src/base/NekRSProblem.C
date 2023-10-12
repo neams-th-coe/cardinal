@@ -118,6 +118,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _usrwrk_indices.push_back("mesh_velocity_x");
     _usrwrk_indices.push_back("mesh_velocity_y");
     _usrwrk_indices.push_back("mesh_velocity_z");
+
     if (_calc_filtered_velocity)
     {
       indices.filtered_velocity_x = start++ * nekrs::scalarFieldOffset();
@@ -128,6 +129,8 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
       _usrwrk_indices.push_back("filtered_velocity_z");
     }
   }
+  else
+    checkUnusedParam(params, "calculate_filtered_velocity", "not using the blending mesh solver");
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
 
@@ -341,7 +344,14 @@ NekRSProblem::sendBoundaryDeformationToNek()
 
   if (!_volume)
   {
-    const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+    bool apply_new_mesh_velocity = true;
+
+    if (_fp_iteration)
+    {
+      const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+      apply_new_mesh_velocity = *iter != 1 || _t_step == 1;
+    }
+
     for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
       // We can only write into the nekRS scratch space if that face is "owned" by the current process
@@ -350,26 +360,22 @@ NekRSProblem::sendBoundaryDeformationToNek()
 
       mapFaceDataToNekFace(e, _disp_x_var, 1.0, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
-      if (*iter != 1 || !_fp_iteration ||
-          _t_step ==
-              1) // DR: We dont want to update the mesh velocity on the first iteration it will be
-                 // 0, instead we want to assume the velocity from the previous calculation
+      if (apply_new_mesh_velocity)
         writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
 
       mapFaceDataToNekFace(e, _disp_y_var, 1.0, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
-      if (*iter != 1 || !_fp_iteration || _t_step == 1)
+      if (apply_new_mesh_velocity)
         writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
 
       mapFaceDataToNekFace(e, _disp_z_var, 1.0, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
-      if (*iter != 1 || !_fp_iteration || _t_step == 1)
+      if (apply_new_mesh_velocity)
         writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
+
     if (_calc_filtered_velocity)
-    {
       calculateFilteredVelocity(*_boundary);
-    }
   }
   else
   {
@@ -827,7 +833,6 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
 {
   int len = _volume? _n_vertices_per_volume : _n_vertices_per_surface;
   double dt = _timestepper->getCurrentDT();
-  const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
 
   double * displacement = nullptr, *prev_disp = nullptr;
   field::NekWriteEnum disp_field;
@@ -852,12 +857,17 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
     default:
       mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
   }
-  if (*iter == 1 && _fp_iteration)
+
+  if (_fp_iteration)
   {
-    _nek_mesh->updateDisplacement(e, displacement, disp_field);
+    const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+    if (*iter == 1)
+      _nek_mesh->updateDisplacement(e, displacement, disp_field);
   }
+
   for (int i=0; i <len; i++)
     _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e * len) + i]) / dt / _U_ref;
+
   if (!_fp_iteration)
     _nek_mesh->updateDisplacement(e, displacement, disp_field);
 }
