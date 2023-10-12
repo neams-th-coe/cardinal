@@ -112,8 +112,8 @@ NekRSProblemBase::validParams()
   params.addParam<bool>(
       "fixed_point_iterations",
       false,
-      "Whether or not fixed point iterations will be used. Cardinal will look for a Postprocessor "
-      "called "
+      "Whether or not fixed point iterations will be used within the NekRS solve level. "
+      "Cardinal will look for a Postprocessor called "
       " 'fp_iteration' that receives the current iteration number from the top-level application.");
   return params;
 }
