@@ -209,7 +209,7 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 
 ## UIUC Campus cluster 
 
-[UIUC] (https://campuscluster.illinois.edu/)
+[UIUC](https://campuscluster.illinois.edu/)
 is a cluster at the University of Illinois at Urbana-Champaign, it is designed to support up to 512 nodes with FDR InfiniBand for applications communications and data transport with a gigabit Ethernet control network. The disk system was selected to support expandability and the GPFS file system.
 
 !listing! language=bash caption=Sample `~/.bashrc` for UIUC Campus cluster id=uiuc1
