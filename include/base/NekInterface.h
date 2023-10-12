@@ -689,15 +689,6 @@ struct usrwrkIndices
   /// z-velocity of moving boundary (for mesh blending solver)
   int mesh_velocity_z;
 
-  /// filtered x-velocity of moving boundary
-  int filtered_velocity_x;
-
-  /// filtered y-velocity of moving boundary
-  int filtered_velocity_y;
-
-  /// filtered z-velocity of moving boundary
-  int filtered_velocity_z;
-
   /// boundary velocity (for separate domain coupling)
   int boundary_velocity;
 
