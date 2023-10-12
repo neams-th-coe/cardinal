@@ -25,7 +25,7 @@ export CARDINAL_DIR=/projects/eng/shared/ajnovak2/cardinal
 export OPENMC_CROSS_SECTIONS=/projects/eng/shared/ajnovak2/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 export NEKRS_HOME=/projects/eng/shared/ajnovak2/cardinal/install
 
-#run cardinal
+#run openmc
 cd /projects/eng/shared/ajnovak2/cardinal/tutorials/lwr_solid/
 rm logfile
 
