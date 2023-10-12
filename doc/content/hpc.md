@@ -206,3 +206,26 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 !listing-end!
 
 !listing scripts/job_summit language=bash caption=Sample job script for Summit id=sum2
+
+## UIUC Campus cluster 
+
+[UIUC] (https://campuscluster.illinois.edu/)
+is a cluster at the University of Illinois at Urbana-Champaign, it is designed to support up to 512 nodes with FDR InfiniBand for applications communications and data transport with a gigabit Ethernet control network. The disk system was selected to support expandability and the GPFS file system.
+
+!listing! language=bash caption=Sample `~/.bashrc` for UIUC Campus cluster id=uiuc1
+module purge
+module load cmake/3.18.4  
+module load python
+module unload gcc/7.2.0
+module load openmpi/4.1.1-gcc-9.2.0
+
+
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+
+# The location of Cardinal on the campus cluster is a shared folder for NOVAK lab 
+export NEKRS_HOME=/projects/eng/shared/ajnovak2/cardinal_update_moose/cardinal/install
+!listing-end!
+
+!listing scripts/job_uiuc.jobscript language=bash caption=Sample job script for UIUC Campus cluster id=uiuc2
