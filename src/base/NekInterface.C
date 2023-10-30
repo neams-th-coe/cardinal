@@ -1542,10 +1542,10 @@ computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
 
   // get full stress tensor
   int nrs_offset = nrs->fieldOffset;
-  double * S_ij = (double *) calloc(6*nrs_offset, sizeof(double));
-  // no need for full stress tensor - the pressure will be subtracted once we calculate wall shear
-  // stress by subtracting normal stresses from the viscous stress vector
-  computeRateOfStrainTensor(S_ij,pp_mesh);
+  double * Tau_ij = (double *) calloc(6*nrs_offset, sizeof(double));
+  // this could be done more efficiently by multiplying S_ij with 2*mu
+  // and not performing the pressure subtraction step
+  computeRateOfStrainTensor(Tau_ij,pp_mesh);
 
   // multiply with normal on moving boundary
   for (int i = 0; i < mesh->Nelements; ++i)
@@ -1563,17 +1563,17 @@ computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          double visc_stress_vector_x =  S_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                      +  S_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                      +  S_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          double visc_stress_vector_x =  Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      +  Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      +  Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
 
-          double visc_stress_vector_y = S_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                      + S_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                      + S_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          double visc_stress_vector_y = Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
 
-          double visc_stress_vector_z = S_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                      + S_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                      + S_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          double visc_stress_vector_z = Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
 
           double visc_stress_mag = std::sqrt(  std::pow(visc_stress_vector_x,2)
                                              + std::pow(visc_stress_vector_y,2)
@@ -1586,7 +1586,7 @@ computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
       }
     }
   }
-  freePointer(S_ij);
+  freePointer(Tau_ij);
 }
 
 bool
