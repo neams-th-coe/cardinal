@@ -42,6 +42,9 @@ namespace nekrs
 
 static int build_only;
 
+/// initialize wall shear stress variable
+void initializeWallShear();
+
 /// initialize traction variable for FSI or standalone traction calculations
 void initializeTraction();
 
@@ -56,6 +59,7 @@ void updateHostMeshParameters();
 
 dfloat * getSgeo();
 dfloat * getVgeo();
+double * getWallShear();
 double * getTraction();
 double * getRateOfStrainTensor();
 
@@ -581,12 +585,18 @@ void computeRateOfStrainTensor(double * S_ij, const nek_mesh::NekMeshEnum pp_mes
 void computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
- * Compute the traction vectors on the solid-fluid boundary on the Nek mesh
- * @param[in] traction pointer to store the 3 traction components
- * @param[in] boundary_id shared boundary between fluid and solid
+ * Compute the wall shear stress on a given boundary
+ * @param[in] wall_shear pointer to store the wall shear
  * @param[in] pp_mesh NekRS mesh to operate on
  */
-void calculateTraction(double * traction, const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh);
+void computeWallShearStress(double * wall_shear, const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Compute the traction vectors on the solid-fluid boundary on the Nek mesh
+ * @param[in] traction pointer to store the 3 traction components
+ * @param[in] pp_mesh NekRS mesh to operate on
+ */
+void computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
  * Find the extreme value of a given field over the entire nekRS domain
@@ -854,6 +864,13 @@ double velocity_z(const int id);
 double velocity(const int id);
 
 /**
+ * Get the wall shear at given GLL index
+ * @param[in] id GLL index
+ * @return wall shear at index
+ */
+double wall_shear(const int id);
+
+/**
  * Get the x-traction at given GLL index
  * @param[in] id GLL index
  * @return x-traction at index
@@ -873,13 +890,6 @@ double traction_y(const int id);
  * @return z-traction at index
  */
 double traction_z(const int id);
-
-/**
- * Get the magnitude of the traction solution at given GLL index
- * @param[in] id GLL index
- * @return traction magnitude at index
- */
-double traction(const int id);
 
 /**
  * Get the magnitude of the rate-of-strain tensor component S_{11} at given GLL index

@@ -70,7 +70,7 @@ NekRSProblemBase::validParams()
   params.addRangeCheckedParam<Real>(
       "Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
 
-  MultiMooseEnum nek_outputs("temperature pressure velocity scalar01 scalar02 scalar03 traction ros_tensor");
+  MultiMooseEnum nek_outputs("temperature pressure velocity scalar01 scalar02 scalar03 traction ros_tensor wall_shear");
   params.addParam<MultiMooseEnum>(
       "output", nek_outputs, "Field(s) to output from NekRS onto the mesh mirror");
 
@@ -777,10 +777,13 @@ NekRSProblemBase::syncSolutions(ExternalProblem::Direction direction)
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
 
-      if(_outputs->contains("traction"))
-        nekrs::calculateTraction(nekrs::getTraction(), *_boundary, nek_mesh::fluid);
+      if(isParamValid("output") && _outputs->contains("traction"))
+        nekrs::computeTraction(nekrs::getTraction(), nek_mesh::fluid);
 
-      if(_outputs->contains("ros_tensor"))
+      if(isParamValid("output") && _outputs->contains("wall_shear"))
+        nekrs::computeWallShearStress(nekrs::getWallShear(), nek_mesh::fluid);
+
+      if(isParamValid("output") && _outputs->contains("ros_tensor"))
         nekrs::computeRateOfStrainTensor(nekrs::getRateOfStrainTensor(), nek_mesh::fluid);
 
       // extract the NekRS solution onto the mesh mirror, if specified
@@ -907,6 +910,8 @@ NekRSProblemBase::extractOutputs()
         field_enum = field::scalar02;
       else if (_var_names[i] == "scalar03")
         field_enum = field::scalar03;
+      else if (_var_names[i] == "wall_shear")
+        field_enum = field::wall_shear;
       else if (_var_names[i] == "traction_x")
         field_enum = field::traction_x;
       else if (_var_names[i] == "traction_y")
@@ -999,6 +1004,11 @@ NekRSProblemBase::addExternalVariables()
         _var_names.push_back("scalar02");
       else if (output == "scalar03")
         _var_names.push_back("scalar03");
+      else if (output == "wall_shear")
+      {
+        _var_names.push_back("wall_shear");
+        nekrs::initializeWallShear();
+      }
       else if (output == "traction")
       {
         _var_names.push_back("traction_x");

@@ -48,13 +48,7 @@ getNekFieldEnum()
   return MooseEnum(
       "velocity_component velocity_x velocity_y velocity_z velocity temperature"
       " pressure scalar01 scalar02 scalar03 traction_x traction_y traction_z"
-      " traction ros_s11 ros_s22 ros_s33 ros_s12 ros_s23 ros_s13 ros_tensor unity");
-}
-
-MooseEnum
-getFsiTypeEnum()
-{
-  return MooseEnum("fluid_to_solid solid_to_fluid two_way none", "none");
+      " wall_shear ros_s11 ros_s22 ros_s33 ros_s12 ros_s23 ros_s13 unity");
 }
 
 MooseEnum

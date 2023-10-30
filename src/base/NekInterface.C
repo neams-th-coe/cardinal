@@ -39,6 +39,9 @@ static double rel_tol;
 /// traction variable for FSI or standalone traction calculations
 static double * _traction = NULL;
 
+/// wall shear stress variable
+static double * _wall_shear = NULL;
+
 /** 6 components of the rate-of-strain tensor variable calculated in Nek.
   * Each component is the size of the velocity field, and the component
   * order is as follows
@@ -666,6 +669,12 @@ initializeTraction()
 }
 
 void
+initializeWallShear()
+{
+  nekrs::_wall_shear = (double *)calloc(velocityFieldOffset(), sizeof(double));
+}
+
+void
 updateHostMeshParameters()
 {
   mesh_t * mesh = entireMesh();
@@ -689,6 +698,12 @@ double *
 getTraction()
 {
   return _traction;
+}
+
+double *
+getWallShear()
+{
+  return _wall_shear;
 }
 
 double *
@@ -1444,17 +1459,16 @@ computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh)
 
   int offset = nrs->fieldOffset;
 
-//  double * Tau_ij = (double *) calloc(6*offset, sizeof(double));
   computeRateOfStrainTensor(Tau_ij,pp_mesh);
 
 // multiply by 2 * viscosity
 // get latest viscosity and pressure from device
 
-  double * viscosity = (double *) calloc(offset, sizeof(double));
-  double * pressure = (double *) calloc(offset, sizeof(double));
+  double * _viscosity = (double *) calloc(offset, sizeof(double));
+  double * _pressure = (double *) calloc(offset, sizeof(double));
 
-  nrs->o_mue.copyTo(viscosity);
-  nrs->o_P.copyTo(pressure);
+  nrs->o_mue.copyTo(_viscosity, offset*sizeof(dfloat) );
+  nrs->o_P.copyTo(_pressure,offset*sizeof(dfloat));
 
   for (int i = 0; i  < 6; ++i)
   {
@@ -1464,18 +1478,18 @@ computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh)
       {
         int id = e * mesh->Np + n;
 
-        Tau_ij[i*offset + id] *= 2.0*viscosity[id];
+        Tau_ij[i*offset + id] *= 2.0*_viscosity[id];
         if (i < 3)
-          Tau_ij[i*offset + id] -= pressure[id]; // subtract pressure from diagonal components
+          Tau_ij[i*offset + id ] -= _pressure[id]; // subtract pressure from diagonal components
       }
     }
   }
-  freePointer(viscosity);
-  freePointer(pressure);
+  freePointer(_viscosity);
+  freePointer(_pressure);
 }
 
 void
-calculateTraction(double * traction, const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
+computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1483,38 +1497,91 @@ calculateTraction(double * traction, const std::vector<int> & boundary_id, const
   // get full stress tensor
   int nrs_offset = nrs->fieldOffset;
   double * Tau_ij = (double *) calloc(6*nrs_offset, sizeof(double));
+  computeStressTensor(Tau_ij,pp_mesh);
 
   // multiply with normal on moving boundary
   for (int i = 0; i < mesh->Nelements; ++i)
   {
     for (int j = 0; j < mesh->Nfaces; ++j)
     {
-      int face_id = mesh->EToB[i*mesh->Nfaces + j];
-      int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
-
-      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      int face_bdry_id = mesh->EToB[i * mesh->Nfaces + j];
+//      if (std::find(boundary_id.begin(), boundary_id.end(), face_bdry_id) != boundary_id.end())
+      if (face_bdry_id > 0)
       {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
         for (int v = 0; v < mesh->Nfp; ++v)
         {
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          traction[0*nrs_offset + vol_id] =  Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                 +  Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                 +  Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          traction[0*nrs_offset + vol_id] = -( Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                          +    Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                          +    Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
 
-          traction[1*nrs_offset + vol_id] =  Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                 +  Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                 +  Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          traction[1*nrs_offset + vol_id] = -( Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                          +    Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                          +    Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
 
-          traction[2*nrs_offset + vol_id] =  Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                 +  Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                 +  Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          traction[2*nrs_offset + vol_id] = -( Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                          +    Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                          +    Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
         }
       }
     }
   }
   freePointer(Tau_ij);
+}
+
+void
+computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  // get full stress tensor
+  int nrs_offset = nrs->fieldOffset;
+  double * S_ij = (double *) calloc(6*nrs_offset, sizeof(double));
+  // no need for full stress tensor - the pressure will be subtracted once we calculate wall shear
+  // stress by subtracting normal stresses from the viscous stress vector
+  computeRateOfStrainTensor(S_ij,pp_mesh);
+
+  // multiply with normal on moving boundary
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_bdry_id = mesh->EToB[i * mesh->Nfaces + j];
+//      if (std::find(boundary_id.begin(), boundary_id.end(), face_bdry_id) != boundary_id.end())
+      if (face_bdry_id > 0)
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          int vol_id = mesh->vmapM[offset + v];
+          int surf_offset = mesh->Nsgeo * (offset + v);
+
+          double visc_stress_vector_x =  S_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      +  S_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      +  S_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+
+          double visc_stress_vector_y = S_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + S_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + S_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+
+          double visc_stress_vector_z = S_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + S_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + S_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+
+          tau_wall[vol_id] = ( visc_stress_vector_x * sgeo[surf_offset + NXID]
+                           +   visc_stress_vector_y * sgeo[surf_offset + NYID]
+                           +   visc_stress_vector_z * sgeo[surf_offset + NZID]);
+        }
+      }
+    }
+  }
+  freePointer(S_ij);
 }
 
 bool
@@ -1684,6 +1751,13 @@ velocity(const int id)
 }
 
 double
+wall_shear(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _wall_shear[id];
+}
+
+double
 traction_x(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1702,17 +1776,6 @@ traction_z(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
   return _traction[id + 2 * nrs->fieldOffset];
-}
-
-double
-traction(const int id)
-{
-  nrs_t * nrs = (nrs_t *)nrsPtr();
-  int offset = nrs->fieldOffset;
-
-  return std::sqrt(_traction[id + 0 * offset] * _traction[id + 0 * offset] +
-                   _traction[id + 1 * offset] * _traction[id + 1 * offset] +
-                   _traction[id + 2 * offset] * _traction[id + 2 * offset]);
 }
 
 double
@@ -1863,6 +1926,9 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
                    "because your Nek case files do not have a scalar03 variable!");
       f = &scalar03;
       break;
+    case field::wall_shear:
+      f = &wall_shear;
+      break;
     case field::traction_x:
       f = &traction_x;
       break;
@@ -1871,9 +1937,6 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
       break;
     case field::traction_z:
       f = &traction_z;
-      break;
-    case field::traction:
-      f = &traction;
       break;
     case field::ros_s11:
       f = &ros_s11;
@@ -2029,6 +2092,9 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
     case field::scalar03:
       // no dimensionalization needed
       break;
+    case field::wall_shear:
+      // TODO: add dimensionalization
+      break;
     case field::traction_x:
       // TODO: add dimensionalization
       break;
@@ -2036,9 +2102,6 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       // TODO: add dimensionalization
       break;
     case field::traction_z:
-      // TODO: add dimensionalization
-      break;
-    case field::traction:
       // TODO: add dimensionalization
       break;
     case field::ros_s11:
