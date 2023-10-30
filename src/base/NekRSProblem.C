@@ -63,8 +63,6 @@ NekRSProblem::validParams()
                                      "If provided, postprocessor used to limit the maximum "
                                      "temperature (in dimensional form) in the nekRS problem");
 
-  params.addParam<MooseEnum>("fsi_type", getFsiTypeEnum(), "Type of FSI Coupling");
-
   params.addParam<bool>("conserve_flux_by_sideset", false,
     "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
     "together). Setting this option to true requires syntax changes in the input file to use "
@@ -689,6 +687,11 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       _console << " Interpolated temperature min/max values: " << minInterpolatedTemperature()
                << ", " << maxInterpolatedTemperature() << std::endl;
 
+      if (isParamValid("output") && _outputs->contains("traction") )
+        nekrs::computeTraction(nekrs::getTraction(), nek_mesh::fluid);
+
+      if (isParamValid("output") && _outputs->contains("wall_shear") )
+        nekrs::computeWallShearStress(nekrs::getWallShear(), nek_mesh::fluid);
       // extract all outputs (except temperature, which we did separately here). We could
       // have simply called the base class NekRSProblemBase::syncSolutions to do this, but
       // putting this here lets us use a consistent setting for the minimize transfers feature,
