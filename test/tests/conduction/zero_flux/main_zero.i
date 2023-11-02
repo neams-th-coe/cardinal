@@ -41,7 +41,7 @@
 
 [Transfers]
   [flux]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     to_multi_app = nek
     variable = avg_flux

@@ -104,13 +104,13 @@ tmax = 1150.0
 
 [Transfers]
   [temp_to_openmc]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     from_multi_app = nek
     variable = temp
     source_variable = temp
   []
   [power_to_nek]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     to_multi_app = nek
     source_variable = kappa_fission
     variable = heat_source
