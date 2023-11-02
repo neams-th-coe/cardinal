@@ -6,9 +6,15 @@ T_fluid = ${fparse 650.0 + 273.15}
     nr = 4
     radius = 0.015
   []
+  [rotate] # we can rotate the pebble, MOOSEs mesh transfers still handle the transfer properly
+    type = TransformGenerator
+    input = pebble
+    transform = rotate
+    vector_value = '0.5 0.2 0.2'
+  []
   [repeat]
     type = CombinerGenerator
-    inputs = pebble
+    inputs = rotate
     positions = '0 0 0.02
                  0 0 0.06
                  0 0 0.10'
@@ -76,7 +82,7 @@ T_fluid = ${fparse 650.0 + 273.15}
 
 [Transfers]
   [heat_source_from_openmc]
-    type = MultiAppGeneralFieldNearestNodeTransfer
+    type = MultiAppGeneralFieldNearestLocationTransfer
     from_multi_app = openmc
     variable = heat_source
     source_variable = heat_source

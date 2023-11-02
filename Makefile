@@ -134,6 +134,7 @@ FLUID_PROPERTIES    := yes
 HEAT_CONDUCTION     := yes
 NAVIER_STOKES       := yes
 REACTOR             := yes
+SOLID_PROPERTIES    := yes
 STOCHASTIC_TOOLS    := yes
 TENSOR_MECHANICS    := yes
 THERMAL_HYDRAULICS  := yes

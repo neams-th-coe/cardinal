@@ -11,6 +11,7 @@ cd cardinal
 ./scripts/get-dependencies.sh
 ./contrib/moose/scripts/update_and_rebuild_petsc.sh
 ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
+./contrib/moose/scripts/update_and_rebuild_wasp.sh
 export NEKRS_HOME=$HOME/cardinal/install
 make -j8
 ```
@@ -87,11 +88,12 @@ dependency locations, and more.
 #### Build PETSc and libMesh
   id=petsc_libmesh
 
-You must now build PETSc and libMesh:
+You must now build PETSc, libMesh, and WASP:
 
 ```
 ./contrib/moose/scripts/update_and_rebuild_petsc.sh
 ./contrib/moose/scripts/update_and_rebuild_libmesh.sh
+./contrib/moose/scripts/update_and_rebuild_wasp.sh
 ```
 
 To troubleshoot the PETSc or libMesh install, please consult our [PETSc and libMesh troubleshooting](petsc_libmesh.md) page. If you want to check the PETSc install, you can

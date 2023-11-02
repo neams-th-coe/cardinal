@@ -18,7 +18,7 @@
     input = solid_um.i
     csvdiff = solid_um_out_openmc0.csv
     prereq = mesh
-    cli_args = "Mesh/pebble/nr=3 openmc:Problem/particles=1000 openmc:Problem/batches=4 openmc:Problem/inactive_batches=0"
+    cli_args = "Mesh/pebble/nr=2 openmc:Problem/particles=1000 openmc:Problem/batches=4 openmc:Problem/inactive_batches=0"
     requirement = "The system shall be able to run the pebble tutorial."
     required_objects = 'OpenMCCellAverageProblem'
   []
