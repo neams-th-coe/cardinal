@@ -1575,13 +1575,15 @@ computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
                                       + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
                                       + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
 
-          double visc_stress_mag = std::sqrt(  std::pow(visc_stress_vector_x,2)
-                                             + std::pow(visc_stress_vector_y,2)
-                                             + std::pow(visc_stress_vector_z,2) );
+          double shear_stress_x = visc_stress_vector_x - (visc_stress_vector_x * sgeo[surf_offset + NXID]);
+          double shear_stress_y = visc_stress_vector_y - (visc_stress_vector_y * sgeo[surf_offset + NYID]);
+          double shear_stress_z = visc_stress_vector_z - (visc_stress_vector_z * sgeo[surf_offset + NZID]);
 
-          tau_wall[vol_id] = visc_stress_mag - ( visc_stress_vector_x * sgeo[surf_offset + NXID]
-                                             +   visc_stress_vector_y * sgeo[surf_offset + NYID]
-                                             +   visc_stress_vector_z * sgeo[surf_offset + NZID]);
+
+          tau_wall[vol_id]= std::sqrt(  std::pow(shear_stress_x,2)
+                                      + std::pow(shear_stress_y,2)
+                                      + std::pow(shear_stress_z,2) );
+
         }
       }
     }
