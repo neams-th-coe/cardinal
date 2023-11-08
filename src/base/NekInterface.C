@@ -1462,13 +1462,7 @@ computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh)
   computeRateOfStrainTensor(Tau_ij,pp_mesh);
 
 // multiply by 2 * viscosity
-// get latest viscosity and pressure from device
-
-  double * _viscosity = (double *) calloc(offset, sizeof(double));
-  double * _pressure = (double *) calloc(offset, sizeof(double));
-
-  nrs->o_mue.copyTo(_viscosity, offset*sizeof(dfloat) );
-  nrs->o_P.copyTo(_pressure,offset*sizeof(dfloat));
+// TODO: decide on better implementation for variable viscosity
 
   for (int i = 0; i  < 6; ++i)
   {
@@ -1478,14 +1472,12 @@ computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh)
       {
         int id = e * mesh->Np + n;
 
-        Tau_ij[i*offset + id] *= 2.0*_viscosity[id];
+        Tau_ij[i*offset + id] *= 2.0 * viscosity();
         if (i < 3)
-          Tau_ij[i*offset + id ] -= _pressure[id]; // subtract pressure from diagonal components
+          Tau_ij[i*offset + id ] -= nrs->P[id]; // subtract pressure from diagonal components
       }
     }
   }
-  freePointer(_viscosity);
-  freePointer(_pressure);
 }
 
 void
@@ -1542,9 +1534,21 @@ computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
   // get full stress tensor
   int nrs_offset = nrs->fieldOffset;
   double * Tau_ij = (double *) calloc(6*nrs_offset, sizeof(double));
-  // this could be done more efficiently by multiplying S_ij with 2*mu
-  // and not performing the pressure subtraction step
+
   computeRateOfStrainTensor(Tau_ij,pp_mesh);
+
+  for (int i = 0; i  < 6; ++i)
+  {
+    for (int e = 0; e < mesh->Nelements; ++e)
+    {
+      for (int n = 0; n < mesh->Np; ++n)
+      {
+        int id = e * mesh->Np + n;
+
+        Tau_ij[i*nrs_offset + id] *= 2.0 * viscosity();
+      }
+    }
+  }
 
   // multiply with normal on moving boundary
   for (int i = 0; i < mesh->Nelements; ++i)
