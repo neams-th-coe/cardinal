@@ -6,6 +6,7 @@
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which do not correspond to any '
                   'multiphysics feedback settings. The tallies were compared against separate standalone OpenMC runs to '
                   'confirm that the presence/absence of feedback does not change their values.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [T_feedback_tally]
     type = CSVDiff
@@ -14,6 +15,7 @@
     csvdiff = T.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [rho_feedback_tally]
     type = CSVDiff
@@ -22,6 +24,7 @@
     csvdiff = rho.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature/density feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [no_data_flow]
     type = CSVDiff
@@ -29,6 +32,7 @@
     csvdiff = no_data_flow_out.csv
     requirement = 'The system shall allow OpenMC to be run within Cardinal without any data transfers '
                   'in or out of the code.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [T_feedback_no_tally]
     type = CSVDiff
@@ -37,6 +41,7 @@
     csvdiff = T_no_tally.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [rho_feedback_no_tally]
     type = CSVDiff
@@ -45,5 +50,6 @@
     csvdiff = rho_no_tally.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature/density feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []
