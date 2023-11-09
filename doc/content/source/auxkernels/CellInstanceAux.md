@@ -4,7 +4,8 @@
 
 ## Description
 
-Displays the OpenMC cell instance mapped to the MOOSE elements. If there are
+Displays the OpenMC cell instance mapped to the MOOSE elements which provide
+multiphysics feedback *into* OpenMC. If there are
 no distributed cells in your OpenMC geometry, then the instance for every cell
 is zero. But if you have distributed cells such as for problems with lattices
 or if you repeat the same universe multiple places throughout the geometry,

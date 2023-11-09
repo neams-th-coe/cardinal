@@ -15,7 +15,9 @@ you have set the temperature method in OpenMC to nearest, then you will actually
 evaluate cross sections at the data set closest to the temperature shown by this
 auxiliary kernel. If you instead set the temperature method in OpenMC to interpolation,
 then you will actually evaluate cross sections as a stochastic interpolation
-between the two nearest data sets.
+between the two nearest data sets. For the resolved resonance region, if you have
+windowed multipole on-the-fly Doppler broadening enabled, then instead of using nearest-point
+or interpolation, the requested temperature is on-the-fly Doppler broadened to that value.
 
 If a MOOSE element did not map at all to an OpenMC cell,
 then this auxiliary kernel returns $-1$.
