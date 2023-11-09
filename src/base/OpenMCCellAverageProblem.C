@@ -300,11 +300,22 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (_tally_type == tally::none)
   {
-    std::vector<std::string> ps = {"tally_blocks", "check_tally_sum", "normalize_by_global_tally",
-      "assume_separate_tallies", "tally_estimator", "tally_score", "source_rate_normalization",
-      "tally_name", "mesh_template", "mesh_translations", "mesh_translations_file",
-      "tally_trigger_threshold", "check_equal_mapped_tally_volumes", "equval_tally_volume_abs_tol",
-      "output", "output_name"};
+    std::vector<std::string> ps = {"tally_blocks",
+                                   "check_tally_sum",
+                                   "normalize_by_global_tally",
+                                   "assume_separate_tallies",
+                                   "tally_estimator",
+                                   "tally_score",
+                                   "source_rate_normalization",
+                                   "tally_name",
+                                   "mesh_template",
+                                   "mesh_translations",
+                                   "mesh_translations_file",
+                                   "tally_trigger_threshold",
+                                   "check_equal_mapped_tally_volumes",
+                                   "equval_tally_volume_abs_tol",
+                                   "output",
+                                   "output_name"};
     for (const auto & s : ps)
       checkUnusedParam(params, s, "'tally_type = none'");
 
@@ -1395,27 +1406,39 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   {
     if (_cell_to_elem.size())
     {
-      _console << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n" << std::endl;
-      _console <<   "          Solid:  # elems providing temperature feedback to cell" << std::endl;
-      _console <<   "          Fluid:  # elems providing temperature and density feedback to cell" << std::endl;
-      _console <<   "          Other:  # uncoupled elems, which do not provide feedback to OpenMC" << std::endl;
-      _console <<   "                    (but may still receive a tally from OpenMC)" << std::endl;
-      _console <<   "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
-      _console <<   "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n" << std::endl;
+      _console
+          << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n"
+          << std::endl;
+      _console << "          Solid:  # elems providing temperature feedback to cell" << std::endl;
+      _console << "          Fluid:  # elems providing temperature and density feedback to cell"
+               << std::endl;
+      _console << "          Other:  # uncoupled elems, which do not provide feedback to OpenMC"
+               << std::endl;
+      _console << "                    (but may still receive a tally from OpenMC)" << std::endl;
+      _console << "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
+      _console << "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n"
+               << std::endl;
       vt.print(_console);
     }
 
     if (_has_fluid_blocks || _has_solid_blocks)
     {
-      _console << "\n ===================>     AUXVARIABLES INPUT TO OPENMC     <===================\n" << std::endl;
-      _console <<   "      Subdomain:  subdomain name; if unnamed, we show the ID" << std::endl;
-      _console <<   "    Temperature:  AuxVariable to read temperature from" << std::endl;
-      _console <<   "        Density:  AuxVariable to read density from (empty if no density feedback)\n" << std::endl;
+      _console
+          << "\n ===================>     AUXVARIABLES INPUT TO OPENMC     <===================\n"
+          << std::endl;
+      _console << "      Subdomain:  subdomain name; if unnamed, we show the ID" << std::endl;
+      _console << "    Temperature:  AuxVariable to read temperature from" << std::endl;
+      _console
+          << "        Density:  AuxVariable to read density from (empty if no density feedback)\n"
+          << std::endl;
 
-      VariadicTable<std::string, std::string, std::string> aux({"Subdomain", "Temperature", "Density"});
+      VariadicTable<std::string, std::string, std::string> aux(
+          {"Subdomain", "Temperature", "Density"});
 
       for (const auto & s : _fluid_blocks)
-        aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, _subdomain_to_density_vars[s].second);
+        aux.addRow(subdomainName(s),
+                   _subdomain_to_temp_vars[s].second,
+                   _subdomain_to_density_vars[s].second);
 
       for (const auto & s : _solid_blocks)
         aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, "");
@@ -1425,9 +1448,11 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
     if (_tally_type != tally::none)
     {
-      _console << "\n ===================>     AUXVARIABLES OUTPUT BY OPENMC     <===================\n" << std::endl;
-      _console <<   "    Tally Score:  OpenMC tally score" << std::endl;
-      _console <<   "    AuxVariable:  AuxVariable holding this score\n" << std::endl;
+      _console
+          << "\n ===================>     AUXVARIABLES OUTPUT BY OPENMC     <===================\n"
+          << std::endl;
+      _console << "    Tally Score:  OpenMC tally score" << std::endl;
+      _console << "    AuxVariable:  AuxVariable holding this score\n" << std::endl;
 
       VariadicTable<std::string, std::string> tallies({"Tally Score", "AuxVariable"});
       for (unsigned int i = 0; i < _tally_name.size(); ++i)
@@ -1570,10 +1595,15 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
 
     if (_cell_to_elem.size())
     {
-      _console << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n" << std::endl;
-      _console <<   "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
-      _console <<   "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we show the ID." << std::endl;
-      _console <<   "                  If N duplicate material names, we show the number in ( ).\n" << std::endl;
+      _console
+          << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n"
+          << std::endl;
+      _console << "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
+      _console << "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we "
+                  "show the ID."
+               << std::endl;
+      _console << "                  If N duplicate material names, we show the number in ( ).\n"
+               << std::endl;
       vt.print(_console);
       _console << std::endl;
     }
@@ -2652,7 +2682,10 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 {
   if (!_has_fluid_blocks && !_has_solid_blocks)
   {
-    _console << "Skipping temperature transfer into OpenMC because 'solid_blocks' and 'fluid_blocks' are both empty" << std::endl;;
+    _console << "Skipping temperature transfer into OpenMC because 'solid_blocks' and "
+                "'fluid_blocks' are both empty"
+             << std::endl;
+    ;
     return;
   }
 
@@ -2710,7 +2743,8 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
 {
   if (!_has_fluid_blocks)
   {
-    _console << "Skipping density transfer into OpenMC because 'fluid_blocks' is empty" << std::endl;
+    _console << "Skipping density transfer into OpenMC because 'fluid_blocks' is empty"
+             << std::endl;
     return;
   }
 
