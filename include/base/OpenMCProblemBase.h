@@ -104,7 +104,7 @@ public:
    * @param[in] trigger trigger metric
    * @return OpenMC enum
    */
-  openmc::TriggerMetric triggerMetric(tally::TallyTriggerTypeEnum trigger) const;
+  openmc::TriggerMetric triggerMetric(trigger::TallyTriggerTypeEnum trigger) const;
 
   /**
    * Convert from a MooseEnum for tally estimator to an OpenMC enum
@@ -352,6 +352,9 @@ protected:
 
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
+
+  /// Type of tally to apply to extract score from OpenMC
+  const tally::TallyTypeEnum _tally_type;
 
   /// Power by which to normalize the OpenMC results, for k-eigenvalue mode
   const Real * _power;

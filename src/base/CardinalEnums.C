@@ -58,7 +58,7 @@ getOperationEnum()
 MooseEnum
 getTallyTypeEnum()
 {
-  return MooseEnum("cell mesh");
+  return MooseEnum("cell mesh none");
 }
 
 MooseEnum

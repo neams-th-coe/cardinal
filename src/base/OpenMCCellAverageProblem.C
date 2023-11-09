@@ -109,8 +109,6 @@ OpenMCCellAverageProblem::validParams()
     "during the simulation, the mapping from OpenMC's cells to the mesh must be re-evaluated after "
     "each OpenMC run.");
 
-  params.addRequiredParam<MooseEnum>(
-      "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
   params.addParam<MooseEnum>(
       "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
 
@@ -250,12 +248,11 @@ OpenMCCellAverageProblem::validParams()
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & params)
   : OpenMCProblemBase(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
-    _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
-    _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
-    _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<tally::TallyTriggerTypeEnum>()),
+    _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
+    _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
                              ? false
@@ -301,6 +298,20 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       "possible to apply relaxation to the OpenMC tallies because you might end up trying to add vectors "
       "of different length (and possibly spatial mapping).");
 
+  if (_tally_type == tally::none)
+  {
+    std::vector<std::string> ps = {"tally_blocks", "check_tally_sum", "normalize_by_global_tally",
+      "assume_separate_tallies", "tally_estimator", "tally_score", "source_rate_normalization",
+      "tally_name", "mesh_template", "mesh_translations", "mesh_translations_file",
+      "tally_trigger_threshold", "check_equal_mapped_tally_volumes", "equval_tally_volume_abs_tol",
+      "output", "output_name"};
+    for (const auto & s : ps)
+      checkUnusedParam(params, s, "'tally_type = none'");
+
+    if (_tally_trigger != trigger::none)
+      mooseWarning("Ignoring 'tally_trigger' setting because 'tally_type = none'");
+  }
+
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
 
@@ -317,6 +328,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     // set a default of tracklength for cells, and use mandatory collision for mesh tallies
     switch (_tally_type)
     {
+      case tally::none:
       case tally::cell:
         _tally_estimator = openmc::TallyEstimator::TRACKLENGTH;
         break;
@@ -328,7 +340,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
   }
 
-  if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != tally::none)
+  if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != trigger::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
   if (isParamValid("tally_score"))
@@ -622,6 +634,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   switch (_tally_type)
   {
+    case tally::none:
+    {
+      break;
+    }
     case tally::cell:
     {
       checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
@@ -871,9 +887,9 @@ void
 OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & parameters)
 {
   // parameters needed for tally triggers
-  if (_tally_trigger != tally::none)
+  if (_tally_trigger != trigger::none)
   {
-    if (_tally_trigger == tally::std_dev || _tally_trigger == tally::variance)
+    if (_tally_trigger == trigger::std_dev || _tally_trigger == trigger::variance)
       mooseError(
           "Standard deviation and variance tally triggers are not yet supported!\n"
           "There is not a mechanism for OpenMC to use a different threshold for the different\n"
@@ -888,7 +904,7 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     checkUnusedParam(parameters, "tally_trigger_threshold", "not using tally triggers");
 
   // parameters needed for k triggers
-  if (_k_trigger != tally::none)
+  if (_k_trigger != trigger::none)
   {
     checkRequiredParam(parameters, "k_trigger_threshold", "using a k trigger");
     openmc::settings::keff_trigger.threshold = getParam<Real>("k_trigger_threshold");
@@ -896,7 +912,7 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
   else
     checkUnusedParam(parameters, "k_trigger_threshold", "not using a k trigger");
 
-  if (_k_trigger != tally::none || _tally_trigger != tally::none) // at least one trigger
+  if (_k_trigger != trigger::none || _tally_trigger != trigger::none) // at least one trigger
   {
     openmc::settings::trigger_on = true;
     checkRequiredParam(parameters, "max_batches", "using triggers");
@@ -909,7 +925,7 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     openmc::settings::trigger_batch_interval = getParam<unsigned int>("batch_interval");
   }
 
-  if (_k_trigger == tally::none && _tally_trigger == tally::none) // no triggers
+  if (_k_trigger == trigger::none && _tally_trigger == trigger::none) // no triggers
   {
     checkUnusedParam(parameters, "max_batches", "not using triggers");
     checkUnusedParam(parameters, "batch_interval", "not using triggers");
@@ -1377,14 +1393,17 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
   if (_verbose)
   {
-    _console << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n" << std::endl;
-    _console <<   "          Solid:  # elems providing temperature feedback to cell" << std::endl;
-    _console <<   "          Fluid:  # elems providing temperature and density feedback to cell" << std::endl;
-    _console <<   "          Other:  # uncoupled elems, which do not provide feedback to OpenMC" << std::endl;
-    _console <<   "                    (but may still receive a tally from OpenMC)" << std::endl;
-    _console <<   "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
-    _console <<   "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n" << std::endl;
-    vt.print(_console);
+    if (_cell_to_elem.size())
+    {
+      _console << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n" << std::endl;
+      _console <<   "          Solid:  # elems providing temperature feedback to cell" << std::endl;
+      _console <<   "          Fluid:  # elems providing temperature and density feedback to cell" << std::endl;
+      _console <<   "          Other:  # uncoupled elems, which do not provide feedback to OpenMC" << std::endl;
+      _console <<   "                    (but may still receive a tally from OpenMC)" << std::endl;
+      _console <<   "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
+      _console <<   "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n" << std::endl;
+      vt.print(_console);
+    }
 
     if (_has_fluid_blocks || _has_solid_blocks)
     {
@@ -1404,15 +1423,18 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       aux.print(_console);
     }
 
-    _console << "\n ===================>     AUXVARIABLES OUTPUT BY OPENMC     <===================\n" << std::endl;
-    _console <<   "    Tally Score:  OpenMC tally score" << std::endl;
-    _console <<   "    AuxVariable:  AuxVariable holding this score\n" << std::endl;
+    if (_tally_type != tally::none)
+    {
+      _console << "\n ===================>     AUXVARIABLES OUTPUT BY OPENMC     <===================\n" << std::endl;
+      _console <<   "    Tally Score:  OpenMC tally score" << std::endl;
+      _console <<   "    AuxVariable:  AuxVariable holding this score\n" << std::endl;
 
-    VariadicTable<std::string, std::string> tallies({"Tally Score", "AuxVariable"});
-    for (unsigned int i = 0; i < _tally_name.size(); ++i)
-      tallies.addRow(_tally_score[i], _tally_name[i]);
+      VariadicTable<std::string, std::string> tallies({"Tally Score", "AuxVariable"});
+      for (unsigned int i = 0; i < _tally_name.size(); ++i)
+        tallies.addRow(_tally_score[i], _tally_name[i]);
 
-    tallies.print(_console);
+      tallies.print(_console);
+    }
   }
 }
 
@@ -1546,12 +1568,15 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
       vt.addRow(subdomainName(i), mats);
     }
 
-    _console << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n" << std::endl;
-    _console <<   "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
-    _console <<   "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we show the ID." << std::endl;
-    _console <<   "                  If N duplicate material names, we show the number in ( ).\n" << std::endl;
-    vt.print(_console);
-    _console << std::endl;
+    if (_cell_to_elem.size())
+    {
+      _console << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n" << std::endl;
+      _console <<   "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
+      _console <<   "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we show the ID." << std::endl;
+      _console <<   "                  If N duplicate material names, we show the number in ( ).\n" << std::endl;
+      vt.print(_console);
+      _console << std::endl;
+    }
   }
 }
 
@@ -1729,7 +1754,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // Get the element subdomains within each cell
   getCellMappedSubdomains();
 
-  if (_cell_to_elem.size() == 0)
+  if (_cell_to_elem.size() == 0 && _tally_type != tally::none)
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
@@ -2138,7 +2163,9 @@ OpenMCCellAverageProblem::mapElemsToCells()
       _material_cells_only = false;
 
     // store the map of cells to elements that will be coupled via feedback or a tally
-    _cell_to_elem[cell_info].push_back(local_elem);
+    auto id = elem->subdomain_id();
+    if (_fluid_blocks.count(id) || _solid_blocks.count(id) || _tally_blocks.count(id))
+      _cell_to_elem[cell_info].push_back(local_elem);
   }
 
   _communicator.sum(_n_mapped_solid_elems);
@@ -2324,6 +2351,9 @@ OpenMCCellAverageProblem::meshFilter()
 void
 OpenMCCellAverageProblem::resetTallies()
 {
+  if (_tally_type == tally::none)
+    return;
+
   // We create the global tally, and THEN the local tally. So we need to delete in
   // reverse order
 
@@ -2377,6 +2407,9 @@ OpenMCCellAverageProblem::resetTallies()
 void
 OpenMCCellAverageProblem::initializeTallies()
 {
+  if (_tally_type == tally::none)
+    return;
+
   // add trigger information for k, if present
   openmc::settings::keff_trigger.metric = triggerMetric(_k_trigger);
 
@@ -2521,18 +2554,21 @@ OpenMCCellAverageProblem::findCell(const Point & point)
 void
 OpenMCCellAverageProblem::addExternalVariables()
 {
-  _external_vars.resize(_tally_score.size());
-  for (unsigned int score = 0; score < _tally_score.size(); ++score)
+  if (_tally_type != tally::none)
   {
-    auto name = _tally_name[score];
-    _tally_var.push_back(addExternalVariable(name) /* all blocks */);
-
-    if (_outputs)
+    _external_vars.resize(_tally_score.size());
+    for (unsigned int score = 0; score < _tally_score.size(); ++score)
     {
-      for (std::size_t i = 0; i < _outputs->size(); ++i)
+      auto name = _tally_name[score];
+      _tally_var.push_back(addExternalVariable(name) /* all blocks */);
+
+      if (_outputs)
       {
-        std::string n = name + "_" + _output_name[i];
-        _external_vars[score].push_back(addExternalVariable(n) /* all blocks */);
+        for (std::size_t i = 0; i < _outputs->size(); ++i)
+        {
+          std::string n = name + "_" + _output_name[i];
+          _external_vars[score].push_back(addExternalVariable(n) /* all blocks */);
+        }
       }
     }
   }
@@ -2672,6 +2708,12 @@ OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info)
 void
 OpenMCCellAverageProblem::sendDensityToOpenMC() const
 {
+  if (!_has_fluid_blocks)
+  {
+    _console << "Skipping density transfer into OpenMC because 'fluid_blocks' is empty" << std::endl;
+    return;
+  }
+
   _console << "Sending density to OpenMC cells... " << printNewline();
 
   double maximum = std::numeric_limits<double>::min();
@@ -3074,8 +3116,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // transfer do we need to filter for the fluid cells
       sendTemperatureToOpenMC();
 
-      if (_has_fluid_blocks)
-        sendDensityToOpenMC();
+      sendDensityToOpenMC();
 
       if (_export_properties)
         openmc_properties_export("properties.h5");
@@ -3084,6 +3125,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     }
     case ExternalProblem::Direction::FROM_EXTERNAL_APP:
     {
+      if (_tally_type == tally::none)
+        break;
+
       _console << "Extracting OpenMC tallies... " << printNewline();
 
       for (unsigned int score = 0; score < _tally_score.size(); ++score)
