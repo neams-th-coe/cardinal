@@ -76,7 +76,7 @@ public:
   virtual void initialSetup() override;
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
-  virtual bool converged() override { return true; }
+  virtual bool converged(unsigned int) override { return true; }
 
   /**
    * Initialize the mapping of OpenMC to the MooseMesh and perform any additional setup actions
