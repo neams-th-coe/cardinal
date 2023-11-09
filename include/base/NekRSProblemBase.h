@@ -135,7 +135,7 @@ public:
 
   virtual void externalSolve() override;
 
-  virtual bool converged() override { return true; }
+  virtual bool converged(unsigned int) override { return true; }
 
   virtual void addExternalVariables() override;
 

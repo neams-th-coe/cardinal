@@ -3180,7 +3180,7 @@ OpenMCCellAverageProblem::createQRules(QuadratureType type,
   // start copy: Copied from base class's createQRules in order to retain the same default behavior
   if (order == INVALID_ORDER)
   {
-    order = getNonlinearSystemBase().getMinQuadratureOrder();
+    order = getNonlinearSystemBase(0).getMinQuadratureOrder();
     if (order < getAuxiliarySystem().getMinQuadratureOrder())
       order = getAuxiliarySystem().getMinQuadratureOrder();
   }
