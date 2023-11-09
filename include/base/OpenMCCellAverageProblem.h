@@ -1074,6 +1074,9 @@ protected:
   /// Mapping from temperature variable name to the subdomains on which to read it from
   std::map<std::string, std::vector<SubdomainName>> _temp_vars_to_blocks;
 
+  /// Mapping from density variable name to the subdomains on which to read it from
+  std::map<std::string, std::vector<SubdomainName>> _density_vars_to_blocks;
+
   /// Optional volume calculation for cells which map to MOOSE
   OpenMCVolumeCalculation * _volume_calc;
 

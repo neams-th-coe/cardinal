@@ -165,6 +165,14 @@ OpenMCCellAverageProblem::validParams()
       "temperature_blocks", "Blocks corresponding to each of the 'temperature_variables'. If not specified, "
       "defaults to the set union of 'fluid_blocks' and 'solid_blocks'");
 
+  params.addParam<std::vector<std::vector<std::string>>>(
+      "density_variables",
+      "Vector of variable names corresponding to the densities sent into OpenMC. Each entry maps to "
+      "the corresponding entry in 'density_blocks.' If not specified, each entry defaults to 'density'");
+  params.addParam<std::vector<std::vector<SubdomainName>>>(
+      "density_blocks", "Blocks corresponding to each of the 'density_variables'. If not specified, "
+      "defaults to the 'fluid_blocks'");
+
   params.addParam<bool>(
       "check_equal_mapped_tally_volumes",
       false,
@@ -641,6 +649,104 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       _temp_vars_to_blocks["temp"].push_back(b);
     for (const auto & b : _fluid_block_names)
       _temp_vars_to_blocks["temp"].push_back(b);
+  }
+
+  if (!isParamValid("density_blocks"))
+    checkUnusedParam(params, "density_variables", "not setting 'density_blocks'");
+
+  if (isParamValid("density_blocks"))
+  {
+    const auto & density_blocks = getParam<std::vector<std::vector<SubdomainName>>>("density_blocks");
+    checkEmptyVector(density_blocks, "'density_blocks'");
+    for (const auto & t : density_blocks)
+      checkEmptyVector(t, "Entries in 'density_blocks'");
+
+    // as sanity check, shouldn't have any entries in density_blocks which are not
+    // also in fluid_blocks. TODO: eventually, we will deprecate fluid_blocks
+    std::vector<SubdomainName> flattened_db;
+    for (const auto & slice : density_blocks)
+      for (const auto & i : slice)
+        flattened_db.push_back(i);
+
+    auto d_ids = _mesh.getSubdomainIDs(flattened_db);
+    const auto & temperature_blocks =
+        getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
+    for (const auto & d : d_ids)
+    {
+      if (!_fluid_blocks.count(d))
+        mooseError("Each entry in 'density_blocks' should be in 'fluid_blocks'!");
+
+      // For now, we do not have any tests covering applying density feedback without the presence
+      // of temperature feedback. So each entry in density_blocks should also be in temp_vars_to_blocks
+      // (same variable, same block)
+      bool found = false;
+      for (const auto & t : temperature_blocks)
+      {
+        auto ii = _mesh.getSubdomainIDs(t);
+        if (std::find(ii.begin(), ii.end(), d) != ii.end())
+          found = true;
+      }
+
+      if (!found)
+        mooseError("Each entry in 'density_blocks' should also be in temperature_blocks");
+    }
+
+    // because this is the mechanism by which we will impose densities, we also need to have
+    // all the listed blocks match those given in the 'fluid_blocks', or else that block
+    // would secretly not participate in coupling
+    for (const auto & t : _fluid_block_names)
+    {
+      auto it = std::find(flattened_db.begin(), flattened_db.end(), t);
+      if (it == flattened_db.end())
+        mooseError("Each entry in 'fluid_blocks' must be included in 'density_blocks'!\n"
+          "Block '", t, "' is in 'fluid_blocks' but not 'density_blocks'.");
+    }
+
+    // should not be any duplicate blocks, otherwise it is not clear which density variable to use
+    std::set<SubdomainName> names;
+    for (const auto & b : flattened_db)
+    {
+      if (names.count(b))
+        mooseError("Subdomains cannot be repeated in 'density_blocks'! Subdomain '", b, "' is duplicated.");
+      names.insert(b);
+    }
+
+    // now, get the names of those density variables
+    std::vector<std::vector<std::string>> density_vars;
+    if (isParamValid("density_variables"))
+    {
+      density_vars = getParam<std::vector<std::vector<std::string>>>("density_variables");
+
+      checkEmptyVector(density_vars, "'density_variables'");
+      for (const auto & t : density_vars)
+        checkEmptyVector(t, "Entries in 'density_variables'");
+
+      if (density_vars.size() != density_blocks.size())
+        mooseError("'density_variables' and 'density_blocks' must be the same length!");
+
+      // TODO: for now, we restrict each set of blocks to map to a single density variable
+      for (std::size_t i = 0; i < density_vars.size(); ++i)
+        if (density_vars[i].size() > 1)
+          mooseError("Each entry in 'density_variables' must be of length 1. "
+            "Entry " + std::to_string(i) + " is of length ", density_vars[i].size(), ".");
+    }
+    else
+    {
+      // set a reasonable default, if not specified
+      density_vars.resize(density_blocks.size(), std::vector<std::string>(1));
+      for (std::size_t i = 0; i < density_blocks.size(); ++i)
+        density_vars[i][0] = "density";
+    }
+
+    for (std::size_t i = 0; i < density_vars.size(); ++i)
+      for (std::size_t j = 0; j < density_blocks[i].size(); ++j)
+        _density_vars_to_blocks[density_vars[i][0]].push_back(density_blocks[i][j]);
+  }
+  else
+  {
+    // default to the fluid_blocks, all being named 'density'
+    for (const auto & b : _fluid_block_names)
+      _density_vars_to_blocks["density"].push_back(b);
   }
 
   switch (_tally_type)
@@ -2603,12 +2709,14 @@ OpenMCCellAverageProblem::addExternalVariables()
     }
   }
 
-  // create the variable that will be used to receive density
-  if (_has_fluid_blocks)
+  // create the variable(s) that will be used to receive density
+  for (const auto & v : _density_vars_to_blocks)
   {
-    auto number = addExternalVariable("density", &_fluid_block_names);
-    for (const auto & s : _fluid_blocks)
-      _subdomain_to_density_vars[s] = {number, "density"};
+    auto number = addExternalVariable(v.first, &v.second);
+
+    auto ids = _mesh.getSubdomainIDs(v.second);
+    for (const auto & s : ids)
+      _subdomain_to_density_vars[s] = {number, v.first};
   }
 
   // create the variable(s) that will be used to receive temperature
