@@ -4,10 +4,8 @@
 
 ## Description
 
-Displays the OpenMC cell ID mapped to the MOOSE elements which provide
-multiphysics feedback *into* OpenMC.
-In other words, this auxiliary kernel can be used to visualize the cell that
-maps to each MOOSE element for receiving temperature and/or density feedback.
+Displays the OpenMC cell ID mapped to the MOOSE elements, showing all cells
+which either (i) receive multiphysics feedback or (ii) send a cell tally to MOOSE.
 
 If a MOOSE element did not map at all to an OpenMC cell,
 then this auxiliary kernel returns $-1$.

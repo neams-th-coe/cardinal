@@ -503,10 +503,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
-  if (!isParamValid("fluid_blocks") && !isParamValid("solid_blocks"))
-    mooseError("At least one of 'fluid_blocks' and 'solid_blocks' must be specified to "
-               "establish the mapping from MOOSE to OpenMC.");
-
   readBlockParameters("fluid_blocks", _fluid_blocks, _fluid_block_names);
   readBlockParameters("solid_blocks", _solid_blocks, _solid_block_names);
 
@@ -1373,30 +1369,40 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       _cell_volume[c.first] = cv[i++];
   }
 
+  if (_has_fluid_blocks && !has_fluid_cells)
+    mooseError("'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!");
+
+  if (_has_solid_blocks && !has_solid_cells)
+    mooseError("'solid_blocks' was specified, but no solid elements mapped to OpenMC cells!");
+
   if (_verbose)
   {
     _console << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n" << std::endl;
-    _console <<   "          Solid:  # elems in 'solid_blocks' each cell maps to" << std::endl;
-    _console <<   "          Fluid:  # elems in 'fluid_blocks' each cell maps to" << std::endl;
-    _console <<   "          Other:  # uncoupled elems each cell maps to" << std::endl;
+    _console <<   "          Solid:  # elems providing temperature feedback to cell" << std::endl;
+    _console <<   "          Fluid:  # elems providing temperature and density feedback to cell" << std::endl;
+    _console <<   "          Other:  # uncoupled elems, which do not provide feedback to OpenMC" << std::endl;
+    _console <<   "                    (but may still receive a tally from OpenMC)" << std::endl;
     _console <<   "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
     _console <<   "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n" << std::endl;
     vt.print(_console);
 
-    _console << "\n ===================>     AUXVARIABLES INPUT TO OPENMC     <===================\n" << std::endl;
-    _console <<   "      Subdomain:  subdomain name; if unnamed, we show the ID" << std::endl;
-    _console <<   "    Temperature:  AuxVariable to read temperature from" << std::endl;
-    _console <<   "        Density:  AuxVariable to read density from (empty if no density feedback)\n" << std::endl;
+    if (_has_fluid_blocks || _has_solid_blocks)
+    {
+      _console << "\n ===================>     AUXVARIABLES INPUT TO OPENMC     <===================\n" << std::endl;
+      _console <<   "      Subdomain:  subdomain name; if unnamed, we show the ID" << std::endl;
+      _console <<   "    Temperature:  AuxVariable to read temperature from" << std::endl;
+      _console <<   "        Density:  AuxVariable to read density from (empty if no density feedback)\n" << std::endl;
 
-    VariadicTable<std::string, std::string, std::string> aux({"Subdomain", "Temperature", "Density"});
+      VariadicTable<std::string, std::string, std::string> aux({"Subdomain", "Temperature", "Density"});
 
-    for (const auto & s : _fluid_blocks)
-      aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, _subdomain_to_density_vars[s].second);
+      for (const auto & s : _fluid_blocks)
+        aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, _subdomain_to_density_vars[s].second);
 
-    for (const auto & s : _solid_blocks)
-      aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, "");
+      for (const auto & s : _solid_blocks)
+        aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, "");
 
-    aux.print(_console);
+      aux.print(_console);
+    }
 
     _console << "\n ===================>     AUXVARIABLES OUTPUT BY OPENMC     <===================\n" << std::endl;
     _console <<   "    Tally Score:  OpenMC tally score" << std::endl;
@@ -1408,12 +1414,6 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
     tallies.print(_console);
   }
-
-  if (_has_fluid_blocks && !has_fluid_cells)
-    mooseError("'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!");
-
-  if (_has_solid_blocks && !has_solid_cells)
-    mooseError("'solid_blocks' was specified, but no solid elements mapped to OpenMC cells!");
 }
 
 void
@@ -2137,9 +2137,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
     if (openmc::model::cells[cell_index]->type_ != openmc::Fill::MATERIAL)
       _material_cells_only = false;
 
-    // store the map of cells to elements that will be coupled
-    if (phase != coupling::none)
-      _cell_to_elem[cell_info].push_back(local_elem);
+    // store the map of cells to elements that will be coupled via feedback or a tally
+    _cell_to_elem[cell_info].push_back(local_elem);
   }
 
   _communicator.sum(_n_mapped_solid_elems);
@@ -2615,6 +2614,12 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
 void
 OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 {
+  if (!_has_fluid_blocks && !_has_solid_blocks)
+  {
+    _console << "Skipping temperature transfer into OpenMC because 'solid_blocks' and 'fluid_blocks' are both empty" << std::endl;;
+    return;
+  }
+
   _console << "Sending temperature to OpenMC cells... " << printNewline();
 
   double maximum = std::numeric_limits<double>::min();
@@ -2626,6 +2631,10 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
+
+    if (cellCouplingFields(cell_info) == coupling::none)
+      continue;
+
     Real average_temp = cell_vol_temp.at(cell_info) / _cell_to_elem_volume.at(cell_info);
 
     minimum = std::min(minimum, average_temp);

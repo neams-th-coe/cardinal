@@ -6,8 +6,6 @@
 
 Displays the OpenMC fluid material ID mapped to the MOOSE elements
 denoted as fluid by [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md).
-In other words, this auxiliary kernel can be used to visualize the material ID that
-maps to each MOOSE element.
 
 If a MOOSE element is not fluid or did not map at all to an OpenMC cell,
 then this auxiliary kernel returns $-1$.

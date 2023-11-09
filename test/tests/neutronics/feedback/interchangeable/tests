@@ -1,0 +1,26 @@
+[Tests]
+  [no_feedback_tally]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which do not correspond to any '
+                  'multiphysics feedback settings. The tallies were compared against separate standalone OpenMC runs to '
+                  'confirm that the presence/absence of feedback does not change their values.'
+  []
+  [T_feedback_tally]
+    type = CSVDiff
+    input = openmc.i
+    cli_args = 'Problem/solid_blocks="0 1" Problem/solid_cell_level=0 ICs/active="temp" Outputs/file_base=T'
+    csvdiff = T.csv
+    requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature feedback.'
+                  'The tallies were compared against separate standalone OpenMC runs.'
+  []
+  [rho_feedback_tally]
+    type = CSVDiff
+    input = openmc.i
+    cli_args = 'Problem/fluid_blocks="0 1" Problem/fluid_cell_level=0 ICs/active="density" ICs/active="temp" ICs/temp/value=500.0 Outputs/file_base=rho'
+    csvdiff = T.csv
+    requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature feedback.'
+                  'The tallies were compared against separate standalone OpenMC runs.'
+  []
+[]
