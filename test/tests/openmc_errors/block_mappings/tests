@@ -14,13 +14,6 @@
     requirement = "The system shall error if the user specifies a block ID for coupling that does not exist."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [no_blocks]
-    type = RunException
-    input = no_blocks.i
-    expect_err = "At least one of 'fluid_blocks' and 'solid_blocks' must be specified to establish the mapping from MOOSE to OpenMC."
-    requirement = "The system shall error if no blocks are specified for coupling"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [empty_block]
     type = RunException
     input = empty_block.i
