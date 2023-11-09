@@ -76,7 +76,7 @@ public:
   virtual void initialSetup() override;
   virtual void externalSolve() override;
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
-  virtual bool converged() override { return true; }
+  virtual bool converged(unsigned int) override { return true; }
 
   /**
    * Initialize the mapping of OpenMC to the MooseMesh and perform any additional setup actions
@@ -671,9 +671,6 @@ protected:
 
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
-  /// Type of tally to apply to extract score from OpenMC
-  const tally::TallyTypeEnum _tally_type;
-
   /**
    * Where to get the initial OpenMC temperatures and densities from;
    * can be either hdf5 (from a properties.h5 file), xml (whatever is already
@@ -691,7 +688,7 @@ protected:
    * of active batches in order to reach some desired criteria (which is specified
    * by this parameter).
    */
-  const tally::TallyTriggerTypeEnum _tally_trigger;
+  const trigger::TallyTriggerTypeEnum _tally_trigger;
 
   /**
    * Type of trigger to apply to k eigenvalue to indicate when
@@ -699,7 +696,7 @@ protected:
    * of active batches in order to reach some desired criteria (which is specified
    * by this parameter).
    */
-  const tally::TallyTriggerTypeEnum _k_trigger;
+  const trigger::TallyTriggerTypeEnum _k_trigger;
 
   /// Coordinate level in the OpenMC domain that fluid cells are located on
   unsigned int _fluid_cell_level;

@@ -130,7 +130,8 @@ namespace tally
 enum TallyTypeEnum
 {
   cell,
-  mesh
+  mesh,
+  none
 };
 
 /// Type of estimator to use for OpenMC tallies
@@ -139,15 +140,6 @@ enum TallyEstimatorEnum
   collision,
   tracklength,
   analog
-};
-
-/// Type of trigger to apply
-enum TallyTriggerTypeEnum
-{
-  variance,
-  std_dev,
-  rel_err,
-  none
 };
 
 enum TallyScoreEnum
@@ -162,6 +154,18 @@ enum TallyScoreEnum
   H3_production
 };
 } // namespace tally
+
+namespace trigger
+{
+/// Type of trigger to apply
+enum TallyTriggerTypeEnum
+{
+  variance,
+  std_dev,
+  rel_err,
+  none
+};
+} // namespace trigger
 
 namespace coupling
 {

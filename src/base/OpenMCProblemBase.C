@@ -48,6 +48,9 @@ OpenMCProblemBase::validParams()
       "source_strength", "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
+  params.addRequiredParam<MooseEnum>(
+      "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
+
   params.addRangeCheckedParam<Real>(
       "scaling",
       1.0,
@@ -84,6 +87,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   : CardinalProblem(params),
     PostprocessorInterface(this),
     _verbose(getParam<bool>("verbose")),
+    _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
     _reuse_source(getParam<bool>("reuse_source")),
     _specified_scaling(params.isParamSetByUser("scaling")),
     _scaling(getParam<Real>("scaling")),
@@ -112,15 +116,25 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   {
     case openmc::RunMode::EIGENVALUE:
     {
-      checkRequiredParam(params, "power", "running in k-eigenvalue mode");
-      _power = &getPostprocessorValue("power");
-      checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
+      if (_tally_type != tally::none)
+      {
+        checkRequiredParam(params, "power", "running in k-eigenvalue mode");
+        _power = &getPostprocessorValue("power");
+        checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
+      }
+      else
+        checkUnusedParam(params, "power", "'tally_type = none'");
       break;
     }
     case openmc::RunMode::FIXED_SOURCE:
     {
-      checkRequiredParam(params, "source_strength", "running in fixed source mode");
-      _source_strength = &getPostprocessorValue("source_strength");
+      if (_tally_type != tally::none)
+      {
+        checkRequiredParam(params, "source_strength", "running in fixed source mode");
+        _source_strength = &getPostprocessorValue("source_strength");
+      }
+      else
+        checkUnusedParam(params, "source_strength", "'tally_type = none'");
 
       checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
       checkUnusedParam(params, "reuse_source", "running in fixed source mode");
@@ -574,17 +588,17 @@ OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
 }
 
 openmc::TriggerMetric
-OpenMCProblemBase::triggerMetric(tally::TallyTriggerTypeEnum trigger) const
+OpenMCProblemBase::triggerMetric(trigger::TallyTriggerTypeEnum trigger) const
 {
   switch (trigger)
   {
-    case tally::variance:
+    case trigger::variance:
       return openmc::TriggerMetric::variance;
-    case tally::std_dev:
+    case trigger::std_dev:
       return openmc::TriggerMetric::standard_deviation;
-    case tally::rel_err:
+    case trigger::rel_err:
       return openmc::TriggerMetric::relative_error;
-    case tally::none:
+    case trigger::none:
       return openmc::TriggerMetric::not_active;
     default:
       mooseError("Unhandled TallyTriggerTypeEnum!");

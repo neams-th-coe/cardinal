@@ -4,18 +4,12 @@
 
 ## Description
 
-Displays the OpenMC cell temperature (K) mapped to the MOOSE elements.
-In other words, this auxiliary kernel can be used to visualize the temperature that
-gets set on the OpenMC cells based on the MOOSE elements that map to each cell.
+Displays the OpenMC cell temperature (K) mapped to the MOOSE elements, showing all cells
+which either (i) receive multiphysics feedback or (ii) send a cell tally to MOOSE.
 
 Note that this temperature is not necessarily the temperature at which cross
-sections are evaluated at - the `temperature_method` element in OpenMC's
-`settings.xml` file is either one of "nearest" or "interpolation". That is, if
-you have set the temperature method in OpenMC to nearest, then you will actually
-evaluate cross sections at the data set closest to the temperature shown by this
-auxiliary kernel. If you instead set the temperature method in OpenMC to interpolation,
-then you will actually evaluate cross sections as a stochastic interpolation
-between the two nearest data sets.
+sections are evaluated at. For more information, see the `temperature`-related
+elements in [OpenMC's settings](https://docs.openmc.org/en/latest/io_formats/settings.html#temperature-default-element).
 
 If a MOOSE element did not map at all to an OpenMC cell,
 then this auxiliary kernel returns $-1$.
