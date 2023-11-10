@@ -1,0 +1,50 @@
+[Tests]
+  [wrong_length]
+    type = RunException
+    input = openmc_incorrect_length.i
+    expect_err = "'density_variables' and 'density_blocks' must be the same length!"
+    requirement = "The system shall error if the blocks and variables are not the same length"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [noncoupled_block]
+    type = RunException
+    input = openmc_incorrect_length.i
+    cli_args = 'Problem/density_blocks="1; 8"'
+    expect_err = "Each entry in 'density_blocks' should be in 'fluid_blocks'!"
+    requirement = "The system shall error if setting a density_block which was not already established for coupling"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [empty]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/fluid_blocks="2" Problem/density_blocks=" ; 2"'
+    expect_err = "Entries in 'density_blocks' cannot be empty!"
+    requirement = "The system shall error if a sub-vector is empty"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_temp]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/density_variables="density1 density2; density3"'
+    expect_err = "Each entry in 'density_variables' must be of length 1. Entry 0 is of length 2."
+    requirement = "The system shall error if an entry in density_variables is not of unity length"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [block_already_used]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/density_variables="solid_density; solid_density; solid_density; solid_density" Problem/density_blocks="1; 2; 2; 3"'
+    expect_err = "Subdomains cannot be repeated in 'density_blocks'! Subdomain '2' is duplicated."
+    requirement = "The system shall error if trying to collate multiple density variables onto the same block due to undefined behavior"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [missing_fluid]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Problem/density_variables="solid_density; solid_density" Problem/density_blocks="1; 3"'
+    expect_err = "Each entry in 'fluid_blocks' must be included in 'density_blocks'!\n"
+                 "Block '2' is in 'fluid_blocks' but not 'density_blocks'."
+    requirement = "The system shall error if each entry in fluid_blocks is not repeated on density_blocks"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
