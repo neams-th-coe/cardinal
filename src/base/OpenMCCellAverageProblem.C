@@ -669,8 +669,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         flattened_db.push_back(i);
 
     auto d_ids = _mesh.getSubdomainIDs(flattened_db);
-    const auto & temperature_blocks =
-        getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
     for (const auto & d : d_ids)
     {
       if (!_fluid_blocks.count(d))
@@ -680,15 +678,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       // of temperature feedback. So each entry in density_blocks should also be in temp_vars_to_blocks
       // (same variable, same block)
       bool found = false;
-      for (const auto & t : temperature_blocks)
+      for (const auto & t : _temp_vars_to_blocks)
       {
-        auto ii = _mesh.getSubdomainIDs(t);
+        auto ii = _mesh.getSubdomainIDs(t.second);
         if (std::find(ii.begin(), ii.end(), d) != ii.end())
           found = true;
       }
 
       if (!found)
-        mooseError("Each entry in 'density_blocks' should also be in temperature_blocks");
+        mooseError("Each entry in 'density_blocks' should also be in temperature_blocks. Block "
+          + std::to_string(d) + " was not found in temperature_blocks");
     }
 
     // because this is the mechanism by which we will impose densities, we also need to have

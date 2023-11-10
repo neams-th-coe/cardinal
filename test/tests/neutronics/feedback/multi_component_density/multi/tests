@@ -1,0 +1,9 @@
+[Tests]
+  [collate_density]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = "The system shall allow reading density from user-defined names, with one density variable per cell. Reference values were obtained by running OpenMC standalone."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
