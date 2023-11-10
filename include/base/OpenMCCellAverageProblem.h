@@ -78,6 +78,9 @@ public:
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
   virtual bool converged() override { return true; }
 
+  void read2DBlockParameters(const std::string name,
+  std::vector<std::vector<SubdomainName>> & names, std::vector<SubdomainID> & flattened_ids);
+
   /**
    * Initialize the mapping of OpenMC to the MooseMesh and perform any additional setup actions
    * like creating tallies.
@@ -699,14 +702,14 @@ protected:
   const trigger::TallyTriggerTypeEnum _k_trigger;
 
   /// Coordinate level in the OpenMC domain that fluid cells are located on
-  unsigned int _fluid_cell_level;
+  unsigned int _density_cell_level;
 
   /// Coordinate level in the OpenMC domain that solid cells are located on
-  unsigned int _solid_cell_level;
+  unsigned int _temperature_cell_level;
 
   /**
    * Whether the cell level should be taken as the lowest local level in the geometry
-   * in the case that the lowest local level is *higher* than the _solid_cell_level.
+   * in the case that the lowest local level is *higher* than the _temperature_cell_level.
    * In other words, if 'lowest_solid_cell' is specified, then in regions of the OpenMC
    * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_solid_cell'
    * is set to 3, then the actual level used in mapping is the locally lowest cell level.
@@ -715,9 +718,9 @@ protected:
 
   /**
    * Whether the cell level should be taken as the lowest local level in the geometry
-   * in the case that the lowest local level is *higher* than the _fluid_cell_level.
-   * In other words, if 'lowest_fluid_cell' is specified, then in regions of the OpenMC
-   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_fluid_cell'
+   * in the case that the lowest local level is *higher* than the _density_cell_level.
+   * In other words, if 'lowest_density_cell' is specified, then in regions of the OpenMC
+   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_density_cell'
    * is set to 3, then the actual level used in mapping is the locally lowest cell level.
    */
   bool _using_lowest_fluid_level;
@@ -881,10 +884,12 @@ protected:
   std::vector<std::string> _tally_name;
 
   /// Blocks in MOOSE mesh that correspond to the fluid phase
-  std::unordered_set<SubdomainID> _fluid_blocks;
+  //std::unordered_set<SubdomainID> _fluid_blocks;
+  std::vector<SubdomainID> _density_blocks;
 
   /// Blocks in MOOSE mesh that correspond to the solid phase
-  std::unordered_set<SubdomainID> _solid_blocks;
+  //std::unordered_set<SubdomainID> _solid_blocks;
+  std::vector<SubdomainID> _temp_blocks;
 
   /// Blocks (mapped to OpenMC cells) for which to add tallies
   std::unordered_set<SubdomainID> _tally_blocks;

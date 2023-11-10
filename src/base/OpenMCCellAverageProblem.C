@@ -61,12 +61,8 @@ OpenMCCellAverageProblem::validParams()
 {
   InputParameters params = OpenMCProblemBase::validParams();
   params.addParam<std::vector<SubdomainName>>(
-      "fluid_blocks",
-      "Subdomain ID(s) corresponding to the fluid phase, "
-      "for which both density and temperature will be sent to OpenMC");
-  params.addParam<std::vector<SubdomainName>>("solid_blocks",
-                                              "Subdomain ID(s) corresponding to the solid phase, "
-                                              "for which temperature will be sent to OpenMC");
+      "fluid_blocks", "DEPRECATED");
+  params.addParam<std::vector<SubdomainName>>("solid_blocks", "DEPRECATED");
   params.addParam<std::vector<SubdomainName>>(
       "tally_blocks",
       "Subdomain ID(s) for which to add tallies in the OpenMC model; "
@@ -193,9 +189,9 @@ OpenMCCellAverageProblem::validParams()
       "Lowest coordinate level in OpenMC to use for identifying solid cells");
 
   params.addParam<unsigned int>(
-      "fluid_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
+      "density_cell_level", "Coordinate level in OpenMC to stop at for identifying fluid cells");
   params.addParam<unsigned int>(
-      "lowest_fluid_cell_level",
+      "lowest_density_cell_level",
       "Lowest coordinate level in OpenMC to use for identifying fluid cells");
 
   params.addParam<bool>("identical_tally_cell_fills", false, "deprecated");
@@ -280,7 +276,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
-    _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
+    _has_fluid_blocks(params.isParamSetByUser("density_blocks")),
     _has_solid_blocks(params.isParamSetByUser("temperature_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
@@ -288,6 +284,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 {
   if (isParamValid("solid_blocks"))
     mooseError("'solid_blocks' is deprecated! Please use 'temperature_blocks' instead");
+  if (isParamValid("fluid_blocks"))
+    mooseError("'fluid_blocks' is deprecated! Please use 'density_blocks' instead");
 
   // We need to clear and re-initialize the OpenMC tallies if
   // fixed_mesh is false, which indicates at least one of the following:
@@ -540,7 +538,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
-  readBlockParameters("fluid_blocks", _fluid_blocks, _fluid_block_names);
+  //readBlockParameters("fluid_blocks", _fluid_blocks, _fluid_block_names);
   //readBlockParameters("solid_blocks", _solid_blocks, _solid_block_names);
 
   if (isParamSetByUser("check_identical_tally_cell_fills"))
@@ -611,65 +609,21 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (!isParamValid("density_blocks"))
     checkUnusedParam(params, "density_variables", "not setting 'density_blocks'");
 
+  std::vector<std::vector<SubdomainName>> density_blocks;
   if (isParamValid("density_blocks"))
   {
-    const auto & density_blocks =
-        getParam<std::vector<std::vector<SubdomainName>>>("density_blocks");
-    checkEmptyVector(density_blocks, "'density_blocks'");
-    for (const auto & t : density_blocks)
-      checkEmptyVector(t, "Entries in 'density_blocks'");
 
-    // as sanity check, shouldn't have any entries in density_blocks which are not
-    // also in fluid_blocks. TODO: eventually, we will deprecate fluid_blocks
-    std::vector<SubdomainName> flattened_db;
-    for (const auto & slice : density_blocks)
-      for (const auto & i : slice)
-        flattened_db.push_back(i);
+    read2DBlockParameters("density_blocks", density_blocks, _density_blocks);
 
-    auto d_ids = _mesh.getSubdomainIDs(flattened_db);
-    for (const auto & d : d_ids)
+    // For now, we do not have any tests covering applying density feedback without the presence
+    // of temperature feedback. So each entry in density_blocks should also be in
+    // temp_vars_to_blocks (same variable, same block)
+    bool found = false;
+    for (const auto & d : _density_blocks)
     {
-      if (!_fluid_blocks.count(d))
-        mooseError("Each entry in 'density_blocks' should be in 'fluid_blocks'!");
-
-      // For now, we do not have any tests covering applying density feedback without the presence
-      // of temperature feedback. So each entry in density_blocks should also be in
-      // temp_vars_to_blocks (same variable, same block)
-      bool found = false;
-      for (const auto & t : _temp_vars_to_blocks)
-      {
-        auto ii = _mesh.getSubdomainIDs(t.second);
-        if (std::find(ii.begin(), ii.end(), d) != ii.end())
-          found = true;
-      }
-
-      if (!found)
-        mooseError("Each entry in 'density_blocks' should also be in temperature_blocks. Block " +
-                   std::to_string(d) + " was not found in temperature_blocks");
-    }
-
-    // because this is the mechanism by which we will impose densities, we also need to have
-    // all the listed blocks match those given in the 'fluid_blocks', or else that block
-    // would secretly not participate in coupling
-    for (const auto & t : _fluid_block_names)
-    {
-      auto it = std::find(flattened_db.begin(), flattened_db.end(), t);
-      if (it == flattened_db.end())
-        mooseError("Each entry in 'fluid_blocks' must be included in 'density_blocks'!\n"
-                   "Block '",
-                   t,
-                   "' is in 'fluid_blocks' but not 'density_blocks'.");
-    }
-
-    // should not be any duplicate blocks, otherwise it is not clear which density variable to use
-    std::set<SubdomainName> names;
-    for (const auto & b : flattened_db)
-    {
-      if (names.count(b))
-        mooseError("Subdomains cannot be repeated in 'density_blocks'! Subdomain '",
-                   b,
-                   "' is duplicated.");
-      names.insert(b);
+      if (std::find(_temp_blocks.begin(), _temp_blocks.end(), d) == _temp_blocks.end())
+        mooseError("Each entry in 'density_blocks' should also be in 'temperature_blocks'. Block " +
+                   std::to_string(d) + " was not found in 'temperature_blocks'");
     }
 
     // now, get the names of those density variables
@@ -705,12 +659,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     for (std::size_t i = 0; i < density_vars.size(); ++i)
       for (std::size_t j = 0; j < density_blocks[i].size(); ++j)
         _density_vars_to_blocks[density_vars[i][0]].push_back(density_blocks[i][j]);
-  }
-  else
-  {
-    // default to the fluid_blocks, all being named 'density'
-    for (const auto & b : _fluid_block_names)
-      _density_vars_to_blocks["density"].push_back(b);
   }
 
   switch (_tally_type)
@@ -786,8 +734,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   // get the coordinate level to find cells on for each phase, and warn if invalid or not used
   _using_lowest_solid_level = isParamValid("lowest_temperature_cell_level");
-  _using_lowest_fluid_level = isParamValid("lowest_fluid_cell_level");
-  _fluid_cell_level = getCellLevel("fluid");
+  _using_lowest_fluid_level = isParamValid("lowest_density_cell_level");
+  _density_cell_level = getCellLevel("density");
   _temperature_cell_level = getCellLevel("temperature");
 
   if (isParamValid("output"))
@@ -1149,16 +1097,16 @@ void
 OpenMCCellAverageProblem::checkBlockOverlap() const
 {
   std::vector<SubdomainID> intersection;
-  std::set_intersection(_fluid_blocks.begin(),
-                        _fluid_blocks.end(),
+  std::set_intersection(_density_blocks.begin(),
+                        _density_blocks.end(),
                         _temp_blocks.begin(),
                         _temp_blocks.end(),
                         std::back_inserter(intersection));
 
   // TODO
-  if (intersection.size() != 0)
-    mooseError("Block " + Moose::stringify(intersection[0]) +
-               " cannot be present in both the 'fluid_blocks' and 'solid_blocks'!");
+  //if (intersection.size() != 0)
+  //  mooseError("Block " + Moose::stringify(intersection[0]) +
+  //             " cannot be present in both the 'fluid_blocks' and 'solid_blocks'!");
 }
 
 unsigned int
@@ -1278,11 +1226,15 @@ coupling::CouplingFields
 OpenMCCellAverageProblem::elemFeedback(const Elem * elem) const
 {
   const auto & id = elem->subdomain_id();
+  bool has_density = std::find(_density_blocks.begin(), _density_blocks.end(), id) != _density_blocks.end();
+  bool has_temp = std::find(_temp_blocks.begin(), _temp_blocks.end(), id) != _temp_blocks.end();
 
-  if (_fluid_blocks.count(id))
+  if (has_density && has_temp)
     return coupling::density_and_temperature;
-  else if (std::find(_temp_blocks.begin(), _temp_blocks.end(), id) != _temp_blocks.end())
+  else if (!has_density && has_temp)
     return coupling::temperature;
+  else if (has_density && !has_temp)
+    mooseError("Cardinal does not yet support blocks with only density feedback");
   else
     return coupling::none;
 }
@@ -1291,7 +1243,7 @@ void
 OpenMCCellAverageProblem::storeElementPhase()
 {
   _n_moose_fluid_elems = 0;
-  for (const auto & f : _fluid_blocks)
+  for (const auto & f : _density_blocks)
     _n_moose_fluid_elems += numElemsInSubdomain(f);
 
   _n_moose_solid_elems = 0;
@@ -1442,7 +1394,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       {"Cell", "Solid", "Fluid", "Other", "Mapped Vol", "Actual Vol"});
 
   // whether the entire problem has identified any fluid or solid cells
-  bool has_fluid_cells = false;
+  bool has_density_cells = false;
   bool has_solid_cells = false;
 
   std::vector<Real> cv;
@@ -1488,7 +1440,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     }
     else if (n_fluid)
     {
-      has_fluid_cells = true;
+      has_density_cells = true;
       _cell_phase[cell_info] = coupling::density_and_temperature;
     }
     else
@@ -1507,7 +1459,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       _cell_volume[c.first] = cv[i++];
   }
 
-  if (_has_fluid_blocks && !has_fluid_cells)
+  if (_has_fluid_blocks && !has_density_cells)
     mooseError("'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!");
 
   if (_has_solid_blocks && !has_solid_cells)
@@ -1546,13 +1498,12 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       VariadicTable<std::string, std::string, std::string> aux(
           {"Subdomain", "Temperature", "Density"});
 
-      for (const auto & s : _fluid_blocks)
-        aux.addRow(subdomainName(s),
-                   _subdomain_to_temp_vars[s].second,
-                   _subdomain_to_density_vars[s].second);
-
+      // NOTE: this will need to be adjusted if we support blocks with only density feedback
       for (const auto & s : _temp_blocks)
-        aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, "");
+      {
+        std::string rho = _subdomain_to_density_vars.count(s) ? _subdomain_to_density_vars[s].second : "";
+        aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, rho);
+      }
 
       aux.print(_console);
     }
@@ -2249,7 +2200,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
     {
       case coupling::density_and_temperature:
       {
-        level = _fluid_cell_level;
+        level = _density_cell_level;
         _n_mapped_fluid_elems++;
 
         if (level > _particle.n_coord() - 1)
@@ -2305,7 +2256,9 @@ OpenMCCellAverageProblem::mapElemsToCells()
 
     // store the map of cells to elements that will be coupled via feedback or a tally
     auto id = elem->subdomain_id();
-    if (_fluid_blocks.count(id) || std::find(_temp_blocks.begin(), _temp_blocks.end(), id) != _temp_blocks.end() || _tally_blocks.count(id))
+    bool has_density = std::find(_density_blocks.begin(), _density_blocks.end(), id) != _density_blocks.end();
+    bool has_temp = std::find(_temp_blocks.begin(), _temp_blocks.end(), id) != _temp_blocks.end();
+    if (has_density || has_temp || _tally_blocks.count(id))
       _cell_to_elem[cell_info].push_back(local_elem);
   }
 
