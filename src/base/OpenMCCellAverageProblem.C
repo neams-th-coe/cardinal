@@ -186,10 +186,10 @@ OpenMCCellAverageProblem::validParams()
   params.addRangeCheckedParam<Real>("equal_tally_volume_abs_tol", 1e-8, "equal_tally_volume_abs_tol > 0",
       "Absolute tolerance for comparing tally volumes");
 
-  params.addParam<unsigned int>("solid_cell_level",
+  params.addParam<unsigned int>("temperature_cell_level",
                                 "Coordinate level in OpenMC to use for identifying solid cells");
   params.addParam<unsigned int>(
-      "lowest_solid_cell_level",
+      "lowest_temperature_cell_level",
       "Lowest coordinate level in OpenMC to use for identifying solid cells");
 
   params.addParam<unsigned int>(
@@ -281,11 +281,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _has_fluid_blocks(params.isParamSetByUser("fluid_blocks")),
-    _has_solid_blocks(params.isParamSetByUser("solid_blocks")),
+    _has_solid_blocks(params.isParamSetByUser("temperature_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr)
 {
+  if (isParamValid("solid_blocks"))
+    mooseError("'solid_blocks' is deprecated! Please use 'temperature_blocks' instead");
+
   // We need to clear and re-initialize the OpenMC tallies if
   // fixed_mesh is false, which indicates at least one of the following:
   //   - the [Mesh] is being adaptively refined
@@ -538,7 +541,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
   readBlockParameters("fluid_blocks", _fluid_blocks, _fluid_block_names);
-  readBlockParameters("solid_blocks", _solid_blocks, _solid_block_names);
+  //readBlockParameters("solid_blocks", _solid_blocks, _solid_block_names);
 
   if (isParamSetByUser("check_identical_tally_cell_fills"))
     mooseError(
@@ -552,12 +555,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   std::vector<SubdomainName> dummy;
   readBlockParameters("identical_cell_fills", _identical_cell_fill_blocks, dummy /* not needed */);
 
-  for (const auto & i : _identical_cell_fill_blocks)
-    if (_solid_blocks.find(i) == _solid_blocks.end())
-      mooseError(
-          "Each entry in 'identical_cell_fills' must be contained in 'solid_blocks'; the\n"
-          "identical fill universe optimization is not yet implemented for density feedback.");
-
   if (!_has_identical_cell_fills)
     checkUnusedParam(
         params, "check_identical_cell_fills", "'identical_cell_fills' is not specified");
@@ -565,54 +562,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (!isParamValid("temperature_blocks"))
     checkUnusedParam(params, "temperature_variables", "not setting 'temperature_blocks'");
 
+  std::vector<std::vector<SubdomainName>> temperature_blocks;
   if (isParamValid("temperature_blocks"))
   {
-    const auto & temperature_blocks =
-        getParam<std::vector<std::vector<SubdomainName>>>("temperature_blocks");
-    checkEmptyVector(temperature_blocks, "'temperature_blocks'");
-    for (const auto & t : temperature_blocks)
-      checkEmptyVector(t, "Entries in 'temperature_blocks'");
-
-    // as sanity check, shouldn't have any entries in temperature_blocks which are not
-    // also in fluid_blocks or solid_blocks. TODO: eventually, we will deprecate solid_blocks
-    std::vector<SubdomainName> flattened_tb;
-    for (const auto & slice : temperature_blocks)
-      for (const auto & i : slice)
-        flattened_tb.push_back(i);
-
-    auto t_ids = _mesh.getSubdomainIDs(flattened_tb);
-    for (const auto & t : t_ids)
-      if (!_fluid_blocks.count(t) && !_solid_blocks.count(t))
-        mooseError("Each entry in 'temperature_blocks' should be in either 'fluid_blocks' or "
-          "'solid_blocks'. Could not find '", t, "' in either!");
-
-    // because this is the mechanism by which we will impose temperatures, we also need to have
-    // all the listed blocks match those given in the 'fluid_blocks' and 'solid_blocks', or else
-    // that block would secretly not participate in coupling
-    for (const auto & t : _fluid_block_names)
-    {
-      auto it = std::find(flattened_tb.begin(), flattened_tb.end(), t);
-      if (it == flattened_tb.end())
-        mooseError("Each entry in 'fluid_blocks' must be included in 'temperature_blocks'!\n"
-          "Block '", t, "' is in 'fluid_blocks' but not 'temperature_blocks'.");
-    }
-
-    for (const auto & t : _solid_block_names)
-    {
-      auto it = std::find(flattened_tb.begin(), flattened_tb.end(), t);
-      if (it == flattened_tb.end())
-        mooseError("Each entry in 'solid_blocks' must be included in 'temperature_blocks'!\n"
-          "Block '", t, "' is in 'solid_blocks' but not 'temperature_blocks'.");
-    }
-
-    // should not be any duplicate blocks, otherwise it is not clear which temperature variable to use
-    std::set<SubdomainName> names;
-    for (const auto & b : flattened_tb)
-    {
-      if (names.count(b))
-        mooseError("Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '", b, "' is duplicated.");
-      names.insert(b);
-    }
+    read2DBlockParameters("temperature_blocks", temperature_blocks, _temp_blocks);
 
     // now, get the names of those temperature variables
     std::vector<std::vector<std::string>> temperature_vars;
@@ -625,7 +578,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         checkEmptyVector(t, "Entries in 'temperature_variables'");
 
       if (temperature_vars.size() != temperature_blocks.size())
-        mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!");
+        mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!\n"
+          "'temperature_variables' is of length " + std::to_string(temperature_vars.size()) +
+          " and 'temperature_blocks' is of length " + std::to_string(temperature_blocks.size()));
 
       // TODO: for now, we restrict each set of blocks to map to a single temperature variable
       for (std::size_t i = 0; i < temperature_vars.size(); ++i)
@@ -645,14 +600,13 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       for (std::size_t j = 0; j < temperature_blocks[i].size(); ++j)
         _temp_vars_to_blocks[temperature_vars[i][0]].push_back(temperature_blocks[i][j]);
   }
-  else
-  {
-    // default to the union of fluid_blocks and solid_blocks, all being named 'temp'
-    for (const auto & b : _solid_block_names)
-      _temp_vars_to_blocks["temp"].push_back(b);
-    for (const auto & b : _fluid_block_names)
-      _temp_vars_to_blocks["temp"].push_back(b);
-  }
+
+  // TODO: this should be revised to isntead check that the blocks are NOT in density_blocks
+  for (const auto & i : _identical_cell_fill_blocks)
+    if (std::find(_temp_blocks.begin(), _temp_blocks.end(), i) != _temp_blocks.end())
+      mooseError(
+          "Each entry in 'identical_cell_fills' must be contained in 'temperature_blocks'; the\n"
+          "identical fill universe optimization is not yet implemented for density feedback.");
 
   if (!isParamValid("density_blocks"))
     checkUnusedParam(params, "density_variables", "not setting 'density_blocks'");
@@ -831,10 +785,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   checkBlockOverlap();
 
   // get the coordinate level to find cells on for each phase, and warn if invalid or not used
-  _using_lowest_solid_level = isParamValid("lowest_solid_cell_level");
+  _using_lowest_solid_level = isParamValid("lowest_temperature_cell_level");
   _using_lowest_fluid_level = isParamValid("lowest_fluid_cell_level");
   _fluid_cell_level = getCellLevel("fluid");
-  _solid_cell_level = getCellLevel("solid");
+  _temperature_cell_level = getCellLevel("temperature");
 
   if (isParamValid("output"))
   {
@@ -1197,10 +1151,11 @@ OpenMCCellAverageProblem::checkBlockOverlap() const
   std::vector<SubdomainID> intersection;
   std::set_intersection(_fluid_blocks.begin(),
                         _fluid_blocks.end(),
-                        _solid_blocks.begin(),
-                        _solid_blocks.end(),
+                        _temp_blocks.begin(),
+                        _temp_blocks.end(),
                         std::back_inserter(intersection));
 
+  // TODO
   if (intersection.size() != 0)
     mooseError("Block " + Moose::stringify(intersection[0]) +
                " cannot be present in both the 'fluid_blocks' and 'solid_blocks'!");
@@ -1279,6 +1234,46 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
   }
 }
 
+void
+OpenMCCellAverageProblem::read2DBlockParameters(const std::string name,
+  std::vector<std::vector<SubdomainName>> & names,
+  std::vector<SubdomainID> & flattened_ids)
+{
+  if (isParamValid(name))
+  {
+    names = getParam<std::vector<std::vector<SubdomainName>>>(name);
+
+    // check that entire vector is not empty
+    checkEmptyVector(names, "'" + name + "'");
+
+    // check that each entry in vector is not empty
+    for (const auto & n : names)
+      checkEmptyVector(n, "Entries in '" + name + "'");
+
+    // flatten the 2-d set of names into a 1-d vector
+    std::vector<SubdomainName> flattened_names;
+    for (const auto & slice : names)
+      for (const auto & i : slice)
+        flattened_names.push_back(i);
+
+    flattened_ids = _mesh.getSubdomainIDs(flattened_names);
+    const auto & subdomains = _mesh.meshSubdomains();
+    for (const auto & i : flattened_ids)
+      if (subdomains.find(i) == subdomains.end())
+        mooseError("Block " + Moose::stringify(i) + " specified in '" + name + "' " +
+                   "not found in mesh!");
+
+    // should not be any duplicate blocks
+    std::set<SubdomainName> n;
+    for (const auto & b : flattened_names)
+    {
+      if (n.count(b))
+        mooseError("Subdomains cannot be repeated in '" + name + "'! Subdomain '", b, "' is duplicated.");
+      n.insert(b);
+    }
+  }
+}
+
 coupling::CouplingFields
 OpenMCCellAverageProblem::elemFeedback(const Elem * elem) const
 {
@@ -1286,7 +1281,7 @@ OpenMCCellAverageProblem::elemFeedback(const Elem * elem) const
 
   if (_fluid_blocks.count(id))
     return coupling::density_and_temperature;
-  else if (_solid_blocks.count(id))
+  else if (std::find(_temp_blocks.begin(), _temp_blocks.end(), id) != _temp_blocks.end())
     return coupling::temperature;
   else
     return coupling::none;
@@ -1300,7 +1295,7 @@ OpenMCCellAverageProblem::storeElementPhase()
     _n_moose_fluid_elems += numElemsInSubdomain(f);
 
   _n_moose_solid_elems = 0;
-  for (const auto & s : _solid_blocks)
+  for (const auto & s : _temp_blocks)
     _n_moose_solid_elems += numElemsInSubdomain(s);
 
   _n_moose_none_elems = _mesh.nElem() - _n_moose_fluid_elems - _n_moose_solid_elems;
@@ -1516,7 +1511,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     mooseError("'fluid_blocks' was specified, but no fluid elements mapped to OpenMC cells!");
 
   if (_has_solid_blocks && !has_solid_cells)
-    mooseError("'solid_blocks' was specified, but no solid elements mapped to OpenMC cells!");
+    mooseError("'temperature_blocks' was specified, but no temperature elements mapped to OpenMC cells!");
 
   if (_verbose)
   {
@@ -1556,7 +1551,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
                    _subdomain_to_temp_vars[s].second,
                    _subdomain_to_density_vars[s].second);
 
-      for (const auto & s : _solid_blocks)
+      for (const auto & s : _temp_blocks)
         aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, "");
 
       aux.print(_console);
@@ -2271,7 +2266,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
       }
       case coupling::temperature:
       {
-        level = _solid_cell_level;
+        level = _temperature_cell_level;
         _n_mapped_solid_elems++;
 
         if (level > _particle.n_coord() - 1)
@@ -2310,7 +2305,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
 
     // store the map of cells to elements that will be coupled via feedback or a tally
     auto id = elem->subdomain_id();
-    if (_fluid_blocks.count(id) || _solid_blocks.count(id) || _tally_blocks.count(id))
+    if (_fluid_blocks.count(id) || std::find(_temp_blocks.begin(), _temp_blocks.end(), id) != _temp_blocks.end() || _tally_blocks.count(id))
       _cell_to_elem[cell_info].push_back(local_elem);
   }
 
