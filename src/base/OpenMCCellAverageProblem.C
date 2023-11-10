@@ -167,10 +167,13 @@ OpenMCCellAverageProblem::validParams()
 
   params.addParam<std::vector<std::vector<std::string>>>(
       "density_variables",
-      "Vector of variable names corresponding to the densities sent into OpenMC. Each entry maps to "
-      "the corresponding entry in 'density_blocks.' If not specified, each entry defaults to 'density'");
+      "Vector of variable names corresponding to the densities sent into OpenMC. Each entry maps "
+      "to "
+      "the corresponding entry in 'density_blocks.' If not specified, each entry defaults to "
+      "'density'");
   params.addParam<std::vector<std::vector<SubdomainName>>>(
-      "density_blocks", "Blocks corresponding to each of the 'density_variables'. If not specified, "
+      "density_blocks",
+      "Blocks corresponding to each of the 'density_variables'. If not specified, "
       "defaults to the 'fluid_blocks'");
 
   params.addParam<bool>(
@@ -656,7 +659,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (isParamValid("density_blocks"))
   {
-    const auto & density_blocks = getParam<std::vector<std::vector<SubdomainName>>>("density_blocks");
+    const auto & density_blocks =
+        getParam<std::vector<std::vector<SubdomainName>>>("density_blocks");
     checkEmptyVector(density_blocks, "'density_blocks'");
     for (const auto & t : density_blocks)
       checkEmptyVector(t, "Entries in 'density_blocks'");
@@ -675,8 +679,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         mooseError("Each entry in 'density_blocks' should be in 'fluid_blocks'!");
 
       // For now, we do not have any tests covering applying density feedback without the presence
-      // of temperature feedback. So each entry in density_blocks should also be in temp_vars_to_blocks
-      // (same variable, same block)
+      // of temperature feedback. So each entry in density_blocks should also be in
+      // temp_vars_to_blocks (same variable, same block)
       bool found = false;
       for (const auto & t : _temp_vars_to_blocks)
       {
@@ -686,8 +690,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       }
 
       if (!found)
-        mooseError("Each entry in 'density_blocks' should also be in temperature_blocks. Block "
-          + std::to_string(d) + " was not found in temperature_blocks");
+        mooseError("Each entry in 'density_blocks' should also be in temperature_blocks. Block " +
+                   std::to_string(d) + " was not found in temperature_blocks");
     }
 
     // because this is the mechanism by which we will impose densities, we also need to have
@@ -698,7 +702,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       auto it = std::find(flattened_db.begin(), flattened_db.end(), t);
       if (it == flattened_db.end())
         mooseError("Each entry in 'fluid_blocks' must be included in 'density_blocks'!\n"
-          "Block '", t, "' is in 'fluid_blocks' but not 'density_blocks'.");
+                   "Block '",
+                   t,
+                   "' is in 'fluid_blocks' but not 'density_blocks'.");
     }
 
     // should not be any duplicate blocks, otherwise it is not clear which density variable to use
@@ -706,7 +712,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     for (const auto & b : flattened_db)
     {
       if (names.count(b))
-        mooseError("Subdomains cannot be repeated in 'density_blocks'! Subdomain '", b, "' is duplicated.");
+        mooseError("Subdomains cannot be repeated in 'density_blocks'! Subdomain '",
+                   b,
+                   "' is duplicated.");
       names.insert(b);
     }
 
@@ -727,7 +735,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       for (std::size_t i = 0; i < density_vars.size(); ++i)
         if (density_vars[i].size() > 1)
           mooseError("Each entry in 'density_variables' must be of length 1. "
-            "Entry " + std::to_string(i) + " is of length ", density_vars[i].size(), ".");
+                     "Entry " +
+                         std::to_string(i) + " is of length ",
+                     density_vars[i].size(),
+                     ".");
     }
     else
     {
