@@ -47,19 +47,4 @@
     requirement = "The system shall error if each entry in fluid_blocks is not repeated on density_blocks"
     required_objects = 'OpenMCCellAverageProblem'
   []
- # [multi_vars]
- #   type = CSVDiff
- #   input = multi_vars.i
- #   csvdiff = multi_vars_out.csv
- #   requirement = "The system shall allow reading temperature from user-defined names, with more than one temperature variable per cell"
- #   required_objects = 'OpenMCCellAverageProblem'
- # []
- # [multi_vars_alt]
- #   type = CSVDiff
- #   input = multi_vars.i
- #   csvdiff = multi_vars_out.csv
- #   cli_args = "Problem/temperature_variables='solid_temp; solid_temp; fluid_temp; other_temp' Problem/temperature_blocks='1; 3; 2; 10'"
- #   requirement = "The system shall allow lumping of subdomains together, equivalent to explicitly listing temperature correspondence to blocks"
- #   required_objects = 'OpenMCCellAverageProblem'
- # []
 []
