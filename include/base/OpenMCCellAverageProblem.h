@@ -30,32 +30,24 @@
 #endif
 
 /**
- * Mapping of OpenMC to a collection of MOOSE elements, with temperature feedback
- * on solid cells and both temperature and density feedback on fluid cells. The
- * mapping is established automatically based on looping over all the MOOSE elements
- * and finding the OpenMC cell at each element's centroid.
+ * Mapping of OpenMC to a collection of MOOSE elements, with temperature and/or
+ * density feedback. The mappind is established authomatically by looping over
+ * all the MOOSE elements and finding the OpenMC cell at each element's centroid.
  *
- * All feedback into OpenMC is performed via element averages, while all tallies
- * in OpenMC are averaged over cells. The 'fluid_blocks' parameter is used to
- * indicate which blocks in the MOOSE domain should be used to send density and
- * temperature to OpenMC, while the 'solid_blocks' parameter is used to indicate
- * which blocks in the MOOSE domain should be used to send temperature (and *not*
- * density) to OpenMC. Tallies are automatically added to the OpenMC cells that
- * correspond to the 'tally_blocks' parameter (or instead, to an unstructured mesh).
- * You can individually control where multiphysics feedback is sent to OpenMC, and
- * where tally feedback is received by MOOSE.
+ * All feedback into OpenMC is performed via element averages. The
+ * 'temperature_blocks' parameter is used to indicate which MOOSE blocks should
+ * provide temperature feedback, while the 'density_blocks' parameter is used to
+ * indicate which MOOSE blocks should provide density feedback. Tallies are
+ * automatically added to OpenMC using either cell or mesh tallies.
  *
- * There are a number of limitations to this class (all of which are tested):
- *  - Each OpenMC cell shall only map to a single "phase", or else it is unclear
- *    whether that cell should receive temperature *and* density feedback, or
- *    only temperature feedback.
- *     TODO: If this is too restrictive in the future, we could implement some type
- *           of weighted averaging process. Also, if a cell maps to a phase and an
- *           unmapped region, perhaps we want to allow that.
- *  - Each OpenMC cell shall only map to a single tally type (on/off), or else
- *    it is unclear whether that cell should be tallied. For instance, if an OpenMC
- *    cell maps to elements that are in both fuel and cladding, and we've only added
- *    tallies to the fuel, we should error.
+ * Each OpenMC cell shall not have ambiguous data transfers. That is, a cell
+ * should map to a set of elements that are ALL/NONE providing temperature
+ * feedback, ALL/NONE providing density feedback, ALL/NONE providing cell
+ * tallies, and ALL/NONE being uncoupled altogether.
+ *
+ *  TODO: If this is too restrictive in the future, we could implement some type
+ *        of weighted averaging process. Also, if a cell maps to a phase and an
+ *        unmapped region, perhaps we want to allow that.
  *
  * Other considerations you should be aware of:
  *  - The density being transferred into OpenMC from MOOSE is in units of kg/m3; this
@@ -78,13 +70,18 @@ public:
   virtual void syncSolutions(ExternalProblem::Direction direction) override;
   virtual bool converged() override { return true; }
 
-  void read2DBlockParameters(const std::string name,
-  std::vector<std::vector<SubdomainName>> & names, std::vector<SubdomainID> & flattened_ids);
-
   /**
-   * Initialize the mapping of OpenMC to the MooseMesh and perform any additional setup actions
-   * like creating tallies.
+   * Read a 2d vector of subdomain names, and check that there are no duplications
+   * and that all provided values exist on the mesh.
+   * @param[in] name string name for the 2d vector parameter
+   * @param[out] names subdomain names
+   * @param[out] flattened_ids flattened 1d vector of subdomain IDs
    */
+  void read2DBlockParameters(const std::string name,
+    std::vector<std::vector<SubdomainName>> & names,
+    std::vector<SubdomainID> & flattened_ids);
+
+  /// Initialize the mapping of OpenMC to the MooseMesh and perform additional setup actions
   void setupProblem();
 
   /**
@@ -208,7 +205,7 @@ public:
   int32_t cellToMaterialIndex(const cellInfo & cell_info) { return _cell_to_material[cell_info]; }
 
   /**
-   * Get the fields coupled for each cell; because we require that each cell map to a single phase,
+   * Get the fields coupled for each cell; because we require that each cell maps to a consistent set,
    * we simply look up the coupled fields of the first element that this cell maps to. Note that
    * this function requires a valid instance, index pair for cellInfo - you cannot pass in an
    * unmapped cell, i.e. (UNMAPPED, UNMAPPED)
@@ -482,17 +479,7 @@ protected:
    */
   void checkMeshTemplateAndTranslations() const;
 
-  /**
-   * Read the phase cell level and check against the maximum level across the OpenMC domain
-   * @param[in] name phase to read the cell level for
-   * @return cell coordinate level
-   */
-  unsigned int getCellLevel(const std::string name) const;
-
-  /**
-   * Loop over the elements in the MOOSE mesh and store whether that element corresponds
-   * to fluid, solid, or neither.
-   */
+  /// Loop over the elements in the MOOSE mesh and store the type of feedback applied by each.
   void storeElementPhase();
 
   /**
@@ -523,12 +510,7 @@ protected:
    */
   void getCellMappedPhase();
 
-  /**
-   * This function is used to ensure that each OpenMC cell only maps
-   * to a single phase. This function is also used to check that if 'fluid_blocks' is specified,
-   * that we map to at least one OpenMC cell (or else this is probably a mistake). The same check
-   * is also performed for the 'solid_blocks'.
-   */
+  /// This function is used to ensure that each OpenMC cell only maps to a single phase
   void checkCellMappedPhase();
 
   /**
@@ -536,13 +518,6 @@ protected:
    * @return cells to which we should add tallies
    */
   std::vector<cellInfo> getTallyCells() const;
-
-  /**
-   * Check that the same MOOSE block ID doesn't apepar in both the 'fluid_blocks' and
-   * 'solid_blocks', or else it's not clear whether that block should exchange temperature and
-   * density with MOOSE or just temperature alone.
-   */
-  void checkBlockOverlap() const;
 
   /// Loop over all the OpenMC cells and get the element subdomain IDs that map to each cell
   void getCellMappedSubdomains();
@@ -575,7 +550,7 @@ protected:
    */
   void resetTallies();
 
-  /// Find the material filling each fluid cell
+  /// Find the material filling each cell which receives density feedback
   void getMaterialFills();
 
   /**
@@ -596,13 +571,13 @@ protected:
       const coupling::CouplingFields * phase) const;
 
   /**
-   * Send temperature from MOOSE to the OpenMC cells by computing a volume average
+   * Send temperature from MOOSE to OpenMC by computing a volume average
    * and applying a single temperature per OpenMC cell
    */
   void sendTemperatureToOpenMC() const;
 
   /**
-   * Send density from MOOSE to the fluid OpenMC cells by computing a volume average
+   * Send density from MOOSE to OpenMC by computing a volume average
    * and applying a single density per OpenMC cell.
    */
   void sendDensityToOpenMC() const;
@@ -677,8 +652,8 @@ protected:
   /**
    * Where to get the initial OpenMC temperatures and densities from;
    * can be either hdf5 (from a properties.h5 file), xml (whatever is already
-   * set in the XML files), or moose (meaning whatever ICs are set on the
-   * 'temp' and 'density' variables).
+   * set in the XML files), or moose (meaning whatever ICs are set on the 'temperature_variables'
+   * and 'density_variables'
    */
   const coupling::OpenMCInitialCondition _initial_condition;
 
@@ -701,29 +676,12 @@ protected:
    */
   const trigger::TallyTriggerTypeEnum _k_trigger;
 
-  /// Coordinate level in the OpenMC domain that fluid cells are located on
-  unsigned int _density_cell_level;
-
-  /// Coordinate level in the OpenMC domain that solid cells are located on
-  unsigned int _temperature_cell_level;
-
   /**
-   * Whether the cell level should be taken as the lowest local level in the geometry
-   * in the case that the lowest local level is *higher* than the _temperature_cell_level.
-   * In other words, if 'lowest_solid_cell' is specified, then in regions of the OpenMC
-   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_solid_cell'
-   * is set to 3, then the actual level used in mapping is the locally lowest cell level.
+   * Coordinate level in the OpenMC domain to use for mapping cells to mesh.
+   * When using 'lowest_cell_level', this parameter indicates that the lowest
+   * cell level is used, up until _cell_level.
    */
-  bool _using_lowest_solid_level;
-
-  /**
-   * Whether the cell level should be taken as the lowest local level in the geometry
-   * in the case that the lowest local level is *higher* than the _density_cell_level.
-   * In other words, if 'lowest_density_cell' is specified, then in regions of the OpenMC
-   * domain where the lowest level in the geometry is \f$N\f$ for \f$N<3\f$, but 'lowest_density_cell'
-   * is set to 3, then the actual level used in mapping is the locally lowest cell level.
-   */
-  bool _using_lowest_fluid_level;
+  unsigned int _cell_level;
 
   /**
    * Whether OpenMC properties (temperature and density) should be exported
@@ -851,16 +809,22 @@ protected:
   bool _map_density_by_cell;
 
   /**
-   * Whether the problem has fluid blocks specified; note that this is NOT necessarily
+   * Whether the problem has density feedback blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */
   const bool _has_fluid_blocks;
 
   /**
-   * Whether the problem has solid blocks specified; note that this is NOT necessarily
+   * Whether the problem has temperature feedback blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */
   const bool _has_solid_blocks;
+
+  /// Whether any cell tallies are added to the problem
+  const bool _has_tally_blocks;
+
+  /// Whether any spatial mapping from OpenMC's cells to the mesh is needed
+  const bool _needs_to_map_cells;
 
   /**
    * Whether a global tally is required for the sake of normalization and/or checking
@@ -868,13 +832,7 @@ protected:
    */
   const bool _needs_global_tally;
 
-  /// Whether tallies should be added to the fluid phase
-  bool _add_tallies_to_fluid;
-
-  /// Whether tallies should be added to the solid phase
-  bool _add_tallies_to_solid;
-
-  /// Tally estimator to use for the OpenMC tallies created for multiphysics
+  /// Tally estimator for the tallies created by Cardinal
   openmc::TallyEstimator _tally_estimator;
 
   /// OpenMC tally score(s) to write into the 'tally_name' auxiliary variable(s)
@@ -883,28 +841,20 @@ protected:
   /// Auxiliary variable name(s) for the OpenMC tally(s)
   std::vector<std::string> _tally_name;
 
-  /// Blocks in MOOSE mesh that correspond to the fluid phase
-  //std::unordered_set<SubdomainID> _fluid_blocks;
+  /// Blocks in MOOSE mesh that provide density feedback
   std::vector<SubdomainID> _density_blocks;
 
-  /// Blocks in MOOSE mesh that correspond to the solid phase
-  //std::unordered_set<SubdomainID> _solid_blocks;
+  /// Blocks in MOOSE mesh that provide temperature feedback
   std::vector<SubdomainID> _temp_blocks;
 
-  /// Blocks (mapped to OpenMC cells) for which to add tallies
+  /// Blocks in MOOSE mesh that provide temperature feedback, but not density feedback
+  std::vector<SubdomainID> _exclusive_temp_blocks;
+
+  /// Blocks for which to add (cell) tallies
   std::unordered_set<SubdomainID> _tally_blocks;
 
   /// Blocks for which the cell fills are identical
   std::unordered_set<SubdomainID> _identical_cell_fill_blocks;
-
-  /// Blocks in MOOSE mesh that correspond to the fluid phase
-  std::vector<SubdomainName> _fluid_block_names;
-
-  /// Blocks in MOOSE mesh that correspond to the solid phase
-  std::vector<SubdomainName> _solid_block_names;
-
-  /// Blocks in MOOSE mesh that correspond to the solid phase
-  std::vector<SubdomainName> _tally_block_names;
 
   /// Mapping of MOOSE elements to the OpenMC cell they map to (if any)
   std::vector<cellInfo> _elem_to_cell{};
@@ -912,19 +862,25 @@ protected:
   /// Phase of each cell
   std::map<cellInfo, coupling::CouplingFields> _cell_phase;
 
-  /// Number of solid elements in the MOOSE mesh
+  /// Number of elements in the MOOSE mesh that exclusively provide temperature feedback
   int _n_moose_solid_elems;
 
-  /// Number of fluid elements in the MOOSE mesh
+  /// Number of elements in the MOOSE mesh which provide temperature+density feedback
   int _n_moose_fluid_elems;
 
   /// Number of no-coupling elements in the MOOSE mesh
   int _n_moose_none_elems;
 
-  /// Number of solid elements mapped to OpenMC cells
+  /**
+   * Number of MOOSE elements that exclusively provide temperature feedback,
+   * and which successfully mapped to OpenMC cells
+   */
   int _n_mapped_solid_elems;
 
-  /// Number of fluid elements mapped to OpenMC cells
+  /**
+   * Number of MOOSE elements that provide temperature+density feedback,
+   * and which successfully mapped to OpenMC cells
+   */
   int _n_mapped_fluid_elems;
 
   /// Number of no-coupling elements mapped to OpenMC cells
@@ -970,9 +926,8 @@ protected:
   std::map<cellInfo, Real> _cell_volume;
 
   /**
-   * Material filling each cell to receive density & temperature feedback. We enforce
-   * that these "fluid" cells are filled with a material (cannot be filled with a lattice
-   * or universe).
+   * Material filling each cell to receive density feedback. We enforce that these
+   * cells are filled with a material (cannot be filled with a lattice or universe).
    */
   std::map<cellInfo, int32_t> _cell_to_material;
 
@@ -1088,10 +1043,10 @@ protected:
   /// Userobject that maps from a partial-symmetry OpenMC model to a whole-domain [Mesh]
   const SymmetryPointGenerator * _symmetry;
 
-  /// Number of solid elements in each mapped OpenMC cell (global)
+  /// Number of temperature-only feedback elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_solid;
 
-  /// Number of fluid elements in each mapped OpenMC cell (global)
+  /// Number of temperature+density feedback elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_fluid;
 
   /// Number of none elements in each mapped OpenMC cell (global)

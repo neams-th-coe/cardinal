@@ -6,11 +6,11 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
-  solid_blocks = '2'
+  temperature_blocks = '2'
   tally_type = cell
   tally_blocks = '2'
 
-  solid_cell_level = 1
+  cell_level = 1
 
   verbose = true
   check_tally_sum = false

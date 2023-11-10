@@ -10,8 +10,8 @@
   initial_properties = xml
   power = 100.0
   tally_type = mesh
-  solid_cell_level = 0
-  solid_blocks = '1 2'
+  cell_level = 0
+  temperature_blocks = '1 2'
   mesh_template = ../../mesh_tallies/slab.e
 
   skinner = moab

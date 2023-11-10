@@ -6,18 +6,10 @@
     requirement = "The system shall error if the blocks and variables are not the same length"
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [noncoupled_block]
-    type = RunException
-    input = openmc_incorrect_length.i
-    cli_args = 'Problem/temperature_blocks="1; 8"'
-    expect_err = "Each entry in 'temperature_blocks' should be in either 'fluid_blocks' or 'solid_blocks'. Could not find '8' in either!"
-    requirement = "The system shall error if setting a temperature_block which was not already established for coupling"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [empty]
     type = RunException
     input = openmc.i
-    cli_args = 'Problem/solid_blocks="2" Problem/temperature_blocks=" ; 2"'
+    cli_args = 'Problem/temperature_blocks=" ; 2"'
     expect_err = "Entries in 'temperature_blocks' cannot be empty!"
     requirement = "The system shall error if a sub-vector is empty"
     required_objects = 'OpenMCCellAverageProblem'
@@ -36,24 +28,6 @@
     cli_args = 'Problem/temperature_variables="solid_temp; solid_temp; solid_temp; solid_temp" Problem/temperature_blocks="1; 2; 2; 3"'
     expect_err = "Subdomains cannot be repeated in 'temperature_blocks'! Subdomain '2' is duplicated."
     requirement = "The system shall error if trying to collate multiple temperature variables onto the same block due to undefined behavior"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [missing_solid]
-    type = RunException
-    input = openmc.i
-    cli_args = 'Problem/temperature_variables="solid_temp; solid_temp" Problem/temperature_blocks="1; 3"'
-    expect_err = "Each entry in 'solid_blocks' must be included in 'temperature_blocks'!\n"
-                 "Block '2' is in 'solid_blocks' but not 'temperature_blocks'."
-    requirement = "The system shall error if each entry in solid_blocks is not repeated on temperature_blocks"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [missing_fluid]
-    type = RunException
-    input = openmc.i
-    cli_args = 'Problem/solid_blocks="1" Problem/fluid_blocks="2 3" Problem/temperature_variables="solid_temp; solid_temp" Problem/temperature_blocks="1; 3"'
-    expect_err = "Each entry in 'fluid_blocks' must be included in 'temperature_blocks'!\n"
-                 "Block '2' is in 'fluid_blocks' but not 'temperature_blocks'."
-    requirement = "The system shall error if each entry in fluid_blocks is not repeated on temperature_blocks"
     required_objects = 'OpenMCCellAverageProblem'
   []
   [collate_temps]

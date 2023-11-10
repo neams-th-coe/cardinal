@@ -52,11 +52,11 @@
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  fluid_blocks = '0 1'
-  fluid_cell_level = 0
+  cell_level = 0
 
   density_variables = 'density1 ; density2'
   density_blocks = '0; 1'
+  temperature_blocks = '0 1'
 
   tally_type = none
 []

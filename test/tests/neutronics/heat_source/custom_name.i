@@ -33,8 +33,8 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  solid_blocks = '100'
-  fluid_blocks = '200'
+  temperature_blocks = '100 200'
+  density_blocks = '200'
   tally_type = cell
 
   # This input has fissile material in the fluid phase, so we will get a warning
@@ -52,8 +52,7 @@
   tally_name = "volumetric_power"
 
   verbose = true
-  solid_cell_level = 0
-  fluid_cell_level = 0
+  cell_level = 0
 []
 
 [Executioner]

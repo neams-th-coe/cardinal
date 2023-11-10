@@ -62,13 +62,12 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
-  solid_blocks = '1 3'
-  fluid_blocks = '2'
+  temperature_blocks = '1 2 3'
+  density_blocks = '2'
   tally_blocks = '1'
   verbose = true
   tally_type = cell
-  solid_cell_level = 0
-  fluid_cell_level = 0
+  cell_level = 0
 []
 
 [Executioner]

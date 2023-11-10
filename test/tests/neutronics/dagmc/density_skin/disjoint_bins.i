@@ -39,8 +39,9 @@ dT = 50.0
   verbose = true
   tally_type = cell
 
-  fluid_blocks = '1 2'
-  fluid_cell_level = 0
+  temperature_blocks = '1 2'
+  density_blocks = '1 2'
+  cell_level = 0
   power = 100.0
 
   skinner = moab

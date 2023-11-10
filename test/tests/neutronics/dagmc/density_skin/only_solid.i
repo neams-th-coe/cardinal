@@ -17,8 +17,8 @@
   initial_properties = xml
   tally_type = cell
   tally_blocks = '1 2'
-  solid_blocks = '1 2'
-  solid_cell_level = 0
+  temperature_blocks = '1 2'
+  cell_level = 0
   power = 100.0
 
   skinner = moab

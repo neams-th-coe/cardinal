@@ -16,10 +16,10 @@ height = 6.343                           # height of the full core (m)
   type = OpenMCCellAverageProblem
   power = 1000.0
   scaling = 100.0
-  solid_blocks = '1 2'
+  temperature_blocks = '1 2'
   tally_type = mesh
   mesh_template = solid_mesh_in.e
-  solid_cell_level = 1
+  cell_level = 1
 
   symmetry_mapper = sym
 []

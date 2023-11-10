@@ -14,10 +14,10 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  solid_blocks = '0'
+  temperature_blocks = '0'
   initial_properties = xml
   verbose = true
-  solid_cell_level = 0
+  cell_level = 0
 
   tally_type = mesh
   power = 100.0

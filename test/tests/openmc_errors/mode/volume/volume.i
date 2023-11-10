@@ -21,9 +21,9 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  solid_blocks = '0'
+  temperature_blocks = '0'
   initial_properties = xml
-  solid_cell_level = 0
+  cell_level = 0
   tally_type = cell
   power = 100.0
   check_tally_sum = false

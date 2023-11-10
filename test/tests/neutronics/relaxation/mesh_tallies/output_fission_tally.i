@@ -39,13 +39,13 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 1500.0
-  solid_blocks = '0'
+  temperature_blocks = '0'
   tally_type = mesh
   mesh_template = ../../meshes/sphere_in_m.e
   mesh_translations = '0.0 0.0 0.02
                        0.0 0.0 0.06
                        0.0 0.0 0.10'
-  solid_cell_level = 1
+  cell_level = 1
   scaling = 100.0
 
   output = 'unrelaxed_tally'

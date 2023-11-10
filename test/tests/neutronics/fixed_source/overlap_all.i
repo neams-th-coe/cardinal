@@ -34,11 +34,10 @@
   type = OpenMCCellAverageProblem
   verbose = true
   source_strength = 1e12
-  solid_blocks = '100'
-  fluid_blocks = '200'
+  temperature_blocks = '100 200'
+  density_blocks = '200'
   tally_blocks = '100 200'
-  solid_cell_level = 0
-  fluid_cell_level = 0
+  cell_level = 0
   tally_type = cell
   initial_properties = xml
 []

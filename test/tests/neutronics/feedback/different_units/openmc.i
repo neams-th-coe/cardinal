@@ -53,12 +53,16 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  power = 1e6
-  fluid_blocks = '1'
-  tally_blocks = '1'
   verbose = true
+  power = 1e6
+
+  temperature_blocks = '1'
+  density_blocks = '1'
+
+  cell_level = 0
+
+  tally_blocks = '1'
   tally_type = cell
-  fluid_cell_level = 0
 
   scaling = 100.0
 []
