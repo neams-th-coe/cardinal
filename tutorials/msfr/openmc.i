@@ -60,6 +60,7 @@
   mesh_template = msr.e
 
   density_blocks = '1'
+  temperature_blocks = '1'
   cell_level = 0
 
   power = 300.0e6

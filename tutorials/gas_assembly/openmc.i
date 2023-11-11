@@ -169,7 +169,7 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 
   power = ${fparse power / n_bundles}
   scaling = 100.0
-  temperature_blocks = '1 2 4'
+  temperature_blocks = '1 2 4 101'
   density_blocks = '101'
   tally_blocks = '2'
   tally_type = cell
