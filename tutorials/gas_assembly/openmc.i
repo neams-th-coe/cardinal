@@ -169,13 +169,12 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 
   power = ${fparse power / n_bundles}
   scaling = 100.0
-  solid_blocks = '1 2 4'
-  fluid_blocks = '101'
+  temperature_blocks = '1 2 4'
+  density_blocks = '101'
   tally_blocks = '2'
   tally_type = cell
   tally_name = heat_source
-  solid_cell_level = 1
-  fluid_cell_level = 1
+  cell_level = 1
 
   relaxation = constant
   relaxation_factor = 0.5

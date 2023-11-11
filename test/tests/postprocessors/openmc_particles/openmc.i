@@ -16,10 +16,10 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 100.0
-  solid_blocks = '100'
+  temperature_blocks = '100'
   tally_blocks = '100'
   tally_type = cell
-  solid_cell_level = 1
+  cell_level = 1
   scaling = 100.0
 
   relaxation = dufek_gudowski

@@ -20,9 +20,9 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  solid_blocks = '100'
+  temperature_blocks = '100'
   tally_blocks = '100'
-  solid_cell_level = 0
+  cell_level = 0
   tally_type = cell
   check_tally_sum = false
 

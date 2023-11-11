@@ -47,11 +47,11 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 
   power = ${power}
   scaling = 100.0
-  solid_blocks = 'graphite compacts compacts_trimmer_tri'
+  temperature_blocks = 'graphite compacts compacts_trimmer_tri'
   tally_blocks = 'compacts compacts_trimmer_tri'
   tally_type = cell
   tally_name = heat_source
-  solid_cell_level = 1
+  cell_level = 1
 []
 
 [MultiApps]
