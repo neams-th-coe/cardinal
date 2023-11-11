@@ -21,7 +21,7 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
-  solid_blocks = '100'
+  temperature_blocks = '100'
   tally_blocks = '100'
   tally_type = cell
   verbose = true
@@ -30,7 +30,7 @@
   # so that we can just use the ICs set in OpenMCs XML files
   initial_properties = xml
 
-  solid_cell_level = 1
+  cell_level = 1
 []
 
 [Executioner]

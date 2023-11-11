@@ -1,4 +1,4 @@
-# This test checks that if we specify 'fluid_blocks', but no fluid maps to OpenMC,
+# This test checks that if we specify 'density_blocks', but no fluid maps to OpenMC,
 # that we get an error.
 
 [Mesh]
@@ -37,12 +37,10 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
-  solid_blocks = '500'
-  fluid_blocks = '100'
-  tally_blocks = '100'
-  tally_type = cell
-  solid_cell_level = 0
-  fluid_cell_level = 0
+  temperature_blocks = '500'
+  cell_level = 0
+
+  tally_type = none
 []
 
 [Executioner]

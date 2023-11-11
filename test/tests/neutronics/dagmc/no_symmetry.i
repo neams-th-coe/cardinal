@@ -12,8 +12,8 @@
   type = OpenMCCellAverageProblem
   tally_type = mesh
   mesh_template = ../meshes/tet_cube.e
-  solid_cell_level = 0
-  solid_blocks = '1'
+  cell_level = 0
+  temperature_blocks = '1'
   power = 1000.0
   skinner = moab
   symmetry_mapper = sym

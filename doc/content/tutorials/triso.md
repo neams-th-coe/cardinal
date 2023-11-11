@@ -79,7 +79,7 @@ OpenMC's Python [!ac](API) is used to create the pebbles model with the script s
 First, we define materials for the various regions and create the geometry.
 We create a universe consisting of a single pebble, and then repeat that universe
 three times in a lattice. Because we have one cell per pebble, each pebble will
-receive a single temperature from MOOSE. The solid cell level is 1
+receive a single temperature from MOOSE. The cell level is 1
 because the pebble lattice is nested once
 with respect to the highest level, and we want to apply
 feedback to each pebble individually. If we were to specify level zero in the geometry, we would apply feedback
@@ -189,7 +189,7 @@ block is then used to specify the OpenMC wrapping. We define a total power of
 The cell tally setup in Cardinal will then automatically add a tally for each unique
 cell ID+instance combination.
 Because the repeated pebble cells we'd like to tally
-are repeated in the lattice nested one level below the root universe, we set the `solid_cell_level = 1`.
+are repeated in the lattice nested one level below the root universe, we set the `cell_level = 1`.
 
 !listing /tutorials/pebbles/openmc.i
   block=Problem
@@ -230,14 +230,15 @@ When we run with `verbose = true`, you will see the following mapping informatio
 ```
  ===================>     MAPPING FROM OPENMC TO MOOSE     <===================
 
-          Solid:  # elems in 'solid_blocks' each cell maps to
-          Fluid:  # elems in 'fluid_blocks' each cell maps to
-          Other:  # uncoupled elems each cell maps to
+          T:      # elems providing temperature feedback
+          T+rho:  # elems providing temperature and density feedback
+          Other:  # elems which do not provide feedback to OpenMC
+                    (but receives a cell tally from OpenMC)
      Mapped Vol:  volume of MOOSE elems each cell maps to
      Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')
 
 --------------------------------------------------------------------------
-|         Cell         | Solid | Fluid | Other | Mapped Vol | Actual Vol |
+|         Cell         |   T   | T+rho | Other | Mapped Vol | Actual Vol |
 --------------------------------------------------------------------------
 | 1, instance 0 (of 3) |   448 |     0 |     0 | 1.322e-05  |            |
 | 1, instance 1 (of 3) |   448 |     0 |     0 | 1.322e-05  |            |

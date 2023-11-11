@@ -125,13 +125,11 @@ dT = ${fparse power / mdot / Cp}
 
   power = ${power}
   scaling = 100.0
-  solid_blocks = '2 3'
-  fluid_blocks = '1'
+  density_blocks = '1'
   tally_blocks = '2'
   tally_type = cell
   tally_name = heat_source
-  solid_cell_level = 0
-  fluid_cell_level = 0
+  cell_level = 0
 
   # This automatically creates these variables and will read from the non-default choice of 'temp'
   temperature_variables = 'solid_temp; nek_temp'

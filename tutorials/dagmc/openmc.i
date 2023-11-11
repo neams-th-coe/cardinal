@@ -35,8 +35,8 @@
   tally_type = mesh
   mesh_template = mesh_in.e
   tally_name = 'heat_source'
-  solid_cell_level = 0
-  solid_blocks = '2 3'
+  cell_level = 0
+  temperature_blocks = '2 3'
   check_tally_sum = false
   normalize_by_global_tally = false
 

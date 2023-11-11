@@ -5,8 +5,8 @@
 # cardinal-opt -i common_input.i openmc_nek.i
 
 num_layers_for_THM = 150
-fluid_blocks = 'coolant'
-solid_blocks = 'graphite compacts compacts_trimmer_tri'
+density_blocks = 'coolant'
+temperature_blocks = 'graphite compacts compacts_trimmer_tri'
 fuel_blocks = 'compacts compacts_trimmer_tri'
 
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
@@ -90,18 +90,16 @@ N = 1000
 
   power = ${unit_cell_power}
   scaling = 100.0
-  solid_blocks = ${solid_blocks}
-  fluid_blocks = ${fluid_blocks}
+  density_blocks = ${density_blocks}
   tally_blocks = ${fuel_blocks}
   tally_type = cell
   tally_name = heat_source
-  solid_cell_level = 1
-  fluid_cell_level = 1
+  cell_level = 1
 
   relaxation = robbins_monro
 
   temperature_variables = 'solid_temp;   nek_temp'
-  temperature_blocks = '${solid_blocks}; ${fluid_blocks}'
+  temperature_blocks = '${temperature_blocks}; ${density_blocks}'
 
   k_trigger = std_dev
   k_trigger_threshold = 7.5e-4

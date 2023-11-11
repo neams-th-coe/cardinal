@@ -39,10 +39,10 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
-  solid_blocks = '100 200'
+  temperature_blocks = '100 200'
   tally_type = cell
   tally_blocks = '100'
-  solid_cell_level = 0
+  cell_level = 0
   initial_properties = xml
 []
 

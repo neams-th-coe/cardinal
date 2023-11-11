@@ -21,8 +21,8 @@
   type = OpenMCCellAverageProblem
   power = 10.0
   tally_type = 'cell'
-  solid_cell_level = 0
-  solid_blocks = '1'
+  cell_level = 0
+  temperature_blocks = '1'
 []
 
 [Executioner]

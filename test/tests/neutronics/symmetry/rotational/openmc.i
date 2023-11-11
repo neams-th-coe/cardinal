@@ -71,10 +71,10 @@
 
   power = 1000.0
   scaling = 100.0
-  solid_blocks = '1 2 200'
+  temperature_blocks = '1 2 200'
   tally_blocks = '2'
   tally_type = cell
-  solid_cell_level = 1
+  cell_level = 1
 
   symmetry_mapper = sym
 []

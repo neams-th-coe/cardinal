@@ -37,10 +37,10 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  solid_blocks = '100 200 300'
+  temperature_blocks = '100 200 300'
   initial_properties = xml
   verbose = true
-  solid_cell_level = 0
+  cell_level = 0
   normalize_by_global_tally = false
 
   tally_type = mesh

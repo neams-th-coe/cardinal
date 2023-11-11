@@ -19,8 +19,8 @@
   tally_type = mesh
   mesh_template = ../../mesh_tallies/slab.e
 
-  solid_blocks = '1'
-  solid_cell_level = 0
+  temperature_blocks = '1'
+  cell_level = 0
   power = 100.0
 
   initial_properties = xml

@@ -18,7 +18,7 @@
     type = RunException
     input = length.i
     cli_args = 'Problem/tally_score="damage_energy kappa_fission" Problem/tally_name="heat_source heat_source"'
-    expect_err = "'tally_name' cannot contain duplicate entries!"
+    expect_err = "Entries cannot be repeated in 'tally_name'!"
     requirement = "The system shall error if tally_name has duplicate entries."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -26,7 +26,7 @@
     type = RunException
     input = length.i
     cli_args = 'Problem/tally_score="damage_energy damage_energy" Problem/tally_name="heat1 heat2"'
-    expect_err = "'tally_score' cannot contain duplicate entries!"
+    expect_err = "Entries cannot be repeated in 'tally_score'!"
     requirement = "The system shall error if tally_score has duplicate entries."
     required_objects = 'OpenMCCellAverageProblem'
   []

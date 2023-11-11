@@ -187,20 +187,20 @@ is used.
 For this example, we specify the total fission power by which to normalize OpenMC's
 tally results (because OpenMC's tally results are in units of eV/source particle).
 Next, we indicate which blocks in the `[Mesh]` should be considered
-as "solid" (and therefore send temperatures into OpenMC) with `solid_blocks`.
+for temperature feedback using `temperature_blocks`.
 Here, we specify temperature feedback for the pellet (blocks 2 and 3).
 During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
 will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
-are "solid." Then when temperature is sent into OpenMC, that mapping is used to compute
+are providing temperature feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
 a volume-average temperature to apply to each OpenMC cell.
 
 This example uses mesh tallies, as indicated by the
 `tally_type`.
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
 automatically add the necessary tallies.
-Finally, we specify the level in the geometry on which the solid cells
+Finally, we specify the level in the geometry on which the cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,
-the solid cell level is zero.
+the cell level is zero.
 
 !alert note
 At this point, it is important to remind ourselves of the problem setup. OpenMC

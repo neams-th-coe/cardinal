@@ -31,6 +31,23 @@ public:
   static InputParameters validParams();
 
   /**
+   * Check for duplicate entries in a 1-d vector
+   * @param[in] var input vector
+   * @param[in] name string to use for printing error message
+   */
+  template <typename T>
+  void checkDuplicateEntries(const std::vector<T> & var, const std::string & name) const
+  {
+    std::set<T> set_var;
+    for (const auto & v : var)
+    {
+      if (set_var.count(v))
+        mooseError("Entries cannot be repeated in '" + name + "'!");
+      set_var.insert(v);
+    }
+  }
+
+  /**
    * Check whether the user has already created a variable using one of the protected
    * names that the wrapping is using.
    * @param[in] name variable name

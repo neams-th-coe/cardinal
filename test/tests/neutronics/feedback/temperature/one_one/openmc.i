@@ -27,8 +27,8 @@
 
   tally_type = cell
 
-  solid_blocks = '0'
-  solid_cell_level = 0
+  temperature_blocks = '0'
+  cell_level = 0
 []
 
 [Executioner]

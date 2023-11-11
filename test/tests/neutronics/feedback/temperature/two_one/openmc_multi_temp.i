@@ -61,8 +61,7 @@
 
   tally_type = cell
 
-  solid_blocks = '0 3'
-  solid_cell_level = 0
+  cell_level = 0
 
   temperature_variables = 'temp_left; temp_right'
   temperature_blocks = '3; 0'

@@ -34,8 +34,8 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
-  solid_blocks = '100'
-  fluid_blocks = '200'
+  temperature_blocks = '100 200'
+  density_blocks = '200'
   tally_blocks = '100 200'
   tally_type = cell
   verbose = true
@@ -44,11 +44,9 @@
   # so that we can just use the ICs set in OpenMCs XML files
   initial_properties = xml
 
-  solid_cell_level = 1
-
   # For this setup, the fluid cells only exist on coordinate level 0, even though
   # the highest coordinate level across the entire problem is 1
-  fluid_cell_level = 1
+  cell_level = 1
 []
 
 [Executioner]

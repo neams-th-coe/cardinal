@@ -68,12 +68,11 @@ height = 6.343                           # height of the full core (m)
 
   power = 1000.0
   scaling = 100.0
-  solid_blocks = '1 2'
-  fluid_blocks = '101'
+  temperature_blocks = '1 2 101'
+  density_blocks = '101'
   tally_blocks = '2'
   tally_type = cell
-  solid_cell_level = 1
-  fluid_cell_level = 1
+  cell_level = 1
 
   symmetry_mapper = sym
 []
