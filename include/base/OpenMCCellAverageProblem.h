@@ -78,8 +78,8 @@ public:
    * @param[out] flattened_ids flattened 1d vector of subdomain IDs
    */
   void read2DBlockParameters(const std::string name,
-    std::vector<std::vector<SubdomainName>> & names,
-    std::vector<SubdomainID> & flattened_ids);
+                             std::vector<std::vector<SubdomainName>> & names,
+                             std::vector<SubdomainID> & flattened_ids);
 
   /// Initialize the mapping of OpenMC to the MooseMesh and perform additional setup actions
   void setupProblem();
@@ -205,9 +205,9 @@ public:
   int32_t cellToMaterialIndex(const cellInfo & cell_info) { return _cell_to_material[cell_info]; }
 
   /**
-   * Get the fields coupled for each cell; because we require that each cell maps to a consistent set,
-   * we simply look up the coupled fields of the first element that this cell maps to. Note that
-   * this function requires a valid instance, index pair for cellInfo - you cannot pass in an
+   * Get the fields coupled for each cell; because we require that each cell maps to a consistent
+   * set, we simply look up the coupled fields of the first element that this cell maps to. Note
+   * that this function requires a valid instance, index pair for cellInfo - you cannot pass in an
    * unmapped cell, i.e. (UNMAPPED, UNMAPPED)
    * @param[in] cell_info cell index, instance pair
    * @return coupling fields
@@ -815,8 +815,9 @@ protected:
   const bool _has_fluid_blocks;
 
   /**
-   * Whether the problem has temperature feedback blocks specified; note that this is NOT necessarily
-   * indicative that the mapping was successful in finding any cells corresponding to those blocks
+   * Whether the problem has temperature feedback blocks specified; note that this is NOT
+   * necessarily indicative that the mapping was successful in finding any cells corresponding to
+   * those blocks
    */
   const bool _has_solid_blocks;
 

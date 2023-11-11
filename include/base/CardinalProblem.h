@@ -35,12 +35,11 @@ public:
    * @param[in] var input vector
    * @param[in] name string to use for printing error message
    */
-  template<typename T>
-  void
-  checkDuplicateEntries(const std::vector<T> & var, const std::string & name) const
+  template <typename T>
+  void checkDuplicateEntries(const std::vector<T> & var, const std::string & name) const
   {
     std::set<T> set_var;
-    for (const auto & v :var)
+    for (const auto & v : var)
     {
       if (set_var.count(v))
         mooseError("Entries cannot be repeated in '" + name + "'!");
