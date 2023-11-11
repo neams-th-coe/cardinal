@@ -31,9 +31,9 @@ that contain nested universes or lattices by recursing through all the cells
 filling the given cell and setting the temperature of all contained cells.
 This tutorial describes how to use this feature for
 coupling of OpenMC to MOOSE for a [!ac](TRISO)
-fuel compact. This example only considers coupling of OpenMC to the solid
-phase - in [a later tutorial](triso_multiphysics.md), we extend this example to consider
-feedback with the fluid phase as well.
+fuel compact. This example only considers coupling of OpenMC via temperature feedback -
+in [a later tutorial](triso_multiphysics.md), we extend this example to consider
+density feedback as well.
 
 This tutorial was developed with support from the NEAMS Thermal Fluids
 Center of Excellence. A journal article [!cite](novak2022_cardinal) describing the physics models,
@@ -107,7 +107,7 @@ cardinal-opt -i mesh.i --mesh-only
 
 which will create the mesh, named `mesh_in.e`.
 
-Because this tutorial only considers solid coupling, no fluid flow and heat transfer in the
+Because this tutorial only considers temperature coupling, no fluid flow and heat transfer in the
 helium is modeled. Therefore, heat removal by the fluid is approximated by setting the
 coolant channel surface to a Dirichlet temperature condition of $T_s=T_f$, where $T_f$ is given as
 
@@ -281,8 +281,8 @@ mapped to the OpenMC cells.
 The `[Problem]` block is then used to specify settings for the OpenMC wrapping. We define a total power
 of 30 kW and indicate that we'd like to add tallies to the fuel compacts. The cell
 tally setup in Cardinal will then automatically add a tally for each unique cell ID+instance
-combination. By setting `solid_blocks` to all blocks, OpenMC will then receive temperature
-from MOOSE for the entire solid domain (because the mesh mirror consists of these
+combination. By setting `temperature_blocks` to all blocks, OpenMC will then receive temperature
+from MOOSE for the entire domain (because the mesh mirror consists of these
 three blocks). Importantly, note that the `[Mesh]` must always be in units that match
 the coupled MOOSE application. But because OpenMC solves in units of centimeters,
 we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
@@ -305,7 +305,7 @@ effect of non-equal mapped volumes, please see the
 
 Because
 the OpenMC model is formed by creating axial layers in a lattice nested one level
-below the highest universe level, the solid cell level is set to 1. Because the fuel compacts
+below the highest universe level, the cell level is set to 1. Because the fuel compacts
 contain [!ac](TRISO) particles, this indicates that *all* cells in a fuel compact "underneath"
 level 1 will be set to the same temperature. Because the fuel compacts are homogenized in the
 heat conduction model, this multiphysics coupling is just an approximation to the true
@@ -329,7 +329,7 @@ the solid heat conduction model as the sub-application. We also require two tran
 power into the solid model, we use a [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
 and ensure conservation of the total power by specifying postprocessors
 to be preserved in the OpenMC wrapping (`heat_source`) and in the sub-application
-(`power`). To get the solid temperature into the OpenMC model, we also use
+(`power`). To get the temperature into the OpenMC model, we also use
 a [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
 in the reverse direction.
 

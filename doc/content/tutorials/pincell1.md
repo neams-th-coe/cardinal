@@ -25,9 +25,7 @@ with which OpenMC communicates. This stage consists of:
 1. Map the elements in a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
   to OpenMC cells by identifying the OpenMC cell that resides at each element's centroid.
   The mapping does not place any requirements on geometry alignment.
-2. Identify which MOOSE mesh blocks are "solid" and which are "fluid." The solid blocks will then
-  exchange temperature with OpenMC, while the fluid blocks will exchange both temperature and
-  density with OpenMC.
+2. Identify which MOOSE mesh blocks are providing temperature and density feedback.
 3. If using cell tallies, identify which MOOSE blocks should be tallied - tallies are then added to all OpenMC cells that
   correspond to those elements. If using mesh tallies, tallies are added with a unique bin
   in each mesh element.
@@ -167,7 +165,7 @@ auxkernels.
 OpenMC's Python [!ac](API)
 is used to create the pincell model with the script shown below. First, we define
 materials and create the geometry. We add
-40 cells to receive solid temperature feedback by dividing the entire axial
+40 cells to receive temperature feedback by dividing the entire axial
 height by 41 axial planes.
 Note that this particular choice of axial cells has *no* relationship to the solid mesh.
 That is, MOOSE elements can span more than one OpenMC cell; when mapping by centroid,
@@ -348,20 +346,13 @@ is used.
 
 For this example, we specify the total fission power by which to normalize OpenMC's
 tally results (because OpenMC's tally results are in units of eV/source particle).
-Next, we indicate which blocks in the `[Mesh]` should be considered
-as "solid" (and therefore send temperatures into OpenMC) with `solid_blocks`.
+Next, we indicate which blocks in the `[Mesh]` should be considered for
+temperature feedback using the `temperature_blocks` parameter.
 Here, we specify temperature feedback for the pellet (blocks 2 and 3) and the cladding
 (block 1). During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
 will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
-are "solid." Then when temperature is sent into OpenMC, that mapping is used to compute
+are providing feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
 a volume-average temperature to apply to each OpenMC cell.
-
-!alert note
-While we use nomenclature
-like `solid_blocks`, these blocks don't need to actually represent
-*solids* - we only use this verbage to note where OpenMC should receive temperature
-feedback, but *not* density feedback (which would require moving the cell boundaries
-for deforming solids to preserve mass).
 
 This example uses cell tallies, as indicated by
 `tally_type`.
@@ -374,9 +365,9 @@ tallies by skipping tallies in those regions by setting
 `tally_blocks` to blocks 2 and 3.
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
 automatically add the necessary tallies.
-We specify the level in the geometry on which the solid cells
+We specify the level in the geometry on which the cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,
-the solid cell level is zero.
+the cell level is zero.
 
 Finally, we add a stochastic volume calculation in order to compare the actual
 volumes of OpenMC cells against the `[Mesh]` elements to which they map. A good
@@ -430,7 +421,7 @@ wrapper file explicitly. It is as if the following is included in the input file
     family = MONOMIAL
     order = CONSTANT
   []
-  [density] # only present if fluid_blocks was provided (not this example)
+  [density] # only present if density_blocks was provided (not this example)
     family = MONOMIAL
     order = CONSTANT
   []
@@ -459,14 +450,15 @@ When we run with `verbose = true`, you will see the following mapping informatio
 ```
  ===================>     MAPPING FROM OPENMC TO MOOSE     <===================
 
-          Solid:  # elems in 'solid_blocks' each cell maps to
-          Fluid:  # elems in 'fluid_blocks' each cell maps to
-          Other:  # uncoupled elems each cell maps to
+          T:      # elems providing temperature feedback
+          T+rho:  # elems providing temperature and density feedback
+          Other:  # elems which do not provide feedback to OpenMC
+                    (but receives a cell tally from OpenMC)
      Mapped Vol:  volume of MOOSE elems each cell maps to
      Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')
 
 ---------------------------------------------------------------------------------------------
-|            Cell            | Solid | Fluid | Other | Mapped Vol |       Actual Vol        |
+|            Cell            |   T   | T+rho | Other | Mapped Vol |       Actual Vol        |
 ---------------------------------------------------------------------------------------------
 |   1, instance   0 (of   1) |   200 |     0 |     0 | 3.565e+00  | 3.534e+00 +/- 9.349e-02 |
 |   3, instance   0 (of   1) |    60 |     0 |     0 | 1.135e+00  | 1.164e+00 +/- 5.391e-02 |
@@ -580,7 +572,7 @@ Because a single cell was used to represent
 the cladding and fuel (at each axial layer), only one temperature is shown for the
 fuel and clad regions in the `cell_temperature` auxiliary variable. The temperatures
 set in OpenMC are volume averages of the temperature computed by MOOSE, i.e. the
-temperature shown in [lwr_solid_temp]. If you want to resolve the solid temperature
+temperature shown in [lwr_solid_temp]. If you want to resolve the temperature
 with more detail in the OpenMC model, simply add OpenMC cells where finer feedback
 is desired.
 
