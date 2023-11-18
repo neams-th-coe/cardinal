@@ -370,7 +370,7 @@ from the inlet to outlet fluid temperatures.
   end=Problem
 
 The wrapping of OpenMC is specified in the `[Problem]` block. Here, we
-indicate that we will provide both fluid and solid feedback to OpenMC. In order to
+indicate that we will provide both temperature and density feedback to OpenMC. In order to
 visualize the tally standard deviation, we output the fission tally standard
 deviation using the `output` parameter. The heat source from OpenMC will be relaxed
 using Robbins-Monro relaxation.

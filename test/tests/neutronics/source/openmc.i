@@ -16,10 +16,10 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = ${fparse 3000e6 / 273 / (17 * 17)}
-  solid_blocks = '1 2 3'
+  temperature_blocks = '1 2 3'
   tally_blocks = '2 3'
   tally_type = cell
-  solid_cell_level = 0
+  cell_level = 0
   reuse_source = true
 []
 

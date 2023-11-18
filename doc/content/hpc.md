@@ -157,15 +157,15 @@ if [ -f  ~/.bashrc_local ]; then
        . ~/.bashrc_local
 fi
 
+module purge
 module load use.moose
-module load mambaforge3
-module load mvapich2/2.3.3-gcc-9.2.0-xpjm
-module load cmake/3.22.3-gcc-9.2.0-5mqh
-module load gitlfs/3.2.0
+module load moose-tools
+module load openmpi/4.1.5_ucx1.14.1
+module load cmake/3.27.7-oneapi-2023.2.1-4uzb
 
 # Revise for your repository location
-export NEKRS_HOME=$HOME/projects/cardinal/install
-export OPENMC_CROSS_SECTIONS=$HOME/projects/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+export NEKRS_HOME=$HOME/cardinal/install
+export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 !listing-end!
 
 !listing scripts/job_sawtooth language=bash caption=Sample job script with the `moose` project code id=st2

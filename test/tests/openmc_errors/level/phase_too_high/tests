@@ -2,7 +2,7 @@
   [fluid_too_high]
     type = RunException
     input = fluid_too_high.i
-    expect_err = "Requested coordinate level of 1 for the fluid exceeds number of nested coordinate levels"
+    expect_err = "Requested coordinate level of 1 exceeds number of nested coordinate levels"
     requirement = "The system shall error if the specified coordinate level for a phase is within the "
                   "maximum coordinate levels across the OpenMC domain, but invalid for the particular "
                   "region of the geometry."

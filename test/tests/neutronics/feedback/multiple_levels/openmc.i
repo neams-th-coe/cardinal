@@ -62,13 +62,13 @@
   # In the OpenMC model script, we set the fuel temperature to 500, the clad temperature
   # to 450, and the exterior temperature to 300. Checking that the temperatures obtained with
   # CellTemperatureAux match these values will confirm that the correct cell level is
-  # fetched in the exterior region, which is at a level of 0 (greater than the lowest_solid_cell_level).
+  # fetched in the exterior region, which is at a level of 0 (greater than the lowest_cell_level).
   initial_properties = xml
 
   # block 5 should map to an OpenMC region on level 0 in the geometry; by setting
   # the lowest cell level, we will just map to level 0 in this region instead of 1.
-  solid_blocks = '1 3 5'
-  lowest_solid_cell_level = 1
+  temperature_blocks = '1 3 5'
+  lowest_cell_level = 1
 
   tally_blocks = '1'
   verbose = true

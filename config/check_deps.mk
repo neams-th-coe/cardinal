@@ -14,11 +14,12 @@ BISON_CONTENT     := $(shell ls $(BISON_DIR) 2> /dev/null)
 SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
 
-ifeq ($(THERMAL_HYDRAULICS), yes)
-  THM_CONTENT     := true
+ifneq ($(SAM_CONTENT),)
+  $(info Cardinal is using SAM from     $(SAM_DIR))
 endif
 
 ifneq ($(BISON_CONTENT),)
+  $(info Cardinal is using BISON from   $(BISON_DIR))
   CONTACT            := yes
   MISC               := yes
   PHASE_FIELD        := yes
@@ -28,6 +29,7 @@ ifneq ($(BISON_CONTENT),)
 endif
 
 ifneq ($(GRIFFIN_CONTENT),)
+  $(info Cardinal is using Griffin from $(GRIFFIN_DIR))
   PHASE_FIELD        := yes
   CONTACT            := yes
   XFEM               := yes
@@ -40,6 +42,8 @@ IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
 ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
+else
+  $(info Cardinal is using MOOSE from   $(MOOSE_DIR))
 endif
 
 moose_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep moose | cut -c1)
@@ -50,6 +54,8 @@ endif
 ifeq ($(ENABLE_NEK), yes)
   ifeq ($(NEKRS_CONTENT),)
     $(error $n"NekRS does not seem to be available, but ENABLE_NEK is enabled. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
+  else
+    $(info Cardinal is using NekRS from   $(NEKRS_DIR))
   endif
 
   nek_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep nekRS | cut -c1)
@@ -61,6 +67,8 @@ endif
 ifeq ($(ENABLE_OPENMC), yes)
   ifeq ($(OPENMC_CONTENT),)
     $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
+  else
+    $(info Cardinal is using OpenMC from  $(OPENMC_DIR))
   endif
 
   openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
@@ -72,9 +80,13 @@ endif
 ifeq ($(ENABLE_DAGMC), yes)
   ifeq ($(DAGMC_CONTENT),)
     $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts/get-dependencies.sh")
+  else
+    $(info Cardinal is using DAGMC from   $(DAGMC_DIR))
   endif
   ifeq ($(MOAB_CONTENT),)
     $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")
+  else
+    $(info Cardinal is using Moab from    $(MOAB_DIR))
   endif
 
   DAGMC_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep DAGMC | cut -c1)
@@ -91,14 +103,21 @@ endif
 # We can check that if it looks like we're going to build Sockeye, that
 # all of its dependencies are there
 ifneq ($(SOCKEYE_CONTENT),)
+  $(info Cardinal is using Sockeye from $(SOCKEYE_DIR))
   ifeq ($(SODIUM_CONTENT),)
     $(error $n"Sodium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that SODIUM_DIR points to a location with the sodium source.$n$nTo fetch the sodium submodule, use 'git submodule update --init contrib/sodium'")
+  else
+    $(info Cardinal is using sodium properties from $(SODIUM_DIR))
   endif
   ifeq ($(POTASSIUM_CONTENT),)
     $(error $n"Potassium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that POTASSIUM_DIR points to a location with the potassium source.$n$nTo fetch the potassium submodule, use 'git submodule update --init contrib/potassium'")
+  else
+    $(info Cardinal is using potassium properties from $(POTASSUM_DIR))
   endif
   ifeq ($(IAPWS95_CONTENT),)
     $(error $n"IAPWS95 dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
+  else
+    $(info Cardinal is using water properties from $(IAPWS95_DIR))
   endif
 endif
 

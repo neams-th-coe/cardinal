@@ -21,8 +21,8 @@ fluid_density = 5.5508                   # fluid density (kg/m3)
 fluid_Cp = 5189.0                        # fluid isobaric specific heat (J/kg/K)
 triso_pf = 0.15                          # TRISO packing fraction (%)
 
-fluid_blocks = 'coolant'
-solid_blocks = 'graphite compacts compacts_trimmer_tri'
+density_blocks = 'coolant'
+temperature_blocks = 'graphite compacts compacts_trimmer_tri'
 fuel_blocks = 'compacts compacts_trimmer_tri'
 
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
@@ -64,7 +64,7 @@ nek_dt = 6e-3
   [diffusion]
     type = HeatConduction
     variable = T
-    block = ${solid_blocks}
+    block = ${temperature_blocks}
   []
   [source]
     type = CoupledForce
@@ -75,7 +75,7 @@ nek_dt = 6e-3
   [null] # The value of T on the fluid blocks is meaningless
     type = NullKernel
     variable = T
-    block = ${fluid_blocks}
+    block = ${density_blocks}
   []
 []
 
@@ -134,10 +134,10 @@ nek_dt = 6e-3
 
 [AuxVariables]
   [nek_temp]
-    block = ${fluid_blocks}
+    block = ${density_blocks}
   []
   [nek_bulk_temp]
-    block = ${fluid_blocks}
+    block = ${density_blocks}
   []
   [flux]
     family = MONOMIAL

@@ -52,8 +52,8 @@ scale = 100.0
   mesh_template = scale_in.e
   scaling = ${scale}
 
-  solid_blocks = '1 2'
-  solid_cell_level = 0
+  temperature_blocks = '1 2'
+  cell_level = 0
   power = 16.0
 
   skinner = moab

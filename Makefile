@@ -1,7 +1,10 @@
 # Optional environment variables:
 #
 # To control where various third-party dependencies are. You don't need to set
-# any of these unless you want to use non-submodule third-party dependencies:
+# any of these unless you want to use non-submodule third-party dependencies.
+# NOTE: If you change any of these partway through a build, you will need to
+# clear out the build/ and install/ directories to be sure the proper build
+# flags are used.
 
 # * CONTRIB_DIR      : Dir with third-party dependencies (default: contrib)
 # * MOOSE_DIR        : Top-level MOOSE dir (default: $(CONTRIB_DIR)/moose)
@@ -115,7 +118,7 @@ endif
 
 ifeq ($(ENABLE_OPENMC), yes)
   # HDF5 is only needed to be linked if using OpenMC
-  $(info Cardinal is using HDF5 from $(HDF5_ROOT))
+  $(info Cardinal is using HDF5 from    $(HDF5_ROOT))
 else
   ifeq ($(ENABLE_DAGMC), yes)
     $(info Ignoring ENABLE_DAGMC because OpenMC is not enabled.)
@@ -131,7 +134,7 @@ endif
 ALL_MODULES         := no
 
 FLUID_PROPERTIES    := yes
-HEAT_CONDUCTION     := yes
+HEAT_TRANSFER       := yes
 NAVIER_STOKES       := yes
 REACTOR             := yes
 SOLID_PROPERTIES    := yes
@@ -139,10 +142,10 @@ STOCHASTIC_TOOLS    := yes
 TENSOR_MECHANICS    := yes
 THERMAL_HYDRAULICS  := yes
 
-# Perform various checks on the dependencies: (i) error if dependencies are
-# missing or conflict with one another; (ii) warn if not using a paired
-# submodule hash; (iii) check that NEKRS_HOME points to the correct location
+# Perform various checks on the dependencies
 include config/check_deps.mk
+include config/check_modules.mk
+
 
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
 ifeq ($(METHOD),dbg)

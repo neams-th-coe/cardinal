@@ -39,11 +39,11 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = ${fparse 3000e6 / 273 / (17 * 17)}
-  solid_blocks = '1 2 3'
+  temperature_blocks = '1 2 3'
   tally_blocks = '2 3'
   tally_type = cell
   tally_name = heat_source
-  solid_cell_level = 0
+  cell_level = 0
 
   volume_calculation = vol
 []

@@ -23,9 +23,9 @@
   type = OpenMCCellAverageProblem
   power = 100.0
   particles = 1000.0
-  solid_blocks = '100'
+  temperature_blocks = '100'
   verbose = true
-  solid_cell_level = 0
+  cell_level = 0
 
   tally_type = mesh
   mesh_template = ../meshes/sphere.e

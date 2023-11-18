@@ -48,8 +48,8 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  solid_blocks = '100'
-  solid_cell_level = 0
+  temperature_blocks = '100'
+  cell_level = 0
   tally_type = cell
   normalize_by_global_tally = false
   initial_properties = xml

@@ -11,7 +11,7 @@
   [T_feedback_tally]
     type = CSVDiff
     input = openmc.i
-    cli_args = 'Problem/solid_blocks="0 1" Problem/solid_cell_level=0 ICs/active="temp" Outputs/file_base=T'
+    cli_args = 'Problem/temperature_blocks="0 1" ICs/active="temp" Outputs/file_base=T'
     csvdiff = T.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'
@@ -20,7 +20,7 @@
   [rho_feedback_tally]
     type = CSVDiff
     input = openmc.i
-    cli_args = 'Problem/fluid_blocks="0 1" Problem/fluid_cell_level=0 ICs/active="density temp" ICs/temp/value=500.0 Outputs/file_base=rho'
+    cli_args = 'Problem/density_blocks="0 1" Problem/temperature_blocks="0 1" ICs/active="density temp" ICs/temp/value=500.0 Outputs/file_base=rho'
     csvdiff = rho.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature/density feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'
@@ -37,7 +37,7 @@
   [T_feedback_no_tally]
     type = CSVDiff
     input = openmc.i
-    cli_args = 'Problem/solid_blocks="0 1" Problem/solid_cell_level=0 ICs/active="temp" Outputs/file_base=T_no_tally Problem/tally_type=none Postprocessors/inactive="power_0 power_1"'
+    cli_args = 'Problem/temperature_blocks="0 1" ICs/active="temp" Outputs/file_base=T_no_tally Problem/tally_type=none Postprocessors/inactive="power_0 power_1"'
     csvdiff = T_no_tally.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'
@@ -46,7 +46,7 @@
   [rho_feedback_no_tally]
     type = CSVDiff
     input = openmc.i
-    cli_args = 'Problem/fluid_blocks="0 1" Problem/fluid_cell_level=0 ICs/active="density temp" ICs/temp/value=500.0 Outputs/file_base=rho_no_tally Problem/tally_type=none Postprocessors/inactive="power_0 power_1"'
+    cli_args = 'Problem/density_blocks="0 1" Problem/temperature_blocks="0 1" ICs/active="density temp" ICs/temp/value=500.0 Outputs/file_base=rho_no_tally Problem/tally_type=none Postprocessors/inactive="power_0 power_1"'
     csvdiff = rho_no_tally.csv
     requirement = 'The system shall allow OpenMC tallies to be extracted on cell blocks which also have temperature/density feedback.'
                   'The tallies were compared against separate standalone OpenMC runs.'

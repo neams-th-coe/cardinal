@@ -73,10 +73,10 @@
 
   power = 1000.0
   scaling = 100.0
-  solid_blocks = 'graphite compacts'
+  temperature_blocks = 'graphite compacts'
   tally_blocks = 'compacts'
   tally_type = cell
-  solid_cell_level = 1
+  cell_level = 1
 
   symmetry_mapper = sym
 []

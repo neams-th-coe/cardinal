@@ -4,26 +4,17 @@
   allow_renumbering = false
 []
 
-[ICs]
-  [density]
-    type = ConstantIC
-    variable = density
-    value = 1000.0
-  []
-  [temp]
-    type = ConstantIC
-    variable = temp
-    value = 1000.0
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
-  fluid_blocks = '2'
+
+  temperature_blocks = '2'
+  density_blocks = '2'
+
+  cell_level = 0
+
   tally_type = mesh
   mesh_template = ../../meshes/pincell.e
-  fluid_cell_level = 0
 []
 
 [Executioner]

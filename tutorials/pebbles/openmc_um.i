@@ -49,7 +49,7 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 1500.0
-  solid_blocks = '0'
+  temperature_blocks = '0'
   tally_type = mesh
   tally_name = heat_source
   mesh_template = mesh_in.e
@@ -57,7 +57,7 @@
                        0 0 0.06
                        0 0 0.10'
   normalize_by_global_tally = false
-  solid_cell_level = 1
+  cell_level = 1
   scaling = 100.0
 []
 

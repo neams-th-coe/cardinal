@@ -19,11 +19,10 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
-  solid_blocks = '100'
+  temperature_blocks = '100'
   tally_blocks = '100'
   tally_type = cell
-  solid_cell_level = 0
-  fluid_cell_level = 0
+  cell_level = 0
   fixed_mesh = true
 []
 

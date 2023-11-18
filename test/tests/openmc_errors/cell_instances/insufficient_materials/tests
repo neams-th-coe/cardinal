@@ -2,8 +2,7 @@
   [insufficient_materials]
     type = RunException
     input = fluid.i
-    expect_err = "material 2 is present in more than one fluid cell.\n"
-                 "This means that your model cannot independently change the density in cells filled with this material."
+    expect_err = "material 2 is present in more than one density feedback cell.\n"
     requirement = "The system shall error if we attempt to set a density in a material that is repeated "
                   "throughout our list of fluid cells."
     required_objects = 'OpenMCCellAverageProblem'

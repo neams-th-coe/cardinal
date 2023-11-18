@@ -41,11 +41,11 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = ${fparse 3000e6 / 273 / (17 * 17)}
-  solid_blocks = '1 2 3'
+  temperature_blocks = '1 2 3'
   tally_type = mesh
   tally_name = heat_source
   normalize_by_global_tally = false
-  solid_cell_level = 0
+  cell_level = 0
 
   particles = 20000
   inactive_batches = 500

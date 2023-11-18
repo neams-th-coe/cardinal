@@ -44,10 +44,10 @@ h = 1.0
   tally_score = heating_local
   power = 100.0
   scaling = 100.0
-  solid_blocks = '0 100'
+  temperature_blocks = '0 100'
   tally_blocks = '0 100'
   tally_type = cell
-  lowest_solid_cell_level = 1
+  lowest_cell_level = 1
 []
 
 [Executioner]

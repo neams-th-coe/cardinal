@@ -33,8 +33,8 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  solid_blocks = '100'
-  fluid_blocks = '200'
+  temperature_blocks = '100 200'
+  density_blocks = '200'
   tally_type = cell
   tally_name = heat_source
 
@@ -50,8 +50,7 @@
   check_tally_sum = false
 
   verbose = true
-  solid_cell_level = 0
-  fluid_cell_level = 0
+  cell_level = 0
 []
 
 [Executioner]

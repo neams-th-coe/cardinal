@@ -30,11 +30,11 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
-  solid_blocks = '100'
+  temperature_blocks = '100'
   verbose = true
   tally_type = cell
   tally_blocks = '100'
-  solid_cell_level = 0
+  cell_level = 0
   check_equal_mapped_tally_volumes = true
 []
 

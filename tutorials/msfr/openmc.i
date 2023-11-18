@@ -59,8 +59,9 @@
   tally_type = mesh
   mesh_template = msr.e
 
-  fluid_blocks = '1'
-  fluid_cell_level = 0
+  density_blocks = '1'
+  temperature_blocks = '1'
+  cell_level = 0
 
   power = 300.0e6
 

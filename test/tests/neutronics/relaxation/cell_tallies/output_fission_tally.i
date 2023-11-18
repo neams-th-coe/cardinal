@@ -37,10 +37,10 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 1500.0
-  solid_blocks = '0'
+  temperature_blocks = '0'
   tally_blocks = '0'
   tally_type = cell
-  solid_cell_level = 1
+  cell_level = 1
   scaling = 100.0
 
   output = 'unrelaxed_tally'

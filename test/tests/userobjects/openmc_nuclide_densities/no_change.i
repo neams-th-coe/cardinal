@@ -28,8 +28,8 @@
   tally_type = cell
   tally_blocks = '0'
 
-  solid_blocks = '0'
-  solid_cell_level = 0
+  temperature_blocks = '0'
+  cell_level = 0
   power = 100.0
 []
 

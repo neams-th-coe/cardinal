@@ -4,7 +4,7 @@
     input = openmc.i
     exodiff = 'openmc_out.e'
     requirement = "The OpenMC wrapping shall support using the locally-lowest particle level "
-                  "in geometry regions where the 'solid_cell_level'/'fluid_cell_level' does not exist. "
+                  "in geometry regions where the cell_level does not exist. "
                   "This input sets up a pincell with lattices where all cells of interest are on level 1. "
                   "Surrounding this pincell is an exterior cell on level 0. Cell IDs, instances, and temperatures "
                   "all correctly reflect using the lowest available level in the exterior region."
