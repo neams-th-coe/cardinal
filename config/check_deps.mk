@@ -15,7 +15,7 @@ SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
 
 ifneq ($(BISON_CONTENT),)
-  $(info Cardinal is using BISON from $(BISON_DIR))
+  $(info Cardinal is using BISON from   $(BISON_DIR))
   CONTACT            := yes
   MISC               := yes
   PHASE_FIELD        := yes
@@ -39,7 +39,7 @@ IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
 else
-  $(info Cardinal is using MOOSE from $(MOOSE_DIR))
+  $(info Cardinal is using MOOSE from   $(MOOSE_DIR))
 endif
 
 moose_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep moose | cut -c1)
@@ -51,7 +51,7 @@ ifeq ($(ENABLE_NEK), yes)
   ifeq ($(NEKRS_CONTENT),)
     $(error $n"NekRS does not seem to be available, but ENABLE_NEK is enabled. Make sure that the submodule is checked out.$n$nTo fetch the NekRS submodule, use ./scripts/get-dependencies.sh")
   else
-    $(info Cardinal is using NekRS from $(NEKRS_DIR))
+    $(info Cardinal is using NekRS from   $(NEKRS_DIR))
   endif
 
   nek_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep nekRS | cut -c1)
@@ -64,7 +64,7 @@ ifeq ($(ENABLE_OPENMC), yes)
   ifeq ($(OPENMC_CONTENT),)
     $(error $n"OpenMC does not seem to be available, but ENABLE_OPENMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the OpenMC submodule, use ./scripts/get-dependencies.sh")
   else
-    $(info Cardinal is using OpenMC from $(OPENMC_DIR))
+    $(info Cardinal is using OpenMC from  $(OPENMC_DIR))
   endif
 
   openmc_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep openmc | cut -c1)
