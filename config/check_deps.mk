@@ -14,6 +14,10 @@ BISON_CONTENT     := $(shell ls $(BISON_DIR) 2> /dev/null)
 SAM_CONTENT       := $(shell ls $(SAM_DIR) 2> /dev/null)
 SOCKEYE_CONTENT   := $(shell ls $(SOCKEYE_DIR) 2> /dev/null)
 
+ifneq ($(SAM_CONTENT),)
+  $(info Cardinal is using SAM from     $(SAM_DIR))
+endif
+
 ifneq ($(BISON_CONTENT),)
   $(info Cardinal is using BISON from   $(BISON_DIR))
   CONTACT            := yes
@@ -76,10 +80,13 @@ endif
 ifeq ($(ENABLE_DAGMC), yes)
   ifeq ($(DAGMC_CONTENT),)
     $(error $n"DagMC does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the DagMC submodule, use ./scripts/get-dependencies.sh")
-
+  else
+    $(info Cardinal is using DAGMC from   $(DAGMC_DIR))
   endif
   ifeq ($(MOAB_CONTENT),)
     $(error $n"Moab does not seem to be available, but ENABLE_DAGMC is enabled. Make sure that the submodule is checked out.$n$nTo fetch the Moab submodule, use ./scripts/get-dependencies.sh")
+  else
+    $(info Cardinal is using Moab from    $(MOAB_DIR))
   endif
 
   DAGMC_status := $(shell git -C $(CONTRIB_DIR) submodule status 2>/dev/null | grep DAGMC | cut -c1)
@@ -96,14 +103,21 @@ endif
 # We can check that if it looks like we're going to build Sockeye, that
 # all of its dependencies are there
 ifneq ($(SOCKEYE_CONTENT),)
+  $(info Cardinal is using Sockeye from $(SOCKEYE_DIR))
   ifeq ($(SODIUM_CONTENT),)
     $(error $n"Sodium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that SODIUM_DIR points to a location with the sodium source.$n$nTo fetch the sodium submodule, use 'git submodule update --init contrib/sodium'")
+  else
+    $(info Cardinal is using sodium properties from $(SODIUM_DIR))
   endif
   ifeq ($(POTASSIUM_CONTENT),)
     $(error $n"Potassium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that POTASSIUM_DIR points to a location with the potassium source.$n$nTo fetch the potassium submodule, use 'git submodule update --init contrib/potassium'")
+  else
+    $(info Cardinal is using potassium properties from $(POTASSUM_DIR))
   endif
   ifeq ($(IAPWS95_CONTENT),)
     $(error $n"IAPWS95 dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
+  else
+    $(info Cardinal is using water properties from $(IAPWS95_DIR))
   endif
 endif
 
