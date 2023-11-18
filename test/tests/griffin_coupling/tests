@@ -1,0 +1,9 @@
+[Tests]
+  [griffin_main]
+    type = RunApp
+    input = AO_pps.i
+    requirement = "Cardinal shall be able to run Griffin as the main application. "
+    required_applications = 'GriffinApp'
+    required_objects = 'NekRSProblem'
+  []
+[]
