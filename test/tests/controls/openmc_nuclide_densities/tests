@@ -6,12 +6,11 @@
     requirement = 'The system shall error if the controls is not used with the proper user object'
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [wrong_sizes]
-    type = RunException
-    input = error.i
-    cli_args = 'Controls/c/name=mat1 Controls/c/densities="0.01 0.01"'
-    expect_err = 'The entry at index 0 is not the same size as the corresponding 'names' entry'
-    requirement = 'The system shall error if the names and densities are not the same size'
+  [mat]
+    type = CSVDiff
+    input = openmc.i
+    csvdiff = openmc_out.csv
+    requirement = 'The system shall change OpenMC material compositions via a controls'
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

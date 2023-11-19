@@ -47,8 +47,8 @@ protected:
   int32_t _material_index;
 
   /// Nuclide names
-  std::vector<std::string> _names;
+  const std::vector<std::string> & _names;
 
   /// Nuclide densities
-  std::vector<double> _densities;
+  const std::vector<double> & _densities;
 };

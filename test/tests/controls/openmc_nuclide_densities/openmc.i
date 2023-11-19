@@ -27,22 +27,21 @@
 [UserObjects]
   [mat1]
     type = OpenMCNuclideDensities
-    material_id = 1
-    names = 'U235'
-    densities = '0.01'
+    material_id = 2
+    names = 'U235 U238'
+    densities = '0.0 0.0'
   []
 []
 
 [Controls]
   [c]
     type = OpenMCNuclideDensitiesControl
-    name = mat1
-    names = 'U235'
-    densities = '0.005'
+    user_object = mat1
+    names = 'U235 U238'
+    densities = '0.03 0.09'
   []
 []
 
-# If this works properly, then the value of this postprocessor should equal 0.90726
 [Postprocessors]
   [k]
     type = KEigenvalue

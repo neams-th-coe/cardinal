@@ -30,7 +30,7 @@ OpenMCNuclideDensitiesControl::validParams()
 {
   InputParameters params = Control::validParams();
   params.addClassDescription("Controls the densities in a OpeNMCNuclideDensities object.");
-  params.addRequiredParam<UserObjectName>("name",
+  params.addRequiredParam<UserObjectName>("user_object",
                                           "The name of the associated OpenMCNuclideDensities");
 
   // each index in the vectors represents one time step
@@ -49,26 +49,17 @@ OpenMCNuclideDensitiesControl::validParams()
 
 OpenMCNuclideDensitiesControl::OpenMCNuclideDensitiesControl(const InputParameters & parameters)
   : Control(parameters),
-    _controllable_prefix("UserObjects/" + getParam<UserObjectName>("name") + "/"),
+    _controllable_prefix("UserObjects/" + getParam<UserObjectName>("user_object") + "/"),
     _names(getParam<std::vector<std::vector<std::string>>>("names")),
     _densities(getParam<std::vector<std::vector<Real>>>("densities")),
     _current_execution(0)
 {
   // This will make sure that the associated name is actually a OpenMCNuclideDensities
-  if (!hasUserObject<OpenMCNuclideDensities>("name"))
+  if (!hasUserObject<OpenMCNuclideDensities>("user_object"))
     paramError("name",
                "The given UserObject does not exist or it is not a OpenMCNuclideDensities object");
 
-  // Sanity checking on consistent sizes
-  if (_names.size() != _densities.size())
-    paramError("densities", "Must be the same size as 'names'");
-
-  for (const auto i : index_range(_names))
-    if (_names[i].size() != _densities[i].size())
-      paramError("densities",
-                 "The entry at index ",
-                 i,
-                 " is not the same size as the corresponding 'names' entry");
+  // do not need any error checking here, because we perform it in OpenMCNuclideDensities
 }
 
 void

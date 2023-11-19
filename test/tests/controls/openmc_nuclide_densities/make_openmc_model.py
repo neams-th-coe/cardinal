@@ -23,9 +23,9 @@ a.set_density('atom/b-cm', 0.02)
 a.add_nuclide('U235', 1.0)
 
 b = openmc.Material()
-b.set_density('g/cc', 11.0)
-b.add_nuclide('U235', 0.5)
-b.add_nuclide('U238', 0.5)
+b.set_density('sum')
+b.add_nuclide('U235', 0.01)
+b.add_nuclide('U238', 0.02)
 
 mats = openmc.Materials([a, b])
 mats.export_to_xml()

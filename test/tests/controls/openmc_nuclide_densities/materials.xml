@@ -5,8 +5,8 @@
     <nuclide ao="1.0" name="U235"/>
   </material>
   <material depletable="true" id="2">
-    <density units="g/cc" value="11.0"/>
-    <nuclide ao="0.5" name="U235"/>
-    <nuclide ao="0.5" name="U238"/>
+    <density units="sum"/>
+    <nuclide ao="0.01" name="U235"/>
+    <nuclide ao="0.02" name="U238"/>
   </material>
 </materials>
