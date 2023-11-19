@@ -29,6 +29,8 @@
     type = OpenMCNuclideDensities
     material_id = 2
     names = 'U235 U238'
+
+    # dummy values which do not get set, because the control will override these
     densities = '0.0 0.0'
   []
 []
