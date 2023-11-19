@@ -56,7 +56,7 @@ OpenMCNuclideDensitiesControl::OpenMCNuclideDensitiesControl(const InputParamete
 {
   // This will make sure that the associated name is actually a OpenMCNuclideDensities
   if (!hasUserObject<OpenMCNuclideDensities>("user_object"))
-    paramError("name",
+    paramError("user_object",
                "The given UserObject does not exist or it is not a OpenMCNuclideDensities object");
 
   // do not need any error checking here, because we perform it in OpenMCNuclideDensities
