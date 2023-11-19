@@ -37,7 +37,7 @@
 [Controls]
   [c]
     type = OpenMCNuclideDensitiesControl
-    name = none
+    user_object = none
     names = 'U235'
     densities = '0.01'
   []
