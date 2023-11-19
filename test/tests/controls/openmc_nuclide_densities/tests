@@ -1,0 +1,17 @@
+[Tests]
+  [wrong_uo]
+    type = RunException
+    input = error.i
+    expect_err = 'The given UserObject does not exist or it is not a OpenMCNuclideDensities object'
+    requirement = 'The system shall error if the controls is not used with the proper user object'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [wrong_sizes]
+    type = RunException
+    input = error.i
+    cli_args = 'Controls/c/name=mat1 Controls/c/densities="0.01 0.01"'
+    expect_err = 'The entry at index 0 is not the same size as the corresponding 'names' entry'
+    requirement = 'The system shall error if the names and densities are not the same size'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

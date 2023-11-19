@@ -22,6 +22,7 @@
 #include "NonlinearSystem.h"
 #include "AuxiliarySystem.h"
 #include "UserErrorChecking.h"
+#include "CardinalAppTypes.h"
 
 #include "mpi.h"
 #include "openmc/bank.h"

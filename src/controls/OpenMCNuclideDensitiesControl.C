@@ -32,6 +32,8 @@ OpenMCNuclideDensitiesControl::validParams()
   params.addClassDescription("Controls the densities in a OpeNMCNuclideDensities object.");
   params.addRequiredParam<UserObjectName>("name",
                                           "The name of the associated OpenMCNuclideDensities");
+
+  // each index in the vectors represents one time step
   params.addRequiredParam<std::vector<std::vector<std::string>>>(
       "names", "Names of the nuclides to modifiy densities for each timestep");
   params.addRequiredParam<std::vector<std::vector<Real>>>(
@@ -60,6 +62,7 @@ OpenMCNuclideDensitiesControl::OpenMCNuclideDensitiesControl(const InputParamete
   // Sanity checking on consistent sizes
   if (_names.size() != _densities.size())
     paramError("densities", "Must be the same size as 'names'");
+
   for (const auto i : index_range(_names))
     if (_names[i].size() != _densities[i].size())
       paramError("densities",

@@ -293,6 +293,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                "think anyone was using this feature and it added code complexity. If this is "
                "affecting your workflow, please contact the Cardinal development team.");
 
+  if (!_has_solid_blocks && !_has_fluid_blocks)
+    checkUnusedParam(params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
+
   // We need to clear and re-initialize the OpenMC tallies if
   // fixed_mesh is false, which indicates at least one of the following:
   //   - the [Mesh] is being adaptively refined
@@ -3076,8 +3079,11 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // amounts of the different nuclides)
       sendNuclideDensitiesToOpenMC();
 
-      if (_first_transfer)
+      if (_first_transfer && (_has_solid_blocks || _has_fluid_blocks))
       {
+        std::string incoming_transfer =
+            _has_fluid_blocks ? "temperature and density" : "temperature";
+
         switch (_initial_condition)
         {
           case coupling::hdf5:
@@ -3085,6 +3091,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             // if we're reading temperature and density from an existing HDF5 file,
             // we don't need to send anything in to OpenMC, so we can leave.
             importProperties();
+            _console << "Skipping " << incoming_transfer << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
             return;
           }
           case coupling::moose:
@@ -3096,9 +3103,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
           {
             // if we're just using whatever temperature and density are already in the XML
             // files, we don't need to send anything in to OpenMC, so we can leave.
-            std::string incoming_transfer =
-                _has_fluid_blocks ? "temperature and density" : "temperature";
-            _console << "Skipping " << incoming_transfer << " transfer into OpenMC" << std::endl;
+            _console << "Skipping " << incoming_transfer << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
             return;
           }
           default:
