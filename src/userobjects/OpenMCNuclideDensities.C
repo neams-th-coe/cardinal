@@ -29,7 +29,8 @@ OpenMCNuclideDensities::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addRequiredParam<int32_t>("material_id", "ID of material to change nuclide densities");
-  params.addRequiredParam<std::vector<std::string>>("names", "Names of the nuclides to modify densities");
+  params.addRequiredParam<std::vector<std::string>>("names",
+                                                    "Names of the nuclides to modify densities");
   params.addRequiredParam<std::vector<double>>("densities", "Nuclide densities (atom/b/cm) to set");
   params.declareControllable("names");
   params.declareControllable("densities");

@@ -294,7 +294,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                "affecting your workflow, please contact the Cardinal development team.");
 
   if (!_has_solid_blocks && !_has_fluid_blocks)
-    checkUnusedParam(params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
+    checkUnusedParam(
+        params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
   // We need to clear and re-initialize the OpenMC tallies if
   // fixed_mesh is false, which indicates at least one of the following:
@@ -3091,7 +3092,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             // if we're reading temperature and density from an existing HDF5 file,
             // we don't need to send anything in to OpenMC, so we can leave.
             importProperties();
-            _console << "Skipping " << incoming_transfer << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
+            _console << "Skipping " << incoming_transfer
+                     << " transfer into OpenMC because 'initial_properties = hdf5'" << std::endl;
             return;
           }
           case coupling::moose:
@@ -3103,7 +3105,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
           {
             // if we're just using whatever temperature and density are already in the XML
             // files, we don't need to send anything in to OpenMC, so we can leave.
-            _console << "Skipping " << incoming_transfer << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
+            _console << "Skipping " << incoming_transfer
+                     << " transfer into OpenMC because 'initial_properties = xml'" << std::endl;
             return;
           }
           default:
