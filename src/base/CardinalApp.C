@@ -21,6 +21,7 @@
 #include "AppFactory.h"
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
+#include "CardinalAppTypes.h"
 
 #ifdef ENABLE_NEK_COUPLING
 #include "NekSyntax.h"

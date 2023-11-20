@@ -22,6 +22,7 @@
 #include "NonlinearSystem.h"
 #include "AuxiliarySystem.h"
 #include "UserErrorChecking.h"
+#include "CardinalAppTypes.h"
 
 #include "mpi.h"
 #include "openmc/bank.h"
@@ -736,6 +737,9 @@ OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
 {
   if (_nuclide_densities_uos.size() == 0)
     return;
+
+  // We could probably put this somewhere better, but it's good for now
+  executeControls(EXEC_SEND_OPENMC_DENSITIES);
 
   _console << "Sending nuclide compositions to OpenMC... ";
   for (const auto & uo : _nuclide_densities_uos)

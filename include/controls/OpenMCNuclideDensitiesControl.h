@@ -18,37 +18,30 @@
 
 #pragma once
 
-#include "GeneralUserObject.h"
+#ifdef ENABLE_OPENMC_COUPLING
 
-/**
- * User object to modify the nuclide densities in an OpenMC material.
- */
-class OpenMCNuclideDensities : public GeneralUserObject
+#include "Control.h"
+
+class OpenMCNuclideDensitiesControl : public Control
 {
 public:
   static InputParameters validParams();
 
-  OpenMCNuclideDensities(const InputParameters & parameters);
+  OpenMCNuclideDensitiesControl(const InputParameters & parameters);
 
-  /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override {}
-
-  virtual void initialize() override {}
-  virtual void finalize() override {}
-
-  /// Instead, we want to have a separate method that we can call from the OpenMC problem
-  virtual void setValue();
+  virtual void execute() override;
 
 protected:
-  /// The material ID
-  const int32_t & _material_id;
+  /// The controllable parameter prefix for the associated OpenMCNuclideDensities
+  const std::string _controllable_prefix;
+  /// The provided names
+  const std::vector<std::vector<std::string>> & _names;
+  /// The provided densities
+  const std::vector<std::vector<Real>> & _densities;
 
-  /// The material index
-  int32_t _material_index;
-
-  /// Nuclide names
-  const std::vector<std::string> & _names;
-
-  /// Nuclide densities
-  const std::vector<double> & _densities;
+private:
+  /// The index for the current execution (used for indexing into names and densities)
+  unsigned int _current_execution;
 };
+
+#endif
