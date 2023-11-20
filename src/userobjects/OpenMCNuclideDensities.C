@@ -29,14 +29,20 @@ OpenMCNuclideDensities::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addRequiredParam<int32_t>("material_id", "ID of material to change nuclide densities");
-  params.addParam<std::vector<std::string>>("names", "Names of the nuclides to modify densities");
-  params.addParam<std::vector<double>>("densities", "Nuclide densities (atom/b/cm) to set");
+  params.addRequiredParam<std::vector<std::string>>("names",
+                                                    "Names of the nuclides to modify densities");
+  params.addRequiredParam<std::vector<double>>("densities", "Nuclide densities (atom/b/cm) to set");
+  params.declareControllable("names");
+  params.declareControllable("densities");
   params.addClassDescription("Updates nuclide densities in an OpenMC material");
   return params;
 }
 
 OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameters)
-  : GeneralUserObject(parameters), _material_id(getParam<int32_t>("material_id"))
+  : GeneralUserObject(parameters),
+    _material_id(getParam<int32_t>("material_id")),
+    _names(getParam<std::vector<std::string>>("names")),
+    _densities(getParam<std::vector<double>>("densities"))
 {
   const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
   if (!openmc_problem)
@@ -50,12 +56,6 @@ OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameter
   openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
                                    "get the material index for material with ID " +
                                        std::to_string(_material_id));
-
-  if (isParamValid("names"))
-    _names = getParam<std::vector<std::string>>("names");
-
-  if (isParamValid("densities"))
-    _densities = getParam<std::vector<double>>("densities");
 }
 
 void

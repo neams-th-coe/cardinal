@@ -16,39 +16,9 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#include "CardinalAppTypes.h"
+#include "ExecFlagRegistry.h"
 
-#include "GeneralUserObject.h"
-
-/**
- * User object to modify the nuclide densities in an OpenMC material.
- */
-class OpenMCNuclideDensities : public GeneralUserObject
-{
-public:
-  static InputParameters validParams();
-
-  OpenMCNuclideDensities(const InputParameters & parameters);
-
-  /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override {}
-
-  virtual void initialize() override {}
-  virtual void finalize() override {}
-
-  /// Instead, we want to have a separate method that we can call from the OpenMC problem
-  virtual void setValue();
-
-protected:
-  /// The material ID
-  const int32_t & _material_id;
-
-  /// The material index
-  int32_t _material_index;
-
-  /// Nuclide names
-  const std::vector<std::string> & _names;
-
-  /// Nuclide densities
-  const std::vector<double> & _densities;
-};
+#ifdef ENABLE_OPENMC_COUPLING
+const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
+#endif
