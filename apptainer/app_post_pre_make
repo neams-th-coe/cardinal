@@ -1,0 +1,7 @@
+export CONTRIB_INSTALL_DIR=/opt/cardinal/contrib
+export NEKRS_HOME=${CONTRIB_INSTALL_DIR}
+export HDF5_ROOT=${PETSC_DIR}
+export ENABLE_DAGMC=ON
+make build_nekrs MAKEFLAGS=-j${MOOSE_JOBS}
+make build_openmc MAKEFLAGS=-j${MOOSE_JOBS}
+make build_dagmc MAKEFLAGS=-j${MOOSE_JOBS}
