@@ -2,8 +2,8 @@
 set -e
 
 SCRIPT_DIR=$( dirname $(dirname $(cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )))
-DOWNLOAD_ROOT=${1:-$(realpath $SCRIPT_DIR/..)}
-DOWNLOAD_DIR=$(realpath ${DOWNLOAD_ROOT}/cross_sections)
+DOWNLOAD_ROOT=${1:-$(realpath $SCRIPT_DIR/..)/cross_sections}
+DOWNLOAD_DIR=${DOWNLOAD_ROOT}/cross_sections
 
 if [[ ! -d ${DOWNLOAD_DIR} ]]; then
   echo "Downloading cross sections to ${DOWNLOAD_DIR}"
