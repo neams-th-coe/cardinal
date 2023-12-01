@@ -23,7 +23,7 @@ CardinalAction::validParams()
 {
   InputParameters params = Action::validParams();
   params.addParam<std::vector<SubdomainName>>(
-      "block", "The list of block ids (SubdomainID) to which this action will be applied");
+      "block", {}, "The list of block ids (SubdomainID) to which this action will be applied");
   return params;
 }
 
