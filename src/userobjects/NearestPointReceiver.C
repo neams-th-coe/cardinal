@@ -29,6 +29,7 @@ NearestPointReceiver::validParams()
                                               "The positions the data will be associated with");
 
   params.addParam<std::vector<Real>>("default_data",
+                                     {},
                                      "The default values of the data.  The number of entries must "
                                      "be the same as the number of positions");
 
