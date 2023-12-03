@@ -1522,9 +1522,9 @@ computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
                      + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
                      + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
 
-          traction[vol_id] = -std::sqrt( traction_x * traction_x
-                                       + traction_y * traction_y
-                                       + traction_z * traction_z );
+          traction[vol_id] = std::sqrt( traction_x * traction_x
+                                      + traction_y * traction_y
+                                      + traction_z * traction_z );
         }
       }
     }
