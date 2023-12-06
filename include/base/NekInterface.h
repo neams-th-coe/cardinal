@@ -877,26 +877,26 @@ double wall_shear(const int id);
  */
 double traction(const int id);
 
-///**
-// * Get the x-traction at given GLL index
-// * @param[in] id GLL index
-// * @return x-traction at index
-// */
-//double traction_x(const int id);
-//
-///**
-// * Get the y-traction at given GLL index
-// * @param[in] id GLL index
-// * @return y-traction at index
-// */
-//double traction_y(const int id);
-//
-///**
-// * Get the z-traction at given GLL index
-// * @param[in] id GLL index
-// * @return z-traction at index
-// */
-//double traction_z(const int id);
+/**
+ * Get the x-traction at given GLL index
+ * @param[in] id GLL index
+ * @return x-traction at index
+ */
+double traction_x(const int id);
+
+/**
+ * Get the y-traction at given GLL index
+ * @param[in] id GLL index
+ * @return y-traction at index
+ */
+double traction_y(const int id);
+
+/**
+ * Get the z-traction at given GLL index
+ * @param[in] id GLL index
+ * @return z-traction at index
+ */
+double traction_z(const int id);
 
 /**
  * Get the magnitude of the rate-of-strain tensor component S_{11} at given GLL index
