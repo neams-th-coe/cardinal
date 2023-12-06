@@ -666,7 +666,7 @@ initializeRateOfStrainTensor()
 void
 initializeTraction()
 {
-  nekrs::_traction = (double *)calloc(velocityFieldOffset(), sizeof(double));
+  nekrs::_traction = (double *)calloc(3*velocityFieldOffset(), sizeof(double));
 }
 
 void
@@ -1490,7 +1490,7 @@ computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
   // get full stress tensor
   int nrs_offset = nrs->fieldOffset;
   double * Tau_ij = (double *) calloc(6*nrs_offset, sizeof(double));
-  double traction_x, traction_y, traction_z;
+  double traction_x, traction_y, traction_z, unx, uny, unz;
 
   computeStressTensor(Tau_ij,pp_mesh);
 
@@ -1510,21 +1510,22 @@ computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          traction_x = Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                     + Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                     + Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          unx = sgeo[surf_offset + NXID];
+          uny = sgeo[surf_offset + NYID];
+          unz = sgeo[surf_offset + NZID];
 
-          traction_y = Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                     + Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                     + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          //TODO: explain reasoning below
+          traction[nrs_offset*0 + vol_id] = Tau_ij[0*nrs_offset + vol_id] * unx/unx
+                                          + Tau_ij[3*nrs_offset + vol_id] * uny/uny
+                                          + Tau_ij[5*nrs_offset + vol_id] * unz/unz;
 
-          traction_z = Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                     + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                     + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          traction[nrs_offset*1 + vol_id] = Tau_ij[3*nrs_offset + vol_id] * unx/unx
+                                          + Tau_ij[1*nrs_offset + vol_id] * uny/uny
+                                          + Tau_ij[4*nrs_offset + vol_id] * unz/unz;
 
-          traction[vol_id] = std::sqrt( traction_x * traction_x
-                                      + traction_y * traction_y
-                                      + traction_z * traction_z );
+          traction[nrs_offset*2 + vol_id] = Tau_ij[5*nrs_offset + vol_id] * unx/unx
+                                          + Tau_ij[4*nrs_offset + vol_id] * uny/uny
+                                          + Tau_ij[2*nrs_offset + vol_id] * unz/unz;
         }
       }
     }
@@ -1544,19 +1545,6 @@ computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
 
   computeRateOfStrainTensor(Tau_ij,pp_mesh);
 
-  for (int i = 0; i  < 6; ++i)
-  {
-    for (int e = 0; e < mesh->Nelements; ++e)
-    {
-      for (int n = 0; n < mesh->Np; ++n)
-      {
-        int id = e * mesh->Np + n;
-
-        Tau_ij[i*nrs_offset + id] *= 2.0 * viscosity();
-      }
-    }
-  }
-
   // multiply with normal on moving boundary
   for (int i = 0; i < mesh->Nelements; ++i)
   {
@@ -1573,32 +1561,24 @@ computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          double visc_stress_vector_x =  Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                      +  Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                      +  Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          double visc_stress_vector_x = 2.0 * viscosity() *
+                                      ( Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
 
-          double visc_stress_vector_y = Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+          double visc_stress_vector_y = 2.0 * viscosity() *
+                                      ( Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
                                       + Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                      + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+                                      + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
 
-          double visc_stress_vector_z = Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+          double visc_stress_vector_z = 2.0 * viscosity() *
+                                      ( Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
                                       + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                      + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+                                      + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
 
-          double normal_stress = visc_stress_vector_x * sgeo[surf_offset + NXID]
-                               + visc_stress_vector_y * sgeo[surf_offset + NYID]
-                               + visc_stress_vector_z * sgeo[surf_offset + NZID];
-
-
-          double shear_stress_x = visc_stress_vector_x - (normal_stress * sgeo[surf_offset + NXID]);
-          double shear_stress_y = visc_stress_vector_y - (normal_stress * sgeo[surf_offset + NYID]);
-          double shear_stress_z = visc_stress_vector_z - (normal_stress * sgeo[surf_offset + NZID]);
-
-
-          tau_wall[vol_id]= std::sqrt(  std::pow(shear_stress_x,2)
-                                      + std::pow(shear_stress_y,2)
-                                      + std::pow(shear_stress_z,2) );
-
+          tau_wall[vol_id]= visc_stress_vector_x * sgeo[surf_offset + T1XID]
+                          + visc_stress_vector_y * sgeo[surf_offset + T1YID]
+                          + visc_stress_vector_z * sgeo[surf_offset + T1ZID] ;
         }
       }
     }
@@ -1786,26 +1766,26 @@ traction(const int id)
   return _traction[id];
 }
 
-// double
-// traction_x(const int id)
-// {
-//   nrs_t * nrs = (nrs_t *)nrsPtr();
-//   return _traction[id + 0 * nrs->fieldOffset];
-// }
-// 
-// double
-// traction_y(const int id)
-// {
-//   nrs_t * nrs = (nrs_t *)nrsPtr();
-//   return _traction[id + 1 * nrs->fieldOffset];
-// }
-// 
-// double
-// traction_z(const int id)
-// {
-//   nrs_t * nrs = (nrs_t *)nrsPtr();
-//   return _traction[id + 2 * nrs->fieldOffset];
-// }
+double
+traction_x(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _traction[id + 0 * nrs->fieldOffset];
+}
+
+double
+traction_y(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _traction[id + 1 * nrs->fieldOffset];
+}
+
+double
+traction_z(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _traction[id + 2 * nrs->fieldOffset];
+}
 
 double
 ros_s11(const int id)
@@ -1958,18 +1938,18 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
     case field::wall_shear:
       f = &wall_shear;
       break;
-    case field::traction:
-      f = &traction;
+//    case field::traction:
+//      f = &traction;
+//      break;
+    case field::traction_x:
+      f = &traction_x;
       break;
-//    case field::traction_x:
-//      f = &traction_x;
-//      break;
-//    case field::traction_y:
-//      f = &traction_y;
-//      break;
-//    case field::traction_z:
-//      f = &traction_z;
-//      break;
+    case field::traction_y:
+      f = &traction_y;
+      break;
+    case field::traction_z:
+      f = &traction_z;
+      break;
     case field::ros_s11:
       f = &ros_s11;
       break;
@@ -2127,18 +2107,18 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
     case field::wall_shear:
       // TODO: add dimensionalization
       break;
-    case field::traction:
+//    case field::traction:
+//      // TODO: add dimensionalization
+//      break;
+    case field::traction_x:
       // TODO: add dimensionalization
       break;
-//    case field::traction_x:
-//      // TODO: add dimensionalization
-//      break;
-//    case field::traction_y:
-//      // TODO: add dimensionalization
-//      break;
-//    case field::traction_z:
-//      // TODO: add dimensionalization
-//      break;
+    case field::traction_y:
+      // TODO: add dimensionalization
+      break;
+    case field::traction_z:
+      // TODO: add dimensionalization
+      break;
     case field::ros_s11:
       // TODO: add dimensionalization
       break;
