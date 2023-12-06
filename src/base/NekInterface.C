@@ -1509,22 +1509,18 @@ computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
-          unx = sgeo[surf_offset + NXID];
-          uny = sgeo[surf_offset + NYID];
-          unz = sgeo[surf_offset + NZID];
-
           //TODO: explain reasoning below
-          traction[nrs_offset*0 + vol_id] = Tau_ij[0*nrs_offset + vol_id] * unx/unx
-                                          + Tau_ij[3*nrs_offset + vol_id] * uny/uny
-                                          + Tau_ij[5*nrs_offset + vol_id] * unz/unz;
+          traction[nrs_offset*0 + vol_id] = Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                          + Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                          + Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
 
-          traction[nrs_offset*1 + vol_id] = Tau_ij[3*nrs_offset + vol_id] * unx/unx
-                                          + Tau_ij[1*nrs_offset + vol_id] * uny/uny
-                                          + Tau_ij[4*nrs_offset + vol_id] * unz/unz;
+          traction[nrs_offset*1 + vol_id] = Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                          + Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                          + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
 
-          traction[nrs_offset*2 + vol_id] = Tau_ij[5*nrs_offset + vol_id] * unx/unx
-                                          + Tau_ij[4*nrs_offset + vol_id] * uny/uny
-                                          + Tau_ij[2*nrs_offset + vol_id] * unz/unz;
+          traction[nrs_offset*2 + vol_id] = Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                          + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                          + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
         }
       }
     }
