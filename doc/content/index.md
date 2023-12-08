@@ -62,6 +62,9 @@ Full-core multiphysics model of a high temperature gas reactor using OpenMC-THM-
 !card media/msr_skin.png title=Molten Salt Reactors
 Multiphysics model of a Molten Salt Fast Reactor using NekRS-OpenMC [!cite](novak_2023). OpenMC geometry uses CAD, with on-the-fly adaptive re-generation of the OpenMC cells according to contours in temperature and/or density feedback.
 
+!card media/mrad.png title=Heat Pipe Reactors
+Multiphysics model of a Heat Pipe Microreactor using OpenMC-MOOSE-Sockeye [!cite](eltawila).
+
 !card media/sfr_fluid_planes.png title=Fast Reactors
 Multiphysics model of a 7-pin SFR fuel bundle using NekRS-OpenMC-MOOSE [!cite](novak2022); figure shows fluid temperature predicted by a momentum source NekRS model with solid duct temperature predicted by BISON.
 
