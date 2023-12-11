@@ -666,7 +666,7 @@ initializeRateOfStrainTensor()
 void
 initializeTraction()
 {
-  nekrs::_traction = (double *)calloc(3*velocityFieldOffset(), sizeof(double));
+  nekrs::_traction = (double *)calloc(4*velocityFieldOffset(), sizeof(double)); //TODO: finalize size
 }
 
 void
@@ -1510,18 +1510,32 @@ computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
           int vol_id = mesh->vmapM[offset + v];
           int surf_offset = mesh->Nsgeo * (offset + v);
 
+          double nx =  sgeo[surf_offset + NXID];
+          double ny =  sgeo[surf_offset + NYID];
+          double nz =  sgeo[surf_offset + NZID];
           //TODO: explain reasoning below
-          traction[nrs_offset*0 + vol_id] = Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                          + Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                          + Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          traction[nrs_offset*0 + vol_id] = Tau_ij[0*nrs_offset + vol_id] * nx
+                                          + Tau_ij[3*nrs_offset + vol_id] * ny
+                                          + Tau_ij[5*nrs_offset + vol_id] * nz;
 
-          traction[nrs_offset*1 + vol_id] = Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                          + Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                          + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          traction[nrs_offset*1 + vol_id] = Tau_ij[3*nrs_offset + vol_id] * nx
+                                          + Tau_ij[1*nrs_offset + vol_id] * ny
+                                          + Tau_ij[4*nrs_offset + vol_id] * nz;
 
-          traction[nrs_offset*2 + vol_id] = Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
-                                          + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
-                                          + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID];
+          traction[nrs_offset*2 + vol_id] = Tau_ij[5*nrs_offset + vol_id] * nx
+                                          + Tau_ij[4*nrs_offset + vol_id] * ny
+                                          + Tau_ij[2*nrs_offset + vol_id] * nz;
+
+          double t_dot_n = traction[0*nrs_offset + vol_id] * nx  // TODO: decide whether to keep
+                         + traction[1*nrs_offset + vol_id] * ny
+                         + traction[2*nrs_offset + vol_id] * nz;
+
+          double tx = traction[nrs_offset*0 + vol_id];
+          double ty = traction[nrs_offset*1 + vol_id];
+          double tz = traction[nrs_offset*2 + vol_id];
+
+          traction[nrs_offset*3 + vol_id] = (t_dot_n/t_dot_n) *
+                                          std::sqrt( tx * tx + ty * ty + tz * tz);
         }
       }
     }
@@ -1759,7 +1773,7 @@ double
 traction(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  return _traction[id];
+  return _traction[id+ 3 * nrs->fieldOffset]; //TODO: decide whether to keep this or not
 }
 
 double
@@ -1934,9 +1948,9 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
     case field::wall_shear:
       f = &wall_shear;
       break;
-//    case field::traction:
-//      f = &traction;
-//      break;
+    case field::traction:
+      f = &traction;
+      break;
     case field::traction_x:
       f = &traction_x;
       break;
@@ -2103,9 +2117,9 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
     case field::wall_shear:
       // TODO: add dimensionalization
       break;
-//    case field::traction:
-//      // TODO: add dimensionalization
-//      break;
+    case field::traction:
+      // TODO: add dimensionalization
+      break;
     case field::traction_x:
       // TODO: add dimensionalization
       break;

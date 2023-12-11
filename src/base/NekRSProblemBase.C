@@ -912,8 +912,8 @@ NekRSProblemBase::extractOutputs()
         field_enum = field::scalar03;
       else if (_var_names[i] == "wall_shear")
         field_enum = field::wall_shear;
-//      else if (_var_names[i] == "traction")
-//        field_enum = field::traction;
+      else if (_var_names[i] == "traction")
+        field_enum = field::traction;
       else if (_var_names[i] == "traction_x")
         field_enum = field::traction_x;
       else if (_var_names[i] == "traction_y")
@@ -1013,7 +1013,7 @@ NekRSProblemBase::addExternalVariables()
       }
       else if (output == "traction")
       {
-//        _var_names.push_back("traction");
+        _var_names.push_back("traction");
         _var_names.push_back("traction_x");
         _var_names.push_back("traction_y");
         _var_names.push_back("traction_z");
