@@ -98,7 +98,7 @@ enum NekFieldEnum
   scalar02,
   scalar03,
   wall_shear,
-//  traction,
+  traction,
   traction_x,
   traction_y,
   traction_z,
