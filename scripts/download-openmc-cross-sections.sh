@@ -2,7 +2,7 @@
 set -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-DOWNLOAD_DIR=${1:-$(realpath $SCRIPT_DIR/..)/cross_sections}
+DOWNLOAD_DIR=${1:-$(realpath $SCRIPT_DIR/../..)/cross_sections}
 XS_VERSION=endfb-vii.1-hdf5
 XS_DIR=${DOWNLOAD_DIR}/${XS_VERSION}
 
