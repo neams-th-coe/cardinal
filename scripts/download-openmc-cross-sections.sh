@@ -9,7 +9,7 @@ XS_DIR=${DOWNLOAD_DIR}/${XS_VERSION}
 if [[ ! -d ${XS_DIR} ]]; then
   mkdir -p ${XS_DIR}
   echo "Downloading cross sections to ${XS_DIR}"
-  wget -q -O - https://anl.box.com/shared/static/9igk353zpy8fn9ttvtrqgzvw1vtejoz6.xz | tar -C ${DOWNLOAD_DIR} -xJ
+  wget -q -O - https://anl.box.com/shared/static/9igk353zpy8fn9ttvtrqgzvw1vtejoz6.xz | tar -C ${DOWNLOAD_DIR} -xJ --no-same-owner
 else
   echo "Skipping cross section download because ${XS_DIR} already exists."
 fi
