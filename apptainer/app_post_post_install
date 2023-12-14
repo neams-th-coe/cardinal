@@ -1,0 +1,3 @@
+# Copy script for getting cross sections for the test section
+cp ${APPLICATION_DIR}/scripts/download-openmc-cross-sections.sh ${MOOSE_PREFIX}/share/${BINARY_NAME}
+chmod +x ${MOOSE_PREFIX}/share/${BINARY_NAME}/download-openmc-cross-sections.sh
