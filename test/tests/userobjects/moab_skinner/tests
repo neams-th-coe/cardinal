@@ -21,6 +21,7 @@
     command = '../../../../install/bin/mbconvert moab_skins_0.h5m skins0.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
     required_objects = 'MoabSkinner'
+    installation_type = in_tree
   []
   [convert_to_gmsh_step1]
     type = RunCommand
@@ -28,6 +29,7 @@
     command = '../../../../install/bin/mbconvert moab_skins_1.h5m skins1.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
     required_objects = 'MoabSkinner'
+    installation_type = in_tree
   []
   [check_skins_step0]
     type = Exodiff
