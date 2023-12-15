@@ -13,6 +13,7 @@
     command = '../../../../../install/bin/mbconvert moab_mesh_0.h5m mesh.msh'
     requirement = "The system shall be able to convert a .h5m file to gmsh"
     required_objects = 'MoabSkinner'
+    installation_type = in_tree
   []
   [check_volume0]
     type = Exodiff
