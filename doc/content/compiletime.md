@@ -26,3 +26,17 @@ We're not exactly sure what the nature of the error is, but have
 [an issue](https://github.com/neams-th-coe/cardinal/issues/556)
 to track it. If this is affecting your workflow, please contact us so that
 we can reprioritize it.
+
+
+## Linking Errors After Updating Source
+
+Sometimes, despite following all instructions, `make` will not work. For example, if it has been a while since updating Cardinal source, you have cleaned out `build/` and `install/`, and building causes a linking error similar to
+
+```
+Linking libpng: -lpng16 -lz
+Linking Library cardinal/contrib/moose/framework/libmoose-opt.la...
+/usr/bin/ld: cannot find -lptscotchparmetis
+collect2: error: ld returned 1 exit status
+```
+
+try running `git clean -xfd` from `cardinal/contrib/moose` or wherever you are pointing to MOOSE via the `MOOSE_DIR` variable. If all else fails, clone cardinal in a new location and start the instructions from the beginning. This should prevent any old builds from interfering with the build process. If a fresh clone and rebuild fails, there maybe be environment issues with your system.
