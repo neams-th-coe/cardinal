@@ -68,9 +68,12 @@ CardinalApp::validParams()
   params.addCommandLineParam<int>(
       "nekrs_buildonly", "--nekrs-buildonly [#procs]", "#procs to build NekRS if pre-compiling");
   params.addCommandLineParam<int>("nekrs_cimode", "--nekrs-cimode [id]", "CI test ID for NekRS");
-  params.addCommandLineParam<std::string>("nekrs_backend", "--nekrs-backend",
-    "Backend to use for NekRS parallelism; options: CPU, CUDA, HIP, OPENCL, OPENMP");
-  params.addCommandLineParam<std::string>("nekrs_device_id", "--nekrs-device-id", "NekRS device ID");
+  params.addCommandLineParam<std::string>(
+      "nekrs_backend",
+      "--nekrs-backend",
+      "Backend to use for NekRS parallelism; options: CPU, CUDA, HIP, OPENCL, OPENMP");
+  params.addCommandLineParam<std::string>(
+      "nekrs_device_id", "--nekrs-device-id", "NekRS device ID");
 
   params.set<bool>("use_legacy_material_output") = false;
   params.set<bool>("error_unused") = false;
@@ -80,45 +83,7 @@ CardinalApp::validParams()
 
 CardinalApp::CardinalApp(InputParameters parameters) : MooseApp(parameters)
 {
-  ModulesApp::registerAllObjects<CardinalApp>(_factory, _action_factory, _syntax);
   CardinalApp::registerAll(_factory, _action_factory, _syntax);
-
-#ifdef ENABLE_GRIFFIN_COUPLING
-  GriffinApp::registerApps();
-  GriffinApp::registerAll(_factory, _action_factory, _syntax);
-  RadiationTransportApp::registerApps();
-  RadiationTransportApp::registerAll(_factory, _action_factory, _syntax);
-#endif
-
-#ifdef ENABLE_BISON_COUPLING
-  BisonApp::registerApps();
-  BisonApp::registerAll(_factory, _action_factory, _syntax);
-#endif
-
-#ifdef ENABLE_SAM_COUPLING
-  SamApp::registerApps();
-  SamApp::registerAll(_factory, _action_factory, _syntax);
-#endif
-
-#ifdef ENABLE_SOCKEYE_COUPLING
-  SockeyeApp::registerApps();
-  SockeyeApp::registerAll(_factory, _action_factory, _syntax);
-#endif
-
-#ifdef ENABLE_SODIUM
-  SodiumApp::registerApps();
-  SodiumApp::registerAll(_factory, _action_factory, _syntax);
-#endif
-
-#ifdef ENABLE_POTASSIUM
-  PotassiumApp::registerApps();
-  PotassiumApp::registerAll(_factory, _action_factory, _syntax);
-#endif
-
-#ifdef ENABLE_IAPWS95
-  IAPWS95App::registerApps();
-  IAPWS95App::registerAll(_factory, _action_factory, _syntax);
-#endif
 }
 
 void
@@ -126,6 +91,37 @@ CardinalApp::registerAll(Factory & f, ActionFactory & af, Syntax & s)
 {
   Registry::registerObjectsTo(f, {"CardinalApp"});
   Registry::registerActionsTo(af, {"CardinalApp"});
+
+  ModulesApp::registerAllObjects<CardinalApp>(f, af, s);
+
+#ifdef ENABLE_GRIFFIN_COUPLING
+  GriffinApp::registerAll(f, af, s);
+  RadiationTransportApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_BISON_COUPLING
+  BisonApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_SAM_COUPLING
+  SamApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_SOCKEYE_COUPLING
+  SockeyeApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_SODIUM
+  SodiumApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_POTASSIUM
+  PotassiumApp::registerAll(f, af, s);
+#endif
+
+#ifdef ENABLE_IAPWS95
+  IAPWS95App::registerAll(f, af, s);
+#endif
 
   /* register custom execute flags, action syntax, etc. here */
 #ifdef ENABLE_NEK_COUPLING
@@ -139,6 +135,8 @@ void
 CardinalApp::registerApps()
 {
   registerApp(CardinalApp);
+
+  ModulesApp::registerApps();
 
 #ifdef ENABLE_GRIFFIN_COUPLING
   GriffinApp::registerApps();
