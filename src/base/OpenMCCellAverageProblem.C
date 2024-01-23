@@ -1801,7 +1801,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // Get the element subdomains within each cell
   getCellMappedSubdomains();
 
-  if (_cell_to_elem.size() == 0 && _tally_type != tally::none)
+  if (_cell_to_elem.size() == 0 && _tally_type == tally::cell)
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
