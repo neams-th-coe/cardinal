@@ -189,16 +189,12 @@ you can simply
 
 `OpenMCCellAverageProblem` will loop over all the elements
 and map each to an OpenMC cell according to the element centroid.
-[openmc_mesh] depicts an OpenMC geometry, a mesh mirror,
+[openmc_mesh] depicts an OpenMC geometry, a mesh on which temperature exists,
 and a visualization of the mapping from these elements to the OpenMC cells.
-For the cell IDs colored in the lower left, the element-to-cell mapping is shown
-on the right. The insert in the lower right shows the boundary of an OpenMC cell
-as a white dashed line; the element centroids, shown as white dots, determine the
-cell-to-element mapping.
 
-!media openmc_mesh.png
+!media nc.png
   id=openmc_mesh
-  caption=Illustration of OpenMC particle transport geometry and the mapping of OpenMC cells to a user-supplied "mesh mirror."
+  caption=Illustration of OpenMC particle transport geometry and the mapping of OpenMC cells to mesh on which temperature is defined.
 
 !alert tip
 You can visualize how the OpenMC cells map to the mesh using auxiliary kernels such
