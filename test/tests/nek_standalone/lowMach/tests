@@ -14,7 +14,6 @@
     min_parallel = 2
     rel_err = 1e-5
     abs_zero = 5e-7
-    prereq = precompile
     requirement = "Cardinal shall be able to run the channel NekRS example with a thin wrapper "
                   "when using a volume mesh mirror. "
                   "We add postprocessors to let us compare min/max values printed to the screen by "
@@ -32,7 +31,6 @@
     csvdiff = nek_boundary_out.csv
     min_parallel = 2
     abs_zero = 5e-7
-    prereq = precompile
     requirement = "Cardinal shall be able to run the channel NekRS example with a thin wrapper "
                   "when using a boundary mesh mirror. "
                   "We add postprocessors to let us compare min/max values printed to the screen by "
