@@ -22,6 +22,7 @@
     requirement = "The system shall be able to convert a .h5m file to gmsh"
     required_objects = 'MoabSkinner'
     installation_type = in_tree
+    use_shell = True
   []
   [convert_to_gmsh_step1]
     type = RunCommand
@@ -30,6 +31,7 @@
     requirement = "The system shall be able to convert a .h5m file to gmsh"
     required_objects = 'MoabSkinner'
     installation_type = in_tree
+    use_shell = True
   []
   [check_skins_step0]
     type = Exodiff

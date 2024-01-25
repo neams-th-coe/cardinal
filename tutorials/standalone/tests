@@ -4,6 +4,7 @@
     command = '${NEKRS_HOME}/bin/nrsmpi turbPipe 4'
     requirement = "The system shall run nekRS as a standalone run with the NekRS executable."
     required_objects = 'NekRSProblem'
+    use_shell = True
   []
   [standalone]
     type = RunApp

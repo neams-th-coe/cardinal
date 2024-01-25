@@ -4,6 +4,7 @@
     command = '${NEKRS_HOME}/bin/nrspre sfr_7pin 1'
     requirement = "The system shall precompile a Nek case in preparation for a multi-input simulation."
     required_objects = 'NekRSProblem'
+    use_shell = True
   []
   [nondim]
     type = Exodiff

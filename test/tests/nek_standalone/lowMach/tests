@@ -5,6 +5,7 @@
     requirement = "The system shall precompile a Nek case."
     required_objects = 'NekRSProblem'
     max_time = 400
+    use_shell = True
   []
   [volume]
     type = CSVDiff
