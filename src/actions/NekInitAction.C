@@ -133,7 +133,7 @@ NekInitAction::act()
                "recommend using the 'batch-restore' mode, which does not have any such limitations.");
   }
 
-  auto par = readPar(setup_file, comm);
+  auto par = readPar(casename, comm);
 
   nekrs::setup(
       comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
