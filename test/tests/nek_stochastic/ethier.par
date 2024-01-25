@@ -30,13 +30,3 @@ diffusivity = -100
 
 [SCALAR02]
 solver = none
-
-[CASEDATA]
-P_U0 = 0.5
-P_V0 = 0.1
-P_W0 = 0.2
-P_A0 = 0.025
-P_D0 = 0.5
-P_OMEGA = 15.0
-P_AMP = 1.5
-
