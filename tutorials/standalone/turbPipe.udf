@@ -1,6 +1,3 @@
-//
-// nekRS User Defined File
-//
 #include "udf.hpp"
 #include "plugins/velRecycling.hpp"
 #include "plugins/tavg.hpp"
@@ -18,10 +15,10 @@ static int NELSLAB;
 void UDF_Setup(nrs_t *nrs)
 {
   mesh_t *mesh = nrs->meshV;
-  zLen = abs( 
-              platform->linAlg->max(mesh->Nlocal, mesh->o_z, platform->comm.mpiComm) - 
+  zLen = abs(
+              platform->linAlg->max(mesh->Nlocal, mesh->o_z, platform->comm.mpiComm) -
               platform->linAlg->min(mesh->Nlocal, mesh->o_z, platform->comm.mpiComm)
-            ); 
+            );
 
   // set IC
   if (platform->options.getArgs("RESTART FILE NAME").empty()) {
@@ -67,12 +64,7 @@ void UDF_Setup(nrs_t *nrs)
   const dfloat uBulk = 1.0;
   const int bID = 1;
   dfloat zRecycLayer = 0.25 * zLen;
-#if 0
-  const hlong offset = NELSLAB * round(NSLABS * zRecycLayer / zLen);
-  velRecycling::setup(nrs, nrs->o_usrwrk, offset, bID, uBulk);
-#else
   velRecycling::setup(nrs, nrs->o_usrwrk, 0.0, 0.0, zRecycLayer, bID, uBulk);
-#endif
 
   tavg::setup(nrs);
 }
