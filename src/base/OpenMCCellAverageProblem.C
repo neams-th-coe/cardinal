@@ -776,7 +776,9 @@ OpenMCCellAverageProblem::initialSetup()
 
   getOpenMCNuclideDensitiesUserObjects();
 
-  if (isParamValid("volume_calculation"))
+  if (!_needs_to_map_cells)
+    checkUnusedParam(parameters(), "volume_calculation", "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
+  else if (isParamValid("volume_calculation"))
   {
     const auto & name = getParam<UserObjectName>("volume_calculation");
     auto * base = &getUserObject<UserObject>(name);
