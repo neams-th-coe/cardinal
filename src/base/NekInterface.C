@@ -91,7 +91,8 @@ write_field_file(const std::string & prefix, const dfloat time, const int & step
     Nscalar = nrs->Nscalar;
   }
 
-  writeFld(prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->o_U, nrs->o_P, o_s, Nscalar);
+  writeFld(
+      prefix.c_str(), time, step, 1 /* coords */, 1 /* FP64 */, nrs->o_U, nrs->o_P, o_s, Nscalar);
 }
 
 void

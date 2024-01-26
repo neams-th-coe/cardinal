@@ -42,7 +42,7 @@ protected:
    * Copied from NekRS because they do not want to move this to a file
    * other than main.cpp :|
    */
-  inipp::Ini* readPar(const std::string &_setupFile, MPI_Comm comm);
+  inipp::Ini * readPar(const std::string & _setupFile, MPI_Comm comm);
 
   /// whether the user specified how many scratch slots to allocate
   const bool _specified_scratch;

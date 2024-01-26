@@ -199,8 +199,8 @@ NekInitAction::act()
   }
 }
 
-inipp::Ini*
-NekInitAction::readPar(const std::string &_setupFile, MPI_Comm comm)
+inipp::Ini *
+NekInitAction::readPar(const std::string & _setupFile, MPI_Comm comm)
 {
   auto par = new inipp::Ini();
 
@@ -210,22 +210,26 @@ NekInitAction::readPar(const std::string &_setupFile, MPI_Comm comm)
   const auto setupFile = _setupFile + ".par";
 
   int err = 0;
-  if (rank == 0) {
-    if (!std::filesystem::exists(setupFile)) {
+  if (rank == 0)
+  {
+    if (!std::filesystem::exists(setupFile))
+    {
       std::cerr << "Cannot find setup file " << setupFile << std::endl;
       err++;
     }
   }
   MPI_Allreduce(MPI_IN_PLACE, &err, 1, MPI_INT, MPI_MAX, comm);
-  if (err) {
+  if (err)
+  {
     MPI_Abort(comm, EXIT_FAILURE);
   }
 
-  char *rbuf;
+  char * rbuf;
   long fsize;
 
-  if (rank == 0) {
-    FILE *f = fopen(setupFile.c_str(), "rb");
+  if (rank == 0)
+  {
+    FILE * f = fopen(setupFile.c_str(), "rb");
     fseek(f, 0, SEEK_END);
     fsize = ftell(f);
     fseek(f, 0, SEEK_SET);

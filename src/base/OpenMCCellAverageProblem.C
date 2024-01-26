@@ -777,7 +777,9 @@ OpenMCCellAverageProblem::initialSetup()
   getOpenMCNuclideDensitiesUserObjects();
 
   if (!_needs_to_map_cells)
-    checkUnusedParam(parameters(), "volume_calculation", "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
+    checkUnusedParam(parameters(),
+                     "volume_calculation",
+                     "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
   else if (isParamValid("volume_calculation"))
   {
     const auto & name = getParam<UserObjectName>("volume_calculation");
@@ -1807,28 +1809,36 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   VariadicTable<std::string, int, int, int, int> vt(
       {"", "# T Elems", "# rho Elems", "# T+rho Elems", "# Uncoupled Elems"});
   vt.addRow("MOOSE mesh", _n_moose_solid_elems, 0, _n_moose_fluid_elems, _n_moose_none_elems);
-  vt.addRow("OpenMC cells",
-            _n_mapped_solid_elems,
-            0,
-            _n_mapped_fluid_elems,
-            _n_mapped_none_elems);
+  vt.addRow("OpenMC cells", _n_mapped_solid_elems, 0, _n_mapped_fluid_elems, _n_mapped_none_elems);
   vt.print(_console);
   _console << std::endl;
 
   if (_needs_to_map_cells)
   {
     if (_n_moose_solid_elems && (_n_mapped_solid_elems != _n_moose_solid_elems))
-      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_solid_elems) + " elements providing temperature feedback (the elements in 'temperature_blocks'), but only " + Moose::stringify(_n_mapped_solid_elems) + " got mapped to OpenMC cells.");
+      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_solid_elems) +
+                   " elements providing temperature feedback (the elements in "
+                   "'temperature_blocks'), but only " +
+                   Moose::stringify(_n_mapped_solid_elems) + " got mapped to OpenMC cells.");
 
     if (_n_moose_fluid_elems && (_n_mapped_fluid_elems != _n_moose_fluid_elems))
-      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_fluid_elems) + " elements providing temperature and density feedback (the elements in the intersection of 'temperature_blocks' and 'density_blocks'), but only " + Moose::stringify(_n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
+      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_fluid_elems) +
+                   " elements providing temperature and density feedback (the elements in the "
+                   "intersection of 'temperature_blocks' and 'density_blocks'), but only " +
+                   Moose::stringify(_n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
 
     if (_n_mapped_none_elems)
-      mooseWarning("Skipping OpenMC multiphysics feedback from " + Moose::stringify(_n_mapped_none_elems) + " [Mesh] elements, which occupy a volume of: " + Moose::stringify(_uncoupled_volume * _scaling * _scaling * _scaling) + " cm3");
+      mooseWarning("Skipping OpenMC multiphysics feedback from " +
+                   Moose::stringify(_n_mapped_none_elems) +
+                   " [Mesh] elements, which occupy a volume of: " +
+                   Moose::stringify(_uncoupled_volume * _scaling * _scaling * _scaling) + " cm3");
 
     if (_n_openmc_cells < _cell_to_elem.size())
-      mooseError("Internal error: _cell_to_elem has length ", _cell_to_elem.size(), " which should\n"
-        "not exceed the number of OpenMC cells, ", _n_openmc_cells);
+      mooseError("Internal error: _cell_to_elem has length ",
+                 _cell_to_elem.size(),
+                 " which should\n"
+                 "not exceed the number of OpenMC cells, ",
+                 _n_openmc_cells);
 
     // If there is a single coordinate level, we can print a helpful message if there are uncoupled
     // cells in the domain
@@ -1846,7 +1856,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
         // for a single-level geometry, we know that all cells will have just 1 instance,
         // because distributed cells are inherently tied to being repeated (which is not
         // possible with a single universe)
-        cellInfo cell {openmc::model::cell_map[c->id_], 0 /* instance */};
+        cellInfo cell{openmc::model::cell_map[c->id_], 0 /* instance */};
         if (!cellIsVoid(cell) && !_cell_to_elem.count(cell))
         {
           n_missing++;
@@ -1860,7 +1870,11 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
       if (n_missing)
       {
         std::stringstream msg;
-        msg << "Skipping multiphysics feedback for " << n_missing << " OpenMC cells!\n\nThis means that there are " << n_missing << " non-void cells in your OpenMC model that will not receive feedback. This is normal if you are intentionally excluding some cells from feedback. The unmapped cells are:\n\n";
+        msg << "Skipping multiphysics feedback for " << n_missing
+            << " OpenMC cells!\n\nThis means that there are " << n_missing
+            << " non-void cells in your OpenMC model that will not receive feedback. This is "
+               "normal if you are intentionally excluding some cells from feedback. The unmapped "
+               "cells are:\n\n";
 
         vt.print(msg);
         mooseWarning(msg.str());
@@ -2466,7 +2480,8 @@ OpenMCCellAverageProblem::initializeTallies()
     case tally::cell:
     {
       auto tally_cells = getTallyCells();
-      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " + Moose::stringify(tally_cells.size()) + " cells... ";
+      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
+                      Moose::stringify(tally_cells.size()) + " cells... ";
 
       for (unsigned int i = 0; i < _tally_score.size(); ++i)
       {
@@ -2489,7 +2504,8 @@ OpenMCCellAverageProblem::initializeTallies()
 
       std::string name = _mesh_template_filename ? *_mesh_template_filename : "the [Mesh]";
       std::string tally = n_translations > 1 ? "tallies" : "tally";
-      _console << "\nAdding " << n_translations << " mesh " << tally << " based on " + name << "... ";
+      _console << "\nAdding " << n_translations << " mesh " << tally << " based on " + name
+               << "... ";
 
       for (unsigned int i = 0; i < _tally_score.size(); ++i)
       {
