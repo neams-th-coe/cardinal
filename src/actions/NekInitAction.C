@@ -20,7 +20,6 @@
 
 #include "NekInitAction.h"
 #include "NekInterface.h"
-#include "nekrs.hpp"
 
 #include "MooseApp.h"
 #include "CommandLine.h"
