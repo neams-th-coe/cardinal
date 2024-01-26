@@ -4,6 +4,7 @@
     command = 'rm -rf .cache/'
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     required_objects = 'NekRSProblem'
+    use_shell = True
   []
   [driver_multi_1]
     type = CSVDiff
@@ -23,6 +24,7 @@
     command = 'rm -rf .cache/'
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     required_objects = 'NekRSProblem'
+    use_shell = True
   []
   [driver_multi_2]
     type = CSVDiff
@@ -44,6 +46,7 @@
     prereq = driver_multi_2
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     required_objects = 'NekRSProblem'
+    use_shell = True
   []
   [driver_multi_3]
     type = CSVDiff
@@ -65,6 +68,7 @@
     prereq = driver_multi_3
     requirement = "The system shall clear the cache before attempting the test with another set of ranks."
     required_objects = 'NekRSProblem'
+    use_shell = True
   []
   [driver_multi_4]
     type = CSVDiff

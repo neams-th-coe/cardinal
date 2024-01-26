@@ -32,7 +32,7 @@ NekSidePostprocessor::validParams()
 NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters)
   : NekPostprocessor(parameters), _boundary(getParam<std::vector<int>>("boundary"))
 {
-  const auto & filename = getMooseApp().getInputFileName();
+  const auto & filename = getMooseApp().getLastInputFileName();
 
   // check that each specified boundary is within the range [1, n_fluid_boundaries]
   // that nekRS recognizes for its problem
