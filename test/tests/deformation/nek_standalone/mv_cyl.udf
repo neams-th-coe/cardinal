@@ -66,7 +66,7 @@ void meshVelocityDirichletConditions(bcData *bc)
                               const dlong offset,
                               const dfloat hmin,
                               const dfloat hmax,
-                              const dfloat time,
+                              const double time,
                               @ restrict const dfloat *h,
                               @ restrict dfloat *W)
 {
@@ -91,18 +91,18 @@ void meshVelocityDirichletConditions(bcData *bc)
 
 #endif
 
-void userq(nrs_t *nrs, dfloat time, occa::memory o_S, occa::memory o_SU)
+void userq(nrs_t *nrs, double time, occa::memory o_S, occa::memory o_SU)
 {
   lowMach::dpdt(o_SU);
 }
 
-void qtl(nrs_t *nrs, dfloat time, occa::memory o_div)
+void qtl(nrs_t *nrs, double time, occa::memory o_div)
 {
   lowMach::qThermalSingleComponent(time, o_div);
 }
 
 void uservp(nrs_t *nrs,
-            dfloat time,
+            double time,
             occa::memory o_U,
             occa::memory o_S,
             occa::memory o_UProp,
@@ -181,7 +181,7 @@ void UDF_Setup(nrs_t *nrs)
   udf.div = &qtl;
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
   mesh_t *mesh = nrs->meshV;
   cds_t *cds = nrs->cds;

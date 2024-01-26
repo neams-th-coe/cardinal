@@ -1,6 +1,6 @@
 #include "udf.hpp"
 
-void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S, occa::memory o_UProp, occa::memory o_SProp)
+void uservp(nrs_t *nrs, double time, occa::memory o_U, occa::memory o_S, occa::memory o_UProp, occa::memory o_SProp)
 {
   if (!nrs->usrwrk)
     return;

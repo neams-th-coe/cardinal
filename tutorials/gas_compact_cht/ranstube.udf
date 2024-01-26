@@ -8,7 +8,7 @@ occa::memory o_mu_t_from_restart;
 
 static occa::kernel scalarScaledAddKernel;
 
-void turbulent_props(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+void turbulent_props(nrs_t *nrs, double time, occa::memory o_U, occa::memory o_S,
             occa::memory o_UProp, occa::memory o_SProp)
 {
   // fetch the laminar thermal conductivity and specify the desired turbulent Pr
@@ -53,6 +53,6 @@ void UDF_Setup(nrs_t *nrs)
   udf.properties = &turbulent_props;
 }
 
-void UDF_ExecuteStep(nrs_t * nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t * nrs, double time, int tstep)
 {
 }

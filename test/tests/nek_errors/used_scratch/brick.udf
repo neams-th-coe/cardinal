@@ -11,6 +11,6 @@ void UDF_Setup(nrs_t *nrs)
   nrs->o_usrwrk = platform->device.malloc(mesh->Nelements * mesh->Np * sizeof(double), nrs->usrwrk);
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
 }

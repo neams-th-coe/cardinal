@@ -7,7 +7,7 @@ void UDF_LoadKernels(occa::properties & kernelInfo)
   mooseHeatSourceKernel = oudfBuildKernel(kernelInfo, "mooseHeatSource");
 }
 
-void userq(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
+void userq(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
 {
   auto mesh = nrs->cds->mesh[0];
   mooseHeatSourceKernel(mesh->Nelements, 0, nrs->o_usrwrk, o_FS);
@@ -32,6 +32,6 @@ void UDF_Setup(nrs_t *nrs)
   udf.sEqnSource = &userq;
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
 }

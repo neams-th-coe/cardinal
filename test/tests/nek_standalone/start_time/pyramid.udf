@@ -53,7 +53,7 @@ void UDF_Setup(nrs_t *nrs)
   }
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
   if (time == 1.0005) // the first time step, but only if restarting
   {

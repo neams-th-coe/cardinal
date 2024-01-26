@@ -22,6 +22,6 @@ void UDF_Setup(nrs_t *nrs)
   platform->options.setArgs("SCALAR00 DIFFUSIVITY", "2.34");
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
 }
