@@ -1,12 +1,4 @@
 [Tests]
-  [precompile]
-    type = RunCommand
-    command = '${NEKRS_HOME}/bin/nrspre lowMach 1'
-    requirement = "The system shall precompile a Nek case."
-    required_objects = 'NekRSProblem'
-    max_time = 400
-    use_shell = True
-  []
   [volume]
     type = CSVDiff
     input = nek.i
@@ -14,7 +6,7 @@
     min_parallel = 2
     rel_err = 1e-5
     abs_zero = 5e-7
-    requirement = "Cardinal shall be able to run the channel NekRS example with a thin wrapper "
+    requirement = "Cardinal shall be able to run the lowMach NekRS example with a thin wrapper "
                   "when using a volume mesh mirror. "
                   "We add postprocessors to let us compare min/max values printed to the screen by "
                   "NekRS. We also check postprocessor differences between equivalent operations "
