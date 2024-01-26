@@ -24,21 +24,6 @@
 #include "UserErrorChecking.h"
 #include "CardinalAppTypes.h"
 
-#include "mpi.h"
-#include "openmc/bank.h"
-#include "openmc/capi.h"
-#include "openmc/cell.h"
-#include "openmc/geometry.h"
-#include "openmc/geometry_aux.h"
-#include "openmc/hdf5_interface.h"
-#include "openmc/material.h"
-#include "openmc/mesh.h"
-#include "openmc/settings.h"
-#include "openmc/simulation.h"
-#include "openmc/source.h"
-#include "openmc/state_point.h"
-#include "xtensor/xview.hpp"
-
 InputParameters
 OpenMCProblemBase::validParams()
 {
@@ -56,7 +41,7 @@ OpenMCProblemBase::validParams()
       "scaling",
       1.0,
       "scaling > 0.0",
-      "Scaling factor to apply to mesh to get to units of centimeters that OpenMC expects; "
+      "Scaling factor to apply to [Mesh] to get to units of centimeters that OpenMC expects; "
       "setting 'scaling = 100.0', for instance, indicates that the [Mesh] is in units of meters");
 
   // interfaces to directly set some OpenMC parameters
@@ -121,10 +106,11 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       {
         checkRequiredParam(params, "power", "running in k-eigenvalue mode");
         _power = &getPostprocessorValue("power");
-        checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
       }
       else
         checkUnusedParam(params, "power", "'tally_type = none'");
+
+      checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
       break;
     }
     case openmc::RunMode::FIXED_SOURCE:

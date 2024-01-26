@@ -29,27 +29,19 @@
 #include "VariadicTable.h"
 #include "UserErrorChecking.h"
 
-#include "mpi.h"
-#include "openmc/capi.h"
-#include "openmc/cell.h"
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
 #include "openmc/dagmc.h"
 #include "openmc/error.h"
 #include "openmc/particle.h"
-#include "openmc/geometry.h"
-#include "openmc/geometry_aux.h"
-#include "openmc/material.h"
 #include "openmc/message_passing.h"
 #include "openmc/nuclide.h"
 #include "openmc/random_lcg.h"
-#include "openmc/settings.h"
 #include "openmc/summary.h"
 #include "openmc/tallies/trigger.h"
 #include "openmc/volume_calc.h"
 #include "openmc/universe.h"
 #include "xtensor/xarray.hpp"
-#include "xtensor/xview.hpp"
 
 registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 
@@ -1810,77 +1802,67 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
                   Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels):"
            << std::endl;
 
-  VariadicTable<std::string, int, int, int, int, Real> vt(
-      {"", "# T Elems", "# rho Elems", "# T+rho Elems", "# Uncoupled Elems", "Length x"});
-  vt.addRow("MOOSE mesh", _n_moose_solid_elems, 0, _n_moose_fluid_elems, _n_moose_none_elems, 1.0);
+  VariadicTable<std::string, int, int, int, int> vt(
+      {"", "# T Elems", "# rho Elems", "# T+rho Elems", "# Uncoupled Elems"});
+  vt.addRow("MOOSE mesh", _n_moose_solid_elems, 0, _n_moose_fluid_elems, _n_moose_none_elems);
   vt.addRow("OpenMC cells",
             _n_mapped_solid_elems,
             0,
             _n_mapped_fluid_elems,
-            _n_mapped_none_elems,
-            _scaling);
+            _n_mapped_none_elems);
   vt.print(_console);
   _console << std::endl;
 
-  if (_n_moose_solid_elems && (_n_mapped_solid_elems != _n_moose_solid_elems))
-    mooseWarning("The MOOSE mesh has " + Moose::stringify(_n_moose_solid_elems) +
-                 " T elements, "
-                 "but only " +
-                 Moose::stringify(_n_mapped_solid_elems) + " got mapped to OpenMC cells.");
-
-  if (_n_moose_fluid_elems && (_n_mapped_fluid_elems != _n_moose_fluid_elems))
-    mooseWarning("The MOOSE mesh has " + Moose::stringify(_n_moose_fluid_elems) +
-                 " T+rho elements, "
-                 "but only " +
-                 Moose::stringify(_n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
-
-  if (_n_mapped_none_elems)
-    mooseWarning("Skipping multiphysics feedback for " + Moose::stringify(_n_mapped_none_elems) +
-                 " MOOSE elements, " + "which occupy a volume of (cm3): " +
-                 Moose::stringify(_uncoupled_volume * _scaling * _scaling * _scaling));
-
-  if (_n_openmc_cells < _cell_to_elem.size())
-    mooseError("Internal error: _cell_to_elem has length ", _cell_to_elem.size(), " which should\n"
-      "not exceed the number of OpenMC cells, ", _n_openmc_cells);
-
-  // If there is a single coordinate level, we can print a helpful message if there are uncoupled
-  // cells in the domain
-  auto n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
-  if (_single_coord_level && n_uncoupled_cells)
+  if (_needs_to_map_cells)
   {
-    // Get the number of uncoupled material cells (which we presumably want to include in our
-    // coupling). We don't care about VOID cells, because they will never have feedback.
-    VariadicTable<std::string, std::string> vt({"Cell", "Contained OpenMC Materials"});
+    if (_n_moose_solid_elems && (_n_mapped_solid_elems != _n_moose_solid_elems))
+      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_solid_elems) + " elements providing temperature feedback (the elements in 'temperature_blocks'), but only " + Moose::stringify(_n_mapped_solid_elems) + " got mapped to OpenMC cells.");
 
-    std::vector<cellInfo> missing_cells;
-    int n_missing = 0;
-    for (const auto & c : openmc::model::cells)
+    if (_n_moose_fluid_elems && (_n_mapped_fluid_elems != _n_moose_fluid_elems))
+      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_fluid_elems) + " elements providing temperature and density feedback (the elements in the intersection of 'temperature_blocks' and 'density_blocks'), but only " + Moose::stringify(_n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
+
+    if (_n_mapped_none_elems)
+      mooseWarning("Skipping OpenMC multiphysics feedback from " + Moose::stringify(_n_mapped_none_elems) + " [Mesh] elements, which occupy a volume of: " + Moose::stringify(_uncoupled_volume * _scaling * _scaling * _scaling) + " cm3");
+
+    if (_n_openmc_cells < _cell_to_elem.size())
+      mooseError("Internal error: _cell_to_elem has length ", _cell_to_elem.size(), " which should\n"
+        "not exceed the number of OpenMC cells, ", _n_openmc_cells);
+
+    // If there is a single coordinate level, we can print a helpful message if there are uncoupled
+    // cells in the domain
+    auto n_uncoupled_cells = _n_openmc_cells - _cell_to_elem.size();
+    if (_single_coord_level && n_uncoupled_cells)
     {
-      // for a single-level geometry, we know that all cells will have just 1 instance,
-      // because distributed cells are inherently tied to being repeated (which is not
-      // possible with a single universe)
-      cellInfo cell {openmc::model::cell_map[c->id_], 0 /* instance */};
-      if (!cellIsVoid(cell) && !_cell_to_elem.count(cell))
+      // Get the number of uncoupled material cells (which we presumably want to include in our
+      // coupling). We don't care about VOID cells, because they will never have feedback.
+      VariadicTable<std::string, std::string> vt({"Cell", "Contained OpenMC Materials"});
+
+      std::vector<cellInfo> missing_cells;
+      int n_missing = 0;
+      for (const auto & c : openmc::model::cells)
       {
-        n_missing++;
+        // for a single-level geometry, we know that all cells will have just 1 instance,
+        // because distributed cells are inherently tied to being repeated (which is not
+        // possible with a single universe)
+        cellInfo cell {openmc::model::cell_map[c->id_], 0 /* instance */};
+        if (!cellIsVoid(cell) && !_cell_to_elem.count(cell))
+        {
+          n_missing++;
 
-        int32_t material_index;
-        materialFill(cell, material_index);
-        vt.addRow(printCell(cell), materialName(material_index));
+          int32_t material_index;
+          materialFill(cell, material_index);
+          vt.addRow(printCell(cell), materialName(material_index));
+        }
       }
-    }
 
-    if (n_missing)
-    {
-      std::stringstream msg;
-      msg << "Skipping multiphysics feedback for " << n_missing <<
-             " OpenMC cells!\n\nThis means that there are " << n_missing <<
-             " non-void cells in your OpenMC model that will not receive feedback\n"
-             "from MOOSE. This is normal if you are intentionally excluding some cells from feedback. The\n"
-             "unmapped cells are:\n\n";
+      if (n_missing)
+      {
+        std::stringstream msg;
+        msg << "Skipping multiphysics feedback for " << n_missing << " OpenMC cells!\n\nThis means that there are " << n_missing << " non-void cells in your OpenMC model that will not receive feedback. This is normal if you are intentionally excluding some cells from feedback. The unmapped cells are:\n\n";
 
-      vt.print(msg);
-      mooseWarning(msg.str());
+        vt.print(msg);
+        mooseWarning(msg.str());
+      }
     }
   }
 
@@ -2482,9 +2464,7 @@ OpenMCCellAverageProblem::initializeTallies()
     case tally::cell:
     {
       auto tally_cells = getTallyCells();
-      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
-                      Moose::stringify(tally_cells.size()) + " cells..."
-               << std::endl;
+      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " + Moose::stringify(tally_cells.size()) + " cells... ";
 
       for (unsigned int i = 0; i < _tally_score.size(); ++i)
       {
@@ -2497,29 +2477,17 @@ OpenMCCellAverageProblem::initializeTallies()
       std::vector<openmc::Filter *> filter = {cellInstanceFilter(tally_cells)};
       addLocalTally(_tally_score, filter);
 
+      _console << "done" << std::endl;
+
       break;
     }
     case tally::mesh:
     {
       int n_translations = _mesh_translations.size();
 
-      std::string name = _mesh_template_filename ? *_mesh_template_filename : "the MOOSE [Mesh]";
-      _console << "Adding mesh tally based on " + name + " at " +
-                      Moose::stringify(n_translations) + " locations"
-               << std::endl;
-
-      VariadicTable<int, int, Real, Real, Real, Real> vt({"Mesh template",
-                                                          "# Elems",
-                                                          "           x",
-                                                          "           y",
-                                                          "           z",
-                                                          "      Volume"});
-      vt.setColumnFormat({VariadicTableColumnFormat::AUTO,
-                          VariadicTableColumnFormat::AUTO,
-                          VariadicTableColumnFormat::SCIENTIFIC,
-                          VariadicTableColumnFormat::SCIENTIFIC,
-                          VariadicTableColumnFormat::SCIENTIFIC,
-                          VariadicTableColumnFormat::SCIENTIFIC});
+      std::string name = _mesh_template_filename ? *_mesh_template_filename : "the [Mesh]";
+      std::string tally = n_translations > 1 ? "tallies" : "tally";
+      _console << "\nAdding " << n_translations << " mesh " << tally << " based on " + name << "... ";
 
       for (unsigned int i = 0; i < _tally_score.size(); ++i)
       {
@@ -2540,23 +2508,7 @@ OpenMCCellAverageProblem::initializeTallies()
         addLocalTally(_tally_score, filter);
       }
 
-      if (_verbose)
-      {
-        for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
-        {
-          const auto & translation = _mesh_translations[i];
-
-          Real volume = 0.0;
-          int32_t num_elems = _mesh_template->n_bins();
-          for (int32_t e = 0; e < num_elems; ++e)
-            volume += _mesh_template->volume(e);
-
-          vt.addRow(i, num_elems, translation(0), translation(1), translation(2), volume);
-        }
-
-        vt.print(_console);
-        _console << std::endl;
-      }
+      _console << "done" << std::endl;
 
       break;
     }
