@@ -4,6 +4,7 @@
     command = '${NEKRS_HOME}/bin/nrspre pyramid 1'
     requirement = "The system shall precompile a NekRS case."
     required_objects = 'NekRSProblem'
+    use_shell = True
   []
   [device]
     type = CSVDiff

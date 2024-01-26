@@ -14,6 +14,7 @@
     requirement = "The system shall be able to convert a .h5m file to gmsh"
     required_objects = 'MoabSkinner'
     installation_type = in_tree
+    use_shell = True
   []
   [check_volume0]
     type = Exodiff

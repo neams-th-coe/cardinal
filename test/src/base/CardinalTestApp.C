@@ -52,8 +52,8 @@ CardinalTestApp::registerAll(Factory & f, ActionFactory & af, Syntax & s, bool u
 void
 CardinalTestApp::registerApps()
 {
-  registerApp(CardinalApp);
   registerApp(CardinalTestApp);
+  CardinalApp::registerApps();
 }
 
 /***************************************************************************************************
