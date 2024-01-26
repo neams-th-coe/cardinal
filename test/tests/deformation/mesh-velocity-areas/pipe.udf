@@ -1,6 +1,3 @@
-//
-// nekRS User Defined File
-//
 #include <math.h>
 #include "udf.hpp"
 
@@ -21,8 +18,6 @@ void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
     platform->linAlg->fill(nrs->meshV->Nlocal, c3, o_mesh_rho);
   }
 }
-
-/* UDF Functions */
 
 void UDF_LoadKernels(occa::properties& kernelInfo)
 {
