@@ -1,3 +1,7 @@
+[GlobalParams]
+  search_value_conflicts = false
+[]
+
 [Mesh]
   [circle]
     type = AnnularMeshGenerator
