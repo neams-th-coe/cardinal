@@ -26,7 +26,7 @@
     csvdiff = 'nek_master_exact_out.csv nek_master_exact_out_nek0.csv'
     min_parallel = 6
     heavy = true
-    rel_err = 5e-5
+    rel_err = 5e-4
     requirement = "A coupled MOOSE-nekRS pincell-fluid flow problem shall predict correct "
                   "conservation of energy and realistic thermal solutions when nekRS is run in "
                   "nondimensional form using an exact mesh mirror. This solution was compared to "

@@ -22,8 +22,8 @@
   solver = none
 
 [SCALAR01]
-  boundaryTypeMap = t, t, t, t, t, t
-  residualTol = 1e-5
+  boundaryTypeMap = t, t, t, t, t, f
+  residualTol = 1e-6
   diffusivity = 1000.0
 
 [SCALAR02]

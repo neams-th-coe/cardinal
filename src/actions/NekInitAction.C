@@ -20,7 +20,6 @@
 
 #include "NekInitAction.h"
 #include "NekInterface.h"
-#include "nekrs.hpp"
 
 #include "MooseApp.h"
 #include "CommandLine.h"
@@ -133,12 +132,15 @@ NekInitAction::act()
                "recommend using the 'batch-restore' mode, which does not have any such limitations.");
   }
 
+  auto par = readPar(casename, comm);
+
   nekrs::setup(
       comm /* global communicator, like for Nek-Nek : NOT SUPPORTED, so we use same comm */,
       comm /* local communicator */,
       build_only,
       size_target,
       ci_mode,
+      par,
       casename,
       backend,
       device_id,
@@ -194,6 +196,59 @@ NekInitAction::act()
     // Initialize scratch space in NekRS to write data incoming data from MOOSE
     nekrs::initializeScratch(_n_usrwrk_slots);
   }
+}
+
+inipp::Ini *
+NekInitAction::readPar(const std::string & _setupFile, MPI_Comm comm)
+{
+  auto par = new inipp::Ini();
+
+  int rank;
+  MPI_Comm_rank(comm, &rank);
+
+  const auto setupFile = _setupFile + ".par";
+
+  int err = 0;
+  if (rank == 0)
+  {
+    if (!std::filesystem::exists(setupFile))
+    {
+      std::cerr << "Cannot find setup file " << setupFile << std::endl;
+      err++;
+    }
+  }
+  MPI_Allreduce(MPI_IN_PLACE, &err, 1, MPI_INT, MPI_MAX, comm);
+  if (err)
+  {
+    MPI_Abort(comm, EXIT_FAILURE);
+  }
+
+  char * rbuf;
+  long fsize;
+
+  if (rank == 0)
+  {
+    FILE * f = fopen(setupFile.c_str(), "rb");
+    fseek(f, 0, SEEK_END);
+    fsize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+    rbuf = new char[fsize];
+    auto s = fread(rbuf, 1, fsize, f);
+    fclose(f);
+  }
+  MPI_Bcast(&fsize, sizeof(fsize), MPI_BYTE, 0, comm);
+
+  if (rank != 0)
+    rbuf = new char[fsize];
+  MPI_Bcast(rbuf, fsize, MPI_CHAR, 0, comm);
+
+  std::stringstream is;
+  is.write(rbuf, fsize);
+
+  par->parse(is);
+  par->interpolate();
+
+  return par;
 }
 
 #endif

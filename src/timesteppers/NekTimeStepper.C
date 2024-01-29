@@ -22,7 +22,6 @@
 #include "MooseApp.h"
 #include "Transient.h"
 #include "NekInterface.h"
-#include "nekrs.hpp"
 
 registerMooseObject("CardinalApp", NekTimeStepper);
 

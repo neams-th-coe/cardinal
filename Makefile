@@ -181,11 +181,13 @@ NEKRS_INCLUDES := \
 	-I$(NEKRS_DIR)/src/neknek \
 	-I$(NEKRS_DIR)/src/plugins \
 	-I$(NEKRS_DIR)/src/pointInterpolation \
+	-I$(NEKRS_DIR)/src/pointInterpolation/findpts \
 	-I$(NEKRS_DIR)/src/postProcessing \
 	-I$(NEKRS_DIR)/src/regularization \
 	-I$(NEKRS_DIR)/src/setup \
 	-I$(NEKRS_DIR)/src/solvers/cvode \
 	-I$(NEKRS_DIR)/src/solvers/elliptic \
+	-I$(NEKRS_DIR)/src/solvers/elliptic/amgSolver \
 	-I$(NEKRS_DIR)/src/solvers/elliptic/linearSolver \
 	-I$(NEKRS_DIR)/src/solvers/elliptic/MG \
 	-I$(NEKRS_DIR)/src/udf \

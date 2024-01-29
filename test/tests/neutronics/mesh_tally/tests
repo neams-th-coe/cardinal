@@ -1,4 +1,12 @@
 [Tests]
+  [no_coupling]
+    type = CSVDiff
+    input = no_coupling.i
+    csvdiff = no_coupling_out.csv
+    requirement = "The system shall allow a mesh tally for coupling OpenMC, without any physics feedback."
+    mesh_mode = 'replicated'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [one_mesh]
     type = Exodiff
     input = one_mesh.i

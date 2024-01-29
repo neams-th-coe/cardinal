@@ -1,25 +1,8 @@
 #include "udf.hpp"
 
-#include <vector>
-#include "randomVector.hpp"
-#include "linspaceVector.hpp"
-
-static dfloat P_U0;
-static dfloat P_V0;
-static dfloat P_W0;
-
-static dfloat P_A0;
-static dfloat P_D0;
-
-static dfloat P_OMEGA;
-static dfloat P_AMP;
-constexpr int nPartGlobal = 1000;
-
-occa::memory o_x0, o_y0, o_z0;
-
 #ifdef __okl__
 @kernel void dpdx(const dlong Ntotal,
-                  const dfloat time,
+                  const double time,
                   @ restrict const dfloat *x,
                   @ restrict const dfloat *y,
                   @ restrict const dfloat *z,
@@ -62,14 +45,14 @@ occa::memory o_x0, o_y0, o_z0;
   }
 }
 
-void exact(dfloat * u,
-           dfloat * v,
-           dfloat * w,
-           dfloat * p,
+void exact(dfloat *u,
+           dfloat *v,
+           dfloat *w,
+           dfloat *p,
            const dfloat x,
            const dfloat y,
            const dfloat z,
-           const dfloat t,
+           const double t,
            const dfloat visc)
 {
   const dfloat a = p_A;
@@ -105,13 +88,13 @@ void exact(dfloat * u,
       (ex * ex + 2.0 * sxy * czx * eyz + ey * ey + 2.0 * syz * cxy * ezx + ez * ez + 2.0 * szx * cyz * exy);
 }
 
-void grad_u(dfloat * grad_u_x,
-            dfloat * grad_u_y,
-            dfloat * grad_u_z,
+void grad_u(dfloat *grad_u_x,
+            dfloat *grad_u_y,
+            dfloat *grad_u_z,
             const dfloat x,
             const dfloat y,
             const dfloat z,
-            const dfloat t,
+            const double t,
             const dfloat visc)
 {
   const dfloat a = p_A;
@@ -138,14 +121,13 @@ void grad_u(dfloat * grad_u_x,
   const dfloat cyz = cos(a * yy + d * zz);
   const dfloat czx = cos(a * zz + d * xx);
 
-  //*(u)= -a*(ex*syz + ez*cxy)*e2t;
   *(grad_u_x) = -a * ((a * ex) * syz - a * ez * sxy) * e2t;
   *(grad_u_y) = -a * (ex * (a * cyz) + ez * (-d * sxy)) * e2t;
   *(grad_u_z) = -a * (ex * (d * cyz) + (a * ez) * cxy) * e2t;
 }
 
 @kernel void exactUVWP(const dlong Ntotal,
-                       const dfloat time,
+                       const double time,
                        @ restrict const dfloat *X,
                        @ restrict const dfloat *Y,
                        @ restrict const dfloat *Z,
@@ -168,7 +150,7 @@ void grad_u(dfloat * grad_u_x,
   }
 }
 
-void velocityDirichletConditions(bcData * bc)
+void velocityDirichletConditions(bcData *bc)
 {
   dfloat u, v, w, p;
   exact(&u, &v, &w, &p, bc->x, bc->y, bc->z, bc->time, p_nu);
@@ -177,82 +159,23 @@ void velocityDirichletConditions(bcData * bc)
   bc->w = w;
 }
 
-void scalarDirichletConditions(bcData * bc)
+void scalarDirichletConditions(bcData *bc)
 {
   dfloat u, v, w, p;
   exact(&u, &v, &w, &p, bc->x, bc->y, bc->z, bc->time, p_nu);
   bc->s = u;
 }
 
-void scalarNeumannConditions(bcData * bc)
+void scalarNeumannConditions(bcData *bc)
 {
   dfloat grad_u_x, grad_u_y, grad_u_z;
   grad_u(&grad_u_x, &grad_u_y, &grad_u_z, bc->x, bc->y, bc->z, bc->time, p_nu);
   bc->flux = p_nu * (grad_u_x * bc->nx + grad_u_y * bc->ny + grad_u_z * bc->nz);
 }
 
-@kernel void userMeshVelocity(const dlong Ntotal,
-                              const dlong offset,
-                              const dfloat time,
-                              @ restrict const dfloat *x,
-                              @ restrict const dfloat *y,
-                              @ restrict const dfloat *z,
-                              @ restrict dfloat *W)
-{
-  for (dlong n = 0; n < Ntotal; ++n; @tile(p_blockSize, @outer, @inner)) {
-    const dfloat ampx = p_amp * cos(p_omega * time);
-    const dfloat ampy = p_amp * cos(0.5 * p_omega * time);
-    const dfloat ampz = p_amp * cos(0.5 * 0.5 * p_omega * time);
-    const dfloat xx = 0.5 * (x[n] + 1); // in [0 1]
-    const dfloat yy = 0.5 * (y[n] + 1); // in [0 1]
-    const dfloat zz = 0.5 * (z[n] + 1); // in [0 1]
-    W[n + 0 * offset] = ampx * sin(p_pi * xx);
-    W[n + 1 * offset] = ampy * sin(p_pi * yy);
-    W[n + 2 * offset] = ampz * sin(p_pi * zz);
-  }
-}
-
-// compute the right hand side of the particle drag equation
-@kernel void fRHS(const dlong nParticles,
-                  const dlong offset,
-                  @ restrict const dfloat *y, // particle DOFS
-                  @ restrict const dfloat *U, // interpolated fluid velocity
-                  @ restrict dfloat *ydot)
-{
-  for (dlong pid = 0; pid < nParticles; ++pid; @tile(p_blockSize, @outer, @inner)) {
-    const dfloat u = U[pid + 0 * offset];
-    const dfloat v = U[pid + 1 * offset];
-    const dfloat w = U[pid + 2 * offset];
-
-    // dx_i/dt = u
-    ydot[pid + 0 * offset] = u;
-    ydot[pid + 1 * offset] = v;
-    ydot[pid + 2 * offset] = w;
-  }
-}
-
-@kernel void RK(const dlong N,
-                const dfloat sdt,
-                @ restrict const dfloat *rkb,
-                @ restrict const dfloat *r1,
-                @ restrict const dfloat *r2,
-                @ restrict const dfloat *r3,
-                @ restrict const dfloat *r4,
-                @ restrict dfloat *y)
-{
-
-  for (dlong n = 0; n < N; ++n; @tile(p_blockSize, @outer, @inner)) {
-    dfloat sn = 0.0;
-    sn += sdt * rkb[0] * r1[n];
-    sn += sdt * rkb[1] * r2[n];
-    sn += sdt * rkb[2] * r3[n];
-    sn += sdt * rkb[3] * r4[n];
-    y[n] += sn;
-  }
-}
 #endif
 
-void userq(nrs_t *nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
+void userq(nrs_t *nrs, double time, occa::memory o_S, occa::memory o_FS)
 {
   mesh_t *mesh = nrs->meshV;
   cds_t *cds = nrs->cds;
@@ -264,87 +187,36 @@ void userq(nrs_t *nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
 
 void UDF_LoadKernels(occa::properties &kernelInfo)
 {
-  // called from all ranks, so MPI collectives are O.K.
-  int maxRank = platform->comm.mpiRank;
-  MPI_Allreduce(MPI_IN_PLACE, &maxRank, 1, MPI_INT, MPI_MAX, platform->comm.mpiComm);
-
   setupAide &options = platform->options;
 
   dfloat mue, rho;
   options.getArgs("VISCOSITY", mue);
   options.getArgs("DENSITY", rho);
   kernelInfo["defines/p_nu"] = mue / rho;
-  kernelInfo["defines/p_U0"] = P_U0;
-  kernelInfo["defines/p_V0"] = P_V0;
-  kernelInfo["defines/p_W0"] = P_W0;
-  kernelInfo["defines/p_A"] = P_A0 * M_PI;
-  kernelInfo["defines/p_D"] = P_D0 * M_PI;
-  kernelInfo["defines/p_amp"] = P_AMP;
-  kernelInfo["defines/p_omega"] = P_OMEGA;
+  kernelInfo["defines/p_U0"] = 0.5;
+  kernelInfo["defines/p_V0"] = 0.1;
+  kernelInfo["defines/p_W0"] = 0.2;
+  kernelInfo["defines/p_A"] = 0.025 * M_PI;
+  kernelInfo["defines/p_D"] = 0.5 * M_PI;
+  kernelInfo["defines/p_amp"] = 1.5;
+  kernelInfo["defines/p_omega"] = 15.0;
   kernelInfo["defines/p_pi"] = M_PI;
-}
-
-void UDF_Setup0(MPI_Comm comm, setupAide &options)
-{
-  platform->par->extract("casedata", "p_u0", P_U0);
-  platform->par->extract("casedata", "p_v0", P_V0);
-  platform->par->extract("casedata", "p_w0", P_W0);
-  platform->par->extract("casedata", "p_a0", P_A0);
-  platform->par->extract("casedata", "p_d0", P_D0);
-  platform->par->extract("casedata", "p_omega", P_OMEGA);
-  platform->par->extract("casedata", "p_amp", P_AMP);
-
-  if (platform->options.compareArgs("BUILD ONLY", "FALSE")) {
-    double *const nek_cb_scnrs = (double *)nek::ptr("cb_scnrs");
-    nek_cb_scnrs[0] = P_U0;
-    nek_cb_scnrs[1] = P_V0;
-    nek_cb_scnrs[2] = P_W0;
-    nek_cb_scnrs[3] = P_A0;
-    nek_cb_scnrs[4] = P_D0;
-    nek_cb_scnrs[5] = P_OMEGA;
-    nek_cb_scnrs[6] = P_AMP;
-  }
 }
 
 void UDF_Setup(nrs_t *nrs)
 {
-  mesh_t *mesh = nrs->meshV;
   udf.sEqnSource = &userq;
-  if (platform->options.compareArgs("MOVING MESH", std::string("TRUE"))) {
-    o_x0 = platform->device.malloc(mesh->Nlocal, sizeof(dfloat), mesh->o_x);
-    o_y0 = platform->device.malloc(mesh->Nlocal, sizeof(dfloat), mesh->o_y);
-    o_z0 = platform->device.malloc(mesh->Nlocal, sizeof(dfloat), mesh->o_z);
-  }
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
-
   mesh_t *mesh = nrs->meshV;
   cds_t *cds = nrs->cds;
 
   if (tstep <= 5) {
-    exactUVWP(mesh->Nlocal,
-                    time,
-                    mesh->o_x,
-                    mesh->o_y,
-                    mesh->o_z,
-                    nrs->fieldOffset,
-                    nrs->o_P,
-                    nrs->o_U);
-    if (nrs->pSolver)
-      ellipticZeroMean(nrs->pSolver, nrs->o_P);
-    if (nrs->Nscalar > 0)
-      cds->o_S.copyFrom(nrs->o_U, mesh->Nlocal * sizeof(dfloat), 0 * cds->fieldOffset[0] * sizeof(dfloat));
-    if (nrs->Nscalar > 1)
-      cds->o_S.copyFrom(nrs->o_U, mesh->Nlocal * sizeof(dfloat), 1 * cds->fieldOffset[0] * sizeof(dfloat));
-  }
-
-  if (platform->options.compareArgs("MOVING MESH", std::string("TRUE")))
-    userMeshVelocity(mesh->Nlocal, nrs->fieldOffset, time, o_x0, o_y0, o_z0, mesh->o_U);
-
-  if (nrs->isOutputStep) {
-    nek::ocopyToNek(time, tstep);
-    nek::userchk();
+    exactUVWP(mesh->Nlocal, time, mesh->o_x, mesh->o_y, mesh->o_z, nrs->fieldOffset, nrs->o_P, nrs->o_U);
+    ellipticZeroMean(nrs->pSolver, nrs->o_P);
+    cds->o_S.copyFrom(nrs->o_U, mesh->Nlocal, 0 * cds->fieldOffset[0]);
+    cds->o_S.copyFrom(nrs->o_U, mesh->Nlocal, 1 * cds->fieldOffset[0]);
   }
 }

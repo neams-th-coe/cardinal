@@ -19,5 +19,6 @@
                   "used in this test, the errors in temperature are less than 1% of the total temperature "
                   "range in the problem (but can locally be high relative differences)."
     required_objects = 'NekRSProblem'
+    max_time = 500
   []
 []

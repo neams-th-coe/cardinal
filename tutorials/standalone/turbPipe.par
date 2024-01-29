@@ -25,14 +25,19 @@ residualTol = 1e-04
 #initialGuess = projectionAconj+nVector=10
 
 [VELOCITY]
-#solver = pfcg+block
 boundaryTypeMap = inlet, outlet, wall
 density = 1.0
 viscosity = 1/19000
 residualTol = 1e-06
 
+[SCALAR00]
+rho = 1.0
+diffusivity = 1/19000
+boundaryTypeMap = codedFixedValue, zeroFlux, codedFixedValue
+residualTol = 1e-06
+regularization = avm+highestModalDecay  
+
 [CASEDATA]
-#/* diameters  */
-ZLENGTH = 20.0
+# adjust to actual mesh 
 NSLABS  = 60
-NELSLAB = 108
+NELSLAB = 132 
