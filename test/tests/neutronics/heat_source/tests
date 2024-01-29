@@ -76,7 +76,7 @@
     type = RunException
     input = partial_overlap_moose_union.i
     cli_args = '--error'
-    expect_err = "The MOOSE mesh has 1024 T elements, but only 768 got mapped to OpenMC cells."
+    expect_err = "The \[Mesh\] has 1024 elements providing temperature feedback \(the elements in 'temperature_blocks'\), but only 768 got mapped to OpenMC cells."
     requirement = "A warning shall be printed if any portion of the MOOSE solid blocks did not "
                   "get mapped to OpenMC cells."
     required_objects = 'OpenMCCellAverageProblem'

@@ -147,7 +147,7 @@ dfloat minDuctWallDistance(dfloat x, dfloat y, dfloat z)
   return distance;
 }
 
-void turbulent_props(nrs_t * nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+void turbulent_props(nrs_t * nrs, double time, occa::memory o_U, occa::memory o_S,
   occa::memory o_UProp, occa::memory o_SProp)
 {
   RANSktau::updateProperties();
@@ -162,7 +162,7 @@ void turbulent_props(nrs_t * nrs, dfloat time, occa::memory o_U, occa::memory o_
   nrs->scalarScaledAddKernel(nrs->Nlocal, k_laminar, 1.0 / Pr_T, o_mu_T, o_mu);
 }
 
-void turbulent_sources(nrs_t * nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
+void turbulent_sources(nrs_t * nrs, double time, occa::memory o_S, occa::memory o_FS)
 {
   RANSktau::updateSourceTerms();
 }
@@ -207,7 +207,7 @@ void UDF_Setup(nrs_t *nrs)
   RANSktau::setup(nrs, mu_laminar, rho, scalarFieldStart);
 }
 
-void UDF_ExecuteStep(nrs_t * nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t * nrs, double time, int tstep)
 {
   std::cout << "Calling UDF_ExecuteStep for tstep: " << tstep << std::endl;
   // For just the first time step, compute the distance to the wall (it will
@@ -237,6 +237,6 @@ void UDF_ExecuteStep(nrs_t * nrs, dfloat time, int tstep)
   //if (nrs->isOutputStep)
   //{
   //  occa::memory o_null;
-  //  writeFld("usr", time, true, true, &o_null, &o_null, &o_wd, 1);
+  //  writeFld("usr", time, true, true, o_null, o_null, o_wd, 1);
   //}
 }

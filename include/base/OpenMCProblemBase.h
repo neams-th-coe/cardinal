@@ -25,9 +25,22 @@
 #include "CardinalEnums.h"
 #include "OpenMCNuclideDensities.h"
 
-#include "openmc/tallies/filter_cell_instance.h"
+#include "mpi.h"
+#include "openmc/bank.h"
+#include "openmc/capi.h"
+#include "openmc/cell.h"
+#include "openmc/geometry.h"
+#include "openmc/geometry_aux.h"
+#include "openmc/hdf5_interface.h"
+#include "openmc/material.h"
 #include "openmc/mesh.h"
+#include "openmc/settings.h"
+#include "openmc/simulation.h"
+#include "openmc/source.h"
+#include "openmc/state_point.h"
 #include "openmc/tallies/tally.h"
+#include "openmc/tallies/filter_cell_instance.h"
+#include "xtensor/xview.hpp"
 
 /**
  * Base class for all MOOSE wrappings of OpenMC

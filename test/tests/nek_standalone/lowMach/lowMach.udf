@@ -14,9 +14,12 @@ occa::memory o_kappa;
 
 #endif
 
-void qtl(nrs_t *nrs, dfloat time, occa::memory o_div) { lowMach::qThermalSingleComponent(time, o_div); }
+void qtl(nrs_t *nrs, double time, occa::memory o_div)
+{
+  lowMach::qThermalSingleComponent(time, o_div);
+}
 
-void userq(nrs_t *nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
+void userq(nrs_t *nrs, double time, occa::memory o_S, occa::memory o_FS)
 {
   cds_t *cds = nrs->cds;
   mesh_t *mesh = cds->mesh[0];
@@ -25,7 +28,7 @@ void userq(nrs_t *nrs, dfloat time, occa::memory o_S, occa::memory o_FS)
 }
 
 void uservp(nrs_t *nrs,
-            dfloat time,
+            double time,
             occa::memory o_U,
             occa::memory o_S,
             occa::memory o_UProp,
@@ -34,19 +37,19 @@ void uservp(nrs_t *nrs,
   mesh_t *mesh = nrs->meshV;
 
   fillProp(mesh->Nelements,
-          nrs->fieldOffset,
-          nrs->cds->fieldOffset[0],
-          nrs->p0th[0],
-          o_S,
-          o_UProp,
-          o_SProp,
-          o_beta,
-          o_kappa);
+           nrs->fieldOffset,
+           nrs->cds->fieldOffset[0],
+           nrs->p0th[0],
+           o_S,
+           o_UProp,
+           o_SProp,
+           o_beta,
+           o_kappa);
 }
 
-void UDF_LoadKernels(occa::properties &kernelInfo) 
-{ 
-  kernelInfo["defines/p_DELTA"] = P_DELTA; 
+void UDF_LoadKernels(occa::properties &kernelInfo)
+{
+  kernelInfo["defines/p_DELTA"] = P_DELTA;
 }
 
 void UDF_Setup0(MPI_Comm comm, setupAide &options)
@@ -54,11 +57,9 @@ void UDF_Setup0(MPI_Comm comm, setupAide &options)
   platform->par->extract("casedata", "p_delta", P_DELTA);
   platform->par->extract("casedata", "p_gamma", P_GAMMA);
 
-  if (platform->options.compareArgs("BUILD ONLY", "FALSE")) {
-    double *const nek_cb_scnrs = (double *)nek::ptr("cb_scnrs");
-    nek_cb_scnrs[0] = P_DELTA;
-    nek_cb_scnrs[1] = P_GAMMA;
-  }
+  double *const nek_cb_scnrs = (double *)nek::ptr("cb_scnrs");
+  nek_cb_scnrs[0] = P_DELTA;
+  nek_cb_scnrs[1] = P_GAMMA;
 }
 
 void UDF_Setup(nrs_t *nrs)
@@ -66,21 +67,15 @@ void UDF_Setup(nrs_t *nrs)
   udf.sEqnSource = &userq;
   udf.properties = &uservp;
 
-  o_beta = platform->device.malloc(nrs->fieldOffset * sizeof(dfloat));
-  o_kappa = platform->device.malloc(nrs->fieldOffset * sizeof(dfloat));
+  o_beta = platform->device.malloc<dfloat>(nrs->fieldOffset);
+  o_kappa = platform->device.malloc<dfloat>(nrs->fieldOffset);
 
-  // alphaRef := p0thRef/(rhoRef * cpRef * TRef)
-  // translates to (gammaRef - 1)/gammaRef in case of an ideal gas
   alphaRef = (P_GAMMA - 1.0) / P_GAMMA;
 
   lowMach::setup(nrs, alphaRef, o_beta, o_kappa);
   udf.div = &qtl;
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
-  if (nrs->isOutputStep) {
-    nek::ocopyToNek(time, tstep);
-    nek::userchk();
-  }
 }

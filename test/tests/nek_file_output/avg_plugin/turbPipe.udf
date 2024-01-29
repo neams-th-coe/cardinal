@@ -1,14 +1,9 @@
-//
-// nekRS User Defined File
-//
 #include <math.h>
 #include "udf.hpp"
 #include "plugins/velRecycling.hpp"
 #include "plugins/tavg.hpp"
 
 #include "casedata.h"
-
-/* UDF Functions */                                                      
 
 void UDF_LoadKernels(occa::properties & kernelInfo)
 {
@@ -24,15 +19,15 @@ void UDF_Setup(nrs_t *nrs)
 
   // recycling
   const dfloat wbar  = 1.0;
-  const int bID      = 1; 
+  const int bID      = 1;
   dfloat zRecycLayer = 0.25*ZLENGTH;
-  const hlong offset = NELSLAB * round(NSLABS * zRecycLayer/ZLENGTH); 
+  const hlong offset = NELSLAB * round(NSLABS * zRecycLayer/ZLENGTH);
   velRecycling::setup(nrs, nrs->o_usrwrk, offset, bID, wbar);
 
   tavg::setup(nrs);
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
   mesh_t *mesh = nrs->meshV;
 
@@ -40,9 +35,8 @@ void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
   tavg::run(time);
 
   if (nrs->isOutputStep) {
-    occa::memory o_UZ = nrs->o_U + 2*nrs->fieldOffset * sizeof(dfloat);
+    occa::memory o_UZ = nrs->o_U + 2*nrs->fieldOffset;
     const dfloat ubar = platform->linAlg->innerProd(mesh->Nlocal, o_UZ, mesh->o_LMM, platform->comm.mpiComm)/mesh->volume;
-    if (platform->comm.mpiRank == 0) printf(" uBulk: %g\n", ubar);
 
     tavg::outfld();
   }

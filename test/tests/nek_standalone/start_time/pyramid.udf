@@ -53,13 +53,13 @@ void UDF_Setup(nrs_t *nrs)
   }
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
   if (time == 1.0005) // the first time step, but only if restarting
   {
     // write an empty file, which we can use a CheckFiles test to be sure exists in order
     // to confirm that the time got set properly in NekRS from MOOSE
     occa::memory o_null;
-    writeFld("dum", time, tstep, true, true, &o_null, &o_null, &o_null, 0);
+    writeFld("dum", time, tstep, true, true, o_null, o_null, o_null, 0);
   }
 }

@@ -29,7 +29,7 @@ void UDF_Setup(nrs_t *nrs)
   avg::setup(nrs);
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
   mesh_t *mesh = nrs->meshV;
 

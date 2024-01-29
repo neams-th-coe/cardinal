@@ -24,7 +24,7 @@
     type = RunException
     input = skipping_moose_feedback.i
     cli_args = '--error'
-    expect_err = "The MOOSE mesh has 1024 T elements, but only 768 got mapped to OpenMC cells."
+    expect_err = "The \[Mesh\] has 1024 elements providing temperature feedback \(the elements in 'temperature_blocks'\), but only 768 got mapped to OpenMC cells."
     requirement = "The system shall print a warning if some MOOSE elements are unmapped"
     required_objects = 'OpenMCCellAverageProblem'
   []

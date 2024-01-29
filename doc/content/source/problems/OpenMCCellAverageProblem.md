@@ -18,14 +18,6 @@ The remainder of this page describes this syntax, plus more advanced settings.
   id=openmc1
   caption=Smallest possible OpenMC wrapped input file.
 
-!alert warning
-OpenMC as a standalone application has several
-[command line parameters](https://docs.openmc.org/en/stable/usersguide/scripts.html). For simplicity,
-Cardinal does not propagate any *OpenMC* command line parameters down to OpenMC
-when using the Cardinal executable. If you want to use
-any of OpenMC's command line features, we recommend running with the `openmc`
-executable built as part of Cardinal's compilation process.
-
 ## Initializing Variables
 
 When coupling OpenMC to MOOSE, we first
@@ -36,33 +28,28 @@ communicate OpenMC's solution with a general MOOSE application.
 Depending on the user settings,
 the following `CONSTANT MONOMIAL` variables will be added:
 
-- Variable(s) representing the OpenMC tally(s); the score is selected with the `tally_score`
-  parameter, while the name is selected with the `tally_name` parameter (which defaults to
-  the name of the score).
+- Variable(s) representing the OpenMC tally(s)
 - Variable(s) representing the temperature to read into OpenMC. Temperature will be read
-  from the mesh subdomains indicated by `temperature_blocks`. The names of the corresponding
-  variables on these blocks is set by the `temperature_variables` parameter (which defaults
-  to `temp`).
+  from the mesh subdomains indicated by `temperature_blocks`.
 - Variable(s) representing the density to read into OpenMC. Density will be read
-  from the mesh subdomains indicated by `density_blocks`. The names of the corresponding
-  variables on these blocks is set by the `density_variables` parameter (which defaults
-  to `density`).
+  from the mesh subdomains indicated by `density_blocks`.
 
 !alert tip
-If you are ever unsure of which auxiliary variables are being added by Cardinal,
-run with `verbose = true`, which will print out tables showing (i) how OpenMC's
-tallies get mapped into auxiliary variables, and (ii) which auxiliary variables
-are used to read temperature and/or density from.
+These variables all have default names, but you can also control their names using the
+`temperature_variables`, `density_variables`, and `tally_name` parameters. If you want
+to see the names, run with `verbose = true` and tables will print out on initialization
+with this information.
 
-The initialization of all coupling auxiliary variables happens behind the scenes.
-Let's start with a complicated case first.
+!alert note
+You do not need to add/initialize ANY of these variables manually - it all happens behind the scenes!
+
+As an example, let's start with a complicated case first.
 Suppose our `[Problem]` block looks like the following. In this problem,
-we want to apply temperature feedback from four blocks (two solid regions, two
-fluid regions). We also want to apply density feedback, but only from two blocks
-(the `water` and `fluid` blocks). Suppose we also want to keep separate track of
+we want to apply temperature feedback from four blocks (`fuel`, `cladding`, `water`, `helium`). We also want to apply density feedback, but only from two blocks
+(`water` and `fluid`). Suppose we also want to keep separate track of
 different variables representing each of these physical fields, so we will want
-to read temperature from `temp0` in the `fuel` and `cladding` blocks, but from
-`nek_temp` in the `helium` block (and so on for density).
+to read temperature from a variable named `temp0` in the `fuel` and `cladding` blocks, but from
+a variable named `nek_temp` in the `helium` block (and so on for density).
 
 ```
 [Problem]
@@ -119,8 +106,7 @@ Then Cardinal is building the following automatically for you:
 []
 ```
 
-You normally don't need to be this verbose, and can rely on defaults. By default,
-Cardinal will name *all* temperature feedback with the `temp` variable,
+By default, Cardinal will name *all* temperature feedback with the `temp` variable,
 *all* density feedback with the `density` variable, and all
 tally scores with the same name as the score. Suppose we instead wanted to rely
 on defaults; we would set our `[Problem]` block as:
@@ -130,7 +116,6 @@ on defaults; we would set our `[Problem]` block as:
   type = OpenMCCellAverageProblem
   density_blocks = 'water helium'
   temperature_blocks = 'fuel cladding water helium'
-
   tally_score = 'heating flux'
 []
 ```
@@ -170,31 +155,17 @@ The OpenMC geometry is *always* specified in length units of centimeters.
 Most other MOOSE applications use SI units, i.e. meters for the length unit.
 See [#scaling] to learn how to couple OpenMC models to non-centimeter-based MOOSE applications.
 
-The `[Mesh]` block
-is referred to here as a "mesh mirror" in our attempt to achieve uniform
-descriptive language with [NekRSMesh](/mesh/NekRSMesh.md) (which truly is
-a mirror of the NekRS [!ac](CFD) mesh for MOOSE-wrapped Nek calculations).
-For OpenMC, the mesh mirror is created off-line by the user,
-and (combined with the cell definitions in the OpenMC model) represents the
-resolution of data sent in/out of OpenMC.
-
-!alert tip
-The mesh mirror
-is only used for receiving data, so there are no requirements on node continuity
-across elements. That is, if you already have generated a [!ac](CFD) mesh
-for the fluid phase, and a separate solid mesh for the solid regions
-you can simply
-"concatenate" them together with a
-[CombinerGenerator](https://mooseframework.inl.gov/source/meshgenerators/CombinerGenerator.html).
-
-`OpenMCCellAverageProblem` will loop over all the elements
+In the `[Mesh]` block, you should provide a mesh onto which OpenMC will write its
+tally values, as well as read temperature and density. This mesh is only used for
+reading/writing data, so there are no requirements on node continuity
+across elements. `OpenMCCellAverageProblem` will loop over all the elements
 and map each to an OpenMC cell according to the element centroid.
-[openmc_mesh] depicts an OpenMC geometry, a mesh on which temperature exists,
+[openmc_mesh] depicts an OpenMC geometry, a mesh on which temperature feedback is to be applied,
 and a visualization of the mapping from these elements to the OpenMC cells.
 
 !media nc.png
   id=openmc_mesh
-  caption=Illustration of OpenMC particle transport geometry and the mapping of OpenMC cells to mesh on which temperature is defined.
+  caption=Illustration of OpenMC cells and the mapping to a mesh.
 
 !alert tip
 You can visualize how the OpenMC cells map to the mesh using auxiliary kernels such
@@ -232,7 +203,7 @@ monitor the mapping by checking the mesh volumes that each OpenMC cell maps to
 by setting `verbose = true`, which will print a mapping table. You can also
 add an [OpenMCVolumeCalculation](https://cardinal.cels.anl.gov/source/userobjects/OpenMCVolumeCalculation.html) which will run a stochastic volume calculation
 and print out the *actual* volume of the OpenMC cells in the "Actual Vol"
-column (not just the volume of the mesh elements the cells map to,in the "Mapped Vol" column!).
+column (not just the volume of the mesh elements the cells map to in the "Mapped Vol" column!).
 
 ```
 ---------------------------------------------------------------------------
@@ -254,7 +225,7 @@ In [openmc_finer], consider the case where the `[Mesh]` has two equal-sized elem
 while the OpenMC domain has three equal-sized cells. By nature of the centroid mapping,
 one OpenMC cell will not participate in coupling because no elements in the `[Mesh]`
 have a centroid within the cell. This situation is more difficult to detect, but can
-be monitored again with the mapping table shown earlier.
+be monitored by setting `verbose = true` and monitoring the table outputs.
 
 !media openmc_finer.png
   id=openmc_finer
@@ -264,8 +235,7 @@ be monitored again with the mapping table shown earlier.
 Of course, the situations shown in [openmc_coarser] and [openmc_finer] can occur even if the number
 of mesh elements exactly match the number of OpenMC cells, depending on where
 the element centroids are located. Therefore,
-we recommend using `verbose = true` when getting started to ensure
-the desired multiphysics feedback resolution.
+we recommend using `verbose = true` when getting started.
 
 #### Cell Levels
 

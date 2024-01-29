@@ -19,11 +19,6 @@
 #pragma once
 
 #include "NekRSProblemBase.h"
-#include "NekTimeStepper.h"
-#include "NekRSMesh.h"
-#include "Transient.h"
-
-#include <memory>
 
 /**
  * \brief Solve nekRS wrapped as a MOOSE app.

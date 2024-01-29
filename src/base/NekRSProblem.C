@@ -29,7 +29,6 @@
 #include "DisplacedProblem.h"
 #include "UserErrorChecking.h"
 
-#include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
 
 registerMooseObject("CardinalApp", NekRSProblem);

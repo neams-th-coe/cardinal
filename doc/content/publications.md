@@ -89,12 +89,30 @@ A.J. Novak, D. Shaver, and B. Feng
 
 # High Temperature Gas Reactors
 
+A. Hegazy, A.J. Novak, and R. Uddin,
+"Multiphysics Simulation of TRISO Fuel Compacts and the Effects of Homogenization"
+*Proceedings of Physor* (2024)
+
+A. Hegazy, A.J. Novak, and R. Uddin,
+"Multiphysics Explicit Simulation of Randomly Distributed TRISO Fuel Particles"
+*Proceedings of ANS Student Conference* (2024)
+
 A.J. Novak, D. Andrs, P. Shriwise, J. Fang, H. Yuan, D. Shaver, E. Merzari, P.K. Romano, and R.C. Martineau,
 ["Coupled Monte Carlo and Thermal-Fluid Modeling of High Temperature Gas Reactors Using Cardinal"](https://www.sciencedirect.com/science/article/pii/S0306454922003450) 177 (109310) *Annals of Nuclear Energy* (2022)
 
 A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Keutelian,
 ["Coupled Monte Carlo and Thermal-Hydraulics Modeling of a Prismatic Gas Reactor Fuel Assembly Using Cardinal"](https://www.researchgate.net/publication/360681454_Coupled_Monte_Carlo_and_Thermal-Hydraulics_Modeling_of_a_Prismatic_Gas_Reactor_Fuel_Assembly_Using_Cardinal?_sg%5B1%5D=1Iq-lQWwadAANa8I10BgfiSiL9agM7rVq-JhJIgNRg2JQgPqQEq6hU82MhzPEQphXzZrYciSQA)
 *Proceedings of PHYSOR* (2022)
+
+# Heat Pipe Reactors
+
+M. Eltawila, A.J. Novak, and Y. Miao,
+"Coupled Multiphysics Modeling of Heat Pipe Microreactors using Cardinal, BISON, and Sockeye"
+*Proceedings of Physor* (2024)
+
+M. Eltawila, A.J. Novak,
+"Coupled Multiphysics Modeling of the Kilowatt Reactor Using Stirling TechnologY (KRUSTY)"
+*Proceedings of ANS Student Conference* (2024)
 
 # Molten Salt Reactors
 

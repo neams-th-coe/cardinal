@@ -4,7 +4,7 @@
 static occa::kernel cliptKernel;  // clipping
 static occa::kernel manipulateOutletKernel; // variable conductivity at the outlet
 
-void uservp(nrs_t *nrs, dfloat time, occa::memory o_U, occa::memory o_S,
+void uservp(nrs_t *nrs, double time, occa::memory o_U, occa::memory o_S,
             occa::memory o_UProp, occa::memory o_SProp)
 {
   // pass the needed info into the outlet kernel
@@ -37,7 +37,7 @@ void UDF_Setup(nrs_t *nrs)
   udf.properties = &uservp;
 }
 
-void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+void UDF_ExecuteStep(nrs_t *nrs, double time, int tstep)
 {
   // clip temperature on each time step
   mesh_t *mesh = nrs->cds->mesh[0];

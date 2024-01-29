@@ -23,6 +23,7 @@
 #include "libmesh/face_quad9.h"
 #include "libmesh/cell_hex8.h"
 #include "libmesh/cell_hex27.h"
+#include "inipp.hpp"
 #include "nekrs.hpp"
 #include "CardinalUtils.h"
 #include "VariadicTable.h"
