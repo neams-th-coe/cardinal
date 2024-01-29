@@ -1,5 +1,5 @@
 [GlobalParams]
-  greedy_search = true
+  search_value_conflicts = false
 []
 
 [Mesh]
