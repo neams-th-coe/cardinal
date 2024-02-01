@@ -1,4 +1,4 @@
-The MOOSE heat conduction module is used to solve for steady-state heat conduction,
+The MOOSE heat transfer module is used to solve for steady-state heat conduction,
 
 \begin{equation}
 \label{eq:hc}

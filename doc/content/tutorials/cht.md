@@ -13,7 +13,7 @@ These types of calculations are referred to as *conjugate heat transfer*.
 Cardinal uses a general formulation that allows NekRS to couple via conjugate
 heat transfer to *any* MOOSE application that can compute a heat flux. This
 is shown schematically in [cardinal_cht]. All tutorials in this section couple
-NekRS to the MOOSE heat conduction module, but the concepts extend equally to
+NekRS to the MOOSE heat transfer module, but the concepts extend equally to
 coupling NekRS to any of these other MOOSE thermal-fluid codes.
 
 !media cardinal_cht.png

@@ -34,7 +34,7 @@ NekRS shall solve for laminar flow over this pebble. Details on the problem
 specifications are given in [table1]. The inlet velocity is specified such that
 the Reynolds number is $Re=50$.
 
-The MOOSE heat conduction module shall be used to solve for the solid temperature.
+The MOOSE heat transfer module shall be used to solve for the solid temperature.
 NekRS and MOOSE will be coupled through boundary conditions on the pebble surface;
 NekRS shall compute a pebble surface temperature to be applied as a Dirichlet condition
 to MOOSE, while MOOSE shall compute a pebble surface heat flux to be applied
@@ -188,7 +188,7 @@ You will see `temp`, `avg_flux`, and `flux_integral` referred to in the solid in
 
 ### Solid Input Files
 
-The MOOSE heat conduction module is used to solve for
+The MOOSE heat transfer module is used to solve for
 [energy conservation in the solid](theory/heat_eqn.md).
 
 First, a local variable, `pebble_diameter` is used to conveniently be able to
@@ -231,7 +231,7 @@ The surface of the pebble is sideset 0.
   caption=Mesh used for the solid heat conduction.
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
-The heat conduction module will solve for temperature, which is defined as a nonlinear
+The heat transfer module will solve for temperature, which is defined as a nonlinear
 variable.
 
 !listing /tutorials/pebble_1/solid.i
@@ -267,7 +267,7 @@ a monomial field due to the nature of how MOOSE computes material properties.
 Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
  and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal
-and MOOSE. The MOOSE heat conduction module is here run as the main application, with
+and MOOSE. The MOOSE heat transfer module is here run as the main application, with
 the NekRS wrapping run as the sub-application. We specify that MOOSE will run first on each
 time step. Allowing sub-cycling means that, if the MOOSE time step is 0.05 seconds, but
 the NekRS time step set in the `.par` file is 0.02 seconds, that for every MOOSE time step, NekRS will perform
