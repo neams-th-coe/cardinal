@@ -54,7 +54,7 @@ HexagonalSubchannelBin::HexagonalSubchannelBin(const InputParameters & parameter
     _axis(parameters.get<MooseEnum>("axis")),
     _pin_centered_bins(getParam<bool>("pin_centered_bins"))
 {
-  _hex_lattice.reset(new HexagonalLatticeUtility(_bundle_pitch,
+  _hex_lattice.reset(new HexagonalLatticeUtils(_bundle_pitch,
                                                  _pin_pitch,
                                                  _pin_diameter,
                                                  0.0 /* wire diameter, unused */,

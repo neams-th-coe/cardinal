@@ -19,7 +19,7 @@
 #pragma once
 
 #include "SpatialBinUserObject.h"
-#include "HexagonalLatticeUtility.h"
+#include "HexagonalLatticeUtils.h"
 
 /**
  * Class that bins spatial coordinates into a hexagonal subchannel discretization
@@ -56,5 +56,5 @@ protected:
   const bool & _pin_centered_bins;
 
   /// Underlying utility providing hexagonal lattice capabilities
-  std::unique_ptr<HexagonalLatticeUtility> _hex_lattice;
+  std::unique_ptr<HexagonalLatticeUtils> _hex_lattice;
 };

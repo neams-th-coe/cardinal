@@ -49,7 +49,7 @@ HexagonalSubchannelMeshBase::HexagonalSubchannelMeshBase(const InputParameters &
     _pin_diameter(getParam<Real>("pin_diameter")),
     _n_rings(getParam<unsigned int>("n_rings")),
     _axis(parameters.get<MooseEnum>("axis")),
-    _hex_lattice(HexagonalLatticeUtility(
+    _hex_lattice(HexagonalLatticeUtils(
         _bundle_pitch,
         _pin_pitch,
         _pin_diameter,

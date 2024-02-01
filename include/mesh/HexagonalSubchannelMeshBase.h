@@ -19,7 +19,7 @@
 #pragma once
 
 #include "MooseMesh.h"
-#include "HexagonalLatticeUtility.h"
+#include "HexagonalLatticeUtils.h"
 
 /**
  * Base class for creating meshes related to subchannel discretizations
@@ -60,7 +60,7 @@ protected:
   const unsigned int _axis;
 
   /// Utility providing hexagonal lattice geometry calculations
-  HexagonalLatticeUtility _hex_lattice;
+  HexagonalLatticeUtils _hex_lattice;
 
   /// Coordinates for the pin centers
   const std::vector<Point> & _pin_centers;
