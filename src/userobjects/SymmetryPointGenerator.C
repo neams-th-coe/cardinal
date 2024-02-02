@@ -17,7 +17,7 @@
 /********************************************************************/
 
 #include "SymmetryPointGenerator.h"
-#include "GeometryUtility.h"
+#include "GeometryUtils.h"
 #include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", SymmetryPointGenerator);
@@ -37,13 +37,12 @@ SymmetryPointGenerator::validParams()
       "through which to rotate to form the symmetric wedge. If not specified, then the"
       "geometry is mirror-symmetric.");
   params.addClassDescription("Maps from a point (x, y, z) to a new point that is either "
-    "mirror-symmetric or rotationally-symmetric from the point.");
+                             "mirror-symmetric or rotationally-symmetric from the point.");
   return params;
 }
 
 SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
-  : ThreadedGeneralUserObject(params),
-    _rotational_symmetry(isParamValid("rotation_axis"))
+  : ThreadedGeneralUserObject(params), _rotational_symmetry(isParamValid("rotation_axis"))
 {
   checkJointParams(params, {"rotation_axis", "rotation_angle"}, "specifying rotational symmetry");
 
@@ -68,7 +67,8 @@ SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
     _zero_theta = _normal.cross(_rotational_axis);
     _zero_theta = _zero_theta / _zero_theta.norm();
 
-    _reflection_normal = geom_utility::rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
+    _reflection_normal =
+        geom_utility::rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
     _reflection_normal = _reflection_normal / _reflection_normal.norm();
   }
 }
