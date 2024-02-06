@@ -69,7 +69,7 @@ def coolant_temp(t_in, t_out, l, z):
 
 def coolant_density(t):
   """
-  Computes the helium density from temperature assuming a fixed operating pressure.
+  Computes the helium density (kg/m3) from temperature assuming a fixed operating pressure.
 
   Parameters
   ----------
@@ -82,8 +82,8 @@ def coolant_density(t):
     float or 1-D numpy array of float depending on t
   """
 
-  p_in_bar = specs.outlet_P * 1.0e-5;
-  return 48.14 * p_in_bar / (t + 0.4446 * p_in_bar / math.pow(t, 0.2));
+  p_in_bar = specs.outlet_P * 1.0e-5
+  return 48.14 * p_in_bar / (t + 0.4446 * p_in_bar / math.pow(t, 0.2))
 
 # -------------- Unit Conversions: OpenMC requires cm -----------
 m = 100.0
@@ -190,8 +190,7 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
 
     # reflector is 40 percent helium by volume (arbitrary assumption), with helium
     # at the inlet conditions
-    rho = coolant_density(specs.inlet_T)
-    matrix_density = 1700
+    rho = coolant_density(specs.inlet_T) # kg/m3
     reflector_porosity = 0.40
     n_helium = reflector_porosity * rho / 4.002602
     n_carbon = (1.0 - reflector_porosity) * matrix_density / 12.0107
