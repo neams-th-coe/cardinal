@@ -943,15 +943,8 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
       mooseError("'tally_trigger_threshold' (size " + std::to_string(_tally_trigger_threshold.size()) + ") must have the same length as 'tally_score' (size " + std::to_string(_tally_score.size()) + ")");
 
     for (unsigned int s = 0; s < _tally_trigger->size(); ++s)
-    {
       if ((*_tally_trigger)[s] != "none")
-      {
         has_tally_trigger = true;
-
-        if (_tally_trigger_threshold[s] <= 0)
-          mooseError("Entries in 'tally_trigger_treshold' must be greater than zero!");
-      }
-    }
   }
 
   // parameters needed for k triggers
