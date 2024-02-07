@@ -131,11 +131,12 @@ OpenMCCellAverageProblem::validParams()
                                          "unstructured meshes are desired.");
 
   MultiMooseEnum tally_trigger("rel_err none");
-  params.addParam<MultiMooseEnum>("tally_trigger",
-                             tally_trigger,
-                             "Trigger criterion to determine when OpenMC simulation is complete "
-                             "based on tallies. If multiple scores are specified in 'tally_score, "
-                             "this same trigger is applied to all scores.");
+  params.addParam<MultiMooseEnum>(
+      "tally_trigger",
+      tally_trigger,
+      "Trigger criterion to determine when OpenMC simulation is complete "
+      "based on tallies. If multiple scores are specified in 'tally_score, "
+      "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<std::vector<Real>>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
   params.addParam<MooseEnum>(
@@ -246,7 +247,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
-    _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger") : nullptr),
+    _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
+                                                 : nullptr),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
@@ -929,7 +931,8 @@ void
 OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & parameters)
 {
   if (isParamValid("tally_trigger") != isParamValid("tally_trigger_threshold"))
-    mooseError("You must either specify none or both of 'tally_trigger' and 'tally_trigger_threshold'. You have specified only one.");
+    mooseError("You must either specify none or both of 'tally_trigger' and "
+               "'tally_trigger_threshold'. You have specified only one.");
 
   bool has_tally_trigger = false;
   if (_tally_trigger)
@@ -937,10 +940,15 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     _tally_trigger_threshold = getParam<std::vector<Real>>("tally_trigger_threshold");
 
     if (_tally_trigger->size() != _tally_score.size())
-      mooseError("'tally_trigger' (size " + std::to_string(_tally_trigger->size()) + ") must have the same length as 'tally_score' (size " + std::to_string(_tally_score.size()) + ")");
+      mooseError("'tally_trigger' (size " + std::to_string(_tally_trigger->size()) +
+                 ") must have the same length as 'tally_score' (size " +
+                 std::to_string(_tally_score.size()) + ")");
 
     if (_tally_trigger_threshold.size() != _tally_score.size())
-      mooseError("'tally_trigger_threshold' (size " + std::to_string(_tally_trigger_threshold.size()) + ") must have the same length as 'tally_score' (size " + std::to_string(_tally_score.size()) + ")");
+      mooseError("'tally_trigger_threshold' (size " +
+                 std::to_string(_tally_trigger_threshold.size()) +
+                 ") must have the same length as 'tally_score' (size " +
+                 std::to_string(_tally_score.size()) + ")");
 
     for (unsigned int s = 0; s < _tally_trigger->size(); ++s)
       if ((*_tally_trigger)[s] != "none")
@@ -2540,7 +2548,8 @@ OpenMCCellAverageProblem::initializeTallies()
   if (_tally_trigger)
     for (auto & t : _local_tally)
       for (int score = 0; score < _tally_score.size(); ++score)
-        t->triggers_.push_back({triggerMetric((*_tally_trigger)[score]), _tally_trigger_threshold[score], score});
+        t->triggers_.push_back(
+            {triggerMetric((*_tally_trigger)[score]), _tally_trigger_threshold[score], score});
 }
 
 bool
