@@ -989,7 +989,7 @@ MoabSkinner::createNodesFromBox(const BoundingBox & box, const Real & factor) co
   std::vector<moab::EntityHandle> vert_handles;
 
   // Fetch the vertices of the box
-  auto verts = geom_utility::boxCorners(box, factor);
+  auto verts = geom_utils::boxCorners(box, factor);
 
   // Array to represent a coord in MOAB
   double coord[3];

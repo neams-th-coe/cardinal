@@ -46,13 +46,13 @@ SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
 {
   checkJointParams(params, {"rotation_axis", "rotation_angle"}, "specifying rotational symmetry");
 
-  _normal = geom_utility::unitVector(getParam<Point>("normal"), "normal");
+  _normal = geom_utils::unitVector(getParam<Point>("normal"), "normal");
 
   if (_rotational_symmetry)
   {
     const auto & angle = getParam<Real>("rotation_angle");
 
-    _rotational_axis = geom_utility::unitVector(getParam<Point>("rotation_axis"), "rotation_axis");
+    _rotational_axis = geom_utils::unitVector(getParam<Point>("rotation_axis"), "rotation_axis");
 
     // the symmetry axis needs to be perpendicular to the plane normal
     if (!MooseUtils::absoluteFuzzyEqual(_rotational_axis * _normal, 0.0))
@@ -67,8 +67,7 @@ SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
     _zero_theta = _normal.cross(_rotational_axis);
     _zero_theta = _zero_theta / _zero_theta.norm();
 
-    _reflection_normal =
-        geom_utility::rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
+    _reflection_normal = geom_utils::rotatePointAboutAxis(_normal, -_angle / 2.0, _rotational_axis);
     _reflection_normal = _reflection_normal / _reflection_normal.norm();
   }
 }
@@ -111,7 +110,7 @@ SymmetryPointGenerator::transformPoint(const Point & p) const
     int s = sector(vec_to_pt);
     if (s != 0)
     {
-      pt = geom_utility::rotatePointAboutAxis(p, s * _angle, _rotational_axis);
+      pt = geom_utils::rotatePointAboutAxis(p, s * _angle, _rotational_axis);
 
       // if the sector was odd, we also need to reflect the point about an axis
       // halfway between the symmetry plane and the zero-theta line

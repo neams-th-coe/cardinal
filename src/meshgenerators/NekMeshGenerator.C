@@ -212,7 +212,7 @@ NekMeshGenerator::adjustPointToCircle(const unsigned int & node_id,
 
   // if the point is exactly on the origin, we don't know in which direction to move
   // it so that it lands up on the circle
-  if (geom_utility::isPointZero(xy_plane))
+  if (geom_utils::isPointZero(xy_plane))
     mooseError("Node ID ",
                node_id,
                " of element ",
@@ -285,7 +285,7 @@ NekMeshGenerator::isNearCorner(const Point & pt) const
 {
   // point is a moving point by the corner if the distance from the corner is less
   // that the distance from the circle tangent to the corner
-  Real distance_to_closest_corner = geom_utility::minDistanceToPoints(pt, _polygon_corners, _axis);
+  Real distance_to_closest_corner = geom_utils::minDistanceToPoints(pt, _polygon_corners, _axis);
 
   return distance_to_closest_corner < _max_corner_distance;
 }
@@ -872,11 +872,11 @@ NekMeshGenerator::generate()
     for (const auto & o : polygon_origin)
     {
       Point shift(o[0], o[1], o[2]);
-      auto tmp1 = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
+      auto tmp1 = geom_utils::polygonCorners(polygon_sides, polygon_size, _axis);
       for (const auto & t : tmp1)
         _polygon_corners.push_back(t + shift);
 
-      auto tmp2 = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
+      auto tmp2 = geom_utils::polygonCorners(polygon_sides, polygon_size - l, _axis);
       for (const auto & t : tmp2)
         corner_origins.push_back(t + shift);
     }
@@ -885,9 +885,9 @@ NekMeshGenerator::generate()
     Point axis(0.0, 0.0, 0.0);
     axis(_axis) = 1.0;
     for (auto & o : _polygon_corners)
-      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
+      o = geom_utils::rotatePointAboutAxis(o, rotation_angle_radians, axis);
     for (auto & o : corner_origins)
-      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
+      o = geom_utils::rotatePointAboutAxis(o, rotation_angle_radians, axis);
 
     std::vector<Real> flattened_corner_origins;
     for (const auto & o : corner_origins)
