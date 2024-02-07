@@ -30,4 +30,15 @@
     requirement = "The system shall error if trying to extract score information that does not exist"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [plural_scores]
+    type = RunException
+    input = openmc.i
+    cli_args = 'Postprocessors/max_rel_err/tally_score="kappa_fission heating" Problem/tally_score="kappa_fission heating"'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    expect_err = "Can only specify a single tally score per postprocessor, but you have specified 2"
+    requirement = "The system shall error if trying to specify more than one score per postprocessor"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
