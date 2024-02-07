@@ -37,10 +37,8 @@ TallyRelativeError::validParams()
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
 
-  MooseEnum score(
-    "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux");
-  params.addParam<MooseEnum>(
-      "tally_score", score, "Score to report the relative error. If there is just a single score, "
+  params.addParam<MultiMooseEnum>(
+      "tally_score", getTallyScoreEnum(), "Score to report the relative error. If there is just a single score, "
       "this defaults to that value");
   params.addClassDescription("Extract the maximum/minimum tally relative error");
   return params;
@@ -53,8 +51,11 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   auto added_scores = _openmc_problem->getTallyScores();
   if (isParamValid("tally_score"))
   {
-    auto tally_score = getParam<MooseEnum>("tally_score");
-    std::string score = tally_score;
+    const auto & tally_score = getParam<MultiMooseEnum>("tally_score");
+    if (tally_score.size() != 1)
+      paramError("tally_score", "Can only specify a single tally score per postprocessor, but you have specified " + std::to_string(tally_score.size()));
+
+    std::string score = _openmc_problem->tallyScore(tally_score[0]);
     std::transform(score.begin(), score.end(), score.begin(),
       [](unsigned char c){ return std::tolower(c); });
     std::replace(score.begin(), score.end(), '_', '-');
@@ -63,7 +64,7 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
     if (it != added_scores.end())
       _tally_index = it - added_scores.begin();
     else
-      mooseError("To extract the relative error of the '" + std::string(tally_score) + "' score,"
+      mooseError("To extract the relative error of the '" + std::string(score) + "' score,"
         "that score must be included in the\n'tally_score' parameter of '" + _openmc_problem->type() + "'!");
   }
   else
