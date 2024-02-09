@@ -114,7 +114,7 @@ are assumed insulated.
 
 !include radiation_gap.md
 
-In this example, the MOOSE heat conduction module will run first. The initial
+In this example, the MOOSE heat transfer module will run first. The initial
 solid temperature is 280&deg;C and the initial power is zero.
 
 ### OpenMC Model
@@ -220,7 +220,7 @@ The following sub-sections describe these files.
 
 ### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is
+The solid phase is solved with the MOOSE heat transfer module, and is
 described in the `solid.i` input. The solid mesh is created using mesh generators
 in the `mesh.i` input:
 
@@ -238,7 +238,7 @@ MOOSE is dimension-agnostic, and the same physics model can be set up in any
 length unit provided proper scalings are applied to material properties, source terms,
 and the mesh. In this example, we set up the solid input file in length units of centimeters.
 
-The heat conduction module will solve for temperature, which we define
+The heat transfer module will solve for temperature, which we define
 as a nonlinear variable and apply a simple uniform initial condition.
 
 !listing /tutorials/lwr_solid/solid.i

@@ -67,7 +67,7 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 
 ### Heat Conduction Model
 
-The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md),
+The MOOSE heat transfer module is used to solve for [energy conservation in the solid](theory/heat_eqn.md),
 with the time derivative neglected in order to more quickly approach steady state.
 The solid mesh is shown in [solid_mesh].
 The [!ac](TRISO) particles are homogenized into
@@ -257,7 +257,7 @@ In this section, we describe the coupling of MOOSE and NekRS.
 
 #### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is described in
+The solid phase is solved with the MOOSE heat transfer module, and is described in
 the `solid_nek.i` input. We define a number of constants at the beginning of
 the file and set up the mesh.
 
@@ -271,10 +271,10 @@ boundary conditions we will apply.
   start=Variables
   end=Functions
 
-The MOOSE heat conduction module will receive a wall temperature from NekRS in
+The MOOSE heat transfer module will receive a wall temperature from NekRS in
 the form of an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
 so we define a receiver variable for the temperature, as `fluid_temp`. The MOOSE
-heat conduction module will also send heat flux to NekRS, which we compute as
+heat transfer module will also send heat flux to NekRS, which we compute as
 another [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
 named `flux`, which we compute with a
 [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)
@@ -442,7 +442,7 @@ In this section, we describe the coupling of MOOSE and THM, a lower-order fluid 
 
 #### Solid Input Files
 
-The solid phase is again solved with the MOOSE heat conduction module, and
+The solid phase is again solved with the MOOSE heat transfer module, and
 is described in the `solid_thm.i` input.
 The solid input file is almost exactly the same as the heat conduction model used
 for coupling to NekRS that has already been described, so we only focus on the differences.
@@ -506,7 +506,7 @@ as "material properties."
   block=Materials
 
 THM computes the wall temperature to apply a boundary condition in the MOOSE
-heat conduction module. To convert the `T_wall` material into an
+heat transfer module. To convert the `T_wall` material into an
 auxiliary variable, we use the [ADMaterialRealAux](https://mooseframework.inl.gov/source/auxkernels/MaterialRealAux.html).
 
 !listing /tutorials/gas_compact_cht/thm.i

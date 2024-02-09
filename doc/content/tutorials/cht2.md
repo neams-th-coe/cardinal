@@ -46,7 +46,7 @@ Relevant dimensions are summarized in
 
 ### Heat Conduction Model
 
-The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
+The MOOSE heat transfer module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
 The outer surface of the duct and the tops and bottoms of the
 pins and ducts are insulated. At fluid-solid interfaces, the solid temperature
 is imposed as a Dirichlet condition (computed by NekRS).
@@ -153,7 +153,7 @@ In this section, NekRS and MOOSE are coupled for [!ac](CHT).
 
 ### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is described
+The solid phase is solved with the MOOSE heat transfer module, and is described
 in the `solid.i` input file. At the top of this file, various problem parameters
 are defined as file-local variables to help with setting up the uniform heat
 source in the fuel.
@@ -169,7 +169,7 @@ generator objects are customizing the sideset names.
 !listing tutorials/sfr_7pin/solid.i
   block=Mesh
 
-The heat conduction module will solve for temperature, which is defined as a nonlinear
+The heat transfer module will solve for temperature, which is defined as a nonlinear
 variable.
 
 !listing tutorials/sfr_7pin/solid.i
@@ -225,7 +225,7 @@ the surface temperature computed by NekRS.
 Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
  and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal
-and MOOSE. The MOOSE heat conduction module is here run as the main application, with
+and MOOSE. The MOOSE heat transfer module is here run as the main application, with
 the NekRS wrapping run as the sub-application.
 Three transfers are required to couple Cardinal and MOOSE; the first is a transfer
 of surface temperature from Cardinal to MOOSE.

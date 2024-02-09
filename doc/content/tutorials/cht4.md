@@ -51,7 +51,7 @@ number is based on the pebble diameter.
 
 ### Heat Conduction Model
 
-The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md),
+The MOOSE heat transfer module is used to solve for [energy conservation in the solid](theory/heat_eqn.md),
 with the time derivative neglected in order to more quickly approach steady state.
 The solid mesh is shown in [pebble_solid_mesh]; the outer surface of the pebbles is sideset 0.
 
@@ -189,7 +189,7 @@ In this section, MOOSE and NekRS are coupled for [!ac](CHT).
 
 ### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is described in
+The solid phase is solved with the MOOSE heat transfer module, and is described in
 the `moose.i` input. First we set up the mesh using a [SphereMeshGenerator](https://mooseframework.inl.gov/source/meshgenerators/SphereMeshGenerator.html) for each pebble and then repeating it 67 times
 at each pebble location.
 
@@ -203,10 +203,10 @@ boundary conditions we will apply.
   start=Variables
   end=Functions
 
-The MOOSE heat conduction module will receive a wall temperature from NekRS in
+The MOOSE heat transfer module will receive a wall temperature from NekRS in
 the form of an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
 so we define a receiver variable for the temperature, as `nek_temp`. The MOOSE
-heat conduction module will also send heat flux to NekRS, which we compute as
+heat transfer module will also send heat flux to NekRS, which we compute as
 another [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
 named `flux`, which we compute with a
 [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)

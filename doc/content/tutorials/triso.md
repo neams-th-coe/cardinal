@@ -64,7 +64,7 @@ q^{''}=h\left(T-T_\infty\right)
 
 where $h=1000$ W/m$^2$/K and $T_\infty$ is set to a function linearly ranging
 from 650&deg;C at $z=0$ cm to 750&deg;C at $z=10$ cm. In this example, the MOOSE
-heat conduction module will be run first. The initial solid temperature is set to
+heat transfer module will be run first. The initial solid temperature is set to
 650&deg;C and the heat source to zero.
 
 ### OpenMC Model
@@ -108,7 +108,7 @@ and the FLiBe region is represented as:
 - Cell ID 2, instance 1
 - Cell ID 2, instance 2
 
-Because OpenMC runs after the MOOSE heat conduction module, initial conditions are
+Because OpenMC runs after the MOOSE heat transfer module, initial conditions are
 only required for the FLiBe temperature, which is set to 650&deg;C. Because there is
 no density feedback in this example, the densities initially imposed in the OpenMC
 model remain fixed at the values set in the OpenMC input files.
@@ -127,7 +127,7 @@ The following sub-sections describe these files.
 
 ### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is described in the
+The solid phase is solved with the MOOSE heat transfer module, and is described in the
 `solid.i` input. We set up the mesh using the [CombinerGenerator](https://mooseframework.inl.gov/source/meshgenerators/CombinerGenerator.html) to translate a single sphere mesh to multiple locations.
 
 !listing /tutorials/pebbles/solid.i

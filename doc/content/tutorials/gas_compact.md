@@ -20,7 +20,7 @@ solve faster.
 
 Cardinal contains convenient features for applying multiphysics
 feedback to heterogeneous domains, when a coupled physics application (such as the MOOSE
-heat conduction module) might *not* also resolve the heterogeneities. For instance, the
+heat transfer module) might *not* also resolve the heterogeneities. For instance, the
 fuel pebble model in Pronghorn
 [!cite](novak2021b) uses the Heat Source Decomposition method to predict pebble
 interior temperatures, which does not explicitly resolve the [!ac](TRISO) particles
@@ -188,7 +188,7 @@ describe these files.
 
 ### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is described in
+The solid phase is solved with the MOOSE heat transfer module, and is described in
 the `solid.i` input. We define a number of constants at the beginning of the file and
 set up the mesh from a file.
 
@@ -202,7 +202,7 @@ boundary conditions we will apply.
   start=Variables
   end=AuxVariables
 
-The MOOSE heat conduction module will receive power from OpenMC in the form of
+The MOOSE heat transfer module will receive power from OpenMC in the form of
 an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
 so we define a receiver variable for the fission power, as `power`. We also define
 a variable `fluid_temp`, that we will use a [FunctionIC](https://mooseframework.inl.gov/source/ics/FunctionIC.html)
