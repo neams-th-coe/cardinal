@@ -88,7 +88,7 @@ computational domain is shown outlined with a red dotted line in [top_down].
 
 ### Heat Conduction Model
 
-The MOOSE heat conduction module is used to solve for
+The MOOSE heat transfer module is used to solve for
 [energy conservation in the solid](theory/heat_eqn.md).
 A fixed heat flux of 5 kW/m$^2$ is imposed on the block surface facing the pebble bed.
 On the surface of the barrel, a heat convection boundary condition is imposed,
@@ -256,7 +256,7 @@ All input files for this stage are present in the
 
 ### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is described in the `solid.i` input.
+The solid phase is solved with the MOOSE heat transfer module, and is described in the `solid.i` input.
 At the top of this file, the core heat flux is defined as a variable local to the file.
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
@@ -269,7 +269,7 @@ specified by pointing to the Exodus mesh.
   start=Mesh
   end=Variables
 
-The heat conduction module will solve for temperature, which is defined as a nonlinear
+The heat transfer module will solve for temperature, which is defined as a nonlinear
 variable.
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
@@ -328,7 +328,7 @@ in the graphite and steel.
 Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
  and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal
-and MOOSE. The MOOSE heat conduction module is here run as the main application, with
+and MOOSE. The MOOSE heat transfer module is here run as the main application, with
 the NekRS wrapping run as the sub-application. We specify that MOOSE will run first on each
 time step.
 
@@ -534,7 +534,7 @@ conduction case in [#part1].
 
 ### Solid Input Files
 
-The solid phase is again solved with the MOOSE heat conduction module; the input file
+The solid phase is again solved with the MOOSE heat transfer module; the input file
 is largely the same except that the simulation is run for 400 time steps.
 
 !listing /tutorials/fhr_reflector/cht/solid.i

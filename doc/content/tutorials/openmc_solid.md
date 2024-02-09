@@ -14,7 +14,7 @@ This is shown schematically in [cardinal_openmc_solid]. Pay special attention to
 "NekRS" bubble - OpenMC can couple via Cardinal to NekRS in the same manner
 as any of these other codes.
 All tutorials in this
-section couple OpenMC to the MOOSE heat conduction module, but the concepts
+section couple OpenMC to the MOOSE heat transfer module, but the concepts
 extend equally to coupling OpenMC to any of these other MOOSE thermal-fluid codes.
 
 !media cardinal_openmc_solid.png

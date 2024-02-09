@@ -121,7 +121,7 @@ python pincell.py
 
 ### Heat Conduction Model
 
-The MOOSE heat conduction module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
+The MOOSE heat transfer module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
 The solid mesh is shown in [solid_mesh]. This mesh is generated using MOOSE's
 [reactor module](https://mooseframework.inl.gov/modules/reactor/index.html), which can be used to make
 sophisticated meshes of typical reactor geometries such as pin lattices, ducts, and reactor vessels.
@@ -290,7 +290,7 @@ Finally, we will use a [Transient](https://mooseframework.inl.gov/source/executi
 ### Solid Input Files
   id=solid_model
 
-The conservation of solid energy is solved using the MOOSE heat conduction module. The input
+The conservation of solid energy is solved using the MOOSE heat transfer module. The input
 file for this portion of the physics is `bison.i`. We begin by defining a
 number of constants and setting the mesh.
 

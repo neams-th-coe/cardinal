@@ -93,7 +93,7 @@ def coolant_density(t):
     value here in case you want to run these files in standalone mode (i.e. with
     the "openmc" executable).
 
-  Computes the helium density from temperature assuming a fixed operating pressure.
+  Computes the helium density (kg/m3) from temperature assuming a fixed operating pressure.
 
   Parameters
   ----------
@@ -106,8 +106,8 @@ def coolant_density(t):
     float or 1-D numpy array of float depending on t
   """
 
-  p_in_bar = outlet_P * 1.0e-5;
-  return 48.14 * p_in_bar / (t + 0.4446 * p_in_bar / math.pow(t, 0.2));
+  p_in_bar = outlet_P * 1.0e-5
+  return 48.14 * p_in_bar / (t + 0.4446 * p_in_bar / math.pow(t, 0.2))
 
 # -------------- Unit Conversions: OpenMC requires cm -----------
 m = 100.0

@@ -70,7 +70,7 @@ The surface of the pincell is simply set to a constant value, $T_s=500$.
 Because heat transfer and fluid flow in the borated water is not modeled in this example,
 The top and bottom of the solid pincell
 are assumed insulated.
-In this example, the MOOSE heat conduction module will run first. The initial
+In this example, the MOOSE heat transfer module will run first. The initial
 solid temperature is 500&deg;C and the initial power is zero.
 
 ### OpenMC Model
@@ -102,7 +102,7 @@ The following sub-sections describe these files.
 
 ### Solid Input Files
 
-The solid phase is solved with the MOOSE heat conduction module, and is
+The solid phase is solved with the MOOSE heat transfer module, and is
 described in the `solid.i` input. The solid mesh is created using mesh generators
 in the `mesh.i` input:
 
@@ -114,7 +114,7 @@ We generate the mesh by running `cardinal-opt -i mesh.i --mesh-only` to create t
 !listing /tutorials/dagmc/solid.i
   end=Variables
 
-The heat conduction module will solve for temperature, with the heat equation.
+The heat transfer module will solve for temperature, with the heat equation.
 The variables, kernels, and boundary conditions are shown below.
 
 !listing /tutorials/dagmc/solid.i
