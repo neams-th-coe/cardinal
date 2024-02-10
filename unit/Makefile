@@ -84,7 +84,7 @@ HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
 ALL_MODULES         := no
 
 FLUID_PROPERTIES    := yes
-HEAT_CONDUCTION     := yes
+HEAT_TRANSFER       := yes
 NAVIER_STOKES       := yes
 REACTOR             := yes
 STOCHASTIC_TOOLS    := yes

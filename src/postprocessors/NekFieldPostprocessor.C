@@ -43,7 +43,8 @@ NekFieldPostprocessor::NekFieldPostprocessor(const InputParameters & parameters)
   {
     checkRequiredParam(parameters, "velocity_direction", "using 'field = velocity_component'");
 
-    _velocity_direction = geom_utility::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
+    _velocity_direction =
+        geom_utils::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
   }
   else
     checkUnusedParam(parameters, "velocity_direction", "not using 'field = velocity_component'");
