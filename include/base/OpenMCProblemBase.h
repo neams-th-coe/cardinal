@@ -118,6 +118,7 @@ public:
    * @return OpenMC enum
    */
   openmc::TriggerMetric triggerMetric(trigger::TallyTriggerTypeEnum trigger) const;
+  openmc::TriggerMetric triggerMetric(std::string trigger) const;
 
   /**
    * Convert from a MooseEnum for tally estimator to an OpenMC enum
