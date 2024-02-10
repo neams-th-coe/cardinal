@@ -21,7 +21,7 @@
 #include "UserErrorChecking.h"
 #include "MooseMeshUtils.h"
 #include "DelimitedFileReader.h"
-#include "GeometryUtility.h"
+#include "GeometryUtils.h"
 
 #include "libmesh/mesh_tools.h"
 #include "libmesh/cell_hex8.h"
@@ -32,10 +32,7 @@
 #include "libmesh/face_quad9.h"
 
 registerMooseObject("CardinalApp", NekMeshGenerator);
-registerMooseObjectRenamed("CardinalApp",
-                           Hex20Generator,
-                           "03/01/2023 24:00",
-                           NekMeshGenerator);
+registerMooseObjectRenamed("CardinalApp", Hex20Generator, "03/01/2023 24:00", NekMeshGenerator);
 
 InputParameters
 NekMeshGenerator::validParams()
@@ -113,13 +110,18 @@ NekMeshGenerator::validParams()
 
   // TODO: stop-gap solution until the MOOSE reactor module does a better job
   // of clearing out lingering sidesets used for stitching, but not for actual BCs/physics
-  params.addParam<std::vector<BoundaryName>>("boundaries_to_rebuild",
-    "Boundary(s) to retain from the original mesh in the new mesh; if not "
-    "specified, all original boundaries are kept.");
+  params.addParam<std::vector<BoundaryName>>(
+      "boundaries_to_rebuild",
+      "Boundary(s) to retain from the original mesh in the new mesh; if not "
+      "specified, all original boundaries are kept.");
 
-  params.addParam<bool>("retain_original_elem_type", false, "Whether to skip the conversion "
-    "from QUAD9 to QUAD8, or from HEX27 to HEX20, to get into NekRS-compatible element type. "
-    "This is primarily used to just allow MOOSE's AdvancedExtruderGenerator to extrude Quad9 elements.");
+  params.addParam<bool>(
+      "retain_original_elem_type",
+      false,
+      "Whether to skip the conversion "
+      "from QUAD9 to QUAD8, or from HEX27 to HEX20, to get into NekRS-compatible element type. "
+      "This is primarily used to just allow MOOSE's AdvancedExtruderGenerator to extrude Quad9 "
+      "elements.");
 
   params.addClassDescription(
       "Converts MOOSE meshes to element types needed for Nek (Quad8 or Hex20), "
@@ -181,8 +183,8 @@ NekMeshGenerator::NekMeshGenerator(const InputParameters & params)
     checkRequiredParam(params, "geometry_type", "specifying a 'radius' or 'curve_corners = true'");
 
   if (!isParamValid("boundary") && !isParamValid("radius"))
-    checkUnusedParam(params, {"axis", "origins", "origins_files", "layers"},
-                             "not setting a 'boundary'");
+    checkUnusedParam(
+        params, {"axis", "origins", "origins_files", "layers"}, "not setting a 'boundary'");
 }
 
 Point
@@ -197,7 +199,10 @@ NekMeshGenerator::projectPoint(const Point & origin, const Point & pt) const
 }
 
 Point
-NekMeshGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem, const Real & radius, const Point & origin) const
+NekMeshGenerator::adjustPointToCircle(const unsigned int & node_id,
+                                      Elem * elem,
+                                      const Real & radius,
+                                      const Point & origin) const
 {
   auto & node = elem->node_ref(node_id);
   const Point pt(node(0), node(1), node(2));
@@ -207,10 +212,19 @@ NekMeshGenerator::adjustPointToCircle(const unsigned int & node_id, Elem * elem,
 
   // if the point is exactly on the origin, we don't know in which direction to move
   // it so that it lands up on the circle
-  if (geom_utility::isPointZero(xy_plane))
-    mooseError("Node ID ", node_id, " of element ", elem->id(), " is already on the origin (",
-      pt(0), ", ", pt(1), ", ", pt(2), ").\n"
-      "This node lacks the nonzero unit vector needed to move it.");
+  if (geom_utils::isPointZero(xy_plane))
+    mooseError("Node ID ",
+               node_id,
+               " of element ",
+               elem->id(),
+               " is already on the origin (",
+               pt(0),
+               ", ",
+               pt(1),
+               ", ",
+               pt(2),
+               ").\n"
+               "This node lacks the nonzero unit vector needed to move it.");
 
   Point adjustment = xy_plane.unit() * (radius - xy_plane.norm());
 
@@ -232,17 +246,21 @@ NekMeshGenerator::getBoundaryID(const BoundaryName & name, const MeshBase & mesh
 }
 
 void
-NekMeshGenerator::checkPointLength(const std::vector<std::vector<Real>> & points, std::string name) const
+NekMeshGenerator::checkPointLength(const std::vector<std::vector<Real>> & points,
+                                   std::string name) const
 {
   for (const auto & o : points)
   {
     if (o.size() == 0)
-      mooseError("Zero-length entry in '" + name + "' detected! Please be sure that each "
-        "entry in '" + name + "' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
+      mooseError("Zero-length entry in '" + name +
+                 "' detected! Please be sure that each "
+                 "entry in '" +
+                 name + "' has a length\ndivisible by 3 to represent (x, y, z) coordinates.");
 
     if (o.size() % 3 != 0)
-      mooseError("When using multiple origins for one boundary, each entry in '" + name + "' "
-        "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
+      mooseError("When using multiple origins for one boundary, each entry in '" + name +
+                 "' "
+                 "must have a length\ndivisible by 3 to represent (x, y, z) coordinates!");
   }
 }
 
@@ -255,7 +273,8 @@ NekMeshGenerator::adjustMidPointNode(const unsigned int & node_id, Elem * elem) 
   const auto & primary = elem->node_ref(p.first);
   const auto & secondary = elem->node_ref(p.second);
 
-  Point pt(0.5 * (primary(0) + secondary(0)), 0.5 * (primary(1) + secondary(1)),
+  Point pt(0.5 * (primary(0) + secondary(0)),
+           0.5 * (primary(1) + secondary(1)),
            0.5 * (primary(2) + secondary(2)));
 
   adjust = pt;
@@ -266,8 +285,7 @@ NekMeshGenerator::isNearCorner(const Point & pt) const
 {
   // point is a moving point by the corner if the distance from the corner is less
   // that the distance from the circle tangent to the corner
-  Real distance_to_closest_corner = geom_utility::minDistanceToPoints(pt,
-    _polygon_corners, _axis);
+  Real distance_to_closest_corner = geom_utils::minDistanceToPoints(pt, _polygon_corners, _axis);
 
   return distance_to_closest_corner < _max_corner_distance;
 }
@@ -305,13 +323,17 @@ NekMeshGenerator::getClosestOrigin(const unsigned int & index, const Point & pt)
     }
   }
 
-  Point closest(candidates[3 * origin_index], candidates[3 * origin_index + 1], candidates[3 * origin_index + 2]);
+  Point closest(candidates[3 * origin_index],
+                candidates[3 * origin_index + 1],
+                candidates[3 * origin_index + 2]);
   return closest;
 }
 
 void
-NekMeshGenerator::moveElem(Elem * elem, const unsigned int & boundary_index, const unsigned int & primary_face,
-  const std::vector<Real> & polygon_layer_smoothing)
+NekMeshGenerator::moveElem(Elem * elem,
+                           const unsigned int & boundary_index,
+                           const unsigned int & primary_face,
+                           const std::vector<Real> & polygon_layer_smoothing)
 {
   bool is_corner_boundary = boundary_index >= _n_noncorner_boundaries;
 
@@ -365,8 +387,9 @@ NekMeshGenerator::moveElem(Elem * elem, const unsigned int & boundary_index, con
 }
 
 std::vector<Elem *>
-NekMeshGenerator::getBoundaryLayerElems(Elem * elem, const unsigned int & n_layers,
-  const unsigned int & primary_face) const
+NekMeshGenerator::getBoundaryLayerElems(Elem * elem,
+                                        const unsigned int & n_layers,
+                                        const unsigned int & primary_face) const
 {
   std::vector<Elem *> nested_elems;
 
@@ -404,7 +427,8 @@ NekMeshGenerator::pairedFaceNode(const unsigned int & node_id, const unsigned in
 }
 
 unsigned int
-NekMeshGenerator::midPointNodeIndex(const unsigned int & face_id, const unsigned int & face_node) const
+NekMeshGenerator::midPointNodeIndex(const unsigned int & face_id,
+                                    const unsigned int & face_node) const
 {
   const auto & primary_nodes = _corner_nodes[face_id];
   auto it = std::find(primary_nodes.begin(), primary_nodes.end(), face_node);
@@ -412,10 +436,12 @@ NekMeshGenerator::midPointNodeIndex(const unsigned int & face_id, const unsigned
 }
 
 const Elem *
-NekMeshGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touching_face, unsigned int & next_touching_face) const
+NekMeshGenerator::getNextLayerElem(const Elem & elem,
+                                   const unsigned int & touching_face,
+                                   unsigned int & next_touching_face) const
 
 {
-  std::set<const Elem * > neighbor_set;
+  std::set<const Elem *> neighbor_set;
 
   // for the input element, get the node index on the mid-face, since for Hex27 that should
   // only uniquely touch one other element
@@ -425,10 +451,15 @@ NekMeshGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touch
   elem.find_point_neighbors(face_pt, neighbor_set);
 
   if (neighbor_set.size() != 2)
-    mooseError("Boundary layer sweeping requires finding exactly one neighbor element\n"
-      "through the layer face! Found ", neighbor_set.size() - 1, " neighbors for element ",
-      elem.id(), ", face ", touching_face,
-      ".\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
+    mooseError(
+        "Boundary layer sweeping requires finding exactly one neighbor element\n"
+        "through the layer face! Found ",
+        neighbor_set.size() - 1,
+        " neighbors for element ",
+        elem.id(),
+        ", face ",
+        touching_face,
+        ".\n\nThis can happen if you have specified more 'layers' than are actually in your mesh.");
 
   // When in 3-D, this mesh generator currently assumes we're working on an extruded mesh,
   // so that the face pattern follows as we sweep through the boundary layers
@@ -443,11 +474,12 @@ NekMeshGenerator::getNextLayerElem(const Elem & elem, const unsigned int & touch
   }
 
   mooseError("Failed to find a neighbor element across the boundary layer! Please check that\n"
-    "the 'layers' are set to reasonable values.");
+             "the 'layers' are set to reasonable values.");
 }
 
 void
-NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> & polygon_layer_smoothing)
+NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh,
+                            std::vector<Real> & polygon_layer_smoothing)
 {
   auto & boundary_info = mesh->get_boundary_info();
 
@@ -462,7 +494,8 @@ NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> 
       std::vector<boundary_id_type> b;
       boundary_info.boundary_ids(elem, s, b);
 
-      // if there is no moving boundary, or no faces of this element are on any boundaries, we can leave
+      // if there is no moving boundary, or no faces of this element are on any boundaries, we can
+      // leave
       if (!_has_moving_boundary || b.size() == 0)
         continue;
 
@@ -483,13 +516,13 @@ NekMeshGenerator::moveNodes(std::unique_ptr<MeshBase> & mesh, std::vector<Real> 
 
       if (indices.size() > 1)
         mooseError("This mesh generator does not support elements with the same face "
-          "existing on multiple moving side sets!");
+                   "existing on multiple moving side sets!");
 
       unsigned int index = indices[0];
 
       if (at_least_one_face_on_boundary)
         mooseError("This mesh generator cannot be applied to elements that have more than "
-          "one face on the circular sideset!");
+                   "one face on the circular sideset!");
 
       at_least_one_face_on_boundary = true;
       moveElem(elem, index, s, polygon_layer_smoothing);
@@ -512,7 +545,8 @@ NekMeshGenerator::checkElementType(std::unique_ptr<MeshBase> & mesh)
   for (const auto & elem : mesh->element_ptr_range())
   {
     if (_etype != elem->type())
-      mooseError("This mesh generator can only be applied to meshes that contain a single element type!");
+      mooseError(
+          "This mesh generator can only be applied to meshes that contain a single element type!");
 
     switch (elem->type())
     {
@@ -521,7 +555,8 @@ NekMeshGenerator::checkElementType(std::unique_ptr<MeshBase> & mesh)
       case HEX27:
         break;
       default:
-        mooseError("This mesh generator can only be applied to meshes that contain QUAD9 or HEX27 elements!");
+        mooseError("This mesh generator can only be applied to meshes that contain QUAD9 or HEX27 "
+                   "elements!");
     }
   }
 }
@@ -613,12 +648,18 @@ NekMeshGenerator::initializeElemData(std::unique_ptr<MeshBase> & mesh)
           _corner_nodes[i].push_back(Hex27::side_nodes_map[i][j]);
 
       _across_pair.resize(Hex27::num_sides);
-      _across_pair[0] = {{0, 4}, {8, 16}, {1, 5}, {11, 19}, {20, 25}, {9, 17}, {3, 7}, {10, 18}, {2, 6}};
-      _across_pair[1] = {{0, 3}, {8, 10}, {1, 2}, {12, 15}, {21, 23}, {13, 14}, {4, 7}, {16, 18}, {5, 6}};
-      _across_pair[2] = {{1, 0}, {9, 11}, {2, 3}, {13, 12}, {22, 24}, {14, 15}, {5, 4}, {17, 19}, {6, 7}};
-      _across_pair[3] = {{3, 0}, {10, 8}, {2, 1}, {15, 12}, {23, 21}, {14, 13}, {7, 4}, {18, 16}, {6, 5}};
-      _across_pair[4] = {{0, 1}, {11, 9}, {3, 2}, {12, 13}, {24, 22}, {15, 14}, {4, 5}, {19, 17}, {7, 6}};
-      _across_pair[5] = {{4, 0}, {16, 8}, {5, 1}, {19, 11}, {25, 20}, {17, 9}, {7, 3}, {18, 10}, {6, 2}};
+      _across_pair[0] = {
+          {0, 4}, {8, 16}, {1, 5}, {11, 19}, {20, 25}, {9, 17}, {3, 7}, {10, 18}, {2, 6}};
+      _across_pair[1] = {
+          {0, 3}, {8, 10}, {1, 2}, {12, 15}, {21, 23}, {13, 14}, {4, 7}, {16, 18}, {5, 6}};
+      _across_pair[2] = {
+          {1, 0}, {9, 11}, {2, 3}, {13, 12}, {22, 24}, {14, 15}, {5, 4}, {17, 19}, {6, 7}};
+      _across_pair[3] = {
+          {3, 0}, {10, 8}, {2, 1}, {15, 12}, {23, 21}, {14, 13}, {7, 4}, {18, 16}, {6, 5}};
+      _across_pair[4] = {
+          {0, 1}, {11, 9}, {3, 2}, {12, 13}, {24, 22}, {15, 14}, {4, 5}, {19, 17}, {7, 6}};
+      _across_pair[5] = {
+          {4, 0}, {16, 8}, {5, 1}, {19, 11}, {25, 20}, {17, 9}, {7, 3}, {18, 10}, {6, 2}};
 
       _across_face.resize(Hex27::num_sides);
       _across_face[0] = 5;
@@ -675,7 +716,10 @@ NekMeshGenerator::generate()
 
     if (_moving_boundary.size() != _radius.size())
       mooseError("'boundary' and 'radius' must be the same length!"
-        "\n 'boundary' length: ", _moving_boundary.size(), "\n 'radius' length: ", _radius.size());
+                 "\n 'boundary' length: ",
+                 _moving_boundary.size(),
+                 "\n 'radius' length: ",
+                 _radius.size());
 
     if (isParamValid("origins") && isParamValid("origins_files"))
       mooseError("Cannot specify both 'origins' and 'origins_files'!");
@@ -686,7 +730,10 @@ NekMeshGenerator::generate()
 
       if (_moving_boundary.size() != _origin.size())
         mooseError("'boundary' and 'origins' must be the same length!"
-          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins' length: ", _origin.size());
+                   "\n 'boundary' length: ",
+                   _moving_boundary.size(),
+                   "\n 'origins' length: ",
+                   _origin.size());
 
       checkPointLength(_origin, "origins");
     }
@@ -696,8 +743,10 @@ NekMeshGenerator::generate()
 
       if (_moving_boundary.size() != origin_filenames.size())
         mooseError("'boundary' and 'origins_files' must be the same length!"
-          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'origins_files' length: ",
-          origin_filenames.size());
+                   "\n 'boundary' length: ",
+                   _moving_boundary.size(),
+                   "\n 'origins_files' length: ",
+                   origin_filenames.size());
 
       _origin.resize(origin_filenames.size());
 
@@ -713,7 +762,9 @@ NekMeshGenerator::generate()
         for (const auto & d : data)
         {
           if (d.size() != 3)
-            mooseError("All entries in '", f, "' must contain exactly 3 entries to represent (x, y, z) coordinates!");
+            mooseError("All entries in '",
+                       f,
+                       "' must contain exactly 3 entries to represent (x, y, z) coordinates!");
 
           _origin[i].push_back(d[0]);
           _origin[i].push_back(d[1]);
@@ -736,7 +787,10 @@ NekMeshGenerator::generate()
 
       if (_moving_boundary.size() != _layers.size())
         mooseError("'boundary' and 'layers' must be the same length!"
-          "\n 'boundary' length: ", _moving_boundary.size(), "\n 'layers' length: ", _layers.size());
+                   "\n 'boundary' length: ",
+                   _moving_boundary.size(),
+                   "\n 'layers' length: ",
+                   _layers.size());
     }
     else
     {
@@ -767,7 +821,8 @@ NekMeshGenerator::generate()
       // because we simply rotate the point about either the x, y, or z 'axis'. This
       // is not a hard limit, just something we didn't initially put effort to support.
       if (std::abs(_rotation_angle) > 1e-8)
-        mooseError("Cannot specify a non-zero 'rotation_angle' when providing custom 'polygon_origins'!");
+        mooseError(
+            "Cannot specify a non-zero 'rotation_angle' when providing custom 'polygon_origins'!");
     }
     else
       polygon_origin.push_back({0.0, 0.0, 0.0});
@@ -790,7 +845,7 @@ NekMeshGenerator::generate()
           polygon_layer_smoothing.push_back(1.0);
       }
     }
-   else
+    else
       checkUnusedParam(parameters(), "polygon_layer_smoothing", "not setting 'polygon_layers'");
 
     Real polygon_angle = M_PI - (2.0 * M_PI / polygon_sides);
@@ -798,7 +853,8 @@ NekMeshGenerator::generate()
 
     if (corner_radius > max_circle_radius)
       mooseError("Specified 'corner_radius' cannot fit within the specified polygon!\n"
-        "The maximum allowable radius of curvature is: ", max_circle_radius);
+                 "The maximum allowable radius of curvature is: ",
+                 max_circle_radius);
 
     const auto & name = getParam<BoundaryName>("polygon_boundary");
     auto polygon_boundary = getBoundaryID(name, *mesh);
@@ -816,11 +872,11 @@ NekMeshGenerator::generate()
     for (const auto & o : polygon_origin)
     {
       Point shift(o[0], o[1], o[2]);
-      auto tmp1 = geom_utility::polygonCorners(polygon_sides, polygon_size, _axis);
+      auto tmp1 = geom_utils::polygonCorners(polygon_sides, polygon_size, _axis);
       for (const auto & t : tmp1)
         _polygon_corners.push_back(t + shift);
 
-      auto tmp2 = geom_utility::polygonCorners(polygon_sides, polygon_size - l, _axis);
+      auto tmp2 = geom_utils::polygonCorners(polygon_sides, polygon_size - l, _axis);
       for (const auto & t : tmp2)
         corner_origins.push_back(t + shift);
     }
@@ -829,9 +885,9 @@ NekMeshGenerator::generate()
     Point axis(0.0, 0.0, 0.0);
     axis(_axis) = 1.0;
     for (auto & o : _polygon_corners)
-      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
+      o = geom_utils::rotatePointAboutAxis(o, rotation_angle_radians, axis);
     for (auto & o : corner_origins)
-      o = geom_utility::rotatePointAboutAxis(o, rotation_angle_radians, axis);
+      o = geom_utils::rotatePointAboutAxis(o, rotation_angle_radians, axis);
 
     std::vector<Real> flattened_corner_origins;
     for (const auto & o : corner_origins)
@@ -845,7 +901,6 @@ NekMeshGenerator::generate()
     _origin.push_back(flattened_corner_origins);
     _layers.push_back(getParam<unsigned int>("polygon_layers"));
   }
-
 
   // get information on which boundaries to rebuild, and check for valid user specifications
   if (isParamValid("boundaries_to_rebuild"))
@@ -876,7 +931,7 @@ NekMeshGenerator::generate()
   node_ids.resize(mesh->n_elem());
 
   // store boundary ID <-> name mapping
-  for (const auto & b: original_boundaries)
+  for (const auto & b : original_boundaries)
     _boundary_id_to_name[b] = boundary_info.get_sideset_name(b);
 
   for (auto & elem : mesh->element_ptr_range())
@@ -985,7 +1040,7 @@ NekMeshGenerator::generate()
     }
   }
 
-  for (const auto & b: _boundary_id_to_name)
+  for (const auto & b : _boundary_id_to_name)
   {
     // if boundary is not included in the list to rebuild, skip it
     if (_boundaries_to_rebuild.find(b.first) == _boundaries_to_rebuild.end())

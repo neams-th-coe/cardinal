@@ -21,7 +21,7 @@
 #include "ThreadedGeneralUserObject.h"
 #include "NekRSProblemBase.h"
 #include "CardinalEnums.h"
-#include "GeometryUtility.h"
+#include "GeometryUtils.h"
 
 /**
  * Base class for providing common information to userobjects

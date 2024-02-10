@@ -198,17 +198,6 @@ enum EigenvalueEnum
 };
 } // namespace eigenvalue
 
-namespace channel_type
-{
-/// Type of subchannel
-enum ChannelTypeEnum
-{
-  interior,
-  edge,
-  corner
-};
-} // namespace channel_type
-
 namespace relaxation
 {
 /// Type of relaxation

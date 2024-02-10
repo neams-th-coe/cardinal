@@ -49,13 +49,13 @@ HexagonalSubchannelGapBin::HexagonalSubchannelGapBin(const InputParameters & par
     _n_rings(getParam<unsigned int>("n_rings")),
     _axis(parameters.get<MooseEnum>("axis"))
 {
-  _hex_lattice.reset(new HexagonalLatticeUtility(_bundle_pitch,
-                                                 _pin_pitch,
-                                                 _pin_diameter,
-                                                 0.0 /* wire diameter, unused */,
-                                                 1.0 /* wire pitch, unused */,
-                                                 _n_rings,
-                                                 _axis));
+  _hex_lattice.reset(new HexagonalLatticeUtils(_bundle_pitch,
+                                               _pin_pitch,
+                                               _pin_diameter,
+                                               0.0 /* wire diameter, unused */,
+                                               1.0 /* wire pitch, unused */,
+                                               _n_rings,
+                                               _axis));
 
   if (_axis == 0) // x vertical axis
     _directions = {1, 2};

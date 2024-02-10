@@ -666,7 +666,7 @@ protected:
    * of active batches in order to reach some desired criteria (which is specified
    * by this parameter).
    */
-  const trigger::TallyTriggerTypeEnum _tally_trigger;
+  const MultiMooseEnum * _tally_trigger;
 
   /**
    * Type of trigger to apply to k eigenvalue to indicate when
@@ -1010,8 +1010,8 @@ protected:
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;
 
-  /// Threshold to use for accepting tallies when using triggers
-  Real _tally_trigger_threshold;
+  /// Thresholds to use for accepting tallies when using triggers
+  std::vector<Real> _tally_trigger_threshold;
 
   /**
    * Current fixed point iteration tally result; for instance, when using constant

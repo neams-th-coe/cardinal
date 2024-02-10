@@ -130,12 +130,14 @@ OpenMCCellAverageProblem::validParams()
                                          "template should be translated, if multiple "
                                          "unstructured meshes are desired.");
 
-  params.addParam<MooseEnum>("tally_trigger",
-                             getTallyTriggerEnum(),
-                             "Trigger criterion to determine when OpenMC simulation is complete "
-                             "based on tallies. If multiple scores are specified in 'tally_score, "
-                             "this same trigger is applied to all scores.");
-  params.addRangeCheckedParam<Real>(
+  MultiMooseEnum tally_trigger("rel_err none");
+  params.addParam<MultiMooseEnum>(
+      "tally_trigger",
+      tally_trigger,
+      "Trigger criterion to determine when OpenMC simulation is complete "
+      "based on tallies. If multiple scores are specified in 'tally_score, "
+      "this same trigger is applied to all scores.");
+  params.addRangeCheckedParam<std::vector<Real>>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
   params.addParam<MooseEnum>(
       "k_trigger",
@@ -245,7 +247,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
-    _tally_trigger(getParam<MooseEnum>("tally_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
+    _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
+                                                 : nullptr),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
@@ -325,15 +328,13 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                                    "mesh_template",
                                    "mesh_translations",
                                    "mesh_translations_file",
+                                   "tally_trigger",
                                    "tally_trigger_threshold",
                                    "check_equal_mapped_tally_volumes",
                                    "equval_tally_volume_abs_tol",
                                    "output"};
     for (const auto & s : ps)
       checkUnusedParam(params, s, "'tally_type = none'");
-
-    if (_tally_trigger != trigger::none)
-      mooseWarning("Ignoring 'tally_trigger' setting because 'tally_type = none'");
   }
 
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
@@ -929,22 +930,30 @@ OpenMCCellAverageProblem::setupProblem()
 void
 OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & parameters)
 {
-  // parameters needed for tally triggers
-  if (_tally_trigger != trigger::none)
+  if (isParamValid("tally_trigger") != isParamValid("tally_trigger_threshold"))
+    mooseError("You must either specify none or both of 'tally_trigger' and "
+               "'tally_trigger_threshold'. You have specified only one.");
+
+  bool has_tally_trigger = false;
+  if (_tally_trigger)
   {
-    if (_tally_trigger == trigger::std_dev || _tally_trigger == trigger::variance)
-      mooseError(
-          "Standard deviation and variance tally triggers are not yet supported!\n"
-          "There is not a mechanism for OpenMC to use a different threshold for the different\n"
-          "bins in the tallies, which would be needed in order to set thresholds in the same\n"
-          "units as in the Cardinal input file.");
+    _tally_trigger_threshold = getParam<std::vector<Real>>("tally_trigger_threshold");
 
-    checkRequiredParam(parameters, "tally_trigger_threshold", "using tally triggers");
+    if (_tally_trigger->size() != _tally_score.size())
+      mooseError("'tally_trigger' (size " + std::to_string(_tally_trigger->size()) +
+                 ") must have the same length as 'tally_score' (size " +
+                 std::to_string(_tally_score.size()) + ")");
 
-    _tally_trigger_threshold = getParam<Real>("tally_trigger_threshold");
+    if (_tally_trigger_threshold.size() != _tally_score.size())
+      mooseError("'tally_trigger_threshold' (size " +
+                 std::to_string(_tally_trigger_threshold.size()) +
+                 ") must have the same length as 'tally_score' (size " +
+                 std::to_string(_tally_score.size()) + ")");
+
+    for (unsigned int s = 0; s < _tally_trigger->size(); ++s)
+      if ((*_tally_trigger)[s] != "none")
+        has_tally_trigger = true;
   }
-  else
-    checkUnusedParam(parameters, "tally_trigger_threshold", "not using tally triggers");
 
   // parameters needed for k triggers
   if (_k_trigger != trigger::none)
@@ -955,7 +964,7 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
   else
     checkUnusedParam(parameters, "k_trigger_threshold", "not using a k trigger");
 
-  if (_k_trigger != trigger::none || _tally_trigger != trigger::none) // at least one trigger
+  if (_k_trigger != trigger::none || has_tally_trigger) // at least one trigger
   {
     openmc::settings::trigger_on = true;
     checkRequiredParam(parameters, "max_batches", "using triggers");
@@ -967,8 +976,7 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
 
     openmc::settings::trigger_batch_interval = getParam<unsigned int>("batch_interval");
   }
-
-  if (_k_trigger == trigger::none && _tally_trigger == trigger::none) // no triggers
+  else
   {
     checkUnusedParam(parameters, "max_batches", "not using triggers");
     checkUnusedParam(parameters, "batch_interval", "not using triggers");
@@ -2537,11 +2545,11 @@ OpenMCCellAverageProblem::initializeTallies()
   if (_assume_separate_tallies)
     openmc::settings::assume_separate = true;
 
-  // add trigger information, if present. TODO: we could have these triggers be individual
-  // for each score later if needed
-  for (auto & t : _local_tally)
-    for (int score = 0; score < _tally_score.size(); ++score)
-      t->triggers_.push_back({triggerMetric(_tally_trigger), _tally_trigger_threshold, score});
+  if (_tally_trigger)
+    for (auto & t : _local_tally)
+      for (int score = 0; score < _tally_score.size(); ++score)
+        t->triggers_.push_back(
+            {triggerMetric((*_tally_trigger)[score]), _tally_trigger_threshold[score], score});
 }
 
 bool

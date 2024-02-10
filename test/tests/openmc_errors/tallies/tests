@@ -14,6 +14,14 @@
     requirement = "The system shall error if tally_name and tally_score are not the same length."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [missing_threshold]
+    type = RunException
+    input = length.i
+    cli_args = 'Problem/tally_trigger="rel_err"'
+    expect_err = "You must either specify none or both of 'tally_trigger' and 'tally_trigger_threshold'. You have specified only one."
+    requirement = "The system shall error if tally_trigger and tally_trigger_threshold are not simultaneously specified"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [duplicate_name]
     type = RunException
     input = length.i

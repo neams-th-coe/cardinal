@@ -19,7 +19,7 @@
 #pragma once
 
 #include "PlaneSpatialBinUserObject.h"
-#include "HexagonalLatticeUtility.h"
+#include "HexagonalLatticeUtils.h"
 
 /**
  * Class that bins spatial coordinates into a hexagonal subchannel gap discretization
@@ -65,5 +65,5 @@ protected:
   const unsigned int _axis;
 
   /// Underlying utility providing hexagonal lattice capabilities
-  std::unique_ptr<HexagonalLatticeUtility> _hex_lattice;
+  std::unique_ptr<HexagonalLatticeUtils> _hex_lattice;
 };

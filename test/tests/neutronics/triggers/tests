@@ -66,4 +66,38 @@
       "tally relative error when applying the same trigger to multiple scores."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [length_trigger]
+    type = RunException
+    input = multi_rel_err.i
+    cli_args = 'Problem/tally_trigger="rel_err"'
+    requirement = "The system shall enforce correct trigger length"
+    expect_err = "'tally_trigger' \(size 1\) must have the same length as 'tally_score' \(size 2\)"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [length_threshold]
+    type = RunException
+    input = multi_rel_err.i
+    cli_args = 'Problem/tally_trigger_threshold="1e-2"'
+    requirement = "The system shall enforce correct trigger threshold length"
+    expect_err = "'tally_trigger_threshold' \(size 1\) must have the same length as 'tally_score' \(size 2\)"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_diff_rel_err]
+    type = CSVDiff
+    input = multi_rel_err.i
+    csvdiff = diff_out.csv
+    cli_args = 'Outputs/file_base=diff_out Problem/tally_trigger_threshold="1e-2 5e-2"'
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "tally relative error when applying a different trigger to multiple scores."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multi_diff_rel_err_b]
+    type = CSVDiff
+    input = multi_rel_err.i
+    csvdiff = diffb_out.csv
+    cli_args = 'Outputs/file_base=diffb_out Problem/tally_trigger_threshold="5e-2 1e-2"'
+    requirement = "The system shall correctly terminate the OpenMC simulation once reaching a desired "
+      "tally relative error when applying a different trigger to multiple scores."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

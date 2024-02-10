@@ -4,7 +4,7 @@
 #include "VariadicTable.h"
 #include "AuxiliarySystem.h"
 #include "BinUtility.h"
-#include "GeometryUtility.h"
+#include "GeometryUtils.h"
 #include "UserErrorChecking.h"
 
 #include "libmesh/elem.h"
@@ -40,7 +40,8 @@ MoabSkinner::validParams()
   params.addRangeCheckedParam<unsigned int>(
       "n_density_bins", "n_density_bins > 0", "Number of density bins");
 
-  params.addParam<std::vector<std::string>>("material_names",
+  params.addParam<std::vector<std::string>>(
+      "material_names",
       "List of names for each subdomain to use for naming the new volumes created in MOAB. "
       "You only need to set this if using this skinner independent of OpenMC; otherwise, "
       "these names are auto-deduced from OpenMC");
@@ -67,10 +68,14 @@ MoabSkinner::validParams()
       false,
       "Whether the skinned MOAB mesh (skins generated from the "
       "libMesh [Mesh]) should be written to a file. The files will be named moab_skins_<n>.h5m, "
-      "where <n> is the time step index. You can then visualize these files by running 'mbconvert'.");
-  params.addParam<bool>("output_full",  false, "Whether the MOAB mesh (copied from the libMesh [Mesh]) should "
-    "be written to a file. The files will be named moab_full_<n>.h5m, where <n> is the time step index. "
-    "You can then visualize these files by running 'mbconvert'.");
+      "where <n> is the time step index. You can then visualize these files by running "
+      "'mbconvert'.");
+  params.addParam<bool>("output_full",
+                        false,
+                        "Whether the MOAB mesh (copied from the libMesh [Mesh]) should "
+                        "be written to a file. The files will be named moab_full_<n>.h5m, where "
+                        "<n> is the time step index. "
+                        "You can then visualize these files by running 'mbconvert'.");
   return params;
 }
 
@@ -196,7 +201,8 @@ MoabSkinner::check(const moab::ErrorCode input) const
 }
 
 unsigned int
-MoabSkinner::getAuxiliaryVariableNumber(const std::string & name, const std::string & param_name) const
+MoabSkinner::getAuxiliaryVariableNumber(const std::string & name,
+                                        const std::string & param_name) const
 {
   if (!_fe_problem.getAuxiliarySystem().hasVariable(name))
     paramError(param_name, "Cannot find auxiliary variable '", name, "'!");
@@ -222,17 +228,22 @@ MoabSkinner::initialize()
 
   if (_standalone)
   {
-    checkRequiredParam(parameters(), "material_names", "using skinner independent of an OpenMC [Problem]");
+    checkRequiredParam(
+        parameters(), "material_names", "using skinner independent of an OpenMC [Problem]");
     _material_names = getParam<std::vector<std::string>>("material_names");
 
     if (_material_names.size() != _n_block_bins)
-      paramError("material_names", "This parameter must be the same length as the number of "
-        "subdomains in the mesh (" + Moose::stringify(_n_block_bins) + ")");
+      paramError("material_names",
+                 "This parameter must be the same length as the number of "
+                 "subdomains in the mesh (" +
+                     Moose::stringify(_n_block_bins) + ")");
   }
   else
   {
     // the external class should have set the value of _material_names
-    checkUnusedParam(parameters(), "material_names", "using the skinner in conjunction with an OpenMC [Problem]");
+    checkUnusedParam(parameters(),
+                     "material_names",
+                     "using the skinner in conjunction with an OpenMC [Problem]");
   }
 
   // Set spatial dimension in MOAB
@@ -256,8 +267,8 @@ MoabSkinner::execute()
 void
 MoabSkinner::update()
 {
-  _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, " <<
-    _n_density_bins << " density bins, and " << _n_block_bins << " block bins... ";
+  _console << "Skinning geometry into " << _n_temperature_bins << " temperature bins, "
+           << _n_density_bins << " density bins, and " << _n_block_bins << " block bins... ";
 
   // Clear MOAB mesh data from last timestep
   reset();
@@ -377,41 +388,41 @@ MoabSkinner::createTags()
 {
   // First some built-in MOAB tag types
   check(_moab->tag_get_handle(GEOM_DIMENSION_TAG_NAME,
-                        1,
-                        moab::MB_TYPE_INTEGER,
-                        geometry_dimension_tag,
-                        moab::MB_TAG_DENSE | moab::MB_TAG_CREAT));
+                              1,
+                              moab::MB_TYPE_INTEGER,
+                              geometry_dimension_tag,
+                              moab::MB_TAG_DENSE | moab::MB_TAG_CREAT));
 
   check(_moab->tag_get_handle(GLOBAL_ID_TAG_NAME,
-                        1,
-                        moab::MB_TYPE_INTEGER,
-                        id_tag,
-                        moab::MB_TAG_DENSE | moab::MB_TAG_CREAT));
+                              1,
+                              moab::MB_TYPE_INTEGER,
+                              id_tag,
+                              moab::MB_TAG_DENSE | moab::MB_TAG_CREAT));
 
   check(_moab->tag_get_handle(CATEGORY_TAG_NAME,
-                        CATEGORY_TAG_SIZE,
-                        moab::MB_TYPE_OPAQUE,
-                        category_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
+                              CATEGORY_TAG_SIZE,
+                              moab::MB_TYPE_OPAQUE,
+                              category_tag,
+                              moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
   check(_moab->tag_get_handle(NAME_TAG_NAME,
-                        NAME_TAG_SIZE,
-                        moab::MB_TYPE_OPAQUE,
-                        name_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
+                              NAME_TAG_SIZE,
+                              moab::MB_TYPE_OPAQUE,
+                              name_tag,
+                              moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
   // Some tags needed for DagMC
   check(_moab->tag_get_handle("FACETING_TOL",
-                        1,
-                        moab::MB_TYPE_DOUBLE,
-                        faceting_tol_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
+                              1,
+                              moab::MB_TYPE_DOUBLE,
+                              faceting_tol_tag,
+                              moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
   check(_moab->tag_get_handle("GEOMETRY_RESABS",
-                        1,
-                        moab::MB_TYPE_DOUBLE,
-                        geometry_resabs_tag,
-                        moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
+                              1,
+                              moab::MB_TYPE_DOUBLE,
+                              geometry_resabs_tag,
+                              moab::MB_TAG_SPARSE | moab::MB_TAG_CREAT));
 
   // Set the values for DagMC faceting / geometry tolerance tags on the mesh entity set
   check(_moab->tag_set_data(faceting_tol_tag, &_all_tets, 1, &_faceting_tol));
@@ -419,7 +430,9 @@ MoabSkinner::createTags()
 }
 
 void
-MoabSkinner::createGroup(const unsigned int & id, const std::string & name, moab::EntityHandle & group_set)
+MoabSkinner::createGroup(const unsigned int & id,
+                         const std::string & name,
+                         moab::EntityHandle & group_set)
 {
   check(_moab->create_meshset(moab::MESHSET_SET, group_set));
   setTags(group_set, name, "Group", id, 4);
@@ -493,10 +506,7 @@ MoabSkinner::setTags(
 }
 
 void
-MoabSkinner::setTagData(moab::Tag tag,
-                           moab::EntityHandle ent,
-                           std::string data,
-                           unsigned int SIZE)
+MoabSkinner::setTagData(moab::Tag tag, moab::EntityHandle ent, std::string data, unsigned int SIZE)
 {
   auto namebuf = new char[SIZE];
   memset(namebuf, '\0', SIZE); // fill C char array with null
@@ -645,7 +655,9 @@ MoabSkinner::getDensityBin(const Elem * const elem) const
 }
 
 std::string
-MoabSkinner::materialName(const unsigned int & block, const unsigned int & density, const unsigned int & temp) const
+MoabSkinner::materialName(const unsigned int & block,
+                          const unsigned int & density,
+                          const unsigned int & temp) const
 {
   if (_n_density_bins > 1)
     return "mat:" + _material_names.at(block) + "_" + std::to_string(density);
@@ -841,10 +853,10 @@ MoabSkinner::getBin(const unsigned int & i_temp,
 
 void
 MoabSkinner::findSurface(const moab::Range & region,
-                            moab::EntityHandle group,
-                            unsigned int & vol_id,
-                            unsigned int & surf_id,
-                            moab::EntityHandle & volume_set)
+                         moab::EntityHandle group,
+                         unsigned int & vol_id,
+                         unsigned int & surf_id,
+                         moab::EntityHandle & volume_set)
 {
   // Create a volume set
   vol_id++;
@@ -943,8 +955,10 @@ MoabSkinner::buildGraveyard(unsigned int & vol_id, unsigned int & surf_id)
   BoundingBox bbox = MeshTools::create_bounding_box(mesh());
 
   // Build the two cubic surfaces defining the graveyard
-  createSurfaceFromBox(bbox, vdata, surf_id, false /* normals point into box */, _graveyard_scale_inner);
-  createSurfaceFromBox(bbox, vdata, surf_id, true /* normals point out of box */, _graveyard_scale_outer);
+  createSurfaceFromBox(
+      bbox, vdata, surf_id, false /* normals point into box */, _graveyard_scale_inner);
+  createSurfaceFromBox(
+      bbox, vdata, surf_id, true /* normals point out of box */, _graveyard_scale_outer);
 }
 
 void
@@ -975,7 +989,7 @@ MoabSkinner::createNodesFromBox(const BoundingBox & box, const Real & factor) co
   std::vector<moab::EntityHandle> vert_handles;
 
   // Fetch the vertices of the box
-  auto verts = geom_utility::boxCorners(box, factor);
+  auto verts = geom_utils::boxCorners(box, factor);
 
   // Array to represent a coord in MOAB
   double coord[3];
@@ -997,12 +1011,12 @@ MoabSkinner::createNodesFromBox(const BoundingBox & box, const Real & factor) co
 
 void
 MoabSkinner::createCornerTris(const std::vector<moab::EntityHandle> & verts,
-                                 unsigned int corner,
-                                 unsigned int v1,
-                                 unsigned int v2,
-                                 unsigned int v3,
-                                 bool normalout,
-                                 moab::Range & surface_tris)
+                              unsigned int corner,
+                              unsigned int v1,
+                              unsigned int v2,
+                              unsigned int v3,
+                              bool normalout,
+                              moab::Range & surface_tris)
 {
   // Create 3 tris stemming from one corner (i.e. an open tetrahedron)
   // Assume first is the central corner, and the others are labelled clockwise looking down on the
@@ -1041,8 +1055,14 @@ MoabSkinner::setGraveyard(bool build)
   {
     std::string original = _build_graveyard ? "true" : "false";
     std::string change = _build_graveyard ? "false" : "true";
-    mooseWarning("Overriding graveyard setting from ", original, " to ", change, ".\n"
-      "To hide this warning, set 'build_graveyard = ", change, "'");
+    mooseWarning("Overriding graveyard setting from ",
+                 original,
+                 " to ",
+                 change,
+                 ".\n"
+                 "To hide this warning, set 'build_graveyard = ",
+                 change,
+                 "'");
   }
 
   _build_graveyard = build;
