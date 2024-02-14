@@ -25,6 +25,6 @@ if [[ -z "${NEKRS_HOME}" ]]; then
   echo "If you are using NekRS, remember that you need to set NEKRS_HOME to point to your NekRS install!"
   echo "If you are using the NekRS submodule, please set:"
   echo ""
-  echo "export NEKRS_HOME=$SCRIPT_DIR/cardinal/install"
+  echo "export NEKRS_HOME=$SCRIPT_DIR/install"
   echo ""
 fi
