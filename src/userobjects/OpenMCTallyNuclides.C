@@ -29,8 +29,7 @@ OpenMCTallyNuclides::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params.addRequiredParam<int32_t>("tally_id", "ID of tally to change nuclides");
-  params.addRequiredParam<std::vector<std::string>>("names",
-                                                    "Names of the nuclides");
+  params.addRequiredParam<std::vector<std::string>>("names", "Names of the nuclides");
   params.declareControllable("names");
   params.addClassDescription("Updates nuclides in an OpenMC tally");
   return params;
