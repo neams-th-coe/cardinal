@@ -64,7 +64,7 @@ OpenMCTallyNuclides::setValue()
   }
   catch (const std::exception & e)
   {
-    mooseError("In attempting to set nuclide densities in the '" + name() +
+    mooseError("In attempting to set tally nuclides in the '" + name() +
                "' UserObject, OpenMC reported:\n\n" + e.what());
   }
 }

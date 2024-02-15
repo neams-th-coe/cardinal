@@ -21,7 +21,7 @@
 #include "GeneralUserObject.h"
 
 /**
- * User object to modify the nuclide densities in an OpenMC material.
+ * User object to modify the nuclides in an OpenMC tally.
  */
 class OpenMCTallyNuclides : public GeneralUserObject
 {
