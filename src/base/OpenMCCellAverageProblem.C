@@ -3318,7 +3318,7 @@ void
 OpenMCCellAverageProblem::reloadDAGMC()
 {
 #ifdef ENABLE_DAGMC
-  _dagmc.reset(new moab::DagMC(_skinner->moabPtr()));
+  _dagmc.reset(new moab::DagMC(_skinner->moabPtr(), 0.0 /* overlap tolerance, default */, 0.001 /* numerical precision, default */, 0 /* verbosity */));
 
   // Set up geometry in DagMC from already-loaded mesh
   _dagmc->load_existing_contents();
