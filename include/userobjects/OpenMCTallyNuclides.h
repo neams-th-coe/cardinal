@@ -40,9 +40,6 @@ public:
   virtual void setValue();
 
 protected:
-  /// The tally ID
-  const int32_t & _tally_id;
-
   /// The tally index
   int32_t _tally_index;
 

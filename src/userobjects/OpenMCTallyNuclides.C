@@ -37,7 +37,6 @@ OpenMCTallyNuclides::validParams()
 
 OpenMCTallyNuclides::OpenMCTallyNuclides(const InputParameters & parameters)
   : GeneralUserObject(parameters),
-    _tally_id(getParam<int32_t>("tally_id")),
     _names(getParam<std::vector<std::string>>("names"))
 {
   const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
@@ -49,14 +48,20 @@ OpenMCTallyNuclides::OpenMCTallyNuclides(const InputParameters & parameters)
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
 
-  openmc_problem->catchOpenMCError(openmc_get_tally_index(_tally_id, &_tally_index),
-                                   "get the tally index for tally with ID " +
-                                       std::to_string(_tally_id));
 }
 
 void
 OpenMCTallyNuclides::setValue()
 {
+  // this is put here, instead of the constructor, because Cardinal initializes
+  // some tallies. Depending on the order of initialization of UserObjects vs.
+  // other classes, those tallies might not exist yet in OpenMC's data space
+  // (but they will by the time we get here).
+  const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+  auto tally_id = getParam<int32_t>("tally_id");
+  openmc_problem->catchOpenMCError(openmc_get_tally_index(tally_id, &_tally_index),
+                                   "get the tally index for tally with ID " +
+                                       std::to_string(tally_id));
   try
   {
     openmc::model::tallies[_tally_index]->set_nuclides(_names);

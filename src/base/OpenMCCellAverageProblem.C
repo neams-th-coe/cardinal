@@ -775,7 +775,7 @@ OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
 
-  getOpenMCNuclideDensitiesUserObjects();
+  getOpenMCUserObjects();
 
   if (!_needs_to_map_cells)
     checkUnusedParam(parameters(),
@@ -3057,6 +3057,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // the _overall_ density (like due to thermal expansion, which does not change the relative
       // amounts of the different nuclides)
       sendNuclideDensitiesToOpenMC();
+
+      sendTallyNuclidesToOpenMC();
 
       if (_first_transfer && (_has_solid_blocks || _has_fluid_blocks))
       {

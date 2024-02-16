@@ -24,6 +24,7 @@
 #include "PostprocessorInterface.h"
 #include "CardinalEnums.h"
 #include "OpenMCNuclideDensities.h"
+#include "OpenMCTallyNuclides.h"
 
 #include "mpi.h"
 #include "openmc/bank.h"
@@ -329,11 +330,14 @@ public:
   long unsigned int numCells() const;
 
 protected:
-  /// Find all userobjects which are changing nuclide densities
-  void getOpenMCNuclideDensitiesUserObjects();
+  /// Find all userobjects which are changing OpenMC data structures
+  void getOpenMCUserObjects();
 
   /// Set the nuclide densities for any materials being modified via MOOSE
   void sendNuclideDensitiesToOpenMC();
+
+  /// Set the tally nuclides for any tallies being modified via MOOSE
+  void sendTallyNuclidesToOpenMC();
 
   /**
    * Add tally
@@ -445,6 +449,9 @@ protected:
 
   /// Userobjects for changing OpenMC material compositions
   std::vector<OpenMCNuclideDensities *> _nuclide_densities_uos;
+
+  /// Userobjects for changing OpenMC tally nuclides
+  std::vector<OpenMCTallyNuclides *> _tally_nuclides_uos;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;
