@@ -1426,8 +1426,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
         << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n"
         << std::endl;
     _console << "          T:      # elems providing temperature feedback" << std::endl;
-    _console << "          T+rho:  # elems providing temperature and density feedback"
-             << std::endl;
+    _console << "          T+rho:  # elems providing temperature and density feedback" << std::endl;
     _console << "          Other:  # elems which do not provide feedback to OpenMC" << std::endl;
     _console << "                    (but receives a cell tally from OpenMC)" << std::endl;
     _console << "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
@@ -1439,9 +1438,8 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   bool has_io = _has_fluid_blocks || _has_solid_blocks || _tally_type != tally::none;
 
   if (has_io)
-    _console
-        << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
-        << std::endl;
+    _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
+             << std::endl;
 
   if (_has_fluid_blocks || _has_solid_blocks)
   {
@@ -3314,7 +3312,10 @@ void
 OpenMCCellAverageProblem::reloadDAGMC()
 {
 #ifdef ENABLE_DAGMC
-  _dagmc.reset(new moab::DagMC(_skinner->moabPtr(), 0.0 /* overlap tolerance, default */, 0.001 /* numerical precision, default */, 0 /* verbosity */));
+  _dagmc.reset(new moab::DagMC(_skinner->moabPtr(),
+                               0.0 /* overlap tolerance, default */,
+                               0.001 /* numerical precision, default */,
+                               0 /* verbosity */));
 
   // Set up geometry in DagMC from already-loaded mesh
   _dagmc->load_existing_contents();
