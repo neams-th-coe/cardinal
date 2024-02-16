@@ -36,8 +36,7 @@ OpenMCTallyNuclides::validParams()
 }
 
 OpenMCTallyNuclides::OpenMCTallyNuclides(const InputParameters & parameters)
-  : GeneralUserObject(parameters),
-    _names(getParam<std::vector<std::string>>("names"))
+  : GeneralUserObject(parameters), _names(getParam<std::vector<std::string>>("names"))
 {
   const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
   if (!openmc_problem)
@@ -47,7 +46,6 @@ OpenMCTallyNuclides::OpenMCTallyNuclides(const InputParameters & parameters)
                "You need to change the\nproblem type from '" +
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
-
 }
 
 void
