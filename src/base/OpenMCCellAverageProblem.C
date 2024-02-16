@@ -1420,63 +1420,62 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       mooseError("Feedback was specified using 'temperature_blocks' and/or 'density_blocks', but "
                  "no MOOSE elements mapped to OpenMC cells!");
 
-  if (_verbose)
+  if (_verbose && _cell_to_elem.size())
   {
-    if (_cell_to_elem.size())
+    _console
+        << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n"
+        << std::endl;
+    _console << "          T:      # elems providing temperature feedback" << std::endl;
+    _console << "          T+rho:  # elems providing temperature and density feedback"
+             << std::endl;
+    _console << "          Other:  # elems which do not provide feedback to OpenMC" << std::endl;
+    _console << "                    (but receives a cell tally from OpenMC)" << std::endl;
+    _console << "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
+    _console << "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n"
+             << std::endl;
+    vt.print(_console);
+  }
+
+  bool has_io = _has_fluid_blocks || _has_solid_blocks || _tally_type != tally::none;
+
+  if (has_io)
+    _console
+        << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
+        << std::endl;
+
+  if (_has_fluid_blocks || _has_solid_blocks)
+  {
+    _console << "      Subdomain:  subdomain name/ID" << std::endl;
+    _console << "    Temperature:  variable OpenMC reads temperature from (empty if no feedback)"
+             << std::endl;
+    _console << "        Density:  variable OpenMC reads density from (empty if no feedback)\n"
+             << std::endl;
+
+    VariadicTable<std::string, std::string, std::string> aux(
+        {"Subdomain", "Temperature", "Density"});
+
+    // NOTE: this will need to be adjusted if we support blocks with only density feedback
+    for (const auto & s : _temp_blocks)
     {
-      _console
-          << "\n ===================>     MAPPING FROM OPENMC TO MOOSE     <===================\n"
-          << std::endl;
-      _console << "          T:      # elems providing temperature feedback" << std::endl;
-      _console << "          T+rho:  # elems providing temperature and density feedback"
-               << std::endl;
-      _console << "          Other:  # elems which do not provide feedback to OpenMC" << std::endl;
-      _console << "                    (but receives a cell tally from OpenMC)" << std::endl;
-      _console << "     Mapped Vol:  volume of MOOSE elems each cell maps to" << std::endl;
-      _console << "     Actual Vol:  OpenMC cell volume (computed with 'volume_calculation')\n"
-               << std::endl;
-      vt.print(_console);
+      std::string rho =
+          _subdomain_to_density_vars.count(s) ? _subdomain_to_density_vars[s].second : "";
+      aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, rho);
     }
 
-    if (_has_fluid_blocks || _has_solid_blocks)
-    {
-      _console
-          << "\n ===================>     AUXVARIABLES INPUT TO OPENMC     <===================\n"
-          << std::endl;
-      _console << "      Subdomain:  subdomain name; if unnamed, we show the ID" << std::endl;
-      _console << "    Temperature:  AuxVariable to read temperature from (empty if no feedback)"
-               << std::endl;
-      _console << "        Density:  AuxVariable to read density from (empty if no feedback)\n"
-               << std::endl;
+    aux.print(_console);
+    _console << std::endl;
+  }
 
-      VariadicTable<std::string, std::string, std::string> aux(
-          {"Subdomain", "Temperature", "Density"});
+  if (_tally_type != tally::none)
+  {
+    _console << "    Tally Score:  OpenMC tally score" << std::endl;
+    _console << "    AuxVariable:  variable where this score is written\n" << std::endl;
 
-      // NOTE: this will need to be adjusted if we support blocks with only density feedback
-      for (const auto & s : _temp_blocks)
-      {
-        std::string rho =
-            _subdomain_to_density_vars.count(s) ? _subdomain_to_density_vars[s].second : "";
-        aux.addRow(subdomainName(s), _subdomain_to_temp_vars[s].second, rho);
-      }
+    VariadicTable<std::string, std::string> tallies({"Tally Score", "AuxVariable"});
+    for (unsigned int i = 0; i < _tally_name.size(); ++i)
+      tallies.addRow(_tally_score[i], _tally_name[i]);
 
-      aux.print(_console);
-    }
-
-    if (_tally_type != tally::none)
-    {
-      _console
-          << "\n ===================>     AUXVARIABLES OUTPUT BY OPENMC     <===================\n"
-          << std::endl;
-      _console << "    Tally Score:  OpenMC tally score" << std::endl;
-      _console << "    AuxVariable:  AuxVariable holding this score\n" << std::endl;
-
-      VariadicTable<std::string, std::string> tallies({"Tally Score", "AuxVariable"});
-      for (unsigned int i = 0; i < _tally_name.size(); ++i)
-        tallies.addRow(_tally_score[i], _tally_name[i]);
-
-      tallies.print(_console);
-    }
+    tallies.print(_console);
   }
 }
 
@@ -1582,47 +1581,44 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
         _subdomain_to_material[s].insert(m);
   }
 
-  if (_verbose)
+  VariadicTable<std::string, std::string> vt({"Subdomain", "Material"});
+  auto subdomains = coupledSubdomains();
+  for (const auto & i : subdomains)
   {
-    VariadicTable<std::string, std::string> vt({"Subdomain", "Material"});
-    auto subdomains = coupledSubdomains();
-    for (const auto & i : subdomains)
+    std::map<std::string, int> mat_to_num;
+
+    for (const auto & m : _subdomain_to_material[i])
     {
-      std::map<std::string, int> mat_to_num;
-
-      for (const auto & m : _subdomain_to_material[i])
-      {
-        auto name = materialName(m);
-        if (mat_to_num.count(name))
-          mat_to_num[name] += 1;
-        else
-          mat_to_num[name] = 1;
-      }
-
-      std::string mats = "";
-      for (const auto & m : mat_to_num)
-      {
-        std::string extra = m.second > 1 ? " (" + std::to_string(m.second) + ")" : "";
-        mats += " " + m.first + extra + ",";
-      }
-
-      mats.pop_back();
-      vt.addRow(subdomainName(i), mats);
+      auto name = materialName(m);
+      if (mat_to_num.count(name))
+        mat_to_num[name] += 1;
+      else
+        mat_to_num[name] = 1;
     }
 
-    if (_cell_to_elem.size())
+    std::string mats = "";
+    for (const auto & m : mat_to_num)
     {
-      _console
-          << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n"
-          << std::endl;
-      _console << "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
-      _console << "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
-               << "                  show the ID. If N duplicate material names, we show the\n"
-               << "                  number in ( ).\n"
-               << std::endl;
-      vt.print(_console);
-      _console << std::endl;
+      std::string extra = m.second > 1 ? " (" + std::to_string(m.second) + ")" : "";
+      mats += " " + m.first + extra + ",";
     }
+
+    mats.pop_back();
+    vt.addRow(subdomainName(i), mats);
+  }
+
+  if (_cell_to_elem.size())
+  {
+    _console
+        << "\n ===================>  OPENMC SUBDOMAIN MATERIAL MAPPING  <====================\n"
+        << std::endl;
+    _console << "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
+    _console << "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
+             << "                  show the ID. If N duplicate material names, we show the\n"
+             << "                  number in ( ).\n"
+             << std::endl;
+    vt.print(_console);
+    _console << std::endl;
   }
 }
 
