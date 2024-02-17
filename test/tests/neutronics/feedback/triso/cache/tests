@@ -2,7 +2,7 @@
   [identical]
     type = Exodiff
     input = openmc.i
-    cli_args = 'Problem/identical_cell_fills="0 100" Problem/check_identical_cell_fills=true'
+    cli_args = 'Problem/identical_cell_fills="0 100" Problem/check_identical_cell_fills=true Problem/output_cell_mapping=false'
     exodiff = openmc_out.e
     requirement = "The system shall allow any cell which maps to a particular subdomain to be set with an identical "
                   "cell fill. Here, the gold files were created using an input which does not use this feature "

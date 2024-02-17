@@ -423,9 +423,11 @@ we use a [CellTemperatureAux](/auxkernels/CellTemperatureAux.md) to view
 the temperature set in each OpenMC cell and a [CellDensityAux](/auxkernels/CellDensityAux.md)
 to view the density set in each fluid OpenMC cell. To understand how the OpenMC
 model maps to the `[Mesh]`, we also include
-[CellMaterialIDAux](/auxkernels/CellMaterialIDAux.md),
-[CellIDAux](/auxkernels/CellIDAux.md), and
-[CellInstanceAux](/auxkernels/CellInstanceAux.md) auxiliary kernels.
+[CellMaterialIDAux](/auxkernels/CellMaterialIDAux.md).
+Cardinal will also automatically output a variable named `cell_id`
+([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+and a variable named `cell_instance` (
+[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
 Next, we add a receiver
 `flux` variable that will hold the heat flux received from MOOSE (and sent
 to [!ac](THM)) and another receiver variable `thm_temp_wall` that will hold

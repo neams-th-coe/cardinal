@@ -5,10 +5,6 @@
 []
 
 [AuxVariables]
-  [cell_id]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [cell_temperature]
     family = MONOMIAL
     order = CONSTANT
@@ -16,10 +12,6 @@
 []
 
 [AuxKernels]
-  [cell_id]
-    type = CellIDAux
-    variable = cell_id
-  []
   [cell_temperature]
     type = CellTemperatureAux
     variable = cell_temperature
@@ -71,5 +63,5 @@
 
 [Outputs]
   exodus = true
-  hide = 'temp'
+  hide = 'temp cell_instance'
 []

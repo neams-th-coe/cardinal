@@ -8,10 +8,6 @@
 []
 
 [AuxVariables]
-  [cell_id]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [cell_temperature]
     family = MONOMIAL
     order = CONSTANT
@@ -19,10 +15,6 @@
 []
 
 [AuxKernels]
-  [cell_id]
-    type = CellIDAux
-    variable = cell_id
-  []
   [cell_temperature]
     type = CellTemperatureAux
     variable = cell_temperature
@@ -34,7 +26,7 @@
   verbose = true
   tally_type = mesh
   mesh_template = mesh_in.e
-  tally_name = 'heat_source'
+  tally_name = heat_source
   cell_level = 0
   temperature_blocks = '2 3'
   check_tally_sum = false

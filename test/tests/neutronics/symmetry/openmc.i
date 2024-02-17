@@ -48,20 +48,6 @@ height = 6.343                           # height of the full core (m)
   []
 []
 
-[AuxVariables]
-  [cell_instance]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_instance]
-    type = CellInstanceAux
-    variable = cell_instance
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   initial_properties = 'xml'

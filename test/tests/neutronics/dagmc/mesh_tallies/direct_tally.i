@@ -10,10 +10,6 @@ x1 = 37.5
 x2 = 62.5
 
 [AuxVariables]
-  [cell_id]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [cell_temperature]
     family = MONOMIAL
     order = CONSTANT
@@ -21,10 +17,6 @@ x2 = 62.5
 []
 
 [AuxKernels]
-  [cell_id]
-    type = CellIDAux
-    variable = cell_id
-  []
   [cell_temperature]
     type = CellTemperatureAux
     variable = cell_temperature

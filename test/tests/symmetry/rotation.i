@@ -76,5 +76,5 @@
   exodus = true
 
   # we are only interested in the point transformation aspects here
-  hide = 'kappa_fission temp'
+  hide = 'kappa_fission temp cell_id cell_instance'
 []

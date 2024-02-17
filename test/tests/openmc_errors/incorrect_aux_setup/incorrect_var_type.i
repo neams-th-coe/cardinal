@@ -19,14 +19,14 @@
 []
 
 [AuxVariables]
-  [cell_id]
+  [cell_id_n]
   []
 []
 
 [AuxKernels]
-  [cell_id]
+  [cell_id_n]
     type = CellIDAux
-    variable = cell_id
+    variable = cell_id_n
   []
 []
 

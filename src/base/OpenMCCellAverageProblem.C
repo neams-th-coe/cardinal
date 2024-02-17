@@ -59,6 +59,11 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<unsigned int>("fluid_cell_level", "DEPRECATED");
   params.addParam<unsigned int>("lowest_fluid_cell_level", "DEPRECATED");
 
+  params.addParam<bool>("output_cell_mapping",
+                        true,
+                        "Whether to automatically output the mapping from OpenMC cells to the "
+                        "[Mesh], usually for diagnostic purposes");
+
   params.addParam<std::vector<SubdomainName>>(
       "tally_blocks", "Subdomains for which to add tallies in OpenMC; only used with cell tallies");
   params.addParam<bool>("check_tally_sum",
@@ -244,6 +249,7 @@ OpenMCCellAverageProblem::validParams()
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & params)
   : OpenMCProblemBase(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+    _output_cell_mapping(getParam<bool>("output_cell_mapping")),
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
@@ -274,6 +280,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _volume_calc(nullptr),
     _symmetry(nullptr)
 {
+  if (!_needs_to_map_cells)
+    checkUnusedParam(params,
+                     "output_cell_mapping",
+                     "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
+
   if (isParamValid("solid_blocks"))
     mooseError("'solid_blocks' is deprecated! Please use 'temperature_blocks' instead");
 
@@ -728,18 +739,18 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     {
       _cell_level = getParam<unsigned int>("cell_level");
       selected_param = "cell_level";
+
+      if (_cell_level >= openmc::model::n_coord_levels)
+        paramError(selected_param,
+                   "Coordinate level for finding cells cannot be greater than total number "
+                   "of coordinate levels: " +
+                       Moose::stringify(openmc::model::n_coord_levels) + "!");
     }
     else
     {
       _cell_level = getParam<unsigned int>("lowest_cell_level");
       selected_param = "lowest_cell_level";
     }
-
-    if (_cell_level >= openmc::model::n_coord_levels)
-      paramError(selected_param,
-                 "Coordinate level for finding cells cannot be greater than total number "
-                 "of coordinate levels: " +
-                     Moose::stringify(openmc::model::n_coord_levels) + "!");
   }
   else
   {
@@ -2599,6 +2610,25 @@ OpenMCCellAverageProblem::addExternalVariables()
     for (const auto & s : ids)
       _subdomain_to_temp_vars[s] = {number, v.first};
   }
+
+  if (_output_cell_mapping && _needs_to_map_cells)
+  {
+    std::string auxk_type = "CellIDAux";
+    InputParameters params = _factory.getValidParams(auxk_type);
+    auto id = addExternalVariable("cell_id");
+    params.set<AuxVariableName>("variable") = "cell_id";
+    addAuxKernel(auxk_type, "cell_id", params);
+
+    auxk_type = "CellInstanceAux";
+    params = _factory.getValidParams(auxk_type);
+    auto instance = addExternalVariable("cell_instance");
+    params.set<AuxVariableName>("variable") = "cell_instance";
+    addAuxKernel(auxk_type, "cell_instance", params);
+  }
+  else
+    _console << "Skipping output of 'cell_id' and 'cell_instance' because 'temperature_blocks', "
+                "'density_blocks', and 'tally_blocks' are all empty"
+             << std::endl;
 }
 
 void

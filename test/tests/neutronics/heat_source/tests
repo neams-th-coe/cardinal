@@ -3,6 +3,7 @@
     type = Exodiff
     input = overlap_all.i
     exodiff = 'overlap_all_out.e'
+    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -16,7 +17,7 @@
 
     # use the same gold file from the overlap_all test; this test is exactly the same except
     # that the power comes from a postprocessor
-    cli_args = 'Outputs/file_base=overlap_all_out'
+    cli_args = 'Outputs/file_base=overlap_all_out Problem/output_cell_mapping=false'
     exodiff = 'overlap_all_out.e'
 
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
@@ -97,6 +98,7 @@
     type = Exodiff
     input = default_tally_blocks.i
     exodiff = 'default_tally_blocks_out.e'
+    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -109,6 +111,7 @@
     type = Exodiff
     input = cell_volumes.i
     exodiff = 'cell_volumes_out.e'
+    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8

@@ -78,5 +78,5 @@ dT = 50.0
 
 [Outputs]
   exodus = true
-  hide = 'temp density'
+  hide = 'temp density cell_instance cell_id'
 []

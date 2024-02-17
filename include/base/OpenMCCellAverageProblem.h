@@ -650,6 +650,12 @@ protected:
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
+   * Whether to automatically compute the mapping of OpenMC cell IDs and
+   * instances to the [Mesh].
+   */
+  const bool & _output_cell_mapping;
+
+  /**
    * Where to get the initial OpenMC temperatures and densities from;
    * can be either hdf5 (from a properties.h5 file), xml (whatever is already
    * set in the XML files), or moose (meaning whatever ICs are set on the 'temperature_variables'
