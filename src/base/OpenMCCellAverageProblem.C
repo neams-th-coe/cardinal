@@ -495,7 +495,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   geometryType(has_csg, has_dag);
 
   if (!has_dag)
-    checkUnusedParam(params, "skinner", "the OpenMC model does not contain any DagMC universes");
+    checkUnusedParam(params, "skinner", "the OpenMC model does not contain any DagMC universes", true);
   else if (isParamValid("skinner"))
   {
     // TODO: we currently delete the entire OpenMC geometry, and only re-build the cells
