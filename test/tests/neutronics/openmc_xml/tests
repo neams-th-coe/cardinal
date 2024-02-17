@@ -1,7 +1,8 @@
 [Tests]
   [particles]
     type = CSVDiff
-    input = particles.i
+    input = openmc.i
+    cli_args = 'Outputs/file_base=particles_out Problem/particles=200'
     csvdiff = particles_out.csv
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
@@ -14,8 +15,9 @@
   []
   [inactive]
     type = CSVDiff
-    input = inactive.i
+    input = openmc.i
     csvdiff = inactive_out.csv
+    cli_args = 'Outputs/file_base=inactive_out Problem/inactive_batches=20'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
@@ -27,8 +29,9 @@
   []
   [batches]
     type = CSVDiff
-    input = batches.i
+    input = openmc.i
     csvdiff = batches_out.csv
+    cli_args = 'Outputs/file_base=batches_out Problem/batches=60'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8
