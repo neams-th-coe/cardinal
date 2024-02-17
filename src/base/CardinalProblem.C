@@ -41,6 +41,7 @@ CardinalProblem::validParams()
   params.suppressParameter<unsigned int>("near_null_space_dimension");
   params.suppressParameter<unsigned int>("null_space_dimension");
   params.suppressParameter<unsigned int>("transpose_null_space_dimension");
+  params.suppressParameter<bool>("immediately_print_invalid_solution");
 
   return params;
 }
@@ -53,10 +54,15 @@ CardinalProblem::CardinalProblem(const InputParameters & params)
 void
 CardinalProblem::checkDuplicateVariableName(const std::string & name) const
 {
+  // TODO: eventually remove this
+  std::string extra;
+  if (name == "cell_id" || name == "cell_instance")
+    extra = "\n\nCardinal recently added the CellIDAux (cell_id) and CellInstanceAux (cell_instance) as automatic outputs when using OpenMC, so you no longer need to include these auxkernels manually.";
+
   if (_aux.get()->hasVariable(name))
     mooseError("Cardinal is trying to add an auxiliary variable named '", name,
       "', but you already have a variable by this name. Please choose a different name "
-      "for the auxiliary variable you are adding.");
+      "for the auxiliary variable you are adding." + extra);
 
   if (_nl[0].get()->hasVariable(name))
     mooseError("Cardinal is trying to add a nonlinear variable named '", name,
