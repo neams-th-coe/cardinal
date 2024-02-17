@@ -6,7 +6,8 @@
 
 Displays the OpenMC cell instance mapped to the MOOSE elements, showing all cells
 which either (i) receive multiphysics feedback or (ii) send a cell tally to MOOSE.
-This auxkernel is automatically added to all OpenMC wrappings, so you do not need
+This auxkernel is automatically added to all OpenMC wrappings which involve
+some sort of multiphysics feedback to cells and/or cell tallies, so you do not need
 to add it yourself. The output variable is named `cell_instance`.
 
 If there are

@@ -177,7 +177,7 @@ Cardinal will also automatically output a variable named `cell_id`
 ([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
 and a variable named `cell_instance` (
 [CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
-We also define a ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md))
+We also define a [CellTemperatureAux](/auxkernels/CellTemperatureAux.md)
 to show the OpenMC volume-averaged temperatures
 as they map to the `[Mesh]`.
 

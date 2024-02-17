@@ -381,7 +381,7 @@ mapping should show close agreement between these two values.
 Next, we add a series of auxiliary variables for solution visualization
 (these are not requried for coupling). To help with understanding
 how Cardinal volume-averages temperature over the mesh, we add a
-([CellTemperatureAux](/auxkernels/CellTemperatureAux.md)).
+[CellTemperatureAux](/auxkernels/CellTemperatureAux.md).
 
 !listing /tutorials/lwr_solid/openmc.i
   start=AuxVariables
