@@ -715,7 +715,7 @@ OpenMCProblemBase::subdomainName(const SubdomainID & id) const
 }
 
 void
-OpenMCProblemBase::getOpenMCNuclideDensitiesUserObjects()
+OpenMCProblemBase::getOpenMCUserObjects()
 {
   TheWarehouse::Query uo_query = theWarehouse().query().condition<AttribSystem>("UserObject");
   std::vector<UserObject *> userobjs;
@@ -726,6 +726,10 @@ OpenMCProblemBase::getOpenMCNuclideDensitiesUserObjects()
     OpenMCNuclideDensities * c = dynamic_cast<OpenMCNuclideDensities *>(u);
     if (c)
       _nuclide_densities_uos.push_back(c);
+
+    OpenMCTallyNuclides * d = dynamic_cast<OpenMCTallyNuclides *>(u);
+    if (d)
+      _tally_nuclides_uos.push_back(d);
   }
 }
 
@@ -740,6 +744,21 @@ OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
 
   _console << "Sending nuclide compositions to OpenMC... ";
   for (const auto & uo : _nuclide_densities_uos)
+    uo->setValue();
+  _console << "done" << std::endl;
+}
+
+void
+OpenMCProblemBase::sendTallyNuclidesToOpenMC()
+{
+  if (_tally_nuclides_uos.size() == 0)
+    return;
+
+  // We could probably put this somewhere better, but it's good for now
+  executeControls(EXEC_SEND_OPENMC_TALLY_NUCLIDES);
+
+  _console << "Sending tally nuclides to OpenMC... ";
+  for (const auto & uo : _tally_nuclides_uos)
     uo->setValue();
   _console << "done" << std::endl;
 }
