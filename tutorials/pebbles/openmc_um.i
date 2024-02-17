@@ -16,14 +16,6 @@
 
 
 [AuxVariables]
-  [cell_id]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [cell_instance]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [cell_temperature]
     family = MONOMIAL
     order = CONSTANT
@@ -31,14 +23,6 @@
 []
 
 [AuxKernels]
-  [cell_id]
-    type = CellIDAux
-    variable = cell_id
-  []
-  [cell_instance]
-    type = CellInstanceAux
-    variable = cell_instance
-  []
   [cell_temperature]
     type = CellTemperatureAux
     variable = cell_temperature
