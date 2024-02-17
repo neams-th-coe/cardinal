@@ -8,7 +8,8 @@
   []
   [empty_block]
     type = RunException
-    input = empty_block.i
+    input = nonexistent_block.i
+    cli_args = 'Problem/temperature_blocks=""'
     expect_err = "'temperature_blocks' cannot be empty!"
     requirement = "The system shall error if an empty vector is provided for the blocks"
     required_objects = 'OpenMCCellAverageProblem'
