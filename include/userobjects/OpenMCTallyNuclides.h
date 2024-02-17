@@ -16,10 +16,33 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "CardinalAppTypes.h"
-#include "ExecFlagRegistry.h"
+#pragma once
 
-#ifdef ENABLE_OPENMC_COUPLING
-const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
-const ExecFlagType EXEC_SEND_OPENMC_TALLY_NUCLIDES = registerExecFlag("SEND_OPENMC_TALLY_NUCLIDES");
-#endif
+#include "GeneralUserObject.h"
+
+/**
+ * User object to modify the nuclides in an OpenMC tally.
+ */
+class OpenMCTallyNuclides : public GeneralUserObject
+{
+public:
+  static InputParameters validParams();
+
+  OpenMCTallyNuclides(const InputParameters & parameters);
+
+  /// We don't want this user object to execute in MOOSE's control
+  virtual void execute() override {}
+
+  virtual void initialize() override {}
+  virtual void finalize() override {}
+
+  /// Instead, we want to have a separate method that we can call from the OpenMC problem
+  virtual void setValue();
+
+protected:
+  /// The tally index
+  int32_t _tally_index;
+
+  /// Nuclide names
+  const std::vector<std::string> & _names;
+};
