@@ -15,11 +15,9 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  temperature_blocks = '1'
   tally_blocks = '1'
   cell_level = 0
   tally_type = cell
-  initial_properties = xml
   source_strength = 1e6
 []
 
