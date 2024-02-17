@@ -281,7 +281,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _symmetry(nullptr)
 {
   if (!_needs_to_map_cells)
-    checkUnusedParam(params, "output_cell_mapping", "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
+    checkUnusedParam(params,
+                     "output_cell_mapping",
+                     "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
 
   if (isParamValid("solid_blocks"))
     mooseError("'solid_blocks' is deprecated! Please use 'temperature_blocks' instead");
@@ -2630,7 +2632,9 @@ OpenMCCellAverageProblem::addExternalVariables()
     addAuxKernel(auxk_type, "cell_instance", params);
   }
   else
-    _console << "Skipping output of 'cell_id' and 'cell_instance' because 'temperature_blocks', 'density_blocks', and 'tally_blocks' are all empty" << std::endl;
+    _console << "Skipping output of 'cell_id' and 'cell_instance' because 'temperature_blocks', "
+                "'density_blocks', and 'tally_blocks' are all empty"
+             << std::endl;
 }
 
 void
