@@ -30,7 +30,7 @@
 void checkUnusedParam(const InputParameters & p,
                       const std::vector<std::string> & names,
                       const std::string & explanation,
-                      const bool error=false);
+                      const bool error = false);
 
 /**
  * Checks whether the user has specified an input parameter that will go un-used, printing
@@ -42,7 +42,7 @@ void checkUnusedParam(const InputParameters & p,
 void checkUnusedParam(const InputParameters & p,
                       const std::string & name,
                       const std::string & explanation,
-                      const bool error=false);
+                      const bool error = false);
 
 /**
  * Checks whether the user has specified an input parameter is set
