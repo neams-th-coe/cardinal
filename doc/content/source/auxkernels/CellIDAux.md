@@ -6,6 +6,8 @@
 
 Displays the OpenMC cell ID mapped to the MOOSE elements, showing all cells
 which either (i) receive multiphysics feedback or (ii) send a cell tally to MOOSE.
+This auxkernel is automatically added to all OpenMC wrappings, so you do not need
+to add it yourself. The output variable is named `cell_id`.
 
 If a MOOSE element did not map at all to an OpenMC cell,
 then this auxiliary kernel returns $-1$.

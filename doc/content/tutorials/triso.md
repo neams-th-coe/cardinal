@@ -173,10 +173,12 @@ then a point $(0, 0, 0.02)$ m in `solid.i` would get mapped to the node closest 
 $(0, 0, 0.02)$ cm in `openmc.i` (when we actually want the point to map to
 $(0, 0, 2)$ cm).
 
-Next, we define auxiliary variables that will help us visualize the cell IDs
-([CellIDAux](/auxkernels/CellIDAux.md)),
-cell instances ([CellInstanceAux](/auxkernels/CellInstanceAux.md)),
-and cell temperatures ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md))
+Cardinal will also automatically output a variable named `cell_id`
+([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+and a variable named `cell_instance` (
+[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
+We also define a ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md))
+to show the OpenMC volume-averaged temperatures
 as they map to the `[Mesh]`.
 
 !listing /tutorials/pebbles/openmc.i

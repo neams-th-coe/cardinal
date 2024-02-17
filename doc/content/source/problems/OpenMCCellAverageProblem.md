@@ -33,6 +33,8 @@ the following `CONSTANT MONOMIAL` variables will be added:
   from the mesh subdomains indicated by `temperature_blocks`.
 - Variable(s) representing the density to read into OpenMC. Density will be read
   from the mesh subdomains indicated by `density_blocks`.
+- A variable (`cell_id`) storing the mapping of OpenMC cell IDs onto the mesh
+- A variable (`cell_instance`) storing the mapping of OpenMC cell instances onto the mesh
 
 !alert tip
 These variables all have default names, but you can also control their names using the
@@ -168,8 +170,10 @@ and a visualization of the mapping from these elements to the OpenMC cells.
   caption=Illustration of OpenMC cells and the mapping to a mesh.
 
 !alert tip
-You can visualize how the OpenMC cells map to the mesh using auxiliary kernels such
-as [CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html)
+You can visualize how the OpenMC cells map to the mesh by viewing the `cell_id`
+and `cell_instance` variables Cardinal automatically outputs. For more information
+on how to interpret these variables, see:
+[CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html)
 and [CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html).
 
 There are no requirements on alignment of elements/cells or on preserving volumes -
