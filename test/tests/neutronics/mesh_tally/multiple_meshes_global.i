@@ -83,5 +83,5 @@
 [Outputs]
   execute_on = final
   exodus = true
-  hide = 'temp'
+  hide = 'temp  cell_instance cell_id'
 []

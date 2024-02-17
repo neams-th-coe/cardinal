@@ -121,6 +121,7 @@
     type = Exodiff
     input = output_fission_tally.i
     exodiff = output_fission_tally_out.e
+    cli_args = 'Problem/output_cell_mapping=false'
     requirement = "The wrapping shall allow output of the unrelaxed heat source for cell tallies"
     required_objects = 'OpenMCCellAverageProblem'
   []

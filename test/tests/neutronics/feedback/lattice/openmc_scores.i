@@ -3,20 +3,6 @@
   file = ../../meshes/pincell.e
 []
 
-[AuxVariables]
-  [cell_id]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_id]
-    type = CellIDAux
-    variable = cell_id
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0

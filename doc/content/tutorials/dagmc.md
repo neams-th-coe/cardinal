@@ -212,8 +212,12 @@ in the `[Mesh]` block vs. the DAGMC mesh) are completely unrelated to one anothe
 Next, we add a series of auxiliary variables for solution visualization
 (these are not requried for coupling). To help with understanding
 how the OpenMC model maps to the mesh in the `[Mesh]` block, we add auxiliary
-variables to visualize OpenMC's cell ID ([CellIDAux](/auxkernels/CellIDAux.md))
-and cell temperature ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md)).
+variables to visualize OpenMC's
+cell temperature ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md)).
+Cardinal will also automatically output a variable named `cell_id`
+([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+and a variable named `cell_instance` (
+[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
 
 !listing /tutorials/dagmc/openmc.i
   start=AuxVariables

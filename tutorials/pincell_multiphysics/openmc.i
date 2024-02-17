@@ -33,14 +33,6 @@ dT = ${fparse power / mdot / Cp}
 # These auxiliary variables are all just for visualizing the solution and
 # the mapping - none of these are part of the calculation sequence
 
-  [cell_id]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [cell_instance]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [material_id]
     family = MONOMIAL
     order = CONSTANT
@@ -59,14 +51,6 @@ dT = ${fparse power / mdot / Cp}
   [material_id]
     type = CellMaterialIDAux
     variable = material_id
-  []
-  [cell_id]
-    type = CellIDAux
-    variable = cell_id
-  []
-  [cell_instance]
-    type = CellInstanceAux
-    variable = cell_instance
   []
   [cell_temperature]
     type = CellTemperatureAux

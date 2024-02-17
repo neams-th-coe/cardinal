@@ -14,6 +14,7 @@
     type = Exodiff
     input = openmc.i
     exodiff = openmc_out.e
+    cli_args = 'Outputs/hide="cell_instance"'
     requirement = "The system shall give identical Monte Carlo solution (file mesh tallies and k) when skinning "
                   "as compared to a CSG-equivalent version of the geometry, which is in the csg_step_2 "
                   "directory."
@@ -40,6 +41,7 @@
     input = with_scaling.i
     exodiff = with_scaling_out.e
     prereq = scale_mesh
+    cli_args = 'Outputs/hide="cell_instance"'
     requirement = "The system shall give identical results when scaling the Mesh by an arbitrary multiplier. The gold file was compared against a case with no scaling (scaling = 1) to get identical results."
     mesh_mode = 'replicated'
     required_objects = 'MoabSkinner'

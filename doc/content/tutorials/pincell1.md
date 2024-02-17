@@ -157,10 +157,12 @@ When setting up your OpenMC coupling, we *highly* recommend running Cardinal wit
 `verbose` set to `true`.
 This setting will display the mapping of OpenMC cells to
 MOOSE elements and should help provide a grasp on the "level" concept.
-We also recommend exploring the OpenMC-MOOSE mapping using
-[CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html)
-and [CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)
-auxkernels.
+Cardinal also automatically outputs `cell_id` and `cell_instance`, which hold
+info on how the OpenMC cells (IDs and instances) map to the mesh.
+Cardinal will also automatically output a variable named `cell_id`
+([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+and a variable named `cell_instance` (
+[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
 
 OpenMC's Python [!ac](API)
 is used to create the pincell model with the script shown below. First, we define
@@ -378,11 +380,8 @@ mapping should show close agreement between these two values.
 
 Next, we add a series of auxiliary variables for solution visualization
 (these are not requried for coupling). To help with understanding
-how the OpenMC model maps to the mesh in the `[Mesh]` block, we add auxiliary
-variables to visualize OpenMC's cell ID ([CellIDAux](/auxkernels/CellIDAux.md)),
-cell instance ([CellInstanceAux](/auxkernels/CellInstanceAux.md)),
-and cell temperature ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md)) on
-the `[Mesh]`.
+how Cardinal volume-averages temperature over the mesh, we add a
+[CellTemperatureAux](/auxkernels/CellTemperatureAux.md).
 
 !listing /tutorials/lwr_solid/openmc.i
   start=AuxVariables
