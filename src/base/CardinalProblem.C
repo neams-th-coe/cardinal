@@ -57,12 +57,16 @@ CardinalProblem::checkDuplicateVariableName(const std::string & name) const
   // TODO: eventually remove this
   std::string extra;
   if (name == "cell_id" || name == "cell_instance")
-    extra = "\n\nCardinal recently added the CellIDAux (cell_id) and CellInstanceAux (cell_instance) as automatic outputs when using OpenMC, so you no longer need to include these auxkernels manually.";
+    extra = "\n\nCardinal recently added the CellIDAux (cell_id) and CellInstanceAux "
+            "(cell_instance) as automatic outputs when using OpenMC, so you no longer need to "
+            "include these auxkernels manually.";
 
   if (_aux.get()->hasVariable(name))
-    mooseError("Cardinal is trying to add an auxiliary variable named '", name,
-      "', but you already have a variable by this name. Please choose a different name "
-      "for the auxiliary variable you are adding." + extra);
+    mooseError("Cardinal is trying to add an auxiliary variable named '",
+               name,
+               "', but you already have a variable by this name. Please choose a different name "
+               "for the auxiliary variable you are adding." +
+                   extra);
 
   if (_nl[0].get()->hasVariable(name))
     mooseError("Cardinal is trying to add a nonlinear variable named '", name,
