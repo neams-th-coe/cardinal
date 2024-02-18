@@ -35,7 +35,7 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
   [velocity_component] # actual velocity component computed directly from interpolated nekRS velocity fields
     type = ParsedAux
     variable = velocity_component
-    function = '(0.1*vel_x+0.2*vel_y+0.3*vel_z)/sqrt(0.1*0.1+0.2*0.2+0.3*0.3)'
+    expression = '(0.1*vel_x+0.2*vel_y+0.3*vel_z)/sqrt(0.1*0.1+0.2*0.2+0.3*0.3)'
     coupled_variables = 'vel_x vel_y vel_z'
     execute_on = 'timestep_end nonlinear linear'
   []

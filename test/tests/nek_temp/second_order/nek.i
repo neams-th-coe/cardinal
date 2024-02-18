@@ -39,7 +39,7 @@
     type = ParsedAux
     variable = difference
     coupled_variables = 'analytic temp'
-    function = 'temp-analytic'
+    expression = 'temp-analytic'
   []
 []
 

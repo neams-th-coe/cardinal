@@ -29,21 +29,21 @@
     variable = cell_temp
   []
   [collated_solid_temp]
-    type = SelfAux
+    type = ProjectionAux
     variable = collated_temp
     v = solid_temp
     block = '1 3'
     execute_on = timestep_begin
   []
   [collated_fluid_temp]
-    type = SelfAux
+    type = ProjectionAux
     variable = collated_temp
     v = fluid_temp
     block = '2'
     execute_on = timestep_begin
   []
   [collated_other_temp]
-    type = SelfAux
+    type = ProjectionAux
     variable = collated_temp
     v = other_temp
     block = '10'

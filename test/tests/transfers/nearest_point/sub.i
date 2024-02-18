@@ -42,7 +42,7 @@
 [Functions]
   [g]
     type = ParsedFunction
-    value = x*x
+    expression = x*x
   []
 []
 
