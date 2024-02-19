@@ -82,6 +82,10 @@
     type = VolumePostprocessor
     block = '100'
   []
+  [max_err]
+    type = TallyRelativeError
+    tally_score = 'H3_production'
+  []
 []
 
 [Outputs]

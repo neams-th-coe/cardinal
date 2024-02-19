@@ -206,8 +206,8 @@ nek_dt = 6e-3
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     variable = avg_flux
-    source_boundary = 'fluid_solid_interface'
-    target_boundary = '3'
+    from_boundaries = 'fluid_solid_interface'
+    to_boundaries = '3'
     to_multi_app = nek
     fixed_meshes = true
   []
@@ -221,8 +221,8 @@ nek_dt = 6e-3
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     variable = nek_temp
-    source_boundary = '3'
-    target_boundary = 'fluid_solid_interface'
+    from_boundaries = '3'
+    to_boundaries = 'fluid_solid_interface'
     from_multi_app = nek
     fixed_meshes = true
   []

@@ -60,16 +60,13 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
           "Can only specify a single tally score per postprocessor, but you have specified " +
               std::to_string(tally_score.size()));
 
-    std::string score = _openmc_problem->tallyScore(tally_score[0]);
-    std::transform(score.begin(), score.end(), score.begin(),
-      [](unsigned char c){ return std::tolower(c); });
-    std::replace(score.begin(), score.end(), '_', '-');
+    std::string score = _openmc_problem->enumToTallyScore(tally_score[0]);
 
     auto it = std::find(added_scores.begin(), added_scores.end(), score);
     if (it != added_scores.end())
       _tally_index = it - added_scores.begin();
     else
-      mooseError("To extract the relative error of the '" + std::string(score) +
+      mooseError("To extract the relative error of the '" + std::string(tally_score[0]) +
                  "' score,"
                  "that score must be included in the\n'tally_score' parameter of '" +
                  _openmc_problem->type() + "'!");
