@@ -111,12 +111,13 @@ OpenMCCellAverageProblem::validParams()
 
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
-  params.addParam<MooseEnum>("source_rate_normalization",
-                             scores_heat,
-                             "Score to use for computing the "
-                             "particle source rate (source/sec) for a certain tallies in "
-                             "eigenvalue mode. In other words, the "
-                             "source/sec is computed as (power divided by the global value of this tally)");
+  params.addParam<MooseEnum>(
+      "source_rate_normalization",
+      scores_heat,
+      "Score to use for computing the "
+      "particle source rate (source/sec) for a certain tallies in "
+      "eigenvalue mode. In other words, the "
+      "source/sec is computed as (power divided by the global value of this tally)");
 
   params.addParam<std::vector<std::string>>(
       "tally_name", "Auxiliary variable name(s) to use for OpenMC tallies. "
@@ -427,8 +428,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       _source_rate_index = _tally_score.size() - 1;
 
       if (isParamValid("tally_name"))
-        mooseError("When specifying 'tally_name', the score indicated in 'source_rate_normalization' must be\n"
-          "listed in 'tally_score' so that we know what you want to name that score (", norm, ")");
+        mooseError("When specifying 'tally_name', the score indicated in "
+                   "'source_rate_normalization' must be\n"
+                   "listed in 'tally_score' so that we know what you want to name that score (",
+                   norm,
+                   ")");
     }
   }
   else

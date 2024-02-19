@@ -549,10 +549,10 @@ OpenMCProblemBase::enumToTallyScore(const std::string & score) const
   // the MultiMooseEnum is all caps, but the MooseEnum is already the correct case,
   // so we need to treat these as separate
   std::string s = score;
-  if (std::all_of(s.begin(), s.end(), [](unsigned char c){ return !std::isalpha(c) || std::isupper(c); }))
+  if (std::all_of(
+          s.begin(), s.end(), [](unsigned char c) { return !std::isalpha(c) || std::isupper(c); }))
   {
-    std::transform(s.begin(), s.end(), s.begin(),
-      [](unsigned char c){ return std::tolower(c); });
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
 
     // we need to revert back to some letters being uppercase for certain scores
     if (s == "h3_production")
