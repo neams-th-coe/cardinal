@@ -176,8 +176,9 @@ meshing tools; other tutorials will make meshes natively within MOOSE.
   id=solid_mesh
 
 The Cubit script used to generate the solid mesh is
-shown below. To run this script yourself, you will need to update
-the `directory` variable to point to the tutorials directory on your machine.
+shown below. To run this script yourself, open Cubit and click on 'Play Journal File' 
+(the play button on a sheet of paper icon), and then find and open your file. Also, you will need
+to update the `directory` variable to point to the tutorials directory on your machine.
 
 !listing /tutorials/fhr_reflector/meshes/solid.jou language=python
 
