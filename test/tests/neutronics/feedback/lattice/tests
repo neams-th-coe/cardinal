@@ -12,7 +12,7 @@
   [pincell_null_mat]
     type = Exodiff
     input = openmc_master.i
-    cli_args = 'MultiApps/openmc/Problem/map_density_by_cell=false'
+    cli_args = 'MultiApps/openmc/cli_args="Problem/map_density_by_cell=false"'
     exodiff = 'openmc_master_out.e openmc_master_out_openmc0.e'
     requirement = "Temperatures, densities, and a heat source shall be coupled between OpenMC "
                   "and MOOSE and a solid pincell model when the model is set up with distributed cells, "

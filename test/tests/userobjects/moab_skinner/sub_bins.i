@@ -70,7 +70,7 @@
 [Functions]
   [temp]
     type = ParsedFunction
-    value = 400+x*100+100*t
+    expression = 400+x*100+100*t
   []
 []
 
