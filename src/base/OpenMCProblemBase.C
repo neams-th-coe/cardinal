@@ -544,17 +544,32 @@ OpenMCProblemBase::tallyMeanAcrossBins(std::vector<openmc::Tally *> tally, const
 }
 
 std::string
-OpenMCProblemBase::tallyScore(const std::string & score) const
+OpenMCProblemBase::enumToTallyScore(const std::string & score) const
 {
+  // the MultiMooseEnum is all caps, but the MooseEnum is already the correct case,
+  // so we need to treat these as separate
   std::string s = score;
-  std::transform(s.begin(), s.end(), s.begin(),
-    [](unsigned char c){ return std::tolower(c); });
+  if (std::all_of(
+          s.begin(), s.end(), [](unsigned char c) { return !std::isalpha(c) || std::isupper(c); }))
+  {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
 
-  // we need to revert back to some letters being uppercase for certain scores
-  if (s == "h3_production")
-    s = "H3_production";
+    // we need to revert back to some letters being uppercase for certain scores
+    if (s == "h3_production")
+      s = "H3_production";
+  }
 
+  // MOOSE enums use underscores, OpenMC uses dashes
   std::replace(s.begin(), s.end(), '_', '-');
+  return s;
+}
+
+std::string
+OpenMCProblemBase::tallyScoreToEnum(const std::string & score) const
+{
+  // MOOSE enums use underscores, OpenMC uses dashes
+  std::string s = score;
+  std::replace(s.begin(), s.end(), '-', '_');
   return s;
 }
 

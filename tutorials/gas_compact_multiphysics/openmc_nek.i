@@ -139,7 +139,7 @@ N = 1000
     from_multi_app = bison
   []
   [source_to_bison]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     source_variable = heat_source
     variable = power
     to_multi_app = bison
@@ -147,7 +147,7 @@ N = 1000
     to_postprocessors_to_be_preserved = power
   []
   [temp_from_nek]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     source_variable = nek_bulk_temp
     from_multi_app = bison
     variable = nek_temp

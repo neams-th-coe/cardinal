@@ -45,7 +45,7 @@
     to_multi_app = sub
   []
   [mesh_function]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     source_variable = u
     variable = u_mesh_function
     to_multi_app = sub

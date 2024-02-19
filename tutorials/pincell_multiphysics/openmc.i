@@ -146,7 +146,7 @@ dT = ${fparse power / mdot / Cp}
 
 [Transfers]
   [solid_temp_to_openmc]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     source_variable = T
     variable = solid_temp
     from_multi_app = bison
@@ -158,7 +158,7 @@ dT = ${fparse power / mdot / Cp}
     to_multi_app = bison
   []
   [temp_from_nek]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     source_variable = nek_temp
     from_multi_app = bison
     variable = nek_temp

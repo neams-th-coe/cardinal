@@ -101,7 +101,14 @@ public:
    * @param[in] score MOOSE-type enum string
    * @return OpenMC tally score string
    */
-  std::string tallyScore(const std::string & score) const;
+  std::string enumToTallyScore(const std::string & score) const;
+
+  /**
+   * Convert into a MOOSE-type enum from a valid OpenMC tally score string
+   * @param[in] score OpenMC tally score string
+   * @return MOOSE-type enum string
+   */
+  std::string tallyScoreToEnum(const std::string & score) const;
 
   /**
    * Find the geometry type in the OpenMC model

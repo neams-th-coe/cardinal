@@ -155,17 +155,16 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
   []
   [heat_flux_to_openmc]
     type = MultiAppGeneralFieldNearestLocationTransfer
-    fixed_meshes = true
     source_variable = flux
     variable = flux
     from_multi_app = bison
-    source_boundary = 'fluid_solid_interface'
-    target_boundary = 'fluid_solid_interface'
+    from_boundaries = 'fluid_solid_interface'
+    to_boundaries = 'fluid_solid_interface'
     from_postprocessors_to_be_preserved = flux_integral
     to_postprocessors_to_be_preserved = flux_integral
   []
   [source_to_bison]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     source_variable = heat_source
     variable = power
     to_multi_app = bison
@@ -190,14 +189,12 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
     source_variable = T_wall
     from_multi_app = thm
     variable = thm_temp_wall
-    fixed_meshes = true
   []
   [T_bulk_from_thm]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = T
     from_multi_app = thm
     variable = thm_temp
-    fixed_meshes = true
   []
 []
 
