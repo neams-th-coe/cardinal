@@ -132,7 +132,7 @@ core_heat_flux = 5e3
     to_multi_app = nek
     variable = avg_flux
     fixed_meshes = true
-    source_boundary = 'fluid_solid_interface'
+    from_boundaries = 'fluid_solid_interface'
   []
   [flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer

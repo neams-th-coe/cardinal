@@ -113,7 +113,7 @@
     source_variable = flux
     to_multi_app = nek
     variable = avg_flux
-    source_boundary = 'right'
+    from_boundaries = 'right'
   []
   [flux_integral]
     type = MultiAppPostprocessorTransfer
