@@ -14,19 +14,10 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  power = 100.0
-  temperature_blocks = '0'
-  tally_type = cell
-  tally_blocks = '0'
-  cell_level = 0
-  initial_properties = xml
+  tally_type = none
 []
 
 [Executioner]
   type = Transient
   num_steps = 1
-[]
-
-[Outputs]
-  exodus = true
 []

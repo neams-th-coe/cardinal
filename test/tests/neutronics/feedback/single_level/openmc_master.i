@@ -28,7 +28,7 @@
   [rho]
     type = ParsedAux
     variable = density
-    function = '-0.4884*temp+2413.0'
+    expression = '-0.4884*temp+2413.0'
     coupled_variables = 'temp'
   []
 []
@@ -126,7 +126,7 @@
 
 [Transfers]
   [heat_source_from_openmc]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     from_multi_app = openmc
     variable = heat_source
     source_variable = kappa_fission
@@ -134,13 +134,13 @@
     to_postprocessors_to_be_preserved = source_integral
   []
   [temp_to_openmc]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     to_multi_app = openmc
     variable = temp
     source_variable = temp
   []
   [density_to_openmc]
-    type = MultiAppShapeEvaluationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     to_multi_app = openmc
     variable = density
     source_variable = density

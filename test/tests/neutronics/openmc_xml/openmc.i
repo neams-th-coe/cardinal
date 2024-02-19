@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../../../neutronics/meshes/sphere.e
+    file = ../meshes/sphere.e
   []
 []
 
@@ -12,4 +12,15 @@
 
 [Executioner]
   type = Transient
+  num_steps = 1
+[]
+
+[Postprocessors]
+  [k]
+    type = KEigenvalue
+  []
+[]
+
+[Outputs]
+  csv = true
 []

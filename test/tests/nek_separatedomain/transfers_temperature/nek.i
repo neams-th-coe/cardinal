@@ -81,7 +81,6 @@
   [sub]
     type = FullSolveMultiApp
     input_files = 'cardinal_sub.i'
-    sub_cycling = true
   []
 []
 

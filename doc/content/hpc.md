@@ -80,6 +80,49 @@ export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1
 
 !listing! scripts/job_eddy language=bash caption=Sample job script for Eddy with the 32-core partition id=e2
 
+## Frontier
+
+Frontier is an [!ac](HPC) system at [!ac](ORNL) with 9408 AMD compute nodes, each with
+4 AMD MI250X, each with 2 Graphics Compute Dies (GCDs), which you can think of as
+representing 8 GPUs per node.
+Remember that in order to build Cardinal with GPU support, set the appropriate
+variable in the `Makefile` to true (`1`):
+
+```
+OCCA_CUDA_ENABLED=0
+OCCA_HIP_ENABLED=1
+OCCA_OPENCL_ENABLED=0
+```
+
+When building the PETSc, libMesh, and Wasp dependencies from the scripts, you'll also
+need to pass some additional settings to libMesh.
+
+```
+./contrib/moose/scripts/update_and_rebuild_petsc.sh
+./contrib/moose/scripts/update_and_rebuild_libmesh.sh --enable-xdr-required --with-xdr-include=/usr/include
+./contrib/moose/scripts/update_and_rebuild_wasp.sh
+```
+
+!listing! language=bash caption=Sample `~/.bashrc` for Frontier id=fr1
+if [ $LMOD_SYSTEM_NAME = frontier ]; then
+    module purge
+    module load PrgEnv-gnu craype-accel-amd-gfx90a cray-mpich rocm cray-python/3.9.13.1 cmake/3.21.3
+    module unload cray-libsci
+
+    # Revise for your Cardinal repository location
+    DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME/frontier
+    cd $DIRECTORY_WHERE_YOU_HAVE_CARDINAL
+
+    HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+    export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+    export OPENMC_CROSS_SECTIONS=/lustre/orion/fus166/proj-shared/novak/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+fi
+!listing-end!
+
+!listing scripts/job_frontier language=bash caption=Sample job script for Frontier id=fr2
+
+
 ## Nek5k
 
 Nek5k is a cluster at [!ac](ANL) with 40 nodes, each with 40 cores.
@@ -202,7 +245,7 @@ Remember that in order to build Cardinal with GPU support, set the appropriate
 variable in the `Makefile` to true (`1`):
 
 ```
-OCCA_CUDA_ENABLED=0
+OCCA_CUDA_ENABLED=1
 OCCA_HIP_ENABLED=0
 OCCA_OPENCL_ENABLED=0
 ```

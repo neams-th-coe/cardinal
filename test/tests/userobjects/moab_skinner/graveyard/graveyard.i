@@ -90,11 +90,11 @@
 [Functions]
   [temp]
     type = ParsedFunction
-    value = 400+x*100+100*t
+    expression = 400+x*100+100*t
   []
   [rho]
     type = ParsedFunction
-    value = 400+y*100+100*t
+    expression = 400+y*100+100*t
   []
 []
 

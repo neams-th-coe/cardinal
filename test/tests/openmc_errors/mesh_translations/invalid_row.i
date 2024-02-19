@@ -16,8 +16,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  temperature_blocks = '1'
-  cell_level = 0
   mesh_translations_file = pebble_centers.txt
 
   tally_type = mesh
@@ -27,10 +25,4 @@
 
 [Executioner]
   type = Transient
-  num_steps = 1
-[]
-
-[Outputs]
-  exodus = true
-  hide = 'temp'
 []
