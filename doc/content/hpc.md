@@ -18,6 +18,7 @@ systems. We recommend precompiling NekRS (with the `nrspre` script) if you run i
 issues. See the [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/just_in_time_compilation.html)
 for more information.
 
+
 ## Bebop
 
 [Bebop](https://www.lcrc.anl.gov/systems/resources/bebop/)
@@ -53,32 +54,6 @@ export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1
 !listing-end!
 
 !listing scripts/job_bebop language=bash caption=Sample job script for Bebop with the `startup` project code id=bb2
-
-## Eddy
-
-[Eddy](https://wiki.inside.anl.gov/ne/The_Eddy_Cluster) is a cluster at
-[!ac](ANL) with eleven 32-core nodes, five 40-core nodes, and six 80-core nodes.
-
-!listing! language=bash caption=Sample `~/.bashrc` for Eddy id=e1
-
-module purge
-module load moose-dev-gcc
-module load cmake/3.25.0
-
-export HDF5_ROOT=/opt/moose/seacas
-export HDF5_INCLUDE_DIR=$HDF5_ROOT/include
-export HDF5_LIBDIR=$HDF5_ROOT/lib
-
-# Revise for your Cardinal repository location
-DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
-
-# This is needed because your home directory on Eddy is actually a symlink
-HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
-export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
-export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
-!listing-end!
-
-!listing! scripts/job_eddy language=bash caption=Sample job script for Eddy with the 32-core partition id=e2
 
 ## Frontier
 
@@ -271,3 +246,31 @@ export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 !listing-end!
 
 !listing scripts/job_summit language=bash caption=Sample job script for Summit id=sum2
+
+
+## Eddy
+
+[Eddy](https://wiki.inside.anl.gov/ne/The_Eddy_Cluster) is a cluster at
+[!ac](ANL) with eleven 32-core nodes, five 40-core nodes, and six 80-core nodes.
+
+!listing! language=bash caption=Sample `~/.bashrc` for Eddy id=e1
+
+module purge
+module load moose-dev-gcc
+module load cmake/3.25.0
+
+export HDF5_ROOT=/opt/moose/seacas
+export HDF5_INCLUDE_DIR=$HDF5_ROOT/include
+export HDF5_LIBDIR=$HDF5_ROOT/lib
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Eddy is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+!listing-end!
+
+!listing! scripts/job_eddy language=bash caption=Sample job script for Eddy with the 32-core partition id=e2
+
