@@ -170,17 +170,23 @@ Pinchot is a small Ubuntu server at the University of Illinois hosted in Dr. Nov
 module load openmpi/ubuntu/5.0.0
 module load hdf5/ubuntu/1.14.3
 
-# Revise for your cross section location
-export OPENMC_CROSS_SECTIONS=/shared/data/endfb-vii.1-hdf5/cross_sections.xml
-
-# This is needed because the shared directory is actually a symlink;
-# to point to Cardinal somewhere else, just change NEKRS_HOME
-SHARE_DIR_SYM_LINK=$(realpath -P /shared/data/cardinal)
-export NEKRS_HOME=${SHARE_DIR_SYM_LINK}/install
+# change to your Cardinal location (either the shared location in /shared/data,
+# or to a location in your home directory
+CARDINAL_DIR=$(realpath -P /shared/data/cardinal)
+#CARDINAL_DIR=$(realpath -P /home/ajnovak2/cardinal)
+export NEKRS_HOME=$CARDINAL_DIR/install
 
 export LIBMESH_JOBS=80
 export MOOSE_JOBS=80
 export HDF5_ROOT=/software/HDF5-1.14.3-ubuntu22
+
+# revise for your cross section location
+export OPENMC_CROSS_SECTIONS=/shared/data/endfb-vii.1-hdf5/cross_sections.xml
+
+export ENABLE_DAGMC=true
+export PATH=${PATH}:${NEKRS_HOME}/bin:${CARDINAL_DIR}
+export MOOSE_DIR=$CARDINAL_DIR/contrib/moose
+export PYTHONPATH=$MOOSE_DIR/python:${PYTHONPATH}
 !listing-end!
 
 ## Sawtooth
