@@ -952,7 +952,8 @@ protected:
 
   /**
    * Local tallies; multiple tallies will only exist when
-   * translating multiple unstructured meshes throughout the geometry
+   * translating multiple unstructured meshes throughout the geometry. Each tally
+   * may have multiple scores which are simultaneously tracked.
    */
   std::vector<openmc::Tally *> _local_tally;
 
