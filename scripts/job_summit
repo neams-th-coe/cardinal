@@ -53,9 +53,6 @@ export OCCA_LDFLAGS="$XL_HOME/lib/libibmc++.a"
 #export PAMI_IBV_DEVICE_NAME="mlx5_0:1,mlx5_3:1"
 #export PAMI_IBV_DEVICE_NAME_1="mlx5_3:1,mlx5_0:1"
 
-module unload darshan-runtime
-module load gcc
-
 # work-around for barrier issue
 export OMPI_MCA_coll_ibm_collselect_mode_barrier=failsafe
 

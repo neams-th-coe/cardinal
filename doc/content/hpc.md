@@ -226,23 +226,33 @@ OCCA_OPENCL_ENABLED=0
 ```
 
 !listing! language=bash caption=Sample `~/.bashrc` for Summit id=su1
-module load gcc
-module load cmake
-module load cuda
-module load hdf5
+module purge
+module load DefApps-2023
+module unload xl/16.1.1-10 lsf-tools/2.0 xalt/1.2.1 hsi/5.0.2.p5
+module load gcc/9.1.0
 module load python/3.7.0-anaconda3-5.3.0
+module load hdf5/1.10.7
+module load cmake/3.27.7
 module load eigen/3.3.9
+module load nsight-compute/2021.2.1
+module load nsight-systems/2021.3.1.54
+module load cuda/11.0.3
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$MEMBERWORK/nfi128/summit
+cd $DIRECTORY_WHERE_YOU_HAVE_CARDINAL
+
+# This is needed because your home directory on Summit is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+export OCCA_DIR=$NEKRS_HOME
 
 export HDF5_ROOT=/sw/summit/spack-envs/base/opt/linux-rhel8-ppc64le/gcc-9.1.0/hdf5-1.10.7-yxvwkhm4nhgezbl2mwzdruwoaiblt6q2
 export HDF5_INCLUDE_DIR=$HDF5_ROOT/include
 export HDF5_LIBDIR=$HDF5_ROOT/lib
 
-# Revise for your Cardinal repository location
-DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
 
-# This is needed because your home directory on Summit is actually a symlink
-HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
-export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 !listing-end!
 
 !listing scripts/job_summit language=bash caption=Sample job script for Summit id=sum2
