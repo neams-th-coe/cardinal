@@ -69,7 +69,7 @@ Multiphysics model of a Heat Pipe Microreactor using OpenMC-MOOSE-Sockeye [!cite
 Multiphysics model of a 7-pin SFR fuel bundle using NekRS-OpenMC-MOOSE [!cite](novak2022); figure shows fluid temperature predicted by a momentum source NekRS model with solid duct temperature predicted by BISON.
 
 !card media/pts.png title=Pressurized Thermal Shock
-Coupled NekRS [!ac](CFD) simulations with the MOOSE tensor mechanics module for predicting stress-strain response in [!ac](LWR) reactor vessels [!cite](yu_2022). Figure shows the fluid velocity and temperature predicted by NekRS, which are then fed to a solid mechanics model.
+Coupled NekRS [!ac](CFD) simulations with the MOOSE solid mechanics module for predicting stress-strain response in [!ac](LWR) reactor vessels [!cite](yu_2022). Figure shows the fluid velocity and temperature predicted by NekRS, which are then fed to a solid mechanics model.
 
 !card media/sam_nek.png title=Systems Analysis
 Coupled NekRS [!ac](CFD) simulations with systems-level feedback from SAM, for predicting tracer concentration in a loop with a double T-junction [!cite](huxford2023).
