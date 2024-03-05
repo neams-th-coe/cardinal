@@ -41,4 +41,14 @@
     requirement = "The system shall error if trying to specify more than one score per postprocessor"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [manual_rel_err_calc]
+    type = CSVDiff
+    input = ratio.i
+    csvdiff = 'ratio_out.csv'
+    # This test has very few particles, and OpenMC will error if there aren't enough source particles
+    # in the fission bank on a process
+    max_parallel = 8
+    requirement = "The system shall prove equivalence between a by-hand calculation of relative error (std_dev output divided by tally value) as compared to the tally relative error postprocessor."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

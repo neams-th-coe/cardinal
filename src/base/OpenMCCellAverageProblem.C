@@ -2886,7 +2886,8 @@ OpenMCCellAverageProblem::relaxAndNormalizeTally(const int & t, const unsigned i
   auto mean_tally = tallySum(tally, score);
   current_raw = normalizeLocalTally(mean_tally, score);
 
-  auto sum_sq = xt::view(tally->results_, xt::all(), 0, static_cast<int>(openmc::TallyResult::SUM_SQ));
+  auto sum_sq =
+      xt::view(tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM_SQ));
   auto rel_err = relativeError(mean_tally, sum_sq, tally->n_realizations_);
   current_raw_std_dev = rel_err * current_raw;
 

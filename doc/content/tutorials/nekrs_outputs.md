@@ -56,7 +56,7 @@ to use a time history of the NekRS solution as a boundary condition/source
 term in another MOOSE application.
 For instance, for thermal striping applications, it is often a reasonable
 approximation to solve a NekRS CFD simulation as a standalone case, and then
-apply a time history of NekRS's wall temperature as a boundary condition to a tensor mechanics solve.
+apply a time history of NekRS's wall temperature as a boundary condition to a solid mechanics solve.
 Cardinal allows you to
 write the NekRS solution to an Exodus file that can then be loaded to provide
 a time history of the CFD solution to another application. In this example, we will
@@ -114,7 +114,7 @@ Finally, we "run" this application by specifying a [Transient](https://moosefram
 executioner. The time stepping scheme we specify here just indicates at which time
 step the data in the `nek_out.e` file should be interpolated to. For instance, if you ran
 NekRS with a time step of 1e-3 seconds, but only want to couple NekRS's temperature to a
-tensor mechanics solve on a resolution of 1e-2 seconds, then simply set the time step size
+solid mechanics solve on a resolution of 1e-2 seconds, then simply set the time step size
 in this file to `dt = 1e-2`. Finally, we specify a Exodus output in this file, which you can
 use to see that the temperature from `nek_out.e` was correctly loaded (`nek_temp` in
 `load_nek_out.e` matches `temp` in `nek_out.e`).
