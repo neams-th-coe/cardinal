@@ -139,7 +139,7 @@ NAVIER_STOKES       := yes
 REACTOR             := yes
 SOLID_PROPERTIES    := yes
 STOCHASTIC_TOOLS    := yes
-TENSOR_MECHANICS    := yes
+SOLID_MECHANICS     := yes
 THERMAL_HYDRAULICS  := yes
 
 # Perform various checks on the dependencies
@@ -273,7 +273,7 @@ ifneq ($(SAM_CONTENT),)
   libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
   APPLICATION_DIR     := $(SAM_DIR)
   APPLICATION_NAME    := sam
-  TENSOR_MECHANICS    := yes
+  SOLID_MECHANICS     := yes
   include             $(FRAMEWORK_DIR)/app.mk
 endif
 
