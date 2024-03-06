@@ -13,7 +13,7 @@ This postprocessor will only report the number of cells on the specified `cell_l
 
 Shown below is an example for depicting the number of OpenMC cells coupled to MOOSE.
 
-!listing test/tests/postprocessors/openmc_coupled_cells/openmc.i
+!listing test/tests/postprocessors/coupled_cells/openmc.i
   block=Postprocessors
 
 !syntax parameters /Postprocessors/OpenMCCoupledCells
