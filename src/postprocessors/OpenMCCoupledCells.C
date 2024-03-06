@@ -26,7 +26,8 @@ InputParameters
 OpenMCCoupledCells::validParams()
 {
   InputParameters params = OpenMCPostprocessor::validParams();
-  params.addClassDescription("Number of OpenMC cells receiving temperature/density feedback or sending a cell tally to MOOSE");
+  params.addClassDescription("Number of OpenMC cells receiving temperature/density feedback or "
+                             "sending a cell tally to MOOSE");
   return params;
 }
 
