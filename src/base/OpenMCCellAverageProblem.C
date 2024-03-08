@@ -263,10 +263,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
-    _has_fluid_blocks(params.isParamSetByUser("density_blocks")),
-    _has_solid_blocks(params.isParamSetByUser("temperature_blocks")),
-    _has_tally_blocks(params.isParamSetByUser("tally_blocks")),
-    _needs_to_map_cells(_has_fluid_blocks || _has_solid_blocks || _has_tally_blocks),
+    _specified_density_feedback(params.isParamSetByUser("density_blocks")),
+    _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
+    _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback || params.isParamSetByUser("tally_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr)
@@ -276,7 +275,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                      "output_cell_mapping",
                      "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
 
-  if (!_has_solid_blocks && !_has_fluid_blocks)
+  if (!_specified_temperature_feedback && !_specified_density_feedback)
     checkUnusedParam(
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
@@ -460,7 +459,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-   if (!_has_fluid_blocks || isParamValid("skinner"))
+   if (!_specified_density_feedback || isParamValid("skinner"))
      checkUnusedParam(params,
                       "map_density_by_cell",
                       "either (i) applying geometry skinning or (ii) 'density_blocks' is empty");
@@ -794,7 +793,7 @@ OpenMCCellAverageProblem::initialSetup()
 #ifdef ENABLE_DAGMC
   if (isParamValid("skinner"))
   {
-    if (_exclusive_temp_blocks.size() && _has_fluid_blocks)
+    if (_exclusive_temp_blocks.size() && _specified_density_feedback)
       mooseError("The 'skinner' will apply density skinning over the entire domain, and requires "
                  "that the entire problem uses identical settings for feedback. "
                  "Please update 'density_blocks' to include all blocks, and set density values "
@@ -813,7 +812,7 @@ OpenMCCellAverageProblem::initialSetup()
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
 
-    if (_skinner->hasDensitySkinning() != _has_fluid_blocks)
+    if (_skinner->hasDensitySkinning() != _specified_density_feedback)
       mooseError(
           "Detected inconsistent settings for density skinning and 'density_blocks'. If applying "
           "density feedback with 'density_blocks', then you must apply density skinning in the '",
@@ -1397,7 +1396,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       _cell_volume[c.first] = cv[i++];
   }
 
-  if (_has_fluid_blocks || _has_solid_blocks)
+  if (_specified_density_feedback || _specified_temperature_feedback)
     if (!has_density_cells && !has_exclusive_temp_cells)
       mooseError("Feedback was specified using 'temperature_blocks' and/or 'density_blocks', but "
                  "no MOOSE elements mapped to OpenMC cells!");
@@ -1417,13 +1416,13 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     vt.print(_console);
   }
 
-  bool has_io = _has_fluid_blocks || _has_solid_blocks || _tally_type != tally::none;
+  bool has_io = _specified_density_feedback || _specified_temperature_feedback || _tally_type != tally::none;
 
   if (has_io)
     _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
              << std::endl;
 
-  if (_has_fluid_blocks || _has_solid_blocks)
+  if (_specified_density_feedback || _specified_temperature_feedback)
   {
     _console << "      Subdomain:  subdomain name/ID" << std::endl;
     _console << "    Temperature:  variable OpenMC reads temperature from (empty if no feedback)"
@@ -1692,7 +1691,7 @@ OpenMCCellAverageProblem::getMaterialFills()
     vt.addRow(printCell(cell_info), materialID(material_index));
   }
 
-  if (_verbose && _has_fluid_blocks)
+  if (_verbose && _specified_density_feedback)
   {
     _console << "\n ===================>       OPENMC MATERIAL MAPPING       <====================\n" << std::endl;
     _console <<   "           Cell:  OpenMC cell receiving density feedback" << std::endl;
@@ -2660,7 +2659,7 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
 void
 OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 {
-  if (!_has_fluid_blocks && !_has_solid_blocks)
+  if (!_specified_density_feedback && !_specified_temperature_feedback)
   {
     _console << "Skipping temperature transfer into OpenMC because 'temperature_blocks' is empty"
              << std::endl;
@@ -2719,7 +2718,7 @@ OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info)
 void
 OpenMCCellAverageProblem::sendDensityToOpenMC() const
 {
-  if (!_has_fluid_blocks)
+  if (!_specified_density_feedback)
   {
     _console << "Skipping density transfer into OpenMC because 'density_blocks' is empty"
              << std::endl;
@@ -3056,10 +3055,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 
       sendTallyNuclidesToOpenMC();
 
-      if (_first_transfer && (_has_solid_blocks || _has_fluid_blocks))
+      if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
       {
         std::string incoming_transfer =
-            _has_fluid_blocks ? "temperature and density" : "temperature";
+            _specified_density_feedback ? "temperature and density" : "temperature";
 
         switch (_initial_condition)
         {
