@@ -52,13 +52,6 @@ InputParameters
 OpenMCCellAverageProblem::validParams()
 {
   InputParameters params = OpenMCProblemBase::validParams();
-  params.addParam<std::vector<SubdomainName>>("fluid_blocks", "DEPRECATED");
-  params.addParam<std::vector<SubdomainName>>("solid_blocks", "DEPRECATED");
-  params.addParam<unsigned int>("solid_cell_level", "DEPRECATED");
-  params.addParam<unsigned int>("lowest_solid_cell_level", "DEPRECATED");
-  params.addParam<unsigned int>("fluid_cell_level", "DEPRECATED");
-  params.addParam<unsigned int>("lowest_fluid_cell_level", "DEPRECATED");
-
   params.addParam<bool>("output_cell_mapping",
                         true,
                         "Whether to automatically output the mapping from OpenMC cells to the "
@@ -77,8 +70,7 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<bool>(
       "export_properties",
       false,
-      "Whether to export OpenMC's temperature and density properties after updating "
-      "them from MOOSE.");
+      "Whether to export OpenMC's temperature and density properties to an HDF5 file after updating them from MOOSE.");
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -194,7 +186,6 @@ OpenMCCellAverageProblem::validParams()
       "will use the value set with this parameter unless the geometry does not have that many "
       "layers of geometry nesting, in which case the locally lowest depth is used");
 
-  params.addParam<bool>("identical_tally_cell_fills", false, "deprecated");
   params.addParam<std::vector<SubdomainName>>(
       "identical_cell_fills",
       "Blocks on which the OpenMC cells have identical fill universes; this is an optimization to "
@@ -203,7 +194,6 @@ OpenMCCellAverageProblem::validParams()
       "it as all other cells which map to these subdomains. We HIGHLY recommend that the first "
       "time you try using this, that you also set 'check_identical_cell_fills = true' to catch "
       "any possible user errors which would exclude you from using this option safely.");
-  params.addParam<bool>("check_identical_tally_cell_fills", false, "deprecated");
   params.addParam<bool>(
       "check_identical_cell_fills",
       false,
@@ -285,20 +275,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(params,
                      "output_cell_mapping",
                      "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
-
-  if (isParamValid("solid_blocks"))
-    mooseError("'solid_blocks' is deprecated! Please use 'temperature_blocks' instead");
-
-  if (isParamValid("fluid_blocks"))
-    mooseError("'fluid_blocks' is deprecated! Please use 'density_blocks' instead");
-
-  if (isParamValid("solid_cell_level") || isParamValid("lowest_solid_cell_level") ||
-      isParamValid("fluid_cell_level") || isParamValid("lowest_fluid_cell_level"))
-    mooseError("The cell level is now represented using 'cell_level' or 'lowest_cell_level.'\nIn "
-               "addition, we no longer distinguish this setting based on the fluid/solid phase "
-               "(i.e. if you had DIFFERENT values for solid and fluid settings) because we do not "
-               "think anyone was using this feature and it added code complexity. If this is "
-               "affecting your workflow, please contact the Cardinal development team.");
 
   if (!_has_solid_blocks && !_has_fluid_blocks)
     checkUnusedParam(
@@ -539,15 +515,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
-
-  if (isParamSetByUser("check_identical_tally_cell_fills"))
-    mooseError(
-        "'check_identical_tally_cell_fills' has been renamed to 'check_identical_cell_fills'");
-
-  if (isParamSetByUser("identical_tally_cell_fills"))
-    mooseError(
-        "'identical_tally_cell_fills' has been replaced by 'identical_cell_fills', "
-        "where you now specify the block names for which cell fills are identical universes");
 
   std::vector<SubdomainName> dummy;
   readBlockParameters("identical_cell_fills", _identical_cell_fill_blocks, dummy /* not needed */);
