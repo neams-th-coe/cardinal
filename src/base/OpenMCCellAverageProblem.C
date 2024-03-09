@@ -522,101 +522,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(
         params, "check_identical_cell_fills", "'identical_cell_fills' is not specified");
 
-  if (!isParamValid("temperature_blocks"))
-    checkUnusedParam(params, "temperature_variables", "not setting 'temperature_blocks'");
+  readBlockVariables("temperature", "temp", _temp_vars_to_blocks, _temp_blocks);
+  readBlockVariables("density", "density", _density_vars_to_blocks, _density_blocks);
 
-  std::vector<std::vector<SubdomainName>> temperature_blocks;
-  if (isParamValid("temperature_blocks"))
-  {
-    read2DBlockParameters("temperature_blocks", temperature_blocks, _temp_blocks);
-
-    // now, get the names of those temperature variables
-    std::vector<std::vector<std::string>> temperature_vars;
-    if (isParamValid("temperature_variables"))
-    {
-      temperature_vars = getParam<std::vector<std::vector<std::string>>>("temperature_variables");
-
-      checkEmptyVector(temperature_vars, "'temperature_variables'");
-      for (const auto & t : temperature_vars)
-        checkEmptyVector(t, "Entries in 'temperature_variables'");
-
-      if (temperature_vars.size() != temperature_blocks.size())
-        mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!\n"
-                   "'temperature_variables' is of length " +
-                   std::to_string(temperature_vars.size()) +
-                   " and 'temperature_blocks' is of length " +
-                   std::to_string(temperature_blocks.size()));
-
-      // TODO: for now, we restrict each set of blocks to map to a single temperature variable
-      for (std::size_t i = 0; i < temperature_vars.size(); ++i)
-        if (temperature_vars[i].size() > 1)
-          mooseError("Each entry in 'temperature_variables' must be of length 1. "
-            "Entry " + std::to_string(i) + " is of length ", temperature_vars[i].size(), ".");
-    }
-    else
-    {
-      // set a reasonable default, if not specified
-      temperature_vars.resize(temperature_blocks.size(), std::vector<std::string>(1));
-      for (std::size_t i = 0; i < temperature_blocks.size(); ++i)
-        temperature_vars[i][0] = "temp";
-    }
-
-    for (std::size_t i = 0; i < temperature_vars.size(); ++i)
-      for (std::size_t j = 0; j < temperature_blocks[i].size(); ++j)
-        _temp_vars_to_blocks[temperature_vars[i][0]].push_back(temperature_blocks[i][j]);
-  }
-
-  if (!isParamValid("density_blocks"))
-    checkUnusedParam(params, "density_variables", "not setting 'density_blocks'");
-
-  std::vector<std::vector<SubdomainName>> density_blocks;
-  if (isParamValid("density_blocks"))
-  {
-    read2DBlockParameters("density_blocks", density_blocks, _density_blocks);
-
-    // For now, we do not have any tests covering applying density feedback without the presence
-    // of temperature feedback. So each entry in density_blocks should also be in
-    // temp_vars_to_blocks (same variable, same block)
-    bool found = false;
-    for (const auto & d : _density_blocks)
-    {
-      if (std::find(_temp_blocks.begin(), _temp_blocks.end(), d) == _temp_blocks.end())
-        mooseError("Each entry in 'density_blocks' should also be in 'temperature_blocks'. Block " +
-                   std::to_string(d) + " was not found in 'temperature_blocks'");
-    }
-
-    // now, get the names of those density variables
-    std::vector<std::vector<std::string>> density_vars;
-    if (isParamValid("density_variables"))
-    {
-      density_vars = getParam<std::vector<std::vector<std::string>>>("density_variables");
-
-      checkEmptyVector(density_vars, "'density_variables'");
-      for (const auto & t : density_vars)
-        checkEmptyVector(t, "Entries in 'density_variables'");
-
-      if (density_vars.size() != density_blocks.size())
-        mooseError("'density_variables' and 'density_blocks' must be the same length!");
-
-      // TODO: for now, we restrict each set of blocks to map to a single density variable
-      for (std::size_t i = 0; i < density_vars.size(); ++i)
-        if (density_vars[i].size() > 1)
-          mooseError("Each entry in 'density_variables' must be of length 1. Entry " +
-                         std::to_string(i) + " is of length ",
-                     density_vars[i].size());
-    }
-    else
-    {
-      // set a reasonable default, if not specified
-      density_vars.resize(density_blocks.size(), std::vector<std::string>(1));
-      for (std::size_t i = 0; i < density_blocks.size(); ++i)
-        density_vars[i][0] = "density";
-    }
-
-    for (std::size_t i = 0; i < density_vars.size(); ++i)
-      for (std::size_t j = 0; j < density_blocks[i].size(); ++j)
-        _density_vars_to_blocks[density_vars[i][0]].push_back(density_blocks[i][j]);
-  }
+  // For now, we do not have any tests covering applying density feedback without the presence
+  // of temperature feedback. So each entry in density_blocks should also be in temperature_blocks
+  for (const auto & d : _density_blocks)
+    if (std::find(_temp_blocks.begin(), _temp_blocks.end(), d) == _temp_blocks.end())
+      mooseError("Each entry in 'density_blocks' should also be in 'temperature_blocks'. Block " +
+                 std::to_string(d) + " was not found in 'temperature_blocks'");
 
   for (const auto & i : _identical_cell_fill_blocks)
     if (std::find(_density_blocks.begin(), _density_blocks.end(), i) != _density_blocks.end())
@@ -749,6 +663,57 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         mooseError("Unhandled OutputEnum in OpenMCCellAverageProblem!");
     }
   }
+}
+
+void
+OpenMCCellAverageProblem::readBlockVariables(const std::string & param, const std::string & default_name, std::map<std::string, std::vector<SubdomainName>> & vars_to_specified_blocks, std::vector<SubdomainID> & specified_blocks)
+{
+  std::string b = param + "_blocks";
+  std::string v = param + "_variables";
+
+  if (!isParamValid(b))
+  {
+    checkUnusedParam(parameters(), v, "not setting '" + b + "'");
+    return;
+  }
+
+  std::vector<std::vector<SubdomainName>> blocks;
+  read2DBlockParameters(b, blocks, specified_blocks);
+
+  // now, get the names of those temperature variables
+  std::vector<std::vector<std::string>> vars;
+  if (isParamValid(v))
+  {
+    vars = getParam<std::vector<std::vector<std::string>>>(v);
+
+    checkEmptyVector(vars, "'" + v + "");
+    for (const auto & t : vars)
+      checkEmptyVector(t, "Entries in '" + v + "'");
+
+    if (vars.size() != blocks.size())
+      mooseError("'" + v + "' and '" + b + "' must be the same length!\n"
+                 "'" + v + "' is of length " +
+                 std::to_string(vars.size()) +
+                 " and '" + b + "' is of length " +
+                 std::to_string(blocks.size()));
+
+    // TODO: for now, we restrict each set of blocks to map to a single temperature variable
+    for (std::size_t i = 0; i < vars.size(); ++i)
+      if (vars[i].size() > 1)
+        mooseError("Each entry in '" + v + "' must be of length 1. "
+          "Entry " + std::to_string(i) + " is of length ", vars[i].size(), ".");
+  }
+  else
+  {
+    // set a reasonable default, if not specified
+    vars.resize(blocks.size(), std::vector<std::string>(1));
+    for (std::size_t i = 0; i < blocks.size(); ++i)
+      vars[i][0] = default_name;
+  }
+
+  for (std::size_t i = 0; i < vars.size(); ++i)
+    for (std::size_t j = 0; j < blocks[i].size(); ++j)
+      vars_to_specified_blocks[vars[i][0]].push_back(blocks[i][j]);
 }
 
 void
