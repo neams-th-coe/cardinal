@@ -240,15 +240,19 @@ public:
   static constexpr int32_t UNMAPPED{-1};
 
 protected:
-
   /**
    * Read the names of the MOOSE variables used for sending feedback into OpenMC
    * @param[in] param feedback term to read
    * @param[in] default_name default name to use for MOOSE variables holding this field
-   * @param[out] vars_to_specified_blocks map from MOOSE variable names to the blocks on which they are defined
+   * @param[out] vars_to_specified_blocks map from MOOSE variable names to the blocks on which they
+   * are defined
    * @param[out] specified_blocks user-specified blocks for feedback
    */
-  void readBlockVariables(const std::string & param, const std::string & default_name, std::map<std::string, std::vector<SubdomainName>> & vars_to_specified_blocks, std::vector<SubdomainID> & specified_blocks);
+  void
+  readBlockVariables(const std::string & param,
+                     const std::string & default_name,
+                     std::map<std::string, std::vector<SubdomainName>> & vars_to_specified_blocks,
+                     std::vector<SubdomainID> & specified_blocks);
 
   /**
    * Whether this cell has an identical fill

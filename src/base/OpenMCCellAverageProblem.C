@@ -67,10 +67,10 @@ OpenMCCellAverageProblem::validParams()
       getInitialPropertiesEnum(),
       "Where to read the temperature and density initial conditions for OpenMC");
 
-  params.addParam<bool>(
-      "export_properties",
-      false,
-      "Whether to export OpenMC's temperature and density properties to an HDF5 file after updating them from MOOSE.");
+  params.addParam<bool>("export_properties",
+                        false,
+                        "Whether to export OpenMC's temperature and density properties to an HDF5 "
+                        "file after updating them from MOOSE.");
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -265,7 +265,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _specified_density_feedback(params.isParamSetByUser("density_blocks")),
     _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
-    _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback || params.isParamSetByUser("tally_blocks")),
+    _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback ||
+                        params.isParamSetByUser("tally_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr)
@@ -459,14 +460,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-   if (!_specified_density_feedback || isParamValid("skinner"))
-     checkUnusedParam(params,
-                      "map_density_by_cell",
-                      "either (i) applying geometry skinning or (ii) 'density_blocks' is empty");
+  if (!_specified_density_feedback || isParamValid("skinner"))
+    checkUnusedParam(params,
+                     "map_density_by_cell",
+                     "either (i) applying geometry skinning or (ii) 'density_blocks' is empty");
 
-     // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
-     // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
-     // point have DAGMC enabled.
+    // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
+    // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
+    // point have DAGMC enabled.
 #ifdef ENABLE_DAGMC
   bool has_csg;
   bool has_dag;
@@ -666,7 +667,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 }
 
 void
-OpenMCCellAverageProblem::readBlockVariables(const std::string & param, const std::string & default_name, std::map<std::string, std::vector<SubdomainName>> & vars_to_specified_blocks, std::vector<SubdomainID> & specified_blocks)
+OpenMCCellAverageProblem::readBlockVariables(
+    const std::string & param,
+    const std::string & default_name,
+    std::map<std::string, std::vector<SubdomainName>> & vars_to_specified_blocks,
+    std::vector<SubdomainID> & specified_blocks)
 {
   std::string b = param + "_blocks";
   std::string v = param + "_variables";
@@ -691,17 +696,20 @@ OpenMCCellAverageProblem::readBlockVariables(const std::string & param, const st
       checkEmptyVector(t, "Entries in '" + v + "'");
 
     if (vars.size() != blocks.size())
-      mooseError("'" + v + "' and '" + b + "' must be the same length!\n"
-                 "'" + v + "' is of length " +
-                 std::to_string(vars.size()) +
-                 " and '" + b + "' is of length " +
-                 std::to_string(blocks.size()));
+      mooseError("'" + v + "' and '" + b +
+                 "' must be the same length!\n"
+                 "'" +
+                 v + "' is of length " + std::to_string(vars.size()) + " and '" + b +
+                 "' is of length " + std::to_string(blocks.size()));
 
     // TODO: for now, we restrict each set of blocks to map to a single temperature variable
     for (std::size_t i = 0; i < vars.size(); ++i)
       if (vars[i].size() > 1)
-        mooseError("Each entry in '" + v + "' must be of length 1. "
-          "Entry " + std::to_string(i) + " is of length ", vars[i].size(), ".");
+        mooseError("Each entry in '" + v +
+                    "' must be of length 1. "
+                    "Entry " +
+                    std::to_string(i) + " is of length ",
+                    vars[i].size());
   }
   else
   {
@@ -1381,7 +1389,8 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     vt.print(_console);
   }
 
-  bool has_io = _specified_density_feedback || _specified_temperature_feedback || _tally_type != tally::none;
+  bool has_io =
+      _specified_density_feedback || _specified_temperature_feedback || _tally_type != tally::none;
 
   if (has_io)
     _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
