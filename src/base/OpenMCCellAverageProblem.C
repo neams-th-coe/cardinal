@@ -52,13 +52,6 @@ InputParameters
 OpenMCCellAverageProblem::validParams()
 {
   InputParameters params = OpenMCProblemBase::validParams();
-  params.addParam<std::vector<SubdomainName>>("fluid_blocks", "DEPRECATED");
-  params.addParam<std::vector<SubdomainName>>("solid_blocks", "DEPRECATED");
-  params.addParam<unsigned int>("solid_cell_level", "DEPRECATED");
-  params.addParam<unsigned int>("lowest_solid_cell_level", "DEPRECATED");
-  params.addParam<unsigned int>("fluid_cell_level", "DEPRECATED");
-  params.addParam<unsigned int>("lowest_fluid_cell_level", "DEPRECATED");
-
   params.addParam<bool>("output_cell_mapping",
                         true,
                         "Whether to automatically output the mapping from OpenMC cells to the "
@@ -74,11 +67,10 @@ OpenMCCellAverageProblem::validParams()
       getInitialPropertiesEnum(),
       "Where to read the temperature and density initial conditions for OpenMC");
 
-  params.addParam<bool>(
-      "export_properties",
-      false,
-      "Whether to export OpenMC's temperature and density properties after updating "
-      "them from MOOSE.");
+  params.addParam<bool>("export_properties",
+                        false,
+                        "Whether to export OpenMC's temperature and density properties to an HDF5 "
+                        "file after updating them from MOOSE.");
   params.addParam<bool>(
       "normalize_by_global_tally",
       true,
@@ -194,7 +186,6 @@ OpenMCCellAverageProblem::validParams()
       "will use the value set with this parameter unless the geometry does not have that many "
       "layers of geometry nesting, in which case the locally lowest depth is used");
 
-  params.addParam<bool>("identical_tally_cell_fills", false, "deprecated");
   params.addParam<std::vector<SubdomainName>>(
       "identical_cell_fills",
       "Blocks on which the OpenMC cells have identical fill universes; this is an optimization to "
@@ -203,7 +194,6 @@ OpenMCCellAverageProblem::validParams()
       "it as all other cells which map to these subdomains. We HIGHLY recommend that the first "
       "time you try using this, that you also set 'check_identical_cell_fills = true' to catch "
       "any possible user errors which would exclude you from using this option safely.");
-  params.addParam<bool>("check_identical_tally_cell_fills", false, "deprecated");
   params.addParam<bool>(
       "check_identical_cell_fills",
       false,
@@ -273,10 +263,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
     _assume_separate_tallies(getParam<bool>("assume_separate_tallies")),
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
-    _has_fluid_blocks(params.isParamSetByUser("density_blocks")),
-    _has_solid_blocks(params.isParamSetByUser("temperature_blocks")),
-    _has_tally_blocks(params.isParamSetByUser("tally_blocks")),
-    _needs_to_map_cells(_has_fluid_blocks || _has_solid_blocks || _has_tally_blocks),
+    _specified_density_feedback(params.isParamSetByUser("density_blocks")),
+    _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
+    _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback ||
+                        params.isParamSetByUser("tally_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr)
@@ -286,21 +276,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                      "output_cell_mapping",
                      "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
 
-  if (isParamValid("solid_blocks"))
-    mooseError("'solid_blocks' is deprecated! Please use 'temperature_blocks' instead");
-
-  if (isParamValid("fluid_blocks"))
-    mooseError("'fluid_blocks' is deprecated! Please use 'density_blocks' instead");
-
-  if (isParamValid("solid_cell_level") || isParamValid("lowest_solid_cell_level") ||
-      isParamValid("fluid_cell_level") || isParamValid("lowest_fluid_cell_level"))
-    mooseError("The cell level is now represented using 'cell_level' or 'lowest_cell_level.'\nIn "
-               "addition, we no longer distinguish this setting based on the fluid/solid phase "
-               "(i.e. if you had DIFFERENT values for solid and fluid settings) because we do not "
-               "think anyone was using this feature and it added code complexity. If this is "
-               "affecting your workflow, please contact the Cardinal development team.");
-
-  if (!_has_solid_blocks && !_has_fluid_blocks)
+  if (!_specified_temperature_feedback && !_specified_density_feedback)
     checkUnusedParam(
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
@@ -484,14 +460,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-   if (!_has_fluid_blocks || isParamValid("skinner"))
-     checkUnusedParam(params,
-                      "map_density_by_cell",
-                      "either (i) applying geometry skinning or (ii) 'density_blocks' is empty");
+  if (!_specified_density_feedback || isParamValid("skinner"))
+    checkUnusedParam(params,
+                     "map_density_by_cell",
+                     "either (i) applying geometry skinning or (ii) 'density_blocks' is empty");
 
-     // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
-     // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
-     // point have DAGMC enabled.
+    // OpenMC will throw an error if the geometry contains DAG universes but OpenMC wasn't compiled
+    // with DAGMC. So we can assume that if we have a DAGMC geometry, that we will also by this
+    // point have DAGMC enabled.
 #ifdef ENABLE_DAGMC
   bool has_csg;
   bool has_dag;
@@ -540,15 +516,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
-  if (isParamSetByUser("check_identical_tally_cell_fills"))
-    mooseError(
-        "'check_identical_tally_cell_fills' has been renamed to 'check_identical_cell_fills'");
-
-  if (isParamSetByUser("identical_tally_cell_fills"))
-    mooseError(
-        "'identical_tally_cell_fills' has been replaced by 'identical_cell_fills', "
-        "where you now specify the block names for which cell fills are identical universes");
-
   std::vector<SubdomainName> dummy;
   readBlockParameters("identical_cell_fills", _identical_cell_fill_blocks, dummy /* not needed */);
 
@@ -556,101 +523,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(
         params, "check_identical_cell_fills", "'identical_cell_fills' is not specified");
 
-  if (!isParamValid("temperature_blocks"))
-    checkUnusedParam(params, "temperature_variables", "not setting 'temperature_blocks'");
+  readBlockVariables("temperature", "temp", _temp_vars_to_blocks, _temp_blocks);
+  readBlockVariables("density", "density", _density_vars_to_blocks, _density_blocks);
 
-  std::vector<std::vector<SubdomainName>> temperature_blocks;
-  if (isParamValid("temperature_blocks"))
-  {
-    read2DBlockParameters("temperature_blocks", temperature_blocks, _temp_blocks);
-
-    // now, get the names of those temperature variables
-    std::vector<std::vector<std::string>> temperature_vars;
-    if (isParamValid("temperature_variables"))
-    {
-      temperature_vars = getParam<std::vector<std::vector<std::string>>>("temperature_variables");
-
-      checkEmptyVector(temperature_vars, "'temperature_variables'");
-      for (const auto & t : temperature_vars)
-        checkEmptyVector(t, "Entries in 'temperature_variables'");
-
-      if (temperature_vars.size() != temperature_blocks.size())
-        mooseError("'temperature_variables' and 'temperature_blocks' must be the same length!\n"
-                   "'temperature_variables' is of length " +
-                   std::to_string(temperature_vars.size()) +
-                   " and 'temperature_blocks' is of length " +
-                   std::to_string(temperature_blocks.size()));
-
-      // TODO: for now, we restrict each set of blocks to map to a single temperature variable
-      for (std::size_t i = 0; i < temperature_vars.size(); ++i)
-        if (temperature_vars[i].size() > 1)
-          mooseError("Each entry in 'temperature_variables' must be of length 1. "
-            "Entry " + std::to_string(i) + " is of length ", temperature_vars[i].size(), ".");
-    }
-    else
-    {
-      // set a reasonable default, if not specified
-      temperature_vars.resize(temperature_blocks.size(), std::vector<std::string>(1));
-      for (std::size_t i = 0; i < temperature_blocks.size(); ++i)
-        temperature_vars[i][0] = "temp";
-    }
-
-    for (std::size_t i = 0; i < temperature_vars.size(); ++i)
-      for (std::size_t j = 0; j < temperature_blocks[i].size(); ++j)
-        _temp_vars_to_blocks[temperature_vars[i][0]].push_back(temperature_blocks[i][j]);
-  }
-
-  if (!isParamValid("density_blocks"))
-    checkUnusedParam(params, "density_variables", "not setting 'density_blocks'");
-
-  std::vector<std::vector<SubdomainName>> density_blocks;
-  if (isParamValid("density_blocks"))
-  {
-    read2DBlockParameters("density_blocks", density_blocks, _density_blocks);
-
-    // For now, we do not have any tests covering applying density feedback without the presence
-    // of temperature feedback. So each entry in density_blocks should also be in
-    // temp_vars_to_blocks (same variable, same block)
-    bool found = false;
-    for (const auto & d : _density_blocks)
-    {
-      if (std::find(_temp_blocks.begin(), _temp_blocks.end(), d) == _temp_blocks.end())
-        mooseError("Each entry in 'density_blocks' should also be in 'temperature_blocks'. Block " +
-                   std::to_string(d) + " was not found in 'temperature_blocks'");
-    }
-
-    // now, get the names of those density variables
-    std::vector<std::vector<std::string>> density_vars;
-    if (isParamValid("density_variables"))
-    {
-      density_vars = getParam<std::vector<std::vector<std::string>>>("density_variables");
-
-      checkEmptyVector(density_vars, "'density_variables'");
-      for (const auto & t : density_vars)
-        checkEmptyVector(t, "Entries in 'density_variables'");
-
-      if (density_vars.size() != density_blocks.size())
-        mooseError("'density_variables' and 'density_blocks' must be the same length!");
-
-      // TODO: for now, we restrict each set of blocks to map to a single density variable
-      for (std::size_t i = 0; i < density_vars.size(); ++i)
-        if (density_vars[i].size() > 1)
-          mooseError("Each entry in 'density_variables' must be of length 1. Entry " +
-                         std::to_string(i) + " is of length ",
-                     density_vars[i].size());
-    }
-    else
-    {
-      // set a reasonable default, if not specified
-      density_vars.resize(density_blocks.size(), std::vector<std::string>(1));
-      for (std::size_t i = 0; i < density_blocks.size(); ++i)
-        density_vars[i][0] = "density";
-    }
-
-    for (std::size_t i = 0; i < density_vars.size(); ++i)
-      for (std::size_t j = 0; j < density_blocks[i].size(); ++j)
-        _density_vars_to_blocks[density_vars[i][0]].push_back(density_blocks[i][j]);
-  }
+  // For now, we do not have any tests covering applying density feedback without the presence
+  // of temperature feedback. So each entry in density_blocks should also be in temperature_blocks
+  for (const auto & d : _density_blocks)
+    if (std::find(_temp_blocks.begin(), _temp_blocks.end(), d) == _temp_blocks.end())
+      mooseError("Each entry in 'density_blocks' should also be in 'temperature_blocks'. Block " +
+                 std::to_string(d) + " was not found in 'temperature_blocks'");
 
   for (const auto & i : _identical_cell_fill_blocks)
     if (std::find(_density_blocks.begin(), _density_blocks.end(), i) != _density_blocks.end())
@@ -786,6 +667,59 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 }
 
 void
+OpenMCCellAverageProblem::readBlockVariables(
+    const std::string & param,
+    const std::string & default_name,
+    std::map<std::string, std::vector<SubdomainName>> & vars_to_specified_blocks,
+    std::vector<SubdomainID> & specified_blocks)
+{
+  std::string b = param + "_blocks";
+  std::string v = param + "_variables";
+
+  if (!isParamValid(b))
+  {
+    checkUnusedParam(parameters(), v, "not setting '" + b + "'");
+    return;
+  }
+
+  std::vector<std::vector<SubdomainName>> blocks;
+  read2DBlockParameters(b, blocks, specified_blocks);
+
+  // now, get the names of those temperature variables
+  std::vector<std::vector<std::string>> vars;
+  if (isParamValid(v))
+  {
+    vars = getParam<std::vector<std::vector<std::string>>>(v);
+
+    checkEmptyVector(vars, "'" + v + "");
+    for (const auto & t : vars)
+      checkEmptyVector(t, "Entries in '" + v + "'");
+
+    if (vars.size() != blocks.size())
+      mooseError("'" + v + "' and '" + b + "' must be the same length!\n'" + v + "' is of length " +
+                 std::to_string(vars.size()) + " and '" + b + "' is of length " +
+                 std::to_string(blocks.size()));
+
+    // TODO: for now, we restrict each set of blocks to map to a single temperature variable
+    for (std::size_t i = 0; i < vars.size(); ++i)
+      if (vars[i].size() > 1)
+        mooseError("Each entry in '" + v + "' must be of length 1. Entry " + std::to_string(i) +
+                   " is of length " + std::to_string(vars[i].size()));
+  }
+  else
+  {
+    // set a reasonable default, if not specified
+    vars.resize(blocks.size(), std::vector<std::string>(1));
+    for (std::size_t i = 0; i < blocks.size(); ++i)
+      vars[i][0] = default_name;
+  }
+
+  for (std::size_t i = 0; i < vars.size(); ++i)
+    for (std::size_t j = 0; j < blocks[i].size(); ++j)
+      vars_to_specified_blocks[vars[i][0]].push_back(blocks[i][j]);
+}
+
+void
 OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
@@ -827,7 +761,7 @@ OpenMCCellAverageProblem::initialSetup()
 #ifdef ENABLE_DAGMC
   if (isParamValid("skinner"))
   {
-    if (_exclusive_temp_blocks.size() && _has_fluid_blocks)
+    if (_exclusive_temp_blocks.size() && _specified_density_feedback)
       mooseError("The 'skinner' will apply density skinning over the entire domain, and requires "
                  "that the entire problem uses identical settings for feedback. "
                  "Please update 'density_blocks' to include all blocks, and set density values "
@@ -846,7 +780,7 @@ OpenMCCellAverageProblem::initialSetup()
     if (!_skinner)
       paramError("skinner", "The 'skinner' user object must be of type MoabSkinner!");
 
-    if (_skinner->hasDensitySkinning() != _has_fluid_blocks)
+    if (_skinner->hasDensitySkinning() != _specified_density_feedback)
       mooseError(
           "Detected inconsistent settings for density skinning and 'density_blocks'. If applying "
           "density feedback with 'density_blocks', then you must apply density skinning in the '",
@@ -1430,7 +1364,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       _cell_volume[c.first] = cv[i++];
   }
 
-  if (_has_fluid_blocks || _has_solid_blocks)
+  if (_specified_density_feedback || _specified_temperature_feedback)
     if (!has_density_cells && !has_exclusive_temp_cells)
       mooseError("Feedback was specified using 'temperature_blocks' and/or 'density_blocks', but "
                  "no MOOSE elements mapped to OpenMC cells!");
@@ -1450,13 +1384,14 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     vt.print(_console);
   }
 
-  bool has_io = _has_fluid_blocks || _has_solid_blocks || _tally_type != tally::none;
+  bool has_io =
+      _specified_density_feedback || _specified_temperature_feedback || _tally_type != tally::none;
 
   if (has_io)
     _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
              << std::endl;
 
-  if (_has_fluid_blocks || _has_solid_blocks)
+  if (_specified_density_feedback || _specified_temperature_feedback)
   {
     _console << "      Subdomain:  subdomain name/ID" << std::endl;
     _console << "    Temperature:  variable OpenMC reads temperature from (empty if no feedback)"
@@ -1725,7 +1660,7 @@ OpenMCCellAverageProblem::getMaterialFills()
     vt.addRow(printCell(cell_info), materialID(material_index));
   }
 
-  if (_verbose && _has_fluid_blocks)
+  if (_verbose && _specified_density_feedback)
   {
     _console << "\n ===================>       OPENMC MATERIAL MAPPING       <====================\n" << std::endl;
     _console <<   "           Cell:  OpenMC cell receiving density feedback" << std::endl;
@@ -2693,7 +2628,7 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
 void
 OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 {
-  if (!_has_fluid_blocks && !_has_solid_blocks)
+  if (!_specified_density_feedback && !_specified_temperature_feedback)
   {
     _console << "Skipping temperature transfer into OpenMC because 'temperature_blocks' is empty"
              << std::endl;
@@ -2752,7 +2687,7 @@ OpenMCCellAverageProblem::firstContainedMaterialCell(const cellInfo & cell_info)
 void
 OpenMCCellAverageProblem::sendDensityToOpenMC() const
 {
-  if (!_has_fluid_blocks)
+  if (!_specified_density_feedback)
   {
     _console << "Skipping density transfer into OpenMC because 'density_blocks' is empty"
              << std::endl;
@@ -3089,10 +3024,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 
       sendTallyNuclidesToOpenMC();
 
-      if (_first_transfer && (_has_solid_blocks || _has_fluid_blocks))
+      if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
       {
         std::string incoming_transfer =
-            _has_fluid_blocks ? "temperature and density" : "temperature";
+            _specified_density_feedback ? "temperature and density" : "temperature";
 
         switch (_initial_condition)
         {
