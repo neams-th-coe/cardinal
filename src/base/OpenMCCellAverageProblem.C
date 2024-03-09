@@ -696,18 +696,15 @@ OpenMCCellAverageProblem::readBlockVariables(
       checkEmptyVector(t, "Entries in '" + v + "'");
 
     if (vars.size() != blocks.size())
-      mooseError("'" + v + "' and '" + b +
-                 "' must be the same length!\n'" +
-                 v + "' is of length " + std::to_string(vars.size()) + " and '" + b +
-                 "' is of length " + std::to_string(blocks.size()));
+      mooseError("'" + v + "' and '" + b + "' must be the same length!\n'" + v + "' is of length " +
+                 std::to_string(vars.size()) + " and '" + b + "' is of length " +
+                 std::to_string(blocks.size()));
 
     // TODO: for now, we restrict each set of blocks to map to a single temperature variable
     for (std::size_t i = 0; i < vars.size(); ++i)
       if (vars[i].size() > 1)
-        mooseError("Each entry in '" + v +
-                   "' must be of length 1. Entry " +
-                   std::to_string(i) + " is of length " +
-                   vars[i].size());
+        mooseError("Each entry in '" + v + "' must be of length 1. Entry " + std::to_string(i) +
+                   " is of length " + vars[i].size());
   }
   else
   {
