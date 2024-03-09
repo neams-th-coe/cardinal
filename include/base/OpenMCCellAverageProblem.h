@@ -241,6 +241,20 @@ public:
 
 protected:
   /**
+   * Read the names of the MOOSE variables used for sending feedback into OpenMC
+   * @param[in] param feedback term to read
+   * @param[in] default_name default name to use for MOOSE variables holding this field
+   * @param[out] vars_to_specified_blocks map from MOOSE variable names to the blocks on which they
+   * are defined
+   * @param[out] specified_blocks user-specified blocks for feedback
+   */
+  void
+  readBlockVariables(const std::string & param,
+                     const std::string & default_name,
+                     std::map<std::string, std::vector<SubdomainName>> & vars_to_specified_blocks,
+                     std::vector<SubdomainID> & specified_blocks);
+
+  /**
    * Whether this cell has an identical fill
    * @param[in] cell_info cell index, instance pair
    * @return whether this cell has an identical fill
@@ -818,17 +832,14 @@ protected:
    * Whether the problem has density feedback blocks specified; note that this is NOT necessarily
    * indicative that the mapping was successful in finding any cells corresponding to those blocks
    */
-  const bool _has_fluid_blocks;
+  const bool _specified_density_feedback;
 
   /**
    * Whether the problem has temperature feedback blocks specified; note that this is NOT
    * necessarily indicative that the mapping was successful in finding any cells corresponding to
    * those blocks
    */
-  const bool _has_solid_blocks;
-
-  /// Whether any cell tallies are added to the problem
-  const bool _has_tally_blocks;
+  const bool _specified_temperature_feedback;
 
   /// Whether any spatial mapping from OpenMC's cells to the mesh is needed
   const bool _needs_to_map_cells;
