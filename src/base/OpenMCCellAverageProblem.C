@@ -697,8 +697,7 @@ OpenMCCellAverageProblem::readBlockVariables(
 
     if (vars.size() != blocks.size())
       mooseError("'" + v + "' and '" + b +
-                 "' must be the same length!\n"
-                 "'" +
+                 "' must be the same length!\n'" +
                  v + "' is of length " + std::to_string(vars.size()) + " and '" + b +
                  "' is of length " + std::to_string(blocks.size()));
 
@@ -706,10 +705,9 @@ OpenMCCellAverageProblem::readBlockVariables(
     for (std::size_t i = 0; i < vars.size(); ++i)
       if (vars[i].size() > 1)
         mooseError("Each entry in '" + v +
-                    "' must be of length 1. "
-                    "Entry " +
-                    std::to_string(i) + " is of length ",
-                    vars[i].size());
+                   "' must be of length 1. Entry " +
+                   std::to_string(i) + " is of length " +
+                   vars[i].size());
   }
   else
   {
