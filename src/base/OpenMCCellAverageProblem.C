@@ -704,7 +704,7 @@ OpenMCCellAverageProblem::readBlockVariables(
     for (std::size_t i = 0; i < vars.size(); ++i)
       if (vars[i].size() > 1)
         mooseError("Each entry in '" + v + "' must be of length 1. Entry " + std::to_string(i) +
-                   " is of length " + vars[i].size());
+                   " is of length " + std::to_string(vars[i].size()));
   }
   else
   {
