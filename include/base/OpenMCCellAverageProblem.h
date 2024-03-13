@@ -881,7 +881,7 @@ protected:
   std::map<cellInfo, coupling::CouplingFields> _cell_phase;
 
   /// Number of elements in the MOOSE mesh that exclusively provide temperature feedback
-  int _n_moose_solid_elems;
+  int _n_moose_temp_elems;
 
   /// Number of elements in the MOOSE mesh which provide temperature+density feedback
   int _n_moose_fluid_elems;
@@ -1063,10 +1063,10 @@ protected:
   const SymmetryPointGenerator * _symmetry;
 
   /// Number of temperature-only feedback elements in each mapped OpenMC cell (global)
-  std::map<cellInfo, int> _n_solid;
+  std::map<cellInfo, int> _n_temp;
 
   /// Number of temperature+density feedback elements in each mapped OpenMC cell (global)
-  std::map<cellInfo, int> _n_fluid;
+  std::map<cellInfo, int> _n_temp_rho;
 
   /// Number of none elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_none;
