@@ -2,7 +2,7 @@
   [nonexistent_block]
     type = RunException
     input = nonexistent_block.i
-    expect_err = "Block 500 specified in 'tally_blocks' not found in mesh!"
+    expect_err = "Block '500' specified in 'tally_blocks' not found in mesh!"
     requirement = "The system shall error if the user specifies a block ID for coupling that does not exist."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -65,6 +65,13 @@
                  " cell id 1, instance 0 \(of 1\) maps to a volume of 13.2213 \(cm3\)\n"
                  " cell id 2, instance 0 \(of 1\) maps to a volume of 10.6346 \(cm3\)."
     requirement = "The system shall error if the user enforces equal mapped tally volumes but the mapped volumes are not identical across tally bins"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [no_blocks]
+    type = RunException
+    input = no_blocks.i
+    expect_err = "Block 'who' specified in 'tally_blocks' not found in mesh!"
+    requirement = "The system shall error with the nonexistent block name if specified value does not exist in the mesh."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
