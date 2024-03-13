@@ -1,21 +1,7 @@
-# This input tests that an error should be produced if there is zero overlap
-# between the MOOSE and OpenMC domains.
-
 [Mesh]
   [sphere]
-    # Mesh of a single pebble with outer radius of 1.5 (cm)
     type = FileMeshGenerator
     file = ../../neutronics/meshes/sphere.e
-  []
-  [solid]
-    type = CombinerGenerator
-    inputs = sphere
-    positions = '100 100 100'
-  []
-  [solid_ids]
-    type = SubdomainIDGenerator
-    input = solid
-    subdomain_id = '100'
   []
 []
 
@@ -23,9 +9,9 @@
   type = OpenMCCellAverageProblem
   power = 70.0
 
-  # we added tally blocks, but forgot to add the fluid blocks
-  tally_blocks = '100'
+  tally_blocks = 'who'
   tally_type = cell
+  cell_level = 0
 []
 
 [Executioner]

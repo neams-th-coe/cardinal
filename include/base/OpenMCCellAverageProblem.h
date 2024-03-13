@@ -421,9 +421,8 @@ protected:
    * Read the block parameters based on user settings
    * @param[in] name name of input parameter representing a vector of subdomain names
    * @param[in] blocks list of block ids to write
-   * @param[out] names subdomain names
    */
-  void readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks, std::vector<SubdomainName> & names);
+  void readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks);
 
   /**
    * Cache the material cells contained within each coupling cell;
