@@ -1079,8 +1079,7 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
     const auto & subdomains = _mesh.meshSubdomains();
     for (std::size_t b = 0; b < names.size(); ++b)
       if (subdomains.find(b_ids[b]) == subdomains.end())
-        mooseError("Block '" + names[b] + "' specified in '" + name + "' " +
-                   "not found in mesh!");
+        mooseError("Block '" + names[b] + "' specified in '" + name + "' " + "not found in mesh!");
   }
 }
 
@@ -1109,10 +1108,10 @@ OpenMCCellAverageProblem::read2DBlockParameters(const std::string name,
     flattened_ids = _mesh.getSubdomainIDs(flattened_names);
     const auto & subdomains = _mesh.meshSubdomains();
     for (const auto & i : flattened_ids)
-    for (std::size_t i = 0; i < flattened_ids.size(); ++i)
-      if (subdomains.find(flattened_ids[i]) == subdomains.end())
-        mooseError("Block '" + flattened_names[i] + "' specified in '" + name + "' " +
-                   "not found in mesh!");
+      for (std::size_t i = 0; i < flattened_ids.size(); ++i)
+        if (subdomains.find(flattened_ids[i]) == subdomains.end())
+          mooseError("Block '" + flattened_names[i] + "' specified in '" + name + "' " +
+                     "not found in mesh!");
 
     // should not be any duplicate blocks
     std::set<SubdomainName> n;
