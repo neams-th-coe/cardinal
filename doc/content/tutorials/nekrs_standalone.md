@@ -6,10 +6,6 @@ In this tutorial, you will learn how to:
 - Run a thinly-wrapped NekRS simulation without any physics coupling, to leverage
   Cardinal's postprocessing and I/O features
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 ## Standalone Simulations
   id=standalone
 

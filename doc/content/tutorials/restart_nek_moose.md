@@ -12,10 +12,6 @@ To access this tutorial,
 cd cardinal/tutorials/restart_nek_and_moose
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 ## Creating checkpoint files
 
 NekRS checkpoint file output is controlled

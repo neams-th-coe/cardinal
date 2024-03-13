@@ -10,10 +10,6 @@ To access this tutorial,
 cd cardinal/tutorials/transfers
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 The MOOSE [Transfer system](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 is used to send data between applications. In Cardinal, these transfers are used to
 communicate fields between NekRS, OpenMC, and MOOSE. When using Cardinal, we are most often

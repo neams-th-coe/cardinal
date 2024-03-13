@@ -1152,11 +1152,11 @@ OpenMCCellAverageProblem::storeElementPhase()
   for (const auto & f : _density_blocks)
     _n_moose_fluid_elems += numElemsInSubdomain(f);
 
-  _n_moose_solid_elems = 0;
+  _n_moose_temp_elems = 0;
   for (const auto & s : _exclusive_temp_blocks)
-    _n_moose_solid_elems += numElemsInSubdomain(s);
+    _n_moose_temp_elems += numElemsInSubdomain(s);
 
-  _n_moose_none_elems = _mesh.nElem() - _n_moose_fluid_elems - _n_moose_solid_elems;
+  _n_moose_none_elems = _mesh.nElem() - _n_moose_fluid_elems - _n_moose_temp_elems;
 }
 
 void
@@ -1238,43 +1238,26 @@ OpenMCCellAverageProblem::cellCouplingFields(const cellInfo & cell_info) const
 void
 OpenMCCellAverageProblem::getCellMappedPhase()
 {
-  std::vector<int> cells_n_solid;
-  std::vector<int> cells_n_fluid;
+  std::vector<int> cells_n_temp;
+  std::vector<int> cells_n_temp_rho;
   std::vector<int> cells_n_none;
 
   // whether each cell maps to a single phase
   for (const auto & c : _local_cell_to_elem)
   {
-    int n_solid = 0, n_fluid = 0, n_none = 0;
+    std::vector<int> f(3 /* number of coupling options */, 0);
 
+    // we are looping over local elements, so no need to check for nullptr
     for (const auto & e : c.second)
-    {
-      // we are looping over local elements, so no need to check for nullptr
-      const Elem * elem = _mesh.queryElemPtr(globalElemID(e));
+      f[elemFeedback(_mesh.queryElemPtr(globalElemID(e)))]++;
 
-      switch (elemFeedback(elem))
-      {
-        case coupling::temperature:
-          n_solid++;
-          break;
-        case coupling::density_and_temperature:
-          n_fluid++;
-          break;
-        case coupling::none:
-          n_none++;
-          break;
-        default:
-          mooseError("Unhandled CouplingFieldsEnum in OpenMCCellAverageProblem!");
-      }
-    }
-
-    cells_n_solid.push_back(n_solid);
-    cells_n_fluid.push_back(n_fluid);
-    cells_n_none.push_back(n_none);
+    cells_n_temp.push_back(f[coupling::temperature]);
+    cells_n_temp_rho.push_back(f[coupling::density_and_temperature]);
+    cells_n_none.push_back(f[coupling::none]);
   }
 
-  gatherCellSum(cells_n_solid, _n_solid);
-  gatherCellSum(cells_n_fluid, _n_fluid);
+  gatherCellSum(cells_n_temp, _n_temp);
+  gatherCellSum(cells_n_temp_rho, _n_temp_rho);
   gatherCellSum(cells_n_none, _n_none);
 }
 
@@ -1306,8 +1289,8 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
-    int n_solid = _n_solid[cell_info];
-    int n_fluid = _n_fluid[cell_info];
+    int n_solid = _n_temp[cell_info];
+    int n_fluid = _n_temp_rho[cell_info];
     int n_none = _n_none[cell_info];
 
     std::ostringstream vol;
@@ -1761,15 +1744,15 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   VariadicTable<std::string, int, int, int, int> vt(
       {"", "# T Elems", "# rho Elems", "# T+rho Elems", "# Uncoupled Elems"});
-  vt.addRow("MOOSE mesh", _n_moose_solid_elems, 0, _n_moose_fluid_elems, _n_moose_none_elems);
+  vt.addRow("MOOSE mesh", _n_moose_temp_elems, 0, _n_moose_fluid_elems, _n_moose_none_elems);
   vt.addRow("OpenMC cells", _n_mapped_solid_elems, 0, _n_mapped_fluid_elems, _n_mapped_none_elems);
   vt.print(_console);
   _console << std::endl;
 
   if (_needs_to_map_cells)
   {
-    if (_n_moose_solid_elems && (_n_mapped_solid_elems != _n_moose_solid_elems))
-      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_solid_elems) +
+    if (_n_moose_temp_elems && (_n_mapped_solid_elems != _n_moose_temp_elems))
+      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_temp_elems) +
                    " elements providing temperature feedback (the elements in "
                    "'temperature_blocks'), but only " +
                    Moose::stringify(_n_mapped_solid_elems) + " got mapped to OpenMC cells.");
@@ -1780,7 +1763,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
                    "intersection of 'temperature_blocks' and 'density_blocks'), but only " +
                    Moose::stringify(_n_mapped_fluid_elems) + " got mapped to OpenMC cells.");
 
-    if (_n_mapped_none_elems)
+    if (_n_mapped_none_elems && (_specified_temperature_feedback || _specified_density_feedback))
       mooseWarning("Skipping OpenMC multiphysics feedback from " +
                    Moose::stringify(_n_mapped_none_elems) +
                    " [Mesh] elements, which occupy a volume of: " +

@@ -12,10 +12,6 @@ To access this tutorial,
 cd cardinal/tutorials/pebble_1
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 ## Geometry and Computational Model
 
 The domain consists of a single pebble of diameter $d=3$ cm within a rectangular box; the pebble

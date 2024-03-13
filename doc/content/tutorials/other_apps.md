@@ -10,10 +10,6 @@ To access this tutorial,
 cd cardinal/tutorials/other_apps
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 For convenience purposes, Cardinal contains several other MOOSE applications
 as submodules - Sockeye and SAM, allowing you to simply build those
 applications in tandem with Cardinal and even run Sockeye/SAM input files

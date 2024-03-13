@@ -20,10 +20,6 @@ Please download the files from the `sfr_7pin` folder
 and place these files within the same directory structure in
 `tutorials/sfr_7pin`.
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 ## Geometry and Computational Model
 
 The geometry
