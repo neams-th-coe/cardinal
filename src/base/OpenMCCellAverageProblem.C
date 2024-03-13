@@ -578,7 +578,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       else
       {
          if (std::abs(_scaling - 1.0) > 1e-6)
-           mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity. Instead, please make a file containing your tally mesh and set it with 'mesh_template'. You can generate a mesh file corresponding to the [Mesh] by running:\n\ncardinal-opt -i " + _app.getFileName() + " --mesh-only");
+           mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity. "
+                      "Instead, please make a file containing your tally mesh and set it with "
+                      "'mesh_template'. You can generate a mesh file corresponding to the [Mesh] "
+                      "by running:\n\ncardinal-opt -i " +
+                      _app.getFileName() + " --mesh-only");
 
          // for distributed meshes, each rank only owns a portion of the mesh information, but
          // OpenMC wants the entire mesh to be available on every rank. We might be able to add
