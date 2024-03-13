@@ -516,7 +516,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
-  std::vector<SubdomainName> dummy;
   readBlockParameters("identical_cell_fills", _identical_cell_fill_blocks);
 
   if (!_has_identical_cell_fills)
@@ -556,7 +555,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
                                "using cell tallies");
 
-      std::vector<SubdomainName> dummy;
       readBlockParameters("tally_blocks", _tally_blocks);
 
       // If not specified, add tallies to all MOOSE blocks
@@ -1073,14 +1071,18 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
     checkEmptyVector(names, "'" + name + "'");
 
     auto b_ids = _mesh.getSubdomainIDs(names);
-
     std::copy(b_ids.begin(), b_ids.end(), std::inserter(blocks, blocks.end()));
-
-    const auto & subdomains = _mesh.meshSubdomains();
-    for (std::size_t b = 0; b < names.size(); ++b)
-      if (subdomains.find(b_ids[b]) == subdomains.end())
-        mooseError("Block '" + names[b] + "' specified in '" + name + "' " + "not found in mesh!");
+    checkBlocksInMesh(name, b_ids, names);
   }
+}
+
+void
+OpenMCCellAverageProblem::checkBlocksInMesh(const std::string name, const std::vector<SubdomainID> & ids, const std::vector<SubdomainName> & names) const
+{
+  const auto & subdomains = _mesh.meshSubdomains();
+  for (std::size_t b = 0; b < names.size(); ++b)
+    if (subdomains.find(ids[b]) == subdomains.end())
+      mooseError("Block '" + names[b] + "' specified in '" + name + "' " + "not found in mesh!");
 }
 
 void
@@ -1106,12 +1108,7 @@ OpenMCCellAverageProblem::read2DBlockParameters(const std::string name,
         flattened_names.push_back(i);
 
     flattened_ids = _mesh.getSubdomainIDs(flattened_names);
-    const auto & subdomains = _mesh.meshSubdomains();
-    for (const auto & i : flattened_ids)
-      for (std::size_t i = 0; i < flattened_ids.size(); ++i)
-        if (subdomains.find(flattened_ids[i]) == subdomains.end())
-          mooseError("Block '" + flattened_names[i] + "' specified in '" + name + "' " +
-                     "not found in mesh!");
+    checkBlocksInMesh(name, flattened_ids, flattened_names);
 
     // should not be any duplicate blocks
     std::set<SubdomainName> n;

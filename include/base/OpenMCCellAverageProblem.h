@@ -81,6 +81,14 @@ public:
                              std::vector<std::vector<SubdomainName>> & names,
                              std::vector<SubdomainID> & flattened_ids);
 
+  /**
+   * Check that the specified blocks are in the mesh
+   * @param[in] name name for throwing an error
+   * @param[in] ids block IDs to check
+   * @param[in] names block subdomain names for throwing an error
+   */
+  void checkBlocksInMesh(const std::string name, const std::vector<SubdomainID> & ids, const std::vector<SubdomainName> & names) const;
+
   /// Initialize the mapping of OpenMC to the MooseMesh and perform additional setup actions
   void setupProblem();
 
