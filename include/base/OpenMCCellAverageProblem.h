@@ -874,9 +874,6 @@ protected:
   /// Blocks in MOOSE mesh that provide temperature feedback
   std::vector<SubdomainID> _temp_blocks;
 
-  /// Blocks in MOOSE mesh that provide temperature feedback, but not density feedback
-  std::vector<SubdomainID> _exclusive_temp_blocks;
-
   /// Blocks for which to add (cell) tallies
   std::unordered_set<SubdomainID> _tally_blocks;
 
@@ -889,11 +886,14 @@ protected:
   /// Phase of each cell
   std::map<cellInfo, coupling::CouplingFields> _cell_phase;
 
+  /// Number of elements in the MOOSE mesh that exclusively provide density feedback
+  int _n_moose_density_elems;
+
   /// Number of elements in the MOOSE mesh that exclusively provide temperature feedback
   int _n_moose_temp_elems;
 
   /// Number of elements in the MOOSE mesh which provide temperature+density feedback
-  int _n_moose_fluid_elems;
+  int _n_moose_temp_density_elems;
 
   /// Number of no-coupling elements in the MOOSE mesh
   int _n_moose_none_elems;
@@ -1073,6 +1073,9 @@ protected:
 
   /// Number of temperature-only feedback elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_temp;
+
+  /// Number of density-only feedback elements in each mapped OpenMC cell (global)
+  std::map<cellInfo, int> _n_rho;
 
   /// Number of temperature+density feedback elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_temp_rho;

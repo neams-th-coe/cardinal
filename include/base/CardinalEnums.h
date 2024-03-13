@@ -173,6 +173,7 @@ namespace coupling
 enum CouplingFields
 {
   temperature,
+  density,
   density_and_temperature,
   none
 };

@@ -2,7 +2,7 @@
   [zero_density]
     type = RunException
     input = zero_density.i
-    expect_err = "Densities less than or equal to zero cannot be set in the OpenMC model!\n"
+    expect_err = "Densities less than or equal to zero cannot be set in the OpenMC model!\n\n"
                  " cell id 1, instance 0 \(of 1\) set to density 0 \(kg/m3\)"
     requirement = "The system shall error if we attempt to set a density less than or equal to zero in OpenMC"
     required_objects = 'OpenMCCellAverageProblem'
