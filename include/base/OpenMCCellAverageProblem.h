@@ -87,7 +87,9 @@ public:
    * @param[in] ids block IDs to check
    * @param[in] names block subdomain names for throwing an error
    */
-  void checkBlocksInMesh(const std::string name, const std::vector<SubdomainID> & ids, const std::vector<SubdomainName> & names) const;
+  void checkBlocksInMesh(const std::string name,
+                         const std::vector<SubdomainID> & ids,
+                         const std::vector<SubdomainName> & names) const;
 
   /// Initialize the mapping of OpenMC to the MooseMesh and perform additional setup actions
   void setupProblem();

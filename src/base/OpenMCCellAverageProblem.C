@@ -1077,7 +1077,9 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
 }
 
 void
-OpenMCCellAverageProblem::checkBlocksInMesh(const std::string name, const std::vector<SubdomainID> & ids, const std::vector<SubdomainName> & names) const
+OpenMCCellAverageProblem::checkBlocksInMesh(const std::string name,
+                                            const std::vector<SubdomainID> & ids,
+                                            const std::vector<SubdomainName> & names) const
 {
   const auto & subdomains = _mesh.meshSubdomains();
   for (std::size_t b = 0; b < names.size(); ++b)
