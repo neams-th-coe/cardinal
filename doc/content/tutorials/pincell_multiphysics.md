@@ -13,11 +13,6 @@ To access this tutorial,
 cd cardinal/tutorials/pincell_multiphysics
 ```
 
-!alert! note title=Computing Needs
-This tutorial does not require any special computing needs.
-For testing purposes, you may choose to decrease the number of particles to solve faster.
-!alert-end!
-
 ## Geometry and Computational Model
 
 The geometry consists of a single pincell, cooled by sodium. The dimensions and assumed operating conditions

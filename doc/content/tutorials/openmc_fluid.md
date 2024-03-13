@@ -19,12 +19,6 @@ an OpenMC XML file from Box. Please download the files from the
 and place these files within the same directory structure
 in `tutorials/gas_assembly`.
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-For testing purposes, you may choose to decrease the number of particles to
-solve faster, or decrease the resolution of the solid mesh.
-!alert-end!
-
 In this tutorial, we couple OpenMC to the MOOSE heat transfer module
 and the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
 , a set of 1-D systems-level thermal-hydraulics kernels.

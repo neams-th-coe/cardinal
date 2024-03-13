@@ -21,7 +21,6 @@ these within the same directory structure in `tutorials/gas_compact_multiphysics
 !alert! note title=Computing Needs
 This tutorial requires [!ac](HPC) resources to run the NekRS cases.
 You will be able to run the OpenMC-THM-MOOSE files without any special resources.
-For testing purposes, you may choose to decrease the number of particles.
 !alert-end!
 
 In this tutorial, we couple OpenMC to the MOOSE heat transfer module, with fluid

@@ -10,11 +10,7 @@ To access this tutorial,
 cd cardinal/tutorials/dagmc
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-For testing purposes, you may choose to decrease the number of particles to
-solve faster.
-
+!alert! note title=DAGMC build
 To run this tutorial,
 you need to have built Cardinal with DAGMC support enabled, by setting
 `export ENABLE_DAGMC=true`.

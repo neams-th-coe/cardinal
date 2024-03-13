@@ -16,10 +16,6 @@ of NekRS via [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md) -
 however, all features shown here can also be used in a coupled sense via
 [NekRSProblem](/problems/NekRSProblem.md).
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 ## Viewing the NekRS Mesh
 
 NekRS uses a custom mesh format (with the `.re2` extension). This file cannot

@@ -13,10 +13,6 @@ cd cardinal/tutorials/gas_compact
 cardinal-opt -i mesh.i --mesh-only
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 This tutorial provides a description of several helper scripts
 available in the `cardinal/scripts` directory that can be used for:
 
