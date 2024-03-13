@@ -12,12 +12,6 @@ To access this tutorial,
 cd cardinal/tutorials/gas_compact
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-For testing purposes, you may choose to decrease the number of particles to
-solve faster.
-!alert-end!
-
 Cardinal contains convenient features for applying multiphysics
 feedback to heterogeneous domains, when a coupled physics application (such as the MOOSE
 heat transfer module) might *not* also resolve the heterogeneities. For instance, the

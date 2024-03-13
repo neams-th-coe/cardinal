@@ -35,10 +35,6 @@ perturb an arbitrary number of parameters. Other notable features include:
 Before reading this tutorial, we recommend reading through [Examples 1 through 3](https://mooseframework.inl.gov/modules/stochastic_tools/)
  on the [!ac](STM) page to familiarize yourself with the basic syntax for stochastic simulations.
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-!alert-end!
-
 To access this tutorial,
 
 ```

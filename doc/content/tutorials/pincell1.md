@@ -12,12 +12,6 @@ To access this tutorial,
 cd cardinal/tutorials/lwr_solid
 ```
 
-!alert! note title=Computing Needs
-No special computing needs are required for this tutorial.
-For testing purposes, you may choose to decrease the number of particles to
-solve faster.
-!alert-end!
-
 At a high level, Cardinal's wrapping of OpenMC consists of two major stages - first, establishing
 the mapping between OpenMC's geometry and the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
 with which OpenMC communicates. This stage consists of:
