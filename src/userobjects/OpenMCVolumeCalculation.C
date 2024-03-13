@@ -149,12 +149,12 @@ OpenMCVolumeCalculation::cellVolume(const unsigned int & index, Real & volume, R
   auto calc_index = _index_to_calc_index.at(index);
   auto n_instances = openmc::model::cells[index]->n_instances_;
   if (n_instances > 1)
-    mooseDoOnce(
-    mooseWarning("OpenMC's stochastic volume calculation cannot individually measure volumes of cell INSTANCES.\n"
-                 "We assume that no cell instances are clipped by other cells (e.g. they are all identical) so\n"
-                 "that the volume of an individual instance is equal to the cell volume divided by number of \n"
-                 "instances. For most cases, this is correct - but if you have any instances which only partially\n"
-                 "exist in the geometry, this will give INCORRECT volumes."));
+    mooseDoOnce(mooseWarning(
+        "OpenMC's stochastic volume calculation cannot individually measure volumes of cell "
+        "INSTANCES. We assume that no cell instances are clipped by other cells (e.g. they are all "
+        "identical) so that the volume of an individual instance is equal to the cell volume "
+        "divided by number of instances. For most cases, this is correct - but if you have any "
+        "instances which only partially exist in the geometry, this will give INCORRECT volumes."));
 
   // means add
   volume = _results[calc_index].volume[0] / (_scaling * _scaling * _scaling) / n_instances;

@@ -42,6 +42,14 @@
                   "distributed, since all meshes are always replicated in OpenMC."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [scaling]
+    type = RunException
+    input = one_mesh_no_input_file.i
+    cli_args = 'Problem/scaling=2.0'
+    expect_err = "Directly tallying on the \[Mesh\] is only supported for 'scaling' of unity."
+    requirement = "The system shall error if attempting to directly tally on a MOOSE mesh that has a scaling not equal to 1.0."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [one_mesh_global]
     type = Exodiff
     input = one_mesh_global.i

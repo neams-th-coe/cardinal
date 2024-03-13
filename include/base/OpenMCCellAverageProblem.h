@@ -81,6 +81,16 @@ public:
                              std::vector<std::vector<SubdomainName>> & names,
                              std::vector<SubdomainID> & flattened_ids);
 
+  /**
+   * Check that the specified blocks are in the mesh
+   * @param[in] name name for throwing an error
+   * @param[in] ids block IDs to check
+   * @param[in] names block subdomain names for throwing an error
+   */
+  void checkBlocksInMesh(const std::string name,
+                         const std::vector<SubdomainID> & ids,
+                         const std::vector<SubdomainName> & names) const;
+
   /// Initialize the mapping of OpenMC to the MooseMesh and perform additional setup actions
   void setupProblem();
 
@@ -421,9 +431,8 @@ protected:
    * Read the block parameters based on user settings
    * @param[in] name name of input parameter representing a vector of subdomain names
    * @param[in] blocks list of block ids to write
-   * @param[out] names subdomain names
    */
-  void readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks, std::vector<SubdomainName> & names);
+  void readBlockParameters(const std::string name, std::unordered_set<SubdomainID> & blocks);
 
   /**
    * Cache the material cells contained within each coupling cell;
