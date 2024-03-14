@@ -34,7 +34,7 @@
   type = OpenMCCellAverageProblem
   power = 70.0
   tally_type = cell
-  tally_blocks = '100 200 500'
+  tally_blocks = '100 200 who'
   cell_level = 0
 []
 
