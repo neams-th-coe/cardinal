@@ -222,7 +222,27 @@ public:
    * @param[in] cell_info cell index, instance pair
    * @return coupling fields
    */
-  coupling::CouplingFields cellCouplingFields(const cellInfo & cell_info) const;
+  coupling::CouplingFields cellFeedback(const cellInfo & cell_info) const;
+
+  /**
+   * Whether a cell has density feedback
+   * @param[in] cell_info cell index,instance pair
+   * @return if cell has density feedback
+   */
+  bool hasDensityFeedback(const cellInfo & cell_info) const {
+    std::vector<coupling::CouplingFields> phase = {coupling::density, coupling::density_and_temperature};
+   return std::find(phase.begin(), phase.end(), cellFeedback(cell_info)) != phase.end();
+  }
+
+  /**
+   * Whether a cell has temperature feedback
+   * @param[in] cell_info cell index,instance pair
+   * @return if cell has temperature feedback
+   */
+  bool hasTemperatureFeedback(const cellInfo & cell_info) const {
+    std::vector<coupling::CouplingFields> phase = {coupling::temperature, coupling::density_and_temperature};
+   return std::find(phase.begin(), phase.end(), cellFeedback(cell_info)) != phase.end();
+  }
 
   /**
    * Get the local tally
@@ -586,12 +606,12 @@ protected:
   /**
    * Compute the product of volume with a field across ranks and sum into a global map
    * @param[in] var_num variable to weight with volume, mapped by subdomain ID
-   * @param[in] phase phase to compute the operation for
+   * @param[in] phase phases to compute the operation for
    * @return volume-weighted field for each cell, in a global sense
    */
   std::map<cellInfo, Real> computeVolumeWeightedCellInput(
       const std::map<SubdomainID, std::pair<unsigned int, std::string>> & var_num,
-      const coupling::CouplingFields * phase) const;
+      const std::vector<coupling::CouplingFields> * phase) const;
 
   /**
    * Send temperature from MOOSE to OpenMC by computing a volume average
@@ -902,13 +922,19 @@ protected:
    * Number of MOOSE elements that exclusively provide temperature feedback,
    * and which successfully mapped to OpenMC cells
    */
-  int _n_mapped_solid_elems;
+  int _n_mapped_temp_elems;
+
+  /**
+   * Number of MOOSE elements that exclusively provide density feedback,
+   * and which successfully mapped to OpenMC cells
+   */
+  int _n_mapped_density_elems;
 
   /**
    * Number of MOOSE elements that provide temperature+density feedback,
    * and which successfully mapped to OpenMC cells
    */
-  int _n_mapped_fluid_elems;
+  int _n_mapped_temp_density_elems;
 
   /// Number of no-coupling elements mapped to OpenMC cells
   int _n_mapped_none_elems;

@@ -49,7 +49,7 @@ CellDensityAux::computeValue()
 
   // we only extract the material information for fluid cells, because otherwise we don't
   // need to know the material info. So, set a value of -1 for non-fluid cells.
-  if (_openmc_problem->cellCouplingFields(cell_info) != coupling::density_and_temperature)
+  if (!_openmc_problem->hasDensityFeedback(cell_info))
     return OpenMCCellAverageProblem::UNMAPPED;
 
   int32_t index = _openmc_problem->cellToMaterialIndex(cell_info);
