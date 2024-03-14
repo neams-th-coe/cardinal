@@ -49,7 +49,7 @@ CellMaterialIDAux::computeValue()
   // need to know the material info. So, set a value of -1 for non-fluid cells.
   OpenMCCellAverageProblem::cellInfo cell_info =
       _openmc_problem->elemToCellInfo(_current_elem->id());
-  if (_openmc_problem->cellCouplingFields(cell_info) != coupling::density_and_temperature)
+  if (!_openmc_problem->hasDensityFeedback(cell_info))
     return -1;
 
   int32_t index = _openmc_problem->cellToMaterialIndex(cell_info);

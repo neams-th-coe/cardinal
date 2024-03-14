@@ -4,10 +4,7 @@
 
 ## Description
 
-Displays the OpenMC fluid density (kg/m$^3$) mapped to the MOOSE elements
-which are providing density feedback.
-
-If a MOOSE element is not fluid or did not map at all to an OpenMC cell,
+Displays the densities (kg/m$^3$) set in the OpenMC model by MOOSE. If a MOOSE element is not providing density feedback or did not map at all to an OpenMC cell,
 then this auxiliary kernel returns $-1$.
 
 ## Example Input Syntax

@@ -2,8 +2,8 @@
   [nonexistent_block]
     type = RunException
     input = nonexistent_block.i
-    expect_err = "Block '500' specified in 'tally_blocks' not found in mesh!"
-    requirement = "The system shall error if the user specifies a block ID for coupling that does not exist."
+    expect_err = "Block 'who' specified in 'tally_blocks' not found in mesh!"
+    requirement = "The system shall error if the user specifies a block for coupling that does not exist."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [empty_block]
@@ -40,8 +40,12 @@
   [multiple_phases]
     type = RunException
     input = multiple_phases.i
-    expect_err = "Cell id 4, instance 0 \(of 1\) mapped to 16 T elements, 3486 T\+rho elements, and 0 uncoupled elements."
-    requirement = "The system shall error if one OpenMC cell maps to more than one phase"
+    expect_err = "Cell id 4, instance 0 \(of 1\) mapped to:\n\n"
+                 "    16  elements with temperature feedback\n"
+                 "     0  elements with density feedback\n"
+                 "  3486  elements with both temperature and density feedback\n"
+                 "     0  uncoupled elements"
+    requirement = "The system shall error if one OpenMC cell maps to more than one type of feedback"
     required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_tally_settings]
@@ -65,13 +69,6 @@
                  " cell id 1, instance 0 \(of 1\) maps to a volume of 13.2213 \(cm3\)\n"
                  " cell id 2, instance 0 \(of 1\) maps to a volume of 10.6346 \(cm3\)."
     requirement = "The system shall error if the user enforces equal mapped tally volumes but the mapped volumes are not identical across tally bins"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [no_blocks]
-    type = RunException
-    input = no_blocks.i
-    expect_err = "Block 'who' specified in 'tally_blocks' not found in mesh!"
-    requirement = "The system shall error with the nonexistent block name if specified value does not exist in the mesh."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
