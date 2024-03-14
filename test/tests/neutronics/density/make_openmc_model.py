@@ -56,15 +56,15 @@ x3 = openmc.XPlane(x0=p3)
 
 # bottom row of cells
 cell1 = openmc.Cell(region=+xmin & -x2 & +ymin & -ymid & +zmin & -zmax, fill=a, cell_id=1)
-cell4 = openmc.Cell(region=+x2 & -xmax & +ymin & -ymid & +zmin & -zmax, fill=b, cell_id=2)
+cell2 = openmc.Cell(region=+x2 & -xmax & +ymin & -ymid & +zmin & -zmax, fill=b, cell_id=2)
 cell1.temperature = 550.0
-cell4.temperature = 700.0
+cell2.temperature = 700.0
 
 # top row of cells
-cell5 = openmc.Cell(region=+xmin & -x2 & +ymid & -ymax & +zmin & -zmax, fill=c, cell_id=3)
-cell7 = openmc.Cell(region=+x2 & -xmax & +ymid & -ymax & +zmin & -zmax, fill=d, cell_id=4)
-cell5.temperature = 550.0
-cell7.temperature = 650.0
+cell3 = openmc.Cell(region=+xmin & -x2 & +ymid & -ymax & +zmin & -zmax, fill=c, cell_id=3)
+cell4 = openmc.Cell(region=+x2 & -xmax & +ymid & -ymax & +zmin & -zmax, fill=d, cell_id=4)
+cell3.temperature = 550.0
+cell4.temperature = 650.0
 
-geom = openmc.Geometry([cell1, cell4, cell5, cell7])
+geom = openmc.Geometry([cell1, cell2, cell3, cell4])
 geom.export_to_xml()

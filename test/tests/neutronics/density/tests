@@ -1,0 +1,9 @@
+[Tests]
+  [openmc]
+    type = Exodiff
+    input = openmc.i
+    exodiff = openmc_out.e
+    requirement = "The system shall allow arbitrary combination of density-only, temperature-only, both, or no coupling. The file was compared against a standalone OpenMC run and gave identical values for k."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
