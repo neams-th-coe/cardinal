@@ -17,6 +17,12 @@
     block_id = 200
     excluded_subdomains = '2'
   []
+  [scale]
+    type = TransformGenerator
+    input = split_left
+    transform = translate
+    vector_value = '0.0 0.0 0.0'
+  []
 []
 
 [AuxVariables]
