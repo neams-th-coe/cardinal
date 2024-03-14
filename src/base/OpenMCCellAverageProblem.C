@@ -753,7 +753,9 @@ OpenMCCellAverageProblem::initialSetup()
     std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
 
     if (t != d && _specified_density_feedback)
-      mooseError("The 'skinner' will apply skinning over the entire domain, and requires that the entire problem uses identical settings for feedback. Please update 'temperature_blocks' and 'density_blocks' to include all blocks.");
+      mooseError("The 'skinner' will apply skinning over the entire domain, and requires that the "
+                 "entire problem uses identical settings for feedback. Please update "
+                 "'temperature_blocks' and 'density_blocks' to include all blocks.");
 
     if (_symmetry)
       mooseError("Cannot combine the 'skinner' with 'symmetry_mapper'!\n\nWhen using a skinner, "
@@ -1142,13 +1144,20 @@ OpenMCCellAverageProblem::storeElementPhase()
   std::set<SubdomainID> t(_temp_blocks.begin(), _temp_blocks.end());
   std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
 
-  std::set_difference(t.begin(), t.end(), d.begin(), d.end(),
+  std::set_difference(t.begin(),
+                      t.end(),
+                      d.begin(),
+                      d.end(),
                       std::inserter(excl_temp_blocks, excl_temp_blocks.end()));
 
-  std::set_difference(d.begin(), d.end(), t.begin(), t.end(),
+  std::set_difference(d.begin(),
+                      d.end(),
+                      t.begin(),
+                      t.end(),
                       std::inserter(excl_density_blocks, excl_density_blocks.end()));
 
-  std::set_intersection(t.begin(), t.end(), d.begin(), d.end(), std::inserter(intersect, intersect.begin()));
+  std::set_intersection(
+      t.begin(), t.end(), d.begin(), d.end(), std::inserter(intersect, intersect.begin()));
 
   _n_moose_temp_density_elems = 0;
   for (const auto & s : intersect)
@@ -1162,7 +1171,8 @@ OpenMCCellAverageProblem::storeElementPhase()
   for (const auto & s : excl_density_blocks)
     _n_moose_density_elems += numElemsInSubdomain(s);
 
-  _n_moose_none_elems = _mesh.nElem() - _n_moose_temp_density_elems - _n_moose_temp_elems - _n_moose_density_elems;
+  _n_moose_none_elems =
+      _mesh.nElem() - _n_moose_temp_density_elems - _n_moose_temp_elems - _n_moose_density_elems;
 }
 
 void
@@ -1326,12 +1336,14 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       std::stringstream msg;
       std::vector<int> conds = {n_temp, n_rho, n_temp_rho, n_none};
       int size = std::to_string(*std::max_element(conds.begin(), conds.end())).length();
-      msg << "Cell " << printCell(cell_info) << " mapped to:\n\n  "
-          << std::setw(size) << n_temp << "  elements with temperature feedback\n  "
-          << std::setw(size) << n_rho << "  elements with density feedback\n  "
-          << std::setw(size) << n_temp_rho << "  elements with both temperature and density feedback\n  "
-          << std::setw(size) << n_none << "  uncoupled elements\n\n"
-             "Each OpenMC cell (ID, instance) pair must map to elements of the same coupling settings.";
+      msg << "Cell " << printCell(cell_info) << " mapped to:\n\n  " << std::setw(size) << n_temp
+          << "  elements with temperature feedback\n  " << std::setw(size) << n_rho
+          << "  elements with density feedback\n  " << std::setw(size) << n_temp_rho
+          << "  elements with both temperature and density feedback\n  " << std::setw(size)
+          << n_none
+          << "  uncoupled elements\n\n"
+             "Each OpenMC cell (ID, instance) pair must map to elements of the same coupling "
+             "settings.";
       mooseError(msg.str());
     }
 
@@ -1407,8 +1419,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
 
     for (const auto & s : _mesh.meshSubdomains())
     {
-      std::string temp =
-          _subdomain_to_temp_vars.count(s) ? _subdomain_to_temp_vars[s].second : "";
+      std::string temp = _subdomain_to_temp_vars.count(s) ? _subdomain_to_temp_vars[s].second : "";
       std::string rho =
           _subdomain_to_density_vars.count(s) ? _subdomain_to_density_vars[s].second : "";
 
@@ -1653,7 +1664,10 @@ OpenMCCellAverageProblem::getMaterialFills()
       materials_in_fluid.insert(material_index);
     else if (_map_density_by_cell)
       mooseError(printMaterial(material_index) +
-                 " is present in more than one density feedback cell.\n\nThis means that your model cannot independently change the density in cells filled with this material. You need to edit your OpenMC model to create additional materials unique to each density feedback cell.\n\n"
+                 " is present in more than one density feedback cell.\n\nThis means that your "
+                 "model cannot independently change the density in cells filled with this "
+                 "material. You need to edit your OpenMC model to create additional materials "
+                 "unique to each density feedback cell.\n\n"
                  "Or, if you want to apply feedback to a material spanning multiple "
                  "cells, set 'map_density_by_cell' to false.");
 
@@ -1764,8 +1778,16 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   VariadicTable<std::string, int, int, int, int> vt(
       {"", "# T Elems", "# rho Elems", "# T+rho Elems", "# Uncoupled Elems"});
-  vt.addRow("MOOSE mesh", _n_moose_temp_elems, _n_moose_density_elems, _n_moose_temp_density_elems, _n_moose_none_elems);
-  vt.addRow("OpenMC cells", _n_mapped_temp_elems, _n_mapped_density_elems, _n_mapped_temp_density_elems, _n_mapped_none_elems);
+  vt.addRow("MOOSE mesh",
+            _n_moose_temp_elems,
+            _n_moose_density_elems,
+            _n_moose_temp_density_elems,
+            _n_moose_none_elems);
+  vt.addRow("OpenMC cells",
+            _n_mapped_temp_elems,
+            _n_mapped_density_elems,
+            _n_mapped_temp_density_elems,
+            _n_mapped_none_elems);
   vt.print(_console);
   _console << std::endl;
 
@@ -1783,7 +1805,8 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
                    "'density_blocks'), but only " +
                    Moose::stringify(_n_mapped_density_elems) + " got mapped to OpenMC cells.");
 
-    if (_n_moose_temp_density_elems && (_n_mapped_temp_density_elems != _n_moose_temp_density_elems))
+    if (_n_moose_temp_density_elems &&
+        (_n_mapped_temp_density_elems != _n_moose_temp_density_elems))
       mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_temp_density_elems) +
                    " elements providing temperature and density feedback (the elements in the "
                    "intersection of 'temperature_blocks' and 'density_blocks'), but only " +
@@ -2658,8 +2681,10 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   double minimum = std::numeric_limits<double>::max();
 
   // collect the volume-temperature product across local ranks
-  std::vector<coupling::CouplingFields> phase = {coupling::temperature, coupling::density_and_temperature};
-  std::map<cellInfo, Real> cell_vol_temp = computeVolumeWeightedCellInput(_subdomain_to_temp_vars, &phase);
+  std::vector<coupling::CouplingFields> phase = {coupling::temperature,
+                                                 coupling::density_and_temperature};
+  std::map<cellInfo, Real> cell_vol_temp =
+      computeVolumeWeightedCellInput(_subdomain_to_temp_vars, &phase);
 
   for (const auto & c : _cell_to_elem)
   {
@@ -2715,7 +2740,8 @@ OpenMCCellAverageProblem::sendDensityToOpenMC() const
   double minimum = std::numeric_limits<double>::max();
 
   // collect the volume-density product across local ranks
-  std::vector<coupling::CouplingFields> phase = {coupling::density, coupling::density_and_temperature};
+  std::vector<coupling::CouplingFields> phase = {coupling::density,
+                                                 coupling::density_and_temperature};
   std::map<cellInfo, Real> cell_vol_density = computeVolumeWeightedCellInput(_subdomain_to_density_vars, &phase);
 
   // in case multiple cells are filled by this material, assemble the sum of

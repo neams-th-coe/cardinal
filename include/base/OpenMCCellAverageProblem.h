@@ -229,9 +229,11 @@ public:
    * @param[in] cell_info cell index,instance pair
    * @return if cell has density feedback
    */
-  bool hasDensityFeedback(const cellInfo & cell_info) const {
-    std::vector<coupling::CouplingFields> phase = {coupling::density, coupling::density_and_temperature};
-   return std::find(phase.begin(), phase.end(), cellFeedback(cell_info)) != phase.end();
+  bool hasDensityFeedback(const cellInfo & cell_info) const
+  {
+    std::vector<coupling::CouplingFields> phase = {coupling::density,
+                                                   coupling::density_and_temperature};
+    return std::find(phase.begin(), phase.end(), cellFeedback(cell_info)) != phase.end();
   }
 
   /**
@@ -239,9 +241,11 @@ public:
    * @param[in] cell_info cell index,instance pair
    * @return if cell has temperature feedback
    */
-  bool hasTemperatureFeedback(const cellInfo & cell_info) const {
-    std::vector<coupling::CouplingFields> phase = {coupling::temperature, coupling::density_and_temperature};
-   return std::find(phase.begin(), phase.end(), cellFeedback(cell_info)) != phase.end();
+  bool hasTemperatureFeedback(const cellInfo & cell_info) const
+  {
+    std::vector<coupling::CouplingFields> phase = {coupling::temperature,
+                                                   coupling::density_and_temperature};
+    return std::find(phase.begin(), phase.end(), cellFeedback(cell_info)) != phase.end();
   }
 
   /**

@@ -131,13 +131,14 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     }
     case openmc::RunMode::PLOTTING:
       mooseError("Running OpenMC in plotting mode is not supported through Cardinal! "
-        "Please just run using the OpenMC executable, like 'openmc --plot'");
+                 "Please just run using the OpenMC executable, like 'openmc --plot'");
     case openmc::RunMode::PARTICLE:
-      mooseError("Running OpenMC in particle restart mode is not supported through Cardinal! "
-       "Please just run using the OpenMC executable, like 'openmc --restart <binary_file>'");
+      mooseError(
+          "Running OpenMC in particle restart mode is not supported through Cardinal! "
+          "Please just run using the OpenMC executable, like 'openmc --restart <binary_file>'");
     case openmc::RunMode::VOLUME:
       mooseError("Running OpenMC in volume calculation mode is not supported through Cardinal! "
-        "Please just run using the OpenMC executable, like 'openmc --volume'");
+                 "Please just run using the OpenMC executable, like 'openmc --volume'");
     default:
       mooseError("Unhandled openmc::RunMode enum in OpenMCInitAction!");
   }
@@ -154,8 +155,12 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   if (openmc::settings::temperature_range[1] == 0.0)
     mooseWarning(
-      "For multiphysics simulations, we recommend setting the 'temperature_range' in OpenMC's settings.xml file. This will pre-load nuclear data over a range of temperatures, instead of only the temperatures defined in the XML file.\n\n"
-      "For efficiency purposes, OpenMC only checks that cell temperatures are within the global min/max of loaded data, which can be different from data loaded for each nuclide. Run may abort suddenly if requested nuclear data is not available.");
+        "For multiphysics simulations, we recommend setting the 'temperature_range' in OpenMC's "
+        "settings.xml file. This will pre-load nuclear data over a range of temperatures, instead "
+        "of only the temperatures defined in the XML file.\n\n"
+        "For efficiency purposes, OpenMC only checks that cell temperatures are within the global "
+        "min/max of loaded data, which can be different from data loaded for each nuclide. Run may "
+        "abort suddenly if requested nuclear data is not available.");
 
   if (isParamValid("openmc_verbosity"))
     openmc::settings::verbosity = getParam<unsigned int>("openmc_verbosity");
@@ -378,12 +383,13 @@ OpenMCProblemBase::setCellTemperature(const int32_t & index,
   {
     std::string descriptor =
         "set cell " + printCell(cell_info) + " to temperature " + Moose::stringify(T) + " (K)";
-    mooseError(
-        "In attempting to ",
-        descriptor,
-        ", OpenMC reported:\n\n",
-        std::string(openmc_err_msg) + "\n\n" +
-            "If you are trying to debug a model setup, you can set 'initial_properties = xml' to use the initial temperature and density in the OpenMC XML files for OpenMC's first run.");
+    mooseError("In attempting to ",
+               descriptor,
+               ", OpenMC reported:\n\n",
+               std::string(openmc_err_msg) + "\n\n" +
+                   "If you are trying to debug a model setup, you can set 'initial_properties = "
+                   "xml' to use the initial temperature and density in the OpenMC XML files for "
+                   "OpenMC's first run.");
   }
 }
 
@@ -453,12 +459,13 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   {
     std::string descriptor = "set material with index " + Moose::stringify(material_index) +
                              " to density " + Moose::stringify(density) + " (kg/m3)";
-    mooseError(
-        "In attempting to ",
-        descriptor,
-        ", OpenMC reported:\n\n",
-        std::string(openmc_err_msg) + "\n\n" +
-            "If you are trying to debug a model setup, you can set 'initial_properties = xml' to use the initial temperature and density in the OpenMC XML files for OpenMC's first run");
+    mooseError("In attempting to ",
+               descriptor,
+               ", OpenMC reported:\n\n",
+               std::string(openmc_err_msg) + "\n\n" +
+                   "If you are trying to debug a model setup, you can set 'initial_properties = "
+                   "xml' to use the initial temperature and density in the OpenMC XML files for "
+                   "OpenMC's first run");
   }
 }
 
