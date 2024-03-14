@@ -1139,23 +1139,20 @@ OpenMCCellAverageProblem::storeElementPhase()
   std::set<SubdomainID> excl_density_blocks;
   std::set<SubdomainID> intersect;
 
-  std::set_difference(_temp_blocks.begin(),
-                      _temp_blocks.end(),
-                      _density_blocks.begin(),
-                      _density_blocks.end(),
+  std::set<SubdomainID> t(_temp_blocks.begin(), _temp_blocks.end());
+  std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
+
+  std::set_difference(t.begin(), t.end(), d.begin(), d.end(),
                       std::inserter(excl_temp_blocks, excl_temp_blocks.end()));
 
-  std::set_difference(_density_blocks.begin(),
-                      _density_blocks.end(),
-                      _temp_blocks.begin(),
-                      _temp_blocks.end(),
+  std::set_difference(d.begin(), d.end(), t.begin(), t.end(),
                       std::inserter(excl_density_blocks, excl_density_blocks.end()));
 
-  std::set_intersection(_temp_blocks.begin(), _temp_blocks.end(), _density_blocks.begin(), _density_blocks.end(), std::inserter(intersect, intersect.begin()));
+  std::set_intersection(t.begin(), t.end(), d.begin(), d.end(), std::inserter(intersect, intersect.begin()));
 
   _n_moose_temp_density_elems = 0;
-  for (const auto & f : intersect)
-    _n_moose_temp_density_elems += numElemsInSubdomain(f);
+  for (const auto & s : intersect)
+    _n_moose_temp_density_elems += numElemsInSubdomain(s);
 
   _n_moose_temp_elems = 0;
   for (const auto & s : excl_temp_blocks)
@@ -1346,7 +1343,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     else if (n_rho)
     {
       has_mapping = true;
-      _cell_phase[cell_info] = coupling::temperature;
+      _cell_phase[cell_info] = coupling::density;
     }
     else if (n_temp_rho)
     {
@@ -1656,11 +1653,7 @@ OpenMCCellAverageProblem::getMaterialFills()
       materials_in_fluid.insert(material_index);
     else if (_map_density_by_cell)
       mooseError(printMaterial(material_index) +
-                 " is present in more than one "
-                 "density feedback cell.\nThis means that your model cannot "
-                 "independently change the density in cells filled "
-                 "with this material.\nYou need to edit your OpenMC "
-                 "model to create additional materials unique to each density feedback cell.\n\n"
+                 " is present in more than one density feedback cell.\n\nThis means that your model cannot independently change the density in cells filled with this material. You need to edit your OpenMC model to create additional materials unique to each density feedback cell.\n\n"
                  "Or, if you want to apply feedback to a material spanning multiple "
                  "cells, set 'map_density_by_cell' to false.");
 
@@ -1785,7 +1778,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
                    Moose::stringify(_n_mapped_temp_elems) + " got mapped to OpenMC cells.");
 
     if (_n_moose_temp_elems && (_n_mapped_density_elems != _n_moose_density_elems))
-      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_temp_elems) +
+      mooseWarning("The [Mesh] has " + Moose::stringify(_n_moose_density_elems) +
                    " elements providing density feedback (the elements in "
                    "'density_blocks'), but only " +
                    Moose::stringify(_n_mapped_density_elems) + " got mapped to OpenMC cells.");
@@ -2665,12 +2658,12 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
   double minimum = std::numeric_limits<double>::max();
 
   // collect the volume-temperature product across local ranks
-  std::map<cellInfo, Real> cell_vol_temp = computeVolumeWeightedCellInput(_subdomain_to_temp_vars);
+  std::vector<coupling::CouplingFields> phase = {coupling::temperature, coupling::density_and_temperature};
+  std::map<cellInfo, Real> cell_vol_temp = computeVolumeWeightedCellInput(_subdomain_to_temp_vars, &phase);
 
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
-
     if (!hasTemperatureFeedback(cell_info))
       continue;
 

@@ -49,6 +49,9 @@ CellTemperatureAux::computeValue()
   OpenMCCellAverageProblem::cellInfo cell_info =
       _openmc_problem->elemToCellInfo(_current_elem->id());
 
+  if (!_openmc_problem->hasTemperatureFeedback(cell_info))
+    return OpenMCCellAverageProblem::UNMAPPED;
+
   return _openmc_problem->cellTemperature(cell_info);
 }
 
