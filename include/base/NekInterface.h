@@ -47,6 +47,15 @@ namespace nekrs
 
 static int build_only;
 
+/// initialize wall shear stress variable
+void initializeWallShear();
+
+/// initialize traction variable for FSI or standalone traction calculations
+void initializeTraction();
+
+/// initialize rate of strain tensor components
+void initializeRateOfStrainTensor();
+
 /// Allocate memory for the host mesh parameters
 void initializeHostMeshParameters();
 
@@ -55,6 +64,9 @@ void updateHostMeshParameters();
 
 dfloat * getSgeo();
 dfloat * getVgeo();
+double * getWallShear();
+double * getTraction();
+double * getRateOfStrainTensor();
 
 /**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
@@ -557,6 +569,41 @@ void gradient(const int offset, const double * f, double * grad_f,
               const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
+ * Compute the direct stiffness sum (dssum) and then average at element boundaries. Similar to the dsavg subroutine from Nek5000
+ * @param[in] u field to perform the dssum and average on
+ * @param[in] pp_mesh NekRS mesh to operate on
+ */
+void nekDirectStiffnessAvg(double * u, const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Compute the rate of strain tensor on the Nek mesh
+ * @param[in] S_ij pointer to store the rate of strain tensor
+ * @param[in] pp_mesh NekRS mesh to operate on
+ */
+void computeRateOfStrainTensor(double * S_ij, const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Compute the stress tensor on the Nek mesh
+ * @param[in] Tau_ij pointer to store the stress tensor
+ * @param[in] pp_mesh NekRS mesh to operate on
+ */
+void computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Compute the wall shear stress on a given boundary
+ * @param[in] wall_shear pointer to store the wall shear
+ * @param[in] pp_mesh NekRS mesh to operate on
+ */
+void computeWallShearStress(double * wall_shear, const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
+ * Compute the traction vectors on the solid-fluid boundary on the Nek mesh
+ * @param[in] traction pointer to store the 3 traction components
+ * @param[in] pp_mesh NekRS mesh to operate on
+ */
+void computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh);
+
+/**
  * Find the extreme value of a given field over the entire nekRS domain
  * @param[in] field field to find the minimum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
@@ -820,6 +867,83 @@ double velocity_z(const int id);
  * @return velocity magnitude at index
  */
 double velocity(const int id);
+
+/**
+ * Get the wall shear at given GLL index
+ * @param[in] id GLL index
+ * @return wall shear at index
+ */
+double wall_shear(const int id);
+
+/**
+ * Get the traction at given GLL index
+ * @param[in] id GLL index
+ * @return traction at index
+ */
+double traction(const int id);
+
+/**
+ * Get the x-traction at given GLL index
+ * @param[in] id GLL index
+ * @return x-traction at index
+ */
+double traction_x(const int id);
+
+/**
+ * Get the y-traction at given GLL index
+ * @param[in] id GLL index
+ * @return y-traction at index
+ */
+double traction_y(const int id);
+
+/**
+ * Get the z-traction at given GLL index
+ * @param[in] id GLL index
+ * @return z-traction at index
+ */
+double traction_z(const int id);
+
+/**
+ * Get the magnitude of the rate-of-strain tensor component S_{11} at given GLL index
+ * @param[in] id GLL index
+ * @return S_{11} magnitude at index
+ */
+double ros_s11(const int id);
+
+/**
+ * Get the magnitude of the rate-of-strain tensor component S_{22} at given GLL index
+ * @param[in] id GLL index
+ * @return S_{22} magnitude at index
+ */
+double ros_s22(const int id);
+
+/**
+ * Get the magnitude of the rate-of-strain tensor component S_{33} at given GLL index
+ * @param[in] id GLL index
+ * @return S_{33} magnitude at index
+ */
+double ros_s33(const int id);
+
+/**
+ * Get the magnitude of the rate-of-strain tensor component S_{12} at given GLL index
+ * @param[in] id GLL index
+ * @return S_{12} magnitude at index
+ */
+double ros_s12(const int id);
+
+/**
+ * Get the magnitude of the rate-of-strain tensor component S_{23} at given GLL index
+ * @param[in] id GLL index
+ * @return S_{23} magnitude at index
+ */
+double ros_s23(const int id);
+
+/**
+ * Get the magnitude of the rate-of-strain tensor component S_{13} at given GLL index
+ * @param[in] id GLL index
+ * @return S_{13} magnitude at index
+ */
+double ros_s13(const int id);
 
 /**
  * Write a value into the user scratch space that holds the flux

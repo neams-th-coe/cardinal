@@ -687,6 +687,11 @@ NekRSProblem::syncSolutions(ExternalProblem::Direction direction)
       _console << " Interpolated temperature min/max values: " << minInterpolatedTemperature()
                << ", " << maxInterpolatedTemperature() << std::endl;
 
+      if (isParamValid("output") && _outputs->contains("traction") )
+        nekrs::computeTraction(nekrs::getTraction(), nek_mesh::fluid);
+
+      if (isParamValid("output") && _outputs->contains("wall_shear") )
+        nekrs::computeWallShearStress(nekrs::getWallShear(), nek_mesh::fluid);
       // extract all outputs (except temperature, which we did separately here). We could
       // have simply called the base class NekRSProblemBase::syncSolutions to do this, but
       // putting this here lets us use a consistent setting for the minimize transfers feature,
