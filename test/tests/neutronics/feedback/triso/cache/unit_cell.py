@@ -87,7 +87,7 @@ settings.temperature['range'] = (294.0, 1500.0)
 settings.temperature['tolerance'] = 200.0
 
 source_dist = openmc.stats.Box((-l/2., -l/2., 0.0), (l/2., l/2., h))
-source = openmc.Source(space=source_dist)
+source = openmc.IndependentSource(space=source_dist)
 settings.source = source
 
 model.settings = settings

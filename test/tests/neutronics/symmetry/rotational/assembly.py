@@ -271,7 +271,7 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     lower_left = (-l, -l, reactor_bottom)
     upper_right = (l, l, reactor_top)
     source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-    source = openmc.Source(space=source_dist)
+    source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 
     if (add_entropy_mesh):

@@ -213,7 +213,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
     upper_right = (cell_edge_length, hexagon_half_flat, reactor_top)
     source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-    source = openmc.Source(space=source_dist)
+    source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 
     model.settings = settings
