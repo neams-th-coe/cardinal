@@ -197,8 +197,8 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     symmetry_plane = openmc.XPlane(x0=0, boundary_type='reflective')
 
     # fill the unit cell with the hex lattice
-    hex_prism = openmc.hexagonal_prism(bundle_pitch / math.sqrt(3.0), 'x', boundary_type='reflective')
-    outer_cell = openmc.Cell(region=hex_prism & +min_z & -max_z & +symmetry_plane, fill=hex_lattice)
+    hex_prism = openmc.model.HexagonalPrism(bundle_pitch / math.sqrt(3.0), 'x', boundary_type='reflective')
+    outer_cell = openmc.Cell(region=-hex_prism & +min_z & -max_z & +symmetry_plane, fill=hex_lattice)
 
     model.geometry = openmc.Geometry([outer_cell])
 

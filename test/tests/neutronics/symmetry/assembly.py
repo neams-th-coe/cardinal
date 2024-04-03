@@ -252,8 +252,8 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
 
     # fill the unit cell with the hex lattice
     symmetry_plane = openmc.Plane(a=-math.sqrt(3.0)/2.0, b=0.5, c=0.0, d=0.0, boundary_type='reflective')
-    hex_prism = openmc.hexagonal_prism(bundle_pitch / math.sqrt(3.0), 'x', boundary_type='vacuum')
-    outer_cell = openmc.Cell(region=hex_prism & +min_z & -max_z & -symmetry_plane, fill=hex_lattice)
+    hex_prism = openmc.model.HexagonalPrism(bundle_pitch / math.sqrt(3.0), 'x', boundary_type='vacuum')
+    outer_cell = openmc.Cell(region=-hex_prism & +min_z & -max_z & -symmetry_plane, fill=hex_lattice)
 
     model.geometry = openmc.Geometry([outer_cell])
 

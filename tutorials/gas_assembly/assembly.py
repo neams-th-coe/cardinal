@@ -327,8 +327,8 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     max_z = axial_planes[-1]
 
     # fill the unit cell with the hex lattice
-    hex_prism = openmc.hexagonal_prism(bundle_pitch / math.sqrt(3.0), 'x', boundary_type='periodic')
-    outer_cell = openmc.Cell(region=hex_prism & +min_z & -max_z, fill=hex_lattice)
+    hex_prism = openmc.model.HexagonalPrism(bundle_pitch / math.sqrt(3.0), 'x', boundary_type='periodic')
+    outer_cell = openmc.Cell(region=-hex_prism & +min_z & -max_z, fill=hex_lattice)
 
     # add the top and bottom reflector
     top_refl_z = reactor_height + top_reflector_height
@@ -336,8 +336,8 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     bottom_refl_z = -bottom_reflector_height
     bottom_refl = openmc.ZPlane(z0=bottom_refl_z, boundary_type='vacuum')
 
-    top_refl_cell = openmc.Cell(region=hex_prism & +max_z & -top_refl, fill=m_reflector)
-    bottom_refl_cell = openmc.Cell(region=hex_prism & -min_z & +bottom_refl, fill=m_reflector)
+    top_refl_cell = openmc.Cell(region=-hex_prism & +max_z & -top_refl, fill=m_reflector)
+    bottom_refl_cell = openmc.Cell(region=-hex_prism & -min_z & +bottom_refl, fill=m_reflector)
     top_refl_cell.temperature = specs.inlet_T
     bottom_refl_cell.temperature = coolant_outlet_temp
 
