@@ -33,7 +33,7 @@ settings.temperature = {'default': 500.0,
 
 settings.export_to_xml()
 
-settings.source = openmc.Source(space=openmc.stats.Box([-4., -4., -4.],
+settings.source = openmc.IndependentSource(space=openmc.stats.Box([-4., -4., -4.],
                                                        [ 4.,  4.,  4.]))
 settings.export_to_xml()
 

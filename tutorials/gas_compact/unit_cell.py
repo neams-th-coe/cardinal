@@ -287,7 +287,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     hex_lattice.outer = inf_graphite_univ
 
     # hexagonal bounding cell
-    hex = openmc.hexagonal_prism(cell_edge_length, hex_orientation, boundary_type='periodic')
+    hex = openmc.model.HexagonalPrism(cell_edge_length, hex_orientation, boundary_type='periodic')
 
     hex_cell_vol = 6.0 * (math.sqrt(3) / 4.0) * cell_edge_length**2 * reactor_height
 
@@ -300,7 +300,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     max_z.boundary_type = 'vacuum'
 
     # fill the unit cell with the hex lattice
-    hex_cell = openmc.Cell(region=hex & +min_z & -max_z, fill=hex_lattice)
+    hex_cell = openmc.Cell(region=-hex & +min_z & -max_z, fill=hex_lattice)
 
     model.geometry = openmc.Geometry([hex_cell])
 
@@ -322,7 +322,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
     upper_right = (cell_edge_length, hexagon_half_flat, reactor_top)
     source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-    source = openmc.Source(space=source_dist)
+    source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 
     if (add_entropy_mesh):

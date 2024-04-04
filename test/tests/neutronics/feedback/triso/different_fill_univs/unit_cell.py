@@ -148,7 +148,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
     hex_lattice.outer = inf_graphite_univ
 
     # hexagonal bounding cell
-    hex = openmc.hexagonal_prism(cell_edge_length, hex_orientation, boundary_type='periodic')
+    hex = openmc.model.HexagonalPrism(cell_edge_length, hex_orientation, boundary_type='periodic')
 
     # create additional axial regions
     axial_planes = [openmc.ZPlane(z0=coord) for coord in axial_coords]
@@ -160,7 +160,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
     max_z.boundary_type = 'reflective'
 
     # fill the unit cell with the hex lattice
-    hex_cell = openmc.Cell(region=hex & +min_z & -max_z, fill=hex_lattice)
+    hex_cell = openmc.Cell(region=-hex & +min_z & -max_z, fill=hex_lattice)
 
     model.geometry = openmc.Geometry([hex_cell])
 
@@ -178,7 +178,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
     upper_right = (cell_edge_length, hexagon_half_flat, reactor_top)
     source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-    source = openmc.Source(space=source_dist)
+    source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 
     model.settings = settings
