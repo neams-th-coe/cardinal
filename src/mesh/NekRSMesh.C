@@ -168,7 +168,7 @@ NekRSMesh::printMeshInfo() const
 std::unique_ptr<MooseMesh>
 NekRSMesh::safeClone() const
 {
-  return libmesh_make_unique<NekRSMesh>(*this);
+  return _app.getFactory().copyConstruct(*this);
 }
 
 int
