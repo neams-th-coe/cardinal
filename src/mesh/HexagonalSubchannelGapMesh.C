@@ -51,7 +51,7 @@ HexagonalSubchannelGapMesh::HexagonalSubchannelGapMesh(const InputParameters & p
 std::unique_ptr<MooseMesh>
 HexagonalSubchannelGapMesh::safeClone() const
 {
-  return libmesh_make_unique<HexagonalSubchannelGapMesh>(*this);
+  return _app.getFactory().copyConstruct(*this);
 }
 
 void

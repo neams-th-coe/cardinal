@@ -31,7 +31,6 @@ cd cardinal
 ./scripts/get-dependencies.sh
 export ENABLE_NEK=false
 export HDF5_ROOT=$CONDA_PREFIX
-export LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH
 make -j8
 ```
 
