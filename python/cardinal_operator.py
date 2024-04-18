@@ -1,9 +1,8 @@
 import os
 import copy
+import logging
 from numbers import Integral
-import requests
-import subprocess
-import time
+import shlex
 
 from uncertainties import ufloat
 
@@ -16,217 +15,80 @@ from openmc.deplete import CoupledOperator
 from openmc.deplete.abc import OperatorResult
 
 # moose
-import pyhit
+from MooseControl import MooseControl
 
-
-# perhaps we should require that this is part of the user's environment?
-CARDINAL_PATH = '/home/pshriwise/soft/cardinal/cardinal-opt'
-
+logger = logging.getLogger('CardinalOperator')
 
 class CardinalOperator(CoupledOperator):
 
     def __init__(self, *args, **kwargs):
-        self._cardinal_pipe = None
-        self.cardinal_log = 'cardinal.out'
-
         super().__init__(*args, **kwargs)
-        self.moose_base_url = 'http://localhost'
-        self.port = 5800
-        self.output = True
-        self.verbose = False
-        self._threads = None
+
+        self._control = None
+        self.cardinal_cmd = None
 
     def __del__(self):
         # Ensure the Cardinal process is terminated
         # when this object is deleted
         self.stop_cardinal()
 
-    def log_message(self, message):
-        if self.output:
-            print(f'[CardinalOperator]: {message}')
-
     @staticmethod
-    def build_material_userobject(node, mat):
+    def material_userobject_args(mat):
+        uo_path = f'UserObjects/openmc_mat{mat.id}'
         print(mat.nuclides)
-        mat_info = {'type': 'OpenMCNuclideDensities',
-                    'material_id': f'{mat.id}',
-                    'names': f"'{' '.join(mat.nuclides)}'",
-                    'densities': f"'{' '.join([str(d) for d in mat.densities.flat])}'"}
-        node.append(f'openmc_mat{mat.id}', **mat_info)
+        return [f'{uo_path}/type=OpenMCNuclideDensities',
+                f'{uo_path}/material_id={mat.id}',
+                f'{uo_path}/names="{" ".join(mat.nuclides)}"',
+                f'{uo_path}/densities="{" ".join([str(d) for d in mat.densities.flat])}"']
 
     @staticmethod
-    def build_tally_userobject(node, id):
-        tally_info = {'type': 'OpenMCTallyNuclides',
-                      'tally_id': f'{id}',
-                      'names': "''"}
-        node.append(f'openmc_tally{id}', **tally_info)
-
-    @property
-    def threads(self):
-        return self._threads
-
-    @threads.setter
-    def threads(self, value):
-        if not isinstance(value, Integral):
-            raise ValueError('Threads must be an integer')
-        self._threads = value
-
-    @property
-    def port(self):
-        return self._port
-
-    @port.setter
-    def port(self, value):
-        if not isinstance(value, Integral):
-            raise ValueError('Property \'port\' must be an integer')
-        self._port = value
-
-    @property
-    def moose_url(self):
-        return f'{self.moose_base_url}:{self.port}'
+    def tally_userobject_args(id):
+        tally_path = f'UserObjects/openmc_tally{id}'
+        return [f'{tally_path}/type=OpenMCTallyNuclides',
+                f'{tally_path}/tally_id={id}',
+                f'{tally_path}/names=""']
 
     def start_cardinal(self):
-        """Starts the Cardinal background process in server mode
+        """Builds and starts the MooseControl object that runs cardinal
         """
-        root = pyhit.Node()
-        userobjs = root.append('UserObjects')
+        if self.cardinal_cmd is None:
+            raise Exception('cardinal_cmd was not set')
+        cardinal_cmd = shlex.split(self.cardinal_cmd)
 
-        # material user objects
+        # add server information
+        control_name = 'web_server'
+        control_path = f'Controls/{control_name}'
+        cardinal_cmd += [f'{control_path}/type=WebServerControl',
+                         f'{control_path}/execute_on="TIMESTEP_BEGIN TIMESTEP_END"']
+        # add material user objects
         for mat in openmc.lib.materials.values():
-            self.build_material_userobject(userobjs, mat)
-
+            cardinal_cmd += self.material_userobject_args(mat)
+        # add tally user objects
         for tally in openmc.lib.tallies.values():
-            self.build_tally_userobject(userobjs, tally.id)
+            cardinal_cmd += self.tally_userobject_args(tally.id)
 
-        # add sever information
-        server_info = {'type': 'WebServerControl',
-                        'execute_on': '"TIMESTEP_BEGIN TIMESTEP_END"',
-                        'port': str(self.port)}
-        controls = root.append('Controls')
-        webserver = controls.append('webserver', **server_info)
-
-        pyhit.write('server.i', root)
-
-        print('[CardinalOperator]: Starting Cardinal')
-        log = open(self.cardinal_log, 'w')
-        command = ['mpiexec', '-n', str(openmc.deplete.comm.Get_size()), CARDINAL_PATH, '-i', 'server.i', 'openmc.i']
-        if self.threads is not None:
-            command += [f'--n-threads={self.threads}']
-
-        self._cardinal_pipe = subprocess.Popen(command,
-                                               stdout=log,
-                                               stderr=log,
-                                               env=os.environ)
+        self._control = MooseControl(moose_command=cardinal_cmd,
+                                              moose_control_name=control_name)
+        self._control.initialize()
 
     def stop_cardinal(self):
         """Stops the Cardinal background process"""
-        if self._cardinal_pipe is not None:
-            self._cardinal_pipe.terminate()
-            self._cardinal_pipe = None
-
-    def moose_wait(self, exec_flag=None):
-        """Waits for the moose webserver and returns once the WebServerControl
-        is waiting for input
-
-        Parameters
-        ----------
-        exec_flag : str
-            A specific exec flag to wait on (optional)
-        """
-
-        print(f'[CardinalOperator]: Waiting for cardinal to be at {exec_flag}')
-
-        # How often we want to poll MOOSE for its availability
-        poll_time = 0.1
-        # The max errors we want to let pass before giving up
-        # We should only get connection errors when moose is setting up; when it's
-        # actually running the web server should respond
-        max_errors = 1000
-        # The number of errors we've reached; for tracking exits on many errors
-        current_errors = 0
-
-        # Poll until we're available
-        while True:
-            time.sleep(poll_time)
-
-            try:
-                r = requests.get(f'{self.moose_url}/waiting')
-            except requests.exceptions.ConnectionError:
-                current_errors = current_errors + 1
-                if current_errors == max_errors:
-                    raise
-                continue
-            except:
-                raise
-
-            res = r.json()
-
-            assert 'waiting' in res
-            if res['waiting']:
-                print(f'[CardinalOperator]: Cardinal is waiting at {res["execute_on_flag"]}')
-
-                assert 'execute_on_flag' in res
-                if exec_flag is not None and res['execute_on_flag'] != exec_flag:
-                    raise Exception('Unexpected execute on flag')
-
-                return
-
-    def moose_waiting_flag(self):
-        """Gets the current EXECUTE_ON flag that MOOSE is waiting on
-
-        This should only be called when moose is actually waiting (see moose_wait())
-
-        Returns
-        -------
-        string
-            The EXECUTE_ON flag that MOOSE is currently at
-        """
-        r = requests.get(f'{self.moose_url}/waiting')
-        r.raise_for_status()
-
-        res = r.json()
-        assert 'waiting' in res
-        assert 'execute_on_flag' in res
-
-        if not res['waiting']:
-            raise Exception('MOOSE is not waiting')
-
-        return res['execute_on_flag']
-
-    def moose_post(self, path, data):
-        """Sends JSON information to the MOOSE webserver
-
-        Parameters
-        ----------
-        path : str
-            The object path to send data to; typically UserObjects/<name>
-        data : dict
-            The data to send
-        """
-        print(f'[CardinalOperator]: Sending {data} to "{path}"')
-        r = requests.post(f'{self.moose_url}/{path}', json=data)
-        if r.headers.get('content-type') == 'application/json' and 'error' in r.json():
-            print(f'HTTP error: "{r.json()["error"]}"')
-        r.raise_for_status()
-
-    def moose_continue(self):
-        """Tells the MOOSE WebServerControl to continue the solve
-        """
-        print(f'[CardinalOperator]: Telling cardinal to continue')
-        r = requests.get(f'{self.moose_url}/continue')
-        r.raise_for_status()
+        if self._control is not None:
+            self._control.kill()
 
     def run_cardinal(self):
         """Execute a Cardinal run and wait for it to finish
         """
+        logger.info('Running cardinal')
+
         # Wait for cardinal to be a the beginning of a solve
-        self.moose_wait('TIMESTEP_BEGIN')
+        self._control.wait('TIMESTEP_BEGIN')
 
         # Start the solve
-        self.moose_continue()
+        self._control.setContinue()
 
         # Wait for cardinal to finish the solve
-        self.moose_wait('TIMESTEP_END')
+        self._control.wait('TIMESTEP_END')
 
         return f'statepoint.{self.model.settings.batches}.h5'
 
@@ -234,28 +96,31 @@ class CardinalOperator(CoupledOperator):
         """Pass material compositions from the local in-memory OpenMC model to
         Cardinal's OpenMC model
         """
+        logger.info('Waiting to update carindal materials')
+
         # Wait for cardinal to be at any flag. On the first solve, we'll be
         # sitting at TIMESTEP_BEGIN. But after any other solves, we'll be
         # at TIMESTEP_END from the previous timestep
-        self.moose_wait()
+        current_flag = self._control.wait()
 
         # If we're at TIMESTEP_END, we need to continue on
-        if self.moose_waiting_flag() == 'TIMESTEP_END':
-            self.moose_continue()
+        if current_flag == 'TIMESTEP_END':
+            self._control.setContinue()
 
         # Wait for cardinal to be ready at the beginning of a timestep
-        self.moose_wait('TIMESTEP_BEGIN')
+        self._control.wait('TIMESTEP_BEGIN')
 
-        print('[CardinalOperator]: Updating cardinal materials')
+        logger.info('Updating cardinal materials')
         for m in openmc.lib.materials.values():
             uo_path = f'UserObjects/openmc_mat{m.id}'
-            print(f'[CardinalOperator]: Updating material {m.id} via {uo_path}')
+            logger.info(f'Updating material {m.id} via {uo_path}')
 
-            names_json = {'name': f'{uo_path}/names', 'value': m.nuclides}
-            self.moose_post('set/controllable', names_json)
+            names_path = f'{uo_path}/names'
+            self._control.setControllableVectorString(names_path, m.nuclides)
 
-            densities_json = {'name': f'{uo_path}/densities', 'value': list(m.densities.flat)}
-            self.moose_post('set/controllable', densities_json)
+            densities_path = f'{uo_path}/densities'
+            densities = list(m.densities.flat)
+            self._control.setControllableVectorReal(densities_path, densities)
 
             break # hack for only sending the first
 
@@ -287,27 +152,29 @@ class CardinalOperator(CoupledOperator):
         """Update the set of nuclides in the depletion tallies in the Cardinal
         OpenMC model
         """
-        if self._cardinal_pipe is None:
+        logger.info('Waiting to update cardinal tally nuclides')
+
+        if self._control is None:
             self.start_cardinal()
 
         # Wait for cardinal to be at any flag
-        self.moose_wait()
+        current_flag = self._control.wait()
 
         # If we're at timestep end, keep going
-        if self.moose_waiting_flag() == 'TIMESTEP_END':
-            self.moose_continue()
+        if current_flag == 'TIMESTEP_END':
+            self._control.setContinue()
 
         # Wait for cardinal to be ready at the beginning of a timestep
-        self.moose_wait('TIMESTEP_BEGIN')
+        self._control.wait('TIMESTEP_BEGIN')
 
-        print('[CardinalOperator]: Updating cardinal tally nuclides')
+        logger.info('Updating cardinal tally nuclides')
         for t in openmc.lib.tally.tallies.values():
             uo_path = f'UserObjects/openmc_tally{t.id}'
-            print(f'[CardinalOperator]: Updating tally {t.id} via {uo_path}')
+            logger.info(f'Updating tally {t.id} via {uo_path}')
 
             nuclides = [n for n in t.nuclides]
-            nuclides_json = {'name': f'{uo_path}/names', 'value': nuclides}
-            self.moose_post('set/controllable', nuclides_json)
+            names_path = f'{uo_path}/names'
+            self._control.setControllableVectorString(names_path, nuclides)
             break
 
     def load_cardinal_results(self, sp_file):
@@ -318,7 +185,7 @@ class CardinalOperator(CoupledOperator):
             openmc.lib.simulation_init()
             openmc.lib.statepoint_load(sp_file)
             openmc.lib.simulation_finalize()
-        print('Statepoint loaded')
+        logger.info('Statepoint loaded')
 
     def initial_condition(self):
         """Performs setup, stars the Cardinal problem (with a server enabled) and returns initial condition.
@@ -343,7 +210,7 @@ class CardinalOperator(CoupledOperator):
         for t in openmc.lib.tally.tallies.values():
             t.writable = True
 
-        if self._cardinal_pipe is None:
+        if self._control is None:
             self.start_cardinal()
 
         return n
@@ -372,7 +239,7 @@ class CardinalOperator(CoupledOperator):
         openmc.lib.reset()
 
         # start Cardinal if it hasn't been started already
-        if self._cardinal_pipe is None:
+        if self._control is None:
             self.start_cardinal()
 
         self._update_materials_and_nuclides(vec)
