@@ -2915,7 +2915,10 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 
 void
 OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table, const std::string print_tally_name)
+                                   const std::vector<xt::xtensor<double, 1>> & tally,
+                                   const unsigned int & score,
+                                   const bool & print_table,
+                                   const std::string print_tally_name)
 {
   Real sum = 0.0;
 
@@ -2943,12 +2946,17 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
 
 Real
 OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table, const std::string print_tally_name)
+                                       const std::vector<xt::xtensor<double, 1>> & tally,
+                                       const unsigned int & score,
+                                       const bool & print_table,
+                                       const std::string print_tally_name)
 {
-  // Type of table that gets printed out depends on whether print_tally_name parameter is empty or not
-  // If it is empty, fractional tally data gets printed out, otherwise volumetric tally data gets printed out
+  // Type of table that gets printed out depends on whether print_tally_name parameter is empty or
+  // not If it is empty, fractional tally data gets printed out, otherwise volumetric tally data
+  // gets printed out
   bool print_tally_data = !print_tally_name.empty();
-  std::string column_header_prefix = print_tally_data ? print_tally_name + " " : "Fraction of total ";
+  std::string column_header_prefix =
+      print_tally_data ? print_tally_name + " " : "Fraction of total ";
   std::string column_header = column_header_prefix + _tally_score[score];
   VariadicTable<std::string, Real> vt({"Cell", column_header});
   vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
@@ -3200,7 +3208,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             std::string out = (*_outputs)[i];
 
             if (out == "unrelaxed_tally_std_dev")
-              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score, true, out);
+              getTally(
+                  _external_vars[score][i], _current_raw_tally_std_dev[score], score, true, out);
             if (out == "unrelaxed_tally")
               getTally(_external_vars[score][i], _current_raw_tally[score], score, true, out);
           }

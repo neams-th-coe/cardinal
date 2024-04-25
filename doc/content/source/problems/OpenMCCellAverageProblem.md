@@ -696,6 +696,9 @@ output is provided to the `output` parameter:
 - `unrelaxed_tally`: unrelaxed tally; this will append `_raw` to the tally name and output to the mesh mirror
 - `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation; this will append `_std_dev` to the tally and output to the mesh mirror
 
+For each of the quantities listed in the `output` parameter, a summary table of the volumetric tally mean and/or tally standard deviation
+for each OpenMC cell will be generated and outputted to console.
+
 #### Volume Calculations
 
 It can be helpful for debugging problem setup to compare actual OpenMC cell volumes against
