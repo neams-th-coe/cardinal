@@ -2915,7 +2915,7 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 
 void
 OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table)
+  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table, const std::string print_tally_name)
 {
   Real sum = 0.0;
 
@@ -2923,7 +2923,7 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
   {
     case tally::cell:
     {
-      sum = getCellTally(var_num, tally, score, print_table);
+      sum = getCellTally(var_num, tally, score, print_table, print_tally_name);
       break;
     }
     case tally::mesh:
@@ -2943,9 +2943,14 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
 
 Real
 OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table)
+  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table, const std::string print_tally_name)
 {
-  VariadicTable<std::string, Real> vt({"Cell", "Fraction of total " + _tally_score[score]});
+  // Type of table that gets printed out depends on whether print_tally_name parameter is empty or not
+  // If it is empty, fractional tally data gets printed out, otherwise volumetric tally data gets printed out
+  bool print_tally_data = !print_tally_name.empty();
+  std::string column_header_prefix = print_tally_data ? print_tally_name + " " : "Fraction of total ";
+  std::string column_header = column_header_prefix + _tally_score[score];
+  VariadicTable<std::string, Real> vt({"Cell", column_header});
   vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
 
   Real total = 0.0;
@@ -2966,16 +2971,18 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
     Real volumetric_power = local * tallyMultiplier(score) / _cell_to_elem_volume[cell_info];
     total += local;
 
-    vt.addRow(printCell(cell_info), local);
+    Real row_data = print_tally_data ? volumetric_power : local;
+    vt.addRow(printCell(cell_info), row_data);
     fillElementalAuxVariable(var_num, c.second, volumetric_power);
   }
 
-  vt.addRow("total", total);
+  if (!print_tally_data)
+    vt.addRow("total", total);
 
   // do not print a table showing the fractional values for flux, because this tally score
   // itself is not renormalized to preserve some total integral of flux (so the "fraction"
   // is a bit of a misnomer)
-  if (_tally_score[score] != "flux")
+  if (_tally_score[score] != "flux" || print_tally_data)
     if (_verbose && print_table)
       vt.print(_console);
 
@@ -3193,9 +3200,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             std::string out = (*_outputs)[i];
 
             if (out == "unrelaxed_tally_std_dev")
-              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score, false);
+              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score, true, out);
             if (out == "unrelaxed_tally")
-              getTally(_external_vars[score][i], _current_raw_tally[score], score, false);
+              getTally(_external_vars[score][i], _current_raw_tally[score], score, true, out);
           }
         }
       }

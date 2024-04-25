@@ -352,12 +352,14 @@ protected:
    * @param[in] tally tally values to write
    * @param[in] score tally score
    * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   * @param[in] print_tally_name name of volumetric tally data to print to table. If empty, fractional tally data will be printed instead
    * @return sum of the tally
    */
   Real getCellTally(const unsigned int & var_num,
                     const std::vector<xt::xtensor<double, 1>> & tally,
                     const unsigned int & score,
-                    const bool & print_table);
+                    const bool & print_table,
+                    const std::string print_tally_name);
 
   /**
    * Read from an OpenMC mesh tally and write into an elemental aux variable
@@ -380,11 +382,13 @@ protected:
    * @param[in] tally tally values to write
    * @param[in] score tally score
    * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   * @param[in] print_tally_name name of volumetric tally data to print to table. If empty, fractional tally data will be printed instead
    */
   void getTally(const unsigned int & var_num,
                 const std::vector<xt::xtensor<double, 1>> & tally,
                 const unsigned int & score,
-                const bool & print_table);
+                const bool & print_table,
+                const std::string print_tally_name="");
 
   /**
    * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
