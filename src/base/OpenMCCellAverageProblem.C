@@ -2936,7 +2936,7 @@ OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
   }
 
   if (tallyNormalization(score) > ZERO_TALLY_THRESHOLD)
-    if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+    if (print_table && print_tally_name.empty() && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
       mooseError("Tally normalization process failed for " + _tally_score[score] + " score! Total fraction of " +
                  Moose::stringify(sum) + " does not match 1.0!");
 }
