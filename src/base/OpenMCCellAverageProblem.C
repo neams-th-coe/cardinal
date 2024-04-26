@@ -2915,7 +2915,8 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 
 Real
 OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score)
+                                   const std::vector<xt::xtensor<double, 1>> & tally,
+                                   const unsigned int & score)
 {
   switch (_tally_type)
   {
@@ -2939,7 +2940,8 @@ OpenMCCellAverageProblem::checkNormalization(const Real & sum, const unsigned in
 
 Real
 OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score)
+                                       const std::vector<xt::xtensor<double, 1>> & tally,
+                                       const unsigned int & score)
 {
   Real total = 0.0;
 
@@ -2967,7 +2969,8 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
 
 Real
 OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score)
+                                       const std::vector<xt::xtensor<double, 1>> & tally,
+                                       const unsigned int & score)
 {
   Real total = 0.0;
 
