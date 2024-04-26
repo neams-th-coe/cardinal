@@ -76,6 +76,7 @@ CardinalApp::validParams()
       "nekrs_device_id", "--nekrs-device-id", "NekRS device ID");
 
   params.set<bool>("use_legacy_material_output") = false;
+  params.set<bool>("use_legacy_initial_residual_evaluation_bahavior") = false;
   params.set<bool>("error_unused") = false;
   params.set<bool>("allow_unused") = true;
   return params;
