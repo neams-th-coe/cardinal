@@ -2913,41 +2913,34 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
   openmc::settings::n_particles = n;
 }
 
-void
+Real
 OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table)
+  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score)
 {
-  Real sum = 0.0;
-
   switch (_tally_type)
   {
     case tally::cell:
-    {
-      sum = getCellTally(var_num, tally, score, print_table);
-      break;
-    }
+      return getCellTally(var_num, tally, score);
     case tally::mesh:
-    {
-      sum = getMeshTally(var_num, tally, score, print_table);
-      break;
-    }
+      return getMeshTally(var_num, tally, score);
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
+}
 
+void
+OpenMCCellAverageProblem::checkNormalization(const Real & sum, const unsigned int & score) const
+{
   if (tallyNormalization(score) > ZERO_TALLY_THRESHOLD)
-    if (print_table && _check_tally_sum && std::abs(sum - 1.0) > 1e-6)
+    if (_check_tally_sum && std::abs(sum - 1.0) > 1e-6)
       mooseError("Tally normalization process failed for " + _tally_score[score] + " score! Total fraction of " +
                  Moose::stringify(sum) + " does not match 1.0!");
 }
 
 Real
 OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table)
+  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score)
 {
-  VariadicTable<std::string, Real> vt({"Cell", "Fraction of total " + _tally_score[score]});
-  vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
-
   Real total = 0.0;
 
   int i = 0;
@@ -2966,29 +2959,16 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
     Real volumetric_power = local * tallyMultiplier(score) / _cell_to_elem_volume[cell_info];
     total += local;
 
-    vt.addRow(printCell(cell_info), local);
     fillElementalAuxVariable(var_num, c.second, volumetric_power);
   }
-
-  vt.addRow("total", total);
-
-  // do not print a table showing the fractional values for flux, because this tally score
-  // itself is not renormalized to preserve some total integral of flux (so the "fraction"
-  // is a bit of a misnomer)
-  if (_tally_score[score] != "flux")
-    if (_verbose && print_table)
-      vt.print(_console);
 
   return total;
 }
 
 Real
 OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
-  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score, const bool & print_table)
+  const std::vector<xt::xtensor<double, 1>> & tally, const unsigned int & score)
 {
-  VariadicTable<unsigned int, Real> vt({"Mesh", "Fraction of total " + _tally_score[score]});
-  vt.setColumnFormat({VariadicTableColumnFormat::AUTO, VariadicTableColumnFormat::SCIENTIFIC});
-
   Real total = 0.0;
 
   // TODO: this requires that the mesh exactly correspond to the mesh templates;
@@ -2998,7 +2978,6 @@ OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
   for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
   {
     const auto * filter = _mesh_filters[i];
-    Real template_power_fraction = 0.0;
 
     for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
     {
@@ -3011,23 +2990,13 @@ OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
       Real volumetric_power =
           power_fraction * tallyMultiplier(score) / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
       total += power_fraction;
-      template_power_fraction += power_fraction;
 
       std::vector<unsigned int> elem_ids = {offset + e};
       fillElementalAuxVariable(var_num, elem_ids, volumetric_power);
     }
 
-    vt.addRow(i, template_power_fraction);
-
     offset += filter->n_bins();
   }
-
-  // do not print a table showing the fractional values for flux, because this tally score
-  // itself is not renormalized to preserve some total integral of flux (so the "fraction"
-  // is a bit of a misnomer)
-  if (_tally_score[score] != "flux")
-    if (_verbose && print_table)
-      vt.print(_console);
 
   return total;
 }
@@ -3154,7 +3123,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       if (_tally_type == tally::none)
         break;
 
-      _console << "Extracting OpenMC tallies... " << printNewline();
+      _console << "Extracting OpenMC tallies...";
 
       for (unsigned int score = 0; score < _tally_score.size(); ++score)
       {
@@ -3184,7 +3153,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
         }
 
-        getTally(_tally_var[score], _current_tally[score], score, true);
+        auto sum = getTally(_tally_var[score], _current_tally[score], score);
+        checkNormalization(sum, score);
 
         if (_outputs)
         {
@@ -3193,14 +3163,14 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             std::string out = (*_outputs)[i];
 
             if (out == "unrelaxed_tally_std_dev")
-              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score, false);
+              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score);
             if (out == "unrelaxed_tally")
-              getTally(_external_vars[score][i], _current_raw_tally[score], score, false);
+              getTally(_external_vars[score][i], _current_raw_tally[score], score);
           }
         }
       }
 
-      _console << "done" << std::endl;
+      _console << " done" << std::endl;
 
       break;
     }

@@ -351,40 +351,41 @@ protected:
    * @param[in] var_num variable name to write
    * @param[in] tally tally values to write
    * @param[in] score tally score
-   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
    * @return sum of the tally
    */
   Real getCellTally(const unsigned int & var_num,
                     const std::vector<xt::xtensor<double, 1>> & tally,
-                    const unsigned int & score,
-                    const bool & print_table);
+                    const unsigned int & score);
 
   /**
    * Read from an OpenMC mesh tally and write into an elemental aux variable
    * @param[in] var_num variable name to write
    * @param[in] tally tally values to write
    * @param[in] score tally score
-   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
    * @return sum of the tally
    */
   Real getMeshTally(const unsigned int & var_num,
                     const std::vector<xt::xtensor<double, 1>> & tally,
-                    const unsigned int & score,
-                    const bool & print_table);
+                    const unsigned int & score);
 
   /**
-   * Extract the (cell or mesh) tally from OpenMC and then apply to the corresponding MOOSE
-   * elements. We also check that the tally normalization gives a total tally sum of 1.0 (when
-   * normalized against the total tally value).
+   * Extract the tally from OpenMC and then apply to the corresponding MOOSE elements.
    * @param[in] var_num variable name to write
    * @param[in] tally tally values to write
    * @param[in] score tally score
-   * @param[in] print_table whether to print the diagnostic table showing tally values by bin
+   * @return sum sum of the tally
    */
-  void getTally(const unsigned int & var_num,
+  Real getTally(const unsigned int & var_num,
                 const std::vector<xt::xtensor<double, 1>> & tally,
-                const unsigned int & score,
-                const bool & print_table);
+                const unsigned int & score);
+
+  /**
+   * Check that the tally normalization gives a total tally sum of 1.0 (when normalized
+   * against the total tally value).
+   * @param[in] sum sum of the tally
+   * @param[in] score tally score
+   */
+  void checkNormalization(const Real & sum, const unsigned int & score) const;
 
   /**
    * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
