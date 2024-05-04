@@ -1,23 +1,24 @@
 #!/bin/bash
 
-# Usage:
+# Launch your job by entering the following into the terminal:
 # qsub job_sawtooth
 
 #PBS -l select=1:ncpus=48:mpiprocs=24:ompthreads=2
-#PBS -l walltime=5:00
+#PBS -l walltime=5:00 # HH:MM:SS
 #PBS -m ae
 #PBS -N cardinal
 #PBS -j oe
 #PBS -P moose
+#PBS -V
 
 module purge
 module load use.moose
 module load moose-tools
 module load openmpi/4.1.5_ucx1.14.1
-module load cmake/3.27.7-oneapi-2023.2.1-4uzb
 
 # Revise for your repository location
 export CARDINAL_DIR=$HOME/cardinal
+export OMP_PROC_BIND=true
 
 # Run an OpenMC case
 cd $CARDINAL_DIR/test/tests/neutronics/feedback/lattice

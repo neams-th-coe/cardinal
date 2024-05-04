@@ -193,6 +193,12 @@ export PYTHONPATH=$MOOSE_DIR/python:${PYTHONPATH}
 
 [Sawtooth](https://nsuf.inl.gov/Page/computing_resources)
  is an [!ac](HPC) system at [!ac](INL) with 99,792 cores (48 cores per node).
+ The max number of cores a job can run is 80,000, resulting in a max number of
+ nodes of 1666. Every job should use `ncpus=48` to maximize the power of each
+ node requested. The below script requests 1 node (`select=1`). In order to
+ maximizie performance on the node, always use `ncpus = mpiprocs * ompthreads = 48`,
+ and make sure that `--n-threads` in the job launch equals the same value as
+ `ompthreads`.
 
 !listing! language=bash caption=Sample `~/.bashrc` for Sawtooth id=st1
 if [ -f /etc/bashrc ]; then
