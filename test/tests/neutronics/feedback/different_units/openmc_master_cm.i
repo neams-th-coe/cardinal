@@ -95,14 +95,12 @@
     to_multi_app = openmc
     variable = temp
     source_variable = temp
-    fixed_meshes = true
   []
   [density_to_openmc]
     type = MultiAppGeneralFieldNearestLocationTransfer
     to_multi_app = openmc
     variable = density
     source_variable = density
-    fixed_meshes = true
   []
 []
 

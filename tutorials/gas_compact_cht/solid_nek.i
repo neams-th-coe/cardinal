@@ -188,7 +188,6 @@ nek_dt = 6e-3
     from_boundaries = 'fluid_solid_interface'
     to_boundaries = '3'
     to_multi_app = nek
-    fixed_meshes = true
   []
   [flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
@@ -203,7 +202,6 @@ nek_dt = 6e-3
     from_boundaries = '3'
     to_boundaries = 'fluid_solid_interface'
     from_multi_app = nek
-    fixed_meshes = true
   []
   [synchronization_to_nek]
     type = MultiAppPostprocessorTransfer
