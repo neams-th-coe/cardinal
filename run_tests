@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 import sys, os
 
+# check that the cross section library for the test suite is being used
+xs = os.environ.get('OPENMC_CROSS_SECTIONS')
+if (xs):
+  print("Using cross section library:", xs)
+
+  if (not "endfb-vii.1-hdf5" in xs):
+    print("\nCardinal's test suite must be run with the ENDF/B-7.1 library. " \
+      "To download the paired library, " \
+      "run: ./scripts/download-openmc-cross-sections.sh " \
+      "and export OPENMC_CROSS_SECTIONS to the location of the cross_sections.xml file.")
+
 MOOSE_DIR = os.path.abspath(os.environ.get('MOOSE_DIR', os.path.join(os.path.dirname(__file__), '..', 'moose')))
 if os.path.exists(os.path.abspath(os.path.join('moose', 'framework', 'Makefile'))):
   MOOSE_DIR = os.path.abspath('moose')
