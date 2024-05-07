@@ -205,7 +205,6 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   []
   [heat_flux_to_openmc]
     type = MultiAppGeneralFieldNearestLocationTransfer
-    fixed_meshes = true
     source_variable = flux
     variable = flux
     from_multi_app = bison
@@ -240,7 +239,6 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     source_variable = T_wall
     from_multi_app = thm
     variable = thm_temp_wall
-    fixed_meshes = true
     to_boundaries = 'fluid_solid_interface'
   []
   [T_bulk_from_thm]
@@ -248,7 +246,6 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     source_variable = T
     from_multi_app = thm
     variable = thm_temp
-    fixed_meshes = true
   []
 
   # just for postprocessing purposes
@@ -257,14 +254,12 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     source_variable = p
     from_multi_app = thm
     variable = thm_pressure
-    fixed_meshes = true
   []
   [velocity_from_thm]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = vel_z
     from_multi_app = thm
     variable = thm_velocity
-    fixed_meshes = true
   []
 []
 

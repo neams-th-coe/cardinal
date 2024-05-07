@@ -2082,13 +2082,13 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
 
       // and the instances should exactly match
       if (reference_instances != compare_instances)
-        mooseError("The cell caching failed to get correct instances for material cell ID " +
-                   Moose::stringify(cellID(nested_entry.first)) + " within cell " +
-                   printCell(cell_info) + ".\nYou must unset 'identical_cell_fills'!" +
-                   "\n\nThis error might appear if there are OpenMC cells filled with the same "
-                   "universe/lattice "
-                   "\nfilling the identical-fill cells, but that weren't specified in "
-                   "'identical_cell_fills'.");
+        mooseError(
+            "The cell caching failed to get correct instances for material cell ID " +
+            Moose::stringify(cellID(nested_entry.first)) + " within cell " + printCell(cell_info) +
+            ". You must unset 'identical_cell_fills'!" + "\n\nThis error might appear if:\n" +
+            " - There is a mismatch between your OpenMC model and the [Mesh]\n"
+            " - There are additional OpenMC cells filled with this repeatable universe/lattice, "
+            "but which are not mapping to the blocks in 'identical_cell_fills'");
     }
   }
 }
