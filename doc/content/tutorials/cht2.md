@@ -240,10 +240,12 @@ postprocessor to NekRS. The `synchronize` postprocessor
 is simply a [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
 postprocessor that is set to a value of 1. No applications will transfer anything
 *in* to `synchronize`, so the value of this postprocessor remains always fixed
-at 1.
+at 1. In addition to the `synchronize` postprocessor, below are listed other
+postprocessors used to facilitate the data transfers and output certain quantities
+of interest.
 
 !listing tutorials/sfr_7pin/solid.i
-  block=synchronize
+  block=Postprocessors
 
 To understand the purpose of this (optional) transfer, we need to describe in more
 detail the data transfers that occur when sub-cycling. Please note that this is an
