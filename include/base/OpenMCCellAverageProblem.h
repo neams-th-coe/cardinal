@@ -275,6 +275,13 @@ public:
 
 protected:
   /**
+   * Get the cell level in OpenMC to use for coupling
+   * @param[in] c point
+   * @return cell level
+   */
+  unsigned int getCellLevel(const Point & c) const;
+
+  /**
    * Read the names of the MOOSE variables used for sending feedback into OpenMC
    * @param[in] param feedback term to read
    * @param[in] default_name default name to use for MOOSE variables holding this field
