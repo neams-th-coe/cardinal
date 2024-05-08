@@ -4,7 +4,7 @@
 # qsub job_sawtooth
 
 #PBS -l select=1:ncpus=48:mpiprocs=24:ompthreads=2
-#PBS -l walltime=5:00 # HH:MM:SS
+#PBS -l walltime=5:00
 #PBS -m ae
 #PBS -N cardinal
 #PBS -j oe
