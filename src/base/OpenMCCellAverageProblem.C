@@ -2093,6 +2093,23 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
   }
 }
 
+unsigned int
+OpenMCCellAverageProblem::getCellLevel(const Point & c) const
+{
+  unsigned int level = _cell_level;
+  if (_cell_level > _particle.n_coord() - 1)
+  {
+    if (isParamValid("lowest_cell_level"))
+      level = _particle.n_coord() - 1;
+    else
+      mooseError("Requested coordinate level of " + Moose::stringify(_cell_level) +
+                 " exceeds number of nested coordinate levels at " + printPoint(c) + ": " +
+                 Moose::stringify(_particle.n_coord()));
+  }
+
+  return level;
+}
+
 void
 OpenMCCellAverageProblem::mapElemsToCells()
 {
@@ -2120,9 +2137,11 @@ OpenMCCellAverageProblem::mapElemsToCells()
 
     local_elem++;
 
+    auto id = elem->subdomain_id();
     const Point & c = elem->vertex_average();
     Real element_volume = elem->volume();
 
+    // find the OpenMC cell at the location 'c' (if any)
     bool error = findCell(c);
 
     // if we didn't find an OpenMC cell here, then we certainly have an uncoupled region
@@ -2133,21 +2152,17 @@ OpenMCCellAverageProblem::mapElemsToCells()
       continue;
     }
 
-    // otherwise, this region may potentially map to OpenMC if we _also_ turned
-    // on coupling for this region; first, determine the phase of this element
-    // and store the information
-    int level = _cell_level;
-    if (level > _particle.n_coord() - 1)
-    {
-      if (isParamValid("lowest_cell_level"))
-        level = _particle.n_coord() - 1;
-      else
-        mooseError("Requested coordinate level of " + Moose::stringify(level) +
-                   " exceeds number of nested coordinate levels at " + printPoint(c) + ": " +
-                   Moose::stringify(_particle.n_coord()));
-    }
-
+    // next, see what type of data is to be sent into OpenMC (to further classify
+    // the type of couling)
     auto phase = elemFeedback(elem);
+
+    bool requires_mapping = phase != coupling::none || _tally_blocks.count(id);
+
+    // get the level in the OpenMC model to fetch mapped cell information. For
+    // uncoupled regions, we know we will be successful in finding a cell (because
+    // we already screened out uncoupled cells), and the id and instance are unused
+    // (so we can just set zero).
+    auto level = requires_mapping ? getCellLevel(c) : 0;
 
     switch (phase)
     {
@@ -2170,10 +2185,6 @@ OpenMCCellAverageProblem::mapElemsToCells()
       {
         _uncoupled_volume += element_volume;
         _n_mapped_none_elems++;
-
-        // we will succeed in finding a valid cell here; for uncoupled regions,
-        // cell_index and cell_instance are unused, so this is just to proceed with program logic
-        level = 0;
         break;
       }
       default:
@@ -2189,8 +2200,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
       _material_cells_only = false;
 
     // store the map of cells to elements that will be coupled via feedback or a tally
-    auto id = elem->subdomain_id();
-    if (phase != coupling::none || _tally_blocks.count(id))
+    if (requires_mapping)
       _cell_to_elem[cell_info].push_back(local_elem);
   }
 
