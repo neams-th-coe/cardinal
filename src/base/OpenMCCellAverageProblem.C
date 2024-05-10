@@ -2604,13 +2604,13 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     std::string auxk_type = "CellIDAux";
     InputParameters params = _factory.getValidParams(auxk_type);
-    auto id = addExternalVariable("cell_id");
+    addExternalVariable("cell_id");
     params.set<AuxVariableName>("variable") = "cell_id";
     addAuxKernel(auxk_type, "cell_id", params);
 
     auxk_type = "CellInstanceAux";
     params = _factory.getValidParams(auxk_type);
-    auto instance = addExternalVariable("cell_instance");
+    addExternalVariable("cell_instance");
     params.set<AuxVariableName>("variable") = "cell_instance";
     addAuxKernel(auxk_type, "cell_instance", params);
   }
