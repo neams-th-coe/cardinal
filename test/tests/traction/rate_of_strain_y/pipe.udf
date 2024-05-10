@@ -1,0 +1,41 @@
+//
+// nekRS User Defined File
+//
+#include <math.h>
+#include "udf.hpp"
+
+#ifdef __okl__
+
+#endif
+
+/* UDF Functions */
+
+void UDF_LoadKernels(occa::properties& kernelInfo)
+{
+}
+
+
+void UDF_Setup(nrs_t *nrs)
+{
+  mesh_t* mesh = nrs->cds->mesh[0];
+  int num_quadrature_points = mesh->Np * mesh->Nelements;
+
+  float Rsq = 1.e-2*1.e-2;
+  float u0  = 2.0;
+
+  for (int n = 0; n < num_quadrature_points; n++) {
+    float xx = mesh->x[n];
+    float zz = mesh->z[n];
+
+    float rr = xx*xx + zz*zz;
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0;
+    nrs->U[n + 1 * nrs->fieldOffset] = u0*(1.0-(rr/Rsq));
+    nrs->U[n + 2 * nrs->fieldOffset] = 0.0;
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 0.0;
+  }
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+}

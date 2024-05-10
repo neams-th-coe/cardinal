@@ -9,7 +9,6 @@
   type = NekRSStandaloneProblem
   output = "ros_tensor"
   casename = 'pipe'
-#  n_usrwrk_slots = 6
 []
 
 [Functions]
@@ -33,13 +32,13 @@
     type = ParsedFunction
     expression = '-y*u0/R/R'
     symbol_names = 'R u0'
-    symbol_values = '0.5 2.0'
+    symbol_values = '0.01 2.0'
   []
   [s_13_exact]
     type = ParsedFunction
     expression = '-z*u0/R/R'
     symbol_names = 'R u0'
-    symbol_values = '0.5 2.0'
+    symbol_values = '0.01 2.0'
   []
 []
 
@@ -52,7 +51,7 @@
 
   [Quadrature]
     type = GAUSS_LOBATTO
-    order = SEVENTH
+    order = FIFTH
   []
 []
 
@@ -87,10 +86,34 @@
     variable = ros_s13
     function = s_13_exact
   []
+  [ros_s11_vavg]
+    type = NekVolumeAverage
+    field = ros_s11
+  []
+  [ros_s22_vavg]
+    type = NekVolumeAverage
+    field = ros_s22
+  []
+  [ros_s33_vavg]
+    type = NekVolumeAverage
+    field = ros_s33
+  []
+  [ros_s12_vavg]
+    type = NekVolumeAverage
+    field = ros_s12
+  []
+  [ros_s13_vavg]
+    type = NekVolumeAverage
+    field = ros_s13
+  []
+  [ros_s23_vavg]
+    type = NekVolumeAverage
+    field = ros_s23
+  []
 []
 
 [Outputs]
-  exodus = true
+  exodus = false
   csv = true
-#  execute_on = 'final'
+  execute_on = 'final'
 []

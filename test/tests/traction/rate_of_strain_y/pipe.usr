@@ -1,0 +1,53 @@
+c-----------------------------------------------------------------------
+      subroutine userchk
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      integer iel, ifc, i, ntot
+      real theta, yy, zz, fac
+
+      do iel=1,nelt
+      do ifc=1,2*ndim
+         if (cbc(ifc,iel,1) .eq. 'W  ') boundaryID(ifc,iel) = 1
+      enddo
+      enddo
+
+      theta = pi/2.0
+      ntot = lx1*ly1*lz1*nelv
+      do i =  1, ntot
+        yy = ym1(i,1,1,1)
+        zz = zm1(i,1,1,1)
+        ym1(i,1,1,1) = yy*cos(theta) - zz*sin(theta) + 6.0
+        zm1(i,1,1,1) = yy*sin(theta) + zz*cos(theta)
+      enddo
+
+      fac = 2.0e-2
+
+      call cmult(xm1,fac,ntot)
+      call cmult(ym1,fac,ntot)
+      call cmult(zm1,fac,ntot)
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end

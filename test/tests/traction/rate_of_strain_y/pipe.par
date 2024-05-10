@@ -1,0 +1,22 @@
+[GENERAL]
+  polynomialOrder = 5
+  numSteps = 200
+  dt = 1e-4
+  timeStepper = tombo2
+  constFlowRate = meanVelocity=1.0 + direction=Y
+  writeInterval = 201
+
+[MESH]
+  file = "turbPipe.re2"
+
+[PRESSURE]
+  residualTol = 1e-8
+
+[VELOCITY]
+  density = 1.0
+  viscosity = -100.0
+  boundaryTypeMap = wall
+  residualTol = 1e-10
+
+[TEMPERATURE]
+  solver = none

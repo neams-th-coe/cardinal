@@ -18,7 +18,7 @@ c-----------------------------------------------------------------------
       include 'TOTAL'
 
       integer iel, ifc, i, ntot
-      real theta, xx, zz
+      real theta, xx, zz, fac
 
       do iel=1,nelt
       do ifc=1,2*ndim
@@ -34,6 +34,12 @@ c-----------------------------------------------------------------------
         xm1(i,1,1,1) = xx*cos(theta) - zz*sin(theta) + 6.0
         zm1(i,1,1,1) = xx*sin(theta) + zz*cos(theta)
       enddo
+
+      fac = 2.0e-2
+
+      call cmult(xm1,fac,ntot)
+      call cmult(ym1,fac,ntot)
+      call cmult(zm1,fac,ntot)
 
       return
       end
