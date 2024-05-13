@@ -20,6 +20,9 @@ This output feature is used by specifying the fields to be output with the
 - `scalar01` (which creates a MOOSE variable named `scalar01`)
 - `scalar02` (which creates a MOOSE variable named `scalar02`)
 - `scalar03` (which creates a MOOSE variable named `scalar03`)
+- `ros_tensor` (which creates MOOSE variables named `ros_s11`, `ros_s22`,..,`ros_s13`)
+- `wall_shear` (which creates a MOOSE variable named `wall_shear`)
+- `traction` (which creates MOOSE variables named `traction_x`,`traction_y`,`traction_z`)
 
 For NekRS simulations that are coupled to MOOSE, the temperature will already
 be output because it is used as part of the physics transfers.
