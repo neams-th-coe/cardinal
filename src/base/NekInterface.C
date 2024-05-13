@@ -666,7 +666,7 @@ initializeRateOfStrainTensor()
 void
 initializeTraction()
 {
-  nekrs::_traction = (double *)calloc(4*velocityFieldOffset(), sizeof(double)); //TODO: finalize size
+  nekrs::_traction = (double *)calloc(3*velocityFieldOffset(), sizeof(double));
 }
 
 void
@@ -1378,7 +1378,7 @@ nekDirectStiffnessAvg(double * u, const nek_mesh::NekMeshEnum pp_mesh)
     std::cout << "\nloading " << lib << std::endl;
   void *handle = dlopen(lib.c_str(), RTLD_NOW | RTLD_LOCAL);
 
-  nrsCheck(!handle, MPI_COMM_SELF, EXIT_FAILURE,
+  nek::nrsCheck(!handle, MPI_COMM_SELF, EXIT_FAILURE,
            "%s\n", dlerror());
 
   // check if we need to append an underscore
@@ -1394,7 +1394,7 @@ nekDirectStiffnessAvg(double * u, const nek_mesh::NekMeshEnum pp_mesh)
 
   char func[100];
 
-  nek_dssum_ptr = (void (*)(double *))dlsym(handle, fname("nekf_dssum"));
+  nek_dssum_ptr = (void (*)(double *))dlsym(handle, nek::fname("nekf_dssum"));
   (*nek_dssum_ptr)(u);
 
   double * mult = (double *)nek::ptr("vmult"); // velocity connectivity map
@@ -1423,10 +1423,16 @@ computeRateOfStrainTensor(double * S_ij, const nek_mesh::NekMeshEnum pp_mesh)
   double * grad_v = (double *) calloc(3*offset, sizeof(double));
   double * grad_w = (double *) calloc(3*offset, sizeof(double));
 
-  //TODO: do we need to get the latest velocity from the device?
   gradient(offset, &nrs->U[0*offset], grad_u, pp_mesh);
   gradient(offset, &nrs->U[1*offset], grad_v, pp_mesh);
   gradient(offset, &nrs->U[2*offset], grad_w, pp_mesh);
+
+  for (int i = 0; i < 3; ++i)
+  {
+    nekDirectStiffnessAvg(&grad_u[i*offset], pp_mesh);
+    nekDirectStiffnessAvg(&grad_v[i*offset], pp_mesh);
+    nekDirectStiffnessAvg(&grad_w[i*offset], pp_mesh);
+  }
 
   // calculating the six S_ij components
   for (int e = 0; e < mesh->Nelements; ++e)
@@ -1463,8 +1469,6 @@ computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh)
   computeRateOfStrainTensor(Tau_ij,pp_mesh);
 
 // multiply by 2 * viscosity
-// TODO: decide on better implementation for variable viscosity
-
   for (int i = 0; i  < 6; ++i)
   {
     for (int e = 0; e < mesh->Nelements; ++e)
@@ -1513,7 +1517,7 @@ computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
           double nx =  sgeo[surf_offset + NXID];
           double ny =  sgeo[surf_offset + NYID];
           double nz =  sgeo[surf_offset + NZID];
-          //TODO: explain reasoning below
+
           traction[nrs_offset*0 + vol_id] = Tau_ij[0*nrs_offset + vol_id] * nx
                                           + Tau_ij[3*nrs_offset + vol_id] * ny
                                           + Tau_ij[5*nrs_offset + vol_id] * nz;
@@ -1526,16 +1530,6 @@ computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
                                           + Tau_ij[4*nrs_offset + vol_id] * ny
                                           + Tau_ij[2*nrs_offset + vol_id] * nz;
 
-          double t_dot_n = traction[0*nrs_offset + vol_id] * nx  // TODO: decide whether to keep
-                         + traction[1*nrs_offset + vol_id] * ny
-                         + traction[2*nrs_offset + vol_id] * nz;
-
-          double tx = traction[nrs_offset*0 + vol_id];
-          double ty = traction[nrs_offset*1 + vol_id];
-          double tz = traction[nrs_offset*2 + vol_id];
-
-          traction[nrs_offset*3 + vol_id] = (t_dot_n/t_dot_n) *
-                                          std::sqrt( tx * tx + ty * ty + tz * tz);
         }
       }
     }
@@ -2115,37 +2109,37 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       // no dimensionalization needed
       break;
     case field::wall_shear:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::traction:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::traction_x:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::traction_y:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::traction_z:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::ros_s11:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::ros_s22:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::ros_s33:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::ros_s12:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::ros_s23:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::ros_s13:
-      // TODO: add dimensionalization
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::unity:
       // no dimensionalization needed
