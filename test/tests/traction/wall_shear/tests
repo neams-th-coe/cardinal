@@ -1,0 +1,13 @@
+[Tests]
+  [test]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = 'nek_out.csv'
+    min_parallel = 1
+    requirement = "Cardinal shall be able to calculate the wall shear around a cylinder"
+                  "to match experimental data with reasonable accuracy expected of a coarse-"
+                  "grid, short duration test."
+    required_objects = 'NekRSStandaloneProblem'
+    max_time = 800
+  []
+[]

@@ -1,0 +1,40 @@
+c-----------------------------------------------------------------------
+      subroutine userchk
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      integer e, f
+
+      do e = 1, nelv
+      do f = 1, 2*ndim
+        if (boundaryID(f,e).ge.6) boundaryID(f,e) = 0 ! periodic sideset
+      enddo
+      enddo
+
+
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
