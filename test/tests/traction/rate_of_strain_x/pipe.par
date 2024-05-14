@@ -1,5 +1,5 @@
 [GENERAL]
-  polynomialOrder = 5
+  polynomialOrder = 3
   numSteps = 200
   dt = 1e-4
   timeStepper = tombo2
