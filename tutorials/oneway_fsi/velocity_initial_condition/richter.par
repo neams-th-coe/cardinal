@@ -1,0 +1,50 @@
+#[OCCA]
+#backend = CUDA
+#deviceNumber = LOCAL-RANK
+
+[GENERAL]
+#verbose = true
+#startFrom = "richter_ic_N3.fld"
+
+polynomialOrder = 3
+
+#stopAt = numSteps
+#numSteps = 1
+
+stopAt = endTime
+endTime = 45.0
+
+#dt = 5.0e-4
+dt = targetCFL=0.45 + max=1e-2 + initial=1e-6
+
+timeStepper = tombo2
+
+#writeControl = steps
+#writeInterval = 1
+writeControl = simulationTime
+writeInterval = 1.0
+
+[PROBLEMTYPE]
+equation = navierStokes+variableViscosity
+
+[MESH]
+#connectivityTol = 0.1
+file = "duct.re2"
+#writeToFieldFile = yes
+solver = none
+
+[PRESSURE]
+residualTol = 1e-6
+#initialGuess = previous
+#preconditioner = multigrid + coarse
+#initialGuess = projectionAconj+nVector=10
+
+[VELOCITY]
+boundaryTypeMap = inlet,outlet,wall,wall,sym  # for generating IC
+density = 1000.0
+viscosity = 1.0
+residualTol = 1e-8
+
+[TEMPERATURE]
+solver = none
+#boundaryTypeMap = i,i,i,i,i

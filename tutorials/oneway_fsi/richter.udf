@@ -1,0 +1,98 @@
+#include <math.h>
+#include "udf.hpp"
+
+
+#ifdef __okl__
+
+// Boundary conditions
+void velocityDirichletConditions(bcData *bc)
+{
+  if (bc->id==1)
+  {
+   // analytic expression, source: White, Viscous Flows, 2006: Eq 3-48, Ch 3-3.3
+
+      dfloat fac = 0.339871971;// scales velocity to make v_max match Richter benchmark
+      const dfloat a = 0.2; // y E {0,2a}
+      const dfloat b = 0.4; // z E {-b,b}
+      dfloat yy = bc->y;
+      dfloat zz = bc->z;
+
+      dfloat usum = 0.0;
+
+      for(dlong i=0;i<100;++i)
+      {
+        dlong j = 2*i + 1;
+        dfloat c1 = std::pow(-1,(j-1)*0.5);
+        dfloat c2 = 1.0 - (std::cosh(j*M_PI*zz/2.0/a)/std::cosh(j*M_PI*b/2.0/a));
+        dfloat yarg = (M_PI*yy/2.0/a) - (M_PI/2.0);
+        dfloat c3 = std::cos(j*yarg)/std::pow(j,3);
+
+        usum += (c1*c2*c3);
+      }
+
+      bc->u = fac*usum;
+      bc->v = 0.0;
+      bc->w = 0.0;
+  }
+  if(bc->id == 3)
+  {
+    bc->u = 0.0;
+    bc->v = 0.0;
+    bc->w = 0.0;
+  }
+}
+
+void meshVelocityDirichletConditions(bcData *bc)
+{
+  if(bc->id == 3)
+  {
+    bc->meshu = bc->usrwrk[bc->idM + 1*bc->fieldOffset];
+    bc->meshv = bc->usrwrk[bc->idM + 2*bc->fieldOffset];
+    bc->meshw = bc->usrwrk[bc->idM + 3*bc->fieldOffset];
+  }
+}
+
+#endif
+
+void uservp(nrs_t *nrs,
+            dfloat time,
+            occa::memory o_U,
+            occa::memory o_S,
+            occa::memory o_UProp,
+            occa::memory o_SProp)
+{
+  mesh_t *mesh = nrs->meshV;
+
+  if (!platform->options.compareArgs("MESH SOLVER", "NONE")) {
+    // moving mesh parameters
+    const dfloat nu = 1.0;
+    auto o_mesh_diff = o_UProp + 2 * nrs->fieldOffset * sizeof(dfloat);
+    platform->linAlg->fill(nrs->meshV->Nlocal, nu, o_mesh_diff);
+  }
+}
+
+/* UDF Functions */
+
+void UDF_LoadKernels(occa::properties& kernelInfo)
+{
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  // setup scratch space
+  platform_t* platform = platform_t::getInstance();
+  mesh_t* mesh = nrs->_mesh;
+
+  udf.properties = &uservp;
+}
+
+void UDF_Setup0(MPI_Comm comm, setupAide &options)
+{
+}
+
+void UDF_ExecuteStep(nrs_t *nrs, dfloat time, int tstep)
+{
+  //TODO: remove once Cardinal can calculate viscous drag
+  nek::ocopyToNek(time, tstep);
+  nek::userchk();
+}

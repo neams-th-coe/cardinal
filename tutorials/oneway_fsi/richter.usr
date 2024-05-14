@@ -1,0 +1,93 @@
+c TODO: remove this file after adding viscous drag postprocessor to Cardinal
+c-----------------------------------------------------------------------
+      subroutine userchk
+      implicit none
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      real drag1
+      real x0(3)
+      data x0 / 0.45, 0.0, -0.1 /
+      save x0
+      save drag1
+
+      integer iobj1
+      save iobj1
+
+      real pmin, pmax, glmin, glmax
+
+c     interpolating initial conditions when your mesh file (re2) changes
+c      if (istep.eq.0) call gfldr("richter_ic_N3_withmesh.fld")
+
+c     drag calculation on internal obstacle
+      if (istep.eq.0) call create_obj(iobj1,3,1)
+
+      call torque_calc(1.0,x0,.false.,.false.) ! compute wall shear
+      drag1 = dragx(iobj1)
+
+      if(nio.eq.0) write(*,14) drag1
+14    format(1p1e16.8,': dragx')
+
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine useric (ix,iy,iz,ieg)
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      ux = 0.0
+      uy = 0.0
+      uz = 0.0
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      integer e,f,i,bid
+
+c     initialising the cbc array for nek5000 routines
+c     just for post-processing
+
+      do e=1,nelt
+       do f=1,6
+        bid = boundaryID(f,e)
+        if(bid.eq.1) then
+         cbc(f,e,1) = 'v  '
+        elseif(bid.eq.2) then
+         cbc(f,e,1) = 'O  '
+        elseif(bid.eq.3) then
+         cbc(f,e,1) = 'mv '
+        elseif(bid.eq.4) then
+         cbc(f,e,1) = 'W  '
+        elseif(bid.eq.5) then
+         cbc(f,e,1) = 'SYM'
+        endif
+      enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+
+      include 'SIZE'
+      include 'TOTAL'
+
+
+      return
+      end
+c-----------------------------------------------------------------------
