@@ -1,18 +1,16 @@
 # OpenMCCellAverageProblem
 
-This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE. The crux
-is to identify a mapping between OpenMC cells and
+This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE. The crux is to identify a mapping between OpenMC cells and
 a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
-The data flow between OpenMC and MOOSE contains two major steps:
+The data flow contains two major steps:
 
 - Temperature and/or density field data on the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
   are volume-averaged and applied to the corresponding OpenMC cells.
 - Tallies are mapped from OpenMC into `CONSTANT MONOMIAL` fields on the
   [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
 
-The smallest possible input file to run OpenMC
-is shown below.
-The remainder of this page describes this syntax, plus more advanced settings.
+The smallest possible input file to run OpenMC is shown below.
+This page describes this syntax, plus more advanced settings.
 
 !listing /smallest_openmc_input.i
   id=openmc1
@@ -20,13 +18,11 @@ The remainder of this page describes this syntax, plus more advanced settings.
 
 ## Initializing Variables
 
-When coupling OpenMC to MOOSE, we first
-initialize MOOSE-type variables
+We first initialize
 ([MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html))
-needed to
-communicate OpenMC's solution with a general MOOSE application.
-Depending on the user settings,
-the following `CONSTANT MONOMIAL` variables will be added:
+to communicate OpenMC's solution with MOOSE. These variables will be viewable in
+the MOOSE output files (e.g., via Paraview).
+Depending on the user settings, the following `CONSTANT MONOMIAL` variables will be added:
 
 - Variable(s) representing the OpenMC tally(s)
 - Variable(s) representing the temperature to read into OpenMC. Temperature will be read
@@ -37,7 +33,7 @@ the following `CONSTANT MONOMIAL` variables will be added:
 - A variable (`cell_instance`) storing the mapping of OpenMC cell instances onto the mesh
 
 !alert tip
-These variables all have default names, but you can also control their names using the
+These variables have default names, but you can also control their names using the
 `temperature_variables`, `density_variables`, and `tally_name` parameters. If you want
 to see the names, run with `verbose = true` and tables will print out on initialization
 with this information.
@@ -46,8 +42,8 @@ with this information.
 You do not need to add/initialize ANY of these variables manually - it all happens behind the scenes!
 
 As an example, let's start with a complicated case first.
-Suppose our `[Problem]` block looks like the following. In this problem,
-we want to apply temperature feedback from four blocks (`fuel`, `cladding`, `water`, `helium`). We also want to apply density feedback, but only from two blocks
+Suppose our `[Problem]` block looks like the following.
+We want to apply temperature feedback from four blocks (`fuel`, `cladding`, `water`, `helium`). We also want to apply density feedback, but only from two blocks
 (`water` and `fluid`). Suppose we also want to keep separate track of
 different variables representing each of these physical fields, so we will want
 to read temperature from a variable named `temp0` in the `fuel` and `cladding` blocks, but from
@@ -150,7 +146,7 @@ Then Cardinal is instead building the following automatically for you:
 ## Cell to Element Mapping
 
 Next, a mapping from the elements in the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
-(i.e. the mesh in the `[Mesh]` block) is established to the OpenMC geometry.
+(i.e. the mesh in the `[Mesh]` block) is established to the OpenMC cell geometry.
 
 !alert note
 The OpenMC geometry is *always* specified in length units of centimeters.
@@ -160,13 +156,19 @@ See [#scaling] to learn how to couple OpenMC models to non-centimeter-based MOOS
 In the `[Mesh]` block, you should provide a mesh onto which OpenMC will write its
 tally values, as well as read temperature and density. This mesh is only used for
 reading/writing data, so there are no requirements on node continuity
-across elements. `OpenMCCellAverageProblem` will loop over all the elements
-and map each to an OpenMC cell according to the element centroid.
+across elements. We loop over all the elements
+and map each to an OpenMC cell according to the element centroid. As an example,
 [openmc_mesh] depicts an OpenMC geometry, a mesh on which temperature feedback is to be applied,
 and a visualization of the mapping from these elements to the OpenMC cells.
+There are no requirements on alignment of elements/cells or on preserving volumes -
+the OpenMC cells and mesh mirror elements do not need to be conformal. Elements
+that don't map to an OpenMC cell simply do not participate in the multiphysics
+coupling (and vice versa for the cells). This feature can be used to exclude regions
+such as reflectors from multiphysics feedback.
 
 !media nc.png
   id=openmc_mesh
+  style=width:70%;margin-left:auto;margin-right:auto
   caption=Illustration of OpenMC cells and the mapping to a mesh.
 
 !alert tip
@@ -176,16 +178,7 @@ on how to interpret these variables, see:
 [CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html)
 and [CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html).
 
-There are no requirements on alignment of elements/cells or on preserving volumes -
-the OpenMC cells and mesh mirror elements do not need to be conformal. Elements
-that don't map to an OpenMC cell simply do not participate in the multiphysics
-coupling (and vice versa for the cells). This feature can be used to exclude regions
-such as reflectors from multiphysics feedback.
-
-The `temperature_blocks` and `density_blocks` are used to indicate which
-blocks in the mesh mirror correspond to temperature and/or density feedback.
-Any mesh blocks which are excluded are ignored in the coupling.
-Despite this flexibility, the cell-to-element mapping should be established
+The cell-to-element mapping should be established
 with care. There are two general behavior patterns that are typically undesirable.
 In [openmc_coarser], consider the case where the
 `[Mesh]` has four equal-sized elements, each of volume $V$, while the OpenMC
@@ -194,7 +187,9 @@ the power produced by each OpenMC cell is $Q$, so that the total power of the Op
 domain is $3Q$. By nature of the centroid mapping, one OpenMC cell will map to
 a much larger region of space than the other two cells. Even though the fission
 power in each OpenMC cell is $Q$, the power density will differ by a factor of
-two once mapped to the `[Mesh]`.
+two once mapped to the `[Mesh]`. In practice, this might not have a detrimental
+or even noticeable effect on temperature solutions due to the smoothing nature
+of heat conduction, but you should be aware of it.
 
 !media openmc_coarser.png
   id=openmc_coarser
@@ -252,55 +247,49 @@ The cell "level" is the coordinate "level" in the OpenMC geometry to "stop at" f
 identifying the cell ID/instance pairs. Cell-based geometries can be constructed
 by nesting repeated universes/lattices at multiple locations in the domain, but
 you may not be interested in always coupling cells
-at the lowest level to MOOSE. For instance, with [!ac](TRISO) fuel pebbles, it is often
-desirable to apply temperature feedback to all the cells in a pebble at once
-(rather than separately to the thousands of [!ac](TRISO) particles). A second
-important consideration with feedback in geometries such as this arises from
-the simple pairing of each element to *one* OpenMC cell based on its centroid. You
-can imagine a situation where a [!ac](TRISO) pebble consists of 10,000 distinct
-cells, which is coupled to a sphere unstructured mesh with 300 elements. By mapping
-each element according to its centroid, a maximum of 300 OpenMC cells (out of the
-10,000) could possibly receive feedback.
-
-The `cell_level` and `lowest_cell_level` parameters
+at the lowest level to MOOSE. This feature was added to Cardinal specifically for
+TRISO applications, where heat conduction feedback is usually *not* explicitly
+resolving TRISO particles (instead, you'd prefer to set each fuel pebble
+or compact to a single temperature, requiring Cardinal to figure out the list
+of cells (TRISO layers, matrix) filling some higher-level cell (the pebble surface,
+the compact cylinder surface). The `cell_level` and `lowest_cell_level` parameters
 indicate the coordinate level (relative to 0, the highest level in the geometry)
-at which to "stop" the find cell routine. In other words, if a spherical cell
-is defined at level 2, and a [!ac](TRISO) particle lattice fills that cell (i.e. at level 3), then
-`cell_level` should be set to 2 in order to apply homogenized pebble feedback,
-and to 3 in order to apply individual [!ac](TRISO) feedback.
+at which to "stop" the find cell routine.
 
 !alert tip
 You can visualize your OpenMC model at different geometry hierarchies using
-OpenMC [slice plots](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.Plot.html)
+OpenMC [plots](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.Plot.html)
 and setting the `level`.
 
+As an example, the figure below shows a TRISO-fueled [!ac](HTGR) fuel assembly
+from the [gas assembly](https://cardinal.cels.anl.gov/tutorials/openmc_fluid.html)
+tutorial. This image shows the geomtery, colored by cell, at different levels in the
+geometry. If we wanted to apply a single temperature value to all the TRISO
+particles nested inside a compact, we would set `cell_level = 1` for this problem.
+If we chose `cell_level = 2`, we'd be trying to set a unique temperature
+for every individual TRISO particle. If we chose `cell_level = 3`, we'd be trying
+to set a unique temperature for every layer in every TRISO particle.
+
+!media triso_map.png
+  id=triso_map
+  caption=Cell level concept, using a TRISO assembly as an example
+  style=width:100%;margin-left:auto;margin-right:auto
+
 In many cases, the coordinate levels on which you would like to couple OpenMC
-to MOOSE are not the same everywhere in the OpenMC geometry. Consider
-the case of a reactor core constructed with lattices of fuel bundles, each of which
-is itself a lattice of pincells. To couple
-on the pincell level, the `cell_level` would be set to 2 (level 0 is
-the highest level, level 1 is the bundle lattice, and level 2 is the pincell lattice).
-However, the model might contain a core
-vessel on level 0 that you would like to couple
-without having to double-nest it below the root universe. To allow coupling across multiple
-coordinate levels, use the `lowest_cell_level`
-parameter in place of the `cell_level` parameter. When set, this
-indicates that coupling should be performed on the specified level *except* in
-regions where there are no cells at that level. In other words, for the previous
-full core example, by setting `lowest_cell_level = 2`, coupling will be done
-on coordinate level 2 unless there are no cells at that level. This means that in the
-vessel region, coupling will be performed on coordinate level 0 because that is the
-locally "deepest" coordinate level.
+to MOOSE are not the same everywhere in the OpenMC geometry. This was the
+case in [triso_map] (levels 2 and 3 only exist in parts of the domain). You can use
+`lowest_cell_level` to
+indicate that coupling should be performed on the specified level *except* in
+regions where there are no cells at that level.
 
 ## Adding Tallies
 
 This class automatically creates tallies with scores specified by the user. There
-are two spatial options:
+are two spatial options, controlled by `tally_type`:
 
 1. cell tallies
 2. libMesh unstructured mesh tallies
 
-The tally type is specified with the `tally_type` parameter.
 The tally is normalized according to the specified `power` or `source_strength`
 (depending on whether you are running a $k$-eigenvalue or fixed-source problem). By default,
 the normalization is done against a global tally added over the entire
@@ -324,10 +313,7 @@ You can customize the type of score that OpenMC uses for its tally with the
 - `damage_energy`: damage energy production
 
 For more information on the specific meanings of these various scores,
-please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html).
-
-Cardinal transforms these tallies into "physically meaningful" units.
-A full list of the tally units in OpenMC can be found [here](https://docs.openmc.org/en/stable/usersguide/tallies.html). For the scores supported in Cardinal, the [tally_units] compares the units from OpenMC
+please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). [tally_units] compares the units from OpenMC
 and the units of the AuxVariables created by Cardinal. Note that for all area or
 volume units in [tally_units], that those units match whatever unit is used in the `[Mesh]`.
 
@@ -362,7 +348,7 @@ of W/m$^3$).
 !media sphere_compare.png
   id=sphere_compare
   caption=Illustration of OpenMC particle transport geometry and the mapping of OpenMC cells to a user-supplied "mesh mirror."
-  style=width:60%;margin-left:auto;margin-right:auto
+  style=width:40%;margin-left:auto;margin-right:auto
 
 However, for some other tallies (e.g. the 'flux' tallies),
 dividing by the `[Mesh]` volume indicates instead that we're normalizing so as
@@ -402,12 +388,8 @@ geometries that consist of many repeated geometry units, such as pebble bed and 
 systems.
 
 !alert note
-The `mesh_template` and the mesh translations must be in the same units as the
-`[Mesh]` block.
-
 At present, unstructured mesh tallies are copied directly to the `[Mesh]` (without
-doing any type of nearest-node lookup). Therefore, there is an important limitation
-when using unstructured *file-based* mesh tallies.
+doing any type of nearest-node lookup).
 Suppose the mesh template consists of a mesh for a pincell with $N$ elements
 that you have translated to 3 different locations, giving a total of $3N$ tally
 bins. Because a direct copy is used to transfer the mesh tally results to the `[Mesh]`,
@@ -415,92 +397,11 @@ the first $3N$ elements in the `[Mesh]` must exactly match the $3N$ elements in
 the mesh tally (except for a possible mesh scaling, as described in [#scaling]).
 This equivalence is required for the direct copy to be accurate - otherwise, the
 mesh tally results would be transferred to incorrect regions of space.
-Assuming the mesh is set up as follows:
-
-!listing
-[Mesh]
-  [single_pin]
-    type = FileMesh
-    file = pincell.e
-  []
-  [combine]
-    type = CombinerGenerator
-    inputs = single_pin
-    positions = '1.0 0.0 0.0
-                 3.0 0.0 0.0
-                 5.0 0.0 0.0'
-  []
-  [some_other_part_of_mesh_mirror]
-    type = FileMesh
-    file = fluid_and_reflector.e
-  []
-[]
-
-Then the following setup for the mesh tallies would be correct because the element
-ordering of the tally bins would match their corresponding regions on the `[Mesh]`.
-Because meshes for each phase (solid pins, fluid, other structural regions)
-are usually created separately anyways, this requirement has in practice not been
-a significant limitation.
-
-!listing
-[Problem]
-  type = OpenMCCellAverageProblem
-  power = 100.0
-  temperature_blocks = 1
-  cell_level = 0
-  tally_type = mesh
-  mesh_template = pincell.e
-  mesh_translations = '1.0 0.0 0.0
-                       3.0 0.0 0.0
-                       5.0 0.0 0.0'
-[]
-
-## Calculation Methodology
-
-`OpenMCCellAverageProblem` inherits from the [ExternalProblem](https://mooseframework.inl.gov/source/problems/ExternalProblem.html)
-class. For each time step, the calculation proceeds according to the `ExternalProblem::solve()` function.
-Data gets sent into OpenMC, OpenMC runs a "time step"
-(a $k$-eigenvalue or fixed source calculation), and data gets extracted from OpenMC.
-`OpenMCCellAverageProblem` defines the `syncSolutions` and `externalSolve` methods.
-Each of these functions will now be described.
-
-!listing /framework/src/problems/ExternalProblem.C
-  re=void\sExternalProblem::solve.*?^}
-
-#### External Solve
-  id=solve
-
-The actual solve of a "time step" by OpenMC is peformed within the
-`externalSolve` method, which runs a $k$-eigenvalue or fixed source
-calculation (depending on the run mode of OpenMC).
-
-!listing language=cpp
-void OpenMCCellAverageProblem::externalSolve()
-{
-  int err = openmc_run();
-  if (err)
-    mooseError(openmc_err_msg);
-}
-
-#### Transfers to OpenMC
-
-In the `TO_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html) representing temperature, density, and other
-coupled fields
-are read from the `[Mesh]` and volume-averaged over all elements corresponding to cell
-$i$ and then applied to cell $i$.
-
-#### Transfers from OpenMC
-
-In the `FROM_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
-are written to on the `[Mesh]` by writing a tally. For cell tallies,
-all elements that mapped to cell $i$ are written with the same cell
-tally value. For mesh tallies, each tally bin is written to the corresponding
-element in the `[Mesh]`.
 
 ## Other Features
 
 While this class mainly facilitates data transfers to and from OpenMC, a number of
-other features are implemented. These are described in this section.
+other features are implemented.
 
 #### CAD Geometry Skinning
   id=skinning
@@ -510,61 +411,12 @@ constant temperature and a single constant density in each cell. For CSG geometr
 the user needs to manually set up sub-divisions in the geometry in order to capture
 spatial variation in temperature and density.
 For DAGMC geometries, you can instead optionally re-generate the OpenMC cells after
-each Picard iteration according to contours in temperature and/or density. With this approach, the OpenMC model can receive spatially-varying temperature and density without the user needing to manually subdivide regions of space *a priori*.
+each Picard iteration according to contours in temperature and/or density. With this approach, the OpenMC model can receive spatially-varying temperature and density without the user needing to manually subdivide regions of space *a priori*. To use this feature,
+set the `skinner` parameter to the name of a [MoabSkinner](/userobjects/MoabSkinner.md) user object. For more information, consult the documentation for [MoabSkinner](/userobjects/MoabSkinner.md).
 
 !alert note
 This skinning feature is only available for DAGMC geometries for which the `[Mesh]`
 obeys the same material boundaries in the starting `.h5m` file.
-
-To use this feature, provide the `skinner` user
-object parameter, of type [MoabSkinner](/userobjects/MoabSkinner.md). After each OpenMC
-run, this object will group elements in the `[Mesh]` into "bins" for temperature, density,
-and/or subdomain (mesh block). A new DAGMC cell will then be created by "skinning" the mesh
-elements according to the boundaries between the unique bin regions.
-For example, suppose the starting DAGMC model consists of two
-cells, each with a different material, as shown in [dagmc_model].
-
-!media dagmc_model.png
-  id=dagmc_model
-  style=width:50%;margin-left:auto;margin-right:auto
-  caption=Example illustration of a DAGMC model before a skinning operation is applied.
-
-Suppose this geometry is skinned with 4 temperature bins between 500 K and 700 K.
-The input syntax would look something like
-
-!listing test/tests/neutronics/dagmc/mesh_tallies/openmc.i
-  start=Problem
-  end=Postprocessors
-
-Elements will then be categorized as falling into one of these bins:
-
-- Bin 0, for $500\ K \leq T< 550\ K$.
-- Bin 1, for $550\ K \leq T< 600\ K$.
-- Bin 2, for $600\ K \leq T< 650\ K$.
-- Bin 3, for $650\ K \leq T\leq 700\ K$.
-
-The geometry will also be skinned according to the subdomain IDs, which align with the
-materials in the original DAGMC geometry. For this problem with two materials, elements
-will be categorized according to falling into one of two subdomain bins:
-
-- Bin 0, for elements in material A
-- Bin 1, for elements in material B
-
-Then, if the following temperature distribution is sent to OpenMC, the DAGMC geometry
-will be re-skinned into 8 unique cells, as shown in [skinning]. Depending on the
-temperature and material definitions, the problem would be skinned into more or less
-cells, depending on which temperatures are observed and whether those element "clumps"
-are contiguous or disjoint from one another.
-A "graveyard" volume is automatically built around the new DAGMC model between two bounding boxes. This
-region is used to apply vacuum boundary conditions by killing any particles that
-enter this region.
-Once the geometry has been re-created, the rest of the coupling proceeds as normal -
-the average temperature and density of each new DAGMC cell is set as a volume-average
-of the elements corresponding to each cell.
-
-!media skinning.png
-  id=skinning
-  caption=Example illustration of a DAGMC model after skinning
 
 #### Mesh Scaling
   id=scaling
@@ -679,19 +531,9 @@ settings directly from the Cardinal input file:
 For all of the above, a setting in the Cardinal input file will override
 any settings in the OpenMC XML files.
 
-For the `openmc_verbosity` parameter, because the verbosity setting
-is used in the call to `openmc_init` (at which point `OpenMCCellAverageProblem` doesn't
-exist yet), we cannot change the verbosity during *initialization*
-through the Cardinal input files. However, setting `openmc_verbosity` will affect the
-verbosity of all parts of OpenMC's simulation aside from initialization -
-transporting of particles, accumulating tallies, and so on.
-
 #### Outputting the OpenMC Solution
 
-This class provides
-minimal capabilities to extract other aspects of the OpenMC solution directly
-onto the mesh mirror for postprocessing or visualization. A list of parameters to
-output is provided to the `output` parameter:
+Certain aspects of the OpenMC solution can be output as auxiliary variables to the mesh:
 
 - `unrelaxed_tally`: unrelaxed tally; this will append `_raw` to the tally name and output to the mesh mirror
 - `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation; this will append `_std_dev` to the tally and output to the mesh mirror

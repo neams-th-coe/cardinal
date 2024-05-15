@@ -119,14 +119,16 @@ OpenMCCellAverageProblem::validParams()
                                "at present, this mesh must exactly match the mesh used in the "
                                "[Mesh] block because a one-to-one copy "
                                "is used to get OpenMC's tally results on the [Mesh].");
-  params.addParam<std::vector<Point>>("mesh_translations",
-                                      "Coordinates to which each mesh template should be "
-                                      "translated, if multiple unstructured meshes "
-                                      "are desired.");
-  params.addParam<std::vector<FileName>>("mesh_translations_file",
-                                         "File providing the coordinates to which each mesh "
-                                         "template should be translated, if multiple "
-                                         "unstructured meshes are desired.");
+  params.addParam<std::vector<Point>>(
+      "mesh_translations",
+      "Coordinates to which each mesh template should be "
+      "translated, if multiple unstructured meshes "
+      "are desired. Units must match those used to define the [Mesh].");
+  params.addParam<std::vector<FileName>>(
+      "mesh_translations_file",
+      "File providing the coordinates to which each mesh "
+      "template should be translated, if multiple "
+      "unstructured meshes are desired. Units must match those used to define the [Mesh]");
 
   MultiMooseEnum tally_trigger("rel_err none");
   params.addParam<MultiMooseEnum>(
