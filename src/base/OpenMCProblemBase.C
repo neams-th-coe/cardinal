@@ -389,9 +389,16 @@ OpenMCProblemBase::setCellTemperature(const int32_t & index,
 
     // special error message if cell has zero instances
     if (cellHasZeroInstances(cell_info))
-      mooseError("Failed to set the temperature for cell " + printCell(cell_info) + ". This cell has zero instances, meaning it is probably a cell created within a lattice.outer universe. If you want to obtain temperature feedback here, you will need to widen your lattice to have universes covering all of the space you want temperature feedback.\n\nFor more information, see: https://github.com/openmc-dev/openmc/issues/551.");
+      mooseError("Failed to set the temperature for cell " + printCell(cell_info) +
+                 ". This cell has zero instances, meaning it is probably a cell created within a "
+                 "lattice.outer universe. If you want to obtain temperature feedback here, you "
+                 "will need to widen your lattice to have universes covering all of the space you "
+                 "want temperature feedback.\n\nFor more information, see: "
+                 "https://github.com/openmc-dev/openmc/issues/551.");
 
-    mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " + Moose::stringify(T) + " (K), OpenMC reported:\n\n", std::string(openmc_err_msg) + "\n\n" +
+    mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
+                   Moose::stringify(T) + " (K), OpenMC reported:\n\n",
+               std::string(openmc_err_msg) + "\n\n" +
                    "If you are trying to debug a model setup, you can set 'initial_properties = "
                    "xml' to use the initial temperature and density in the OpenMC XML files for "
                    "OpenMC's first run.");
@@ -464,9 +471,16 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   {
     // special error message if cell has zero instances
     if (cellHasZeroInstances(cell_info))
-      mooseError("Failed to set the density for cell " + printCell(cell_info) + ". This cell has zero instances, meaning it is probably a cell created within a lattice.outer universe. If you want to obtain density feedback here, you will need to widen your lattice to have universes covering all of the space you want density feedback.\n\nFor more information, see: https://github.com/openmc-dev/openmc/issues/551.");
+      mooseError("Failed to set the density for cell " + printCell(cell_info) +
+                 ". This cell has zero instances, meaning it is probably a cell created within a "
+                 "lattice.outer universe. If you want to obtain density feedback here, you will "
+                 "need to widen your lattice to have universes covering all of the space you want "
+                 "density feedback.\n\nFor more information, see: "
+                 "https://github.com/openmc-dev/openmc/issues/551.");
 
-    mooseError("In attempting to set cell " + printCell(cell_info) + " to density " + Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n", std::string(openmc_err_msg) + "\n\n" +
+    mooseError("In attempting to set cell " + printCell(cell_info) + " to density " +
+                   Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n",
+               std::string(openmc_err_msg) + "\n\n" +
                    "If you are trying to debug a model setup, you can set 'initial_properties = "
                    "xml' to use the initial temperature and density in the OpenMC XML files for "
                    "OpenMC's first run.");
