@@ -106,9 +106,9 @@ Rotate {{0, 0, 1}, {0, 0, 0}, 5*theta1} {
   Duplicata { Curve{5}; Curve{6}; Curve{4}; Curve{8}; Curve{12}; Curve{2}; Curve{7}; Curve{9}; Curve{3}; Curve{1}; Curve{11}; Curve{10}; }}
 
 // the goal is to study the variation in the pressure drop with respect to height and the azimuthal direction
-// to ultimately develop a momentum source (based on Hu and Fanning, 2013, Nuclear Engineering and Design)
+// to ultimately develop a momentum source based on hu and fanning 13 nuc eng and design
 // that can be used to model the impact of duct movement with structural components without directly meshing
-// the load pads in an FSI simulation, which can create mesh quality issues when approaching contact.
+// the load pads in an fsi simulation, which can create mesh quality issues when approaching contact.
 Translate {0, displ, 0} {
   Curve{1}; Point{2}; Curve{18}; Point{41}; Curve{22}; Point{58}; Curve{30}; Curve{34}; Point{87}; Point{104}; Curve{42}; Point{133}; Curve{46}; Point{150}; Curve{54}; Point{179}; Curve{58}; Point{196}; Curve{66}; Curve{70}; Point{225}; Point{3}; Curve{2}; Point{1}; Curve{16}; Curve{19}; Point{33}; Curve{28}; Point{45}; Point{79}; Curve{31}; Point{91}; Curve{40}; Point{125}; Curve{43}; Curve{52}; Point{137}; Point{171}; Curve{55}; Point{183}; Curve{64}; Point{217}; Curve{67}; Point{14}; Curve{8}; Point{12}; Curve{7}; Point{13};
 }
