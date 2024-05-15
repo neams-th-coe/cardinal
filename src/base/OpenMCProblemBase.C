@@ -48,7 +48,9 @@ OpenMCProblemBase::validParams()
   params.addRangeCheckedParam<unsigned int>(
       "openmc_verbosity",
       "openmc_verbosity >= 1 & openmc_verbosity <= 10",
-      "OpenMC verbosity level; this overrides the setting in the XML files. Note that we cannot influence the verbosity of OpenMC's initialization routines, since these are run before Cardinal is initialized.");
+      "OpenMC verbosity level; this overrides the setting in the XML files. Note that we cannot "
+      "influence the verbosity of OpenMC's initialization routines, since these are run before "
+      "Cardinal is initialized.");
   params.addRangeCheckedParam<unsigned int>(
       "inactive_batches",
       "inactive_batches >= 0",
