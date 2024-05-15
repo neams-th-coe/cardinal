@@ -42,6 +42,8 @@ CardinalProblem::validParams()
   params.suppressParameter<unsigned int>("null_space_dimension");
   params.suppressParameter<unsigned int>("transpose_null_space_dimension");
   params.suppressParameter<bool>("immediately_print_invalid_solution");
+  params.suppressParameter<bool>("identify_variable_groups_in_nl");
+  params.suppressParameter<std::vector<LinearSystemName>>("linear_sys_names");
 
   return params;
 }
