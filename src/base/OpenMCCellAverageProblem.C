@@ -122,11 +122,11 @@ OpenMCCellAverageProblem::validParams()
   params.addParam<std::vector<Point>>("mesh_translations",
                                       "Coordinates to which each mesh template should be "
                                       "translated, if multiple unstructured meshes "
-                                      "are desired.");
+                                      "are desired. Units must match those used to define the [Mesh].");
   params.addParam<std::vector<FileName>>("mesh_translations_file",
                                          "File providing the coordinates to which each mesh "
                                          "template should be translated, if multiple "
-                                         "unstructured meshes are desired.");
+                                         "unstructured meshes are desired. Units must match those used to define the [Mesh]");
 
   MultiMooseEnum tally_trigger("rel_err none");
   params.addParam<MultiMooseEnum>(

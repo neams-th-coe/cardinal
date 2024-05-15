@@ -311,8 +311,6 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
 
     hexagon_volume = reactor_height * math.sqrt(3) / 2.0 * bundle_pitch**2
     coolant_channel_volume = math.pi * coolant_channel_diam**2 / 4.0 * reactor_height
-    print('Volume of fuel bundle (m3): ', hexagon_volume / (100**3))
-    print('Volume of solid regions in fuel bundle (m3): ', (hexagon_volume - 108 * coolant_channel_volume) / (100**3))
 
     graphite_outer_cell = openmc.Cell(fill=m_graphite_matrix)
     graphite_outer_cell.temperature = T
@@ -406,8 +404,7 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     plot3.pixels   = plot2.pixels
     plot3.color_by = 'cell'
 
-    #model.plots = openmc.Plots([plot1, plot2, plot3])
-    model.plots = openmc.Plots([plot2])
+    model.plots = openmc.Plots([plot1, plot2, plot3])
 
     return model
 
