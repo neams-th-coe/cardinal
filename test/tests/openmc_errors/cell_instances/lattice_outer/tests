@@ -1,0 +1,7 @@
+[Tests]
+  type = RunException
+  input = temp.i
+  expect_err = "Failed to set the temperature for cell id 2, instance 0 \(of 0\). This cell has zero instances,"
+  requirement = "The system shall error if attempting to pass temperature feedback to a lattice outer universe due to lack of instance support in OpenMC"
+  required_objects = 'OpenMCCellAverageProblem'
+[]
