@@ -1,0 +1,45 @@
+#[OCCA]
+#backend = CUDA
+#deviceNumber = LOCAL-RANK
+
+[GENERAL]
+#verbose = true
+#startFrom = "restart_N3.fld"
+
+polynomialOrder = 6
+
+#stopAt = endTime
+#endTime = 1280
+
+stopAt = numSteps
+numSteps= 1
+
+dt = 2.0e-3
+#dt = targetCFL=0.48+ max=1e-2 + initial=1e-4
+
+timeStepper = tombo2
+#subCyclingSteps = 2
+
+writeControl = simulationTime
+writeInterval = 2
+
+regularization = hpfrt + nModes=1 + scalingCoeff=10
+constFlowRate = meanVelocity=1.0 + direction=Z
+
+[MESH]
+file="mesh.re2"
+
+[PRESSURE]
+residualTol = 1e-04
+#initialGuess = projectionAconj+nVector=10
+
+[VELOCITY]
+#solver = pfcg+block
+boundaryTypeMap = wall, wall
+
+density = 1.0
+viscosity = -347.395
+residualTol = 1e-06
+
+[TEMPERATURE]
+solver = none

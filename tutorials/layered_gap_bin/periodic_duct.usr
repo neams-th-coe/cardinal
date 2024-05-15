@@ -1,0 +1,89 @@
+c-----------------------------------------------------------------------
+      subroutine userchk
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine useric (ix,iy,iz,ieg)
+
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+
+      ux   = 0.000
+      uy   = 0.000
+      uz   = 1.000
+
+      temp = 0.
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2
+      implicit none
+      include 'SIZE'
+      include 'TOTAL'
+
+      real inlet_area, wet_peri, ptmin(3), ptmax(3), norm(3)
+      real emap_area
+
+      integer ntot, iel, ifc, bid
+      real inlet_area
+
+      real ones(lx1,ly1,lz1,lelv)
+
+c     the inlet sideset is 3, but it will be set to zero (along with 4,
+c     the outlet) later for periodicity. We can calculate the area of this
+c     sideset by using Nek5000's internal subroutines
+
+      ntot = lx1*ly1*lz1*nelt  ! total local nodes
+      call rone(ones,ntot)     ! initialises `ones` with values
+
+      inlet_area = 0
+
+      do iel=1,nelt
+      do ifc=1,2*ndim
+       if (boundaryID(ifc,iel).eq.3) then
+         inlet_area = inlet_area + facint_v(ones,area,ifc,iel)
+       endif
+      enddo
+      enddo
+
+      dh = 8.758793E-03 ! hydraulic diameter
+
+      if (nio.eq.0) write(*,*) "Inlet area:", inlet_area
+      if (nio.eq.0) write(*,*) "Inlet ndim area:", inlet_area/dh/dh
+
+      do iel=1,nelt
+      do ifc=1,2*ndim
+       if (boundaryID(ifc,iel).ge.3) boundaryID(ifc,iel) = 0
+      enddo
+      enddo
+
+
+c     non-dimensionalising the mesh
+      call cmult(xm1,1.0/dh,ntot)
+      call cmult(ym1,1.0/dh,ntot)
+      call cmult(zm1,1.0/dh,ntot)
+
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
