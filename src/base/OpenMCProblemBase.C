@@ -131,7 +131,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     case openmc::RunMode::PLOTTING:
     case openmc::RunMode::PARTICLE:
     case openmc::RunMode::VOLUME:
-      mooseError("Running OpenMC in plotting, particle, and volume modes is not supported through Cardinal! Please just run using the OpenMC executable (e.g., openmc --plot for plot mode).");
+      mooseError("Running OpenMC in plotting, particle, and volume modes is not supported through "
+                 "Cardinal! Please just run using the OpenMC executable (e.g., openmc --plot for "
+                 "plot mode).");
     default:
       mooseError("Unhandled openmc::RunMode enum in OpenMCInitAction!");
   }
