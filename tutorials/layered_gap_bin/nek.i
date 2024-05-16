@@ -44,7 +44,14 @@
   [pressure_planar_integral]
     type = NekBinnedPlaneIntegral
     bins = 'z_bins'
-    field = unity #pressure
+    field = pressure
+    gap_thickness = 20.0
+    map_space_by_qp = true
+  []
+  [unity_planar_integral]
+    type = NekBinnedPlaneIntegral
+    bins = 'z_bins'
+    field = unity
     gap_thickness = 20.0
     map_space_by_qp = true
   []

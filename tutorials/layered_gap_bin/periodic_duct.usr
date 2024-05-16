@@ -63,7 +63,7 @@ c     sideset by using Nek5000's internal subroutines
       if (nio.eq.0) write(*,*) "Inlet area:", inlet_area
       if (nio.eq.0) write(*,*) "Inlet ndim area:", inlet_area/dh/dh
 
-      do iel=1,nelt
+      do iel=1,nelt ! removing periodic sidesets
       do ifc=1,2*ndim
        if (boundaryID(ifc,iel).ge.3) boundaryID(ifc,iel) = 0
       enddo

@@ -70,7 +70,7 @@ We recommend quickly reading this documentation before proceeding.
 5. [Multiscale coupling to SAM](tutorials/sam_coupling.md)
 6. [Forward uncertainty quantification](tutorials/nekrs_stochastic.md)
 7. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
-8. [Postprocessing/using the Layered Bin Gap for planar averages](tutorials/layered_bin_gap_averaging.md)
+8. [Postprocessing/using the Layered Bin Gap for planar averages](tutorials/layered_gap_bin.md)
 
 ## Tutorials for OpenMC
   id=openmc
