@@ -19,14 +19,7 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCCellAverageProblem.h"
-#include "AuxiliarySystem.h"
 #include "DelimitedFileReader.h"
-#include "TimedPrint.h"
-#include "MooseUtils.h"
-#include "MooseMeshUtils.h"
-#include "NonlinearSystemBase.h"
-#include "Conversion.h"
-#include "VariadicTable.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"

@@ -19,7 +19,6 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSStandaloneProblem.h"
-#include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekRSStandaloneProblem);
 

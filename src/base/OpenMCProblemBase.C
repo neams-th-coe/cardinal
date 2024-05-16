@@ -19,8 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCProblemBase.h"
-#include "NonlinearSystem.h"
-#include "AuxiliarySystem.h"
 #include "CardinalAppTypes.h"
 
 InputParameters

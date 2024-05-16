@@ -19,6 +19,8 @@
 #pragma once
 
 #include "MooseApp.h"
+#include "VariadicTable.h"
+#include "AuxiliarySystem.h"
 #include "UserErrorChecking.h"
 
 class CardinalApp : public MooseApp
