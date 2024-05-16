@@ -27,7 +27,6 @@
 #include "NonlinearSystemBase.h"
 #include "Conversion.h"
 #include "VariadicTable.h"
-#include "UserErrorChecking.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"

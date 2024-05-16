@@ -20,7 +20,6 @@
 
 #include "NekRSStandaloneProblem.h"
 #include "NekInterface.h"
-#include "UserErrorChecking.h"
 
 registerMooseObject("CardinalApp", NekRSStandaloneProblem);
 

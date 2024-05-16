@@ -27,7 +27,6 @@
 #include "MooseUtils.h"
 #include "CardinalUtils.h"
 #include "DisplacedProblem.h"
-#include "UserErrorChecking.h"
 
 #include "nekInterface/nekInterfaceAdapter.hpp"
 

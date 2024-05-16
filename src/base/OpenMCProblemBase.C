@@ -21,7 +21,6 @@
 #include "OpenMCProblemBase.h"
 #include "NonlinearSystem.h"
 #include "AuxiliarySystem.h"
-#include "UserErrorChecking.h"
 #include "CardinalAppTypes.h"
 
 InputParameters
@@ -100,7 +99,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   // ensure that unsupported run modes are not used, while also checking for
   // necessary/unused input parameters for the valid run modes
   _run_mode = openmc::settings::run_mode;
-  switch (run_mode)
+  switch (_run_mode)
   {
     case openmc::RunMode::EIGENVALUE:
     {

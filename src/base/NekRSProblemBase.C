@@ -27,7 +27,6 @@
 #include "MooseUtils.h"
 #include "CardinalUtils.h"
 #include "VariadicTable.h"
-#include "UserErrorChecking.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"

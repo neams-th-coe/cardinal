@@ -19,6 +19,7 @@
 #pragma once
 
 #include "MooseApp.h"
+#include "UserErrorChecking.h"
 
 class CardinalApp : public MooseApp
 {
