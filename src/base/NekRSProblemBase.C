@@ -19,15 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSProblemBase.h"
-#include "Moose.h"
-#include "AuxiliarySystem.h"
-#include "TimeStepper.h"
-#include "NekInterface.h"
-#include "TimedPrint.h"
-#include "MooseUtils.h"
 #include "CardinalUtils.h"
-#include "VariadicTable.h"
-#include "UserErrorChecking.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"

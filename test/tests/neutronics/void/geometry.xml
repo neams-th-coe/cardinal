@@ -1,9 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<geometry>
-  <cell id="1" material="void" region="-1" universe="1" />
-  <cell id="2" material="1" region="-2" universe="1" />
-  <cell id="3" material="1" region="-3" universe="1" />
-  <surface boundary="vacuum" coeffs="0.0 0.0 0.0 1.5" id="1" type="sphere" />
-  <surface boundary="vacuum" coeffs="0.0 0.0 4.0 1.5" id="2" type="sphere" />
-  <surface boundary="vacuum" coeffs="0.0 0.0 8.0 1.5" id="3" type="sphere" />
-</geometry>

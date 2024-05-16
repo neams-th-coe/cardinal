@@ -19,10 +19,12 @@
 #pragma once
 
 #include "CardinalProblem.h"
+#include "NekInterface.h"
 #include "NekTimeStepper.h"
 #include "NekScalarValue.h"
 #include "NekRSMesh.h"
 #include "Transient.h"
+#include "TimeStepper.h"
 
 #include <memory>
 #include "inipp.hpp"

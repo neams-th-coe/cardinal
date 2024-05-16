@@ -6,11 +6,10 @@
     requirement = 'The system shall generate a mesh for a pincell.'
   []
   [skip_water]
-    type = RunException
+    type = RunApp
     input = openmc.i
-    cli_args = '--error'
-    expect_err = "Skipping multiphysics feedback for 1 OpenMC cells!"
-    requirement = "The system shall warn that we are skipping feedback for one cell in a partially-coupled DAGMC model."
+    cli_args = 'Problem/batches=100 Problem/inactive_batches=50 Executioner/num_steps=1 Problem/particles=500'
+    requirement = "The system shall run DAGMC on a pincell."
     required_objects = 'MoabSkinner'
   []
   [coupled]
