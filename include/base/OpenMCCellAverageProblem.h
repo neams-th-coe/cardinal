@@ -685,6 +685,20 @@ protected:
   void fillMeshTranslations();
 
   /**
+   * Check if a mapped location is in the outer universe of a lattice
+   * @param[in] level lattice level
+   * @return whether the location is in the outer universe
+  */
+  bool inLatticeOuter(int level) const;
+
+  /**
+   * Report an error for a mapped location in an outer universe of a lattice
+   * @param[in] c Mapped location
+   * @param[in] level level of the mapped cell
+  */
+  void latticeOuterError(const Point & c, int level) const;
+
+  /**
    * Find the OpenMC cell at a given point in space
    * @param[in] point point
    * @return whether OpenMC reported an error

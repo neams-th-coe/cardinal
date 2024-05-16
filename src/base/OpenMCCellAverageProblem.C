@@ -25,6 +25,7 @@
 #include "openmc/cross_sections.h"
 #include "openmc/dagmc.h"
 #include "openmc/error.h"
+#include "openmc/lattice.h"
 #include "openmc/particle.h"
 #include "openmc/message_passing.h"
 #include "openmc/nuclide.h"
@@ -2117,6 +2118,12 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // (so we can just set zero).
     auto level = requires_mapping ? getCellLevel(c) : 0;
 
+    // ensure the cell isn't in a unvierse being used as the "outer"
+    // universe of a lattice in the OpenMC model
+    if (requires_mapping && inLatticeOuter(level)) {
+      latticeOuterError(c, level);
+    }
+
     switch (phase)
     {
       case coupling::density_and_temperature:
@@ -2497,8 +2504,41 @@ OpenMCCellAverageProblem::initializeTallies()
       for (int score = 0; score < _tally_score.size(); ++score)
         t->triggers_.push_back({triggerMetric((*_tally_trigger)[score]),
                                 _tally_trigger_threshold[score],
-                                false,
                                 score});
+}
+
+void
+OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const {
+  const auto& cell = openmc::model::cells[_particle.coord(level).cell];
+  std::stringstream msg;
+  msg << "The point " << c << " mapped to cell " << cell->id_ << " in the OpenMC model is inside a universe "
+  "used as the 'outer' universe of a lattice. All cells used for mapping in lattices must be explicitly set "
+  "on the 'universes' attribute of lattice objects. ";
+  mooseError(msg.str());
+}
+
+bool
+OpenMCCellAverageProblem::inLatticeOuter(int level) const {
+
+  int max_level = std::min(_particle.n_coord() - 1, level);
+
+  for (int i = 0; i < max_level; ++i)
+  {
+    const auto& coord = _particle.coord(i);
+
+    if (coord.lattice == openmc::C_NONE)
+      continue;
+
+    const auto& lat = openmc::model::lattices[coord.lattice];
+
+    // if the lattice's outer unvierse isn't set or the coordinate isn't in the outer universe,
+    // move on
+    if (lat->outer_ == openmc::NO_OUTER_UNIVERSE || lat->outer_ != coord.universe)
+      continue;
+
+    return false;
+  }
+  return true;
 }
 
 bool
