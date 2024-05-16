@@ -19,13 +19,6 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSSeparateDomainProblem.h"
-#include "Moose.h"
-#include "AuxiliarySystem.h"
-#include "TimeStepper.h"
-#include "NekInterface.h"
-#include "TimedPrint.h"
-#include "MooseUtils.h"
-#include "CardinalUtils.h"
 
 registerMooseObject("CardinalApp", NekRSSeparateDomainProblem);
 

@@ -5,12 +5,11 @@
     cli_args = '--mesh-only'
     requirement = "The system shall create the mesh for the OpenMC and solid domains."
   []
-  [skip_gap_and_water]
-    type = RunException
+  [openmc]
+    type = RunApp
     input = openmc.i
-    cli_args = '--error'
-    expect_err = "Skipping multiphysics feedback for 80 OpenMC cells!"
-    requirement = "The system shall warn about uncoupled OpenMC cells in the gap and water"
+    cli_args = 'Problem/particles=500 Problem/inactive_batches=50 Problem/batches=100 Executioner/num_steps=1'
+    requirement = "The system shall run OpenMC on an LWR pincell"
     required_objects = 'OpenMCCellAverageProblem'
   []
   [lwr_pincell]

@@ -19,15 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekRSProblem.h"
-#include "Moose.h"
-#include "AuxiliarySystem.h"
-#include "TimeStepper.h"
-#include "NekInterface.h"
-#include "TimedPrint.h"
-#include "MooseUtils.h"
-#include "CardinalUtils.h"
 #include "DisplacedProblem.h"
-#include "UserErrorChecking.h"
 
 #include "nekInterface/nekInterfaceAdapter.hpp"
 
@@ -44,9 +36,7 @@ NekRSProblem::validParams()
                         true,
                         "Whether a heat source will be applied to the NekRS domain. "
                         "We allow this to be turned off so that we don't need to add an OCCA "
-                        "source kernel if we know the "
-                        "heat source in the NekRS domain is zero anyways (such as if NekRS only "
-                        "solves for the fluid and we have solid fuel).");
+                        "source kernel if we know the heat source in the NekRS domain is zero.");
 
   params.addRangeCheckedParam<Real>("normalization_abs_tol", 1e-8, "normalization_abs_tol > 0",
     "Absolute tolerance for checking if the boundary heat flux and volumetric heat sources "
