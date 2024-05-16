@@ -366,7 +366,8 @@ protected:
    */
   std::string sourceBankFileName() const
   {
-    return openmc::settings::path_output + "initial_source_" + std::to_string(_fixed_point_iteration) + ".h5";
+    return openmc::settings::path_output + "initial_source_" +
+           std::to_string(_fixed_point_iteration) + ".h5";
   }
 
   /// Whether to print diagnostic information about model setup and the transfers
