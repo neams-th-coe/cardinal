@@ -99,7 +99,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
 
   // ensure that unsupported run modes are not used, while also checking for
   // necessary/unused input parameters for the valid run modes
-  auto run_mode = openmc::settings::run_mode;
+  _run_mode = openmc::settings::run_mode;
   switch (run_mode)
   {
     case openmc::RunMode::EIGENVALUE:
@@ -145,10 +145,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       mooseError("Unhandled openmc::RunMode enum in OpenMCInitAction!");
   }
 
-  _single_coord_level = openmc::model::n_coord_levels == 1;
   _path_output = openmc::settings::path_output;
   _n_cell_digits = std::to_string(openmc::model::cells.size()).length();
-  _run_mode = openmc::settings::run_mode;
 
   if (openmc::settings::libmesh_comm)
     mooseWarning("libMesh communicator already set in OpenMC.");

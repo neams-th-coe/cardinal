@@ -434,12 +434,6 @@ protected:
   /// Total number of unique OpenMC cell IDs + instances combinations
   long unsigned int _n_openmc_cells;
 
-  /**
-   * Whether the OpenMC model consists of a single coordinate level; this can
-   * in some cases be used for more verbose error messages
-   */
-  bool _single_coord_level;
-
   /// Directory where OpenMC output files are written
   std::string _path_output;
 
