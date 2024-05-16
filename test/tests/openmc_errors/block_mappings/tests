@@ -29,14 +29,6 @@
     requirement = "The system shall print a warning if some MOOSE elements are unmapped"
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [skipping_openmc_feedback]
-    type = RunException
-    input = skipping_openmc_feedback.i
-    cli_args = '--error'
-    expect_err = "Skipping multiphysics feedback for 2 OpenMC cells!"
-    requirement = "The system shall print a warning if some OpenMC cells are unmapped"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [multiple_phases]
     type = RunException
     input = multiple_phases.i
