@@ -260,12 +260,6 @@ public:
   void writeSourceBank(const std::string & filename);
 
   /**
-   * Get the path output
-   * @return path output
-   */
-  std::string pathOutput() const { return _path_output; }
-
-  /**
    * Get the total (i.e. summed across all ranks, if distributed)
    * number of elements in a given block
    * @param[in] id subdomainID
@@ -372,7 +366,7 @@ protected:
    */
   std::string sourceBankFileName() const
   {
-    return _path_output + "initial_source_" + std::to_string(_fixed_point_iteration) + ".h5";
+    return openmc::settings::path_output + "initial_source_" + std::to_string(_fixed_point_iteration) + ".h5";
   }
 
   /// Whether to print diagnostic information about model setup and the transfers
@@ -433,9 +427,6 @@ protected:
 
   /// Total number of unique OpenMC cell IDs + instances combinations
   long unsigned int _n_openmc_cells;
-
-  /// Directory where OpenMC output files are written
-  std::string _path_output;
 
   /**
    * Number of digits to use to display the cell ID for diagnostic messages; this is

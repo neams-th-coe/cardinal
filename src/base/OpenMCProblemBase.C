@@ -145,7 +145,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       mooseError("Unhandled openmc::RunMode enum in OpenMCInitAction!");
   }
 
-  _path_output = openmc::settings::path_output;
   _n_cell_digits = std::to_string(openmc::model::cells.size()).length();
 
   if (openmc::settings::libmesh_comm)
