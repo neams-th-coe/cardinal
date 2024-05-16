@@ -1,32 +1,28 @@
 # One-way coupled fluid-structure interaction
 
-Tutorial outline:
+## Introduction to benchmark
+(with warning to not use it as such)
 
-Introduction to benchmark (with warning to not use it as such)
+## Case Setup
 
-Description of mesh files
+### Description of mesh files
 
   Parameters you can control at the top, where mesh refinement may be necessary (near edges)
 
-Description of Nek input files
+### Description of Nek input files
 
   Description of velocity profile,
 
-Setup of tensor mechancics
+### Setup of tensor mechancics
 
-  
+### Description of Cardinal input files
 
-Initial Condition Generation
-
-  Why is it necessary? Incomp. fluid, sudden shift, displacement, negative Jacobians
-  Better to ease it into the displaced state
-
-Description of coupling
-
+### Coupling description
   Mirror, transfer of mesh velocity/traction
 
-Tips for visualization
+## Initial Condition Generation
 
-  Warp by vector in Paraview. Variables starting with `disp` are automatically recognized
-  by Paraview as displacements used to move the mesh.
+  Motivation: Incomp. fluid, sudden shift, displacement, negative Jacobians
+  Better to ease it into the displaced state
+
 
