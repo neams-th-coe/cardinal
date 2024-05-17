@@ -689,7 +689,7 @@ protected:
    * @param[in] level lattice level
    * @return whether the location is in the outer universe
   */
-  bool inLatticeOuter(int level) const;
+  void latticeOuterCheck(const Point & c, int level) const;
 
   /**
    * Report an error for a mapped location in an outer universe of a lattice

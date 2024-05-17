@@ -2118,11 +2118,9 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // (so we can just set zero).
     auto level = requires_mapping ? getCellLevel(c) : 0;
 
-    // ensure the cell isn't in a unvierse being used as the "outer"
+    // ensure the mapped cell isn't in a unvierse being used as the "outer"
     // universe of a lattice in the OpenMC model
-    if (requires_mapping && inLatticeOuter(level)) {
-      latticeOuterError(c, level);
-    }
+    if (requires_mapping) latticeOuterCheck(c, level);
 
     switch (phase)
     {
@@ -2517,28 +2515,31 @@ OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const {
   mooseError(msg.str());
 }
 
-bool
-OpenMCCellAverageProblem::inLatticeOuter(int level) const {
-
-  int max_level = std::min(_particle.n_coord() - 1, level);
-
-  for (int i = 0; i < max_level; ++i)
-  {
+void
+OpenMCCellAverageProblem::latticeOuterCheck(const Point & c, int level) const {
+  for (int i = 0; i <= level; ++i) {
     const auto& coord = _particle.coord(i);
 
+    // if there is no lattice at this level, move on
     if (coord.lattice == openmc::C_NONE)
       continue;
 
     const auto& lat = openmc::model::lattices[coord.lattice];
 
-    // if the lattice's outer unvierse isn't set or the coordinate isn't in the outer universe,
-    // move on
-    if (lat->outer_ == openmc::NO_OUTER_UNIVERSE || lat->outer_ != coord.universe)
+    // if the lattice's outer universe isn't set, move on
+    if (lat->outer_ == openmc::NO_OUTER_UNIVERSE)
       continue;
 
-    return false;
+    if (coord.universe != lat->outer_)
+      continue;
+
+    // move on if the lattice indices are valid (position is in the set of explicitly defined universes)
+    if (lat->are_valid_indices(coord.lattice_i))
+      continue;
+
+    // if we get here, the mapping is occurring in a universe that is not explicitly defined in the lattice
+    latticeOuterError(c, level);
   }
-  return true;
 }
 
 bool
