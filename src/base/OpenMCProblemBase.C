@@ -467,7 +467,8 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
   {
     // special error message if cell has zero instances
     if (cellHasZeroInstances(cell_info))
-      mooseError("Failed to set the density for cell " + printCell(cell_info) + " with zero instances.");
+      mooseError("Failed to set the density for cell " + printCell(cell_info) +
+                 " with zero instances.");
 
     mooseError("In attempting to set cell " + printCell(cell_info) + " to density " +
                    Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n",
