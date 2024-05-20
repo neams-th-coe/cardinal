@@ -2510,8 +2510,13 @@ OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const {
   const auto& cell = openmc::model::cells[_particle.coord(level).cell];
   std::stringstream msg;
   msg << "The point " << c << " mapped to cell " << cell->id_ << " in the OpenMC model is inside a universe "
-  "used as the 'outer' universe of a lattice. All cells used for mapping in lattices must be explicitly set "
-  "on the 'universes' attribute of lattice objects. ";
+  "used as the 'outer' universe of a lattice.\n"
+  "All cells used for mapping in lattices must be explicitly set "
+  "on the 'universes' attribute of lattice objects.\n" <<
+  "If you want to obtain temperature feedback here, you "
+  "will need to widen your lattice to have universes covering all of the space you "
+  "want temperature feedback.\n\nFor more information, see: "
+  "https://github.com/openmc-dev/openmc/issues/551.";
   mooseError(msg.str());
 }
 

@@ -390,11 +390,7 @@ OpenMCProblemBase::setCellTemperature(const int32_t & index,
     // special error message if cell has zero instances
     if (cellHasZeroInstances(cell_info))
       mooseError("Failed to set the temperature for cell " + printCell(cell_info) +
-                 ". This cell has zero instances, meaning it is probably a cell created within a "
-                 "lattice.outer universe. If you want to obtain temperature feedback here, you "
-                 "will need to widen your lattice to have universes covering all of the space you "
-                 "want temperature feedback.\n\nFor more information, see: "
-                 "https://github.com/openmc-dev/openmc/issues/551.");
+                 " with zero instances.");
 
     mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
                    Moose::stringify(T) + " (K), OpenMC reported:\n\n",
