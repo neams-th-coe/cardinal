@@ -2515,9 +2515,9 @@ OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const
          "used as the 'outer' universe of a lattice.\n"
          "All cells used for mapping in lattices must be explicitly set "
          "on the 'universes' attribute of lattice objects.\n"
-      << "If you want to obtain temperature feedback here, you "
+      << "If you want to obtain feedback or cell tallies here, you "
          "will need to widen your lattice to have universes covering all of the space you "
-         "want temperature feedback.\n\nFor more information, see: "
+         "want feedback or cell tallies.\n\nFor more information, see: "
          "https://github.com/openmc-dev/openmc/issues/551.";
   mooseError(msg.str());
 }
