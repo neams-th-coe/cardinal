@@ -13,7 +13,7 @@ cd cardinal/tutorials/krusty
 
 ## Geometry and Computational Models
 
-This model consists of a multiphysics simulation of the KRUSTY reactor, one of the simplest space power reactor concepts ever proposed. The relevant dimensions are summarized in [table1] and in [krusty_solid_mesh] shows the geometry and gap thicknesses. 
+This model consists of a multiphysics simulation of the KRUSTY reactor, one of the simplest space power reactor concepts ever proposed. The relevant dimensions are summarized in [table1] and in [krusty_solid_mesh] shows the geometry and gap thicknesses. The basic components are the fuel, heat pipes, control, reflectors and shield. For the sake of simplification, we will only simulate the components within the region spanning from the bottom axial reflector to the top axial reflector along the z-direction, which entails neglecting components outside of this region, the control rod insertion is also being disregarded.The fuel is high enriched uranium U-7.65 Mo with a total length of 25 cm, an outer diameter of 11 cm, and the core contains a 4 cm hole to allow $B_4C$ control insertion. 
 
 !table id=table1 caption=Geometric specifications for KRUSTY
 | Component       | Inner diameter (cm)  | Outer diameter (cm)  |
@@ -27,12 +27,12 @@ This model consists of a multiphysics simulation of the KRUSTY reactor, one of t
 | Heat pipe wall  | 1.181                | 1.270                |
 
 
-The fuel is high enriched uranium U-7.65 Mo with a total length of 25 cm and the core contains a 4 cm hole to allow $B_4C$ control insertion. 
+Currently, ongoing work is underway to benchmark Cardinal against KRUSTY, where the neglected components will be considered. This will relax the simplifications made in this example.
 
 
 !media krusty_solid_mesh.png
   id=krusty_solid_mesh
-  caption=KRUSTY geometry schematic
+  caption=KRUSTY geometry schematic [!cite](PostonGibsonGodfroy2020).
   style=width:45%
 
 ### MOOSE Heat Conduction Model
@@ -73,7 +73,7 @@ In this section, OpenMC, Sockeye are coupled to MOOSE for heat source and heat p
 
 !media fig_heat_pipe.png
   id=fig_heat_pipe
-  caption=KRUSTY geometry schematic
+  caption=KRUSTY geometry schematic [!cite](wikiHP).
   style=width:45%
 where $1$ shows the working fluid evaporating to vapour by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapour condenses back to fluid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end. The following sub-sections will describe the input file for each application.
 
