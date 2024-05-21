@@ -364,6 +364,13 @@ OpenMCProblemBase::isLocalElem(const Elem * elem) const
   return false;
 }
 
+bool
+OpenMCProblemBase::cellHasZeroInstances(const cellInfo & cell_info) const
+{
+  auto n = openmc::model::cells.at(cell_info.first)->n_instances_;
+  return !n;
+}
+
 void
 OpenMCProblemBase::setCellTemperature(const int32_t & index,
                                       const int32_t & instance,
@@ -375,9 +382,14 @@ OpenMCProblemBase::setCellTemperature(const int32_t & index,
   {
     std::string descriptor =
         "set cell " + printCell(cell_info) + " to temperature " + Moose::stringify(T) + " (K)";
-    mooseError("In attempting to ",
-               descriptor,
-               ", OpenMC reported:\n\n",
+
+    // special error message if cell has zero instances
+    if (cellHasZeroInstances(cell_info))
+      mooseError("Failed to set the temperature for cell " + printCell(cell_info) +
+                 " with zero instances.");
+
+    mooseError("In attempting to set cell " + printCell(cell_info) + " to temperature " +
+                   Moose::stringify(T) + " (K), OpenMC reported:\n\n",
                std::string(openmc_err_msg) + "\n\n" +
                    "If you are trying to debug a model setup, you can set 'initial_properties = "
                    "xml' to use the initial temperature and density in the OpenMC XML files for "
@@ -449,15 +461,17 @@ OpenMCProblemBase::setCellDensity(const Real & density, const cellInfo & cell_in
 
   if (err)
   {
-    std::string descriptor = "set material with index " + Moose::stringify(material_index) +
-                             " to density " + Moose::stringify(density) + " (kg/m3)";
-    mooseError("In attempting to ",
-               descriptor,
-               ", OpenMC reported:\n\n",
+    // special error message if cell has zero instances
+    if (cellHasZeroInstances(cell_info))
+      mooseError("Failed to set the density for cell " + printCell(cell_info) +
+                 " with zero instances.");
+
+    mooseError("In attempting to set cell " + printCell(cell_info) + " to density " +
+                   Moose::stringify(density) + " (kg/m3), OpenMC reported:\n\n",
                std::string(openmc_err_msg) + "\n\n" +
                    "If you are trying to debug a model setup, you can set 'initial_properties = "
                    "xml' to use the initial temperature and density in the OpenMC XML files for "
-                   "OpenMC's first run");
+                   "OpenMC's first run.");
   }
 }
 
