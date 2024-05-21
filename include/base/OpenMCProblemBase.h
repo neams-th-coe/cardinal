@@ -192,6 +192,13 @@ public:
   openmc::Filter * cellInstanceFilter(const std::vector<cellInfo> & tally_cells) const;
 
   /**
+   * Whether this cell has zero instances
+   * @param[in] cell_info cell info
+   * @return whether this cell has zero instances
+   */
+  bool cellHasZeroInstances(const cellInfo & cell_info) const;
+
+  /**
    * Get the material name given its index. If the material does not have a name,
    * return the ID.
    * @param[in] index
