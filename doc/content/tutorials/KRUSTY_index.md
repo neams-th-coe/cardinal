@@ -87,9 +87,9 @@ We will use a linear-linear stochastic interpolation between the two cross secti
 
 !listing /tutorials/krusty/KRUSTY/model.py
 
-To generate the settings XML files needed to run OpenMC, you just need to run: 
+To generate the all of the XML files needed to run OpenMC, you just need to run: 
 
 ```
-settings.export_to_xml()
+model.export_to_xml()
 ```
 
