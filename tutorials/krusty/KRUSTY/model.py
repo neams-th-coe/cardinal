@@ -15,6 +15,7 @@ import numpy as np
 import math
 
 ################################################################################
+model = openmc.Model()
 ## Defining Materials
 
 n_234 = 0.010
@@ -97,8 +98,8 @@ SS316.add_element('Fe', 0.666812)
 SS316.add_element('Ni', 0.113803)
 SS316.add_element('Mo', 0.014504)
 
-materials = openmc.Materials([UMo, B4C, Haynes230, MLI, Cu, Ni, SS, helium, BeO, SS316, HP_fld])
-materials.export_to_xml()
+model.materials = openmc.Materials([UMo, B4C, Haynes230, MLI, Cu, Ni, SS, helium, BeO, SS316, HP_fld])
+
 
 ################################################################################
 ## Defining Geometry
@@ -328,27 +329,27 @@ root_univ = openmc.Universe(cells=[HP0_foil, HP0_wall, HP0_wck, HP0_fld, HP45_fo
                                    , reflector, reflector_ring_top, reflector_ring_bottom, gap_shield, shield, B4C_region, reflector_top \
                                    , reflector_bottom, empty_top])
 root_univ.add_cells(fuel_cells)                                   
-geometry = openmc.Geometry(root_univ)
-geometry.export_to_xml()
+model.geometry = openmc.Geometry(root_univ)
+
 
 ################################################################################
 ## Defining Settings
 
-settings = openmc.Settings()
-settings.batches = 150
-settings.inactive = 50
-settings.particles = 100000
 
-settings.temperature = {'default': 800.0,
+
+model.settings.source = openmc.IndependentSource(space=openmc.stats.Box([-Fuel_OD/2, -Fuel_OD/2, 20],
+                                                       [ Fuel_OD/2,  Fuel_OD/2, 45]))
+
+model.settings.batches = 150
+model.settings.inactive = 50
+model.settings.particles = 100000
+
+model.settings.temperature = {'default': 800.0,
                         'method': 'interpolation',
                         'range': (294.0, 3000.0),
                         'tolerance': 1000.0}
 
-settings.export_to_xml()
-
-settings.source = openmc.IndependentSource(space=openmc.stats.Box([-Fuel_OD/2, -Fuel_OD/2, 20],
-                                                       [ Fuel_OD/2,  Fuel_OD/2, 45]))
-settings.export_to_xml()
+model.export_to_xml()
 
 ################################################################################
 ## Plotting
