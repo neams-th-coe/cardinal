@@ -31,7 +31,8 @@ The governing equation solved by MOOSE is specified in the `[Kernels]` block wit
 
 !listing /tutorials/krusty/KRUSTY/solide.i
   block=Kernels
-  
+
+
 Next, the boundary conditions on the solid are applied. In case A, coupling only OpenMC and MOOSE Heat Transfer Model, the boundary conditions on each heat pipe will be the Dirichlet type, where they have a constant temperature of $1073 K$ and for the "outside" boundary conditions will be a [ConvectiveHeatFluxBC](https://mooseframework.inl.gov/source/bcs/ConvectiveHeatFluxBC.html) type, where it computes the convective heat flux, with the convective heat transfer coefficient and the far field temperature coupled as material properties.
 
 !listing /tutorials/krusty/KRUSTY/solide.i
@@ -43,7 +44,7 @@ The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html) syste
 !listing /tutorials/krusty/KRUSTY/solide.i
   block=AuxVariables
 
-We also set thermal conductivity values in the blocks: fuel, `cavity_center`, `gap_clamp`, `gap_ref`, `gap_sleeve`, `gap_vaccan`. Constant values are used for simplicity.
+We also set thermal conductivity values in the blocks: `fuel`, `cavity_center`, `gap_clamp`, `gap_ref`, `gap_sleeve`, `gap_vaccan`. Constant values are used for simplicity.
 
 !listing /tutorials/krusty/KRUSTY/solide.i
   block=Materials
@@ -115,7 +116,7 @@ We do not need to define a number of time steps here, because it is okay to Open
 
 ## Execution and Postprocessing
 
-To run the coupled calculation
+To run the coupled calculation:
 
 ```
 mpiexec -np 2 cardinal-opt -i openmc.i --n-threads=2
@@ -798,17 +799,18 @@ This demonstrates the OpenMC cells mapped to the MOOSE elements, the auxiliary v
 
 !media core_height.png
   id=core_height
-  caption=Heat source (W/cm$^3$) computed by OpenMC
-  style=width:45%;halign:center
+  caption=Heat source (W/cm$^3$) computed by OpenMC.
+  style=width:45%;margin-left:auto;margin-right:auto;halign:center
 
-[temp_krusty] and [power_krusty] shows the multiphysics results for temperature and power density.
+[temp_krusty] and [power_krusty] shows the multiphysics results for temperature and power density, where power was found to peak at the outer edge of
+the fuel and close to the heat pipes.
 
 !media temp_krusty.png
   id=temp_krusty
-  caption=Multiphysics results for temperature (K)
+  caption=Multiphysics results for temperature (K).
   style=width:45%;float:left;halign:center
 
 !media power_krusty.png
   id=power_krusty
-  caption=Multiphysics results for power density (W/cm$^3$)
+  caption=Multiphysics results for power density (W/cm$^3$).
   style=width:45%;float:right;halign:center
