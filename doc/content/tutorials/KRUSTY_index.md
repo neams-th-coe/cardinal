@@ -85,7 +85,7 @@ The OpenMC model is built using a [!ac](CSG)-type geometry. In a [!ac](CSG) mode
 
 We will use a linear-linear stochastic interpolation between the two cross section data sets nearest to the imposed temperature by setting the `method` parameter on `settings.temperature` to `interpolation`. When OpenMC is initialized, the cross section data is loaded for a temperature range specified by `range` in `settings`. 
 
-!listing /tutorials/krusty/KRUSTY/model03.py
+!listing /tutorials/krusty/KRUSTY/model.py
 
 To generate the settings XML files needed to run OpenMC, you just need to run: 
 
