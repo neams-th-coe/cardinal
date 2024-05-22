@@ -7,17 +7,20 @@ In this tutorial, you will learn two different cases:
 
 
 
-In [krusty_caseA] and [krusty_caseB] we can see the multi-application data transfer used in both cases.
+In [krusty_caseA] we can see the multi-application data transfer used for Case A,
 
 !media krusty_caseA.png
   id=krusty_caseA
-  caption=Multiapps hierarchy of the KRUSTY model for Case A
-  style=width:40%;margin-left:auto;margin-right:auto;halign:center
-  
+  caption=Multiapps hierarchy of the KRUSTY model for Case A.
+  style=width:45%;margin-left:auto;margin-right:auto;halign:center
+
+and in [krusty_caseB] for Case B
+
 !media krusty_caseB.png
   id=krusty_caseB
-  caption=Multiapps hierarchy of the KRUSTY model for Case B
-  style=width:40%;halign:center
+  caption=Multiapps hierarchy of the KRUSTY model for Case B.
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+
 
 You can access both cases using the following links:
 
@@ -28,12 +31,13 @@ Next, we are going to present the geometry, the MOOSE heat conduction model, and
 
 ## Geometry
 
-This model consists of a multiphysics simulation of the KRUSTY reactor, one of the simplest space power reactor concepts ever proposed. The relevant dimensions are summarized in [table1] and in [krusty_solid_mesh] shows the geometry and gap thicknesses. The basic components are the fuel, heat pipes, control, reflectors and shield. For the sake of simplification, we will only simulate the components within the region spanning from the bottom axial reflector to the top axial reflector along the z-direction, which entails neglecting components outside of this region, the control rod insertion is also being disregarded. The fuel is high enriched uranium U-7.65 Mo with a total length of 25 cm, an outer diameter of 11 cm, and the core contains a 4 cm hole to allow $B_4C$ control insertion. We can also briefly discuss the basic thermal cycle of a heat pipe, which is described in [fig_heat_pipe].
+This model consists of a multiphysics simulation of the KRUSTY reactor, one of the simplest space power reactor concepts ever proposed. The relevant dimensions are summarized in [table1] and in [krusty_solid_mesh] shows the geometry and gap thicknesses. The basic components are the fuel, heat pipes, control, reflectors and shield. For the sake of simplification, we will only simulate the components within the region spanning from the bottom axial reflector to the top axial reflector along the z-direction, which entails neglecting components outside of this region, the control rod insertion is also being disregarded. The fuel is high enriched uranium U-7.65 Mo with a total length of 25 cm, an outer diameter of 11 cm, and the core contains a 4 cm hole to allow $B_4C$ control insertion. We can also briefly discuss the basic thermal cycle of a heat pipe, which is described in [fig_heat_pipe],
 
 !media fig_heat_pipe.png
   id=fig_heat_pipe
   caption=KRUSTY geometry schematic [!cite](wikiHP).
   style=width:45%;margin-left:auto;margin-right:auto;halign:center
+
 where $1$ shows the working fluid evaporating to vapour by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapour condenses back to liquid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end. The following sub-sections will describe the input file for each application.
 
 !table id=table1 caption=Geometric specifications for KRUSTY
@@ -92,4 +96,6 @@ To generate the all of the XML files needed to run OpenMC, you just need to run:
 ```
 model.export_to_xml()
 ```
+
+
 
