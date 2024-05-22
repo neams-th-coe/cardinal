@@ -12,12 +12,6 @@ power = 4000           # (W)
     type = FileMeshGenerator
     file = krusty_scale.e
   []
-  # [scale]
-  #  type = TransformGenerator
-  #  transform = SCALE
-  #  vector_value = '0.01 0.01 0.01'
-  #  input = fmg
-  # []
 []
 
 [AuxVariables]
@@ -65,10 +59,6 @@ power = 4000           # (W)
   []
 []
 
-# [Problem]
-#  type = FEProblem
-#  solve = false
-# []
  
 [Problem]
   type = OpenMCCellAverageProblem
@@ -81,20 +71,13 @@ power = 4000           # (W)
   mesh_template = krusty_scale.e
   tally_name = heat_source
   cell_level = 0
-  # check_zero_tallies = false
-  # check_equal_mapped_tally_volumes = false
-  # initial_properties=xml
   inactive_batches = 100 # 5 # 100
   batches = 500 # 20 # 500
-  # particles = 5000
-  first_iteration_particles = 500000
-  reuse_source = true
-  relaxation = dufek_gudowski
+  particles = 5000
   verbose= true
 []
 
 [MultiApps]
-   # active = ' '
    [solid]
     type = TransientMultiApp
     app_type = CardinalApp
