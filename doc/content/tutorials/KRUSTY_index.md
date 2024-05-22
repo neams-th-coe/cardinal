@@ -12,7 +12,7 @@ In [krusty_caseA] and [krusty_caseB] we can see the multi-application data trans
 !media krusty_caseA.png
   id=krusty_caseA
   caption=Multiapps hierarchy of the KRUSTY model for Case A
-  style=width:40%;halign:center
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
   
 !media krusty_caseB.png
   id=krusty_caseB
@@ -33,7 +33,7 @@ This model consists of a multiphysics simulation of the KRUSTY reactor, one of t
 !media fig_heat_pipe.png
   id=fig_heat_pipe
   caption=KRUSTY geometry schematic [!cite](wikiHP).
-  style=width:45%;halign:center
+  style=width:45%;margin-left:auto;margin-right:auto;halign:center
 where $1$ shows the working fluid evaporating to vapour by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapour condenses back to liquid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end. The following sub-sections will describe the input file for each application.
 
 !table id=table1 caption=Geometric specifications for KRUSTY
@@ -54,7 +54,7 @@ Currently, ongoing work is underway to benchmark Cardinal against KRUSTY, where 
 !media krusty_solid_mesh.png
   id=krusty_solid_mesh
   caption=KRUSTY geometry schematic [!cite](PostonGibsonGodfroy2020).
-  style=width:45%;halign:center
+  style=width:45%;margin-left:auto;margin-right:auto;halign:center
 
 ## MOOSE Heat Conduction Model
 
@@ -66,7 +66,7 @@ The MOOSE heat transfer module is used to solve for
 !media krusty_mesh.png
   id=krusty_mesh
   caption=KRUSTY mesh
-  style=width:45%;halign:center
+  style=width:45%;margin-left:auto;margin-right:auto;halign:center
 
 ## OpenMC Model
 
@@ -75,12 +75,12 @@ The OpenMC model is built using a [!ac](CSG)-type geometry. In a [!ac](CSG) mode
 !media krusty_openmc_xy.png
   id=krusty_openmc_xy
   caption=OpenMC xy slice plot.
-  style=width:40%;float:left;halign:center
+  style=width:50%;float:left;halign:center
 
 !media krusty_openmc_xz.png
   id=krusty_openmc_xz
   caption=OpenMC xz slice plot.
-  style=width:40%;float:right;halign:center
+  style=width:50%;float:right;halign:center
 
 
 We will use a linear-linear stochastic interpolation between the two cross section data sets nearest to the imposed temperature by setting the `method` parameter on `settings.temperature` to `interpolation`. When OpenMC is initialized, the cross section data is loaded for a temperature range specified by `range` in `settings`. 
