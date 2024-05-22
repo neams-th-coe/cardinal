@@ -1,9 +1,6 @@
-# KRUSTY
+# KRUSTY - Case A
 
-In this tutorial, you will learn how to:
-
-- Couple OpenMC via temperature and heat source feedback to MOOSE for the KRUSTY reactor
-- Control the resolution of physics feedback received by OpenMC
+In this tutorial, you will learn how to couple OpenMC via temperature and heat source feedback to MOOSE for the KRUSTY reactor.
 
 To access this tutorial,
 
@@ -11,84 +8,21 @@ To access this tutorial,
 cd cardinal/tutorials/krusty
 ```
 
-## Geometry and Computational Models
-
-This model consists of a multiphysics simulation of the KRUSTY reactor, one of the simplest space power reactor concepts ever proposed. The relevant dimensions are summarized in [table1] and in [krusty_solid_mesh] shows the geometry and gap thicknesses. The basic components are the fuel, heat pipes, control, reflectors and shield. For the sake of simplification, we will only simulate the components within the region spanning from the bottom axial reflector to the top axial reflector along the z-direction, which entails neglecting components outside of this region, the control rod insertion is also being disregarded.The fuel is high enriched uranium U-7.65 Mo with a total length of 25 cm, an outer diameter of 11 cm, and the core contains a 4 cm hole to allow $B_4C$ control insertion. 
-
-!table id=table1 caption=Geometric specifications for KRUSTY
-| Component       | Inner diameter (cm)  | Outer diameter (cm)  |
-|-----------------|----------------------|----------------------|
-| Fuel            | 4.000                | 11.000               |
-| Clamp           | 11.812               | 12.130               |
-| Vacuum can      | 12.995               | 13.300               |
-| Sleeve          | 14.211               | 14.300               |
-| Reflector       | 14.500               | 38.100               |
-| Shield          | 41.000               | 101.900              |
-| Heat pipe wall  | 1.181                | 1.270                |
-
-
-Currently, ongoing work is underway to benchmark Cardinal against KRUSTY, where the neglected components will be considered. This will relax the simplifications made in this example.
-
-
-!media krusty_solid_mesh.png
-  id=krusty_solid_mesh
-  caption=KRUSTY geometry schematic [!cite](PostonGibsonGodfroy2020).
-  style=width:45%
-
-### MOOSE Heat Conduction Model
-
-The MOOSE heat transfer module is used to solve for steady-state heat conduction
-\begin{equation}
-\label{eq:1}
--\nabla \cdot (k_s \nabla T_s) = \dot{q}_s
-\end{equation}
-where $k_s$ is the solid thermal conductivity, $T_s$ is the solid temperature, and $\dot{q}_s$  is a volumetric heat source in the solid.
-
-[krusty_mesh] shows the mesh used in this example. The geometry was build using FUSION360, where the CAD file was exported into Cubit, where the mesh was build. Cubit can create meshes with user-defined geometry and customizable boundary layers. The Cubit script used to generate the solid mesh can be found in the directory `cardinal/tutorials/krusty/meshes`, where you will find two files, a `.sat` file that you will import into cubit, which will generate the geometry of KRUSTY, however in order to generete the mesh you will need to run the scripts in the `.txt` file in the cubit terminal, and then you can export the `.e` mesh file, which is the format that MOOSE can read. You can find the `.e` files in this box link: [box](https://anl.app.box.com/s/irryqrx97n5vi4jmct1e3roqgmhzic89/folder/141527707499). Do not forget to place the `e.` mesh files in the same directory as your `.i` files.
-
-!media krusty_mesh.png
-  id=krusty_mesh
-  caption=KRUSTY mesh
-  style=width:45%
-
-### OpenMC Model
-
-The OpenMC model is built using CSG, which are cells created from regions of space formed by half-space of various common surfaces. First, we define materials for each component of the reactor. Next, we define our geometric parameters, so we can start building our surfaces and manipulate them to create the geometry of each component of the KRUSTY reactor. Then, we need to create cells for each component and fill them with the materials that we previously created, so we can create a universe containg all the cells using `openmc.Universe`. This geometry can be seen in [krusty_solid_mesh]. 
-
-We will use a linear-linear stochastic interpolation between the two cross section data sets nearest to the imposed temperature by setting the `method` parameter on `settings.temperature` to `interpolation`. When OpenMC is initialized, the cross section data is loaded for a temperature range specified by `range` in `settings`. 
-
-!listing /tutorials/krusty/KRUSTY/model03.py
-
-To generate the settings XML files needed to run OpenMC, you just need to run 
-
-```
-settings.export_to_xml()
-```
-
 
 ## Multiphysics Coupling
   id=coupling
 
-In this section, OpenMC, Sockeye are coupled to MOOSE for heat source and heat pipes temperature feedback for the KRUSTY reactor. First we briefly discuss the basic thermal cycle of a heat pipe, which is described in [fig_heat_pipe]
-
-!media fig_heat_pipe.png
-  id=fig_heat_pipe
-  caption=KRUSTY geometry schematic [!cite](wikiHP).
-  style=width:45%
-where $1$ shows the working fluid evaporating to vapour by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapour condenses back to fluid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end. The following sub-sections will describe the input file for each application.
-
-
-
+In this section, OpenMC is coupled to MOOSE for heat source and temperature feedback for the KRUSTY reactor.
 
 ### Solid Input Files
 
 The solid phase is solved with the MOOSE Heat Transfer module, and is described in the [solide.i](/tutorials/krusty/KRUSTY/solide.i) input. The mesh exodus file was generated in the Cubit script mentioned before. This file is called inside the `[Mesh]` block:
 
 !listing /tutorials/krusty/KRUSTY/solide.i
-  end=Variables
+  block=Mesh
 
 
-The heat transfer module will solve for temperature, which we define as a nonlinear variable and apply a simple uniform initial condition of $1073 K$
+The heat transfer module will solve for temperature, which we define as a nonlinear variable and apply a simple uniform initial condition of $1073 K$.
 
 !listing /tutorials/krusty/KRUSTY/solide.i
   block=Variables
@@ -103,7 +37,7 @@ Next, the boundary conditions on the solid are applied. In case A, coupling only
 !listing /tutorials/krusty/KRUSTY/solide.i
   block=BCs
 
-The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html) system in MOOSE is used to communicate variables across applications; a heat source will be computed by OpenMC and applied as a source term in MOOSE. In the opposite direction, MOOSE will compute a temperature that will be applied to the OpenMC geometry. We need to add an auxiliary variable to receive the heat source from OpenMC, which is defined as `[power]`.
+The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html) system in MOOSE is used to communicate variables across applications; a heat source will be computed by OpenMC and applied as a source term in MOOSE. In the opposite direction, MOOSE will compute a temperature that will be applied to the OpenMC geometry. We need to add an auxiliary variable to receive the heat source from OpenMC, which is defined as `power`.
 
 
 !listing /tutorials/krusty/KRUSTY/solide.i
@@ -130,7 +64,7 @@ MOOSE will provide the solid temperature for OpenMC so we add postprocessors to 
 We begin by defining a mesh on which OpenMC will receive temperature from the couple MOOSE application.
 
 !listing /tutorials/krusty/KRUSTY/openmc.i
-  end=AuxVariables
+  block=Mesh
 
 Then, we can define our initial conditions for the temperature, which will be a constant function of $1073 K$
 
@@ -138,7 +72,7 @@ Then, we can define our initial conditions for the temperature, which will be a 
   start=ICs
   end=Problem
 
-Next, we define the `[Problem]` block, which will describe all objects necessary for the physics solve. In order to replace MOOSE finite element calculations with OpenMC particle transport calculations, we are going to use the [OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html) class. In this model, we specify the total fission power by which to normalize OpenMC's tally results. Next, we indicate which blocks in the `[Mesh]` should be considered for temperature feedback using the `temperature_blocks` parameter. Mesh tallies were used to estimate the heat source, as indicated by `tally_type`, where the same mesh can be translated to multiple locations in the OpenMC geometry, specifying a mesh file using `mesh_template`.
+Next, we define the `[Problem]` block, which will describe all objects necessary for the physics solve. In order to replace MOOSE finite element calculations with OpenMC particle transport calculations, we are going to use the [OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html) class. In this model, we specify the total fission power by which to normalize OpenMC's tally results. Next, we indicate which blocks in the `[Mesh]` should be considered for temperature feedback using the `temperature_blocks` parameter. Mesh tallies were used to estimate the heat source, as indicated by `tally_type`.
 
 !listing /tutorials/krusty/KRUSTY/openmc.i
   block=Problem
@@ -151,13 +85,13 @@ Next, we add a series of auxiliary variables for solution visualization
 In this example, the overall calculation workflow is as follows:
 
 1. Run OpenMC using the initial condition for the temperature.
-2. Run MOOSE heat conduction with a given power distribuition from OpenMC.
+2. Run MOOSE heat conduction with a given power distribution from OpenMC.
 3. Run OpenMC with an updated temperature distribution.
 4. Extract the kappa-fission distribution (the recoverable fission energy)
   computed by OpenMC and map in the opposite direction from OpenMC cells
   to all the MOOSE elements that mapped to each cell.
 
-The above sequence is repeated until desired convergence of the coupled domain is achieved.
+Steps 2 and 3 are repeated until desired convergence of the coupled domain is achieved.
 The [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
 and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
 blocks describe the interaction between Cardinal and MOOSE. OpenMC is run as the main application, with
@@ -168,12 +102,12 @@ MOOSE heat conduction run as the sub-application.
   start=MultiApps
   end=Postprocessors
 
-For the heat source transfer from OpenMC, we ensure conservation by requiring that the integral of heat source computed by OpenMC matches the integral of the heat source received by MOOSE. We also add a postprocessor to evaluate the Tally relative error and the multiplication factor.
+For the heat source transfer from OpenMC, we ensure conservation by requiring that the integral of heat source computed by OpenMC matches the integral of the heat source received by MOOSE. We also add a postprocessor to evaluate the tally relative error and the multiplication factor.
 
 !listing /tutorials/krusty/KRUSTY/openmc.i
   block=Postprocessors
 
-Because we did specify sub-cycling in the `[MultiApps]` block, we do not need to define a number of time steps here.
+We do not need to define a number of time steps here, because it is okay to OpenMC use the default `dt` of 1.
 
 !listing /tutorials/krusty/KRUSTY/openmc.i
   start=Executioner
@@ -858,28 +792,23 @@ When we run with `verbose = true`, you will see the following mapping informatio
 
 ```
 
-This shows the OpenMC cells mapped to the MOOSE elements. The above message also shows the
-volume that each OpenMC cell maps to. Because there are no distributed cells in this
-problem, each cell only has a single instance. Since we added a stochastic volume
-calculation, the last column (`Actual Vol`) is populated with OpenMC's stochastic
-estimates for the cell volumes. You can increase the number of samples to drive the error
-lower to get more refined estimates of volumes. We cab also see the auxiliary variables and material mapping for OpenMC  
+This demonstrates the OpenMC cells mapped to the MOOSE elements, the auxiliary variables for OpenMC, where we can observe that OpenMC only reads temperature for each subdomain, and the material mapping for OpenMC, which shows the material each subdomain is filled with.
 
 [core_height] shows the heat source mapped along the KRUSTY core height.
 
 !media core_height.png
   id=core_height
   caption=Heat source (W/cm$^3$) computed by OpenMC
-  style=width:45%;
+  style=width:45%;halign:center
 
 [temp_krusty] and [power_krusty] shows the multiphysics results for temperature and power density.
 
 !media temp_krusty.png
   id=temp_krusty
   caption=Multiphysics results for temperature (K)
-  style=width:45%;float:left
+  style=width:45%;float:left;halign:center
 
 !media power_krusty.png
   id=power_krusty
   caption=Multiphysics results for power density (W/cm$^3$)
-  style=width:45%;float:right
+  style=width:45%;float:right;halign:center
