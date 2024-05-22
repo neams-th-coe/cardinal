@@ -14,12 +14,6 @@
     type = FileMeshGenerator
     file = krusty_scale.e
   []
-  # [scale]
-  #  type = TransformGenerator
-  #  transform = SCALE
-  #  vector_value = '0.01 0.01 0.01'
-  #  input = fmg
-  # []
 []
 
 [Variables]
@@ -43,17 +37,11 @@
 
 
 [BCs]
-  # [hp_temp]
-  #  type = DirichletBC 
-  #  variable = T
-  #  boundary = '1 2 3 4'
-  #  value = 1073
-  # []
   [hp_temp]
-    type = MatchedValueBC 
+    type = DirichletBC 
     variable = T
-    boundary = '1'
-    v = hp_temp_aux 
+    boundary = '1 2 3 4'
+    value = 1073
   []
   [outside]
     type = CoupledConvectiveHeatFluxBC 
@@ -148,44 +136,7 @@
   []
 []
 
-[MultiApps]
-  [sockeye]
-     type = TransientMultiApp
-     app_type = SockeyeApp
-     positions_file = 'hp_centers.txt'
-     input_files = 'sockeye.i'
-     execute_on = 'timestep_begin' 
-     max_procs_per_app = 1
-     output_in_position = true
-     library_path = '/apps/herd/sockeye/sockeye-2024-02-27/lib/sockeye'
-     sub_cycling = true
-  []
-[]
 
-[Transfers]
-  [from_sockeye_temp]
-    type = MultiAppGeneralFieldNearestLocationTransfer
-    from_multi_app = sockeye
-    source_variable = hp_temp_aux
-    variable = hp_temp_aux
-    execute_on = 'timestep_begin'
-    to_boundaries = '1'
-  []
-  [to_sockeye_flux]
-    type = MultiAppGeneralFieldNearestLocationTransfer
-    to_multi_app = sockeye
-    source_variable = flux_uo
-    variable = master_flux
-    execute_on = 'timestep_begin'
-  []
-  #    [to_sockeye_flux]
-  #      type = MultiAppGeneralFieldNearestLocationTransfer
-  #      to_multi_app = sockeye
-  #      source_user_object = flux_UO
-  #      variable = master_flux
-  #      execute_on = 'timestep_begin'
-  #    []
-[]
 
 [UserObjects]
   [axial_plot]
@@ -198,16 +149,6 @@
     direction_min = 0.1249
     direction_max = 0.3749
   []
-  # [flux_uo]
-  #  type = NearestPointLayeredSideDiffusiveFluxAverage
-  #  direction = z
-  #  num_layers = 100
-  #  points_file = 'hp_centers.txt'
-  #  variable = T
-  #  diffusivity = 'thermal_conductivity'
-  #  execute_on = linear
-  #  boundary = '1'
-  # []
   [flux_UO]
     type = NearestPointLayeredSideAverage
     direction = z
