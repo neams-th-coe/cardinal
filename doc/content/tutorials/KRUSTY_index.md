@@ -38,7 +38,7 @@ This model consists of a multiphysics simulation of the KRUSTY reactor, one of t
   caption=KRUSTY geometry schematic [!cite](wikiHP).
   style=width:45%;margin-left:auto;margin-right:auto;halign:center
 
-where $1$ shows the working fluid evaporating to vapour by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapour condenses back to liquid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end. The following sub-sections will describe the input file for each application.
+where $1$ shows the working fluid evaporating to vapor by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapor condenses back to liquid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end.
 
 !table id=table1 caption=Geometric specifications for KRUSTY
 | Component       | Inner diameter (cm)  | Outer diameter (cm)  |
@@ -87,7 +87,7 @@ The OpenMC model is built using a [!ac](CSG)-type geometry. In a [!ac](CSG) mode
   style=width:50%;float:right;halign:center
 
 
-We will use a linear-linear stochastic interpolation between the two cross section data sets nearest to the imposed temperature by setting the `method` parameter on `settings.temperature` to `interpolation`. When OpenMC is initialized, the cross section data is loaded for a temperature range specified by `range` in `settings`. 
+We will use a linear-linear stochastic interpolation between the two cross section data sets nearest to the imposed temperature by setting the `method` parameter on `model.settings.temperature` to `interpolation`. When OpenMC is initialized, the cross section data is loaded for a temperature range specified by `range` in `settings`. 
 
 !listing /tutorials/krusty/KRUSTY/model.py
 
