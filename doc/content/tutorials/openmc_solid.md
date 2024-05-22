@@ -29,7 +29,7 @@ Four examples are provided:
 - [Solid UO$_2$ pebbles](triso.md)
 - [TRISO compacts](gas_compact.md)
 - [DAGMC pincell](dagmc.md)
-- [KRUSTY](KRUSTY.md)
+- [KRUSTY](KRUSTY_index.md)
 
 Note that many of the features that are introduced in these
 tutorials are *general* features that also apply to density feedback in OpenMC.
