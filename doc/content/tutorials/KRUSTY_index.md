@@ -31,14 +31,22 @@ Next, we are going to present the geometry, the MOOSE heat conduction model, and
 
 ## Geometry
 
-This model consists of a multiphysics simulation of the KRUSTY reactor, one of the simplest space power reactor concepts ever proposed. The relevant dimensions are summarized in [table1] and in [krusty_solid_mesh] shows the geometry and gap thicknesses. The basic components are the fuel, heat pipes, control, reflectors and shield. For the sake of simplification, we will only simulate the components within the region spanning from the bottom axial reflector to the top axial reflector along the z-direction, which entails neglecting components outside of this region, the control rod insertion is also being disregarded. The fuel is high enriched uranium U-7.65 Mo with a total length of 25 cm, an outer diameter of 11 cm, and the core contains a 4 cm hole to allow $B_4C$ control insertion. We can also briefly discuss the basic thermal cycle of a heat pipe, which is described in [fig_heat_pipe],
+This model consists of a multiphysics simulation of the KRUSTY reactor, one of the simplest space power reactor concepts ever proposed. The relevant dimensions are summarized in [table1], and [krusty_solid_mesh] shows the geometry and gap thicknesses. The basic components are the fuel, heat pipes, control, reflectors, and shield. For the sake of simplification, we will only simulate the components within the region spanning from the bottom axial reflector to the top axial reflector along the z-direction, which entails neglecting components outside of this region. The control rod insertion is also being disregarded. In [krusty_critical_comp], we see a cross-section view of the KRUSTY components. In this drawing, we can see that the radial reflectors are fully withdrawn for better visualization. However, it is important to notice that in this example, we are considering that the radial reflectors are fully inserted.
+
+!media krusty_critical_comp.png
+  id=krusty_critical_comp
+  caption=Cross-section view of KRUSTY components [!cite](SanchezGroveHayes2020).
+  style=width:35%;margin-left:auto;margin-right:auto;halign:center
+
+
+The fuel is high enriched uranium U-7.65 Mo with a total length of 25 cm, an outer diameter of 11 cm, and the core contains a 4 cm hole to allow $B_4C$ control insertion. We can also briefly discuss the basic thermal cycle of a heat pipe, which is described in [fig_heat_pipe],
 
 !media fig_heat_pipe.png
   id=fig_heat_pipe
   caption=KRUSTY geometry schematic [!cite](wikiHP).
   style=width:45%;margin-left:auto;margin-right:auto;halign:center
 
-where $1$ shows the working fluid evaporating to vapor by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapor condenses back to liquid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end.
+where $1$ shows the working fluid evaporating to vapour by absorbing thermal energy, at $2$ the vapor migrates along the cavity to lower temperature end, and at $3$ the vapour condenses back to liquid and is absorbed by the wick, releasing thermal energy. Finally, at $4$ the working fluid flows back to the higher temperature end.
 
 !table id=table1 caption=Geometric specifications for KRUSTY
 | Component       | Inner diameter (cm)  | Outer diameter (cm)  |
@@ -89,7 +97,7 @@ The OpenMC model is built using a [!ac](CSG)-type geometry. In a [!ac](CSG) mode
 
 We will use a linear-linear stochastic interpolation between the two cross section data sets nearest to the imposed temperature by setting the `method` parameter on `model.settings.temperature` to `interpolation`. When OpenMC is initialized, the cross section data is loaded for a temperature range specified by `range` in `settings`. 
 
-!listing /tutorials/krusty/KRUSTY/model.py
+!listing /tutorials/krusty/without_sockeye/model.py
 
 To generate the all of the XML files needed to run OpenMC, you just need to run: 
 
