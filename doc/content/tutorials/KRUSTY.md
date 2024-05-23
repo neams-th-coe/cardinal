@@ -5,7 +5,7 @@ In this tutorial, you will learn how to couple OpenMC via temperature and heat s
 To access this tutorial,
 
 ```
-cd cardinal/tutorials/krusty
+cd cardinal/tutorials/krusty/without_sockeye
 ```
 
 
@@ -18,69 +18,69 @@ In this section, OpenMC is coupled to MOOSE for heat source and temperature feed
 
 The solid phase is solved with the MOOSE Heat Transfer module, and is described in the [solide.i](/tutorials/krusty/KRUSTY/solide.i) input. The mesh exodus file was generated in the Cubit script mentioned before. This file is called inside the `[Mesh]` block:
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   block=Mesh
 
 
 The heat transfer module will solve for temperature, which we define as a nonlinear variable and apply a simple uniform initial condition of $1073 K$.
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   block=Variables
 
 The governing equation solved by MOOSE is specified in the `[Kernels]` block with the [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html) and [CoupledForce](https://mooseframework.inl.gov/source/kernels/CoupledForce.html) kernels.
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   block=Kernels
 
 
 Next, the boundary conditions on the solid are applied. In case A, coupling only OpenMC and MOOSE Heat Transfer Model, the boundary conditions on each heat pipe will be the Dirichlet type, where they have a constant temperature of $1073 K$ and for the "outside" boundary conditions will be a [ConvectiveHeatFluxBC](https://mooseframework.inl.gov/source/bcs/ConvectiveHeatFluxBC.html) type, where it computes the convective heat flux, with the convective heat transfer coefficient and the far field temperature coupled as material properties.
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   block=BCs
 
 The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html) system in MOOSE is used to communicate variables across applications; a heat source will be computed by OpenMC and applied as a source term in MOOSE. In the opposite direction, MOOSE will compute a temperature that will be applied to the OpenMC geometry. We need to add an auxiliary variable to receive the heat source from OpenMC, which is defined as `power`.
 
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   block=AuxVariables
 
 We also set thermal conductivity values in the blocks: `fuel`, `cavity_center`, `gap_clamp`, `gap_ref`, `gap_sleeve`, `gap_vaccan`. Constant values are used for simplicity.
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   block=Materials
 
 
 By setting a fixed number of time steps, `dt`, this example will simply run a fixed number of Picard iterations.
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   block=Executioner
 
 MOOSE will provide the solid temperature for OpenMC so we add postprocessors to evaluate the average, minimum and maximum temperature in the fuel. 
 
-!listing /tutorials/krusty/KRUSTY/solide.i
+!listing /tutorials/krusty/without_sockeye/solide.i
   start=Postprocessors
 
 ### Neutronics Input Files
 
 We begin by defining a mesh on which OpenMC will receive temperature from the couple MOOSE application.
 
-!listing /tutorials/krusty/KRUSTY/openmc.i
+!listing /tutorials/krusty/without_sockeye/openmc.i
   block=Mesh
 
 Then, we can define our initial conditions for the temperature, which will be a constant function of $1073 K$
 
-!listing /tutorials/krusty/KRUSTY/openmc.i
+!listing /tutorials/krusty/without_sockeye/openmc.i
   start=ICs
   end=Problem
 
 Next, we define the `[Problem]` block, which will describe all objects necessary for the physics solve. In order to replace MOOSE finite element calculations with OpenMC particle transport calculations, we are going to use the [OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html) class. In this model, we specify the total fission power by which to normalize OpenMC's tally results. Next, we indicate which blocks in the `[Mesh]` should be considered for temperature feedback using the `temperature_blocks` parameter. Mesh tallies were used to estimate the heat source, as indicated by `tally_type`.
 
-!listing /tutorials/krusty/KRUSTY/openmc.i
+!listing /tutorials/krusty/without_sockeye/openmc.i
   block=Problem
   
 Next, we add a series of auxiliary variables for solution visualization 
 
-!listing /tutorials/krusty/KRUSTY/openmc.i
+!listing /tutorials/krusty/without_sockeye/openmc.i
   block=AuxVariables
 
 In this example, the overall calculation workflow is as follows:
@@ -99,18 +99,18 @@ blocks describe the interaction between Cardinal and MOOSE. OpenMC is run as the
 MOOSE heat conduction run as the sub-application.
 
 
-!listing /tutorials/krusty/KRUSTY/openmc.i
+!listing /tutorials/krusty/without_sockeye/openmc.i
   start=MultiApps
   end=Postprocessors
 
 For the heat source transfer from OpenMC, we ensure conservation by requiring that the integral of heat source computed by OpenMC matches the integral of the heat source received by MOOSE. We also add a postprocessor to evaluate the tally relative error and the multiplication factor.
 
-!listing /tutorials/krusty/KRUSTY/openmc.i
+!listing /tutorials/krusty/without_sockeye/openmc.i
   block=Postprocessors
 
 We do not need to define a number of time steps here, because it is okay to OpenMC use the default `dt` of 1.
 
-!listing /tutorials/krusty/KRUSTY/openmc.i
+!listing /tutorials/krusty/without_sockeye/openmc.i
   start=Executioner
 
 
