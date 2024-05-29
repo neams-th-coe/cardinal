@@ -1,0 +1,20 @@
+[GENERAL]
+  polynomialOrder = 4
+  stopAt = endTime #numSteps
+  endTime = 1
+  dt = 1.0e-2
+  timeStepper = tombo2
+  writeControl = simulationTime
+  writeInterval = 12
+
+[PRESSURE]
+  residualTol = 1e-12
+
+[VELOCITY]
+  density = 1.0
+  viscosity = -104.0
+  boundaryTypeMap = inlet,outlet,wall,sym,sym
+  residualTol = 1e-14
+
+[TEMPERATURE]
+  solver = none

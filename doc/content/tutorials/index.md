@@ -70,6 +70,7 @@ We recommend quickly reading this documentation before proceeding.
 5. [Multiscale coupling to SAM](tutorials/sam_coupling.md)
 6. [Forward uncertainty quantification](tutorials/nekrs_stochastic.md)
 7. [Postprocessing/extracting the NekRS solution](tutorials/nekrs_outputs.md)
+8. [One-way coupled fluid-structure interaction](tutorials/oneway_fsi.md)
 
 ## Tutorials for OpenMC
   id=openmc
