@@ -335,7 +335,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
-  bool heating = std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
+  bool heating =
+      std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
 
   if (isParamValid("tally_estimator"))
   {
@@ -348,7 +349,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         mooseError("Tracklength estimators are currently incompatible with mesh tallies!");
 
       if (openmc::settings::photon_transport && heating)
-        mooseError("Tracklength estimators are currently incompatible with photon transport and heating scores! For more information: https://tinyurl.com/3wre3kwt");
+        mooseError("Tracklength estimators are currently incompatible with photon transport and "
+                   "heating scores! For more information: https://tinyurl.com/3wre3kwt");
     }
 
     _tally_estimator = tallyEstimator(estimator);
@@ -364,13 +366,14 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   }
 
   if (heating && !openmc::settings::photon_transport)
-    mooseWarning("When using the 'heating' score with photon transport disabled, energy deposition\n"
-      "from photons is neglected unless you specifically ran NJOY to produce MT=301 with\n"
-      "photon energy deposited locally (not true for any pre-packaged OpenMC data libraries\n"
-      "on openmc.org).\n\n"
-      "If you did NOT specifically run NJOY yourself with this customization, we recommend\n"
-      "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
-      "Otherwise, you will underpredict the true energy deposition.");
+    mooseWarning(
+        "When using the 'heating' score with photon transport disabled, energy deposition\n"
+        "from photons is neglected unless you specifically ran NJOY to produce MT=301 with\n"
+        "photon energy deposited locally (not true for any pre-packaged OpenMC data libraries\n"
+        "on openmc.org).\n\n"
+        "If you did NOT specifically run NJOY yourself with this customization, we recommend\n"
+        "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
+        "Otherwise, you will underpredict the true energy deposition.");
 
   // need some special treatment for non-heating scores, in eigenvalue mode
   bool has_non_heating_score = false;
