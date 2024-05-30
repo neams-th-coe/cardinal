@@ -323,22 +323,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
 
-  if (isParamValid("tally_estimator"))
-  {
-    auto estimator = getParam<MooseEnum>("tally_estimator").getEnum<tally::TallyEstimatorEnum>();
-    if (_tally_type == tally::mesh && estimator == tally::tracklength)
-      mooseError("Tracklength estimators are currently incompatible with mesh tallies!");
-
-    _tally_estimator = tallyEstimator(estimator);
-  }
-  else
-  {
-    // set a default of tracklength, and use mandatory collision for mesh tallies
-    _tally_estimator = openmc::TallyEstimator::TRACKLENGTH;
-    if (_tally_type == tally::mesh)
-      _tally_estimator = openmc::TallyEstimator::COLLISION;
-  }
-
   if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != trigger::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
@@ -351,15 +335,42 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     _tally_score = {"kappa-fission"};
 
-  if (std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end())
-    if (!openmc::settings::photon_transport)
-      mooseWarning("When using the 'heating' score with photon transport disabled, energy deposition\n"
-        "from photons is neglected unless you specifically ran NJOY to produce MT=301 with\n"
-        "photon energy deposited locally (not true for any pre-packaged OpenMC data libraries\n"
-        "on openmc.org).\n\n"
-        "If you did NOT specifically run NJOY yourself with this customization, we recommend\n"
-        "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
-        "Otherwise, you will underpredict the true energy deposition.");
+  bool heating = std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
+
+  if (isParamValid("tally_estimator"))
+  {
+    auto estimator = getParam<MooseEnum>("tally_estimator").getEnum<tally::TallyEstimatorEnum>();
+
+    // not all tallies can use tracklength estimators
+    if (estimator == tally::tracklength)
+    {
+      if (_tally_type == tally::mesh)
+        mooseError("Tracklength estimators are currently incompatible with mesh tallies!");
+
+      if (openmc::settings::photon_transport && heating)
+        mooseError("Tracklength estimators are currently incompatible with photon transport and heating scores! For more information: https://tinyurl.com/3wre3kwt");
+    }
+
+    _tally_estimator = tallyEstimator(estimator);
+  }
+  else
+  {
+    // set a default of tracklength, and use mandatory collision for mesh tallies and photon heating
+    _tally_estimator = openmc::TallyEstimator::TRACKLENGTH;
+    if (_tally_type == tally::mesh)
+      _tally_estimator = openmc::TallyEstimator::COLLISION;
+    if (heating && openmc::settings::photon_transport)
+      _tally_estimator = openmc::TallyEstimator::COLLISION;
+  }
+
+  if (heating && !openmc::settings::photon_transport)
+    mooseWarning("When using the 'heating' score with photon transport disabled, energy deposition\n"
+      "from photons is neglected unless you specifically ran NJOY to produce MT=301 with\n"
+      "photon energy deposited locally (not true for any pre-packaged OpenMC data libraries\n"
+      "on openmc.org).\n\n"
+      "If you did NOT specifically run NJOY yourself with this customization, we recommend\n"
+      "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
+      "Otherwise, you will underpredict the true energy deposition.");
 
   // need some special treatment for non-heating scores, in eigenvalue mode
   bool has_non_heating_score = false;
