@@ -1,0 +1,9 @@
+[Tests]
+  [photon_heating]
+    type = RunException
+    input = openmc.i
+    expect_err = "Tracklength estimators are currently incompatible with photon transport and heating scores!"
+    requirement = "The system shall error if using incompatible tally estimator with a photon transport heating score."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
