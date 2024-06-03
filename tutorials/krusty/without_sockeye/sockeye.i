@@ -80,8 +80,8 @@ t_wick = 0.1e-2
 
 # Radial geometry
 # Envelope outer
-R_hp_o = 1.27e-2
-D_hp_o = '${fparse 2.0 * R_hp_o}'
+D_hp_o = 1.27e-2
+R_hp_o = '${fparse D_hp_o / 2}'
 # Inner Envelope/outer annulus
 R_hp_i = '${fparse R_hp_o - t_env}'
 D_hp_i = '${fparse 2.0 * R_hp_i}'
