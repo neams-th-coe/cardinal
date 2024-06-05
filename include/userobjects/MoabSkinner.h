@@ -8,6 +8,8 @@
 #include "moab/GeomTopoTool.hpp"
 #include "MBTagConventions.hpp"
 
+class MooseMesh;
+
 /**
  * \brief Skins the [Mesh] according to individual bins for temperature, density, and subdomain ID
  *
@@ -441,4 +443,12 @@ protected:
 
   /// Tolerance to use for comparing values to bin bounds
   const Real BIN_TOLERANCE = 1e-6;
+
+  /// Whether the skinned mesh should be generated from a displaced mesh
+  const bool & _use_displaced;
+
+  MooseSharedPointer<DisplacedProblem> _displaced_problem;
+
+  /// Moose mesh
+  MooseMesh * _mesh;
 };

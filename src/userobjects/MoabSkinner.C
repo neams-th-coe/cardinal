@@ -6,6 +6,9 @@
 #include "BinUtility.h"
 #include "GeometryUtils.h"
 #include "UserErrorChecking.h"
+#include "DisplacedProblem.h"
+#include "FEProblemBase.h"
+#include "MooseMesh.h"
 
 #include "libmesh/elem.h"
 #include "libmesh/enum_io_package.h"
@@ -76,6 +79,9 @@ MoabSkinner::validParams()
                         "be written to a file. The files will be named moab_full_<n>.h5m, where "
                         "<n> is the time step index. "
                         "You can then visualize these files by running 'mbconvert'.");
+  params.addParam<bool>("use_displaced_mesh",
+                        false,
+                        "Whether the skinned mesh should be generated from a displaced mesh ");
   return params;
 }
 
@@ -97,7 +103,9 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _output_full(getParam<bool>("output_full")),
     _scaling(1.0),
     _n_write(0),
-    _standalone(true)
+    _standalone(true),
+    _use_displaced(getParam<bool>("use_displaced_mesh")),
+    _displaced_problem(_fe_problem.getDisplacedProblem())
 {
   _build_graveyard = getParam<bool>("build_graveyard");
 
@@ -183,6 +191,15 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   _tet10_nodes.push_back({4, 9, 5, 6});
 
   moab::MBErrorHandler_Init();
+
+  if (_use_displaced)
+  {
+     _mesh = &_displaced_problem->mesh();
+  }
+  else
+  {
+     _mesh = &_fe_problem.mesh();
+  }
 }
 
 void
@@ -218,6 +235,10 @@ MoabSkinner::getAuxiliaryVariableNumber(const std::string & name,
 MeshBase &
 MoabSkinner::mesh()
 {
+  if (_use_displaced)
+  {
+    return _displaced_problem->mesh().getMesh();
+  }
   return _fe_problem.mesh().getMesh();
 }
 
@@ -273,6 +294,10 @@ MoabSkinner::update()
   // Clear MOAB mesh data from last timestep
   reset();
 
+  if (_use_displaced)
+  {
+    _displaced_problem->updateMesh();
+  }
   _serialized_solution->init(_fe_problem.getAuxiliarySystem().sys().n_dofs(), false, SERIAL);
   _fe_problem.getAuxiliarySystem().solution().localize(*_serialized_solution);
 
@@ -294,7 +319,7 @@ MoabSkinner::findBlocks()
   _blocks.clear();
 
   int i = 0;
-  for (const auto & b : _fe_problem.mesh().meshSubdomains())
+  for (const auto & b : _mesh->meshSubdomains())
     _blocks[b] = i++;
 
   _n_block_bins = _blocks.size();
@@ -538,9 +563,9 @@ MoabSkinner::sortElemsByResults()
   std::vector<unsigned int> n_temp_hits(_n_temperature_bins, 0);
   std::vector<unsigned int> n_density_hits(_n_density_bins, 0);
 
-  for (unsigned int e = 0; e < _fe_problem.mesh().nElem(); ++e)
+  for (unsigned int e = 0; e < _mesh->nElem(); ++e)
   {
-    const Elem * const elem = _fe_problem.mesh().queryElemPtr(e);
+    const Elem * const elem = _mesh->queryElemPtr(e);
     if (!elem)
       continue;
 
