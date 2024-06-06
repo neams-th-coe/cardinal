@@ -105,27 +105,6 @@ endif
 HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
 
-# convert ENABLE_NEK, ENABLE_OPENMC, and ENABLE_DAGMC to consistent truthy value
-ifeq ($(ENABLE_OPENMC),$(filter $(ENABLE_OPENMC), true yes on 1 TRUE YES ON))
-  ENABLE_OPENMC := yes
-endif
-ifeq ($(ENABLE_NEK),$(filter $(ENABLE_NEK), true yes on 1 TRUE YES ON))
-  ENABLE_NEK := yes
-endif
-ifeq ($(ENABLE_DAGMC),$(filter $(ENABLE_DAGMC), true yes on 1 TRUE YES ON))
-  ENABLE_DAGMC := yes
-endif
-
-ifeq ($(ENABLE_OPENMC), yes)
-  # HDF5 is only needed to be linked if using OpenMC
-  $(info Cardinal is using HDF5 from    $(HDF5_ROOT))
-else
-  ifeq ($(ENABLE_DAGMC), yes)
-    $(info Ignoring ENABLE_DAGMC because OpenMC is not enabled.)
-    ENABLE_DAGMC := no
-  endif
-endif
-
 # Check that NEKRS_HOME is set to the correct location
 ifeq ($(ENABLE_NEK), yes)
   include config/check_nekrs.mk
@@ -133,6 +112,8 @@ endif
 
 ALL_MODULES         := no
 
+# you may opt to enable additional modules by listing them here; any modules required
+# by third-party dependencies will be re-enabled if necessary
 FLUID_PROPERTIES    := yes
 HEAT_TRANSFER       := yes
 NAVIER_STOKES       := yes

@@ -22,6 +22,27 @@ ifeq ($(ENABLE_OPENMC), yes)
   $(info Cardinal is using HDF5 from      $(HDF5_ROOT))
 endif
 
+# convert ENABLE_NEK, ENABLE_OPENMC, and ENABLE_DAGMC to consistent truthy value
+ifeq ($(ENABLE_OPENMC),$(filter $(ENABLE_OPENMC), true yes on 1 TRUE YES ON))
+  ENABLE_OPENMC := yes
+endif
+ifeq ($(ENABLE_NEK),$(filter $(ENABLE_NEK), true yes on 1 TRUE YES ON))
+  ENABLE_NEK := yes
+endif
+ifeq ($(ENABLE_DAGMC),$(filter $(ENABLE_DAGMC), true yes on 1 TRUE YES ON))
+  ENABLE_DAGMC := yes
+endif
+
+ifeq ($(ENABLE_OPENMC), yes)
+else
+  ifeq ($(ENABLE_DAGMC), yes)
+    $(info Ignoring ENABLE_DAGMC because OpenMC is not enabled.)
+    ENABLE_DAGMC := no
+  endif
+endif
+
+
+
 ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
 else
