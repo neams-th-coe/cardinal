@@ -29,4 +29,11 @@
     requirement = "The system shall error if using a skinner without a DagMC geometry"
     required_objects = 'MoabSkinner'
   []
+  [duplicate_levels]
+    type = RunException
+    input = levels.i
+    expect_err = "Either 'cell_level' or 'lowest_cell_level' must be specified. You have given either both or none."
+    requirement = "The system shall error if both or none of the cell level options have been prescribed."
+    required_objects = 'MoabSkinner'
+  []
 []

@@ -548,6 +548,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
     case tally::cell:
     {
+      checkRequiredParam(params, "tally_blocks", "using cell tallies");
       checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
                                "using cell tallies");
 

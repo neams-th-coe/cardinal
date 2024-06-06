@@ -8,10 +8,7 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  cell_level = 0
-  tally_type = cell
-  normalize_by_global_tally = false
-  initial_properties = xml
+  tally_type = none
 
   inactive_batches = 3
   batches = 8
