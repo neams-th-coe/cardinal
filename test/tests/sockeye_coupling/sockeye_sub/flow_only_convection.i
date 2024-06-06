@@ -180,7 +180,7 @@ initial_T = 1200
   dt = 0.1
 
   steady_state_detection = true
-  steady_state_tolerance = 1e-8
+  steady_state_tolerance = 1e-2
 
   solve_type = NEWTON
   nl_abs_tol = 1e-8
