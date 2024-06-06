@@ -293,10 +293,10 @@ MoabSkinner::update()
 
   // Clear MOAB mesh data from last timestep
   reset();
-
-  if (_use_displaced)
+    
+  if (_use_displaced && &_displaced_problem != nullptr)
   {
-    _displaced_problem->updateMesh();
+     _displaced_problem->updateMesh();
   }
   _serialized_solution->init(_fe_problem.getAuxiliarySystem().sys().n_dofs(), false, SERIAL);
   _fe_problem.getAuxiliarySystem().solution().localize(*_serialized_solution);
