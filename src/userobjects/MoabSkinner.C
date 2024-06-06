@@ -1094,5 +1094,4 @@ MoabSkinner::setGraveyard(bool build)
 
   _build_graveyard = build;
 }
-
 #endif
