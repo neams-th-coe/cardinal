@@ -1,5 +1,3 @@
-# This example models a representation of a heat pipe, using flow equations only.
-# A specified convective boundary condition is applied  to the evaporator and condenser regions.
 # This input file was simply copied from Sockeye in order to get a Sockeye
 # input - the physics are irrelevant, since we are only testing that Sockeye inputs
 # can be run within Cardinal.
@@ -49,12 +47,22 @@ initial_T = 1200
   fill_ratio = 1.05
 
   fp = fp_2phase
-  closures = sockeye
+  closures = closures
+
+  rdg_slope_reconstruction = none
 []
 
 [FluidProperties]
   [fp_2phase]
     type = SodiumTwoPhaseFluidProperties
+  []
+[]
+
+[Closures]
+  [closures]
+    type = Closures3Phase
+    htc_int_lsw = 1e5
+    htc_int_vapor = 1e5
   []
 []
 
@@ -109,6 +117,12 @@ initial_T = 1200
     P_hf = ${P_clad_i}
   []
 
+  [ht_adia]
+    type = HTHeatFlux3Phase
+    flow_channel = hp_adia
+    q_wall = 0
+  []
+
   [ht_cond]
     type = HTConvection3Phase
     flow_channel = hp_cond
@@ -116,12 +130,6 @@ initial_T = 1200
     htc_wall_lsw = 1000
     htc_wall_vapor = 0
     P_hf = ${P_clad_i}
-  []
-
-  [ht_adia]
-    type = HTHeatFlux3Phase
-    flow_channel = hp_adia
-    q_wall = 0
   []
 []
 
@@ -172,7 +180,7 @@ initial_T = 1200
   dt = 0.1
 
   steady_state_detection = true
-  steady_state_tolerance = 1e-8
+  steady_state_tolerance = 1e-2
 
   solve_type = NEWTON
   nl_abs_tol = 1e-8

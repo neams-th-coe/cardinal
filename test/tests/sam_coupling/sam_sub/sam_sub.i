@@ -42,7 +42,7 @@
   [../]
 
   [./outlet]
-    type = PressureOutlet
+    type = PBTDV
     input = 'pipe1(out) '              # Name of the connected components and the end type
     eos = eos                          # The equation-of-state
     p_bc = '1.0e5'                     # Pressure boundary condition
@@ -90,8 +90,8 @@
   l_max_its = 100                     # Number of linear iterations for each Krylov solve
 
   start_time = 0.0                    # Physical time at the beginning of the simulation
-  num_steps = 20                      # Max. simulation time steps
-  end_time = 100.                     # Max. physical time at the end of the simulation
+  num_steps = 20                     # Max. simulation time steps
+  end_time = 10.                     # Max. physical time at the end of the simulation
 
   [./Quadrature]
     type = TRAP                       # Using trapezoid integration rule
