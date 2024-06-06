@@ -1,7 +1,7 @@
 [Tests]
   [bins]
     type = Exodiff
-    input = all_bins.i
+    input = constant_expansion_coeff.i
     exodiff = constant_expansion_coeff_out_sub0.e
     mesh_mode = 'replicated'
     requirement = "The system shall bin elements according to temperature and density, on multiple subdomains, and be able to visualize the bins on the mesh volume for second-order tets."

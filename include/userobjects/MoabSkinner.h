@@ -234,6 +234,8 @@ protected:
   /// Get a modifyable reference to the underlying libmesh mesh.
   MeshBase & mesh();
 
+  /// Moose mesh
+  MooseMesh & getMooseMesh();
   /**
    * Copy the libMesh [Mesh] into a MOAB mesh. This first loops through all of the
    * nodes, and rebuilds each as a MOAB vertex. Then, we loop over all of the elements
@@ -447,8 +449,4 @@ protected:
   /// Whether the skinned mesh should be generated from a displaced mesh
   const bool & _use_displaced;
 
-  MooseSharedPointer<DisplacedProblem> _displaced_problem;
-
-  /// Moose mesh
-  MooseMesh * _mesh;
 };
