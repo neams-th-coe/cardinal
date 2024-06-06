@@ -14,3 +14,8 @@ e_per_assembly_background = 3 # number of background elements in assembly
 growth_factor = 1.8           # boundary layer growth factor
 nl = 1                        # number of axial layers
 bl_height = 0.00006           # height of first boundary layer
+
+# Smoothing factors to apply to the corner movement; must match the length
+# of the e_per_bl + e_per_assembly_background. You may
+# need to adjust this parameter if the default doesn't work nicely.
+corner_smoothing = '1.0 1.0 1.0 0.75 0.25 0.25'

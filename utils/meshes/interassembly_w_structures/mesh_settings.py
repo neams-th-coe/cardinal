@@ -28,3 +28,8 @@ bl_pad_height = 0.0001        # height of first boundary layer on bottom/top fac
 growth_factor = 1.8           # boundary layer growth factor
 
 num_layers_per_dz = 1.0       # layers per axial pitch
+
+# Smoothing factors to apply to the corner movement; must match the length
+# of the e_per_bl.
+corner_smoothing = '1'
+
