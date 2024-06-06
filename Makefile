@@ -62,14 +62,7 @@ endif
 
 CARDINAL_DIR        := $(abspath $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))))
 CONTRIB_DIR         := $(CARDINAL_DIR)/contrib
-
-# Use the MOOSE submodule if it exists and MOOSE_DIR is not set
-MOOSE_SUBMODULE     ?= $(CONTRIB_DIR)/moose
-ifneq ($(wildcard $(MOOSE_SUBMODULE)/framework/Makefile),)
-	MOOSE_DIR        ?= $(MOOSE_SUBMODULE)
-else
-	MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
-endif
+MOOSE_DIR           ?= $(CONTRIB_DIR)/moose
 
 PETSC_DIR           ?= $(MOOSE_DIR)/petsc
 PETSC_ARCH          ?= arch-moose
