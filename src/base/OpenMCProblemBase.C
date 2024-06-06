@@ -65,7 +65,11 @@ OpenMCProblemBase::validParams()
                         false,
                         "Whether to take the initial fission source "
                         "for interation n to be the converged source bank from iteration n-1");
-  params.addParam<bool>("skip_statepoint", false, "Whether to skip writing any statepoint files from OpenMC; this is a performance optimization for scenarios where you may not want the statepoint files anyways");
+  params.addParam<bool>(
+      "skip_statepoint",
+      false,
+      "Whether to skip writing any statepoint files from OpenMC; this is a performance "
+      "optimization for scenarios where you may not want the statepoint files anyways");
   return params;
 }
 
