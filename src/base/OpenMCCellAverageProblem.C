@@ -505,8 +505,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
     const openmc::Universe * u = openmc::model::universes.at(_dagmc_universe_index).get();
     const openmc::DAGUniverse * dag = dynamic_cast<const openmc::DAGUniverse *>(u);
-    if (dag->uses_uwuw()) // TODO: test
-      mooseError("The 'skinner' does not currently support the UWUW workflow.");
 
     // The newly-generated DAGMC cells could be disjoint in space, in which case
     // it is impossible for us to know with 100% certainty a priori how many materials
