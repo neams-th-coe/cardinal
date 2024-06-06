@@ -69,6 +69,11 @@ PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_DIR)/libmesh/installed/
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
 
+# Check that NEKRS_HOME is set to the correct location
+ifeq ($(ENABLE_NEK), yes)
+  include $(CARDINAL_DIR)/config/check_nekrs.mk
+endif
+
 # This is the Eigen3 location on CIVET. If you are using MOOSE's conda environment,
 # you don't need to set these variables, because conda sets them for you. The only
 # scenario where you might need to manually set these is if you're not using the
@@ -185,7 +190,6 @@ endif
 # MOOSE core objects
 # ======================================================================================
 
-# framework
 FRAMEWORK_DIR      := $(MOOSE_DIR)/framework
 include $(FRAMEWORK_DIR)/build.mk
 include $(FRAMEWORK_DIR)/moose.mk

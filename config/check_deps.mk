@@ -42,11 +42,6 @@ ifeq ($(ENABLE_DAGMC),$(filter $(ENABLE_DAGMC), true yes on 1 TRUE YES ON))
   ENABLE_DAGMC := yes
 endif
 
-# Check that NEKRS_HOME is set to the correct location
-ifeq ($(ENABLE_NEK), yes)
-  include config/check_nekrs.mk
-endif
-
 ifeq ($(ENABLE_OPENMC), yes)
   # HDF5 is only needed to be linked if using OpenMC
   $(info Cardinal is using HDF5 from      $(HDF5_ROOT))
