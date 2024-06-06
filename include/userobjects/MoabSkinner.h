@@ -448,5 +448,4 @@ protected:
 
   /// Whether the skinned mesh should be generated from a displaced mesh
   const bool & _use_displaced;
-
 };
