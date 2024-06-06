@@ -12,3 +12,7 @@ e_per_bl = 1                 # number of elements in each boundary layer
 e_per_peripheral = 1         # number of elements to put in the peripheral region
 growth_factor = 1.7          # growth factor for the boundary layers
 bl_height = 0.0001           # height of the first boundary layer
+
+# Smoothing factors to apply to the corner movement; must match the length
+# of the e_per_bl/
+corner_smoothing = '1'

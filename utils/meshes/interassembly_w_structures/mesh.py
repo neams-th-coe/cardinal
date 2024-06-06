@@ -27,10 +27,6 @@ from argparse import ArgumentParser
 # defined in the mesh_settings.py file. You should not need to
 # edit anything in this script except for:
 
-# Smoothing factors to apply to the corner movement; must match the length
-# of the e_per_bl (if specified)
-corner_smoothing = []
-
 ################################################################################
 
 ap = ArgumentParser()
@@ -71,6 +67,7 @@ e_per_gap_bl = ms.e_per_gap_bl
 bl_height = ms.bl_height
 bl_pad_height = ms.bl_pad_height
 growth_factor = ms.growth_factor
+corner_smoothing = ms.corner_smoothing
 
 num_layers_per_dz = ms.num_layers_per_dz
 
@@ -183,10 +180,6 @@ def lattice_centers(nrings, pitch):
     lattices += str(rotated_x) + " " + str(rotated_y) + " 0.0;"
 
   return lattices[:-1] + "'"
-
-cs = ""
-for i in range(len(corner_smoothing)):
-  cs += " " + str(corner_smoothing[i])
 
 # Get the 'pattern' needed for the core by assuming a simple hex grid of bundles
 n_rings = rings(n_bundles)
@@ -397,7 +390,7 @@ with open('mesh_info.i', 'w') as f:
   f.write("s_swaps='" + s_swaps + "'\n")
   f.write("s_swaps_extra='" + s_swaps_extra + "'\n")
   f.write("polygon_origins=" + str(bundle_origins) + "\n")
-  f.write("cs='" + cs + "'\n")
+  f.write("corner_smoothing='" + corner_smoothing + "'\n")
 
 if (args.generate):
   home = os.getenv('HOME')
