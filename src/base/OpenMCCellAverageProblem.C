@@ -917,6 +917,9 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
     openmc::settings::trigger_on = true;
     checkRequiredParam(parameters, "max_batches", "using triggers");
 
+    if (_skip_statepoint)
+      checkUnusedParam(parameters, "skip_statepoint", "using a trigger");
+
     int err = openmc_set_n_batches(getParam<unsigned int>("max_batches"),
                                    true /* set the max batches */,
                                    true /* add the last batch for statepoint writing */);
@@ -928,6 +931,8 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
   {
     checkUnusedParam(parameters, "max_batches", "not using triggers");
     checkUnusedParam(parameters, "batch_interval", "not using triggers");
+
+    if (_skip_statepoint)                                                                      openmc::settings::statepoint_batch.clear();
   }
 }
 
