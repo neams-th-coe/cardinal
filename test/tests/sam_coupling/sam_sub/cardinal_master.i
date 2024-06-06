@@ -5,38 +5,31 @@
   ny = 3
 []
 
-[Variables]
-  [./u]
-  [../]
+[Problem]
+  type = FEProblem
+  solve = false
 []
 
-[Kernels]
-  [./diff]
-    type = Diffusion
-    variable = u
-  [../]
+[AuxVariables]
+  [g]
+    family = MONOMIAL
+    order = CONSTANT
+  []
 []
 
-[BCs]
-  [./left]
-    type = DirichletBC
-    variable = u
-    boundary = 'left'
-    value = 0
-  [../]
-  [./right]
-    type = DirichletBC
-    variable = u
-    boundary = 'right'
-    value = 1
-  [../]
+[AuxKernels]
+  [grid]
+    type = CartesianGrid
+    variable = g
+    nx = 4
+    ny = 4
+    nz = 4
+  []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 1
-  petsc_options_iname = '-pc_type -pc_hypre_type'
-  petsc_options_value = 'hypre boomeramg'
+  num_steps = 2
 []
 
 [Outputs]
