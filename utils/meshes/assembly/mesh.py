@@ -19,11 +19,6 @@ import csv
 # flow area are evaluated accounting for the wire, even though the
 # wire is not explicitly meshed.
 
-# Smoothing factors to apply to the corner movement; must match the length
-# of the e_per_bl + e_per_assembly_background (if specified). You may
-# need to adjust this parameter if the default doesn't work nicely.
-corner_smoothing = [1.0, 1.0, 1.0, 0.75, 0.25, 0.25]
-
 ####################################################################
 
 ap = ArgumentParser()
@@ -52,15 +47,7 @@ e_per_assembly_background = ms.e_per_assembly_background
 growth_factor = ms.growth_factor
 nl = ms.nl
 bl_height = ms.bl_height
-
-# If not specified by user, set a reasonable default
-if (len(corner_smoothing) == 0):
-  for i in range(e_per_bl + e_per_assembly_background):
-    corner_smoothing.append(1.0)
-
-cs = ""
-for i in range(len(corner_smoothing)):
-  cs += " " + str(corner_smoothing[i])
+corner_smoothing = ms.corner_smoothing
 
 # dummy block IDs just for mesh creation purposes
 fluid_id = 5
@@ -270,7 +257,7 @@ with open('mesh_info.i', 'w') as f:
   f.write("fluid_elems=" + fluid_elems + "'\n")
   f.write("pattern=" + str(pattern) + "\n")
   f.write("pin_centers=" + str(pin_centers) + "\n")
-  f.write("cs='" + cs + "'\n")
+  f.write("corner_smoothing='" + corner_smoothing + "'\n")
 
 if (args.generate):
   home = os.getenv('HOME')

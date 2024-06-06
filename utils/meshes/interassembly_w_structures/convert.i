@@ -16,7 +16,7 @@
     polygon_sides = 6
     polygon_size = ${fparse outer_flat_to_flat / sqrt(3.0)}
     polygon_layers = ${e_per_bl}
-    polygon_layer_smoothing = ${cs}
+    polygon_layer_smoothing = ${corner_smoothing}
     polygon_origins = ${polygon_origins}
     polygon_boundary = '${duct_outer}'
     corner_radius = ${fparse corner_radius}

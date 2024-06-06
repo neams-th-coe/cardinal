@@ -19,7 +19,7 @@
     polygon_size = ${fparse flat_to_flat / sqrt(3.0)}
     corner_radius = ${duct_corner_radius_of_curvature}
     polygon_layers = ${fparse e_per_bl + e_per_assembly_background}
-    polygon_layer_smoothing = ${cs}
+    polygon_layer_smoothing = ${corner_smoothing}
     polygon_boundary = '4'
     rotation_angle = 30.0
   []
