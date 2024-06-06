@@ -3,7 +3,21 @@ define n
 
 endef
 
-# First, we can find which optional dependencies we have been pulled in
+# Set default values for all third party dependencies
+NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
+OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
+DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
+MOAB_DIR            ?= $(CONTRIB_DIR)/moab
+GRIFFIN_DIR         ?= $(CONTRIB_DIR)/griffin
+BISON_DIR           ?= $(CONTRIB_DIR)/bison
+SAM_DIR             ?= $(CONTRIB_DIR)/SAM
+SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
+SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
+POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
+IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
+
+# Then, we can find which optional dependencies we have been pulled in
+# by seeing if those directories are empty or not
 MOOSE_CONTENT     := $(shell ls $(MOOSE_DIR) 2> /dev/null)
 NEKRS_CONTENT     := $(shell ls $(NEKRS_DIR) 2> /dev/null)
 OPENMC_CONTENT    := $(shell ls $(OPENMC_DIR) 2> /dev/null)
@@ -17,11 +31,6 @@ SODIUM_CONTENT    := $(shell ls $(SODIUM_DIR) 2> /dev/null)
 POTASSIUM_CONTENT := $(shell ls $(POTASSIUM_DIR) 2> /dev/null)
 IAPWS95_CONTENT   := $(shell ls $(IAPWS95_DIR) 2> /dev/null)
 
-ifeq ($(ENABLE_OPENMC), yes)
-  # HDF5 is only needed to be linked if using OpenMC
-  $(info Cardinal is using HDF5 from      $(HDF5_ROOT))
-endif
-
 # convert ENABLE_NEK, ENABLE_OPENMC, and ENABLE_DAGMC to consistent truthy value
 ifeq ($(ENABLE_OPENMC),$(filter $(ENABLE_OPENMC), true yes on 1 TRUE YES ON))
   ENABLE_OPENMC := yes
@@ -33,15 +42,20 @@ ifeq ($(ENABLE_DAGMC),$(filter $(ENABLE_DAGMC), true yes on 1 TRUE YES ON))
   ENABLE_DAGMC := yes
 endif
 
+# Check that NEKRS_HOME is set to the correct location
+ifeq ($(ENABLE_NEK), yes)
+  include config/check_nekrs.mk
+endif
+
 ifeq ($(ENABLE_OPENMC), yes)
+  # HDF5 is only needed to be linked if using OpenMC
+  $(info Cardinal is using HDF5 from      $(HDF5_ROOT))
 else
   ifeq ($(ENABLE_DAGMC), yes)
     $(info Ignoring ENABLE_DAGMC because OpenMC is not enabled.)
     ENABLE_DAGMC := no
   endif
 endif
-
-
 
 ifeq ($(MOOSE_CONTENT),)
   $(error $n"MOOSE framework does not seem to be available. Make sure that either the submodule is checked out$nor that MOOSE_DIR points to a location with the MOOSE source.$n$nTo fetch the MOOSE submodule, use ./scripts/get-dependencies.sh")
@@ -103,8 +117,6 @@ ifeq ($(ENABLE_DAGMC), yes)
   endif
 endif
 
-
-
 ifneq ($(SAM_CONTENT),)
   $(info Cardinal is using SAM from       $(SAM_DIR))
 endif
@@ -124,6 +136,18 @@ ifneq ($(BISON_CONTENT),)
   SOLID_MECHANICS    := yes
   THERMAL_HYDRAULICS := yes
   XFEM               := yes
+
+  # We can check that if it looks like we're going to build Bison, that
+  # all of its dependencies are there
+  ifeq ($(IAPWS95_CONTENT),)
+    $(error $n"IAPWS95 dependency for Bison does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
+  else
+    ifeq ($(SOCKEYE_CONTENT),)
+      # don't print location info for IAPWS twice, if we are building with both
+      # Sockeye and Bison (since both require IAPWS)
+      $(info Cardinal is using water from     $(IAPWS95_DIR))
+    endif
+  endif
 endif
 
 ifneq ($(GRIFFIN_CONTENT),)
@@ -155,13 +179,9 @@ ifneq ($(SOCKEYE_CONTENT),)
   SOLID_PROPERTIES   := yes
   STOCHASTIC_TOOLS   := yes
   THERMAL_HYDRAULICS := yes
-endif
 
-
-
-# We can check that if it looks like we're going to build Sockeye, that
-# all of its dependencies are there
-ifneq ($(SOCKEYE_CONTENT),)
+  # We can check that if it looks like we're going to build Sockeye, that
+  # all of its dependencies are there
   ifeq ($(SODIUM_CONTENT),)
     $(error $n"Sodium dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that SODIUM_DIR points to a location with the sodium source.$n$nTo fetch the sodium submodule, use 'git submodule update --init contrib/sodium'")
   else
@@ -176,20 +196,6 @@ ifneq ($(SOCKEYE_CONTENT),)
     $(error $n"IAPWS95 dependency for Sockeye does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
   else
     $(info Cardinal is using water from     $(IAPWS95_DIR))
-  endif
-endif
-
-# We can check that if it looks like we're going to build Bison, that
-# all of its dependencies are there
-ifneq ($(BISON_CONTENT),)
-  ifeq ($(IAPWS95_CONTENT),)
-    $(error $n"IAPWS95 dependency for Bison does not seem to be available. Make sure that either the submodule is checked out$nor that IAPWS95_DIR points to a location with the IAPWS95 source.$n$nTo fetch the IAPWS95 submodule, use 'git submodule update --init contrib/iapws95'")
-  else
-    ifeq ($(SOCKEYE_CONTENT),)
-      # don't print location info for IAPWS twice, if we are building with both
-      # Sockeye and Bison (since both require IAPWS)
-      $(info Cardinal is using water from     $(IAPWS95_DIR))
-    endif
   endif
 endif
 

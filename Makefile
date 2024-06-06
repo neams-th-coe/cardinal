@@ -1,7 +1,6 @@
 # Optional environment variables:
 #
-# To control where various third-party dependencies are. You don't need to set
-# any of these unless you want to use non-submodule third-party dependencies.
+# To control where various third-party dependencies are.
 # NOTE: If you change any of these partway through a build, you will need to
 # clear out the build/ and install/ directories to be sure the proper build
 # flags are used.
@@ -53,6 +52,7 @@ OCCA_OPENCL_ENABLED=0
 # Whether to enable AMGX in Nek (only available for Nvidia GPU)
 AMGX_ENABLED=0
 
+# If user forgot to set OCCA_CUDA_ENABLED for AMGX, turn it on for them
 ifeq ($(AMGX_ENABLED),1)
   ifeq ($(OCCA_CUDA_ENABLED),0)
     $(info Turning on CUDA backend because AMGX was requested)
@@ -71,21 +71,10 @@ else
 	MOOSE_DIR        ?= $(shell dirname `pwd`)/moose
 endif
 
-NEKRS_DIR           ?= $(CONTRIB_DIR)/nekRS
-OPENMC_DIR          ?= $(CONTRIB_DIR)/openmc
-DAGMC_DIR           ?= $(CONTRIB_DIR)/DAGMC
-MOAB_DIR            ?= $(CONTRIB_DIR)/moab
 PETSC_DIR           ?= $(MOOSE_DIR)/petsc
 PETSC_ARCH          ?= arch-moose
 LIBMESH_DIR         ?= $(MOOSE_DIR)/libmesh/installed/
 CONTRIB_INSTALL_DIR ?= $(CARDINAL_DIR)/install
-GRIFFIN_DIR         ?= $(CONTRIB_DIR)/griffin
-BISON_DIR           ?= $(CONTRIB_DIR)/bison
-SAM_DIR             ?= $(CONTRIB_DIR)/SAM
-SOCKEYE_DIR         ?= $(CONTRIB_DIR)/sockeye
-SODIUM_DIR          ?= $(CONTRIB_DIR)/sodium
-POTASSIUM_DIR       ?= $(CONTRIB_DIR)/potassium
-IAPWS95_DIR         ?= $(CONTRIB_DIR)/iapws95
 
 # This is the Eigen3 location on CIVET. If you are using MOOSE's conda environment,
 # you don't need to set these variables, because conda sets them for you. The only
@@ -105,11 +94,6 @@ endif
 HDF5_INCLUDE_DIR    ?= $(HDF5_ROOT)/include
 HDF5_LIBDIR         ?= $(HDF5_ROOT)/lib
 
-# Check that NEKRS_HOME is set to the correct location
-ifeq ($(ENABLE_NEK), yes)
-  include config/check_nekrs.mk
-endif
-
 ALL_MODULES         := no
 
 # you may opt to enable additional modules by listing them here; any modules required
@@ -123,10 +107,11 @@ STOCHASTIC_TOOLS    := yes
 SOLID_MECHANICS     := yes
 THERMAL_HYDRAULICS  := yes
 
-# Perform various checks on the dependencies
+# Configure the optional dependencies (NekRS, OpenMC, submodules, etc.)
 include config/check_deps.mk
-include config/check_modules.mk
 
+# Report what MOOSE modules are being used
+include config/check_modules.mk
 
 # BUILD_TYPE will be passed to CMake via CMAKE_BUILD_TYPE
 ifeq ($(METHOD),dbg)
@@ -218,97 +203,11 @@ include $(FRAMEWORK_DIR)/moose.mk
 
 include $(MOOSE_DIR)/modules/modules.mk
 
-# Griffin submodule
-ifneq ($(GRIFFIN_CONTENT),)
- libmesh_CXXFLAGS    += -DENABLE_GRIFFIN_COUPLING
+# ======================================================================================
+# Third-Party Dependencies
+# ======================================================================================
 
- APPLICATION_DIR    := $(GRIFFIN_DIR)/isoxml
- APPLICATION_NAME   := isoxml
- include            $(FRAMEWORK_DIR)/app.mk
- #ADDITIONAL_DEPEND_LIBS += $(CURDIR)/isoxml/lib/libisoxml-$(METHOD).la
-
- APPLICATION_DIR    := $(GRIFFIN_DIR)/xs_generation
- APPLICATION_NAME   := mcc3
- include            $(APPLICATION_DIR)/mcc3.dep
- include            $(FRAMEWORK_DIR)/app.mk
-
- APPLICATION_DIR    := $(GRIFFIN_DIR)/radiation_transport
- APPLICATION_NAME   := radiation_transport
- include            $(FRAMEWORK_DIR)/app.mk
-
- APPLICATION_DIR     := $(GRIFFIN_DIR)
- APPLICATION_NAME    := griffin
- include             $(FRAMEWORK_DIR)/app.mk
-endif
-
-# Bison submodule
-ifneq ($(BISON_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_BISON_COUPLING
-  APPLICATION_DIR     := $(BISON_DIR)
-  APPLICATION_NAME    := bison
-  include             $(FRAMEWORK_DIR)/app.mk
-endif
-
-# SAM submodule
-ifneq ($(SAM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_SAM_COUPLING
-  APPLICATION_DIR     := $(SAM_DIR)
-  APPLICATION_NAME    := sam
-  SOLID_MECHANICS     := yes
-  include             $(FRAMEWORK_DIR)/app.mk
-endif
-
-# Sockeye submodule
-ifneq ($(SOCKEYE_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_SOCKEYE_COUPLING
-  APPLICATION_DIR     := $(SOCKEYE_DIR)
-  APPLICATION_NAME    := sockeye
-  include             $(FRAMEWORK_DIR)/app.mk
-endif
-
-# sodium submodule
-ifneq ($(SODIUM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_SODIUM
-  APPLICATION_DIR     := $(SODIUM_DIR)
-  APPLICATION_NAME    := sodium
-  include             $(FRAMEWORK_DIR)/app.mk
-  include             $(SODIUM_DIR)/libSodiumProperties.mk
-endif
-
-# potassium submodule
-ifneq ($(POTASSIUM_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_POTASSIUM
-  APPLICATION_DIR     := $(POTASSIUM_DIR)
-  APPLICATION_NAME    := potassium
-  include             $(FRAMEWORK_DIR)/app.mk
-  include             $(POTASSIUM_DIR)/libPotassiumProperties.mk
-endif
-
-# iapws95 submodule
-ifneq ($(IAPWS95_CONTENT),)
-  libmesh_CXXFLAGS    += -DENABLE_IAPWS95
-  APPLICATION_DIR     := $(IAPWS95_DIR)
-  APPLICATION_NAME    := iapws95
-  include             $(FRAMEWORK_DIR)/app.mk
-  include             $(IAPWS95_DIR)/libSBTL.mk
-endif
-
-ifeq ($(ENABLE_NEK), yes)
-  ADDITIONAL_CPPFLAGS += $(NEKRS_INCLUDES)
-  libmesh_CXXFLAGS    += -DENABLE_NEK_COUPLING
-endif
-
-ifeq ($(ENABLE_OPENMC), yes)
-  ADDITIONAL_CPPFLAGS += $(HDF5_INCLUDES) $(OPENMC_INCLUDES)
-  libmesh_CXXFLAGS    += -DENABLE_OPENMC_COUPLING
-endif
-
-ifeq ($(ENABLE_DAGMC), yes)
-  libmesh_CXXFLAGS    += -DENABLE_DAGMC
-
-  # this flag is used in OpenMC
-  libmesh_CXXFLAGS    += -DDAGMC
-endif
+include config/add_flags.mk
 
 # ======================================================================================
 # External apps
@@ -395,7 +294,7 @@ ifeq ($(ENABLE_OPENMC), yes)
   ADDITIONAL_LIBS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR)
 endif
 
-# Determin if we need libpng and where using pkg-config (if available)
+# Determine if we need libpng and where using pkg-config (if available)
 LIBPNG_FLAGS ?= $(shell pkg-config --libs libpng 2>/dev/null)
 ifneq (,$(findstring -lpng, $(LIBPNG_FLAGS)))
   ADDITIONAL_LIBS += $(LIBPNG_FLAGS)
@@ -427,7 +326,7 @@ ifeq ($(ENABLE_OPENMC), yes)
   CARDINAL_EXTERNAL_FLAGS += $(CC_LINKER_SLFLAG)$(OPENMC_LIBDIR) \
 	                           $(CC_LINKER_SLFLAG)$(HDF5_LIBDIR)
 endif
-#
+
 # EXTERNAL_FLAGS are for rules in app.mk
 $(app_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
 $(app_test_LIB): EXTERNAL_FLAGS := $(CARDINAL_EXTERNAL_FLAGS)
