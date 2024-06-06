@@ -603,10 +603,14 @@ OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
 openmc::TriggerMetric
 OpenMCProblemBase::triggerMetric(std::string trigger) const
 {
-  if (trigger == "none")
-    return openmc::TriggerMetric::not_active;
+  if (trigger == "variance")
+    return openmc::TriggerMetric::variance;
+  else if (trigger == "std_dev")
+    return openmc::TriggerMetric::standard_deviation;
   else if (trigger == "rel_err")
     return openmc::TriggerMetric::relative_error;
+  else if (trigger == "none")
+    return openmc::TriggerMetric::not_active;
   else
     mooseError("Unhandled TallyTriggerTypeEnum: ", trigger);
 }
