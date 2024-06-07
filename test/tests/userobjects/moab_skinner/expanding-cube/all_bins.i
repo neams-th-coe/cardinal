@@ -3,18 +3,6 @@
     type = FileMeshGenerator
     file = '../../../neutronics/meshes/tet_cube.e'
  []
- [id1]
-    type = ParsedSubdomainMeshGenerator
-    input = cube
-    combinatorial_geometry = 'z < 0.0'
-    block_id = 1
- []
- [id2]
-    type = ParsedSubdomainMeshGenerator
-    input = id1
-    combinatorial_geometry = 'z >= 0.0'
-    block_id = 3
- []
 []
 
 [GlobalParams]
@@ -116,7 +104,7 @@
   [moab]
     type = MoabSkinner
     verbose = true
-    material_names = "mat mat"
+    material_names = "mat"
 
     temperature = temp
     n_temperature_bins = 10
