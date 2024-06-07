@@ -104,11 +104,11 @@
 [Functions]
   [temp]
     type = ParsedFunction
-    expression = 400+x*100+100*t
+    expression = 1000+300*x*x+100*t
   []
   [rho]
     type = ParsedFunction
-    expression = 400+y*100+100*t
+    expression = 1000+300*y*y+100*t
   []
 []
 
@@ -119,18 +119,21 @@
     material_names = "mat mat"
 
     temperature = temp
-    n_temperature_bins = 2
-    temperature_min = 300.0
-    temperature_max = 1000.0
+    n_temperature_bins = 10
+    temperature_min = 996.0
+    temperature_max = 1070.0
+
+    density = rho
+    n_density_bins = 10
+    density_min = 996.0
+    density_max = 1070.0
 
     output_skins = true
-    use_displaced_mesh = true
   []
 []
 
 [Executioner]
   type = Transient
-  num_steps = 2
 []
 
 [Outputs]

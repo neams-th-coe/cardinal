@@ -18,15 +18,9 @@
 []
 
 [AuxVariables]
-  [./temp]
-  [../]
-[]
-
-[Functions]
-  [./temperature_load]
-    type = ParsedFunction
-    expression = t*(500.0)+500.0
-  [../]
+  [temp]
+    initial_condition = 1000
+  []
 []
 
 [Physics]
@@ -40,14 +34,6 @@
         generate_output = 'strain_xx strain_yy strain_zz'
       [../]
     [../]
-  [../]
-[]
-
-[AuxKernels]
-  [./tempfuncaux]
-    type = FunctionAux
-    variable = temp
-    function = temperature_load
   [../]
 []
 
@@ -101,9 +87,8 @@
   l_tol = 1e-9
 
   start_time = 0.0
-  end_time = 0.075
+  end_time = 0.025
   dt = 0.0125
-  dtmin = 0.0001
 []
 
 [Outputs]
@@ -122,13 +107,13 @@
 
 [Transfers]
   [./temp_from_source]
-    type = MultiAppGeneralFieldNearestLocationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     to_multi_app = sub
     variable = temp
     source_variable = temp
   []
   [dispx]
-    type = MultiAppGeneralFieldNearestLocationTransfer
+    type = MultiAppGeneralFieldShapeEvaluationTransfer
     source_variable = disp_x
     variable = disp_x
     to_multi_app = sub
