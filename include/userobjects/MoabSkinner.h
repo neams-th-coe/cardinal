@@ -207,6 +207,9 @@ protected:
    */
   bool _build_graveyard;
 
+  /// Whether the skinned mesh should be generated from a displaced mesh
+  const bool & _use_displaced;
+
   /// Length multiplier to get from [Mesh] units into OpenMC's centimeters
   Real _scaling;
 
@@ -445,6 +448,4 @@ protected:
   /// Tolerance to use for comparing values to bin bounds
   const Real BIN_TOLERANCE = 1e-6;
 
-  /// Whether the skinned mesh should be generated from a displaced mesh
-  const bool & _use_displaced;
 };

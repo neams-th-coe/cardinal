@@ -99,10 +99,10 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
     _graveyard_scale_outer(getParam<double>("graveyard_scale_outer")),
     _output_skins(getParam<bool>("output_skins")),
     _output_full(getParam<bool>("output_full")),
+    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _scaling(1.0),
     _n_write(0),
-    _standalone(true),
-    _use_displaced(getParam<bool>("use_displaced_mesh"))
+    _standalone(true)
 {
   _build_graveyard = getParam<bool>("build_graveyard");
 
