@@ -38,6 +38,7 @@ dT = 50.0
   type = OpenMCCellAverageProblem
   verbose = true
   tally_type = cell
+  tally_blocks = '1 2'
 
   temperature_blocks = '1 2'
   density_blocks = '1 2'

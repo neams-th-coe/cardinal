@@ -23,15 +23,12 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 100.0
-  temperature_blocks = '100'
-  cell_level = 0
   tally_type = mesh
   mesh_template = '../meshes/sphere.e'
   mesh_translations = '0 0 0
                        0 0 4
                        0 0 8'
   normalize_by_global_tally = false
-  initial_properties = xml
 
   tally_trigger = rel_err
   tally_trigger_threshold = 5e-1

@@ -65,6 +65,11 @@ OpenMCProblemBase::validParams()
                         false,
                         "Whether to take the initial fission source "
                         "for interation n to be the converged source bank from iteration n-1");
+  params.addParam<bool>(
+      "skip_statepoint",
+      false,
+      "Whether to skip writing any statepoint files from OpenMC; this is a performance "
+      "optimization for scenarios where you may not want the statepoint files anyways");
   return params;
 }
 
@@ -76,6 +81,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _reuse_source(getParam<bool>("reuse_source")),
     _specified_scaling(params.isParamSetByUser("scaling")),
     _scaling(getParam<Real>("scaling")),
+    _skip_statepoint(getParam<bool>("skip_statepoint")),
     _fixed_point_iteration(-1),
     _total_n_particles(0)
 {
@@ -597,10 +603,14 @@ OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
 openmc::TriggerMetric
 OpenMCProblemBase::triggerMetric(std::string trigger) const
 {
-  if (trigger == "none")
-    return openmc::TriggerMetric::not_active;
+  if (trigger == "variance")
+    return openmc::TriggerMetric::variance;
+  else if (trigger == "std_dev")
+    return openmc::TriggerMetric::standard_deviation;
   else if (trigger == "rel_err")
     return openmc::TriggerMetric::relative_error;
+  else if (trigger == "none")
+    return openmc::TriggerMetric::not_active;
   else
     mooseError("Unhandled TallyTriggerTypeEnum: ", trigger);
 }

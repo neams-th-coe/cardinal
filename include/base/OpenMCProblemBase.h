@@ -422,6 +422,9 @@ protected:
    */
   const Real & _scaling;
 
+  /// Whether to skip writing statepoints from OpenMC
+  const bool & _skip_statepoint;
+
   /**
    * Fixed point iteration index used in relaxation; because we sometimes run OpenMC
    * in a pseudo-transient coupling with NekRS, we simply increment this by 1 each
