@@ -447,5 +447,4 @@ protected:
 
   /// Tolerance to use for comparing values to bin bounds
   const Real BIN_TOLERANCE = 1e-6;
-
 };
