@@ -4,7 +4,7 @@
     input = constant_expansion_coeff.i
     exodiff = constant_expansion_coeff_out_sub0.e
     mesh_mode = 'replicated'
-    requirement = "The system shall bin elements according to temperature on an expanding mesh and be able to visualize the bins on the mesh volume."
+    requirement = "The system shall bin elements according to temperature and density  on an expanding mesh and be able to visualize the bins on the mesh volume."
     required_objects = 'MoabSkinner'
   []
   [convert_to_gmsh_step0]
