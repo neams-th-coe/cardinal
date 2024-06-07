@@ -21,11 +21,10 @@
   type = OpenMCCellAverageProblem
   power = 100.0
   batches = 20
-  temperature_blocks = '100'
   cell_level = 0
   tally_type = cell
+  tally_blocks = '100'
   normalize_by_global_tally = false
-  initial_properties = xml
 
   tally_score = 'damage_energy kappa_fission'
 

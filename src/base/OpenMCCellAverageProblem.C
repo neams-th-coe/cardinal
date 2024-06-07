@@ -546,6 +546,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
     case tally::cell:
     {
+      checkRequiredParam(params, "tally_blocks", "using cell tallies");
       checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
                                "using cell tallies");
 
@@ -906,14 +907,18 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
   {
     checkRequiredParam(parameters, "k_trigger_threshold", "using a k trigger");
     openmc::settings::keff_trigger.threshold = getParam<Real>("k_trigger_threshold");
+    has_tally_trigger = true;
   }
   else
     checkUnusedParam(parameters, "k_trigger_threshold", "not using a k trigger");
 
-  if (_k_trigger != trigger::none || has_tally_trigger) // at least one trigger
+  if (has_tally_trigger) // at least one trigger
   {
     openmc::settings::trigger_on = true;
     checkRequiredParam(parameters, "max_batches", "using triggers");
+
+    if (_skip_statepoint)
+      checkUnusedParam(parameters, "skip_statepoint", "using a trigger");
 
     int err = openmc_set_n_batches(getParam<unsigned int>("max_batches"),
                                    true /* set the max batches */,
@@ -926,6 +931,9 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
   {
     checkUnusedParam(parameters, "max_batches", "not using triggers");
     checkUnusedParam(parameters, "batch_interval", "not using triggers");
+
+    if (_skip_statepoint)
+      openmc::settings::statepoint_batch.clear();
   }
 }
 
@@ -2415,11 +2423,11 @@ OpenMCCellAverageProblem::resetTallies()
 void
 OpenMCCellAverageProblem::initializeTallies()
 {
-  if (_tally_type == tally::none)
-    return;
-
   // add trigger information for k, if present
   openmc::settings::keff_trigger.metric = triggerMetric(_k_trigger);
+
+  if (_tally_type == tally::none)
+    return;
 
   // create the global tally for normalization; we make sure to use the
   // same estimator as the local tally
@@ -2526,9 +2534,9 @@ OpenMCCellAverageProblem::latticeOuterError(const Point & c, int level) const
   std::stringstream msg;
   msg << "The point " << c << " mapped to cell " << cell->id_
       << " in the OpenMC model is inside a universe "
-         "used as the 'outer' universe of a lattice.\n"
+         "used as the 'outer' universe of a lattice. "
          "All cells used for mapping in lattices must be explicitly set "
-         "on the 'universes' attribute of lattice objects.\n"
+         "on the 'universes' attribute of lattice objects. "
       << "If you want to obtain feedback or cell tallies here, you "
          "will need to widen your lattice to have universes covering all of the space you "
          "want feedback or cell tallies.\n\nFor more information, see: "
