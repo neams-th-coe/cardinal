@@ -4,7 +4,7 @@
     input = constant_expansion_coeff.i
     exodiff = constant_expansion_coeff_out_sub0.e
     mesh_mode = 'replicated'
-    requirement = "The system shall bin elements according to temperature and density, on multiple subdomains, and be able to visualize the bins on the mesh volume for second-order tets."
+    requirement = "The system shall bin elements according to temperature on an expanding mesh and be able to visualize the bins on the mesh volume."
     required_objects = 'MoabSkinner'
   []
   [convert_to_gmsh_step0]
@@ -31,7 +31,7 @@
     input = read_skins0.i
     exodiff = read_skins0_in.e
     cli_args = '--mesh-only'
-    requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions for second-order tets"
+    requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions"
   []
   [check_skins_step1]
     type = Exodiff
@@ -39,6 +39,6 @@
     input = read_skins1.i
     exodiff = read_skins1_in.e
     cli_args = '--mesh-only'
-    requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions for second-order tets. The bins shall be re-generated on each time step."
+    requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions after expansion with the correct displacements."
   []
 []

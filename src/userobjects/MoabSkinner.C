@@ -8,7 +8,6 @@
 #include "UserErrorChecking.h"
 #include "DisplacedProblem.h"
 #include "FEProblemBase.h"
-#include "MooseMesh.h"
 
 #include "libmesh/elem.h"
 #include "libmesh/enum_io_package.h"

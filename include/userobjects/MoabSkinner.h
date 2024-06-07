@@ -2,13 +2,12 @@
 
 #include "GeneralUserObject.h"
 #include "MaterialBase.h"
+#include "MooseMesh.h"
 
 #include "moab/Core.hpp"
 #include "moab/Skinner.hpp"
 #include "moab/GeomTopoTool.hpp"
 #include "MBTagConventions.hpp"
-
-class MooseMesh;
 
 /**
  * \brief Skins the [Mesh] according to individual bins for temperature, density, and subdomain ID
