@@ -669,7 +669,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 }
 
 const MooseMesh &
-OpenMCCellAverageProblem::getMooseMesh(bool _use_displaced) const
+OpenMCCellAverageProblem::getMooseMesh() const
 {
   if (_use_displaced && !_displaced_problem)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
@@ -2398,6 +2398,11 @@ OpenMCCellAverageProblem::resetTallies()
     _displaced_problem->updateMesh();
   }
 
+  // print tally length
+  std::cout<<"tally size"<<openmc::model::tallies.size();
+  std::cout<<"tally filters size"<<openmc::model::tally_filters.size();
+  std::cout<<"tally meshes size"<<openmc::model::meshes.size();
+
   // We create the global tally, and THEN the local tally. So we need to delete in
   // reverse order
 
@@ -2434,6 +2439,12 @@ OpenMCCellAverageProblem::resetTallies()
       // erase mesh
       auto midx = openmc::model::meshes.begin() + _mesh_index;
       openmc::model::meshes.erase(midx);
+
+      // print tally length
+      std::cout<<"tally size"<<openmc::model::tallies.size();
+      std::cout<<"tally filters size"<<openmc::model::tally_filters.size();
+      std::cout<<"tally meshes size"<<openmc::model::meshes.size();
+
       break;
     }
     default:

@@ -1085,9 +1085,7 @@ protected:
   std::vector<std::string> _output_name;
 
   // Get a modifyable reference to the Moose mesh
-  virtual MooseMesh & getMooseMesh() { return _mesh; }
-  virtual const MooseMesh & getMooseMesh() const { return _mesh; }
-  const MooseMesh & getMooseMesh(bool _use_displaced) const;
+  virtual const MooseMesh & getMooseMesh() const;
 
   /// Numeric identifiers for the external variables (for each score)
   std::vector<std::vector<unsigned int>> _external_vars;
