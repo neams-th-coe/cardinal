@@ -21,6 +21,7 @@
 #include "OpenMCProblemBase.h"
 #include "SymmetryPointGenerator.h"
 #include "OpenMCVolumeCalculation.h"
+#include "MooseMesh.h"
 
 #include "openmc/tallies/filter_mesh.h"
 
@@ -905,6 +906,9 @@ protected:
    */
   const bool _needs_global_tally;
 
+  /// Whether OpenMCCellAverageProblem should use the displaced mesh
+  const bool & _use_displaced;
+
   /// Tally estimator for the tallies created by Cardinal
   openmc::TallyEstimator _tally_estimator;
 
@@ -1079,6 +1083,11 @@ protected:
 
   /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'
   std::vector<std::string> _output_name;
+
+  // Get a modifyable reference to the Moose mesh
+  virtual MooseMesh & getMooseMesh() { return _mesh; }
+  virtual const MooseMesh & getMooseMesh() const { return _mesh; }
+  const MooseMesh & getMooseMesh(bool _use_displaced) const;
 
   /// Numeric identifiers for the external variables (for each score)
   std::vector<std::vector<unsigned int>> _external_vars;
