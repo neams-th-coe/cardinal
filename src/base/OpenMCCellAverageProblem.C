@@ -674,7 +674,7 @@ OpenMCCellAverageProblem::getMooseMesh() const
   if (_use_displaced && !_displaced_problem)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
                  "Regular mesh will be returned");
-  return ((_use_displaced && _displaced_problem) ? _displaced_problem->mesh() : mesh());
+  return ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh() : mesh());
 }
 
 void
@@ -849,10 +849,6 @@ OpenMCCellAverageProblem::getMaterialInEachSubdomain() const
 void
 OpenMCCellAverageProblem::setupProblem()
 {
-  if (_use_displaced)
-  {
-    _displaced_problem->updateMesh();
-  }
   // establish the local -> global element mapping for convenience
   _local_to_global_elem.clear();
   for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
@@ -2106,10 +2102,6 @@ OpenMCCellAverageProblem::getCellLevel(const Point & c) const
 void
 OpenMCCellAverageProblem::mapElemsToCells()
 {
-  if (_use_displaced)
-  {
-    _displaced_problem->updateMesh();
-  }
   // reset counters, flags
   _n_mapped_temp_elems = 0;
   _n_mapped_density_elems = 0;
@@ -2399,9 +2391,9 @@ OpenMCCellAverageProblem::resetTallies()
   }
 
   // print tally length
-  std::cout<<"tally size"<<openmc::model::tallies.size();
-  std::cout<<"tally filters size"<<openmc::model::tally_filters.size();
-  std::cout<<"tally meshes size"<<openmc::model::meshes.size();
+  std::cout<<"tally size"<<openmc::model::tallies.size()<< "\n";
+  std::cout<<"tally filters size"<<openmc::model::tally_filters.size()<< "\n";
+  std::cout<<"tally meshes size"<<openmc::model::meshes.size()<< "\n";
 
   // We create the global tally, and THEN the local tally. So we need to delete in
   // reverse order
@@ -2441,9 +2433,9 @@ OpenMCCellAverageProblem::resetTallies()
       openmc::model::meshes.erase(midx);
 
       // print tally length
-      std::cout<<"tally size"<<openmc::model::tallies.size();
-      std::cout<<"tally filters size"<<openmc::model::tally_filters.size();
-      std::cout<<"tally meshes size"<<openmc::model::meshes.size();
+      std::cout<<"tally size"<<openmc::model::tallies.size()<< "\n";
+      std::cout<<"tally filters size"<<openmc::model::tally_filters.size()<< "\n";
+      std::cout<<"tally meshes size"<<openmc::model::meshes.size()<< "\n";
 
       break;
     }
@@ -3099,7 +3091,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
       if (!_first_transfer && _need_to_reinit_coupling)
       {
-        if (_use_displaced)
+        if (_use_displaced && !_first_transfer)
         {
           _displaced_problem->updateMesh();
         }
@@ -3365,6 +3357,10 @@ void
 OpenMCCellAverageProblem::reloadDAGMC()
 {
 #ifdef ENABLE_DAGMC
+  if (_use_displaced && !_first_transfer)
+  {
+    _displaced_problem->updateMesh();
+  }
   _dagmc.reset(new moab::DagMC(_skinner->moabPtr(),
                                0.0 /* overlap tolerance, default */,
                                0.001 /* numerical precision, default */,
@@ -3423,7 +3419,7 @@ OpenMCCellAverageProblem::updateMaterials()
   if (_skinner->nDensityBins() == 1)
     return;
 
-  if (_use_displaced)
+  if (_use_displaced && !_first_transfer)
   {
     _displaced_problem->updateMesh();
   }
