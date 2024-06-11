@@ -225,8 +225,10 @@ MoabSkinner::getMooseMesh()
 {
   if (_use_displaced && _fe_problem.getDisplacedProblem() == nullptr)
     mooseError("Displaced mesh was requested but the displaced problem does not exist. "
-                 "set use_displaced_mesh = False");
-  return ((_use_displaced && _fe_problem.getDisplacedProblem()) ? _fe_problem.getDisplacedProblem()->mesh() : _fe_problem.mesh());
+               "set use_displaced_mesh = False");
+  return ((_use_displaced && _fe_problem.getDisplacedProblem())
+              ? _fe_problem.getDisplacedProblem()->mesh()
+              : _fe_problem.mesh());
 }
 
 void
