@@ -107,7 +107,7 @@ MoabSkinner::MoabSkinner(const InputParameters & parameters)
   _build_graveyard = getParam<bool>("build_graveyard");
 
   // we can probably support this in the future, it's just not implemented yet
-  if (!mesh().is_serial())
+  if (!getMooseMesh().getMesh().is_serial())
     mooseError("MoabSkinner does not yet support distributed meshes!");
 
   // Create MOAB interface
@@ -223,23 +223,10 @@ MoabSkinner::getAuxiliaryVariableNumber(const std::string & name,
 MooseMesh &
 MoabSkinner::getMooseMesh()
 {
-  if (_use_displaced)
-  {
-    return _fe_problem.getDisplacedProblem()->mesh();
-  }
-  else
-  {
-    return _fe_problem.mesh();
-  }
-}
-MeshBase &
-MoabSkinner::mesh()
-{
-  if (_use_displaced)
-  {
-    return _fe_problem.getDisplacedProblem()->mesh().getMesh();
-  }
-  return _fe_problem.mesh().getMesh();
+  if (_use_displaced && _fe_problem.getDisplacedProblem() == nullptr)
+    mooseError("Displaced mesh was requested but the displaced problem does not exist. "
+                 "set use_displaced_mesh = False");
+  return ((_use_displaced && _fe_problem.getDisplacedProblem()) ? _fe_problem.getDisplacedProblem()->mesh() : _fe_problem.mesh());
 }
 
 void
@@ -268,7 +255,7 @@ MoabSkinner::initialize()
   }
 
   // Set spatial dimension in MOAB
-  check(_moab->set_dimension(mesh().spatial_dimension()));
+  check(_moab->set_dimension(getMooseMesh().getMesh().spatial_dimension()));
 
   // Create a meshset representing all of the MOAB tets
   check(_moab->create_meshset(moab::MESHSET_SET, _all_tets));
@@ -294,7 +281,7 @@ MoabSkinner::update()
   // Clear MOAB mesh data from last timestep
   reset();
 
-  if (_use_displaced && _fe_problem.getDisplacedProblem() != nullptr)
+  if (_use_displaced)
   {
     _fe_problem.getDisplacedProblem()->updateMesh();
   }
@@ -336,7 +323,7 @@ MoabSkinner::createMOABElems()
   double coords[3];
 
   // Save all the node information
-  for (const auto & node : mesh().node_ptr_range())
+  for (const auto & node : getMooseMesh().getMesh().node_ptr_range())
   {
     // Fetch coords (and scale to correct units)
     coords[0] = _scaling * (*node)(0);
@@ -354,7 +341,7 @@ MoabSkinner::createMOABElems()
   moab::Range all_elems;
 
   // Iterate over elements in the mesh
-  for (const auto & elem : mesh().active_element_ptr_range())
+  for (const auto & elem : getMooseMesh().getMesh().active_element_ptr_range())
   {
     auto nodeSets = getTetSets(elem->type());
 
@@ -694,7 +681,7 @@ void
 MoabSkinner::findSurfaces()
 {
   // Find all neighbours in mesh
-  mesh().find_neighbors();
+  getMooseMesh().getMesh().find_neighbors();
 
   // Counter for volumes
   unsigned int vol_id = 0;
@@ -823,7 +810,7 @@ MoabSkinner::groupLocalElems(std::set<dof_id_type> elems, std::vector<moab::Rang
           local.insert(ent);
 
         // Get the libMesh element
-        Elem & elem = mesh().elem_ref(next);
+        Elem & elem = getMooseMesh().getMesh().elem_ref(next);
 
         // How many nearest neighbors (general element)?
         unsigned int NN = elem.n_neighbors();
@@ -977,7 +964,7 @@ MoabSkinner::buildGraveyard(unsigned int & vol_id, unsigned int & surf_id)
   VolData vdata = {volume_set, Sense::FORWARDS};
 
   // Find a bounding box
-  BoundingBox bbox = MeshTools::create_bounding_box(mesh());
+  BoundingBox bbox = MeshTools::create_bounding_box(getMooseMesh().getMesh());
 
   // Build the two cubic surfaces defining the graveyard
   createSurfaceFromBox(

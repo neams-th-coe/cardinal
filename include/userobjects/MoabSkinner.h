@@ -233,9 +233,6 @@ protected:
     Sense sense;
   };
 
-  /// Get a modifyable reference to the underlying libmesh mesh.
-  MeshBase & mesh();
-
   /// Moose mesh
   MooseMesh & getMooseMesh();
   /**
