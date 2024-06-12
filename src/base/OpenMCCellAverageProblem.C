@@ -3092,7 +3092,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
       if (!_first_transfer && _need_to_reinit_coupling)
       {
-        if (_use_displaced && !_first_transfer)
+        if (_volume_calc)
+          _volume_calc->resetVolumeCalculation();
+        if (_use_displaced)
         {
           _displaced_problem->updateMesh();
         }
