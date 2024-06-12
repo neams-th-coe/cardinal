@@ -1,0 +1,44 @@
+[Tests]
+  [bins]
+    type = Exodiff
+    input = constant_expansion_coeff.i
+    exodiff = constant_expansion_coeff_out_sub0.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall bin elements according to temperature and density  on an expanding mesh and be able to visualize the bins on the mesh volume."
+    required_objects = 'MoabSkinner'
+  []
+  [convert_to_gmsh_step0]
+    type = RunCommand
+    prereq = bins
+    command = '../../../../../install/bin/mbconvert moab_skins_0.h5m skins0.msh'
+    requirement = "The system shall be able to convert a .h5m file to gmsh"
+    required_objects = 'MoabSkinner'
+    installation_type = in_tree
+    use_shell = True
+  []
+  [convert_to_gmsh_step1]
+    type = RunCommand
+    prereq = bins
+    command = '../../../../../install/bin/mbconvert moab_skins_1.h5m skins1.msh'
+    requirement = "The system shall be able to convert a .h5m file to gmsh"
+    required_objects = 'MoabSkinner'
+    installation_type = in_tree
+    use_shell = True
+  []
+  [check_skins_step0]
+    type = Exodiff
+    prereq = convert_to_gmsh_step0
+    input = read_skins0.i
+    exodiff = read_skins0_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions"
+  []
+  [check_skins_step1]
+    type = Exodiff
+    prereq = convert_to_gmsh_step1
+    input = read_skins1.i
+    exodiff = read_skins1_in.e
+    cli_args = '--mesh-only'
+    requirement = "The system shall properly skin a MOAB mesh and create new MOAB surface meshes bounding bin regions after expansion with the correct displacements."
+  []
+[]
