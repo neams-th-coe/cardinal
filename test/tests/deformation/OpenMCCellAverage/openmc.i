@@ -90,6 +90,8 @@
   [vol]
     type = OpenMCVolumeCalculation
     n_samples = 5000000
+    lower_left = '-25 -25 -25'
+    upper_right = '41 41 41'
   []
 []
 

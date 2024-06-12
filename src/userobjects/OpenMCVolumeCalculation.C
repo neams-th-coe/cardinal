@@ -73,10 +73,6 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   }
 
   _scaling = openmc_problem->scaling();
-
-  if (_fe_problem.getDisplacedProblem() != nullptr)
-    _fe_problem.getDisplacedProblem()->updateMesh();
-
   BoundingBox box = MeshTools::create_bounding_box(getMooseMesh());
   _lower_left = isParamValid("lower_left") ? getParam<Point>("lower_left") : box.min();
   _upper_right = isParamValid("upper_right") ? getParam<Point>("upper_right") : box.max();
