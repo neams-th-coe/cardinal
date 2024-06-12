@@ -1346,7 +1346,6 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     vol << std::setprecision(3) << std::scientific << "";
     if (_volume_calc)
     {
-      _volume_calc->resetVolumeCalculation();
       Real v, std_dev;
       _volume_calc->cellVolume(c.first.first, v, std_dev);
       cv.push_back(v);
