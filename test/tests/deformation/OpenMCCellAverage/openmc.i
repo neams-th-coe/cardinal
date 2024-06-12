@@ -20,7 +20,7 @@
   # tally_blocks = 'fuel'
   check_tally_sum = false
   normalize_by_global_tally = false
-  particles = 50000
+  particles = 100000
   batches = 100
   inactive_batches = 10
   # reuse_source = true
@@ -84,8 +84,8 @@
     # material_names = 'mat mat'
     execute_on = 'timestep_end'
     # allow_duplicate_execution_on_initial = 'true'
-    graveyard_scale_inner = 1.1
-    graveyard_scale_outer = 1.2
+    graveyard_scale_inner = 1.5
+    graveyard_scale_outer = 1.6
   []
   [vol]
     type = OpenMCVolumeCalculation

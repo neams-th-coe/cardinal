@@ -111,6 +111,9 @@ OpenMCVolumeCalculation::resetVolumeCalculation()
 void
 OpenMCVolumeCalculation::initializeVolumeCalculation()
 {
+  if (_fe_problem.getDisplacedProblem() != nullptr)
+    _fe_problem.getDisplacedProblem()->updateMesh();
+  
   auto openmc_problem = dynamic_cast<const OpenMCCellAverageProblem *>(&_fe_problem);
 
   _volume_calc.reset(new openmc::VolumeCalculation());

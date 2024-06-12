@@ -2409,6 +2409,10 @@ OpenMCCellAverageProblem::resetTallies()
       // erase filter
       auto fidx = openmc::model::tally_filters.begin() + _filter_index;
       openmc::model::tally_filters.erase(fidx);
+
+        std::cout<<"tally size"<<openmc::model::tallies.size()<< "\n";
+        std::cout<<"tally filters size"<<openmc::model::tally_filters.size()<< "\n";
+        std::cout<<"tally meshes size"<<openmc::model::meshes.size()<< "\n";
       break;
     }
     case tally::mesh:
