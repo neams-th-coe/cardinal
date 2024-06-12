@@ -2,6 +2,7 @@
 
 #include "GeneralUserObject.h"
 #include "MaterialBase.h"
+#include "MooseMesh.h"
 
 #include "moab/Core.hpp"
 #include "moab/Skinner.hpp"
@@ -206,6 +207,9 @@ protected:
    */
   bool _build_graveyard;
 
+  /// Whether the skinned mesh should be generated from a displaced mesh
+  const bool & _use_displaced;
+
   /// Length multiplier to get from [Mesh] units into OpenMC's centimeters
   Real _scaling;
 
@@ -229,9 +233,8 @@ protected:
     Sense sense;
   };
 
-  /// Get a modifyable reference to the underlying libmesh mesh.
-  MeshBase & mesh();
-
+  /// Moose mesh
+  MooseMesh & getMooseMesh();
   /**
    * Copy the libMesh [Mesh] into a MOAB mesh. This first loops through all of the
    * nodes, and rebuilds each as a MOAB vertex. Then, we loop over all of the elements
