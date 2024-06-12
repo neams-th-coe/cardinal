@@ -1346,6 +1346,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     vol << std::setprecision(3) << std::scientific << "";
     if (_volume_calc)
     {
+      _volume_calc->resetVolumeCalculation();
       Real v, std_dev;
       _volume_calc->cellVolume(c.first.first, v, std_dev);
       cv.push_back(v);
@@ -3095,9 +3096,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         {
           _displaced_problem->updateMesh();
         }
-        if (_volume_calc)
-          _volume_calc->resetVolumeCalculation();
-
         resetTallies();
         setupProblem();
       }
@@ -3166,6 +3164,11 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         // Clear existing surface data
         openmc::model::surfaces.clear();
         openmc::model::surface_map.clear();
+
+        if (_use_displaced && !_first_transfer)
+        {
+          _displaced_problem->updateMesh();
+        }
 
         // Update the OpenMC materials (creating new ones as-needed to support the density binning)
         updateMaterials();

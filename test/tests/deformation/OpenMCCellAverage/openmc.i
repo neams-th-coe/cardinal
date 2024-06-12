@@ -16,12 +16,13 @@
   tally_type = cell
   cell_level = 0
   temperature_blocks = 'fuel water'
+  tally_blocks = 'fuel water'
   # tally_blocks = 'fuel'
   check_tally_sum = false
   normalize_by_global_tally = false
   particles = 50000
-  batches = 150
-  inactive_batches = 50
+  batches = 100
+  inactive_batches = 10
   # reuse_source = true
   fixed_mesh = false
   power = 10000.0
@@ -74,15 +75,17 @@
     type = MoabSkinner
     verbose = true
     temperature = temp
-    n_temperature_bins = 1.0
+    n_temperature_bins = 15.0
     temperature_min = 500.0
-    temperature_max = 1200.0
+    temperature_max = 1000.0
     # use_displaced_mesh = true
     build_graveyard = true
     output_skins = true
     # material_names = 'mat mat'
     execute_on = 'timestep_end'
-    allow_duplicate_execution_on_initial = 'true'
+    # allow_duplicate_execution_on_initial = 'true'
+    graveyard_scale_inner = 1.1
+    graveyard_scale_outer = 1.2
   []
   [vol]
     type = OpenMCVolumeCalculation

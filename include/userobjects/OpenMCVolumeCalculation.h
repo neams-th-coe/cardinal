@@ -18,6 +18,8 @@
 
 #pragma once
 
+#include "MooseMesh.h"
+
 #include "GeneralUserObject.h"
 #include "openmc/volume_calc.h"
 
@@ -78,6 +80,9 @@ protected:
 
   /// Upper right of the box within which to compute OpenMC volumes
   Point _upper_right;
+
+  /// Moose mesh
+  MooseMesh & getMooseMesh();
 
   /// Volume calculation object
   std::unique_ptr<openmc::VolumeCalculation> _volume_calc;
