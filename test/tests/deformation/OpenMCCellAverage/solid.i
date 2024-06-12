@@ -59,7 +59,7 @@
   []
   [k_water]
     type = GenericConstantMaterial
-    prop_values = '0.2'
+    prop_values = '0.5'
     prop_names = 'thermal_conductivity'
     block = 'water'
   []

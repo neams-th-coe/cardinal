@@ -54,7 +54,7 @@
   [temp]
     type = ConstantIC
     variable = temp
-    value = 1000.0
+    value = 500.0
   []
   # [kappa_fission]
   #  type = ConstantIC
