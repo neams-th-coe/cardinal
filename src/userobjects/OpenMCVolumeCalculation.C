@@ -120,11 +120,11 @@ OpenMCVolumeCalculation::initializeVolumeCalculation()
   BoundingBox box = MeshTools::create_bounding_box(getMooseMesh().getMesh());
   if (_fe_problem.getDisplacedProblem() != nullptr)
     _fe_problem.getDisplacedProblem();
-  _fe_problem.getDisplacedProblem()->updateMesh();
+    _fe_problem.getDisplacedProblem()->updateMesh();
 
   if (!isParamValid("lower_left") && !isParamValid("upper_right"))
     _lower_left = box.min();
-  _upper_right = box.max();
+    _upper_right = box.max();
 
   auto openmc_problem = dynamic_cast<const OpenMCCellAverageProblem *>(&_fe_problem);
 
