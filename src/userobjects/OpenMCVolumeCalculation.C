@@ -77,21 +77,6 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
     _lower_left = getParam<Point>("lower_left");
   if (isParamValid("upper_right"))
     _upper_right = getParam<Point>("upper_right");
-  if (_lower_left >= _upper_right && (isParamValid("lower_left") || isParamValid("lower_left")))
-    mooseError("The 'upper_right' (",
-               _upper_right(0),
-               ", ",
-               _upper_right(1),
-               ", ",
-               _upper_right(2),
-               ") "
-               "must be greater than the 'lower_left' (",
-               _lower_left(0),
-               ", ",
-               _lower_left(1),
-               ", ",
-               _lower_left(2),
-               ")!");
 }
 
 openmc::Position
@@ -126,6 +111,22 @@ OpenMCVolumeCalculation::initializeVolumeCalculation()
     _lower_left = box.min();
   if (!isParamValid("upper_right"))
     _upper_right = box.max();
+
+  if ((_lower_left >= _upper_right) && (isParamValid("lower_left") || isParamValid("lower_left")))
+    mooseError("The 'upper_right' (",
+               _upper_right(0),
+               ", ",
+               _upper_right(1),
+               ", ",
+               _upper_right(2),
+               ") "
+               "must be greater than the 'lower_left' (",
+               _lower_left(0),
+               ", ",
+               _lower_left(1),
+               ", ",
+               _lower_left(2),
+               ")!");
 
   auto openmc_problem = dynamic_cast<const OpenMCCellAverageProblem *>(&_fe_problem);
 
