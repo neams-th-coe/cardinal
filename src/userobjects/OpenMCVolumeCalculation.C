@@ -21,6 +21,7 @@
 #include "OpenMCVolumeCalculation.h"
 #include "OpenMCCellAverageProblem.h"
 #include "UserErrorChecking.h"
+#include "DisplacedProblem.h"
 
 registerMooseObject("CardinalApp", OpenMCVolumeCalculation);
 
@@ -76,7 +77,7 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
     _lower_left = getParam<Point>("lower_left");
   if (isParamValid("upper_right") && isParamValid("lower_left"))
     _upper_right = getParam<Point>("upper_right");
-  if (_lower_left >= _upper_right)
+  if (_lower_left >= _upper_right && isParamValid("lower_left") && isParamValid("upper_right"))
     mooseError("The 'upper_right' (",
                _upper_right(0),
                ", ",
