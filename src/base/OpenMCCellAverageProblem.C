@@ -230,10 +230,10 @@ OpenMCCellAverageProblem::validParams()
       "of approximately the same volume as the true cells.");
   params.addParam<UserObjectName>("skinner", "When using DAGMC geometries, an optional skinner that will "
     "regenerate the OpenMC geometry on-the-fly according to iso-contours of temperature and density");
-  
+
   params.addParam<bool>("use_displaced_mesh",
-                      false,
-                      "Whether OpenMCCellAverageProblem should use the displaced mesh ");
+                        false,
+                        "Whether OpenMCCellAverageProblem should use the displaced mesh ");
   return params;
 }
 
@@ -674,7 +674,8 @@ OpenMCCellAverageProblem::getMooseMesh() const
   if (_use_displaced && !_displaced_problem && !_first_transfer)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
                  "Regular mesh will be returned");
-  return ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh() : mesh());
+  return ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
+                                                                     : mesh());
 }
 
 void
@@ -1201,8 +1202,8 @@ OpenMCCellAverageProblem::storeElementPhase()
   for (const auto & s : excl_density_blocks)
     _n_moose_density_elems += numElemsInSubdomain(s);
 
-  _n_moose_none_elems =
-      getMooseMesh().nElem() - _n_moose_temp_density_elems - _n_moose_temp_elems - _n_moose_density_elems;
+  _n_moose_none_elems = getMooseMesh().nElem() - _n_moose_temp_density_elems - _n_moose_temp_elems -
+                        _n_moose_density_elems;
 }
 
 void
@@ -1801,9 +1802,10 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
-  _console << "\nMapping between " + Moose::stringify(getMooseMesh().nElem()) + " MOOSE elements and " +
-                  Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
-                  Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels):"
+  _console << "\nMapping between " + Moose::stringify(getMooseMesh().nElem()) +
+                  " MOOSE elements and " + Moose::stringify(_n_openmc_cells) +
+                  " OpenMC cells (on " + Moose::stringify(openmc::model::n_coord_levels) +
+                  " coordinate levels):"
            << std::endl;
 
   VariadicTable<std::string, int, int, int, int> vt(
