@@ -72,14 +72,25 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   }
 
   _scaling = openmc_problem->scaling();
-  if(isParamValid("lower_left") && isParamValid("upper_right"))
+  if (isParamValid("lower_left") && isParamValid("upper_right"))
     _lower_left = getParam<Point>("lower_left");
-  if(isParamValid("upper_right") && isParamValid("lower_left"))
+  if (isParamValid("upper_right") && isParamValid("lower_left"))
     _upper_right = getParam<Point>("upper_right");
-    if (_lower_left >= _upper_right)
-      mooseError("The 'upper_right' (", _upper_right(0), ", ", _upper_right(1), ", ", _upper_right(2), ") "
-      "must be greater than the 'lower_left' (", _lower_left(0), ", ", _lower_left(1), ", ", _lower_left(2), ")!");
-
+  if (_lower_left >= _upper_right)
+    mooseError("The 'upper_right' (",
+               _upper_right(0),
+               ", ",
+               _upper_right(1),
+               ", ",
+               _upper_right(2),
+               ") "
+               "must be greater than the 'lower_left' (",
+               _lower_left(0),
+               ", ",
+               _lower_left(1),
+               ", ",
+               _lower_left(2),
+               ")!");
 }
 
 openmc::Position
@@ -99,9 +110,8 @@ OpenMCVolumeCalculation::resetVolumeCalculation()
 MooseMesh &
 OpenMCVolumeCalculation::getMooseMesh()
 {
-  return ((_fe_problem.getDisplacedProblem())
-              ? _fe_problem.getDisplacedProblem()->mesh()
-              : _fe_problem.mesh());
+  return ((_fe_problem.getDisplacedProblem()) ? _fe_problem.getDisplacedProblem()->mesh()
+                                              : _fe_problem.mesh());
 }
 
 void
@@ -110,11 +120,11 @@ OpenMCVolumeCalculation::initializeVolumeCalculation()
   BoundingBox box = MeshTools::create_bounding_box(getMooseMesh().getMesh());
   if (_fe_problem.getDisplacedProblem() != nullptr)
     _fe_problem.getDisplacedProblem();
-    _fe_problem.getDisplacedProblem()->updateMesh();
-  
-  if(!isParamValid("lower_left") && !isParamValid("upper_right"))
+  _fe_problem.getDisplacedProblem()->updateMesh();
+
+  if (!isParamValid("lower_left") && !isParamValid("upper_right"))
     _lower_left = box.min();
-    _upper_right = box.max();
+  _upper_right = box.max();
 
   auto openmc_problem = dynamic_cast<const OpenMCCellAverageProblem *>(&_fe_problem);
 
