@@ -75,7 +75,7 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   if(isParamValid("lower_left") && isParamValid("upper_right"))
     _lower_left = getParam<Point>("lower_left");
   if(isParamValid("upper_right") && isParamValid("lower_left"))
-    _upper_right = isParamValid("upper_right");
+    _upper_right = getParam<Point>("upper_right");
     if (_lower_left >= _upper_right)
       mooseError("The 'upper_right' (", _upper_right(0), ", ", _upper_right(1), ", ", _upper_right(2), ") "
       "must be greater than the 'lower_left' (", _lower_left(0), ", ", _lower_left(1), ", ", _lower_left(2), ")!");
