@@ -73,11 +73,11 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   }
 
   _scaling = openmc_problem->scaling();
-  if (isParamValid("lower_left") && isParamValid("upper_right"))
+  if (isParamValid("lower_left"))
     _lower_left = getParam<Point>("lower_left");
-  if (isParamValid("upper_right") && isParamValid("lower_left"))
+  if (isParamValid("upper_right"))
     _upper_right = getParam<Point>("upper_right");
-  if (_lower_left >= _upper_right && isParamValid("lower_left") && isParamValid("upper_right"))
+  if (_lower_left >= _upper_right && (isParamValid("lower_left") || isParamValid("lower_left")))
     mooseError("The 'upper_right' (",
                _upper_right(0),
                ", ",
