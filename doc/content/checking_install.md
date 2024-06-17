@@ -1,42 +1,46 @@
 If you would like to check that Cardinal was built correctly and that you
-have all the basic requirements in place, you can try running a few input files.
+have all the basic requirements in place, we can walk you through a few
+installation checks and try running a few input files.
+If you run into any issues with the following commands, you can find an FAQ of common
+issues [here](faq.md).
 
-1. If you are using OpenMC, try the following. If you run into any issues, check out our
-   [troubleshooting OpenMC](openmc_runtime.md) page.
+1. If using OpenMC, make sure that you have cross sections downloaded. If the following returns an empty line, you need to [download cross sections](cross_sections.md).
+
+```
+echo $OPENMC_CROSS_SECTIONS
+```
+
+2. If using OpenMC, try running a multiphysics case.
 
 ```
 cd test/tests/neutronics/feedback/lattice
 mpiexec -np 2 ../../../../../cardinal-opt -i openmc_master.i --n-threads=2
 ```
 
-2. If you are using OpenMC and want to leverage OpenMC's
-   [Python API](https://docs.openmc.org/en/stable/usersguide/install.html#installing-python-api)
-   to make OpenMC models, try:
+3. If using OpenMC, try building the OpenMC XML files using OpenMC's Python API. If you run into any issues, you most likely need to [install OpenMC's Python API](python_api.md).
 
 ```
 cd tutorials/lwr_solid
 python make_openmc_model.py
 ```
 
-3. If you are using NekRS, try the following. If you run into any issues, check out our
-   [troubleshooting NekRS](nekrs_runtime.md) page.
+4. If using NekRS, try running a conjugate heat transfer case.
 
 ```
 cd test/tests/cht/sfr_pincell
 mpiexec -np 4 ../../../../cardinal-opt -i nek_master.i
 ```
 
-4. If you are using NekRS and want to leverage [NekRS's tools](nek_tools.md)
-   to make meshes, view output files in Paraview, etc., try:
+5. Try leveraging NekRS's tools to make a mesh. If you run into any issues, you most likely need to [install the NekRS tools](nek_tools.md).
 
 ```
 cd test/tests/conduction/boundary_and_volume/prism
 exo2nek
 ```
 
-5. For developers, you will also find it useful to run Cardinal's
-   test suite, which consists of unit and regression tests.
-   You can run Cardinal's regression test suite with the following:
+### For Developers
+
+You can run Cardinal's regression test suite with the following:
 
 ```
 ./run_tests -j8
