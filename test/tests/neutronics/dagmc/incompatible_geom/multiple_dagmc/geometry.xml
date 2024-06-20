@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<geometry>
+  <cell fill="1" id="1" region="-1" universe="3"/>
+  <cell fill="2" id="2" region="-2" universe="3"/>
+  <dagmc_universe auto_geom_ids="true" filename="../../mesh_tallies/slab.h5m" id="1"/>
+  <dagmc_universe auto_geom_ids="true" filename="../../../../../../tutorials/dagmc/dagmc.h5m" id="2"/>
+  <surface boundary="vacuum" coeffs="0.0 0.0 0.0 10.0" id="1" type="sphere"/>
+  <surface boundary="vacuum" coeffs="100 100 100 10.0" id="2" type="sphere"/>
+</geometry>
