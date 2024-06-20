@@ -20,6 +20,8 @@
 
 #include "NekInterface.h"
 #include "CardinalUtils.h"
+#include <dlfcn.h>
+
 
 static nekrs::characteristicScales scales;
 static dfloat * sgeo;
@@ -33,6 +35,24 @@ static double setup_time;
 // various constants for controlling tolerances
 static double abs_tol;
 static double rel_tol;
+
+/// traction variable for FSI or standalone traction calculations
+static double * _traction = NULL;
+
+/// wall shear stress variable
+static double * _wall_shear = NULL;
+
+/** 6 components of the rate-of-strain tensor variable calculated in Nek.
+  * Each component is the size of the velocity field, and the component
+  * order is as follows
+  * _ros_tensor[0*velocityFieldOffset()] is the S_{11} component
+  * _ros_tensor[1*velocityFieldOffset()] is the S_{22} component
+  * _ros_tensor[2*velocityFieldOffset()] is the S_{33} component
+  * _ros_tensor[3*velocityFieldOffset()] is the S_{12} component
+  * _ros_tensor[4*velocityFieldOffset()] is the S_{23} component
+  * _ros_tensor[5*velocityFieldOffset()] is the S_{13} component
+  */
+static double * _ros_tensor = NULL;
 
 void
 setAbsoluteTol(double tol)
@@ -638,6 +658,24 @@ initializeHostMeshParameters()
 }
 
 void
+initializeRateOfStrainTensor()
+{
+  nekrs::_ros_tensor = (double *)calloc(6*velocityFieldOffset(), sizeof(double));
+}
+
+void
+initializeTraction()
+{
+  nekrs::_traction = (double *)calloc(3*velocityFieldOffset(), sizeof(double));
+}
+
+void
+initializeWallShear()
+{
+  nekrs::_wall_shear = (double *)calloc(velocityFieldOffset(), sizeof(double));
+}
+
+void
 updateHostMeshParameters()
 {
   mesh_t * mesh = entireMesh();
@@ -655,6 +693,24 @@ dfloat *
 getVgeo()
 {
   return vgeo;
+}
+
+double *
+getTraction()
+{
+  return _traction;
+}
+
+double *
+getWallShear()
+{
+  return _wall_shear;
+}
+
+double *
+getRateOfStrainTensor()
+{
+  return _ros_tensor;
 }
 
 double
@@ -1277,6 +1333,263 @@ gradient(const int offset, const double * f, double * grad_f, const nek_mesh::Ne
   }
 }
 
+
+void
+nekDirectStiffnessAvg(double * u, const nek_mesh::NekMeshEnum pp_mesh)
+{
+#define nrsCheck(_nrsCheckCond, _nrsCheckComm, _nrsCheckExitCode, _nrsCheckMessage, ...) \
+  do { \
+    int _nrsCheckErr = 0; \
+    if(_nrsCheckCond) _nrsCheckErr = 1; \
+    if(_nrsCheckComm != MPI_COMM_SELF) MPI_Allreduce(MPI_IN_PLACE, &_nrsCheckErr, 1, MPI_INT, MPI_SUM, _nrsCheckComm); \
+    if(_nrsCheckErr) { \
+      int rank = 0; \
+      MPI_Comm_rank(_nrsCheckComm, &rank); \
+      if(rank == 0) { \
+        fprintf(stderr, "Error in %s: ", __func__);\
+        fprintf(stderr, _nrsCheckMessage, __VA_ARGS__); \
+      } \
+      fflush(stderr); \
+      fflush(stdout); \
+      MPI_Barrier(_nrsCheckComm); \
+      MPI_Abort(MPI_COMM_WORLD, _nrsCheckExitCode); \
+    } \
+  } while (0)
+
+#define fname(s) (strcpy(func, (s)), strcat(func, us), func)
+
+  mesh_t * mesh = getMesh(pp_mesh);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  static void (*nek_dssum_ptr)(double *);
+
+  std::string usrname;
+  platform->options.getArgs("CASENAME", usrname);
+
+  const char * session_in = usrname.c_str();
+
+  std::string cache_dir(getenv("NEKRS_CACHE_DIR"));
+  if (platform->cacheBcast)
+    cache_dir = platform->tmpDir;
+
+  const std::string lib = cache_dir + "/nek5000/lib" + session_in + ".so";
+
+  if(platform->comm.mpiRank == 0 && platform->verbose)
+    std::cout << "\nloading " << lib << std::endl;
+  void *handle = dlopen(lib.c_str(), RTLD_NOW | RTLD_LOCAL);
+
+  nek::nrsCheck(!handle, MPI_COMM_SELF, EXIT_FAILURE,
+           "%s\n", dlerror());
+
+  // check if we need to append an underscore
+  auto us = [handle]
+  {
+    (void (*)(void))dlsym(handle, "usrdat_");
+    if(handle)
+      return "_";
+    else
+      return "";
+  } ();
+  dlerror(); /* Clear any existing error */
+
+  char func[100];
+
+  nek_dssum_ptr = (void (*)(double *))dlsym(handle, nek::fname("nekf_dssum"));
+  (*nek_dssum_ptr)(u);
+
+  double * mult = (double *)nek::ptr("vmult"); // velocity connectivity map
+
+  for (int e = 0; e < mesh->Nelements; ++e)
+  {
+    for (int n = 0; n < mesh->Np; ++n)
+    {
+      int id = e * mesh->Np + n;
+      u[id] *= mult[id];
+    }
+  }
+
+}
+
+void
+computeRateOfStrainTensor(double * S_ij, const nek_mesh::NekMeshEnum pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  // calculate velocity gradients
+  const int offset = nrs->fieldOffset;
+
+  double * grad_u = (double *) calloc(3*offset, sizeof(double));
+  double * grad_v = (double *) calloc(3*offset, sizeof(double));
+  double * grad_w = (double *) calloc(3*offset, sizeof(double));
+
+  gradient(offset, &nrs->U[0*offset], grad_u, pp_mesh);
+  gradient(offset, &nrs->U[1*offset], grad_v, pp_mesh);
+  gradient(offset, &nrs->U[2*offset], grad_w, pp_mesh);
+
+  for (int i = 0; i < 3; ++i)
+  {
+    nekDirectStiffnessAvg(&grad_u[i*offset], pp_mesh);
+    nekDirectStiffnessAvg(&grad_v[i*offset], pp_mesh);
+    nekDirectStiffnessAvg(&grad_w[i*offset], pp_mesh);
+  }
+
+  // calculating the six S_ij components
+  for (int e = 0; e < mesh->Nelements; ++e)
+  {
+    for (int n = 0; n < mesh->Np; ++n)
+    {
+      int id = e * mesh->Np + n;
+
+      S_ij[0*offset + id] = grad_u[0*offset + id]; // 0.5*(du/dx+du/dx) = S_11
+      S_ij[1*offset + id] = grad_v[1*offset + id]; // 0.5*(dv/dy+dv/dy) = S_22
+      S_ij[2*offset + id] = grad_w[2*offset + id]; // 0.5*(dw/dz+dw/dz) = S_33
+      S_ij[3*offset + id] = 0.5*(grad_u[1*offset + id] + grad_v[0*offset + id]); // 0.5*(du/dy+dv/dx) = S_12
+      S_ij[4*offset + id] = 0.5*(grad_v[2*offset + id] + grad_w[1*offset + id]); // 0.5*(dv/dz+dw/dy) = S_23
+      S_ij[5*offset + id] = 0.5*(grad_u[2*offset + id] + grad_w[0*offset + id]); // 0.5*(du/dz+dw/dx) = S_13
+    }
+  }
+
+  freePointer(grad_u);
+  freePointer(grad_v);
+  freePointer(grad_w);
+}
+
+void
+computeStressTensor(double * Tau_ij,const nek_mesh::NekMeshEnum pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  // add pressure to diagonal components
+  // TODO: enable variable viscosity
+
+  int offset = nrs->fieldOffset;
+
+  computeRateOfStrainTensor(Tau_ij,pp_mesh);
+
+// multiply by 2 * viscosity
+  for (int i = 0; i  < 6; ++i)
+  {
+    for (int e = 0; e < mesh->Nelements; ++e)
+    {
+      for (int n = 0; n < mesh->Np; ++n)
+      {
+        int id = e * mesh->Np + n;
+
+        Tau_ij[i*offset + id] *= 2.0 * viscosity();
+        if (i < 3)
+          Tau_ij[i*offset + id ] -= nrs->P[id]; // subtract pressure from diagonal components
+      }
+    }
+  }
+}
+
+void
+computeTraction(double * traction, const nek_mesh::NekMeshEnum pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  // get full stress tensor
+  int nrs_offset = nrs->fieldOffset;
+  double * Tau_ij = (double *) calloc(6*nrs_offset, sizeof(double));
+  double traction_x, traction_y, traction_z, unx, uny, unz;
+
+  computeStressTensor(Tau_ij,pp_mesh);
+
+  // multiply with normal on moving boundary
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_bdry_id = mesh->EToB[i * mesh->Nfaces + j];
+//      if (std::find(boundary_id.begin(), boundary_id.end(), face_bdry_id) != boundary_id.end())
+      if (face_bdry_id > 0)
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          int vol_id = mesh->vmapM[offset + v];
+          int surf_offset = mesh->Nsgeo * (offset + v);
+
+          double nx =  sgeo[surf_offset + NXID];
+          double ny =  sgeo[surf_offset + NYID];
+          double nz =  sgeo[surf_offset + NZID];
+
+          traction[nrs_offset*0 + vol_id] = Tau_ij[0*nrs_offset + vol_id] * nx
+                                          + Tau_ij[3*nrs_offset + vol_id] * ny
+                                          + Tau_ij[5*nrs_offset + vol_id] * nz;
+
+          traction[nrs_offset*1 + vol_id] = Tau_ij[3*nrs_offset + vol_id] * nx
+                                          + Tau_ij[1*nrs_offset + vol_id] * ny
+                                          + Tau_ij[4*nrs_offset + vol_id] * nz;
+
+          traction[nrs_offset*2 + vol_id] = Tau_ij[5*nrs_offset + vol_id] * nx
+                                          + Tau_ij[4*nrs_offset + vol_id] * ny
+                                          + Tau_ij[2*nrs_offset + vol_id] * nz;
+
+        }
+      }
+    }
+  }
+  freePointer(Tau_ij);
+}
+
+void
+computeWallShearStress(double * tau_wall, const nek_mesh::NekMeshEnum pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+
+  // get full stress tensor
+  int nrs_offset = nrs->fieldOffset;
+  double * Tau_ij = (double *) calloc(6*nrs_offset, sizeof(double));
+
+  computeRateOfStrainTensor(Tau_ij,pp_mesh);
+
+  // multiply with normal on moving boundary
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_bdry_id = mesh->EToB[i * mesh->Nfaces + j];
+//      if (std::find(boundary_id.begin(), boundary_id.end(), face_bdry_id) != boundary_id.end())
+      if (face_bdry_id > 0)
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          int vol_id = mesh->vmapM[offset + v];
+          int surf_offset = mesh->Nsgeo * (offset + v);
+
+          double visc_stress_vector_x = -2.0 * viscosity() *
+                                      ( Tau_ij[0*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
+
+          double visc_stress_vector_y = -2.0 * viscosity() *
+                                      ( Tau_ij[3*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + Tau_ij[1*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
+
+          double visc_stress_vector_z = -2.0 * viscosity() *
+                                      ( Tau_ij[5*nrs_offset + vol_id] * sgeo[surf_offset + NXID]
+                                      + Tau_ij[4*nrs_offset + vol_id] * sgeo[surf_offset + NYID]
+                                      + Tau_ij[2*nrs_offset + vol_id] * sgeo[surf_offset + NZID]);
+
+          tau_wall[vol_id]= visc_stress_vector_x * sgeo[surf_offset + T1XID]
+                          + visc_stress_vector_y * sgeo[surf_offset + T1YID]
+                          + visc_stress_vector_z * sgeo[surf_offset + T1ZID] ;
+        }
+      }
+    }
+  }
+  freePointer(Tau_ij);
+}
+
 bool
 isHeatFluxBoundary(const int boundary)
 {
@@ -1443,6 +1756,84 @@ velocity(const int id)
                    nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
 }
 
+double
+wall_shear(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _wall_shear[id];
+}
+
+double
+traction(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _traction[id+ 3 * nrs->fieldOffset]; //TODO: decide whether to keep this or not
+}
+
+double
+traction_x(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _traction[id + 0 * nrs->fieldOffset];
+}
+
+double
+traction_y(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _traction[id + 1 * nrs->fieldOffset];
+}
+
+double
+traction_z(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _traction[id + 2 * nrs->fieldOffset];
+}
+
+double
+ros_s11(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _ros_tensor[id + 0 * nrs->fieldOffset];
+}
+
+
+double
+ros_s22(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _ros_tensor[id + 1 * nrs->fieldOffset];
+}
+
+double
+ros_s33(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _ros_tensor[id + 2 * nrs->fieldOffset];
+}
+
+double
+ros_s12(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _ros_tensor[id + 3 * nrs->fieldOffset];
+}
+
+double
+ros_s23(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _ros_tensor[id + 4 * nrs->fieldOffset];
+}
+
+double
+ros_s13(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return _ros_tensor[id + 5 * nrs->fieldOffset];
+}
+
 void
 flux(const int id, const dfloat value)
 {
@@ -1547,6 +1938,39 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
         mooseError("Cardinal cannot find 'scalar03' "
                    "because your Nek case files do not have a scalar03 variable!");
       f = &scalar03;
+      break;
+    case field::wall_shear:
+      f = &wall_shear;
+      break;
+    case field::traction:
+      f = &traction;
+      break;
+    case field::traction_x:
+      f = &traction_x;
+      break;
+    case field::traction_y:
+      f = &traction_y;
+      break;
+    case field::traction_z:
+      f = &traction_z;
+      break;
+    case field::ros_s11:
+      f = &ros_s11;
+      break;
+    case field::ros_s22:
+      f = &ros_s22;
+      break;
+    case field::ros_s33:
+      f = &ros_s33;
+      break;
+    case field::ros_s12:
+      f = &ros_s12;
+      break;
+    case field::ros_s23:
+      f = &ros_s23;
+      break;
+    case field::ros_s13:
+      f = &ros_s13;
       break;
     case field::unity:
       f = &unity;
@@ -1683,6 +2107,39 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       break;
     case field::scalar03:
       // no dimensionalization needed
+      break;
+    case field::wall_shear:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::traction:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::traction_x:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::traction_y:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::traction_z:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::ros_s11:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::ros_s22:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::ros_s33:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::ros_s12:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::ros_s23:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      break;
+    case field::ros_s13:
+      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::unity:
       // no dimensionalization needed
