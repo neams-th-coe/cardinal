@@ -70,7 +70,7 @@ clad_or = openmc.ZCylinder(r=0.45720, name='Clad OR')
 
 # Create a region represented as the inside of a rectangular prism
 pitch = 1.25984
-box = openmc.rectangular_prism(pitch, pitch, boundary_type='reflective')
+box = openmc.model.RectangularPrism(pitch, pitch, boundary_type='reflective')
 
 # Create cells, mapping materials to regions - split up the axial height
 planes = np.linspace(0.0, height, N + 1)
@@ -92,7 +92,7 @@ for i in range(N):
   fuel_cells.append(openmc.Cell(fill=uo2, region=-fuel_or & layer, name='Fuel{:n}'.format(i)))
   gap_cells.append(openmc.Cell(fill=helium, region=+fuel_or & -clad_ir & layer, name='Gap{:n}'.format(i)))
   clad_cells.append(openmc.Cell(fill=zircaloy, region=+clad_ir & -clad_or & layer, name='Clad{:n}'.format(i)))
-  water_cells.append(openmc.Cell(fill=borated_water, region=+clad_or & layer & box, name='Water{:n}'.format(i)))
+  water_cells.append(openmc.Cell(fill=borated_water, region=+clad_or & layer & -box, name='Water{:n}'.format(i)))
   all_cells.append(fuel_cells[i])
   all_cells.append(gap_cells[i])
   all_cells.append(clad_cells[i])
@@ -115,7 +115,7 @@ settings.particles = 20000
 lower_left = (-pitch/2, -pitch/2, 0.0)
 upper_right = (pitch/2, pitch/2, height)
 uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-settings.source = openmc.source.Source(space=uniform_dist)
+settings.source = openmc.IndependentSource(space=uniform_dist)
 
 if (args.entropy):
   entropy_mesh = openmc.RegularMesh()

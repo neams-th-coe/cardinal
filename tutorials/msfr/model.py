@@ -19,7 +19,7 @@ lower_left = (-100.0, -100.0, -100.0)
 upper_right = (100.0, 100.0, 100.0)
 uniform_dist = openmc.stats.Box(lower_left, upper_right)
 
-settings.source = openmc.source.Source(space=uniform_dist)
+settings.source = openmc.IndependentSource(space=uniform_dist)
 
 settings.batches = 1500
 settings.inactive = 500

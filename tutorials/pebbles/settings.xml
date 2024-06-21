@@ -1,10 +1,10 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <settings>
   <run_mode>eigenvalue</run_mode>
   <particles>10000</particles>
   <batches>1000</batches>
   <inactive>100</inactive>
-  <source strength="1.0">
+  <source particle="neutron" strength="1.0" type="independent">
     <space type="fission">
       <parameters>-4.0 -4.0 0 4.0 4.0 12.0</parameters>
     </space>
