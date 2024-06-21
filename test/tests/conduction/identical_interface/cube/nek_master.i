@@ -72,6 +72,7 @@
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
+    search_value_conflicts = false
   []
   [flux]
     type = MultiAppGeneralFieldNearestLocationTransfer
@@ -79,6 +80,7 @@
     to_multi_app = nek
     variable = avg_flux
     source_boundary = 'right'
+    search_value_conflicts = false
   []
   [flux_integral]
     type = MultiAppPostprocessorTransfer
