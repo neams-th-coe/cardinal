@@ -159,12 +159,14 @@
      source_variable = temp_ansol
      to_multi_app = nek
      variable = temp_ansol
+    search_value_conflicts = false
    []
    [source_to_nek]
      type = MultiAppGeneralFieldNearestLocationTransfer
      source_variable = source_auxvar
      to_multi_app = nek
      variable = heat_source
+    search_value_conflicts = false
    []
    [source_integral_to_nek]
      type = MultiAppPostprocessorTransfer
@@ -177,18 +179,21 @@
      source_variable = disp_x_o
      to_multi_app = nek
      variable = disp_x
+    search_value_conflicts = false
    []
    [disp_y_to_nek]
      type = MultiAppGeneralFieldNearestLocationTransfer
      source_variable = disp_y_o
      to_multi_app = nek
      variable = disp_y
+    search_value_conflicts = false
    []
    [disp_z_to_nek]
      type = MultiAppGeneralFieldNearestLocationTransfer
      source_variable = disp_z_o
      to_multi_app = nek
      variable = disp_z
+    search_value_conflicts = false
    []
    [synchronize]
     type = MultiAppPostprocessorTransfer
