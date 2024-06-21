@@ -86,20 +86,24 @@ TallyRelativeError::getValue() const
 {
   const auto & tally = _openmc_problem->getLocalTally();
 
-  Real extreme_value;
+  Real post_processor_value;
 
   switch (_type)
   {
     case operation::max:
-      extreme_value = std::numeric_limits<Real>::min();
+      post_processor_value = std::numeric_limits<Real>::min();
       break;
     case operation::min:
-      extreme_value = std::numeric_limits<Real>::max();
+      post_processor_value = std::numeric_limits<Real>::max();
+      break;
+    case operation::average:
+      post_processor_value = 0.0;
       break;
     default:
       mooseError("Unhandled OperationEnum!");
   }
 
+  unsigned int num_values = 0u;
   for (const auto & t : tally)
   {
     auto sum = xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM));
@@ -117,10 +121,14 @@ TallyRelativeError::getValue() const
       switch (_type)
       {
         case operation::max:
-          extreme_value = std::max(extreme_value, rel_err[i]);
+          post_processor_value = std::max(post_processor_value, rel_err[i]);
           break;
         case operation::min:
-          extreme_value = std::min(extreme_value, rel_err[i]);
+          post_processor_value = std::min(post_processor_value, rel_err[i]);
+          break;
+        case operation::average:
+          post_processor_value += rel_err[i];
+          num_values++;
           break;
         default:
           mooseError("Unhandled OperationEnum!");
@@ -128,7 +136,10 @@ TallyRelativeError::getValue() const
     }
   }
 
-  return extreme_value;
+  if (_type == operation::average)
+    post_processor_value /= static_cast<Real>(num_values);
+
+  return post_processor_value;
 }
 
 #endif
