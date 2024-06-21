@@ -67,7 +67,6 @@ gap_thickness = ${fparse 0.05 * 7.646e-3}
 [MultiApps]
   [subchannel]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'subchannel.i'
     execute_on = timestep_end
   []

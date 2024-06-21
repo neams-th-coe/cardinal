@@ -74,7 +74,6 @@
 [MultiApps]
   [sub]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = sub.i
     execute_on = timestep_end
   []
