@@ -33,7 +33,6 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'nek_disjoint.i'
     execute_on = timestep_end
   []

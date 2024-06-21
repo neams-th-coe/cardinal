@@ -124,7 +124,6 @@ N = 1000
 [MultiApps]
   [bison]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'solid_nek.i'
     execute_on = timestep_end
     sub_cycling = true

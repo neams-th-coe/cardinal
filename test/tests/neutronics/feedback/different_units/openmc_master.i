@@ -79,7 +79,6 @@
 [MultiApps]
   [openmc]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'openmc.i'
     execute_on = timestep_end
   []

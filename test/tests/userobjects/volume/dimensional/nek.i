@@ -117,7 +117,6 @@
 [MultiApps]
   [subchannel]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'subchannel.i'
     execute_on = timestep_end
   []

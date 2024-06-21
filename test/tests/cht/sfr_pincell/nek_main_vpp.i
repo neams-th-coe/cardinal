@@ -60,7 +60,6 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'nek_vpp.i'
     sub_cycling = true
     execute_on = timestep_end

@@ -64,7 +64,6 @@ thermal_conductivity = 2.0
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'nek.i'
     sub_cycling = true
   []
