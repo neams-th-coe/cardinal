@@ -1,184 +1,184 @@
 <?xml version='1.0' encoding='utf-8'?>
 <materials>
   <material depletable="true" id="1" name="fuel">
-    <density units="kg/m3" value="10820" />
-    <nuclide ao="0.0020301709666386285" name="U234" />
-    <nuclide ao="0.15666685722582877" name="U235" />
-    <nuclide ao="0.8413029718075326" name="U238" />
-    <nuclide ao="1.5" name="C0" />
-    <nuclide ao="0.4998105" name="O16" />
-    <nuclide ao="0.0001895" name="O17" />
+    <density units="kg/m3" value="10820"/>
+    <nuclide ao="0.002030170966749956" name="U234"/>
+    <nuclide ao="0.15666685723354193" name="U235"/>
+    <nuclide ao="0.8413029717997081" name="U238"/>
+    <nuclide ao="1.5" name="C0"/>
+    <nuclide ao="0.4998105" name="O16"/>
+    <nuclide ao="0.0001895" name="O17"/>
   </material>
   <material id="2" name="buffer">
-    <density units="kg/m3" value="1050" />
-    <nuclide ao="1.0" name="C0" />
-    <sab name="c_Graphite" />
+    <density units="kg/m3" value="1050"/>
+    <nuclide ao="1.0" name="C0"/>
+    <sab name="c_Graphite"/>
   </material>
   <material id="3" name="pyc">
-    <density units="kg/m3" value="1900" />
-    <nuclide ao="1.0" name="C0" />
-    <sab name="c_Graphite" />
+    <density units="kg/m3" value="1900"/>
+    <nuclide ao="1.0" name="C0"/>
+    <sab name="c_Graphite"/>
   </material>
   <material id="4" name="sic">
-    <density units="kg/m3" value="3203" />
-    <nuclide ao="1.0" name="C0" />
-    <nuclide ao="0.9222968" name="Si28" />
-    <nuclide ao="0.0468316" name="Si29" />
-    <nuclide ao="0.0308716" name="Si30" />
+    <density units="kg/m3" value="3203"/>
+    <nuclide ao="1.0" name="C0"/>
+    <nuclide ao="0.9222968" name="Si28"/>
+    <nuclide ao="0.0468316" name="Si29"/>
+    <nuclide ao="0.0308716" name="Si30"/>
   </material>
   <material id="5" name="graphite moderator">
-    <density units="kg/m3" value="1700" />
-    <nuclide ao="1.0" name="C0" />
-    <sab name="c_Graphite" />
+    <density units="kg/m3" value="1700"/>
+    <nuclide ao="1.0" name="C0"/>
+    <sab name="c_Graphite"/>
   </material>
   <material id="6" name="Helium coolant">
-    <density units="kg/m3" value="3.02212020223636" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.02212020223636"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="7" name="Helium coolant">
-    <density units="kg/m3" value="5.629509439101218" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.629509439101218"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="8" name="Helium coolant">
-    <density units="kg/m3" value="5.603052674686159" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.603052674686159"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="9" name="Helium coolant">
-    <density units="kg/m3" value="5.55116010848008" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.55116010848008"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="10" name="Helium coolant">
-    <density units="kg/m3" value="5.475781584097255" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.475781584097255"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="11" name="Helium coolant">
-    <density units="kg/m3" value="5.379626859030441" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.379626859030441"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="12" name="Helium coolant">
-    <density units="kg/m3" value="5.265946232727223" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.265946232727223"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="13" name="Helium coolant">
-    <density units="kg/m3" value="5.1382921388779765" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.1382921388779765"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="14" name="Helium coolant">
-    <density units="kg/m3" value="5.000291242020907" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="5.000291242020907"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="15" name="Helium coolant">
-    <density units="kg/m3" value="4.855449652008738" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="4.855449652008738"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="16" name="Helium coolant">
-    <density units="kg/m3" value="4.707004486911593" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="4.707004486911593"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="17" name="Helium coolant">
-    <density units="kg/m3" value="4.557825770462748" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="4.557825770462748"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="18" name="Helium coolant">
-    <density units="kg/m3" value="4.410365347750236" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="4.410365347750236"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="19" name="Helium coolant">
-    <density units="kg/m3" value="4.266644913278734" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="4.266644913278734"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="20" name="Helium coolant">
-    <density units="kg/m3" value="4.128273274037364" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="4.128273274037364"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="21" name="Helium coolant">
-    <density units="kg/m3" value="3.9964830132752382" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.9964830132752382"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="22" name="Helium coolant">
-    <density units="kg/m3" value="3.872178015567627" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.872178015567627"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="23" name="Helium coolant">
-    <density units="kg/m3" value="3.7559851765897347" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.7559851765897347"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="24" name="Helium coolant">
-    <density units="kg/m3" value="3.64830555644516" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.64830555644516"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="25" name="Helium coolant">
-    <density units="kg/m3" value="3.5493619500375946" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.5493619500375946"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="26" name="Helium coolant">
-    <density units="kg/m3" value="3.459241212293094" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.459241212293094"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="27" name="Helium coolant">
-    <density units="kg/m3" value="3.3779306703875753" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.3779306703875753"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="28" name="Helium coolant">
-    <density units="kg/m3" value="3.3053486207406344" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.3053486207406344"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="29" name="Helium coolant">
-    <density units="kg/m3" value="3.241369311672366" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.241369311672366"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="30" name="Helium coolant">
-    <density units="kg/m3" value="3.1858430224325383" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.1858430224325383"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="31" name="Helium coolant">
-    <density units="kg/m3" value="3.1386119264436854" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.1386119264436854"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="32" name="Helium coolant">
-    <density units="kg/m3" value="3.099522418961135" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.099522418961135"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="33" name="Helium coolant">
-    <density units="kg/m3" value="3.068434531975707" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.068434531975707"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="34" name="Helium coolant">
-    <density units="kg/m3" value="3.0452289760022233" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.0452289760022233"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
   <material id="35" name="Helium coolant">
-    <density units="kg/m3" value="3.029812254634742" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="kg/m3" value="3.029812254634742"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
 </materials>
