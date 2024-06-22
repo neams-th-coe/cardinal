@@ -103,7 +103,7 @@ TallyRelativeError::getValue() const
       mooseError("Unhandled OperationEnum!");
   }
 
-  unsigned int num_values = 0u;
+  unsigned int num_values = 0;
   for (const auto & t : tally)
   {
     auto sum = xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM));
@@ -137,7 +137,7 @@ TallyRelativeError::getValue() const
   }
 
   if (_type == operation::average)
-    post_processor_value /= static_cast<Real>(num_values);
+    post_processor_value /= num_values;
 
   return post_processor_value;
 }
