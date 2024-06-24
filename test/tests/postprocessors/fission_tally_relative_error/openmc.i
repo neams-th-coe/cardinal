@@ -46,6 +46,10 @@
     type = TallyRelativeError
     value_type = min
   []
+  [avg_rel_err]
+    type = TallyRelativeError
+    value_type = average
+  []
   [power_1]
     type = PointValue
     variable = kappa_fission
