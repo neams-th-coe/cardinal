@@ -101,6 +101,12 @@ NekRSProblemBase::validParams()
     "is mapped to/receives data from the mesh mirror for every time step.");
   params.addParam<unsigned int>("constant_interval", 1,
     "Constant interval (in units of number of time steps) with which to synchronize the NekRS solution");
+  params.addParam<bool>(
+      "fixed_point_iterations",
+      false,
+      "Whether or not fixed point iterations will be used within the NekRS solve level. "
+      "Cardinal will look for a Postprocessor called "
+      " 'fp_iteration' that receives the current iteration number from the top-level application.");
   return params;
 }
 
@@ -115,6 +121,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _L_ref(getParam<Real>("L_ref")),
     _rho_0(getParam<Real>("rho_0")),
     _Cp_0(getParam<Real>("Cp_0")),
+    _fp_iteration(getParam<bool>("fixed_point_iterations")),
     _write_fld_files(getParam<bool>("write_fld_files")),
     _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
@@ -622,23 +629,39 @@ NekRSProblemBase::externalSolve()
   if (_t_step <= 1000)
     nekrs::verboseInfo(true);
 
-  // Tell NekRS what the time step size is
-  nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
-                  _timestepper->nondimensionalDT(_dt),
-                  _t_step);
-
   // Run a nekRS time step. After the time step, this also calls UDF_ExecuteStep,
   // evaluated at (step_end_time, _t_step) == (nek_step_start_time + nek_dt, t_step)
-  int corrector = 1;
-  bool converged = false;
-  do
+  if (_fp_iteration)
   {
-    converged = nekrs::runStep(corrector++);
-  } while (!converged);
+    const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+    std::cout << "Current fixed point iteration number read in NekRSProblemBase is " << *iter
+              << std::endl; // JUST FOR TESTING
+    if (*iter == 1)
+    {
+      nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
+                      _timestepper->nondimensionalDT(_dt),
+                      _t_step);
+    }
+    bool converged = false;
+    converged = nekrs::runStep(*iter);
 
-  // TODO: time is somehow corrected here
-  nekrs::finishStep();
-
+    nekrs::finishStep();
+  }
+  else
+  {
+    // Tell NekRS what the time step size is
+    nekrs::initStep(_timestepper->nondimensionalDT(step_start_time),
+                    _timestepper->nondimensionalDT(_dt),
+                    _t_step);
+    int corrector = 1;
+    bool converged = false;
+    do
+    {
+      converged = nekrs::runStep(corrector++);
+    } while (!converged);
+    // TODO: time is somehow corrected here
+    nekrs::finishStep();
+  }
   // optional entry point to adjust the recently-computed NekRS solution
   adjustNekSolution();
 
