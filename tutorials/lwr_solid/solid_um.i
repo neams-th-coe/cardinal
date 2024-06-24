@@ -114,7 +114,6 @@ T_fluid = ${fparse 280.0 + 273.15}
 [MultiApps]
   [openmc]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'openmc_um.i'
     execute_on = timestep_end
   []

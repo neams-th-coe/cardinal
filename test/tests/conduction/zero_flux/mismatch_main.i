@@ -27,7 +27,6 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'mismatch_nek.i'
     execute_on = timestep_end
   []

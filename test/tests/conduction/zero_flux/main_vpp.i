@@ -27,7 +27,6 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'nek_vpp.i'
     execute_on = timestep_end
   []

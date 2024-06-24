@@ -96,7 +96,6 @@
 [MultiApps]
   [sub]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'all_bins.i'
     execute_on = timestep_begin
   []

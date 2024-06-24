@@ -50,6 +50,11 @@
     value_type = min
     tally_score = 'heating'
   []
+  [avg_rel_err_ht]
+    type = TallyRelativeError
+    value_type = average
+    tally_score = 'heating'
+  []
   [max_rel_err_kf]
     type = TallyRelativeError
     value_type = max
@@ -58,6 +63,11 @@
   [min_rel_err_kf]
     type = TallyRelativeError
     value_type = min
+    tally_score = 'kappa_fission'
+  []
+  [avg_rel_err_kf]
+    type = TallyRelativeError
+    value_type = average
     tally_score = 'kappa_fission'
   []
 []
