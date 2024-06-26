@@ -2752,10 +2752,18 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
         cellInfo ci = {contained.first, instance};
         if (cells_already_set.count(ci))
         {
-           double T;
-           int err = openmc_cell_get_temperature(ci.first, &ci.second, &T);
+          double T;
+          int err = openmc_cell_get_temperature(ci.first, &ci.second, &T);
 
-           mooseError("Cell " + std::to_string(cellID(contained.first)) + ", instance " + std::to_string(instance) + " has already had its temperature set by Cardinal to " + std::to_string(T) + "! This indicates a problem with how you have built your geometry, because this cell is trying to receive a distribution of temperatures in space, but each successive set-temperature operation is only overwriting the previous value.\n\nThis error most often appears when you are filling a LATTICE into multiple cells. One fix is to first place that lattice into a universe, and then fill that UNIVERSE into multiple cells.");
+          mooseError("Cell " + std::to_string(cellID(contained.first)) + ", instance " +
+                     std::to_string(instance) +
+                     " has already had its temperature set by Cardinal to " + std::to_string(T) +
+                     "! This indicates a problem with how you have built your geometry, because "
+                     "this cell is trying to receive a distribution of temperatures in space, but "
+                     "each successive set-temperature operation is only overwriting the previous "
+                     "value.\n\nThis error most often appears when you are filling a LATTICE into "
+                     "multiple cells. One fix is to first place that lattice into a universe, and "
+                     "then fill that UNIVERSE into multiple cells.");
         }
 
         cells_already_set.insert(ci);
