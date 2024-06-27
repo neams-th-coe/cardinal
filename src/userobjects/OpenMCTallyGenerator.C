@@ -57,7 +57,7 @@ OpenMCTallyGenerator::execute()
   if (_nuclides_uo) {
     InputParameters params = OpenMCTallyNuclides::validParams();
     params.set<int32_t>("tally_id", tally->id());
-    params.set<std::vector<std::string>>("names", {});
+    params.set<bool>("nuclides", true);
     _fe_problem.addUserObject("OpenMCTallyNuclides", "my_tally_mine_and_no_one_elses", params);
   }
 }
