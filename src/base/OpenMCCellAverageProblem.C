@@ -493,18 +493,22 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     // relationships between the DAGMC universes and the CSG cells, because the DAGMC universes
     // could be filled inside of the CSG cells.
     if (has_csg && has_dag)
-      mooseError("The 'skinner' can only be used with OpenMC geometries that are entirely DAGMC based.\n"
-        "Your model contains a combination of both CSG and DAG cells.");
+      mooseWarning("Your model contains a combination of CSG and DAG cells. The 'skinner' will only rebuild the DAG cells (if the DAG cells are clipped by CSG cells, this detail is not retained).");
 
-    // We know there will be a single DAGMC universe, because we already impose
-    // above that there cannot be CSG cells (and the only way to get >1 DAGMC
-    // universe is to fill it inside a CSG cell).
+    // TODO: we only rebuild a single DAGMC universe, so throw an error if there
+    // is more than one present.
+    unsigned int n_dag = 0;
     for (const auto & universe : openmc::model::universes)
+    {
       if (universe->geom_type() == openmc::GeometryType::DAG)
+      {
         _dagmc_universe_index = openmc::model::universe_map.at(universe->id_);
+        n_dag++;
+      }
+    }
 
-    const openmc::Universe * u = openmc::model::universes.at(_dagmc_universe_index).get();
-    const openmc::DAGUniverse * dag = dynamic_cast<const openmc::DAGUniverse *>(u);
+    if (n_dag > 1)
+      mooseError("The 'skinner' is currently limited to models with a single DAGMC universe! Your model has " + std::to_string(n_dag) + " universes.");
 
     // The newly-generated DAGMC cells could be disjoint in space, in which case
     // it is impossible for us to know with 100% certainty a priori how many materials
@@ -815,7 +819,7 @@ OpenMCCellAverageProblem::getMaterialInEachSubdomain() const
     {
       std::stringstream msg;
       msg << "The 'skinner' expects to find one OpenMC material mapped to each [Mesh] subdomain, but " <<
-        Moose::stringify(s.second.size()) << " materials\nmapped to subdomain " << s.first <<
+        Moose::stringify(s.second.size()) << " materials mapped to subdomain " << s.first <<
         ". This indicates your [Mesh] is not " <<
         "consistent with the .h5m model.\n\nThe materials which mapped to subdomain " << s.first << " are:\n";
 
