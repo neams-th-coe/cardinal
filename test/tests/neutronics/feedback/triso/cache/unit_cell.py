@@ -41,7 +41,7 @@ water.add_element('H', 2.0)
 water.add_element('O', 1.0)
 water.set_density('kg/m3', 100.0)
 
-outer = openmc.rectangular_prism(l, l, boundary_type='reflective')
+outer = openmc.model.RectangularPrism(l, l, boundary_type='reflective')
 split = openmc.XPlane(x0=0.0)
 axial_coords = np.linspace(0.0, h, n + 1)
 
@@ -59,9 +59,9 @@ for i in range(n):
   layer = +axial_planes[i] & -axial_planes[i + 1]
 
   if (i == n - 1):
-    fuel_cell = openmc.Cell(region=-split & layer & outer, fill=fuel)
+    fuel_cell = openmc.Cell(region=-split & layer & -outer, fill=fuel)
     fuel_cell.temperature = T
-    water_cell = openmc.Cell(region=+split & layer & outer, fill=water)
+    water_cell = openmc.Cell(region=+split & layer & -outer, fill=water)
     water_cell.temperature = T
     c.append(fuel_cell)
     c.append(water_cell)
@@ -71,7 +71,7 @@ for i in range(n):
     water_cell = openmc.Cell(region=+split, fill=water)
     water_cell.temperature = T
     univ = openmc.Universe(cells=[fuel_cell, water_cell])
-    c.append(openmc.Cell(region=layer & outer, fill=univ))
+    c.append(openmc.Cell(region=layer & -outer, fill=univ))
 
 U = openmc.Universe(cells=c)
 model.geometry = openmc.Geometry(U)

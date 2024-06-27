@@ -25,13 +25,13 @@ a0.add_nuclide('U235', 1.0)
 mats = openmc.Materials([a0])
 mats.export_to_xml()
 
-prism = openmc.rectangular_prism(100.0, 50.0, boundary_type='vacuum')
+prism = openmc.model.RectangularPrism(100.0, 50.0, boundary_type='vacuum')
 top = openmc.ZPlane(z0=50.0, boundary_type='vacuum')
 bot = openmc.ZPlane(z0=00.0, boundary_type='vacuum')
 split = openmc.XPlane(x0=0.0)
 
-cell1 = openmc.Cell(region=prism & +bot & -top & -split, fill=a0)
-cell2 = openmc.Cell(region=prism & +bot & -top & +split, fill=a0)
+cell1 = openmc.Cell(region=-prism & +bot & -top & -split, fill=a0)
+cell2 = openmc.Cell(region=-prism & +bot & -top & +split, fill=a0)
 
 cell1.temperature = 500.0
 cell2.temperature = 800.0
