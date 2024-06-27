@@ -189,14 +189,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     openmc::settings::statepoint_batch.erase(xml_n_batches);
   }
 
-  // create a tally generator UO (for use whith MOOSE server)
-  InputParameters tally_generator_params = OpenMCTallyGenerator::validParams();
-  addUserObject("OpenMCTallyGenerator", "tally_generator", tally_generator_params);
-
-  // Tally ID postprocessor
-  InputParameters tally_id_params = OpenMCTallyID::validParams();
-  addPostprocessor("OpenMCTallyID", "last_tally_id", tally_id_params);
-
   // The OpenMC wrapping doesn't require material properties itself, but we might
   // define them on some blocks of the domain for other auxiliary kernel purposes
   setMaterialCoverageCheck(false);
