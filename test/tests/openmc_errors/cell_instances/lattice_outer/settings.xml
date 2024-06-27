@@ -2,12 +2,15 @@
 <settings>
   <run_mode>eigenvalue</run_mode>
   <particles>1000</particles>
-  <batches>1000</batches>
+  <batches>200</batches>
   <inactive>100</inactive>
   <source particle="neutron" strength="1.0" type="independent">
-    <space type="fission">
+    <space type="box">
       <parameters>0 0 0 1 1 1</parameters>
     </space>
+    <constraints>
+      <fissionable>true</fissionable>
+    </constraints>
   </source>
   <temperature_default>923.15</temperature_default>
   <temperature_method>interpolation</temperature_method>

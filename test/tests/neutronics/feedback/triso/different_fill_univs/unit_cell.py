@@ -177,8 +177,8 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
     hexagon_half_flat = math.sqrt(3.0) / 2.0 * cell_edge_length
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
     upper_right = (cell_edge_length, hexagon_half_flat, reactor_top)
-    source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-    source = openmc.IndependentSource(space=source_dist)
+    source_dist = openmc.stats.Box(lower_left, upper_right)
+    source = openmc.IndependentSource(space=source_dist, constraints={'fissionable' : True})
     settings.source = source
 
     model.settings = settings

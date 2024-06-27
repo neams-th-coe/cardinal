@@ -87,9 +87,9 @@ surface_to_enclose_lattice = openmc.ZCylinder(r=R)
 top = openmc.ZPlane(z0=height, boundary_type='vacuum')
 bottom = openmc.ZPlane(z0=0.0, boundary_type='vacuum')
 
-water_surface = openmc.rectangular_prism(width=pitch, height=pitch, boundary_type='white')
+water_surface = openmc.model.RectangularPrism(width=pitch, height=pitch, boundary_type='white')
 lattice_cell = openmc.Cell(fill=lattice, region=-surface_to_enclose_lattice & +bottom & -top)
-water_cell = openmc.Cell(fill=water, region=+surface_to_enclose_lattice & water_surface & +bottom & -top, name='Water')
+water_cell = openmc.Cell(fill=water, region=+surface_to_enclose_lattice & -water_surface & +bottom & -top, name='Water')
 
 model.geometry = openmc.Geometry([water_cell, lattice_cell])
 
@@ -105,7 +105,7 @@ model.settings.temperature = {'default': T_inlet,
 # Create an initial uniform spatial source distribution over fissionable zones
 lower_left = (-pitch, -pitch, 0.0)
 upper_right = (pitch, pitch, height)
-uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-model.settings.source = openmc.source.Source(space=uniform_dist)
+uniform_dist = openmc.stats.Box(lower_left, upper_right)
+model.settings.source = openmc.source.IndependentSource(space=uniform_dist, constraints={'fissionable' : True})
 
 model.export_to_xml()
