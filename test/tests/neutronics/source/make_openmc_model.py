@@ -113,7 +113,7 @@ settings.particles = 500
 lower_left = (-pitch/2, -pitch/2, 0.0)
 upper_right = (pitch/2, pitch/2, height)
 uniform_dist = openmc.stats.Box(lower_left, upper_right)
-settings.source = openmc.source.Source(space=uniform_dist)
+settings.source = openmc.source.IndependentSource(space=uniform_dist)
 
 settings.temperature = {'default': 280.0 + 273.15,
                         'method': 'interpolation',

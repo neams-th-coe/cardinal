@@ -77,6 +77,6 @@ model.settings.temperature = {'default': T_inlet,
 lower_left = (-R, -R, -R)
 upper_right = (R, R, R)
 uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-model.settings.source = openmc.source.Source(space=uniform_dist)
+model.settings.source = openmc.source.IndependentSource(space=uniform_dist)
 
 model.export_to_xml()

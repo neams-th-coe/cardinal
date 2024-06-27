@@ -80,7 +80,7 @@ height = 8.0 + 2 * R + 2 * l
 lower_left = (-L, -L, 0)
 upper_right = (L, L, height)
 uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-settings.source = openmc.source.Source(space=uniform_dist)
+settings.source = openmc.source.IndependentSource(space=uniform_dist)
 settings.temperature = {'default': 294.0,
                         'method': 'interpolation',
                         'multipole': False,
