@@ -132,6 +132,10 @@ OpenMCCellAverageProblem::validParams()
       "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<std::vector<Real>>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
+
+  params.addParam<std::vector<Real>>(
+      "energy_bin_boundaries", "The boundary of the energy bins used for tallies.");
+
   params.addParam<MooseEnum>(
       "k_trigger",
       getTallyTriggerEnum(),
@@ -263,6 +267,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback ||
                         params.isParamSetByUser("tally_blocks")),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
+    _bin_tallies_by_energy(isParamValid("energy_bin_boundaries")),
     _volume_calc(nullptr),
     _symmetry(nullptr)
 {
@@ -659,6 +664,26 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       else
         mooseError("Unhandled OutputEnum in OpenMCCellAverageProblem!");
     }
+  }
+
+  if (_bin_tallies_by_energy)
+  {
+    /*
+    * Radiation transport convention dictates that energy groups be listed in order of descending
+    * energy while OpenMC uses ascending energy. This swaps the order to conform to convention.
+    */
+    const auto & e_bnds = getParam<std::vector<Real>>("energy_bin_boundaries");
+    for (int i = e_bnds.size() - 1; i >= 0; i--)
+      _energy_boundaries.emplace_back(e_bnds[i]);
+
+    if (_energy_boundaries.size() < 2)
+      paramError("energy_bin_boundaries", "A minimum of 2 energy boundaries must be provided in order to "
+                 "define energy bins.");
+
+    // Sanity check the energy bins to ensure they increase monotonically.
+    for (int  i = 0; i < _energy_boundaries.size(); ++i)
+      if (i > 0 && _energy_boundaries[i] <= _energy_boundaries[i - 1])
+        paramError("energy_bin_boundaries", "The provided energy bins must increase monotonically.");
   }
 }
 
@@ -2381,9 +2406,13 @@ OpenMCCellAverageProblem::resetTallies()
       // erase tally
       openmc::model::tallies.erase(idx);
 
-      // erase filter
-      auto fidx = openmc::model::tally_filters.begin() + _filter_index;
+      // Erase cell filters.
+      auto fidx = openmc::model::tally_filters.begin() + _filter_index + (_bin_tallies_by_energy ? 1 : 0);
       openmc::model::tally_filters.erase(fidx);
+
+      // Erase the energy filter if required.
+      if (_bin_tallies_by_energy)
+        openmc::model::tally_filters.erase(fidx - 1);
       break;
     }
     case tally::mesh:
@@ -2395,12 +2424,22 @@ OpenMCCellAverageProblem::resetTallies()
         openmc::model::tallies.erase(midx);
       }
 
-      // erase filters
-      int fi = _filter_index; // to get signed int for loop to work
+      // Erase mesh filters.
+      int fi = _filter_index + (_bin_tallies_by_energy ? _mesh_translations.size() : 0); // to get signed int for loop to work
       for (int i = _mesh_translations.size() + fi - 1; i >= fi; i--)
       {
         auto fidx = openmc::model::tally_filters.begin() + i;
         openmc::model::tally_filters.erase(fidx);
+      }
+
+      // Erase the energy filters if required.
+      if (_bin_tallies_by_energy)
+      {
+        for (int i = fi - 1; i >= _filter_index; i--)
+        {
+          auto fidx = openmc::model::tally_filters.begin() + i;
+          openmc::model::tally_filters.erase(fidx);
+        }
       }
 
       // erase mesh
@@ -2460,6 +2499,13 @@ OpenMCCellAverageProblem::initializeTallies()
   {
     case tally::cell:
     {
+      // Create the energy filter if required.
+      if (_bin_tallies_by_energy)
+      {
+        _energy_filters.emplace_back(dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy")));
+        _energy_filters[0]->set_bins(_energy_boundaries);
+      }
+
       auto tally_cells = getTallyCells();
       _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
                       Moose::stringify(tally_cells.size()) + " cells... ";
@@ -2472,8 +2518,11 @@ OpenMCCellAverageProblem::initializeTallies()
         _previous_tally[i].resize(1);
       }
 
-      std::vector<openmc::Filter *> filter = {cellInstanceFilter(tally_cells)};
-      addLocalTally(_tally_score, filter);
+      std::vector<openmc::Filter *> filters = {cellInstanceFilter(tally_cells)};
+      if (_bin_tallies_by_energy)
+        filters.emplace_back(_energy_filters[0]);
+
+      addLocalTally(_tally_score, filters);
 
       _console << "done" << std::endl;
 
@@ -2482,6 +2531,16 @@ OpenMCCellAverageProblem::initializeTallies()
     case tally::mesh:
     {
       int n_translations = _mesh_translations.size();
+
+      // Create the energy filters if required.
+      if (_bin_tallies_by_energy)
+      {
+        for (int i = 0; i < n_translations; ++i)
+        {
+          _energy_filters.emplace_back(dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy")));
+          _energy_filters[i]->set_bins(_energy_boundaries);
+        }
+      }
 
       std::string name = _mesh_template_filename ? *_mesh_template_filename : "the [Mesh]";
       std::string tally = n_translations > 1 ? "tallies" : "tally";
@@ -2503,8 +2562,10 @@ OpenMCCellAverageProblem::initializeTallies()
 
       for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
       {
-        std::vector<openmc::Filter *> filter = {filters[i]};
-        addLocalTally(_tally_score, filter);
+        std::vector<openmc::Filter *> trans_filters = {filters[i]};
+        if (_bin_tallies_by_energy)
+          trans_filters.emplace_back(_energy_filters[i]);
+        addLocalTally(_tally_score, trans_filters);
       }
 
       _console << "done" << std::endl;
@@ -2590,20 +2651,51 @@ OpenMCCellAverageProblem::findCell(const Point & point)
 void
 OpenMCCellAverageProblem::addExternalVariables()
 {
+  // create the variable(s) that will be used to receive tallies
   if (_tally_type != tally::none)
   {
-    _external_vars.resize(_tally_score.size());
-    for (unsigned int score = 0; score < _tally_score.size(); ++score)
+    if (_bin_tallies_by_energy)
     {
-      auto name = _tally_name[score];
-      _tally_var.push_back(addExternalVariable(name) /* all blocks */);
-
-      if (_outputs)
+      _external_vars.resize(_tally_score.size() * (_energy_boundaries.size() - 1));
+      for (unsigned int score = 0; score < _tally_score.size(); ++score)
       {
-        for (std::size_t i = 0; i < _outputs->size(); ++i)
+        for (int g = 0; g < _energy_boundaries.size() - 1; ++g)
         {
-          std::string n = name + "_" + _output_name[i];
-          _external_vars[score].push_back(addExternalVariable(n) /* all blocks */);
+          /*
+           * Radiation transport convention dictates that lower group index
+           * equates to a higher particle energy. This reverses the group labelling to
+           * maintain that convention.
+          */
+          auto name = _tally_name[score] + "_"
+                    + Moose::stringify(_energy_boundaries.size() - g - 1);
+          _tally_var.push_back(addExternalVariable(name) /* all blocks */);
+
+          if (_outputs)
+          {
+            for (std::size_t i = 0; i < _outputs->size(); ++i)
+            {
+              std::string n = name + "_" + _output_name[i];
+              _external_vars[score].push_back(addExternalVariable(n) /* all blocks */);
+            }
+          }
+        }
+      }
+    }
+    else
+    {
+      _external_vars.resize(_tally_score.size());
+      for (unsigned int score = 0; score < _tally_score.size(); ++score)
+      {
+        auto name = _tally_name[score];
+        _tally_var.push_back(addExternalVariable(name) /* all blocks */);
+
+        if (_outputs)
+        {
+          for (std::size_t i = 0; i < _outputs->size(); ++i)
+          {
+            std::string n = name + "_" + _output_name[i];
+            _external_vars[score].push_back(addExternalVariable(n) /* all blocks */);
+          }
         }
       }
     }
@@ -2955,14 +3047,15 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
 Real
 OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
                                    const std::vector<xt::xtensor<double, 1>> & tally,
-                                   const unsigned int & score)
+                                   const unsigned int & score,
+                                   const unsigned int & energy_group)
 {
   switch (_tally_type)
   {
     case tally::cell:
-      return getCellTally(var_num, tally, score);
+      return getCellTally(var_num, tally, score, energy_group);
     case tally::mesh:
-      return getMeshTally(var_num, tally, score);
+      return getMeshTally(var_num, tally, score, energy_group);
     default:
       mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
   }
@@ -2980,11 +3073,12 @@ OpenMCCellAverageProblem::checkNormalization(const Real & sum, const unsigned in
 Real
 OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
                                        const std::vector<xt::xtensor<double, 1>> & tally,
-                                       const unsigned int & score)
+                                       const unsigned int & score,
+                                       const unsigned int & energy_group)
 {
   Real total = 0.0;
 
-  int i = 0;
+  int i = _bin_tallies_by_energy ? energy_group : 0;
   for (const auto & c : _cell_to_elem)
   {
     auto cell_info = c.first;
@@ -2993,7 +3087,9 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
     if (!_cell_has_tally[cell_info])
       continue;
 
-    Real local = tally[0](i++);
+    Real local = tally[0](i);
+    // Need to increment by the number of energy bins due to the flattening of the tally.
+    i += _bin_tallies_by_energy ? _energy_filters[0]->n_bins() : 1;
 
     // divide each tally value by the volume that it corresponds to in MOOSE
     // because we will apply it as a volumetric tally
@@ -3009,7 +3105,8 @@ OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
 Real
 OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
                                        const std::vector<xt::xtensor<double, 1>> & tally,
-                                       const unsigned int & score)
+                                       const unsigned int & score,
+                                       const unsigned int & energy_group)
 {
   Real total = 0.0;
 
@@ -3023,7 +3120,9 @@ OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
 
     for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
     {
-      Real power_fraction = tally[i](e);
+      // Need to increment by the number of energy bins due to the flattening of the tally.
+      int idx = _bin_tallies_by_energy ? energy_group + e * _energy_filters[i]->n_bins() : e;
+      Real power_fraction = tally[i](idx);
 
       // divide each tally by the volume that it corresponds to in MOOSE
       // because we will apply it as a volumetric tally (per unit volume).
@@ -3195,19 +3294,46 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
         }
 
-        auto sum = getTally(_tally_var[score], _current_tally[score], score);
-        checkNormalization(sum, score);
-
-        if (_outputs)
+        if (_bin_tallies_by_energy)
         {
-          for (std::size_t i = 0; i < _outputs->size(); ++i)
+          // Sum over all energy and spatial bins.
+          Real total_sum = 0.0;
+          for (unsigned int group = 0; group < _energy_boundaries.size() - 1; ++group)
           {
-            std::string out = (*_outputs)[i];
+            unsigned int idx = (_energy_boundaries.size() - 1) * score + group;
+            total_sum += getTally(_tally_var[idx], _current_tally[score], score, group);
 
-            if (out == "unrelaxed_tally_std_dev")
-              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score);
-            if (out == "unrelaxed_tally")
-              getTally(_external_vars[score][i], _current_raw_tally[score], score);
+            if (_outputs)
+            {
+              for (std::size_t i = 0; i < _outputs->size(); ++i)
+              {
+                std::string out = (*_outputs)[i];
+
+                if (out == "unrelaxed_tally_std_dev")
+                  getTally(_external_vars[idx][i], _current_raw_tally_std_dev[score], score, group);
+                if (out == "unrelaxed_tally")
+                  getTally(_external_vars[idx][i], _current_raw_tally[score], score, group);
+              }
+            }
+          }
+
+          checkNormalization(total_sum, score);
+        }
+        else
+        {
+          auto sum = getTally(_tally_var[score], _current_tally[score], score, 0);
+          checkNormalization(sum, score);
+
+          if (_outputs)
+          {
+            for (std::size_t i = 0; i < _outputs->size(); ++i)
+            {
+              std::string out = (*_outputs)[i];
+              if (out == "unrelaxed_tally_std_dev")
+                getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score, 0);
+              if (out == "unrelaxed_tally")
+                getTally(_external_vars[score][i], _current_raw_tally[score], score, 0);
+            }
           }
         }
       }

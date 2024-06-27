@@ -23,6 +23,7 @@
 #include "OpenMCVolumeCalculation.h"
 
 #include "openmc/tallies/filter_mesh.h"
+#include "openmc/tallies/filter_energy.h"
 
 #ifdef ENABLE_DAGMC
 #include "MoabSkinner.h"
@@ -362,7 +363,8 @@ protected:
    */
   Real getCellTally(const unsigned int & var_num,
                     const std::vector<xt::xtensor<double, 1>> & tally,
-                    const unsigned int & score);
+                    const unsigned int & score,
+                    const unsigned int & energy_group);
 
   /**
    * Read from an OpenMC mesh tally and write into an elemental aux variable
@@ -373,7 +375,8 @@ protected:
    */
   Real getMeshTally(const unsigned int & var_num,
                     const std::vector<xt::xtensor<double, 1>> & tally,
-                    const unsigned int & score);
+                    const unsigned int & score,
+                    const unsigned int & energy_group);
 
   /**
    * Extract the tally from OpenMC and then apply to the corresponding MOOSE elements.
@@ -384,7 +387,8 @@ protected:
    */
   Real getTally(const unsigned int & var_num,
                 const std::vector<xt::xtensor<double, 1>> & tally,
-                const unsigned int & score);
+                const unsigned int & score,
+                const unsigned int & energy_group);
 
   /**
    * Check that the tally normalization gives a total tally sum of 1.0 (when normalized
@@ -905,6 +909,9 @@ protected:
    */
   const bool _needs_global_tally;
 
+  /// Whether tallies are binned by energy or not.
+  const bool _bin_tallies_by_energy;
+
   /// Tally estimator for the tallies created by Cardinal
   openmc::TallyEstimator _tally_estimator;
 
@@ -1073,6 +1080,15 @@ protected:
 
   /// OpenMC mesh filters for unstructured mesh tallies
   std::vector<openmc::MeshFilter *> _mesh_filters;
+
+  /// The energy bin boundaries for tallies.
+  std::vector<Real> _energy_boundaries;
+
+  /**
+   * OpenMC energy filter(s) for binning tallies by the incident particle energy. If
+   * multiple mesh tallies with offsets are requested, multiple energy filters are defined.
+   */
+  std::vector<openmc::EnergyFilter *> _energy_filters;
 
   /// OpenMC solution fields to output to the mesh mirror
   const MultiMooseEnum * _outputs = nullptr;
