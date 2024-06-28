@@ -133,8 +133,8 @@ OpenMCCellAverageProblem::validParams()
   params.addRangeCheckedParam<std::vector<Real>>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
 
-  params.addParam<std::vector<Real>>(
-      "energy_bin_boundaries", "The boundary of the energy bins used for tallies.");
+  params.addParam<std::vector<Real>>("energy_bin_boundaries",
+                                     "The boundary of the energy bins used for tallies.");
 
   params.addParam<MooseEnum>(
       "k_trigger",
@@ -669,21 +669,23 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (_bin_tallies_by_energy)
   {
     /*
-    * Radiation transport convention dictates that energy groups be listed in order of descending
-    * energy while OpenMC uses ascending energy. This swaps the order to conform to convention.
-    */
+     * Radiation transport convention dictates that energy groups be listed in order of descending
+     * energy while OpenMC uses ascending energy. This swaps the order to conform to convention.
+     */
     const auto & e_bnds = getParam<std::vector<Real>>("energy_bin_boundaries");
     for (int i = e_bnds.size() - 1; i >= 0; i--)
       _energy_boundaries.emplace_back(e_bnds[i]);
 
     if (_energy_boundaries.size() < 2)
-      paramError("energy_bin_boundaries", "A minimum of 2 energy boundaries must be provided in order to "
+      paramError("energy_bin_boundaries",
+                 "A minimum of 2 energy boundaries must be provided in order to "
                  "define energy bins.");
 
     // Sanity check the energy bins to ensure they increase monotonically.
-    for (int  i = 0; i < _energy_boundaries.size(); ++i)
+    for (int i = 0; i < _energy_boundaries.size(); ++i)
       if (i > 0 && _energy_boundaries[i] <= _energy_boundaries[i - 1])
-        paramError("energy_bin_boundaries", "The provided energy bins must decrease monotonically.");
+        paramError("energy_bin_boundaries",
+                   "The provided energy bins must decrease monotonically.");
   }
 }
 
@@ -2407,7 +2409,8 @@ OpenMCCellAverageProblem::resetTallies()
       openmc::model::tallies.erase(idx);
 
       // Erase cell filters.
-      auto fidx = openmc::model::tally_filters.begin() + _filter_index + (_bin_tallies_by_energy ? 1 : 0);
+      auto fidx =
+          openmc::model::tally_filters.begin() + _filter_index + (_bin_tallies_by_energy ? 1 : 0);
       openmc::model::tally_filters.erase(fidx);
 
       // Erase the energy filter if required.
@@ -2425,7 +2428,8 @@ OpenMCCellAverageProblem::resetTallies()
       }
 
       // Erase mesh filters.
-      int fi = _filter_index + (_bin_tallies_by_energy ? _mesh_translations.size() : 0); // to get signed int for loop to work
+      int fi = _filter_index + (_bin_tallies_by_energy ? _mesh_translations.size()
+                                                       : 0); // to get signed int for loop to work
       for (int i = _mesh_translations.size() + fi - 1; i >= fi; i--)
       {
         auto fidx = openmc::model::tally_filters.begin() + i;
@@ -2502,7 +2506,8 @@ OpenMCCellAverageProblem::initializeTallies()
       // Create the energy filter if required.
       if (_bin_tallies_by_energy)
       {
-        _energy_filters.emplace_back(dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy")));
+        _energy_filters.emplace_back(
+            dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy")));
         _energy_filters[0]->set_bins(_energy_boundaries);
       }
 
@@ -2537,7 +2542,8 @@ OpenMCCellAverageProblem::initializeTallies()
       {
         for (int i = 0; i < n_translations; ++i)
         {
-          _energy_filters.emplace_back(dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy")));
+          _energy_filters.emplace_back(
+              dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy")));
           _energy_filters[i]->set_bins(_energy_boundaries);
         }
       }
@@ -2665,9 +2671,9 @@ OpenMCCellAverageProblem::addExternalVariables()
            * Radiation transport convention dictates that lower group index
            * equates to a higher particle energy. This reverses the group labelling to
            * maintain that convention.
-          */
-          auto name = _tally_name[score] + "_g"
-                    + Moose::stringify(_energy_boundaries.size() - g - 1);
+           */
+          auto name =
+              _tally_name[score] + "_g" + Moose::stringify(_energy_boundaries.size() - g - 1);
           _tally_var.push_back(addExternalVariable(name) /* all blocks */);
 
           if (_outputs)
