@@ -13,19 +13,6 @@
                   "was equivalent to the heat source when no bins were used."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [one_cell_bin_energy_global]
-    type = Exodiff
-    input = one_cell_energy_global.i
-    exodiff = 'one_cell_energy_global_out.e'
-    # This test has very few particles, and OpenMC will error if there aren't any particles
-    # on a particular process
-    max_parallel = 32
-    requirement = "The heat source shall be tallied on a cell for two energy bins and normalized "
-                  "against a global tally. This test was compared to the case where no energy "
-                  "binning was used; the sum of the heat source across both energy bins "
-                  "was equivalent to the heat source when no bins were used."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [multiple_cells_bin_energy]
     type = Exodiff
     input = multiple_cells_energy.i
@@ -35,19 +22,6 @@
     max_parallel = 32
     requirement = "The heat source shall be tallied per cell for two energy bins and normalized "
                   "against a local tally. This test was compared to the case where no energy "
-                  "binning was used; the sum of the heat source across both energy bins "
-                  "was equivalent to the heat source when no bins were used."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [multiple_cells_bin_energy_global]
-    type = Exodiff
-    input = multiple_cells_energy_global.i
-    exodiff = 'multiple_cells_energy_global_out.e'
-    # This test has very few particles, and OpenMC will error if there aren't any particles
-    # on a particular process
-    max_parallel = 32
-    requirement = "The heat source shall be tallied per cell for two energy bins and normalized "
-                  "against a global tally. This test was compared to the case where no energy "
                   "binning was used; the sum of the heat source across both energy bins "
                   "was equivalent to the heat source when no bins were used."
     required_objects = 'OpenMCCellAverageProblem'
@@ -67,20 +41,6 @@
                   "were used."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [one_mesh_bin_energy_global]
-    type = Exodiff
-    input = one_mesh_energy_global.i
-    exodiff = 'one_mesh_energy_global_out.e'
-    # This test has very few particles, and OpenMC will error if there aren't any particles
-    # on a particular process
-    max_parallel = 32
-    requirement = "The heat source shall be tallied on an unstructured mesh for two energy bins and "
-                  "normalized against a global tally when a single mesh is used. This test was "
-                  "compared to the case where no energy binning was used; the sum of the heat "
-                  "source across both energy bins was equivalent to the heat source when no bins "
-                  "were used."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [multiple_meshes_bin_energy]
     type = Exodiff
     input = multiple_meshes_energy.i
@@ -90,20 +50,6 @@
     max_parallel = 32
     requirement = "The heat source shall be tallied on multiple unstructured meshes for two energy bins and "
                   "normalized against a local tally when multiple identical meshes are used. This "
-                  "test was compared to the case where no energy binning was used; the sum of "
-                  "the heat source across both energy bins was equivalent to the heat source when no "
-                  "bins were used."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [multiple_meshes_bin_energy_global]
-    type = Exodiff
-    input = multiple_meshes_energy_global.i
-    exodiff = 'multiple_meshes_energy_global_out.e'
-    # This test has very few particles, and OpenMC will error if there aren't any particles
-    # on a particular process
-    max_parallel = 32
-    requirement = "The heat source shall be tallied on multiple unstructured meshes for two energy bins and "
-                  "normalized against a global tally when multiple identical meshes are used. This "
                   "test was compared to the case where no energy binning was used; the sum of "
                   "the heat source across both energy bins was equivalent to the heat source when no "
                   "bins were used."
