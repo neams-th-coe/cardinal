@@ -4,7 +4,6 @@
     type = Exodiff
     input = one_cell_energy.i
     exodiff = 'one_cell_energy_out.e'
-    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -18,7 +17,6 @@
     type = Exodiff
     input = one_cell_energy_global.i
     exodiff = 'one_cell_energy_global_out.e'
-    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -32,7 +30,6 @@
     type = Exodiff
     input = multiple_cells_energy.i
     exodiff = 'multiple_cells_energy_out.e'
-    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -46,7 +43,6 @@
     type = Exodiff
     input = multiple_cells_energy_global.i
     exodiff = 'multiple_cells_energy_global_out.e'
-    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -61,7 +57,6 @@
     type = Exodiff
     input = one_mesh_energy.i
     exodiff = 'one_mesh_energy_out.e'
-    cli_args = 'Problem/output_cell_mapping=false'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
     max_parallel = 32
@@ -102,7 +97,7 @@
   []
   [multiple_meshes_bin_energy_global]
     type = Exodiff
-    input = multiple_meshes_global_energy.i
+    input = multiple_meshes_energy_global.i
     exodiff = 'multiple_meshes_energy_global_out.e'
     # This test has very few particles, and OpenMC will error if there aren't any particles
     # on a particular process
