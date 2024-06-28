@@ -683,7 +683,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     // Sanity check the energy bins to ensure they increase monotonically.
     for (int  i = 0; i < _energy_boundaries.size(); ++i)
       if (i > 0 && _energy_boundaries[i] <= _energy_boundaries[i - 1])
-        paramError("energy_bin_boundaries", "The provided energy bins must increase monotonically.");
+        paramError("energy_bin_boundaries", "The provided energy bins must decrease monotonically.");
   }
 }
 
@@ -2666,7 +2666,7 @@ OpenMCCellAverageProblem::addExternalVariables()
            * equates to a higher particle energy. This reverses the group labelling to
            * maintain that convention.
           */
-          auto name = _tally_name[score] + "_"
+          auto name = _tally_name[score] + "_g"
                     + Moose::stringify(_energy_boundaries.size() - g - 1);
           _tally_var.push_back(addExternalVariable(name) /* all blocks */);
 
