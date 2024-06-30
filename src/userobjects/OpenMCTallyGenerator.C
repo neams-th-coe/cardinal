@@ -29,13 +29,14 @@ InputParameters
 OpenMCTallyGenerator::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
+  params.addRequiredParam<std::vector<std::string>>("ids", "Tally IDs to create in OpenMC");
   params.addRequiredParam<bool>("nuclides", "Whether or not to create a UserObject to modify nuclides in the new OpenMC tally");
   params.addClassDescription("An OpenMC tally generation UserObject");
   return params;
 }
 
 OpenMCTallyGenerator::OpenMCTallyGenerator(const InputParameters & parameters)
-  : GeneralUserObject(parameters), _nuclides_uo(getParam<bool>("nuclides"))
+  : GeneralUserObject(parameters), _ids(getParam<std::vector<std::string>>("ids")), _nuclides_uo(getParam<bool>("nuclides"))
 {
   const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
   if (!openmc_problem)
@@ -51,15 +52,17 @@ OpenMCTallyGenerator::OpenMCTallyGenerator(const InputParameters & parameters)
 void
 OpenMCTallyGenerator::execute()
 {
-  const openmc::Tally* tally = openmc::Tally::create();
-  _created_tally_ids.push_back(tally->id());
+  for (const auto & id : _ids)
+  {
+    openmc::Tally* tally = openmc::Tally::create(std::stoi(id));
 
-  if (_nuclides_uo) {
-    InputParameters params = OpenMCTallyNuclides::validParams();
-    params.set<int32_t>("tally_id", tally->id());
-    params.set<bool>("nuclides", true);
-    _fe_problem.addUserObject("OpenMCTallyNuclides", "my_tally_mine_and_no_one_elses", params);
+    if (_nuclides_uo)
+    {
+      InputParameters params = OpenMCTallyNuclides::validParams();
+      params.set<int32_t>("tally_id", tally->id());
+    }
   }
+  _ids.clear();
 }
 
 #endif
