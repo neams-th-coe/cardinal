@@ -492,17 +492,6 @@ OpenMCCellAverageProblem::initialSetup()
 {
   OpenMCProblemBase::initialSetup();
 
-  // create a tally generator UO (for use whith MOOSE server)
-  const std::string tg_name = "OpenMCTallyGenerator";
-  InputParameters tally_generator_params = OpenMCTallyGenerator::validParams();
-  tally_generator_params.set<bool>("nuclides", true);
-  addUserObject(tg_name, "tally_generator", tally_generator_params);
-
-  // // Tally ID postprocessor
-  // InputParameters tally_id_params = OpenMCTallyID::validParams();
-  // addPostprocessor("OpenMCTallyID", "last_tally_id", tally_id_params);
-
-
   getOpenMCUserObjects();
 
   if (!_needs_to_map_cells)

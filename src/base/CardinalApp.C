@@ -204,6 +204,8 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
 
   registerTask("add_bulk_fluid_temperature_user_object", false /* is required */);
   addTaskDependency("add_bulk_fluid_temperature_user_object", "add_heat_source_ic");
+
+  // registerTask("add_tally_generator", true);
 }
 
 std::string
