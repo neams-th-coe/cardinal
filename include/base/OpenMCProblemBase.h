@@ -26,7 +26,6 @@
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCTallyNuclides.h"
 #include "OpenMCTallyGenerator.h"
-#include "OpenMCTallyID.h"
 
 #include "mpi.h"
 #include "openmc/bank.h"
