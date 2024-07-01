@@ -750,8 +750,10 @@ OpenMCProblemBase::getOpenMCUserObjects()
       _nuclide_densities_uos.push_back(c);
 
     OpenMCTallyNuclides * d = dynamic_cast<OpenMCTallyNuclides *>(u);
-    if (d)
+    if (d) {
       _tally_nuclides_uos.push_back(d);
+      mooseWarning("Tally nuclides found: " + d->name());
+    }
   }
 }
 
