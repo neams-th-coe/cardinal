@@ -18,29 +18,21 @@
 
 #pragma once
 
-#include "GeneralUserObject.h"
+#include "Action.h"
 
 /**
  * User object to modify the nuclides in an OpenMC tally.
  */
-class OpenMCTallyGenerator : public GeneralUserObject
+class OpenMCTallyGeneratorAction : public Action
 {
 public:
   static InputParameters validParams();
 
-  OpenMCTallyGenerator(const InputParameters & parameters);
+  OpenMCTallyGeneratorAction(const InputParameters & parameters);
 
-  /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override;
-
-  virtual void initialize() override {}
-  virtual void finalize() override {}
+  virtual void act();
 
 protected:
   std::vector<std::string> _ids;
   bool _nuclides_uo {true};
-
-//  std::vector<int32_t> _created_tally_ids;
-
-
 };
