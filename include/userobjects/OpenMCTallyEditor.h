@@ -23,12 +23,12 @@
 /**
  * User object to modify the nuclides in an OpenMC tally.
  */
-class OpenMCTallyManager : public GeneralUserObject
+class OpenMCTallyEditor : public GeneralUserObject
 {
 public:
   static InputParameters validParams();
 
-  OpenMCTallyManager(const InputParameters & parameters);
+  OpenMCTallyEditor(const InputParameters & parameters);
 
 
   /// We don't want this user object to execute in MOOSE's control
@@ -37,7 +37,7 @@ public:
   virtual void initialize() override {}
   virtual void finalize() override {}
 
-  std::string long_name () { return "OpenMCTallyManager \"" + this->name() + "\"";}
+  std::string long_name () { return "OpenMCTallyEditor \"" + this->name() + "\"";}
 
 protected:
   int32_t _tally_id;
