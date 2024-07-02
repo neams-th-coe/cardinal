@@ -2323,8 +2323,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       // amounts of the different nuclides)
       sendNuclideDensitiesToOpenMC();
 
-      sendTallyNuclidesToOpenMC();
-
       if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
       {
         std::string incoming_transfer =

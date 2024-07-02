@@ -37,10 +37,10 @@ public:
   virtual void finalize() override {}
 
 protected:
-  std::vector<std::string> _ids;
-  bool _nuclides_uo {true};
+  bool _tally_created {false};
+  int32_t _tally_id;
 
-//  std::vector<int32_t> _created_tally_ids;
-
-
+  std::vector<std::string> _scores;
+  std::vector<std::string> _nuclides;
+  std::vector<int32_t> _filter_ids;
 };
