@@ -311,6 +311,11 @@ OpenMCProblemBase::externalSolve()
         std::make_unique<openmc::FileSource>(sourceBankFileName()));
   }
 
+  // update tallies as needed before starting the OpenMC run
+  _console << " Updating tallies..." << std::endl;
+  executeTallyGenerators();
+  sendTallyNuclidesToOpenMC();
+
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
@@ -750,11 +755,26 @@ OpenMCProblemBase::getOpenMCUserObjects()
       _nuclide_densities_uos.push_back(c);
 
     OpenMCTallyNuclides * d = dynamic_cast<OpenMCTallyNuclides *>(u);
-    if (d) {
+    if (d)
       _tally_nuclides_uos.push_back(d);
-      mooseWarning("Tally nuclides found: " + d->name());
-    }
+
+    OpenMCTallyGenerator * e = dynamic_cast<OpenMCTallyGenerator *>(u);
+    if (e)
+      _tally_generators.push_back(e);
   }
+}
+
+void
+OpenMCProblemBase::executeTallyGenerators()
+{
+
+  executeControls(EXEC_TALLY_GENERATORS);
+
+  _console << "Executing tally generators...";
+  for (const auto & tg : _tally_generators) {
+    tg->execute();
+  }
+  _console << "done" << std::endl;
 }
 
 void

@@ -347,6 +347,9 @@ protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
 
+  /// Execute all of the tally generator objects
+  void executeTallyGenerators();
+
   /// Set the nuclide densities for any materials being modified via MOOSE
   void sendNuclideDensitiesToOpenMC();
 
@@ -448,6 +451,9 @@ protected:
 
   /// Userobjects for changing OpenMC tally nuclides
   std::vector<OpenMCTallyNuclides *> _tally_nuclides_uos;
+
+  /// Userobjects for creating/changing OpenMC tallies
+  std::vector<OpenMCTallyGenerator *> _tally_generators;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;
