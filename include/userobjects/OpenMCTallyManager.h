@@ -23,12 +23,13 @@
 /**
  * User object to modify the nuclides in an OpenMC tally.
  */
-class OpenMCTallyGenerator : public GeneralUserObject
+class OpenMCTallyManager : public GeneralUserObject
 {
 public:
   static InputParameters validParams();
 
-  OpenMCTallyGenerator(const InputParameters & parameters);
+  OpenMCTallyManager(const InputParameters & parameters);
+
 
   /// We don't want this user object to execute in MOOSE's control
   virtual void execute() override;
@@ -36,11 +37,8 @@ public:
   virtual void initialize() override {}
   virtual void finalize() override {}
 
-protected:
-  bool _tally_created {false};
-  int32_t _tally_id;
+  std::string long_name () { return "OpenMCTallyManager \"" + this->name() + "\"";}
 
-  std::vector<std::string> _scores;
-  std::vector<std::string> _nuclides;
-  std::vector<int32_t> _filter_ids;
+protected:
+  int32_t _tally_id;
 };

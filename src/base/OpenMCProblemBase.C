@@ -312,8 +312,7 @@ OpenMCProblemBase::externalSolve()
   }
 
   // update tallies as needed before starting the OpenMC run
-  _console << " Updating tallies..." << std::endl;
-  executeTallyGenerators();
+  executeTallyUpdates();
   sendTallyNuclidesToOpenMC();
 
   int err = openmc_run();
@@ -758,21 +757,20 @@ OpenMCProblemBase::getOpenMCUserObjects()
     if (d)
       _tally_nuclides_uos.push_back(d);
 
-    OpenMCTallyGenerator * e = dynamic_cast<OpenMCTallyGenerator *>(u);
+    OpenMCTallyManager * e = dynamic_cast<OpenMCTallyManager *>(u);
     if (e)
-      _tally_generators.push_back(e);
+      _tally_manager_uos.push_back(e);
   }
 }
 
 void
-OpenMCProblemBase::executeTallyGenerators()
+OpenMCProblemBase::executeTallyUpdates()
 {
-
   executeControls(EXEC_TALLY_GENERATORS);
 
   _console << "Executing tally generators...";
-  for (const auto & tg : _tally_generators) {
-    tg->execute();
+  for (const auto & tm : _tally_manager_uos) {
+    tm->execute();
   }
   _console << "done" << std::endl;
 }
