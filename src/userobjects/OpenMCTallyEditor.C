@@ -18,18 +18,18 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "OpenMCTallyManager.h"
+#include "OpenMCTallyEditor.h"
 #include "OpenMCTallyNuclides.h"
 #include "OpenMCProblemBase.h"
 #include "openmc/tallies/tally.h"
 
-registerMooseObject("CardinalApp", OpenMCTallyManager);
+registerMooseObject("CardinalApp", OpenMCTallyEditor);
 
 InputParameters
-OpenMCTallyManager::validParams()
+OpenMCTallyEditor::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
-  params.addParam<bool>("create_tally", true, "Whether to create the tally if it doesn't exist");
+  params.addParam<bool>("create_tally", false, "Whether to create the tally if it doesn't exist");
   params.addRequiredParam<int32_t>("tally_id", "The ID of the tally to modify");
   params.addRequiredParam<std::vector<std::string>>("scores", "The scores to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("nuclides", "The nuclides to modify in the tally");
@@ -41,11 +41,8 @@ OpenMCTallyManager::validParams()
   return params;
 }
 
-OpenMCTallyManager::OpenMCTallyManager(const InputParameters & parameters)
-  : GeneralUserObject(parameters), _tally_id(getParam<int32_t>("tally_id")),
-    _scores(getParam<std::vector<std::string>>("scores")),
-    _nuclides(getParam<std::vector<std::string>>("nuclides")),
-    _filter_ids(getParam<std::vector<int32_t>>("filter_ids"))
+OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
+  : GeneralUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
 {
   const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
   if (!openmc_problem)
@@ -78,32 +75,24 @@ OpenMCTallyManager::OpenMCTallyManager(const InputParameters & parameters)
 }
 
 void
-OpenMCTallyManager::execute()
+OpenMCTallyEditor::execute()
 {
     int32_t tally_index = openmc::model::tally_map.at(_tally_id);
     openmc::Tally * tally = openmc::model::tallies[tally_index].get();
 
-  if (_scores.size() > 0)
-  {
-    tally->set_scores(getParam<std::vector<std::string>>("scores"));
-  }
+  std::vector<std::string> scores = getParam<std::vector<std::string>>("scores");
+  if (scores.size() > 0)
+    tally->set_scores(scores);
 
-  if (_nuclides.size() > 0)
-  {
-    mooseWarning("Setting nuclides for tally " + std::to_string(_tally_id));
-    std::string msg = "Nuclides: ";
-    for (const auto & nuc : getParam<std::vector<std::string>>("nuclides"))
-    {
-      msg += nuc + " ";
-    }
-    mooseWarning(msg);
-    tally->set_nuclides(getParam<std::vector<std::string>>("nuclides"));
-  }
+  std::vector<std::string> nuclides = getParam<std::vector<std::string>>("nuclides");
+  if (nuclides.size() > 0)
+    tally->set_nuclides(nuclides);
 
-  if (_filter_ids.size() > 0)
+  std::vector<int32_t> filter_ids = getParam<std::vector<int32_t>>("filter_ids");
+  if (filter_ids.size() > 0)
   {
     tally->set_filters({});
-    for (const auto & fid : getParam<std::vector<int32_t>>("filter_ids")) {
+    for (const auto & fid : filter_ids) {
       int32_t filter_index = openmc::model::filter_map.at(fid);
       tally->add_filter(openmc::model::tally_filters[filter_index].get());
     }

@@ -757,9 +757,9 @@ OpenMCProblemBase::getOpenMCUserObjects()
     if (d)
       _tally_nuclides_uos.push_back(d);
 
-    OpenMCTallyManager * e = dynamic_cast<OpenMCTallyManager *>(u);
+    OpenMCTallyEditor * e = dynamic_cast<OpenMCTallyEditor *>(u);
     if (e)
-      _tally_manager_uos.push_back(e);
+      _tally_editor_uos.push_back(e);
   }
 }
 
@@ -769,7 +769,7 @@ OpenMCProblemBase::executeTallyUpdates()
   executeControls(EXEC_TALLY_GENERATORS);
 
   _console << "Executing tally generators...";
-  for (const auto & tm : _tally_manager_uos) {
+  for (const auto & tm : _tally_editor_uos) {
     tm->execute();
   }
   _console << "done" << std::endl;

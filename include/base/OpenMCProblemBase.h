@@ -25,7 +25,7 @@
 #include "CardinalEnums.h"
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCTallyNuclides.h"
-#include "OpenMCTallyManager.h"
+#include "OpenMCTallyEditor.h"
 
 #include "mpi.h"
 #include "openmc/bank.h"
@@ -453,7 +453,7 @@ protected:
   std::vector<OpenMCTallyNuclides *> _tally_nuclides_uos;
 
   /// Userobjects for creating/changing OpenMC tallies
-  std::vector<OpenMCTallyManager *> _tally_manager_uos;
+  std::vector<OpenMCTallyEditor *> _tally_editor_uos;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;
