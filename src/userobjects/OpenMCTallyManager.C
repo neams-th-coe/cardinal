@@ -18,17 +18,18 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 
-#include "OpenMCTallyGenerator.h"
+#include "OpenMCTallyManager.h"
 #include "OpenMCTallyNuclides.h"
 #include "OpenMCProblemBase.h"
 #include "openmc/tallies/tally.h"
 
-registerMooseObject("CardinalApp", OpenMCTallyGenerator);
+registerMooseObject("CardinalApp", OpenMCTallyManager);
 
 InputParameters
-OpenMCTallyGenerator::validParams()
+OpenMCTallyManager::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
+  params.addParam<bool>("create_tally", true, "Whether to create the tally if it doesn't exist");
   params.addRequiredParam<int32_t>("tally_id", "The ID of the tally to modify");
   params.addRequiredParam<std::vector<std::string>>("scores", "The scores to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("nuclides", "The nuclides to modify in the tally");
@@ -36,11 +37,11 @@ OpenMCTallyGenerator::validParams()
   params.declareControllable("scores");
   params.declareControllable("nuclides");
   params.declareControllable("filter_ids");
-  params.addClassDescription("An OpenMC tally UserObject");
+  params.addClassDescription("A UserObject for creating and managing OpenMC tallies");
   return params;
 }
 
-OpenMCTallyGenerator::OpenMCTallyGenerator(const InputParameters & parameters)
+OpenMCTallyManager::OpenMCTallyManager(const InputParameters & parameters)
   : GeneralUserObject(parameters), _tally_id(getParam<int32_t>("tally_id")),
     _scores(getParam<std::vector<std::string>>("scores")),
     _nuclides(getParam<std::vector<std::string>>("nuclides")),
@@ -55,23 +56,32 @@ OpenMCTallyGenerator::OpenMCTallyGenerator(const InputParameters & parameters)
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
 
+  bool create_tally = getParam<bool>("create_tally");
+  bool tally_exists = openmc::model::tally_map.find(_tally_id) != openmc::model::tally_map.end();
+
+  if (create_tally) {
+    if (tally_exists)
+    {
+      mooseWarning(long_name() + ": Tally " + std::to_string(_tally_id) + " already exists in OpenMC model");
+    }
+    else
+    {
+      openmc_problem->_console << long_name() << ": Creating tally " << _tally_id << std::endl;
+      openmc::Tally::create(_tally_id);
+    }
+  } else {
+    if (!tally_exists)
+    {
+      mooseError(long_name() + ": Tally " + std::to_string(_tally_id) + " does not exist in OpenMC model");
+    }
+  }
 }
 
 void
-OpenMCTallyGenerator::execute()
+OpenMCTallyManager::execute()
 {
-
-  openmc::Tally * tally;
-  if (!_tally_created)
-  {
-    _tally_created = true;
-    tally = openmc::Tally::create(_tally_id);
-  }
-  else
-  {
     int32_t tally_index = openmc::model::tally_map.at(_tally_id);
-    tally = openmc::model::tallies[tally_index].get();
-  }
+    openmc::Tally * tally = openmc::model::tallies[tally_index].get();
 
   if (_scores.size() > 0)
   {
