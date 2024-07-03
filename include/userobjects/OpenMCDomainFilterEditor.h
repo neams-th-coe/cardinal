@@ -16,12 +16,34 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "CardinalAppTypes.h"
-#include "ExecFlagRegistry.h"
+#pragma once
 
-#ifdef ENABLE_OPENMC_COUPLING
-const ExecFlagType EXEC_FILTER_GENERATORS = registerExecFlag("EXEC_FILTER_GENERATORS");
-const ExecFlagType EXEC_TALLY_GENERATORS = registerExecFlag("EXEC_TALLY_GENERATORS");
-const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
-const ExecFlagType EXEC_SEND_OPENMC_TALLY_NUCLIDES = registerExecFlag("SEND_OPENMC_TALLY_NUCLIDES");
-#endif
+#include "GeneralUserObject.h"
+
+/**
+ * User object to modify the nuclides in an OpenMC tally.
+ */
+class OpenMCDomainFilterEditor : public GeneralUserObject
+{
+public:
+  static InputParameters validParams();
+
+  OpenMCDomainFilterEditor(const InputParameters & parameters);
+
+
+  /// We don't want this user object to execute in MOOSE's control
+  virtual void execute() override;
+
+  virtual void initialize() override {}
+  virtual void finalize() override {}
+
+  void check_existing_filter_type() const;
+  void bad_filter_error() const;
+
+  std::string long_name () const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
+
+protected:
+  int32_t _filter_id;
+  std::string _filter_type;
+  const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
+};
