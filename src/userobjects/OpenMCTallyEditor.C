@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
