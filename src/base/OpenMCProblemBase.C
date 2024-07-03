@@ -760,19 +760,37 @@ OpenMCProblemBase::getOpenMCUserObjects()
     OpenMCTallyEditor * e = dynamic_cast<OpenMCTallyEditor *>(u);
     if (e)
       _tally_editor_uos.push_back(e);
+
+    OpenMCDomainFilterEditor * f = dynamic_cast<OpenMCDomainFilterEditor *>(u);
+    if (f)
+      _filter_editor_uos.push_back(f);
   }
+}
+
+void OpenMCProblemBase::executeFilterEditors()
+{
+  executeControls(EXEC_FILTER_GENERATORS);
+  _console << "Executing filter editors...";
+  for (const auto & fe : _filter_editor_uos)
+    fe->execute();
+  _console << "done" << std::endl;
+}
+
+void
+OpenMCProblemBase::executeTallyEditors()
+{
+  executeControls(EXEC_TALLY_GENERATORS);
+  _console << "Executing tally editors...";
+  for (const auto & te : _tally_editor_uos)
+    te->execute();
+  _console << "done" << std::endl;
 }
 
 void
 OpenMCProblemBase::executeTallyUpdates()
 {
-  executeControls(EXEC_TALLY_GENERATORS);
-
-  _console << "Executing tally generators...";
-  for (const auto & tm : _tally_editor_uos) {
-    tm->execute();
-  }
-  _console << "done" << std::endl;
+  executeFilterEditors();
+  executeTallyEditors();
 }
 
 void

@@ -25,7 +25,9 @@
 #include "CardinalEnums.h"
 #include "OpenMCNuclideDensities.h"
 #include "OpenMCTallyNuclides.h"
+#include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
+
 
 #include "mpi.h"
 #include "openmc/bank.h"
@@ -347,7 +349,13 @@ protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
 
-  /// Execute all tally manager userobjects
+  /// Execute all filter editor userobjects
+  void executeFilterEditors();
+
+  /// Execute all tally editor userobjects
+  void executeTallyEditors();
+
+  // execute all userobjects that change OpenMC filters
   void executeTallyUpdates();
 
   /// Set the nuclide densities for any materials being modified via MOOSE
@@ -451,6 +459,9 @@ protected:
 
   /// Userobjects for changing OpenMC tally nuclides
   std::vector<OpenMCTallyNuclides *> _tally_nuclides_uos;
+
+  /// Userobjects for creating/changing OpenMC filters
+  std::vector<OpenMCDomainFilterEditor *> _filter_editor_uos;
 
   /// Userobjects for creating/changing OpenMC tallies
   std::vector<OpenMCTallyEditor *> _tally_editor_uos;

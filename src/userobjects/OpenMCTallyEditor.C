@@ -19,7 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCTallyEditor.h"
-#include "OpenMCTallyNuclides.h"
 #include "OpenMCProblemBase.h"
 #include "openmc/tallies/tally.h"
 
@@ -33,7 +32,7 @@ OpenMCTallyEditor::validParams()
   params.addRequiredParam<int32_t>("tally_id", "The ID of the tally to modify");
   params.addRequiredParam<std::vector<std::string>>("scores", "The scores to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("nuclides", "The nuclides to modify in the tally");
-  params.addRequiredParam<std::vector<int32_t>>("filter_ids", "The filter IDs to modify in the tally");
+  params.addRequiredParam<std::vector<std::string>>("filter_ids", "The filter IDs to modify in the tally");
   params.declareControllable("scores");
   params.declareControllable("nuclides");
   params.declareControllable("filter_ids");
@@ -77,8 +76,8 @@ OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
 void
 OpenMCTallyEditor::execute()
 {
-    int32_t tally_index = openmc::model::tally_map.at(_tally_id);
-    openmc::Tally * tally = openmc::model::tallies[tally_index].get();
+  int32_t tally_index = openmc::model::tally_map.at(_tally_id);
+  openmc::Tally * tally = openmc::model::tallies[tally_index].get();
 
   std::vector<std::string> scores = getParam<std::vector<std::string>>("scores");
   if (scores.size() > 0)
@@ -88,12 +87,12 @@ OpenMCTallyEditor::execute()
   if (nuclides.size() > 0)
     tally->set_nuclides(nuclides);
 
-  std::vector<int32_t> filter_ids = getParam<std::vector<int32_t>>("filter_ids");
+  std::vector<std::string> filter_ids = getParam<std::vector<std::string>>("filter_ids");
   if (filter_ids.size() > 0)
   {
     tally->set_filters({});
     for (const auto & fid : filter_ids) {
-      int32_t filter_index = openmc::model::filter_map.at(fid);
+      int32_t filter_index = openmc::model::filter_map.at(std::stoi(fid));
       tally->add_filter(openmc::model::tally_filters[filter_index].get());
     }
   }
