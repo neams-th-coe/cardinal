@@ -33,9 +33,11 @@ OpenMCTallyEditor::validParams()
   params.addRequiredParam<std::vector<std::string>>("scores", "The scores to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("nuclides", "The nuclides to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("filter_ids", "The filter IDs to modify in the tally");
+  params.addRequiredParam<bool>("multiply_density", "Whether to multiply the tally by the atom density");
   params.declareControllable("scores");
   params.declareControllable("nuclides");
   params.declareControllable("filter_ids");
+  params.declareControllable("multiply_density");
   params.addClassDescription("A UserObject for creating and managing OpenMC tallies");
   return params;
 }
@@ -96,6 +98,8 @@ OpenMCTallyEditor::execute()
       tally->add_filter(openmc::model::tally_filters[filter_index].get());
     }
   }
+
+  tally->set_multiply_density(getParam<bool>("multiply_density"));
 }
 
 #endif
