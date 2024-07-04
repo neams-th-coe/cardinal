@@ -30,12 +30,23 @@ CellTally::validParams()
       "tally_blocks",
       "Subdomains for which to add tallies in OpenMC. If not provided, cell "
       "tallies will be applied over the entire mesh.");
+  params.addParam<bool>(
+      "check_equal_mapped_tally_volumes",
+      false,
+      "Whether to check if the tallied cells map to regions in the mesh of equal volume. "
+      "This can be helpful to ensure that the volume normalization of OpenMC's tallies doesn't "
+      "introduce any unintentional distortion just because the mapped volumes are different. "
+      "You should only set this to true if your OpenMC tally cells are all the same volume!");
+  params.addRangeCheckedParam<Real>("equal_tally_volume_abs_tol", 1e-8, "equal_tally_volume_abs_tol > 0",
+      "Absolute tolerance for comparing tally volumes");
 
   return params;
 }
 
 CellTally::CellTally(const InputParameters & parameters)
-  : TallyBase(parameters)
+  : TallyBase(parameters),
+  _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
+  _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol"))
 {
   if (isParamValid("tally_blocks"))
   {
@@ -70,6 +81,9 @@ CellTally::generateAuxVarNames()
 void
 CellTally::initializeTally()
 {
+  // Check to make sure we can map tallies to the mesh subdomains requested in tally_blocks.
+  checkCellMappedSubdomains();
+
   // Clear cached results.
   _local_sum_tally.resize(_tally_score.size());
   _local_mean_tally.resize(_tally_score.size());
@@ -79,9 +93,16 @@ CellTally::initializeTally()
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 
-  // Create the cell filter.
+  // Get a list of cells to tally and create the cell filter.
+  auto tally_cells = getTallyCells();
+  std::vector<openmc::CellInstance> cells;
+  for (const auto & c : tally_cells)
+    cells.push_back(
+        {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
+
   _filter_index = openmc::model::tally_filters.size();
-  _cell_filter = dynamic_cast<openmc::CellFilter *>(openmc::Filter::create("cell"));
+  _cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
+  _cell_filter->set_cell_instances(cells);
 
   // TODO: Append to this to add an energy filter.
   std::vector<openmc::Filter *> filters = {_cell_filter};
@@ -93,9 +114,6 @@ CellTally::initializeTally()
   _local_tally->estimator_ = _estimator;
   _local_tally->set_filters(filters);
   applyTriggersToLocalTally(_local_tally);
-
-  // Check to make sure we can map tallies to the mesh subdomains requested in tally_blocks.
-  checkCellMappedSubdomains();
 }
 
 void
@@ -139,6 +157,8 @@ CellTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned 
 void
 CellTally::checkCellMappedSubdomains()
 {
+  _cell_has_tally.clear();
+
   // If the OpenMC cell maps to multiple subdomains that _also_ have different
   // tally settings, we need to error because we are unsure of whether to add tallies or not;
   // both of these need to be true to error
@@ -180,5 +200,78 @@ CellTally::checkCellMappedSubdomains()
 
     _cell_has_tally[cell_info] = at_least_one_in_tallies;
   }
+}
+
+std::vector<OpenMCCellAverageProblem::cellInfo>
+CellTally::getTallyCells() const
+{
+  bool is_first_tally_cell = true;
+  OpenMCCellAverageProblem::cellInfo first_tally_cell;
+  Real mapped_tally_volume;
+
+  std::vector<OpenMCCellAverageProblem::cellInfo> tally_cells;
+
+  for (const auto & c : _openmc_problem.cellToElem())
+  {
+    auto cell_info = c.first;
+
+    if (_cell_has_tally.at(cell_info))
+    {
+      tally_cells.push_back(cell_info);
+
+      if (is_first_tally_cell)
+      {
+        is_first_tally_cell = false;
+        first_tally_cell = cell_info;
+        mapped_tally_volume = _openmc_problem.getCellToElementVol(first_tally_cell);
+      }
+
+      if (_check_equal_mapped_tally_volumes)
+      {
+        Real diff = std::abs(mapped_tally_volume - _openmc_problem.getCellToElementVol(cell_info));
+        bool absolute_diff = diff > _equal_tally_volume_abs_tol;
+        bool relative_diff = diff / mapped_tally_volume > 1e-3;
+        if (absolute_diff && relative_diff)
+        {
+          std::stringstream msg;
+          msg << "Detected un-equal mapped tally volumes!\n cell " << _openmc_problem.printCell(first_tally_cell)
+              << " maps to a volume of "
+              << Moose::stringify(_openmc_problem.getCellToElementVol(first_tally_cell)) << " (cm3)\n cell "
+              << _openmc_problem.printCell(cell_info) << " maps to a volume of "
+              << Moose::stringify(_openmc_problem.getCellToElementVol(cell_info))
+              << " (cm3).\n\n"
+                 "If the tallied cells in your OpenMC model are of identical volumes, this means "
+                 "that you can get\n"
+                 "distortion of the volumetric tally output. For instance, suppose you have "
+                 "two equal-size OpenMC\n"
+                 "cells which have the same volume - but each OpenMC cell maps to a MOOSE region "
+                 "of different volume\n"
+                 "just due to the nature of the centroid mapping scheme. Even if those two tallies "
+                 "do actually have the\n"
+                 "same value, the volumetric tally will be different because you'll be "
+                 "dividing each tally by a\n"
+                 "different mapped MOOSE volume.\n\n";
+
+          if (_openmc_problem.hasPointTransformations())
+            msg << "NOTE: You have imposed symmetry, which means that you'll hit this error if any "
+                   "of your tally\n"
+                   "cells are cut by symmetry planes. If your tally cells would otherwise be the "
+                   "same volume if NOT\n"
+                   "imposing symmetry, or if your tally cells are not the same volume regardless, "
+                   "you need to set\n"
+                   "'check_equal_mapped_tally_volumes = false'.";
+          else
+            msg << "We recommend re-creating the mesh mirror to have an equal volume mapping of "
+                   "MOOSE elements to each\n"
+                   "OpenMC cell. Or, you can disable this check by setting "
+                   "'check_equal_mapped_tally_volumes = false'.";
+
+          mooseError(msg.str());
+        }
+      }
+    }
+  }
+
+  return tally_cells;
 }
 #endif

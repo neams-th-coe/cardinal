@@ -127,7 +127,7 @@ public:
    * @param info the cell info
    * @return MOOSE subdomains associated with an OpenMC cell
    */
-  virtual std::unordered_set<SubdomainID> getCellToElementSub(const cellInfo & info) { return _cell_to_elem_subdomain[info]; }
+  virtual std::unordered_set<SubdomainID> getCellToElementSub(const cellInfo & info) { return _cell_to_elem_subdomain.at(info); }
 
   /**
    * Get the MOOSE element volume associated with an OpenMC cell
@@ -135,7 +135,7 @@ public:
    * @return MOOSE element volume associated with an OpenMC cell
    */
 
-  virtual Real getCellToElementVol(const cellInfo & info) { return _cell_to_elem_volume[info]; }
+  virtual Real getCellToElementVol(const cellInfo & info) { return _cell_to_elem_volume.at(info); }
 
   /**
    * Whether transformations are applied to the [Mesh] points when mapping to OpenMC

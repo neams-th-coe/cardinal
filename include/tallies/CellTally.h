@@ -65,6 +65,12 @@ protected:
    */
   void checkCellMappedSubdomains();
 
+  /**
+   * Loop over all the OpenMC cells and find those for which we should add tallies.
+   * @return cells to which we should add tallies
+   */
+  std::vector<OpenMCCellAverageProblem::cellInfo> getTallyCells() const;
+
   /// Blocks for which to add cell tallies.
   std::unordered_set<SubdomainID> _tally_blocks;
 
@@ -78,5 +84,21 @@ protected:
   unsigned int _filter_index;
 
   /// OpenMC mesh filter for this unstructured mesh tally.
-  openmc::CellFilter * _cell_filter;
+  openmc::CellInstanceFilter * _cell_filter;
+
+  /**
+   * Whether to check that the [Mesh] volume each cell tally maps to is identical.
+   * This is a useful helper function for OpenMC models where each cell tally has the
+   * same volume (often the case for many reactor geometries). If the OpenMC model
+   * cell tallies all are of the same spatial size, it's still possible that they
+   * can map to different volumes in the MOOSE mesh if the MOOSE elements don't line
+   * up with the edges of the OpenMC cells. Different volumes then can distort the
+   * volume normalization that we do to convert the fission power to a volumetric
+   * power (in a perfect world, we would actually divide OpenMC's tallies by the
+   * results of a stochastic volume calculation in OpenMC, but that is too expensive).
+   */
+  const bool & _check_equal_mapped_tally_volumes;
+
+  /// Absolute tolerance for checking equal tally mapped volumes
+  const Real & _equal_tally_volume_abs_tol;
 };
