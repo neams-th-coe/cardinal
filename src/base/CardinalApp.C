@@ -175,6 +175,11 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   registerSyntax("VolumetricHeatSourceICAction", "Cardinal/ICs/VolumetricHeatSource");
   registerSyntax("BulkEnergyConservationICAction", "Cardinal/ICs/BulkEnergyConservation");
 
+  // Add the [Tallies] block
+  registerSyntaxTask("AddTallyAction", "Tallies/*", "add_tallies");
+  registerMooseObjectTask("add_tallies", Tally, false);
+  addTaskDependency("add_tallies", "add_aux_variable");
+
   registerTask("add_heat_source_ic", false /* is required */);
   addTaskDependency("add_heat_source_ic", "add_ic");
 

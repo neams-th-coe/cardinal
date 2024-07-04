@@ -97,6 +97,12 @@ public:
   const Real & scaling() const { return _scaling; }
 
   /**
+   * Whether the problem has user defined scaling or not.
+   * @return whether the user has set the problem scaling or not
+   */
+  bool hasScaling() const { return _specified_scaling; }
+
+  /**
    * Convert from a MOOSE-type enum into a valid OpenMC tally score string
    * @param[in] score MOOSE-type enum string
    * @return OpenMC tally score string

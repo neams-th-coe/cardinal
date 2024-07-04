@@ -20,6 +20,7 @@
 
 #include "OpenMCCellAverageProblem.h"
 #include "DelimitedFileReader.h"
+#include "TallyBase.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -3385,6 +3386,13 @@ OpenMCCellAverageProblem::reloadDAGMC()
 
   _console << "done" << std::endl;
 #endif
+}
+
+void
+OpenMCCellAverageProblem::addTallyObject(const std::string & type, const std::string & name,
+                                         InputParameters & moose_object_pars)
+{
+  _local_tallies.push_back(addObject<TallyBase>(type, name, moose_object_pars, false)[0]);
 }
 
 void

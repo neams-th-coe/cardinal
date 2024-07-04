@@ -22,6 +22,9 @@
 #include "SymmetryPointGenerator.h"
 #include "OpenMCVolumeCalculation.h"
 
+/// Tally includes.
+#include "TallyBase.h"
+
 #include "openmc/tallies/filter_mesh.h"
 
 #ifdef ENABLE_DAGMC
@@ -117,7 +120,22 @@ public:
    * Get the mapping of cells to MOOSE elements
    * @return mapping of cells to MOOSE elements
    */
-  virtual const std::map<cellInfo, std::vector<unsigned int>> cellToElem() const { return _cell_to_elem; }
+  virtual const std::map<cellInfo, std::vector<unsigned int>> & cellToElem() const { return _cell_to_elem; }
+
+  /**
+   * Get the MOOSE subdomains associated with an OpenMC cell
+   * @param info the cell info
+   * @return MOOSE subdomains associated with an OpenMC cell
+   */
+  virtual std::unordered_set<SubdomainID> getCellToElementSub(const cellInfo & info) { return _cell_to_elem_subdomain[info]; }
+
+  /**
+   * Get the MOOSE element volume associated with an OpenMC cell
+   * @param info the cell info
+   * @return MOOSE element volume associated with an OpenMC cell
+   */
+
+  virtual Real getCellToElementVol(const cellInfo & info) { return _cell_to_elem_volume[info]; }
 
   /**
    * Whether transformations are applied to the [Mesh] points when mapping to OpenMC
@@ -270,8 +288,31 @@ public:
   /// Reconstruct the DAGMC geometry after skinning
   void reloadDAGMC();
 
+  /**
+   * Add a Tally object using the new tally system. TODO: rename to addTally once
+   * OpenMCCellAverageProblem and OpenMCProblemBase are refactored.
+   * @param[in] type the new tally type
+   * @param[in] name the name of the new tally
+   * @param[in] moose_object_pars the input parameters of the new tally
+   */
+  void addTallyObject(const std::string & type, const std::string & name,
+                      InputParameters & moose_object_pars);
+
+  /**
+   * Multiplier on the normalized tally results; for fixed source runs,
+   * we multiply the tally (which has units of eV/source)
+   * by the source strength and the eV to joule conversion, while for k-eigenvalue runs, we
+   * multiply the normalized tally (which is unitless and has an integral
+   * value of 1.0) by the power.
+   * @param[in] score tally score
+   */
+  Real tallyMultiplier(const unsigned int & score) const;
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
+
+  /// Spatial dimension of the Monte Carlo problem
+  static constexpr int DIMENSION{3};
 
 protected:
   /**
@@ -638,16 +679,6 @@ protected:
   void sendDensityToOpenMC() const;
 
   /**
-   * Multiplier on the normalized tally results; for fixed source runs,
-   * we multiply the tally (which has units of eV/source)
-   * by the source strength and the eV to joule conversion, while for k-eigenvalue runs, we
-   * multiply the normalized tally (which is unitless and has an integral
-   * value of 1.0) by the power.
-   * @param[in] score tally score
-   */
-  Real tallyMultiplier(const unsigned int & score) const;
-
-  /**
    * Factor by which to normalize a tally
    * @param[in] score tally score
    * @return value to divide tally sum by for normalization
@@ -905,6 +936,9 @@ protected:
    */
   const bool _needs_global_tally;
 
+  /// A vector of the tally objects created by the [Tallies] block.
+  std::vector<std::shared_ptr<TallyBase>> _local_tallies;
+
   /// Tally estimator for the tallies created by Cardinal
   openmc::TallyEstimator _tally_estimator;
 
@@ -1082,9 +1116,6 @@ protected:
 
   /// Numeric identifiers for the external variables (for each score)
   std::vector<std::vector<unsigned int>> _external_vars;
-
-  /// Spatial dimension of the Monte Carlo problem
-  static constexpr int DIMENSION{3};
 
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;

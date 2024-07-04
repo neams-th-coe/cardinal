@@ -1,0 +1,245 @@
+/********************************************************************/
+/*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
+/*                             Cardinal                             */
+/*                                                                  */
+/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                        ALL RIGHTS RESERVED                       */
+/*                                                                  */
+/*                 Prepared by UChicago Argonne, LLC                */
+/*               Under Contract No. DE-AC02-06CH11357               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*             Prepared by Battelle Energy Alliance, LLC            */
+/*               Under Contract No. DE-AC07-05ID14517               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*                 See LICENSE for full restrictions                */
+/********************************************************************/
+
+#pragma once
+
+#include "MooseObject.h"
+#include "CardinalEnums.h"
+
+#include "openmc/tallies/tally.h"
+#include "xtensor/xview.hpp"
+
+/// Forward declarations.
+class OpenMCCellAverageProblem;
+class MooseMesh;
+class AuxiliarySystem;
+
+class TallyBase : public MooseObject
+{
+public:
+  static InputParameters validParams();
+
+  TallyBase(const InputParameters & parameters);
+
+  /**
+   * Generates aux variable names for use in creating and storing tally results.
+   * This allows for the splitting of tally results into energy bins, angular bins, etc.
+   *
+   * @return vector of variable names to be associated with this tally
+   */
+  virtual std::vector<std::string> generateAuxVarNames() = 0;
+
+  /**
+   * A function to initialize the tally which is implemented by the derived class.
+   * Called by OpenMCCellAverageProblem.
+   */
+  virtual void initializeTally() = 0;
+
+  /**
+   * A function to reset the tally which is implemented by the derived class.
+   * Called by OpenMCCellAverageProblem.
+   */
+  virtual void resetTally() = 0;
+
+  /**
+   * A function which stores the results of this tally into the created auxvariables.
+   * This must be implemented by a derived class.
+   * @return the sum of the score across all tally bins
+   */
+  virtual Real storeResults(const std::vector<unsigned int> & var_numbers, unsigned int score) = 0;
+
+  /**
+   * A function which computes and stores the sum and mean of the tally across all bins for a
+   * particular score.
+  */
+  void computeSumAndMean(unsigned int score);
+
+  /**
+   * Relax the tally and normalize it according to some normalization factor 'norm'. This tends to
+   * either be the sum of the over all bins OR a global tally over the entire problem.
+   *
+   * NOTE: This function relaxes the tally _distribution_, and not the actual magnitude of the sum.
+   * That is, we relax the shape distribution and then multiply it by the power
+   * (for k-eigenvalue) or source strength (for fixed source) of the current step before
+   * applying it to MOOSE. If the magnitude of the power or source strength is constant in time,
+   * there is zero error in this. But if the magnitude of the tally varies in time, we are basically
+   * relaxing the distribution of the tally, but then multiplying it by the _current_ mean tally
+   * magnitude.
+   *
+   * There will be very small errors in these approximations unless the power/source strength
+   * change dramatically with iteration. But because relaxation is itself a numerical approximation,
+   * this is still inconsequential at the end of the day as long as your problem has converged
+   * the relaxed tally to the raw (unrelaxed) tally.
+   * @param[in] score the current score to normalize
+   * @param[in] alpha the relaxation factor
+   * @param[in] norm the normalization factor
+   */
+  void relaxAndNormalizeTally(unsigned int score, const Real & alpha, const Real & norm);
+
+protected:
+  /**
+   * Set an auxiliary elemental variable to a specified value
+   * @param[in] var_num variable number
+   * @param[in] elem_ids element IDs to set
+   * @param[in] value value to set
+   */
+  void fillElementalAuxVariable(const unsigned int & var_num,
+                                const std::vector<unsigned int> & elem_ids,
+                                const Real & value);
+
+  /**
+   * Whether the element is owned by this rank
+   * @return whether element is owned by this rank
+   */
+  bool isLocalElem(const Elem * elem) const;
+
+  /**
+   * \brief Compute the sum of a this tally within each bin
+   *
+   * For example, suppose this class wraps a cell tally with 4 bins, one for each
+   * of 4 different cells. This function will return the sum of the tally in each
+   * of those bins, so the return xtensor will have a length of 4, with each value
+   * representing the sum for that bin.
+   *
+   * @param[in] score tally score
+   * @return tally sum within each bin
+   */
+  xt::xtensor<double, 1> tallySum(unsigned int score) const;
+
+  /**
+   * Compute the sum of this tally across all of its bins
+   * @param[in] score tally score
+   * @return tally sum
+   */
+  double tallySumAcrossBins(unsigned int score) const;
+
+  /**
+   * Compute the mean of this tally across all of its bins
+   * @param[in] score tally score
+   * @return tally mean
+   */
+  double tallyMeanAcrossBins(unsigned int score) const;
+
+  /**
+   * Compute relative error
+   * @param[in] sum sum of scores
+   * @param[in] sum_sq sum of scores squared
+   * @param[in] n_realizations number of realizations
+   */
+  xt::xtensor<double, 1> relativeError(const xt::xtensor<double, 1> & sum,
+    const xt::xtensor<double, 1> & sum_sq, const int & n_realizations) const;
+
+  /**
+   * Convert from a MooseEnum for tally estimator to an OpenMC enum
+   * @param[in] estimator MOOSE estimator enum
+   * @return OpenMC enum
+   */
+  openmc::TallyEstimator tallyEstimator(tally::TallyEstimatorEnum estimator) const;
+
+  /**
+   * Convert from a MOOSE-type enum into a valid OpenMC tally score string
+   * @param[in] score MOOSE-type enum string
+   * @return OpenMC tally score string
+   */
+  std::string enumToTallyScore(const std::string & score) const;
+
+  /**
+   * Whether the score is a heating-type score
+   * @return whether tally from OpenMC has units of eV/src
+   */
+  bool isHeatingScore(const std::string & score) const;
+
+  /**
+   * Convert from a MooseEnum for a trigger metric to an OpenMC enum
+   * @param[in] trigger trigger metric
+   * @return OpenMC enum
+   */
+  openmc::TriggerMetric triggerMetric(trigger::TallyTriggerTypeEnum trigger) const;
+  openmc::TriggerMetric triggerMetric(std::string trigger) const;
+
+  /**
+   * Applies triggers to a tally.
+   */
+  void applyTriggersToLocalTally(openmc::Tally * tally);
+
+  /// The OpenMCCellAverageProblem using the tally system.
+  OpenMCCellAverageProblem & _openmc_problem;
+
+  /// The MooseMesh.
+  MooseMesh & _mesh;
+
+  /// The aux system.
+  AuxiliarySystem & _aux;
+
+  /// The OpenMC estimator to use with this tally.
+  openmc::TallyEstimator _estimator;
+
+  /// OpenMC tally score(s) to use with this tally.
+  std::vector<std::string> _tally_score;
+
+  /// Auxiliary variable name(s) for this tally.
+  std::vector<std::string> _tally_name;
+
+  /// The OpenMC tally object this class wraps.
+  openmc::Tally * _local_tally;
+
+  /// Sum value of this tally across all bins. Indexed by score.
+  std::vector<Real> _local_sum_tally;
+
+  /**
+   * Mean value of this tally across all bins; only used for fixed source mode.
+   * Indexed by score.
+   */
+  std::vector<Real> _local_mean_tally;
+
+  /**
+   * Type of trigger to apply to OpenMC tallies to indicate when
+   * the simulation is complete. These can be used to on-the-fly adjust the number
+   * of active batches in order to reach some desired criteria (which is specified
+   * by this parameter).
+   */
+  const MultiMooseEnum * _tally_trigger;
+
+  /**
+   * Thresholds to use for accepting this tally when using triggers. Indexed by
+   * score.
+   */
+  std::vector<Real> _tally_trigger_threshold;
+
+   /**
+   * Current fixed point iteration tally result; for instance, when using constant
+   * relaxation, the tally is updated as:
+   * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
+   * where q(n+1) is _current_tally, a is the relaxation factor, q(n)
+   * is _previous_tally, and PHI is the most-recently-computed tally result
+   * (the _current_raw_tally).
+   */
+  std::vector<xt::xtensor<double, 1>> _current_tally;
+
+  /// Previous fixed point iteration tally result (after relaxation)
+  std::vector<xt::xtensor<double, 1>> _previous_tally;
+
+  /// Current "raw" tally output from Monte Carlo solution
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally;
+
+  /// Current "raw" tally standard deviation
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
+
+  /// Tolerance for setting zero tally
+  static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
+};
