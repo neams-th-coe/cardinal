@@ -71,13 +71,16 @@ AddTallyAction::act()
 {
   if (_current_task == "add_tallies")
   {
-    for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
-      addTally(i, _mesh_translations[i]);
+    if (_type == "MeshTally")
+      for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
+        addMeshTally(i, _mesh_translations[i]);
+    else
+      addTally();
   }
 }
 
 void
-AddTallyAction::addTally(unsigned int instance, const Point & translation)
+AddTallyAction::addMeshTally(unsigned int instance, const Point & translation)
 {
   auto openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(_problem.get());
 
@@ -85,16 +88,26 @@ AddTallyAction::addTally(unsigned int instance, const Point & translation)
     mooseError("The simulation must use an OpenMCCellAverageProblem when using the tally system!");
 
   std::string obj_name = _name;
-  if (_mesh_translations.size() > 1 && _type == "MeshTally")
-  {
+  if (_mesh_translations.size() > 1)
     obj_name += "_" + Moose::stringify(instance);
-    _moose_object_pars.set<unsigned int>("instance") = instance;
-    _moose_object_pars.set<Point>("mesh_translation") = translation * openmc_problem->scaling();
-  }
+
+  _moose_object_pars.set<unsigned int>("instance") = instance;
+  _moose_object_pars.set<Point>("mesh_translation") = translation * openmc_problem->scaling();
 
   _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;
   openmc_problem->addTallyObject(_type, obj_name, _moose_object_pars);
-  _console << obj_name << std::endl;
+}
+
+void
+AddTallyAction::addTally()
+{
+  auto openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(_problem.get());
+
+  if (!openmc_problem)
+    mooseError("The simulation must use an OpenMCCellAverageProblem when using the tally system!");
+
+  _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;
+  openmc_problem->addTallyObject(_type, _name, _moose_object_pars);
 }
 
 void
