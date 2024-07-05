@@ -53,41 +53,68 @@ OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
                "You need to change the\nproblem type from '" +
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
+}
 
+const OpenMCProblemBase *
+OpenMCTallyEditor::openmc_problem() const
+{
+  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+}
+
+int32_t
+OpenMCTallyEditor::tally_index() const
+{
+    // this is put here, instead of the constructor, because Cardinal initializes
+    // some tallies. Depending on the order of initialization of UserObjects vs.
+    // other classes, those tallies might not exist yet in OpenMC's data space
+    // (but they will by the time we get here).
   bool create_tally = getParam<bool>("create_tally");
   bool tally_exists = openmc::model::tally_map.find(_tally_id) != openmc::model::tally_map.end();
 
   if (create_tally) {
     if (tally_exists)
     {
-      mooseWarning(long_name() + ": Tally " + std::to_string(_tally_id) + " already exists in OpenMC model");
+      mooseWarning(long_name() + ": Tally " + std::to_string(_tally_id) + " already exists in the OpenMC model");
     }
     else
     {
-      openmc_problem->_console << long_name() << ": Creating tally " << _tally_id << std::endl;
+      openmc_problem()->_console << long_name() << ": Creating tally " << _tally_id << std::endl;
       openmc::Tally::create(_tally_id);
     }
   } else {
     if (!tally_exists)
     {
-      mooseError(long_name() + ": Tally " + std::to_string(_tally_id) + " does not exist in OpenMC model");
+      mooseError(long_name() + ": Tally " + std::to_string(_tally_id) + " does not exist in the OpenMC model");
     }
   }
+
+  return openmc::model::tally_map.at(_tally_id);
 }
 
 void
 OpenMCTallyEditor::execute()
 {
-  int32_t tally_index = openmc::model::tally_map.at(_tally_id);
-  openmc::Tally * tally = openmc::model::tallies[tally_index].get();
+  openmc::Tally * tally = openmc::model::tallies[tally_index()].get();
 
   std::vector<std::string> scores = getParam<std::vector<std::string>>("scores");
-  if (scores.size() > 0)
-    tally->set_scores(scores);
+  if (scores.size() > 0) {
+    try {
+      tally->set_scores(scores);
+    } catch (const std::exception & e) {
+      mooseError("In attempting to set tally scores in the '" + name() +
+                 "' UserObject, OpenMC reported:\n\n" + e.what());
+    }
+  }
 
   std::vector<std::string> nuclides = getParam<std::vector<std::string>>("nuclides");
-  if (nuclides.size() > 0)
-    tally->set_nuclides(nuclides);
+  if (nuclides.size() > 0) {
+    try {
+      tally->set_nuclides(nuclides);
+    } catch (const std::exception & e) {
+      mooseError("In attempting to set tally nuclides in the '" + name() +
+                 "' UserObject, OpenMC reported:\n\n" + e.what());
+    }
+  }
 
   std::vector<std::string> filter_ids = getParam<std::vector<std::string>>("filter_ids");
   if (filter_ids.size() > 0)
