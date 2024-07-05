@@ -11,15 +11,14 @@
     type = RunException
     input = openmc.i
     cli_args = 'UserObjects/tally1/tally_id=3'
-    expect_err = 'In attempting to get the tally index for tally with ID 3, OpenMC reported:\n\n'
-                 'No tally exists with ID=3.'
+    expect_err = 'OpenMCTallyEditor "tally1": Tally 3 does not exist in the OpenMC model'
     requirement = 'The system shall error if trying to change nuclides for a non-existing tally ID.'
     required_objects = 'OpenMCCellAverageProblem'
   []
   [nonexistent_nuclide]
     type = RunException
     input = openmc.i
-    cli_args = 'UserObjects/tally1/names="fake fake2"'
+    cli_args = 'UserObjects/tally1/nuclides="fake fake2"'
     expect_err = "In attempting to set tally nuclides in the 'tally1' UserObject, OpenMC reported:\n\n"
                  "Nuclide 'fake' is not present in library."
     requirement = "The system shall error if trying to add a nuclide not accessible in the cross section library."
