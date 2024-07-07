@@ -52,10 +52,24 @@ public:
 
   /**
    * A function which stores the results of this tally into the created auxvariables.
-   * This must be implemented by a derived class.
+   * @param[in] var_numbers variables which the tally will store results in
+   * @param[in] ext_var_numbers external variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the current score being stored
    * @return the sum of the score across all tally bins
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers, unsigned int score) override;
+  virtual Real storeResults(const std::vector<unsigned int> & var_numbers, unsigned int local_score, unsigned int global_score) override;
+
+  /**
+   * A function which stores the external variable results of this tally into the created auxvariables.
+   * @param[in] ext_var_numbers variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the current score being stored
+   */
+  virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
+                                    unsigned int local_score,
+                                    unsigned int global_score,
+                                    const std::string & output_type) override;
 
 protected:
   /**

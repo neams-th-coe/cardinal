@@ -59,15 +59,30 @@ public:
   /**
    * A function which stores the results of this tally into the created auxvariables.
    * This must be implemented by a derived class.
+   * @param[in] var_numbers variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the current score being stored
    * @return the sum of the score across all tally bins
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers, unsigned int score) = 0;
+  virtual Real storeResults(const std::vector<unsigned int> & var_numbers, unsigned int local_score, unsigned int global_score) = 0;
+
+  /**
+   * A function which stores the external variable results of this tally into the created auxvariables.
+   * This must be implemented by a derived class.
+   * @param[in] ext_var_numbers variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the current score being stored
+   */
+  virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
+                                    unsigned int local_score,
+                                    unsigned int global_score,
+                                    const std::string & output_type) = 0;
 
   /**
    * A function which computes and stores the sum and mean of the tally across all bins for a
    * particular score.
   */
-  void computeSumAndMean(unsigned int score);
+  void computeSumAndMean();
 
   /**
    * Relax the tally and normalize it according to some normalization factor 'norm'. This tends to
@@ -85,11 +100,37 @@ public:
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed tally to the raw (unrelaxed) tally.
-   * @param[in] score the current score to normalize
+   * @param[in] local_score the local index of the current score to normalize
    * @param[in] alpha the relaxation factor
    * @param[in] norm the normalization factor
    */
-  void relaxAndNormalizeTally(unsigned int score, const Real & alpha, const Real & norm);
+  void relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, const Real & norm);
+
+  /**
+   * Get the list of scores this tally uses.
+   * @return list of scores this tally uses
+   */
+  const std::vector<std::string> & getScores() const { return _tally_score; }
+
+  /**
+   * Get the mean for a score summed over all bins.
+   * @param local_score the index representing a tally score
+   * @return mean for a score summed over all bins.
+   */
+  const Real & getMean(unsigned int local_score) const { return _local_mean_tally[local_score]; }
+
+  /**
+   * Get the sum for a score summed over all bins.
+   * @param local_score the index representing a tally score
+   * @return sum for a score summed over all bins.
+   */
+  const Real & getSum(unsigned int local_score) const { return _local_sum_tally[local_score]; }
+
+  /**
+   * Check to see if this tally uses a trigger or not.
+   * @return whether this tally uses a trigger or not
+   */
+  bool hasTrigger() const { return _tally_trigger != nullptr; }
 
 protected:
   /**

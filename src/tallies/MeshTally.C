@@ -87,6 +87,11 @@ MeshTally::MeshTally(const InputParameters & parameters)
 std::vector<std::string>
 MeshTally::generateAuxVarNames()
 {
+  std::vector<std::string> names;
+
+  for (const auto & score_name : _tally_score)
+    names.push_back(_name + "_" + score_name);
+
   // TODO: Add energy filters.
   return _tally_score;
 }
@@ -136,29 +141,76 @@ MeshTally::resetTally()
 }
 
 Real
-MeshTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned int score)
+MeshTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned int local_score, unsigned int global_score)
 {
   Real total = 0.0;
 
   unsigned int offset = _instance * _mesh_filter->n_bins();
   for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
   {
-    Real power_fraction = _current_tally[score](e);
+    Real power_fraction = _current_tally[local_score](e);
 
     // divide each tally by the volume that it corresponds to in MOOSE
     // because we will apply it as a volumetric tally (per unit volume).
     // Because we require that the mesh template has units of cm based on the
     // mesh constructors in OpenMC, we need to adjust the division
     Real volumetric_power =
-        power_fraction * _openmc_problem.tallyMultiplier(score) / _mesh_template->volume(e) *
+        power_fraction * _openmc_problem.tallyMultiplier(global_score) / _mesh_template->volume(e) *
         _openmc_problem.scaling() * _openmc_problem.scaling() * _openmc_problem.scaling();
     total += power_fraction;
 
     std::vector<unsigned int> elem_ids = {offset + e};
-    fillElementalAuxVariable(var_numbers[score], elem_ids, volumetric_power);
+    fillElementalAuxVariable(var_numbers[local_score], elem_ids, volumetric_power);
   }
 
   return total;
+}
+
+void
+MeshTally::storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
+                                unsigned int local_score,
+                                unsigned int global_score,
+                                const std::string & output_type)
+{
+  unsigned int offset = _instance * _mesh_filter->n_bins();
+  if (output_type == "unrelaxed_tally_std_dev")
+  {
+    for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
+    {
+      Real power_fraction = _current_raw_tally_std_dev[local_score](e);
+
+      // divide each tally by the volume that it corresponds to in MOOSE
+      // because we will apply it as a volumetric tally (per unit volume).
+      // Because we require that the mesh template has units of cm based on the
+      // mesh constructors in OpenMC, we need to adjust the division
+      Real volumetric_power =
+          power_fraction * _openmc_problem.tallyMultiplier(global_score) / _mesh_template->volume(e) *
+          _openmc_problem.scaling() * _openmc_problem.scaling() * _openmc_problem.scaling();
+
+      std::vector<unsigned int> elem_ids = {offset + e};
+      fillElementalAuxVariable(ext_var_numbers[local_score], elem_ids, volumetric_power);
+    }
+  }
+  else if (output_type == "unrelaxed_tally")
+  {
+    for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
+    {
+      Real power_fraction = _current_raw_tally[local_score](e);
+
+      // divide each tally by the volume that it corresponds to in MOOSE
+      // because we will apply it as a volumetric tally (per unit volume).
+      // Because we require that the mesh template has units of cm based on the
+      // mesh constructors in OpenMC, we need to adjust the division
+      Real volumetric_power =
+          power_fraction * _openmc_problem.tallyMultiplier(global_score) / _mesh_template->volume(e) *
+          _openmc_problem.scaling() * _openmc_problem.scaling() * _openmc_problem.scaling();
+
+      std::vector<unsigned int> elem_ids = {offset + e};
+      fillElementalAuxVariable(ext_var_numbers[local_score], elem_ids, volumetric_power);
+    }
+  }
+  else
+    mooseError("Unknown external output " + output_type);
 }
 
 openmc::MeshFilter *

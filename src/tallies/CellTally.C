@@ -74,6 +74,11 @@ CellTally::CellTally(const InputParameters & parameters)
 std::vector<std::string>
 CellTally::generateAuxVarNames()
 {
+  std::vector<std::string> names;
+
+  for (const auto & score_name : _tally_score)
+    names.push_back(_name + "_" + score_name);
+
   // TODO: Add energy filters.
   return _tally_score;
 }
@@ -127,7 +132,7 @@ CellTally::resetTally()
 }
 
 Real
-CellTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned int score)
+CellTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned int local_score, unsigned int global_score)
 {
   Real total = 0.0;
 
@@ -140,18 +145,70 @@ CellTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned 
     if (!_cell_has_tally[cell_info])
       continue;
 
-    Real local = _current_tally[score](i++);
+    Real local = _current_tally[local_score](i++);
 
     // divide each tally value by the volume that it corresponds to in MOOSE
     // because we will apply it as a volumetric tally
-    Real volumetric_power = local * _openmc_problem.tallyMultiplier(score)
-                          / _openmc_problem.getCellToElementVol(cell_info);
+    Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score)
+                          / _openmc_problem.cellMappedVolume(cell_info);
     total += local;
 
-    fillElementalAuxVariable(var_numbers[score], c.second, volumetric_power);
+    fillElementalAuxVariable(var_numbers[local_score], c.second, volumetric_power);
   }
 
   return total;
+}
+
+void
+CellTally::storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
+                                unsigned int local_score,
+                                unsigned int global_score,
+                                const std::string & output_type)
+{
+  if (output_type == "unrelaxed_tally_std_dev")
+  {
+    int i = 0;
+    for (const auto & c : _openmc_problem.cellToElem())
+    {
+      auto cell_info = c.first;
+
+      // if this cell doesn't have any tallies, skip it
+      if (!_cell_has_tally[cell_info])
+        continue;
+
+      Real local = _current_raw_tally_std_dev[local_score](i++);
+
+      // divide each tally value by the volume that it corresponds to in MOOSE
+      // because we will apply it as a volumetric tally
+      Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score)
+                            / _openmc_problem.cellMappedVolume(cell_info);
+
+      fillElementalAuxVariable(ext_var_numbers[local_score], c.second, volumetric_power);
+    }
+  }
+  else if (output_type == "unrelaxed_tally")
+  {
+    int i = 0;
+    for (const auto & c : _openmc_problem.cellToElem())
+    {
+      auto cell_info = c.first;
+
+      // if this cell doesn't have any tallies, skip it
+      if (!_cell_has_tally[cell_info])
+        continue;
+
+      Real local = _current_raw_tally[local_score](i++);
+
+      // divide each tally value by the volume that it corresponds to in MOOSE
+      // because we will apply it as a volumetric tally
+      Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score)
+                            / _openmc_problem.cellMappedVolume(cell_info);
+
+      fillElementalAuxVariable(ext_var_numbers[local_score], c.second, volumetric_power);
+    }
+  }
+  else
+    mooseError("Unknown external output " + output_type);
 }
 
 void
@@ -223,12 +280,12 @@ CellTally::getTallyCells() const
       {
         is_first_tally_cell = false;
         first_tally_cell = cell_info;
-        mapped_tally_volume = _openmc_problem.getCellToElementVol(first_tally_cell);
+        mapped_tally_volume = _openmc_problem.cellMappedVolume(first_tally_cell);
       }
 
       if (_check_equal_mapped_tally_volumes)
       {
-        Real diff = std::abs(mapped_tally_volume - _openmc_problem.getCellToElementVol(cell_info));
+        Real diff = std::abs(mapped_tally_volume - _openmc_problem.cellMappedVolume(cell_info));
         bool absolute_diff = diff > _equal_tally_volume_abs_tol;
         bool relative_diff = diff / mapped_tally_volume > 1e-3;
         if (absolute_diff && relative_diff)
@@ -236,9 +293,9 @@ CellTally::getTallyCells() const
           std::stringstream msg;
           msg << "Detected un-equal mapped tally volumes!\n cell " << _openmc_problem.printCell(first_tally_cell)
               << " maps to a volume of "
-              << Moose::stringify(_openmc_problem.getCellToElementVol(first_tally_cell)) << " (cm3)\n cell "
+              << Moose::stringify(_openmc_problem.cellMappedVolume(first_tally_cell)) << " (cm3)\n cell "
               << _openmc_problem.printCell(cell_info) << " maps to a volume of "
-              << Moose::stringify(_openmc_problem.getCellToElementVol(cell_info))
+              << Moose::stringify(_openmc_problem.cellMappedVolume(cell_info))
               << " (cm3).\n\n"
                  "If the tallied cells in your OpenMC model are of identical volumes, this means "
                  "that you can get\n"

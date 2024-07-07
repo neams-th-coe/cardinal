@@ -155,21 +155,24 @@ TallyBase::TallyBase(const InputParameters & parameters)
 }
 
 void
-TallyBase::computeSumAndMean(unsigned int score)
+TallyBase::computeSumAndMean()
 {
-  _local_sum_tally[score] = tallySumAcrossBins(score);
-  _local_mean_tally[score] = tallyMeanAcrossBins(score);
+  for (unsigned int score = 0; score < _tally_score.size(); ++score)
+  {
+    _local_sum_tally[score] = tallySumAcrossBins(score);
+    _local_mean_tally[score] = tallyMeanAcrossBins(score);
+  }
 }
 
 void
-TallyBase::relaxAndNormalizeTally(unsigned int score, const Real & alpha, const Real & norm)
+TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, const Real & norm)
 {
-  auto & current = _current_tally[score];
-  auto & previous = _previous_tally[score];
-  auto & current_raw = _current_raw_tally[score];
-  auto & current_raw_std_dev = _current_raw_tally_std_dev[score];
+  auto & current = _current_tally[local_score];
+  auto & previous = _previous_tally[local_score];
+  auto & current_raw = _current_raw_tally[local_score];
+  auto & current_raw_std_dev = _current_raw_tally_std_dev[local_score];
 
-  auto mean_tally = tallySum(score);
+  auto mean_tally = tallySum(local_score);
   /**
    * If the value over the whole domain is zero, then the values in the individual bins must be zero.
    * We need to avoid divide-by-zeros.
@@ -178,9 +181,16 @@ TallyBase::relaxAndNormalizeTally(unsigned int score, const Real & alpha, const 
                                                       : static_cast<xt::xtensor<double, 1>>(mean_tally / norm);
 
   auto sum_sq =
-      xt::view(_local_tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM_SQ));
+      xt::view(_local_tally->results_, xt::all(), local_score, static_cast<int>(openmc::TallyResult::SUM_SQ));
   auto rel_err = relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
   current_raw_std_dev = rel_err * current_raw;
+
+  if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
+  {
+    current = current_raw;
+    previous = current_raw;
+    return;
+  }
 
   // Save the current tally (from the previous iteration) into the previous one.
   std::copy(current.cbegin(), current.cend(), previous.begin());
