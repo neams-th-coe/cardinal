@@ -72,6 +72,7 @@ public:
    * @param[in] ext_var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
    * @param[in] global_score index into the global array of tally results which represents the current score being stored
+   * @param[in] output_type the output type
    */
   virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
                                     unsigned int local_score,
@@ -106,8 +107,11 @@ public:
    */
   void relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, const Real & norm);
 
-  /// Get the OpenMC tally that this object wraps.
-  const openmc::Tally * getWrappedTally();
+  /**
+   * Get the OpenMC tally that this object wraps.
+   * @return the OpenMC tally object
+   */
+  const openmc::Tally * getWrappedTally() const;
 
   /**
    * Get the list of scores this tally uses.
@@ -117,14 +121,14 @@ public:
 
   /**
    * Get the mean for a score summed over all bins.
-   * @param local_score the index representing a tally score
+   * @param[in] local_score the index representing a tally score
    * @return mean for a score summed over all bins.
    */
   const Real & getMean(unsigned int local_score) const { return _local_mean_tally[local_score]; }
 
   /**
    * Get the sum for a score summed over all bins.
-   * @param local_score the index representing a tally score
+   * @param[in] local_score the index representing a tally score
    * @return sum for a score summed over all bins.
    */
   const Real & getSum(unsigned int local_score) const { return _local_sum_tally[local_score]; }
@@ -148,6 +152,7 @@ protected:
 
   /**
    * Whether the element is owned by this rank
+   * @param[in] elem the element
    * @return whether element is owned by this rank
    */
   bool isLocalElem(const Elem * elem) const;
@@ -184,6 +189,7 @@ protected:
    * @param[in] sum sum of scores
    * @param[in] sum_sq sum of scores squared
    * @param[in] n_realizations number of realizations
+   * @return the relative error of the tally
    */
   xt::xtensor<double, 1> relativeError(const xt::xtensor<double, 1> & sum,
     const xt::xtensor<double, 1> & sum_sq, const int & n_realizations) const;
@@ -204,6 +210,7 @@ protected:
 
   /**
    * Whether the score is a heating-type score
+   * @param[in] score the score to check
    * @return whether tally from OpenMC has units of eV/src
    */
   bool isHeatingScore(const std::string & score) const;
@@ -217,7 +224,8 @@ protected:
   openmc::TriggerMetric triggerMetric(std::string trigger) const;
 
   /**
-   * Applies triggers to a tally.
+   * Applies triggers to a tally. This is often the local tally wrapped by this object.
+   * @param[in] tally the tally to apply triggers to
    */
   void applyTriggersToLocalTally(openmc::Tally * tally);
 

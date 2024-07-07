@@ -58,6 +58,7 @@ public:
    * @param[in] ext_var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
    * @param[in] global_score index into the global array of tally results which represents the current score being stored
+   * @param[in] output_type the output type
    */
   virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
                                     unsigned int local_score,

@@ -201,7 +201,7 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
 }
 
 const openmc::Tally *
-TallyBase::getWrappedTally()
+TallyBase::getWrappedTally() const
 {
   if (!_local_tally)
     mooseError("This tally has not been initialze!");
