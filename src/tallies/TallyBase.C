@@ -200,6 +200,15 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
   std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), current.begin());
 }
 
+const openmc::Tally *
+TallyBase::getWrappedTally()
+{
+  if (!_local_tally)
+    mooseError("This tally has not been initialze!");
+
+  return _local_tally;
+}
+
 void
 TallyBase::fillElementalAuxVariable(const unsigned int & var_num,
                                     const std::vector<unsigned int> & elem_ids,

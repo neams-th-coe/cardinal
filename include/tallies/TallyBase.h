@@ -106,6 +106,9 @@ public:
    */
   void relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, const Real & norm);
 
+  /// Get the OpenMC tally that this object wraps.
+  const openmc::Tally * getWrappedTally();
+
   /**
    * Get the list of scores this tally uses.
    * @return list of scores this tally uses
@@ -237,7 +240,7 @@ protected:
   std::vector<std::string> _tally_name;
 
   /// The OpenMC tally object this class wraps.
-  openmc::Tally * _local_tally;
+  openmc::Tally * _local_tally = nullptr;
 
   /// Sum value of this tally across all bins. Indexed by score.
   std::vector<Real> _local_sum_tally;

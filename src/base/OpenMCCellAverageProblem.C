@@ -51,10 +51,6 @@ OpenMCCellAverageProblem::validParams()
                         "Whether to automatically output the mapping from OpenMC cells to the "
                         "[Mesh], usually for diagnostic purposes");
 
-  /*
-  params.addParam<std::vector<SubdomainName>>(
-      "tally_blocks", "Subdomains for which to add tallies in OpenMC; only used with cell tallies");
-  */
   params.addParam<bool>("check_tally_sum",
                         "Whether to check consistency between the local tallies "
                         "with a global tally sum");
@@ -92,12 +88,7 @@ OpenMCCellAverageProblem::validParams()
     "each OpenMC run.");
 
   params.addParam<MooseEnum>(
-      "global_tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
-
-  /*
-  params.addParam<MultiMooseEnum>(
-      "tally_score", getTallyScoreEnum(), "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
-  */
+      "global_tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use with global tallies in OpenMC");
 
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
@@ -109,36 +100,6 @@ OpenMCCellAverageProblem::validParams()
       "eigenvalue mode. In other words, the "
       "source/sec is computed as (power divided by the global value of this tally)");
 
-  /*
-  params.addParam<std::vector<std::string>>(
-      "tally_name", "Auxiliary variable name(s) to use for OpenMC tallies. "
-      "If not specified, defaults to the names of the scores");
-  params.addParam<std::string>("mesh_template",
-                               "Mesh tally template for OpenMC when using mesh tallies; "
-                               "at present, this mesh must exactly match the mesh used in the "
-                               "[Mesh] block because a one-to-one copy "
-                               "is used to get OpenMC's tally results on the [Mesh].");
-  params.addParam<std::vector<Point>>(
-      "mesh_translations",
-      "Coordinates to which each mesh template should be "
-      "translated, if multiple unstructured meshes "
-      "are desired. Units must match those used to define the [Mesh].");
-  params.addParam<std::vector<FileName>>(
-      "mesh_translations_file",
-      "File providing the coordinates to which each mesh "
-      "template should be translated, if multiple "
-      "unstructured meshes are desired. Units must match those used to define the [Mesh]");
-
-  MultiMooseEnum tally_trigger("rel_err none");
-  params.addParam<MultiMooseEnum>(
-      "tally_trigger",
-      tally_trigger,
-      "Trigger criterion to determine when OpenMC simulation is complete "
-      "based on tallies. If multiple scores are specified in 'tally_score, "
-      "this same trigger is applied to all scores.");
-  params.addRangeCheckedParam<std::vector<Real>>(
-      "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
-  */
   params.addParam<MooseEnum>(
       "k_trigger",
       getTallyTriggerEnum(),
@@ -168,18 +129,6 @@ OpenMCCellAverageProblem::validParams()
       "density_blocks",
       "Blocks corresponding to each of the 'density_variables'. If not specified, "
       "there will be no density feedback to OpenMC.");
-
-  /*
-  params.addParam<bool>(
-      "check_equal_mapped_tally_volumes",
-      false,
-      "Whether to check if the tallied cells map to regions in the mesh of equal volume. "
-      "This can be helpful to ensure that the volume normalization of OpenMC's tallies doesn't "
-      "introduce any unintentional distortion just because the mapped volumes are different. "
-      "You should only set this to true if your OpenMC tally cells are all the same volume!");
-  params.addRangeCheckedParam<Real>("equal_tally_volume_abs_tol", 1e-8, "equal_tally_volume_abs_tol > 0",
-      "Absolute tolerance for comparing tally volumes");
-  */
 
   params.addParam<unsigned int>("cell_level",
                                 "Coordinate level in OpenMC (across the entire geometry) to use "
@@ -248,8 +197,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
     _relaxation(getParam<MooseEnum>("relaxation").getEnum<relaxation::RelaxationEnum>()),
-    //_tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
-    //                                             : nullptr),
     _k_trigger(getParam<MooseEnum>("k_trigger").getEnum<trigger::TallyTriggerTypeEnum>()),
     _export_properties(getParam<bool>("export_properties")),
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
@@ -260,8 +207,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         isParamValid("check_tally_sum")
             ? getParam<bool>("check_tally_sum")
             : (_run_mode == openmc::RunMode::FIXED_SOURCE ? true : _normalize_by_global)),
-    //_check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
-    //_equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol")),
     _relaxation_factor(getParam<Real>("relaxation_factor")),
     _has_identical_cell_fills(params.isParamSetByUser("identical_cell_fills")),
     _check_identical_cell_fills(getParam<bool>("check_identical_cell_fills")),
@@ -307,173 +252,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       "possible to apply relaxation to the OpenMC tallies because you might end up trying to add vectors "
       "of different length (and possibly spatial mapping).");
 
-  /*
-  if (_tally_type == tally::none)
-  {
-    std::vector<std::string> ps = {"tally_blocks",
-                                   "check_tally_sum",
-                                   "normalize_by_global_tally",
-                                   "assume_separate_tallies",
-                                   "tally_estimator",
-                                   "tally_score",
-                                   "source_rate_normalization",
-                                   "tally_name",
-                                   "mesh_template",
-                                   "mesh_translations",
-                                   "mesh_translations_file",
-                                   "tally_trigger",
-                                   "tally_trigger_threshold",
-                                   "check_equal_mapped_tally_volumes",
-                                   "equval_tally_volume_abs_tol",
-                                   "output"};
-    for (const auto & s : ps)
-      checkUnusedParam(params, s, "'tally_type = none'");
-  }
-  */
-
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
 
   if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != trigger::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
-  /*
-  if (isParamValid("tally_score"))
-  {
-    const auto & scores = getParam<MultiMooseEnum>("tally_score");
-    for (const auto & score : scores)
-      _tally_score.push_back(enumToTallyScore(score));
-  }
-  else
-    _tally_score = {"kappa-fission"};
-
-  bool heating =
-      std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
-  */
-
-  /*
-  if (isParamValid("tally_estimator"))
-  {
-    auto estimator = getParam<MooseEnum>("tally_estimator").getEnum<tally::TallyEstimatorEnum>();
-
-    // not all tallies can use tracklength estimators
-    if (estimator == tally::tracklength)
-    {
-      if (_tally_type == tally::mesh)
-        mooseError("Tracklength estimators are currently incompatible with mesh tallies!");
-
-      if (openmc::settings::photon_transport && heating)
-        mooseError("Tracklength estimators are currently incompatible with photon transport and "
-                   "heating scores! For more information: https://tinyurl.com/3wre3kwt");
-    }
-
-    _tally_estimator = tallyEstimator(estimator);
-  }
-  else
-  {
-    // set a default of tracklength, and use mandatory collision for mesh tallies and photon heating
-    _tally_estimator = openmc::TallyEstimator::TRACKLENGTH;
-    if (_tally_type == tally::mesh)
-      _tally_estimator = openmc::TallyEstimator::COLLISION;
-    if (heating && openmc::settings::photon_transport)
-      _tally_estimator = openmc::TallyEstimator::COLLISION;
-  }
-  */
    if (isParamValid("global_tally_estimator"))
      _global_tally_estimator = tallyEstimator(getParam<MooseEnum>("global_tally_estimator").getEnum<tally::TallyEstimatorEnum>());
    else
      _global_tally_estimator = openmc::TallyEstimator::TRACKLENGTH; // set a default of tracklength
-
-  /*
-  if (heating && !openmc::settings::photon_transport)
-    mooseWarning(
-        "When using the 'heating' score with photon transport disabled, energy deposition\n"
-        "from photons is neglected unless you specifically ran NJOY to produce MT=301 with\n"
-        "photon energy deposited locally (not true for any pre-packaged OpenMC data libraries\n"
-        "on openmc.org).\n\n"
-        "If you did NOT specifically run NJOY yourself with this customization, we recommend\n"
-        "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
-        "Otherwise, you will underpredict the true energy deposition.");
-
-  // need some special treatment for non-heating scores, in eigenvalue mode
-  bool has_non_heating_score = false;
-  for (const auto & t : _tally_score)
-    if (!isHeatingScore(t))
-      has_non_heating_score = true;
-
-  if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
-  {
-    std::string non_heating_scores;
-    for (const auto & e : _tally_score)
-    {
-      if (!isHeatingScore(e))
-      {
-        std::string l = e;
-        std::replace(l.begin(), l.end(), '-', '_');
-        non_heating_scores += "" + l + ", ";
-      }
-    }
-
-    if (non_heating_scores.length() > 0)
-      non_heating_scores.erase(non_heating_scores.length() - 2);
-
-    checkRequiredParam(params, "source_rate_normalization", "using a non-heating tally (" +
-      non_heating_scores + ") in eigenvalue mode");
-    const auto & norm = getParam<MooseEnum>("source_rate_normalization");
-
-    // If the score is already in tally_score, no need to do anything special.
-    // Otherwise, we need to add that score.
-    std::string n = enumToTallyScore(norm);
-    auto it = std::find(_tally_score.begin(), _tally_score.end(), n);
-    if (it != _tally_score.end())
-      _source_rate_index = it - _tally_score.begin();
-    else
-    {
-      _tally_score.push_back(n);
-      _source_rate_index = _tally_score.size() - 1;
-
-      if (isParamValid("tally_name"))
-        mooseError("When specifying 'tally_name', the score indicated in "
-                   "'source_rate_normalization' must be\n"
-                   "listed in 'tally_score' so that we know what you want to name that score (",
-                   norm,
-                   ")");
-    }
-  }
-  else
-    checkUnusedParam(params, "source_rate_normalization", "either running in fixed-source mode, or all tallies have units of eV/src");
-
-  if (isParamValid("tally_name"))
-    _tally_name = getParam<std::vector<std::string>>("tally_name");
-  else
-  {
-    for (auto score : _tally_score)
-    {
-      std::replace(score.begin(), score.end(), '-', '_');
-      _tally_name.push_back(score);
-    }
-  }
-
-  if (_tally_name.size() != _tally_score.size())
-    mooseError("'tally_name' must be the same length as 'tally_score'!");
-
-  if (has_non_heating_score && _run_mode == openmc::RunMode::EIGENVALUE)
-  {
-    // later, we populate the tally results in a loop. We will rely on the normalization
-    // tally being listed before the non-heating tally, so we swap entries so that the normalization
-    // tally is first
-    std::iter_swap(_tally_score.begin(), _tally_score.begin() + _source_rate_index);
-    std::iter_swap(_tally_name.begin(), _tally_name.begin() + _source_rate_index);
-  }
-
-  _source_rate_index = 0;
-  checkDuplicateEntries(_tally_name, "tally_name");
-  checkDuplicateEntries(_tally_score, "tally_score");
-
-  if (_tally_type == tally::mesh)
-    if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
-      mooseError("Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
-  */
 
   if (_assume_separate_tallies && _needs_global_tally)
     paramError("assume_separate_tallies",
@@ -538,11 +326,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   _n_particles_1 = nParticles();
 
-  /*
-  // set the parameters needed for tally triggers
-  getTallyTriggerParameters(params);
-  */
-
   if (_relaxation != relaxation::constant)
     checkUnusedParam(params, "relaxation_factor", "not using constant relaxation");
 
@@ -560,79 +343,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
       mooseError(
           "Entries in 'identical_cell_fills' cannot be contained in 'density_blocks'; the\n"
           "identical fill universe optimization is not yet implemented for density feedback.");
-
-  /*
-  switch (_tally_type)
-  {
-    case tally::none:
-    {
-      break;
-    }
-    case tally::cell:
-    {
-      checkRequiredParam(params, "tally_blocks", "using cell tallies");
-      checkUnusedParam(params, {"mesh_template", "mesh_translations", "mesh_translations_file"},
-                               "using cell tallies");
-
-      readBlockParameters("tally_blocks", _tally_blocks);
-
-      // If not specified, add tallies to all MOOSE blocks
-      if (!isParamValid("tally_blocks"))
-        for (const auto & s : _mesh.meshSubdomains())
-          _tally_blocks.insert(s);
-
-      break;
-    }
-    case tally::mesh:
-    {
-      checkUnusedParam(params, "tally_blocks", "using mesh tallies");
-
-      if (isParamValid("mesh_template"))
-      {
-        _mesh_template_filename = &getParam<std::string>("mesh_template");
-
-        if (isParamValid("mesh_translations") && isParamValid("mesh_translations_file"))
-          mooseError("Both 'mesh_translations' and 'mesh_translations_file' cannot be specified");
-      }
-      else
-      {
-         if (std::abs(_scaling - 1.0) > 1e-6)
-           mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity. "
-                      "Instead, please make a file containing your tally mesh and set it with "
-                      "'mesh_template'. You can generate a mesh file corresponding to the [Mesh] "
-                      "by running:\n\ncardinal-opt -i " +
-                      _app.getFileName() + " --mesh-only");
-
-         // for distributed meshes, each rank only owns a portion of the mesh information, but
-         // OpenMC wants the entire mesh to be available on every rank. We might be able to add
-         // this feature in the future, but will need to investigate
-         if (!_mesh.getMesh().is_replicated())
-           mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
-             "for distributed meshes!");
-
-        // if user does not provide a 'mesh_template', just use the [Mesh] block, which means these
-        // other parameters are ignored. To simplify logic elsewhere in the code, we throw an error
-        if (isParamValid("mesh_translations"))
-          mooseError("When reading the tally mesh from the [Mesh] block, the 'mesh_translations' "
-            "cannot be specified!");
-
-        if (isParamValid("mesh_translations_file"))
-          mooseError("When reading the tally mesh from the [Mesh] block, the 'mesh_translations_file' "
-            "cannot be specified!");
-      }
-
-      if (_check_equal_mapped_tally_volumes)
-        mooseWarning(
-            "The 'check_equal_mapped_tally_volumes' parameter is unused when using mesh tallies!");
-
-      fillMeshTranslations();
-
-      break;
-    }
-    default:
-      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
-  }
-  */
 
   if (_needs_to_map_cells)
   {
@@ -900,40 +610,11 @@ OpenMCCellAverageProblem::setupProblem()
   validateLocalTallies();
 
   initializeTallies();
-
-  // checkMeshTemplateAndTranslations();
 }
 
 void
 OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & parameters)
 {
-  /*
-  if (isParamValid("tally_trigger") != isParamValid("tally_trigger_threshold"))
-    mooseError("You must either specify none or both of 'tally_trigger' and "
-               "'tally_trigger_threshold'. You have specified only one.");
-
-  bool has_tally_trigger = false;
-  if (_tally_trigger)
-  {
-    _tally_trigger_threshold = getParam<std::vector<Real>>("tally_trigger_threshold");
-
-    if (_tally_trigger->size() != _tally_score.size())
-      mooseError("'tally_trigger' (size " + std::to_string(_tally_trigger->size()) +
-                 ") must have the same length as 'tally_score' (size " +
-                 std::to_string(_tally_score.size()) + ")");
-
-    if (_tally_trigger_threshold.size() != _tally_score.size())
-      mooseError("'tally_trigger_threshold' (size " +
-                 std::to_string(_tally_trigger_threshold.size()) +
-                 ") must have the same length as 'tally_score' (size " +
-                 std::to_string(_tally_score.size()) + ")");
-
-    for (unsigned int s = 0; s < _tally_trigger->size(); ++s)
-      if ((*_tally_trigger)[s] != "none")
-        has_tally_trigger = true;
-  }
-  */
-
   // parameters needed for k triggers
   bool has_tally_trigger = false;
   if (_k_trigger != trigger::none)
@@ -981,134 +662,6 @@ OpenMCCellAverageProblem::checkEmptyVector(const std::vector<T> & vector,
 {
   if (vector.empty())
     mooseError(name + " cannot be empty!");
-}
-
-void
-OpenMCCellAverageProblem::fillMeshTranslations()
-{
-  /*
-  if (isParamValid("mesh_translations"))
-  {
-    _mesh_translations = getParam<std::vector<Point>>("mesh_translations");
-    checkEmptyVector(_mesh_translations, "mesh_translations");
-  }
-  else if (isParamValid("mesh_translations_file"))
-  {
-    std::vector<FileName> mesh_translations_file =
-        getParam<std::vector<FileName>>("mesh_translations_file");
-    checkEmptyVector(mesh_translations_file, "mesh_translations_file");
-
-    for (const auto & f : mesh_translations_file)
-    {
-      MooseUtils::DelimitedFileReader file(f, &_communicator);
-      file.setFormatFlag(MooseUtils::DelimitedFileReader::FormatFlag::ROWS);
-      file.read();
-
-      const std::vector<std::vector<double>> & data = file.getData();
-      readMeshTranslations(data);
-    }
-  }
-  else
-    _mesh_translations = {Point(0.0, 0.0, 0.0)};
-
-  // convert to appropriate units
-  for (auto & m : _mesh_translations)
-    m *= _scaling;
-  */
-}
-
-void
-OpenMCCellAverageProblem::checkMeshTemplateAndTranslations() const
-{
-  /*
-  // we can do some rudimentary checking on the mesh template by comparing the centroid
-  // coordinates compared to centroids in the [Mesh] (because right now, we just doing a simple
-  // copy transfer that necessitates the meshes to have the same elements in the same order). In
-  // other words, you might have two meshes that represent the same geometry, the element ordering
-  // could be different.
-  unsigned int offset = 0;
-  for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
-  {
-    const auto & filter = _mesh_filters[i];
-
-    for (int e = 0; e < filter->n_bins(); ++e)
-    {
-      auto elem_ptr = _mesh.queryElemPtr(offset + e);
-
-      // if element is not on this part of the distributed mesh, skip it
-      if (!elem_ptr)
-        continue;
-
-      const auto pt = _mesh_template->centroid(e);
-      Point centroid_template = {pt[0], pt[1], pt[2]};
-
-      // The translation applied in OpenMC isn't actually registered in the mesh itself;
-      // it is always added on to the point, so we need to do the same here
-      centroid_template += _mesh_translations[i];
-
-      // because the mesh template and [Mesh] may be in different units, we need
-      // to adjust the [Mesh] by the scaling factor before doing a comparison.
-      Point centroid_mesh = elem_ptr->vertex_average() * _scaling;
-
-      // if the centroids are the same except for a factor of 'scaling', then we can
-      // guess that the mesh_template is probably not in units of centimeters
-      if (_specified_scaling)
-      {
-        // if scaling was applied correctly, then each calculation of 'scaling' here should equal 1.
-        // Otherwise, if they're all the same, then 'scaling_x' is probably the factor by which the
-        // mesh_template needs to be multiplied, so we can print a helpful error message
-        bool incorrect_scaling = true;
-        for (unsigned int j = 0; j < DIMENSION; ++j)
-        {
-          Real scaling = centroid_mesh(j) / centroid_template(j);
-          incorrect_scaling = incorrect_scaling && !MooseUtils::absoluteFuzzyEqual(scaling, 1.0);
-        }
-
-        if (incorrect_scaling)
-          mooseError("The centroids of the 'mesh_template' differ from the "
-                     "centroids of the [Mesh] by a factor of " +
-                     Moose::stringify(centroid_mesh(0) / centroid_template(0)) +
-                     ".\nDid you forget that the 'mesh_template' must be in "
-                     "the same units as the [Mesh]?");
-      }
-
-      // check if centroids are the same
-      bool different_centroids = false;
-      for (unsigned int j = 0; j < DIMENSION; ++j)
-        different_centroids = different_centroids || !MooseUtils::absoluteFuzzyEqual(
-                                                         centroid_mesh(j), centroid_template(j));
-
-      if (different_centroids)
-        mooseError(
-            "Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh] (cm): " +
-            printPoint(centroid_mesh) + "\ndoes not match centroid for element " +
-            Moose::stringify(e) + " in 'mesh_template' " + Moose::stringify(i) +
-            " (cm): " + printPoint(centroid_template) +
-            "!\n\nThe copy transfer requires that the [Mesh] and 'mesh_template' be identical.");
-    }
-
-    offset += filter->n_bins();
-  }
-  */
-}
-
-void
-OpenMCCellAverageProblem::readMeshTranslations(const std::vector<std::vector<double>> & data)
-{
-  /*
-  for (const auto & d : data)
-  {
-    if (d.size() != DIMENSION)
-      paramError("mesh_translations_file",
-                 "All entries in 'mesh_translations_file' "
-                 "must contain exactly ",
-                 DIMENSION,
-                 " coordinates.");
-
-    // DIMENSION will always be 3
-    _mesh_translations.push_back(Point(d[0], d[1], d[2]));
-  }
-  */
 }
 
 void
@@ -1651,53 +1204,6 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
 }
 
 void
-OpenMCCellAverageProblem::checkCellMappedSubdomains()
-{
-  /*
-  // If the OpenMC cell maps to multiple subdomains that _also_ have different
-  // tally settings, we need to error because we are unsure of whether to add tallies or not;
-  // both of these need to be true to error
-  for (const auto & c : _cell_to_elem)
-  {
-    bool at_least_one_in_tallies = false;
-    bool at_least_one_not_in_tallies = false;
-    int block_in_tallies, block_not_in_tallies;
-
-    auto cell_info = c.first;
-    for (const auto & s : _cell_to_elem_subdomain[cell_info])
-    {
-      if (!at_least_one_in_tallies)
-      {
-        at_least_one_in_tallies = _tally_blocks.count(s) != 0;
-        block_in_tallies = s;
-      }
-
-      if (!at_least_one_not_in_tallies)
-      {
-        at_least_one_not_in_tallies = _tally_blocks.count(s) == 0;
-        block_not_in_tallies = s;
-      }
-
-      // can cut the search early if we've already hit multiple tally settings
-      if (at_least_one_in_tallies && at_least_one_not_in_tallies)
-        break;
-    }
-
-    if (at_least_one_in_tallies && at_least_one_not_in_tallies)
-      mooseError("cell " + printCell(cell_info) +
-                 " maps to blocks with different tally settings!\n"
-                 "Block " +
-                 Moose::stringify(block_in_tallies) +
-                 " is in 'tally_blocks', but "
-                 "block " +
-                 Moose::stringify(block_not_in_tallies) + " is not.");
-
-    _cell_has_tally[cell_info] = at_least_one_in_tallies;
-  }
-  */
-}
-
-void
 OpenMCCellAverageProblem::getMaterialFills()
 {
   VariadicTable<std::string, int> vt({"Cell", "Material"});
@@ -1891,10 +1397,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   // Check that each cell maps to a single phase
   checkCellMappedPhase();
-
-  // Check that each cell maps to subdomain IDs that all have the same tally setting
-  if (_tally_type == tally::cell)
-    checkCellMappedSubdomains();
 }
 
 void
@@ -2309,115 +1811,6 @@ OpenMCCellAverageProblem::getPointInCell()
   }
 }
 
-/*
-std::vector<OpenMCCellAverageProblem::cellInfo>
-OpenMCCellAverageProblem::getTallyCells() const
-{
-  bool is_first_tally_cell = true;
-  cellInfo first_tally_cell;
-  Real mapped_tally_volume;
-
-  std::vector<cellInfo> tally_cells;
-
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-
-    if (_cell_has_tally.at(cell_info))
-    {
-      tally_cells.push_back(cell_info);
-
-      if (is_first_tally_cell)
-      {
-        is_first_tally_cell = false;
-        first_tally_cell = cell_info;
-        mapped_tally_volume = _cell_to_elem_volume.at(cell_info);
-      }
-
-      if (_check_equal_mapped_tally_volumes)
-      {
-        Real diff = std::abs(mapped_tally_volume - _cell_to_elem_volume.at(cell_info));
-        bool absolute_diff = diff > _equal_tally_volume_abs_tol;
-        bool relative_diff = diff / mapped_tally_volume > 1e-3;
-        if (absolute_diff && relative_diff)
-        {
-          std::stringstream msg;
-          msg << "Detected un-equal mapped tally volumes!\n cell " << printCell(first_tally_cell)
-              << " maps to a volume of "
-              << Moose::stringify(_cell_to_elem_volume.at(first_tally_cell)) << " (cm3)\n cell "
-              << printCell(cell_info) << " maps to a volume of "
-              << Moose::stringify(_cell_to_elem_volume.at(cell_info))
-              << " (cm3).\n\n"
-                 "If the tallied cells in your OpenMC model are of identical volumes, this means "
-                 "that you can get\n"
-                 "distortion of the volumetric tally output. For instance, suppose you have "
-                 "two equal-size OpenMC\n"
-                 "cells which have the same volume - but each OpenMC cell maps to a MOOSE region "
-                 "of different volume\n"
-                 "just due to the nature of the centroid mapping scheme. Even if those two tallies "
-                 "do actually have the\n"
-                 "same value, the volumetric tally will be different because you'll be "
-                 "dividing each tally by a\n"
-                 "different mapped MOOSE volume.\n\n";
-
-          if (_symmetry)
-            msg << "NOTE: You have imposed symmetry, which means that you'll hit this error if any "
-                   "of your tally\n"
-                   "cells are cut by symmetry planes. If your tally cells would otherwise be the "
-                   "same volume if NOT\n"
-                   "imposing symmetry, or if your tally cells are not the same volume regardless, "
-                   "you need to set\n"
-                   "'check_equal_mapped_tally_volumes = false'.";
-          else
-            msg << "We recommend re-creating the mesh mirror to have an equal volume mapping of "
-                   "MOOSE elements to each\n"
-                   "OpenMC cell. Or, you can disable this check by setting "
-                   "'check_equal_mapped_tally_volumes = false'.";
-
-          mooseError(msg.str());
-        }
-      }
-    }
-  }
-
-  return tally_cells;
-}
-*/
-
-void
-OpenMCCellAverageProblem::addLocalTally(const std::vector<std::string> & score, std::vector<openmc::Filter *> & filters)
-{
-  /*
-  auto tally = addTally(score, filters, _tally_estimator);
-  _local_tally.push_back(tally);
-  */
-}
-
-/*
-std::vector<openmc::Filter *>
-OpenMCCellAverageProblem::meshFilter()
-{
-  std::unique_ptr<openmc::LibMesh> tally_mesh = tallyMesh(_mesh_template_filename);
-
-  _mesh_template = tally_mesh.get();
-  _mesh_index = openmc::model::meshes.size();
-  openmc::model::meshes.push_back(std::move(tally_mesh));
-
-  std::vector<openmc::Filter *> mesh_filters;
-
-  for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
-  {
-    const auto & translation = _mesh_translations[i];
-    auto meshFilter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
-    meshFilter->set_mesh(_mesh_index);
-    meshFilter->set_translation({translation(0), translation(1), translation(2)});
-    mesh_filters.push_back(meshFilter);
-  }
-
-  return mesh_filters;
-}
-*/
-
 void
 OpenMCCellAverageProblem::resetTallies()
 {
@@ -2434,60 +1827,6 @@ OpenMCCellAverageProblem::resetTallies()
     auto idx = openmc::model::tallies.begin() + _global_tally_index;
     openmc::model::tallies.erase(idx);
   }
-
-  /*
-  if (_tally_type == tally::none)
-    return;
-
-  // We create the global tally, and THEN the local tally. So we need to delete in
-  // reverse order
-
-  auto idx = openmc::model::tallies.begin() + _local_tally_index;
-  switch (_tally_type)
-  {
-    case tally::cell:
-    {
-      // erase tally
-      openmc::model::tallies.erase(idx);
-
-      // erase filter
-      auto fidx = openmc::model::tally_filters.begin() + _filter_index;
-      openmc::model::tally_filters.erase(fidx);
-      break;
-    }
-    case tally::mesh:
-    {
-      // erase tallies
-      for (int i = _mesh_translations.size() + _local_tally_index - 1; i >= _local_tally_index; --i)
-      {
-        auto midx = openmc::model::tallies.begin() + i;
-        openmc::model::tallies.erase(midx);
-      }
-
-      // erase filters
-      int fi = _filter_index; // to get signed int for loop to work
-      for (int i = _mesh_translations.size() + fi - 1; i >= fi; i--)
-      {
-        auto fidx = openmc::model::tally_filters.begin() + i;
-        openmc::model::tally_filters.erase(fidx);
-      }
-
-      // erase mesh
-      auto midx = openmc::model::meshes.begin() + _mesh_index;
-      openmc::model::meshes.erase(midx);
-      break;
-    }
-    default:
-      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
-  }
-
-  if (_needs_global_tally)
-  {
-    // erase tally
-    auto idx = openmc::model::tallies.begin() + _global_tally_index;
-    openmc::model::tallies.erase(idx);
-  }
-  */
 }
 
 void
@@ -2520,111 +1859,6 @@ OpenMCCellAverageProblem::initializeTallies()
   _local_sum_tally.resize(_all_tally_scores.size(), 0.0);
   _local_mean_tally.clear();
   _local_mean_tally.resize(_all_tally_scores.size(), 0.0);
-
-  /*
-  // add trigger information for k, if present
-  openmc::settings::keff_trigger.metric = triggerMetric(_k_trigger);
-
-  if (_tally_type == tally::none)
-    return;
-
-  // create the global tally for normalization; we make sure to use the
-  // same estimator as the local tally
-  if (_needs_global_tally)
-  {
-    _global_tally = openmc::Tally::create();
-    _global_tally->set_scores(_tally_score);
-    _global_tally->estimator_ = _tally_estimator;
-
-    _global_tally_index = openmc::model::tallies.size() - 1;
-    _global_sum_tally.resize(_tally_score.size());
-  }
-
-  _local_tally.clear();
-
-  _local_sum_tally.resize(_tally_score.size());
-  _local_mean_tally.resize(_tally_score.size());
-  _current_tally.resize(_tally_score.size());
-  _current_raw_tally.resize(_tally_score.size());
-  _current_raw_tally_std_dev.resize(_tally_score.size());
-  _previous_tally.resize(_tally_score.size());
-
-  // we have not added the local tally yet, so we do not have the "-1" here. This needs
-  // to be before the switch-case statement, because we may add > 1 mesh tally
-  _local_tally_index = openmc::model::tallies.size();
-  _filter_index = openmc::model::tally_filters.size();
-
-  // create the local tally
-  switch (_tally_type)
-  {
-    case tally::cell:
-    {
-      auto tally_cells = getTallyCells();
-      _console << "Adding cell tallies to blocks " + Moose::stringify(_tally_blocks) + " for " +
-                      Moose::stringify(tally_cells.size()) + " cells... ";
-
-      for (unsigned int i = 0; i < _tally_score.size(); ++i)
-      {
-        _current_tally[i].resize(1);
-        _current_raw_tally[i].resize(1);
-        _current_raw_tally_std_dev[i].resize(1);
-        _previous_tally[i].resize(1);
-      }
-
-      std::vector<openmc::Filter *> filter = {cellInstanceFilter(tally_cells)};
-      addLocalTally(_tally_score, filter);
-
-      _console << "done" << std::endl;
-
-      break;
-    }
-    case tally::mesh:
-    {
-      int n_translations = _mesh_translations.size();
-
-      std::string name = _mesh_template_filename ? *_mesh_template_filename : "the [Mesh]";
-      std::string tally = n_translations > 1 ? "tallies" : "tally";
-      _console << "\nAdding " << n_translations << " mesh " << tally << " based on " + name
-               << "... ";
-
-      for (unsigned int i = 0; i < _tally_score.size(); ++i)
-      {
-        _current_tally[i].resize(n_translations);
-        _current_raw_tally[i].resize(n_translations);
-        _current_raw_tally_std_dev[i].resize(n_translations);
-        _previous_tally[i].resize(n_translations);
-      }
-
-      _mesh_filters.clear();
-      const auto & filters = meshFilter();
-      for (const auto & m : filters)
-        _mesh_filters.push_back(dynamic_cast<openmc::MeshFilter *>(m));
-
-      for (unsigned int i = 0; i < _mesh_translations.size(); ++i)
-      {
-        std::vector<openmc::Filter *> filter = {filters[i]};
-        addLocalTally(_tally_score, filter);
-      }
-
-      _console << "done" << std::endl;
-
-      break;
-    }
-    default:
-      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
-  }
-
-  if (_assume_separate_tallies)
-    openmc::settings::assume_separate = true;
-
-  if (_tally_trigger)
-    for (auto & t : _local_tally)
-      for (int score = 0; score < _tally_score.size(); ++score)
-        t->triggers_.push_back({triggerMetric((*_tally_trigger)[score]),
-                                _tally_trigger_threshold[score],
-                                false,
-                                score});
-  */
 }
 
 void
@@ -2714,26 +1948,6 @@ OpenMCCellAverageProblem::addExternalVariables()
       }
     }
   }
-  /*
-  if (_tally_type != tally::none)
-  {
-    _external_vars.resize(_tally_score.size());
-    for (unsigned int score = 0; score < _tally_score.size(); ++score)
-    {
-      auto name = _tally_name[score];
-      _tally_var.push_back(addExternalVariable(name));
-
-      if (_outputs)
-      {
-        for (std::size_t i = 0; i < _outputs->size(); ++i)
-        {
-          std::string n = name + "_" + _output_name[i];
-          _external_vars[score].push_back(addExternalVariable(n));
-        }
-      }
-    }
-  }
-  */
 
   // create the variable(s) that will be used to receive density
   for (const auto & v : _density_vars_to_blocks)
@@ -3019,81 +2233,9 @@ OpenMCCellAverageProblem::tallyNormalization(unsigned int global_score) const
   return _normalize_by_global ? _global_sum_tally[global_score] : _local_sum_tally[global_score];
 }
 
-template <typename T>
-T
-OpenMCCellAverageProblem::normalizeLocalTally(const T & tally_result, const unsigned int & score) const
-{
-  /*
-  Real comparison = tallyNormalization(score);
-
-  if (std::abs(comparison) < ZERO_TALLY_THRESHOLD)
-  {
-    // If the value over the whole domain is zero, then the values in the individual bins must be zero.
-    // We need to avoid divide-by-zero
-    return tally_result * 0.0;
-  }
-  else
-    return tally_result / comparison;
-  */
-}
-
 void
 OpenMCCellAverageProblem::relaxAndNormalizeTally(unsigned int global_score, unsigned int local_score, std::shared_ptr<TallyBase> local_tally)
 {
-  /*
-  auto & current = _current_tally[score][t];
-  auto & previous = _previous_tally[score][t];
-  auto & current_raw = _current_raw_tally[score][t];
-  auto & current_raw_std_dev = _current_raw_tally_std_dev[score][t];
-
-  auto & tally = _local_tally.at(t);
-  auto mean_tally = tallySum(tally, score);
-  current_raw = normalizeLocalTally(mean_tally, score);
-
-  auto sum_sq =
-      xt::view(tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM_SQ));
-  auto rel_err = relativeError(mean_tally, sum_sq, tally->n_realizations_);
-  current_raw_std_dev = rel_err * current_raw;
-
-  // if OpenMC has only run one time, or we don't have relaxation at all,
-  // then we don't have a "previous" with which to relax, so we just copy the mean tally in and
-  // return
-  if (_fixed_point_iteration == 0 || _relaxation == relaxation::none)
-  {
-    current = current_raw;
-    previous = current_raw;
-    return;
-  }
-
-  // save the current tally (from the previous iteration) into the previous one
-  std::copy(current.cbegin(), current.cend(), previous.begin());
-
-  double alpha;
-  switch (_relaxation)
-  {
-    case relaxation::constant:
-    {
-      alpha = _relaxation_factor;
-      break;
-    }
-    case relaxation::robbins_monro:
-    {
-      alpha = 1.0 / (_fixed_point_iteration + 1);
-      break;
-    }
-    case relaxation::dufek_gudowski:
-    {
-      alpha = float(nParticles()) / float(_total_n_particles);
-      break;
-    }
-    default:
-      mooseError("Unhandled RelaxationEnum in OpenMCCellAverageProblem!");
-  }
-
-  auto relaxed_tally = (1.0 - alpha) * previous + alpha * current_raw;
-  std::copy(relaxed_tally.cbegin(), relaxed_tally.cend(), current.begin());
-  */
-
   Real comparison = tallyNormalization(global_score);
 
   Real alpha;
@@ -3135,24 +2277,6 @@ OpenMCCellAverageProblem::dufekGudowskiParticleUpdate()
   openmc::settings::n_particles = n;
 }
 
-/*
-Real
-OpenMCCellAverageProblem::getTally(const unsigned int & var_num,
-                                   const std::vector<xt::xtensor<double, 1>> & tally,
-                                   const unsigned int & score)
-{
-  switch (_tally_type)
-  {
-    case tally::cell:
-      return getCellTally(var_num, tally, score);
-    case tally::mesh:
-      return getMeshTally(var_num, tally, score);
-    default:
-      mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
-  }
-}
-*/
-
 void
 OpenMCCellAverageProblem::checkNormalization(const Real & sum, unsigned int global_score) const
 {
@@ -3161,76 +2285,6 @@ OpenMCCellAverageProblem::checkNormalization(const Real & sum, unsigned int glob
       mooseError("Tally normalization process failed for " + _all_tally_scores[global_score] + " score! Total fraction of " +
                  Moose::stringify(sum) + " does not match 1.0!");
 }
-
-/*
-Real
-OpenMCCellAverageProblem::getCellTally(const unsigned int & var_num,
-                                       const std::vector<xt::xtensor<double, 1>> & tally,
-                                       const unsigned int & score)
-{
-  Real total = 0.0;
-
-  int i = 0;
-  for (const auto & c : _cell_to_elem)
-  {
-    auto cell_info = c.first;
-
-    // if this cell doesn't have any tallies, skip it
-    if (!_cell_has_tally[cell_info])
-      continue;
-
-    Real local = tally[0](i++);
-
-    // divide each tally value by the volume that it corresponds to in MOOSE
-    // because we will apply it as a volumetric tally
-    Real volumetric_power = local * tallyMultiplier(score) / _cell_to_elem_volume[cell_info];
-    total += local;
-
-    fillElementalAuxVariable(var_num, c.second, volumetric_power);
-  }
-
-  return total;
-}
-*/
-
-/*
-Real
-OpenMCCellAverageProblem::getMeshTally(const unsigned int & var_num,
-                                       const std::vector<xt::xtensor<double, 1>> & tally,
-                                       const unsigned int & score)
-{
-  Real total = 0.0;
-
-  // TODO: this requires that the mesh exactly correspond to the mesh templates;
-  // for cases where they don't match, we'll need to do a nearest-node transfer or something
-
-  unsigned int offset = 0;
-  for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
-  {
-    const auto * filter = _mesh_filters[i];
-
-    for (decltype(filter->n_bins()) e = 0; e < filter->n_bins(); ++e)
-    {
-      Real power_fraction = tally[i](e);
-
-      // divide each tally by the volume that it corresponds to in MOOSE
-      // because we will apply it as a volumetric tally (per unit volume).
-      // Because we require that the mesh template has units of cm based on the
-      // mesh constructors in OpenMC, we need to adjust the division
-      Real volumetric_power =
-          power_fraction * tallyMultiplier(score) / _mesh_template->volume(e) * _scaling * _scaling * _scaling;
-      total += power_fraction;
-
-      std::vector<unsigned int> elem_ids = {offset + e};
-      fillElementalAuxVariable(var_num, elem_ids, volumetric_power);
-    }
-
-    offset += filter->n_bins();
-  }
-
-  return total;
-}
-*/
 
 void
 OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
@@ -3414,59 +2468,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         checkNormalization(sums[global_score], global_score);
 
       _console << " done" << std::endl;
-      /*
-      if (_tally_type == tally::none)
-        break;
 
-      _console << "Extracting OpenMC tallies...";
-
-      for (unsigned int score = 0; score < _tally_score.size(); ++score)
-      {
-        // get the total tallies for normalization
-        if (_global_tally)
-          _global_sum_tally[score] = tallySumAcrossBins({_global_tally}, score);
-
-        _local_sum_tally[score] = tallySumAcrossBins(_local_tally, score);
-        _local_mean_tally[score] = tallyMeanAcrossBins(_local_tally, score);
-
-        if (_check_tally_sum)
-          checkTallySum(score);
-
-        // Populate the current relaxed and unrelaxed tallies. After this, the _current_tally
-        // holds the relaxed tally and _current_raw_tally has the current unrelaxed tally. If
-        // no relaxation is used, _current_tally and _current_raw_tally are the same.
-        switch (_tally_type)
-        {
-          case tally::cell:
-            relaxAndNormalizeTally(0, score);
-            break;
-          case tally::mesh:
-            for (unsigned int i = 0; i < _mesh_filters.size(); ++i)
-              relaxAndNormalizeTally(i, score);
-            break;
-          default:
-            mooseError("Unhandled TallyTypeEnum in OpenMCCellAverageProblem!");
-        }
-
-        auto sum = getTally(_tally_var[score], _current_tally[score], score);
-        checkNormalization(sum, score);
-
-        if (_outputs)
-        {
-          for (std::size_t i = 0; i < _outputs->size(); ++i)
-          {
-            std::string out = (*_outputs)[i];
-
-            if (out == "unrelaxed_tally_std_dev")
-              getTally(_external_vars[score][i], _current_raw_tally_std_dev[score], score);
-            if (out == "unrelaxed_tally")
-              getTally(_external_vars[score][i], _current_raw_tally[score], score);
-          }
-        }
-      }
-
-      _console << " done" << std::endl;
-      */
      break;
     }
     default:

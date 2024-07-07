@@ -90,10 +90,13 @@ MeshTally::generateAuxVarNames()
   std::vector<std::string> names;
 
   for (const auto & score_name : _tally_score)
+  {
     names.push_back(_name + "_" + score_name);
+    std::replace(names.back().begin(), names.back().end(), '-', '_');
+  }
 
   // TODO: Add energy filters.
-  return _tally_score;
+  return names;
 }
 
 void
