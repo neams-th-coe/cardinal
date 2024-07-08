@@ -43,10 +43,10 @@ public:
   void check_existing_filter_type() const;
   void bad_filter_type_error() const;
   int32_t filter_index() const;
-  std::string long_name () const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
+  std::string long_name() const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
 
 protected:
   int32_t _filter_id;
   std::string _filter_type;
-  const std::set<std::string> _allowed_types {"cell", "universe", "material", "mesh"};
+  const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
 };

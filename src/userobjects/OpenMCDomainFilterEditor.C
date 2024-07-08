@@ -43,7 +43,9 @@ OpenMCDomainFilterEditor::validParams()
 }
 
 OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & parameters)
-  : GeneralUserObject(parameters), _filter_id(getParam<int32_t>("filter_id")), _filter_type(getParam<std::string>("filter_type"))
+  : GeneralUserObject(parameters),
+    _filter_id(getParam<int32_t>("filter_id")),
+    _filter_type(getParam<std::string>("filter_type"))
 {
   const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
   if (!openmc_problem)
@@ -54,21 +56,25 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
 
-  // if we expect the filter to exist (create_filter = false), we need to set the type using the existing filter
+  // if we expect the filter to exist (create_filter = false), we need to set the type using the
+  // existing filter
   if (!getParam<bool>("create_filter"))
   {
     if (_filter_type.empty())
     {
       int32_t filter_index = openmc::model::filter_map.at(_filter_id);
       _filter_type = openmc::model::tally_filters[filter_index]->type_str();
-    } else {
+    }
+    else
+    {
       check_existing_filter_type();
     }
   }
 }
 
 void
-OpenMCDomainFilterEditor::check_existing_filter_type() const {
+OpenMCDomainFilterEditor::check_existing_filter_type() const
+{
   // if the filter exists and the filter type was not specified, accept the existing filter type
   if (_filter_type.empty())
     return;
@@ -77,14 +83,16 @@ OpenMCDomainFilterEditor::check_existing_filter_type() const {
   std::string existing_type = openmc::model::tally_filters[filter_index]->type_str();
   if (existing_type != _filter_type)
   {
-    mooseError(long_name() + ": An existing filter " + std::to_string(_filter_id) + " is of type " + existing_type +
-               " and cannot be changed to type " + _filter_type);
+    mooseError(long_name() + ": An existing filter " + std::to_string(_filter_id) + " is of type " +
+               existing_type + " and cannot be changed to type " + _filter_type);
   }
 }
 
 void
-OpenMCDomainFilterEditor::bad_filter_type_error() const {
-  std::string msg = long_name() + ": Invalid filter type: " + _filter_type + ". Allowed types are: ";
+OpenMCDomainFilterEditor::bad_filter_type_error() const
+{
+  std::string msg =
+      long_name() + ": Invalid filter type: " + _filter_type + ". Allowed types are: ";
   for (const auto & type : _allowed_types)
     msg += "\"" + type + "\"";
   mooseError(msg);
@@ -97,30 +105,39 @@ OpenMCDomainFilterEditor::openmc_problem() const
 }
 
 int32_t
-OpenMCDomainFilterEditor::filter_index() const {
+OpenMCDomainFilterEditor::filter_index() const
+{
   // filter types make this a little more compilcated than the tally case
   // if the filter doesn't exist, we need to create it and can use the specified type
   // if the filter does exist, the type must match the existing type
 
   bool create_filter = getParam<bool>("create_filter");
-  bool filter_exists = openmc::model::filter_map.find(_filter_id) != openmc::model::filter_map.end();
+  bool filter_exists =
+      openmc::model::filter_map.find(_filter_id) != openmc::model::filter_map.end();
 
-  if (create_filter) {
+  if (create_filter)
+  {
     if (filter_exists)
     {
       check_existing_filter_type();
-      mooseWarning(long_name() + ": Filter " + std::to_string(_filter_id) + " already exists in OpenMC model");
+      mooseWarning(long_name() + ": Filter " + std::to_string(_filter_id) +
+                   " already exists in OpenMC model");
     }
     else
     {
       openmc_problem()->_console << long_name() << ": Creating Filter " << _filter_id << std::endl;
       openmc::Filter::create(_filter_type, _filter_id);
     }
-  } else {
+  }
+  else
+  {
     if (!filter_exists)
     {
-      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) + " does not exist in OpenMC model");
-    } else {
+      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
+                 " does not exist in OpenMC model");
+    }
+    else
+    {
       check_existing_filter_type();
     }
   }
@@ -145,31 +162,44 @@ OpenMCDomainFilterEditor::execute()
     ids.push_back(std::stoi(bin_id));
   }
 
-  if (_filter_type == "cell") {
-    openmc::CellFilter * cell_filter = dynamic_cast<openmc::CellFilter*>(filter);
+  if (_filter_type == "cell")
+  {
+    openmc::CellFilter * cell_filter = dynamic_cast<openmc::CellFilter *>(filter);
     if (!cell_filter)
       mooseError(long_name() + ": Filter " + std::to_string(_filter_id) + " is not a cell filter");
-    for (auto id : ids) bins.push_back(openmc::model::cell_map.at(id));
+    for (auto id : ids)
+      bins.push_back(openmc::model::cell_map.at(id));
     cell_filter->set_cells(bins);
-  } else if (_filter_type == "material") {
-    openmc::MaterialFilter * material_filter = dynamic_cast<openmc::MaterialFilter*>(filter);
+  }
+  else if (_filter_type == "material")
+  {
+    openmc::MaterialFilter * material_filter = dynamic_cast<openmc::MaterialFilter *>(filter);
     if (!material_filter)
-      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) + " is not a material filter");
-    for (auto id : ids) bins.push_back(openmc::model::material_map.at(id));
+      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
+                 " is not a material filter");
+    for (auto id : ids)
+      bins.push_back(openmc::model::material_map.at(id));
     material_filter->set_materials(bins);
-  } else if (_filter_type == "universe") {
-    openmc::UniverseFilter * universe_filter = dynamic_cast<openmc::UniverseFilter*>(filter);
+  }
+  else if (_filter_type == "universe")
+  {
+    openmc::UniverseFilter * universe_filter = dynamic_cast<openmc::UniverseFilter *>(filter);
     if (!universe_filter)
-      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) + " is not a universe filter");
-    for (auto id : ids) bins.push_back(openmc::model::universe_map.at(id));
+      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
+                 " is not a universe filter");
+    for (auto id : ids)
+      bins.push_back(openmc::model::universe_map.at(id));
     universe_filter->set_universes(bins);
-  } else if (_filter_type == "mesh") {
-    openmc::MeshFilter * mesh_filter = dynamic_cast<openmc::MeshFilter*>(filter);
+  }
+  else if (_filter_type == "mesh")
+  {
+    openmc::MeshFilter * mesh_filter = dynamic_cast<openmc::MeshFilter *>(filter);
     if (bins.size() != 1)
       mooseError(long_name() + ": Mesh filter must have exactly one bin");
     if (!mesh_filter)
       mooseError(long_name() + ": Filter " + std::to_string(_filter_id) + " is not a mesh filter");
-    for (auto id : ids) bins.push_back(openmc::model::mesh_map.at(id));
+    for (auto id : ids)
+      bins.push_back(openmc::model::mesh_map.at(id));
     mesh_filter->set_mesh(bins[0]);
   }
 }
