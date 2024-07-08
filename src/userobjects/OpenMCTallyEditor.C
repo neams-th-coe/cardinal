@@ -33,7 +33,7 @@ OpenMCTallyEditor::validParams()
   params.addRequiredParam<std::vector<std::string>>("scores", "The scores to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("nuclides", "The nuclides to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("filter_ids", "The filter IDs to modify in the tally");
-  params.addRequiredParam<bool>("multiply_density", "Whether to multiply the tally by the atom density");
+  params.add<bool>("multiply_density", true, "Whether to multiply the tally by the atom density");
   params.declareControllable("scores");
   params.declareControllable("nuclides");
   params.declareControllable("filter_ids");
@@ -64,10 +64,10 @@ OpenMCTallyEditor::openmc_problem() const
 int32_t
 OpenMCTallyEditor::tally_index() const
 {
-    // this is put here, instead of the constructor, because Cardinal initializes
-    // some tallies. Depending on the order of initialization of UserObjects vs.
-    // other classes, those tallies might not exist yet in OpenMC's data space
-    // (but they will by the time we get here).
+  // this is put here, instead of the constructor, because Cardinal initializes
+  // some tallies. Depending on the order of initialization of UserObjects vs.
+  // other classes, those tallies might not exist yet in OpenMC's data space
+  // (but they will by the time we get here).
   bool create_tally = getParam<bool>("create_tally");
   bool tally_exists = openmc::model::tally_map.find(_tally_id) != openmc::model::tally_map.end();
 

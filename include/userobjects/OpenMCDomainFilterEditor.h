@@ -21,7 +21,7 @@
 #include "GeneralUserObject.h"
 
 /**
- * User object to modify the nuclides in an OpenMC tally.
+ * User object to create and/or modify an OpenMC tally filter for a limited set of domain types.
  */
 class OpenMCDomainFilterEditor : public GeneralUserObject
 {
@@ -30,20 +30,19 @@ public:
 
   OpenMCDomainFilterEditor(const InputParameters & parameters);
 
-
-  /// We don't want this user object to execute in MOOSE's control
+  /// Virtual method overrides
   virtual void execute() override;
-
   virtual void initialize() override {}
   virtual void finalize() override {}
 
+  /// Utility methods
   void check_existing_filter_type() const;
-  void bad_filter_error() const;
-
+  void bad_filter_type_error() const;
+  int32_t filter_index() const;
   std::string long_name () const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
 
 protected:
   int32_t _filter_id;
   std::string _filter_type;
-  const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
+  const std::set<std::string> _allowed_types {"cell", "universe", "material", "mesh"};
 };
