@@ -90,6 +90,12 @@ OpenMCDomainFilterEditor::bad_filter_type_error() const {
   mooseError(msg);
 }
 
+const OpenMCProblemBase *
+OpenMCDomainFilterEditor::openmc_problem() const
+{
+  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+}
+
 int32_t
 OpenMCDomainFilterEditor::filter_index() const {
   // filter types make this a little more compilcated than the tally case
@@ -107,7 +113,7 @@ OpenMCDomainFilterEditor::filter_index() const {
     }
     else
     {
-      openmc_problem->_console << long_name() << ": Creating Filter " << _filter_id << std::endl;
+      openmc_problem()->_console << long_name() << ": Creating Filter " << _filter_id << std::endl;
       openmc::Filter::create(_filter_type, _filter_id);
     }
   } else {
@@ -121,6 +127,8 @@ OpenMCDomainFilterEditor::filter_index() const {
 
   if (_allowed_types.count(_filter_type) == 0)
     bad_filter_type_error();
+
+  return openmc::model::filter_map.at(_filter_id);
 }
 
 void

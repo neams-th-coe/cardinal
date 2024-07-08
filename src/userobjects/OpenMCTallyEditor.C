@@ -33,7 +33,7 @@ OpenMCTallyEditor::validParams()
   params.addRequiredParam<std::vector<std::string>>("scores", "The scores to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("nuclides", "The nuclides to modify in the tally");
   params.addRequiredParam<std::vector<std::string>>("filter_ids", "The filter IDs to modify in the tally");
-  params.add<bool>("multiply_density", true, "Whether to multiply the tally by the atom density");
+  params.addParam<bool>("multiply_density", true, "Whether to multiply the tally by the atom density");
   params.declareControllable("scores");
   params.declareControllable("nuclides");
   params.declareControllable("filter_ids");
