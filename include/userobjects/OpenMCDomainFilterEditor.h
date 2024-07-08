@@ -20,6 +20,9 @@
 
 #include "GeneralUserObject.h"
 
+// forward declarations
+class OpenMCProblemBase;
+
 /**
  * User object to create and/or modify an OpenMC tally filter for a limited set of domain types.
  */
@@ -36,6 +39,7 @@ public:
   virtual void finalize() override {}
 
   /// Utility methods
+  const OpenMCProblemBase * openmc_problem() const;
   void check_existing_filter_type() const;
   void bad_filter_type_error() const;
   int32_t filter_index() const;
