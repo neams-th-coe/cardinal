@@ -313,7 +313,6 @@ OpenMCProblemBase::externalSolve()
 
   // update tallies as needed before starting the OpenMC run
   executeTallyUpdates();
-  sendTallyNuclidesToOpenMC();
 
   int err = openmc_run();
   if (err)
@@ -753,10 +752,6 @@ OpenMCProblemBase::getOpenMCUserObjects()
     if (c)
       _nuclide_densities_uos.push_back(c);
 
-    OpenMCTallyNuclides * d = dynamic_cast<OpenMCTallyNuclides *>(u);
-    if (d)
-      _tally_nuclides_uos.push_back(d);
-
     OpenMCTallyEditor * e = dynamic_cast<OpenMCTallyEditor *>(u);
     if (e)
       _tally_editor_uos.push_back(e);
@@ -804,21 +799,6 @@ OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
 
   _console << "Sending nuclide compositions to OpenMC... ";
   for (const auto & uo : _nuclide_densities_uos)
-    uo->setValue();
-  _console << "done" << std::endl;
-}
-
-void
-OpenMCProblemBase::sendTallyNuclidesToOpenMC()
-{
-  if (_tally_nuclides_uos.size() == 0)
-    return;
-
-  // We could probably put this somewhere better, but it's good for now
-  executeControls(EXEC_SEND_OPENMC_TALLY_NUCLIDES);
-
-  _console << "Sending tally nuclides to OpenMC... ";
-  for (const auto & uo : _tally_nuclides_uos)
     uo->setValue();
   _console << "done" << std::endl;
 }

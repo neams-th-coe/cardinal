@@ -24,7 +24,6 @@
 #include "PostprocessorInterface.h"
 #include "CardinalEnums.h"
 #include "OpenMCNuclideDensities.h"
-#include "OpenMCTallyNuclides.h"
 #include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
 
@@ -456,9 +455,6 @@ protected:
 
   /// Userobjects for changing OpenMC material compositions
   std::vector<OpenMCNuclideDensities *> _nuclide_densities_uos;
-
-  /// Userobjects for changing OpenMC tally nuclides
-  std::vector<OpenMCTallyNuclides *> _tally_nuclides_uos;
 
   /// Userobjects for creating/changing OpenMC filters
   std::vector<OpenMCDomainFilterEditor *> _filter_editor_uos;
