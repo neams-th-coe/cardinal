@@ -27,7 +27,6 @@
 #include "OpenMCDomainFilterEditor.h"
 #include "OpenMCTallyEditor.h"
 
-
 #include "mpi.h"
 #include "openmc/bank.h"
 #include "openmc/capi.h"

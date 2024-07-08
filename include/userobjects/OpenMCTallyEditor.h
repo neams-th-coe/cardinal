@@ -33,7 +33,8 @@ public:
 
   OpenMCTallyEditor(const InputParameters & parameters);
 
-  // get the index of the tally in OpenMC's data space, creating it if necessary according to the input parameters
+  // get the index of the tally in OpenMC's data space, creating it if necessary according to the
+  // input parameters
   int32_t tally_index() const;
 
   /// We don't want this user object to execute in MOOSE's control
@@ -42,7 +43,7 @@ public:
   virtual void initialize() override {}
   virtual void finalize() override {}
 
-  std::string long_name () const { return "OpenMCTallyEditor \"" + this->name() + "\"";}
+  std::string long_name() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
   const OpenMCProblemBase * openmc_problem() const;
 
 protected:
