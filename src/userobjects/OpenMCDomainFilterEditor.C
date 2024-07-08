@@ -35,10 +35,10 @@ OpenMCDomainFilterEditor::validParams()
   InputParameters params = GeneralUserObject::validParams();
   params.addParam<bool>("create_filter", false, "Whether to create the tally if it doesn't exist");
   params.addRequiredParam<int32_t>("filter_id", "The ID of the filter to modify");
-  params.addRequiredParam<std::string>("filter_type", "The type of filter to create");
+  params.addParam<std::string>("filter_type", "", "The type of filter to create");
   params.addRequiredParam<std::vector<std::string>>("bins", "The bins to modify in the filter");
   params.declareControllable("bins");
-  params.addClassDescription("A UserObject for creating and managing OpenMC tallies");
+  params.addClassDescription("A UserObject for creating and managing OpenMC domain tally filters");
   return params;
 }
 
@@ -54,6 +54,47 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
 
+  // if we expect the filter to exist (create_filter = false), we need to set the type using the existing filter
+  if (!getParam<bool>("create_filter"))
+  {
+    if (_filter_type.empty())
+    {
+      int32_t filter_index = openmc::model::filter_map.at(_filter_id);
+      _filter_type = openmc::model::tally_filters[filter_index]->type_str();
+    } else {
+      check_existing_filter_type();
+    }
+  }
+}
+
+void
+OpenMCDomainFilterEditor::check_existing_filter_type() const {
+  // if the filter exists and the filter type was not specified, accept the existing filter type
+  if (_filter_type.empty())
+    return;
+
+  int32_t filter_index = openmc::model::filter_map.at(_filter_id);
+  std::string existing_type = openmc::model::tally_filters[filter_index]->type_str();
+  if (existing_type != _filter_type)
+  {
+    mooseError(long_name() + ": An existing filter " + std::to_string(_filter_id) + " is of type " + existing_type +
+               " and cannot be changed to type " + _filter_type);
+  }
+}
+
+void
+OpenMCDomainFilterEditor::bad_filter_type_error() const {
+  std::string msg = long_name() + ": Invalid filter type: " + _filter_type + ". Allowed types are: ";
+  for (const auto & type : _allowed_types)
+    msg += "\"" + type + "\"";
+  mooseError(msg);
+}
+
+int32_t
+OpenMCDomainFilterEditor::filter_index() const {
+  // filter types make this a little more compilcated than the tally case
+  // if the filter doesn't exist, we need to create it and can use the specified type
+  // if the filter does exist, the type must match the existing type
 
   bool create_filter = getParam<bool>("create_filter");
   bool filter_exists = openmc::model::filter_map.find(_filter_id) != openmc::model::filter_map.end();
@@ -61,6 +102,7 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
   if (create_filter) {
     if (filter_exists)
     {
+      check_existing_filter_type();
       mooseWarning(long_name() + ": Filter " + std::to_string(_filter_id) + " already exists in OpenMC model");
     }
     else
@@ -78,27 +120,7 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
   }
 
   if (_allowed_types.count(_filter_type) == 0)
-    bad_filter_error();
-}
-
-void
-OpenMCDomainFilterEditor::check_existing_filter_type() const {
-  int32_t filter_index = openmc::model::filter_map.at(_filter_id);
-  std::string existing_type = openmc::model::tally_filters[filter_index]->type_str();
-  if (existing_type != _filter_type)
-  {
-    mooseError(long_name() + ": An existing filter " + std::to_string(_filter_id) + " is of type " + existing_type +
-               " and cannot be changed to type " + _filter_type);
-  }
-}
-
-void
-OpenMCDomainFilterEditor::bad_filter_error() const {
-  std::string msg = long_name() + ": Invalid filter type: " + _filter_type;
-  msg += ". Allowed types are: ";
-  for (const auto & type : _allowed_types)
-    msg += "\"" + type + "\"";
-  mooseError(msg);
+    bad_filter_type_error();
 }
 
 void
