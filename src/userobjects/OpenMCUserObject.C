@@ -1,3 +1,17 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /********************************************************************/
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
@@ -16,37 +30,34 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCUserObject.h"
+#include "OpenMCProblemBase.h"
 
-// forward declarations
-class OpenMCProblemBase;
-
-/**
- * User object to create and/or modify an OpenMC tally filter for a limited set of domain types.
- */
-class OpenMCDomainFilterEditor : public OpenMCUserObject
+InputParameters
+OpenMCUserObject::validParams()
 {
-public:
-  static InputParameters validParams();
+  InputParameters params = GeneralUserObject::validParams();
+  return params;
+}
 
-  OpenMCDomainFilterEditor(const InputParameters & parameters);
+OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
+  : GeneralUserObject(parameters)
+{
+  if (!openmc_problem())
+  {
+    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
+    mooseError("This user object can only be used with wrapped OpenMC cases! "
+               "You need to change the\nproblem type from '" +
+               _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
+  }
+}
 
-  /// Virtual method overrides
-  virtual void execute() override;
-  virtual void initialize() override {}
-  virtual void finalize() override {}
+const OpenMCProblemBase *
+OpenMCUserObject::openmc_problem() const
+{
+  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+}
 
-  /// Utility methods
-  bool filter_exists() const;
-  void check_existing_filter_type() const;
-  void bad_filter_type_error() const;
-  int32_t filter_index() const;
-  std::string long_name() const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
-
-protected:
-  int32_t _filter_id;
-  std::string _filter_type;
-  const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
-};
+#endif

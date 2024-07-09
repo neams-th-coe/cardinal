@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "GeneralUserObject.h"
+#include "OpenMCUserObject.h"
 
 // forward declarations
 class OpenMCProblemBase;
@@ -26,7 +26,7 @@ class OpenMCProblemBase;
 /**
  * User object to modify an OpenMC tally
  */
-class OpenMCTallyEditor : public GeneralUserObject
+class OpenMCTallyEditor : public OpenMCUserObject
 {
 public:
   static InputParameters validParams();
@@ -39,12 +39,10 @@ public:
 
   /// We don't want this user object to execute in MOOSE's control
   virtual void execute() override;
-
   virtual void initialize() override {}
   virtual void finalize() override {}
 
   std::string long_name() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
-  const OpenMCProblemBase * openmc_problem() const;
 
 protected:
   int32_t _tally_id;
