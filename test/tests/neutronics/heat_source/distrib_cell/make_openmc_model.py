@@ -73,7 +73,7 @@ geometry.export_to_xml()
 
 # Finally, define some run settings
 settings = openmc.Settings()
-settings.batches = 50
+settings.batches = 20
 settings.inactive = 10
 settings.particles = 100
 
