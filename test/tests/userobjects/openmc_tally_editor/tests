@@ -38,6 +38,7 @@
     check_files = tallies.out
     requirement = 'Ensure that scores specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Scattering Rate'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [absorption_u238]
     type = CheckFiles
@@ -45,6 +46,7 @@
     check_files = tallies.out
     requirement = 'Ensure that scores specified by a tally editor UO are present in the tally output'
     file_expect_out = 'U238\n   Absorption Rate'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [add_cell_filter]
     type = CheckFiles
@@ -52,6 +54,7 @@
     check_files = tallies.out
     requirement = 'Ensure that filters specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Cell'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [add_material_filter]
     type = CheckFiles
@@ -60,6 +63,7 @@
     cli_args = 'UserObjects/new_filter/filter_type="material"'
     requirement = 'Ensure that filters specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Material'
+    required_objects = 'OpenMCCellAverageProblem'
   []
   [add_universe_filter]
     type = CheckFiles
@@ -68,5 +72,14 @@
     cli_args = 'UserObjects/new_filter/filter_type="universe"'
     requirement = 'Ensure that filters specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Material'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [invlaid_filter_type]
+    type = RunException
+    input = add_filter.i
+    cli_args = 'UserObjects/new_filter/filter_type="invalid"'
+    expect_err = 'OpenMCDomainFilterEditor "new_filter": Invalid filter type: invalid.'
+    requirement = 'The system shall error if trying to add a filter with an invalid type.'
+    required_objects = 'OpenMCCellAverageProblem'
   []
 []
