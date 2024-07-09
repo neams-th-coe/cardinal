@@ -8,9 +8,6 @@
     <space type="box">
       <parameters>0 -11.20059522227874 0.0 11.20059522227874 11.20059522227874 25.0</parameters>
     </space>
-    <constraints>
-      <fissionable>true</fissionable>
-    </constraints>
   </source>
   <temperature_default>600.0</temperature_default>
   <temperature_method>interpolation</temperature_method>

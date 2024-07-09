@@ -353,7 +353,7 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     l = bundle_pitch / math.sqrt(3.0)
     lower_left = (-l, -l, reactor_bottom)
     upper_right = (l, l, reactor_top)
-    source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
+    source_dist = openmc.stats.Box(lower_left, upper_right)
     source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 

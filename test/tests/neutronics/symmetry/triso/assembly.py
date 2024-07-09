@@ -216,12 +216,8 @@ def assembly(n_ax_zones, n_inactive, n_active):
     lower_left = (0, -l, reactor_bottom)
     upper_right = (l, l, reactor_top)
     source_dist = openmc.stats.Box(lower_left, upper_right)
-    source = openmc.IndependentSource(space=source_dist, constraints={'fissionable' : True})
+    source = openmc.IndependentSource(space=source_dist)
     settings.source = source
-
-    vol_calc = openmc.VolumeCalculation([outer_cell],
-                                        100_000_000, lower_left, upper_right)
-    settings.volume_calculations = [vol_calc]
 
     model.settings = settings
 
