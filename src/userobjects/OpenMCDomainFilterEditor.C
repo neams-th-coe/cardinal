@@ -151,9 +151,7 @@ OpenMCDomainFilterEditor::filter_index() const
 void
 OpenMCDomainFilterEditor::execute()
 {
-
-  int32_t filter_index = openmc::model::filter_map.at(_filter_id);
-  openmc::Filter * filter = openmc::model::tally_filters[filter_index].get();
+  openmc::Filter * filter = openmc::model::tally_filters[filter_index()].get();
 
   // TODO: update if webcontrols starts to support integral types
   std::vector<int32_t> ids, bins;
