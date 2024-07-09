@@ -46,23 +46,8 @@ OpenMCTallyEditor::validParams()
 }
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
-  : GeneralUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
-{
-  const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
-  if (!openmc_problem)
-  {
-    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
-    mooseError("This user object can only be used with wrapped OpenMC cases! "
-               "You need to change the\nproblem type from '" +
-               _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
-  }
-}
-
-const OpenMCProblemBase *
-OpenMCTallyEditor::openmc_problem() const
-{
-  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
-}
+  : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
+{}
 
 int32_t
 OpenMCTallyEditor::tally_index() const

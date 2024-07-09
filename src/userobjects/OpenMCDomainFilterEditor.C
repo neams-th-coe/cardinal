@@ -32,7 +32,7 @@ registerMooseObject("CardinalApp", OpenMCDomainFilterEditor);
 InputParameters
 OpenMCDomainFilterEditor::validParams()
 {
-  InputParameters params = GeneralUserObject::validParams();
+  InputParameters params = OpenMCUserObject::validParams();
   params.addParam<bool>("create_filter", false, "Whether to create the tally if it doesn't exist");
   params.addRequiredParam<int32_t>("filter_id", "The ID of the filter to modify");
   params.addParam<std::string>("filter_type", "", "The type of filter to create");
@@ -43,19 +43,10 @@ OpenMCDomainFilterEditor::validParams()
 }
 
 OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & parameters)
-  : GeneralUserObject(parameters),
+  : OpenMCUserObject(parameters),
     _filter_id(getParam<int32_t>("filter_id")),
     _filter_type(getParam<std::string>("filter_type"))
 {
-  const OpenMCProblemBase * openmc_problem = dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
-  if (!openmc_problem)
-  {
-    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
-    mooseError("This user object can only be used with wrapped OpenMC cases! "
-               "You need to change the\nproblem type from '" +
-               _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
-  }
-
   if (_allowed_types.count(_filter_type) == 0)
     bad_filter_type_error();
 
@@ -115,12 +106,6 @@ OpenMCDomainFilterEditor::bad_filter_type_error() const
   for (const auto & type : _allowed_types)
     msg += "\"" + type + "\"";
   mooseError(msg);
-}
-
-const OpenMCProblemBase *
-OpenMCDomainFilterEditor::openmc_problem() const
-{
-  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
 }
 
 int32_t
