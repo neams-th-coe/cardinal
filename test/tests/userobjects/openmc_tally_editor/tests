@@ -37,6 +37,36 @@
     input = scatter.i
     check_files = tallies.out
     requirement = 'Ensure that scores specified by a tally editor UO are present in the tally output'
-    file_expect_out = 'Scatter'
+    file_expect_out = 'Scattering Rate'
+  []
+  [absorption_u238]
+    type = CheckFiles
+    input = nuclide_absorption.i
+    check_files = tallies.out
+    requirement = 'Ensure that scores specified by a tally editor UO are present in the tally output'
+    file_expect_out = 'U238\n   Absorption Rate'
+  []
+  [add_cell_filter]
+    type = CheckFiles
+    input = add_filter.i
+    check_files = tallies.out
+    requirement = 'Ensure that filters specified by a tally editor UO are present in the tally output'
+    file_expect_out = 'Cell'
+  []
+  [add_material_filter]
+    type = CheckFiles
+    input = add_filter.i
+    check_files = tallies.out
+    cli_args = 'UserObjects/new_filter/filter_type="material"'
+    requirement = 'Ensure that filters specified by a tally editor UO are present in the tally output'
+    file_expect_out = 'Material'
+  []
+  [add_universe_filter]
+    type = CheckFiles
+    input = add_filter.i
+    check_files = tallies.out
+    cli_args = 'UserObjects/new_filter/filter_type="universe"'
+    requirement = 'Ensure that filters specified by a tally editor UO are present in the tally output'
+    file_expect_out = 'Material'
   []
 []
