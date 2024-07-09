@@ -56,20 +56,39 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
 
+  if (_allowed_types.count(_filter_type) == 0)
+    bad_filter_type_error();
+
   // if we expect the filter to exist (create_filter = false), we need to set the type using the
   // existing filter
-  if (!getParam<bool>("create_filter"))
+
+  bool create_filter = getParam<bool>("create_filter");
+  bool filter_exists = this->filter_exists();
+
+  if (!create_filter && !filter_exists)
   {
-    if (_filter_type.empty())
+      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
+                 " does not exist in the OpenMC model and filter_type was not specified");
+  }
+
+  if (!create_filter && _filter_type.empty()) {
     {
-      int32_t filter_index = openmc::model::filter_map.at(_filter_id);
-      _filter_type = openmc::model::tally_filters[filter_index]->type_str();
+        int32_t filter_index = openmc::model::filter_map.at(_filter_id);
+        _filter_type = openmc::model::tally_filters[filter_index]->type_str();
+        check_existing_filter_type();
     }
-    else
+
+    if (create_filter && _filter_type.empty())
     {
-      check_existing_filter_type();
+      mooseError(long_name() + ": filter_type must be specified when create_filter = true");
     }
   }
+}
+
+bool
+OpenMCDomainFilterEditor::filter_exists() const
+{
+  return openmc::model::filter_map.find(_filter_id) != openmc::model::filter_map.end();
 }
 
 void
@@ -110,14 +129,11 @@ OpenMCDomainFilterEditor::filter_index() const
   // filter types make this a little more compilcated than the tally case
   // if the filter doesn't exist, we need to create it and can use the specified type
   // if the filter does exist, the type must match the existing type
-
   bool create_filter = getParam<bool>("create_filter");
-  bool filter_exists =
-      openmc::model::filter_map.find(_filter_id) != openmc::model::filter_map.end();
 
   if (create_filter)
   {
-    if (filter_exists)
+    if (filter_exists())
     {
       check_existing_filter_type();
       mooseWarning(long_name() + ": Filter " + std::to_string(_filter_id) +
@@ -131,19 +147,16 @@ OpenMCDomainFilterEditor::filter_index() const
   }
   else
   {
-    if (!filter_exists)
+    if (!filter_exists())
     {
       mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
-                 " does not exist in OpenMC model");
+                 " does not exist in the OpenMC model");
     }
     else
     {
       check_existing_filter_type();
     }
   }
-
-  if (_allowed_types.count(_filter_type) == 0)
-    bad_filter_type_error();
 
   return openmc::model::filter_map.at(_filter_id);
 }

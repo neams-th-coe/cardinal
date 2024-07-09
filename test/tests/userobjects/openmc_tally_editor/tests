@@ -82,4 +82,12 @@
     requirement = 'The system shall error if trying to add a filter with an invalid type.'
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [filter_doesnt_exist]
+    type = RunException
+    input = add_filter.i
+    cli_args = 'UserObjects/new_filter/create_filter=false'
+    expect_err = 'OpenMCDomainFilterEditor "new_filter": Filter 100 does not exist in the OpenMC model'
+    requirement = 'The system shall error if trying to add a filter with an invalid type.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
