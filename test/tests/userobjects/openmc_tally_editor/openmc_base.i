@@ -24,17 +24,6 @@
   check_tally_sum = false
 []
 
-[UserObjects]
-  [tally1]
-    type = OpenMCTallyEditor
-    tally_id = 2
-    nuclides = 'U238'
-    filter_ids = ''
-    multiply_density = true
-    scores = ''
-  []
-[]
-
 [Postprocessors]
   [power_1]
     type = PointValue
