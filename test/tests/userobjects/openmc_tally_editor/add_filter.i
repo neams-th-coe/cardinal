@@ -13,7 +13,7 @@
     create_tally = true
     tally_id = 100
     scores = 'absorption'
-    filter_ids = '1'
+    filter_ids = '100'
     nuclides = ''
   []
 []

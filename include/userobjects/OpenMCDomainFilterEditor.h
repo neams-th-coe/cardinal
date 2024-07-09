@@ -40,6 +40,7 @@ public:
 
   /// Utility methods
   const OpenMCProblemBase * openmc_problem() const;
+  bool filter_exists() const;
   void check_existing_filter_type() const;
   void bad_filter_type_error() const;
   int32_t filter_index() const;
