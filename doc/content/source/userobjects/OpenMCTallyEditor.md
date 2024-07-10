@@ -15,7 +15,7 @@ Below is an example which will create an OpenMC tally with controllable paramete
 tally to only obtain the fission heating from U-238 (ignoring the
 portion from U-235 in this particular tally).
 
-!listing test/tests/userobjects/openmc_tally_editor/openmc.i
+!listing test/tests/userobjects/openmc_tally_editor/nuclide_absorption.i
   block=UserObjects
 
 !syntax parameters /UserObjects/OpenMCTallyEditor

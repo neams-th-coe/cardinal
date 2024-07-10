@@ -10,5 +10,11 @@ with filter bins set by domain ID(s).
 
 ## Example Input Syntax
 
-TBA
+!listing test/tests/userobjects/openmc_tally_editor/add_filter.i
+  block=UserObjects
 
+!syntax parameters /UserObjects/OpenMCFilterEditor
+
+!syntax inputs /UserObjects/OpenMCFilterEditor
+
+!syntax children /UserObjects/OpenMCFilterEditor
