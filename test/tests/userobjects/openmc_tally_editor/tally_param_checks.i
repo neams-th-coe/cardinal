@@ -3,7 +3,7 @@
 [UserObjects]
   [tally_editor_uo]
     type = OpenMCTallyEditor
-    tally_id = 2
+    tally_id = 3
     nuclides = ''
     filter_ids = ''
     multiply_density = true

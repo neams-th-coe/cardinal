@@ -10,8 +10,8 @@
   [nonexistent_tally]
     type = RunException
     input = tally_param_checks.i
-    cli_args = 'UserObjects/tally_editor_uo/tally_id=3'
-    expect_err = 'OpenMCTallyEditor "tally_editor_uo": Tally 3 does not exist in the OpenMC model'
+    cli_args = 'UserObjects/tally_editor_uo/tally_id=3000'
+    expect_err = 'OpenMCTallyEditor "tally_editor_uo": Tally 3000 does not exist in the OpenMC model'
     requirement = 'The system shall error if trying to change nuclides for a non-existing tally ID.'
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -95,7 +95,7 @@
     input = add_filter.i
     cli_args = 'UserObjects/new_filter/create_filter=false'
     expect_err = 'OpenMCDomainFilterEditor "new_filter": Filter 100 does not exist in the OpenMC XML model'
-    requirement = 'The system shall error if trying to add a filter with an invalid type.'
+    requirement = 'The system shall error if the filter does not exist and is not flagged for creation.'
     required_objects = 'OpenMCCellAverageProblem'
   []
   [clashing_filter_ids]
