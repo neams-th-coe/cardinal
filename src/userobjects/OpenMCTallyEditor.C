@@ -47,7 +47,8 @@ OpenMCTallyEditor::validParams()
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
   : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
-{}
+{
+}
 
 int32_t
 OpenMCTallyEditor::tally_index() const

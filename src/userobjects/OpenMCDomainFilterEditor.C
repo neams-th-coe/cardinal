@@ -58,15 +58,16 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
 
   if (!create_filter && !filter_exists)
   {
-      mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
-                 " does not exist in the OpenMC model and filter_type was not specified");
+    mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
+               " does not exist in the OpenMC model and filter_type was not specified");
   }
 
-  if (!create_filter && _filter_type.empty()) {
+  if (!create_filter && _filter_type.empty())
+  {
     {
-        int32_t filter_index = openmc::model::filter_map.at(_filter_id);
-        _filter_type = openmc::model::tally_filters[filter_index]->type_str();
-        check_existing_filter_type();
+      int32_t filter_index = openmc::model::filter_map.at(_filter_id);
+      _filter_type = openmc::model::tally_filters[filter_index]->type_str();
+      check_existing_filter_type();
     }
 
     if (create_filter && _filter_type.empty())
