@@ -7,7 +7,7 @@
     requirement = 'The system shall error if a userobject is not used with a compatible problem class.'
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [nonexistent_id]
+  [nonexistent_tally]
     type = RunException
     input = tally_param_checks.i
     cli_args = 'UserObjects/tally_editor_uo/tally_id=3'
@@ -82,11 +82,11 @@
     requirement = 'The system shall error if trying to add a filter with an invalid type.'
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [filter_doesnt_exist]
+  [nonexistent_filter]
     type = RunException
     input = add_filter.i
     cli_args = 'UserObjects/new_filter/create_filter=false'
-    expect_err = 'OpenMCDomainFilterEditor "new_filter": Filter 100 does not exist in the OpenMC model'
+    expect_err = 'OpenMCDomainFilterEditor "new_filter": Filter 100 does not exist in the OpenMC XML model'
     requirement = 'The system shall error if trying to add a filter with an invalid type.'
     required_objects = 'OpenMCCellAverageProblem'
   []
