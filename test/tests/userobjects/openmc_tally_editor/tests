@@ -48,6 +48,14 @@
     file_expect_out = 'U238\n   Absorption Rate'
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [invalid_score]
+    type = RunException
+    input = tally_param_checks.i
+    cli_args = 'UserObjects/tally_editor_uo/scores="invalid"'
+    expect_err = 'Invalid tally score "invalid". See the docs for details:'
+    requirement = 'The system shall error if trying to add a score with an invalid type.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [add_cell_filter]
     type = CheckFiles
     input = add_filter.i
