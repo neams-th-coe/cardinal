@@ -347,6 +347,9 @@ protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
 
+  /// Ensure that the IDs of OpenMC objects in UserObjects don't clash
+  void checkOpenMCUserObjectIDs() const;
+
   /// Execute all filter editor userobjects
   void executeFilterEditors();
 

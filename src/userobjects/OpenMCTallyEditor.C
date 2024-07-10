@@ -47,16 +47,14 @@ OpenMCTallyEditor::validParams()
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
   : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
-{
-}
+{}
 
-int32_t
-OpenMCTallyEditor::tally_index() const
-{
-  // this is put here, instead of the constructor, because Cardinal initializes
+void
+OpenMCTallyEditor::initialize() {
+  // this is placed here, instead of the constructor, because Cardinal initializes
   // some tallies. Depending on the order of initialization of UserObjects vs.
   // other classes, those tallies might not exist yet in OpenMC's data space
-  // (but they will by the time we get here).
+  // (but they will by the time this method is called).
   bool create_tally = getParam<bool>("create_tally");
   bool tally_exists = openmc::model::tally_map.find(_tally_id) != openmc::model::tally_map.end();
 
@@ -81,13 +79,26 @@ OpenMCTallyEditor::tally_index() const
                  " does not exist in the OpenMC model");
     }
   }
+}
 
+void
+OpenMCTallyEditor::first_execution()
+{
+  if (!_first_execution) return;
+  initialize();
+  _first_execution = false;
+}
+
+int32_t
+OpenMCTallyEditor::tally_index() const
+{
   return openmc::model::tally_map.at(_tally_id);
 }
 
 void
 OpenMCTallyEditor::execute()
 {
+  first_execution();
   openmc::Tally * tally = openmc::model::tallies[tally_index()].get();
 
   std::vector<std::string> scores = getParam<std::vector<std::string>>("scores");
