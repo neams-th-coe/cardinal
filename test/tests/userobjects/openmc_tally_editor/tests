@@ -98,6 +98,14 @@
     requirement = 'The system shall error if the filter does not exist and is not flagged for creation.'
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [clashing_filter_types]
+    type = RunException
+    input = add_filter.i
+    cli_args = 'UserObjects/new_filter/filter_type="universe" UserObjects/new_filter/filter_id=1'
+    expect_err = 'OpenMCDomainFilterEditor "new_filter": An existing filter, Filter 1, is of type "cell" and cannot be changed to type "universe"'
+    requirement = 'The system shall error if more than one OpenMCDomainFilterEditor eixsts with the same filter ID.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [clashing_filter_ids]
     type = RunException
     input = clashing_filter_ids.i
