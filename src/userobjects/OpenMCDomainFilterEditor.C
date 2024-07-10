@@ -114,8 +114,8 @@ OpenMCDomainFilterEditor::check_filter_type_match() const
   std::string existing_type = openmc::model::tally_filters[filter_index()]->type_str();
   if (existing_type != _filter_type)
   {
-    mooseError(long_name() + ": An existing filter " + std::to_string(_filter_id) + " is of type " +
-               existing_type + " and cannot be changed to type " + _filter_type);
+    mooseError(long_name() + ": An existing filter, Filter " + std::to_string(_filter_id) + ", is of type \"" +
+               existing_type + "\" and cannot be changed to type \"" + _filter_type + "\"");
   }
 }
 
