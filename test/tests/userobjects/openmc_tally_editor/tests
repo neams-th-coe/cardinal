@@ -90,4 +90,18 @@
     requirement = 'The system shall error if trying to add a filter with an invalid type.'
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [clashing_filter_ids]
+    type = RunException
+    input = clashing_filter_ids.i
+    expect_err = 'Duplicate filter ID "10" found in OpenMCDomainFilterEditor "filter_b"'
+    requirement = 'The system shall error if more than one OpenMCDomainFilterEditor eixsts with the same filter ID.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [clashing_tally_ids]
+    type = RunException
+    input = clashing_tally_ids.i
+    expect_err = 'Duplicate tally ID "10" found in OpenMCTallyEditor "tally_b"'
+    requirement = 'The system shall error if more than one OpenMCTallyEditor eixsts with the same tally ID.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
