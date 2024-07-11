@@ -41,17 +41,17 @@ public:
 
   /**
    * Get the index of the filter in OpenMC's data space
-  */
+   */
   bool filter_exists() const;
 
   /**
    * Return the index of the filter in the OpenMC data space
-  */
+   */
   int32_t filter_index() const;
 
   /**
    * Check that this object's filter type is valid and matches the type in the OpenMC data space
-  */
+   */
   void check_filter_type_match() const;
 
   std::string long_name() const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
@@ -60,7 +60,7 @@ public:
   int32_t filter_id() const { return _filter_id; }
 
 protected:
-  bool _first_execution {true};
+  bool _first_execution{true};
   int32_t _filter_id;
   std::string _filter_type;
   const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
