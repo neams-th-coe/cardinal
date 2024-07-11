@@ -5,7 +5,7 @@
   <batches>2500</batches>
   <inactive>500</inactive>
   <source particle="neutron" strength="1.0" type="independent">
-    <space type="fission">
+    <space type="box">
       <parameters>-21.013240397425623 -21.013240397425623 0.0 21.013240397425623 21.013240397425623 634.3</parameters>
     </space>
   </source>

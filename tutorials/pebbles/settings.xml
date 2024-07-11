@@ -5,9 +5,12 @@
   <batches>1000</batches>
   <inactive>100</inactive>
   <source particle="neutron" strength="1.0" type="independent">
-    <space type="fission">
+    <space type="box">
       <parameters>-4.0 -4.0 0 4.0 4.0 12.0</parameters>
     </space>
+    <constraints>
+      <fissionable>true</fissionable>
+    </constraints>
   </source>
   <temperature_default>923.15</temperature_default>
   <temperature_method>interpolation</temperature_method>

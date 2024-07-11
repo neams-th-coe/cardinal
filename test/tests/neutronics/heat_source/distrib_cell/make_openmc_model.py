@@ -50,10 +50,10 @@ sphere3 = openmc.Sphere(x0=0.0, y0=0.0, z0=zmax, r=R)
 # create a box surrounding them
 L = 5.0
 l = 0.5
-prism = openmc.model.rectangular_prism(L, L, boundary_type='reflective')
+prism = openmc.model.RectangularPrism(L, L, boundary_type='reflective')
 bot = openmc.ZPlane(z0=zmin - R - l, boundary_type='reflective')
 top = openmc.ZPlane(z0=zmax + R + l, boundary_type='reflective')
-box = prism & +bot & -top
+box = -prism & +bot & -top
 
 # Create the pebble universe
 solid_cell = openmc.Cell(fill=uo2, region=box)
@@ -73,28 +73,17 @@ geometry.export_to_xml()
 
 # Finally, define some run settings
 settings = openmc.Settings()
-settings.batches = 50
+settings.batches = 20
 settings.inactive = 10
 settings.particles = 100
 
 height = 8.0 + 2 * R + 2 * l
 lower_left = (-L, -L, 0)
 upper_right = (L, L, height)
-uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-settings.source = openmc.source.Source(space=uniform_dist)
+uniform_dist = openmc.stats.Box(lower_left, upper_right)
+settings.source = openmc.source.IndependentSource(space=uniform_dist, constraints={'fissionable' : True})
 settings.temperature = {'default': 600.0,
                         'method': 'nearest',
                         'multipole': False,
                         'range': (294.0, 1600.0)}
 settings.export_to_xml()
-
-plot = openmc.Plot()
-plot.filename = 'plot1'
-plot.width = (L, 2 * height)
-plot.origin = (0, 0, 0)
-plot.basis = 'xz'
-plot.pixels = (200, 200)
-plot.color_by = 'cell'
-
-plots = openmc.Plots([plot])
-plots.export_to_xml()

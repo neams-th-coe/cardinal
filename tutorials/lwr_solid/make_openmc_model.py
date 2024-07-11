@@ -114,8 +114,8 @@ settings.particles = 20000
 # Create an initial uniform spatial source distribution over fissionable zones
 lower_left = (-pitch/2, -pitch/2, 0.0)
 upper_right = (pitch/2, pitch/2, height)
-uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-settings.source = openmc.IndependentSource(space=uniform_dist)
+uniform_dist = openmc.stats.Box(lower_left, upper_right)
+settings.source = openmc.IndependentSource(space=uniform_dist, constraints={'fissionable':True})
 
 if (args.entropy):
   entropy_mesh = openmc.RegularMesh()

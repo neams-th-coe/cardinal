@@ -77,8 +77,8 @@ model.settings.particles = 10000
 
 lower_left = (-L, -L, 0)
 upper_right = (L, L, N*L)
-uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-model.settings.source = openmc.IndependentSource(space=uniform_dist)
+uniform_dist = openmc.stats.Box(lower_left, upper_right)
+model.settings.source = openmc.IndependentSource(space=uniform_dist, constraints={'fissionable':True})
 model.settings.temperature = {'default': 650.0 + 273.15,
                               'method': 'interpolation',
                               'multipole': False,
