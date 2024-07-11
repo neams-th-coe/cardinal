@@ -124,7 +124,7 @@ AddTallyAction::fillMeshTranslations()
   {
     std::vector<FileName> mesh_translations_file =
         getParam<std::vector<FileName>>("mesh_translations_file");
-    if (_mesh_translations.empty())
+    if (mesh_translations_file.empty())
       mooseError("mesh_translations_file cannot be empty!");
 
     for (const auto & f : mesh_translations_file)

@@ -20,6 +20,7 @@
 
 #include "OpenMCProblemBase.h"
 #include "CardinalAppTypes.h"
+#include "AddTallyAction.h"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -110,7 +111,9 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   {
     case openmc::RunMode::EIGENVALUE:
     {
-      if (_tally_type != tally::none)
+      // Jumping through hoops to see if we're going to add tallies down the line.
+      const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
+      if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "power", "running in k-eigenvalue mode");
         _power = &getPostprocessorValue("power");

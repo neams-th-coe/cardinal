@@ -74,16 +74,8 @@ CellTally::CellTally(const InputParameters & parameters)
 std::vector<std::string>
 CellTally::generateAuxVarNames()
 {
-  std::vector<std::string> names;
-
-  for (const auto & score_name : _tally_score)
-  {
-    names.push_back(_name + "_" + score_name);
-    std::replace(names.back().begin(), names.back().end(), '-', '_');
-  }
-
   // TODO: Add energy filters.
-  return names;
+  return _tally_name;
 }
 
 void
@@ -92,9 +84,16 @@ CellTally::initializeTally()
   // Check to make sure we can map tallies to the mesh subdomains requested in tally_blocks.
   checkCellMappedSubdomains();
 
+  if (_openmc_problem.cellToElem().size() == 0)
+    mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
+               "the specified blocks!");
+
   // Clear cached results.
-  _local_sum_tally.resize(_tally_score.size());
-  _local_mean_tally.resize(_tally_score.size());
+  // Clear cached results.
+  _local_sum_tally.clear();
+  _local_sum_tally.resize(_tally_score.size(), 0.0);
+  _local_mean_tally.clear();
+  _local_mean_tally.resize(_tally_score.size(), 0.0);
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());

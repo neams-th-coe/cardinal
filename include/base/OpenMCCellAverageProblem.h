@@ -876,7 +876,7 @@ protected:
   const bool _specified_temperature_feedback;
 
   /// Whether any spatial mapping from OpenMC's cells to the mesh is needed
-  const bool _needs_to_map_cells;
+  bool _needs_to_map_cells;
 
   /**
    * Whether a global tally is required for the sake of normalization and/or checking

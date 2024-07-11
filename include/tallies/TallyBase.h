@@ -80,6 +80,12 @@ public:
                                     const std::string & output_type) = 0;
 
   /**
+   * Add a score to this tally.
+   * @param[in] score score to add
+   */
+  void addScore(const std::string & score);
+
+  /**
    * A function which computes and stores the sum and mean of the tally across all bins for a
    * particular score.
   */
@@ -138,6 +144,12 @@ public:
    * @return whether this tally uses a trigger or not
    */
   bool hasTrigger() const { return _tally_trigger != nullptr; }
+
+  /**
+   * Check to see if the user has requested special names for the tallies.
+   * @return whether this tally names stored values something other than '_tally_score'
+   */
+  bool renamesTallyScore() const { return isParamValid("tally_name"); }
 
 protected:
   /**
@@ -291,6 +303,9 @@ protected:
 
   /// Current "raw" tally standard deviation
   std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
+
+  /// Whether the tally variable names should be prefixed with this object's name or not.
+  const bool _should_prefix;
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;

@@ -87,24 +87,22 @@ MeshTally::MeshTally(const InputParameters & parameters)
 std::vector<std::string>
 MeshTally::generateAuxVarNames()
 {
-  std::vector<std::string> names;
-
-  for (const auto & score_name : _tally_score)
-  {
-    names.push_back(_name + "_" + score_name);
-    std::replace(names.back().begin(), names.back().end(), '-', '_');
-  }
-
   // TODO: Add energy filters.
-  return names;
+  /**
+   * If this is the first instance we report the tally's names. Otherwise
+   * this tally will use a variable added by the first mesh filter in this series.
+   */
+  return _instance == 0 ? _tally_name : std::vector<std::string>();
 }
 
 void
 MeshTally::initializeTally()
 {
   // Clear cached results.
-  _local_sum_tally.resize(_tally_score.size());
-  _local_mean_tally.resize(_tally_score.size());
+  _local_sum_tally.clear();
+  _local_sum_tally.resize(_tally_score.size(), 0.0);
+  _local_mean_tally.clear();
+  _local_mean_tally.resize(_tally_score.size(), 0.0);
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());

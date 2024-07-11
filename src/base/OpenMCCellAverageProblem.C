@@ -21,6 +21,7 @@
 #include "OpenMCCellAverageProblem.h"
 #include "DelimitedFileReader.h"
 #include "TallyBase.h"
+#include "AddTallyAction.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -214,12 +215,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _map_density_by_cell(getParam<bool>("map_density_by_cell")),
     _specified_density_feedback(params.isParamSetByUser("density_blocks")),
     _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
-    _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback ||
-                        params.isParamSetByUser("tally_blocks")),
+    _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr)
 {
+  // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map cells.
+  const auto & actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
+  for (const auto & act : actions)
+    _needs_to_map_cells = act->getMooseObjectType() == "CellTally" ? true : _needs_to_map_cells;
+
   if (!_needs_to_map_cells)
     checkUnusedParam(params,
                      "output_cell_mapping",
@@ -606,8 +611,6 @@ OpenMCCellAverageProblem::setupProblem()
   }
 
   subdomainsToMaterials();
-
-  validateLocalTallies();
 
   initializeTallies();
 }
@@ -1854,11 +1857,6 @@ OpenMCCellAverageProblem::initializeTallies()
   // Initialize all of the [Tallies].
   for (auto & local_tally : _local_tallies)
     local_tally->initializeTally();
-
-  _local_sum_tally.clear();
-  _local_sum_tally.resize(_all_tally_scores.size(), 0.0);
-  _local_mean_tally.clear();
-  _local_mean_tally.resize(_all_tally_scores.size(), 0.0);
 }
 
 void
@@ -1924,26 +1922,46 @@ OpenMCCellAverageProblem::findCell(const Point & point)
 void
 OpenMCCellAverageProblem::addExternalVariables()
 {
+  // We need to validate tallies here to we can add scores that may be missing.
+  validateLocalTallies();
+
   // Add all of the auxvariables in which the [Tallies] block will store results.
+  unsigned int previous_valid_name_index = 0;
   for (unsigned int i = 0; i < _local_tallies.size(); ++i)
   {
-    _tally_var_names.push_back(_local_tallies[i]->generateAuxVarNames());
+    auto names = _local_tallies[i]->generateAuxVarNames();
+    _tally_var_names.push_back(names);
     _tally_var_ids.emplace_back();
 
+    // We use this to check if a sequence of added tallies corresponds to a single translated mesh.
+    // If the number of names reported in generateAuxVarNames is zero, the tally must store it's results
+    // in the variables added by the first mesh in the sequence.
+    previous_valid_name_index = names.size() > 0 ? i : previous_valid_name_index;
+
     if (_outputs)
-      _tally_ext_var_ids.resize(_outputs->size());
-
-    for (unsigned int j = 0; j < _tally_var_names[i].size(); ++j)
     {
-      auto name = _tally_var_names[i][j];
-      _tally_var_ids[i].push_back(addExternalVariable(name));
+      _tally_ext_var_ids.emplace_back();
+      _tally_ext_var_ids[i].resize(_outputs->size());
+    }
 
+    for (unsigned int j = 0; j < _tally_var_names[previous_valid_name_index].size(); ++j)
+    {
+      auto name = _tally_var_names[previous_valid_name_index][j];
+      if (names.size() == 0)
+        _tally_var_ids[i].push_back(_tally_var_ids[previous_valid_name_index][j]); // Use variables from first in sequence.
+      else
+        _tally_var_ids[i].push_back(addExternalVariable(name));
+
+      // TODO: Enable extra outputs on a per tally basis in the [Tallies] block.
       if (_outputs)
       {
         for (std::size_t k = 0; k < _outputs->size(); ++k)
         {
           std::string n = name + "_" + _output_name[k];
-          _tally_ext_var_ids[i][k].push_back(addExternalVariable(n));
+          if (names.size() == 0)
+            _tally_ext_var_ids[i][k].push_back(_tally_ext_var_ids[previous_valid_name_index][k][j]); // Use variables from first in sequence.
+          else
+            _tally_ext_var_ids[i][k].push_back(addExternalVariable(n));
         }
       }
     }
@@ -2420,6 +2438,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         local_tally->computeSumAndMean();
 
       // Accumulate the sums and means for every score.
+      _local_sum_tally.clear();
+      _local_sum_tally.resize(_all_tally_scores.size(), 0.0);
+      _local_mean_tally.clear();
+      _local_mean_tally.resize(_all_tally_scores.size(), 0.0);
       for (unsigned int i = 0; i < _local_tallies.size(); ++i)
       {
         for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
@@ -2490,8 +2512,8 @@ OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
         << " Global value: " << Moose::stringify(_global_sum_tally[score])
         << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
         << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
-        << "\n\nThis means that the tallies created by Cardinal are missing some hits over the domain,\n"
-        << "\nOr the estimators used by the global and local tallies are different.\n"
+        << "\n\nThis means that the tallies created by Cardinal are missing some hits over the domain,"
+        << " or the estimators used by the global and local tallies are different.\n"
         << "You can turn off this check by setting 'check_tally_sum' to false.";
 
     mooseError(msg.str());
@@ -2671,16 +2693,33 @@ OpenMCCellAverageProblem::validateLocalTallies()
     const auto & norm = getParam<MooseEnum>("source_rate_normalization");
 
     // If the score is already in tally_score, no need to do anything special.
-    // Otherwise, we error and let the user know that they need to add the score.
     std::string n = enumToTallyScore(norm);
     auto it = std::find(_all_tally_scores.begin(), _all_tally_scores.end(), n);
     if (it != _all_tally_scores.end())
       _source_rate_index = it - _all_tally_scores.begin();
+    else if (it == _all_tally_scores.end() && _local_tallies.size() == 1)
+    {
+      if (_local_tallies[0]->renamesTallyScore())
+        mooseError("When specifying 'tally_name', the score indicated in "
+                   "'source_rate_normalization' must be\n"
+                   "listed in 'tally_score' so that we know what you want to name that score (",
+                   norm,
+                   ")");
+
+      // We can add the requested normalization score if and only if a single tally was added by [Tallies].
+      _all_tally_scores.push_back(n);
+      _local_tallies[0]->addScore(n);
+      _local_tally_score_map[0][n] = _local_tallies[0]->getScores().size() - 1;
+      _source_rate_index = _all_tally_scores.size() - 1;
+    }
     else
+    {
+      // Otherwise, we error and let the user know that they need to add the score.
       mooseError("The local tallies added in the [Tallies] block do not contain the requested heating score " + n
                  + ". You must either add this score in one of the tallies or choose a different heating score.");
+    }
   }
-  else
+  else if (isParamValid("source_rate_normalization"))
     mooseWarning("When either running in fixed-source mode, or all tallies have units of eV/src, the "
                  "'source_rate_normalization' parameter is unused!");
 }

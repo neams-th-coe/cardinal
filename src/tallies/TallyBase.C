@@ -45,6 +45,11 @@ TallyBase::validParams()
       "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<std::vector<Real>>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
+  params.addParam<bool>("prefix_with_tally_name",
+                        false,
+                        "Whether the tally score variable names should be prefixed with the name "
+                        "of this tally object. This must be enabled if you have multiple tallies "
+                        "which share scores.");
 
   params.addPrivateParam<OpenMCCellAverageProblem *>("_openmc_problem");
 
@@ -60,7 +65,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
   _mesh(_openmc_problem.mesh()),
   _aux(_openmc_problem.getAuxiliarySystem()),
   _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
-                                                 : nullptr)
+                                                 : nullptr),
+  _should_prefix(getParam<bool>("prefix_with_tally_name"))
 {
   if (isParamValid("tally_score"))
   {
@@ -132,18 +138,50 @@ TallyBase::TallyBase(const InputParameters & parameters)
   }
 
   if (isParamValid("tally_name"))
+  {
     _tally_name = getParam<std::vector<std::string>>("tally_name");
+    if (_should_prefix)
+      for (auto & tally_name : _tally_name)
+        tally_name = _name + tally_name;
+  }
   else
   {
     for (auto score : _tally_score)
     {
       std::replace(score.begin(), score.end(), '-', '_');
-      _tally_name.push_back(score);
+      if (_should_prefix)
+        _tally_name.push_back(_name + "_" + score);
+      else
+        _tally_name.push_back(score);
     }
   }
 
   if (_tally_name.size() != _tally_score.size())
     mooseError("'tally_name' must be the same length as 'tally_score'!");
+
+  _openmc_problem.checkDuplicateEntries(_tally_name, "tally_name");
+  _openmc_problem.checkDuplicateEntries(_tally_score, "tally_score");
+
+  _local_sum_tally.resize(_tally_score.size(), 0.0);
+  _local_mean_tally.resize(_tally_score.size(), 0.0);
+
+  _current_tally.resize(_tally_score.size());
+  _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_std_dev.resize(_tally_score.size());
+  _previous_tally.resize(_tally_score.size());
+}
+
+void
+TallyBase::addScore(const std::string & score)
+{
+  _tally_score.push_back(score);
+
+  std::string s = score;
+  std::replace(s.begin(), s.end(), '-', '_');
+  if (_should_prefix)
+    _tally_name.push_back(_name + "_" + s);
+  else
+    _tally_name.push_back(s);
 
   _local_sum_tally.resize(_tally_score.size(), 0.0);
   _local_mean_tally.resize(_tally_score.size(), 0.0);
@@ -204,7 +242,7 @@ const openmc::Tally *
 TallyBase::getWrappedTally() const
 {
   if (!_local_tally)
-    mooseError("This tally has not been initialze!");
+    mooseError("This tally has not been initialized!");
 
   return _local_tally;
 }
