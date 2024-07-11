@@ -2,10 +2,10 @@
 <materials>
   <material depletable="true" id="1">
     <density units="g/cc" value="10.0"/>
-    <nuclide ao="0.0004523305496957069" name="U234"/>
-    <nuclide ao="0.05060678291113409" name="U235"/>
-    <nuclide ao="0.9487090831661896" name="U238"/>
-    <nuclide ao="0.00023180337298067612" name="U236"/>
+    <nuclide ao="0.0004523305496680539" name="U234"/>
+    <nuclide ao="0.05060678290832386" name="U235"/>
+    <nuclide ao="0.948709083169038" name="U238"/>
+    <nuclide ao="0.00023180337297007338" name="U236"/>
     <nuclide ao="1.999242" name="O16"/>
     <nuclide ao="0.000758" name="O17"/>
   </material>
