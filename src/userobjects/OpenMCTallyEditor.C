@@ -47,10 +47,12 @@ OpenMCTallyEditor::validParams()
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
   : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
-{}
+{
+}
 
 void
-OpenMCTallyEditor::initialize() {
+OpenMCTallyEditor::initialize()
+{
   // this is placed here, instead of the constructor, because Cardinal initializes
   // some tallies. Depending on the order of initialization of UserObjects vs.
   // other classes, those tallies might not exist yet in OpenMC's data space
@@ -84,7 +86,8 @@ OpenMCTallyEditor::initialize() {
 void
 OpenMCTallyEditor::first_execution()
 {
-  if (!_first_execution) return;
+  if (!_first_execution)
+    return;
   initialize();
   _first_execution = false;
 }
