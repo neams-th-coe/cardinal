@@ -1,14 +1,14 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <plots>
   <plot basis="xy" color_by="material" filename="plot2" id="2" type="slice">
+    <pixels>9500 9500</pixels>
     <origin>0.0 0.0 6.25</origin>
     <width>29.099999999999998 29.099999999999998</width>
-    <pixels>9500 9500</pixels>
-    <color id="1" rgb="152 251 152" />
-    <color id="2" rgb="244 164 96" />
-    <color id="3" rgb="255 165 0" />
-    <color id="4" rgb="255 255 0" />
-    <color id="5" rgb="0 0 139" />
-    <color id="8" rgb="255 0 0" />
+    <color id="1" rgb="152 251 152"/>
+    <color id="2" rgb="244 164 96"/>
+    <color id="3" rgb="255 165 0"/>
+    <color id="4" rgb="255 255 0"/>
+    <color id="5" rgb="0 0 139"/>
+    <color id="8" rgb="255 0 0"/>
   </plot>
 </plots>
