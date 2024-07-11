@@ -19,6 +19,17 @@
   allow_renumbering = false
 []
 
+[Tallies]
+  [Mesh]
+    type = MeshTally
+    tally_score = 'kappa_fission heating'
+    mesh_template = ../meshes/sphere.e
+    mesh_translations = '0 0 0
+                         0 0 4
+                         0 0 8'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -27,14 +38,8 @@
   verbose = true
   cell_level = 0
 
-  tally_type = mesh
-  mesh_template = ../meshes/sphere.e
-  mesh_translations = '0 0 0
-                       0 0 4
-                       0 0 8'
   check_tally_sum = false
-
-  tally_score = 'kappa_fission heating'
+  global_tally_estimator = collision
 
   initial_properties = xml
 []

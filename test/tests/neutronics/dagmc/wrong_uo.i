@@ -6,11 +6,16 @@
   parallel_type = replicated
 []
 
+[Tallies]
+  [Mesh]
+    type = CellTally
+    tally_blocks = '1'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = cell
   cell_level = 0
-  tally_blocks = '1'
   temperature_blocks = '1'
   power = 1000.0
   skinner = moab

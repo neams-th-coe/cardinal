@@ -7,10 +7,16 @@
   allow_renumbering = false
 []
 
+[Tallies]
+  [Mesh]
+    type = MeshTally
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = mesh
+  global_tally_estimator = collision
   check_tally_sum = false
   power = 100.0
 []

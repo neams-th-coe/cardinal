@@ -37,11 +37,17 @@ scale = 100.0
   []
 []
 
+[Tallies]
+  [Mesh]
+    type = MeshTally
+    mesh_template = scale_in.e
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = mesh
-  mesh_template = scale_in.e
+  global_tally_estimator = collision
   scaling = ${scale}
 
   temperature_blocks = '1 2'

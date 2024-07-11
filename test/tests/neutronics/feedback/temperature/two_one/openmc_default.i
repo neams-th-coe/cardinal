@@ -52,7 +52,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = none
   cell_level = 0
   temperature_blocks = '3 0'
 []

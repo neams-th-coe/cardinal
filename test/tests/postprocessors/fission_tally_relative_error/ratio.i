@@ -12,15 +12,20 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '1'
+    tally_score = 'heating kappa_fission'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  tally_blocks = '1'
   cell_level = 0
-  tally_type = cell
   check_tally_sum = false
 
-  tally_score = 'heating kappa_fission'
   output = 'unrelaxed_tally_std_dev'
   initial_properties = xml
 []

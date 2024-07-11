@@ -19,14 +19,19 @@
   []
 []
 
+[Tallies]
+  [heat_source]
+    type = CellTally
+    tally_blocks = '2 3'
+    tally_name = heat_source
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
   power = ${fparse 3000e6 / 273 / (17 * 17)}
   temperature_blocks = '1 2 3'
-  tally_blocks = '2 3'
-  tally_type = cell
-  tally_name = heat_source
   cell_level = 0
 
   volume_calculation = vol

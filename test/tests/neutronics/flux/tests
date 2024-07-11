@@ -9,7 +9,7 @@
   [flip_order]
     type = CSVDiff
     input = flux.i
-    cli_args = 'Problem/tally_score="flux heating"'
+    cli_args = 'Tallies/Cell/tally_score="flux heating"'
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when listed in an arbitrary order."
     required_objects = 'OpenMCCellAverageProblem'
@@ -17,7 +17,7 @@
   [flip_order_and_name]
     type = CSVDiff
     input = flux.i
-    cli_args = 'Problem/tally_score="flux heating" Problem/tally_name="flux0 heating0" Postprocessors/flux_pebble1/variable=flux0 Postprocessors/flux_pebble2/variable=flux0 Postprocessors/flux_pebble3/variable=flux0 Postprocessors/flux_fluid/variable=flux0 Problem/source_rate_normalization="heating"'
+    cli_args = 'Tallies/Cell/tally_score="flux heating" Tallies/Cell/tally_name="flux0 heating0" Postprocessors/flux_pebble1/variable=flux0 Postprocessors/flux_pebble2/variable=flux0 Postprocessors/flux_pebble3/variable=flux0 Postprocessors/flux_fluid/variable=flux0 Problem/source_rate_normalization="heating"'
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when listed in an arbitrary order and with user-defined names."
     required_objects = 'OpenMCCellAverageProblem'
@@ -25,7 +25,7 @@
   [not_already_added]
     type = CSVDiff
     input = flux.i
-    cli_args = 'Problem/tally_score="flux" Problem/source_rate_normalization=heating'
+    cli_args = 'Tallies/Cell/tally_score="flux" Problem/source_rate_normalization=heating'
     csvdiff = flux_out.csv
     requirement = "The system shall correctly normalize flux tallies for eigenvalue simulations when the source rate normalization tally is not already added."
     required_objects = 'OpenMCCellAverageProblem'
@@ -33,7 +33,7 @@
   [missing_name]
     type = RunException
     input = flux.i
-    cli_args = 'Problem/tally_score="flux" Problem/tally_name="f"'
+    cli_args = 'Tallies/Cell/tally_score="flux" Tallies/Cell/tally_name="f"'
     expect_err = "When specifying 'tally_name', the score indicated in 'source_rate_normalization' must be\n"
                  "listed in 'tally_score' so that we know what you want to name that score \(heating\)"
     requirement = "The system shall error if the user tries to name only a partial set of the total tally scores."

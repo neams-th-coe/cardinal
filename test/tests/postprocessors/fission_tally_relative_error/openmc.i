@@ -17,13 +17,18 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '100'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
   temperature_blocks = '100'
-  tally_blocks = '100'
   cell_level = 0
-  tally_type = cell
   check_tally_sum = false
 
   # this outputs the fission tally standard deviation in space

@@ -19,12 +19,17 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '1'
+    tally_name = heat_source
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 0.0
-  tally_type = cell
-  tally_blocks = '1'
-  tally_name = heat_source
   cell_level = 0
   temperature_blocks = '1'
 []

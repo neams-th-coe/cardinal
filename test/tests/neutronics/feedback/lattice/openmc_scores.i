@@ -3,6 +3,15 @@
   file = ../../meshes/pincell.e
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '1 2 3'
+    tally_score = heating
+    tally_name = heat_source
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
@@ -12,11 +21,7 @@
 
   cell_level = 1
 
-  tally_type = cell
-  tally_blocks = '1 2 3'
   check_tally_sum = false
-  tally_score = heating
-  tally_name = heat_source
 
   initial_properties = xml
 []

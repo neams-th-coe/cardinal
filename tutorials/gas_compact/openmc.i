@@ -40,17 +40,23 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
   []
 []
 
+[Tallies]
+  [heat_source]
+    type = CellTally
+    tally_name = heat_source
+    tally_blocks = 'compacts compacts_trimmer_tri'
+    check_equal_mapped_tally_volumes = true
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   output = 'unrelaxed_tally_std_dev'
-  check_equal_mapped_tally_volumes = true
 
   power = ${power}
   scaling = 100.0
   temperature_blocks = 'graphite compacts compacts_trimmer_tri'
-  tally_blocks = 'compacts compacts_trimmer_tri'
-  tally_type = cell
-  tally_name = heat_source
+
   cell_level = 1
 []
 

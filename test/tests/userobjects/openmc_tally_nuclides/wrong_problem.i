@@ -14,20 +14,21 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '0'
+[Variables]
+  [u]
+    order = FIRST
+  []
+[]
+
+[Kernels]
+  [d]
+    type = Diffusion
+    variable = u
   []
 []
 
 [Problem]
-  type = OpenMCCellAverageProblem
-
-  cell_level = 0
-  power = 100.0
-
-  check_tally_sum = false
+  type = FEProblem
 []
 
 [UserObjects]

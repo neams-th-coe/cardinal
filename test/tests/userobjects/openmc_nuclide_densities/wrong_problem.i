@@ -14,6 +14,19 @@
   []
 []
 
+[Variables]
+  [u]
+    order = FIRST
+  []
+[]
+
+[Kernels]
+  [d]
+    type = Diffusion
+    variable = u
+  []
+[]
+
 [ICs]
   [temp]
     type = ConstantIC
@@ -22,22 +35,8 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '0'
-  []
-[]
-
 [Problem]
-  type = OpenMCCellAverageProblem
-  verbose = true
-
-  temperature_blocks = '0'
-  cell_level = 0
-  power = 100.0
-
-  initial_properties = xml
+  type = FEProblem
 []
 
 [UserObjects]

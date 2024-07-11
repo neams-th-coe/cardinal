@@ -30,19 +30,23 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_score = 'kappa_fission heating'
+    tally_blocks = '100'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_blocks = '100'
   verbose = true
   cell_level = 0
-  tally_type = cell
   normalize_by_global_tally = false
   check_tally_sum = false
-
-  tally_score = 'kappa_fission heating'
 
   initial_properties = xml
 []

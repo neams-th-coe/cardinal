@@ -21,12 +21,17 @@
   []
 []
 
+[Tallies]
+  [heat_source]
+    type = MeshTally
+    mesh_template = mesh_in.e
+    tally_name = heat_source
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = mesh
-  mesh_template = mesh_in.e
-  tally_name = heat_source
   cell_level = 0
   temperature_blocks = '2 3'
   check_tally_sum = false

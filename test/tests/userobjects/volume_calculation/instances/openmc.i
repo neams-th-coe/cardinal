@@ -18,15 +18,20 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '1'
+    tally_name = heat_source
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
   temperature_blocks = '1 2 3'
   density_blocks = '2'
-  tally_blocks = '1'
-  tally_name = heat_source
   verbose = true
-  tally_type = cell
   cell_level = 1
 
   volume_calculation = vol

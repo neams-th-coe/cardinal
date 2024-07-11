@@ -92,6 +92,19 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
   []
 []
 
+[Tallies]
+  [heat_source]
+    type = CellTally
+    tally_blocks = ${fuel_blocks}
+    tally_name = heat_source
+
+    check_equal_mapped_tally_volumes = true
+
+    tally_trigger = rel_err
+    tally_trigger_threshold = 1e-2
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   output = 'unrelaxed_tally_std_dev'
@@ -100,9 +113,6 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
   power = ${unit_cell_power}
   scaling = 100.0
   density_blocks = ${density_blocks}
-  tally_blocks = ${fuel_blocks}
-  tally_type = cell
-  tally_name = heat_source
   cell_level = 1
 
   relaxation = robbins_monro
@@ -112,8 +122,6 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 
   k_trigger = std_dev
   k_trigger_threshold = 7.5e-4
-  tally_trigger = rel_err
-  tally_trigger_threshold = 1e-2
   batches = 40
   max_batches = 100
   batch_interval = 5

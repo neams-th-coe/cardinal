@@ -64,12 +64,17 @@ active = ''
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '0 1'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
 
-  tally_type = cell
-  tally_blocks = '0 1'
   cell_level = 0
 
   power = 1.0

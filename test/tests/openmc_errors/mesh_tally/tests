@@ -12,7 +12,7 @@
     type = RunException
     input = incorrect_order.i
     expect_err = "Centroid for element 256 in the \[Mesh\] \(cm\): \(0.896826, 0.189852, 4.60886\)\n"
-                 "does not match centroid for element 0 in 'mesh_template' 1 \(cm\): \(0.896826, 0.189852, 8.60886\)!\n\n"
+                 "does not match centroid for element 0 in the 'mesh_template' with instance 1 \(cm\): \(0.896826, 0.189852, 8.60886\)!\n\n"
                  "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "the order of mesh translations does not match the order of inputs in a CombinerGenerator."
@@ -22,7 +22,7 @@
     type = RunException
     input = incorrect_file.i
     expect_err = "Centroid for element 0 in the \[Mesh\] \(cm\): \(0.896826, 0.189852, 0.608855\)\n"
-                 "does not match centroid for element 0 in 'mesh_template' 0 \(cm\): \(-0.0251736, -0.0667374, 0.0847458\)!\n\n"
+                 "does not match centroid for element 0 in the 'mesh_template' with instance 0 \(cm\): \(-0.0251736, -0.0667374, 0.0847458\)!\n\n"
                  "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "a totally different mesh is used (pincell versus pebbles)."
@@ -31,7 +31,7 @@
   [invalid_estimator]
     type = RunException
     input = incorrect_file.i
-    cli_args = 'Problem/mesh_template=../../neutronics/meshes/sphere.e Problem/tally_estimator=tracklength'
+    cli_args = 'Tallies/Mesh/mesh_template=../../neutronics/meshes/sphere.e Tallies/Mesh/tally_estimator=tracklength'
     expect_err = "Tracklength estimators are currently incompatible with mesh tallies!"
     requirement = "The system shall error if a tracklength estimator is attempted with unstructured mesh tallies, "
                   "since this capability is not supported in libMesh."

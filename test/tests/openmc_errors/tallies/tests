@@ -9,7 +9,7 @@
   [invalid_length]
     type = RunException
     input = length.i
-    cli_args = 'Problem/tally_score="damage_energy kappa_fission" Problem/tally_name="heat_source"'
+    cli_args = 'Tallies/Cell/tally_score="damage_energy kappa_fission" Tallies/Cell/tally_name="heat_source"'
     expect_err = "'tally_name' must be the same length as 'tally_score'!"
     requirement = "The system shall error if tally_name and tally_score are not the same length."
     required_objects = 'OpenMCCellAverageProblem'
@@ -17,7 +17,7 @@
   [missing_threshold]
     type = RunException
     input = length.i
-    cli_args = 'Problem/tally_trigger="rel_err"'
+    cli_args = 'Tallies/Cell/tally_trigger="rel_err"'
     expect_err = "You must either specify none or both of 'tally_trigger' and 'tally_trigger_threshold'. You have specified only one."
     requirement = "The system shall error if tally_trigger and tally_trigger_threshold are not simultaneously specified"
     required_objects = 'OpenMCCellAverageProblem'
@@ -25,7 +25,7 @@
   [duplicate_name]
     type = RunException
     input = length.i
-    cli_args = 'Problem/tally_score="damage_energy kappa_fission" Problem/tally_name="heat_source heat_source"'
+    cli_args = 'Tallies/Cell/tally_score="damage_energy kappa_fission" Tallies/Cell/tally_name="heat_source heat_source"'
     expect_err = "Entries cannot be repeated in 'tally_name'!"
     requirement = "The system shall error if tally_name has duplicate entries."
     required_objects = 'OpenMCCellAverageProblem'
@@ -33,7 +33,7 @@
   [duplicate_score]
     type = RunException
     input = length.i
-    cli_args = 'Problem/tally_score="damage_energy damage_energy" Problem/tally_name="heat1 heat2"'
+    cli_args = 'Tallies/Cell/tally_score="damage_energy damage_energy" Tallies/Cell/tally_name="heat1 heat2"'
     expect_err = "Entries cannot be repeated in 'tally_score'!"
     requirement = "The system shall error if tally_score has duplicate entries."
     required_objects = 'OpenMCCellAverageProblem'

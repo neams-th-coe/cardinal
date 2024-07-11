@@ -33,7 +33,7 @@
   [plural_scores]
     type = RunException
     input = openmc.i
-    cli_args = 'Postprocessors/max_rel_err/tally_score="kappa_fission heating" Problem/tally_score="kappa_fission heating"'
+    cli_args = 'Postprocessors/max_rel_err/tally_score="kappa_fission heating" Tallies/Cell/tally_score="kappa_fission heating"'
     # This test has very few particles, and OpenMC will error if there aren't enough source particles
     # in the fission bank on a process
     max_parallel = 8

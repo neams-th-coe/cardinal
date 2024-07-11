@@ -30,19 +30,24 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_name = heat_source
+
+    # This input has fissile material in the solid phase, so we will get a warning
+    # that we are neglecting some of the global kappa-fission distribution; so here
+    # the power is the total power of the OpenMC problem, and only a fraction of this
+    # will be computed in the fluid
+    tally_blocks = '200'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_type = cell
-  tally_name = heat_source
-
-  # This input has fissile material in the solid phase, so we will get a warning
-  # that we are neglecting some of the global kappa-fission distribution; so here
-  # the power is the total power of the OpenMC problem, and only a fraction of this
-  # will be computed in the fluid
-  tally_blocks = '200'
 
   initial_properties = xml
 

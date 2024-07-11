@@ -8,10 +8,15 @@
   parallel_type = replicated
 []
 
+[Tallies]
+  [Mesh]
+    type = MeshTally
+    mesh_template = ../meshes/tet_cube.e
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = mesh
-  mesh_template = ../meshes/tet_cube.e
   cell_level = 0
   temperature_blocks = '1'
   power = 1000.0

@@ -30,14 +30,19 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '100'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
   source_strength = 1e12
   temperature_blocks = '100'
-  tally_blocks = '100'
   cell_level = 0
-  tally_type = cell
   initial_properties = xml
 
   # we are omitting the fluid regions from feedback (which have some fissile material),

@@ -5,11 +5,16 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '1'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  tally_type = cell
-  tally_blocks = '1'
   cell_level = 0
 []
 

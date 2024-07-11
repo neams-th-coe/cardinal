@@ -5,15 +5,20 @@
   parallel_type = replicated
 []
 
+[Tallies]
+  [Mesh]
+    type = MeshTally
+    mesh_template = ../../mesh_tallies/slab.e
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   initial_properties = xml
+  global_tally_estimator = collision
   power = 100.0
-  tally_type = mesh
   cell_level = 0
   temperature_blocks = '1 2'
-  mesh_template = ../../mesh_tallies/slab.e
-
   skinner = moab
 []
 

@@ -38,15 +38,19 @@ h = 1.0
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '0 100'
+    tally_score = heating_local
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
-
-  tally_score = heating_local
   power = 100.0
   scaling = 100.0
   temperature_blocks = '0 100'
-  tally_blocks = '0 100'
-  tally_type = cell
   lowest_cell_level = 1
 []
 

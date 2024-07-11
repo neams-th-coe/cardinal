@@ -37,11 +37,16 @@ scale = 100.0
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '1 2'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = cell
-  tally_blocks = '1 2'
   scaling = ${scale}
 
   temperature_blocks = '1 2'

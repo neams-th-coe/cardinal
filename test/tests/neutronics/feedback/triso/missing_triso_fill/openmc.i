@@ -12,13 +12,18 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '2'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 2000.0
   scaling = 100.0
   temperature_blocks = '2 5'
-  tally_blocks = '2'
-  tally_type = cell
   cell_level = 1
 
   # This input should error because the offset we compute for shifting cell instances

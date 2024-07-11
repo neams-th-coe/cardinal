@@ -3,12 +3,17 @@
   file = ../../../neutronics/meshes/pincell.e
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = '2'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
   temperature_blocks = '2'
-  tally_type = cell
-  tally_blocks = '2'
 
   cell_level = 1
 

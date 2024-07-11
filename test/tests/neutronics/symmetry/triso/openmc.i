@@ -49,6 +49,13 @@
   []
 []
 
+[Tallies]
+  [Cell]
+    type = CellTally
+    tally_blocks = 'compacts'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   identical_cell_fills = 'compacts'
@@ -58,8 +65,6 @@
   power = 1000.0
   scaling = 100.0
   temperature_blocks = 'graphite compacts'
-  tally_blocks = 'compacts'
-  tally_type = cell
   cell_level = 1
 
   symmetry_mapper = sym

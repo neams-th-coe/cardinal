@@ -21,14 +21,6 @@
 []
 
 [AuxVariables]
-  [cell_id]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-  [cell_instance]
-    family = MONOMIAL
-    order = CONSTANT
-  []
   [cell_temperature]
     family = MONOMIAL
     order = CONSTANT
@@ -44,14 +36,6 @@
 []
 
 [AuxKernels]
-  [cell_id]
-    type = CellIDAux
-    variable = cell_id
-  []
-  [cell_instance]
-    type = CellInstanceAux
-    variable = cell_instance
-  []
   [cell_temperature]
     type = CellTemperatureAux
     variable = cell_temperature
@@ -83,11 +67,25 @@ active = ''
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
+
+  cell_level = 0
+
+  power = 1.0
 []
 
 [Postprocessors]
   [k]
     type = KEigenvalue
+  []
+  [power_0]
+    type = ElementIntegralVariablePostprocessor
+    variable = kappa_fission
+    block = '0'
+  []
+  [power_1]
+    type = ElementIntegralVariablePostprocessor
+    variable = kappa_fission
+    block = '1'
   []
   [id_0]
     type = ElementAverageValue

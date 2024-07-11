@@ -14,12 +14,16 @@
   allow_renumbering = false
 []
 
+[Tallies]
+  [Mesh]
+    type = MeshTally
+    mesh_template = '../neutronics/meshes/sphere.e'
+    mesh_translations_file = pebble_centers.txt
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
-  mesh_translations_file = pebble_centers.txt
-
-  tally_type = mesh
-  mesh_template = '../neutronics/meshes/sphere.e'
   power = 100.0
 []
 

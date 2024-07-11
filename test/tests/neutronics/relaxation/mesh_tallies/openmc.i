@@ -35,16 +35,23 @@
   []
 []
 
+[Tallies]
+  [Mesh]
+    type = MeshTally
+    mesh_template = ../../meshes/sphere_in_m.e
+    mesh_translations = '0.0 0.0 0.02
+                         0.0 0.0 0.06
+                         0.0 0.0 0.10'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
   power = 1500.0
   temperature_blocks = '0'
-  tally_type = mesh
-  mesh_template = ../../meshes/sphere_in_m.e
-  mesh_translations = '0.0 0.0 0.02
-                       0.0 0.0 0.06
-                       0.0 0.0 0.10'
+  global_tally_estimator = collision
+
   cell_level = 1
   scaling = 100.0
 
