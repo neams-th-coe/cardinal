@@ -13,8 +13,8 @@ with filter bins set by domain ID(s).
 !listing test/tests/userobjects/openmc_tally_editor/add_filter.i
   block=UserObjects
 
-!syntax parameters /UserObjects/OpenMCFilterEditor
+!syntax parameters /UserObjects/OpenMCDomainFilterEditor
 
-!syntax inputs /UserObjects/OpenMCFilterEditor
+!syntax inputs /UserObjects/OpenMCDomainFilterEditor
 
-!syntax children /UserObjects/OpenMCFilterEditor
+!syntax children /UserObjects/OpenMCDomainFilterEditor
