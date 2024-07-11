@@ -46,7 +46,8 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
   : OpenMCUserObject(parameters),
     _filter_id(getParam<int32_t>("filter_id")),
     _filter_type(getParam<std::string>("filter_type"))
-{}
+{
+}
 
 void
 OpenMCDomainFilterEditor::initialize()
@@ -81,15 +82,16 @@ OpenMCDomainFilterEditor::initialize()
     // matches the existing filter type
     int32_t filter_index = openmc::model::filter_map.at(_filter_id);
     _filter_type = openmc::model::tally_filters[filter_index]->type_str();
-    mooseWarning(long_name() + ": Filter " + std::to_string(_filter_id) +
-                 " already exists in the OpenMC model. Using existing filter type: " +
-                 _filter_type);
+    mooseWarning(
+        long_name() + ": Filter " + std::to_string(_filter_id) +
+        " already exists in the OpenMC model. Using existing filter type: " + _filter_type);
   }
 
   // at this point the filter type should be set, check that it is valid
-  if (_allowed_types.count(_filter_type) == 0) {
+  if (_allowed_types.count(_filter_type) == 0)
+  {
     std::string msg =
-    long_name() + ": Invalid filter type: " + _filter_type + ". Allowed types are: ";
+        long_name() + ": Invalid filter type: " + _filter_type + ". Allowed types are: ";
     for (const auto & type : _allowed_types)
       msg += "\"" + type + "\"";
     mooseError(msg);
@@ -114,8 +116,9 @@ OpenMCDomainFilterEditor::check_filter_type_match() const
   std::string existing_type = openmc::model::tally_filters[filter_index()]->type_str();
   if (existing_type != _filter_type)
   {
-    mooseError(long_name() + ": An existing filter, Filter " + std::to_string(_filter_id) + ", is of type \"" +
-               existing_type + "\" and cannot be changed to type \"" + _filter_type + "\"");
+    mooseError(long_name() + ": An existing filter, Filter " + std::to_string(_filter_id) +
+               ", is of type \"" + existing_type + "\" and cannot be changed to type \"" +
+               _filter_type + "\"");
   }
 }
 
@@ -136,7 +139,8 @@ OpenMCDomainFilterEditor::filter_index() const
 void
 OpenMCDomainFilterEditor::first_execution()
 {
-  if (!_first_execution) return;
+  if (!_first_execution)
+    return;
   initialize();
   _first_execution = false;
 }
