@@ -33,7 +33,7 @@ public:
 
   OpenMCUserObject(const InputParameters & parameters);
 
-  void first_execution();
+  void execute() override;
 
   std::string long_name() const { return "OpenMCUserObject \"" + this->name() + "\""; }
 
