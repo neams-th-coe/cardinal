@@ -139,7 +139,7 @@ OpenMCDomainFilterEditor::filter_index() const
 void
 OpenMCDomainFilterEditor::execute()
 {
-  first_execution();
+  OpenMCUserObject::execute();
 
   openmc::Filter * filter = openmc::model::tally_filters[filter_index()].get();
 

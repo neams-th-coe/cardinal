@@ -40,14 +40,8 @@ OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
   }
 }
 
-const OpenMCProblemBase *
-OpenMCUserObject::openmc_problem() const
-{
-  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
-}
-
 void
-OpenMCUserObject::first_execution()
+OpenMCUserObject::execute()
 {
   if (!_first_execution)
     return;
@@ -55,4 +49,9 @@ OpenMCUserObject::first_execution()
   _first_execution = false;
 }
 
+const OpenMCProblemBase *
+OpenMCUserObject::openmc_problem() const
+{
+  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+}
 #endif
