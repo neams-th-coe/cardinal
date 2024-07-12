@@ -108,3 +108,9 @@ getEnergyGroupsEnum()
       "MPACT_69 CASMO_70 XMAS_172 VITAMIN_J_175 SCALE_252 TRIPOLI_315 SHEM_361 CCFE_709 UKAEA_1102 "
       "ECCO_1968");
 }
+
+MooseEnum
+getFilterTypeEnum()
+{
+  return MooseEnum("cell material universe mesh none", "none");
+}

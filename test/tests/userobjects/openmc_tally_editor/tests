@@ -82,11 +82,12 @@
     file_expect_out = 'Material'
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [invlaid_filter_type]
+  [invalid_filter_type]
     type = RunException
     input = add_filter.i
     cli_args = 'UserObjects/new_filter/filter_type="invalid"'
-    expect_err = 'OpenMCDomainFilterEditor "new_filter": Invalid filter type: invalid.'
+    expect_err = 'Invalid option "invalid" in MooseEnum.'
+    # expect_err = 'OpenMCDomainFilterEditor "new_filter": Invalid filter type: invalid.'
     requirement = 'The system shall error if trying to add a filter with an invalid type.'
     required_objects = 'OpenMCCellAverageProblem'
   []

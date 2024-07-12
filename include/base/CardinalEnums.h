@@ -35,6 +35,7 @@ MooseEnum getInitialPropertiesEnum();
 MultiMooseEnum getTallyScoreEnum();
 MooseEnum getEnergyGroupsEnum();
 MooseEnum getNekMeshEnum();
+MooseEnum getFilterTypeEnum();
 
 namespace nek_mesh
 {
@@ -243,3 +244,12 @@ enum RelaxationEnum
   none
 };
 } // namespace relaxation
+
+enum OpenMCFilterType
+{
+  cell,
+  material,
+  universe,
+  mesh,
+  none
+};

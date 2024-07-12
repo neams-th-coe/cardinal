@@ -20,6 +20,8 @@
 
 #include "OpenMCUserObject.h"
 
+#include "CardinalEnums.h"
+
 // forward declarations
 class OpenMCProblemBase;
 
@@ -53,6 +55,9 @@ public:
    */
   void check_filter_type_match() const;
 
+  std::string filterTypeEnumToString(OpenMCFilterType t) const;
+  OpenMCFilterType stringToFilterTypeEnum(const std::string & s) const;
+
   std::string long_name() const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
 
   // Accessors
@@ -60,6 +65,6 @@ public:
 
 protected:
   int32_t _filter_id;
-  std::string _filter_type;
+  OpenMCFilterType _filter_type;
   const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
 };
