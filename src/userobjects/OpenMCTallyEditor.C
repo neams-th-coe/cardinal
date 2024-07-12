@@ -92,7 +92,8 @@ OpenMCTallyEditor::tally_index() const
 void
 OpenMCTallyEditor::execute()
 {
-  first_execution();
+  OpenMCUserObject::execute();
+
   openmc::Tally * tally = openmc::model::tallies[tally_index()].get();
 
   std::vector<std::string> scores = getParam<std::vector<std::string>>("scores");
