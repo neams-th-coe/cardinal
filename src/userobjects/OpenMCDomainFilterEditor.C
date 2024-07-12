@@ -35,7 +35,7 @@ OpenMCDomainFilterEditor::validParams()
   InputParameters params = OpenMCUserObject::validParams();
   params.addParam<bool>("create_filter", false, "Whether to create the tally if it doesn't exist");
   params.addRequiredParam<int32_t>("filter_id", "The ID of the filter to modify");
-  params.addParam<std::string>("filter_type", "", "The type of filter to create");
+  params.addParam<MooseEnum>("filter_type", getFilterTypeEnum(), "The type of filter to create");
   params.addRequiredParam<std::vector<std::string>>("bins", "The bins to modify in the filter");
   params.declareControllable("bins");
   params.addClassDescription("A UserObject for creating and managing OpenMC domain tally filters");
@@ -45,7 +45,7 @@ OpenMCDomainFilterEditor::validParams()
 OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & parameters)
   : OpenMCUserObject(parameters),
     _filter_id(getParam<int32_t>("filter_id")),
-    _filter_type(getParam<std::string>("filter_type"))
+    _filter_type(getParam<MooseEnum>("filter_type").getEnum<OpenMCFilterType>())
 {
 }
 
@@ -70,31 +70,22 @@ OpenMCDomainFilterEditor::initialize()
   }
 
   // if this UO is to create the filter, but no filter type was specified, report an error
-  if (create_filter && !filter_exists && _filter_type.empty())
+  if (create_filter && !filter_exists && _filter_type == OpenMCFilterType::none)
   {
     mooseError(long_name() + ": filter_type must be specified when create_filter = true");
   }
 
   // if the filter exists and the filter type was not specified, accept the existing filter type
-  if (filter_exists && _filter_type.empty())
+  if (filter_exists && _filter_type == OpenMCFilterType::none)
   {
     // if an existing filter is being used, ensure that the filter type (if specified)
     // matches the existing filter type
     int32_t filter_index = openmc::model::filter_map.at(_filter_id);
-    _filter_type = openmc::model::tally_filters[filter_index]->type_str();
+    const std::string filter_type_str = openmc::model::tally_filters[filter_index]->type_str();
+    _filter_type = stringToFilterTypeEnum(filter_type_str);
     mooseWarning(
         long_name() + ": Filter " + std::to_string(_filter_id) +
-        " already exists in the OpenMC model. Using existing filter type: " + _filter_type);
-  }
-
-  // at this point the filter type should be set, check that it is valid
-  if (_allowed_types.count(_filter_type) == 0)
-  {
-    std::string msg =
-        long_name() + ": Invalid filter type: " + _filter_type + ". Allowed types are: ";
-    for (const auto & type : _allowed_types)
-      msg += "\"" + type + "\"";
-    mooseError(msg);
+        " already exists in the OpenMC model. Using existing filter type: " + filter_type_str);
   }
 
   // if the filter doesn't exist at this point and no other errors have been raised,
@@ -102,7 +93,7 @@ OpenMCDomainFilterEditor::initialize()
   if (!filter_exists)
   {
     _console << long_name() << ": Creating Filter " << _filter_id << std::endl;
-    openmc::Filter::create(_filter_type, _filter_id);
+    openmc::Filter::create(filterTypeEnumToString(_filter_type), _filter_id);
   }
 
   // at this point the filter exists and the filter type is set, check that the type is valid
@@ -113,12 +104,15 @@ void
 OpenMCDomainFilterEditor::check_filter_type_match() const
 {
   // check this UO's filter type against the one in the OpenMC model
-  std::string existing_type = openmc::model::tally_filters[filter_index()]->type_str();
+  std::string existing_type_str = openmc::model::tally_filters[filter_index()]->type_str();
+  OpenMCFilterType existing_type = stringToFilterTypeEnum(existing_type_str);
+  _console << "CHECKING FILTER TYPE..." << std::endl;
+
   if (existing_type != _filter_type)
   {
     mooseError(long_name() + ": An existing filter, Filter " + std::to_string(_filter_id) +
-               ", is of type \"" + existing_type + "\" and cannot be changed to type \"" +
-               _filter_type + "\"");
+               ", is of type \"" + existing_type_str + "\" and cannot be changed to type \"" +
+               filterTypeEnumToString(_filter_type) + "\"");
   }
 }
 
@@ -150,7 +144,7 @@ OpenMCDomainFilterEditor::execute()
     ids.push_back(std::stoi(bin_id));
   }
 
-  if (_filter_type == "cell")
+  if (_filter_type == OpenMCFilterType::cell)
   {
     openmc::CellFilter * cell_filter = dynamic_cast<openmc::CellFilter *>(filter);
     if (!cell_filter)
@@ -159,7 +153,7 @@ OpenMCDomainFilterEditor::execute()
       bins.push_back(openmc::model::cell_map.at(id));
     cell_filter->set_cells(bins);
   }
-  else if (_filter_type == "material")
+  else if (_filter_type == OpenMCFilterType::material)
   {
     openmc::MaterialFilter * material_filter = dynamic_cast<openmc::MaterialFilter *>(filter);
     if (!material_filter)
@@ -169,7 +163,7 @@ OpenMCDomainFilterEditor::execute()
       bins.push_back(openmc::model::material_map.at(id));
     material_filter->set_materials(bins);
   }
-  else if (_filter_type == "universe")
+  else if (_filter_type == OpenMCFilterType::universe)
   {
     openmc::UniverseFilter * universe_filter = dynamic_cast<openmc::UniverseFilter *>(filter);
     if (!universe_filter)
@@ -179,7 +173,7 @@ OpenMCDomainFilterEditor::execute()
       bins.push_back(openmc::model::universe_map.at(id));
     universe_filter->set_universes(bins);
   }
-  else if (_filter_type == "mesh")
+  else if (_filter_type == OpenMCFilterType::mesh)
   {
     openmc::MeshFilter * mesh_filter = dynamic_cast<openmc::MeshFilter *>(filter);
     if (bins.size() != 1)
@@ -190,6 +184,38 @@ OpenMCDomainFilterEditor::execute()
       bins.push_back(openmc::model::mesh_map.at(id));
     mesh_filter->set_mesh(bins[0]);
   }
+}
+
+std::string
+OpenMCDomainFilterEditor::filterTypeEnumToString(OpenMCFilterType t) const
+{
+  if (t == OpenMCFilterType::cell)
+    return "cell";
+  else if (t == OpenMCFilterType::material)
+    return "material";
+  else if (t == OpenMCFilterType::universe)
+    return "universe";
+  else if (t == OpenMCFilterType::mesh)
+    return "mesh";
+  else if (t == OpenMCFilterType::none)
+    return "none";
+  else
+    mooseError("Invalid filter type");
+}
+
+OpenMCFilterType
+OpenMCDomainFilterEditor::stringToFilterTypeEnum(const std::string & s) const
+{
+  if (s == "cell")
+    return OpenMCFilterType::cell;
+  else if (s == "material")
+    return OpenMCFilterType::material;
+  else if (s == "universe")
+    return OpenMCFilterType::universe;
+  else if (s == "mesh")
+    return OpenMCFilterType::mesh;
+  else
+    mooseError("Invalid filter type");
 }
 
 #endif
