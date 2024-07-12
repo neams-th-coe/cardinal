@@ -83,15 +83,6 @@ OpenMCTallyEditor::initialize()
   }
 }
 
-void
-OpenMCTallyEditor::first_execution()
-{
-  if (!_first_execution)
-    return;
-  initialize();
-  _first_execution = false;
-}
-
 int32_t
 OpenMCTallyEditor::tally_index() const
 {
