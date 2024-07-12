@@ -69,7 +69,7 @@ OpenMCTallyEditor::initialize()
     }
     else
     {
-      openmc_problem()->_console << long_name() << ": Creating tally " << _tally_id << std::endl;
+      _console << long_name() << ": Creating tally " << _tally_id << std::endl;
       openmc::Tally::create(_tally_id);
     }
   }
