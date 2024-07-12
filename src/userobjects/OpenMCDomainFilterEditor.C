@@ -101,7 +101,7 @@ OpenMCDomainFilterEditor::initialize()
   // create the filter
   if (!filter_exists)
   {
-    openmc_problem()->_console << long_name() << ": Creating Filter " << _filter_id << std::endl;
+    _console << long_name() << ": Creating Filter " << _filter_id << std::endl;
     openmc::Filter::create(_filter_type, _filter_id);
   }
 
