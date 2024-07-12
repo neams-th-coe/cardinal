@@ -24,7 +24,7 @@
 class OpenMCProblemBase;
 
 /**
- * User object to modify an OpenMC tally
+ * User object to modify an OpenMC object
  */
 class OpenMCUserObject : public GeneralUserObject
 {
@@ -33,6 +33,12 @@ public:
 
   OpenMCUserObject(const InputParameters & parameters);
 
+  void first_execution();
+
   std::string long_name() const { return "OpenMCUserObject \"" + this->name() + "\""; }
+
   const OpenMCProblemBase * openmc_problem() const;
+
+protected:
+  bool _first_execution;
 };

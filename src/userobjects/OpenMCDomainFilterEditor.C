@@ -137,15 +137,6 @@ OpenMCDomainFilterEditor::filter_index() const
 }
 
 void
-OpenMCDomainFilterEditor::first_execution()
-{
-  if (!_first_execution)
-    return;
-  initialize();
-  _first_execution = false;
-}
-
-void
 OpenMCDomainFilterEditor::execute()
 {
   first_execution();

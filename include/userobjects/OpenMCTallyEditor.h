@@ -40,7 +40,6 @@ public:
   /// We don't want this user object to execute in MOOSE's control
   virtual void execute() override;
   virtual void initialize() override;
-  void first_execution();
   virtual void finalize() override {}
 
   std::string long_name() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
@@ -49,6 +48,5 @@ public:
   int32_t tally_id() const { return _tally_id; }
 
 protected:
-  bool _first_execution{true};
   int32_t _tally_id;
 };

@@ -29,7 +29,7 @@ OpenMCUserObject::validParams()
 }
 
 OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
-  : GeneralUserObject(parameters)
+  : GeneralUserObject(parameters), _first_execution(true)
 {
   if (!openmc_problem())
   {
@@ -44,6 +44,15 @@ const OpenMCProblemBase *
 OpenMCUserObject::openmc_problem() const
 {
   return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+}
+
+void
+OpenMCUserObject::first_execution()
+{
+  if (!_first_execution)
+    return;
+  initialize();
+  _first_execution = false;
 }
 
 #endif
