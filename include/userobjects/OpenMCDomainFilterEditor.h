@@ -36,7 +36,6 @@ public:
   /// Virtual method overrides
   virtual void execute() override;
   virtual void initialize() override;
-  void first_execution();
   virtual void finalize() override {}
 
   /**
@@ -60,7 +59,6 @@ public:
   int32_t filter_id() const { return _filter_id; }
 
 protected:
-  bool _first_execution{true};
   int32_t _filter_id;
   std::string _filter_type;
   const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
