@@ -304,9 +304,6 @@ protected:
   /// Current "raw" tally standard deviation
   std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
 
-  /// Whether the tally variable names should be prefixed with this object's name or not.
-  const bool _should_prefix;
-
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
 };
