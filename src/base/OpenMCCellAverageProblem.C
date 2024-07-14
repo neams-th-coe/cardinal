@@ -1060,6 +1060,9 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
       const auto vars = _local_tallies[i]->generateAuxVarNames();
       for (unsigned int j = 0; j < scores.size(); ++j)
       {
+        if (vars.size() == 0)
+          continue;
+
         if (j == 0)
           tallies.addRow(_local_tallies[i]->name(), scores[j], vars[j]);
         else
@@ -2698,7 +2701,7 @@ OpenMCCellAverageProblem::validateLocalTallies()
     if (tallies_per_score[global_score] > 1)
     {
       mooseError("You have added " + Moose::stringify(tallies_per_score[global_score]) + " tallies which score "
-                 + _all_tally_scores[global_score] + "!\n Cardinal does not support multiple tallies with the same"
+                 + _all_tally_scores[global_score] + "!\nCardinal does not support multiple tallies with the same"
                  " scores as these tallies may have overlapping bins, preventing normalization.");
     }
   }
@@ -2713,9 +2716,9 @@ OpenMCCellAverageProblem::validateLocalTallies()
     {
       if (_global_tally_estimator != _local_tallies[0]->getTallyEstimator())
       {
-        mooseWarning("The estimator used by the local tally (" + _local_tallies[0]->name() + ") does not match the "
+        mooseWarning("The estimator used by the local tally '" + _local_tallies[0]->name() + "' does not match the "
                      "estimator set in 'global_tally_estimator'!\n Global estimator: "
-                     + estimatorToString(_global_tally_estimator) + "\n. Local estimator: "
+                     + estimatorToString(_global_tally_estimator) + ".\n Local estimator: "
                      + estimatorToString(_local_tallies[0]->getTallyEstimator()) + ".");
       }
     }
@@ -2728,9 +2731,9 @@ OpenMCCellAverageProblem::validateLocalTallies()
     {
       if (tally->getTallyEstimator() != _global_tally_estimator)
       {
-        mooseWarning("The estimator used by the local tally " + tally->name() + " does not match the "
+        mooseWarning("The estimator used by the local tally '" + tally->name() + "' does not match the "
                      "estimator set in 'global_tally_estimator'!\n Global estimator: "
-                     + estimatorToString(_global_tally_estimator) + "\n. Local estimator: "
+                     + estimatorToString(_global_tally_estimator) + ".\n Local estimator: "
                      + estimatorToString(tally->getTallyEstimator()) + ".");
       }
     }
