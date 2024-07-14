@@ -66,7 +66,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
   {
     const auto & scores = getParam<MultiMooseEnum>("tally_score");
     for (const auto & score : scores)
-      _tally_score.push_back(enumToTallyScore(score));
+      _tally_score.push_back(_openmc_problem.enumToTallyScore(score));
   }
   else
     _tally_score = {"kappa-fission"};
@@ -83,7 +83,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
       mooseError("Tracklength estimators are currently incompatible with photon transport and "
                  "heating scores! For more information: https://tinyurl.com/3wre3kwt");
 
-    _estimator = tallyEstimator(estimator);
+    _estimator = _openmc_problem.tallyEstimator(estimator);
   }
   else
   {
@@ -180,8 +180,8 @@ TallyBase::computeSumAndMean()
 {
   for (unsigned int score = 0; score < _tally_score.size(); ++score)
   {
-    _local_sum_tally[score] = tallySumAcrossBins(score);
-    _local_mean_tally[score] = tallyMeanAcrossBins(score);
+    _local_sum_tally[score] = _openmc_problem.tallySumAcrossBins({_local_tally}, score);
+    _local_mean_tally[score] = _openmc_problem.tallyMeanAcrossBins({_local_tally}, score);
   }
 }
 
@@ -193,7 +193,7 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
   auto & current_raw = _current_raw_tally[local_score];
   auto & current_raw_std_dev = _current_raw_tally_std_dev[local_score];
 
-  auto mean_tally = tallySum(local_score);
+  auto mean_tally = _openmc_problem.tallySum(_local_tally, local_score);
   /**
    * If the value over the whole domain is zero, then the values in the individual bins must be zero.
    * We need to avoid divide-by-zeros.
@@ -203,7 +203,7 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
 
   auto sum_sq =
       xt::view(_local_tally->results_, xt::all(), local_score, static_cast<int>(openmc::TallyResult::SUM_SQ));
-  auto rel_err = relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
+  auto rel_err = _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
   current_raw_std_dev = rel_err * current_raw;
 
   if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
@@ -243,141 +243,11 @@ TallyBase::fillElementalAuxVariable(const unsigned int & var_num,
   {
     auto elem_ptr = _mesh.queryElemPtr(e);
 
-    if (!isLocalElem(elem_ptr))
+    if (!_openmc_problem.isLocalElem(elem_ptr))
       continue;
 
     auto dof_idx = elem_ptr->dof_number(sys_number, var_num, 0);
     solution.set(dof_idx, value);
-  }
-}
-
-bool
-TallyBase::isLocalElem(const Elem * elem) const
-{
-  if (!elem)
-  {
-    // we should only not be able to find an element if the mesh is distributed
-    libmesh_assert(!_mesh.getMesh().is_serial());
-    return false;
-  }
-
-  if (elem->processor_id() == _communicator.rank())
-    return true;
-
-  return false;
-}
-
-xt::xtensor<double, 1>
-TallyBase::tallySum(unsigned int score) const
-{
-  return xt::view(_local_tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM));
-}
-
-double
-TallyBase::tallySumAcrossBins(unsigned int score) const
-{
-  return xt::sum(tallySum(score))();
-}
-
-double
-TallyBase::tallyMeanAcrossBins(unsigned int score) const
-{
-  int n = _local_tally->n_realizations_;
-  return tallySumAcrossBins(score) / n;
-}
-
-xt::xtensor<double, 1>
-TallyBase::relativeError(const xt::xtensor<double, 1> & sum,
-                         const xt::xtensor<double, 1> & sum_sq,
-                         const int & n_realizations) const
-{
-  xt::xtensor<double, 1> rel_err = xt::zeros<double>({sum.size()});
-
-  for (unsigned int i = 0; i < sum.size(); ++i)
-  {
-    auto mean = sum(i) / n_realizations;
-    auto std_dev = std::sqrt((sum_sq(i) / n_realizations - mean * mean) / (n_realizations - 1));
-    rel_err[i] = mean != 0.0 ? std_dev / std::abs(mean) : 0.0;
-  }
-
-  return rel_err;
-}
-
-openmc::TallyEstimator
-TallyBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
-{
-  switch (estimator)
-  {
-    case tally::tracklength:
-      return openmc::TallyEstimator::TRACKLENGTH;
-    case tally::collision:
-      return openmc::TallyEstimator::COLLISION;
-    case tally::analog:
-      return openmc::TallyEstimator::ANALOG;
-    default:
-      mooseError("Unhandled TallyEstimatorEnum!");
-  }
-}
-
-std::string
-TallyBase::enumToTallyScore(const std::string & score) const
-{
-  // the MultiMooseEnum is all caps, but the MooseEnum is already the correct case,
-  // so we need to treat these as separate
-  std::string s = score;
-  if (std::all_of(
-          s.begin(), s.end(), [](unsigned char c) { return !std::isalpha(c) || std::isupper(c); }))
-  {
-    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
-
-    // we need to revert back to some letters being uppercase for certain scores
-    if (s == "h3_production")
-      s = "H3_production";
-  }
-
-  // MOOSE enums use underscores, OpenMC uses dashes
-  std::replace(s.begin(), s.end(), '_', '-');
-  return s;
-}
-
-bool
-TallyBase::isHeatingScore(const std::string & score) const
-{
-  std::set<std::string> viable_scores = {"heating", "heating-local", "kappa-fission",
-    "fission-q-prompt", "fission-q-recoverable", "damage-energy"};
-  return viable_scores.count(score);
-}
-
-openmc::TriggerMetric
-TallyBase::triggerMetric(std::string trigger) const
-{
-  if (trigger == "variance")
-    return openmc::TriggerMetric::variance;
-  else if (trigger == "std_dev")
-    return openmc::TriggerMetric::standard_deviation;
-  else if (trigger == "rel_err")
-    return openmc::TriggerMetric::relative_error;
-  else if (trigger == "none")
-    return openmc::TriggerMetric::not_active;
-  else
-    mooseError("Unhandled TallyTriggerTypeEnum: ", trigger);
-}
-
-openmc::TriggerMetric
-TallyBase::triggerMetric(trigger::TallyTriggerTypeEnum trigger) const
-{
-  switch (trigger)
-  {
-    case trigger::variance:
-      return openmc::TriggerMetric::variance;
-    case trigger::std_dev:
-      return openmc::TriggerMetric::standard_deviation;
-    case trigger::rel_err:
-      return openmc::TriggerMetric::relative_error;
-    case trigger::none:
-      return openmc::TriggerMetric::not_active;
-    default:
-      mooseError("Unhandled TallyTriggerTypeEnum!");
   }
 }
 
@@ -386,7 +256,7 @@ TallyBase::applyTriggersToLocalTally(openmc::Tally * tally)
 {
   if (_tally_trigger)
     for (int score = 0; score < _tally_score.size(); ++score)
-      tally->triggers_.push_back({triggerMetric((*_tally_trigger)[score]),
+      tally->triggers_.push_back({_openmc_problem.triggerMetric((*_tally_trigger)[score]),
                                   _tally_trigger_threshold[score],
                                   false,
                                   score});
