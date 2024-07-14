@@ -126,6 +126,12 @@ public:
   const std::vector<std::string> & getScores() const { return _tally_score; }
 
   /**
+   * Get the estimator used in this tally.
+   * @return the tally estimator
+   */
+  openmc::TallyEstimator getTallyEstimator() const { return _estimator; }
+
+  /**
    * Get the mean for a score summed over all bins.
    * @param[in] local_score the index representing a tally score
    * @return mean for a score summed over all bins.

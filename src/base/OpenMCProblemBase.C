@@ -606,6 +606,22 @@ OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
   }
 }
 
+std::string
+OpenMCProblemBase::estimatorToString(openmc::TallyEstimator estimator) const
+{
+  switch (estimator)
+  {
+    case openmc::TallyEstimator::TRACKLENGTH:
+      return "tracklength";
+    case openmc::TallyEstimator::COLLISION:
+      return "collision";
+    case openmc::TallyEstimator::ANALOG:
+      return "analog";
+    default:
+      mooseError("Unhandled TallyEstimatorEnum!");
+  }
+}
+
 openmc::TriggerMetric
 OpenMCProblemBase::triggerMetric(std::string trigger) const
 {

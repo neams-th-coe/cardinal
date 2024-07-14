@@ -141,6 +141,13 @@ public:
    */
   openmc::TallyEstimator tallyEstimator(tally::TallyEstimatorEnum estimator) const;
 
+  /**
+   * Convert a tally estimator to a string (for output purposes).
+   * @param[in] estimator OpenMC tally estimator enum
+   * @return a string form of the OpenMC tally estimator enum
+   */
+  std::string estimatorToString(openmc::TallyEstimator estimator) const;
+
   /// Run a k-eigenvalue OpenMC simulation
   void externalSolve() override;
 

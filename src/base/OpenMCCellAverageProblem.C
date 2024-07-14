@@ -2666,6 +2666,68 @@ OpenMCCellAverageProblem::validateLocalTallies()
   if (_local_tallies.size() == 0)
     return;
 
+  /**
+   * Check to make sure local tallies don't share scores (unless they're distributed mesh tallies).
+   * This prevents normalization issues as we sum the values of all of the scores over all of the tally bins.
+   * TODO: we might be able to loosen this restriction later if there's a good way to
+   * account for bin overlap.
+   */
+  std::vector<unsigned int> tallies_per_score;
+  tallies_per_score.resize(_all_tally_scores.size(), 0);
+  for (unsigned int i = 0; i < _local_tallies.size(); ++i)
+  {
+    for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
+    {
+      bool has_score = _local_tally_score_map[i].count(_all_tally_scores[global_score]) == 1;
+      // The second check is required to avoid multi counting translated mesh tallies.
+      if (has_score && _local_tallies[i]->generateAuxVarNames().size() > 0)
+        tallies_per_score[global_score]++;
+    }
+  }
+
+  for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
+  {
+    if (tallies_per_score[global_score] > 1)
+    {
+      mooseError("You have added " + Moose::stringify(tallies_per_score[global_score]) + " tallies which score "
+                 + _all_tally_scores[global_score] + "!\n Cardinal does not support multiple tallies with the same"
+                 " scores as these tallies may have overlapping bins, preventing normalization.");
+    }
+  }
+
+  /**
+   * If we have a single local tally, make sure the global estimator matches the local one.
+   * Otherwise, warn the user if there is a mismatch.
+   */
+  if (_local_tallies.size() == 1 && _needs_global_tally)
+  {
+    if (isParamValid("global_tally_estimator"))
+    {
+      if (_global_tally_estimator != _local_tallies[0]->getTallyEstimator())
+      {
+        mooseWarning("The estimator used by the local tally (" + _local_tallies[0]->name() + ") does not match the "
+                     "estimator set in 'global_tally_estimator'!\n Global estimator: "
+                     + estimatorToString(_global_tally_estimator) + "\n. Local estimator: "
+                     + estimatorToString(_local_tallies[0]->getTallyEstimator()) + ".");
+      }
+    }
+    else
+      _global_tally_estimator = _local_tallies[0]->getTallyEstimator();
+  }
+  else if (_local_tallies.size() > 1 && _needs_global_tally)
+  {
+    for (const auto & tally : _local_tallies)
+    {
+      if (tally->getTallyEstimator() != _global_tally_estimator)
+      {
+        mooseWarning("The estimator used by the local tally " + tally->name() + " does not match the "
+                     "estimator set in 'global_tally_estimator'!\n Global estimator: "
+                     + estimatorToString(_global_tally_estimator) + "\n. Local estimator: "
+                     + estimatorToString(tally->getTallyEstimator()) + ".");
+      }
+    }
+  }
+
   // need some special treatment for non-heating scores, in eigenvalue mode
   bool has_non_heating_score = false;
   for (const auto & t : _all_tally_scores)
