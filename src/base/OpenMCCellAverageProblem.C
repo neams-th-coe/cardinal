@@ -1047,20 +1047,28 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     _console << std::endl;
   }
 
-  // TODO: This needs to be reformated for the new tally system.
-  /*
-  if (_tally_type != tally::none)
+  if (_local_tallies.size() > 0)
   {
+    _console << "    Tally Name:   Cardinal tally object name" << std::endl;
     _console << "    Tally Score:  OpenMC tally score" << std::endl;
     _console << "    AuxVariable:  variable where this score is written\n" << std::endl;
 
-    VariadicTable<std::string, std::string> tallies({"Tally Score", "AuxVariable"});
-    for (unsigned int i = 0; i < _tally_name.size(); ++i)
-      tallies.addRow(_tally_score[i], _tally_name[i]);
+    VariadicTable<std::string, std::string, std::string> tallies({"Tally Name", "Tally Score", "AuxVariable"});
+    for (unsigned int i = 0; i < _local_tallies.size(); ++i)
+    {
+      const auto & scores = _local_tallies[i]->getScores();
+      const auto vars = _local_tallies[i]->generateAuxVarNames();
+      for (unsigned int j = 0; j < scores.size(); ++j)
+      {
+        if (j == 0)
+          tallies.addRow(_local_tallies[i]->name(), scores[j], vars[j]);
+        else
+          tallies.addRow("", scores[j], vars[j]);
+      }
+    }
 
     tallies.print(_console);
   }
-  */
 }
 
 void
