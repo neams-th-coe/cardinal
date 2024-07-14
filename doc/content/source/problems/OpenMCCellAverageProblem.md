@@ -7,7 +7,7 @@ The data flow contains two major steps:
 - Temperature and/or density field data on the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
   are volume-averaged and applied to the corresponding OpenMC cells.
 - Tallies are mapped from OpenMC into `CONSTANT MONOMIAL` fields on the
-  [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
+  [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html) through the [tally system](AddTallyAction.md).
 
 The smallest possible input file to run OpenMC is shown below.
 This page describes this syntax, plus more advanced settings.
@@ -24,7 +24,7 @@ to communicate OpenMC's solution with MOOSE. These variables will be viewable in
 the MOOSE output files (e.g., via Paraview).
 Depending on the user settings, the following `CONSTANT MONOMIAL` variables will be added:
 
-- Variable(s) representing the OpenMC tally(s)
+- Variable(s) representing the OpenMC tally(s) added by the `[Tallies]` block
 - Variable(s) representing the temperature to read into OpenMC. Temperature will be read
   from the mesh subdomains indicated by `temperature_blocks`.
 - Variable(s) representing the density to read into OpenMC. Density will be read
@@ -34,8 +34,9 @@ Depending on the user settings, the following `CONSTANT MONOMIAL` variables will
 
 !alert tip
 These variables have default names, but you can also control their names using the
-`temperature_variables`, `density_variables`, and `tally_name` parameters. If you want
-to see the names, run with `verbose = true` and tables will print out on initialization
+`temperature_variables`, and `density_variables` parameters. The names of the tally variables
+can be customized with the `tally_name` parameter in each [tally object](AddTallyAction.md).
+If you want to see the names, run with `verbose = true` and tables will print out on initialization
 with this information.
 
 !alert note
@@ -50,6 +51,14 @@ to read temperature from a variable named `temp0` in the `fuel` and `cladding` b
 a variable named `nek_temp` in the `helium` block (and so on for density).
 
 ```
+[Tallies]
+  [cell_tally]
+    type = CellTally
+    tally_score = 'heating flux'
+    tally_name = 'power openmc_flux'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
 
@@ -58,9 +67,6 @@ a variable named `nek_temp` in the `helium` block (and so on for density).
 
   density_variables = 'rho_water; rho_helium'
   density_blocks = 'water; helium'
-
-  tally_score = 'heating flux'
-  tally_name = 'power openmc_flux'
 []
 ```
 
@@ -110,11 +116,17 @@ tally scores with the same name as the score. Suppose we instead wanted to rely
 on defaults; we would set our `[Problem]` block as:
 
 ```
+[Tallies]
+  [cell_tally]
+    type = CellTally
+    tally_score = 'heating flux'
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   density_blocks = 'water helium'
   temperature_blocks = 'fuel cladding water helium'
-  tally_score = 'heating flux'
 []
 ```
 
@@ -284,20 +296,28 @@ regions where there are no cells at that level.
 
 ## Adding Tallies
 
-This class automatically creates tallies with scores specified by the user. There
-are two spatial options, controlled by `tally_type`:
+This class takes the tally objects initialized by the `[Tallies]` block and use them to construct
+tally auxvariables. At the moment there are two options for discretizing tallies spatially in Cardinal:
 
-1. cell tallies
-2. libMesh unstructured mesh tallies
+1. cell tallies ([CellTally](CellTally.md))
+2. libMesh unstructured mesh tallies ([MeshTally](MeshTally.md))
 
-The tally is normalized according to the specified `power` or `source_strength`
-(depending on whether you are running a $k$-eigenvalue or fixed-source problem). By default,
-the normalization is done against a global tally added over the entire
-OpenMC domain. By setting `normalize_by_global_tally` to false, however, the tally is instead
-normalized by the sum of the tally itself.
+If no tallies are specified by the `[Tallies]` block, this class adds no tally auxvariables. Each is normalized
+according to the specified `power` or `source_strength` (depending on whether you are running a
+$k$-eigenvalue or fixed-source problem). By default, the normalization is done against a global
+tally added over the entire OpenMC domain. By setting `normalize_by_global_tally` to false, however,
+the tally is instead normalized by the sum of the tally itself.
 
-You can customize the type of score that OpenMC uses for its tally with the
-`tally_score` parameter. Options include:
+!alert note
+`OpenMCCellAverageProblem` tries to match the estimator used by the global tally with the tally added by the user
+in  `[Tallies]`. However, if more than one tally is added by the user the estimator provided in `global_tally_estimator`
+is used to avoid ambiguity. If you want to use global normalization with multiple tallies (e.g use a
+[MeshTally](MeshTally.md) for flux and [CellTally](CellTally.md) for heating) ensure that all of the tallies
+use the same estimator in your input file. Otherwise the normalization process will fail due to the difference in
+local and global tally sums.
+
+You can customize the type of score that Cardinal uses to normalize tallies to `power` with the `source_rate_normalization`
+parameter. Options include:
 
 - `heating`: total nuclear heating
 - `heating_local`: same as the `heating` score, except that energy from secondary photons
@@ -310,12 +330,12 @@ You can customize the type of score that OpenMC uses for its tally with the
    released is a function of the incident energy by linking to optional fission energy release data.
 - `fission_q_recoverable`: same as the `kappa_fission` score, except that the score depends
    on the incident energy by linking to optional fission energy release data
-- `damage_energy`: damage energy production
 
 For more information on the specific meanings of these various scores,
-please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). [tally_units] compares the units from OpenMC
-and the units of the AuxVariables created by Cardinal. Note that for all area or
-volume units in [tally_units], that those units match whatever unit is used in the `[Mesh]`.
+please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). All
+of the tallies added are normalized with the same `source_rate_normalization` score when running in eigenvalue mode.
+[tally_units] compares the units from OpenMC and the units of the AuxVariables created for all tally scores supported
+by Cardinal. Note that for all area or volume units in [tally_units], that those units match whatever unit is used in the `[Mesh]`.
 
 !table id=tally_units caption=Tally units from OpenMC and the conversion in Cardinal.
 | Tally score | OpenMC Units | Cardinal Units |
@@ -365,38 +385,6 @@ If your OpenMC tally bins and corresponding `[Mesh]` elements
 already are exactly the same volume, then no special thought is needed for the tally
 normalization, and the value will be exactly consistent with the interpretation
 used in OpenMC.
-
-#### Cell Tallies
-
-With cell tallies, `tally_blocks` specifies which blocks
-in the `[Mesh]` should be tallied. Then, any OpenMC cells that map to those blocks
-are added to a cell tally, with one bin for each unique cell ID/instance combination.
-
-#### Unstructured Mesh Tallies
-  id=um
-
-There are two options with unstructured mesh tallies:
-
-- Do nothing, in which case OpenMC will tally on the `[Mesh]`
-- Specify a `mesh_template`, which provides a path to a mesh file
-
-For the `mesh_template` option, it is possible
-to translate the same mesh to multiple locations in the OpenMC geometry
-(while only taking up the memory needed to store a single mesh) using
-the `mesh_translations` or `mesh_translations_file` parameters. This is a useful feature for
-geometries that consist of many repeated geometry units, such as pebble bed and pin fuel
-systems.
-
-!alert note
-At present, unstructured mesh tallies are copied directly to the `[Mesh]` (without
-doing any type of nearest-node lookup).
-Suppose the mesh template consists of a mesh for a pincell with $N$ elements
-that you have translated to 3 different locations, giving a total of $3N$ tally
-bins. Because a direct copy is used to transfer the mesh tally results to the `[Mesh]`,
-the first $3N$ elements in the `[Mesh]` must exactly match the $3N$ elements in
-the mesh tally (except for a possible mesh scaling, as described in [#scaling]).
-This equivalence is required for the direct copy to be accurate - otherwise, the
-mesh tally results would be transferred to incorrect regions of space.
 
 ## Other Features
 
@@ -512,11 +500,9 @@ once reaching certain criteria in $k$ and/or the tally uncertainties, including:
 - $k$ relative error
 - tally relative error
 
-Set the `k_trigger` parameter to activate a trigger based on $k$, and set
-`tally_trigger` to activate a trigger based on the tally created
-automatically as part of the wrapping setup. Then, the desired convergence
-threshold is specified with the `k_trigger_threshold` and `tally_trigger_threshold`
-parameters, respectively. Both $k$ and tally triggers can be used simultaneously.
+Setting `k_trigger` enables triggers based on $k$, and setting `k_trigger_threshold` sets the required convergence criteria.
+Individual tally triggers can be set in the `tally_trigger` and `tally_trigger_threshold` parameters of the tally classes
+([CellTally](CellTally.md) and [MeshTally](MeshTally.md)). Both $k$ and multiple tally triggers can be used simultaneously.
 
 #### Controlling the OpenMC Settings
 
