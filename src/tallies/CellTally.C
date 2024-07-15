@@ -71,13 +71,6 @@ CellTally::CellTally(const InputParameters & parameters)
   }
 }
 
-std::vector<std::string>
-CellTally::generateAuxVarNames()
-{
-  // TODO: Add energy filters.
-  return _tally_name;
-}
-
 void
 CellTally::initializeTally()
 {

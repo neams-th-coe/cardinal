@@ -30,14 +30,6 @@ public:
 
   MeshTally(const InputParameters & parameters);
 
-  /**
-   * Generates aux variable names for use in creating and storing tally results.
-   * This allows for the splitting of tally results into energy bins, angular bins, etc.
-   *
-   * @return vector of variable names to be associated with this tally
-   */
-  virtual std::vector<std::string> generateAuxVarNames() override;
-
   /// A function to initialize the tally.
   virtual void initializeTally() override;
 

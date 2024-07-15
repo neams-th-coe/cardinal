@@ -1057,16 +1057,15 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     for (unsigned int i = 0; i < _local_tallies.size(); ++i)
     {
       const auto & scores = _local_tallies[i]->getScores();
-      const auto vars = _local_tallies[i]->generateAuxVarNames();
       for (unsigned int j = 0; j < scores.size(); ++j)
       {
-        if (vars.size() == 0)
+        if (_tally_var_names[i].size() == 0)
           continue;
 
         if (j == 0)
-          tallies.addRow(_local_tallies[i]->name(), scores[j], vars[j]);
+          tallies.addRow(_local_tallies[i]->name(), scores[j], _tally_var_names[i][j]);
         else
-          tallies.addRow("", scores[j], vars[j]);
+          tallies.addRow("", scores[j], _tally_var_names[i][j]);
       }
     }
 
@@ -1940,12 +1939,12 @@ OpenMCCellAverageProblem::addExternalVariables()
   unsigned int previous_valid_name_index = 0;
   for (unsigned int i = 0; i < _local_tallies.size(); ++i)
   {
-    auto names = _local_tallies[i]->generateAuxVarNames();
+    auto names = _local_tallies[i]->getAuxVarNames();
     _tally_var_names.push_back(names);
     _tally_var_ids.emplace_back();
 
     // We use this to check if a sequence of added tallies corresponds to a single translated mesh.
-    // If the number of names reported in generateAuxVarNames is zero, the tally must store it's results
+    // If the number of names reported in getAuxVarNames is zero, the tally must store it's results
     // in the variables added by the first mesh in the sequence.
     previous_valid_name_index = names.size() > 0 ? i : previous_valid_name_index;
 
@@ -2691,7 +2690,7 @@ OpenMCCellAverageProblem::validateLocalTallies()
     {
       bool has_score = _local_tally_score_map[i].count(_all_tally_scores[global_score]) == 1;
       // The second check is required to avoid multi counting translated mesh tallies.
-      if (has_score && _local_tallies[i]->generateAuxVarNames().size() > 0)
+      if (has_score && _local_tallies[i]->getAuxVarNames().size() > 0)
         tallies_per_score[global_score]++;
     }
   }

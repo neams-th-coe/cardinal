@@ -82,17 +82,14 @@ MeshTally::MeshTally(const InputParameters & parameters)
       mooseError("The mesh filter cannot be translated if directly tallying on the mesh "
                  "provided in the [Mesh] block!");
   }
-}
 
-std::vector<std::string>
-MeshTally::generateAuxVarNames()
-{
-  // TODO: Add energy filters.
   /**
-   * If this is the first instance we report the tally's names. Otherwise
-   * this tally will use a variable added by the first mesh filter in this series.
+   * If the instance isn't zero this variable is a translated mesh tally. It will accumulate it's
+   * scores in a different set of variables (the auxvars which are added by the first tally in a
+   * sequence of mesh tallies), and so it doesn't need to create any auxvars.
    */
-  return _instance == 0 ? _tally_name : std::vector<std::string>();
+  if (_instance != 0)
+    _tally_name = std::vector<std::string>();
 }
 
 void

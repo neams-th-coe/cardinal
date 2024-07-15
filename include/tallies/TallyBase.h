@@ -37,14 +37,6 @@ public:
   TallyBase(const InputParameters & parameters);
 
   /**
-   * Generates aux variable names for use in creating and storing tally results.
-   * This allows for the splitting of tally results into energy bins, angular bins, etc.
-   *
-   * @return vector of variable names to be associated with this tally
-   */
-  virtual std::vector<std::string> generateAuxVarNames() = 0;
-
-  /**
    * A function to initialize the tally which is implemented by the derived class.
    * Called by OpenMCCellAverageProblem.
    */
@@ -124,6 +116,14 @@ public:
    * @return list of scores this tally uses
    */
   const std::vector<std::string> & getScores() const { return _tally_score; }
+
+  /**
+   * Gets the auxvariable names for use in creating and storing tally results.
+   * This allows for the splitting of tally results into energy bins, angular bins, etc.
+   *
+   * @return vector of variable names to be associated with this tally
+   */
+  const std::vector<std::string> & getAuxVarNames() const { return _tally_name; }
 
   /**
    * Get the estimator used in this tally.
