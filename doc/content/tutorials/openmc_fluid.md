@@ -445,21 +445,21 @@ conduction module and to [!ac](THM) occur, these initial conditions will be pass
   start=ICs
   end=FluidProperties
 
-The `[Problem]` block is then used to specify settings for the OpenMC wrapping. We
+The `[Problem]` and `[Tallies]` blocks are then used to specify settings for the OpenMC wrapping. We
 define the total power for normalization, indicate that blocks 1, 2, and 4 are solid
-(graphite, compacts, and poison) while block 101 is fluid. We automatically add
-tallies to block 2, the fuel compacts. Because OpenMC solves in units of centimeters,
+(graphite, compacts, and poison) while block 101 is fluid. We add a [CellTally](/tallies/CellTally.md)
+to block 2, the fuel compacts. Because OpenMC solves in units of centimeters,
 we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
 `[Mesh]` to get into OpenMC's centimeter units.
 
 !listing /tutorials/gas_assembly/openmc.i
-  block=Problem
+  start=Tallies end=MultiApps
 
 Other features we use include an output of the fission tally standard deviation
 in units of W/m$^3$ to the `[Mesh]` by setting `output = 'unrelaxed_tally_std_dev'`.
 This is used to obtain uncertainty estimates of the heat source distribution from OpenMC
 in the same units as the heat source. We also leverage a helper utility
-in Cardinal by setting `check_equal_mapped_tally_volumes = true`. This parameter will
+in [CellTally](/tallies/CellTally.md) by setting `check_equal_mapped_tally_volumes = true`. This parameter will
 throw an error if the tallied OpenMC cells map to different volumes in the MOOSE domain.
 Because we know *a priori* that the equal-volume OpenMC tally cells *should* all map
 to equal volumes, this will help ensure that the volumes used for heat source normalization

@@ -272,8 +272,8 @@ mapped to the OpenMC cells.
   start=AuxVariables
   end=ICs
 
-The `[Problem]` block is then used to specify settings for the OpenMC wrapping. We define a total power
-of 30 kW and indicate that we'd like to add tallies to the fuel compacts. The cell
+The `[Problem]` and `[Tallies]` blocks are then used to specify settings for the OpenMC wrapping. We define a total power
+of 30 kW and add a [CellTally](/tallies/CellTally.md) to the fuel compacts. The cell
 tally setup in Cardinal will then automatically add a tally for each unique cell ID+instance
 combination. By setting `temperature_blocks` to all blocks, OpenMC will then receive temperature
 from MOOSE for the entire domain (because the mesh mirror consists of these
@@ -283,12 +283,12 @@ we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
 `[Mesh]` to get into OpenMC's centimeter units.
 
 !listing /tutorials/gas_compact/openmc.i
-  block=Problem
+  start=Tallies end=MultiApps
 
 Other features we use include an output of the fission tally standard deviation
 in units of W/m$^3$ to the `[Mesh]` by setting the `output` parameter. This is used to
 obtain the standard deviation of the heat source distribution from OpenMC in the same
-units as the heat source. We also leverage a helper utility in Cardinal by setting
+units as the heat source. We also leverage a helper utility in [CellTally](/tallies/CellTally.md) by setting
 `check_equal_mapped_tally_volumes` to `true`. This parameter will throw an error if
 the tallied OpenMC cells map to different volumes in the MOOSE domain. Because we know
 *a priori* that the equal-volume OpenMC tally cells *should* all map to equal volumes, this will
@@ -315,7 +315,7 @@ with the function given by [eq:fluid].
 
 !listing /tutorials/gas_compact/openmc.i
   start=ICs
-  end=Problem
+  end=Tallies
 
 We run OpenMC as the main application, so we next need to define a
 [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html) that will run

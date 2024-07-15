@@ -366,12 +366,12 @@ from the inlet to outlet fluid temperatures.
 
 !listing /tutorials/gas_compact_multiphysics/openmc_nek.i
   start=ICs
-  end=Problem
+  end=Tallies
 
-The wrapping of OpenMC is specified in the `[Problem]` block. Here, we
-indicate that we will provide both temperature and density feedback to OpenMC. In order to
-visualize the tally standard deviation, we output the fission tally standard
-deviation using the `output` parameter. The heat source from OpenMC will be relaxed
+The wrapping of OpenMC is specified in the `[Problem]` block and the addition of tallies is done
+in the `[Tallies]` block. Here, we indicate that we will provide both temperature and density
+feedback to OpenMC. In order to visualize the tally standard deviation, we output the fission
+tally standard deviation using the `output` parameter. The heat source from OpenMC will be relaxed
 using Robbins-Monro relaxation.
 
 By default, OpenMC will try to read temperature from the `temp` variable. However, in
@@ -392,7 +392,7 @@ The number of batches here is terminated once both of the following are satisfie
 These criteria are checked every `batch_interval`, up to a maximum number of batches.
 
 !listing /tutorials/gas_compact_multiphysics/openmc_nek.i
-  block=Problem
+  start=Tallies end=Executioner
 
 Next, we define a transient executioner - while OpenMC is technically solving
 a steady $k$-eigenvalue problem, using a time-dependent executioner with the notion

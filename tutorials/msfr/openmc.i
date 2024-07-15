@@ -47,6 +47,13 @@
   []
 []
 
+[Tallies]
+  [heat_source]
+    type = MeshTally
+    mesh_template = msr.e
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   output = unrelaxed_tally_std_dev
@@ -56,8 +63,6 @@
   reuse_source = true
 
   scaling = 100.0
-  tally_type = mesh
-  mesh_template = msr.e
 
   density_blocks = '1'
   temperature_blocks = '1'

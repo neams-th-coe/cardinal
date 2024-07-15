@@ -172,13 +172,13 @@ in other tutorials.
   end=AuxVariables
 
 Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
-block describes all objects necessary for the actual physics solve. To replace
-MOOSE finite element calculations with OpenMC particle transport calculations,
-the [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class
-is used.
+and [Tallies](/actions/AddTallyAction.md) blocks describe all objects necessary
+for the actual neutronics solve. To replace MOOSE finite element calculations
+with OpenMC particle transport calculations, the
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class is used.
 
 !listing /tutorials/dagmc/openmc.i
-  block=Problem
+  start=Tallies end=UserObjects
 
 For this example, we specify the total fission power by which to normalize OpenMC's
 tally results (because OpenMC's tally results are in units of eV/source particle).
@@ -190,10 +190,9 @@ will automatically map from MOOSE elements to OpenMC cells, and store which MOOS
 are providing temperature feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
 a volume-average temperature to apply to each OpenMC cell.
 
-This example uses mesh tallies, as indicated by the
-`tally_type`.
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
-automatically add the necessary tallies.
+This example uses mesh tallies, as indicated by the [MeshTally](/tallies/MeshTally.md)
+in the `[Tallies]` block. [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+will then automatically add the OpenMC mesh tally using the information provided.
 Finally, we specify the level in the geometry on which the cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,
 the cell level is zero.
@@ -217,7 +216,7 @@ and a variable named `cell_instance` (
 
 !listing /tutorials/dagmc/openmc.i
   start=AuxVariables
-  end=Problem
+  end=Tallies
 
 Next, we specify an executioner and output settings. Even though OpenMC technically
 performs a criticality calculation (with no time dependence), we use the transient

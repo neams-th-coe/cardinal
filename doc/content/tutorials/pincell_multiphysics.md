@@ -245,11 +245,11 @@ saturation temperature).
   start=AuxVariables
   end=ICs
 
-Next, the `Problem` block defines all the parameters related to coupling
+Next, the `[Problem]` and `[Tallies]` blocks define all the parameters related to coupling
 OpenMC to MOOSE. We will send temperature to OpenMC from blocks 2 and 3
 (which represent the solid regions) and we will send temperature and density
-to OpenMC from block 1 (which represents the fluid region). We will have
-Cardinal automatically set up cell tallies.
+to OpenMC from block 1 (which represents the fluid region). We add a
+[CellTally](/tallies/CellTally.md) to tally the heat source in the fuel.
 
 For this problem, the temperature that gets mapped into OpenMC is sourced
 from two different applications, which we can customize using the
@@ -263,13 +263,13 @@ terminate the OpenMC solution when reaching less than 2% maximum relative
 uncertainty in the fission power taly and 7.5E-4 standard deviation in $k$.
 
 !listing tutorials/pincell_multiphysics/openmc.i
-  block=Problem
+  start=Tallies end=MultiApps
 
 Next, we set up some initial conditions for the various fields used for coupling.
 
 !listing tutorials/pincell_multiphysics/openmc.i
   start=ICs
-  end=Problem
+  end=Tallies
 
 Next, we create a MOOSE heat conduction sub-application, and set up transfers of data between OpenMC and MOOSE. These transfers will send solid temperature and fluid temperature from MOOSE up to OpenMC, and a power distribution to MOOSE.
 

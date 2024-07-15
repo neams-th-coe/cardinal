@@ -177,18 +177,18 @@ as they map to the `[Mesh]`.
 
 !listing /tutorials/pebbles/openmc.i
   start=AuxVariables
-  end=Problem
+  end=Tallies
 
-The `[Problem]`
-block is then used to specify the OpenMC wrapping. We define a total power of
-1500 W, and indicate that we'd like to add tallies on block 0, which corresponds to the pebbles.
+The `[Problem]` and `[Tallies]`
+blocks are then used to specify the OpenMC wrapping. We define a total power of
+1500 W, and indicate that we'd like to add a [CellTally](/tallies/CellTally.md) on block 0, which corresponds to the pebbles.
 The cell tally setup in Cardinal will then automatically add a tally for each unique
 cell ID+instance combination.
 Because the repeated pebble cells we'd like to tally
 are repeated in the lattice nested one level below the root universe, we set the `cell_level = 1`.
 
 !listing /tutorials/pebbles/openmc.i
-  block=Problem
+  start=Tallies end=Executioner
 
 The `scaling` parameter is used to indicate a multiplicative factor that should be
 applied to the `[Mesh]` in order to get to units of centimeters.
@@ -287,7 +287,7 @@ application. To do this, we increase `nr` to add more radial discretization.
   block=Mesh
 
 For the OpenMC wrapping, the only changes required are
-that we set the type of tally to `mesh`, provide a mesh template with the mesh, and specify the
+that we change the added tally to a [MeshTally](/tallies/MeshTally.md), provide a mesh template with the mesh, and specify the
 translations to apply to replicate the mesh at the desired end positions in OpenMC's domain.
 For the mesh tally, let's create a mesh for a single pebble using MOOSE's mesh generators. We simply
 need to run the `mesh.i` file in `--mesh-only` mode:
@@ -299,10 +299,10 @@ cardinal-opt -i mesh.i --mesh-only
 ```
 
 which will create a mesh file named `mesh_in.e`. We then list that mesh as the
-`mesh_template` in the `[Problem]` block.
+`mesh_template` in the `[Tallies]` block.
 
 !listing /tutorials/pebbles/openmc_um.i
-  block=Problem
+  block=Tallies
 
 Note that the mesh template and mesh translations must be in the same
 units as the `[Mesh]` block.
@@ -310,6 +310,9 @@ In addition, because our sphere mesh does not perfectly preserve the volume of t
 cells, we set `normalize_by_global_tally` to false so that we normalize only
 by the sum of the mesh tally. Otherwise, we would miss a small amount of power produced
 within the spheres, but slightly outside the faceted surface of the sphere mesh. Setting this parameter to false ensures that the tally normalization is correct in that the heat sources are normalized by a tally sum over the same tally domain in the OpenMC model.
+
+!listing /tutorials/pebbles/openmc_um.i
+  block=Problem
 
 To run this input,
 

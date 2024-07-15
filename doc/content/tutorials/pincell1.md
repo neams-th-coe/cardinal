@@ -332,13 +332,24 @@ in other tutorials.
   end=AuxVariables
 
 Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
-block describes all objects necessary for the actual physics solve. To replace
-MOOSE finite element calculations with OpenMC particle transport calculations,
-the [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class
-is used.
+and [Tallies](/actions/AddTallyAction.md) blocks describe all objects necessary for the
+actual neutronics solve. To replace MOOSE finite element calculations
+with OpenMC particle transport calculations, the
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class is used.
 
 !listing /tutorials/lwr_solid/openmc.i
-  block=Problem
+  start=Tallies end=UserObjects
+
+For this example, we first start by specifying that we wish to add a
+[CellTally](/tallies/CellTally.md) in `[Tallies]`. The `tally_blocks` are
+then used to indicate which OpenMC cells to add tallies to
+(as inferred from the mapping of MOOSE elements to OpenMC cells). If not specified,
+we add tallies to all OpenMC cells. But for this problem, we already know that the
+cladding doesn't have any fissile material, so we can save some effort with the
+tallies by skipping tallies in those regions by setting
+`tally_blocks` to blocks 2 and 3.
+[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
+take the information provided in the `[Tallies]` block and add the necessary OpenMC tally.
 
 For this example, we specify the total fission power by which to normalize OpenMC's
 tally results (because OpenMC's tally results are in units of eV/source particle).
@@ -348,20 +359,7 @@ Here, we specify temperature feedback for the pellet (blocks 2 and 3) and the cl
 (block 1). During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
 will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
 are providing feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
-a volume-average temperature to apply to each OpenMC cell.
-
-This example uses cell tallies, as indicated by
-`tally_type`.
-The `tally_blocks` are
-then used to indicate which OpenMC cells to add tallies to
-(as inferred from the mapping of MOOSE elements to OpenMC cells). If not specified,
-we add tallies to all OpenMC cells. But for this problem, we already know that the
-cladding doesn't have any fissile material, so we can save some effort with the
-tallies by skipping tallies in those regions by setting
-`tally_blocks` to blocks 2 and 3.
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
-automatically add the necessary tallies.
-We specify the level in the geometry on which the cells
+a volume-average temperature to apply to each OpenMC cell. We specify the level in the geometry on which the cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,
 the cell level is zero.
 
@@ -379,7 +377,7 @@ how Cardinal volume-averages temperature over the mesh, we add a
 
 !listing /tutorials/lwr_solid/openmc.i
   start=AuxVariables
-  end=Problem
+  end=Tallies
 
 Next, we specify an executioner and output settings. Even though OpenMC technically
 performs a criticality calculation (with no time dependence), we use the transient
@@ -593,15 +591,13 @@ point to a different input file.
 !listing /tutorials/lwr_solid/solid_um.i
   block=MultiApps
 
-Then, in `openmc_um.i`, we make small modifications to the settings for the
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md). We indicate that
-`tally_type`
-is set to `mesh`. By default, OpenMC will then just tally directly on the MOOSE
-`[Mesh]` (though we could have specified a different mesh by providing a
-`mesh_template` file name).
+Then, in `openmc_um.i`, we change the [CellTally](/tallies/CellTally.md)
+to a [MeshTally](/tallies/MeshTally.md). By default, OpenMC will then just
+tally directly on the MOOSE `[Mesh]` (though we could have specified a
+different mesh by providing a`mesh_template` file name).
 
 !listing /tutorials/lwr_solid/openmc_um.i
-  block=Problem
+  block=Tallies
 
 By default, Cardinal will normalize the OpenMC fission energy tally according
 to a global tally over the entire OpenMC problem. When using mesh tallies on
@@ -620,6 +616,9 @@ by setting
 specify will be obtained when normalizing the OpenMC tally. In the limit of
 an extremely refined unstructured mesh, the error in normalizing by the global
 tally decreases to zero.
+
+!listing /tutorials/lwr_solid/openmc_um.i
+  block=Problem
 
 The mesh file we use for tallying is simply the `mesh_in.e` mesh we generated
 earlier with the mesh generators.
