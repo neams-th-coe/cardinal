@@ -21,7 +21,9 @@ import sys
 import os
 
 # Locate MOOSE directory
-MOOSE_DIR = os.getenv('MOOSE_DIR', os.path.abspath(os.path.join(os.path.dirname(__name__), '..', 'moose')))
+MOOSE_DIR = os.getenv('MOOSE_DIR', os.path.abspath(os.path.join(os.path.dirname(__name__), '..', 'contrib', 'moose')))
+if not os.path.exists(MOOSE_DIR):
+    MOOSE_DIR = os.path.abspath(os.path.join(os.path.dirname(__name__), '..', 'moose'))
 if not os.path.exists(MOOSE_DIR):
     MOOSE_DIR = os.path.abspath(os.path.join(os.path.dirname(__name__), '..', '..', 'moose'))
 if not os.path.exists(MOOSE_DIR):
