@@ -120,14 +120,20 @@ public:
    * Get the mapping of cells to MOOSE elements
    * @return mapping of cells to MOOSE elements
    */
-  virtual const std::map<cellInfo, std::vector<unsigned int>> & cellToElem() const { return _cell_to_elem; }
+  virtual const std::map<cellInfo, std::vector<unsigned int>> & cellToElem() const
+  {
+    return _cell_to_elem;
+  }
 
   /**
    * Get the MOOSE subdomains associated with an OpenMC cell
    * @param info the cell info
    * @return MOOSE subdomains associated with an OpenMC cell
    */
-  virtual std::unordered_set<SubdomainID> getCellToElementSub(const cellInfo & info) { return _cell_to_elem_subdomain.at(info); }
+  virtual std::unordered_set<SubdomainID> getCellToElementSub(const cellInfo & info)
+  {
+    return _cell_to_elem_subdomain.at(info);
+  }
 
   /**
    * Whether transformations are applied to the [Mesh] points when mapping to OpenMC
@@ -287,7 +293,8 @@ public:
    * @param[in] name the name of the new tally
    * @param[in] moose_object_pars the input parameters of the new tally
    */
-  void addTallyObject(const std::string & type, const std::string & name,
+  void addTallyObject(const std::string & type,
+                      const std::string & name,
                       InputParameters & moose_object_pars);
 
   /**
@@ -578,7 +585,9 @@ protected:
    * @param[in] local_score the local index of the tally score
    * @param[in] local_tally the tally to relax and normalize
    */
-  void relaxAndNormalizeTally(unsigned int global_score, unsigned int local_score, std::shared_ptr<TallyBase> local_tally);
+  void relaxAndNormalizeTally(unsigned int global_score,
+                              unsigned int local_score,
+                              std::shared_ptr<TallyBase> local_tally);
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
@@ -892,8 +901,8 @@ protected:
 
   /**
    * The [Tallies] block allows tallies with different scores, and so we can't assume they have the
-   * same indices in each tally's arrays. This variable map between the name of each score and it's index
-   * in each local tally.
+   * same indices in each tally's arrays. This variable map between the name of each score and it's
+   * index in each local tally.
    */
   std::vector<std::map<std::string, int>> _local_tally_score_map;
 

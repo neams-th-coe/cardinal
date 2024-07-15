@@ -175,14 +175,14 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   registerSyntax("VolumetricHeatSourceICAction", "Cardinal/ICs/VolumetricHeatSource");
   registerSyntax("BulkEnergyConservationICAction", "Cardinal/ICs/BulkEnergyConservation");
 
-  // Add the [Tallies] block
-  #ifdef ENABLE_OPENMC_COUPLING
+// Add the [Tallies] block
+#ifdef ENABLE_OPENMC_COUPLING
   registerSyntaxTask("AddTallyAction", "Tallies/*", "add_tallies");
   registerMooseObjectTask("add_tallies", Tally, false);
   addTaskDependency("add_tallies", "init_displaced_problem");
   // Can only add external auxvars after the tallies have been added.
   addTaskDependency("add_external_aux_variables", "add_tallies");
-  #endif
+#endif
 
   registerTask("add_heat_source_ic", false /* is required */);
   addTaskDependency("add_heat_source_ic", "add_ic");

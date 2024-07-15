@@ -52,18 +52,24 @@ public:
    * A function which stores the results of this tally into the created auxvariables.
    * This must be implemented by a derived class.
    * @param[in] var_numbers variables which the tally will store results in
-   * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the current score being stored
+   * @param[in] local_score index into the tally's local array of scores which represents the
+   * current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the
+   * current score being stored
    * @return the sum of the score across all tally bins
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers, unsigned int local_score, unsigned int global_score) = 0;
+  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
+                            unsigned int local_score,
+                            unsigned int global_score) = 0;
 
   /**
-   * A function which stores the external variable results of this tally into the created auxvariables.
-   * This must be implemented by a derived class.
+   * A function which stores the external variable results of this tally into the created
+   * auxvariables. This must be implemented by a derived class.
    * @param[in] ext_var_numbers variables which the tally will store results in
-   * @param[in] local_score index into the tally's local array of scores which represents the current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the current score being stored
+   * @param[in] local_score index into the tally's local array of scores which represents the
+   * current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the
+   * current score being stored
    * @param[in] output_type the output type
    */
   virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
@@ -80,7 +86,7 @@ public:
   /**
    * A function which computes and stores the sum and mean of the tally across all bins for a
    * particular score.
-  */
+   */
   void computeSumAndMean();
 
   /**
@@ -218,7 +224,7 @@ protected:
    */
   std::vector<Real> _tally_trigger_threshold;
 
-   /**
+  /**
    * Current fixed point iteration tally result; for instance, when using constant
    * relaxation, the tally is updated as:
    * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)

@@ -32,8 +32,7 @@ OpenMCProblemBase::validParams()
       "source_strength", "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
-  params.addParam<MooseEnum>(
-      "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
+  params.addParam<MooseEnum>("tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
 
   params.addRangeCheckedParam<Real>(
       "scaling",
@@ -87,7 +86,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _total_n_particles(0)
 {
   if (isParamValid("tally_type"))
-    mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. Please add tallies with the [Tallies] block instead.");
+    mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
+               "Please add tallies with the [Tallies] block instead.");
 
   int argc = 1;
   char openmc[] = "openmc";

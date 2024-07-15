@@ -31,10 +31,9 @@ MeshTally::validParams()
                                "at present, this mesh must exactly match the mesh used in the "
                                "[Mesh] block because a one-to-one copy "
                                "is used to get OpenMC's tally results on the [Mesh].");
-  params.addParam<Point>(
-      "mesh_translation",
-      "Coordinate to which this mesh should be "
-      "translated. Units must match those used to define the [Mesh].");
+  params.addParam<Point>("mesh_translation",
+                         "Coordinate to which this mesh should be "
+                         "translated. Units must match those used to define the [Mesh].");
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
@@ -44,7 +43,8 @@ MeshTally::validParams()
 
 MeshTally::MeshTally(const InputParameters & parameters)
   : TallyBase(parameters),
-    _mesh_translation(isParamValid("mesh_translation") ? getParam<Point>("mesh_translation") : Point(0.0, 0.0, 0.0)),
+    _mesh_translation(isParamValid("mesh_translation") ? getParam<Point>("mesh_translation")
+                                                       : Point(0.0, 0.0, 0.0)),
     _instance(getParam<unsigned int>("instance"))
 {
   // Error check the estimators.
@@ -58,18 +58,19 @@ MeshTally::MeshTally(const InputParameters & parameters)
 
   // Error check the mesh template.
   if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
-      mooseError("Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
+    mooseError(
+        "Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
 
   if (isParamValid("mesh_template"))
     _mesh_template_filename = &getParam<std::string>("mesh_template");
   else
   {
     if (std::abs(_openmc_problem.scaling() - 1.0) > 1e-6)
-           mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity. "
-                      "Instead, please make a file containing your tally mesh and set it with "
-                      "'mesh_template'. You can generate a mesh file corresponding to the [Mesh] "
-                      "by running:\n\ncardinal-opt -i " +
-                      _app.getFileName() + " --mesh-only");
+      mooseError("Directly tallying on the [Mesh] is only supported for 'scaling' of unity. "
+                 "Instead, please make a file containing your tally mesh and set it with "
+                 "'mesh_template'. You can generate a mesh file corresponding to the [Mesh] "
+                 "by running:\n\ncardinal-opt -i " +
+                 _app.getFileName() + " --mesh-only");
 
     // for distributed meshes, each rank only owns a portion of the mesh information, but
     // OpenMC wants the entire mesh to be available on every rank. We might be able to add
@@ -139,7 +140,9 @@ MeshTally::resetTally()
 }
 
 Real
-MeshTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned int local_score, unsigned int global_score)
+MeshTally::storeResults(const std::vector<unsigned int> & var_numbers,
+                        unsigned int local_score,
+                        unsigned int global_score)
 {
   Real total = 0.0;
 
@@ -152,9 +155,9 @@ MeshTally::storeResults(const std::vector<unsigned int> & var_numbers, unsigned 
     // because we will apply it as a volumetric tally (per unit volume).
     // Because we require that the mesh template has units of cm based on the
     // mesh constructors in OpenMC, we need to adjust the division
-    Real volumetric_power =
-        power_fraction * _openmc_problem.tallyMultiplier(global_score) / _mesh_template->volume(e) *
-        _openmc_problem.scaling() * _openmc_problem.scaling() * _openmc_problem.scaling();
+    Real volumetric_power = power_fraction * _openmc_problem.tallyMultiplier(global_score) /
+                            _mesh_template->volume(e) * _openmc_problem.scaling() *
+                            _openmc_problem.scaling() * _openmc_problem.scaling();
     total += power_fraction;
 
     std::vector<unsigned int> elem_ids = {offset + e};
@@ -181,9 +184,9 @@ MeshTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
       // because we will apply it as a volumetric tally (per unit volume).
       // Because we require that the mesh template has units of cm based on the
       // mesh constructors in OpenMC, we need to adjust the division
-      Real volumetric_power =
-          power_fraction * _openmc_problem.tallyMultiplier(global_score) / _mesh_template->volume(e) *
-          _openmc_problem.scaling() * _openmc_problem.scaling() * _openmc_problem.scaling();
+      Real volumetric_power = power_fraction * _openmc_problem.tallyMultiplier(global_score) /
+                              _mesh_template->volume(e) * _openmc_problem.scaling() *
+                              _openmc_problem.scaling() * _openmc_problem.scaling();
 
       std::vector<unsigned int> elem_ids = {offset + e};
       fillElementalAuxVariable(ext_var_numbers[local_score], elem_ids, volumetric_power);
@@ -199,9 +202,9 @@ MeshTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
       // because we will apply it as a volumetric tally (per unit volume).
       // Because we require that the mesh template has units of cm based on the
       // mesh constructors in OpenMC, we need to adjust the division
-      Real volumetric_power =
-          power_fraction * _openmc_problem.tallyMultiplier(global_score) / _mesh_template->volume(e) *
-          _openmc_problem.scaling() * _openmc_problem.scaling() * _openmc_problem.scaling();
+      Real volumetric_power = power_fraction * _openmc_problem.tallyMultiplier(global_score) /
+                              _mesh_template->volume(e) * _openmc_problem.scaling() *
+                              _openmc_problem.scaling() * _openmc_problem.scaling();
 
       std::vector<unsigned int> elem_ids = {offset + e};
       fillElementalAuxVariable(ext_var_numbers[local_score], elem_ids, volumetric_power);
@@ -219,7 +222,8 @@ MeshTally::makeMeshFilter()
   if (!_mesh_template_filename)
     tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling());
   else
-    tally_mesh = std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling());
+    tally_mesh =
+        std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling());
 
   // by setting the ID to -1, OpenMC will automatically detect the next available ID
   tally_mesh->set_id(-1);
@@ -290,15 +294,15 @@ MeshTally::checkMeshTemplateAndTranslations() const
     // check if centroids are the same
     bool different_centroids = false;
     for (unsigned int j = 0; j < OpenMCCellAverageProblem::DIMENSION; ++j)
-      different_centroids = different_centroids || !MooseUtils::absoluteFuzzyEqual(
-                                                         centroid_mesh(j), centroid_template(j));
+      different_centroids = different_centroids ||
+                            !MooseUtils::absoluteFuzzyEqual(centroid_mesh(j), centroid_template(j));
 
     if (different_centroids)
       mooseError(
           "Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh] (cm): " +
           _openmc_problem.printPoint(centroid_mesh) + "\ndoes not match centroid for element " +
-          Moose::stringify(e) + " in the 'mesh_template' with instance " + Moose::stringify(_instance) +
-          " (cm): " + _openmc_problem.printPoint(centroid_template) +
+          Moose::stringify(e) + " in the 'mesh_template' with instance " +
+          Moose::stringify(_instance) + " (cm): " + _openmc_problem.printPoint(centroid_template) +
           "!\n\nThe copy transfer requires that the [Mesh] and 'mesh_template' be identical.");
   }
 }

@@ -29,11 +29,14 @@ TallyBase::validParams()
 {
   auto params = MooseObject::validParams();
   params.addParam<MultiMooseEnum>(
-      "tally_score", getTallyScoreEnum(), "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
+      "tally_score",
+      getTallyScoreEnum(),
+      "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
   params.addParam<MooseEnum>(
       "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
   params.addParam<std::vector<std::string>>(
-      "tally_name", "Auxiliary variable name(s) to use for OpenMC tallies. "
+      "tally_name",
+      "Auxiliary variable name(s) to use for OpenMC tallies. "
       "If not specified, defaults to the names of the scores");
 
   MultiMooseEnum tally_trigger("rel_err none");
@@ -56,10 +59,10 @@ TallyBase::validParams()
 
 TallyBase::TallyBase(const InputParameters & parameters)
   : MooseObject(parameters),
-  _openmc_problem(*getParam<OpenMCCellAverageProblem *>("_openmc_problem")),
-  _mesh(_openmc_problem.mesh()),
-  _aux(_openmc_problem.getAuxiliarySystem()),
-  _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
+    _openmc_problem(*getParam<OpenMCCellAverageProblem *>("_openmc_problem")),
+    _mesh(_openmc_problem.mesh()),
+    _aux(_openmc_problem.getAuxiliarySystem()),
+    _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
                                                  : nullptr)
 {
   if (isParamValid("tally_score"))
@@ -138,7 +141,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
     for (auto score : _tally_score)
     {
       std::replace(score.begin(), score.end(), '-', '_');
-        _tally_name.push_back(score);
+      _tally_name.push_back(score);
     }
   }
 
@@ -195,14 +198,17 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
 
   auto mean_tally = _openmc_problem.tallySum(_local_tally, local_score);
   /**
-   * If the value over the whole domain is zero, then the values in the individual bins must be zero.
-   * We need to avoid divide-by-zeros.
-  */
-  current_raw = std::abs(norm) < ZERO_TALLY_THRESHOLD ? static_cast<xt::xtensor<double, 1>>(mean_tally * 0.0)
-                                                      : static_cast<xt::xtensor<double, 1>>(mean_tally / norm);
+   * If the value over the whole domain is zero, then the values in the individual bins must be
+   * zero. We need to avoid divide-by-zeros.
+   */
+  current_raw = std::abs(norm) < ZERO_TALLY_THRESHOLD
+                    ? static_cast<xt::xtensor<double, 1>>(mean_tally * 0.0)
+                    : static_cast<xt::xtensor<double, 1>>(mean_tally / norm);
 
-  auto sum_sq =
-      xt::view(_local_tally->results_, xt::all(), local_score, static_cast<int>(openmc::TallyResult::SUM_SQ));
+  auto sum_sq = xt::view(_local_tally->results_,
+                         xt::all(),
+                         local_score,
+                         static_cast<int>(openmc::TallyResult::SUM_SQ));
   auto rel_err = _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
   current_raw_std_dev = rel_err * current_raw;
 

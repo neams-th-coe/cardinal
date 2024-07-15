@@ -48,8 +48,7 @@ AddTallyAction::validParams()
   return params;
 }
 
-AddTallyAction::AddTallyAction(const InputParameters & parameters)
-  : MooseObjectAction(parameters)
+AddTallyAction::AddTallyAction(const InputParameters & parameters) : MooseObjectAction(parameters)
 {
   if (_type == "MeshTally")
   {
@@ -92,7 +91,7 @@ AddTallyAction::addMeshTally(unsigned int instance, const Point & translation)
   {
     obj_name += "_" + Moose::stringify(instance);
     _moose_object_pars.set<unsigned int>("instance") = instance;
-  _moose_object_pars.set<Point>("mesh_translation") = translation * openmc_problem->scaling();
+    _moose_object_pars.set<Point>("mesh_translation") = translation * openmc_problem->scaling();
   }
 
   _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;

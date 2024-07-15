@@ -38,8 +38,7 @@ protected:
    * @param instance the index of the tally into the translation array
    * @param translation the translation vector at instance
    */
-  void addMeshTally(unsigned int instance = 0,
-                    const Point & translation = Point(0.0, 0.0, 0.0));
+  void addMeshTally(unsigned int instance = 0, const Point & translation = Point(0.0, 0.0, 0.0));
 
   /**
    * This function adds a a tally which may be an offset into an array
@@ -48,7 +47,7 @@ protected:
    */
   void addTally();
 
-   /**
+  /**
    * Fill the mesh translations to be applied to an unstructured mesh tally; if no
    * translations are explicitly given, a translation of (0.0, 0.0, 0.0) is assumed.
    */
