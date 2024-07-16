@@ -9,12 +9,10 @@
   [Mesh_Tally]
     type = MeshTally
     tally_score = 'flux'
-    tally_estimator = 'collision'
   []
   [Cell_Tally]
     type = CellTally
     tally_score = 'heating_local'
-    tally_estimator = 'collision'
   []
 []
 
@@ -29,7 +27,6 @@
 
   normalize_by_global_tally = true
   check_tally_sum = true
-  global_tally_estimator = 'collision'
 
   power = 100.0
 

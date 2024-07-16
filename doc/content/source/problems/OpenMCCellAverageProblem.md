@@ -308,14 +308,6 @@ $k$-eigenvalue or fixed-source problem). By default, the normalization is done a
 tally added over the entire OpenMC domain. By setting `normalize_by_global_tally` to false, however,
 the tally is instead normalized by the sum of the tally itself.
 
-!alert note
-`OpenMCCellAverageProblem` tries to match the estimator used by the global tally with the tally added by the user
-in  `[Tallies]`. However, if more than one tally is added by the user the estimator provided in `global_tally_estimator`
-is used to avoid ambiguity. If you want to use global normalization with multiple tallies (e.g use a
-[MeshTally](MeshTally.md) for flux and [CellTally](CellTally.md) for heating) ensure that all of the tallies
-use the same estimator in your input file. Otherwise the normalization process will fail due to the difference in
-local and global tally sums.
-
 You can customize the type of score that Cardinal uses to normalize tallies to `power` with the `source_rate_normalization`
 parameter. Options include:
 
