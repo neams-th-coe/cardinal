@@ -88,10 +88,6 @@ OpenMCCellAverageProblem::validParams()
     "during the simulation, the mapping from OpenMC's cells to the mesh must be re-evaluated after "
     "each OpenMC run.");
 
-  params.addParam<MooseEnum>("global_tally_estimator",
-                             getTallyEstimatorEnum(),
-                             "Type of tally estimator to use with global tallies in OpenMC");
-
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
   params.addParam<MooseEnum>(
@@ -264,12 +260,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != trigger::none)
     mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
-
-  if (isParamValid("global_tally_estimator"))
-    _global_tally_estimator = tallyEstimator(
-        getParam<MooseEnum>("global_tally_estimator").getEnum<tally::TallyEstimatorEnum>());
-  else
-    _global_tally_estimator = openmc::TallyEstimator::TRACKLENGTH; // set a default of tracklength
 
   if (_assume_separate_tallies && _needs_global_tally)
     paramError("assume_separate_tallies",
@@ -1838,11 +1828,14 @@ OpenMCCellAverageProblem::resetTallies()
   for (int i = _local_tallies.size() - 1; i >= 0; --i)
     _local_tallies[i]->resetTally();
 
+  // erase global tallies
   if (_needs_global_tally)
   {
-    // erase tally
-    auto idx = openmc::model::tallies.begin() + _global_tally_index;
-    openmc::model::tallies.erase(idx);
+    for (int i = _global_tally_index + _global_tally_scores.size() - 1; i >= 0; --i)
+    {
+      auto idx = openmc::model::tallies.begin() + _global_tally_index + i;
+      openmc::model::tallies.erase(idx);
+    }
   }
 }
 
@@ -1859,11 +1852,16 @@ OpenMCCellAverageProblem::initializeTallies()
   // same estimator as the local tally
   if (_needs_global_tally)
   {
-    _global_tally = openmc::Tally::create();
-    _global_tally->set_scores(_all_tally_scores);
-    _global_tally->estimator_ = _global_tally_estimator;
+    _global_tally_index = openmc::model::tallies.size();
 
-    _global_tally_index = openmc::model::tallies.size() - 1;
+    _global_tallies.clear();
+    for (unsigned int i = 0; i < _global_tally_scores.size(); ++i)
+    {
+      _global_tallies.push_back(openmc::Tally::create());
+      _global_tallies[i]->set_scores(_global_tally_scores[i]);
+      _global_tallies[i]->estimator_ = _global_tally_estimators[i];
+    }
+
     _global_sum_tally.clear();
     _global_sum_tally.resize(_all_tally_scores.size(), 0.0);
   }
@@ -2444,13 +2442,26 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
     {
       _console << "Extracting OpenMC tallies...";
 
-      if (_local_tallies.size() == 0 && !_global_tally)
+      if (_local_tallies.size() == 0 && _global_tallies.size() == 0)
         break;
 
       // Get the total tallies for normalization
-      if (_global_tally)
+      if (_global_tallies.size() > 0)
+      {
         for (unsigned int global_score = 0; global_score < _all_tally_scores.size(); ++global_score)
-          _global_sum_tally[global_score] = tallySumAcrossBins({_global_tally}, global_score);
+        {
+          for (unsigned int i = 0; i < _global_tallies.size(); ++i)
+          {
+            auto loc = std::find(_global_tally_scores[i].begin(), _global_tally_scores[i].end(),
+                                 _all_tally_scores[global_score]);
+            if (loc == _global_tally_scores[i].end())
+              continue;
+
+            auto index = loc - _global_tally_scores[i].begin();
+            _global_sum_tally[global_score] = tallySumAcrossBins({_global_tallies[i]}, index);
+          }
+        }
+      }
 
       // Loop over all of the tallies and calculate their sums and averages.
       for (auto & local_tally : _local_tallies)
@@ -2537,8 +2548,7 @@ OpenMCCellAverageProblem::checkTallySum(const unsigned int & score) const
         << "\n Tally sum:    " << Moose::stringify(_local_sum_tally[score])
         << "\n Difference:   " << _global_sum_tally[score] - _local_sum_tally[score]
         << "\n\nThis means that the tallies created by Cardinal are missing some hits over the "
-           "domain,"
-        << " or the estimators used by the global and local tallies are different.\n"
+           "domain.\n"
         << "You can turn off this check by setting 'check_tally_sum' to false.";
 
     mooseError(msg.str());
@@ -2684,6 +2694,13 @@ OpenMCCellAverageProblem::addTallyObject(const std::string & type,
   }
 
   _contains_cell_tally = type == "CellTally" ? true : _contains_cell_tally;
+
+  // Add the associated global tally if required.
+  if (_needs_global_tally && tally->getAuxVarNames().size() > 0)
+  {
+    _global_tally_scores.push_back(tally_scores);
+    _global_tally_estimators.push_back(tally->getTallyEstimator());
+  }
 }
 
 void
@@ -2721,41 +2738,6 @@ OpenMCCellAverageProblem::validateLocalTallies()
                  " tallies which score " + _all_tally_scores[global_score] +
                  "!\nCardinal does not support multiple tallies with the same"
                  " scores as these tallies may have overlapping bins, preventing normalization.");
-    }
-  }
-
-  /**
-   * If we have a single local tally, make sure the global estimator matches the local one.
-   * Otherwise, warn the user if there is a mismatch.
-   */
-  if (_local_tallies.size() == 1 && _needs_global_tally)
-  {
-    if (isParamValid("global_tally_estimator"))
-    {
-      if (_global_tally_estimator != _local_tallies[0]->getTallyEstimator())
-      {
-        mooseWarning("The estimator used by the local tally '" + _local_tallies[0]->name() +
-                     "' does not match the "
-                     "estimator set in 'global_tally_estimator'!\n Global estimator: " +
-                     estimatorToString(_global_tally_estimator) + ".\n Local estimator: " +
-                     estimatorToString(_local_tallies[0]->getTallyEstimator()) + ".");
-      }
-    }
-    else
-      _global_tally_estimator = _local_tallies[0]->getTallyEstimator();
-  }
-  else if (_local_tallies.size() > 1 && _needs_global_tally)
-  {
-    for (const auto & tally : _local_tallies)
-    {
-      if (tally->getTallyEstimator() != _global_tally_estimator)
-      {
-        mooseWarning("The estimator used by the local tally '" + tally->name() +
-                     "' does not match the "
-                     "estimator set in 'global_tally_estimator'!\n Global estimator: " +
-                     estimatorToString(_global_tally_estimator) +
-                     ".\n Local estimator: " + estimatorToString(tally->getTallyEstimator()) + ".");
-      }
     }
   }
 
@@ -2805,6 +2787,7 @@ OpenMCCellAverageProblem::validateLocalTallies()
       _all_tally_scores.push_back(n);
       _local_tallies[0]->addScore(n);
       _local_tally_score_map[0][n] = _local_tallies[0]->getScores().size() - 1;
+      _global_tally_scores[0].push_back(n);
       _source_rate_index = _all_tally_scores.size() - 1;
     }
     else

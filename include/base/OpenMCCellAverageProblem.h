@@ -918,9 +918,6 @@ protected:
   /// Whether the problem contains a cell tally or not.
   bool _contains_cell_tally = false;
 
-  /// Tally estimator for the global tally created by Cardinal
-  openmc::TallyEstimator _global_tally_estimator;
-
   /// Blocks in MOOSE mesh that provide density feedback
   std::vector<SubdomainID> _density_blocks;
 
@@ -1020,8 +1017,17 @@ protected:
   /// Number of material-type cells contained within a cell
   std::map<cellInfo, int32_t> _cell_to_n_contained;
 
-  /// Global tally
-  openmc::Tally * _global_tally{nullptr};
+  /**
+   * Global tallies. We add one per tally added in the [Tallies] block to
+   * enable global noramlization.
+   */
+  std::vector<openmc::Tally *> _global_tallies;
+
+  /// Global tally scores corresponding to '_global_tallies'.
+  std::vector<std::vector<std::string>> _global_tally_scores;
+
+  /// Global tally estimators corresponding to '_global_tallies'.
+  std::vector<openmc::TallyEstimator> _global_tally_estimators;
 
   /// Sum value of the global tally(s), across all bins
   std::vector<Real> _global_sum_tally;
@@ -1074,8 +1080,8 @@ protected:
   /// Number of none elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_none;
 
-  /// Index in OpenMC tallies corresponding to the global tally added by Cardinal
-  unsigned int _global_tally_index;
+  /// Index in OpenMC tallies corresponding to the first global tally added by Cardinal
+  unsigned int _global_tally_index = 0;
 
   /// Index in tally_score pointing to the score used for normalizing flux tallies in eigenvalue mode
   unsigned int _source_rate_index;
