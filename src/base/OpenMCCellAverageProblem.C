@@ -2452,7 +2452,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         {
           for (unsigned int i = 0; i < _global_tallies.size(); ++i)
           {
-            auto loc = std::find(_global_tally_scores[i].begin(), _global_tally_scores[i].end(),
+            auto loc = std::find(_global_tally_scores[i].begin(),
+                                 _global_tally_scores[i].end(),
                                  _all_tally_scores[global_score]);
             if (loc == _global_tally_scores[i].end())
               continue;
