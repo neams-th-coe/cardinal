@@ -16,7 +16,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  global_tally_estimator = collision
   check_tally_sum = false
   power = 100.0
 []

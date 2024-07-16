@@ -15,7 +15,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   initial_properties = xml
-  global_tally_estimator = collision
   power = 100.0
   cell_level = 0
   temperature_blocks = '1 2'

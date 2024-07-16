@@ -39,7 +39,6 @@
   cell_level = 0
 
   check_tally_sum = false
-  global_tally_estimator = collision
 
   initial_properties = xml
 []

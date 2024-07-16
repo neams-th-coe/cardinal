@@ -54,8 +54,6 @@
   cell_level = 0
   initial_properties = xml
 
-  global_tally_estimator = tracklength
-
   source_rate_normalization = 'kappa_fission'
 []
 

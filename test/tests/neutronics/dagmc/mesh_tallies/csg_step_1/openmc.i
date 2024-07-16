@@ -44,7 +44,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  global_tally_estimator = collision
 
   temperature_blocks = '1 2'
   cell_level = 0

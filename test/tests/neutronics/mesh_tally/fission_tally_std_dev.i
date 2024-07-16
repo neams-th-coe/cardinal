@@ -26,7 +26,6 @@
   verbose = true
   cell_level = 0
   normalize_by_global_tally = true
-  global_tally_estimator = collision
 
   power = 100.0
   check_tally_sum = false

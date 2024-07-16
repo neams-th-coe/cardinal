@@ -50,7 +50,6 @@
   verbose = true
   power = 1500.0
   temperature_blocks = '0'
-  global_tally_estimator = collision
 
   cell_level = 1
   scaling = 100.0

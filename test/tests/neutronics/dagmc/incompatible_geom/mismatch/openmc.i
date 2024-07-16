@@ -23,7 +23,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  global_tally_estimator = collision
 
   temperature_blocks = '1'
   cell_level = 0

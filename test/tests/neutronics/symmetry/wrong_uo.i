@@ -25,7 +25,6 @@ height = 6.343                           # height of the full core (m)
   scaling = 100.0
   temperature_blocks = '1 2'
   cell_level = 1
-  global_tally_estimator = collision
 
   symmetry_mapper = sym
 []

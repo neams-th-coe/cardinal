@@ -47,7 +47,6 @@ scale = 100.0
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  global_tally_estimator = collision
   scaling = ${scale}
 
   temperature_blocks = '1 2'
