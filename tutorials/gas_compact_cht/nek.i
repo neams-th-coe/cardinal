@@ -1,3 +1,5 @@
+!include common_input.i
+
 # copy-pasta from common_input.i
 
 channel_diameter = 0.016                 # diameter of the coolant channels (m)
