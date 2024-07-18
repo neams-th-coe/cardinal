@@ -1,3 +1,5 @@
+!include common_input.i
+
 # copy-pasta from common.i
 inlet_T = 598.0                          # inlet fluid temperature (K)
 mdot = ${fparse 117.3 / 12 / 108}        # fluid mass flowrate (kg/s)

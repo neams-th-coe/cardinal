@@ -1,3 +1,5 @@
+!include common_input.i
+
 n_layers = 100    # number of axial extrusion layers; for the converged case,
                   # we set this to 300 to get a finer mesh
 

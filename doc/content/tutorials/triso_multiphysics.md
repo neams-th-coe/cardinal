@@ -722,7 +722,7 @@ steady state relative tolerance of $10^{-8}$.
 To run the coupled OpenMC-NekRS-MOOSE calculation, run the following:
 
 ```
-mpiexec -np 500 cardinal-opt -i common_input.i openmc_nek.i
+mpiexec -np 500 cardinal-opt -i openmc_nek.i
 ```
 
 This will run with 500 [!ac](MPI) processes (you may run with other parallel
@@ -731,7 +731,7 @@ HPC resources due to the large mesh). To run the coupled OpenMC-THM-MOOSE
 calculation, run the following:
 
 ```
-mpiexec -np 2 cardinal-opt -i common_input.i openmc_thm.i --n-threads=36
+mpiexec -np 2 cardinal-opt -i openmc_thm.i --n-threads=36
 ```
 
 which will run with 2 [!ac](MPI) ranks with 36 threads each (again, these parallel

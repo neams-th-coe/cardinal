@@ -1,8 +1,10 @@
+!include common_input.i
+
 # This "input" file has various common parameters to be shared across
 # MOOSE input files and OpenMC python scripts. To run any of the MOOSE
 # input files, use
 #
-# cardinal-opt -i common_input.i <input file you want to run>
+# cardinal-opt -i <input file you want to run>
 #
 # All parameters in this input file should be in SI units! All
 # specifications come from the following report except where noted:

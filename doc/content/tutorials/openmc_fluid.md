@@ -117,7 +117,7 @@ meshes are then combined together into a bundle pattern and extruded.
 You can create this mesh by running:
 
 ```
-cardinal-opt -i common_input.i solid_mesh.i --mesh-only
+cardinal-opt -i solid_mesh.i --mesh-only
 ```
 
 which will create a mesh named `solid_mesh_in.e`.
@@ -590,7 +590,7 @@ inconsequential in this case, but instead represents the Picard iteration. We wi
 To run the coupled calculation,
 
 ```
-mpiexec -np 4 cardinal-opt -i common_input.i openmc.i --n-threads=2
+mpiexec -np 4 cardinal-opt -i openmc.i --n-threads=2
 ```
 
 This will run with 4 MPI processes and 2 OpenMP threads per rank.
