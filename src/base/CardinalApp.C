@@ -177,7 +177,7 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
 
 // Add the [Tallies] block
 #ifdef ENABLE_OPENMC_COUPLING
-  registerSyntaxTask("AddTallyAction", "Tallies/*", "add_tallies");
+  registerSyntaxTask("AddTallyAction", "Problem/Tallies/*", "add_tallies");
   registerMooseObjectTask("add_tallies", Tally, false);
   addTaskDependency("add_tallies", "init_displaced_problem");
   // Can only add external auxvars after the tallies have been added.
