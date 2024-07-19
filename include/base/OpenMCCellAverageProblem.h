@@ -906,9 +906,6 @@ protected:
    */
   std::vector<std::map<std::string, int>> _local_tally_score_map;
 
-  /// A vector of auxvariable names added by the [Tallies] block.
-  std::vector<std::vector<std::string>> _tally_var_names;
-
   /// A vector of auxvariable ids added by the [Tallies] block.
   std::vector<std::vector<unsigned int>> _tally_var_ids;
 
@@ -1046,12 +1043,6 @@ protected:
 
   /// Dummy particle to reduce number of allocations of particles for cell lookup routines
   openmc::Particle _particle;
-
-  /// OpenMC solution fields to output to the mesh mirror
-  const MultiMooseEnum * _outputs = nullptr;
-
-  /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'
-  std::vector<std::string> _output_name;
 
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;

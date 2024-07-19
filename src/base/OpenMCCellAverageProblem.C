@@ -151,16 +151,6 @@ OpenMCCellAverageProblem::validParams()
       "Whether to check that your model does indeed have identical cell fills, allowing "
       "you to set 'identical_cell_fills' to speed up initialization");
 
-  MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
-  params.addParam<MultiMooseEnum>("output",
-                                  openmc_outputs,
-                                  "UNRELAXED field(s) to output from OpenMC for each tally score. "
-                                  "unrelaxed_tally_std_dev will write the standard deviation of "
-                                  "each tally into auxiliary variables "
-                                  "named *_std_dev. Unrelaxed_tally will write the raw unrelaxed "
-                                  "tally into auxiliary variables "
-                                  "named *_raw (replace * with 'tally_name').");
-
   params.addParam<MooseEnum>("relaxation",
                              getRelaxationEnum(),
                              "Type of relaxation to apply to the OpenMC solution");
@@ -374,24 +364,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(params,
                      "lowest_cell_level",
                      "'temperature_blocks', 'density_blocks', and 'tally_blocks' are empty");
-  }
-
-  if (isParamValid("output"))
-  {
-    _outputs = &getParam<MultiMooseEnum>("output");
-
-    // names of output are appended to ends of 'tally_name'
-    for (const auto & o : *_outputs)
-    {
-      std::string name = o;
-
-      if (o == "UNRELAXED_TALLY_STD_DEV")
-        _output_name.push_back("std_dev");
-      else if (o == "UNRELAXED_TALLY")
-        _output_name.push_back("raw");
-      else
-        mooseError("Unhandled OutputEnum in OpenMCCellAverageProblem!");
-    }
   }
 }
 
@@ -1051,15 +1023,16 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     for (unsigned int i = 0; i < _local_tallies.size(); ++i)
     {
       const auto & scores = _local_tallies[i]->getScores();
+      const auto & names = _local_tallies[i]->getAuxVarNames();
       for (unsigned int j = 0; j < scores.size(); ++j)
       {
-        if (_tally_var_names[i].size() == 0)
+        if (names.size() == 0)
           continue;
 
         if (j == 0)
-          tallies.addRow(_local_tallies[i]->name(), scores[j], _tally_var_names[i][j]);
+          tallies.addRow(_local_tallies[i]->name(), scores[j], names[j]);
         else
-          tallies.addRow("", scores[j], _tally_var_names[i][j]);
+          tallies.addRow("", scores[j], names[j]);
       }
     }
 
@@ -1941,37 +1914,35 @@ OpenMCCellAverageProblem::addExternalVariables()
   unsigned int previous_valid_name_index = 0;
   for (unsigned int i = 0; i < _local_tallies.size(); ++i)
   {
-    auto names = _local_tallies[i]->getAuxVarNames();
-    _tally_var_names.push_back(names);
     _tally_var_ids.emplace_back();
 
     // We use this to check if a sequence of added tallies corresponds to a single translated mesh.
     // If the number of names reported in getAuxVarNames is zero, the tally must store it's results
-    // in the variables added by the first mesh in the sequence.
-    previous_valid_name_index = names.size() > 0 ? i : previous_valid_name_index;
+    // in the variables added by the first mesh tally in the sequence.
+    bool is_instanced = _local_tallies[i]->getAuxVarNames().size() == 0;
+    previous_valid_name_index = !is_instanced ? i : previous_valid_name_index;
 
-    if (_outputs)
-    {
-      _tally_ext_var_ids.emplace_back();
-      _tally_ext_var_ids[i].resize(_outputs->size());
-    }
+    const auto & names = _local_tallies[previous_valid_name_index]->getAuxVarNames();
 
-    for (unsigned int j = 0; j < _tally_var_names[previous_valid_name_index].size(); ++j)
+    _tally_ext_var_ids.emplace_back();
+    if (_local_tallies[i]->hasOutputs())
+      _tally_ext_var_ids[i].resize(_local_tallies[i]->getOutputs().size());
+
+    for (unsigned int j = 0; j < names.size(); ++j)
     {
-      auto name = _tally_var_names[previous_valid_name_index][j];
-      if (names.size() == 0)
+      if (is_instanced)
         _tally_var_ids[i].push_back(
             _tally_var_ids[previous_valid_name_index][j]); // Use variables from first in sequence.
       else
-        _tally_var_ids[i].push_back(addExternalVariable(name));
+        _tally_var_ids[i].push_back(addExternalVariable(names[j]));
 
-      // TODO: Enable extra outputs on a per tally basis in the [Tallies] block.
-      if (_outputs)
+      if (_local_tallies[i]->hasOutputs())
       {
-        for (std::size_t k = 0; k < _outputs->size(); ++k)
+        const auto & outs = _local_tallies[i]->getOutputs();
+        for (std::size_t k = 0; k < outs.size(); ++k)
         {
-          std::string n = name + "_" + _output_name[k];
-          if (names.size() == 0)
+          std::string n = names[j] + "_" + outs[k];
+          if (is_instanced)
             _tally_ext_var_ids[i][k].push_back(
                 _tally_ext_var_ids[previous_valid_name_index][k]
                                   [j]); // Use variables from first in sequence.
@@ -2513,10 +2484,13 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
               _local_tallies[i]->storeResults(_tally_var_ids[i], local_score, global_score);
 
           // Store additional tally outputs.
-          if (_outputs)
-            for (unsigned int j = 0; j < _outputs->size(); ++j)
+          if (_local_tallies[i]->hasOutputs())
+          {
+            const auto & outs = _local_tallies[i]->getOutputs();
+            for (unsigned int j = 0; j < outs.size(); ++j)
               _local_tallies[i]->storeExternalResults(
-                  _tally_ext_var_ids[i][j], local_score, global_score, (*_outputs)[j]);
+                  _tally_ext_var_ids[i][j], local_score, global_score, outs[j]);
+          }
         }
       }
 
@@ -2776,7 +2750,7 @@ OpenMCCellAverageProblem::validateLocalTallies()
       _source_rate_index = it - _all_tally_scores.begin();
     else if (it == _all_tally_scores.end() && _local_tallies.size() == 1)
     {
-      if (_local_tallies[0]->renamesTallyScore())
+      if (_local_tallies[0]->renamesTallyVars())
         mooseError("When specifying 'tally_name', the score indicated in "
                    "'source_rate_normalization' must be\n"
                    "listed in 'tally_score' so that we know what you want to name that score (",

@@ -165,7 +165,7 @@ CellTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
                                 unsigned int global_score,
                                 const std::string & output_type)
 {
-  if (output_type == "unrelaxed_tally_std_dev")
+  if (output_type == "std_dev")
   {
     int i = 0;
     for (const auto & c : _openmc_problem.cellToElem())
@@ -186,7 +186,7 @@ CellTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
       fillElementalAuxVariable(ext_var_numbers[local_score], c.second, volumetric_power);
     }
   }
-  else if (output_type == "unrelaxed_tally")
+  else if (output_type == "raw")
   {
     int i = 0;
     for (const auto & c : _openmc_problem.cellToElem())

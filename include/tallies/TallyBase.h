@@ -132,6 +132,13 @@ public:
   const std::vector<std::string> & getAuxVarNames() const { return _tally_name; }
 
   /**
+   * Gets the output names to append to the end of the '_tally_name' when adding tally auxvariables for
+   * additional outputs.
+   * @return additional tally outputs
+   */
+  const std::vector<std::string> & getOutputs() const { return _output_name; }
+
+  /**
    * Get the estimator used in this tally.
    * @return the tally estimator
    */
@@ -158,10 +165,16 @@ public:
   bool hasTrigger() const { return _tally_trigger != nullptr; }
 
   /**
+   * Check to see if this tally adds additional output variables or not.
+   * @return whether this tally adds additional output variables or not
+   */
+  bool hasOutputs() const { return _has_outputs; }
+
+  /**
    * Check to see if the user has requested special names for the tallies.
    * @return whether this tally names stored values something other than '_tally_score'
    */
-  bool renamesTallyScore() const { return isParamValid("tally_name"); }
+  bool renamesTallyVars() const { return _renames_tally_vars; }
 
 protected:
   /**
@@ -242,6 +255,15 @@ protected:
 
   /// Current "raw" tally standard deviation
   std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
+
+  /// Whether this tally stores results in variables names something other than '_tally_score'.
+  const bool _renames_tally_vars;
+
+  /// Whether this tally has additional outputs or not.
+  const bool _has_outputs;
+
+  /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'.
+  std::vector<std::string> _output_name;
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;

@@ -49,6 +49,16 @@ TallyBase::validParams()
   params.addRangeCheckedParam<std::vector<Real>>(
       "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
 
+  MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
+  params.addParam<MultiMooseEnum>("output",
+                                  openmc_outputs,
+                                  "UNRELAXED field(s) to output from OpenMC for each tally score. "
+                                  "unrelaxed_tally_std_dev will write the standard deviation of "
+                                  "each tally into auxiliary variables "
+                                  "named *_std_dev. Unrelaxed_tally will write the raw unrelaxed "
+                                  "tally into auxiliary variables "
+                                  "named *_raw (replace * with 'tally_name').");
+
   params.addPrivateParam<OpenMCCellAverageProblem *>("_openmc_problem");
 
   params.registerBase("Tally");
@@ -63,7 +73,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _mesh(_openmc_problem.mesh()),
     _aux(_openmc_problem.getAuxiliarySystem()),
     _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
-                                                 : nullptr)
+                                                 : nullptr),
+    _renames_tally_vars(isParamValid("tally_name")),
+    _has_outputs(isParamValid("output"))
 {
   if (isParamValid("tally_score"))
   {
@@ -142,6 +154,22 @@ TallyBase::TallyBase(const InputParameters & parameters)
     {
       std::replace(score.begin(), score.end(), '-', '_');
       _tally_name.push_back(score);
+    }
+  }
+
+  if (_has_outputs)
+  {
+    // names of output are appended to ends of 'tally_name'
+    for (const auto & o : getParam<MultiMooseEnum>("output"))
+    {
+      std::string name = o;
+
+      if (o == "UNRELAXED_TALLY_STD_DEV")
+        _output_name.push_back("std_dev");
+      else if (o == "UNRELAXED_TALLY")
+        _output_name.push_back("raw");
+      else
+        mooseError("Unhandled OutputEnum in OpenMCCellAverageProblem!");
     }
   }
 

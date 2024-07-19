@@ -174,7 +174,7 @@ MeshTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
                                 const std::string & output_type)
 {
   unsigned int offset = _instance * _mesh_filter->n_bins();
-  if (output_type == "unrelaxed_tally_std_dev")
+  if (output_type == "std_dev")
   {
     for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
     {
@@ -192,7 +192,7 @@ MeshTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
       fillElementalAuxVariable(ext_var_numbers[local_score], elem_ids, volumetric_power);
     }
   }
-  else if (output_type == "unrelaxed_tally")
+  else if (output_type == "raw")
   {
     for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
     {
