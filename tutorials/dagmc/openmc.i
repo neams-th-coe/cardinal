@@ -21,14 +21,6 @@
   []
 []
 
-[Tallies]
-  [heat_source]
-    type = MeshTally
-    mesh_template = mesh_in.e
-    tally_name = heat_source
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -39,6 +31,14 @@
 
   power = 1000.0
   volume_calculation = vol
+
+  [Tallies]
+    [heat_source]
+      type = MeshTally
+      mesh_template = mesh_in.e
+      tally_name = heat_source
+    []
+  []
 []
 
 [UserObjects]

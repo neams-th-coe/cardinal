@@ -144,16 +144,6 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   []
 []
 
-[Tallies]
-  [heat_source]
-    type = CellTally
-    tally_blocks = '2'
-    tally_name = heat_source
-    check_equal_mapped_tally_volumes = true
-    output = 'unrelaxed_tally_std_dev'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
 
@@ -180,6 +170,16 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   temperature_variables = 'solid_temp; thm_temp'
   temperature_blocks =    '1 2 4;      101'
   density_blocks = '101'
+
+  [Tallies]
+    [heat_source]
+      type = CellTally
+      tally_blocks = '2'
+      tally_name = heat_source
+      check_equal_mapped_tally_volumes = true
+      output = 'unrelaxed_tally_std_dev'
+    []
+  []
 []
 
 [MultiApps]

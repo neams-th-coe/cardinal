@@ -83,21 +83,6 @@ N = 1000
   []
 []
 
-[Tallies]
-  [heat_source]
-    type = CellTally
-    tally_blocks = ${fuel_blocks}
-    tally_name = heat_source
-
-    check_equal_mapped_tally_volumes = true
-
-    tally_trigger = rel_err
-    tally_trigger_threshold = 1e-2
-
-    output = 'unrelaxed_tally_std_dev'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
 
@@ -116,6 +101,21 @@ N = 1000
   batches = 40
   max_batches = 100
   batch_interval = 5
+
+  [Tallies]
+    [heat_source]
+      type = CellTally
+      tally_blocks = ${fuel_blocks}
+      tally_name = heat_source
+
+      check_equal_mapped_tally_volumes = true
+
+      tally_trigger = rel_err
+      tally_trigger_threshold = 1e-2
+
+      output = 'unrelaxed_tally_std_dev'
+    []
+  []
 []
 
 [Executioner]

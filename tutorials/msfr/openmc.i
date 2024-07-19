@@ -47,14 +47,6 @@
   []
 []
 
-[Tallies]
-  [heat_source]
-    type = MeshTally
-    mesh_template = msr.e
-    output = unrelaxed_tally_std_dev
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -74,6 +66,14 @@
   first_iteration_particles = 5000
 
   skinner = moab
+
+  [Tallies]
+    [heat_source]
+      type = MeshTally
+      mesh_template = msr.e
+      output = unrelaxed_tally_std_dev
+    []
+  []
 []
 
 nb = 15.0

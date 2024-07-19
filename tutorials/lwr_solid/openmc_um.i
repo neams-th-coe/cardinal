@@ -21,13 +21,6 @@
   []
 []
 
-[Tallies]
-  [heat_source]
-    type = MeshTally
-    tally_name = heat_source
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -39,6 +32,13 @@
   particles = 20000
   inactive_batches = 500
   batches = 10000
+
+  [Tallies]
+    [heat_source]
+      type = MeshTally
+      tally_name = heat_source
+    []
+  []
 []
 
 [Executioner]
