@@ -509,13 +509,6 @@ settings directly from the Cardinal input file:
 For all of the above, a setting in the Cardinal input file will override
 any settings in the OpenMC XML files.
 
-#### Outputting the OpenMC Solution
-
-Certain aspects of the OpenMC solution can be output as auxiliary variables to the mesh:
-
-- `unrelaxed_tally`: unrelaxed tally; this will append `_raw` to the tally name and output to the mesh mirror
-- `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation; this will append `_std_dev` to the tally and output to the mesh mirror
-
 #### Volume Calculations
 
 It can be helpful for debugging problem setup to compare actual OpenMC cell volumes against

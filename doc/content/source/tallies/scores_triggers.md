@@ -26,3 +26,8 @@ This tally is capable of controlling OpenMC execution through the use of
 support active batch termination through a relative error indicator, which can be enabled by setting `tally_trigger` to `rel_err`
 for each score in the tally. Scores which do not need to control active batch termination can have a value of `none` set. If enabled,
 an appropriate relative error must be set for each score in `tally_trigger_threshold`.
+
+Certain aspects of tally results can be output as auxiliary variables to the mesh:
+
+- `unrelaxed_tally`: unrelaxed tally; this will append `_raw` to the tally name and output to the mesh mirror
+- `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation; this will append `_std_dev` to the tally and output to the mesh mirror
