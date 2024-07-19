@@ -38,4 +38,12 @@
     requirement = "The system shall allow calculations with multiple different tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [multiple_different_outputs]
+    type = Exodiff
+    input = multi_diff.i
+    exodiff = multi_diff_outputs.e
+    cli_args = 'Tallies/Cell/output="unrelaxed_tally_std_dev unrelaxed_tally" Tallies/Mesh/output="unrelaxed_tally_std_dev" Outputs/file_base=multi_diff_outputs'
+    requirement = "The system shall allow calculations with multiple different tally outputs."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []
