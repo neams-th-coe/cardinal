@@ -17,14 +17,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100'
-    tally_score = 'heating kappa_fission'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -36,6 +28,14 @@
   output = 'unrelaxed_tally_std_dev'
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100'
+      tally_score = 'heating kappa_fission'
+    []
+  []
 []
 
 [Executioner]

@@ -3,13 +3,6 @@
   file = ../../../neutronics/meshes/pincell.e
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
@@ -20,6 +13,13 @@
   verbose = true
   check_tally_sum = false
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '2'
+    []
+  []
 []
 
 [Executioner]

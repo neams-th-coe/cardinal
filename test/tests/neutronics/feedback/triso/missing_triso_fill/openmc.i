@@ -12,13 +12,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 2000.0
@@ -31,6 +24,13 @@
   # TRISO universes from the tally setup
   identical_cell_fills = '2'
   check_identical_cell_fills = true
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '2'
+    []
+  []
 []
 
 [Executioner]

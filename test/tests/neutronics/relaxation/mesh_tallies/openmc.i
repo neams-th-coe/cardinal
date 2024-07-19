@@ -35,16 +35,6 @@
   []
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = ../../meshes/sphere_in_m.e
-    mesh_translations = '0.0 0.0 0.02
-                         0.0 0.0 0.06
-                         0.0 0.0 0.10'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -55,6 +45,16 @@
   scaling = 100.0
 
   check_tally_sum = false
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = ../../meshes/sphere_in_m.e
+      mesh_translations = '0.0 0.0 0.02
+                           0.0 0.0 0.06
+                           0.0 0.0 0.10'
+    []
+  []
 []
 
 [Executioner]

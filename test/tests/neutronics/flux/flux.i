@@ -30,14 +30,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_score = 'heating flux'
-    tally_blocks = '100 200'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -48,6 +40,14 @@
   initial_properties = xml
 
   source_rate_normalization = 'heating'
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_score = 'heating flux'
+      tally_blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

@@ -30,13 +30,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
@@ -45,6 +38,13 @@
 
   temperature_variables = 'solid_temp; fluid_temp'
   temperature_blocks = '1 3; 2'
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+    []
+  []
 []
 
 [Executioner]

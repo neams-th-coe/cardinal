@@ -34,13 +34,6 @@ dT = 50.0
   []
 []
 
-[Tallies]
-  [Mesh]
-    type = CellTally
-    tally_blocks = '1 2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -51,6 +44,13 @@ dT = 50.0
   power = 100.0
 
   skinner = moab
+
+  [Tallies]
+    [Mesh]
+      type = CellTally
+      tally_blocks = '1 2'
+    []
+  []
 []
 
 [UserObjects]

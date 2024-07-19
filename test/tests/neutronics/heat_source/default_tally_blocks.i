@@ -30,14 +30,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_name = heat_source
-    tally_blocks = '100 200'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -47,6 +39,14 @@
   cell_level = 0
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_name = heat_source
+      tally_blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

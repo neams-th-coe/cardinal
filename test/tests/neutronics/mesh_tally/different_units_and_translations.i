@@ -35,14 +35,6 @@
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = '../meshes/sphere_in_m.e'
-    mesh_translations_file = pebble_centers_in_m.txt
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   temperature_blocks = '100 200 300'
@@ -56,6 +48,14 @@
   scaling = 100.0
 
   power = 100.0
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = '../meshes/sphere_in_m.e'
+      mesh_translations_file = pebble_centers_in_m.txt
+    []
+  []
 []
 
 [Executioner]

@@ -30,14 +30,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_score = 'H3_production'
-    tally_blocks = '100 200'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   source_strength = 1e6
@@ -48,6 +40,14 @@
   cell_level = 0
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_score = 'H3_production'
+      tally_blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

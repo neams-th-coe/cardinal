@@ -27,13 +27,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1 2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -42,6 +35,13 @@
   power = 100.0
 
   skinner = moab
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1 2'
+    []
+  []
 []
 
 [UserObjects]

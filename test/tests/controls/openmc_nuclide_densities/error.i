@@ -14,13 +14,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = 0
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -28,6 +21,13 @@
   temperature_blocks = '0'
   cell_level = 0
   power = 100.0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = 0
+    []
+  []
 []
 
 [UserObjects]

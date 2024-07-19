@@ -30,13 +30,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -48,6 +41,13 @@
   # we are omitting the fluid regions from feedback (which have some fissile material),
   # so we need to explicitly skip the tally check
   check_tally_sum = false
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100'
+    []
+  []
 []
 
 [Executioner]

@@ -27,20 +27,20 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100'
-    check_equal_mapped_tally_volumes = true
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
   temperature_blocks = '100'
   verbose = true
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100'
+      check_equal_mapped_tally_volumes = true
+    []
+  []
 []
 
 [Executioner]

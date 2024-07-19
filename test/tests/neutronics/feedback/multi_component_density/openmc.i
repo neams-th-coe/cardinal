@@ -5,13 +5,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
@@ -21,6 +14,13 @@
   density_variables = 'density1'
   density_blocks = '1; 2 3'
   temperature_blocks = '1 2 3'
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+    []
+  []
 []
 
 [Executioner]

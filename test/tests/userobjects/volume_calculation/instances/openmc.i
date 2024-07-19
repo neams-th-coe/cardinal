@@ -18,14 +18,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-    tally_name = heat_source
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
@@ -36,6 +28,14 @@
 
   volume_calculation = vol
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+      tally_name = heat_source
+    []
+  []
 []
 
 [UserObjects]

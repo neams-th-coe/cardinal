@@ -48,13 +48,6 @@ height = 6.343                           # height of the full core (m)
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   initial_properties = 'xml'
@@ -66,6 +59,13 @@ height = 6.343                           # height of the full core (m)
   cell_level = 1
 
   symmetry_mapper = sym
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '2'
+    []
+  []
 []
 
 [UserObjects]

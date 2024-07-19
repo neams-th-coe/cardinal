@@ -17,7 +17,7 @@
   [duplicate_scores]
     type = RunException
     input = multi.i
-    cli_args = 'Tallies/Cell_2/tally_score="flux kappa_fission"'
+    cli_args = 'Problem/Tallies/Cell_2/tally_score="flux kappa_fission"'
     expect_err = "You have added 2 tallies which score kappa-fission!"
     requirement = "The system shall error if the user provides multiple tallies with overlapping scores."
     required_objects = 'OpenMCCellAverageProblem'
@@ -25,7 +25,7 @@
   [multi_no_norm]
     type = RunException
     input = multi.i
-    cli_args = 'Tallies/Cell_1/tally_score="heating"'
+    cli_args = 'Problem/Tallies/Cell_1/tally_score="heating"'
     expect_err = "The local tallies added in the \[Tallies\] block do not contain the requested heating score"
     requirement = "The system shall error if more than one tally is provided and the requested heating score is in "
                   "none of the tallies."
@@ -42,7 +42,7 @@
     type = Exodiff
     input = multi_diff.i
     exodiff = multi_diff_outputs.e
-    cli_args = 'Tallies/Cell/output="unrelaxed_tally_std_dev unrelaxed_tally" Tallies/Mesh/output="unrelaxed_tally_std_dev" Outputs/file_base=multi_diff_outputs'
+    cli_args = 'Problem/Tallies/Cell/output="unrelaxed_tally_std_dev unrelaxed_tally" Problem/Tallies/Mesh/output="unrelaxed_tally_std_dev" Outputs/file_base=multi_diff_outputs'
     requirement = "The system shall allow calculations with multiple different tally outputs."
     required_objects = 'OpenMCCellAverageProblem'
   []

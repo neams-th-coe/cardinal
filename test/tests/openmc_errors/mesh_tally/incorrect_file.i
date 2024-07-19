@@ -12,14 +12,6 @@
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    # make the mistake of clearly using a totally different mesh
-    mesh_template = '../../neutronics/meshes/pincell.e'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   temperature_blocks = '0'
@@ -29,6 +21,14 @@
 
   power = 100.0
   check_tally_sum = false
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      # make the mistake of clearly using a totally different mesh
+      mesh_template = '../../neutronics/meshes/pincell.e'
+    []
+  []
 []
 
 [Executioner]

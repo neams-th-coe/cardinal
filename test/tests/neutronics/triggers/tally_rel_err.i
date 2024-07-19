@@ -17,15 +17,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100'
-    tally_trigger = rel_err
-    tally_trigger_threshold = 2e-2
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -34,6 +25,15 @@
   normalize_by_global_tally = false
 
   max_batches = 200
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100'
+      tally_trigger = rel_err
+      tally_trigger_threshold = 2e-2
+    []
+  []
 []
 
 [Executioner]

@@ -30,13 +30,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100 200'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -45,6 +38,13 @@
   density_blocks = '200'
   cell_level = 0
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

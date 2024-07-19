@@ -41,13 +41,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
@@ -55,6 +48,13 @@
   density_blocks = '200'
   cell_level = 0
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100'
+    []
+  []
 []
 
 [Executioner]

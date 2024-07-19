@@ -31,13 +31,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100 200'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
@@ -52,6 +45,13 @@
   # For this setup, the fluid cells only exist on coordinate level 0, even though
   # the highest coordinate level across the entire problem is 1
   cell_level = 1
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

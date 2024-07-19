@@ -37,13 +37,6 @@ scale = 100.0
   []
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = scale_in.e
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -54,6 +47,13 @@ scale = 100.0
   power = 16.0
 
   skinner = moab
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = scale_in.e
+    []
+  []
 []
 
 [UserObjects]

@@ -30,17 +30,17 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100 200 who'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 70.0
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100 200 who'
+    []
+  []
 []
 
 [Executioner]

@@ -12,15 +12,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-    tally_score = 'heating kappa_fission'
-    output = 'unrelaxed_tally_std_dev'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -28,6 +19,15 @@
   check_tally_sum = false
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+      tally_score = 'heating kappa_fission'
+      output = 'unrelaxed_tally_std_dev'
+    []
+  []
 []
 
 # the ratio of the std_dev variable and the output tally should give

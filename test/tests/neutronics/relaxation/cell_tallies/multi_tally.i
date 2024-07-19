@@ -32,15 +32,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_score = 'kappa_fission heating'
-    tally_name = 'heat_source heating'
-    tally_blocks = '0'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -52,6 +43,15 @@
   # our problem is missing overlap for fissile regions, so our local and global tallies
   # wont match
   check_tally_sum = false
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_score = 'kappa_fission heating'
+      tally_name = 'heat_source heating'
+      tally_blocks = '0'
+    []
+  []
 []
 
 [Executioner]

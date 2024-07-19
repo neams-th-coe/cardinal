@@ -17,16 +17,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '100'
-
-    # this outputs the fission tally standard deviation in space
-    output = 'unrelaxed_tally_std_dev'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -35,6 +25,16 @@
   check_tally_sum = false
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '100'
+
+      # this outputs the fission tally standard deviation in space
+      output = 'unrelaxed_tally_std_dev'
+    []
+  []
 []
 
 [Executioner]

@@ -33,14 +33,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '0'
-    output = 'unrelaxed_tally'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -50,6 +42,14 @@
   scaling = 100.0
 
   relaxation = constant
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '0'
+      output = 'unrelaxed_tally'
+    []
+  []
 []
 
 [Executioner]

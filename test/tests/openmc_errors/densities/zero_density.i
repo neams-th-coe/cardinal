@@ -33,13 +33,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '0'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
@@ -47,6 +40,13 @@
   density_blocks = '0'
   verbose = true
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '0'
+    []
+  []
 []
 
 [Executioner]

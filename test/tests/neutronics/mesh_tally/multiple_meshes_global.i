@@ -37,16 +37,6 @@
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = '../meshes/sphere.e'
-    mesh_translations = '0 0 0
-                         0 0 4
-                         0 0 8'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   temperature_blocks = '100 200 300'
@@ -57,6 +47,16 @@
 
   power = 100.0
   check_tally_sum = false
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = '../meshes/sphere.e'
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
+    []
+  []
 []
 
 [Executioner]

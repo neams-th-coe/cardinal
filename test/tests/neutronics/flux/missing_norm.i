@@ -17,14 +17,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_score = 'heating flux H3_production'
-    tally_blocks = '100'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -33,6 +25,14 @@
 
   cell_level = 0
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_score = 'heating flux H3_production'
+      tally_blocks = '100'
+    []
+  []
 []
 
 [Executioner]

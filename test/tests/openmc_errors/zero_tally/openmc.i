@@ -12,18 +12,18 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
   cell_level = 0
   source_strength = 1e6
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+    []
+  []
 []
 
 [Executioner]

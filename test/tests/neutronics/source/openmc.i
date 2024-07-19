@@ -13,19 +13,19 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '2 3'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = ${fparse 3000e6 / 273 / (17 * 17)}
   temperature_blocks = '1 2 3'
   cell_level = 0
   reuse_source = true
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '2 3'
+    []
+  []
 []
 
 [Executioner]

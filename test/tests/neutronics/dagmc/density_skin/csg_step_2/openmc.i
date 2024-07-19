@@ -64,13 +64,6 @@ dT = 50.0
   []
 []
 
-[Tallies]
-  [Mesh]
-    type = CellTally
-    tally_blocks = '1 2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -78,6 +71,13 @@ dT = 50.0
   density_blocks = '1 2'
   cell_level = 0
   power = 100.0
+
+  [Tallies]
+    [Mesh]
+      type = CellTally
+      tally_blocks = '1 2'
+    []
+  []
 []
 
 [Postprocessors]

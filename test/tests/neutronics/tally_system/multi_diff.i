@@ -28,24 +28,8 @@
     type = CombinerGenerator
     inputs = 'solid_ids fluid_ids'
   []
-  
-  allow_renumbering = false
-[]
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_score = 'kappa_fission'
-    tally_blocks = '100 200'
-  []
-  [Mesh]
-    type = MeshTally
-    tally_score = 'flux'
-    mesh_translations = '0 0 0
-                         0 0 4
-                         0 0 8'
-    mesh_template = ../meshes/sphere.e
-  []
+  allow_renumbering = false
 []
 
 [Problem]
@@ -61,6 +45,22 @@
   normalize_by_global_tally = false
 
   source_rate_normalization = 'kappa_fission'
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_score = 'kappa_fission'
+      tally_blocks = '100 200'
+    []
+    [Mesh]
+      type = MeshTally
+      tally_score = 'flux'
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
+      mesh_template = ../meshes/sphere.e
+    []
+  []
 []
 
 [Executioner]

@@ -27,13 +27,6 @@
   []
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = slab.e
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
 
@@ -42,6 +35,13 @@
   power = 100.0
 
   skinner = moab
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = slab.e
+    []
+  []
 []
 
 [UserObjects]

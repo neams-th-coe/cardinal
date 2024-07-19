@@ -30,15 +30,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_score = 'kappa_fission'
-    tally_blocks = '100 200'
-    tally_estimator = collision
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -49,6 +40,15 @@
   initial_properties = xml
 
   source_rate_normalization = 'kappa_fission'
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_score = 'kappa_fission'
+      tally_blocks = '100 200'
+      tally_estimator = collision
+    []
+  []
 []
 
 [Executioner]

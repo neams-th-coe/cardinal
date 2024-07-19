@@ -33,13 +33,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '0'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -50,6 +43,13 @@
 
   relaxation = dufek_gudowski
   first_iteration_particles = 1000
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '0'
+    []
+  []
 []
 
 [Executioner]

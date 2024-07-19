@@ -19,18 +19,6 @@
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = '../meshes/sphere.e'
-    mesh_translations = '0 0 0
-                         0 0 4
-                         0 0 8'
-    tally_trigger = rel_err
-    tally_trigger_threshold = 5e-1
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -39,6 +27,18 @@
 
   particles = 1000
   max_batches = 200
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = '../meshes/sphere.e'
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
+      tally_trigger = rel_err
+      tally_trigger_threshold = 5e-1
+    []
+  []
 []
 
 [Executioner]

@@ -5,14 +5,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '2'
-    check_equal_mapped_tally_volumes = true
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -26,6 +18,14 @@
   scaling = 100.0
   temperature_blocks = '1 2'
   cell_level = 1
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '2'
+      check_equal_mapped_tally_volumes = true
+    []
+  []
 []
 
 [Executioner]

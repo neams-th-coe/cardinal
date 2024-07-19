@@ -12,13 +12,6 @@
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = '../meshes/sphere_in_m.e'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   temperature_blocks = '100'
@@ -32,6 +25,13 @@
   scaling = 100.0
 
   normalize_by_global_tally = false
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = '../meshes/sphere_in_m.e'
+    []
+  []
 []
 
 [Executioner]

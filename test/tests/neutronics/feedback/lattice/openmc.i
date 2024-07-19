@@ -35,14 +35,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-    tally_name = heat_source
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -52,6 +44,14 @@
   density_blocks = '2'
 
   cell_level = 1
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+      tally_name = heat_source
+    []
+  []
 []
 
 [Executioner]

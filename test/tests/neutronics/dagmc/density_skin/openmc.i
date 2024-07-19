@@ -57,13 +57,6 @@ drho = 50.0
   []
 []
 
-[Tallies]
-  [Mesh]
-    type = CellTally
-    tally_blocks = '1 2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -73,6 +66,13 @@ drho = 50.0
 
   skinner = moab
   cell_level = 0
+
+  [Tallies]
+    [Mesh]
+      type = CellTally
+      tally_blocks = '1 2'
+    []
+  []
 []
 
 [UserObjects]

@@ -33,13 +33,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '0'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -49,6 +42,13 @@
   scaling = 100.0
 
   volume_calculation = vol
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '0'
+    []
+  []
 []
 
 [UserObjects]

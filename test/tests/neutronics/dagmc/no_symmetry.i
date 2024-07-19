@@ -8,13 +8,6 @@
   parallel_type = replicated
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = ../meshes/tet_cube.e
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   cell_level = 0
@@ -22,6 +15,13 @@
   power = 1000.0
   skinner = moab
   symmetry_mapper = sym
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = ../meshes/tet_cube.e
+    []
+  []
 []
 
 [UserObjects]

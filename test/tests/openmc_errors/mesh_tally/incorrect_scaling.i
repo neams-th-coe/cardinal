@@ -12,14 +12,6 @@
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    # We incorrectly provide a mesh in units of centimeters
-    mesh_template = '../../neutronics/meshes/sphere.e'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   temperature_blocks = '100'
@@ -32,6 +24,14 @@
 
   scaling = 100.0
   normalize_by_global_tally = false
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      # We incorrectly provide a mesh in units of centimeters
+      mesh_template = '../../neutronics/meshes/sphere.e'
+    []
+  []
 []
 
 [Executioner]

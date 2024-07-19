@@ -5,13 +5,6 @@
   parallel_type = replicated
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = ../../mesh_tallies/slab.e
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   initial_properties = xml
@@ -19,6 +12,13 @@
   cell_level = 0
   temperature_blocks = '1 2'
   skinner = moab
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = ../../mesh_tallies/slab.e
+    []
+  []
 []
 
 [UserObjects]

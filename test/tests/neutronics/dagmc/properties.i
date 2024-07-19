@@ -6,13 +6,6 @@
   parallel_type = replicated
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   cell_level = 0
@@ -21,6 +14,13 @@
   skinner = moab
 
   initial_properties = hdf5
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+    []
+  []
 []
 
 [UserObjects]

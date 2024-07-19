@@ -31,7 +31,7 @@
   [invalid_estimator]
     type = RunException
     input = incorrect_file.i
-    cli_args = 'Tallies/Mesh/mesh_template=../../neutronics/meshes/sphere.e Tallies/Mesh/tally_estimator=tracklength'
+    cli_args = 'Problem/Tallies/Mesh/mesh_template=../../neutronics/meshes/sphere.e Problem/Tallies/Mesh/tally_estimator=tracklength'
     expect_err = "Tracklength estimators are currently incompatible with mesh tallies!"
     requirement = "The system shall error if a tracklength estimator is attempted with unstructured mesh tallies, "
                   "since this capability is not supported in libMesh."

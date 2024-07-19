@@ -40,13 +40,6 @@ dT = 50.0
   []
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = ../slab.e
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -54,6 +47,13 @@ dT = 50.0
   temperature_blocks = '1 2'
   cell_level = 0
   power = 100.0
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = ../slab.e
+    []
+  []
 []
 
 [Postprocessors]

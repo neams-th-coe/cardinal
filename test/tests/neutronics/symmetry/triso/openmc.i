@@ -49,13 +49,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = 'compacts'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   identical_cell_fills = 'compacts'
@@ -68,6 +61,13 @@
   cell_level = 1
 
   symmetry_mapper = sym
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = 'compacts'
+    []
+  []
 []
 
 [UserObjects]

@@ -12,13 +12,6 @@ height = 6.343                           # height of the full core (m)
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-    mesh_template = solid_mesh_in.e
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 1000.0
@@ -27,6 +20,13 @@ height = 6.343                           # height of the full core (m)
   cell_level = 1
 
   symmetry_mapper = sym
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = solid_mesh_in.e
+    []
+  []
 []
 
 [UserObjects]

@@ -49,13 +49,6 @@
   []
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '2'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
 
@@ -65,6 +58,13 @@
   cell_level = 1
 
   symmetry_mapper = sym
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '2'
+    []
+  []
 []
 
 [UserObjects]

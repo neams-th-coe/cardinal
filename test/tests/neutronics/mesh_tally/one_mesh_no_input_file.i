@@ -12,12 +12,6 @@
   allow_renumbering = false
 []
 
-[Tallies]
-  [Mesh]
-    type = MeshTally
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   temperature_blocks = '100'
@@ -27,6 +21,12 @@
   normalize_by_global_tally = false
 
   power = 100.0
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+    []
+  []
 []
 
 [Executioner]
