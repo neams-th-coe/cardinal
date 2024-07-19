@@ -187,7 +187,7 @@ will display the OpenMC cell temperatures and densities (after volume-averaging 
 
 !listing tutorials/msfr/openmc.i
   start=AuxVariables
-  end=Tallies
+  end=Problem
 
 Next, the `[Problem]` and `[Tallies]` blocks define all the parameters related to coupling
 OpenMC to MOOSE. We will send temperature and density to OpenMC, and extract
@@ -200,7 +200,7 @@ by providing the `skinner` user object (of type
 [MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html)).
 
 !listing tutorials/msfr/openmc.i
-  start=Tallies end=nb
+  block=Problem
 
 After every Picard iteration, the skinner will group the elements in the mesh
 according to their temperature and density. For this tutorial, we will group the

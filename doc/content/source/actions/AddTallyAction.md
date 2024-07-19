@@ -23,14 +23,14 @@ An example where multiple unstructured mesh tallies are added can be found below
 three mesh tallies, where each tally has one of the positions listed in the file named `mesh_translations_file`.
 
 !listing /tutorials/pebbles/openmc_um.i
-  block=Tallies
+  block=Problem
 
 An example of adding non-translated tallies can be found below, where both a [CellTally](CellTally.md)
 and [MeshTally](MeshTally.md) are added to the problem.
 
 !listing /multi_tally_example.i
-  block=Tallies
+  block=Problem
 
-!syntax list /Tallies actions=false subsystems=false heading=Available Tally Objects
+!syntax list /Problem/Tallies actions=false subsystems=false heading=Available Tally Objects
 
-!syntax parameters /Tallies/AddTallyAction
+!syntax parameters /Problem/Tallies/AddTallyAction

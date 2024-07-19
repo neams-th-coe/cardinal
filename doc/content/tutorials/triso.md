@@ -177,7 +177,7 @@ as they map to the `[Mesh]`.
 
 !listing /tutorials/pebbles/openmc.i
   start=AuxVariables
-  end=Tallies
+  end=Problem
 
 The `[Problem]` and `[Tallies]`
 blocks are then used to specify the OpenMC wrapping. We define a total power of
@@ -188,7 +188,7 @@ Because the repeated pebble cells we'd like to tally
 are repeated in the lattice nested one level below the root universe, we set the `cell_level = 1`.
 
 !listing /tutorials/pebbles/openmc.i
-  start=Tallies end=Executioner
+  block=Problem
 
 The `scaling` parameter is used to indicate a multiplicative factor that should be
 applied to the `[Mesh]` in order to get to units of centimeters.
@@ -302,7 +302,7 @@ which will create a mesh file named `mesh_in.e`. We then list that mesh as the
 `mesh_template` in the `[Tallies]` block.
 
 !listing /tutorials/pebbles/openmc_um.i
-  block=Tallies
+  block=Problem
 
 Note that the mesh template and mesh translations must be in the same
 units as the `[Mesh]` block.
@@ -310,9 +310,6 @@ In addition, because our sphere mesh does not perfectly preserve the volume of t
 cells, we set `normalize_by_global_tally` to false so that we normalize only
 by the sum of the mesh tally. Otherwise, we would miss a small amount of power produced
 within the spheres, but slightly outside the faceted surface of the sphere mesh. Setting this parameter to false ensures that the tally normalization is correct in that the heat sources are normalized by a tally sum over the same tally domain in the OpenMC model.
-
-!listing /tutorials/pebbles/openmc_um.i
-  block=Problem
 
 To run this input,
 

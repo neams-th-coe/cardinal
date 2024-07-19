@@ -263,13 +263,13 @@ terminate the OpenMC solution when reaching less than 2% maximum relative
 uncertainty in the fission power taly and 7.5E-4 standard deviation in $k$.
 
 !listing tutorials/pincell_multiphysics/openmc.i
-  start=Tallies end=MultiApps
+  block=Problem
 
 Next, we set up some initial conditions for the various fields used for coupling.
 
 !listing tutorials/pincell_multiphysics/openmc.i
   start=ICs
-  end=Tallies
+  end=Problem
 
 Next, we create a MOOSE heat conduction sub-application, and set up transfers of data between OpenMC and MOOSE. These transfers will send solid temperature and fluid temperature from MOOSE up to OpenMC, and a power distribution to MOOSE.
 

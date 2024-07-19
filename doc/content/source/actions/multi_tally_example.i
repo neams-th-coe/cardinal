@@ -5,17 +5,6 @@
   []
 []
 
-[Tallies]
-  [Mesh_Tally]
-    type = MeshTally
-    tally_score = 'flux'
-  []
-  [Cell_Tally]
-    type = CellTally
-    tally_score = 'heating_local'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   particles = 10000
@@ -31,6 +20,17 @@
   power = 100.0
 
   source_rate_normalization = 'heating_local'
+
+  [Tallies]
+    [Mesh_Tally]
+      type = MeshTally
+      tally_score = 'flux'
+    []
+    [Cell_Tally]
+      type = CellTally
+      tally_score = 'heating_local'
+    []
+  []
 []
 
 [Executioner]

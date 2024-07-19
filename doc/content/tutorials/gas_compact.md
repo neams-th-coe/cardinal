@@ -283,7 +283,7 @@ we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
 `[Mesh]` to get into OpenMC's centimeter units.
 
 !listing /tutorials/gas_compact/openmc.i
-  start=Tallies end=MultiApps
+  block=Problem
 
 Other features we use include an output of the fission tally standard deviation
 in units of W/m$^3$ to the `[Mesh]` by setting the `output` parameter. This is used to
@@ -315,7 +315,7 @@ with the function given by [eq:fluid].
 
 !listing /tutorials/gas_compact/openmc.i
   start=ICs
-  end=Tallies
+  end=Problem
 
 We run OpenMC as the main application, so we next need to define a
 [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html) that will run

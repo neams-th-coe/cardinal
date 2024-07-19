@@ -47,10 +47,10 @@ found in `mesh_in.e` and stores it in a variable called `heat_source`. The `[Tal
 to the centroid of a fuel pebble.
 
 !listing /tutorials/pebbles/openmc_um.i
-  block=Tallies
+  block=Problem
 
-!syntax parameters /Tallies/MeshTally
+!syntax parameters /Problem/Tallies/MeshTally
 
-!syntax inputs /Tallies/MeshTally
+!syntax inputs /Problem/Tallies/MeshTally
 
-!syntax children /Tallies/MeshTally
+!syntax children /Problem/Tallies/MeshTally

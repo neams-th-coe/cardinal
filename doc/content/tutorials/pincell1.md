@@ -338,7 +338,7 @@ with OpenMC particle transport calculations, the
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class is used.
 
 !listing /tutorials/lwr_solid/openmc.i
-  start=Tallies end=UserObjects
+  block=Problem
 
 For this example, we first start by specifying that we wish to add a
 [CellTally](/tallies/CellTally.md) in `[Tallies]`. The `tally_blocks` are
@@ -597,7 +597,7 @@ tally directly on the MOOSE `[Mesh]` (though we could have specified a
 different mesh by providing a`mesh_template` file name).
 
 !listing /tutorials/lwr_solid/openmc_um.i
-  block=Tallies
+  block=Problem
 
 By default, Cardinal will normalize the OpenMC fission energy tally according
 to a global tally over the entire OpenMC problem. When using mesh tallies on
@@ -616,9 +616,6 @@ by setting
 specify will be obtained when normalizing the OpenMC tally. In the limit of
 an extremely refined unstructured mesh, the error in normalizing by the global
 tally decreases to zero.
-
-!listing /tutorials/lwr_solid/openmc_um.i
-  block=Problem
 
 The mesh file we use for tallying is simply the `mesh_in.e` mesh we generated
 earlier with the mesh generators.

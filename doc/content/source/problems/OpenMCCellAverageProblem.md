@@ -51,14 +51,6 @@ to read temperature from a variable named `temp0` in the `fuel` and `cladding` b
 a variable named `nek_temp` in the `helium` block (and so on for density).
 
 ```
-[Tallies]
-  [cell_tally]
-    type = CellTally
-    tally_score = 'heating flux'
-    tally_name = 'power openmc_flux'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
 
@@ -67,6 +59,14 @@ a variable named `nek_temp` in the `helium` block (and so on for density).
 
   density_variables = 'rho_water; rho_helium'
   density_blocks = 'water; helium'
+
+  [Tallies]
+    [cell_tally]
+      type = CellTally
+      tally_score = 'heating flux'
+      tally_name = 'power openmc_flux'
+    []
+  []
 []
 ```
 
@@ -116,17 +116,17 @@ tally scores with the same name as the score. Suppose we instead wanted to rely
 on defaults; we would set our `[Problem]` block as:
 
 ```
-[Tallies]
-  [cell_tally]
-    type = CellTally
-    tally_score = 'heating flux'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   density_blocks = 'water helium'
   temperature_blocks = 'fuel cladding water helium'
+
+  [Tallies]
+    [cell_tally]
+      type = CellTally
+      tally_score = 'heating flux'
+    []
+  []
 []
 ```
 

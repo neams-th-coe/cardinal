@@ -24,10 +24,10 @@ the result in a variable named `heat_source`. This corresponds to tallying the h
 fuel pebbles.
 
 !listing /tutorials/pebbles/openmc.i
-  block=Tallies
+  block=Problem
 
-!syntax parameters /Tallies/CellTally
+!syntax parameters /Problem/Tallies/CellTally
 
-!syntax inputs /Tallies/CellTally
+!syntax inputs /Problem/Tallies/CellTally
 
-!syntax children /Tallies/CellTally
+!syntax children /Problem/Tallies/CellTally

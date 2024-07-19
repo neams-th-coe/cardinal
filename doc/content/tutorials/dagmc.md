@@ -178,7 +178,7 @@ with OpenMC particle transport calculations, the
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class is used.
 
 !listing /tutorials/dagmc/openmc.i
-  start=Tallies end=UserObjects
+  block=Problem
 
 For this example, we specify the total fission power by which to normalize OpenMC's
 tally results (because OpenMC's tally results are in units of eV/source particle).
@@ -216,7 +216,7 @@ and a variable named `cell_instance` (
 
 !listing /tutorials/dagmc/openmc.i
   start=AuxVariables
-  end=Tallies
+  end=Problem
 
 Next, we specify an executioner and output settings. Even though OpenMC technically
 performs a criticality calculation (with no time dependence), we use the transient

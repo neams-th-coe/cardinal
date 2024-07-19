@@ -3,13 +3,6 @@
   file = pincell.e
 []
 
-[Tallies]
-  [Cell]
-    type = CellTally
-    tally_blocks = '1'
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = 1000.0
@@ -18,6 +11,13 @@
   density_blocks = '3'
 
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      tally_blocks = '1'
+    []
+  []
 []
 
 [Executioner]
