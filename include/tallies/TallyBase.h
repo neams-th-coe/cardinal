@@ -132,8 +132,8 @@ public:
   const std::vector<std::string> & getAuxVarNames() const { return _tally_name; }
 
   /**
-   * Gets the output names to append to the end of the '_tally_name' when adding tally auxvariables for
-   * additional outputs.
+   * Gets the output names to append to the end of the '_tally_name' when adding tally auxvariables
+   * for additional outputs.
    * @return additional tally outputs
    */
   const std::vector<std::string> & getOutputs() const { return _output_name; }
