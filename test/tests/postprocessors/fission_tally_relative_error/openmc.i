@@ -21,6 +21,9 @@
   [Cell]
     type = CellTally
     tally_blocks = '100'
+
+    # this outputs the fission tally standard deviation in space
+    output = 'unrelaxed_tally_std_dev'
   []
 []
 
@@ -30,9 +33,6 @@
   temperature_blocks = '100'
   cell_level = 0
   check_tally_sum = false
-
-  # this outputs the fission tally standard deviation in space
-  output = 'unrelaxed_tally_std_dev'
 
   initial_properties = xml
 []

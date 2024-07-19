@@ -16,6 +16,7 @@
   [Mesh]
     type = MeshTally
     mesh_template = '../meshes/sphere.e'
+    output = 'unrelaxed_tally_std_dev'
   []
 []
 
@@ -29,8 +30,6 @@
 
   power = 100.0
   check_tally_sum = false
-
-  output = 'unrelaxed_tally_std_dev'
 []
 
 [Executioner]

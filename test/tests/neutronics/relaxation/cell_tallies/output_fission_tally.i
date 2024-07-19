@@ -37,6 +37,7 @@
   [Cell]
     type = CellTally
     tally_blocks = '0'
+    output = 'unrelaxed_tally'
   []
 []
 
@@ -48,7 +49,6 @@
   cell_level = 1
   scaling = 100.0
 
-  output = 'unrelaxed_tally'
   relaxation = constant
 []
 

@@ -17,6 +17,7 @@
     type = CellTally
     tally_blocks = '1'
     tally_score = 'heating kappa_fission'
+    output = 'unrelaxed_tally_std_dev'
   []
 []
 
@@ -26,7 +27,6 @@
   cell_level = 0
   check_tally_sum = false
 
-  output = 'unrelaxed_tally_std_dev'
   initial_properties = xml
 []
 
