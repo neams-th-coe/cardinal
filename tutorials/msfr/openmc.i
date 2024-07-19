@@ -51,12 +51,12 @@
   [heat_source]
     type = MeshTally
     mesh_template = msr.e
+    output = unrelaxed_tally_std_dev
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = unrelaxed_tally_std_dev
   verbose = true
 
   # this will start each Picard iteration from the fission source from the previous one

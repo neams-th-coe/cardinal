@@ -102,13 +102,13 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 
     tally_trigger = rel_err
     tally_trigger_threshold = 1e-2
+
+    output = 'unrelaxed_tally_std_dev'
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'unrelaxed_tally_std_dev'
-  check_equal_mapped_tally_volumes = true
 
   power = ${unit_cell_power}
   scaling = 100.0

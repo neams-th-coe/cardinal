@@ -150,12 +150,12 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
     tally_blocks = '2'
     tally_name = heat_source
     check_equal_mapped_tally_volumes = true
+    output = 'unrelaxed_tally_std_dev'
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'unrelaxed_tally_std_dev'
 
   identical_cell_fills = '2'
 

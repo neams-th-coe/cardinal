@@ -112,12 +112,13 @@ dT = ${fparse power / mdot / Cp}
 
     tally_trigger = rel_err
     tally_trigger_threshold = 2e-2
+
+    output = 'unrelaxed_tally_std_dev'
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'unrelaxed_tally_std_dev'
 
   power = ${power}
   scaling = 100.0

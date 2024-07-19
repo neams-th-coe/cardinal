@@ -93,12 +93,13 @@ N = 1000
 
     tally_trigger = rel_err
     tally_trigger_threshold = 1e-2
+
+    output = 'unrelaxed_tally_std_dev'
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'unrelaxed_tally_std_dev'
 
   power = ${unit_cell_power}
   scaling = 100.0
