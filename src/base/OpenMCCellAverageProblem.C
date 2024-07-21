@@ -211,7 +211,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // cells.
   const auto & actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   for (const auto & act : actions)
-    _needs_to_map_cells = act->getMooseObjectType() == "CellTally" ? true : _needs_to_map_cells;
+    _has_cell_tallies = act->getMooseObjectType() == "CellTally" || _has_cell_tallies;
+  _needs_to_map_cells = _needs_to_map_cells || _has_cell_tallies;
 
   if (!_needs_to_map_cells)
     checkUnusedParam(params,
@@ -979,7 +980,7 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
   }
 
   bool has_io =
-      _specified_density_feedback || _specified_temperature_feedback || _tally_type != tally::none;
+      _specified_density_feedback || _specified_temperature_feedback || _local_tallies.size() > 0;
 
   if (has_io)
     _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
@@ -1316,7 +1317,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
   // Get the element subdomains within each cell
   getCellMappedSubdomains();
 
-  if (_cell_to_elem.size() == 0 && _tally_type == tally::cell)
+  if (_cell_to_elem.size() == 0 && _has_cell_tallies)
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 

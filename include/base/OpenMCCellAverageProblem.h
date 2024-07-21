@@ -884,6 +884,9 @@ protected:
    */
   const bool _specified_temperature_feedback;
 
+  /// Whether any cell tallies exist.
+  bool _has_cell_tallies = false;
+
   /// Whether any spatial mapping from OpenMC's cells to the mesh is needed
   bool _needs_to_map_cells;
 

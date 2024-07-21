@@ -77,7 +77,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   : CardinalProblem(params),
     PostprocessorInterface(this),
     _verbose(getParam<bool>("verbose")),
-    _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
     _reuse_source(getParam<bool>("reuse_source")),
     _specified_scaling(params.isParamSetByUser("scaling")),
     _scaling(getParam<Real>("scaling")),
@@ -107,12 +106,12 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   // ensure that unsupported run modes are not used, while also checking for
   // necessary/unused input parameters for the valid run modes
   _run_mode = openmc::settings::run_mode;
+  const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   switch (_run_mode)
   {
     case openmc::RunMode::EIGENVALUE:
     {
       // Jumping through hoops to see if we're going to add tallies down the line.
-      const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
       if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "power", "running in k-eigenvalue mode");
@@ -126,7 +125,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     }
     case openmc::RunMode::FIXED_SOURCE:
     {
-      if (_tally_type != tally::none)
+      if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "source_strength", "running in fixed source mode");
         _source_strength = &getPostprocessorValue("source_strength");

@@ -393,9 +393,6 @@ protected:
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
 
-  /// Type of tally to apply to extract score from OpenMC
-  const tally::TallyTypeEnum _tally_type;
-
   /// Power by which to normalize the OpenMC results, for k-eigenvalue mode
   const Real * _power;
 
