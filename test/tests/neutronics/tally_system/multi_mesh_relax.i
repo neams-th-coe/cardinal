@@ -28,6 +28,8 @@
     type = CombinerGenerator
     inputs = 'solid_ids fluid_ids'
   []
+
+  allow_renumbering = false
 []
 
 [AuxKernels]
