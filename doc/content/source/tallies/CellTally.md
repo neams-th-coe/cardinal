@@ -7,13 +7,13 @@ in the `[Problem]` block. Otherwise, attempting to add this tally will result in
 ## Description
 
 The `CellTally` class wraps an OpenMC tally with a distributed cell filter to enable data transfer
-from CSG cells to a [MOOSEMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html) mirror
+from CSG cells to a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html) mirror
 of the OpenMC geometry. The cell to element mapping established by the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 is used to facilitate this data transfer to the mesh mirror. When using a `CellTally`, `tally_blocks`
 specifies which blocks in the `[Mesh]` should be tallied. Then, any OpenMC cells that map to those
 blocks are added to a cell tally, with one bin for each unique cell ID/instance combination.
-`check_equal_mapped_tally_volumes` is used to confirm whether the elements mapped to a specific cell
-have the same volume (to a tolerance specified in `equal_tally_volume_abs_tol`) as the associated cell.
+`check_equal_mapped_tally_volumes` is used to confirm whether each cell in the `CellTally` has the
+same mapped volume on the `MooseMesh` (to a tolerance specified in `equal_tally_volume_abs_tol`).
 
 !include scores_triggers.md
 
