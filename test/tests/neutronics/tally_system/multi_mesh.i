@@ -49,11 +49,19 @@
   [Tallies]
     [Mesh_1]
       type = MeshTally
-      tally_score = 'kappa_fission'
+      tally_score = kappa_fission
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
+      mesh_template = ../meshes/sphere.e
     []
     [Mesh_2]
       type = MeshTally
-      tally_score = 'flux'
+      tally_score = flux
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
+      mesh_template = ../meshes/sphere.e
     []
   []
 []

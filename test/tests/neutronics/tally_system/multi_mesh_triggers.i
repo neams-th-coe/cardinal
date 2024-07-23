@@ -46,7 +46,7 @@
   # The global tally check is disabled because we have a loosely fitting unstructured mesh tally.
   normalize_by_global_tally = false
 
-  particles = 1000
+  particles = 100
   max_batches = 200
 
   [Tallies]
@@ -55,12 +55,20 @@
       tally_score = kappa_fission
       tally_trigger = rel_err
       tally_trigger_threshold = 5e-1
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
+      mesh_template = ../meshes/sphere.e
     []
     [Mesh_2]
       type = MeshTally
       tally_score = flux
       tally_trigger = rel_err
       tally_trigger_threshold = 5e-1
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
+      mesh_template = ../meshes/sphere.e
     []
   []
 []
