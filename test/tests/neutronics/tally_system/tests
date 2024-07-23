@@ -6,17 +6,57 @@
     requirement = "The system shall correctly normalize local tallies with different estimators using multiple global tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [multiple_tallies]
+  [multiple_tallies_cell]
     type = Exodiff
-    input = multi.i
-    exodiff = multi_out.e
-    requirement = "The system shall correctly apply and normalize two different local tallies with different scores. "
-                  "The gold file was generated using an input that had a single tally with multiple scores."
+    input = multi_cell.i
+    exodiff = multi_cell_out.e
+    requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores. "
+                  "The gold file was generated using an input that had a single CellTally with multiple scores."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multiple_tallies_mesh]
+    type = Exodiff
+    input = multi_mesh.i
+    exodiff = multi_mesh_out.e
+    requirement = "The system shall correctly apply and normalize two different MeshTally objects with different scores. "
+                  "The gold file was generated using an input that had a single MeshTally with multiple scores."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multiple_tallies_cell_triggers]
+    type = Exodiff
+    input = multi_cell_triggers.i
+    exodiff = multi_cell_triggers_out.e
+    requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores and triggers. "
+                  "The gold file was generated using an input that had a single CellTally with multiple scores and triggers."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multiple_tallies_mesh_triggers]
+    type = Exodiff
+    input = multi_mesh_triggers.i
+    exodiff = multi_mesh_triggers_out.e
+    requirement = "The system shall correctly apply and normalize two different MeshTally objects with different scores and triggers. "
+                  "The gold file was generated using an input that had a single MeshTally with multiple scores and triggers."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multiple_tallies_cell_relax]
+    type = Exodiff
+    input = multi_cell_relax.i
+    exodiff = multi_cell_relax_out.e
+    requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores when using relaxation. "
+                  "The gold file was generated using an input that had a single CellTally with multiple scores when using relaxation."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [multiple_tallies_mesh_relax]
+    type = Exodiff
+    input = multi_mesh_relax.i
+    exodiff = multi_mesh_relax_out.e
+    requirement = "The system shall correctly apply and normalize two different MeshTally objects with different scores when using relaxation. "
+                  "The gold file was generated using an input that had a single MeshTally with multiple scores when using relaxation."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [duplicate_scores]
     type = RunException
-    input = multi.i
+    input = multi_cell.i
     cli_args = 'Problem/Tallies/Cell_2/tally_score="flux kappa_fission"'
     expect_err = "You have added 2 tallies which score kappa-fission!"
     requirement = "The system shall error if the user provides multiple tallies with overlapping scores."
@@ -24,7 +64,7 @@
   []
   [multi_no_norm]
     type = RunException
-    input = multi.i
+    input = multi_cell.i
     cli_args = 'Problem/Tallies/Cell_1/tally_score="heating"'
     expect_err = "The local tallies added in the \[Tallies\] block do not contain the requested heating score"
     requirement = "The system shall error if more than one tally is provided and the requested heating score is in "
