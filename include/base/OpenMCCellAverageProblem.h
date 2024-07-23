@@ -396,52 +396,12 @@ protected:
   Point transformPointToOpenMC(const Point & pt) const;
 
   /**
-   * Read from an OpenMC cell tally and write into an elemental aux variable
-   * @param[in] var_num variable name to write
-   * @param[in] tally tally values to write
-   * @param[in] score tally score
-   * @return sum of the tally
-   */
-  // Real getCellTally(const unsigned int & var_num,
-  //                   const std::vector<xt::xtensor<double, 1>> & tally,
-  //                   const unsigned int & score);
-
-  /**
-   * Read from an OpenMC mesh tally and write into an elemental aux variable
-   * @param[in] var_num variable name to write
-   * @param[in] tally tally values to write
-   * @param[in] score tally score
-   * @return sum of the tally
-   */
-  // Real getMeshTally(const unsigned int & var_num,
-  //                   const std::vector<xt::xtensor<double, 1>> & tally,
-  //                   const unsigned int & score);
-
-  /**
-   * Extract the tally from OpenMC and then apply to the corresponding MOOSE elements.
-   * @param[in] var_num variable name to write
-   * @param[in] tally tally values to write
-   * @param[in] score tally score
-   * @return sum sum of the tally
-   */
-  // Real getTally(const unsigned int & var_num,
-  //               const std::vector<xt::xtensor<double, 1>> & tally,
-  //               const unsigned int & score);
-
-  /**
    * Check that the tally normalization gives a total tally sum of 1.0 (when normalized
    * against the total tally value).
    * @param[in] sum sum of the tally
    * @param[in] score tally score
    */
   void checkNormalization(const Real & sum, unsigned int global_score) const;
-
-  /**
-   * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
-   * Multiple mesh filters are only created if the mesh template feature is used.
-   * @return mesh filters
-   */
-  // std::vector<openmc::Filter *> meshFilter();
 
   /**
    * For geometries with fine-scale details (e.g. TRISO), Cardinal's default settings can
@@ -597,12 +557,6 @@ protected:
 
   /// This function is used to ensure that each OpenMC cell only maps to a single phase
   void checkCellMappedPhase();
-
-  /**
-   * Loop over all the OpenMC cells and find those for which we should add tallies.
-   * @return cells to which we should add tallies
-   */
-  // std::vector<cellInfo> getTallyCells() const;
 
   /// Loop over all the OpenMC cells and get the element subdomain IDs that map to each cell
   void getCellMappedSubdomains();
@@ -795,22 +749,6 @@ protected:
    * of course still set a value for this parameter to override the default.
    */
   const bool _check_tally_sum;
-
-  /**
-   * Whether to check that the [Mesh] volume each cell tally maps to is identical.
-   * This is a useful helper function for OpenMC models where each cell tally has the
-   * same volume (often the case for many reactor geometries). If the OpenMC model
-   * cell tallies all are of the same spatial size, it's still possible that they
-   * can map to different volumes in the MOOSE mesh if the MOOSE elements don't line
-   * up with the edges of the OpenMC cells. Different volumes then can distort the
-   * volume normalization that we do to convert the fission power to a volumetric
-   * power (in a perfect world, we would actually divide OpenMC's tallies by the
-   * results of a stochastic volume calculation in OpenMC, but that is too expensive).
-   */
-  // const bool & _check_equal_mapped_tally_volumes;
-
-  /// Absolute tolerance for checking equal tally mapped volumes
-  // const Real & _equal_tally_volume_abs_tol;
 
   /// Constant relaxation factor
   const Real & _relaxation_factor;

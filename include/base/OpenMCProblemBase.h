@@ -84,13 +84,6 @@ public:
   unsigned int addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block = nullptr);
 
   /**
-   * Create an openmc::LibMesh mesh
-   * @param[in] filename file name to construct the mesh from; if nullptr, uses [Mesh]
-   * @return OpenMC libMesh mesh
-   */
-  std::unique_ptr<openmc::LibMesh> tallyMesh(const std::string * filename = nullptr) const;
-
-  /**
    * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
    * @return scaling value
    */
@@ -196,13 +189,6 @@ public:
    * @return whether cell is void
    */
   bool cellIsVoid(const cellInfo & cell_info) const;
-
-  /**
-   * Get the cell instance filter corresponding to provided cells
-   * @param[in] tally_cells cells to add to the filter
-   * @return cell instance filter
-   */
-  openmc::Filter * cellInstanceFilter(const std::vector<cellInfo> & tally_cells) const;
 
   /**
    * Whether this cell has zero instances
@@ -359,16 +345,6 @@ protected:
 
   /// Set the tally nuclides for any tallies being modified via MOOSE
   void sendTallyNuclidesToOpenMC();
-
-  /**
-   * Add tally
-   * @param[in] score score type
-   * @param[in] filters tally filters
-   * @param[in] estimator estimator
-   * @return tally, which has been added to OpenMC, but may want to still be queried from Cardinal
-   */
-  openmc::Tally * addTally(const std::vector<std::string> & score,
-    std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator & estimator);
 
   /**
    * Set an auxiliary elemental variable to a specified value

@@ -654,32 +654,6 @@ OpenMCProblemBase::triggerMetric(trigger::TallyTriggerTypeEnum trigger) const
   }
 }
 
-openmc::Filter *
-OpenMCProblemBase::cellInstanceFilter(const std::vector<cellInfo> & tally_cells) const
-{
-  auto cell_filter =
-      dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
-
-  std::vector<openmc::CellInstance> cells;
-  for (const auto & c : tally_cells)
-    cells.push_back(
-        {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
-
-  cell_filter->set_cell_instances(cells);
-  return cell_filter;
-}
-
-openmc::Tally *
-OpenMCProblemBase::addTally(const std::vector<std::string> & score,
-  std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator & estimator)
-{
-  auto tally = openmc::Tally::create();
-  tally->set_scores(score);
-  tally->estimator_ = estimator;
-  tally->set_filters(filters);
-  return tally;
-}
-
 bool
 OpenMCProblemBase::cellIsVoid(const cellInfo & cell_info) const
 {
@@ -706,21 +680,6 @@ OpenMCProblemBase::geometryType(bool & has_csg_universe, bool & has_dag_universe
     else
       mooseError("Unhandled GeometryType enum!");
   }
-}
-
-std::unique_ptr<openmc::LibMesh>
-OpenMCProblemBase::tallyMesh(const std::string * filename) const
-{
-  std::unique_ptr<openmc::LibMesh> mesh;
-  if (!filename)
-    mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
-  else
-    mesh = std::make_unique<openmc::LibMesh>(*filename, _scaling);
-
-  // by setting the ID to -1, OpenMC will automatically detect the next available ID
-  mesh->set_id(-1);
-  mesh->output_ = false;
-  return mesh;
 }
 
 long unsigned int
