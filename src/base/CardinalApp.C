@@ -188,6 +188,12 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   addTaskDependency("add_bulk_fluid_temperature_user_object", "add_heat_source_ic");
 }
 
+std::string
+CardinalApp::getInstallableInputs() const
+{
+  return CARDINAL_INSTALLABLE_DIRS;
+}
+
 /***************************************************************************************************
  *********************** Dynamic Library Entry Points - DO NOT MODIFY ******************************
  **************************************************************************************************/

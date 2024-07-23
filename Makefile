@@ -228,6 +228,7 @@ APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
 GEN_REVISION       := no
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+INSTALLABLE_DIRS   := test/tests->tests tutorials
 
 ifeq ($(ENABLE_DAGMC), yes)
   ENABLE_DAGMC     := ON
