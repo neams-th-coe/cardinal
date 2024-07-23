@@ -22,6 +22,7 @@
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
 #include "CardinalAppTypes.h"
+#include "CardinalRevision.h"
 
 #ifdef ENABLE_NEK_COUPLING
 #include "NekSyntax.h"
