@@ -22,6 +22,7 @@
 #include "ModulesApp.h"
 #include "MooseSyntax.h"
 #include "CardinalAppTypes.h"
+#include "CardinalRevision.h"
 
 #ifdef ENABLE_NEK_COUPLING
 #include "NekSyntax.h"
@@ -195,6 +196,12 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
 
   registerTask("add_bulk_fluid_temperature_user_object", false /* is required */);
   addTaskDependency("add_bulk_fluid_temperature_user_object", "add_heat_source_ic");
+}
+
+std::string
+CardinalApp::getInstallableInputs() const
+{
+  return CARDINAL_INSTALLABLE_DIRS;
 }
 
 /***************************************************************************************************
