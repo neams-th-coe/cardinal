@@ -44,7 +44,7 @@ TallyBase::validParams()
       "trigger",
       tally_trigger,
       "Trigger criterion to determine when OpenMC simulation is complete "
-      "based on tallies. If multiple scores are specified in 'tally_score, "
+      "based on tallies. If multiple scores are specified in 'score, "
       "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<std::vector<Real>>(
       "trigger_threshold", "trigger_threshold > 0", "Threshold for the tally trigger");
@@ -57,7 +57,7 @@ TallyBase::validParams()
                                   "each tally into auxiliary variables "
                                   "named *_std_dev. Unrelaxed_tally will write the raw unrelaxed "
                                   "tally into auxiliary variables "
-                                  "named *_raw (replace * with 'tally_name').");
+                                  "named *_raw (replace * with 'name').");
 
   params.addPrivateParam<OpenMCCellAverageProblem *>("_openmc_problem");
 
@@ -122,8 +122,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
         "Otherwise, you will underpredict the true energy deposition.");
 
   if (isParamValid("trigger") != isParamValid("trigger_threshold"))
-    mooseError("You must either specify none or both of 'tally_trigger' and "
-               "'tally_trigger_threshold'. You have specified only one.");
+    mooseError("You must either specify none or both of 'trigger' and "
+               "'trigger_threshold'. You have specified only one.");
 
   bool has_tally_trigger = false;
   if (_tally_trigger)
@@ -146,7 +146,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
         has_tally_trigger = true;
   }
 
-  if (isParamValid("tally_name"))
+  if (isParamValid("name"))
     _tally_name = getParam<std::vector<std::string>>("name");
   else
   {
@@ -159,7 +159,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   if (_has_outputs)
   {
-    // names of output are appended to ends of 'tally_name'
+    // names of output are appended to ends of 'name'
     for (const auto & o : getParam<MultiMooseEnum>("output"))
     {
       std::string name = o;

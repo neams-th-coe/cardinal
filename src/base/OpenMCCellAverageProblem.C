@@ -2752,9 +2752,9 @@ OpenMCCellAverageProblem::validateLocalTallies()
     else if (it == _all_tally_scores.end() && _local_tallies.size() == 1)
     {
       if (_local_tallies[0]->renamesTallyVars())
-        mooseError("When specifying 'tally_name', the score indicated in "
+        mooseError("When specifying 'name', the score indicated in "
                    "'source_rate_normalization' must be\n"
-                   "listed in 'tally_score' so that we know what you want to name that score (",
+                   "listed in 'score' so that we know what you want to name that score (",
                    norm,
                    ")");
 

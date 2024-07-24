@@ -54,7 +54,7 @@ CellTally::CellTally(const InputParameters & parameters)
   {
     auto block_names = getParam<std::vector<SubdomainName>>("blocks");
     if (block_names.empty())
-      mooseError("Subdomain names must be provided if using 'tally_blocks'!");
+      mooseError("Subdomain names must be provided if using 'blocks'!");
 
     auto block_ids = _mesh.getSubdomainIDs(block_names);
     std::copy(
@@ -251,7 +251,7 @@ CellTally::checkCellMappedSubdomains()
                  " maps to blocks with different tally settings!\n"
                  "Block " +
                  Moose::stringify(block_in_tallies) +
-                 " is in 'tally_blocks', but "
+                 " is in 'blocks', but "
                  "block " +
                  Moose::stringify(block_not_in_tallies) + " is not.");
 

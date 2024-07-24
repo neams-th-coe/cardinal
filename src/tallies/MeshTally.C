@@ -48,7 +48,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _instance(getParam<unsigned int>("instance"))
 {
   // Error check the estimators.
-  if (isParamValid("tally_estimator"))
+  if (isParamValid("estimator"))
   {
     if (_estimator == openmc::TallyEstimator::TRACKLENGTH)
       mooseError("Tracklength estimators are currently incompatible with mesh tallies!");
