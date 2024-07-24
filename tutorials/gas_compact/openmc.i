@@ -52,8 +52,8 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
   [Tallies]
     [heat_source]
       type = CellTally
-      tally_name = heat_source
-      tally_blocks = 'compacts compacts_trimmer_tri'
+      name = heat_source
+      blocks = 'compacts compacts_trimmer_tri'
       check_equal_mapped_tally_volumes = true
       output = 'unrelaxed_tally_std_dev'
     []

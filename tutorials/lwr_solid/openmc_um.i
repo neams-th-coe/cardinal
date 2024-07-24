@@ -36,7 +36,7 @@
   [Tallies]
     [heat_source]
       type = MeshTally
-      tally_name = heat_source
+      name = heat_source
     []
   []
 []

@@ -105,13 +105,13 @@ N = 1000
   [Tallies]
     [heat_source]
       type = CellTally
-      tally_blocks = ${fuel_blocks}
-      tally_name = heat_source
+      blocks = ${fuel_blocks}
+      name = heat_source
 
       check_equal_mapped_tally_volumes = true
 
-      tally_trigger = rel_err
-      tally_trigger_threshold = 1e-2
+      trigger = rel_err
+      trigger_threshold = 1e-2
 
       output = 'unrelaxed_tally_std_dev'
     []

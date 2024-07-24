@@ -45,7 +45,7 @@
                            0 0 0.06
                            0 0 0.10'
       mesh_template = mesh_in.e
-      tally_name = heat_source
+      name = heat_source
     []
   []
 []

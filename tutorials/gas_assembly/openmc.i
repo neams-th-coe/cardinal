@@ -174,8 +174,8 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
   [Tallies]
     [heat_source]
       type = CellTally
-      tally_blocks = '2'
-      tally_name = heat_source
+      blocks = '2'
+      name = heat_source
       check_equal_mapped_tally_volumes = true
       output = 'unrelaxed_tally_std_dev'
     []

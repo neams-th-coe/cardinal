@@ -36,7 +36,7 @@
     [heat_source]
       type = MeshTally
       mesh_template = mesh_in.e
-      tally_name = heat_source
+      name = heat_source
     []
   []
 []

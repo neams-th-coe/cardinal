@@ -129,13 +129,13 @@ dT = ${fparse power / mdot / Cp}
   [Tallies]
     [heat_source]
       type = CellTally
-      tally_blocks = '2'
-      tally_name = heat_source
+      blocks = '2'
+      name = heat_source
 
       check_equal_mapped_tally_volumes = true
 
-      tally_trigger = rel_err
-      tally_trigger_threshold = 2e-2
+      trigger = rel_err
+      trigger_threshold = 2e-2
 
       output = 'unrelaxed_tally_std_dev'
     []
