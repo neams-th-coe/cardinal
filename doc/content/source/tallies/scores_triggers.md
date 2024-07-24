@@ -1,4 +1,4 @@
-Cardinal supports several tally scores which can be specified in the `tally_score` parameter when adding
+Cardinal supports several tally scores which can be specified in the `score` parameter when adding
 a tally. Options include:
 
 - `heating`: total nuclear heating
@@ -19,13 +19,13 @@ a tally. Options include:
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). The names of
 the tally auxvariables added by the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) can be modified by specifying a name
-for each score in `tally_name`.
+for each score in `name`.
 
 This tally is capable of controlling OpenMC execution through the use of
 [tally triggers](https://docs.openmc.org/en/latest/pythonapi/generated/openmc.Trigger.html?highlight=trigger). Tallies currently
-support active batch termination through a relative error indicator, which can be enabled by setting `tally_trigger` to `rel_err`
+support active batch termination through a relative error indicator, which can be enabled by setting `trigger` to `rel_err`
 for each score in the tally. Scores which do not need to control active batch termination can have a value of `none` set. If enabled,
-an appropriate relative error must be set for each score in `tally_trigger_threshold`.
+an appropriate relative error must be set for each score in `trigger_threshold`.
 
 Certain aspects of tally results can be output as auxiliary variables to the mesh:
 

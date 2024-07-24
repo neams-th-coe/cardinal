@@ -35,7 +35,7 @@ mesh tally results would be transferred to incorrect regions of space.
 !include scores_triggers.md
 
 !alert note
-At present time, libMesh unstructured mesh tallies only support `collision` and `analog` estimators. Attempting to set `tally_estimator`
+At present time, libMesh unstructured mesh tallies only support `collision` and `analog` estimators. Attempting to set `estimator`
 to `tracklength` will result in a warning; the `MeshTally` will then manually reset the estimator to `collision` to prevent OpenMC from
 throwing an error.
 

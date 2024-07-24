@@ -63,8 +63,8 @@ a variable named `nek_temp` in the `helium` block (and so on for density).
   [Tallies]
     [cell_tally]
       type = CellTally
-      tally_score = 'heating flux'
-      tally_name = 'power openmc_flux'
+      score = 'heating flux'
+      name = 'power openmc_flux'
     []
   []
 []
@@ -124,7 +124,7 @@ on defaults; we would set our `[Problem]` block as:
   [Tallies]
     [cell_tally]
       type = CellTally
-      tally_score = 'heating flux'
+      score = 'heating flux'
     []
   []
 []

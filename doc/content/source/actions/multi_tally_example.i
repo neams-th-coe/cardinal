@@ -24,11 +24,11 @@
   [Tallies]
     [Mesh_Tally]
       type = MeshTally
-      tally_score = 'flux'
+      score = 'flux'
     []
     [Cell_Tally]
       type = CellTally
-      tally_score = 'heating_local'
+      score = 'heating_local'
     []
   []
 []

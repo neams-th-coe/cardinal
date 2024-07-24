@@ -341,13 +341,13 @@ with OpenMC particle transport calculations, the
   block=Problem
 
 For this example, we first start by specifying that we wish to add a
-[CellTally](/tallies/CellTally.md) in `[Tallies]`. The `tally_blocks` are
+[CellTally](/tallies/CellTally.md) in `[Tallies]`. The `blocks` are
 then used to indicate which OpenMC cells to add tallies to
 (as inferred from the mapping of MOOSE elements to OpenMC cells). If not specified,
 we add tallies to all OpenMC cells. But for this problem, we already know that the
 cladding doesn't have any fissile material, so we can save some effort with the
 tallies by skipping tallies in those regions by setting
-`tally_blocks` to blocks 2 and 3.
+`blocks` to blocks 2 and 3.
 [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
 take the information provided in the `[Tallies]` block and add the necessary OpenMC tally.
 
