@@ -24,16 +24,16 @@
   cell_level = 0
   check_tally_sum = false
 
-  # this outputs the fission tally standard deviation in space
-  output = 'unrelaxed_tally_std_dev'
-
   initial_properties = xml
 
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '100'
-      tally_score = 'heating kappa_fission'
+      blocks = '100'
+      score = 'heating kappa_fission'
+
+      # this outputs the fission tally standard deviation in space
+      output = 'unrelaxed_tally_std_dev'
     []
   []
 []

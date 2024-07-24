@@ -23,7 +23,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '2 3'
+      blocks = '2 3'
     []
   []
 []

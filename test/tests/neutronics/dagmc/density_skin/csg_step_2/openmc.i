@@ -75,7 +75,7 @@ dT = 50.0
   [Tallies]
     [Mesh]
       type = CellTally
-      tally_blocks = '1 2'
+      blocks = '1 2'
     []
   []
 []

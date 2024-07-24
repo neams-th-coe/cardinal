@@ -28,8 +28,8 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '1'
-      tally_name = heat_source
+      blocks = '1'
+      name = heat_source
     []
   []
 []

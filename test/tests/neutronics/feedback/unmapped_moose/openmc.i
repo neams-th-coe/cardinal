@@ -54,7 +54,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '1'
+      blocks = '1'
     []
   []
 []

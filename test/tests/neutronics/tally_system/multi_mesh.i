@@ -49,7 +49,7 @@
   [Tallies]
     [Mesh_1]
       type = MeshTally
-      tally_score = kappa_fission
+      score = kappa_fission
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'
@@ -57,7 +57,7 @@
     []
     [Mesh_2]
       type = MeshTally
-      tally_score = flux
+      score = flux
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'

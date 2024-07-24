@@ -35,8 +35,8 @@
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'
-      tally_trigger = rel_err
-      tally_trigger_threshold = 5e-1
+      trigger = rel_err
+      trigger_threshold = 5e-1
     []
   []
 []

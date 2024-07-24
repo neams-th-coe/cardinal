@@ -53,7 +53,7 @@ dT = 50.0
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '1 2'
+      blocks = '1 2'
     []
   []
 []

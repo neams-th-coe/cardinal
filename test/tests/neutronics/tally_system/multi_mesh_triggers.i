@@ -52,9 +52,9 @@
   [Tallies]
     [Mesh_1]
       type = MeshTally
-      tally_score = kappa_fission
-      tally_trigger = rel_err
-      tally_trigger_threshold = 5e-1
+      score = kappa_fission
+      trigger = rel_err
+      trigger_threshold = 5e-1
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'
@@ -62,9 +62,9 @@
     []
     [Mesh_2]
       type = MeshTally
-      tally_score = flux
-      tally_trigger = rel_err
-      tally_trigger_threshold = 5e-1
+      score = flux
+      trigger = rel_err
+      trigger_threshold = 5e-1
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'

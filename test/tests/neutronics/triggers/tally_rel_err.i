@@ -29,9 +29,9 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '100'
-      tally_trigger = rel_err
-      tally_trigger_threshold = 2e-2
+      blocks = '100'
+      trigger = rel_err
+      trigger_threshold = 2e-2
     []
   []
 []

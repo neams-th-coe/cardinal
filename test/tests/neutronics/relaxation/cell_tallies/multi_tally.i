@@ -47,9 +47,9 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_score = 'kappa_fission heating'
-      tally_name = 'heat_source heating'
-      tally_blocks = '0'
+      score = 'kappa_fission heating'
+      name = 'heat_source heating'
+      blocks = '0'
     []
   []
 []

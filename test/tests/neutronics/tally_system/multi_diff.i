@@ -49,12 +49,12 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_score = 'kappa_fission'
-      tally_blocks = '100 200'
+      score = 'kappa_fission'
+      blocks = '100 200'
     []
     [Mesh]
       type = MeshTally
-      tally_score = 'flux'
+      score = 'flux'
       mesh_translations = '0 0 0
                            0 0 4
                            0 0 8'

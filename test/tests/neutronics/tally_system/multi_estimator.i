@@ -44,15 +44,15 @@
   [Tallies]
     [Cell_1]
       type = CellTally
-      tally_score = 'kappa_fission'
-      tally_blocks = '100 200'
-      tally_estimator = tracklength
+      score = 'kappa_fission'
+      blocks = '100 200'
+      estimator = tracklength
     []
     [Cell_2]
       type = CellTally
-      tally_score = 'flux'
-      tally_blocks = '100 200'
-      tally_estimator = collision
+      score = 'flux'
+      blocks = '100 200'
+      estimator = collision
     []
   []
 []

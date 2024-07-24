@@ -12,9 +12,9 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '1'
-      tally_score = 'heating'
-      tally_estimator = tracklength
+      blocks = '1'
+      score = 'heating'
+      estimator = tracklength
     []
   []
 []

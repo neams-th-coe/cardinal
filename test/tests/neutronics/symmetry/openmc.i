@@ -63,7 +63,7 @@ height = 6.343                           # height of the full core (m)
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '2'
+      blocks = '2'
     []
   []
 []

@@ -44,8 +44,8 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_score = 'H3_production'
-      tally_blocks = '100 200'
+      score = 'H3_production'
+      blocks = '100 200'
     []
   []
 []

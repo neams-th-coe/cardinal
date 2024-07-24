@@ -57,7 +57,7 @@
   [duplicate_scores]
     type = RunException
     input = multi_cell.i
-    cli_args = 'Problem/Tallies/Cell_2/tally_score="flux kappa_fission"'
+    cli_args = 'Problem/Tallies/Cell_2/score="flux kappa_fission"'
     expect_err = "You have added 2 tallies which score kappa-fission!"
     requirement = "The system shall error if the user provides multiple tallies with overlapping scores."
     required_objects = 'OpenMCCellAverageProblem'
@@ -65,7 +65,7 @@
   [multi_no_norm]
     type = RunException
     input = multi_cell.i
-    cli_args = 'Problem/Tallies/Cell_1/tally_score="heating"'
+    cli_args = 'Problem/Tallies/Cell_1/score="heating"'
     expect_err = "The local tallies added in the \[Tallies\] block do not contain the requested heating score"
     requirement = "The system shall error if more than one tally is provided and the requested heating score is in "
                   "none of the tallies."

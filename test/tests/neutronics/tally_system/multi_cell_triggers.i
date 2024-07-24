@@ -46,17 +46,17 @@
   [Tallies]
     [Cell_1]
       type = CellTally
-      tally_score = kappa_fission
-      tally_blocks = '100 200'
-      tally_trigger = rel_err
-      tally_trigger_threshold = 1e-2
+      score = kappa_fission
+      blocks = '100 200'
+      trigger = rel_err
+      trigger_threshold = 1e-2
     []
     [Cell_2]
       type = CellTally
-      tally_score = 'flux'
-      tally_blocks = '100 200'
-      tally_trigger = rel_err
-      tally_trigger_threshold = 1e-2
+      score = 'flux'
+      blocks = '100 200'
+      trigger = rel_err
+      trigger_threshold = 1e-2
     []
   []
 []

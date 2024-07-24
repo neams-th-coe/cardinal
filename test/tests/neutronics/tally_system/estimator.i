@@ -44,9 +44,9 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_score = 'kappa_fission'
-      tally_blocks = '100 200'
-      tally_estimator = collision
+      score = 'kappa_fission'
+      blocks = '100 200'
+      estimator = collision
     []
   []
 []

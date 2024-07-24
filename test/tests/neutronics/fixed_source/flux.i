@@ -39,13 +39,11 @@
   cell_level = 0
   initial_properties = xml
 
-  tally_score = flux
-
   [Tallies]
     [Cell]
       type = CellTally
-      tally_score = flux
-      tally_blocks = '100 200'
+      score = flux
+      blocks = '100 200'
     []
   []
 []

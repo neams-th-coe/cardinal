@@ -22,7 +22,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '2'
+      blocks = '2'
       check_equal_mapped_tally_volumes = true
     []
   []

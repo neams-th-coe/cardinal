@@ -29,8 +29,8 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_score = 'heating flux H3_production'
-      tally_blocks = '100'
+      score = 'heating flux H3_production'
+      blocks = '100'
     []
   []
 []

@@ -29,7 +29,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '100'
+      blocks = '100'
 
       # this outputs the fission tally standard deviation in space
       output = 'unrelaxed_tally_std_dev'

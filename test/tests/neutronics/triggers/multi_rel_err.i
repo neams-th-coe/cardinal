@@ -29,11 +29,11 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '100'
-      tally_score = 'damage_energy kappa_fission'
+      blocks = '100'
+      score = 'damage_energy kappa_fission'
 
-      tally_trigger = 'rel_err rel_err'
-      tally_trigger_threshold = '2e-2 2e-2'
+      trigger = 'rel_err rel_err'
+      trigger_threshold = '2e-2 2e-2'
     []
   []
 []

@@ -53,7 +53,6 @@
   type = OpenMCCellAverageProblem
   identical_cell_fills = 'compacts'
   check_identical_cell_fills = true
-  check_equal_mapped_tally_volumes = true
 
   power = 1000.0
   scaling = 100.0
@@ -65,7 +64,8 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = 'compacts'
+      blocks = 'compacts'
+      check_equal_mapped_tally_volumes = true
     []
   []
 []

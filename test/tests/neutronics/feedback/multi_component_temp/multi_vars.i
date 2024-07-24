@@ -81,7 +81,7 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '1 3 2 10'
+      blocks = '1 3 2 10'
     []
   []
 []

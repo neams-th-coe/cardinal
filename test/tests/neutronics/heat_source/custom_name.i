@@ -48,13 +48,13 @@
     [Cell]
       type = CellTally
       # Use a custom tally name
-      tally_name = "volumetric_power"
+      name = "volumetric_power"
 
       # This input has fissile material in the fluid phase, so we will get a warning
       # that we are neglecting some of the global kappa-fission distribution; so here
       # the power is the total power of the OpenMC problem, and only a fraction of this
       # will be computed in the solid pebbles
-      tally_blocks = '100'
+      blocks = '100'
     []
   []
 []

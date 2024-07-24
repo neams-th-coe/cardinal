@@ -34,7 +34,7 @@
   [Tallies]
     [Mesh]
       type = MeshTally
-      tally_score = 'kappa_fission heating'
+      score = 'kappa_fission heating'
       mesh_template = ../meshes/sphere.e
       mesh_translations = '0 0 0
                            0 0 4

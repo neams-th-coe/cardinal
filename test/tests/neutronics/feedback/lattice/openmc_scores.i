@@ -19,9 +19,9 @@
   [Tallies]
     [Cell]
       type = CellTally
-      tally_blocks = '1 2 3'
-      tally_score = heating
-      tally_name = heat_source
+      blocks = '1 2 3'
+      score = heating
+      name = heat_source
     []
   []
 []
