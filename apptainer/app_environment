@@ -1,1 +1,2 @@
 export NEKRS_HOME=/opt/cardinal/contrib
+export OPENMC_CROSS_SECTIONS=/opt/cardinal/share/cardinal/endfb-vii.1-hdf5/cross_sections.xml
