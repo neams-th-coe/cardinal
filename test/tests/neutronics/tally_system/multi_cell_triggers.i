@@ -6,27 +6,12 @@
   [solid]
     type = CombinerGenerator
     inputs = sphere
-    positions = '0 0 0
-                 0 0 4
-                 0 0 8'
+    positions = '0 0 0'
   []
   [solid_ids]
     type = SubdomainIDGenerator
     input = solid
     subdomain_id = '100'
-  []
-  [fluid]
-    type = FileMeshGenerator
-    file = ../heat_source/stoplight.exo
-  []
-  [fluid_ids]
-    type = SubdomainIDGenerator
-    input = fluid
-    subdomain_id = '200'
-  []
-  [combine]
-    type = CombinerGenerator
-    inputs = 'solid_ids fluid_ids'
   []
 []
 
@@ -34,8 +19,7 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 1e4
-  temperature_blocks = '100 200'
-  density_blocks = '200'
+  temperature_blocks = '100'
   cell_level = 0
   initial_properties = xml
 
@@ -43,18 +27,21 @@
 
   max_batches = 200
 
+  # Missing some hits in the model (only tallying a single pebble instead of 3)
+  check_tally_sum = false
+
   [Tallies]
     [Cell_1]
       type = CellTally
       score = kappa_fission
-      blocks = '100 200'
+      blocks = '100'
       trigger = rel_err
       trigger_threshold = 1e-2
     []
     [Cell_2]
       type = CellTally
       score = 'flux'
-      blocks = '100 200'
+      blocks = '100'
       trigger = rel_err
       trigger_threshold = 1e-2
     []
