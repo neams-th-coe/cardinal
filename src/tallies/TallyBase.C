@@ -72,8 +72,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _openmc_problem(*getParam<OpenMCCellAverageProblem *>("_openmc_problem")),
     _mesh(_openmc_problem.mesh()),
     _aux(_openmc_problem.getAuxiliarySystem()),
-    _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger")
-                                           : nullptr),
+    _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger") : nullptr),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output"))
 {
@@ -136,8 +135,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
                  std::to_string(_tally_score.size()) + ")");
 
     if (_tally_trigger_threshold.size() != _tally_score.size())
-      mooseError("'trigger_threshold' (size " +
-                 std::to_string(_tally_trigger_threshold.size()) +
+      mooseError("'trigger_threshold' (size " + std::to_string(_tally_trigger_threshold.size()) +
                  ") must have the same length as 'score' (size " +
                  std::to_string(_tally_score.size()) + ")");
 
