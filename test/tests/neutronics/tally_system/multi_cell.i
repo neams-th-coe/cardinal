@@ -30,6 +30,21 @@
   []
 []
 
+[AuxVariables]
+  [cell_volume]
+    family = MONOMIAL
+    order = CONSTANT
+  []
+[]
+
+[AuxKernels]
+  [cell_volume]
+    type = CellVolumeAux
+    variable = cell_volume
+    volume_type = mapped
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
