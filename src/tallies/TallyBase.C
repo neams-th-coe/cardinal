@@ -29,25 +29,25 @@ TallyBase::validParams()
 {
   auto params = MooseObject::validParams();
   params.addParam<MultiMooseEnum>(
-      "tally_score",
+      "score",
       getTallyScoreEnum(),
       "Score(s) to use in the OpenMC tallies. If not specified, defaults to 'kappa_fission'");
   params.addParam<MooseEnum>(
-      "tally_estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
+      "estimator", getTallyEstimatorEnum(), "Type of tally estimator to use in OpenMC");
   params.addParam<std::vector<std::string>>(
-      "tally_name",
+      "name",
       "Auxiliary variable name(s) to use for OpenMC tallies. "
       "If not specified, defaults to the names of the scores");
 
   MultiMooseEnum tally_trigger("rel_err none");
   params.addParam<MultiMooseEnum>(
-      "tally_trigger",
+      "trigger",
       tally_trigger,
       "Trigger criterion to determine when OpenMC simulation is complete "
       "based on tallies. If multiple scores are specified in 'tally_score, "
       "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<std::vector<Real>>(
-      "tally_trigger_threshold", "tally_trigger_threshold > 0", "Threshold for the tally trigger");
+      "trigger_threshold", "trigger_threshold > 0", "Threshold for the tally trigger");
 
   MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
   params.addParam<MultiMooseEnum>("output",
@@ -72,14 +72,14 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _openmc_problem(*getParam<OpenMCCellAverageProblem *>("_openmc_problem")),
     _mesh(_openmc_problem.mesh()),
     _aux(_openmc_problem.getAuxiliarySystem()),
-    _tally_trigger(isParamValid("tally_trigger") ? &getParam<MultiMooseEnum>("tally_trigger")
-                                                 : nullptr),
-    _renames_tally_vars(isParamValid("tally_name")),
+    _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger")
+                                           : nullptr),
+    _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output"))
 {
-  if (isParamValid("tally_score"))
+  if (isParamValid("score"))
   {
-    const auto & scores = getParam<MultiMooseEnum>("tally_score");
+    const auto & scores = getParam<MultiMooseEnum>("score");
     for (const auto & score : scores)
       _tally_score.push_back(_openmc_problem.enumToTallyScore(score));
   }
@@ -89,9 +89,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
   bool heating =
       std::find(_tally_score.begin(), _tally_score.end(), "heating") != _tally_score.end();
 
-  if (isParamValid("tally_estimator"))
+  if (isParamValid("estimator"))
   {
-    auto estimator = getParam<MooseEnum>("tally_estimator").getEnum<tally::TallyEstimatorEnum>();
+    auto estimator = getParam<MooseEnum>("estimator").getEnum<tally::TallyEstimatorEnum>();
 
     // Photon heating tallies cannot use tracklength estimators.
     if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
@@ -121,24 +121,24 @@ TallyBase::TallyBase(const InputParameters & parameters)
         "using the 'heating_local' score instead, which will capture photon energy deposition.\n"
         "Otherwise, you will underpredict the true energy deposition.");
 
-  if (isParamValid("tally_trigger") != isParamValid("tally_trigger_threshold"))
+  if (isParamValid("trigger") != isParamValid("trigger_threshold"))
     mooseError("You must either specify none or both of 'tally_trigger' and "
                "'tally_trigger_threshold'. You have specified only one.");
 
   bool has_tally_trigger = false;
   if (_tally_trigger)
   {
-    _tally_trigger_threshold = getParam<std::vector<Real>>("tally_trigger_threshold");
+    _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
 
     if (_tally_trigger->size() != _tally_score.size())
-      mooseError("'tally_trigger' (size " + std::to_string(_tally_trigger->size()) +
-                 ") must have the same length as 'tally_score' (size " +
+      mooseError("'trigger' (size " + std::to_string(_tally_trigger->size()) +
+                 ") must have the same length as 'score' (size " +
                  std::to_string(_tally_score.size()) + ")");
 
     if (_tally_trigger_threshold.size() != _tally_score.size())
-      mooseError("'tally_trigger_threshold' (size " +
+      mooseError("'trigger_threshold' (size " +
                  std::to_string(_tally_trigger_threshold.size()) +
-                 ") must have the same length as 'tally_score' (size " +
+                 ") must have the same length as 'score' (size " +
                  std::to_string(_tally_score.size()) + ")");
 
     for (unsigned int s = 0; s < _tally_trigger->size(); ++s)
@@ -147,7 +147,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
   }
 
   if (isParamValid("tally_name"))
-    _tally_name = getParam<std::vector<std::string>>("tally_name");
+    _tally_name = getParam<std::vector<std::string>>("name");
   else
   {
     for (auto score : _tally_score)
@@ -174,10 +174,10 @@ TallyBase::TallyBase(const InputParameters & parameters)
   }
 
   if (_tally_name.size() != _tally_score.size())
-    mooseError("'tally_name' must be the same length as 'tally_score'!");
+    mooseError("'name' must be the same length as 'score'!");
 
-  _openmc_problem.checkDuplicateEntries(_tally_name, "tally_name");
-  _openmc_problem.checkDuplicateEntries(_tally_score, "tally_score");
+  _openmc_problem.checkDuplicateEntries(_tally_name, "name");
+  _openmc_problem.checkDuplicateEntries(_tally_score, "score");
 
   _local_sum_tally.resize(_tally_score.size(), 0.0);
   _local_mean_tally.resize(_tally_score.size(), 0.0);

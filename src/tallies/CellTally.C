@@ -27,7 +27,7 @@ CellTally::validParams()
   auto params = TallyBase::validParams();
   params.addClassDescription("A class which implements distributed cell tallies.");
   params.addParam<std::vector<SubdomainName>>(
-      "tally_blocks",
+      "blocks",
       "Subdomains for which to add tallies in OpenMC. If not provided, cell "
       "tallies will be applied over the entire mesh.");
   params.addParam<bool>(
@@ -50,9 +50,9 @@ CellTally::CellTally(const InputParameters & parameters)
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
     _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol"))
 {
-  if (isParamValid("tally_blocks"))
+  if (isParamValid("blocks"))
   {
-    auto block_names = getParam<std::vector<SubdomainName>>("tally_blocks");
+    auto block_names = getParam<std::vector<SubdomainName>>("blocks");
     if (block_names.empty())
       mooseError("Subdomain names must be provided if using 'tally_blocks'!");
 
@@ -64,7 +64,7 @@ CellTally::CellTally(const InputParameters & parameters)
     const auto & subdomains = _mesh.meshSubdomains();
     for (std::size_t b = 0; b < block_names.size(); ++b)
       if (subdomains.find(block_ids[b]) == subdomains.end())
-        mooseError("Block '" + block_names[b] + "' specified in 'tally_blocks' not found in mesh!");
+        mooseError("Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
   }
   else
   {
