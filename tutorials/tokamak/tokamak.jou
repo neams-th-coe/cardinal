@@ -30,7 +30,7 @@ cubit.cmd("compress all")
 # so Cubit will try to generate tiny elements by default. Here, we composite the
 # two surfaces into a new virtual surface, keeping the geometry unchanged, so that
 # meshing treats both surfaces as a single unit
-ubit.cmd("composite create surface 57 58 keep angle 15")
+cubit.cmd("composite create surface 57 58 keep angle 15")
 
 # create material tags that we will use to assign to the volumes
 cubit.cmd("create material 'pf' property_group 'CUBIT-ABAQUS'")

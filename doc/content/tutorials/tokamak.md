@@ -42,6 +42,7 @@ From Paramak, a STEP file is generated which can then be imported into Coreform 
 
 After running the journal file, click "File -> Export -> DAGMC" in order to generate the `tokamak.h5m` file. Alternatively, you can download the mesh file and corresponding `.h5m` file from Box.
 
+Paramak can provide a DAGMC geometry file to run OpenMC directly on. The reason only a STEP file was generated from Paramak, was to edit the CAD geometry to add multilayers for (tungsten first wall, multiplier, and breeder) and prepare the geometry to generate a volumetric mesh. The DAGMC h5m file was then exported from Cubit to match the final geometry which the volumetric mesh was generated from such that OpenMC cells are mapped correctly to MOOSE mesh elements.
 ### MOOSE Heat Conduction Model
 
 !include steady_hc.md
