@@ -1,3 +1,7 @@
-# Copy script for getting cross sections for the test section
-cp ${APPLICATION_DIR}/scripts/download-openmc-cross-sections.sh ${MOOSE_PREFIX}/share/${BINARY_NAME}
-chmod +x ${MOOSE_PREFIX}/share/${BINARY_NAME}/download-openmc-cross-sections.sh
+# Download cross sections
+umask 022
+FROM_XS_SCRIPT=${APPLICATION_DIR}/scripts/download-openmc-cross-sections.sh
+XS_SCRIPT=${MOOSE_PREFIX}/share/${BINARY_NAME}/download-openmc-cross-sections.sh
+cp ${FROM_XS_SCRIPT} ${XS_SCRIPT}
+chmod +x ${XS_SCRIPT}
+${XS_SCRIPT} ${MOOSE_PREFIX}/share/cardinal
