@@ -240,5 +240,6 @@ mesh_info.i
 *.msh
 *.nek5000
 *.json*
+*.gz
 cardinal.yaml
 unit/cardinal-unit.yaml
