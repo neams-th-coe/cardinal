@@ -1423,7 +1423,8 @@ OpenMCCellAverageProblem::printAuxVariableIO()
   if (_printed_initial)
     return;
 
-  if (!(_specified_density_feedback || _specified_temperature_feedback || _tally_type != tally::none))
+  if (!(_specified_density_feedback || _specified_temperature_feedback ||
+        _tally_type != tally::none))
     return;
 
   _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
