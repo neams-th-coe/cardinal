@@ -1,15 +1,15 @@
 [Tests]
   [multi_global_estimator]
-    type = Exodiff
+    type = CSVDiff
     input = multi_estimator.i
-    exodiff = multi_estimator_out.e
+    csvdiff = multi_estimator_out.csv
     requirement = "The system shall correctly normalize local tallies with different estimators using multiple global tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_tallies_cell]
-    type = Exodiff
+    type = CSVDiff
     input = multi_cell.i
-    exodiff = multi_cell_out.e
+    csvdiff = multi_cell_out.csv
     requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores. "
                   "The gold file was generated using an input that had a single CellTally with multiple scores."
     required_objects = 'OpenMCCellAverageProblem'
@@ -23,9 +23,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_tallies_cell_triggers]
-    type = Exodiff
+    type = CSVDiff
     input = multi_cell_triggers.i
-    exodiff = multi_cell_triggers_out.e
+    csvdiff = multi_cell_triggers_out.csv
     requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores and triggers. "
                   "The gold file was generated using an input that had a single CellTally with multiple scores and triggers."
     required_objects = 'OpenMCCellAverageProblem'
@@ -39,9 +39,9 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [multiple_tallies_cell_relax]
-    type = Exodiff
+    type = CSVDiff
     input = multi_cell_relax.i
-    exodiff = multi_cell_relax_out.e
+    csvdiff = multi_cell_relax_out.csv
     requirement = "The system shall correctly apply and normalize two different CellTally objects with different scores when using relaxation. "
                   "The gold file was generated using an input that had a single CellTally with multiple scores when using relaxation."
     required_objects = 'OpenMCCellAverageProblem'

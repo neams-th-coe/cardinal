@@ -6,7 +6,9 @@
   [solid]
     type = CombinerGenerator
     inputs = sphere
-    positions = '0 0 0'
+    positions = '0 0 0
+                 0 0 4
+                 0 0 8'
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -34,13 +36,17 @@
     [Mesh_1]
       type = MeshTally
       score = kappa_fission
-      mesh_translations = '0 0 0'
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
       mesh_template = ../meshes/sphere.e
     []
     [Mesh_2]
       type = MeshTally
       score = flux
-      mesh_translations = '0 0 0'
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
       mesh_template = ../meshes/sphere.e
     []
   []
