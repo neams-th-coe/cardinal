@@ -1,0 +1,86 @@
+#!python
+
+# Path to the tutorials directory on your computer, if you want to run this script
+directory = '/home/ajnovak2/cardinal/tutorials'
+
+cubit.cmd("import step '" + directory + "/tokamak/iter05.step' heal no_names")
+
+# simplify the CAD model for the sake of the tutorial, leaving only the first wall,
+# multiplier, breeder, divertor, and vacuum vessel. These components are also
+# represented as simple homogenized materials.
+cubit.cmd("delete volume 2 3 4 5 6 7 8 9 10 11 12 13 15")
+cubit.cmd("delete volume 1")
+
+cubit.cmd("imprint volume all")
+cubit.cmd("merge volume all")
+cubit.cmd("compress all")
+
+# sweep the geometry into 3D
+cubit.cmd("sweep surface  2 zaxis angle 360 merge")
+cubit.cmd("sweep surface 15 zaxis angle 360 merge")
+cubit.cmd("sweep surface 18 zaxis angle 360 merge")
+cubit.cmd("sweep surface 22 zaxis angle 360 merge")
+cubit.cmd("sweep surface 37 zaxis angle 360 merge")
+
+cubit.cmd("imprint volume all")
+cubit.cmd("merge volume all")
+cubit.cmd("compress all")
+
+# these surfaces are next to one another, but one of them is very narrow
+# so Cubit will try to generate tiny elements by default. Here, we composite the
+# two surfaces into a new virtual surface, keeping the geometry unchanged, so that
+# meshing treats both surfaces as a single unit
+cubit.cmd("composite create surface 57 58 keep angle 15")
+
+# create material tags that we will use to assign to the volumes
+cubit.cmd("create material 'pf' property_group 'CUBIT-ABAQUS'")
+cubit.cmd("create material 'multiplier' property_group 'CUBIT-ABAQUS'")
+cubit.cmd("create material 'breeder' property_group 'CUBIT-ABAQUS'")
+cubit.cmd("create material 'ss316' property_group 'CUBIT-ABAQUS'")
+
+# add the volumes to blocks and give them names
+cubit.cmd("block 1 add volume 1")
+cubit.cmd("block 1 name 'plasma_facing'")
+cubit.cmd("block 2 add volume 2")
+cubit.cmd("block 2 name 'multiplier'")
+cubit.cmd("block 3 add volume 3")
+cubit.cmd("block 3 name 'breeder'")
+cubit.cmd("block 4 add volume 4")
+cubit.cmd("block 4 name 'divertor'")
+cubit.cmd("block 5 add volume 5")
+cubit.cmd("block 5 name 'vacuum_vessel'")
+
+# assign the material tags to the corresponding blocks
+cubit.cmd("block 1 material 'pf'")
+cubit.cmd("block 2 material 'multiplier'")
+cubit.cmd("block 3 material 'breeder'")
+cubit.cmd("block 4 material 'pf'")
+cubit.cmd("block 5 material 'ss316'")
+
+cubit.cmd("volume all scheme tetmesh")
+cubit.cmd("volume all size auto factor 5")
+cubit.cmd("mesh volume all")
+
+# export a volume mesh for the heat transfer solver and for mapping data in Cardinal.
+# convert into meters before doing so, then back into centimeters (what DAGMC needs)
+cubit.cmd("body all scale 0.01")
+cubit.cmd("export Genesis '" + directory + "/tokamak/tokamak.e' dimension 3 overwrite")
+cubit.cmd("body all scale 100.0")
+
+# create a graveyard enclosing the domain to apply the vacuum boundary condition,
+# as well as to obtain a surface on which we can set the reflective condition
+# on the faces of the tokamak which are sliced
+cubit.cmd("brick x 2010 y 2010 z 1140")
+cubit.cmd("brick x 2100 y 2100 z 1180")
+cubit.cmd("subtract body 6 from body 7")
+cubit.cmd("block 8 add volume 8")
+cubit.cmd("block 8 name 'graveyard'")
+cubit.cmd("create material 'graveyard' property_group 'CUBIT-ABAQUS'")
+cubit.cmd("block 8 material 'graveyard'")
+
+# mesh the enclosing volumes using surface meshes
+cubit.cmd("set trimesher coarse on ratio 100 angle 5")
+cubit.cmd("surface all scheme trimesh")
+cubit.cmd("volume 8 scheme tetmesh")
+cubit.cmd("volume 8 size auto factor 10")
+cubit.cmd("mesh volume 8")

@@ -242,3 +242,4 @@ mesh_info.i
 *.json*
 cardinal.yaml
 unit/cardinal-unit.yaml
+*.step
