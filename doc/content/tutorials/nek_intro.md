@@ -3,7 +3,9 @@
 In this tutorial, you will learn how to:
 
 - Generate a mesh for NekRS
-- Create NekRS input files for laminar flow in dimensional form
+- Create NekRS input files for laminar flow
+- Create NekRS input files for [!ac](LES)
+- Build NekRS simulations in either dimensional or non-dimensional form
 - Visualize NekRS outputs
 
 To access this tutorial,
@@ -11,6 +13,11 @@ To access this tutorial,
 ```
 cd cardinal/tutorials/pebble_1
 ```
+
+!alert! note title=Computing Needs
+This tutorial requires [!ac](HPC) resources to run the [!ac](LES) NekRS case.
+You will be able to run the laminar files without any special resources.
+!alert-end!
 
 ## Geometry and Computational Model
 
@@ -28,11 +35,16 @@ pebble is not shown). The sideset numbering in the fluid domain is:
   caption=NekRS flow domain. Sidesets in the fluid domain are colored on the right.
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
-NekRS shall solve for laminar flow over this pebble. Details on the problem
-specifications are given in [table1]. The inlet velocity is specified such that
-the Reynolds number is $Re=50$. The pebble surface heat flux is selected to
+NekRS shall solve for flow over this pebble. We will explore different turbulence
+modeling approaches in NekRS; we will include laminar flow (essentially, [!ac](DNS)
+but without a turbulent flow field) and [!ac](LES) (at a higher Reynolds number
+than the laminar case). Details on the problem
+specifications are given in [table1].
+The inlet velocity is specified such that
+the Reynolds number is (i) $Re=50$ for the laminar case (inlet velocity of 0.001666 m/s) or (ii) $Re=2000$ for the [!ac](LES) case (inlet velocity of 0.06664 m/s). The characteristic scale for the Reynolds number is chosen as the pebble diameter.
+The pebble surface heat flux is selected to
 give a pebble power of approximately 223 W (giving a bulk fluid temperature rise
-of 50 K).
+of 50 K for (i) the laminar case or (ii) 0.5 K for the [!ac](LES) case).
 
 !table id=table1 caption=Geometric and operating conditions for the single-pebble flow
 | Parameter | Value |
@@ -40,7 +52,6 @@ of 50 K).
 | Pebble diameter | 0.03 m |
 | Domain height | 0.4306 m |
 | Inlet flow area | 0.00064009 m |
-| Inlet velocity | 0.001666 m/s |
 | Fluid viscosity | 1e-3 Pa-s |
 | Fluid density | 1000 kg/m$^3$ |
 | Fluid thermal conductivity | 0.6 W/m/K |
@@ -68,7 +79,8 @@ setting file names for the mesh, `.udf`, and `.oudf` file in the `.par` file (di
 !alert note
 You may also optionally have a Fortran `.usr` file which provides some backend
 capability to Nek5000 which has not yet been ported to NekRS. For instructional
-purposes, we will show you one use case for the `.usr` file - modifying sideset IDs.
+purposes, we will show you two use cases for the `.usr` file - modifying sideset IDs
+and scaling the mesh.
 
 ### .re2 Mesh
 
@@ -77,7 +89,7 @@ NekRS uses a mesh in a custom `.re2` format.
 !alert note
 NekRS has some restrictions on what constitutes a valid mesh:
 - Mesh must have hexahedral elements in either Hex8 (8-node hexahedral) or Hex20 (20-node hexahedral) forms. Hex20 is a second-order mesh format. The advantage of using
-a second-order format is evident for geometries with curves, like spheres or cylinders. As you refine to higher polynomial order, the mid-side quadrature points are moved to the curve surface to better capture the geometry.
+a second-order format is evident for geometries with curves, like spheres or cylinders. As you refine to higher polynomial order, the mid-side quadrature points are moved to the curve surface to better capture the geometry. That said, `exo2nek` (discussed shortly) will automatically convert from tetrahedral and prism elements into hexahedral elements.
 - The sidesets must be numbered sequentially beginning from 1 (e.g. sideset 1, 2, 3, 4, ...).
 
 If you have a mesh in Exodus or Gmsh format,
@@ -102,10 +114,9 @@ exo2nek
 
 Follow the on-screen prompts. For this case, we have:
 
-- 1 fluid exo file,
-- which is named `pebble.exo` (you only need to provide `pebble` as the name)
-- 0 solid exo files (this is used when NekRS is solving for both fluid and solid domains)
-- 0 periodic surface pairs (this is used to apply periodic boundary conditions)
+- 1 fluid exo file, which is named `pebble.exo` (you only need to provide `pebble` as the name)
+- 0 solid exo files (this is nonzero when NekRS is solving for both fluid and solid domains)
+- 0 periodic surface pairs (this is nonzero when applying periodic boundary conditions)
 - output file name is `pebble.re2` (you only need to provide `pebble` as the output name)
 
 This will create a mesh named `pebble.re2`.
@@ -122,6 +133,10 @@ to run NekRS at different polynomial orders).
   id=gll_mesh
   caption=Illustration of nodal positions for a 5-th order polynomial solution.
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
+
+## Laminar Flow
+
+In this section, we run NekRS for laminar flow, in dimensional form. To contrast with this, later we will increase the Reynolds number to turbulence and use [!ac](LES).
 
 ### .par File
 
@@ -208,7 +223,7 @@ The `.oudf` file contains all of the boundary conditions. For more complex
 models, this file will in general contains any code which runs on the GPU
 (custom physics, etc.).
 
-When you defined the boundary
+When you define the boundary
 condition types in the `.par` file, you also need to set the *values* of those boundary conditions (the non-trivial ones)
 n the `.oudf` file. The names of these functions are pre-defined by NekRS,
 and are paired up to the character strings you set earlier. These function names are shown in
@@ -226,6 +241,7 @@ about the current boundary that is "calling" the function:
 - `bc->s` is the scalar (temperature) solution at the present quadrature point
 - `bc->flux` is the flux (of temperature) at the present quadrature point
 - `bc->idM` is the index corresponding to the current quadrature point
+- `bc->scalarId` is the passive scalar number (in this example temperature is the 0th scalar and we have no additional scalars)
 
 !listing /tutorials/pebble_1/pebble.oudf language=cpp
 
@@ -276,7 +292,7 @@ The various terms in this function are:
 - `ifc` is a loop variable name used to indicate a loop over the faces on an element
 - `boundaryID(ifc, iel)` is the sideset ID for velocity
 
-## Execution and Postprocessing
+### Execution and Postprocessing
 
 When you compile Cardinal, you automatically also get a standalone NekRS executable.
 You can run the NekRS case with
@@ -333,7 +349,57 @@ by NekRS.
 
 !media standalone_pebble.png
   id=standalone_pebble
-  caption=NekRS predicted velocity, pressure, and temperature
+  caption=NekRS predicted velocity, pressure, and temperature for laminar flow at $Re=50$
+  style=width:60%;margin-left:auto;margin-right:auto;halign:center
+
+## Large Eddy Simulation
+
+Now, we modify this example to use a higher Reynolds number such that the flow is turbulent. This turbulence will be modeled (rather than simulated as [!ac](DNS)) using a filtering operation on the solution as a sub-grid scale dissipation. More information on [!ac](LES) in NekRS can be found [here](https://nek5000.github.io/NekDoc/problem_setup/filter.html). In this example, we will use the high pass filter.
+
+Furthermore, it is customary to run NekRS cases in non-dimensional form, so we will also adjust our dimensional setup from the laminar case to non-dimensional form.
+
+### .par File
+
+The casename for the [!ac](LES) case will be `pebble_les`. We will use the same mesh, but a higher polynomial order. In the `.par` file, we also need to specify the number of modes to filter and a scaling factor on the filtering operation.
+
+!listing /tutorials/pebble_1/pebble_les.par
+
+Note also that the fluid properties are expressed in non-dimensional form. A shortcut in NekRS is indicated with negative numbers, which are interpreted as the inverse of that number. For the velocity equation, [non-dimensional scaling](https://cardinal.cels.anl.gov/theory/nondimensional_ns.html) results in a coefficient of $1/Re$ on the viscous term, instead of viscosity. Likewise, the non-dimensional form of the energy equation results in a coefficient of $1/Pe$ on the diffusive term, instead of thermal conductivity.
+
+For illustration, we load the initial condition from the laminar case run previously using the `startFrom` parameter.
+
+### .oudf File
+
+The only difference in the `.oudf` file is now that the boundary conditions are all expressed in non-dimensional form.
+
+!listing /tutorials/pebble_1/pebble_les.oudf language=cpp
+
+### .udf File
+
+The `.udf` file is simpler in this case, because we are loading initial conditions from a previoud field file from the laminar run.
+
+!listing /tutorials/pebble_1/pebble_les.udf language=cpp
+
+### .usr File
+
+In order to scale the mesh into non-dimensional form, we need to divide all coordinates by 3 cm (our characteristic dimension we have selected). This can be done prior to `exo2nek`, or in-line in the `.usr` file in the `usrdat()` routine, as shown below.
+
+!listing /tutorials/pebble_1/pebble_les.usr language=fortran
+
+### Execution and Postprocessing
+
+You can run the NekRS case with
+
+```
+$NEKRS_HOME/bin/nrsmpi pebble_les 80
+```
+
+[standalone_pebble2] shows the velocity, pressure, and temperature predicted
+by NekRS.
+
+!media standalone_pebble2.png
+  id=standalone_pebble2
+  caption=NekRS predicted velocity, pressure, and temperature at a single snapshot in time for turbulent flow at $Re=2000$
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 ## Hex8 vs Hex20

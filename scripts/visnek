@@ -8,7 +8,7 @@ if [ $# -eq 0 ]; then
     else
        nfld=-1				# exit
        echo
-       echo '  No SESSION.NAME file found -- use "visnek case_name"'
+       echo '  Please run this script as "visnek <case_name>"'
        echo
     fi
 else
@@ -39,18 +39,24 @@ if [ $nfld -ne -1 ]; then
     elif [ -e "A0000/${base}0000.f00001" ]; then
         nfld=$(ls -1 A0000/"${base}"0000.f[0-9][0-9][0-9][0-9][0-9] | wc -l)
         echo "filetemplate: A%04d/${base}%04d.f%05d" > "$base.nek5000"
-    else
+    fi
+
+    if [[ $(ls "${base}"0.f[0-9][0-9][0-9][0-9][0-9] >/dev/null 2>&1) ]]; then
         nfld=$(ls -1 "${base}"0.f[0-9][0-9][0-9][0-9][0-9] | wc -l)
         echo "filetemplate: ${base}%01d.f%05d" > "$base.nek5000"
     fi
 fi
 
-echo " Found $nfld field file(s)"
-echo " Generating metadata file $base.nek5000 ..."
+if [ $nfld = 0 ]; then
+    echo " Did not find any field files with casename $base."
+else
+    echo " Found $nfld field file(s)"
+    echo " Generating metadata file $base.nek5000 ..."
 
-echo 'firsttimestep: 1'    >> "$base.nek5000"
-echo "numtimesteps: $nfld" >> "$base.nek5000"
+    echo 'firsttimestep: 1'    >> "$base.nek5000"
+    echo "numtimesteps: $nfld" >> "$base.nek5000"
 
-echo
-echo " Now run visit -o $base.nek5000 or paraview --data=$base.nek5000"
-echo
+    echo
+    echo " Now open $base.nek5000 in Paraview or Visit"
+    echo
+fi
