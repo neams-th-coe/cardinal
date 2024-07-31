@@ -416,6 +416,14 @@ protected:
   printTrisoHelp(const std::chrono::time_point<std::chrono::high_resolution_clock> & start) const;
 
   /**
+   * Print to the console the names of the auxvariables used for I/O with OpenMC.
+   * We only print these tables once, upon initialization, because this data does
+   * not change if re-initializing the spatial mapping for moving-mesh problems,
+   * adaptive refinement, skinning, etc.
+   */
+  void printAuxVariableIO();
+
+  /**
    * Get all the material indices within the set of cells
    * @param[in] contained_cells set of cells
    * @return contained materials
@@ -978,6 +986,9 @@ protected:
 
   /// Whether the present transfer is the first transfer
   static bool _first_transfer;
+
+  /// Whether the diagnostic tables on initialization have already been printed
+  static bool _printed_initial;
 
   /// Whether a warning has already been printed about very long setup times (for TRISOs)
   static bool _printed_triso_warning;

@@ -29,6 +29,7 @@
 #include "openmc/error.h"
 #include "openmc/lattice.h"
 #include "openmc/particle.h"
+#include "openmc/photon.h"
 #include "openmc/message_passing.h"
 #include "openmc/nuclide.h"
 #include "openmc/random_lcg.h"
@@ -41,6 +42,7 @@
 registerMooseObject("CardinalApp", OpenMCCellAverageProblem);
 
 bool OpenMCCellAverageProblem::_first_transfer = true;
+bool OpenMCCellAverageProblem::_printed_initial = false;
 bool OpenMCCellAverageProblem::_printed_triso_warning = false;
 
 InputParameters
@@ -300,9 +302,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     for (const auto & universe : openmc::model::universes)
       if (universe->geom_type() == openmc::GeometryType::DAG)
         _dagmc_universe_index = openmc::model::universe_map.at(universe->id_);
-
-    const openmc::Universe * u = openmc::model::universes.at(_dagmc_universe_index).get();
-    const openmc::DAGUniverse * dag = dynamic_cast<const openmc::DAGUniverse *>(u);
 
     // The newly-generated DAGMC cells could be disjoint in space, in which case
     // it is impossible for us to know with 100% certainty a priori how many materials
@@ -979,12 +978,22 @@ OpenMCCellAverageProblem::checkCellMappedPhase()
     vt.print(_console);
   }
 
-  bool has_io =
-      _specified_density_feedback || _specified_temperature_feedback || _local_tallies.size() > 0;
+  printAuxVariableIO();
+  _printed_initial = true;
+}
 
-  if (has_io)
-    _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
-             << std::endl;
+void
+OpenMCCellAverageProblem::printAuxVariableIO()
+{
+  if (_printed_initial)
+    return;
+
+  if (!(_specified_density_feedback || _specified_temperature_feedback ||
+        _local_tallies.size() > 0))
+    return;
+
+  _console << "\n ===================>     AUXVARIABLES FOR OPENMC I/O     <===================\n"
+           << std::endl;
 
   if (_specified_density_feedback || _specified_temperature_feedback)
   {
@@ -1126,7 +1135,6 @@ void
 OpenMCCellAverageProblem::subdomainsToMaterials()
 {
   const auto time_start = std::chrono::high_resolution_clock::now();
-  bool print_long = false;
 
   TIME_SECTION("subdomainsToMaterials", 3, "Mapping OpenMC Materials to Mesh", true);
 
@@ -2053,11 +2061,7 @@ void
 OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
 {
   if (!_specified_temperature_feedback)
-  {
-    _console << "Skipping temperature transfer into OpenMC because 'temperature_blocks' is empty"
-             << std::endl;
     return;
-  }
 
   _console << "Sending temperature to OpenMC cells... " << printNewline();
 
@@ -2098,7 +2102,7 @@ OpenMCCellAverageProblem::sendTemperatureToOpenMC() const
         if (cells_already_set.count(ci))
         {
           double T;
-          int err = openmc_cell_get_temperature(ci.first, &ci.second, &T);
+          openmc_cell_get_temperature(ci.first, &ci.second, &T);
 
           mooseError("Cell " + std::to_string(cellID(contained.first)) + ", instance " +
                      std::to_string(instance) +
@@ -2134,11 +2138,7 @@ void
 OpenMCCellAverageProblem::sendDensityToOpenMC() const
 {
   if (!_specified_density_feedback)
-  {
-    _console << "Skipping density transfer into OpenMC because 'density_blocks' is empty"
-             << std::endl;
     return;
-  }
 
   _console << "Sending density to OpenMC cells... " << printNewline();
 
@@ -2367,12 +2367,16 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         openmc::model::universe_cell_counts.clear();
         openmc::model::universe_level_counts.clear();
 
-        // Clear nuclides, these will get reset in read_ce_cross_sections
+        // Clear nuclides and elements, these will get reset in read_ce_cross_sections
         // Horrible circular logic means that clearing nuclides clears nuclide_map, but
-        // which is needed before nuclides gets reset
+        // which is needed before nuclides gets reset (similar for elements)
         std::unordered_map<std::string, int> nuclide_map_copy = openmc::data::nuclide_map;
         openmc::data::nuclides.clear();
         openmc::data::nuclide_map = nuclide_map_copy;
+
+        std::unordered_map<std::string, int> element_map_copy = openmc::data::element_map;
+        openmc::data::elements.clear();
+        openmc::data::element_map = element_map_copy;
 
         // Clear existing cell data
         openmc::model::cells.clear();
@@ -2639,11 +2643,16 @@ OpenMCCellAverageProblem::reloadDAGMC()
   // Final geometry setup
   openmc::finalize_geometry();
 
-  // Finalize cross sections
+  // Finalize cross sections; we manually change the verbosity here because if skinning is
+  // enabled, we don't want to overwhelm the user with excess console output showing info
+  // which ultimately is no different from that shown on initialization
+  auto initial_verbosity = openmc::settings::verbosity;
+  openmc::settings::verbosity = 1;
   openmc::finalize_cross_sections();
 
   // Needed to obtain correct cell instances
   openmc::prepare_distribcell();
+  openmc::settings::verbosity = initial_verbosity;
 
   _console << "done" << std::endl;
 #endif
