@@ -32,8 +32,8 @@ fuel_channel_diam = specs.compact_diameter * m
 
 hex_orientation = 'x'
 
-def unit_cell(n_ax_zones, n_inactive, n_active):
-    axial_section_height = reactor_height / n_ax_zones
+def unit_cell(n_inactive, n_active):
+    axial_section_height = reactor_height / specs.nl
 
     # superimposed search lattice
     triso_lattice_shape = (4, 4, int(axial_section_height))
@@ -78,7 +78,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
 
     # extract the coolant cell and set temperatures based on the axial profile
     coolant_cell = openmc.Cell(region=-coolant_cyl, fill=mats.m_coolant)
-    axial_coords = np.linspace(reactor_bottom, reactor_top, n_ax_zones + 1)
+    axial_coords = np.linspace(reactor_bottom, reactor_top, specs.nl + 1)
     lattice_univs = []
 
     fuel_ch_cells = []
@@ -204,8 +204,6 @@ def unit_cell(n_ax_zones, n_inactive, n_active):
 def main():
 
     ap = ArgumentParser()
-    ap.add_argument('-n', dest='n_axial', type=int, default=50,
-                    help='Number of axial cell divisions')
     ap.add_argument('-i', dest='n_inactive', type=int, default=20,
                     help='Number of inactive cycles')
     ap.add_argument('-a', dest='n_active', type=int, default=45,
@@ -213,7 +211,7 @@ def main():
 
     args = ap.parse_args()
 
-    model = unit_cell(args.n_axial, args.n_inactive, args.n_active)
+    model = unit_cell(args.n_inactive, args.n_active)
     model.export_to_xml()
 
 if __name__ == "__main__":

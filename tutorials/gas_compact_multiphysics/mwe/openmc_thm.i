@@ -11,8 +11,6 @@ fuel_blocks = 'compacts compacts_trimmer_tri'
 fuel_to_coolant_distance = 1.88e-2
 compact_diameter = 1.27e-2
 channel_diameter = 1.6e-2
-height = 160e-2
-n_layers = 50
 ns = 8
 
 [GlobalParams]
@@ -68,8 +66,8 @@ ns = 8
   [extrude]
     type = AdvancedExtruderGenerator
     input = rotate
-    heights = ${height}
-    num_layers = ${n_layers}
+    heights = ${unit_cell_height}
+    num_layers = ${nl}
     direction = '0 0 1'
   []
   [fluid_solid_interface]
