@@ -27,7 +27,7 @@ c-----------------------------------------------------------------------
       include 'TOTAL'
 
       do iel=1,nelt
-      do ifc=1,2*ndim
+      do ifc=1,6
       if (boundaryID(ifc,iel).eq.2) then ! rename sideset 2 to 1 (inlet)
           boundaryID(ifc,iel) = 1
        else if (boundaryID(ifc,iel).eq.3) then ! rename sideset 3 to 2 (outlet)
