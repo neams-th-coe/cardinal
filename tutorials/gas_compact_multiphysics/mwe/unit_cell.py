@@ -15,24 +15,15 @@ sys.path.append(script_dir)
 import common_input as specs
 import materials as mats
 
-# -------------- Unit Conversions: OpenMC requires cm -----------
 m = 100.0
-# -------------------------------------------
-
-# geometry
 coolant_channel_diam = specs.channel_diameter * m
 reactor_bottom = 0.0
 reactor_height = specs.unit_cell_height * m
 reactor_top = reactor_bottom + reactor_height
-
-### ARBITRARILY DETERMINED PARAMETERS ###
-
 cell_pitch = specs.fuel_to_coolant_distance * m
 fuel_channel_diam = specs.compact_diameter * m
 
-hex_orientation = 'x'
-
-def unit_cell(n_inactive, n_active):
+def unit_cell():
     axial_section_height = reactor_height / specs.nl
 
     # superimposed search lattice
@@ -85,20 +76,10 @@ def unit_cell(n_inactive, n_active):
 
     i = 0
     for z_min, z_max in zip(axial_coords[0:-1], axial_coords[1:]):
-        # create a new coolant universe for each axial zone in the coolant channel;
-        # this generates a new material as well (we only need to do this for all
-        # cells except the first cell)
-        if (i == 0):
-          c_cell = coolant_cell
-        else:
-          c_cell = coolant_cell.clone()
-
         i += 1
 
         # use the middle of the axial section to compute the temperature and density
         ax_pos = 0.5 * (z_min + z_max)
-
-        c_cell.fill.set_density('kg/m3', 1.0)
 
         # set the solid cells and their temperatures
         graphite_cell = openmc.Cell(region=+coolant_cyl, fill=mats.m_graphite_matrix)
@@ -107,7 +88,7 @@ def unit_cell(n_inactive, n_active):
 
         fuel_ch_cells.append(fuel_ch_cell)
         fuel_u = openmc.Universe(cells=[fuel_ch_cell, fuel_ch_matrix_cell])
-        coolant_u = openmc.Universe(cells=[c_cell, graphite_cell])
+        coolant_u = openmc.Universe(cells=[coolant_cell, graphite_cell])
         lattice_univs.append([[fuel_u] * 6, [coolant_u]])
 
     # create a hexagonal lattice used in each axial zone to represent the cell
@@ -122,7 +103,7 @@ def unit_cell(n_inactive, n_active):
     hex_lattice.outer = inf_graphite_univ
 
     # hexagonal bounding cell
-    hex = openmc.model.HexagonalPrism(cell_edge_length, hex_orientation, boundary_type='periodic')
+    hex = openmc.model.HexagonalPrism(cell_edge_length, lattice_orientation, boundary_type='periodic')
 
     hex_cell_vol = 6.0 * (math.sqrt(3) / 4.0) * cell_edge_length**2 * reactor_height
 
@@ -142,9 +123,9 @@ def unit_cell(n_inactive, n_active):
     ### Settings ###
     settings = openmc.Settings()
 
-    settings.particles = 150000
-    settings.inactive = n_inactive
-    settings.batches = settings.inactive + n_active
+    settings.particles = 1500
+    settings.inactive = 5
+    settings.batches = 10
 
     # the only reason we use 'nearest' here is to be sure we have a robust test for CI;
     # otherwise, 1e-16 differences in temperature (due to numerical roundoff when using
@@ -202,16 +183,7 @@ def unit_cell(n_inactive, n_active):
 
 
 def main():
-
-    ap = ArgumentParser()
-    ap.add_argument('-i', dest='n_inactive', type=int, default=20,
-                    help='Number of inactive cycles')
-    ap.add_argument('-a', dest='n_active', type=int, default=45,
-                    help='Number of active cycles')
-
-    args = ap.parse_args()
-
-    model = unit_cell(args.n_inactive, args.n_active)
+    model = unit_cell()
     model.export_to_xml()
 
 if __name__ == "__main__":

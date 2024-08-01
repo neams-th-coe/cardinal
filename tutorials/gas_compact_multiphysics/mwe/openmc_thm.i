@@ -101,7 +101,6 @@ ns = 8
 
   power = 75
   scaling = 100.0
-  density_blocks = ${density_blocks}
   tally_blocks = ${fuel_blocks}
   tally_type = cell
   tally_name = heat_source
