@@ -393,7 +393,7 @@ For illustration, we'll compute these as a function of space, and divide up the 
 !media pebble_htc.png
   id=pebble_htc
   caption=Illustration of the layers to be used for computing the heat transfer coefficient
-  style=width:50%;margin-left:auto;margin-right:auto;halign:center
+  style=width:70%;margin-left:auto;margin-right:auto;halign:center
 
 In the solid file, we add a
 [LayeredSideAverage](https://mooseframework.inl.gov/source/userobject/LayeredSideAverage.html)
@@ -402,7 +402,7 @@ We then output the results of these userobjects to CSV using
 [SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html)
 and by setting `csv = true` in the output.
 
-!include /tutorials/pebble_cht/solid.i
+!listing /tutorials/pebble_cht/solid.i
   start=UserObjects
 
 In the NekRS input file, we add userobjects to compute average wall temperatures
@@ -413,7 +413,7 @@ We then output the results of these userobjects to CSV using
 actually performing integrations on the actual CFD mesh used by NekRS, so there is no
 approximation happening from data interpolation to the `[Mesh]`.
 
-!include /tutorials/pebble_cht/nek.i
+!listing /tutorials/pebble_cht/nek.i
   start=UserObjects
 
 Now, simply re-run the model:
@@ -424,7 +424,7 @@ mpiexec -np 4 cardinal-opt -i solid.i
 
 This will output a number of CSV files. Simply run the `htc.py` script provided in order to print the average heat transfer coefficient.
 
-!listing htc.py, language=python
+!listing /tutorials/pebble_cht/htc.py language=python
 
 Running this script shows that we've computed an average heat transfer coefficient of 197 W/m$^2$/K - pretty close to the correlation we are comparing to!
 
