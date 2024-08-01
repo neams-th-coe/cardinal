@@ -134,9 +134,9 @@ MeshTally::resetTally()
 
 Real
 MeshTally::storeResults(const std::vector<unsigned int> & var_numbers,
-                                unsigned int local_score,
-                                unsigned int global_score,
-                                const std::string & output_type)
+                        unsigned int local_score,
+                        unsigned int global_score,
+                        const std::string & output_type)
 {
   Real total = 0.0;
 

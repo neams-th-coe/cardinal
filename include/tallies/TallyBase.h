@@ -39,7 +39,8 @@ public:
   /**
    * A function which the derivied tally must override to create the OpenMC spatial filter
    * the object maps to.
-   * @return a pair where the first entry is the filter index in the global filter array and the second entry is the OpenMC filter
+   * @return a pair where the first entry is the filter index in the global filter array and the
+   * second entry is the OpenMC filter
    */
   virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() = 0;
 

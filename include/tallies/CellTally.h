@@ -32,7 +32,8 @@ public:
 
   /**
    * A function to generate the cell filter needed by this object.
-   * @return a pair where the first entry is the filter index in the global filter array and the second entry is an OpenMC distributed cell filter
+   * @return a pair where the first entry is the filter index in the global filter array and the
+   * second entry is an OpenMC distributed cell filter
    */
   virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() override;
 

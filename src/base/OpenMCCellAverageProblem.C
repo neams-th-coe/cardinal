@@ -2485,8 +2485,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
           relaxAndNormalizeTally(global_score, local_score, _local_tallies[i]);
 
           // Store the tally results.
-          sums[global_score] +=
-              _local_tallies[i]->storeResults(_tally_var_ids[i], local_score, global_score, "relaxed");
+          sums[global_score] += _local_tallies[i]->storeResults(
+              _tally_var_ids[i], local_score, global_score, "relaxed");
 
           // Store additional tally outputs.
           if (_local_tallies[i]->hasOutputs())
