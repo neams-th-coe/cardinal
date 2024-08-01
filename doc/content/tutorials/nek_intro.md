@@ -354,7 +354,7 @@ by NekRS.
 
 !media standalone_pebble.png
   id=standalone_pebble
-  caption=NekRS predicted velocity, pressure, and temperature for laminar flow at $Re=50$
+  caption=NekRS predicted velocity, pressure, and temperature for laminar flow
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 ## Hex8 vs Hex20

@@ -53,7 +53,7 @@ thermal_conductivity = 2.0
   nl_abs_tol = 1e-8
 
   steady_state_detection = true
-  steady_state_tolerance = 5e-4
+  steady_state_tolerance = 1e-4
 []
 
 [Outputs]

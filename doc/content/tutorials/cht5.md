@@ -7,7 +7,7 @@ In this tutorial, you will learn how to:
 To access this tutorial,
 
 ```
-cd cardinal/tutorials/pebble_1
+cd cardinal/tutorials/pebble_cht
 ```
 
 ## Geometry and Computational Model
@@ -27,7 +27,8 @@ pebble is not shown). The sideset numbering in the fluid domain is:
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 NekRS shall solve for laminar flow over this pebble. Details on the problem
-specifications are given in a [previous tutorial](tutorials/nek_intro.md). The inlet velocity is specified such that the Reynolds number is $Re=50$.
+specifications are given in a [previous tutorial](tutorials/nek_intro.md). The inlet velocity is specified such that the Reynolds number is $Re=50$. If you have not
+reviewed this prior tutorial, we highly recommend doing so before proceeding.
 
 The MOOSE heat transfer module shall be used to solve for the solid temperature.
 NekRS and MOOSE will be coupled through boundary conditions on the pebble surface;
@@ -54,19 +55,8 @@ We already created the
 input files for NekRS in the [NekRS introduction tutorial](tutorials/nek_intro.md).
 If you have not reviewed this tutorial, please be sure to do so before proceeding.
 We will only describe the aspects of our NekRS setup which *differ* from this
-previous tutorial.
-
-In order to keep our files separate, we will use `pebble_cht` as our casename here.
-
-#### .par File
-
-Our `.par` file is the same as the [standalone NekRS tutorial](tutorials/nek_intro.md)
-except that we will point to the same mesh, `.udf`, and `.usr` files from before by specifying
-the `file`, `udf`, and `usr` parameters.
-
-!listing /tutorials/pebble_1/pebble_cht.par
-
-### .oudf File
+previous tutorial. The `.par`, `.udf`, and `.usr` files are identical from
+the prior tutorial.
 
 For conjugate heat transfer coupling to MOOSE, we only need to change one line
 in the NekRS `.oudf` file to apply a heat flux boundary condition
@@ -91,7 +81,7 @@ is constructed using the [NekRSMesh](/mesh/NekRSMesh.md). The
 `boundary` parameter indicates the boundaries through which NekRS is coupled
 via conjugate heat transfer to MOOSE.
 
-!listing /tutorials/pebble_1/nek.i
+!listing /tutorials/pebble_cht/nek.i
   block=Mesh
 
 !alert note
@@ -106,7 +96,7 @@ spectral element calculations, the [NekRSProblem](problems/NekRSProblem.md) clas
 The `casename` is used to supply the file name prefix for
 the NekRS input files.
 
-!listing /tutorials/pebble_1/nek.i
+!listing /tutorials/pebble_cht/nek.i
   start=Problem
   end=Executioner
 
@@ -123,7 +113,7 @@ in the `.par` file
 are actually ignored, so that the main MOOSE application controls when
 the simulation terminates.
 
-!listing /tutorials/pebble_1/nek.i
+!listing /tutorials/pebble_cht/nek.i
   block=Executioner
 
 An Exodus II output format is specified.
@@ -131,7 +121,7 @@ It is important to note that this output file only outputs the NekRS solution fi
 been interpolated onto the mesh mirror; the solution over the entire NekRS domain is output
 with the usual field file format used by standalone NekRS calculations.
 
-!listing /tutorials/pebble_1/nek.i
+!listing /tutorials/pebble_cht/nek.i
   block=Outputs
 
 You will likely notice that many of the almost-always-included MOOSE blocks are absent
@@ -187,7 +177,7 @@ we can create it as a separate activity and then load it (just as you can load a
 mesh into a MOOSE simulation). We will do the former here, but still show you
 how you can generate a mesh.
 
-!listing /tutorials/pebble_1/solid.i
+!listing /tutorials/pebble_cht/solid.i
   block=Mesh
 
 We can run this file in "mesh-only mode" (which will skip all of the solves) to generate an Exodus
@@ -212,7 +202,7 @@ The surface of the pebble is sideset 0.
 The heat transfer module will solve for temperature, which is defined as a nonlinear
 variable.
 
-!listing /tutorials/pebble_1/solid.i
+!listing /tutorials/pebble_cht/solid.i
   block=Variables
 
 Next, the governing equation solved by MOOSE is specified with the `Kernels` block as the
@@ -225,7 +215,7 @@ a [MatchedValueBC](https://mooseframework.inl.gov/source/bcs/MatchedValueBC.html
 The [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
  kernel requires a material property for the thermal conductivity.
 
-!listing /tutorials/pebble_1/solid.i
+!listing /tutorials/pebble_cht/solid.i
   start=Kernels
   end=Executioner
 
@@ -238,7 +228,7 @@ A [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionF
 to compute the flux on the `fluid_solid_interface` boundary. The `flux` variable must be
 a monomial field due to the nature of how MOOSE computes material properties.
 
-!listing /tutorials/pebble_1/solid.i
+!listing /tutorials/pebble_cht/solid.i
   start=AuxVariables
   end=Postprocessors
 
@@ -266,7 +256,7 @@ And the third is a transfer of the total integrated heat flux from MOOSE
 to Cardinal (computed as a postprocessor), which is then used internally by NekRS to re-normalize the heat flux (after
 interpolation onto NekRS's [!ac](GLL) points).
 
-!listing /tutorials/pebble_1/solid.i
+!listing /tutorials/pebble_cht/solid.i
   start=MultiApps
   end=AuxVariables
 
@@ -282,7 +272,7 @@ This is why an integral postprocessor must explicitly be passed.
 Next, postprocessors are used to compute the integral heat flux as a
 [SideIntegralVariablePostprocessor](https://mooseframework.inl.gov/source/postprocessors/SideIntegralVariablePostprocessor.html).
 
-!listing /tutorials/pebble_1/solid.i
+!listing /tutorials/pebble_cht/solid.i
   block=Postprocessors
 
 Next, the solution methodology is specified. Although the solid phase only
@@ -294,7 +284,7 @@ temperature from the initial condition. We will terminate the coupled solve once
 the relative change in the solid temperature is smaller than the
 `steady_state_tolerance`.
 
-!listing /tutorials/pebble_1/solid.i
+!listing /tutorials/pebble_cht/solid.i
   start=Executioner
   end=MultiApps
 
@@ -338,7 +328,7 @@ the scratch space represent from MOOSE if you are unsure.
 
 When the simulation has completed, you will have created a number of different output files:
 
-- `pebble_cht0.f<n>`, the NekRS output files
+- `pebble0.f<n>`, the NekRS output files
 - `solid_out.e`, an Exodus II output file with the solid mesh and solution
 - `solid_out_nek0.e`, an Exodus II output file with the fluid mirror mesh
   and data that was ultimately transferred in/out of NekRS
