@@ -37,45 +37,36 @@ public:
   TallyBase(const InputParameters & parameters);
 
   /**
-   * A function to initialize the tally which is implemented by the derived class.
-   * Called by OpenMCCellAverageProblem.
+   * A function which the derivied tally must override to create the OpenMC spatial filter
+   * the object maps to.
+   * @return a pair where the first entry is the filter index in the global filter array and the second entry is the OpenMC filter
    */
-  virtual void initializeTally() = 0;
+  virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() = 0;
 
   /**
-   * A function to reset the tally which is implemented by the derived class.
-   * Called by OpenMCCellAverageProblem.
+   * A function to initialize the tally object. Override with care.
    */
-  virtual void resetTally() = 0;
+  virtual void initializeTally();
 
   /**
-   * A function which stores the results of this tally into the created auxvariables.
-   * This must be implemented by a derived class.
-   * @param[in] var_numbers variables which the tally will store results in
-   * @param[in] local_score index into the tally's local array of scores which represents the
-   * current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the
-   * current score being stored
-   * @return the sum of the score across all tally bins
+   * A function to reset the tally object. Override with care.
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score) = 0;
+  virtual void resetTally();
 
   /**
-   * A function which stores the external variable results of this tally into the created
+   * A function which stores the results of this tally into the created
    * auxvariables. This must be implemented by a derived class.
-   * @param[in] ext_var_numbers variables which the tally will store results in
+   * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] output_type the output type
    */
-  virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
-                                    unsigned int local_score,
-                                    unsigned int global_score,
-                                    const std::string & output_type) = 0;
+  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
+                            unsigned int local_score,
+                            unsigned int global_score,
+                            const std::string & output_type) = 0;
 
   /**
    * Add a score to this tally.
@@ -213,6 +204,12 @@ protected:
 
   /// The OpenMC tally object this class wraps.
   openmc::Tally * _local_tally = nullptr;
+
+  /// The index of the OpenMC tally this object wraps.
+  unsigned int _local_tally_index;
+
+  /// The index of the first filter added by this tally.
+  unsigned int _filter_index;
 
   /// Sum value of this tally across all bins. Indexed by score.
   std::vector<Real> _local_sum_tally;

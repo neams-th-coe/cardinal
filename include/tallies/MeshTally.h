@@ -30,47 +30,31 @@ public:
 
   MeshTally(const InputParameters & parameters);
 
-  /// A function to initialize the tally.
-  virtual void initializeTally() override;
+  /**
+   * A function to generate the cell filter needed by this object.
+   * @return a pair where the first entry is the filter index in the global filter array and the second entry is an OpenMC unstructured mesh filter
+   */
+  virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() override;
 
-  /// A function to reset the tally.
+  /// A function to reset the tally. MeshTally overrides this function to delete the OpenMC mesh.
   virtual void resetTally() override;
 
   /**
-   * A function which stores the results of this tally into the created auxvariables.
-   * @param[in] var_numbers variables which the tally will store results in
-   * @param[in] local_score index into the tally's local array of scores which represents the
-   * current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the
-   * current score being stored
-   * @return the sum of the score across all tally bins
-   */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score) override;
-
-  /**
-   * A function which stores the external variable results of this tally into the created
+   * A function which stores the results of this tally into the created
    * auxvariables.
-   * @param[in] ext_var_numbers variables which the tally will store results in
+   * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] output_type the output type
    */
-  virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
-                                    unsigned int local_score,
-                                    unsigned int global_score,
-                                    const std::string & output_type) override;
+  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
+                            unsigned int local_score,
+                            unsigned int global_score,
+                            const std::string & output_type) override;
 
 protected:
-  /**
-   * Create the mesh filter for tallies automatically constructed by Cardinal.
-   * @return the mesh filter
-   */
-  openmc::MeshFilter * makeMeshFilter();
-
   /**
    * Check the setup of the mesh template and translations. Because a simple copy transfer
    * is used to write a mesh tally onto the [Mesh], we require that the
@@ -96,12 +80,6 @@ protected:
 
   /// The index into an array of mesh translations.
   unsigned int _instance;
-
-  /// The index of the OpenMC tally this object wraps.
-  unsigned int _local_tally_index;
-
-  /// The index of the first filter added by this tally.
-  unsigned int _filter_index;
 
   /// The index of the mesh added by this tally.
   unsigned int _mesh_index;

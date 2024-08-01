@@ -74,8 +74,8 @@ CellTally::CellTally(const InputParameters & parameters)
   }
 }
 
-void
-CellTally::initializeTally()
+std::pair<unsigned int, openmc::Filter *>
+CellTally::spatialFilter()
 {
   // Check to make sure we can map tallies to the mesh subdomains requested in tally_blocks.
   checkCellMappedSubdomains();
@@ -84,88 +84,49 @@ CellTally::initializeTally()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
-  // Clear cached results.
-  // Clear cached results.
-  _local_sum_tally.clear();
-  _local_sum_tally.resize(_tally_score.size(), 0.0);
-  _local_mean_tally.clear();
-  _local_mean_tally.resize(_tally_score.size(), 0.0);
-
-  _current_tally.resize(_tally_score.size());
-  _current_raw_tally.resize(_tally_score.size());
-  _current_raw_tally_std_dev.resize(_tally_score.size());
-  _previous_tally.resize(_tally_score.size());
-
-  // Get a list of cells to tally and create the cell filter.
   auto tally_cells = getTallyCells();
   std::vector<openmc::CellInstance> cells;
   for (const auto & c : tally_cells)
     cells.push_back(
         {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
 
-  _filter_index = openmc::model::tally_filters.size();
   _cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
   _cell_filter->set_cell_instances(cells);
 
-  // TODO: Append to this to add an energy filter.
-  std::vector<openmc::Filter *> filters = {_cell_filter};
-
-  // Create the tally, assign the required filters and apply the triggers.
-  _local_tally_index = openmc::model::tallies.size();
-  _local_tally = openmc::Tally::create();
-  _local_tally->set_scores(_tally_score);
-  _local_tally->estimator_ = _estimator;
-  _local_tally->set_filters(filters);
-  applyTriggersToLocalTally(_local_tally);
-}
-
-void
-CellTally::resetTally()
-{
-  // Erase the tally.
-  openmc::model::tallies.erase(openmc::model::tallies.begin() + _local_tally_index);
-
-  // Erase the filter(s).
-  openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + _filter_index);
+  return std::make_pair(openmc::model::tally_filters.size(), _cell_filter);
 }
 
 Real
 CellTally::storeResults(const std::vector<unsigned int> & var_numbers,
                         unsigned int local_score,
-                        unsigned int global_score)
+                        unsigned int global_score,
+                        const std::string & output_type)
 {
   Real total = 0.0;
 
-  int i = 0;
-  for (const auto & c : _openmc_problem.cellToElem())
+  if (output_type == "relaxed")
   {
-    auto cell_info = c.first;
+    int i = 0;
+    for (const auto & c : _openmc_problem.cellToElem())
+    {
+      auto cell_info = c.first;
 
-    // if this cell doesn't have any tallies, skip it
-    if (!_cell_has_tally[cell_info])
-      continue;
+      // if this cell doesn't have any tallies, skip it
+      if (!_cell_has_tally[cell_info])
+        continue;
 
-    Real local = _current_tally[local_score](i++);
+      Real local = _current_tally[local_score](i++);
 
-    // divide each tally value by the volume that it corresponds to in MOOSE
-    // because we will apply it as a volumetric tally
-    Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
-                            _openmc_problem.cellMappedVolume(cell_info);
-    total += local;
+      // divide each tally value by the volume that it corresponds to in MOOSE
+      // because we will apply it as a volumetric tally
+      Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
+                              _openmc_problem.cellMappedVolume(cell_info);
+      total += local;
 
-    fillElementalAuxVariable(var_numbers[local_score], c.second, volumetric_power);
+      fillElementalAuxVariable(var_numbers[local_score], c.second, volumetric_power);
+    }
   }
-
-  return total;
-}
-
-void
-CellTally::storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
-                                unsigned int local_score,
-                                unsigned int global_score,
-                                const std::string & output_type)
-{
-  if (output_type == "std_dev")
+  else if (output_type == "std_dev")
   {
     int i = 0;
     for (const auto & c : _openmc_problem.cellToElem())
@@ -183,7 +144,7 @@ CellTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
       Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
                               _openmc_problem.cellMappedVolume(cell_info);
 
-      fillElementalAuxVariable(ext_var_numbers[local_score], c.second, volumetric_power);
+      fillElementalAuxVariable(var_numbers[local_score], c.second, volumetric_power);
     }
   }
   else if (output_type == "raw")
@@ -204,11 +165,13 @@ CellTally::storeExternalResults(const std::vector<unsigned int> & ext_var_number
       Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
                               _openmc_problem.cellMappedVolume(cell_info);
 
-      fillElementalAuxVariable(ext_var_numbers[local_score], c.second, volumetric_power);
+      fillElementalAuxVariable(var_numbers[local_score], c.second, volumetric_power);
     }
   }
   else
     mooseError("Unknown external output " + output_type);
+
+  return total;
 }
 
 void

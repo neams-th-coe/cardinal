@@ -187,6 +187,45 @@ TallyBase::TallyBase(const InputParameters & parameters)
 }
 
 void
+TallyBase::initializeTally()
+{
+  // Clear cached results.
+  _local_sum_tally.clear();
+  _local_sum_tally.resize(_tally_score.size(), 0.0);
+  _local_mean_tally.clear();
+  _local_mean_tally.resize(_tally_score.size(), 0.0);
+
+  _current_tally.resize(_tally_score.size());
+  _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_std_dev.resize(_tally_score.size());
+  _previous_tally.resize(_tally_score.size());
+
+  auto [index, spatial_filter] = spatialFilter();
+  _filter_index = index;
+
+  // TODO: Append to this to add other filters
+  std::vector<openmc::Filter *> filters = {spatial_filter};
+
+  // Create the tally, assign the required filters and apply the triggers.
+  _local_tally_index = openmc::model::tallies.size();
+  _local_tally = openmc::Tally::create();
+  _local_tally->set_scores(_tally_score);
+  _local_tally->estimator_ = _estimator;
+  _local_tally->set_filters(filters);
+  applyTriggersToLocalTally(_local_tally);
+}
+
+void
+TallyBase::resetTally()
+{
+  // Erase the tally.
+  openmc::model::tallies.erase(openmc::model::tallies.begin() + _local_tally_index);
+
+  // Erase the filter(s).
+  openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + _filter_index);
+}
+
+void
 TallyBase::addScore(const std::string & score)
 {
   _tally_score.push_back(score);

@@ -31,45 +31,25 @@ public:
   CellTally(const InputParameters & parameters);
 
   /**
-   * A function to initialize the tally which is implemented by the derived class.
-   * Called by OpenMCCellAverageProblem.
+   * A function to generate the cell filter needed by this object.
+   * @return a pair where the first entry is the filter index in the global filter array and the second entry is an OpenMC distributed cell filter
    */
-  virtual void initializeTally() override;
+  virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() override;
 
   /**
-   * A function to reset the tally which is implemented by the derived class.
-   * Called by OpenMCCellAverageProblem.
-   */
-  virtual void resetTally() override;
-
-  /**
-   * A function which stores the results of this tally into the created auxvariables.
-   * @param[in] var_numbers variables which the tally will store results in
-   * @param[in] ext_var_numbers external variables which the tally will store results in
-   * @param[in] local_score index into the tally's local array of scores which represents the
-   * current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the
-   * current score being stored
-   * @return the sum of the score across all tally bins
-   */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score) override;
-
-  /**
-   * A function which stores the external variable results of this tally into the created
+   * A function which stores the results of this tally into the created
    * auxvariables.
-   * @param[in] ext_var_numbers variables which the tally will store results in
+   * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] output_type the output type
    */
-  virtual void storeExternalResults(const std::vector<unsigned int> & ext_var_numbers,
-                                    unsigned int local_score,
-                                    unsigned int global_score,
-                                    const std::string & output_type) override;
+  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
+                            unsigned int local_score,
+                            unsigned int global_score,
+                            const std::string & output_type) override;
 
 protected:
   /**
@@ -90,12 +70,6 @@ protected:
 
   /// Whether a cell index, instance pair should be added to the tally filter
   std::map<OpenMCCellAverageProblem::cellInfo, bool> _cell_has_tally;
-
-  /// The index of the OpenMC tally this object wraps.
-  unsigned int _local_tally_index;
-
-  /// The index of the first filter added by this tally.
-  unsigned int _filter_index;
 
   /// OpenMC mesh filter for this unstructured mesh tally.
   openmc::CellInstanceFilter * _cell_filter;

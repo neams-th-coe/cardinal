@@ -2486,14 +2486,14 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 
           // Store the tally results.
           sums[global_score] +=
-              _local_tallies[i]->storeResults(_tally_var_ids[i], local_score, global_score);
+              _local_tallies[i]->storeResults(_tally_var_ids[i], local_score, global_score, "relaxed");
 
           // Store additional tally outputs.
           if (_local_tallies[i]->hasOutputs())
           {
             const auto & outs = _local_tallies[i]->getOutputs();
             for (unsigned int j = 0; j < outs.size(); ++j)
-              _local_tallies[i]->storeExternalResults(
+              _local_tallies[i]->storeResults(
                   _tally_ext_var_ids[i][j], local_score, global_score, outs[j]);
           }
         }
