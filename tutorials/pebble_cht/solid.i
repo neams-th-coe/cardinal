@@ -53,7 +53,7 @@ thermal_conductivity = 2.0
   nl_abs_tol = 1e-8
 
   steady_state_detection = true
-  steady_state_tolerance = 1e-4
+  steady_state_tolerance = 5e-4
 []
 
 [Outputs]
@@ -75,12 +75,14 @@ thermal_conductivity = 2.0
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
+    search_value_conflicts = false
   []
   [flux]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     to_multi_app = nek
     variable = avg_flux
+    search_value_conflicts = false
   []
   [flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer

@@ -7,7 +7,7 @@
 
 [Problem]
   type = NekRSProblem
-  casename = 'pebble_cht'
+  casename = 'pebble'
 []
 
 [Executioner]

@@ -7,12 +7,6 @@
   dt = targetCFL=2.0 + initial=1e-4
   writeInterval = 1000
 
-  udf="pebble.udf"
-  usr="pebble.usr"
-
-[MESH]
-  file="pebble.re2"
-
 [PRESSURE]
   residualTol = 1e-06
 

@@ -27,30 +27,13 @@ pebble is not shown). The sideset numbering in the fluid domain is:
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 NekRS shall solve for laminar flow over this pebble. Details on the problem
-specifications are given in [table1]. The inlet velocity is specified such that
-the Reynolds number is $Re=50$.
+specifications are given in a [previous tutorial](tutorials/nek_intro.md). The inlet velocity is specified such that the Reynolds number is $Re=50$.
 
 The MOOSE heat transfer module shall be used to solve for the solid temperature.
 NekRS and MOOSE will be coupled through boundary conditions on the pebble surface;
 NekRS shall compute a pebble surface temperature to be applied as a Dirichlet condition
 to MOOSE, while MOOSE shall compute a pebble surface heat flux to be applied
 as a Neumann condition in NekRS.
-The pebble power is selected to
-give a pebble power of approximately 223 W (giving a bulk fluid temperature rise
-of 50 K).
-
-!table id=table1 caption=Geometric and operating conditions for the single-pebble flow
-| Parameter | Value |
-| :- | :- |
-| Pebble diameter | 0.03 m |
-| Domain height | 0.4306 m |
-| Inlet flow area | 0.00064009 m |
-| Inlet velocity | 0.001666 m/s |
-| Fluid viscosity | 1e-3 Pa-s |
-| Fluid density | 1000 kg/m$^3$ |
-| Fluid thermal conductivity | 0.6 W/m/K |
-| Fluid volumetric specific heat | 4186 J/kg/K |
-| Pebble power density | 15774023 W/m$^3$ |
 
 ## CHT Coupling
 
@@ -218,7 +201,6 @@ which will create a file name `solid_in.e` which contains the mesh. Note
 that you do not *need* to do this! When we run our simulation later, the mesh
 will already be visible in the output file. This is strictly showing you how you would
 generate *just* the mesh from a MOOSE input file.
-
 If we open `solid_in.e` in Paraview, we can see the mesh as shown in [one_pebble_mesh].
 The surface of the pebble is sideset 0.
 
@@ -269,7 +251,12 @@ time step. Allowing sub-cycling means that, if the MOOSE time step is 0.05 secon
 the NekRS time step set in the `.par` file is 0.02 seconds, that for every MOOSE time step, NekRS will perform
 three time steps, of length 0.02, 0.02, and 0.01 seconds to "catch up" to the main
 application. If sub-cycling is turned off, then the smallest time step among all the various
-applications is used.
+applications is used. This is shown schematically below.
+
+!media subcycling2.png
+  id=subcycling2
+  caption=Subcycling in MOOSE will automatically add time steps (blue circles) to the time steps taken by a sub-application to ensure synchronization points. The red circles indicate time steps each application would have taken were it run as a single-physics solve.
+  style=width:80%;margin-left:auto;margin-right:auto;halign:center
 
 Three transfers are required to couple Cardinal and MOOSE; the first is a transfer
 of surface temperature from Cardinal to MOOSE.
