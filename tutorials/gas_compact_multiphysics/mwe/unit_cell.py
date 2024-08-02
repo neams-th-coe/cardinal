@@ -1,10 +1,7 @@
 #!/bin/env python
 
-from argparse import ArgumentParser
 import math
 import numpy as np
-import matplotlib.pyplot as plt
-
 import openmc
 import sys
 import os
@@ -34,8 +31,6 @@ def unit_cell():
 
     model = openmc.model.Model()
 
-    ### Geometry ###
-
     # TRISO particle - keep it simple, use just one layer (just the kernel)
     radius_kernel = specs.kernel_radius*m
     s_fuel             = openmc.Sphere(r=radius_kernel)
@@ -43,46 +38,28 @@ def unit_cell():
     c_triso_matrix     = openmc.Cell(fill=mats.m_graphite_matrix,   region=+s_fuel)
     u_triso            = openmc.Universe(cells=[c_triso_fuel, c_triso_matrix])
 
-    # Channel surfaces
     fuel_cyl = openmc.ZCylinder(r=0.5 * fuel_channel_diam)
     coolant_cyl = openmc.ZCylinder(r=0.5 * coolant_channel_diam)
 
-    # create a TRISO lattice for one axial section (to be used in the rest of the axial zones)
-    # center the TRISO region on the origin so it fills lattice cells appropriately
+    # region in which TRISOs are generated - pack them and make a lattice
     min_z = openmc.ZPlane(z0=-0.5 * axial_section_height)
     max_z = openmc.ZPlane(z0=0.5 * axial_section_height)
-
-    # region in which TRISOs are generated
     r_triso = -fuel_cyl & +min_z & -max_z
-
     rand_spheres = openmc.model.pack_spheres(radius=radius_kernel, region=r_triso, pf=specs.triso_pf, seed=1.0)
     random_trisos = [openmc.model.TRISO(radius_kernel, u_triso, i) for i in rand_spheres]
-
     llc, urc = r_triso.bounding_box
     pitch = (urc - llc) / triso_lattice_shape
-    # insert TRISOs into a lattice to accelerate point location queries
     triso_lattice = openmc.model.create_triso_lattice(random_trisos, llc, pitch, triso_lattice_shape, mats.m_graphite_matrix)
 
-    # extract the coolant cell and set temperatures based on the axial profile
-    coolant_cell = openmc.Cell(region=-coolant_cyl, fill=mats.m_coolant)
-    axial_coords = np.linspace(reactor_bottom, reactor_top, specs.nl + 1)
+    # move axially through layers, create the universes for each layer
     lattice_univs = []
-
-    fuel_ch_cells = []
-
-    i = 0
+    axial_coords = np.linspace(reactor_bottom, reactor_top, specs.nl + 1)
     for z_min, z_max in zip(axial_coords[0:-1], axial_coords[1:]):
-        i += 1
-
-        # use the middle of the axial section to compute the temperature and density
-        ax_pos = 0.5 * (z_min + z_max)
-
-        # set the solid cells and their temperatures
         graphite_cell = openmc.Cell(region=+coolant_cyl, fill=mats.m_graphite_matrix)
         fuel_ch_cell = openmc.Cell(region=-fuel_cyl, fill=triso_lattice)
         fuel_ch_matrix_cell = openmc.Cell(region=+fuel_cyl, fill=mats.m_graphite_matrix)
+        coolant_cell = openmc.Cell(region=-coolant_cyl, fill=mats.m_coolant)
 
-        fuel_ch_cells.append(fuel_ch_cell)
         fuel_u = openmc.Universe(cells=[fuel_ch_cell, fuel_ch_matrix_cell])
         coolant_u = openmc.Universe(cells=[coolant_cell, graphite_cell])
         lattice_univs.append([[fuel_u] * 6, [coolant_u]])
@@ -94,18 +71,11 @@ def unit_cell():
     hex_lattice.pitch = (cell_pitch, axial_section_height)
     hex_lattice.universes = lattice_univs
 
-    graphite_outer_cell = openmc.Cell(fill=mats.m_graphite_matrix)
-    inf_graphite_univ = openmc.Universe(cells=[graphite_outer_cell])
-    hex_lattice.outer = inf_graphite_univ
-
     # hexagonal bounding cell
     hex = openmc.model.HexagonalPrism(cell_edge_length, lattice_orientation, boundary_type='periodic')
 
-    hex_cell_vol = 6.0 * (math.sqrt(3) / 4.0) * cell_edge_length**2 * reactor_height
-
     # create additional axial regions
     axial_planes = [openmc.ZPlane(z0=coord) for coord in axial_coords]
-    # axial planes
     min_z = axial_planes[0]
     min_z.boundary_type = 'vacuum'
     max_z = axial_planes[-1]
