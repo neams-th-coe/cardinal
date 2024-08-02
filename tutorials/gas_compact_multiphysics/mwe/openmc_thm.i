@@ -4,8 +4,7 @@
 #
 # cardinal-opt -i common_input.i openmc_thm.i
 
-density_blocks = 'coolant'
-temperature_blocks = 'graphite compacts compacts_trimmer_tri'
+temperature_blocks = 'graphite compacts compacts_trimmer_tri coolant'
 fuel_blocks = 'compacts compacts_trimmer_tri'
 
 fuel_to_coolant_distance = 1.88e-2
@@ -96,20 +95,11 @@ ns = 8
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = 'unrelaxed_tally_std_dev'
-  check_equal_mapped_tally_volumes = true
-
-  power = 75
+  tally_type = none
   scaling = 100.0
-  tally_blocks = ${fuel_blocks}
-  tally_type = cell
-  tally_name = heat_source
   cell_level = 1
-
-  relaxation = robbins_monro
-
   temperature_variables = 'temp'
-  temperature_blocks = '${temperature_blocks} ${density_blocks}'
+  temperature_blocks = '${temperature_blocks}'
 []
 
 [Executioner]
