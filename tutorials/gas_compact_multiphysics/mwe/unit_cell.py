@@ -6,7 +6,9 @@ import openmc
 import sys
 import os
 
-use_triso = True
+# options: generic_lattice, material.
+# FAILS for: generic_lattice
+fill_by = 'generic_lattice'
 
 # Get common input parameters shared by other physics
 script_dir = os.path.dirname(__file__)
@@ -25,33 +27,21 @@ fuel_channel_diam = specs.compact_diameter * m
 def unit_cell():
     axial_section_height = reactor_height / specs.nl
 
-    # superimposed search lattice
-    triso_lattice_shape = (4, 4, int(axial_section_height))
-
     lattice_orientation = 'x'
     cell_edge_length = cell_pitch
 
     model = openmc.model.Model()
 
-    # TRISO particle - keep it simple, use just one layer (just the kernel)
-    radius_kernel = specs.kernel_radius*m
-    s_fuel             = openmc.Sphere(r=radius_kernel)
-    c_triso_fuel       = openmc.Cell(fill=mats.m_fuel,              region=-s_fuel)
-    c_triso_matrix     = openmc.Cell(fill=mats.m_graphite_matrix,   region=+s_fuel)
-    u_triso            = openmc.Universe(cells=[c_triso_fuel, c_triso_matrix])
-
     fuel_cyl = openmc.ZCylinder(r=0.5 * fuel_channel_diam)
     coolant_cyl = openmc.ZCylinder(r=0.5 * coolant_channel_diam)
 
-    # region in which TRISOs are generated - pack them and make a lattice
-    min_z = openmc.ZPlane(z0=-0.5 * axial_section_height)
-    max_z = openmc.ZPlane(z0=0.5 * axial_section_height)
-    r_triso = -fuel_cyl & +min_z & -max_z
-    rand_spheres = openmc.model.pack_spheres(radius=radius_kernel, region=r_triso, pf=specs.triso_pf, seed=1.0)
-    random_trisos = [openmc.model.TRISO(radius_kernel, u_triso, i) for i in rand_spheres]
-    llc, urc = r_triso.bounding_box
-    pitch = (urc - llc) / triso_lattice_shape
-    triso_lattice = openmc.model.create_triso_lattice(random_trisos, llc, pitch, triso_lattice_shape, mats.m_graphite_matrix)
+    # alternatively, lets try a generic lattice to see if the nature of the issue is TRISO
+    # or any old LATTICE
+    unis = openmc.Universe(cells=[openmc.Cell(fill=mats.m_fuel)])
+    generic_lattice = openmc.HexLattice()
+    generic_lattice.center = (0.0, 0.0)
+    generic_lattice.pitch = (cell_pitch,)
+    generic_lattice.universes = [[unis] * 6, [unis]]
 
     # move axially through layers, create the universes for each layer
     lattice_univs = []
@@ -59,9 +49,9 @@ def unit_cell():
     for z_min, z_max in zip(axial_coords[0:-1], axial_coords[1:]):
         graphite_cell = openmc.Cell(region=+coolant_cyl, fill=mats.m_graphite_matrix)
 
-        if (use_triso):
-            fuel_ch_cell = openmc.Cell(region=-fuel_cyl, fill=triso_lattice)
-        else:
+        if (fill_by == 'generic_lattice'):
+            fuel_ch_cell = openmc.Cell(region=-fuel_cyl, fill=generic_lattice)
+        elif (fill_by == 'material'):
             fuel_ch_cell = openmc.Cell(region=-fuel_cyl, fill=mats.m_fuel)
 
         fuel_ch_matrix_cell = openmc.Cell(region=+fuel_cyl, fill=mats.m_graphite_matrix)
