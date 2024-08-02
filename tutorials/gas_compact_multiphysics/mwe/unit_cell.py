@@ -6,6 +6,8 @@ import openmc
 import sys
 import os
 
+use_triso = True
+
 # Get common input parameters shared by other physics
 script_dir = os.path.dirname(__file__)
 sys.path.append(script_dir)
@@ -56,7 +58,12 @@ def unit_cell():
     axial_coords = np.linspace(reactor_bottom, reactor_top, specs.nl + 1)
     for z_min, z_max in zip(axial_coords[0:-1], axial_coords[1:]):
         graphite_cell = openmc.Cell(region=+coolant_cyl, fill=mats.m_graphite_matrix)
-        fuel_ch_cell = openmc.Cell(region=-fuel_cyl, fill=triso_lattice)
+
+        if (use_triso):
+            fuel_ch_cell = openmc.Cell(region=-fuel_cyl, fill=triso_lattice)
+        else:
+            fuel_ch_cell = openmc.Cell(region=-fuel_cyl, fill=mats.m_fuel)
+
         fuel_ch_matrix_cell = openmc.Cell(region=+fuel_cyl, fill=mats.m_graphite_matrix)
         coolant_cell = openmc.Cell(region=-coolant_cyl, fill=mats.m_coolant)
 
