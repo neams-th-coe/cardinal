@@ -63,10 +63,6 @@ def unit_cell():
     # insert TRISOs into a lattice to accelerate point location queries
     triso_lattice = openmc.model.create_triso_lattice(random_trisos, llc, pitch, triso_lattice_shape, mats.m_graphite_matrix)
 
-    # create a hexagonal lattice for the coolant and fuel channels
-    fuel_univ = openmc.Universe(cells=[openmc.Cell(region=-fuel_cyl, fill=triso_lattice),
-                                    openmc.Cell(region=+fuel_cyl, fill=mats.m_graphite_matrix)])
-
     # extract the coolant cell and set temperatures based on the axial profile
     coolant_cell = openmc.Cell(region=-coolant_cyl, fill=mats.m_coolant)
     axial_coords = np.linspace(reactor_bottom, reactor_top, specs.nl + 1)
