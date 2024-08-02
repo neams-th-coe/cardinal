@@ -35,7 +35,7 @@ def unit_cell():
     fuel_cyl = openmc.ZCylinder(r=0.5 * fuel_channel_diam)
     coolant_cyl = openmc.ZCylinder(r=0.5 * coolant_channel_diam)
 
-    # alternatively, lets try a generic lattice to see if the nature of the issue is TRISO
+    # lets try a generic lattice to see if the nature of the issue is TRISO
     # or any old LATTICE
     unis = openmc.Universe(cells=[openmc.Cell(fill=mats.m_fuel)])
     generic_lattice = openmc.HexLattice()
@@ -80,19 +80,13 @@ def unit_cell():
 
     # fill the unit cell with the hex lattice
     hex_cell = openmc.Cell(region=-hex & +min_z & -max_z, fill=hex_lattice)
-
     model.geometry = openmc.Geometry([hex_cell])
 
-    ### Settings ###
     settings = openmc.Settings()
-
     settings.particles = 1500
     settings.inactive = 5
     settings.batches = 10
 
-    # the only reason we use 'nearest' here is to be sure we have a robust test for CI;
-    # otherwise, 1e-16 differences in temperature (due to numerical roundoff when using
-    # different MPI ranks) do change the tracking do to the stochastic interpolation
     settings.temperature['method'] = 'nearest'
     settings.temperature['range'] = (294.0, 1500.0)
     settings.temperature['tolerance'] = 200.0
