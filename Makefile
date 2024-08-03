@@ -25,7 +25,8 @@
 # To control where OpenMC grabs HDF5 from; you don't need to set any of these unless
 # you don't want to use the HDF5 that comes with PETSc
 
-# * HDF5_ROOT         : Top-level HDF5 directory (default: $(PETSC_DIR)/$(PETSC_ARCH), meaning that
+# * HDF5_ROOT         : Top-level HDF5 directory (default: $(PETSC_DIR)/$(PETSC_ARCH),
+#                       meaning that
 #                       the default is to use HDF5 downloaded by PETSc). This makefile
 #                       will then get the header files from $(HDF5_ROOT)/include and the
 #                       libraries from $(HDF5_ROOT)/lib.
