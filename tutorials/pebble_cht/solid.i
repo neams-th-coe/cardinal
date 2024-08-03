@@ -57,6 +57,7 @@ thermal_conductivity = 2.0
 []
 
 [Outputs]
+  csv = true
   exodus = true
   hide = 'flux_integral'
 []
@@ -75,12 +76,14 @@ thermal_conductivity = 2.0
     source_variable = temp
     from_multi_app = nek
     variable = nek_temp
+    search_value_conflicts = false
   []
   [flux]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = flux
     to_multi_app = nek
     variable = avg_flux
+    search_value_conflicts = false
   []
   [flux_integral_to_nek]
     type = MultiAppPostprocessorTransfer
@@ -120,5 +123,22 @@ thermal_conductivity = 2.0
   [max_T]
     type = NodalExtremeValue
     variable = temp
+  []
+[]
+
+[UserObjects]
+  [average_flux_axial]
+    type = LayeredSideAverage
+    variable = flux
+    direction = z
+    num_layers = 5
+    boundary = '0'
+  []
+[]
+
+[VectorPostprocessors]
+  [flux_axial]
+    type = SpatialUserObjectVectorPostprocessor
+    userobject = average_flux_axial
   []
 []

@@ -3,7 +3,8 @@
 In this tutorial, you will learn how to:
 
 - Generate a mesh for NekRS
-- Create NekRS input files for laminar flow in dimensional form
+- Create NekRS input files for laminar flow
+- Create NekRS inputs in dimensional form
 - Visualize NekRS outputs
 
 To access this tutorial,
@@ -29,29 +30,33 @@ pebble is not shown). The sideset numbering in the fluid domain is:
   style=width:30%;margin-left:auto;margin-right:auto;halign:center
 
 NekRS shall solve for laminar flow over this pebble. Details on the problem
-specifications are given in [table1]. The inlet velocity is specified such that
-the Reynolds number is $Re=50$. The pebble surface heat flux is selected to
-give a pebble power of approximately 223 W (giving a bulk fluid temperature rise
-of 50 K).
+specifications are given in [table1].
+The inlet velocity is specified such that
+the Reynolds number is $Re=50$. The characteristic scale for the Reynolds number is chosen as the pebble diameter,
 
-!table id=table1 caption=Geometric and operating conditions for the single-pebble flow
+\begin{equation}
+Re=\frac{\rho VD}{\mu}
+\end{equation}
+
+We will apply a uniform heat flux on the pebble surface. The pebble surface heat flux is selected to
+give a pebble power of approximately 893 W (giving a bulk fluid temperature rise
+of 50 K).
+In the
+[conjugate heat transfer tutorials](tutorials/cht.md), this heat flux will later be
+replaced by coupling to MOOSE.
+
+!table id=table1 caption=Geometric and operating conditions for the single-pebble flow. Fluid properties correspond to water at standard atmosphere and temperature.
 | Parameter | Value |
 | :- | :- |
 | Pebble diameter | 0.03 m |
+| Box side length | 0.0506 m |
 | Domain height | 0.4306 m |
-| Inlet flow area | 0.00064009 m |
-| Inlet velocity | 0.001666 m/s |
 | Fluid viscosity | 1e-3 Pa-s |
 | Fluid density | 1000 kg/m$^3$ |
 | Fluid thermal conductivity | 0.6 W/m/K |
 | Fluid volumetric specific heat | 4186 J/kg/K |
-| Pebble surface heat flux | 78939 W/m$^2$ |
 
-We will apply a uniform heat flux on the pebble surface. In the
-[conjugate heat transfer tutorials](tutorials/cht.md), this heat flux will later be
-replaced by coupling to MOOSE.
-
-At a minimum, the NekRS model will constitute the following files:
+At a minimum, a NekRS model will constitute the following files:
 
 - `pebble.re2`: Mesh file
 - `pebble.par`: High-level settings for the solver, boundary
@@ -67,7 +72,7 @@ setting file names for the mesh, `.udf`, and `.oudf` file in the `.par` file (di
 
 !alert note
 You may also optionally have a Fortran `.usr` file which provides some backend
-capability to Nek5000 which has not yet been ported to NekRS. For instructional
+capability to Nek5000 routines (which is written in Fortran) which have not yet been ported to NekRS. For instructional
 purposes, we will show you one use case for the `.usr` file - modifying sideset IDs.
 
 ### .re2 Mesh
@@ -77,7 +82,7 @@ NekRS uses a mesh in a custom `.re2` format.
 !alert note
 NekRS has some restrictions on what constitutes a valid mesh:
 - Mesh must have hexahedral elements in either Hex8 (8-node hexahedral) or Hex20 (20-node hexahedral) forms. Hex20 is a second-order mesh format. The advantage of using
-a second-order format is evident for geometries with curves, like spheres or cylinders. As you refine to higher polynomial order, the mid-side quadrature points are moved to the curve surface to better capture the geometry.
+a second-order format is evident for geometries with curves, like spheres or cylinders. As you refine to higher polynomial order, the mid-side quadrature points are moved to the curve surface to better capture the geometry. That said, `exo2nek` (discussed shortly) will automatically convert from tetrahedral and prism elements into hexahedral elements if you have a mesh starting with these other element types.
 - The sidesets must be numbered sequentially beginning from 1 (e.g. sideset 1, 2, 3, 4, ...).
 
 If you have a mesh in Exodus or Gmsh format,
@@ -102,14 +107,12 @@ exo2nek
 
 Follow the on-screen prompts. For this case, we have:
 
-- 1 fluid exo file,
-- which is named `pebble.exo` (you only need to provide `pebble` as the name)
-- 0 solid exo files (this is used when NekRS is solving for both fluid and solid domains)
-- 0 periodic surface pairs (this is used to apply periodic boundary conditions)
+- 1 fluid exo file, which is named `pebble.exo` (you only need to provide `pebble` as the name)
+- 0 solid exo files (this is nonzero when NekRS is solving for both fluid and solid domains; in this example, we apply a surface heat flux, but are not actually solving for temperature in the solid.)
+- 0 periodic surface pairs (this is nonzero when applying periodic boundary conditions)
 - output file name is `pebble.re2` (you only need to provide `pebble` as the output name)
 
 This will create a mesh named `pebble.re2`.
-
 NekRS is a spectral element code, which means that the solution in each element is represented
 as an $N$-th order Lagrange polynomial (in each direction).
 An illustration for a 5th-order NekRS solution is shown in [gll_mesh] for a 2-D element. Each
@@ -120,8 +123,8 @@ to run NekRS at different polynomial orders).
 
 !media gll.png
   id=gll_mesh
-  caption=Illustration of nodal positions for a 5-th order polynomial solution.
-  style=width:30%;margin-left:auto;margin-right:auto;halign:center
+  caption=Nodal positions for a 5-th order polynomial solution.
+  style=width:25%;margin-left:auto;margin-right:auto;halign:center
 
 ### .par File
 
@@ -147,9 +150,9 @@ vendor). For our case, we will run this on CPU so we set the backend as CPU.
 
 The `[GENERAL]` block describes the
 time stepping, simulation end control, and polynomial order.
-A NekRS output file is written every 1000 time steps.
+A NekRS output file is written every 500 time steps.
 The `numSteps` field indicate how many time steps to take.
-We will use a polynomial order of $N=5$. We will begin with our first
+We will use a polynomial order of $N=3$. We will begin with our first
 time step as $\Delta t=1e-4$ seconds, but allow NekRS to adaptively increase
 this to get a target [!ac](CFL) number of 2.0.
 
@@ -158,15 +161,21 @@ this to get a target [!ac](CFL) number of 2.0.
 Next, the `[VELOCITY]` and `[PRESSURE]` blocks describe the solution of the
 pressure Poisson equation and velocity Helmholtz equations.
 The `[TEMPERATURE]` block describes the solution of the
-temperature passive scalar equation. In these blocks, `residualTol` is used to indicate
-the solver tolerance. In these blocks, you also specify the type of boundary conditions
+energy equation. NekRS can also solve for an arbitrary number of coupled
+[passive scalars](theory/ins.md), which would be
+represented using `[SCALARXX]` blocks, where `XX` would be replaced with a two digit number indicating the scalar number. Temperature is also a passive scalar, but
+due to its common presence in CFD simulations, the name of the temperature
+block is `TEMPERATURE` instead of `SCALAR00`.
+
+In these blocks, `residualTol` is used to indicate
+the solver tolerance. Here, you also specify the type of boundary conditions
 to apply to each sideset (you only specify boundary conditions in the `[VELOCITY]` and
-`[TEMPERATURE]` blocks, because the pressure and velocity solves are really indicating
+`[TEMPERATURE]`/`[SCALARXX]` blocks, because the pressure and velocity solves are really indicating
 together a solution to the momentum conservation equation).
 The `boundaryTypeMap` is used to specify the mapping of
 boundary IDs to types of boundary conditions. NekRS uses short character strings
 to represent the type of boundary condition. For velocity, some of the common boundary condition strings are
-shown in [vel_bcs]. We will talk about the `.oudf` file shortly.
+shown in [vel_bcs].
 
 !table id=vel_bcs caption=Common velocity boundary conditions in NekRS
 | Meaning | How to set in `.par` File | Function name in `.oudf` File |
@@ -179,55 +188,35 @@ shown in [vel_bcs]. We will talk about the `.oudf` file shortly.
 | `symz` | symmetry in the $z$-direction | --- |
 | `sym` | general symmetry boundary | --- |
 
-For temperature, some common boundary condition strings are shown in [temp_bcs].
+For temperature/passive scalars, some common boundary condition strings are shown in [temp_bcs].
 
 !table id=temp_bcs caption=Common temperature/scalar boundary conditions in NekRS
 | Meaning | How to set in `.par` File | Function name in `.oudf` File |
 | :- | :- | :- |
-| `t` | Dirichlet temperature | `scalarDirichletConditions` |
+| `t` | Dirichlet value | `scalarDirichletConditions` |
 | `f` | Neumann flux | `scalarNeumannConditions` |
-| `I` | insulated | --- |
-| `symx` | symmetry in the $x$-direction | --- |
-| `symy` | symmetry in the $y$-direction | --- |
-| `symz` | symmetry in the $z$-direction | --- |
-| `sym` | general symmetry boundary | --- |
+| `I` | insulated (zero flux) | --- |
 
 When you populate `boundaryTypeMap` in the input file, you simply list the
 character string for your desired boundary condition in the same order as the sidesets
 (which as you recall are numbered sequentially).
 
-In the `[VELOCITY]` block, the `density` parameter is used to specify density,
-and `viscosity` is used to specify viscosity.
-In the `[TEMPERATURE]` block, `rhoCp` indicates the coefficient on
-the time derivative term (volumetric specific heat) and `conductivity` indicates
-the thermal conductivity.
+In each of the equation blocks, different parameter names are used to indicate
+the properties which are multiplying the time and diffusive terms.
 
-### .oudf File
+!table caption=Names of parameters for properties in each block
+| Block | Coefficient on time derivative | Coefficient on diffusive term |
+| :- | :- | :- |
+| `[VELOCITY]` | `rho` | `viscosity`|
+| `[TEMPERATURE]` | `rhoCp` | `conductivity` |
+| `[SCALARXX]` | `rho` | `diffusivity` |
 
-The `.oudf` file contains all of the boundary conditions. For more complex
-models, this file will in general contains any code which runs on the GPU
-(custom physics, etc.).
-
-When you defined the boundary
-condition types in the `.par` file, you also need to set the *values* of those boundary conditions (the non-trivial ones)
-n the `.oudf` file. The names of these functions are pre-defined by NekRS,
-and are paired up to the character strings you set earlier. These function names are shown in
-[vel_bcs] and [temp_bcs] in the `.oudf` column. Note that a `---` indicates that no user-defined kernels are necessary
-to define that boundary condition (i.e. NekRS already has all the info it needs
-to apply a no-slip boundary condition - it just sets velocity to zero).
-
-For each of these functions, the `bcData` object contains all information
-about the current boundary that is "calling" the function:
-
-- `bc->id` is the boundary ID
-- `bc->u` is the $x$-velocity
-- `bc->v` is the $y$-velocity
-- `bc->w` is the $z$-velocity
-- `bc->s` is the scalar (temperature) solution at the present quadrature point
-- `bc->flux` is the flux (of temperature) at the present quadrature point
-- `bc->idM` is the index corresponding to the current quadrature point
-
-!listing /tutorials/pebble_1/pebble.oudf language=cpp
+For convenience, NekRS allows you to pull parameters from the `.par` file elsewhere
+throughout your case files - for instance, you will need to specify boundary and
+initial conditions in the `.oudf` and `.udf` files. In order to streamline the
+model setup, you can use the `[CASEDATA]` block to write user-defined local variable
+names which we will extract later. Here, we define local variables which we arbitrarily
+name `Re`, `D`, and `inlet_T` which we'll use in our boundary and initial conditions.
 
 ### .udf File
 
@@ -241,7 +230,7 @@ must contain 3 functions (they can be empty):
 
 !listing /tutorials/pebble_1/pebble.udf language=cpp
 
-Here, we only use the `UDF_Setup` function to set initial conditions (to the same values
+Here, we use the `UDF_Setup` function to set initial conditions (to the same values
 we applied as our inlet boundary conditions). NekRS stores the various solution components on the host as
 
 - `nrs->U` is velocity (all three components are packed one after another, with each "slice" of length `nrs->fieldOffset`)
@@ -255,6 +244,37 @@ scalars) or if you have additional conservation equations for mass transport, et
 We apply the initial condition by looping over all the
 elements in the mesh, and in each element for all the [!ac](GLL) points.
 
+Next, we fetch the parameters we desired from the `.par` file in `UDF_LoadKernels`.
+We fetch the values we provided in the `[CASEDATA]` block, as well as the
+viscosity and density we gave in the `[VELOCITY]` block. The `kernelInfo` lines in
+particular are sending the `inlet_v` and `inlet_T` values from host to device,
+so that we can later access them from the `.oudf` file. It is customary when sending
+a value to device to prepend `p_` to the name, to help with clarity.
+
+### .oudf File
+
+When you define the boundary
+condition types in the `.par` file, you also need to set the *values* of those boundary conditions (the non-trivial ones)
+n the `.oudf` file. The names of these functions are pre-defined by NekRS,
+and are paired up to the character strings you set earlier. These function names are shown in
+[vel_bcs] and [temp_bcs] in the `.oudf` column. Note that a `---` indicates that no user-defined kernels are necessary
+to define that boundary condition (i.e. NekRS already has all the info it needs
+to apply a no-slip boundary condition - it just sets velocity to zero).
+
+For each of these functions, the `bcData` struct contains all information
+about the current boundary that is "calling" the function:
+
+- `bc->id` is the boundary ID
+- `bc->u` is the $x$-velocity
+- `bc->v` is the $y$-velocity
+- `bc->w` is the $z$-velocity
+- `bc->s` is the scalar (temperature) solution at the present quadrature point
+- `bc->flux` is the flux (of temperature) at the present quadrature point
+- `bc->idM` is the index corresponding to the current quadrature point
+- `bc->scalarId` is the passive scalar number (in this example temperature is the 0th scalar and we have no additional scalars)
+
+!listing /tutorials/pebble_1/pebble.oudf language=cpp
+
 ### .usr File
 
 NekRS is under rapid development, and many features from Nek5000 are currently
@@ -266,17 +286,18 @@ beginning from 1; instead, the sidesets were numbered as 2, 3, 4, and 5. So, we 
 like to modify those sideset numbers so that they are 1, 2, 3, 4.
 
 We perform this modification in the `usrdat2()` function (the other functions
-must be present, but can be empty).
+must be present, but can be empty - they would be used to perform actions at
+other "insertion" points in NekRS).
 
 !listing /tutorials/pebble_1/pebble.usr language=fortran
 
 The various terms in this function are:
 
 - `iel` is a loop variable name used to indicate a loop over elements
-- `ifc` is a loop variable name used to indicate a loop over the faces on an element
+- `ifc` is a loop variable name used to indicate a loop over the (six) faces on an element
 - `boundaryID(ifc, iel)` is the sideset ID for velocity
 
-## Execution and Postprocessing
+### Execution and Postprocessing
 
 When you compile Cardinal, you automatically also get a standalone NekRS executable.
 You can run the NekRS case with
@@ -333,7 +354,7 @@ by NekRS.
 
 !media standalone_pebble.png
   id=standalone_pebble
-  caption=NekRS predicted velocity, pressure, and temperature
+  caption=NekRS predicted velocity, pressure, and temperature for laminar flow
   style=width:60%;margin-left:auto;margin-right:auto;halign:center
 
 ## Hex8 vs Hex20
