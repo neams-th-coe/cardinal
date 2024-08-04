@@ -2,12 +2,12 @@ void velocityDirichletConditions(bcData *bc)
 {
   bc->u = 0.0; // x-velocity
   bc->v = 0.0; // y-velocity
-  bc->w = 0.001666; // z-velocity
+  bc->w = p_inlet_v; // z-velocity
 }
 
 void scalarDirichletConditions(bcData *bc)
 {
-  bc->s = 0.0; // temperature
+  bc->s = p_inlet_T; // temperature
 }
 
 void scalarNeumannConditions(bcData *bc)
