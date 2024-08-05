@@ -52,7 +52,7 @@ Paramak can provide a DAGMC geometry file to run OpenMC directly on. The reason 
 !media tokamak_solid_mesh.png
   id=solid_mesh3
   caption=Mesh for the heat conduction problem; colors correspond to different subdomains
-  style=width:40%;margin-left:auto;margin-right:auto
+  style=width:30%;margin-left:auto;margin-right:auto
 
 For simplicity, all regions will be modeled as purely conducting (no advection). This is a significant
 simplification over a realistic fusion device, and therefore the results obtained in this tutorial
