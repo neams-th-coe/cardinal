@@ -1573,7 +1573,7 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
   const auto time_start = std::chrono::high_resolution_clock::now();
 
   TIME_SECTION("subdomainsToMaterials", 3, "Mapping OpenMC Materials to Mesh", true);
-
+  
   for (const auto & c : _cell_to_elem)
   {
     printTrisoHelp(time_start);
@@ -2123,6 +2123,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // reset data structures
   _elem_to_cell.clear();
   _cell_to_elem.clear();
+  _subdomain_to_material.clear();
   _flattened_ids.clear();
   _flattened_instances.clear();
 
