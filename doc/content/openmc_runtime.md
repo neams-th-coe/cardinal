@@ -3,6 +3,12 @@
 This page collects some common issues encountered when running OpenMC
 models.
 
+## ModuleNotFoundError: No module named 'openmc'
+
+If you are trying to use OpenMC's Python API to make input files, this error
+means that you did not yet install the Python API. Follow the instructions
+[here](python_api.md).
+
 ## Missing Cross Section Data
 
 If you see an error like:

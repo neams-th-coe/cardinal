@@ -120,7 +120,8 @@ namespace operation
 enum OperationEnum
 {
   max,
-  min
+  min,
+  average
 };
 } // namespace operation
 

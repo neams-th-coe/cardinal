@@ -57,7 +57,6 @@ mdot = 0.011                             # fluid mass flowrate (kg/s)
 [MultiApps]
   [solid]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'solid.i'
     execute_on = timestep_end
   []

@@ -165,7 +165,6 @@
 [MultiApps]
   [cardinal]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = moose.i
   []
 []

@@ -132,13 +132,11 @@ unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * 
 [MultiApps]
   [bison]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'solid_thm.i'
     execute_on = timestep_begin
   []
   [thm]
     type = FullSolveMultiApp
-    app_type = CardinalApp
     input_files = 'thm.i'
     execute_on = timestep_end
     max_procs_per_app = 1

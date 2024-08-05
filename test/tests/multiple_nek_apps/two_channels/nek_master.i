@@ -86,7 +86,6 @@ c = 450
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'nek.i'
     execute_on = 'timestep_end'
     positions = '-0.5 0.0 0.0

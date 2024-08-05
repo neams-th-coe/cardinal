@@ -80,7 +80,7 @@ R. Martineau, P. Fischer, and Y. Hassan,
 *Nuclear Technology* (2021)
 
 M. Min, Y. Lan, P. Fischer, E. Merzari, S. Kerkemeier, M. Phillips, T. Rathnayake, A. Novak, D. Gaston, N. Chalmers, and T. Warburton,
-"Optimization of Full-Core Reactor Simulations on Summit"
+["Optimization of Full-Core Reactor Simulations on Summit"](https://ieeexplore.ieee.org/document/10046048)
 *Proceedings of Supercomputing* (2022)
 
 A.J. Novak, D. Shaver, and B. Feng
@@ -90,11 +90,11 @@ A.J. Novak, D. Shaver, and B. Feng
 # High Temperature Gas Reactors
 
 A. Hegazy, A.J. Novak, and R. Uddin,
-"Multiphysics Simulation of TRISO Fuel Compacts and the Effects of Homogenization"
+["Multiphysics Simulation of TRISO Fuel Compacts and the Effects of Homogenization"](https://www.researchgate.net/publication/380151383_Multiphysics_Simulation_of_TRISO_Fuel_Compacts_and_the_Effects_of_Homogenization)
 *Proceedings of Physor* (2024)
 
 A. Hegazy, A.J. Novak, and R. Uddin,
-"Multiphysics Explicit Simulation of Randomly Distributed TRISO Fuel Particles"
+["Multiphysics Explicit Simulation of Randomly Distributed TRISO Fuel Particles"](https://www.researchgate.net/publication/379751062_Multiphysics_Explicit_Simulation_of_Randomly_Distributed_TRISO_Fuel_Particles)
 *Proceedings of ANS Student Conference* (2024)
 
 A.J. Novak, D. Andrs, P. Shriwise, J. Fang, H. Yuan, D. Shaver, E. Merzari, P.K. Romano, and R.C. Martineau,
@@ -107,7 +107,7 @@ A.J. Novak, D. Andrs, P. Shriwise, D. Shaver, P.K. Romano, E. Merzari, and P. Ke
 # Heat Pipe Reactors
 
 M. Eltawila, A.J. Novak, and Y. Miao,
-"Coupled Multiphysics Modeling of Heat Pipe Microreactors using Cardinal, BISON, and Sockeye"
+["Coupled Multiphysics Modeling of Heat Pipe Microreactors using Cardinal, BISON, and Sockeye"](https://www.ans.org/pubs/proceedings/article-55557/)
 *Proceedings of Physor* (2024)
 
 M. Eltawila, A.J. Novak,
@@ -127,7 +127,7 @@ H. Park, Y. Yu, E. Shemon, and A. Novak,
 *Proceedings of M&C* (2023)
 
 H. Park, Y. Yu, E. Shemon, and A. Novak,
-"Progress on Demonstration of a MOOSE-Based Coupled Capability for Hot Channel Factors in Fast Reactors"
+["Progress on Demonstration of a MOOSE-Based Coupled Capability for Hot Channel Factors in Fast Reactors"](https://publications.anl.gov/anlpubs/2022/09/178348.pdf)
 *Argonne National Laboratory*, ANL/NSE-22/45 (2022)
 
 # Sodium Fast Reactors
@@ -157,7 +157,7 @@ A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
 # Pressurized Thermal Shock
 
 Y. Yu, A. Novak, D. Shaver, and E. Merzari,
-"Coupled Simulation of Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS) Using Cardinal"
+["Coupled Simulation of Reactor Pressure Vessel (RPV) Subjected to Pressurized Thermal Shock (PTS) Using Cardinal"](https://www.ans.org/pubs/proceedings/article-51638/)
 *Proceedings of ATH* (2022)
 
 Y. Yu, A. Novak, D. Shaver, and E. Merzari,
@@ -183,7 +183,7 @@ A. Chaube, A. Novak, H. Yuan, E. Merzari, D.R. Shaver, P.F. Fischer, and C. Broo
 # AI/ML
 
 V.C. Leite, E. Merzari, A. Novak, R. Ponciroli, and L. Ibarra,
-"Application of a Physically Informed Convolutional Neural Network for Monitoring the Temperature Field in Advanced Reactors"
+["Application of a Physically Informed Convolutional Neural Network for Monitoring the Temperature Field in Advanced Reactors"](https://www.ans.org/pubs/proceedings/article-54472/)
 *Proceedings of Nureth* (2023)
 
 # Verification and Validation
@@ -215,7 +215,7 @@ N. Martin, Y. Miao, J. Miller, D. O'Grady, D. Reger, E. Shemon, N. Stauff, M. Ta
 *Nuclear Science and Engineering* (2023)
 
 A. Abou-Jaoude, E. Shemon, G. Giudicelli, S. Walker, T. Folk, M. Tano, J. Fang, and A. Novak,
-"Status of New Models Hosted on the Virtual Test Bed (VTB) in 2022"
+["Status of New Models Hosted on the Virtual Test Bed (VTB) in 2022"](https://inldigitallibrary.inl.gov/sites/sti/sti/Sort_62765.pdf)
 *Proceedings of ANS* (2022)
 
 B. Feng, J. Fang, T. Hua, N. Stauff, A. Novak, L. Zou, R. Hu, P. Balestra, D. Reger, N. Martin, G. Giudicelli, and A. Abou-Jaoude,

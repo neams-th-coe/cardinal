@@ -95,7 +95,6 @@ o=0.15
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'nek_exact.i'
     execute_on = timestep_end
   []

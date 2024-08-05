@@ -76,9 +76,7 @@
 [MultiApps]
   [sub]
     type = FullSolveMultiApp
-    app_type = CardinalApp
     input_files = 'cardinal_sub.i'
-    #library_path = ../../../../contrib/SAM/lib
   []
 []
 

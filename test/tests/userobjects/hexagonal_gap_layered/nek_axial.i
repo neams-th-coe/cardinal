@@ -67,7 +67,6 @@ gap_thickness = ${fparse 0.1 * 7.646e-3}
 [MultiApps]
   [subchannel]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'subchannel_axial.i'
     execute_on = timestep_end
   []
@@ -91,6 +90,7 @@ gap_thickness = ${fparse 0.1 * 7.646e-3}
     to_multi_app = subchannel
     variable = P
     source_variable = P
+    search_value_conflicts = false
   []
 []
 

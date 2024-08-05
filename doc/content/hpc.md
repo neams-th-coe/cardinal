@@ -212,7 +212,7 @@ fi
 module purge
 module load use.moose
 module load moose-tools
-module load openmpi/4.1.5_ucx1.14.1
+module load openmpi/4.1.6-gcc-12.3.0-panw
 module load cmake/3.27.7-gcc-12.3.0-5cfk
 
 # Revise for your repository location

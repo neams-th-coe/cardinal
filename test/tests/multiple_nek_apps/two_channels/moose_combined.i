@@ -86,7 +86,6 @@ c = 450
 [MultiApps]
   [sub]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'sub_combined.i'
     execute_on = 'timestep_end'
   []
@@ -99,6 +98,7 @@ c = 450
     from_multi_app = sub
     variable = sub_temp
     target_boundary = 'left_pin right_pin'
+    search_value_conflicts = false
   []
   [flux]
     type = MultiAppGeneralFieldNearestLocationTransfer
@@ -108,6 +108,7 @@ c = 450
     from_postprocessors_to_be_preserved = flux_integral
     to_postprocessors_to_be_preserved = flux_integral
     target_boundary = 'surface'
+    search_value_conflicts = false
   []
 []
 

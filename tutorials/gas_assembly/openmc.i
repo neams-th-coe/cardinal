@@ -180,13 +180,11 @@ num_layers_for_THM = 50      # number of elements in the THM model; for the conv
 [MultiApps]
   [bison]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'solid.i'
     execute_on = timestep_begin
   []
   [thm]
     type = FullSolveMultiApp
-    app_type = CardinalApp
     input_files = 'thm.i'
     execute_on = timestep_end
     max_procs_per_app = 1

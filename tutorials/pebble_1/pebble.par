@@ -2,10 +2,10 @@
   backend = CPU
 
 [GENERAL]
-  polynomialOrder = 5
-  numSteps = 8000
+  polynomialOrder = 3
+  numSteps = 4000
   dt = targetCFL=2.0 + initial=1e-4
-  writeInterval = 1000
+  writeInterval = 500
 
 [PRESSURE]
   residualTol = 1e-06
@@ -17,7 +17,12 @@
   viscosity = 1e-3
 
 [TEMPERATURE]
-  boundaryTypeMap = t, I, f, I
+  boundaryTypeMap = t, o, f, I
+  residualTol = 1e-07
   rhoCp = 4186000
   conductivity = 0.6
-  residualTol = 1e-07
+
+[CASEDATA]
+  Re = 50
+  D = 0.03
+  inlet_T = 0

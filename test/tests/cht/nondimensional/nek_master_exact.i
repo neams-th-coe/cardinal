@@ -69,7 +69,6 @@
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'nek_exact.i'
     sub_cycling = true
     execute_on = timestep_end

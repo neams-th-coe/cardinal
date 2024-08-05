@@ -21,7 +21,7 @@ OpenMC separately, or using its conda environment (i.e., do
 
 !alert! note title=tldr
 
-On *CPU systems*, all that you need to compile Cardinal is:
+All that you need to compile Cardinal is:
 
 ```
 conda activate moose
@@ -36,8 +36,8 @@ make -j8
 ```
 
 If the above produces a `cardinal-opt` Cardinal executable, you can
-jump straight to [#running]. If you are on a GPU system, want to customize the
-build, or were not successful with the above, please consult the detailed instructions
+jump straight to [#running]. If you want to customize the
+build or were not successful with the above, please consult the detailed instructions
 that follow.
 !alert-end!
 

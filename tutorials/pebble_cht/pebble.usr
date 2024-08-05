@@ -1,0 +1,54 @@
+c-----------------------------------------------------------------------
+      subroutine useric(i,j,k,eg)
+      include 'SIZE'
+      include 'TOTAL'
+      include 'NEKUSE'
+      integer i,j,k,e,eg
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine userchk
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat2()
+      include 'SIZE'
+      include 'TOTAL'
+
+      do iel=1,nelt
+      do ifc=1,2*ndim
+      if (boundaryID(ifc,iel).eq.2) then ! rename sideset 2 to 1 (inlet)
+          boundaryID(ifc,iel) = 1
+       else if (boundaryID(ifc,iel).eq.3) then ! rename sideset 3 to 2 (outlet)
+          boundaryID(ifc,iel) = 2
+       else if (boundaryID(ifc,iel).eq.4) then ! rename sideset 4 to 3 (pebble surface)
+          boundaryID(ifc,iel) = 3
+       else if (boundaryID(ifc,iel).eq.5) then ! rename sideset 5 to 4 (side walls)
+          boundaryID(ifc,iel) = 4
+       else ! NekRS wants all non-sideset faces to be boundary 0
+          boundaryID(ifc,iel) = 0
+      endif
+      enddo
+      enddo
+
+      return
+      end
+c-----------------------------------------------------------------------
+      subroutine usrdat3
+      include 'SIZE'
+      include 'TOTAL'
+
+      return
+      end
+c-----------------------------------------------------------------------

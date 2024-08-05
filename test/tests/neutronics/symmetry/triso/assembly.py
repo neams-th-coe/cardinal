@@ -48,7 +48,7 @@ bundle_pitch = specs.bundle_flat_to_flat * m + specs.bundle_gap_width * m
 cell_pitch = specs.fuel_to_coolant_distance * m
 fuel_channel_diam = specs.compact_diameter * m
 
-def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
+def assembly(n_ax_zones, n_inactive, n_active):
     axial_section_height = reactor_height / n_ax_zones
 
     # superimposed search lattice
@@ -86,7 +86,7 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     # region in which TRISOs are generated
     r_triso = -fuel_cyl & +min_z & -max_z
 
-    rand_spheres = openmc.model.pack_spheres(radius=radius_pyc_outer, region=r_triso, pf=0.05)
+    rand_spheres = openmc.model.pack_spheres(radius=radius_pyc_outer, region=r_triso, pf=0.05, seed=1)
     random_trisos = [openmc.model.TRISO(radius_pyc_outer, u_triso, i) for i in rand_spheres]
 
     llc, urc = r_triso.bounding_box
@@ -215,58 +215,11 @@ def assembly(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     l = bundle_pitch / math.sqrt(3.0)
     lower_left = (0, -l, reactor_bottom)
     upper_right = (l, l, reactor_top)
-    source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
+    source_dist = openmc.stats.Box(lower_left, upper_right)
     source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 
-    if (add_entropy_mesh):
-        entropy_mesh = openmc.RegularMesh()
-        entropy_mesh.lower_left = lower_left
-        entropy_mesh.upper_right = upper_right
-        entropy_mesh.dimension = (6, 6, 20)
-        settings.entropy_mesh = entropy_mesh
-
-    vol_calc = openmc.VolumeCalculation([outer_cell],
-                                        100_000_000, lower_left, upper_right)
-    settings.volume_calculations = [vol_calc]
-
     model.settings = settings
-
-    m_colors[compact_mats.m_fuel] = 'palegreen'
-    m_colors[compact_mats.m_graphite_c_buffer] = 'sandybrown'
-    m_colors[compact_mats.m_graphite_pyc] = 'orange'
-    m_colors[compact_mats.m_sic] = 'yellow'
-    m_colors[compact_mats.m_graphite_matrix] = 'darkblue'
-
-    bundle_p_rounded = int(bundle_pitch)
-
-    plot1          = openmc.Plot()
-    plot1.filename = 'plot1'
-    plot1.width    = (2 * bundle_pitch, 2 * axial_section_height)
-    plot1.basis    = 'xz'
-    plot1.origin   = (0.0, 0.0, reactor_height / 2.0)
-    plot1.pixels   = (100 * 2 * bundle_p_rounded, int(100 * 3 * axial_section_height))
-    plot1.color_by = 'cell'
-
-    plot2          = openmc.Plot()
-    plot2.filename = 'plot2'
-    plot2.width    = (1.5 * bundle_pitch, 1.5 * bundle_pitch)
-    plot2.basis    = 'xy'
-    plot2.origin   = (0.0, 0.0, axial_section_height / 4.0)
-    plot2.pixels   = (500 * bundle_p_rounded, 500 * bundle_p_rounded)
-    plot2.color_by = 'material'
-    plot2.colors   = m_colors
-
-    plot3          = openmc.Plot()
-    plot3.filename = 'plot3'
-    plot3.width    = plot2.width
-    plot3.basis    = plot2.basis
-    plot3.origin   = plot2.origin
-    plot3.pixels   = plot2.pixels
-    plot3.color_by = 'cell'
-
-    #model.plots = openmc.Plots([plot1, plot2, plot3])
-    model.plots = openmc.Plots([plot2])
 
     return model
 
@@ -276,8 +229,6 @@ def main():
     ap = ArgumentParser()
     ap.add_argument('-n', dest='n_axial', type=int, default=1,
                     help='Number of axial cell divisions')
-    ap.add_argument('-s', '--entropy', action='store_true',
-                    help='Whether to add a Shannon entropy mesh')
     ap.add_argument('-i', dest='n_inactive', type=int, default=5,
                     help='Number of inactive cycles')
     ap.add_argument('-a', dest='n_active', type=int, default=5,
@@ -285,7 +236,7 @@ def main():
 
     args = ap.parse_args()
 
-    model = assembly(args.n_axial, args.n_inactive, args.n_active, args.entropy)
+    model = assembly(args.n_axial, args.n_inactive, args.n_active)
     model.export_to_xml()
 
 if __name__ == "__main__":

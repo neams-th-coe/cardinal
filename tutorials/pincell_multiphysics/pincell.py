@@ -47,7 +47,7 @@ materials.export_to_xml()
 
 pincell_surface = openmc.ZCylinder(r = R, name = 'Pincell outer radius')
 pellet_surface = openmc.ZCylinder(r = Rf, name = 'Pellet outer radius')
-rectangular_prism = openmc.model.rectangular_prism(width = pitch, height = pitch, axis = 'z', origin = (0.0, 0.0), boundary_type = 'reflective')
+rectangular_prism = openmc.model.RectangularPrism(width = pitch, height = pitch, axis = 'z', origin = (0.0, 0.0), boundary_type = 'reflective')
 
 axial_coords = np.linspace(0.0, height, N + 1)
 plane_surfaces = [openmc.ZPlane(z0=coord) for coord in axial_coords]
@@ -67,7 +67,7 @@ for i in range(N):
 
   # we need to get the correct sodium material that belongs to this layer
   sodium_material = sodium_materials[i]
-  sodium_cells.append(openmc.Cell(fill = sodium_material, region = +pincell_surface & layer & rectangular_prism, name = 'sodium{:n}'.format(i)))
+  sodium_cells.append(openmc.Cell(fill = sodium_material, region = +pincell_surface & layer & -rectangular_prism, name = 'sodium{:n}'.format(i)))
 
 root = openmc.Universe(name = 'root')
 root.add_cells(fuel_cells)
@@ -84,7 +84,7 @@ lower_left = (-pitch, -pitch, 0.0)
 upper_right = (pitch, pitch, height)
 uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable = True)
 
-settings.source = openmc.source.Source(space=uniform_dist)
+settings.source = openmc.IndependentSource(space=uniform_dist)
 
 settings.batches = 50
 settings.inactive = 10

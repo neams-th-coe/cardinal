@@ -96,7 +96,6 @@
 [MultiApps]
   [sub]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'all_bins.i'
     execute_on = timestep_begin
   []
@@ -120,12 +119,14 @@
     source_variable = disp_y
     variable = disp_y
     to_multi_app = sub
+    search_value_conflicts = false
   []
   [dispz]
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = disp_z
     variable = disp_z
     to_multi_app = sub
+    search_value_conflicts = false
   []
 []
 

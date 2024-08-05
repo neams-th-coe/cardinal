@@ -221,7 +221,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     # region in which TRISOs are generated
     r_triso = -fuel_cyl & +min_z & -max_z
 
-    rand_spheres = openmc.model.pack_spheres(radius=radius_pyc_outer, region=r_triso, pf=triso_pf)
+    rand_spheres = openmc.model.pack_spheres(radius=radius_pyc_outer, region=r_triso, pf=triso_pf, seed=1.0)
     random_trisos = [openmc.model.TRISO(radius_pyc_outer, u_triso, i) for i in rand_spheres]
 
     llc, urc = r_triso.bounding_box
@@ -321,7 +321,7 @@ def unit_cell(n_ax_zones, n_inactive, n_active, add_entropy_mesh=False):
     hexagon_half_flat = math.sqrt(3.0) / 2.0 * cell_edge_length
     lower_left = (-cell_edge_length, -hexagon_half_flat, reactor_bottom)
     upper_right = (cell_edge_length, hexagon_half_flat, reactor_top)
-    source_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
+    source_dist = openmc.stats.Box(lower_left, upper_right)
     source = openmc.IndependentSource(space=source_dist)
     settings.source = source
 

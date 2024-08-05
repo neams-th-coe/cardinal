@@ -137,7 +137,6 @@ dT = ${fparse power / mdot / Cp}
 [MultiApps]
   [bison]
     type = TransientMultiApp
-    app_type = CardinalApp
     input_files = 'bison.i'
     execute_on = timestep_begin
     sub_cycling = true

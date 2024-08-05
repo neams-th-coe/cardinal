@@ -1,22 +1,15 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version='1.0' encoding='UTF-8'?>
 <settings>
   <run_mode>eigenvalue</run_mode>
   <particles>500</particles>
   <batches>10</batches>
   <inactive>5</inactive>
-  <source strength="1.0">
-    <space type="fission">
+  <source particle="neutron" strength="1.0" type="independent">
+    <space type="box">
       <parameters>0 -11.20059522227874 0.0 11.20059522227874 11.20059522227874 25.0</parameters>
     </space>
   </source>
   <temperature_default>600.0</temperature_default>
   <temperature_method>interpolation</temperature_method>
   <temperature_range>294.0 1500.0</temperature_range>
-  <volume_calc>
-    <domain_type>cell</domain_type>
-    <domain_ids>14226</domain_ids>
-    <samples>100000000</samples>
-    <lower_left>0 -11.20059522227874 0.0</lower_left>
-    <upper_right>11.20059522227874 11.20059522227874 25.0</upper_right>
-  </volume_calc>
 </settings>

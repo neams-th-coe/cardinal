@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<settings>
+  <run_mode>fixed source</run_mode>
+  <particles>10000</particles>
+  <batches>10</batches>
+  <source particle="neutron" strength="1.0" type="independent">
+    <space origin="0.0 0.0 0.0" type="cylindrical">
+      <r parameters="600 700 1.0" type="powerlaw"/>
+      <phi parameters="0.0 6.283185307179586" type="uniform"/>
+      <z type="discrete">
+        <parameters>0.0 1.0</parameters>
+      </z>
+    </space>
+    <angle type="isotropic"/>
+    <energy type="discrete">
+      <parameters>14080000.0 1.0</parameters>
+    </energy>
+  </source>
+  <photon_transport>true</photon_transport>
+  <temperature_default>800.0</temperature_default>
+  <temperature_method>interpolation</temperature_method>
+  <temperature_range>294.0 3000.0</temperature_range>
+  <temperature_tolerance>1000.0</temperature_tolerance>
+</settings>

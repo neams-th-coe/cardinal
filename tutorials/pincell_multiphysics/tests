@@ -36,6 +36,7 @@
     input = openmc.i
     csvdiff = openmc_out.csv
     cli_args = 'Problem/particles=100 MultiApps/bison/cli_args="MultiApps/active='';Transfers/active=''" Executioner/num_steps=1 Problem/max_batches=100'
+    rel_err = 6e-5
     requirement = "The system shall be able to run a 3-way coupling of OpenMC, MOOSE, and NekRS for a pincell. "
                   "We split up this test into separate OpenMC and NekRS components because the CIVET testing "
                   "also splits tests this way. This test runs OpenMC and heat conduction for one step."

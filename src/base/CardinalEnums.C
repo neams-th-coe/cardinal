@@ -52,7 +52,7 @@ getNekFieldEnum()
 MooseEnum
 getOperationEnum()
 {
-  return MooseEnum("max min", "max");
+  return MooseEnum("max min average", "max");
 }
 
 MooseEnum

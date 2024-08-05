@@ -44,13 +44,13 @@ model = openmc.model.Model()
 R = 1.5
 L = 4.0
 sphere_surface = openmc.Sphere(r=R, name='Sphere surface')
-water_surface = openmc.rectangular_prism(L, L, boundary_type='reflective')
+flibe_surface = openmc.model.RectangularPrism(L, L, boundary_type='reflective')
 
 sphere_cell = openmc.Cell(fill=uo2, region=-sphere_surface, name='Pebble')
-flibe_cell = openmc.Cell(fill=flibe, region=+sphere_surface & water_surface, name='Flibe')
+flibe_cell = openmc.Cell(fill=flibe, region=+sphere_surface & -flibe_surface, name='Flibe')
 repeatable_univ = openmc.Universe(cells=[sphere_cell, flibe_cell])
 
-outer_cell = openmc.Cell(fill=flibe, region=+sphere_surface & water_surface, name='Outside')
+outer_cell = openmc.Cell(fill=flibe, region=+sphere_surface & -flibe_surface, name='Outside')
 outer_univ = openmc.Universe(cells=[outer_cell])
 
 # create a lattice to repeat the pebble + flibe universe
@@ -64,7 +64,7 @@ lattice.outer = outer_univ
 # create the surfaces that will bound the lattice
 top = openmc.ZPlane(z0=N*L, boundary_type='reflective')
 bottom = openmc.ZPlane(z0=0.0, boundary_type='reflective')
-main_cell = openmc.Cell(fill=lattice, region=water_surface & +bottom & -top, name='Main cell')
+main_cell = openmc.Cell(fill=lattice, region=-flibe_surface & +bottom & -top, name='Main cell')
 
 model.geometry = openmc.Geometry([main_cell])
 model.geometry.export_to_xml()
@@ -78,7 +78,7 @@ model.settings.particles = 10000
 lower_left = (-L, -L, 0)
 upper_right = (L, L, N*L)
 uniform_dist = openmc.stats.Box(lower_left, upper_right, only_fissionable=True)
-model.settings.source = openmc.source.Source(space=uniform_dist)
+model.settings.source = openmc.IndependentSource(space=uniform_dist)
 model.settings.temperature = {'default': 650.0 + 273.15,
                               'method': 'interpolation',
                               'multipole': False,

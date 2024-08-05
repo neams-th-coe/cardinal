@@ -1,39 +1,39 @@
 <?xml version='1.0' encoding='utf-8'?>
 <materials>
   <material depletable="true" id="1" name="fuel">
-    <density units="kg/m3" value="10820" />
-    <nuclide ao="0.0020301709666386285" name="U234" />
-    <nuclide ao="0.15666685722582877" name="U235" />
-    <nuclide ao="0.8413029718075326" name="U238" />
-    <nuclide ao="1.5" name="C0" />
-    <nuclide ao="0.4998105" name="O16" />
-    <nuclide ao="0.0001895" name="O17" />
+    <density units="kg/m3" value="10820"/>
+    <nuclide ao="0.002030170966749956" name="U234"/>
+    <nuclide ao="0.15666685723354193" name="U235"/>
+    <nuclide ao="0.8413029717997081" name="U238"/>
+    <nuclide ao="1.5" name="C0"/>
+    <nuclide ao="0.4998105" name="O16"/>
+    <nuclide ao="0.0001895" name="O17"/>
   </material>
   <material id="2" name="buffer">
-    <density units="kg/m3" value="1050" />
-    <nuclide ao="1.0" name="C0" />
-    <sab name="c_Graphite" />
+    <density units="kg/m3" value="1050"/>
+    <nuclide ao="1.0" name="C0"/>
+    <sab name="c_Graphite"/>
   </material>
   <material id="3" name="pyc">
-    <density units="kg/m3" value="1900" />
-    <nuclide ao="1.0" name="C0" />
-    <sab name="c_Graphite" />
+    <density units="kg/m3" value="1900"/>
+    <nuclide ao="1.0" name="C0"/>
+    <sab name="c_Graphite"/>
   </material>
   <material id="4" name="sic">
-    <density units="kg/m3" value="3203" />
-    <nuclide ao="1.0" name="C0" />
-    <nuclide ao="0.9222968" name="Si28" />
-    <nuclide ao="0.0468316" name="Si29" />
-    <nuclide ao="0.0308716" name="Si30" />
+    <density units="kg/m3" value="3203"/>
+    <nuclide ao="1.0" name="C0"/>
+    <nuclide ao="0.9222968" name="Si28"/>
+    <nuclide ao="0.0468316" name="Si29"/>
+    <nuclide ao="0.0308716" name="Si30"/>
   </material>
   <material id="5" name="graphite moderator">
-    <density units="kg/m3" value="1700" />
-    <nuclide ao="1.0" name="C0" />
-    <sab name="c_Graphite" />
+    <density units="kg/m3" value="1700"/>
+    <nuclide ao="1.0" name="C0"/>
+    <sab name="c_Graphite"/>
   </material>
   <material id="8" name="Helium coolant">
-    <density units="sum" />
-    <nuclide ao="2e-06" name="He3" />
-    <nuclide ao="0.999998" name="He4" />
+    <density units="sum"/>
+    <nuclide ao="2e-06" name="He3"/>
+    <nuclide ao="0.999998" name="He4"/>
   </material>
 </materials>

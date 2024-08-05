@@ -226,8 +226,9 @@ export CARDINAL_DIR
 APPLICATION_DIR    := $(CARDINAL_DIR)
 APPLICATION_NAME   := cardinal
 BUILD_EXEC         := yes
-GEN_REVISION       := no
+GEN_REVISION       := yes
 DEP_APPS           := $(shell $(FRAMEWORK_DIR)/scripts/find_dep_apps.py $(APPLICATION_NAME))
+INSTALLABLE_DIRS   := test/tests->tests tutorials
 
 ifeq ($(ENABLE_DAGMC), yes)
   ENABLE_DAGMC     := ON
