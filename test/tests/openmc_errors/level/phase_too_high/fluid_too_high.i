@@ -36,8 +36,6 @@
   power = 70.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_blocks = '100 200'
-  tally_type = cell
   verbose = true
 
   # skip the data transfer of temperature into OpenMC for the first time step
@@ -47,6 +45,13 @@
   # For this setup, the fluid cells only exist on coordinate level 0, even though
   # the highest coordinate level across the entire problem is 1
   cell_level = 1
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

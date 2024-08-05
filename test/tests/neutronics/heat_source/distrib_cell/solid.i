@@ -35,16 +35,20 @@
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_blocks = '100 200'
-  tally_name = heat_source
-  tally_type = cell
-
   # This turns off the density and temperature update on the first syncSolutions;
   # this uses whatever temperature and densities are set in OpenMCs XML files for first step
   initial_properties = xml
 
   verbose = true
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      name = heat_source
+      blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

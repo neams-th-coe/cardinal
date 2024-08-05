@@ -8,7 +8,6 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 100.0
-  tally_type = none
 
   inactive_batches = 3
   batches = 8

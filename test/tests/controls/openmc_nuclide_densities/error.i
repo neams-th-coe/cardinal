@@ -17,12 +17,17 @@
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = cell
-  tally_blocks = '0'
 
   temperature_blocks = '0'
   cell_level = 0
   power = 100.0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = 0
+    []
+  []
 []
 
 [UserObjects]

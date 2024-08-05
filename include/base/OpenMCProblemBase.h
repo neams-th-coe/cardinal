@@ -84,17 +84,16 @@ public:
   unsigned int addExternalVariable(const std::string & name, const std::vector<SubdomainName> * block = nullptr);
 
   /**
-   * Create an openmc::LibMesh mesh
-   * @param[in] filename file name to construct the mesh from; if nullptr, uses [Mesh]
-   * @return OpenMC libMesh mesh
-   */
-  std::unique_ptr<openmc::LibMesh> tallyMesh(const std::string * filename = nullptr) const;
-
-  /**
    * Get the scaling value applied to the [Mesh] to convert to OpenMC's centimeters units
    * @return scaling value
    */
   const Real & scaling() const { return _scaling; }
+
+  /**
+   * Whether the problem has user defined scaling or not.
+   * @return whether the user has set the problem scaling or not
+   */
+  bool hasScaling() const { return _specified_scaling; }
 
   /**
    * Convert from a MOOSE-type enum into a valid OpenMC tally score string
@@ -134,6 +133,13 @@ public:
    * @return OpenMC enum
    */
   openmc::TallyEstimator tallyEstimator(tally::TallyEstimatorEnum estimator) const;
+
+  /**
+   * Convert a tally estimator to a string (for output purposes).
+   * @param[in] estimator OpenMC tally estimator enum
+   * @return a string form of the OpenMC tally estimator enum
+   */
+  std::string estimatorToString(openmc::TallyEstimator estimator) const;
 
   /// Run a k-eigenvalue OpenMC simulation
   void externalSolve() override;
@@ -183,13 +189,6 @@ public:
    * @return whether cell is void
    */
   bool cellIsVoid(const cellInfo & cell_info) const;
-
-  /**
-   * Get the cell instance filter corresponding to provided cells
-   * @param[in] tally_cells cells to add to the filter
-   * @return cell instance filter
-   */
-  openmc::Filter * cellInstanceFilter(const std::vector<cellInfo> & tally_cells) const;
 
   /**
    * Whether this cell has zero instances
@@ -348,16 +347,6 @@ protected:
   void sendTallyNuclidesToOpenMC();
 
   /**
-   * Add tally
-   * @param[in] score score type
-   * @param[in] filters tally filters
-   * @param[in] estimator estimator
-   * @return tally, which has been added to OpenMC, but may want to still be queried from Cardinal
-   */
-  openmc::Tally * addTally(const std::vector<std::string> & score,
-    std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator & estimator);
-
-  /**
    * Set an auxiliary elemental variable to a specified value
    * @param[in] var_num variable number
    * @param[in] elem_ids element IDs to set
@@ -379,9 +368,6 @@ protected:
 
   /// Whether to print diagnostic information about model setup and the transfers
   const bool & _verbose;
-
-  /// Type of tally to apply to extract score from OpenMC
-  const tally::TallyTypeEnum _tally_type;
 
   /// Power by which to normalize the OpenMC results, for k-eigenvalue mode
   const Real * _power;

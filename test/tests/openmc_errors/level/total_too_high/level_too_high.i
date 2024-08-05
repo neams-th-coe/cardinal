@@ -22,8 +22,6 @@
   type = OpenMCCellAverageProblem
   power = 70.0
   temperature_blocks = '100'
-  tally_blocks = '100'
-  tally_type = cell
   verbose = true
 
   # skip the data transfer of temperature into OpenMC for the first time step
@@ -31,6 +29,13 @@
   initial_properties = xml
 
   cell_level = 1
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '100'
+    []
+  []
 []
 
 [Executioner]

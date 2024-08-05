@@ -37,12 +37,17 @@
 
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_blocks = '100 200'
   cell_level = 0
-  tally_type = cell
-  tally_score = 'H3_production'
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      score = 'H3_production'
+      blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

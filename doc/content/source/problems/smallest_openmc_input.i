@@ -10,9 +10,14 @@
   temperature_blocks = '1 2 3'
   density_blocks = '3'
 
-  tally_type = cell
-  tally_blocks = '1'
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1'
+    []
+  []
 []
 
 [Executioner]

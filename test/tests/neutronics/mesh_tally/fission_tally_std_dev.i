@@ -20,12 +20,16 @@
   cell_level = 0
   normalize_by_global_tally = true
 
-  tally_type = mesh
-  mesh_template = '../meshes/sphere.e'
   power = 100.0
   check_tally_sum = false
 
-  output = 'unrelaxed_tally_std_dev'
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = '../meshes/sphere.e'
+      output = 'unrelaxed_tally_std_dev'
+    []
+  []
 []
 
 [Executioner]

@@ -59,10 +59,14 @@
 
   cell_level = 0
 
-  tally_type = cell
-  tally_blocks = '1'
-
   map_density_by_cell = false
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1'
+    []
+  []
 []
 
 [Postprocessors]

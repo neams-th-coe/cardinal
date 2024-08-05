@@ -49,15 +49,12 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = unrelaxed_tally_std_dev
   verbose = true
 
   # this will start each Picard iteration from the fission source from the previous one
   reuse_source = true
 
   scaling = 100.0
-  tally_type = mesh
-  mesh_template = msr.e
 
   density_blocks = '1'
   temperature_blocks = '1'
@@ -69,6 +66,14 @@
   first_iteration_particles = 5000
 
   skinner = moab
+
+  [Tallies]
+    [heat_source]
+      type = MeshTally
+      mesh_template = msr.e
+      output = unrelaxed_tally_std_dev
+    []
+  []
 []
 
 nb = 15.0

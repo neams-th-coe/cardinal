@@ -21,12 +21,8 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  output = unrelaxed_tally_std_dev
   scaling = 100.0
 
-  tally_type = mesh
-  mesh_template = tokamak.e
-  tally_score = 'heating_local H3_production'
   source_strength = 2e18
 
   cell_level = 0
@@ -38,6 +34,15 @@
   relaxation = dufek_gudowski
 
   skinner = moab
+
+  [Tallies]
+    [tokamak]
+      type = MeshTally
+      mesh_template = tokamak.e
+      score = 'heating_local H3_production'
+      output = unrelaxed_tally_std_dev
+    []
+  []
 []
 
 [UserObjects]

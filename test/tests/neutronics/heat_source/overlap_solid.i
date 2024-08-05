@@ -35,14 +35,6 @@
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_type = cell
-  tally_name = heat_source
-
-  # This input has fissile material in the fluid phase, so we will get a warning
-  # that we are neglecting some of the global kappa-fission distribution; so here
-  # the power is the total power of the OpenMC problem, and only a fraction of this
-  # will be computed in the solid pebbles
-  tally_blocks = '100'
 
   initial_properties = xml
 
@@ -51,6 +43,19 @@
 
   verbose = true
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      name = heat_source
+
+      # This input has fissile material in the fluid phase, so we will get a warning
+      # that we are neglecting some of the global kappa-fission distribution; so here
+      # the power is the total power of the OpenMC problem, and only a fraction of this
+      # will be computed in the solid pebbles
+      blocks = '100'
+    []
+  []
 []
 
 [Executioner]

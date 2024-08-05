@@ -21,13 +21,19 @@
   type = OpenMCCellAverageProblem
   power = 100.0
   cell_level = 0
-  tally_type = cell
-  tally_blocks = '100'
+
   normalize_by_global_tally = false
 
-  tally_trigger = rel_err
-  tally_trigger_threshold = 2e-2
   max_batches = 200
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '100'
+      trigger = rel_err
+      trigger_threshold = 2e-2
+    []
+  []
 []
 
 [Executioner]

@@ -36,7 +36,6 @@
   density_blocks = '200'
   verbose = true
   cell_level = 0
-  tally_type = none
 
   initial_properties = xml
 []

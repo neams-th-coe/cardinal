@@ -17,14 +17,19 @@
   verbose = true
   power = 100.0
   temperature_blocks = '100'
-  tally_blocks = '100'
-  tally_type = cell
   cell_level = 1
   scaling = 100.0
 
   relaxation = dufek_gudowski
   first_iteration_particles = 500
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '100'
+    []
+  []
 []
 
 [Executioner]

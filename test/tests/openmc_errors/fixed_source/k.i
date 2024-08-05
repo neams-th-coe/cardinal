@@ -7,7 +7,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = none
   source_strength = 1e6
 []
 

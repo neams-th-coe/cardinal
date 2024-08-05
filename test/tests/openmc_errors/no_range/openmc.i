@@ -14,7 +14,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = none
 []
 
 [Executioner]

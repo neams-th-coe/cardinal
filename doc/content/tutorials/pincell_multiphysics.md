@@ -245,11 +245,11 @@ saturation temperature).
   start=AuxVariables
   end=ICs
 
-Next, the `Problem` block defines all the parameters related to coupling
+Next, the `[Problem]` and `[Tallies]` blocks define all the parameters related to coupling
 OpenMC to MOOSE. We will send temperature to OpenMC from blocks 2 and 3
 (which represent the solid regions) and we will send temperature and density
-to OpenMC from block 1 (which represents the fluid region). We will have
-Cardinal automatically set up cell tallies.
+to OpenMC from block 1 (which represents the fluid region). We add a
+[CellTally](/tallies/CellTally.md) to tally the heat source in the fuel.
 
 For this problem, the temperature that gets mapped into OpenMC is sourced
 from two different applications, which we can customize using the

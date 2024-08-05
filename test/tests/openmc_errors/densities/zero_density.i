@@ -38,10 +38,15 @@
   power = 100.0
   temperature_blocks = '0'
   density_blocks = '0'
-  tally_type = cell
-  tally_blocks = '0'
   verbose = true
   cell_level = 0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '0'
+    []
+  []
 []
 
 [Executioner]

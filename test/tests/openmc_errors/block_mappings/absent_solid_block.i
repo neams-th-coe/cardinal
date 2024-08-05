@@ -39,8 +39,6 @@
   power = 70.0
   temperature_blocks = '500'
   cell_level = 0
-
-  tally_type = none
 []
 
 [Executioner]

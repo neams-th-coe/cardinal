@@ -20,10 +20,15 @@
   type = OpenMCCellAverageProblem
   power = 70.0
   temperature_blocks = '100'
-  tally_blocks = '100'
-  tally_type = cell
   cell_level = 0
   fixed_mesh = true
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '100'
+    []
+  []
 []
 
 [Executioner]

@@ -17,8 +17,6 @@
   power = 2000.0
   scaling = 100.0
   temperature_blocks = '2 5'
-  tally_blocks = '2'
-  tally_type = cell
   cell_level = 1
 
   # This input should error because the offset we compute for shifting cell instances
@@ -26,6 +24,13 @@
   # TRISO universes from the tally setup
   identical_cell_fills = '2'
   check_identical_cell_fills = true
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '2'
+    []
+  []
 []
 
 [Executioner]

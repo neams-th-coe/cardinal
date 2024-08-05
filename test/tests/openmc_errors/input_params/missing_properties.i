@@ -9,7 +9,6 @@
   type = OpenMCCellAverageProblem
   temperature_blocks = '1'
   cell_level = 0
-  tally_type = none
   initial_properties = hdf5
 []
 

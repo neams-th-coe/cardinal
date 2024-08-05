@@ -45,10 +45,14 @@
 
   cell_level = 0
 
-  tally_blocks = '1'
-  tally_type = cell
-
   scaling = 100.0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1'
+    []
+  []
 []
 
 [Executioner]

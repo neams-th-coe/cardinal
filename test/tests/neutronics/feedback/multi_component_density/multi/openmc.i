@@ -57,8 +57,6 @@
   density_variables = 'density1 ; density2'
   density_blocks = '0; 1'
   temperature_blocks = '0 1'
-
-  tally_type = none
 []
 
 [Postprocessors]

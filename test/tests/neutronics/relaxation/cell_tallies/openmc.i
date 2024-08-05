@@ -38,12 +38,17 @@
   verbose = true
   power = 100.0
   temperature_blocks = '0'
-  tally_blocks = '0'
-  tally_type = cell
   cell_level = 1
   scaling = 100.0
 
   volume_calculation = vol
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '0'
+    []
+  []
 []
 
 [UserObjects]

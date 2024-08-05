@@ -56,11 +56,16 @@ height = 6.343                           # height of the full core (m)
   scaling = 100.0
   temperature_blocks = '1 2 101'
   density_blocks = '101'
-  tally_blocks = '2'
-  tally_type = cell
   cell_level = 1
 
   symmetry_mapper = sym
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '2'
+    []
+  []
 []
 
 [UserObjects]

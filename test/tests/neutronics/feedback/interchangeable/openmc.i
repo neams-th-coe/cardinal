@@ -68,11 +68,16 @@ active = ''
   type = OpenMCCellAverageProblem
   verbose = true
 
-  tally_type = cell
-  tally_blocks = '0 1'
   cell_level = 0
 
   power = 1.0
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '0 1'
+    []
+  []
 []
 
 [Postprocessors]

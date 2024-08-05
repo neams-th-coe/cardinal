@@ -53,16 +53,21 @@
   type = OpenMCCellAverageProblem
   identical_cell_fills = 'compacts'
   check_identical_cell_fills = true
-  check_equal_mapped_tally_volumes = true
 
   power = 1000.0
   scaling = 100.0
   temperature_blocks = 'graphite compacts'
-  tally_blocks = 'compacts'
-  tally_type = cell
   cell_level = 1
 
   symmetry_mapper = sym
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = 'compacts'
+      check_equal_mapped_tally_volumes = true
+    []
+  []
 []
 
 [UserObjects]

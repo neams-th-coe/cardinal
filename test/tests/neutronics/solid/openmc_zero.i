@@ -22,11 +22,16 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 0.0
-  tally_type = cell
-  tally_blocks = '1'
-  tally_name = heat_source
   cell_level = 0
   temperature_blocks = '1'
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1'
+      name = heat_source
+    []
+  []
 []
 
 [Executioner]

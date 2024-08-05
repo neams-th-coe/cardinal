@@ -56,15 +56,20 @@
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_blocks = '100 200'
   verbose = true
   scaling = 100.0
   cell_level = 0
-  tally_type = cell
-  tally_name = heat_source
 
   initial_properties = xml
   volume_calculation = vol
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '100 200'
+      name = heat_source
+    []
+  []
 []
 
 [Executioner]
