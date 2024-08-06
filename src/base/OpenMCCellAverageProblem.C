@@ -2396,11 +2396,6 @@ OpenMCCellAverageProblem::resetTallies()
   if (_tally_type == tally::none)
     return;
 
-  if (_use_displaced)
-  {
-    _displaced_problem->updateMesh();
-  }
-
   // We create the global tally, and THEN the local tally. So we need to delete in
   // reverse order
 
@@ -3381,10 +3376,6 @@ void
 OpenMCCellAverageProblem::reloadDAGMC()
 {
 #ifdef ENABLE_DAGMC
-  if (_use_displaced && !_first_transfer)
-  {
-    _displaced_problem->updateMesh();
-  }
   _dagmc.reset(new moab::DagMC(_skinner->moabPtr(),
                                0.0 /* overlap tolerance, default */,
                                0.001 /* numerical precision, default */,
@@ -3447,11 +3438,6 @@ OpenMCCellAverageProblem::updateMaterials()
   // only need to create new materials if we have density skinning
   if (_skinner->nDensityBins() == 1)
     return;
-
-  if (_use_displaced && !_first_transfer)
-  {
-    _displaced_problem->updateMesh();
-  }
 
   // map from IDs to names (names used by the skinner, not necessarily any internal
   // name in OpenMC, because you're not strictly required to add names for materials
