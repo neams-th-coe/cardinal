@@ -1,3 +1,5 @@
+!include common_input.i
+
 num_layers_for_THM = 50      # number of elements in the THM model; for the converged
                              # case, we set this to 150
 

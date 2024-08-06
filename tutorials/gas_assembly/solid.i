@@ -1,3 +1,5 @@
+!include common_input.i
+
 # copy-pasta from common_input.i
 inlet_T = 598.0                          # inlet fluid temperature (K)
 buffer_k = 0.5                           # buffer thermal conductivity (W/m/K)
