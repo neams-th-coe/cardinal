@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -16,12 +16,37 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "CardinalAppTypes.h"
-#include "ExecFlagRegistry.h"
+#pragma once
 
-#ifdef ENABLE_OPENMC_COUPLING
-const ExecFlagType EXEC_FILTER_GENERATORS = registerExecFlag("EXEC_FILTER_GENERATORS");
-const ExecFlagType EXEC_TALLY_GENERATORS = registerExecFlag("EXEC_TALLY_GENERATORS");
-const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
-const ExecFlagType EXEC_SEND_OPENMC_TALLY_NUCLIDES = registerExecFlag("SEND_OPENMC_TALLY_NUCLIDES");
-#endif
+#include "OpenMCUserObject.h"
+
+// forward declarations
+class OpenMCProblemBase;
+
+/**
+ * User object to modify an OpenMC tally
+ */
+class OpenMCTallyEditor : public OpenMCUserObject
+{
+public:
+  static InputParameters validParams();
+
+  OpenMCTallyEditor(const InputParameters & parameters);
+
+  // get the index of the tally in OpenMC's data space, creating it if necessary according to the
+  // input parameters
+  int32_t tally_index() const;
+
+  /// We don't want this user object to execute in MOOSE's control
+  virtual void execute() override;
+  virtual void initialize() override;
+  virtual void finalize() override {}
+
+  std::string long_name() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
+
+  // Accessors
+  int32_t tally_id() const { return _tally_id; }
+
+protected:
+  int32_t _tally_id;
+};

@@ -18,19 +18,10 @@
   type = OpenMCCellAverageProblem
   tally_type = cell
   tally_blocks = '0'
-
   cell_level = 0
   power = 100.0
 
   check_tally_sum = false
-[]
-
-[UserObjects]
-  [tally1]
-    type = OpenMCTallyNuclides
-    tally_id = 2
-    names = 'U238'
-  []
 []
 
 [Postprocessors]

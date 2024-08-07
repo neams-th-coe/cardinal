@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -16,33 +16,42 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#ifdef ENABLE_OPENMC_COUPLING
 
-#include "GeneralUserObject.h"
+#include "OpenMCUserObject.h"
+#include "OpenMCProblemBase.h"
 
-/**
- * User object to modify the nuclides in an OpenMC tally.
- */
-class OpenMCTallyNuclides : public GeneralUserObject
+InputParameters
+OpenMCUserObject::validParams()
 {
-public:
-  static InputParameters validParams();
+  InputParameters params = GeneralUserObject::validParams();
+  return params;
+}
 
-  OpenMCTallyNuclides(const InputParameters & parameters);
+OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
+  : GeneralUserObject(parameters), _first_execution(true)
+{
+  if (!openmc_problem())
+  {
+    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
+    mooseError("This user object can only be used with wrapped OpenMC cases! "
+               "You need to change the\nproblem type from '" +
+               _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
+  }
+}
 
-  /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override {}
+void
+OpenMCUserObject::execute()
+{
+  if (!_first_execution)
+    return;
+  initialize();
+  _first_execution = false;
+}
 
-  virtual void initialize() override {}
-  virtual void finalize() override {}
-
-  /// Instead, we want to have a separate method that we can call from the OpenMC problem
-  virtual void setValue();
-
-protected:
-  /// The tally index
-  int32_t _tally_index;
-
-  /// Nuclide names
-  const std::vector<std::string> & _names;
-};
+const OpenMCProblemBase *
+OpenMCUserObject::openmc_problem() const
+{
+  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+}
+#endif
