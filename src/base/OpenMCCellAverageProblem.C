@@ -3181,11 +3181,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         openmc::model::surfaces.clear();
         openmc::model::surface_map.clear();
 
-        if (_use_displaced && !_first_transfer)
-        {
-          _displaced_problem->updateMesh();
-        }
-
         // Update the OpenMC materials (creating new ones as-needed to support the density binning)
         updateMaterials();
 
