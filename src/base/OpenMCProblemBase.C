@@ -118,7 +118,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
         _power = &getPostprocessorValue("power");
       }
       else
-        checkUnusedParam(params, "power", "'tally_type = none'");
+        checkUnusedParam(params, "power", "no tallies have been added");
 
       checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
       break;
@@ -131,7 +131,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
         _source_strength = &getPostprocessorValue("source_strength");
       }
       else
-        checkUnusedParam(params, "source_strength", "'tally_type = none'");
+        checkUnusedParam(params, "source_strength", "no tallies have been added");
 
       checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
       checkUnusedParam(params, "reuse_source", "running in fixed source mode");
