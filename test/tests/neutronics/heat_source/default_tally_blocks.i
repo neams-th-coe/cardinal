@@ -37,11 +37,16 @@
   density_blocks = '200'
   verbose = true
   cell_level = 0
-  tally_type = cell
-  tally_name = heat_source
-  tally_blocks = '100 200'
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      name = heat_source
+      blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

@@ -52,14 +52,19 @@ dT = 50.0
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = cell
-  tally_blocks = '1 2'
   temperature_blocks = '1 2'
   density_blocks = '1 2'
   cell_level = 0
   power = 100.0
 
   skinner = moab
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1 2'
+    []
+  []
 []
 
 [UserObjects]

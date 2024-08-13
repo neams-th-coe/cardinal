@@ -7,7 +7,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = none
 
   # there are only 10 inactive batches, so we should error
   max_batches = 8

@@ -48,7 +48,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = none
   symmetry_mapper = sym
 []
 

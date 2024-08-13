@@ -7,14 +7,19 @@
   type = OpenMCCellAverageProblem
   power = 500.0
   temperature_blocks = '2'
-  tally_type = cell
-  tally_blocks = '2'
 
   cell_level = 1
 
   verbose = true
   check_tally_sum = false
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '2'
+    []
+  []
 []
 
 [Executioner]

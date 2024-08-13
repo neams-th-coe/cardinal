@@ -45,9 +45,13 @@
 
   cell_level = 1
 
-  tally_type = cell
-  tally_blocks = '1'
-  tally_name = heat_source
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1'
+      name = heat_source
+    []
+  []
 []
 
 [Executioner]

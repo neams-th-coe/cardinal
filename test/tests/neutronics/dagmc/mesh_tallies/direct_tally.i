@@ -45,13 +45,18 @@ dT = 50.0
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = mesh
 
   temperature_blocks = '1 2'
   cell_level = 0
   power = 100.0
 
   skinner = moab
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+    []
+  []
 []
 
 [UserObjects]

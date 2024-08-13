@@ -40,14 +40,18 @@ h = 1.0
 
 [Problem]
   type = OpenMCCellAverageProblem
-
-  tally_score = heating_local
   power = 100.0
   scaling = 100.0
   temperature_blocks = '0 100'
-  tally_blocks = '0 100'
-  tally_type = cell
   lowest_cell_level = 1
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '0 100'
+      score = heating_local
+    []
+  []
 []
 
 [Executioner]

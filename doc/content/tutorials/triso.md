@@ -179,9 +179,9 @@ as they map to the `[Mesh]`.
   start=AuxVariables
   end=Problem
 
-The `[Problem]`
-block is then used to specify the OpenMC wrapping. We define a total power of
-1500 W, and indicate that we'd like to add tallies on block 0, which corresponds to the pebbles.
+The `[Problem]` and `[Tallies]`
+blocks are then used to specify the OpenMC wrapping. We define a total power of
+1500 W, and indicate that we'd like to add a [CellTally](/tallies/CellTally.md) on block 0, which corresponds to the pebbles.
 The cell tally setup in Cardinal will then automatically add a tally for each unique
 cell ID+instance combination.
 Because the repeated pebble cells we'd like to tally
@@ -287,7 +287,7 @@ application. To do this, we increase `nr` to add more radial discretization.
   block=Mesh
 
 For the OpenMC wrapping, the only changes required are
-that we set the type of tally to `mesh`, provide a mesh template with the mesh, and specify the
+that we change the added tally to a [MeshTally](/tallies/MeshTally.md), provide a mesh template with the mesh, and specify the
 translations to apply to replicate the mesh at the desired end positions in OpenMC's domain.
 For the mesh tally, let's create a mesh for a single pebble using MOOSE's mesh generators. We simply
 need to run the `mesh.i` file in `--mesh-only` mode:
@@ -299,7 +299,7 @@ cardinal-opt -i mesh.i --mesh-only
 ```
 
 which will create a mesh file named `mesh_in.e`. We then list that mesh as the
-`mesh_template` in the `[Problem]` block.
+`mesh_template` in the `[Tallies]` block.
 
 !listing /tutorials/pebbles/openmc_um.i
   block=Problem

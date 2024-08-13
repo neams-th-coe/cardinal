@@ -19,7 +19,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = none
 
   k_trigger = std_dev
   k_trigger_threshold = 1.2e-2

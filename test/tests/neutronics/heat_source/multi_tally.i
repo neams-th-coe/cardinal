@@ -35,14 +35,18 @@
   power = 100.0
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_blocks = '100 200'
   verbose = true
   cell_level = 0
-  tally_type = cell
-
-  tally_score = 'kappa_fission heating'
 
   initial_properties = xml
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      score = 'kappa_fission heating'
+      blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

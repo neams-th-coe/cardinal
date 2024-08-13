@@ -16,13 +16,18 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = cell
-  tally_blocks = '0'
 
   cell_level = 0
   power = 100.0
 
   check_tally_sum = false
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '0'
+    []
+  []
 []
 
 [UserObjects]

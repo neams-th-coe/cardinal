@@ -40,18 +40,24 @@
   verbose = true
   power = 1500.0
   temperature_blocks = '0'
-  tally_type = mesh
-  mesh_template = ../../meshes/sphere_in_m.e
-  mesh_translations = '0.0 0.0 0.02
-                       0.0 0.0 0.06
-                       0.0 0.0 0.10'
+
   cell_level = 1
   scaling = 100.0
 
-  output = 'unrelaxed_tally'
   relaxation = constant
 
   check_tally_sum = false
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = ../../meshes/sphere_in_m.e
+      mesh_translations = '0.0 0.0 0.02
+                           0.0 0.0 0.06
+                           0.0 0.0 0.10'
+      output = 'unrelaxed_tally'
+    []
+  []
 []
 
 

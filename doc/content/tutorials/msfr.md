@@ -189,15 +189,15 @@ will display the OpenMC cell temperatures and densities (after volume-averaging 
   start=AuxVariables
   end=Problem
 
-Next, the `Problem` block defines all the parameters related to coupling
+Next, the `[Problem]` and `[Tallies]` blocks define all the parameters related to coupling
 OpenMC to MOOSE. We will send temperature and density to OpenMC, and extract
-power using a mesh tally. We set a number of relaxation settings to use
+power using a [MeshTally](/tallies/MeshTally.md). We set a number of relaxation settings to use
 Dufek-Gudowski relaxation, which will progressively ramp the number of
 particles used in the simulation (starting at 5000) so that we selectively
 apply computational effort only after the thermal-fluid physics are reasonably
 well converged. Finally, we will be "skinning" the geometry on-the-fly
 by providing the `skinner` user object (of type
-[MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html).
+[MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html)).
 
 !listing tutorials/msfr/openmc.i
   block=Problem

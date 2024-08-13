@@ -32,10 +32,15 @@
   power = 70.0
   temperature_blocks = '100'
   verbose = true
-  tally_type = cell
-  tally_blocks = '100'
   cell_level = 0
-  check_equal_mapped_tally_volumes = true
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '100'
+      check_equal_mapped_tally_volumes = true
+    []
+  []
 []
 
 [Executioner]

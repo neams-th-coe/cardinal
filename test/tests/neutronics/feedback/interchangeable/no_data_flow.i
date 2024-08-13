@@ -83,8 +83,6 @@ active = ''
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-
-  tally_type = none
 []
 
 [Postprocessors]

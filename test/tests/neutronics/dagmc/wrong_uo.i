@@ -8,12 +8,17 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = cell
   cell_level = 0
-  tally_blocks = '1'
   temperature_blocks = '1'
   power = 1000.0
   skinner = moab
+
+  [Tallies]
+    [Mesh]
+      type = CellTally
+      blocks = '1'
+    []
+  []
 []
 
 [UserObjects]

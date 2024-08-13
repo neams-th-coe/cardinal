@@ -37,14 +37,19 @@
   verbose = true
   power = 1500.0
   temperature_blocks = '0'
-  tally_blocks = '0'
-  tally_type = cell
   cell_level = 1
   scaling = 100.0
 
   # our problem is missing overlap for fissile regions, so our local and global tallies
   # wont match
   check_tally_sum = false
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '0'
+    []
+  []
 []
 
 [Executioner]

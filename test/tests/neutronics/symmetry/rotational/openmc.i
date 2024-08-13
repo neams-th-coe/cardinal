@@ -49,18 +49,22 @@
   []
 []
 
-
 [Problem]
   type = OpenMCCellAverageProblem
 
   power = 1000.0
   scaling = 100.0
   temperature_blocks = '1 2 200'
-  tally_blocks = '2'
-  tally_type = cell
   cell_level = 1
 
   symmetry_mapper = sym
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '2'
+    []
+  []
 []
 
 [UserObjects]

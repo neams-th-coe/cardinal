@@ -22,6 +22,9 @@
 #include "SymmetryPointGenerator.h"
 #include "OpenMCVolumeCalculation.h"
 
+/// Tally includes.
+#include "TallyBase.h"
+
 #include "openmc/tallies/filter_mesh.h"
 
 #ifdef ENABLE_DAGMC
@@ -117,7 +120,20 @@ public:
    * Get the mapping of cells to MOOSE elements
    * @return mapping of cells to MOOSE elements
    */
-  virtual const std::map<cellInfo, std::vector<unsigned int>> cellToElem() const { return _cell_to_elem; }
+  virtual const std::map<cellInfo, std::vector<unsigned int>> & cellToElem() const
+  {
+    return _cell_to_elem;
+  }
+
+  /**
+   * Get the MOOSE subdomains associated with an OpenMC cell
+   * @param info the cell info
+   * @return MOOSE subdomains associated with an OpenMC cell
+   */
+  virtual std::unordered_set<SubdomainID> getCellToElementSub(const cellInfo & info)
+  {
+    return _cell_to_elem_subdomain.at(info);
+  }
 
   /**
    * Whether transformations are applied to the [Mesh] points when mapping to OpenMC
@@ -129,7 +145,7 @@ public:
    * Get all the scores added to the tally
    * @return scores
    */
-  virtual const std::vector<std::string> & getTallyScores() const { return _tally_score; }
+  virtual const std::vector<std::string> & getTallyScores() const { return _all_tally_scores; }
 
   /**
    * Apply transformations to point
@@ -252,7 +268,7 @@ public:
    * Get the local tally
    * @return local tally
    */
-  const std::vector<openmc::Tally *> & getLocalTally() const { return _local_tally; }
+  const std::vector<std::shared_ptr<TallyBase>> & getLocalTally() const { return _local_tallies; }
 
   /**
    * Get the temperature of a cell; for cells not filled with materials, this will return
@@ -270,8 +286,34 @@ public:
   /// Reconstruct the DAGMC geometry after skinning
   void reloadDAGMC();
 
+  /**
+   * Add a Tally object using the new tally system. TODO: rename to addTally once
+   * OpenMCCellAverageProblem and OpenMCProblemBase are refactored.
+   * @param[in] type the new tally type
+   * @param[in] name the name of the new tally
+   * @param[in] moose_object_pars the input parameters of the new tally
+   */
+  void addTallyObject(const std::string & type,
+                      const std::string & name,
+                      InputParameters & moose_object_pars);
+
+  /**
+   * Multiplier on the normalized tally results; for fixed source runs,
+   * we multiply the tally (which has units of eV/source)
+   * by the source strength and the eV to joule conversion, while for k-eigenvalue runs, we
+   * multiply the normalized tally (which is unitless and has an integral
+   * value of 1.0) by the power.
+   * @param[in] global_score tally score
+   */
+  Real tallyMultiplier(unsigned int global_score) const;
+
+  int fixedPointIteration() const { return _fixed_point_iteration; }
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
+
+  /// Spatial dimension of the Monte Carlo problem
+  static constexpr int DIMENSION{3};
 
 protected:
   /**
@@ -354,52 +396,12 @@ protected:
   Point transformPointToOpenMC(const Point & pt) const;
 
   /**
-   * Read from an OpenMC cell tally and write into an elemental aux variable
-   * @param[in] var_num variable name to write
-   * @param[in] tally tally values to write
-   * @param[in] score tally score
-   * @return sum of the tally
-   */
-  Real getCellTally(const unsigned int & var_num,
-                    const std::vector<xt::xtensor<double, 1>> & tally,
-                    const unsigned int & score);
-
-  /**
-   * Read from an OpenMC mesh tally and write into an elemental aux variable
-   * @param[in] var_num variable name to write
-   * @param[in] tally tally values to write
-   * @param[in] score tally score
-   * @return sum of the tally
-   */
-  Real getMeshTally(const unsigned int & var_num,
-                    const std::vector<xt::xtensor<double, 1>> & tally,
-                    const unsigned int & score);
-
-  /**
-   * Extract the tally from OpenMC and then apply to the corresponding MOOSE elements.
-   * @param[in] var_num variable name to write
-   * @param[in] tally tally values to write
-   * @param[in] score tally score
-   * @return sum sum of the tally
-   */
-  Real getTally(const unsigned int & var_num,
-                const std::vector<xt::xtensor<double, 1>> & tally,
-                const unsigned int & score);
-
-  /**
    * Check that the tally normalization gives a total tally sum of 1.0 (when normalized
    * against the total tally value).
    * @param[in] sum sum of the tally
    * @param[in] score tally score
    */
-  void checkNormalization(const Real & sum, const unsigned int & score) const;
-
-  /**
-   * Get the mesh filter(s) for tallies automatically constructed by Cardinal.
-   * Multiple mesh filters are only created if the mesh template feature is used.
-   * @return mesh filters
-   */
-  std::vector<openmc::Filter *> meshFilter();
+  void checkNormalization(const Real & sum, unsigned int global_score) const;
 
   /**
    * For geometries with fine-scale details (e.g. TRISO), Cardinal's default settings can
@@ -527,21 +529,6 @@ protected:
   template <typename T>
   void checkEmptyVector(const std::vector<T> & vector, const std::string & name) const;
 
-  /**
-   * Read the mesh translations from file data
-   * @param[in] data data from file
-   */
-  void readMeshTranslations(const std::vector<std::vector<double>> & data);
-
-  /**
-   * Check the setup of the mesh template and translations. Because a simple copy transfer
-   * is used to write a mesh tally onto the [Mesh], we require that the
-   * meshes are identical - both in terms of the element ordering and the actual dimensions of
-   * each element. This function performs as many checks as possible to ensure that the meshes
-   * are indeed identical.
-   */
-  void checkMeshTemplateAndTranslations() const;
-
   /// Loop over the elements in the MOOSE mesh and store the type of feedback applied by each.
   void storeElementPhase();
 
@@ -562,10 +549,13 @@ protected:
    * change dramatically with iteration. But because relaxation is itself a numerical approximation,
    * this is still inconsequential at the end of the day as long as your problem has converged
    * the relaxed tally to the raw (unrelaxed) tally.
-   * @param[in] t tally index within local tally
-   * @param[in] score score
+   * @param[in] global_score the global index of the tally score
+   * @param[in] local_score the local index of the tally score
+   * @param[in] local_tally the tally to relax and normalize
    */
-  void relaxAndNormalizeTally(const int & t, const unsigned int & score);
+  void relaxAndNormalizeTally(unsigned int global_score,
+                              unsigned int local_score,
+                              std::shared_ptr<TallyBase> local_tally);
 
   /**
    * Loop over all the OpenMC cells and count the number of MOOSE elements to which the cell
@@ -576,21 +566,8 @@ protected:
   /// This function is used to ensure that each OpenMC cell only maps to a single phase
   void checkCellMappedPhase();
 
-  /**
-   * Loop over all the OpenMC cells and find those for which we should add tallies.
-   * @return cells to which we should add tallies
-   */
-  std::vector<cellInfo> getTallyCells() const;
-
   /// Loop over all the OpenMC cells and get the element subdomain IDs that map to each cell
   void getCellMappedSubdomains();
-
-  /**
-   * Loop over all the OpenMC cells and determine if a cell maps to more than one subdomain
-   * that also has different tally settings (i.e. we would not know whether to add or not to
-   * add tallies to the cell).
-   */
-  void checkCellMappedSubdomains();
 
   /**
    * Loop over all the OpenMC cells and compute the volume of the MOOSE elements that each
@@ -603,6 +580,13 @@ protected:
 
   /// Populate maps of MOOSE elements to OpenMC cells
   void mapElemsToCells();
+
+  /**
+   * A function which validates local tallies. This is done to ensure that at least one of the
+   * tallies contains a heating score when running in eigenvalue mode. This must be done outside
+   * of the constructor as tallies are added from an external system.
+   */
+  void validateLocalTallies();
 
   /// Add OpenMC tallies to facilitate the coupling
   void initializeTallies();
@@ -646,51 +630,17 @@ protected:
   void sendDensityToOpenMC() const;
 
   /**
-   * Multiplier on the normalized tally results; for fixed source runs,
-   * we multiply the tally (which has units of eV/source)
-   * by the source strength and the eV to joule conversion, while for k-eigenvalue runs, we
-   * multiply the normalized tally (which is unitless and has an integral
-   * value of 1.0) by the power.
-   * @param[in] score tally score
-   */
-  Real tallyMultiplier(const unsigned int & score) const;
-
-  /**
    * Factor by which to normalize a tally
-   * @param[in] score tally score
+   * @param[in] global_score global index for the tally score
    * @return value to divide tally sum by for normalization
    */
-  Real tallyNormalization(const unsigned int & score) const;
-
-  /**
-   * Normalize the local tally by either the global tally, or the sum
-   * of the local tally. For fixed source simulations, do nothing because the
-   * tally result is not re-normalized to any integral quantity.
-   * @param[in] tally_result value of tally result
-   * @param[in] score tally score
-   * @return normalized tally
-   */
-  template <typename T>
-  T normalizeLocalTally(const T & tally_result, const unsigned int & score) const;
-
-  /**
-   * Add local tally
-   * @param[in] score score type
-   * @param[in] filters tally filters
-   */
-  void addLocalTally(const std::vector<std::string> & score, std::vector<openmc::Filter *> & filters);
+  Real tallyNormalization(unsigned int global_score) const;
 
   /**
    * Check the sum of the tallies against the global tally
    * @param[in] score tally score
    */
   void checkTallySum(const unsigned int & score) const;
-
-  /**
-   * Fill the mesh translations to be applied to each unstructured mesh; if no
-   * translations are explicitly given, a translation of (0.0, 0.0, 0.0) is assumed.
-   */
-  void fillMeshTranslations();
 
   /**
    * Check if a mapped location is in the outer universe of a lattice
@@ -742,14 +692,6 @@ protected:
 
   /// Type of relaxation to apply to the OpenMC tallies
   const relaxation::RelaxationEnum _relaxation;
-
-  /**
-   * Type of trigger to apply to OpenMC tallies to indicate when
-   * the simulation is complete. These can be used to on-the-fly adjust the number
-   * of active batches in order to reach some desired criteria (which is specified
-   * by this parameter).
-   */
-  const MultiMooseEnum * _tally_trigger;
 
   /**
    * Type of trigger to apply to k eigenvalue to indicate when
@@ -815,22 +757,6 @@ protected:
    * of course still set a value for this parameter to override the default.
    */
   const bool _check_tally_sum;
-
-  /**
-   * Whether to check that the [Mesh] volume each cell tally maps to is identical.
-   * This is a useful helper function for OpenMC models where each cell tally has the
-   * same volume (often the case for many reactor geometries). If the OpenMC model
-   * cell tallies all are of the same spatial size, it's still possible that they
-   * can map to different volumes in the MOOSE mesh if the MOOSE elements don't line
-   * up with the edges of the OpenMC cells. Different volumes then can distort the
-   * volume normalization that we do to convert the fission power to a volumetric
-   * power (in a perfect world, we would actually divide OpenMC's tallies by the
-   * results of a stochastic volume calculation in OpenMC, but that is too expensive).
-   */
-  const bool & _check_equal_mapped_tally_volumes;
-
-  /// Absolute tolerance for checking equal tally mapped volumes
-  const Real & _equal_tally_volume_abs_tol;
 
   /// Constant relaxation factor
   const Real & _relaxation_factor;
@@ -904,8 +830,11 @@ protected:
    */
   const bool _specified_temperature_feedback;
 
+  /// Whether any cell tallies exist.
+  bool _has_cell_tallies = false;
+
   /// Whether any spatial mapping from OpenMC's cells to the mesh is needed
-  const bool _needs_to_map_cells;
+  bool _needs_to_map_cells;
 
   /**
    * Whether a global tally is required for the sake of normalization and/or checking
@@ -913,23 +842,33 @@ protected:
    */
   const bool _needs_global_tally;
 
-  /// Tally estimator for the tallies created by Cardinal
-  openmc::TallyEstimator _tally_estimator;
+  /// A vector of the tally objects created by the [Tallies] block.
+  std::vector<std::shared_ptr<TallyBase>> _local_tallies;
 
-  /// OpenMC tally score(s) to write into the 'tally_name' auxiliary variable(s)
-  std::vector<std::string> _tally_score;
+  /// A list of all of the scores contained by the local tallies added in the [Tallies] block.
+  std::vector<std::string> _all_tally_scores;
 
-  /// Auxiliary variable name(s) for the OpenMC tally(s)
-  std::vector<std::string> _tally_name;
+  /**
+   * The [Tallies] block allows tallies with different scores, and so we can't assume they have the
+   * same indices in each tally's arrays. This variable map between the name of each score and it's
+   * index in each local tally.
+   */
+  std::vector<std::map<std::string, int>> _local_tally_score_map;
+
+  /// A vector of auxvariable ids added by the [Tallies] block.
+  std::vector<std::vector<unsigned int>> _tally_var_ids;
+
+  /// A vector of external (output-based) auxvariable ids added by the [Tallies] block.
+  std::vector<std::vector<std::vector<unsigned int>>> _tally_ext_var_ids;
+
+  /// Whether the problem contains a cell tally or not.
+  bool _contains_cell_tally = false;
 
   /// Blocks in MOOSE mesh that provide density feedback
   std::vector<SubdomainID> _density_blocks;
 
   /// Blocks in MOOSE mesh that provide temperature feedback
   std::vector<SubdomainID> _temp_blocks;
-
-  /// Blocks for which to add (cell) tallies
-  std::unordered_set<SubdomainID> _tally_blocks;
 
   /// Blocks for which the cell fills are identical
   std::unordered_set<SubdomainID> _identical_cell_fill_blocks;
@@ -997,9 +936,6 @@ protected:
    */
   std::map<cellInfo, Point> _cell_to_point;
 
-  /// Whether a cell index, instance pair should be added to the tally filter
-  std::map<cellInfo, bool> _cell_has_tally;
-
   /**
    * Volume associated with the mapped element space for each OpenMC cell; the unit
    * for this volume is whatever is used in the [Mesh] block
@@ -1027,21 +963,17 @@ protected:
   /// Number of material-type cells contained within a cell
   std::map<cellInfo, int32_t> _cell_to_n_contained;
 
-  /// Global tally
-  openmc::Tally * _global_tally{nullptr};
-
   /**
-   * Local tallies; multiple tallies will only exist when
-   * translating multiple unstructured meshes throughout the geometry. Each tally
-   * may have multiple scores which are simultaneously tracked.
+   * Global tallies. We add one per tally added in the [Tallies] block to
+   * enable global noramlization.
    */
-  std::vector<openmc::Tally *> _local_tally;
+  std::vector<openmc::Tally *> _global_tallies;
 
-  /// OpenMC unstructured mesh instance for use of mesh tallies
-  const openmc::LibMesh * _mesh_template;
+  /// Global tally scores corresponding to '_global_tallies'.
+  std::vector<std::vector<std::string>> _global_tally_scores;
 
-  /// Tally variable(s)
-  std::vector<unsigned int> _tally_var;
+  /// Global tally estimators corresponding to '_global_tallies'.
+  std::vector<openmc::TallyEstimator> _global_tally_estimators;
 
   /// Sum value of the global tally(s), across all bins
   std::vector<Real> _global_sum_tally;
@@ -1051,17 +983,6 @@ protected:
 
   /// Mean value of the local tally(s), across all bins; only used for fixed source mode
   std::vector<Real> _local_mean_tally;
-
-  /**
-   * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
-   * must be identical to the mesh used in the [Mesh] block because a simple copy transfer
-   * is used to extract the tallies and put on the application's mesh in preparation for
-   * a transfer to another MOOSE app. If not set, this indicates that tallying will be
-   * performed directly on the [Mesh].
-   * TODO: allow the mesh to not be identical, both in terms of using different units
-   * and more general differences like not having a particular phase present
-   */
-  const std::string * _mesh_template_filename = nullptr;
 
   /// Whether the present transfer is the first transfer
   static bool _first_transfer;
@@ -1075,52 +996,8 @@ protected:
   /// Dummy particle to reduce number of allocations of particles for cell lookup routines
   openmc::Particle _particle;
 
-  /**
-   * Translations to apply to the mesh template, in the event that the mesh should be
-   * repeated throughout the geometry. For instance, in pincell type geometries, you can
-   * use this feature to repeat the same cylinder mesh multiple times throughout the domain.
-   */
-  std::vector<Point> _mesh_translations;
-
-  /// OpenMC mesh filters for unstructured mesh tallies
-  std::vector<openmc::MeshFilter *> _mesh_filters;
-
-  /// OpenMC solution fields to output to the mesh mirror
-  const MultiMooseEnum * _outputs = nullptr;
-
-  /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'
-  std::vector<std::string> _output_name;
-
-  /// Numeric identifiers for the external variables (for each score)
-  std::vector<std::vector<unsigned int>> _external_vars;
-
-  /// Spatial dimension of the Monte Carlo problem
-  static constexpr int DIMENSION{3};
-
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;
-
-  /// Thresholds to use for accepting tallies when using triggers
-  std::vector<Real> _tally_trigger_threshold;
-
-  /**
-   * Current fixed point iteration tally result; for instance, when using constant
-   * relaxation, the tally is updated as:
-   * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
-   * where q(n+1) is _current_tally, a is the relaxation factor, q(n)
-   * is _previous_tally, and PHI is the most-recently-computed tally result
-   * (the _current_raw_tally).
-   */
-  std::vector<std::vector<xt::xtensor<double, 1>>> _current_tally;
-
-  /// Previous fixed point iteration tally result (after relaxation)
-  std::vector<std::vector<xt::xtensor<double, 1>>> _previous_tally;
-
-  /// Current "raw" tally output from Monte Carlo solution
-  std::vector<std::vector<xt::xtensor<double, 1>>> _current_raw_tally;
-
-  /// Current "raw" tally standard deviation
-  std::vector<std::vector<xt::xtensor<double, 1>>> _current_raw_tally_std_dev;
 
   /// Mapping from temperature variable name to the subdomains on which to read it from
   std::map<std::string, std::vector<SubdomainName>> _temp_vars_to_blocks;
@@ -1146,17 +1023,8 @@ protected:
   /// Number of none elements in each mapped OpenMC cell (global)
   std::map<cellInfo, int> _n_none;
 
-  /// Index in OpenMC tallies corresponding to the global tally added by Cardinal
-  unsigned int _global_tally_index;
-
-  /// Index in OpenMC tallies corresponding to the first local tally added by Cardinal
-  unsigned int _local_tally_index;
-
-  /// Index in OpenMC tally filters corresponding to the first filter added by Cardinal
-  unsigned int _filter_index;
-
-  /// Index in OpenMC meshes corresponding to the mesh tally (if used)
-  unsigned int _mesh_index;
+  /// Index in OpenMC tallies corresponding to the first global tally added by Cardinal
+  unsigned int _global_tally_index = 0;
 
   /// Index in tally_score pointing to the score used for normalizing flux tallies in eigenvalue mode
   unsigned int _source_rate_index;

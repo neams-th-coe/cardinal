@@ -20,6 +20,7 @@
 
 #include "OpenMCProblemBase.h"
 #include "CardinalAppTypes.h"
+#include "AddTallyAction.h"
 
 InputParameters
 OpenMCProblemBase::validParams()
@@ -31,8 +32,7 @@ OpenMCProblemBase::validParams()
       "source_strength", "Neutrons/second to normalize the OpenMC tallies; only used for fixed source mode");
   params.addParam<bool>("verbose", false, "Whether to print diagnostic information");
 
-  params.addRequiredParam<MooseEnum>(
-      "tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
+  params.addParam<MooseEnum>("tally_type", getTallyTypeEnum(), "Type of tally to use in OpenMC");
 
   params.addRangeCheckedParam<Real>(
       "scaling",
@@ -77,7 +77,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   : CardinalProblem(params),
     PostprocessorInterface(this),
     _verbose(getParam<bool>("verbose")),
-    _tally_type(getParam<MooseEnum>("tally_type").getEnum<tally::TallyTypeEnum>()),
     _reuse_source(getParam<bool>("reuse_source")),
     _specified_scaling(params.isParamSetByUser("scaling")),
     _scaling(getParam<Real>("scaling")),
@@ -85,6 +84,10 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _fixed_point_iteration(-1),
     _total_n_particles(0)
 {
+  if (isParamValid("tally_type"))
+    mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
+               "Please add tallies with the [Tallies] block instead.");
+
   int argc = 1;
   char openmc[] = "openmc";
   char * argv[1] = {openmc};
@@ -103,30 +106,32 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   // ensure that unsupported run modes are not used, while also checking for
   // necessary/unused input parameters for the valid run modes
   _run_mode = openmc::settings::run_mode;
+  const auto & tally_actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   switch (_run_mode)
   {
     case openmc::RunMode::EIGENVALUE:
     {
-      if (_tally_type != tally::none)
+      // Jumping through hoops to see if we're going to add tallies down the line.
+      if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "power", "running in k-eigenvalue mode");
         _power = &getPostprocessorValue("power");
       }
       else
-        checkUnusedParam(params, "power", "'tally_type = none'");
+        checkUnusedParam(params, "power", "no tallies have been added");
 
       checkUnusedParam(params, "source_strength", "running in k-eigenvalue mode");
       break;
     }
     case openmc::RunMode::FIXED_SOURCE:
     {
-      if (_tally_type != tally::none)
+      if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "source_strength", "running in fixed source mode");
         _source_strength = &getPostprocessorValue("source_strength");
       }
       else
-        checkUnusedParam(params, "source_strength", "'tally_type = none'");
+        checkUnusedParam(params, "source_strength", "no tallies have been added");
 
       checkUnusedParam(params, "inactive_batches", "running in fixed source mode");
       checkUnusedParam(params, "reuse_source", "running in fixed source mode");
@@ -600,6 +605,22 @@ OpenMCProblemBase::tallyEstimator(tally::TallyEstimatorEnum estimator) const
   }
 }
 
+std::string
+OpenMCProblemBase::estimatorToString(openmc::TallyEstimator estimator) const
+{
+  switch (estimator)
+  {
+    case openmc::TallyEstimator::TRACKLENGTH:
+      return "tracklength";
+    case openmc::TallyEstimator::COLLISION:
+      return "collision";
+    case openmc::TallyEstimator::ANALOG:
+      return "analog";
+    default:
+      mooseError("Unhandled TallyEstimatorEnum!");
+  }
+}
+
 openmc::TriggerMetric
 OpenMCProblemBase::triggerMetric(std::string trigger) const
 {
@@ -633,32 +654,6 @@ OpenMCProblemBase::triggerMetric(trigger::TallyTriggerTypeEnum trigger) const
   }
 }
 
-openmc::Filter *
-OpenMCProblemBase::cellInstanceFilter(const std::vector<cellInfo> & tally_cells) const
-{
-  auto cell_filter =
-      dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
-
-  std::vector<openmc::CellInstance> cells;
-  for (const auto & c : tally_cells)
-    cells.push_back(
-        {gsl::narrow_cast<gsl::index>(c.first), gsl::narrow_cast<gsl::index>(c.second)});
-
-  cell_filter->set_cell_instances(cells);
-  return cell_filter;
-}
-
-openmc::Tally *
-OpenMCProblemBase::addTally(const std::vector<std::string> & score,
-  std::vector<openmc::Filter *> & filters, const openmc::TallyEstimator & estimator)
-{
-  auto tally = openmc::Tally::create();
-  tally->set_scores(score);
-  tally->estimator_ = estimator;
-  tally->set_filters(filters);
-  return tally;
-}
-
 bool
 OpenMCProblemBase::cellIsVoid(const cellInfo & cell_info) const
 {
@@ -685,21 +680,6 @@ OpenMCProblemBase::geometryType(bool & has_csg_universe, bool & has_dag_universe
     else
       mooseError("Unhandled GeometryType enum!");
   }
-}
-
-std::unique_ptr<openmc::LibMesh>
-OpenMCProblemBase::tallyMesh(const std::string * filename) const
-{
-  std::unique_ptr<openmc::LibMesh> mesh;
-  if (!filename)
-    mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _scaling);
-  else
-    mesh = std::make_unique<openmc::LibMesh>(*filename, _scaling);
-
-  // by setting the ID to -1, OpenMC will automatically detect the next available ID
-  mesh->set_id(-1);
-  mesh->output_ = false;
-  return mesh;
 }
 
 long unsigned int
