@@ -13,8 +13,12 @@
 
   cell_level = 0
 
-  tally_type = mesh
-  mesh_template = ../../meshes/pincell.e
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = ../../meshes/pincell.e
+    []
+  []
 []
 
 [Executioner]

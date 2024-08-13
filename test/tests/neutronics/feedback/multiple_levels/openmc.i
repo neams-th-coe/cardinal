@@ -54,9 +54,14 @@
   temperature_blocks = '1 3 5'
   lowest_cell_level = 1
 
-  tally_blocks = '1'
   verbose = true
-  tally_type = cell
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1'
+    []
+  []
 []
 
 [Executioner]

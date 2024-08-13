@@ -8,10 +8,15 @@
   power = 500.0
 
   cell_level = 1
-  tally_type = cell
-  tally_blocks = '1'
-  tally_score = 'heating'
-  tally_estimator = tracklength
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1'
+      score = 'heating'
+      estimator = tracklength
+    []
+  []
 []
 
 [Executioner]

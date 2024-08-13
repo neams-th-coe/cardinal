@@ -94,7 +94,6 @@ rho0 = 1000.0
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
-  tally_type = none
   density_blocks = '2 1'
   temperature_blocks = '200 1'
   cell_level = 0

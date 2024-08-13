@@ -36,12 +36,16 @@
   source_strength = 1e12
   temperature_blocks = '100 200'
   density_blocks = '200'
-  tally_blocks = '100 200'
   cell_level = 0
-  tally_type = cell
   initial_properties = xml
 
-  tally_score = flux
+  [Tallies]
+    [Cell]
+      type = CellTally
+      score = flux
+      blocks = '100 200'
+    []
+  []
 []
 
 [Executioner]

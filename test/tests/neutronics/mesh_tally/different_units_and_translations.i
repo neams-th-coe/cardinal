@@ -43,15 +43,19 @@
   cell_level = 0
   normalize_by_global_tally = false
 
-  tally_type = mesh
-
   # Because the [Mesh] is in units of meters, the mesh translations and mesh template
   # must also be in units of meters
   scaling = 100.0
-  mesh_translations_file = pebble_centers_in_m.txt
-  mesh_template = '../meshes/sphere_in_m.e'
 
   power = 100.0
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = '../meshes/sphere_in_m.e'
+      mesh_translations_file = pebble_centers_in_m.txt
+    []
+  []
 []
 
 [Executioner]

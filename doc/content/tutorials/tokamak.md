@@ -180,10 +180,8 @@ will automatically map from MOOSE elements to OpenMC cells, and store which MOOS
 are providing temperature feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
 a volume-average temperature to apply to each OpenMC cell.
 
-This example uses mesh tallies, as indicated by the
-`tally_type`.
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
-automatically add the necessary tallies. In this example, we will tally on
+This example uses mesh tallies, as indicated by the [MeshTally](tallies/MeshTally.md)
+in the [Tallies](actions/AddTallyAction.md) block. In this example, we will tally on
 the same mesh given in the `[Mesh]` block.
 Finally, we specify the level in the geometry on which the cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,

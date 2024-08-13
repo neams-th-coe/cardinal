@@ -368,10 +368,10 @@ from the inlet to outlet fluid temperatures.
   start=ICs
   end=Problem
 
-The wrapping of OpenMC is specified in the `[Problem]` block. Here, we
-indicate that we will provide both temperature and density feedback to OpenMC. In order to
-visualize the tally standard deviation, we output the fission tally standard
-deviation using the `output` parameter. The heat source from OpenMC will be relaxed
+The wrapping of OpenMC is specified in the `[Problem]` block and the addition of tallies is done
+in the `[Tallies]` block. Here, we indicate that we will provide both temperature and density
+feedback to OpenMC. In order to visualize the tally standard deviation, we output the fission
+tally standard deviation using the `output` parameter. The heat source from OpenMC will be relaxed
 using Robbins-Monro relaxation.
 
 By default, OpenMC will try to read temperature from the `temp` variable. However, in

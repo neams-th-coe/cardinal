@@ -32,11 +32,16 @@
   verbose = true
   power = 1500.0
   temperature_blocks = '0'
-  tally_blocks = '0'
-  tally_type = cell
-  tally_name = heat_source
   cell_level = 1
   scaling = 100.0
+
+  [Tallies]
+    [heat_source]
+      type = CellTally
+      blocks = '0'
+      name = heat_source
+    []
+  []
 []
 
 [Executioner]

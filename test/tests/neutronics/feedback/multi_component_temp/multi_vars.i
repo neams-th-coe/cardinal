@@ -72,13 +72,18 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
-  tally_blocks = '1 3 2 10'
-  tally_type = cell
   cell_level = 0
   verbose = true
 
   temperature_variables = 'solid_temp; fluid_temp; other_temp'
   temperature_blocks = '1 3; 2; 10'
+
+  [Tallies]
+    [Cell]
+      type = CellTally
+      blocks = '1 3 2 10'
+    []
+  []
 []
 
 [Executioner]

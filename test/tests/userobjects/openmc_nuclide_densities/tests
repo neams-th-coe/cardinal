@@ -1,7 +1,7 @@
 [Tests]
   [wrong_problem]
     type = RunException
-    input = openmc.i
+    input = wrong_problem.i
     cli_args = 'Problem/type=FEProblem Variables/u/order=FIRST Kernels/d/type=Diffusion Kernels/d/variable=u'
     expect_err = 'This user object can only be used with wrapped OpenMC cases!'
     requirement = 'The system shall error if a userobject is not used with a compatible problem class.'

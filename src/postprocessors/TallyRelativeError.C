@@ -84,7 +84,7 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
 Real
 TallyRelativeError::getValue() const
 {
-  const auto & tally = _openmc_problem->getLocalTally();
+  const auto & tallies = _openmc_problem->getLocalTally();
 
   Real post_processor_value;
 
@@ -104,8 +104,9 @@ TallyRelativeError::getValue() const
   }
 
   unsigned int num_values = 0;
-  for (const auto & t : tally)
+  for (const auto & tally : tallies)
   {
+    const auto t = tally->getWrappedTally();
     auto sum = xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM));
     auto sum_sq =
         xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM_SQ));

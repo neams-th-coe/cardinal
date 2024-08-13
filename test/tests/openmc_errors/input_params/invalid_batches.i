@@ -7,7 +7,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  tally_type = none
   batches = 8
 []
 

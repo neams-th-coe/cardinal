@@ -19,14 +19,19 @@
   verbose = true
   cell_level = 0
 
-  tally_type = mesh
   power = 100.0
 
   # the [Mesh] is in units of meters, so the mesh_template must also be in units of meters
   scaling = 100.0
-  mesh_template = '../meshes/sphere_in_m.e'
 
   normalize_by_global_tally = false
+
+  [Tallies]
+    [Mesh]
+      type = MeshTally
+      mesh_template = '../meshes/sphere_in_m.e'
+    []
+  []
 []
 
 [Executioner]
