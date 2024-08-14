@@ -22,8 +22,9 @@
 #include "SymmetryPointGenerator.h"
 #include "OpenMCVolumeCalculation.h"
 
-/// Tally includes.
+/// Tally/filter includes.
 #include "TallyBase.h"
+#include "FilterBase.h"
 
 #include "openmc/tallies/filter_mesh.h"
 
@@ -287,15 +288,24 @@ public:
   void reloadDAGMC();
 
   /**
-   * Add a Tally object using the new tally system. TODO: rename to addTally once
-   * OpenMCCellAverageProblem and OpenMCProblemBase are refactored.
+   * Add a Filter object using the filter system.
    * @param[in] type the new tally type
    * @param[in] name the name of the new tally
    * @param[in] moose_object_pars the input parameters of the new tally
    */
-  void addTallyObject(const std::string & type,
-                      const std::string & name,
-                      InputParameters & moose_object_pars);
+  void addFilter(const std::string & type,
+                 const std::string & name,
+                 InputParameters & moose_object_pars);
+
+  /**
+   * Add a Tally object using the tally system.
+   * @param[in] type the new tally type
+   * @param[in] name the name of the new tally
+   * @param[in] moose_object_pars the input parameters of the new tally
+   */
+  void addTally(const std::string & type,
+                const std::string & name,
+                InputParameters & moose_object_pars);
 
   /**
    * Multiplier on the normalized tally results; for fixed source runs,
@@ -842,7 +852,13 @@ protected:
    */
   const bool _needs_global_tally;
 
-  /// A vector of the tally objects created by the [Tallies] block.
+  /**
+   * A map of the filter objects created by the [Problem/Filters] block. The key for each filter is
+   * it's corresponding MOOSE name to allow tallies to look up filters.
+   */
+  std::map<std::string, std::shared_ptr<FilterBase>> _filters;
+
+  /// A vector of the tally objects created by the [Problem/Tallies] block.
   std::vector<std::shared_ptr<TallyBase>> _local_tallies;
 
   /// A list of all of the scores contained by the local tallies added in the [Tallies] block.

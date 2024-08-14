@@ -2659,9 +2659,18 @@ OpenMCCellAverageProblem::reloadDAGMC()
 }
 
 void
-OpenMCCellAverageProblem::addTallyObject(const std::string & type,
-                                         const std::string & name,
-                                         InputParameters & moose_object_pars)
+OpenMCCellAverageProblem::addFilter(const std::string & type,
+                                    const std::string & name,
+                                    InputParameters & moose_object_pars)
+{
+  auto filter = addObject<FilterBase>(type, name, moose_object_pars, false)[0];
+  _filters[name] = filter;
+}
+
+void
+OpenMCCellAverageProblem::addTally(const std::string & type,
+                                   const std::string & name,
+                                   InputParameters & moose_object_pars)
 {
   auto tally = addObject<TallyBase>(type, name, moose_object_pars, false)[0];
   _local_tallies.push_back(tally);
