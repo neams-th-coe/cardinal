@@ -120,7 +120,7 @@ MeshTally::spatialFilter()
   // Validate the mesh filters to make sure we can run a copy transfer to the [Mesh].
   checkMeshTemplateAndTranslations();
 
-  return std::make_pair(openmc::model::tally_filters.size(), _mesh_filter);
+  return std::make_pair(openmc::model::tally_filters.size() - 1, _mesh_filter);
 }
 
 void

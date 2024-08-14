@@ -49,6 +49,7 @@ public:
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] output_type the output type
+   * @return the sum of the tally over all bins. Only applicable for 'output_type = relaxed'
    */
   virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
                             unsigned int local_score,

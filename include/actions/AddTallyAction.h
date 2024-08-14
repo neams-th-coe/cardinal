@@ -40,11 +40,7 @@ protected:
    */
   void addMeshTally(unsigned int instance = 0, const Point & translation = Point(0.0, 0.0, 0.0));
 
-  /**
-   * This function adds a a tally which may be an offset into an array
-   * of translations with index instance. Used for translated mesh tallies
-   * that all use the same base mesh for the spatial filter.
-   */
+  /// This function adds a non-mesh tally.
   void addTally();
 
   /**

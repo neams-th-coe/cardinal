@@ -93,7 +93,7 @@ CellTally::spatialFilter()
   _cell_filter = dynamic_cast<openmc::CellInstanceFilter *>(openmc::Filter::create("cellinstance"));
   _cell_filter->set_cell_instances(cells);
 
-  return std::make_pair(openmc::model::tally_filters.size(), _cell_filter);
+  return std::make_pair(openmc::model::tally_filters.size() - 1, _cell_filter);
 }
 
 Real
