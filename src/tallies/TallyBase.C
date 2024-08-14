@@ -200,6 +200,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
         n.push_back(all_var_names[i] + "_" + filter->binName() + Moose::stringify(j + 1));
 
     all_var_names = n;
+
+    _num_ext_filter_bins *= filter->numBins();
   }
   _tally_name = all_var_names;
 

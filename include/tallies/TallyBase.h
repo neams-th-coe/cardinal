@@ -217,6 +217,9 @@ protected:
   /// The index of the first filter added by this tally.
   unsigned int _filter_index;
 
+  /// The number of non-spatial bins in this tally.
+  unsigned int _num_ext_filter_bins = 1;
+
   /// Sum value of this tally across all bins. Indexed by score.
   std::vector<Real> _local_sum_tally;
 
