@@ -39,21 +39,4 @@ FilterBase::FilterBase(const InputParameters & parameters)
   : MooseObject(parameters),
     _openmc_problem(*getParam<OpenMCCellAverageProblem *>("_openmc_problem"))
 { }
-
-void
-FilterBase::resetFilter()
-{
-  // Erase the filter.
-  openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + _filter_index);
-  _filter = nullptr;
-}
-
-const openmc::Filter *
-FilterBase::getWrappedFilter() const
-{
-  if (!_filter)
-    mooseError("This filter has not been initialized!");
-
-  return _filter;
-}
 #endif

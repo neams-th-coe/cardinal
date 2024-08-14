@@ -27,7 +27,7 @@ public:
 
   EnergyFilter(const InputParameters & parameters);
 
-  virtual void initializeFilter() override;
+  //virtual void initializeFilter() override;
 
   /**
    * A function which returns the short-form name for each bin of

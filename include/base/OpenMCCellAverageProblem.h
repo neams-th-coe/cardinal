@@ -26,8 +26,6 @@
 #include "TallyBase.h"
 #include "FilterBase.h"
 
-#include "openmc/tallies/filter_mesh.h"
-
 #ifdef ENABLE_DAGMC
 #include "MoabSkinner.h"
 #include "DagMC.hpp"
@@ -264,6 +262,20 @@ public:
                                                    coupling::density_and_temperature};
     return std::find(phase.begin(), phase.end(), cellFeedback(cell_info)) != phase.end();
   }
+
+  /**
+   * Checks if the [Problem/Filters] block contains a specific filter.
+   * @param[in] filter_name the MOOSE object name of the filter
+   * @return whether the problem contains the specified filter
+   */
+  bool hasFilter(const std::string & filter_name) const { return _filters.count(filter_name) > 0; }
+
+  /**
+   * Get a filter added by the [Problem/Filters] block by it's MOOSE object name.
+   * @param[in] filter_name the MOOSE object name of the filter
+   * @return the filter object
+   */
+  std::shared_ptr<FilterBase> & getFilter(const std::string & filter_name) { return _filters.at(filter_name); }
 
   /**
    * Get the local tally

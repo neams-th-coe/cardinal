@@ -28,6 +28,7 @@
 class OpenMCCellAverageProblem;
 class MooseMesh;
 class AuxiliarySystem;
+class FilterBase;
 
 class TallyBase : public MooseObject
 {
@@ -194,6 +195,9 @@ protected:
 
   /// The aux system.
   AuxiliarySystem & _aux;
+
+  /// The external filters added in the [Problem/Filters] block.
+  std::vector<std::shared_ptr<FilterBase>> _ext_filters;
 
   /// The OpenMC estimator to use with this tally.
   openmc::TallyEstimator _estimator;

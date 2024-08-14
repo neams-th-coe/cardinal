@@ -1806,7 +1806,7 @@ OpenMCCellAverageProblem::resetTallies()
   if (_local_tallies.size() == 0 && !_needs_global_tally)
     return;
 
-  // We initialize tallies by forward iterating this vector. We need to delete them in reverse.
+  // We initialize [Problem/Tallies] by forward iterating this vector. We need to delete them in reverse.
   for (int i = _local_tallies.size() - 1; i >= 0; --i)
     _local_tallies[i]->resetTally();
 
@@ -1848,7 +1848,7 @@ OpenMCCellAverageProblem::initializeTallies()
     _global_sum_tally.resize(_all_tally_scores.size(), 0.0);
   }
 
-  // Initialize all of the [Tallies].
+  // Initialize all of the [Problem/Tallies].
   for (auto & local_tally : _local_tallies)
     local_tally->initializeTally();
 }

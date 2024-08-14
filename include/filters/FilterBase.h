@@ -25,6 +25,18 @@
 /// Forward declarations.
 class OpenMCCellAverageProblem;
 
+/**
+ * A class which provides a thin wrapper around an OpenMC Filter for
+ * the purposes of adding a tally via the MOOSE input syntax. This
+ * class does not need init / reset functions as non-spatial tallies
+ * don't change during simulation execution (at the moment).
+ *
+ * The filter system should NOT wrap spatial tallies as the problem
+ * geometry (through the MoabSkinner) will change during execution.
+ * The OpenMC -> MOOSE mesh data transfer also prevents the use of
+ * spatial filters in this system. Create a new tally object if a
+ * different spatial filter is required.
+ */
 class FilterBase : public MooseObject
 {
 public:
@@ -33,18 +45,6 @@ public:
   FilterBase(const InputParameters & parameters);
 
   /**
-   * A function to initialize the wrapped OpenMC filter. The derived
-   * tally must implement this function.
-   */
-  virtual void initializeFilter() = 0;
-
-  /**
-   * A function to reset the wrapped OpenMC filter. Can be overrided
-   * by a derived class if required.
-   */
-  virtual void resetFilter();
-
-   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
    * The derived tally must implement this function.
@@ -62,7 +62,7 @@ public:
    * Get the OpenMC filter that this object wraps.
    * @return the OpenMC filter object
    */
-  const openmc::Filter * getWrappedFilter() const;
+  openmc::Filter * getWrappedFilter() { return _filter; }
 
 protected:
   /// The OpenMCCellAverageProblem using the tally system.

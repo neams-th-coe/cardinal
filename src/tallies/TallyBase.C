@@ -21,6 +21,7 @@
 
 #include "OpenMCCellAverageProblem.h"
 #include "AuxiliarySystem.h"
+#include "FilterBase.h"
 
 #include "openmc/settings.h"
 
@@ -58,6 +59,8 @@ TallyBase::validParams()
                                   "named *_std_dev. Unrelaxed_tally will write the raw unrelaxed "
                                   "tally into auxiliary variables "
                                   "named *_raw (replace * with 'name').");
+
+  params.addParam<std::vector<std::string>>("filters", "External filters to add to this tally.");
 
   params.addPrivateParam<OpenMCCellAverageProblem *>("_openmc_problem");
 
@@ -144,6 +147,18 @@ TallyBase::TallyBase(const InputParameters & parameters)
         has_tally_trigger = true;
   }
 
+  // Fetch the filters required by this tally. Error if the filter hasn't been added yet.
+  if (isParamValid("filters"))
+  {
+    for (const auto & filter_name : getParam<std::vector<std::string>>("filters"))
+    {
+      if (!_openmc_problem.hasFilter(filter_name))
+        mooseError("Filter with the name " + filter_name + " does not exist!");
+
+      _ext_filters.push_back(_openmc_problem.getFilter(filter_name));
+    }
+  }
+
   if (isParamValid("name"))
     _tally_name = getParam<std::vector<std::string>>("name");
   else
@@ -174,6 +189,20 @@ TallyBase::TallyBase(const InputParameters & parameters)
   if (_tally_name.size() != _tally_score.size())
     mooseError("'name' must be the same length as 'score'!");
 
+  // TODO: There has to be a better way to do this..
+  // Modify the variable names so they take into account the bins in the external tally.
+  auto all_var_names = _tally_name;
+  for (const auto & filter : _ext_filters)
+  {
+    std::vector<std::string> n;
+    for (unsigned int i = 0; i < all_var_names.size(); ++i)
+      for (unsigned int j = 0; j < filter->numBins(); ++j)
+        n.push_back(all_var_names[i] + "_" + filter->binName() + Moose::stringify(j + 1));
+
+    all_var_names = n;
+  }
+  _tally_name = all_var_names;
+
   _openmc_problem.checkDuplicateEntries(_tally_name, "name");
   _openmc_problem.checkDuplicateEntries(_tally_score, "score");
 
@@ -203,8 +232,12 @@ TallyBase::initializeTally()
   auto [index, spatial_filter] = spatialFilter();
   _filter_index = index;
 
-  // TODO: Append to this to add other filters
-  std::vector<openmc::Filter *> filters = {spatial_filter};
+  std::vector<openmc::Filter *> filters;
+  for (auto & filter : _ext_filters)
+    filters.push_back(filter->getWrappedFilter());
+  // We add the spatial filter last to minimize the number of cache
+  // misses during the OpenMC -> Cardinal transfer.
+  filters.push_back(spatial_filter);
 
   // Create the tally, assign the required filters and apply the triggers.
   _local_tally_index = openmc::model::tallies.size();

@@ -47,11 +47,8 @@ EnergyFilter::EnergyFilter(const InputParameters & parameters)
   for (unsigned int i = 0u; i < _energy_bnds.size() - 1; ++i)
     if (_energy_bnds[i] >= _energy_bnds[i + 1])
       paramError("energy_boundaries", "The energy boundaries must be provided in ascending order in terms of energy!");
-}
 
-void
-EnergyFilter::initializeFilter()
-{
+  // Initialize the OpenMC EnergyFilter.
   _filter_index = openmc::model::tally_filters.size();
 
   auto energy_filter = dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy"));
