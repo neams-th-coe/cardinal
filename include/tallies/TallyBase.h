@@ -57,7 +57,7 @@ public:
 
   /**
    * A function which stores the results of this tally into the created
-   * auxvariables. This must be implemented by a derived class.
+   * auxvariables. This calls storeResultsInner.
    * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
@@ -66,10 +66,10 @@ public:
    * @param[in] output_type the output type
    * @return the sum of the tally over all bins. Only applicable for 'output_type = relaxed'
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score,
-                            const std::string & output_type) = 0;
+  Real storeResults(const std::vector<unsigned int> & var_numbers,
+                    unsigned int local_score,
+                    unsigned int global_score,
+                    const std::string & output_type);
 
   /**
    * Add a score to this tally.
@@ -171,6 +171,22 @@ public:
   bool renamesTallyVars() const { return _renames_tally_vars; }
 
 protected:
+  /**
+   * A function which stores the results of this tally into the created
+   * auxvariables. This must be implemented by the derived class.
+   * @param[in] var_numbers variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the
+   * current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the
+   * current score being stored
+   * @param[in] tally_vals the tally values to store
+   * @return the sum of the tally over all bins.
+   */
+  virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
+                                 unsigned int local_score,
+                                 unsigned int global_score,
+                                 std::vector<xt::xtensor<double, 1>> tally_vals) = 0;
+
   /**
    * Set an auxiliary elemental variable to a specified value
    * @param[in] var_num variable number

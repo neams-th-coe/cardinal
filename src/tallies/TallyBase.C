@@ -189,7 +189,6 @@ TallyBase::TallyBase(const InputParameters & parameters)
   if (_tally_name.size() != _tally_score.size())
     mooseError("'name' must be the same length as 'score'!");
 
-  // TODO: There has to be a better way to do this..
   // Modify the variable names so they take into account the bins in the external tally.
   auto all_var_names = _tally_name;
   for (const auto & filter : _ext_filters)
@@ -258,6 +257,26 @@ TallyBase::resetTally()
 
   // Erase the filter(s).
   openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + _filter_index);
+}
+
+Real
+TallyBase::storeResults(const std::vector<unsigned int> & var_numbers,
+                        unsigned int local_score,
+                        unsigned int global_score,
+                        const std::string & output_type)
+{
+  Real total = 0.0;
+
+  if (output_type == "relaxed")
+    total += storeResultsInner(var_numbers, local_score, global_score, _current_tally);
+  else if (output_type == "std_dev")
+    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally_std_dev);
+  else if (output_type == "raw")
+    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally);
+  else
+    mooseError("Unknown external output " + output_type);
+
+  return total;
 }
 
 void

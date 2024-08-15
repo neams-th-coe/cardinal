@@ -97,91 +97,36 @@ CellTally::spatialFilter()
 }
 
 Real
-CellTally::storeResults(const std::vector<unsigned int> & var_numbers,
-                        unsigned int local_score,
-                        unsigned int global_score,
-                        const std::string & output_type)
+CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
+                             unsigned int local_score,
+                             unsigned int global_score,
+                             std::vector<xt::xtensor<double, 1>> tally_vals)
 {
   Real total = 0.0;
 
-  if (output_type == "relaxed")
+  for (unsigned int ext_bin = 0; ext_bin < _num_ext_filter_bins; ++ext_bin)
   {
-    for (unsigned int ext_bin = 0; ext_bin < _num_ext_filter_bins; ++ext_bin)
+    int i = 0;
+    for (const auto & c : _openmc_problem.cellToElem())
     {
-      int i = 0;
-      for (const auto & c : _openmc_problem.cellToElem())
-      {
-        auto cell_info = c.first;
+      auto cell_info = c.first;
 
-        // if this cell doesn't have any tallies, skip it
-        if (!_cell_has_tally[cell_info])
-          continue;
+      // if this cell doesn't have any tallies, skip it
+      if (!_cell_has_tally[cell_info])
+        continue;
 
-        Real local = _current_tally[local_score](ext_bin * _cell_filter->n_bins() + i++);
+      Real local = tally_vals[local_score](ext_bin * _cell_filter->n_bins() + i++);
 
-        // divide each tally value by the volume that it corresponds to in MOOSE
-        // because we will apply it as a volumetric tally
-        Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
-                                _openmc_problem.cellMappedVolume(cell_info);
-        total += local;
+      // divide each tally value by the volume that it corresponds to in MOOSE
+      // because we will apply it as a volumetric tally
+      Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
+                              _openmc_problem.cellMappedVolume(cell_info);
+      total += local;
 
-        auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
-        fillElementalAuxVariable(var, c.second, volumetric_power);
-      }
+      auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
+      fillElementalAuxVariable(var, c.second, volumetric_power);
     }
   }
-  else if (output_type == "std_dev")
-  {
-    for (unsigned int ext_bin = 0; ext_bin < _num_ext_filter_bins; ++ext_bin)
-    {
-      int i = 0;
-      for (const auto & c : _openmc_problem.cellToElem())
-      {
-        auto cell_info = c.first;
-
-        // if this cell doesn't have any tallies, skip it
-        if (!_cell_has_tally[cell_info])
-          continue;
-
-        Real local = _current_raw_tally_std_dev[local_score](ext_bin * _cell_filter->n_bins() + i++);
-
-        // divide each tally value by the volume that it corresponds to in MOOSE
-        // because we will apply it as a volumetric tally
-        Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
-                                _openmc_problem.cellMappedVolume(cell_info);
-
-        auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
-        fillElementalAuxVariable(var, c.second, volumetric_power);
-      }
-    }
-  }
-  else if (output_type == "raw")
-  {
-    for (unsigned int ext_bin = 0; ext_bin < _num_ext_filter_bins; ++ext_bin)
-    {
-      int i = 0;
-      for (const auto & c : _openmc_problem.cellToElem())
-      {
-        auto cell_info = c.first;
-
-        // if this cell doesn't have any tallies, skip it
-        if (!_cell_has_tally[cell_info])
-          continue;
-
-        Real local = _current_raw_tally[local_score](ext_bin * _cell_filter->n_bins() + i++);
-
-        // divide each tally value by the volume that it corresponds to in MOOSE
-        // because we will apply it as a volumetric tally
-        Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
-                                _openmc_problem.cellMappedVolume(cell_info);
-
-        auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
-        fillElementalAuxVariable(var, c.second, volumetric_power);
-      }
-    }
-  }
-  else
-    mooseError("Unknown external output " + output_type);
 
   return total;
 }
