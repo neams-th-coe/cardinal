@@ -34,9 +34,9 @@ EnergyFilter::validParams()
   params.addParam<bool>(
     "reverse_bins",
     false,
-    "Whether the bins should be output in reverse order. This is useful for comparing Cardinal results "
-    "with a deterministic transport code, where the convention is that energy groups are arranged in "
-    "descending order (i.e. group 1 is fast, group 2 is thermal).");
+    "Whether the bins should be output in reverse order. This is useful for comparing "
+    "deterministic transport codes with Cardinal, where the convention is that energy "
+    "groups are arranged in descending order (i.e. group 1 is fast, group 2 is thermal).");
 
   return params;
 }
@@ -66,6 +66,6 @@ EnergyFilter::EnergyFilter(const InputParameters & parameters)
 std::string
 EnergyFilter::binName(unsigned int bin_index) const
 {
-  return "g" + _reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1) : Moose::stringify(bin_index + 1);
+  return "g" + (_reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1) : Moose::stringify(bin_index + 1));
 }
 #endif
