@@ -27,17 +27,24 @@ InputParameters
 EnergyFilter::validParams()
 {
   auto params = FilterBase::validParams();
-  params.addClassDescription("A class which implements an OpenMC EnergyFilter.");
+  params.addClassDescription("A class which provides a thin wrapper around an OpenMC EnergyFilter.");
   params.addRequiredParam<std::vector<Real>>("energy_boundaries",
     "The energy boundaries to use to form energy bins. The boundaries must be provided "
     "in ascending order in terms of energy.");
+  params.addParam<bool>(
+    "reverse_bins",
+    false,
+    "Whether the bins should be output in reverse order. This is useful for comparing Cardinal results "
+    "with a deterministic transport code, where the convention is that energy groups are arranged in "
+    "descending order (i.e. group 1 is fast, group 2 is thermal).");
 
   return params;
 }
 
 EnergyFilter::EnergyFilter(const InputParameters & parameters)
   : FilterBase(parameters),
-    _energy_bnds(getParam<std::vector<Real>>("energy_boundaries"))
+    _energy_bnds(getParam<std::vector<Real>>("energy_boundaries")),
+    _reverse_bins(getParam<bool>("reverse_bins"))
 {
   // Two boundaries are required at minimum to form energy bins.
   if (_energy_bnds.size() < 2)
@@ -54,5 +61,11 @@ EnergyFilter::EnergyFilter(const InputParameters & parameters)
   auto energy_filter = dynamic_cast<openmc::EnergyFilter *>(openmc::Filter::create("energy"));
   energy_filter->set_bins(_energy_bnds);
   _filter = energy_filter;
+}
+
+std::string
+EnergyFilter::binName(unsigned int bin_index) const
+{
+  return "g" + _reverse_bins ? Moose::stringify(_energy_bnds.size() - bin_index - 1) : Moose::stringify(bin_index + 1);
 }
 #endif

@@ -27,17 +27,19 @@ public:
 
   EnergyFilter(const InputParameters & parameters);
 
-  //virtual void initializeFilter() override;
-
   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
-   * EnergyFilter(s) append 'g' for each filter bin.
-   * @return a short form name for each tally bin
+   * EnergyFilter(s) uses 'g' for each filter bin.
+   * @param[in] the bin index
+   * @return a short name for the bin represented by bin_index
    */
-  virtual std::string binName() const { return "g"; }
+  virtual std::string binName(unsigned int bin_index) const override;
 
 private:
   /// The energy bounds used to build bins.
   std::vector<Real> _energy_bnds;
+
+  /// Whether or not to reverse the ordering of energy bins during output.
+  const bool _reverse_bins;
 };

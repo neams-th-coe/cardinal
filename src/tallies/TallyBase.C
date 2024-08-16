@@ -189,14 +189,14 @@ TallyBase::TallyBase(const InputParameters & parameters)
   if (_tally_name.size() != _tally_score.size())
     mooseError("'name' must be the same length as 'score'!");
 
-  // Modify the variable names so they take into account the bins in the external tally.
+  // Modify the variable names so they take into account the bins in the external filters.
   auto all_var_names = _tally_name;
   for (const auto & filter : _ext_filters)
   {
     std::vector<std::string> n;
     for (unsigned int i = 0; i < all_var_names.size(); ++i)
       for (unsigned int j = 0; j < filter->numBins(); ++j)
-        n.push_back(all_var_names[i] + "_" + filter->binName() + Moose::stringify(j + 1));
+        n.push_back(all_var_names[i] + "_" + filter->binName(j));
 
     all_var_names = n;
 

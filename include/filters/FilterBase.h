@@ -31,7 +31,7 @@ class OpenMCCellAverageProblem;
  * class does not need init / reset functions as non-spatial tallies
  * don't change during simulation execution (at the moment).
  *
- * The filter system should NOT wrap spatial tallies as the problem
+ * The filter system should NOT wrap spatial filters as the problem
  * geometry (through the MoabSkinner) will change during execution.
  * The OpenMC -> MOOSE mesh data transfer also prevents the use of
  * spatial filters in this system. Create a new tally object if a
@@ -47,10 +47,11 @@ public:
   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
-   * The derived tally must implement this function.
-   * @return a short form name for each tally bin
+   * Each derived filter must override this function.
+   * @param[in] the bin index
+   * @return a short name for the bin represented by bin_index
    */
-  virtual std::string binName() const = 0;
+  virtual std::string binName(unsigned int bin_index) const = 0;
 
   /**
    * A function which gets the number of bins in the wrapped filter.
