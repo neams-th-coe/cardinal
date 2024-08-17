@@ -1029,7 +1029,7 @@ OpenMCCellAverageProblem::printAuxVariableIO()
     _console << "    AuxVariable:  variable where this score is written\n" << std::endl;
 
     VariadicTable<std::string, std::string, std::string> tallies(
-        {"Tally Name", "Tally Score", "AuxVariable"});
+        {"Tally Name", "Tally Score", "AuxVariable(s)"});
     for (unsigned int i = 0; i < _local_tallies.size(); ++i)
     {
       const auto & scores = _local_tallies[i]->getScores();
@@ -1039,10 +1039,13 @@ OpenMCCellAverageProblem::printAuxVariableIO()
         if (names.size() == 0)
           continue;
 
-        if (j == 0)
-          tallies.addRow(_local_tallies[i]->name(), scores[j], names[j]);
-        else
-          tallies.addRow("", scores[j], names[j]);
+        for (unsigned int k = 0; k < names.size(); ++k)
+        {
+          if (j == 0 && k == 0)
+            tallies.addRow(_local_tallies[i]->name(), scores[j], names[k]);
+          else
+            tallies.addRow("", "", names[k]);
+        }
       }
     }
 
