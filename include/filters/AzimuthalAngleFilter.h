@@ -20,23 +20,23 @@
 
 #include "FilterBase.h"
 
-class PolarAngleFilter : public FilterBase
+class AzimuthalAngleFilter : public FilterBase
 {
 public:
   static InputParameters validParams();
 
-  PolarAngleFilter(const InputParameters & parameters);
+  AzimuthalAngleFilter(const InputParameters & parameters);
 
   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
-   * PolarAngleFilter(s) use 'theta' for each filter bin.
+   * AzimuthalAngleFilter(s) use 'omega' for each filter bin.
    * @param[in] the bin index
    * @return a short name for the bin represented by bin_index
    */
   virtual std::string binName(unsigned int bin_index) const override;
 
 private:
-  /// The polar angle bin boundaries.
-  std::vector<Real> _polar_angle_bnds;
+  /// The azimuthal angle bin boundaries.
+  std::vector<Real> _azimuthal_angle_bnds;
 };
