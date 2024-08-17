@@ -275,7 +275,10 @@ public:
    * @param[in] filter_name the MOOSE object name of the filter
    * @return the filter object
    */
-  std::shared_ptr<FilterBase> & getFilter(const std::string & filter_name) { return _filters.at(filter_name); }
+  std::shared_ptr<FilterBase> & getFilter(const std::string & filter_name)
+  {
+    return _filters.at(filter_name);
+  }
 
   /**
    * Get the local tally
@@ -315,9 +318,8 @@ public:
    * @param[in] name the name of the new tally
    * @param[in] moose_object_pars the input parameters of the new tally
    */
-  void addTally(const std::string & type,
-                const std::string & name,
-                InputParameters & moose_object_pars);
+  void
+  addTally(const std::string & type, const std::string & name, InputParameters & moose_object_pars);
 
   /**
    * Multiplier on the normalized tally results; for fixed source runs,

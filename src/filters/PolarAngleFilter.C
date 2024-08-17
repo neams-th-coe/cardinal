@@ -29,20 +29,24 @@ PolarAngleFilter::validParams()
 {
   auto params = FilterBase::validParams();
   params.addClassDescription("A class which provides a thin wrapper around an OpenMC PolarFilter. "
-    "Bins can either be equally spaced by setting 'num_equal_divisions', or a set of polar angles can "
-    "be provided by setting 'polar_angle_boundaries'.");
+                             "Bins can either be equally spaced by setting 'num_equal_divisions', "
+                             "or a set of polar angles can "
+                             "be provided by setting 'polar_angle_boundaries'.");
   params.addRangeCheckedParam<unsigned int>(
-    "num_equal_divisions", "num_equal_divisions > 0", "The number of equally spaces subdivisions of "
-    "$[0, \\pi]$ to use if equal subdivisions are desired.");
+      "num_equal_divisions",
+      "num_equal_divisions > 0",
+      "The number of equally spaces subdivisions of "
+      "$[0, \\pi]$ to use if equal subdivisions are desired.");
   params.addParam<std::vector<Real>>("polar_angle_boundaries",
-    "The polar angle boundaries in $[0, \\pi]$ which must be provided in increasing order. If 0 and "
-    "$\\pi$ are not included this filter may result in some missed particles during normalization.");
+                                     "The polar angle boundaries in $[0, \\pi]$ which must be "
+                                     "provided in increasing order. If 0 and "
+                                     "$\\pi$ are not included this filter may result in some "
+                                     "missed particles during normalization.");
 
   return params;
 }
 
-PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters)
-  : FilterBase(parameters)
+PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters) : FilterBase(parameters)
 {
   if (isParamValid("num_equal_divisions") && isParamValid("polar_angle_boundaries"))
     mooseError("You have set both 'num_equal_divisions' and 'polar_angle_boundaries'! Only one bin "
@@ -60,13 +64,15 @@ PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters)
 
     // Make sure we have at least two boundaries to form bins.
     if (bnds.size() < 2)
-      paramError("polar_angle_boundaries", "At least two polar angles are required to create bins!");
+      paramError("polar_angle_boundaries",
+                 "At least two polar angles are required to create bins!");
 
     // Sanity check the boundaries to make sure they're provided in increasing order.
     for (unsigned int i = 0; i < bnds.size() - 1; ++i)
     {
       if (bnds[i] > bnds[i + 1])
-        paramError("polar_angle_boundaries", "The polar angle boundaries must be provided in increasing order!");
+        paramError("polar_angle_boundaries",
+                   "The polar angle boundaries must be provided in increasing order!");
 
       _polar_angle_bnds.push_back(bnds[i]);
     }
@@ -74,8 +80,9 @@ PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters)
 
     // Warn the user if there is the possibility of missed particles.
     if (_polar_angle_bnds.front() > 0.0 || _polar_angle_bnds.back() < libMesh::pi)
-      mooseWarning("The bin boundaries don't contain one of the following: 0 or pi. Some particles may be "
-                   "missed during normalization.");
+      mooseWarning(
+          "The bin boundaries don't contain one of the following: 0 or pi. Some particles may be "
+          "missed during normalization.");
   }
   else
     mooseError("No bins have been specified! Please set either 'num_equal_divisions' or "

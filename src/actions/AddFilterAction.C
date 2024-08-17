@@ -34,7 +34,8 @@ AddFilterAction::validParams()
 }
 
 AddFilterAction::AddFilterAction(const InputParameters & parameters) : MooseObjectAction(parameters)
-{ }
+{
+}
 
 void
 AddFilterAction::act()
@@ -43,7 +44,8 @@ AddFilterAction::act()
   {
     auto openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(_problem.get());
     if (!openmc_problem)
-      mooseError("The simulation must use an OpenMCCellAverageProblem when using the filter system!");
+      mooseError(
+          "The simulation must use an OpenMCCellAverageProblem when using the filter system!");
 
     _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;
     openmc_problem->addFilter(_type, _name, _moose_object_pars);

@@ -38,5 +38,6 @@ FilterBase::validParams()
 FilterBase::FilterBase(const InputParameters & parameters)
   : MooseObject(parameters),
     _openmc_problem(*getParam<OpenMCCellAverageProblem *>("_openmc_problem"))
-{ }
+{
+}
 #endif

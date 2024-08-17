@@ -185,7 +185,8 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   // Add the [Problem/Tallies] block
   registerSyntaxTask("AddTallyAction", "Problem/Tallies/*", "add_tallies");
   registerMooseObjectTask("add_tallies", Tally, false);
-  addTaskDependency("add_tallies", "add_filters"); // Make sure filters are constructed before tallies.
+  addTaskDependency("add_tallies",
+                    "add_filters"); // Make sure filters are constructed before tallies.
   // Can only add external auxvars after the tallies have been added.
   addTaskDependency("add_external_aux_variables", "add_tallies");
 #endif
