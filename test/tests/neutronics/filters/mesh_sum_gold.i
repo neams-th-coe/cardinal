@@ -1,7 +1,7 @@
 [Mesh]
   [sphere]
     type = FileMeshGenerator
-    file = ../../meshes/sphere.e
+    file = ../meshes/sphere.e
   []
   [solid]
     type = CombinerGenerator
@@ -14,19 +14,6 @@
     type = SubdomainIDGenerator
     input = solid
     subdomain_id = '100'
-  []
-  [fluid]
-    type = FileMeshGenerator
-    file = ../../heat_source/stoplight.exo
-  []
-  [fluid_ids]
-    type = SubdomainIDGenerator
-    input = fluid
-    subdomain_id = '200'
-  []
-  [combine]
-    type = CombinerGenerator
-    inputs = 'solid_ids fluid_ids'
   []
 
   allow_renumbering = false
@@ -49,11 +36,15 @@
     [Heating]
       type = CellTally
       score = 'kappa_fission'
-      blocks = '100 200'
+      blocks = '100'
     []
     [Flux]
       type = MeshTally
       score = 'flux'
+      mesh_template = ../meshes/sphere.e
+      mesh_translations = '0 0 0
+                           0 0 4
+                           0 0 8'
     []
   []
 []
