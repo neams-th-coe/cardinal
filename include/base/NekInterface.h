@@ -25,6 +25,7 @@
 
 #include "inipp.hpp"
 #include "nekrs.hpp"
+#include "neknek.hpp"
 #include "bcMap.hpp"
 #include "udf.hpp"
 #include "inipp.hpp"
@@ -46,6 +47,9 @@ namespace nekrs
 {
 
 static int build_only;
+
+/// Obtain pointer to solver class in NekRS
+nrs_t * nrsPtr();
 
 /// Allocate memory for the host mesh parameters
 void initializeHostMeshParameters();

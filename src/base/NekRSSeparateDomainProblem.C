@@ -431,7 +431,7 @@ NekRSSeparateDomainProblem::velocity(const nek_mesh::NekMeshEnum pp_mesh,
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
   if (nekrs::commRank() == bc.processor_id(elem_id))
   {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+    nrs_t * nrs = nekrs::nrsPtr();
     mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
     int end_1d = mesh->Nq;
@@ -444,7 +444,7 @@ NekRSSeparateDomainProblem::velocity(const nek_mesh::NekMeshEnum pp_mesh,
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[indices.boundary_velocity + id] = velocity; // send single velocity value to NekRS
+      nekrs::usrwrk[indices.boundary_velocity + id] = velocity; // send single velocity value to NekRS
     }
   }
 }
@@ -459,7 +459,7 @@ NekRSSeparateDomainProblem::temperature(const nek_mesh::NekMeshEnum pp_mesh,
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
   if (nekrs::commRank() == bc.processor_id(elem_id))
   {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+    nrs_t * nrs = nekrs::nrsPtr();
     mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
     int end_1d = mesh->Nq;
@@ -472,7 +472,7 @@ NekRSSeparateDomainProblem::temperature(const nek_mesh::NekMeshEnum pp_mesh,
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[indices.boundary_temperature + id] = temperature; // send single temperature value to NekRS
+      nekrs::usrwrk[indices.boundary_temperature + id] = temperature; // send single temperature value to NekRS
     }
   }
 }
@@ -488,7 +488,7 @@ NekRSSeparateDomainProblem::scalar(const nek_mesh::NekMeshEnum pp_mesh,
   // We can only write into the nekRS scratch space if that face is "owned" by the current process
   if (nekrs::commRank() == bc.processor_id(elem_id))
   {
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+    nrs_t * nrs = nekrs::nrsPtr();
     mesh_t * mesh = nekrs::getMesh(pp_mesh);
 
     std::vector<int> offsets = {indices.boundary_scalar01, indices.boundary_scalar02, indices.boundary_scalar03};
@@ -503,7 +503,7 @@ NekRSSeparateDomainProblem::scalar(const nek_mesh::NekMeshEnum pp_mesh,
     for (int i = 0; i < end_2d; ++i)
     {
       int id = mesh->vmapM[offset + i];
-      nrs->usrwrk[offsets[scalarId - 1] + id] = scalar; // send single scalar value to NekRS
+      nekrs::usrwrk[offsets[scalarId - 1] + id] = scalar; // send single scalar value to NekRS
     }
   }
 }
