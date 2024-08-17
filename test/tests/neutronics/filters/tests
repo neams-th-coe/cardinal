@@ -1,4 +1,11 @@
 [Tests]
+  [multi_filter]
+    type = CSVDiff
+    input = multi_filter.i
+    csvdiff = multi_filter_out.csv
+    requirement = "The system shall support multiple filters within a tally."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [missing_filter]
     type = RunException
     input = no_filter.i
