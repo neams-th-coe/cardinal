@@ -2,7 +2,7 @@
 
 !alert note
 `AddFilterAction` can only add filters to problems which contain a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add a tally will result in an error.
+in the `[Problem]` block. Otherwise, attempting to add a filter will result in an error.
 
 ## Overview
 

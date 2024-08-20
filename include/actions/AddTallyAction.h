@@ -32,15 +32,20 @@ public:
 
 protected:
   /**
-   * This function adds a a tally which may be an offset into an array
-   * of translations with index instance. Used for translated mesh tallies
+   * This function adds a mesh tally which may be an offset into an array
+   * of translations with an instance index. Used for translated mesh tallies
    * that all use the same base mesh for the spatial filter.
    * @param instance the index of the tally into the translation array
    * @param translation the translation vector at instance
    */
   void addMeshTally(unsigned int instance = 0, const Point & translation = Point(0.0, 0.0, 0.0));
 
-  /// This function adds a non-mesh tally.
+  /**
+   * This function adds non-mesh tallies which are not copied and translated
+   * through the spatial domain of the problem. Currently used for distributed cell
+   * tallies, but other tally objects (such as Zernike functional expansion tallies)
+   * would be added by this function as well.
+   */
   void addTally();
 
   /**
