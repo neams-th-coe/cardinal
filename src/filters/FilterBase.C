@@ -21,8 +21,6 @@
 
 #include "OpenMCCellAverageProblem.h"
 
-#include "openmc/settings.h"
-
 InputParameters
 FilterBase::validParams()
 {
@@ -39,5 +37,15 @@ FilterBase::FilterBase(const InputParameters & parameters)
   : MooseObject(parameters),
     _openmc_problem(*getParam<OpenMCCellAverageProblem *>("_openmc_problem"))
 {
+}
+
+openmc::Filter *
+FilterBase::getWrappedFilter()
+{
+  // Error check the API to make sure the filter has been initialized.
+  if (!_filter)
+    mooseError(_name + " has not initialized an OpenMC filter!");
+
+  return _filter;
 }
 #endif

@@ -63,7 +63,7 @@ public:
    * Get the OpenMC filter that this object wraps.
    * @return the OpenMC filter object
    */
-  openmc::Filter * getWrappedFilter() { return _filter; }
+  openmc::Filter * getWrappedFilter();
 
 protected:
   /// The OpenMCCellAverageProblem using the tally system.
