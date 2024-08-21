@@ -36,7 +36,7 @@ FromXMLFilter::validParams()
     "allow_expansion_filters",
     false,
     "Whether functional expansion filters are allowed or not. Tallies with these filters are likely to fail "
-    "normalization as a sum over all bins may not make sense for a certain functional expansion.");
+    "automatic normalization as a sum over all bins may not make sense for a certain functional expansion.");
 
   return params;
 }
