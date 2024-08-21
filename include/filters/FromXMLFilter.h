@@ -34,12 +34,15 @@ public:
    * @param[in] the bin index
    * @return a short name for the bin represented by bin_index
    */
-  virtual std::string binName(unsigned int bin_index) const override { return _bin_label + Moose::stringify(bin_index + 1); }
+  virtual std::string binName(unsigned int bin_index) const override
+  {
+    return _bin_label + Moose::stringify(bin_index + 1);
+  }
 
 private:
   /// The OpenMC id of the filter this class should provide to tallies added by [Problem/Tallies].
   const int _filter_id;
 
   /// The label applied to each filter bin.
-  const std::string &  _bin_label;
+  const std::string & _bin_label;
 };

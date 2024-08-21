@@ -195,7 +195,7 @@ enum GroupStructureEnum
   UKAEA_1102,
   ECCO_1968
 };
-} // namespace groupstructures
+} // namespace energyfilter
 
 namespace coupling
 {

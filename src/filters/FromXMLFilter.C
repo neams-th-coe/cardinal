@@ -26,17 +26,20 @@ InputParameters
 FromXMLFilter::validParams()
 {
   auto params = FilterBase::validParams();
-  params.addClassDescription("A class which provides a thin wrapper around an arbitrary OpenMC filter.");
+  params.addClassDescription(
+      "A class which provides a thin wrapper around an arbitrary OpenMC filter.");
   params.addRequiredRangeCheckedParam<int>(
-    "filter_id",
-    "filter_id >= 0",
-    "The id of the OpenMC filter that this class should provide to Cardinal tallies.");
-  params.addRequiredParam<std::string>("bin_label", "The label that is used for this filter's bins.");
-  params.addParam<bool>(
-    "allow_expansion_filters",
-    false,
-    "Whether functional expansion filters are allowed or not. Tallies with these filters are likely to fail "
-    "automatic normalization as a sum over all bins may not make sense for a certain functional expansion.");
+      "filter_id",
+      "filter_id >= 0",
+      "The id of the OpenMC filter that this class should provide to Cardinal tallies.");
+  params.addRequiredParam<std::string>("bin_label",
+                                       "The label that is used for this filter's bins.");
+  params.addParam<bool>("allow_expansion_filters",
+                        false,
+                        "Whether functional expansion filters are allowed or not. Tallies with "
+                        "these filters are likely to fail "
+                        "automatic normalization as a sum over all bins may not make sense for a "
+                        "certain functional expansion.");
 
   return params;
 }
@@ -48,9 +51,8 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
 {
   // Check to make sure the filter exists.
   if (openmc::model::filter_map.count(_filter_id) == 0)
-    mooseError("A filter with the id "
-               + Moose::stringify(_filter_id)
-               + " does not exist in the OpenMC model! Please make sure the filter has been "
+    mooseError("A filter with the id " + Moose::stringify(_filter_id) +
+               " does not exist in the OpenMC model! Please make sure the filter has been "
                "added in the OpenMC model and you've supplied the correct filter id.");
 
   _filter_index = openmc::model::filter_map.at(_filter_id);
@@ -60,13 +62,27 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
   bool is_exp;
   switch (_filter->type())
   {
-    case openmc::FilterType::LEGENDRE:            is_exp = true;  break;
-    case openmc::FilterType::SPATIAL_LEGENDRE:    is_exp = true;  break;
-    case openmc::FilterType::SPHERICAL_HARMONICS: is_exp = true;  break;
-    case openmc::FilterType::ZERNIKE:             is_exp = true;  break;
-    case openmc::FilterType::ZERNIKE_RADIAL:      is_exp = true;  break;
-    case openmc::FilterType::ENERGY_FUNCTION:     is_exp = true;  break;
-    default:                                      is_exp = false; break;
+    case openmc::FilterType::LEGENDRE:
+      is_exp = true;
+      break;
+    case openmc::FilterType::SPATIAL_LEGENDRE:
+      is_exp = true;
+      break;
+    case openmc::FilterType::SPHERICAL_HARMONICS:
+      is_exp = true;
+      break;
+    case openmc::FilterType::ZERNIKE:
+      is_exp = true;
+      break;
+    case openmc::FilterType::ZERNIKE_RADIAL:
+      is_exp = true;
+      break;
+    case openmc::FilterType::ENERGY_FUNCTION:
+      is_exp = true;
+      break;
+    default:
+      is_exp = false;
+      break;
   }
 
   if (is_exp && getParam<bool>("allow_expansion_filters"))
