@@ -62,13 +62,6 @@ OpenMCDomainFilterEditor::initialize()
   bool create_filter = getParam<bool>("create_filter");
   bool filter_exists = this->filter_exists();
 
-  // check upon construction that the filter exists if we are not creating it
-  // if (!create_filter && !filter_exists)
-  // {
-  //   mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
-  //              " does not exist in the OpenMC XML model and create_filter is false");
-  // }
-
   // if create_filter is set to true, but the filter already exists, display a warning
   if (create_filter && filter_exists)
   {
