@@ -91,7 +91,7 @@ OpenMCTallyEditor::tally_index() const
 void
 OpenMCTallyEditor::execute()
 {
-  if  (!tally_exists())
+  if (!tally_exists())
   {
     mooseError(long_name() + ": Tally " + std::to_string(_tally_id) +
                " does not exist in the OpenMC model");
