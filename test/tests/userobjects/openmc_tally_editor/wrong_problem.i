@@ -14,42 +14,12 @@
   []
 []
 
-[Variables]
-  [u]
-    order = FIRST
-  []
-[]
-
-[Kernels]
-  [d]
-    type = Diffusion
-    variable = u
-  []
-[]
-
 [Problem]
-  type = FEProblem
-[]
+  type = OpenMCCellAverageProblem
+  cell_level = 0
+  power = 100.0
 
-[UserObjects]
-  [tally1]
-    type = OpenMCTallyNuclides
-    tally_id = 2
-    names = 'U238'
-  []
-[]
-
-[Postprocessors]
-  [power_1]
-    type = PointValue
-    variable = kappa_fission
-    point = '0.0 -12.0 0.0'
-  []
-  [power_2]
-    type = PointValue
-    variable = kappa_fission
-    point = '0.0 37.0 0.0'
-  []
+  check_tally_sum = false
 []
 
 [Executioner]
@@ -58,4 +28,15 @@
 
 [Outputs]
   csv = true
+[]
+
+[UserObjects]
+  [tally_editor_uo]
+    type = OpenMCTallyEditor
+    tally_id = 3
+    nuclides = ''
+    filter_ids = ''
+    multiply_density = true
+    scores = ''
+  []
 []

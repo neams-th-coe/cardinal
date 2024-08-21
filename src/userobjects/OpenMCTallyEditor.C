@@ -48,6 +48,7 @@ OpenMCTallyEditor::validParams()
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
   : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
 {
+  this->initialize();
 }
 
 void
@@ -73,14 +74,12 @@ OpenMCTallyEditor::initialize()
       openmc::Tally::create(_tally_id);
     }
   }
-  else
-  {
-    if (!tally_exists)
-    {
-      mooseError(long_name() + ": Tally " + std::to_string(_tally_id) +
-                 " does not exist in the OpenMC model");
-    }
-  }
+}
+
+bool
+OpenMCTallyEditor::tally_exists() const
+{
+  return openmc::model::tally_map.find(_tally_id) != openmc::model::tally_map.end();
 }
 
 int32_t
@@ -92,7 +91,10 @@ OpenMCTallyEditor::tally_index() const
 void
 OpenMCTallyEditor::execute()
 {
-  OpenMCUserObject::execute();
+  if  (!tally_exists()) {
+    mooseError(long_name() + ": Tally " + std::to_string(_tally_id) +
+               " does not exist in the OpenMC model");
+  }
 
   openmc::Tally * tally = openmc::model::tallies[tally_index()].get();
 

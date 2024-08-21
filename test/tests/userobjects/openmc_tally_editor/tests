@@ -95,7 +95,7 @@
     type = RunException
     input = add_filter.i
     cli_args = 'UserObjects/new_filter/create_filter=false'
-    expect_err = 'OpenMCDomainFilterEditor "new_filter": Filter 100 does not exist in the OpenMC XML model'
+    expect_err = 'OpenMCDomainFilterEditor "new_filter": Filter 100 does not exist and create_filter is false'
     requirement = 'The system shall error if the filter does not exist and is not flagged for creation.'
     required_objects = 'OpenMCCellAverageProblem'
   []

@@ -33,6 +33,8 @@ public:
 
   OpenMCTallyEditor(const InputParameters & parameters);
 
+  bool tally_exists() const;
+
   // get the index of the tally in OpenMC's data space, creating it if necessary according to the
   // input parameters
   int32_t tally_index() const;

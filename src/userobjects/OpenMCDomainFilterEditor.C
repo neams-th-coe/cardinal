@@ -47,6 +47,13 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
     _filter_id(getParam<int32_t>("filter_id")),
     _filter_type(getParam<MooseEnum>("filter_type").getEnum<OpenMCFilterType>())
 {
+
+  if (!parameters.isParamSetByUser("filter_type"))
+  {
+    mooseError(long_name() + ": filter_type must be specified");
+  }
+
+  this->initialize();
 }
 
 void
@@ -56,11 +63,11 @@ OpenMCDomainFilterEditor::initialize()
   bool filter_exists = this->filter_exists();
 
   // check upon construction that the filter exists if we are not creating it
-  if (!create_filter && !filter_exists)
-  {
-    mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
-               " does not exist in the OpenMC XML model and create_filter is false");
-  }
+  // if (!create_filter && !filter_exists)
+  // {
+  //   mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
+  //              " does not exist in the OpenMC XML model and create_filter is false");
+  // }
 
   // if create_filter is set to true, but the filter already exists, display a warning
   if (create_filter && filter_exists)
@@ -69,23 +76,10 @@ OpenMCDomainFilterEditor::initialize()
                  " already exists in the OpenMC XML model");
   }
 
-  // if this UO is to create the filter, but no filter type was specified, report an error
-  if (create_filter && !filter_exists && _filter_type == OpenMCFilterType::none)
+  if (!create_filter && !filter_exists)
   {
-    mooseError(long_name() + ": filter_type must be specified when create_filter = true");
-  }
-
-  // if the filter exists and the filter type was not specified, accept the existing filter type
-  if (filter_exists && _filter_type == OpenMCFilterType::none)
-  {
-    // if an existing filter is being used, ensure that the filter type (if specified)
-    // matches the existing filter type
-    int32_t filter_index = openmc::model::filter_map.at(_filter_id);
-    const std::string filter_type_str = openmc::model::tally_filters[filter_index]->type_str();
-    _filter_type = stringToFilterTypeEnum(filter_type_str);
-    mooseWarning(
-        long_name() + ": Filter " + std::to_string(_filter_id) +
-        " already exists in the OpenMC model. Using existing filter type: " + filter_type_str);
+    mooseError(long_name() + ": Filter " + std::to_string(_filter_id) +
+               " does not exist and create_filter is false");
   }
 
   // if the filter doesn't exist at this point and no other errors have been raised,
@@ -133,8 +127,6 @@ OpenMCDomainFilterEditor::filter_index() const
 void
 OpenMCDomainFilterEditor::execute()
 {
-  OpenMCUserObject::execute();
-
   openmc::Filter * filter = openmc::model::tally_filters[filter_index()].get();
 
   // TODO: update if webcontrols starts to support integral types
