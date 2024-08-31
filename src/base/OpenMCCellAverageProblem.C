@@ -184,7 +184,7 @@ OpenMCCellAverageProblem::validParams()
 
 OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & params)
   : OpenMCProblemBase(params),
-    _serialized_solution(NumericVector<Number>::build(_communicator).release()),
+    _serialized_solution(_aux->serializedSolution()),
     _output_cell_mapping(getParam<bool>("output_cell_mapping")),
     _initial_condition(
         getParam<MooseEnum>("initial_properties").getEnum<coupling::OpenMCInitialCondition>()),
@@ -636,7 +636,7 @@ OpenMCCellAverageProblem::setupProblem()
   for (unsigned int e = 0; e < _mesh.nElem(); ++e)
   {
     const auto * elem = _mesh.queryElemPtr(e);
-    if (!isLocalElem(elem))
+    if (!isLocalElem(elem) || !elem->active())
       continue;
 
     _local_to_global_elem.push_back(e);
@@ -831,7 +831,7 @@ OpenMCCellAverageProblem::storeElementPhase()
     _n_moose_density_elems += numElemsInSubdomain(s);
 
   _n_moose_none_elems =
-      _mesh.nElem() - _n_moose_temp_density_elems - _n_moose_temp_elems - _n_moose_density_elems;
+      _mesh.getMesh().n_active_elem() - _n_moose_temp_density_elems - _n_moose_temp_elems - _n_moose_density_elems;
 }
 
 void
@@ -1413,7 +1413,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
-  _console << "\nMapping between " + Moose::stringify(_mesh.nElem()) + " MOOSE elements and " +
+  _console << "\nMapping between " + Moose::stringify(_mesh.getMesh().n_active_elem()) + " MOOSE elements and " +
                   Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
                   Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels):"
            << std::endl;
@@ -1729,7 +1729,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
   {
     const auto * elem = _mesh.queryElemPtr(e);
 
-    if (!isLocalElem(elem))
+    if (!isLocalElem(elem) || !elem->active())
       continue;
 
     local_elem++;
@@ -2150,7 +2150,7 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
       const auto * elem = _mesh.queryElemPtr(globalElemID(e));
       auto v = var_num.at(elem->subdomain_id()).first;
       auto dof_idx = elem->dof_number(sys_number, v, 0);
-      product += (*_serialized_solution)(dof_idx) * elem->volume();
+      product += _serialized_solution(dof_idx) * elem->volume();
     }
 
     volume_product.push_back(product);
@@ -2404,11 +2404,7 @@ void
 OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 {
   auto & solution = _aux->solution();
-
-  if (_first_transfer)
-    _serialized_solution->init(_aux->sys().n_dofs(), false, SERIAL);
-
-  solution.localize(*_serialized_solution);
+  _aux->serializeSolution();
 
   switch (direction)
   {

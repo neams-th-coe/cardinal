@@ -707,7 +707,7 @@ protected:
   void compareContainedCells(std::map<cellInfo, containedCells> & reference,
                              std::map<cellInfo, containedCells> & compare) const;
 
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+  NumericVector<Number> & _serialized_solution;
 
   /**
    * Whether to automatically compute the mapping of OpenMC cell IDs and
