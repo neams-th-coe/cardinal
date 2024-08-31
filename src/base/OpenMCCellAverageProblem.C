@@ -2403,7 +2403,6 @@ OpenMCCellAverageProblem::checkNormalization(const Real & sum, unsigned int glob
 void
 OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 {
-  auto & solution = _aux->solution();
   _aux->serializeSolution();
 
   switch (direction)
@@ -2591,7 +2590,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   }
 
   _first_transfer = false;
-  solution.close();
+  _aux->solution().close();
   _aux->system().update();
 }
 
