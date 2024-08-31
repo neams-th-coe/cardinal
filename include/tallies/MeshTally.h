@@ -23,6 +23,11 @@
 
 #include "openmc/tallies/filter_mesh.h"
 
+namespace libMesh
+{
+  class ReplicatedMesh;
+}
+
 class MeshTally : public TallyBase
 {
 public:
@@ -82,7 +87,7 @@ protected:
   Point _mesh_translation;
 
   /// The index into an array of mesh translations.
-  unsigned int _instance;
+  const unsigned int _instance;
 
   /// The index of the mesh added by this tally.
   unsigned int _mesh_index;
@@ -92,4 +97,16 @@ protected:
 
   /// OpenMC unstructured mesh instance for use with mesh tallies
   const openmc::LibMesh * _mesh_template;
+
+  /**
+   * For use with AMR only. A copy of the mesh which only contains active elements.
+   * This removes the link between the MooseMesh that has an auxvariable equation system and the OpenMC
+   * mesh which has an equation system that is tallied on. The OpenMC equation system throws
+   * errors when attempting to project solution vectors as it has not been initialized with
+   * the data structures required for adaptivity.
+   * TODO: Fix this in OpenMC (enable adaptivity in the equation systems added by openmc::LibMesh meshes).
+   */
+  std::unique_ptr<libMesh::ReplicatedMesh> _libmesh_mesh_copy;
+  /// A mapping between the elements in '_libmesh_mesh_copy' and the elements in the MooseMesh.
+  std::vector<unsigned int> _active_to_total_mapping;
 };

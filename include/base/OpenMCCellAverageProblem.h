@@ -345,6 +345,12 @@ public:
 
   int fixedPointIteration() const { return _fixed_point_iteration; }
 
+  /**
+   * Checks if the problem uses adaptivity or not.
+   * @return if the problem uses adaptivity.
+   */
+  bool hasAdaptivity() const { return _need_to_reinit_coupling; }
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
 

@@ -23,6 +23,7 @@
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
+#include "SetAdaptivityOptionsAction.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -83,13 +84,6 @@ OpenMCCellAverageProblem::validParams()
       "instead apply a unique density to every OpenMC material (even if that material is "
       "filled into more than one cell). If your OpenMC model has a unique material "
       "in every cell you want to receive density feedback, these two options are IDENTICAL");
-
-  // TODO: would be nice to auto-detect this
-  params.addParam<bool>("fixed_mesh", true,
-    "Whether the MooseMesh is unchanging during the simulation (true), or whether there is mesh "
-    "movement and/or adaptivity that is changing the mesh in time (false). When the mesh changes "
-    "during the simulation, the mapping from OpenMC's cells to the mesh must be re-evaluated after "
-    "each OpenMC run.");
 
   MooseEnum scores_heat(
     "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable");
@@ -194,7 +188,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
                              ? false
                              : getParam<bool>("normalize_by_global_tally")),
-    _need_to_reinit_coupling(!getParam<bool>("fixed_mesh")),
+    _need_to_reinit_coupling(getMooseApp().actionWarehouse().getActions<SetAdaptivityOptionsAction>().size() > 0),
     _check_tally_sum(
         isParamValid("check_tally_sum")
             ? getParam<bool>("check_tally_sum")
@@ -246,11 +240,11 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // the same number of bins or to exactly the same regions of space, so we must
   // disable relaxation.
   if (_need_to_reinit_coupling && _relaxation != relaxation::none)
-    mooseError("When 'fixed_mesh' is false, the mapping from the OpenMC model to the [Mesh] may "
-      "vary in time. This means that we have no guarantee that the number of tally bins (or even "
-      "the regions of space corresponding to each bin) are fixed. Therefore, it is not "
-      "possible to apply relaxation to the OpenMC tallies because you might end up trying to add vectors "
-      "of different length (and possibly spatial mapping).");
+    mooseError("When adaptivity is requested or a displaced problem is used, the mapping from the "
+      "OpenMC model to the [Mesh] may vary in time. This means that we have no guarantee that the "
+      "number of tally bins (or even the regions of space corresponding to each bin) are fixed. "
+      "Therefore, it is not possible to apply relaxation to the OpenMC tallies because you might "
+      "end up trying to add vectors of different length (and possibly spatial mapping).");
 
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
@@ -495,7 +489,7 @@ OpenMCCellAverageProblem::initialSetup()
   }
 
   if (_adaptivity.isOn() && !_need_to_reinit_coupling)
-    mooseError("When using mesh adaptivity, 'fixed_mesh' must be false!");
+    mooseError("Adaptivity is enabled, but '_need_to_reinit_coupling' is set to false!");
 
   if (isParamValid("symmetry_mapper"))
   {

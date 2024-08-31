@@ -19,6 +19,8 @@
 #ifdef ENABLE_OPENMC_COUPLING
 #include "MeshTally.h"
 
+#include "libmesh/replicated_mesh.h"
+
 registerMooseObject("CardinalApp", MeshTally);
 
 InputParameters
@@ -84,6 +86,9 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "provided in the [Mesh] block!");
   }
 
+  if (isParamValid("mesh_template") && _is_adaptive)
+    mooseError("Adaptivity is only supported when tallying on the mesh in the [Mesh] block!");
+
   /**
    * If the instance isn't zero this variable is a translated mesh tally. It will accumulate it's
    * scores in a different set of variables (the auxvars which are added by the first tally in a
@@ -99,7 +104,36 @@ MeshTally::spatialFilter()
   // Create the OpenMC mesh which will be tallied on.
   std::unique_ptr<openmc::LibMesh> tally_mesh;
   if (!_mesh_template_filename)
-    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling());
+  {
+    if (_is_adaptive)
+    {
+      /**
+       * Need to create a copy of the mesh which only contains active elements. If this isn't
+       * done, the equation system added by the OpenMC mesh object will throw an error during
+       * the refinement / coarsening process as it has no idea that AMR is required.
+       */
+      if (!_libmesh_mesh_copy.get())
+        _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
+
+      auto msh = dynamic_cast<const libMesh::ReplicatedMesh*>(_mesh.getMeshPtr());
+      if (!msh)
+        mooseError("The mesh provided in the [Mesh] block is distribtued! Distributed meshes are "
+                   "currently not supported when using adaptivity!");
+
+      msh->create_submesh(*_libmesh_mesh_copy.get(),
+                          msh->active_elements_begin(),
+                          msh->active_elements_end());
+
+      _active_to_total_mapping.clear();
+      _active_to_total_mapping.reserve(msh->n_active_elem());
+      for (const auto & old_elem : libMesh::as_range(msh->active_elements_begin(), msh->active_elements_end()))
+        _active_to_total_mapping.push_back(old_elem->id());
+
+      tally_mesh = std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling());
+    }
+    else
+      tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling());
+  }
   else
     tally_mesh =
         std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling());
@@ -180,7 +214,8 @@ MeshTally::checkMeshTemplateAndTranslations() const
   unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {
-    auto elem_ptr = _mesh.queryElemPtr(mesh_offset + e);
+    auto elem_id = _is_adaptive ? _active_to_total_mapping[e] : offset + e;
+    auto elem_ptr = _mesh.queryElemPtr(elem_id);
 
     // if element is not on this part of the distributed mesh, skip it
     if (!elem_ptr)
@@ -227,7 +262,7 @@ MeshTally::checkMeshTemplateAndTranslations() const
 
     if (different_centroids)
       mooseError(
-          "Centroid for element " + Moose::stringify(mesh_offset + e) + " in the [Mesh] (cm): " +
+          "Centroid for element " + Moose::stringify(elem_id) + " in the [Mesh] (cm): " +
           _openmc_problem.printPoint(centroid_mesh) + "\ndoes not match centroid for element " +
           Moose::stringify(e) + " in the 'mesh_template' with instance " +
           Moose::stringify(_instance) + " (cm): " + _openmc_problem.printPoint(centroid_template) +
