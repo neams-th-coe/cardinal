@@ -775,10 +775,9 @@ protected:
   const bool _normalize_by_global;
 
   /**
-   * If 'fixed_mesh' is false, this indicates that the [Mesh] is changing during
-   * the simulation (either from adaptive refinement or from deformation).
-   * When the mesh changes during the simulation, the mapping from OpenMC cells to
-   * the [Mesh] must be re-established after each OpenMC run.
+   * When the mesh changes during the simulation (either from adaptive mesh refinement
+   * or deformation), the mapping from OpenMC cells to the [Mesh] must be re-established
+   * after each OpenMC run.
    */
   const bool _need_to_reinit_coupling;
 

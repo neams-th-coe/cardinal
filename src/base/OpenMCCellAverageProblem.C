@@ -23,7 +23,6 @@
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
-#include "SetAdaptivityOptionsAction.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -188,7 +187,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
                              ? false
                              : getParam<bool>("normalize_by_global_tally")),
-    _need_to_reinit_coupling(getMooseApp().actionWarehouse().getActions<SetAdaptivityOptionsAction>().size() > 0),
+    _need_to_reinit_coupling(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
     _check_tally_sum(
         isParamValid("check_tally_sum")
             ? getParam<bool>("check_tally_sum")
@@ -487,9 +486,6 @@ OpenMCCellAverageProblem::initialSetup()
       paramError("volume_calculation", "The 'volume_calculation' user object must be of type "
         "OpenMCVolumeCalculation!");
   }
-
-  if (_adaptivity.isOn() && !_need_to_reinit_coupling)
-    mooseError("Adaptivity is enabled, but '_need_to_reinit_coupling' is set to false!");
 
   if (isParamValid("symmetry_mapper"))
   {
@@ -1856,8 +1852,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
   gatherCellVector(elems, n_elems, _cell_to_elem);
 
   // fill out the elem_to_cell structure
-  _elem_to_cell.resize(_mesh.nElem());
-  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  _elem_to_cell.resize(_mesh.getMesh().n_active_elem());
+  for (unsigned int e = 0; e < _mesh.getMesh().n_active_elem(); ++e)
     _elem_to_cell[e] = {UNMAPPED, UNMAPPED};
 
   for (const auto & c : _cell_to_elem)
