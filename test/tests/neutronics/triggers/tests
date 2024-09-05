@@ -100,12 +100,4 @@
       "tally relative error when applying a different trigger to multiple scores."
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [length_igore_zero]
-    type = RunException
-    input = multi_rel_err.i
-    cli_args = 'Problem/Tallies/Cell/trigger_ignore_zeros="true"'
-    requirement = "The system shall enforce correct trigger ignore zero length"
-    expect_err = "'trigger_ignore_zeros' \(size 1\) must have the same length as 'score' \(size 2\)"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
 []

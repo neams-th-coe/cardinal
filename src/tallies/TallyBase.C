@@ -149,8 +149,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
     {
       if (_tally_score.size() != _trigger_ignore_zeros.size())
         mooseError("'trigger_ignore_zeros' (size " + std::to_string(_trigger_ignore_zeros.size()) +
-                 ") must have the same length as 'score' (size " +
-                 std::to_string(_tally_score.size()) + ")");
+                   ") must have the same length as 'score' (size " +
+                   std::to_string(_tally_score.size()) + ")");
     }
     else
       _trigger_ignore_zeros.resize(_tally_score.size(), false);
