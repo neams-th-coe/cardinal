@@ -17,4 +17,12 @@
     expect_err = "'trigger_ignore_zeros' \(size 2\) must have the same length as 'score' \(size 1\)"
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [set_trigger_ignore_zero]
+    type = RunException
+    input = ignore_zero.i
+    cli_args = 'Problem/Tallies/Cell/trigger_ignore_zeros=""'
+    requirement = "The system shall ensure that the users provide values of trigger_ignore_zeros when the parameter is set."
+    expect_err = "'trigger_ignore_zeros' has been set with no value\(s\)!"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
 []

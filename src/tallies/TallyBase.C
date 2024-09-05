@@ -50,7 +50,9 @@ TallyBase::validParams()
       "trigger_threshold", "trigger_threshold > 0", "Threshold for the tally trigger");
   params.addParam<std::vector<bool>>(
       "trigger_ignore_zeros",
-      "Whether tally bins with zero scores are ignored when computing the tally trigger.");
+      {false},
+      "Whether tally bins with zero scores are ignored when computing the tally trigger. If only one "
+      "value of 'trigger_ignore_zeros' is provided, that value is applied to all tally scores.");
 
   MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
   params.addParam<MultiMooseEnum>("output",
@@ -76,6 +78,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _mesh(_openmc_problem.mesh()),
     _aux(_openmc_problem.getAuxiliarySystem()),
     _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger") : nullptr),
+    _trigger_ignore_zeros(getParam<std::vector<bool>>("trigger_ignore_zeros")),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output"))
 {
@@ -132,9 +135,6 @@ TallyBase::TallyBase(const InputParameters & parameters)
     if (isParamValid("trigger_threshold"))
       _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
 
-    if (isParamValid("trigger_ignore_zeros"))
-      _trigger_ignore_zeros = getParam<std::vector<bool>>("trigger_ignore_zeros");
-
     if (_tally_trigger->size() != _tally_score.size())
       mooseError("'trigger' (size " + std::to_string(_tally_trigger->size()) +
                  ") must have the same length as 'score' (size " +
@@ -145,15 +145,17 @@ TallyBase::TallyBase(const InputParameters & parameters)
                  ") must have the same length as 'score' (size " +
                  std::to_string(_tally_score.size()) + ")");
 
-    if (_trigger_ignore_zeros.size() > 0)
+    if (_trigger_ignore_zeros.size() > 1)
     {
       if (_tally_score.size() != _trigger_ignore_zeros.size())
         mooseError("'trigger_ignore_zeros' (size " + std::to_string(_trigger_ignore_zeros.size()) +
                    ") must have the same length as 'score' (size " +
                    std::to_string(_tally_score.size()) + ")");
     }
+    else if (_trigger_ignore_zeros.size() == 1)
+      _trigger_ignore_zeros.resize(_tally_score.size(), _trigger_ignore_zeros[0]);
     else
-      _trigger_ignore_zeros.resize(_tally_score.size(), false);
+      mooseError("'trigger_ignore_zeros' has been set with no value(s)!");
   }
 
   if (isParamValid("name"))
