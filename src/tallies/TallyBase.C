@@ -51,7 +51,8 @@ TallyBase::validParams()
   params.addParam<std::vector<bool>>(
       "trigger_ignore_zeros",
       {false},
-      "Whether tally bins with zero scores are ignored when computing the tally trigger. If only one "
+      "Whether tally bins with zero scores are ignored when computing the tally trigger. If only "
+      "one "
       "value of 'trigger_ignore_zeros' is provided, that value is applied to all tally scores.");
 
   MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
