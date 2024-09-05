@@ -136,8 +136,7 @@ dT = ${fparse power / mdot / Cp}
 
       trigger = rel_err
       trigger_threshold = 2e-2
-
-      output = 'unrelaxed_tally_std_dev'
+      output = unrelaxed_tally_std_dev
     []
   []
 []
@@ -180,10 +179,7 @@ dT = ${fparse power / mdot / Cp}
 [Executioner]
   type = Transient
   dt = 0.5
-
-  steady_state_detection = true
-  check_aux = true
-  steady_state_tolerance = 1e-3
+  num_steps = 10
 []
 
 [Postprocessors]
