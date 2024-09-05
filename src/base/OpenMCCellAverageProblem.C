@@ -187,7 +187,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
                              ? false
                              : getParam<bool>("normalize_by_global_tally")),
-    _need_to_reinit_coupling(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
+    _need_to_reinit_coupling(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")
+                             || getMooseApp().actionWarehouse().hasActions("init_displaced_problem")),
     _check_tally_sum(
         isParamValid("check_tally_sum")
             ? getParam<bool>("check_tally_sum")
