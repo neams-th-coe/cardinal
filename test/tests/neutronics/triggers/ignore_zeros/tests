@@ -22,7 +22,7 @@
     input = ignore_zero.i
     cli_args = 'Problem/Tallies/Cell/trigger_ignore_zeros=""'
     requirement = "The system shall ensure that the users provide values of trigger_ignore_zeros when the parameter is set."
-    expect_err = "'trigger_ignore_zeros' has been set with no value\(s\)!"
+    expect_err = "trigger_ignore_zeros cannot be empty!"
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

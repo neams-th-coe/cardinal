@@ -155,8 +155,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
     }
     else if (_trigger_ignore_zeros.size() == 1)
       _trigger_ignore_zeros.resize(_tally_score.size(), _trigger_ignore_zeros[0]);
-    else
-      mooseError("'trigger_ignore_zeros' has been set with no value(s)!");
+
+    _openmc_problem.checkEmptyVector(_trigger_ignore_zeros, "trigger_ignore_zeros");
   }
 
   if (isParamValid("name"))
