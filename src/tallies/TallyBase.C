@@ -136,7 +136,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
     if (isParamValid("trigger_threshold"))
       _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
     else
-      paramError("trigger_threshold", "Trigger threshhold(s) must be provided if setting 'trigger'.");
+      paramError("trigger_threshold",
+                 "Trigger threshhold(s) must be provided if setting 'trigger'.");
 
     if (_tally_trigger->size() != _tally_score.size())
       mooseError("'trigger' (size " + std::to_string(_tally_trigger->size()) +
