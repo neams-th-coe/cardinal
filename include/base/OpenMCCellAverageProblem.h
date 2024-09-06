@@ -779,7 +779,7 @@ protected:
    * or deformation), the mapping from OpenMC cells to the [Mesh] must be re-established
    * after each OpenMC run.
    */
-  const bool _need_to_reinit_coupling;
+  bool _need_to_reinit_coupling;
 
   /**
    * Whether to check the tallies against the global tally;

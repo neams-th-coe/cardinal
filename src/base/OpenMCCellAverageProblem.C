@@ -23,6 +23,7 @@
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
+#include "CreateDisplacedProblemAction.h"
 
 #include "openmc/constants.h"
 #include "openmc/cross_sections.h"
@@ -206,12 +207,20 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _initial_num_openmc_surfaces(openmc::model::surfaces.size()),
     _using_skinner(isParamValid("skinner"))
 {
+  // Check to see if we're initializing a displaced problem.
+  const auto & dis_actions = getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
+  for (const auto & act : dis_actions)
+  {
+    auto has_displaced = act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
+    _need_to_reinit_coupling |= has_displaced;
+  }
+
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
   // cells.
   const auto & actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   for (const auto & act : actions)
-    _has_cell_tallies = act->getMooseObjectType() == "CellTally" || _has_cell_tallies;
-  _needs_to_map_cells = _needs_to_map_cells || _has_cell_tallies;
+    _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
+  _needs_to_map_cells |= _has_cell_tallies;
 
   if (!_needs_to_map_cells)
     checkUnusedParam(params,
