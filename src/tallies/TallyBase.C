@@ -20,6 +20,7 @@
 #include "TallyBase.h"
 
 #include "OpenMCCellAverageProblem.h"
+#include "UserErrorChecking.h"
 #include "AuxiliarySystem.h"
 
 #include "openmc/settings.h"
@@ -133,11 +134,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   if (_tally_trigger)
   {
-    if (isParamValid("trigger_threshold"))
-      _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
-    else
-      paramError("trigger_threshold",
-                 "Trigger threshhold(s) must be provided if setting 'trigger'.");
+    checkRequiredParam(parameters, "trigger_threshold", "using tally triggers");
+    _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
 
     if (_tally_trigger->size() != _tally_score.size())
       mooseError("'trigger' (size " + std::to_string(_tally_trigger->size()) +
