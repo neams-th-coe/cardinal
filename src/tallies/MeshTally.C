@@ -86,7 +86,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "provided in the [Mesh] block!");
   }
 
-  if (isParamValid("mesh_template") && _is_adaptive)
+  if (_mesh_template_filename && _is_adaptive)
     mooseError("Adaptivity is only supported when tallying on the mesh in the [Mesh] block!");
 
   /**
@@ -117,8 +117,8 @@ MeshTally::spatialFilter()
 
       auto msh = dynamic_cast<const libMesh::ReplicatedMesh*>(_mesh.getMeshPtr());
       if (!msh)
-        mooseError("The mesh provided in the [Mesh] block is distribtued! Distributed meshes are "
-                   "currently not supported when using adaptivity!");
+        mooseError("Internal error: _mesh.getMeshPtr() is not a replicated mesh. "
+                   "This should have been caught in the MeshTally constructor.");
 
       msh->create_submesh(*_libmesh_mesh_copy.get(),
                           msh->active_elements_begin(),

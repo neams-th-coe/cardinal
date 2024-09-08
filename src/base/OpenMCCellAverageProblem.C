@@ -207,12 +207,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _initial_num_openmc_surfaces(openmc::model::surfaces.size()),
     _using_skinner(isParamValid("skinner"))
 {
-  // Check to see if we're initializing a displaced problem.
+  // Check to see if a displaced problem is being initialized.
+  // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to actually use
+  // the displaced mesh. See https://github.com/neams-th-coe/cardinal/pull/907 for more information.
   const auto & dis_actions = getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
   for (const auto & act : dis_actions)
   {
     auto has_displaced = act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
     _need_to_reinit_coupling |= has_displaced;
+    // Switch the above with: _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh);
   }
 
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
@@ -1861,10 +1864,9 @@ OpenMCCellAverageProblem::mapElemsToCells()
   gatherCellVector(elems, n_elems, _cell_to_elem);
 
   // fill out the elem_to_cell structure
-  _elem_to_cell.resize(_mesh.getMesh().n_active_elem());
-  for (unsigned int e = 0; e < _mesh.getMesh().n_active_elem(); ++e)
-    _elem_to_cell[e] = {UNMAPPED, UNMAPPED};
-
+  // TODO: figure out how to shrink this so we only store the mapping for active
+  // elements as opposed to the entire element hierarchy.
+  _elem_to_cell.resize(_mesh.nElem(), {UNMAPPED, UNMAPPED});
   for (const auto & c : _cell_to_elem)
   {
     for (const auto & e : c.second)
