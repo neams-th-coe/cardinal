@@ -1,0 +1,34 @@
+[Tests]
+  [adaptive_cell]
+    type = CSVDiff
+    input = cell.i
+    csvdiff = cell_out.csv
+    requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for cell tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [adaptive_mesh]
+    type = CSVDiff
+    input = mesh.i
+    csvdiff = mesh_out.csv
+    requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for mesh tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [adaptive_mesh_template]
+    type = RunException
+    input = mesh.i
+    cli_args = "Problem/Tallies/Mesh/mesh_template='../meshes/sphere.e'"
+    expect_err = "Adaptivity is only supported when tallying on the mesh in the \[Mesh\] block!"
+    requirement = "The system shall error if adaptivity is active and tallying on a mesh template instead of the"
+                   " mesh block."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [adaptive_relaxation]
+    type = RunException
+    input = cell.i
+    cli_args = "Problem/relaxation='constant'"
+    expect_err = "When adaptivity is requested or a displaced problem is used, the mapping from the "
+                 "OpenMC model to the \[Mesh\] may vary in time."
+    requirement = "The system shall error if adaptivity is active and a relaxation scheme is requested."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
