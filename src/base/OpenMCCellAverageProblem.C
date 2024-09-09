@@ -623,15 +623,6 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
   }
 }
 
-template <typename T>
-void
-OpenMCCellAverageProblem::checkEmptyVector(const std::vector<T> & vector,
-                                           const std::string & name) const
-{
-  if (vector.empty())
-    mooseError(name + " cannot be empty!");
-}
-
 void
 OpenMCCellAverageProblem::readBlockParameters(const std::string name,
                                               std::unordered_set<SubdomainID> & blocks)

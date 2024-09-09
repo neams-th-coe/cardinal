@@ -331,6 +331,18 @@ public:
    */
   Real tallyMultiplier(unsigned int global_score) const;
 
+  /**
+   * Check whether a vector extracted with getParam is empty
+   * @param[in] vector vector
+   * @param[in] name name to use for printing error if empty
+   */
+  template <typename T>
+  void checkEmptyVector(const std::vector<T> & vector, const std::string & name) const
+  {
+    if (vector.empty())
+      mooseError(name + " cannot be empty!");
+  }
+
   int fixedPointIteration() const { return _fixed_point_iteration; }
 
   /// Constant flag to indicate that a cell/element was unmapped
@@ -544,14 +556,6 @@ protected:
     else
       return "";
   }
-
-  /**
-   * Check whether a vector extracted with getParam is empty
-   * @param[in] vector vector
-   * @param[in] name name to use for printing error if empty
-   */
-  template <typename T>
-  void checkEmptyVector(const std::vector<T> & vector, const std::string & name) const;
 
   /// Loop over the elements in the MOOSE mesh and store the type of feedback applied by each.
   void storeElementPhase();
