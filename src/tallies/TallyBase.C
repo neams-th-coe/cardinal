@@ -20,6 +20,7 @@
 #include "TallyBase.h"
 
 #include "OpenMCCellAverageProblem.h"
+#include "UserErrorChecking.h"
 #include "AuxiliarySystem.h"
 
 #include "openmc/settings.h"
@@ -48,6 +49,12 @@ TallyBase::validParams()
       "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<std::vector<Real>>(
       "trigger_threshold", "trigger_threshold > 0", "Threshold for the tally trigger");
+  params.addParam<std::vector<bool>>(
+      "trigger_ignore_zeros",
+      {false},
+      "Whether tally bins with zero scores are ignored when computing the tally trigger. If only "
+      "one "
+      "value of 'trigger_ignore_zeros' is provided, that value is applied to all tally scores.");
 
   MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
   params.addParam<MultiMooseEnum>("output",
@@ -73,6 +80,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _mesh(_openmc_problem.mesh()),
     _aux(_openmc_problem.getAuxiliarySystem()),
     _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger") : nullptr),
+    _trigger_ignore_zeros(getParam<std::vector<bool>>("trigger_ignore_zeros")),
     _renames_tally_vars(isParamValid("name")),
     _has_outputs(isParamValid("output"))
 {
@@ -124,9 +132,9 @@ TallyBase::TallyBase(const InputParameters & parameters)
     mooseError("You must either specify none or both of 'trigger' and "
                "'trigger_threshold'. You have specified only one.");
 
-  bool has_tally_trigger = false;
   if (_tally_trigger)
   {
+    checkRequiredParam(parameters, "trigger_threshold", "using tally triggers");
     _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
 
     if (_tally_trigger->size() != _tally_score.size())
@@ -139,9 +147,17 @@ TallyBase::TallyBase(const InputParameters & parameters)
                  ") must have the same length as 'score' (size " +
                  std::to_string(_tally_score.size()) + ")");
 
-    for (unsigned int s = 0; s < _tally_trigger->size(); ++s)
-      if ((*_tally_trigger)[s] != "none")
-        has_tally_trigger = true;
+    if (_trigger_ignore_zeros.size() > 1)
+    {
+      if (_tally_score.size() != _trigger_ignore_zeros.size())
+        mooseError("'trigger_ignore_zeros' (size " + std::to_string(_trigger_ignore_zeros.size()) +
+                   ") must have the same length as 'score' (size " +
+                   std::to_string(_tally_score.size()) + ")");
+    }
+    else if (_trigger_ignore_zeros.size() == 1)
+      _trigger_ignore_zeros.resize(_tally_score.size(), _trigger_ignore_zeros[0]);
+
+    _openmc_problem.checkEmptyVector(_trigger_ignore_zeros, "trigger_ignore_zeros");
   }
 
   if (isParamValid("name"))
@@ -329,7 +345,7 @@ TallyBase::applyTriggersToLocalTally(openmc::Tally * tally)
     for (int score = 0; score < _tally_score.size(); ++score)
       tally->triggers_.push_back({_openmc_problem.triggerMetric((*_tally_trigger)[score]),
                                   _tally_trigger_threshold[score],
-                                  false,
+                                  _trigger_ignore_zeros[score],
                                   score});
 }
 #endif

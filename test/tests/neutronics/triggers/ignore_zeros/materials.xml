@@ -1,0 +1,27 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material depletable="true" id="1">
+    <density units="g/cc" value="10.0" />
+    <nuclide ao="0.5" name="Li6" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="2">
+    <density units="g/cc" value="10.0" />
+    <nuclide ao="1.0" name="Li6" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="3">
+    <density units="g/cc" value="10.0" />
+    <nuclide ao="1.5" name="Li6" />
+    <nuclide ao="1.999242" name="O16" />
+    <nuclide ao="0.000758" name="O17" />
+  </material>
+  <material depletable="true" id="4">
+    <density units="g/cc" value="1.0" />
+    <nuclide ao="2.0" name="H1" />
+    <nuclide ao="0.999621" name="O16" />
+    <nuclide ao="0.000379" name="O17" />
+  </material>
+</materials>

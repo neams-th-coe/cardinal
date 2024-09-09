@@ -236,6 +236,12 @@ protected:
   std::vector<Real> _tally_trigger_threshold;
 
   /**
+   * Whether tally bins for certain scores should ignore bins with zeros when computing
+   * trigger metrics. Indexed by the tally score.
+   */
+  std::vector<bool> _trigger_ignore_zeros;
+
+  /**
    * Current fixed point iteration tally result; for instance, when using constant
    * relaxation, the tally is updated as:
    * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
