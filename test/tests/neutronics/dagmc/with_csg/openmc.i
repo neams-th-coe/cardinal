@@ -35,7 +35,7 @@
   type = OpenMCCellAverageProblem
   verbose = true
   temperature_blocks = '1 2'
-  cell_level = 0
+  cell_level = 1
   power = 100.0
 
   skinner = moab
