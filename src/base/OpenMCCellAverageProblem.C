@@ -288,7 +288,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         params, "skinner", "the OpenMC model does not contain any DagMC universes", true);
   else if (_using_skinner)
   {
-    // Loop over all universes to find the DAGMC universe and to check and make sure we only have the one.
+    // Loop over all universes to find the DAGMC universe and to check and make sure we only have
+    // the one.
     unsigned int num_dag_universes = 0;
     for (const auto & universe : openmc::model::universes)
     {
@@ -300,27 +301,34 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
 
     if (num_dag_universes != 1)
-      mooseError("The 'skinner' can only be used when the OpenMC geometry contains a single DAGMC universe.\n"
-                 "Your geometry contains " + Moose::stringify(num_dag_universes) + " DAGMC universes.");
+      mooseError("The 'skinner' can only be used when the OpenMC geometry contains a single DAGMC "
+                 "universe.\n"
+                 "Your geometry contains " +
+                 Moose::stringify(num_dag_universes) + " DAGMC universes.");
 
-    // Loop over each element of each lattice to make sure that it doesn't contain the DAGMC universe.
+    // Loop over each element of each lattice to make sure that it doesn't contain the DAGMC
+    // universe.
     for (const auto & lattice : openmc::model::lattices)
     {
       for (openmc::LatticeIter it = lattice->begin(); it != lattice->end(); ++it)
         if (openmc::model::universes[*it]->id_ == _dagmc_universe_id)
-          mooseError("The 'skinner' cannot be used when the DAGMC universe is contained in lattice geometry.");
+          mooseError("The 'skinner' cannot be used when the DAGMC universe is contained in lattice "
+                     "geometry.");
 
-      if (lattice->outer_ != openmc::NO_OUTER_UNIVERSE && openmc::model::universes[lattice->outer_]->id_ == _dagmc_universe_id)
-        mooseError("The 'skinner' cannot be used when the DAGMC universe is used as the outer universe of a lattice.");
+      if (lattice->outer_ != openmc::NO_OUTER_UNIVERSE &&
+          openmc::model::universes[lattice->outer_]->id_ == _dagmc_universe_id)
+        mooseError("The 'skinner' cannot be used when the DAGMC universe is used as the outer "
+                   "universe of a lattice.");
     }
 
-    // Need to make sure that there is only a single cell which uses the DAGMC universe as it's fill. The root
-    // universe must contain that cell, otherwise the DAGMC universe may be replicated across the problem.
+    // Need to make sure that there is only a single cell which uses the DAGMC universe as it's
+    // fill. The root universe must contain that cell, otherwise the DAGMC universe may be
+    // replicated across the problem.
     unsigned int num_dag_instances = 0;
     for (const auto & cell : openmc::model::cells)
     {
-      if (cell->type_ == openmc::Fill::UNIVERSE
-          && cell->fill_ == openmc::model::universe_map.at(_dagmc_universe_id))
+      if (cell->type_ == openmc::Fill::UNIVERSE &&
+          cell->fill_ == openmc::model::universe_map.at(_dagmc_universe_id))
       {
         _dagmc_root_universe = false;
         num_dag_instances++;
@@ -329,13 +337,18 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     }
 
     if (num_dag_instances > 1)
-      mooseError("The 'skinner' can only be used when the DAGMC universe in the OpenMC geometry is used as a cell "
-                 "fill at most once.\n Your geometry contains " + Moose::stringify(num_dag_instances) + " cells which "
+      mooseError("The 'skinner' can only be used when the DAGMC universe in the OpenMC geometry is "
+                 "used as a cell "
+                 "fill at most once.\n Your geometry contains " +
+                 Moose::stringify(num_dag_instances) +
+                 " cells which "
                  "use the DAGMC universe as their fill.");
 
     if (!_dagmc_root_universe &&
-        openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]->universe_ != openmc::model::root_universe)
-      mooseError("The 'skinner' can only be used when the cell using the DAGMC universe as a fill is contained in the "
+        openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]
+                ->universe_ != openmc::model::root_universe)
+      mooseError("The 'skinner' can only be used when the cell using the DAGMC universe as a fill "
+                 "is contained in the "
                  "root universe.");
 
     // The newly-generated DAGMC cells could be disjoint in space, in which case
@@ -2412,7 +2425,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
           {
             std::vector<int32_t> mat_ids;
             for (const auto & mat_index : cell->material_)
-              mat_ids.push_back(mat_index == openmc::MATERIAL_VOID ? openmc::MATERIAL_VOID : openmc::model::materials[mat_index]->id_);
+              mat_ids.push_back(mat_index == openmc::MATERIAL_VOID
+                                    ? openmc::MATERIAL_VOID
+                                    : openmc::model::materials[mat_index]->id_);
             cell->material_ = mat_ids;
           }
           if (cell->type_ == openmc::Fill::UNIVERSE && cell->fill_ != openmc::C_NONE)
@@ -2738,7 +2753,8 @@ OpenMCCellAverageProblem::reloadDAGMC()
   _dagmc->init_OBBTree();
 
   // Get an iterator to the DAGMC universe unique ptr
-  auto univ_it = openmc::model::universes.begin() + openmc::model::universe_map.at(_dagmc_universe_id);
+  auto univ_it =
+      openmc::model::universes.begin() + openmc::model::universe_map.at(_dagmc_universe_id);
 
   // Remove the old universe
   openmc::model::universes.erase(univ_it);
@@ -2752,7 +2768,8 @@ OpenMCCellAverageProblem::reloadDAGMC()
     openmc::model::universe_map[openmc::model::universes[i]->id_] = i;
 
   if (!_dagmc_root_universe)
-    openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]->fill_ = _dagmc_universe_id;
+    openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]->fill_ =
+        _dagmc_universe_id;
 
   _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... ";
 
