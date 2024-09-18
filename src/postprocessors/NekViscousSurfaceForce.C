@@ -40,11 +40,14 @@ NekViscousSurfaceForce::NekViscousSurfaceForce(const InputParameters & parameter
   : NekSidePostprocessor(parameters), _component(getParam<MooseEnum>("component"))
 {
   if (_pp_mesh != nek_mesh::fluid)
-    mooseError("The 'NekViscousSurfaceForce' postprocessor can only be applied to the fluid mesh boundaries!\n"
-      "Please change 'mesh' to 'fluid'.");
+    mooseError("The 'NekViscousSurfaceForce' postprocessor can only be applied to the fluid mesh "
+               "boundaries!\n"
+               "Please change 'mesh' to 'fluid'.");
 
   if (_nek_problem->nondimensional())
-    mooseError("The NekViscousSurfaceForce object is missing the implementation to convert the non-dimensional viscous drag to dimensional form. Please contact the developers if this is impacting your analysis.");
+    mooseError("The NekViscousSurfaceForce object is missing the implementation to convert the "
+               "non-dimensional viscous drag to dimensional form. Please contact the developers if "
+               "this is impacting your analysis.");
 }
 
 Real
@@ -52,7 +55,7 @@ NekViscousSurfaceForce::getValue() const
 {
   if (_component == "total")
   {
-    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
+    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
     auto o_Sij = platform->o_memPool.reserve<dfloat>(2 * nrs->NVfields * nrs->fieldOffset);
     postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
 
@@ -62,7 +65,8 @@ NekViscousSurfaceForce::getValue() const
     return drag;
   }
   else
-    mooseError("x, y, and z components of viscous drag not currently supported. Please contact developers if this is affecting your analysis needs.");
+    mooseError("x, y, and z components of viscous drag not currently supported. Please contact "
+               "developers if this is affecting your analysis needs.");
 }
 
 #endif
