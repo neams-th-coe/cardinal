@@ -39,6 +39,6 @@ public:
   virtual Real getValue() const override;
 
 protected:
-  /// Unit direction with which to dot the surface normal
-  Point _direction;
+  /// Component of force to compute
+  const MooseEnum & _component;
 };
