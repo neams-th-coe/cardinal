@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell material="2" id="47" region="20 -21 22 -23 24 -25" universe="1"/>
+  <cell fill="2" id="48" universe="1"/>
+  <dagmc_universe filename="../../mesh_tallies/slab.h5m" id="2"/>
+  <surface coeffs="-0.5" id="20" type="x-plane" />
+  <surface coeffs="0.5" id="21" type="x-plane" />
+  <surface coeffs="49.5" id="22" type="y-plane" />
+  <surface coeffs="50.5" id="23" type="y-plane" />
+  <surface coeffs="-0.5" id="24" type="z-plane" />
+  <surface coeffs="0.5" id="25" type="z-plane" />
+</geometry>
