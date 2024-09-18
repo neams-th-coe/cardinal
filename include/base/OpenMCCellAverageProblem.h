@@ -1045,7 +1045,15 @@ protected:
   long unsigned int _n_openmc_cells;
 
   /// Index in the OpenMC universes corresponding to the DAGMC universe
-  int32_t _dagmc_universe_index;
+  int32_t _dagmc_universe_id;
+
+  /// Whether the DAGMC universe is the root universe or not.
+  bool _dagmc_root_universe = true;
+
+  /// Index into the OpenMC cells corresponding to the cell which uses the DAGMC universe as a fill.
+  int32_t _cell_using_dagmc_universe_id;
+
+  const bool _using_skinner;
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;
