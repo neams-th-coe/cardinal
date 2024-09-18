@@ -208,6 +208,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr),
+    _initial_num_openmc_surfaces(openmc::model::surfaces.size()),
     _using_skinner(isParamValid("skinner"))
 {
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
@@ -2418,104 +2419,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 #ifdef ENABLE_DAGMC
       if (_skinner)
       {
-        // Need to swap array indices back to ids as OpenMC swapped these whe preparing geometry.
-        for (const auto & cell : openmc::model::cells)
-        {
-          if (cell->type_ == openmc::Fill::MATERIAL)
-          {
-            std::vector<int32_t> mat_ids;
-            for (const auto & mat_index : cell->material_)
-              mat_ids.push_back(mat_index == openmc::MATERIAL_VOID
-                                    ? openmc::MATERIAL_VOID
-                                    : openmc::model::materials[mat_index]->id_);
-            cell->material_ = mat_ids;
-          }
-          if (cell->type_ == openmc::Fill::UNIVERSE && cell->fill_ != openmc::C_NONE)
-            cell->fill_ = openmc::model::universes[cell->fill_]->id_;
-          if (cell->type_ == openmc::Fill::LATTICE && cell->fill_ != openmc::C_NONE)
-            cell->fill_ = openmc::model::lattices[cell->fill_]->id_;
-
-          cell->universe_ = openmc::model::universes[cell->universe_]->id_;
-        }
-
-        for (const auto & lattice : openmc::model::lattices)
-        {
-          for (openmc::LatticeIter it = lattice->begin(); it != lattice->end(); ++it)
-          {
-            int u_index = *it;
-            *it = openmc::model::universes[u_index]->id_;
-          }
-
-          if (lattice->outer_ != openmc::NO_OUTER_UNIVERSE)
-            lattice->outer_ = openmc::model::universes[lattice->outer_]->id_;
-        }
-
-        // skin the mesh geometry according to contours in temperature, density, and subdomain
-        _skinner->update();
-
-        openmc::model::universe_cell_counts.clear();
-        openmc::model::universe_level_counts.clear();
-
-        // Clear nuclides and elements, these will get reset in read_ce_cross_sections
-        // Horrible circular logic means that clearing nuclides clears nuclide_map, but
-        // which is needed before nuclides gets reset (similar for elements)
-        std::unordered_map<std::string, int> nuclide_map_copy = openmc::data::nuclide_map;
-        openmc::data::nuclides.clear();
-        openmc::data::nuclide_map = nuclide_map_copy;
-
-        std::unordered_map<std::string, int> element_map_copy = openmc::data::element_map;
-        openmc::data::elements.clear();
-        openmc::data::element_map = element_map_copy;
-
-        // Clear existing DAGMC cell data. Cells cannot be deleted in-place as that invalidates
-        // all pointers and iterators, so we loop over the cell map to store a list of DAGMC cells.
-        // Afterwards, the cells contained in the list can be deleted.
-        std::vector<int32_t> cells_to_delete;
-        for (auto [id, index] : openmc::model::cell_map)
-          if (openmc::model::cells[index]->geom_type_ == openmc::GeometryType::DAG)
-            cells_to_delete.push_back(openmc::model::cells[index]->id_);
-
-        for (auto cell : cells_to_delete)
-        {
-          for (int32_t i = 0; i < openmc::model::cells.size(); ++i)
-          {
-            if (openmc::model::cells[i]->id_ == cell)
-            {
-              openmc::model::cells.erase(openmc::model::cells.begin() + i);
-              break;
-            }
-          }
-        }
-        cells_to_delete.clear();
-
-        // Clear existing surface data. Similar to cells, deletion of the DAGMC surfaces must be
-        // deferred.
-        std::vector<int> surfaces_to_delete;
-        for (auto [id, index] : openmc::model::surface_map)
-          if (openmc::model::surfaces[index]->geom_type_ == openmc::GeometryType::DAG)
-            surfaces_to_delete.push_back(openmc::model::surfaces[index]->id_);
-
-        for (auto surface : surfaces_to_delete)
-        {
-          for (int i = 0; i < openmc::model::surfaces.size(); ++i)
-          {
-            if (openmc::model::surfaces[i]->id_ == surface)
-            {
-              openmc::model::surfaces.erase(openmc::model::surfaces.begin() + i);
-              break;
-            }
-          }
-        }
-        surfaces_to_delete.clear();
-
-        // Need to clear and rebuild the cell_map and surface_map since the indices have changed.
-        openmc::model::cell_map.clear();
-        for (int32_t i = 0; i < openmc::model::cells.size(); ++i)
-          openmc::model::cell_map[openmc::model::cells[i]->id_] = i;
-
-        openmc::model::surface_map.clear();
-        for (int i = 0; i < openmc::model::surfaces.size(); ++i)
-          openmc::model::surface_map[openmc::model::surfaces[i]->id_] = i;
+        // Update the OpenMC geometry to take into account skinning. This also calls _skinner->update().
+        updateOpenMCGeometry();
 
         // Update the OpenMC materials (creating new ones as-needed to support the density binning)
         updateMaterials();
@@ -2929,6 +2834,144 @@ OpenMCCellAverageProblem::validateLocalTallies()
     mooseWarning(
         "When either running in fixed-source mode, or all tallies have units of eV/src, the "
         "'source_rate_normalization' parameter is unused!");
+}
+
+void
+OpenMCCellAverageProblem::updateOpenMCGeometry()
+{
+  // Need to swap array indices back to ids as OpenMC swapped these when preparing geometry.
+  for (const auto & cell : openmc::model::cells)
+  {
+    if (cell->type_ == openmc::Fill::MATERIAL)
+    {
+      std::vector<int32_t> mat_ids;
+      for (const auto & mat_index : cell->material_)
+        mat_ids.push_back(mat_index == openmc::MATERIAL_VOID
+                              ? openmc::MATERIAL_VOID
+                              : openmc::model::materials[mat_index]->id_);
+      cell->material_ = mat_ids;
+    }
+    if (cell->type_ == openmc::Fill::UNIVERSE && cell->fill_ != openmc::C_NONE)
+      cell->fill_ = openmc::model::universes[cell->fill_]->id_;
+    if (cell->type_ == openmc::Fill::LATTICE && cell->fill_ != openmc::C_NONE)
+      cell->fill_ = openmc::model::lattices[cell->fill_]->id_;
+
+    cell->universe_ = openmc::model::universes[cell->universe_]->id_;
+  }
+
+  for (const auto & lattice : openmc::model::lattices)
+  {
+    for (openmc::LatticeIter it = lattice->begin(); it != lattice->end(); ++it)
+    {
+      int u_index = *it;
+      *it = openmc::model::universes[u_index]->id_;
+    }
+
+    if (lattice->outer_ != openmc::NO_OUTER_UNIVERSE)
+      lattice->outer_ = openmc::model::universes[lattice->outer_]->id_;
+  }
+
+  // skin the mesh geometry according to contours in temperature, density, and subdomain
+  _skinner->update();
+
+  openmc::model::universe_cell_counts.clear();
+  openmc::model::universe_level_counts.clear();
+
+  // Clear nuclides and elements, these will get reset in read_ce_cross_sections
+  // Horrible circular logic means that clearing nuclides clears nuclide_map, but
+  // which is needed before nuclides gets reset (similar for elements)
+  std::unordered_map<std::string, int> nuclide_map_copy = openmc::data::nuclide_map;
+  openmc::data::nuclides.clear();
+  openmc::data::nuclide_map = nuclide_map_copy;
+
+  std::unordered_map<std::string, int> element_map_copy = openmc::data::element_map;
+  openmc::data::elements.clear();
+  openmc::data::element_map = element_map_copy;
+
+  // Clear existing DAGMC cell data. Cells cannot be deleted in-place as that invalidates
+  // all pointers and iterators, so we loop over the cell map to store a list of DAGMC cells.
+  // Afterwards, the cells contained in the list can be deleted.
+  std::vector<int32_t> cells_to_delete;
+  for (auto [id, index] : openmc::model::cell_map)
+    if (openmc::model::cells[index]->geom_type_ == openmc::GeometryType::DAG)
+      cells_to_delete.push_back(openmc::model::cells[index]->id_);
+
+  for (auto cell : cells_to_delete)
+  {
+    for (int32_t i = 0; i < openmc::model::cells.size(); ++i)
+    {
+      if (openmc::model::cells[i]->id_ == cell)
+      {
+        openmc::model::cells.erase(openmc::model::cells.begin() + i);
+        break;
+      }
+    }
+  }
+  cells_to_delete.clear();
+
+  // Clear existing surface data. Similar to cells, deletion of the DAGMC surfaces must be
+  // deferred.
+  std::vector<int> surfaces_to_delete;
+  for (auto [id, index] : openmc::model::surface_map)
+    if (openmc::model::surfaces[index]->geom_type_ == openmc::GeometryType::DAG)
+      surfaces_to_delete.push_back(openmc::model::surfaces[index]->id_);
+
+  for (auto surface : surfaces_to_delete)
+  {
+    for (int i = 0; i < openmc::model::surfaces.size(); ++i)
+    {
+      if (openmc::model::surfaces[i]->id_ == surface)
+      {
+        openmc::model::surface_map.erase(surface);
+        openmc::model::surfaces.erase(openmc::model::surfaces.begin() + i);
+        break;
+      }
+    }
+  }
+  surfaces_to_delete.clear();
+
+  // Need to rebuild the cell_map and surface_map since the indices have changed.
+  openmc::model::cell_map.clear();
+  for (int32_t i = 0; i < openmc::model::cells.size(); ++i)
+    openmc::model::cell_map[openmc::model::cells[i]->id_] = i;
+
+  // Horrible hack since we can't undo the surface id -> index swap that happens in CSGCell.region_.expression_,
+  // and so the 'surface_map' cannot be rebuilt. Intead, 'surfaces' is resized to the original length and the positions
+  // of each surface are shuffled such that they correspond to their indices in the original 'surface_map'. This results
+  // in the addition of N extra null 'DAGSurface' objects in 'surfaces', where N is the number of DAGMC surfaces in
+  // the geometry. These null surfaces aren't linked to a DAGMC universe and so they do not participate in particle
+  // transport, they just take up memory. CSGCell::region_ and Region::expression_ need to be made public in OpenMC
+  // to avoid this, or an appropriate series of C-API functions / member functions need to be added to OpenMC.
+  if (openmc::model::surfaces.size() > 0)
+  {
+    for (int i = openmc::model::surfaces.size(); i < _initial_num_openmc_surfaces; ++i)
+      openmc::model::surfaces.push_back(std::move(std::make_unique<openmc::DAGSurface>(nullptr, 0)));
+    for (const auto & [id, index] : openmc::model::surface_map)
+    {
+      // If the surface at the index exists and the id is the same, do nothing.
+      if (openmc::model::surfaces[index]->id_ == id)
+        continue;
+      else
+      {
+        // Otherwise we need to find the filter and swap it with the filter at the current location.
+        for (int i = 0; i < openmc::model::surfaces.size(); ++i)
+        {
+          if (openmc::model::surfaces[i]->id_ == id)
+          {
+            auto temp = std::move(openmc::model::surfaces[index]);
+            openmc::model::surfaces[index] = std::move(openmc::model::surfaces[i]);
+            openmc::model::surfaces[i] = std::move(temp);
+            break;
+          }
+        }
+      }
+    }
+
+    // Sanity check by looping over the surface_map to make sure the indices correspond to the surface ids.
+    for (const auto & [id, index] : openmc::model::surface_map)
+      if (openmc::model::surfaces[index]->id_ != id)
+        mooseError("Internal error: mismatch between surfaces[surface_map[id]]->id_ and id.");
+  }
 }
 
 void
