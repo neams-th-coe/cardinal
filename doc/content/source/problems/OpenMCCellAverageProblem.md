@@ -389,7 +389,7 @@ Cardinal provides UserObjects for editing tallies and filters.
   - [OpenMCTallyEditor](https://cardinal.cels.anl.gov/source/userobjects/OpenMCTallyEditor.html)
   - [OpenMCDomainFilterEditor](https://cardinal.cels.anl.gov/source/userobjects/OpenMCTallyEditor.html)
 
-These objects provide online control of tally and filter parameters, respectively. These objects can be used to interact with tallies and/or filters that are mapped in Cardinal as part of the `OpenMCCellAverageProblem` or are present in a `tallies.xml` file for the problem being run (unmapped tallies). These objects can be used to create tallies as well -- in this case the new objects will **not be mapped** to the mesh mirror.
+These objects provide online control of tally and filter parameters, respectively. These objects can be used to interact with tallies and/or filters that present in a `tallies.xml` file for the problem being run. These objects can be used to create tallies as well. In either case, these objects do not interact with tallies mapped to the mesh mirror.
 
 ## Other Features
 
