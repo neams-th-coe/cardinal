@@ -26,8 +26,8 @@ python mesh.py -g
 
 The mesh will be generated with the following sideset IDs:
 
- - 1 - fuel pins
- - 2 - inlet
- - 3 - outlet
- - 4 - hex can wall
+ - 1: fuel pins
+ - 2: inlet
+ - 3: outlet
+ - 4: hex can wall
 
