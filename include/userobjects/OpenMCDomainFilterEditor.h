@@ -66,5 +66,4 @@ public:
 protected:
   int32_t _filter_id;
   OpenMCFilterType _filter_type;
-  const std::set<std::string> _allowed_types{"cell", "universe", "material", "mesh"};
 };
