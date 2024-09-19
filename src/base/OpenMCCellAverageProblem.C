@@ -1711,7 +1711,8 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
 }
 
 std::vector<int32_t>
-OpenMCCellAverageProblem::getMappedTallyIDs() const {
+OpenMCCellAverageProblem::getMappedTallyIDs() const
+{
   std::vector<int32_t> tally_ids;
 
   // local mapped tallies
