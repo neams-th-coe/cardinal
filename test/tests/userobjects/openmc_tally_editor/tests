@@ -25,10 +25,11 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [nuclides]
-    type = CSVDiff
+    type = CheckFiles
     input = tally_param_checks.i
-    csvdiff = openmc_out.csv
-    cli_args = 'UserObjects/tally_editor_uo/nuclides="U238" Outputs/file_base="openmc_out"'
+    check_files = tallies.out
+    file_expect_out ='U238'
+    cli_args = 'UserObjects/tally_editor_uo/nuclides="U238"'
     requirement = "The system shall confine the tally to a particular nuclide. This is compared by selecting just one of the existing nuclides, and comparing to the sum of the total nuclides."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -119,6 +120,13 @@
     input = clashing_tally_ids.i
     expect_err = 'Duplicate tally ID "10" found in OpenMCTallyEditor "tally_b"'
     requirement = 'The system shall error if more than one OpenMCTallyEditor eixsts with the same tally ID.'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [clashing_mapped_tally]
+    type = RunException
+    input = clash_mapped_tally.i
+    expect_err = 'Tally Editor for tally "3" is applied to a Cardinal-mapped tally.'
+    requirement = 'The system shall error if a OpenMCTallyEditor eixsts for a mapped tally created by Cardinal.'
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

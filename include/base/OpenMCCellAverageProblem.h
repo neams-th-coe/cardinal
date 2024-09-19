@@ -716,6 +716,14 @@ protected:
   NumericVector<Number> & _serialized_solution;
 
   /**
+   * Return all IDs of all Cardinal-mapped Tallies
+   * @return all Cardinal-mapped Tally IDs
+   */
+  virtual std::vector<int32_t> getMappedTallyIDs() const override;
+
+  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+
+  /**
    * Whether to automatically compute the mapping of OpenMC cell IDs and
    * instances to the [Mesh].
    */

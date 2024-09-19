@@ -401,6 +401,12 @@ TallyBase::getWrappedTally() const
   return _local_tally;
 }
 
+int32_t
+TallyBase::getTallyID() const
+{
+  return getWrappedTally()->id();
+}
+
 void
 TallyBase::fillElementalAuxVariable(const unsigned int & var_num,
                                     const std::vector<unsigned int> & elem_ids,

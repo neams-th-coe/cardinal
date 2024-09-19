@@ -343,6 +343,12 @@ public:
    */
   long unsigned int numCells() const;
 
+  /**
+   * Return all IDs of all Cardinal-mapped Tallies
+   * @return all Cardinal-mapped Tally IDs
+   */
+  virtual std::vector<int32_t> getMappedTallyIDs() const = 0;
+
 protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();

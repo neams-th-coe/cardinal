@@ -99,6 +99,13 @@ OpenMCTallyEditor::execute()
 
   openmc::Tally * tally = openmc::model::tallies[tally_index()].get();
 
+  // ensure this editor isn't attempting to modify a mapped tally
+  std::vector<int32_t> mapped_tally_ids = openmc_problem()->getMappedTallyIDs();
+  // ensure that the TallyEditor IDs don't apply to any mapped tally objects
+  if (std::find(mapped_tally_ids.begin(), mapped_tally_ids.end(), tally_id()) != mapped_tally_ids.end())
+    mooseError("Tally Editor for tally \"" + std::to_string(tally_id()) + "\" is applied to a Cardinal-mapped tally.");
+
+
   std::vector<std::string> scores = getParam<std::vector<std::string>>("scores");
   if (scores.size() > 0)
   {
