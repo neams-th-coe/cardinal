@@ -33,6 +33,7 @@
 #include "openmc/message_passing.h"
 #include "openmc/nuclide.h"
 #include "openmc/random_lcg.h"
+#include "openmc/settings.h"
 #include "openmc/summary.h"
 #include "openmc/tallies/trigger.h"
 #include "openmc/volume_calc.h"
@@ -1386,6 +1387,8 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   // Check that each cell maps to a single phase
   checkCellMappedPhase();
+
+  openmc_set_seed(1);
 }
 
 void
@@ -1604,6 +1607,22 @@ OpenMCCellAverageProblem::compareContainedCells(std::map<cellInfo, containedCell
             "but which are not mapping to the blocks in 'identical_cell_fills'");
     }
   }
+}
+
+std::vector<int32_t>
+OpenMCCellAverageProblem::getMappedTallyIDs() const {
+  std::vector<int32_t> tally_ids;
+
+  // local mapped tallies
+  for (const auto & t : _local_tallies)
+    tally_ids.push_back(t->getTallyID());
+  // global normalization tallies
+  for (const auto & t : _global_tallies)
+    tally_ids.push_back(t->id());
+  // ensure the first global tally is added as well
+  openmc::model::tallies[_global_tally_index]->id();
+
+  return tally_ids;
 }
 
 unsigned int
