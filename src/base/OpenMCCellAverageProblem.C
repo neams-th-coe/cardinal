@@ -2419,7 +2419,8 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 #ifdef ENABLE_DAGMC
       if (_skinner)
       {
-        // Update the OpenMC geometry to take into account skinning. This also calls _skinner->update().
+        // Update the OpenMC geometry to take into account skinning. This also calls
+        // _skinner->update().
         updateOpenMCGeometry();
 
         // Update the OpenMC materials (creating new ones as-needed to support the density binning)
@@ -2936,17 +2937,20 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
   for (int32_t i = 0; i < openmc::model::cells.size(); ++i)
     openmc::model::cell_map[openmc::model::cells[i]->id_] = i;
 
-  // Horrible hack since we can't undo the surface id -> index swap that happens in CSGCell.region_.expression_,
-  // and so the 'surface_map' cannot be rebuilt. Intead, 'surfaces' is resized to the original length and the positions
-  // of each surface are shuffled such that they correspond to their indices in the original 'surface_map'. This results
-  // in the addition of N extra null 'DAGSurface' objects in 'surfaces', where N is the number of DAGMC surfaces in
-  // the geometry. These null surfaces aren't linked to a DAGMC universe and so they do not participate in particle
-  // transport, they just take up memory. CSGCell::region_ and Region::expression_ need to be made public in OpenMC
-  // to avoid this, or an appropriate series of C-API functions / member functions need to be added to OpenMC.
+  // Horrible hack since we can't undo the surface id -> index swap that happens in
+  // CSGCell.region_.expression_, and so the 'surface_map' cannot be rebuilt. Intead, 'surfaces' is
+  // resized to the original length and the positions of each surface are shuffled such that they
+  // correspond to their indices in the original 'surface_map'. This results in the addition of N
+  // extra null 'DAGSurface' objects in 'surfaces', where N is the number of DAGMC surfaces in the
+  // geometry. These null surfaces aren't linked to a DAGMC universe and so they do not participate
+  // in particle transport, they just take up memory. CSGCell::region_ and Region::expression_ need
+  // to be made public in OpenMC to avoid this, or an appropriate series of C-API functions / member
+  // functions need to be added to OpenMC.
   if (openmc::model::surfaces.size() > 0)
   {
     for (int i = openmc::model::surfaces.size(); i < _initial_num_openmc_surfaces; ++i)
-      openmc::model::surfaces.push_back(std::move(std::make_unique<openmc::DAGSurface>(nullptr, 0)));
+      openmc::model::surfaces.push_back(
+          std::move(std::make_unique<openmc::DAGSurface>(nullptr, 0)));
     for (const auto & [id, index] : openmc::model::surface_map)
     {
       // If the surface at the index exists and the id is the same, do nothing.
@@ -2968,7 +2972,8 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
       }
     }
 
-    // Sanity check by looping over the surface_map to make sure the indices correspond to the surface ids.
+    // Sanity check by looping over the surface_map to make sure the indices correspond to the
+    // surface ids.
     for (const auto & [id, index] : openmc::model::surface_map)
       if (openmc::model::surfaces[index]->id_ != id)
         mooseError("Internal error: mismatch between surfaces[surface_map[id]]->id_ and id.");
