@@ -46,7 +46,9 @@ MooseEnum
 getNekFieldEnum()
 {
   return MooseEnum(
-      "velocity_component velocity_x velocity_y velocity_z velocity temperature pressure scalar01 scalar02 scalar03 unity");
+      "velocity_component velocity_x velocity_y velocity_z velocity temperature"
+      " pressure scalar01 scalar02 scalar03 wall_shear traction traction_x traction_y traction_z"
+      " ros_s11 ros_s22 ros_s33 ros_s12 ros_s23 ros_s13 unity");
 }
 
 MooseEnum
