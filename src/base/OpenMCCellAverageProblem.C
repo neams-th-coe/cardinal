@@ -2839,6 +2839,7 @@ OpenMCCellAverageProblem::validateLocalTallies()
 void
 OpenMCCellAverageProblem::updateOpenMCGeometry()
 {
+#ifdef ENABLE_DAGMC
   // Need to swap array indices back to ids as OpenMC swapped these when preparing geometry.
   for (const auto & cell : openmc::model::cells)
   {
@@ -2972,6 +2973,7 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
       if (openmc::model::surfaces[index]->id_ != id)
         mooseError("Internal error: mismatch between surfaces[surface_map[id]]->id_ and id.");
   }
+#endif
 }
 
 void
