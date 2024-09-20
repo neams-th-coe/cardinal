@@ -57,6 +57,11 @@ NekRSProblem::validParams()
     "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
     "together). Setting this option to true requires syntax changes in the input file to use "
     "vector postprocessors, and places restrictions on how the sidesets are set up.");
+  params.addParam<bool>(
+      "calculate_filtered_velocity",
+      false,
+      "Whether to conserve determine the filtered velocity for FSI calculations. This can be "
+      "useful if there is significant mesh compression in the solid.");
   return params;
 }
 
@@ -65,7 +70,8 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _has_heat_source(getParam<bool>("has_heat_source")),
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _abs_tol(getParam<Real>("normalization_abs_tol")),
-    _rel_tol(getParam<Real>("normalization_rel_tol"))
+    _rel_tol(getParam<Real>("normalization_rel_tol")),
+    _calc_filtered_velocity(getParam<bool>("calculate_filtered_velocity"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
@@ -101,7 +107,19 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _usrwrk_indices.push_back("mesh_velocity_x");
     _usrwrk_indices.push_back("mesh_velocity_y");
     _usrwrk_indices.push_back("mesh_velocity_z");
+
+    if (_calc_filtered_velocity)
+    {
+      indices.filtered_velocity_x = start++ * nekrs::scalarFieldOffset();
+      indices.filtered_velocity_y = start++ * nekrs::scalarFieldOffset();
+      indices.filtered_velocity_z = start++ * nekrs::scalarFieldOffset();
+      _usrwrk_indices.push_back("filtered_velocity_x");
+      _usrwrk_indices.push_back("filtered_velocity_y");
+      _usrwrk_indices.push_back("filtered_velocity_z");
+    }
   }
+  else
+    checkUnusedParam(params, "calculate_filtered_velocity", "not using the blending mesh solver");
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
 
@@ -315,6 +333,14 @@ NekRSProblem::sendBoundaryDeformationToNek()
 
   if (!_volume)
   {
+    bool apply_new_mesh_velocity = true;
+
+    if (_fp_iteration)
+    {
+      const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+      apply_new_mesh_velocity = *iter != 1 || _t_step == 1;
+    }
+
     for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
       // We can only write into the nekRS scratch space if that face is "owned" by the current process
@@ -323,16 +349,22 @@ NekRSProblem::sendBoundaryDeformationToNek()
 
       mapFaceDataToNekFace(e, _disp_x_var, 1.0, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
-      writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
+      if (apply_new_mesh_velocity)
+        writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
 
       mapFaceDataToNekFace(e, _disp_y_var, 1.0, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
-      writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
+      if (apply_new_mesh_velocity)
+        writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
 
       mapFaceDataToNekFace(e, _disp_z_var, 1.0, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
-      writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
+      if (apply_new_mesh_velocity)
+        writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
+
+    if (_calc_filtered_velocity)
+      calculateFilteredVelocity(*_boundary);
   }
   else
   {
@@ -815,9 +847,124 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
       mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
   }
 
-  for (int i=0; i <len; i++)
-    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e*len) + i])/dt/_U_ref;
+  if (_fp_iteration)
+  {
+    const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+    if (*iter == 1)
+      _nek_mesh->updateDisplacement(e, displacement, disp_field);
+  }
 
-  _nek_mesh->updateDisplacement(e, displacement, disp_field);
+  for (int i=0; i <len; i++)
+    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e * len) + i]) / dt / _U_ref;
+
+  if (!_fp_iteration)
+    _nek_mesh->updateDisplacement(e, displacement, disp_field);
+}
+
+void
+NekRSProblem::calculateFilteredVelocity(const std::vector<int> & boundary_id)
+{
+  // TODO:VERIFY THAT THIS IS WORKING CORRECTLY
+  mesh_t * mesh = nekrs::flowMesh(); // NOTE: assuming to only use fluid mesh here, this might not
+                                     // be entirely correct.
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+
+  dfloat * sgeo = nekrs::getSgeo();
+
+  double integral = 0.0;
+
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+
+      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          int vol_id = mesh->vmapM[offset + v];
+          int surf_offset = mesh->Nsgeo * (offset + v);
+
+          double normal_velocity =
+              nrs->usrwrk[indices.mesh_velocity_x + vol_id] * sgeo[surf_offset + NXID] +
+              nrs->usrwrk[indices.mesh_velocity_y + vol_id] * sgeo[surf_offset + NYID] +
+              nrs->usrwrk[indices.mesh_velocity_z + vol_id] * sgeo[surf_offset + NZID];
+
+          integral += normal_velocity * sgeo[surf_offset + WSJID];
+        }
+      }
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  //  std::cout << "TOTAL VELOCITY INTEGRAL IS " << total_integral << std::endl; //UNCOMMENT FOR
+  //  DEBUGGING
+
+  for (int i = 0; i < mesh->Nelements; ++i)
+  {
+    for (int j = 0; j < mesh->Nfaces; ++j)
+    {
+      int face_id = mesh->EToB[i * mesh->Nfaces + j];
+
+      if (std::find(boundary_id.begin(), boundary_id.end(), face_id) != boundary_id.end())
+      {
+        int offset = i * mesh->Nfaces * mesh->Nfp + j * mesh->Nfp;
+        for (int v = 0; v < mesh->Nfp; ++v)
+        {
+          int vol_id = mesh->vmapM[offset + v];
+          int surf_offset = mesh->Nsgeo * (offset + v);
+
+          nrs->usrwrk[indices.filtered_velocity_x + vol_id] =
+              nrs->usrwrk[indices.mesh_velocity_x + vol_id] -
+              total_integral * sgeo[surf_offset + NXID];
+          nrs->usrwrk[indices.filtered_velocity_y + vol_id] =
+              nrs->usrwrk[indices.mesh_velocity_y + vol_id] -
+              total_integral * sgeo[surf_offset + NYID];
+          nrs->usrwrk[indices.filtered_velocity_z + vol_id] =
+              nrs->usrwrk[indices.mesh_velocity_z + vol_id] -
+              total_integral * sgeo[surf_offset + NZID];
+        }
+      }
+    }
+  }
+}
+
+// This function updates the values stores in previous_displacement. This was added to make sure
+// that I only update at the start of a timestep rather than at the start of each picard iteration.
+void
+NekRSProblem::prev_disp_update(int e, const field::NekWriteEnum & field)
+{
+  int len = _volume ? _n_vertices_per_volume : _n_vertices_per_surface;
+  double *displacement = nullptr, *prev_disp = nullptr;
+  const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+  field::NekWriteEnum disp_field;
+
+  switch (field)
+  {
+    case field::mesh_velocity_x:
+      displacement = _displacement_x;
+      disp_field = field::x_displacement;
+      break;
+    case field::mesh_velocity_y:
+      displacement = _displacement_y;
+      disp_field = field::y_displacement;
+      break;
+    case field::mesh_velocity_z:
+      displacement = _displacement_z;
+      disp_field = field::z_displacement;
+      break;
+    default:
+      mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
+  }
+
+  if (*iter == 1)
+  {
+    _nek_mesh->updateDisplacement(e, displacement, disp_field);
+  }
 }
 #endif
