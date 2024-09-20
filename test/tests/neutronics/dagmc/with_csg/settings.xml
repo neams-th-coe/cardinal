@@ -2,7 +2,7 @@
 <settings>
   <run_mode>eigenvalue</run_mode>
   <particles>10000</particles>
-  <batches>500</batches>
+  <batches>200</batches>
   <inactive>50</inactive>
   <source strength="1.0">
     <space type="box">
