@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
 <settings>
   <run_mode>eigenvalue</run_mode>
-  <particles>1000</particles>
-  <batches>100</batches>
+  <particles>10000</particles>
+  <batches>200</batches>
   <inactive>50</inactive>
   <source strength="1.0">
     <space type="box">
