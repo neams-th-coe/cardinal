@@ -1145,7 +1145,7 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
                                               sgeo[surf_offset + NYID] * direction(1) +
                                               sgeo[surf_offset + NZID] * direction(2));
 
-          integral += -1.0 * p_normal * sgeo[surf_offset + WSJID];
+          integral += p_normal * sgeo[surf_offset + WSJID];
         }
       }
     }

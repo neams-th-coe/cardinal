@@ -21,19 +21,19 @@
 #include "NekSidePostprocessor.h"
 
 /**
- * Compute the integral of pressure force that the fluid exerts on a surface,
- * or \f$\int_\Gamma Pn_id\Gamma\f$, where $n_i$ is either the $x$/$y$/$z$
+ * Compute the integral of viscous force that the fluid exerts on a surface,
+ * or \f$\int_\Gamma -2\mu e_{ij}n_jd\Gamma\f$, where $n_i$ is either the $x$/$y$/$z$
  * direction (or the magnitude of the entire force, if the component is 'total').
  *
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekPressureSurfaceForce : public NekSidePostprocessor
+class NekViscousSurfaceForce : public NekSidePostprocessor
 {
 public:
   static InputParameters validParams();
 
-  NekPressureSurfaceForce(const InputParameters & parameters);
+  NekViscousSurfaceForce(const InputParameters & parameters);
 
   virtual Real getValue() const override;
 

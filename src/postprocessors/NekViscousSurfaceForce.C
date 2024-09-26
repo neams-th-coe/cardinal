@@ -18,50 +18,55 @@
 
 #ifdef ENABLE_NEK_COUPLING
 
-#include "NekPressureSurfaceForce.h"
+#include "NekViscousSurfaceForce.h"
 
-registerMooseObject("CardinalApp", NekPressureSurfaceForce);
+registerMooseObject("CardinalApp", NekViscousSurfaceForce);
 
 InputParameters
-NekPressureSurfaceForce::validParams()
+NekViscousSurfaceForce::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
   MooseEnum comp("x y z total", "total");
   params.addParam<MooseEnum>(
       "component",
       comp,
-      "Component of pressure force to compute. 'total' takes the magnitude of the pressure force, "
+      "Component of viscous force to compute. 'total' takes the magnitude of the viscous force, "
       "while 'x', 'y', or 'z' return individual components.");
-  params.addClassDescription("Compute pressure force that the fluid exerts on a surface");
+  params.addClassDescription("Compute viscous force that the fluid exerts on a surface");
   return params;
 }
 
-NekPressureSurfaceForce::NekPressureSurfaceForce(const InputParameters & parameters)
+NekViscousSurfaceForce::NekViscousSurfaceForce(const InputParameters & parameters)
   : NekSidePostprocessor(parameters), _component(getParam<MooseEnum>("component"))
 {
   if (_pp_mesh != nek_mesh::fluid)
-    mooseError("The 'NekPressureSurfaceForce' postprocessor can only be applied to the fluid mesh boundaries!\n"
-      "Please change 'mesh' to 'fluid'.");
+    mooseError("The 'NekViscousSurfaceForce' postprocessor can only be applied to the fluid mesh "
+               "boundaries!\n"
+               "Please change 'mesh' to 'fluid'.");
+
+  if (_nek_problem->nondimensional())
+    mooseError("The NekViscousSurfaceForce object is missing the implementation to convert the "
+               "non-dimensional viscous drag to dimensional form. Please contact the developers if "
+               "this is impacting your analysis.");
 }
 
 Real
-NekPressureSurfaceForce::getValue() const
+NekViscousSurfaceForce::getValue() const
 {
-  if (_component == "x")
-    return nekrs::pressureSurfaceForce(_boundary, {1, 0, 0}, _pp_mesh);
-  else if (_component == "y")
-    return nekrs::pressureSurfaceForce(_boundary, {0, 1, 0}, _pp_mesh);
-  else if (_component == "z")
-    return nekrs::pressureSurfaceForce(_boundary, {0, 0, 1}, _pp_mesh);
-  else if (_component == "total")
+  if (_component == "total")
   {
-    Real x = nekrs::pressureSurfaceForce(_boundary, {1, 0, 0}, _pp_mesh);
-    Real y = nekrs::pressureSurfaceForce(_boundary, {0, 1, 0}, _pp_mesh);
-    Real z = nekrs::pressureSurfaceForce(_boundary, {0, 0, 1}, _pp_mesh);
-    return std::sqrt(x * x + y * y + z * z);
+    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+    auto o_Sij = platform->o_memPool.reserve<dfloat>(2 * nrs->NVfields * nrs->fieldOffset);
+    postProcessing::strainRate(nrs, true, nrs->o_U, o_Sij);
+
+    occa::memory o_b = platform->device.malloc<int>(_boundary.size(), _boundary.data());
+    const auto drag = postProcessing::viscousDrag(nrs, _boundary.size(), o_b, o_Sij);
+    o_Sij.free();
+    return drag;
   }
   else
-    mooseError("Unhandled component enum in NekPressureSurfaceForce!");
+    mooseError("x, y, and z components of viscous drag not currently supported. Please contact "
+               "developers if this is affecting your analysis needs.");
 }
 
 #endif

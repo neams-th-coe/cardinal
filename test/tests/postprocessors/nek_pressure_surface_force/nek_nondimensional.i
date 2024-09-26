@@ -31,19 +31,19 @@
   [pressure_x]
     type = NekPressureSurfaceForce
     boundary = '1 2 3 4 5 6'
-    direction = '1 0 0'
+    component = 'x'
     mesh = 'fluid'
   []
   [pressure_y]
     type = NekPressureSurfaceForce
     boundary = '1 2 3 4 5 6'
-    direction = '0 1 0'
+    component = 'y'
     mesh = 'fluid'
   []
   [pressure_z]
     type = NekPressureSurfaceForce
     boundary = '1 2 3 4 5 6'
-    direction = '0 0 1'
+    component = 'z'
     mesh = 'fluid'
   []
 

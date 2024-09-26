@@ -8,6 +8,7 @@ git submodule update --init contrib/nekRS
 git submodule update --init --recursive contrib/openmc
 git submodule update --init contrib/DAGMC
 git submodule update --init contrib/moab
+git submodule update --init test/tests/nek_ci
 
 set +ex
 
