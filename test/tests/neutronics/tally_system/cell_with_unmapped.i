@@ -10,17 +10,6 @@
                  0 0 4
                  0 0 8'
   []
-  # Add another pebble which doesn't exist in the OpenMC model, so it will be unmapped.
-  [solid_2]
-    type = CombinerGenerator
-    inputs = sphere
-    positions = '0 0 12'
-  []
-  [solid_2_ids]
-    type = SubdomainIDGenerator
-    input = solid_2
-    subdomain_id = '300'
-  []
   [solid_ids]
     type = SubdomainIDGenerator
     input = solid
@@ -37,7 +26,7 @@
   []
   [combine]
     type = CombinerGenerator
-    inputs = 'solid_ids solid_2_ids fluid_ids'
+    inputs = 'solid_ids fluid_ids'
   []
 []
 
@@ -46,17 +35,19 @@
   verbose = true
   power = 1e4
   temperature_blocks = '100'
-  density_blocks = '200'
   cell_level = 0
   initial_properties = xml
 
   source_rate_normalization = 'kappa_fission'
 
+  # We are intentionally excluding some blocks, so we need to disable global normalization.
+  normalize_by_global_tally = false
+
   [Tallies]
     [Cell_1]
       type = CellTally
       score = kappa_fission
-      blocks = '100 200'
+      blocks = '100'
     []
   []
 []
@@ -77,9 +68,9 @@
     point = '0 0 8'
     variable = cell_id
   []
-  [Pebble_4_ID]
+  [Light_ID]
     type = PointValue
-    point = '0 0 12'
+    point = '0 0 10'
     variable = cell_id
   []
 
