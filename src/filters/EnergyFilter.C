@@ -69,11 +69,12 @@ EnergyFilter::EnergyFilter(const InputParameters & parameters)
     paramError("energy_boundaries",
                "At least two energy values are required to create energy bins!");
 
-  // Sanity check the energy boundaries to make sure they're increasing monotonically.
-  for (unsigned int i = 0u; i < _energy_bnds.size() - 1; ++i)
-    if (_energy_bnds[i] >= _energy_bnds[i + 1])
-      paramError("energy_boundaries",
-                 "The energy boundaries must be provided in ascending order in terms of energy!");
+  // Sort the boundaries so they're monotonically decreasing.
+  std::sort(_energy_bnds.begin(), _energy_bnds.end(),
+            [](const Real & a, const Real & b)
+  {
+    return a < b;
+  });
 
   // Initialize the OpenMC EnergyFilter.
   _filter_index = openmc::model::tally_filters.size();

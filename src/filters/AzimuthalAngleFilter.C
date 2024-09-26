@@ -65,23 +65,19 @@ AzimuthalAngleFilter::AzimuthalAngleFilter(const InputParameters & parameters)
 
   if (isParamValid("azimuthal_angle_boundaries"))
   {
-    const auto & bnds = getParam<std::vector<Real>>("azimuthal_angle_boundaries");
+    _azimuthal_angle_bnds = getParam<std::vector<Real>>("azimuthal_angle_boundaries");
 
     // Make sure we have at least two boundaries to form bins.
-    if (bnds.size() < 2)
+    if (_azimuthal_angle_bnds.size() < 2)
       paramError("azimuthal_angle_boundaries",
                  "At least two azimuthal angles are required to create bins!");
 
-    // Sanity check the boundaries to make sure they're provided in increasing order.
-    for (unsigned int i = 0; i < bnds.size() - 1; ++i)
+    // Sort the boundaries so they're monotonically decreasing.
+    std::sort(_azimuthal_angle_bnds.begin(), _azimuthal_angle_bnds.end(),
+              [](const Real & a, const Real & b)
     {
-      if (bnds[i] > bnds[i + 1])
-        paramError("azimuthal_angle_boundaries",
-                   "The azimuthal angle boundaries must be provided in increasing order!");
-
-      _azimuthal_angle_bnds.push_back(bnds[i]);
-    }
-    _azimuthal_angle_bnds.push_back(bnds.back());
+      return a < b;
+    });
 
     // Warn the user if there is the possibility of missed particles.
     if (_azimuthal_angle_bnds.front() > (-1.0 * libMesh::pi) ||

@@ -42,11 +42,11 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
   [bnds_wrong_order]
-    type = RunException
+    type = CSVDiff
     input = cell.i
-    cli_args = 'Problem/Filters/Azimuthal/azimuthal_angle_boundaries="${fparse pi} 1.5708 0.0"'
-    expect_err = 'The azimuthal angle boundaries must be provided in increasing order!'
-    requirement = "The system shall error if the boundaries provided in 'azimuthal_angle_boundaries' are in descending order."
+    cli_args = 'Problem/Filters/Azimuthal/azimuthal_angle_boundaries="${fparse pi} 0.0 ${fparse -pi}" Outputs/file_base=cell_provided_out'
+    csvdiff = cell_provided_out.csv
+    requirement = "The system shall automatically sort bins to ensure they're monotonically increasing."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [no_bins]

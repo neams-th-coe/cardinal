@@ -63,23 +63,19 @@ PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters) : FilterB
 
   if (isParamValid("polar_angle_boundaries"))
   {
-    const auto & bnds = getParam<std::vector<Real>>("polar_angle_boundaries");
+    _polar_angle_bnds = getParam<std::vector<Real>>("polar_angle_boundaries");
 
     // Make sure we have at least two boundaries to form bins.
-    if (bnds.size() < 2)
+    if (_polar_angle_bnds.size() < 2)
       paramError("polar_angle_boundaries",
                  "At least two polar angles are required to create bins!");
 
-    // Sanity check the boundaries to make sure they're provided in increasing order.
-    for (unsigned int i = 0; i < bnds.size() - 1; ++i)
+    // Sort the boundaries so they're monotonically decreasing.
+    std::sort(_polar_angle_bnds.begin(), _polar_angle_bnds.end(),
+              [](const Real & a, const Real & b)
     {
-      if (bnds[i] > bnds[i + 1])
-        paramError("polar_angle_boundaries",
-                   "The polar angle boundaries must be provided in increasing order!");
-
-      _polar_angle_bnds.push_back(bnds[i]);
-    }
-    _polar_angle_bnds.push_back(bnds.back());
+      return a < b;
+    });
 
     // Warn the user if there is the possibility of missed particles.
     if (_polar_angle_bnds.front() > 0.0 || _polar_angle_bnds.back() < libMesh::pi)
