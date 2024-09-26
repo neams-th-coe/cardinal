@@ -1670,7 +1670,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
     {
       auto cell_tally = dynamic_cast<const CellTally *>(tally.get());
       if (cell_tally)
-        elem_mapped_to_cell_tally |= cell_tally->getBlocks().find(id) != cell_tally->getBlocks().end();
+        elem_mapped_to_cell_tally |=
+            cell_tally->getBlocks().find(id) != cell_tally->getBlocks().end();
     }
 
     bool requires_mapping = phase != coupling::none || elem_mapped_to_cell_tally;
