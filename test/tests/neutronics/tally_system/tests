@@ -1,4 +1,12 @@
 [Tests]
+  [cell_tally_unmapped]
+    type = CSVDiff
+    input = cell_with_unmapped.i
+    csvdiff = cell_with_unmapped_out.csv
+    requirement = "The system shall correctly label elements in blocks which don't contain temperature feedback, density feedback, "
+                  "or a cell tally as unmapped."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [multi_global_estimator]
     type = CSVDiff
     input = multi_estimator.i

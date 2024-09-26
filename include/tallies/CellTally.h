@@ -52,6 +52,12 @@ public:
                             unsigned int global_score,
                             const std::string & output_type) override;
 
+  /**
+   * A function to get the blocks associated with this CellTally.
+   * @return a set of blocks associated with this tally.
+   */
+  const std::unordered_set<SubdomainID> & getBlocks() const { return _tally_blocks; }
+
 protected:
   /**
    * Loop over all the OpenMC cells and determine if a cell maps to more than one subdomain
