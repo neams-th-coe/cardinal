@@ -52,18 +52,16 @@ EnergyFilter::validParams()
 EnergyFilter::EnergyFilter(const InputParameters & parameters)
   : FilterBase(parameters), _reverse_bins(getParam<bool>("reverse_bins"))
 {
-  if (isParamValid("energy_boundaries") && isParamValid("group_structure"))
-    mooseError("You have set both 'energy_boundaries' and 'group_structure'! Only one bin "
-               "option can be specified at a time.");
+  if (isParamValid("energy_boundaries") == isParamValid("group_structure"))
+    mooseError("You have either set both 'energy_boundaries' and 'group_structure' or have not "
+               "specified a bin option. Please specify either 'energy_boundaries' or "
+               "'group_structure'.");
 
   if (isParamValid("energy_boundaries"))
     _energy_bnds = getParam<std::vector<Real>>("energy_boundaries");
-  else if (isParamValid("group_structure"))
+  if (isParamValid("group_structure"))
     _energy_bnds = getGroupBoundaries(
         getParam<MooseEnum>("group_structure").getEnum<energyfilter::GroupStructureEnum>());
-  else
-    mooseError("No bins have been specified! Please set either 'energy_boundaries' or "
-               "'group_structure'.");
 
   // Two boundaries are required at minimum to form energy bins.
   if (_energy_bnds.size() < 2)

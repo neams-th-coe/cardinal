@@ -50,10 +50,11 @@ AzimuthalAngleFilter::validParams()
 AzimuthalAngleFilter::AzimuthalAngleFilter(const InputParameters & parameters)
   : FilterBase(parameters)
 {
-  if (isParamValid("num_equal_divisions") && isParamValid("azimuthal_angle_boundaries"))
+  if (isParamValid("num_equal_divisions") == isParamValid("azimuthal_angle_boundaries"))
     mooseError(
-        "You have set both 'num_equal_divisions' and 'azimuthal_angle_boundaries'! Only one bin "
-        "option can be specified at a time.");
+        "You have either set 'num_equal_divisions' and 'azimuthal_angle_boundaries' or have not "
+        "specified a bin option! Please specify either 'num_equal_divisions' or "
+        "'azimuthal_angle_boundaries'.");
 
   if (isParamValid("num_equal_divisions"))
   {
@@ -61,7 +62,8 @@ AzimuthalAngleFilter::AzimuthalAngleFilter(const InputParameters & parameters)
     for (unsigned int i = 0; i < num_angles + 1; ++i)
       _azimuthal_angle_bnds.push_back((-libMesh::pi) + i * (2.0 * libMesh::pi / num_angles));
   }
-  else if (isParamValid("azimuthal_angle_boundaries"))
+
+  if (isParamValid("azimuthal_angle_boundaries"))
   {
     const auto & bnds = getParam<std::vector<Real>>("azimuthal_angle_boundaries");
 
@@ -88,9 +90,6 @@ AzimuthalAngleFilter::AzimuthalAngleFilter(const InputParameters & parameters)
           "The bin boundaries don't contain one of the following: -pi or pi. Some particles may be "
           "missed during normalization.");
   }
-  else
-    mooseError("No bins have been specified! Please set either 'num_equal_divisions' or "
-               "'azimuthal_angle_boundaries'.");
 
   // Initialize the OpenMC AzimuthalFilter.
   _filter_index = openmc::model::tally_filters.size();

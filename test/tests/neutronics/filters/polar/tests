@@ -52,7 +52,9 @@
   [no_bins]
     type = RunException
     input = cell.i
-    expect_err = "No bins have been specified! Please set either 'num_equal_divisions' or 'polar_angle_boundaries'."
+    expect_err = "You have either set 'num_equal_divisions' and 'polar_angle_boundaries' or have not "
+                 "specified a bin option! Please specify either 'num_equal_divisions' or "
+                 "'polar_angle_boundaries'."
     requirement = "The system shall error if neither 'num_equal_divisions' or 'polar_angle_boundaries' are provided."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -60,7 +62,9 @@
     type = RunException
     input = cell.i
     cli_args = 'Problem/Filters/Polar/num_equal_divisions=2 Problem/Filters/Polar/polar_angle_boundaries="0.0 1.5708 3.1415926535897932384626433832795029"'
-    expect_err = "You have set both 'num_equal_divisions' and 'polar_angle_boundaries'! Only one bin option can be specified at a time."
+    expect_err = "You have either set 'num_equal_divisions' and 'polar_angle_boundaries' or have not "
+                 "specified a bin option! Please specify either 'num_equal_divisions' or "
+                 "'polar_angle_boundaries'."
     requirement = "The system shall error if both 'num_equal_divisions' and 'polar_angle_boundaries' are provided."
     required_objects = 'OpenMCCellAverageProblem'
   []

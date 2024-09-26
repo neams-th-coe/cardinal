@@ -54,7 +54,9 @@
   [missing_bins]
     type = RunException
     input = cell.i
-    expect_err = "No bins have been specified! Please set either 'energy_boundaries' or 'group_structure'."
+    expect_err = "You have either set both 'energy_boundaries' and 'group_structure' or have not "
+                 "specified a bin option. Please specify either 'energy_boundaries' or "
+                 "'group_structure'."
     requirement = "The system shall error if no energy bins are provided."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -62,7 +64,9 @@
     type = RunException
     input = cell.i
     cli_args = 'Problem/Filters/Energy/group_structure=CASMO_2 Problem/Filters/Energy/energy_boundaries="0.0 6.25e-1 2.0e7"'
-    expect_err = "You have set both 'energy_boundaries' and 'group_structure'! Only one bin option can be specified at a time."
+    expect_err = "You have either set both 'energy_boundaries' and 'group_structure' or have not "
+                 "specified a bin option. Please specify either 'energy_boundaries' or "
+                 "'group_structure'."
     requirement = "The system shall error if no energy bins are provided."
     required_objects = 'OpenMCCellAverageProblem'
   []
