@@ -16,8 +16,8 @@
   [missing_filter]
     type = RunException
     input = cell.i
-    cli_args = 'Problem/Filters/SPH_XML/filter_id=2'
-    expect_err = "A filter with the id 2 does not exist in the OpenMC model! Please make sure the filter has been added "
+    cli_args = 'Problem/Filters/SPH_XML/filter_id=30'
+    expect_err = "A filter with the id 30 does not exist in the OpenMC model! Please make sure the filter has been added "
                  "in the OpenMC model and you've supplied the correct filter id."
     requirement = "The system shall error if a filter with the id requested has not been added by the tallie xml file."
     required_objects = 'OpenMCCellAverageProblem'
