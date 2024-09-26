@@ -22,6 +22,16 @@
     requirement = "The system shall error if a filter with the id requested has not been added by the tallie xml file."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [spatial_filter_error]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Filters/SPH_XML/filter_id=2'
+    expect_err = "The filter with the id 2 is a spatial filter. FromXMLFilter currently does not support the addition of "
+                 "spatial filters from the OpenMC XML files because they would clash with the OpenMC -> MOOSE mapping "
+                 "performed by Cardinal's tally objects."
+    requirement = "The system shall error if the user selects a spatial filter."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [func_exp_warning]
     type = RunException
     input = cell.i

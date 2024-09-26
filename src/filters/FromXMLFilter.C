@@ -58,25 +58,39 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
   _filter_index = openmc::model::filter_map.at(_filter_id);
   _filter = openmc::model::tally_filters[_filter_index].get();
 
-  // Check to see if the filter is an expansion filter.
+  // Check to see if the filter is a spatial filter.
+  switch (_filter->type())
+  {
+    case openmc::FilterType::CELLBORN:
+    case openmc::FilterType::CELLFROM:
+    case openmc::FilterType::CELL:
+    case openmc::FilterType::CELL_INSTANCE:
+    case openmc::FilterType::DISTRIBCELL:
+    case openmc::FilterType::MATERIAL:
+    case openmc::FilterType::MATERIALFROM:
+    case openmc::FilterType::MESH:
+    case openmc::FilterType::MESHBORN:
+    case openmc::FilterType::MESH_SURFACE:
+    case openmc::FilterType::SPATIAL_LEGENDRE:
+    case openmc::FilterType::SURFACE:
+    case openmc::FilterType::UNIVERSE:
+    case openmc::FilterType::ZERNIKE:
+    case openmc::FilterType::ZERNIKE_RADIAL:
+      mooseError("The filter with the id " + Moose::stringify(_filter_id) + " is a spatial filter. "
+                 "FromXMLFilter currently does not support the addition of spatial filters from the "
+                 "OpenMC XML files because they would clash with the OpenMC -> MOOSE mapping "
+                 "performed by Cardinal's tally objects.");
+      break;
+    default:
+      break;
+  }
+
+  // Check to see if the filter is a non-spatial expansion filter.
   bool is_exp;
   switch (_filter->type())
   {
     case openmc::FilterType::LEGENDRE:
-      is_exp = true;
-      break;
-    case openmc::FilterType::SPATIAL_LEGENDRE:
-      is_exp = true;
-      break;
     case openmc::FilterType::SPHERICAL_HARMONICS:
-      is_exp = true;
-      break;
-    case openmc::FilterType::ZERNIKE:
-      is_exp = true;
-      break;
-    case openmc::FilterType::ZERNIKE_RADIAL:
-      is_exp = true;
-      break;
     case openmc::FilterType::ENERGY_FUNCTION:
       is_exp = true;
       break;
