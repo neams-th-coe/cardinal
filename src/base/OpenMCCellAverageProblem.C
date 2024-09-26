@@ -21,6 +21,7 @@
 #include "OpenMCCellAverageProblem.h"
 #include "DelimitedFileReader.h"
 #include "TallyBase.h"
+#include "CellTally.h"
 #include "AddTallyAction.h"
 
 #include "openmc/constants.h"
@@ -1660,7 +1661,16 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // the type of couling)
     auto phase = elemFeedback(elem);
 
-    bool requires_mapping = phase != coupling::none || _contains_cell_tally;
+    // Loop over the tallies to check if any CellTally objects map to this element.
+    bool elem_mapped_to_cell_tally = false;
+    for (const auto & tally : _local_tallies)
+    {
+      auto cell_tally = dynamic_cast<const CellTally *>(tally.get());
+      if (cell_tally)
+        elem_mapped_to_cell_tally |= cell_tally->getBlocks().find(id) != cell_tally->getBlocks().end();
+    }
+
+    bool requires_mapping = phase != coupling::none || elem_mapped_to_cell_tally;
 
     // get the level in the OpenMC model to fetch mapped cell information. For
     // uncoupled regions, we know we will be successful in finding a cell (because
@@ -2668,8 +2678,6 @@ OpenMCCellAverageProblem::addTallyObject(const std::string & type,
         _all_tally_scores.end())
       _all_tally_scores.push_back(tally_scores[i]);
   }
-
-  _contains_cell_tally = type == "CellTally" ? true : _contains_cell_tally;
 
   // Add the associated global tally if required.
   if (_needs_global_tally && tally->getAuxVarNames().size() > 0)
