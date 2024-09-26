@@ -49,10 +49,9 @@ PolarAngleFilter::validParams()
 PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters) : FilterBase(parameters)
 {
   if (isParamValid("num_equal_divisions") == isParamValid("polar_angle_boundaries"))
-    mooseError(
-        "You have either set 'num_equal_divisions' and 'polar_angle_boundaries' or have not "
-        "specified a bin option! Please specify either 'num_equal_divisions' or "
-        "'polar_angle_boundaries'.");
+    mooseError("You have either set 'num_equal_divisions' and 'polar_angle_boundaries' or have not "
+               "specified a bin option! Please specify either 'num_equal_divisions' or "
+               "'polar_angle_boundaries'.");
 
   if (isParamValid("num_equal_divisions"))
   {
@@ -71,11 +70,9 @@ PolarAngleFilter::PolarAngleFilter(const InputParameters & parameters) : FilterB
                  "At least two polar angles are required to create bins!");
 
     // Sort the boundaries so they're monotonically decreasing.
-    std::sort(_polar_angle_bnds.begin(), _polar_angle_bnds.end(),
-              [](const Real & a, const Real & b)
-    {
-      return a < b;
-    });
+    std::sort(_polar_angle_bnds.begin(),
+              _polar_angle_bnds.end(),
+              [](const Real & a, const Real & b) { return a < b; });
 
     // Warn the user if there is the possibility of missed particles.
     if (_polar_angle_bnds.front() > 0.0 || _polar_angle_bnds.back() < libMesh::pi)

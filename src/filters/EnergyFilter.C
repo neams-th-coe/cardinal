@@ -70,11 +70,9 @@ EnergyFilter::EnergyFilter(const InputParameters & parameters)
                "At least two energy values are required to create energy bins!");
 
   // Sort the boundaries so they're monotonically decreasing.
-  std::sort(_energy_bnds.begin(), _energy_bnds.end(),
-            [](const Real & a, const Real & b)
-  {
-    return a < b;
-  });
+  std::sort(_energy_bnds.begin(),
+            _energy_bnds.end(),
+            [](const Real & a, const Real & b) { return a < b; });
 
   // Initialize the OpenMC EnergyFilter.
   _filter_index = openmc::model::tally_filters.size();

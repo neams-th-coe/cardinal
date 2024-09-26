@@ -76,10 +76,12 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
     case openmc::FilterType::UNIVERSE:
     case openmc::FilterType::ZERNIKE:
     case openmc::FilterType::ZERNIKE_RADIAL:
-      mooseError("The filter with the id " + Moose::stringify(_filter_id) + " is a spatial filter. "
-                 "FromXMLFilter currently does not support the addition of spatial filters from the "
-                 "OpenMC XML files because they would clash with the OpenMC -> MOOSE mapping "
-                 "performed by Cardinal's tally objects.");
+      mooseError(
+          "The filter with the id " + Moose::stringify(_filter_id) +
+          " is a spatial filter. "
+          "FromXMLFilter currently does not support the addition of spatial filters from the "
+          "OpenMC XML files because they would clash with the OpenMC -> MOOSE mapping "
+          "performed by Cardinal's tally objects.");
       break;
     default:
       break;

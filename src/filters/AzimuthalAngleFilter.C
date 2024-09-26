@@ -73,11 +73,9 @@ AzimuthalAngleFilter::AzimuthalAngleFilter(const InputParameters & parameters)
                  "At least two azimuthal angles are required to create bins!");
 
     // Sort the boundaries so they're monotonically decreasing.
-    std::sort(_azimuthal_angle_bnds.begin(), _azimuthal_angle_bnds.end(),
-              [](const Real & a, const Real & b)
-    {
-      return a < b;
-    });
+    std::sort(_azimuthal_angle_bnds.begin(),
+              _azimuthal_angle_bnds.end(),
+              [](const Real & a, const Real & b) { return a < b; });
 
     // Warn the user if there is the possibility of missed particles.
     if (_azimuthal_angle_bnds.front() > (-1.0 * libMesh::pi) ||
