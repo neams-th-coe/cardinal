@@ -895,9 +895,6 @@ protected:
   /// A vector of external (output-based) auxvariable ids added by the [Tallies] block.
   std::vector<std::vector<std::vector<unsigned int>>> _tally_ext_var_ids;
 
-  /// Whether the problem contains a cell tally or not.
-  bool _contains_cell_tally = false;
-
   /// Blocks in MOOSE mesh that provide density feedback
   std::vector<SubdomainID> _density_blocks;
 
