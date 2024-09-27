@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='utf-8'?>
+<settings>
+  <run_mode>eigenvalue</run_mode>
+  <particles>100</particles>
+  <inactive>10</inactive>
+  <batches>50</batches>
+  <source strength="1.0">
+    <space type="fission">
+      <parameters>-5.0 -5.0 0 5.0 5.0 12.0</parameters>
+    </space>
+  </source>
+  <temperature_default>600.0</temperature_default>
+  <temperature_method>nearest</temperature_method>
+  <temperature_multipole>false</temperature_multipole>
+  <temperature_range>294.0 1600.0</temperature_range>
+</settings>

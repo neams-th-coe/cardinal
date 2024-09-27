@@ -38,27 +38,28 @@ public:
   virtual std::pair<unsigned int, openmc::Filter *> spatialFilter() override;
 
   /**
-   * A function which stores the results of this tally into the created
-   * auxvariables.
-   * @param[in] var_numbers variables which the tally will store results in
-   * @param[in] local_score index into the tally's local array of scores which represents the
-   * current score being stored
-   * @param[in] global_score index into the global array of tally results which represents the
-   * current score being stored
-   * @param[in] output_type the output type
-   */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score,
-                            const std::string & output_type) override;
-
-  /**
    * A function to get the blocks associated with this CellTally.
    * @return a set of blocks associated with this tally.
    */
   const std::unordered_set<SubdomainID> & getBlocks() const { return _tally_blocks; }
 
 protected:
+  /**
+   * A function which stores the results of this tally into the created
+   * auxvariables. This implements the distributed cell tally -> MOOSE mesh mapping.
+   * @param[in] var_numbers variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the
+   * current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the
+   * current score being stored
+   * @param[in] tally_vals the tally values to store
+   * @return the sum of the tally over all bins.
+   */
+  virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
+                                 unsigned int local_score,
+                                 unsigned int global_score,
+                                 std::vector<xt::xtensor<double, 1>> tally_vals) override;
+
   /**
    * Loop over all the OpenMC cells and determine if a cell maps to more than one subdomain
    * that also has different tally settings (i.e. we would not know whether to add or not to

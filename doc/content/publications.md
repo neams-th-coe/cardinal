@@ -116,6 +116,11 @@ M. Eltawila, A.J. Novak,
 
 # Molten Salt Reactors
 
+A.J. Novak, H. Brooks, P. Shriwise, and A. Davis,
+["Monte Carlo Multiphysics Simulation on Adaptive Unstructured Mesh Geometry"](https://www.sciencedirect.com/science/article/pii/S0029549324006897)
+429 (113589)
+*Nuclear Engineering and Design* (2024)
+
 A.J. Novak, H. Brooks, P. Shriwise, A. Hegazy, and A. Davis,
 ["Multiphysics Coupling of OpenMC CAD-Based Transport to MOOSE using Cardinal and Aurora"](https://www.researchgate.net/publication/373157683_Multiphysics_Coupling_of_OpenMC_CAD-Based_Transport_to_MOOSE_using_Cardinal_and_Aurora)
 *Proceedings of M&C* (2023)

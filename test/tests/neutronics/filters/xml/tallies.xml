@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<tallies>
+  <filter id="1" type="sphericalharmonics">
+    <order>1</order>
+    <cosine>particle</cosine>
+  </filter>
+  <filter id="2" type="cell">
+    <bins>1</bins>
+  </filter>
+</tallies>

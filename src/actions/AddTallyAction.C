@@ -95,7 +95,7 @@ AddTallyAction::addMeshTally(unsigned int instance, const Point & translation)
   }
 
   _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;
-  openmc_problem->addTallyObject(_type, obj_name, _moose_object_pars);
+  openmc_problem->addTally(_type, obj_name, _moose_object_pars);
 }
 
 void
@@ -107,7 +107,7 @@ AddTallyAction::addTally()
     mooseError("The simulation must use an OpenMCCellAverageProblem when using the tally system!");
 
   _moose_object_pars.set<OpenMCCellAverageProblem *>("_openmc_problem") = openmc_problem;
-  openmc_problem->addTallyObject(_type, _name, _moose_object_pars);
+  openmc_problem->addTally(_type, _name, _moose_object_pars);
 }
 
 void

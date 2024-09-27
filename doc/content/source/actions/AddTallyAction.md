@@ -15,7 +15,8 @@ will be added, where `N` is the number of positions in `mesh_translations` / the
 in the file named `mesh_translations_file`. These translated mesh tallies store their scores in the
 same auxvariable(s), and the tally scores are normalized by the sum over all bins in the associated
 [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md). `mesh_translations` and
-`mesh_translations_file` are only applicable to [MeshTally](MeshTally.md) objects.
+`mesh_translations_file` are only applicable to [MeshTally](MeshTally.md) objects. Tallies can also add
+extra (non-spatial) filters through the use of the [filter system](AddFilterAction.md).
 
 ## Example Input File Syntax
 
