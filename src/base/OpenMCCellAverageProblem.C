@@ -1021,7 +1021,7 @@ OpenMCCellAverageProblem::printAuxVariableIO()
     _console << "    AuxVariable:  variable where this score is written\n" << std::endl;
 
     VariadicTable<std::string, std::string, std::string> tallies(
-        {"Tally Name", "Tally Score", "AuxVariable"});
+        {"Tally Name", "Tally Score", "AuxVariable(s)"});
     for (unsigned int i = 0; i < _local_tallies.size(); ++i)
     {
       const auto & scores = _local_tallies[i]->getScores();
@@ -1031,10 +1031,13 @@ OpenMCCellAverageProblem::printAuxVariableIO()
         if (names.size() == 0)
           continue;
 
-        if (j == 0)
-          tallies.addRow(_local_tallies[i]->name(), scores[j], names[j]);
-        else
-          tallies.addRow("", scores[j], names[j]);
+        for (unsigned int k = 0; k < names.size(); ++k)
+        {
+          if (j == 0 && k == 0)
+            tallies.addRow(_local_tallies[i]->name(), scores[j], names[k]);
+          else
+            tallies.addRow("", "", names[k]);
+        }
       }
     }
 
@@ -1808,7 +1811,8 @@ OpenMCCellAverageProblem::resetTallies()
   if (_local_tallies.size() == 0 && !_needs_global_tally)
     return;
 
-  // We initialize tallies by forward iterating this vector. We need to delete them in reverse.
+  // We initialize [Problem/Tallies] by forward iterating this vector. We need to delete them in
+  // reverse.
   for (int i = _local_tallies.size() - 1; i >= 0; --i)
     _local_tallies[i]->resetTally();
 
@@ -1850,7 +1854,7 @@ OpenMCCellAverageProblem::initializeTallies()
     _global_sum_tally.resize(_all_tally_scores.size(), 0.0);
   }
 
-  // Initialize all of the [Tallies].
+  // Initialize all of the [Problem/Tallies].
   for (auto & local_tally : _local_tallies)
     local_tally->initializeTally();
 }
@@ -2661,9 +2665,18 @@ OpenMCCellAverageProblem::reloadDAGMC()
 }
 
 void
-OpenMCCellAverageProblem::addTallyObject(const std::string & type,
-                                         const std::string & name,
-                                         InputParameters & moose_object_pars)
+OpenMCCellAverageProblem::addFilter(const std::string & type,
+                                    const std::string & name,
+                                    InputParameters & moose_object_pars)
+{
+  auto filter = addObject<FilterBase>(type, name, moose_object_pars, false)[0];
+  _filters[name] = filter;
+}
+
+void
+OpenMCCellAverageProblem::addTally(const std::string & type,
+                                   const std::string & name,
+                                   InputParameters & moose_object_pars)
 {
   auto tally = addObject<TallyBase>(type, name, moose_object_pars, false)[0];
   _local_tallies.push_back(tally);
