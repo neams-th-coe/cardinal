@@ -1,0 +1,57 @@
+[Tests]
+  [arbitrary_cell]
+    type = CSVDiff
+    input = cell.i
+    csvdiff = cell_out.csv
+    requirement = "The system shall allow cell tallies to access filters added in the OpenMC tallies XML file."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [arbitrary_mesh]
+    type = CSVDiff
+    input = mesh.i
+    csvdiff = mesh_out.csv
+    requirement = "The system shall allow mesh tallies to access filters added in the OpenMC tallies XML file."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [missing_filter]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Filters/SPH_XML/filter_id=30'
+    expect_err = "A filter with the id 30 does not exist in the OpenMC model! Please make sure the filter has been added "
+                 "in the OpenMC model and you've supplied the correct filter id."
+    requirement = "The system shall error if a filter with the id requested has not been added by the tallie xml file."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [spatial_filter_error]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Filters/SPH_XML/filter_id=2'
+    expect_err = "The filter with the id 2 is a spatial filter. FromXMLFilter currently does not support the addition of "
+                 "spatial filters from the OpenMC XML files because they would clash with the OpenMC -> MOOSE mapping "
+                 "performed by Cardinal's tally objects."
+    requirement = "The system shall error if the user selects a spatial filter."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [func_exp_warning]
+    type = RunException
+    input = cell.i
+    cli_args = '--error'
+    expect_err = "You have selected a functional expansion filter. Tallies which use this filter may fail normalization "
+                 "as the sum over all tally bins may not be well posed if any bins contain functional expansion coefficients."
+    requirement = "The system shall warn the user if they have selected a functional expansion filter and set "
+                  "allow_expansion_filters = true."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [func_exp_error]
+    type = RunException
+    input = cell.i
+    cli_args = 'Problem/Filters/SPH_XML/allow_expansion_filters=false'
+    expect_err = "You have selected a functional expansion filter. Tallies which use this filter may fail "
+                 "normalization as the sum over all tally bins may not be well posed if any bins contain "
+                 "functional expansion coefficients. If you still wish to use this filter, set "
+                 "'allow_expansion_filters' to true."
+    requirement = "The system shall error if the user selected a functional expansion filter without setting "
+                  "allow_expansion_filters = true."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

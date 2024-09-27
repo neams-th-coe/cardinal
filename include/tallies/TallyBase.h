@@ -28,6 +28,7 @@
 class OpenMCCellAverageProblem;
 class MooseMesh;
 class AuxiliarySystem;
+class FilterBase;
 
 class TallyBase : public MooseObject
 {
@@ -56,18 +57,19 @@ public:
 
   /**
    * A function which stores the results of this tally into the created
-   * auxvariables. This must be implemented by a derived class.
+   * auxvariables. This calls storeResultsInner.
    * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] output_type the output type
+   * @return the sum of the tally over all bins. Only applicable for 'output_type = relaxed'
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score,
-                            const std::string & output_type) = 0;
+  Real storeResults(const std::vector<unsigned int> & var_numbers,
+                    unsigned int local_score,
+                    unsigned int global_score,
+                    const std::string & output_type);
 
   /**
    * Add a score to this tally.
@@ -170,6 +172,22 @@ public:
 
 protected:
   /**
+   * A function which stores the results of this tally into the created
+   * auxvariables. This must be implemented by the derived class.
+   * @param[in] var_numbers variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the
+   * current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the
+   * current score being stored
+   * @param[in] tally_vals the tally values to store
+   * @return the sum of the tally over all bins.
+   */
+  virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
+                                 unsigned int local_score,
+                                 unsigned int global_score,
+                                 std::vector<xt::xtensor<double, 1>> tally_vals) = 0;
+
+  /**
    * Set an auxiliary elemental variable to a specified value
    * @param[in] var_num variable number
    * @param[in] elem_ids element IDs to set
@@ -194,6 +212,9 @@ protected:
   /// The aux system.
   AuxiliarySystem & _aux;
 
+  /// The external filters added in the [Problem/Filters] block.
+  std::vector<std::shared_ptr<FilterBase>> _ext_filters;
+
   /// The OpenMC estimator to use with this tally.
   openmc::TallyEstimator _estimator;
 
@@ -211,6 +232,9 @@ protected:
 
   /// The index of the first filter added by this tally.
   unsigned int _filter_index;
+
+  /// The number of non-spatial bins in this tally.
+  unsigned int _num_ext_filter_bins = 1;
 
   /// Sum value of this tally across all bins. Indexed by score.
   std::vector<Real> _local_sum_tally;
