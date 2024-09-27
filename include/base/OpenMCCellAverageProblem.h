@@ -678,6 +678,12 @@ protected:
   void compareContainedCells(std::map<cellInfo, containedCells> & reference,
                              std::map<cellInfo, containedCells> & compare) const;
 
+  /**
+   * Return all IDs of all Cardinal-mapped Tallies
+   * @return all Cardinal-mapped Tally IDs
+   */
+  virtual std::vector<int32_t> getMappedTallyIDs() const override;
+
   std::unique_ptr<NumericVector<Number>> _serialized_solution;
 
   /**
