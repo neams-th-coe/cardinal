@@ -194,7 +194,7 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                               : 1.0;
       total += power_fraction;
 
-      std::vector<unsigned int> elem_ids = {mesh_offset + e};
+      std::vector<unsigned int> elem_ids = { _is_adaptive ? _active_to_total_mapping[e] : mesh_offset + e };
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
       fillElementalAuxVariable(var, elem_ids, volumetric_power);
     }
@@ -214,7 +214,7 @@ MeshTally::checkMeshTemplateAndTranslations() const
   unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {
-    auto elem_id = _is_adaptive ? _active_to_total_mapping[e] : offset + e;
+    auto elem_id = _is_adaptive ? _active_to_total_mapping[e] : mesh_offset + e;
     auto elem_ptr = _mesh.queryElemPtr(elem_id);
 
     // if element is not on this part of the distributed mesh, skip it
