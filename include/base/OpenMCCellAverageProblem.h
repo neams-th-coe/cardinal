@@ -349,7 +349,7 @@ public:
    * Checks if the problem uses adaptivity or not.
    * @return if the problem uses adaptivity.
    */
-  bool hasAdaptivity() const { return _need_to_reinit_coupling; }
+  bool hasAdaptivity() const { return _has_adaptivity; }
 
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
@@ -773,6 +773,11 @@ protected:
    * normalize against the local tally itself so that the correct power is preserved.
    */
   const bool _normalize_by_global;
+
+  /**
+   * Whether or not the problem contains mesh adaptivity.
+   */
+  bool _has_adaptivity;
 
   /**
    * When the mesh changes during the simulation (either from adaptive mesh refinement
