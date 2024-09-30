@@ -209,12 +209,15 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _using_skinner(isParamValid("skinner"))
 {
   // Check to see if a displaced problem is being initialized.
-  // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to actually use
-  // the displaced mesh. See https://github.com/neams-th-coe/cardinal/pull/907 for more information.
-  const auto & dis_actions = getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
+  // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to
+  // actually use the displaced mesh. See https://github.com/neams-th-coe/cardinal/pull/907 for more
+  // information.
+  const auto & dis_actions =
+      getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
   for (const auto & act : dis_actions)
   {
-    auto has_displaced = act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
+    auto has_displaced =
+        act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
     _need_to_reinit_coupling |= has_displaced;
     // Switch the above with: _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh);
   }
@@ -252,11 +255,13 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // the same number of bins or to exactly the same regions of space, so we must
   // disable relaxation.
   if (_need_to_reinit_coupling && _relaxation != relaxation::none)
-    mooseError("When adaptivity is requested or a displaced problem is used, the mapping from the "
-      "OpenMC model to the [Mesh] may vary in time. This means that we have no guarantee that the "
-      "number of tally bins (or even the regions of space corresponding to each bin) are fixed. "
-      "Therefore, it is not possible to apply relaxation to the OpenMC tallies because you might "
-      "end up trying to add vectors of different length (and possibly spatial mapping).");
+    mooseError(
+        "When adaptivity is requested or a displaced problem is used, the mapping from the "
+        "OpenMC model to the [Mesh] may vary in time. This means that we have no guarantee that "
+        "the "
+        "number of tally bins (or even the regions of space corresponding to each bin) are fixed. "
+        "Therefore, it is not possible to apply relaxation to the OpenMC tallies because you might "
+        "end up trying to add vectors of different length (and possibly spatial mapping).");
 
   if (_run_mode == openmc::RunMode::FIXED_SOURCE)
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
@@ -833,8 +838,8 @@ OpenMCCellAverageProblem::storeElementPhase()
   for (const auto & s : excl_density_blocks)
     _n_moose_density_elems += numElemsInSubdomain(s);
 
-  _n_moose_none_elems =
-      _mesh.getMesh().n_active_elem() - _n_moose_temp_density_elems - _n_moose_temp_elems - _n_moose_density_elems;
+  _n_moose_none_elems = _mesh.getMesh().n_active_elem() - _n_moose_temp_density_elems -
+                        _n_moose_temp_elems - _n_moose_density_elems;
 }
 
 void
@@ -1416,9 +1421,10 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
-  _console << "\nMapping between " + Moose::stringify(_mesh.getMesh().n_active_elem()) + " MOOSE elements and " +
-                  Moose::stringify(_n_openmc_cells) + " OpenMC cells (on " +
-                  Moose::stringify(openmc::model::n_coord_levels) + " coordinate levels):"
+  _console << "\nMapping between " + Moose::stringify(_mesh.getMesh().n_active_elem()) +
+                  " MOOSE elements and " + Moose::stringify(_n_openmc_cells) +
+                  " OpenMC cells (on " + Moose::stringify(openmc::model::n_coord_levels) +
+                  " coordinate levels):"
            << std::endl;
 
   VariadicTable<std::string, int, int, int, int> vt(

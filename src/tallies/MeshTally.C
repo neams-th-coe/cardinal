@@ -113,23 +113,25 @@ MeshTally::spatialFilter()
        * the refinement / coarsening process as it has no idea that AMR is required.
        */
       if (!_libmesh_mesh_copy.get())
-        _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
+        _libmesh_mesh_copy =
+            std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
 
-      auto msh = dynamic_cast<const libMesh::ReplicatedMesh*>(_mesh.getMeshPtr());
+      auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(_mesh.getMeshPtr());
       if (!msh)
         mooseError("Internal error: _mesh.getMeshPtr() is not a replicated mesh. "
                    "This should have been caught in the MeshTally constructor.");
 
-      msh->create_submesh(*_libmesh_mesh_copy.get(),
-                          msh->active_elements_begin(),
-                          msh->active_elements_end());
+      msh->create_submesh(
+          *_libmesh_mesh_copy.get(), msh->active_elements_begin(), msh->active_elements_end());
 
       _active_to_total_mapping.clear();
       _active_to_total_mapping.reserve(msh->n_active_elem());
-      for (const auto & old_elem : libMesh::as_range(msh->active_elements_begin(), msh->active_elements_end()))
+      for (const auto & old_elem :
+           libMesh::as_range(msh->active_elements_begin(), msh->active_elements_end()))
         _active_to_total_mapping.push_back(old_elem->id());
 
-      tally_mesh = std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling());
+      tally_mesh =
+          std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling());
     }
     else
       tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling());
@@ -194,7 +196,8 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                               : 1.0;
       total += power_fraction;
 
-      std::vector<unsigned int> elem_ids = { _is_adaptive ? _active_to_total_mapping[e] : mesh_offset + e };
+      std::vector<unsigned int> elem_ids = {_is_adaptive ? _active_to_total_mapping[e]
+                                                         : mesh_offset + e};
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
       fillElementalAuxVariable(var, elem_ids, volumetric_power);
     }
