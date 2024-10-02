@@ -30,7 +30,7 @@ fi
 
 if [[ -z "${LIBMESH_JOBS}" ]]; then
   echo ""
-  echo -e "\e[32mIf you are compiling Cardinal without conda, you can build libMesh in parallel with 8 cores (just an example) by setting:\e[0m"
+  echo -e "\e[32mTo save time and build in parallel, you can build libMesh in parallel with 8 cores (just an example) by setting:\e[0m"
   echo ""
   echo "export LIBMESH_JOBS=8"
   echo ""
