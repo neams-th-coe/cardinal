@@ -2221,18 +2221,12 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     else
       source *= *_source_strength;
 
+    // Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
+    if (isReactionRateScore(_all_tally_scores[global_score]))
+      return source;
+
     if (_all_tally_scores[global_score] == "flux")
       return source / _scaling;
-    else if (_all_tally_scores[global_score] == "H3-production")
-      return source;
-    else if (_all_tally_scores[global_score] == "total")
-      return source;
-    else if (_all_tally_scores[global_score] == "absorption")
-      return source;
-    else if (_all_tally_scores[global_score] == "scatter")
-      return source;
-    else if (_all_tally_scores[global_score] == "fission")
-      return source;
     else
       mooseError("Unhandled tally score enum!");
   }
