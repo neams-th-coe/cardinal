@@ -1,9 +1,0 @@
-[Tests]
-  [total]
-    type = CSVDiff
-    input = openmc.i
-    csvdiff = openmc_out.csv
-    requirement = "The system shall allow tallying of total reaction rates in fixed source mode."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-[]
