@@ -15,6 +15,10 @@ a tally. Options include:
 - `damage_energy`: damage energy production
 - `flux`: particle scalar flux
 - `H3_production`: tritium production reaction rate
+- `total`: the total reaction rate
+- `absorption`: the absorption reaction rate
+- `scatter`: the scatter reaction rate
+- `fission`: the fission reaction rate
 
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). The names of
