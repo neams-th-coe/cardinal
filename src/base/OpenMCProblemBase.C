@@ -695,16 +695,20 @@ OpenMCProblemBase::numCells() const
 bool
 OpenMCProblemBase::isReactionRateScore(const std::string & score) const
 {
-  const std::set<std::string> viable_scores = {"H3-production", "total", "absorption",
-    "scatter", "fission"};
+  const std::set<std::string> viable_scores = {
+      "H3-production", "total", "absorption", "scatter", "fission"};
   return viable_scores.count(score);
 }
 
 bool
 OpenMCProblemBase::isHeatingScore(const std::string & score) const
 {
-  const std::set<std::string> viable_scores = {"heating", "heating-local", "kappa-fission",
-    "fission-q-prompt", "fission-q-recoverable", "damage-energy"};
+  const std::set<std::string> viable_scores = {"heating",
+                                               "heating-local",
+                                               "kappa-fission",
+                                               "fission-q-prompt",
+                                               "fission-q-recoverable",
+                                               "damage-energy"};
   return viable_scores.count(score);
 }
 
