@@ -2225,6 +2225,14 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
       return source / _scaling;
     else if (_all_tally_scores[global_score] == "H3-production")
       return source;
+    else if (_all_tally_scores[global_score] == "total")
+      return source;
+    else if (_all_tally_scores[global_score] == "absorption")
+      return source;
+    else if (_all_tally_scores[global_score] == "scatter")
+      return source;
+    else if (_all_tally_scores[global_score] == "fission")
+      return source;
     else
       mooseError("Unhandled tally score enum!");
   }
