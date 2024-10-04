@@ -315,6 +315,14 @@ NekRSProblem::sendBoundaryDeformationToNek()
 
   if (!_volume)
   {
+    bool apply_new_mesh_velocity = true;
+
+    if (_fp_iteration)
+    {
+      const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+      apply_new_mesh_velocity = *iter != 1 || _t_step == 1;
+    }
+
     for (unsigned int e = 0; e < _n_surface_elems; e++)
     {
       // We can only write into the nekRS scratch space if that face is "owned" by the current process
@@ -323,15 +331,18 @@ NekRSProblem::sendBoundaryDeformationToNek()
 
       mapFaceDataToNekFace(e, _disp_x_var, 1.0, &_displacement_x);
       calculateMeshVelocity(e, field::mesh_velocity_x);
-      writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
+      if (apply_new_mesh_velocity)
+        writeBoundarySolution(e, field::mesh_velocity_x, _mesh_velocity_elem);
 
       mapFaceDataToNekFace(e, _disp_y_var, 1.0, &_displacement_y);
       calculateMeshVelocity(e, field::mesh_velocity_y);
-      writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
+      if (apply_new_mesh_velocity)
+        writeBoundarySolution(e, field::mesh_velocity_y, _mesh_velocity_elem);
 
       mapFaceDataToNekFace(e, _disp_z_var, 1.0, &_displacement_z);
       calculateMeshVelocity(e, field::mesh_velocity_z);
-      writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
+      if (apply_new_mesh_velocity)
+        writeBoundarySolution(e, field::mesh_velocity_z, _mesh_velocity_elem);
     }
   }
   else
@@ -815,9 +826,51 @@ NekRSProblem::calculateMeshVelocity(int e, const field::NekWriteEnum & field)
       mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
   }
 
-  for (int i=0; i <len; i++)
-    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e*len) + i])/dt/_U_ref;
+  if (_fp_iteration)
+  {
+    const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+    if (*iter == 1)
+      _nek_mesh->updateDisplacement(e, displacement, disp_field);
+  }
 
-  _nek_mesh->updateDisplacement(e, displacement, disp_field);
+  for (int i=0; i <len; i++)
+    _mesh_velocity_elem[i] = (displacement[i] - prev_disp[(e * len) + i]) / dt / _U_ref;
+
+  if (!_fp_iteration)
+    _nek_mesh->updateDisplacement(e, displacement, disp_field);
+}
+
+// This function updates the values stores in previous_displacement. This was added to make sure
+// that I only update at the start of a timestep rather than at the start of each picard iteration.
+void
+NekRSProblem::prev_disp_update(int e, const field::NekWriteEnum & field)
+{
+  int len = _volume ? _n_vertices_per_volume : _n_vertices_per_surface;
+  double *displacement = nullptr, *prev_disp = nullptr;
+  const PostprocessorValue * iter = &getPostprocessorValueByName("fp_iteration");
+  field::NekWriteEnum disp_field;
+
+  switch (field)
+  {
+    case field::mesh_velocity_x:
+      displacement = _displacement_x;
+      disp_field = field::x_displacement;
+      break;
+    case field::mesh_velocity_y:
+      displacement = _displacement_y;
+      disp_field = field::y_displacement;
+      break;
+    case field::mesh_velocity_z:
+      displacement = _displacement_z;
+      disp_field = field::z_displacement;
+      break;
+    default:
+      mooseError("Unhandled NekWriteEnum in NekRSProblem::calculateMeshVelocity!\n");
+  }
+
+  if (*iter == 1)
+  {
+    _nek_mesh->updateDisplacement(e, displacement, disp_field);
+  }
 }
 #endif
