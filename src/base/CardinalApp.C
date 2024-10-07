@@ -68,11 +68,10 @@ CardinalApp::validParams()
   // or just plain MOOSE-type apps), these are unused
   params.addCommandLineParam<int>(
       "nekrs_buildonly", "--nekrs-buildonly [#procs]", "#procs to build NekRS if pre-compiling");
-  params.addCommandLineParam<bool>(
+  params.addCommandLineParam<int>(
       "nekrs_cimode",
-      "--nekrs-cimode",
-      false,
-      "Whether to flag NekRS CI settings for execution within Cardinal");
+      "--nekrs-cimode [id]",
+      "Test ID for NekRS CI settings for execution within Cardinal");
   params.addCommandLineParam<std::string>(
       "nekrs_backend",
       "--nekrs-backend",
