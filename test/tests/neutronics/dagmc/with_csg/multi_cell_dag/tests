@@ -1,0 +1,11 @@
+[Tests]
+  [multi_dag_uni_cells]
+    type = RunException
+    input = openmc.i
+    expect_err = "The 'skinner' can only be used when the DAGMC universe in the OpenMC geometry is used as a cell "
+                 "fill at most once."
+    requirement = "The system shall error if the DAGMC universe is used by multiple cells. If so, the "
+                  "DAGMC geometry is replicated and so the skinner will produce an incorrect skin."
+    required_objects = 'MoabSkinner'
+  []
+[]

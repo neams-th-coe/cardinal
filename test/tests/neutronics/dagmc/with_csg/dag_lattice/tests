@@ -1,0 +1,10 @@
+[Tests]
+  [dag_in_lattice]
+    type = RunException
+    input = openmc.i
+    expect_err = "The 'skinner' cannot be used when the DAGMC universe is contained in lattice geometry."
+    requirement = "The system shall error if the DAGMC universe is used as a lattice element. If so, the "
+                  "DAGMC geometry may be replicated and so the skinner may produce an incorrect skin."
+    required_objects = 'MoabSkinner'
+  []
+[]

@@ -1,0 +1,12 @@
+[Tests]
+  [dag_cell_not_root]
+    type = RunException
+    input = openmc.i
+    expect_err = "The 'skinner' can only be used when the cell using the DAGMC universe as a fill is contained in the "
+                 "root universe."
+    requirement = "The system shall error if the cell containing the DAGMC universe is not contained in the "
+                  "root universe. If so, we cannot guarantee that the DAGMC geometry is not replicated and "
+                  "the skinner may produce an incorrect skin."
+    required_objects = 'MoabSkinner'
+  []
+[]
