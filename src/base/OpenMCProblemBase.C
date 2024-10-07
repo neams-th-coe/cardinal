@@ -70,6 +70,9 @@ OpenMCProblemBase::validParams()
       false,
       "Whether to skip writing any statepoint files from OpenMC; this is a performance "
       "optimization for scenarios where you may not want the statepoint files anyways");
+
+  params.declareControllable("power");
+  params.declareControllable("source_strength");
   return params;
 }
 
