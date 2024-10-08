@@ -111,7 +111,8 @@ MeshTally::spatialFilter()
        * done, the equation system added by the OpenMC mesh object will throw an error during
        * the refinement / coarsening process as it has no idea that AMR is required.
        */
-      _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
+      _libmesh_mesh_copy =
+          std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
 
       auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(_mesh.getMeshPtr());
       if (!msh)
@@ -129,21 +130,24 @@ MeshTally::spatialFilter()
         _active_to_total_mapping.push_back(old_elem->id());
 
       _mesh_index = openmc::model::meshes.size();
-      openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling()));
-      _mesh_template = dynamic_cast<openmc::LibMesh*>(openmc::model::meshes.back().get());
+      openmc::model::meshes.emplace_back(
+          std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling()));
+      _mesh_template = dynamic_cast<openmc::LibMesh *>(openmc::model::meshes.back().get());
     }
     else
     {
       _mesh_index = openmc::model::meshes.size();
-      openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling()));
-      _mesh_template = dynamic_cast<openmc::LibMesh*>(openmc::model::meshes.back().get());
+      openmc::model::meshes.emplace_back(
+          std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling()));
+      _mesh_template = dynamic_cast<openmc::LibMesh *>(openmc::model::meshes.back().get());
     }
   }
   else
   {
     _mesh_index = openmc::model::meshes.size();
-    openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
-    _mesh_template = dynamic_cast<openmc::LibMesh*>(openmc::model::meshes.back().get());
+    openmc::model::meshes.emplace_back(
+        std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
+    _mesh_template = dynamic_cast<openmc::LibMesh *>(openmc::model::meshes.back().get());
   }
 
   // by setting the ID to -1, OpenMC will automatically detect the next available ID
