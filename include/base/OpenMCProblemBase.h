@@ -70,8 +70,14 @@ public:
   void catchOpenMCError(const int & err, const std::string descriptor) const;
 
   /**
+   * Whether the score is a reaction rate score
+   * @return whether the tally from OpenMC has units of 1/src
+   */
+  bool isReactionRateScore(const std::string & score) const;
+
+  /**
    * Whether the score is a heating-type score
-   * @return whether tally from OpenMC has units of eV/src
+   * @return whether the tally from OpenMC has units of eV/src
    */
   bool isHeatingScore(const std::string & score) const;
 
