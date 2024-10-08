@@ -94,7 +94,7 @@ protected:
   openmc::MeshFilter * _mesh_filter;
 
   /// OpenMC unstructured mesh instance for use with mesh tallies
-  const openmc::LibMesh * _mesh_template;
+  openmc::LibMesh * _mesh_template;
 
   /**
    * For use with AMR only. A copy of the mesh which only contains active elements.

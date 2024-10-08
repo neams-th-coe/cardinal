@@ -102,7 +102,6 @@ std::pair<unsigned int, openmc::Filter *>
 MeshTally::spatialFilter()
 {
   // Create the OpenMC mesh which will be tallied on.
-  std::unique_ptr<openmc::LibMesh> tally_mesh;
   if (!_mesh_template_filename)
   {
     if (_is_adaptive)
@@ -112,9 +111,7 @@ MeshTally::spatialFilter()
        * done, the equation system added by the OpenMC mesh object will throw an error during
        * the refinement / coarsening process as it has no idea that AMR is required.
        */
-      if (!_libmesh_mesh_copy.get())
-        _libmesh_mesh_copy =
-            std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
+      _libmesh_mesh_copy = std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
 
       auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(_mesh.getMeshPtr());
       if (!msh)
@@ -130,24 +127,27 @@ MeshTally::spatialFilter()
            libMesh::as_range(msh->active_elements_begin(), msh->active_elements_end()))
         _active_to_total_mapping.push_back(old_elem->id());
 
-      tally_mesh =
-          std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling());
+      _mesh_index = openmc::model::meshes.size();
+      openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling()));
+      _mesh_template = dynamic_cast<openmc::LibMesh*>(openmc::model::meshes.back().get());
     }
     else
-      tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling());
+    {
+      _mesh_index = openmc::model::meshes.size();
+      openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling()));
+      _mesh_template = dynamic_cast<openmc::LibMesh*>(openmc::model::meshes.back().get());
+    }
   }
   else
-    tally_mesh =
-        std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling());
+  {
+    _mesh_index = openmc::model::meshes.size();
+    openmc::model::meshes.emplace_back(std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
+    _mesh_template = dynamic_cast<openmc::LibMesh*>(openmc::model::meshes.back().get());
+  }
 
   // by setting the ID to -1, OpenMC will automatically detect the next available ID
-  tally_mesh->set_id(-1);
-  tally_mesh->output_ = false;
-  _mesh_template = tally_mesh.get();
-
-  // Create the mesh filter itself.
-  _mesh_index = openmc::model::meshes.size();
-  openmc::model::meshes.push_back(std::move(tally_mesh));
+  _mesh_template->set_id(-1);
+  _mesh_template->output_ = false;
 
   _mesh_filter = dynamic_cast<openmc::MeshFilter *>(openmc::Filter::create("mesh"));
   _mesh_filter->set_mesh(_mesh_index);
