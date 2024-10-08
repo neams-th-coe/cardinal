@@ -120,6 +120,7 @@ MeshTally::spatialFilter()
 
       msh->create_submesh(
           *_libmesh_mesh_copy.get(), msh->active_elements_begin(), msh->active_elements_end());
+      _libmesh_mesh_copy->allow_renumbering(false);
 
       _active_to_total_mapping.clear();
       _active_to_total_mapping.reserve(msh->n_active_elem());
