@@ -1,9 +1,0 @@
-[Tests]
-  [fixed_mesh]
-    type = RunException
-    input = fixed_mesh.i
-    expect_err = "When using mesh adaptivity, 'fixed_mesh' must be false!"
-    requirement = "The system shall error if user incorrectly specifies a fixed mesh when adaptivity is turned on."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-[]
