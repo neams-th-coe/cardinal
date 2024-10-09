@@ -129,26 +129,19 @@ MeshTally::spatialFilter()
            libMesh::as_range(msh->active_elements_begin(), msh->active_elements_end()))
         _active_to_total_mapping.push_back(old_elem->id());
 
-      _mesh_index = openmc::model::meshes.size();
       openmc::model::meshes.emplace_back(
           std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling()));
-      _mesh_template = dynamic_cast<openmc::LibMesh *>(openmc::model::meshes.back().get());
     }
     else
-    {
-      _mesh_index = openmc::model::meshes.size();
       openmc::model::meshes.emplace_back(
           std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling()));
-      _mesh_template = dynamic_cast<openmc::LibMesh *>(openmc::model::meshes.back().get());
-    }
   }
   else
-  {
-    _mesh_index = openmc::model::meshes.size();
     openmc::model::meshes.emplace_back(
         std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling()));
-    _mesh_template = dynamic_cast<openmc::LibMesh *>(openmc::model::meshes.back().get());
-  }
+
+  _mesh_index = openmc::model::meshes.size() - 1;
+  _mesh_template = dynamic_cast<openmc::LibMesh *>(openmc::model::meshes[_mesh_index].get());
 
   // by setting the ID to -1, OpenMC will automatically detect the next available ID
   _mesh_template->set_id(-1);
