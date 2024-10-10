@@ -1,12 +1,13 @@
 !include common_input.i
 
-num_layers_for_THM = 50                  # number of elements in the THM model; for the converged case,
-                                         # we set this to 150
+mdot_single_channel = ${fparse 117.3 / 12 / 108}        # individual coolant channel fluid mass flowrate (kg/s)
+num_layers_for_THM = 50                                 # number of elements in the THM model; for the converged case,
+                                                        # we set this to 150
 
 [GlobalParams]
   initial_p = ${outlet_P}
   initial_T = ${inlet_T}
-  initial_vel = ${fparse mdot / outlet_P / 8.3144598 * 4.0e-3 / inlet_T / (pi * channel_diameter * channel_diameter / 4.0)}
+  initial_vel = ${fparse mdot_single_channel / outlet_P / 8.3144598 * 4.0e-3 / inlet_T / (pi * channel_diameter * channel_diameter / 4.0)}
 
   rdg_slope_reconstruction = full
   closures = none
@@ -112,7 +113,7 @@ num_layers_for_THM = 50                  # number of elements in the THM model; 
   [inlet]
     type = InletMassFlowRateTemperature1Phase
     input = 'channel:in'
-    m_dot = ${mdot}
+    m_dot = ${mdot_single_channel}
     T = ${inlet_T}
   []
 
