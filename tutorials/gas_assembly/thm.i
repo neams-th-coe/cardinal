@@ -1,12 +1,5 @@
 !include common_input.i
 
-# copy-pasta from common.i
-inlet_T = 598.0                          # inlet fluid temperature (K)
-mdot = ${fparse 117.3 / 12 / 108}        # fluid mass flowrate (kg/s)
-outlet_P = 7.1e6                         # fluid outlet pressure (Pa)
-channel_diameter = 0.016                 # diameter of the coolant channels (m)
-height = 6.343                           # height of the assembly (m)
-
 num_layers_for_THM = 50                  # number of elements in the THM model; for the converged case,
                                          # we set this to 150
 
