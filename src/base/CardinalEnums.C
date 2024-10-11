@@ -94,7 +94,9 @@ getInitialPropertiesEnum()
 MultiMooseEnum
 getTallyScoreEnum()
 {
-  return MultiMooseEnum("heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy flux H3_production");
+  return MultiMooseEnum(
+      "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy "
+      "flux H3_production total absorption scatter fission");
 }
 
 MooseEnum
@@ -102,6 +104,6 @@ getEnergyGroupsEnum()
 {
   return MooseEnum(
       "CASMO_2 CASMO_4 CASMO_8 CASMO_16 CASMO_25 CASMO_40 VITAMIN_J_42 SCALE_44 MPACT_51 MPACT_60 "
-      "MPACT_69 CASMO_70 "
-      "XMAS_172 VITAMIN_J_175 SCALE_252 TRIPOLI_315 SHEM_361 CCFE_709 UKAEA_1102 ECCO_1968");
+      "MPACT_69 CASMO_70 XMAS_172 VITAMIN_J_175 SCALE_252 TRIPOLI_315 SHEM_361 CCFE_709 UKAEA_1102 "
+      "ECCO_1968");
 }
