@@ -10,6 +10,7 @@
     type = CSVDiff
     input = mesh.i
     csvdiff = mesh_out.csv
+    mesh_mode = 'replicated'
     requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for mesh tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
@@ -17,6 +18,7 @@
     type = RunException
     input = mesh.i
     cli_args = "Problem/Tallies/Mesh/mesh_template='../meshes/sphere.e'"
+    mesh_mode = 'replicated'
     expect_err = "Adaptivity is only supported when tallying on the mesh in the \[Mesh\] block!"
     requirement = "The system shall error if adaptivity is active and tallying on a mesh template instead of the"
                    " mesh block."
