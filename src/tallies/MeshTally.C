@@ -120,7 +120,7 @@ MeshTally::spatialFilter()
   // Validate the mesh filters to make sure we can run a copy transfer to the [Mesh].
   checkMeshTemplateAndTranslations();
 
-  return std::make_pair(openmc::model::tally_filters.size(), _mesh_filter);
+  return std::make_pair(openmc::model::tally_filters.size() - 1, _mesh_filter);
 }
 
 void
@@ -133,19 +133,19 @@ MeshTally::resetTally()
 }
 
 Real
-MeshTally::storeResults(const std::vector<unsigned int> & var_numbers,
-                        unsigned int local_score,
-                        unsigned int global_score,
-                        const std::string & output_type)
+MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
+                             unsigned int local_score,
+                             unsigned int global_score,
+                             std::vector<xt::xtensor<double, 1>> tally_vals)
 {
   Real total = 0.0;
 
-  unsigned int offset = _instance * _mesh_filter->n_bins();
-  if (output_type == "relaxed")
+  unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
+  for (unsigned int ext_bin = 0; ext_bin < _num_ext_filter_bins; ++ext_bin)
   {
     for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
     {
-      Real power_fraction = _current_tally[local_score](e);
+      Real power_fraction = tally_vals[local_score](ext_bin * _mesh_filter->n_bins() + e);
 
       // divide each tally by the volume that it corresponds to in MOOSE
       // because we will apply it as a volumetric tally (per unit volume).
@@ -156,48 +156,11 @@ MeshTally::storeResults(const std::vector<unsigned int> & var_numbers,
                               _openmc_problem.scaling() * _openmc_problem.scaling();
       total += power_fraction;
 
-      std::vector<unsigned int> elem_ids = {offset + e};
-      fillElementalAuxVariable(var_numbers[local_score], elem_ids, volumetric_power);
+      std::vector<unsigned int> elem_ids = {mesh_offset + e};
+      auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
+      fillElementalAuxVariable(var, elem_ids, volumetric_power);
     }
   }
-  else if (output_type == "std_dev")
-  {
-    for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
-    {
-      Real power_fraction = _current_raw_tally_std_dev[local_score](e);
-
-      // divide each tally by the volume that it corresponds to in MOOSE
-      // because we will apply it as a volumetric tally (per unit volume).
-      // Because we require that the mesh template has units of cm based on the
-      // mesh constructors in OpenMC, we need to adjust the division
-      Real volumetric_power = power_fraction * _openmc_problem.tallyMultiplier(global_score) /
-                              _mesh_template->volume(e) * _openmc_problem.scaling() *
-                              _openmc_problem.scaling() * _openmc_problem.scaling();
-
-      std::vector<unsigned int> elem_ids = {offset + e};
-      fillElementalAuxVariable(var_numbers[local_score], elem_ids, volumetric_power);
-    }
-  }
-  else if (output_type == "raw")
-  {
-    for (decltype(_mesh_filter->n_bins()) e = 0; e < _mesh_filter->n_bins(); ++e)
-    {
-      Real power_fraction = _current_raw_tally[local_score](e);
-
-      // divide each tally by the volume that it corresponds to in MOOSE
-      // because we will apply it as a volumetric tally (per unit volume).
-      // Because we require that the mesh template has units of cm based on the
-      // mesh constructors in OpenMC, we need to adjust the division
-      Real volumetric_power = power_fraction * _openmc_problem.tallyMultiplier(global_score) /
-                              _mesh_template->volume(e) * _openmc_problem.scaling() *
-                              _openmc_problem.scaling() * _openmc_problem.scaling();
-
-      std::vector<unsigned int> elem_ids = {offset + e};
-      fillElementalAuxVariable(var_numbers[local_score], elem_ids, volumetric_power);
-    }
-  }
-  else
-    mooseError("Unknown external output " + output_type);
 
   return total;
 }
@@ -210,10 +173,10 @@ MeshTally::checkMeshTemplateAndTranslations() const
   // copy transfer that necessitates the meshes to have the same elements in the same order). In
   // other words, you might have two meshes that represent the same geometry, the element ordering
   // could be different.
-  unsigned int offset = _instance * _mesh_filter->n_bins();
+  unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {
-    auto elem_ptr = _mesh.queryElemPtr(offset + e);
+    auto elem_ptr = _mesh.queryElemPtr(mesh_offset + e);
 
     // if element is not on this part of the distributed mesh, skip it
     if (!elem_ptr)
@@ -260,7 +223,7 @@ MeshTally::checkMeshTemplateAndTranslations() const
 
     if (different_centroids)
       mooseError(
-          "Centroid for element " + Moose::stringify(offset + e) + " in the [Mesh] (cm): " +
+          "Centroid for element " + Moose::stringify(mesh_offset + e) + " in the [Mesh] (cm): " +
           _openmc_problem.printPoint(centroid_mesh) + "\ndoes not match centroid for element " +
           Moose::stringify(e) + " in the 'mesh_template' with instance " +
           Moose::stringify(_instance) + " (cm): " + _openmc_problem.printPoint(centroid_template) +

@@ -21,10 +21,9 @@
 #include "NekSidePostprocessor.h"
 
 /**
- * Compute the integral of pressure over a surface, multiplied by the dot product of
- * the surface unit normal \f$\hat{n}\f$ with a user-specified direction,
- * \f$\hat{d}\f$, or \f$\int_\Gamma -P\hat{n}\cdot\hat{d}d\Gamma\f$, where
- * \f$\Gamma\f$ is the boundary.
+ * Compute the integral of pressure force that the fluid exerts on a surface,
+ * or \f$\int_\Gamma Pn_id\Gamma\f$, where $n_i$ is either the $x$/$y$/$z$
+ * direction (or the magnitude of the entire force, if the component is 'total').
  *
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
@@ -39,6 +38,6 @@ public:
   virtual Real getValue() const override;
 
 protected:
-  /// Unit direction with which to dot the surface normal
-  Point _direction;
+  /// Component of force to compute
+  const MooseEnum & _component;
 };

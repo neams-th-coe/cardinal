@@ -68,7 +68,9 @@ CardinalApp::validParams()
   // or just plain MOOSE-type apps), these are unused
   params.addCommandLineParam<int>(
       "nekrs_buildonly", "--nekrs-buildonly [#procs]", "#procs to build NekRS if pre-compiling");
-  params.addCommandLineParam<int>("nekrs_cimode", "--nekrs-cimode [id]", "CI test ID for NekRS");
+  params.addCommandLineParam<int>("nekrs_cimode",
+                                  "--nekrs-cimode [id]",
+                                  "Test ID for NekRS CI settings for execution within Cardinal");
   params.addCommandLineParam<std::string>(
       "nekrs_backend",
       "--nekrs-backend",
@@ -176,11 +178,17 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   registerSyntax("VolumetricHeatSourceICAction", "Cardinal/ICs/VolumetricHeatSource");
   registerSyntax("BulkEnergyConservationICAction", "Cardinal/ICs/BulkEnergyConservation");
 
-// Add the [Tallies] block
 #ifdef ENABLE_OPENMC_COUPLING
+  // Add the [Problem/Filters] block
+  registerSyntaxTask("AddFilterAction", "Problem/Filters/*", "add_filters");
+  registerMooseObjectTask("add_filters", Filter, false);
+  addTaskDependency("add_filters", "init_displaced_problem");
+
+  // Add the [Problem/Tallies] block
   registerSyntaxTask("AddTallyAction", "Problem/Tallies/*", "add_tallies");
   registerMooseObjectTask("add_tallies", Tally, false);
-  addTaskDependency("add_tallies", "init_displaced_problem");
+  addTaskDependency("add_tallies",
+                    "add_filters"); // Make sure filters are constructed before tallies.
   // Can only add external auxvars after the tallies have been added.
   addTaskDependency("add_external_aux_variables", "add_tallies");
 #endif

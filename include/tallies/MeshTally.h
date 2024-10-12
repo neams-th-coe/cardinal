@@ -40,22 +40,22 @@ public:
   /// A function to reset the tally. MeshTally overrides this function to delete the OpenMC mesh.
   virtual void resetTally() override;
 
+protected:
   /**
    * A function which stores the results of this tally into the created
-   * auxvariables.
+   * auxvariables. This implements the copy transfer between the tally mesh and the MOOSE mesh.
    * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
-   * @param[in] output_type the output type
+   * @param[in] tally_vals the tally values to store
+   * @return the sum of the tally over all bins.
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score,
-                            const std::string & output_type) override;
-
-protected:
+  virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
+                                 unsigned int local_score,
+                                 unsigned int global_score,
+                                 std::vector<xt::xtensor<double, 1>> tally_vals) override;
   /**
    * Check the setup of the mesh template and translations. Because a simple copy transfer
    * is used to write a mesh tally onto the [Mesh], we require that the

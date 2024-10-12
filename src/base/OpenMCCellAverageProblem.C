@@ -21,6 +21,7 @@
 #include "OpenMCCellAverageProblem.h"
 #include "DelimitedFileReader.h"
 #include "TallyBase.h"
+#include "CellTally.h"
 #include "AddTallyAction.h"
 
 #include "openmc/constants.h"
@@ -1077,7 +1078,7 @@ OpenMCCellAverageProblem::printAuxVariableIO()
     _console << "    AuxVariable:  variable where this score is written\n" << std::endl;
 
     VariadicTable<std::string, std::string, std::string> tallies(
-        {"Tally Name", "Tally Score", "AuxVariable"});
+        {"Tally Name", "Tally Score", "AuxVariable(s)"});
     for (unsigned int i = 0; i < _local_tallies.size(); ++i)
     {
       const auto & scores = _local_tallies[i]->getScores();
@@ -1087,10 +1088,13 @@ OpenMCCellAverageProblem::printAuxVariableIO()
         if (names.size() == 0)
           continue;
 
-        if (j == 0)
-          tallies.addRow(_local_tallies[i]->name(), scores[j], names[j]);
-        else
-          tallies.addRow("", scores[j], names[j]);
+        for (unsigned int k = 0; k < names.size(); ++k)
+        {
+          if (j == 0 && k == 0)
+            tallies.addRow(_local_tallies[i]->name(), scores[j], names[k]);
+          else
+            tallies.addRow("", "", names[k]);
+        }
       }
     }
 
@@ -1717,7 +1721,17 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // the type of couling)
     auto phase = elemFeedback(elem);
 
-    bool requires_mapping = phase != coupling::none || _contains_cell_tally;
+    // Loop over the tallies to check if any CellTally objects map to this element.
+    bool elem_mapped_to_cell_tally = false;
+    for (const auto & tally : _local_tallies)
+    {
+      auto cell_tally = dynamic_cast<const CellTally *>(tally.get());
+      if (cell_tally)
+        elem_mapped_to_cell_tally |=
+            cell_tally->getBlocks().find(id) != cell_tally->getBlocks().end();
+    }
+
+    bool requires_mapping = phase != coupling::none || elem_mapped_to_cell_tally;
 
     // get the level in the OpenMC model to fetch mapped cell information. For
     // uncoupled regions, we know we will be successful in finding a cell (because
@@ -1864,7 +1878,8 @@ OpenMCCellAverageProblem::resetTallies()
   if (_local_tallies.size() == 0 && !_needs_global_tally)
     return;
 
-  // We initialize tallies by forward iterating this vector. We need to delete them in reverse.
+  // We initialize [Problem/Tallies] by forward iterating this vector. We need to delete them in
+  // reverse.
   for (int i = _local_tallies.size() - 1; i >= 0; --i)
     _local_tallies[i]->resetTally();
 
@@ -1906,7 +1921,7 @@ OpenMCCellAverageProblem::initializeTallies()
     _global_sum_tally.resize(_all_tally_scores.size(), 0.0);
   }
 
-  // Initialize all of the [Tallies].
+  // Initialize all of the [Problem/Tallies].
   for (auto & local_tally : _local_tallies)
     local_tally->initializeTally();
 }
@@ -2273,10 +2288,12 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     else
       source *= *_source_strength;
 
+    // Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
+    if (isReactionRateScore(_all_tally_scores[global_score]))
+      return source;
+
     if (_all_tally_scores[global_score] == "flux")
       return source / _scaling;
-    else if (_all_tally_scores[global_score] == "H3-production")
-      return source;
     else
       mooseError("Unhandled tally score enum!");
   }
@@ -2705,9 +2722,18 @@ OpenMCCellAverageProblem::reloadDAGMC()
 }
 
 void
-OpenMCCellAverageProblem::addTallyObject(const std::string & type,
-                                         const std::string & name,
-                                         InputParameters & moose_object_pars)
+OpenMCCellAverageProblem::addFilter(const std::string & type,
+                                    const std::string & name,
+                                    InputParameters & moose_object_pars)
+{
+  auto filter = addObject<FilterBase>(type, name, moose_object_pars, false)[0];
+  _filters[name] = filter;
+}
+
+void
+OpenMCCellAverageProblem::addTally(const std::string & type,
+                                   const std::string & name,
+                                   InputParameters & moose_object_pars)
 {
   auto tally = addObject<TallyBase>(type, name, moose_object_pars, false)[0];
   _local_tallies.push_back(tally);
@@ -2723,8 +2749,6 @@ OpenMCCellAverageProblem::addTallyObject(const std::string & type,
         _all_tally_scores.end())
       _all_tally_scores.push_back(tally_scores[i]);
   }
-
-  _contains_cell_tally = type == "CellTally" ? true : _contains_cell_tally;
 
   // Add the associated global tally if required.
   if (_needs_global_tally && tally->getAuxVarNames().size() > 0)
