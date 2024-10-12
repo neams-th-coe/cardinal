@@ -2448,12 +2448,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 
         // we need to then re-establish the data structures that map from OpenMC cells to the [Mesh]
         // (because the cells changed)
+        resetTallies();
         setupProblem();
       }
-#else
-      // re-establish the mapping from the OpenMC cells to the [Mesh] (because the mesh changed)
-      if (_need_to_reinit_coupling)
-        setupProblem();
 #endif
 
       // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
