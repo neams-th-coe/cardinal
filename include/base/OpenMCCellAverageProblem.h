@@ -412,6 +412,11 @@ protected:
   containedCells containedMaterialCells(const cellInfo & cell_info) const;
 
   /**
+   * Delete the OpenMC DAGMC geometry and re-generate the CSG geometry data structures in-place.
+   */
+  void updateOpenMCGeometry();
+
+  /**
    * Re-generate the OpenMC materials in-place, needed for skinning operation where
    * we create new OpenMC materials on-the-fly in order to receive density feedback.
    */
@@ -1071,8 +1076,20 @@ protected:
   /// Total number of unique OpenMC cell IDs + instances combinations
   long unsigned int _n_openmc_cells;
 
-  /// Index in the OpenMC universes corresponding to the DAGMC universe
-  int32_t _dagmc_universe_index;
+  /// ID of the OpenMC universe corresponding to the DAGMC universe
+  int32_t _dagmc_universe_id;
+
+  /// Whether the DAGMC universe is the root universe or not.
+  bool _dagmc_root_universe = true;
+
+  /// ID of the OpenMC cell corresponding to the cell which uses the DAGMC universe as a fill.
+  int32_t _cell_using_dagmc_universe_id;
+
+  /// The number of OpenMC surfaces before skinning occurs. This is required to properly reinitialize
+  /// the CSG geometry contained in the OpenMC model.
+  const int32_t _initial_num_openmc_surfaces;
+
+  const bool _using_skinner;
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;
