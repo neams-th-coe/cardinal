@@ -85,7 +85,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger") : nullptr),
     _trigger_ignore_zeros(getParam<std::vector<bool>>("trigger_ignore_zeros")),
     _renames_tally_vars(isParamValid("name")),
-    _has_outputs(isParamValid("output"))
+    _has_outputs(isParamValid("output")),
+    _is_adaptive(_openmc_problem.hasAdaptivity())
 {
   if (isParamValid("score"))
   {

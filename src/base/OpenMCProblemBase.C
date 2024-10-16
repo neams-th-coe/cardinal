@@ -346,7 +346,7 @@ OpenMCProblemBase::numElemsInSubdomain(const SubdomainID & id) const
   {
     const auto * elem = _mesh.queryElemPtr(e);
 
-    if (!isLocalElem(elem))
+    if (!isLocalElem(elem) || !elem->active())
       continue;
 
     const auto subdomain_id = elem->subdomain_id();
