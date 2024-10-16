@@ -1026,17 +1026,18 @@ OpenMCCellAverageProblem::printAuxVariableIO()
     {
       const auto & scores = _local_tallies[i]->getScores();
       const auto & names = _local_tallies[i]->getAuxVarNames();
+      const auto bins = _local_tallies[i]->numExtFilterBins();
       for (unsigned int j = 0; j < scores.size(); ++j)
       {
         if (names.size() == 0)
           continue;
 
-        for (unsigned int k = 0; k < names.size(); ++k)
+        for (unsigned int k = bins * j; k < (j + 1) * bins; ++k)
         {
-          if (j == 0 && k == 0)
-            tallies.addRow(_local_tallies[i]->name(), scores[j], names[k]);
-          else
-            tallies.addRow("", "", names[k]);
+          const auto l = j == 0 && k == bins * j ? _local_tallies[i]->name() : "";
+          const auto c = k == bins * j ? scores[j] : "";
+          const auto r = names[k];
+          tallies.addRow(l, c, r);
         }
       }
     }

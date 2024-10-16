@@ -170,6 +170,12 @@ public:
    */
   bool renamesTallyVars() const { return _renames_tally_vars; }
 
+  /**
+   * Get the total number of external filter bins applied to this tally.
+   * @return the total number of external filter bins.
+   */
+  unsigned int numExtFilterBins() const { return _num_ext_filter_bins; }
+
 protected:
   /**
    * A function which stores the results of this tally into the created
