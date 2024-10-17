@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -16,12 +16,29 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "CardinalAppTypes.h"
-#include "ExecFlagRegistry.h"
+#pragma once
 
-#ifdef ENABLE_OPENMC_COUPLING
-const ExecFlagType EXEC_FILTER_GENERATORS = registerExecFlag("EXEC_FILTER_GENERATORS");
-const ExecFlagType EXEC_TALLY_GENERATORS = registerExecFlag("EXEC_TALLY_GENERATORS");
-const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
-const ExecFlagType EXEC_SEND_OPENMC_TALLY_NUCLIDES = registerExecFlag("SEND_OPENMC_TALLY_NUCLIDES");
-#endif
+#include "GeneralUserObject.h"
+
+// forward declarations
+class OpenMCProblemBase;
+
+/**
+ * User object to modify an OpenMC object
+ */
+class OpenMCUserObject : public GeneralUserObject
+{
+public:
+  static InputParameters validParams();
+
+  OpenMCUserObject(const InputParameters & parameters);
+
+  void execute() override;
+
+  std::string long_name() const { return "OpenMCUserObject \"" + this->name() + "\""; }
+
+  const OpenMCProblemBase * openmc_problem() const;
+
+protected:
+  bool _first_execution;
+};

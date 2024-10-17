@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -16,12 +16,42 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "CardinalAppTypes.h"
-#include "ExecFlagRegistry.h"
-
 #ifdef ENABLE_OPENMC_COUPLING
-const ExecFlagType EXEC_FILTER_GENERATORS = registerExecFlag("EXEC_FILTER_GENERATORS");
-const ExecFlagType EXEC_TALLY_GENERATORS = registerExecFlag("EXEC_TALLY_GENERATORS");
-const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
-const ExecFlagType EXEC_SEND_OPENMC_TALLY_NUCLIDES = registerExecFlag("SEND_OPENMC_TALLY_NUCLIDES");
+
+#include "OpenMCUserObject.h"
+#include "OpenMCProblemBase.h"
+
+InputParameters
+OpenMCUserObject::validParams()
+{
+  InputParameters params = GeneralUserObject::validParams();
+  return params;
+}
+
+OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
+  : GeneralUserObject(parameters), _first_execution(true)
+{
+  if (!openmc_problem())
+  {
+    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
+    mooseError("This user object can only be used with wrapped OpenMC cases! "
+               "You need to change the\nproblem type from '" +
+               _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
+  }
+}
+
+void
+OpenMCUserObject::execute()
+{
+  if (!_first_execution)
+    return;
+  initialize();
+  _first_execution = false;
+}
+
+const OpenMCProblemBase *
+OpenMCUserObject::openmc_problem() const
+{
+  return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
+}
 #endif
