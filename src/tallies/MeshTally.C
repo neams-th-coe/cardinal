@@ -136,7 +136,8 @@ Real
 MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,
                              unsigned int global_score,
-                             std::vector<xt::xtensor<double, 1>> tally_vals)
+                             std::vector<xt::xtensor<double, 1>> tally_vals,
+                             bool norm_by_src_rate)
 {
   Real total = 0.0;
 
@@ -151,9 +152,11 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       // because we will apply it as a volumetric tally (per unit volume).
       // Because we require that the mesh template has units of cm based on the
       // mesh constructors in OpenMC, we need to adjust the division
-      Real volumetric_power = power_fraction * _openmc_problem.tallyMultiplier(global_score) /
-                              _mesh_template->volume(e) * _openmc_problem.scaling() *
-                              _openmc_problem.scaling() * _openmc_problem.scaling();
+      Real volumetric_power = power_fraction;
+      volumetric_power *= norm_by_src_rate ? _openmc_problem.tallyMultiplier(global_score) /
+                                             _mesh_template->volume(e) * _openmc_problem.scaling() *
+                                             _openmc_problem.scaling() * _openmc_problem.scaling()
+                                             : 1.0;
       total += power_fraction;
 
       std::vector<unsigned int> elem_ids = {mesh_offset + e};

@@ -185,7 +185,8 @@ protected:
   virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
                                  unsigned int local_score,
                                  unsigned int global_score,
-                                 std::vector<xt::xtensor<double, 1>> tally_vals) = 0;
+                                 std::vector<xt::xtensor<double, 1>> tally_vals,
+                                 bool norm_by_src_rate = true) = 0;
 
   /**
    * Set an auxiliary elemental variable to a specified value
@@ -280,6 +281,9 @@ protected:
 
   /// Current "raw" tally output from Monte Carlo solution
   std::vector<xt::xtensor<double, 1>> _current_raw_tally;
+
+  /// Current "raw" tally relative error.
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally_rel_error;
 
   /// Current "raw" tally standard deviation
   std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
