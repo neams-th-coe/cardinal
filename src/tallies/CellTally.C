@@ -122,8 +122,8 @@ CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       // because we will apply it as a volumetric tally
       Real volumetric_power = power_fraction;
       volumetric_power *= norm_by_src_rate ? _openmc_problem.tallyMultiplier(global_score) /
-                                             _openmc_problem.cellMappedVolume(cell_info)
-                                             : 1.0;
+                                                 _openmc_problem.cellMappedVolume(cell_info)
+                                           : 1.0;
       total += power_fraction;
 
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];

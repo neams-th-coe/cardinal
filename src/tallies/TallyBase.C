@@ -57,17 +57,19 @@ TallyBase::validParams()
       "one "
       "value of 'trigger_ignore_zeros' is provided, that value is applied to all tally scores.");
 
-  MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally_rel_error unrelaxed_tally");
-  params.addParam<MultiMooseEnum>("output",
-                                  openmc_outputs,
-                                  "UNRELAXED field(s) to output from OpenMC for each tally score. "
-                                  "unrelaxed_tally_std_dev will write the standard deviation of "
-                                  "each tally into auxiliary variables "
-                                  "named *_std_dev. unrelaxed_tally_rel_error will write the "
-                                  "relative standard deviation (unrelaxed_tally_std_dev / unrelaxed_tally) "
-                                  "of each tally into auxiliary variables named *_rel_error. "
-                                  "unrelaxed_tally will write the raw unrelaxed tally into auxiliary "
-                                  "variables named *_raw (replace * with 'name').");
+  MultiMooseEnum openmc_outputs(
+      "unrelaxed_tally_std_dev unrelaxed_tally_rel_error unrelaxed_tally");
+  params.addParam<MultiMooseEnum>(
+      "output",
+      openmc_outputs,
+      "UNRELAXED field(s) to output from OpenMC for each tally score. "
+      "unrelaxed_tally_std_dev will write the standard deviation of "
+      "each tally into auxiliary variables "
+      "named *_std_dev. unrelaxed_tally_rel_error will write the "
+      "relative standard deviation (unrelaxed_tally_std_dev / unrelaxed_tally) "
+      "of each tally into auxiliary variables named *_rel_error. "
+      "unrelaxed_tally will write the raw unrelaxed tally into auxiliary "
+      "variables named *_raw (replace * with 'name').");
 
   params.addParam<std::vector<std::string>>("filters", "External filters to add to this tally.");
 
@@ -365,7 +367,8 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
                          xt::all(),
                          local_score,
                          static_cast<int>(openmc::TallyResult::SUM_SQ));
-  current_raw_rel_error = _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
+  current_raw_rel_error =
+      _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
   current_raw_std_dev = current_raw_rel_error * current_raw;
 
   if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
