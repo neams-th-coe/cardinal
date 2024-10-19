@@ -308,9 +308,20 @@ TallyBase::addScore(const std::string & score)
 {
   _tally_score.push_back(score);
 
-  std::string s = score;
-  std::replace(s.begin(), s.end(), '-', '_');
-  _tally_name.push_back(s);
+  std::vector<std::string> score_names({score});
+  std::replace(score_names.back().begin(), score_names.back().end(), '-', '_');
+
+  // Modify the variable name and add extra names for the external filter bins.
+  for (const auto & filter : _ext_filters)
+  {
+    std::vector<std::string> n;
+    for (unsigned int i = 0; i < score_names.size(); ++i)
+      for (unsigned int j = 0; j < filter->numBins(); ++j)
+        n.push_back(score_names[i] + "_" + filter->binName(j));
+
+    score_names = n;
+  }
+  std::copy(score_names.begin(), score_names.end(), std::back_inserter(_tally_name));
 
   _local_sum_tally.resize(_tally_score.size(), 0.0);
   _local_mean_tally.resize(_tally_score.size(), 0.0);
