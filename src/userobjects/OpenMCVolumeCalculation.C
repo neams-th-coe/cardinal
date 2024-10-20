@@ -21,6 +21,7 @@
 #include "OpenMCVolumeCalculation.h"
 #include "OpenMCCellAverageProblem.h"
 #include "UserErrorChecking.h"
+#include "DisplacedProblem.h"
 
 registerMooseObject("CardinalApp", OpenMCVolumeCalculation);
 
@@ -65,26 +66,10 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
 
   _scaling = _openmc_problem->scaling();
 
-  BoundingBox box = MeshTools::create_bounding_box(_fe_problem.mesh());
-  _lower_left = isParamValid("lower_left") ? getParam<Point>("lower_left") : box.min();
-  _upper_right = isParamValid("upper_right") ? getParam<Point>("upper_right") : box.max();
-
-  if (_lower_left >= _upper_right)
-    paramError("upper_right",
-               "The 'upper_right' (",
-               _upper_right(0),
-               ", ",
-               _upper_right(1),
-               ", ",
-               _upper_right(2),
-               ") "
-               "must be greater than the 'lower_left' (",
-               _lower_left(0),
-               ", ",
-               _lower_left(1),
-               ", ",
-               _lower_left(2),
-               ")!");
+  if (isParamValid("lower_left"))
+    _lower_left = getParam<Point>("lower_left");
+  if (isParamValid("upper_right"))
+    _upper_right = getParam<Point>("upper_right");
 }
 
 openmc::Position
@@ -101,9 +86,41 @@ OpenMCVolumeCalculation::resetVolumeCalculation()
   openmc::model::volume_calcs.erase(idx);
 }
 
+MooseMesh &
+OpenMCVolumeCalculation::getMooseMesh()
+{
+  return ((_fe_problem.getDisplacedProblem()) ? _fe_problem.getDisplacedProblem()->mesh()
+                                              : _fe_problem.mesh());
+}
+
 void
 OpenMCVolumeCalculation::initializeVolumeCalculation()
 {
+  BoundingBox box = MeshTools::create_bounding_box(getMooseMesh().getMesh());
+  if (_fe_problem.getDisplacedProblem() != nullptr)
+    _fe_problem.getDisplacedProblem()->updateMesh();
+
+  if (!isParamValid("lower_left"))
+    _lower_left = box.min();
+  if (!isParamValid("upper_right"))
+    _upper_right = box.max();
+
+  if ((_lower_left >= _upper_right) && (isParamValid("lower_left") || isParamValid("lower_left")))
+    mooseError("The 'upper_right' (",
+               _upper_right(0),
+               ", ",
+               _upper_right(1),
+               ", ",
+               _upper_right(2),
+               ") "
+               "must be greater than the 'lower_left' (",
+               _lower_left(0),
+               ", ",
+               _lower_left(1),
+               ", ",
+               _lower_left(2),
+               ")!");
+
   _volume_calc.reset(new openmc::VolumeCalculation());
   _volume_calc->domain_type_ = openmc::VolumeCalculation::TallyDomain::CELL;
   _volume_calc->lower_left_ = position(_lower_left * _scaling);
