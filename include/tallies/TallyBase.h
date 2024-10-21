@@ -20,6 +20,7 @@
 
 #include "MooseObject.h"
 #include "CardinalEnums.h"
+#include "MooseMesh.h"
 
 #include "openmc/tallies/tally.h"
 #include "xtensor/xview.hpp"
@@ -301,4 +302,10 @@ protected:
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
+  
+  /// Whether the skinned mesh should be generated from a displaced mesh
+  const bool & _use_displaced;
+
+  /// Moose mesh
+  MooseMesh & getMooseMesh();
 };

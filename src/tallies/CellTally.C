@@ -18,6 +18,7 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 #include "CellTally.h"
+#include "DisplacedProblem.h"
 
 registerMooseObject("CardinalApp", CellTally);
 
@@ -41,6 +42,9 @@ CellTally::validParams()
                                     1e-8,
                                     "equal_tally_volume_abs_tol > 0",
                                     "Absolute tolerance for comparing tally volumes");
+  params.addParam<bool>("use_displaced_mesh",
+                        false,
+                        "Whether the skinned mesh should be generated from a displaced mesh ");
 
   return params;
 }
@@ -48,7 +52,8 @@ CellTally::validParams()
 CellTally::CellTally(const InputParameters & parameters)
   : TallyBase(parameters),
     _check_equal_mapped_tally_volumes(getParam<bool>("check_equal_mapped_tally_volumes")),
-    _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol"))
+    _equal_tally_volume_abs_tol(getParam<Real>("equal_tally_volume_abs_tol")),
+    _use_displaced(getParam<bool>("use_displaced_mesh"))
 {
   if (isParamValid("blocks"))
   {
@@ -56,12 +61,12 @@ CellTally::CellTally(const InputParameters & parameters)
     if (block_names.empty())
       mooseError("Subdomain names must be provided if using 'blocks'!");
 
-    auto block_ids = _mesh.getSubdomainIDs(block_names);
+    auto block_ids = getMooseMesh().getSubdomainIDs(block_names);
     std::copy(
         block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
 
     // Check to make sure all of the blocks are in the mesh.
-    const auto & subdomains = _mesh.meshSubdomains();
+    const auto & subdomains = getMooseMesh().meshSubdomains();
     for (std::size_t b = 0; b < block_names.size(); ++b)
       if (subdomains.find(block_ids[b]) == subdomains.end())
         mooseError("Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
@@ -69,7 +74,7 @@ CellTally::CellTally(const InputParameters & parameters)
   else
   {
     // Tally over all mesh blocks if no blocks are provided.
-    for (const auto & s : _mesh.meshSubdomains())
+    for (const auto & s : getMooseMesh().meshSubdomains())
       _tally_blocks.insert(s);
   }
 }
@@ -179,9 +184,24 @@ CellTally::checkCellMappedSubdomains()
   }
 }
 
+MooseMesh &
+CellTally::getMooseMesh()
+{
+  if (_use_displaced && _openmc_problem.getDisplacedProblem() == nullptr)
+    mooseError("Displaced mesh was requested but the displaced problem does not exist. "
+               "set use_displaced_mesh = False");
+  return ((_use_displaced && _openmc_problem.getDisplacedProblem())
+              ? _openmc_problem.getDisplacedProblem()->mesh()
+              : _openmc_problem.mesh());
+}
+
 std::vector<OpenMCCellAverageProblem::cellInfo>
 CellTally::getTallyCells() const
 {
+  if (_use_displaced)
+  {
+    _openmc_problem.getDisplacedProblem()->updateMesh();
+  }
   bool is_first_tally_cell = true;
   OpenMCCellAverageProblem::cellInfo first_tally_cell;
   Real mapped_tally_volume;

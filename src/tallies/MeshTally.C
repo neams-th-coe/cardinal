@@ -18,6 +18,7 @@
 
 #ifdef ENABLE_OPENMC_COUPLING
 #include "MeshTally.h"
+#include "DisplacedProblem.h"
 
 registerMooseObject("CardinalApp", MeshTally);
 
@@ -37,6 +38,9 @@ MeshTally::validParams()
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
+  params.addParam<bool>("use_displaced_mesh",
+                        false,
+                        "Whether the skinned mesh should be generated from a displaced mesh ");
 
   return params;
 }
@@ -45,7 +49,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
   : TallyBase(parameters),
     _mesh_translation(isParamValid("mesh_translation") ? getParam<Point>("mesh_translation")
                                                        : Point(0.0, 0.0, 0.0)),
-    _instance(getParam<unsigned int>("instance"))
+    _instance(getParam<unsigned int>("instance")),
+    _use_displaced(getParam<bool>("use_displaced_mesh"))
 {
   // Error check the estimators.
   if (isParamValid("estimator"))
@@ -57,7 +62,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _estimator = openmc::TallyEstimator::COLLISION;
 
   // Error check the mesh template.
-  if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
+  if (getMooseMesh().getMesh().allow_renumbering() && !getMooseMesh().getMesh().is_replicated())
     mooseError(
         "Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
 
@@ -75,7 +80,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
     // for distributed meshes, each rank only owns a portion of the mesh information, but
     // OpenMC wants the entire mesh to be available on every rank. We might be able to add
     // this feature in the future, but will need to investigate
-    if (!_mesh.getMesh().is_replicated())
+    if (!getMooseMesh().getMesh().is_replicated())
       mooseError("Directly tallying on the [Mesh] block by OpenMC is not yet supported "
                  "for distributed meshes!");
 
@@ -99,7 +104,7 @@ MeshTally::spatialFilter()
   // Create the OpenMC mesh which will be tallied on.
   std::unique_ptr<openmc::LibMesh> tally_mesh;
   if (!_mesh_template_filename)
-    tally_mesh = std::make_unique<openmc::LibMesh>(_mesh.getMesh(), _openmc_problem.scaling());
+    tally_mesh = std::make_unique<openmc::LibMesh>(getMooseMesh().getMesh(), _openmc_problem.scaling());
   else
     tally_mesh =
         std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling());
@@ -165,18 +170,33 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
   return total;
 }
 
+MooseMesh &
+MeshTally::getMooseMesh()
+{
+  if (_use_displaced && _openmc_problem.getDisplacedProblem() == nullptr)
+    mooseError("Displaced mesh was requested but the displaced problem does not exist. "
+               "set use_displaced_mesh = False");
+  return ((_use_displaced && _openmc_problem.getDisplacedProblem())
+              ? _openmc_problem.getDisplacedProblem()->mesh()
+              : _openmc_problem.mesh());
+}
+
 void
-MeshTally::checkMeshTemplateAndTranslations() const
+MeshTally::checkMeshTemplateAndTranslations()
 {
   // we can do some rudimentary checking on the mesh template by comparing the centroid
   // coordinates compared to centroids in the [Mesh] (because right now, we just doing a simple
   // copy transfer that necessitates the meshes to have the same elements in the same order). In
   // other words, you might have two meshes that represent the same geometry, the element ordering
   // could be different.
+  if (_use_displaced)
+  {
+    _openmc_problem.getDisplacedProblem()->updateMesh();
+  }
   unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {
-    auto elem_ptr = _mesh.queryElemPtr(mesh_offset + e);
+    auto elem_ptr = getMooseMesh().queryElemPtr(mesh_offset + e);
 
     // if element is not on this part of the distributed mesh, skip it
     if (!elem_ptr)

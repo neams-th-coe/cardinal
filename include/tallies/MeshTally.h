@@ -20,8 +20,12 @@
 
 #include "TallyBase.h"
 #include "OpenMCCellAverageProblem.h"
+#include "MooseMesh.h"
 
 #include "openmc/tallies/filter_mesh.h"
+
+class OpenMCCellAverageProblem;
+class MooseMesh;
 
 class MeshTally : public TallyBase
 {
@@ -63,7 +67,7 @@ protected:
    * each element. This function performs as many checks as possible to ensure that the meshes
    * are indeed identical.
    */
-  void checkMeshTemplateAndTranslations() const;
+  void checkMeshTemplateAndTranslations();
 
   /**
    * Mesh template file to use for creating mesh tallies in OpenMC; currently, this mesh
@@ -90,4 +94,10 @@ protected:
 
   /// OpenMC unstructured mesh instance for use with mesh tallies
   const openmc::LibMesh * _mesh_template;
+
+  /// Whether the skinned mesh should be generated from a displaced mesh
+  const bool & _use_displaced;
+
+  /// Moose mesh
+  MooseMesh & getMooseMesh();
 };
