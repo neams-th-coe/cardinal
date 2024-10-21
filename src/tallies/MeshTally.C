@@ -104,7 +104,8 @@ MeshTally::spatialFilter()
   // Create the OpenMC mesh which will be tallied on.
   std::unique_ptr<openmc::LibMesh> tally_mesh;
   if (!_mesh_template_filename)
-    tally_mesh = std::make_unique<openmc::LibMesh>(getMooseMesh().getMesh(), _openmc_problem.scaling());
+    tally_mesh =
+        std::make_unique<openmc::LibMesh>(getMooseMesh().getMesh(), _openmc_problem.scaling());
   else
     tally_mesh =
         std::make_unique<openmc::LibMesh>(*_mesh_template_filename, _openmc_problem.scaling());
