@@ -57,15 +57,19 @@ TallyBase::validParams()
       "one "
       "value of 'trigger_ignore_zeros' is provided, that value is applied to all tally scores.");
 
-  MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
-  params.addParam<MultiMooseEnum>("output",
-                                  openmc_outputs,
-                                  "UNRELAXED field(s) to output from OpenMC for each tally score. "
-                                  "unrelaxed_tally_std_dev will write the standard deviation of "
-                                  "each tally into auxiliary variables "
-                                  "named *_std_dev. Unrelaxed_tally will write the raw unrelaxed "
-                                  "tally into auxiliary variables "
-                                  "named *_raw (replace * with 'name').");
+  MultiMooseEnum openmc_outputs(
+      "unrelaxed_tally_std_dev unrelaxed_tally_rel_error unrelaxed_tally");
+  params.addParam<MultiMooseEnum>(
+      "output",
+      openmc_outputs,
+      "UNRELAXED field(s) to output from OpenMC for each tally score. "
+      "unrelaxed_tally_std_dev will write the standard deviation of "
+      "each tally into auxiliary variables "
+      "named *_std_dev. unrelaxed_tally_rel_error will write the "
+      "relative standard deviation (unrelaxed_tally_std_dev / unrelaxed_tally) "
+      "of each tally into auxiliary variables named *_rel_error. "
+      "unrelaxed_tally will write the raw unrelaxed tally into auxiliary "
+      "variables named *_raw (replace * with 'name').");
 
   params.addParam<std::vector<std::string>>("filters", "External filters to add to this tally.");
 
@@ -195,6 +199,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
       if (o == "UNRELAXED_TALLY_STD_DEV")
         _output_name.push_back("std_dev");
+      else if (o == "UNRELAXED_TALLY_REL_ERROR")
+        _output_name.push_back("rel_error");
       else if (o == "UNRELAXED_TALLY")
         _output_name.push_back("raw");
       else
@@ -228,6 +234,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_rel_error.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 }
@@ -243,6 +250,7 @@ TallyBase::initializeTally()
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_rel_error.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 
@@ -285,6 +293,8 @@ TallyBase::storeResults(const std::vector<unsigned int> & var_numbers,
 
   if (output_type == "relaxed")
     total += storeResultsInner(var_numbers, local_score, global_score, _current_tally);
+  else if (output_type == "rel_error")
+    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally_rel_error, false);
   else if (output_type == "std_dev")
     storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally_std_dev);
   else if (output_type == "raw")
@@ -300,15 +310,27 @@ TallyBase::addScore(const std::string & score)
 {
   _tally_score.push_back(score);
 
-  std::string s = score;
-  std::replace(s.begin(), s.end(), '-', '_');
-  _tally_name.push_back(s);
+  std::vector<std::string> score_names({score});
+  std::replace(score_names.back().begin(), score_names.back().end(), '-', '_');
+
+  // Modify the variable name and add extra names for the external filter bins.
+  for (const auto & filter : _ext_filters)
+  {
+    std::vector<std::string> n;
+    for (unsigned int i = 0; i < score_names.size(); ++i)
+      for (unsigned int j = 0; j < filter->numBins(); ++j)
+        n.push_back(score_names[i] + "_" + filter->binName(j));
+
+    score_names = n;
+  }
+  std::copy(score_names.begin(), score_names.end(), std::back_inserter(_tally_name));
 
   _local_sum_tally.resize(_tally_score.size(), 0.0);
   _local_mean_tally.resize(_tally_score.size(), 0.0);
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_rel_error.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 }
@@ -329,6 +351,7 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
   auto & current = _current_tally[local_score];
   auto & previous = _previous_tally[local_score];
   auto & current_raw = _current_raw_tally[local_score];
+  auto & current_raw_rel_error = _current_raw_tally_rel_error[local_score];
   auto & current_raw_std_dev = _current_raw_tally_std_dev[local_score];
 
   auto mean_tally = _openmc_problem.tallySum(_local_tally, local_score);
@@ -344,8 +367,9 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
                          xt::all(),
                          local_score,
                          static_cast<int>(openmc::TallyResult::SUM_SQ));
-  auto rel_err = _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
-  current_raw_std_dev = rel_err * current_raw;
+  current_raw_rel_error =
+      _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
+  current_raw_std_dev = current_raw_rel_error * current_raw;
 
   if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
   {

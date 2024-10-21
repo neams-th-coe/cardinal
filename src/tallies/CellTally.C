@@ -100,7 +100,8 @@ Real
 CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
                              unsigned int local_score,
                              unsigned int global_score,
-                             std::vector<xt::xtensor<double, 1>> tally_vals)
+                             std::vector<xt::xtensor<double, 1>> tally_vals,
+                             bool norm_by_src_rate)
 {
   Real total = 0.0;
 
@@ -115,13 +116,15 @@ CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       if (!_cell_has_tally[cell_info])
         continue;
 
-      Real local = tally_vals[local_score](ext_bin * _cell_filter->n_bins() + i++);
+      Real power_fraction = tally_vals[local_score](ext_bin * _cell_filter->n_bins() + i++);
 
       // divide each tally value by the volume that it corresponds to in MOOSE
       // because we will apply it as a volumetric tally
-      Real volumetric_power = local * _openmc_problem.tallyMultiplier(global_score) /
-                              _openmc_problem.cellMappedVolume(cell_info);
-      total += local;
+      Real volumetric_power = power_fraction;
+      volumetric_power *= norm_by_src_rate ? _openmc_problem.tallyMultiplier(global_score) /
+                                                 _openmc_problem.cellMappedVolume(cell_info)
+                                           : 1.0;
+      total += power_fraction;
 
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
       fillElementalAuxVariable(var, c.second, volumetric_power);
