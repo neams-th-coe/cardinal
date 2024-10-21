@@ -6,6 +6,14 @@
     requirement = "The system shall support multiple filters within a tally."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [no_norm_score]
+    type = CSVDiff
+    input = filter_no_norm_score.i
+    csvdiff = filter_no_norm_score_out.csv
+    requirement = "The system shall support the automatic addition of the requested source rate normalization score to a single tally when"
+                  " using filters."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [missing_filter]
     type = RunException
     input = no_filter.i

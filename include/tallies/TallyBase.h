@@ -186,12 +186,14 @@ protected:
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] tally_vals the tally values to store
+   * @param[in] norm_by_src_rate whether or not tally_vals should be normalized by the source rate
    * @return the sum of the tally over all bins.
    */
   virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
                                  unsigned int local_score,
                                  unsigned int global_score,
-                                 std::vector<xt::xtensor<double, 1>> tally_vals) = 0;
+                                 std::vector<xt::xtensor<double, 1>> tally_vals,
+                                 bool norm_by_src_rate = true) = 0;
 
   /**
    * Set an auxiliary elemental variable to a specified value
@@ -286,6 +288,9 @@ protected:
 
   /// Current "raw" tally output from Monte Carlo solution
   std::vector<xt::xtensor<double, 1>> _current_raw_tally;
+
+  /// Current "raw" tally relative error.
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally_rel_error;
 
   /// Current "raw" tally standard deviation
   std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;

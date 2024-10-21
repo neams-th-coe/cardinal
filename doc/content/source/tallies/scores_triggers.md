@@ -17,7 +17,7 @@ a tally. Options include:
 - `H3_production`: tritium production reaction rate
 - `total`: the total reaction rate
 - `absorption`: the absorption reaction rate
-- `scatter`: the scatter reaction rate
+- `scatter`: the scattering reaction rate
 - `fission`: the fission reaction rate
 
 For more information on the specific meanings of these various scores,
@@ -34,4 +34,5 @@ an appropriate relative error must be set for each score in `trigger_threshold`.
 Certain aspects of tally results can be output as auxiliary variables to the mesh:
 
 - `unrelaxed_tally`: unrelaxed tally; this will append `_raw` to the tally name and output to the mesh mirror
+- `unrelaxed_tally_rel_error`: unrelaxed tally relative error; this will append `_rel_error` to the tally name and output to the mesh mirror
 - `unrelaxed_tally_std_dev`: unrelaxed tally standard deviation; this will append `_std_dev` to the tally and output to the mesh mirror

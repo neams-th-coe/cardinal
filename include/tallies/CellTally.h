@@ -53,12 +53,14 @@ protected:
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] tally_vals the tally values to store
+   * @param[in] norm_by_src_rate whether or not tally_vals should be normalized by the source rate
    * @return the sum of the tally over all bins.
    */
   virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
                                  unsigned int local_score,
                                  unsigned int global_score,
-                                 std::vector<xt::xtensor<double, 1>> tally_vals) override;
+                                 std::vector<xt::xtensor<double, 1>> tally_vals,
+                                 bool norm_by_src_rate = true) override;
 
   /**
    * Loop over all the OpenMC cells and determine if a cell maps to more than one subdomain
