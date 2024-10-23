@@ -1,10 +1,6 @@
-# copy-pasta from common.i
-inlet_T = 598.0                          # inlet fluid temperature (K)
-mdot = ${fparse 117.3 / (12 * 108)}      # fluid mass flowrate (kg/s)
-outlet_P = 7.1e6                         # fluid outlet pressure (Pa)
-channel_diameter = 0.016                 # diameter of the coolant channels (m)
-height = 1.6                             # height of the unit cell (m)
-num_layers_for_plots = 50
+!include common_input.i
+
+mdot_single_channel = ${fparse 117.3 / 12 / 108}        # individual coolant channel fluid mass flowrate (kg/s)
 
 [GlobalParams]
   initial_p = ${outlet_P}
@@ -116,7 +112,7 @@ num_layers_for_plots = 50
   [inlet]
     type = InletMassFlowRateTemperature1Phase
     input = 'channel:in'
-    m_dot = ${mdot}
+    m_dot = ${mdot_single_channel}
     T = ${inlet_T}
   []
 
