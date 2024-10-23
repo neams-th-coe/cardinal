@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<geometry>
+  <cell fill="50" id="47" universe="1" />
+  <lattice id="50">
+    <pitch>100.0 50.0</pitch>
+    <dimension>1 1</dimension>
+    <lower_left>-12.5 -12.5</lower_left>
+    <universes> 2 </universes>
+  </lattice>
+  <dagmc_universe filename="../../mesh_tallies/slab.h5m" id="2"/>
+</geometry>
