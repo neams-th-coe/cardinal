@@ -345,6 +345,12 @@ public:
 
   int fixedPointIteration() const { return _fixed_point_iteration; }
 
+  /**
+   * Checks if the problem uses adaptivity or not.
+   * @return if the problem uses adaptivity.
+   */
+  bool hasAdaptivity() const { return _has_adaptivity; }
+
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
 
@@ -707,7 +713,7 @@ protected:
   void compareContainedCells(std::map<cellInfo, containedCells> & reference,
                              std::map<cellInfo, containedCells> & compare) const;
 
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+  NumericVector<Number> & _serialized_solution;
 
   /**
    * Whether to automatically compute the mapping of OpenMC cell IDs and
@@ -769,12 +775,16 @@ protected:
   const bool _normalize_by_global;
 
   /**
-   * If 'fixed_mesh' is false, this indicates that the [Mesh] is changing during
-   * the simulation (either from adaptive refinement or from deformation).
-   * When the mesh changes during the simulation, the mapping from OpenMC cells to
-   * the [Mesh] must be re-established after each OpenMC run.
+   * Whether or not the problem contains mesh adaptivity.
    */
-  const bool _need_to_reinit_coupling;
+  bool _has_adaptivity;
+
+  /**
+   * When the mesh changes during the simulation (either from adaptive mesh refinement
+   * or deformation), the mapping from OpenMC cells to the [Mesh] must be re-established
+   * after each OpenMC run.
+   */
+  bool _need_to_reinit_coupling;
 
   /**
    * Whether to check the tallies against the global tally;
