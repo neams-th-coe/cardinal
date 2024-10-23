@@ -208,7 +208,9 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
-    _symmetry(nullptr)
+    _symmetry(nullptr),
+    _initial_num_openmc_surfaces(openmc::model::surfaces.size()),
+    _using_skinner(isParamValid("skinner"))
 {
   // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
   // cells.
@@ -270,7 +272,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   else
     checkUnusedParam(params, "first_iteration_particles", "not using Dufek-Gudowski relaxation");
 
-  if (!_specified_density_feedback || isParamValid("skinner"))
+  if (!_specified_density_feedback || _using_skinner)
     checkUnusedParam(params,
                      "map_density_by_cell",
                      "either (i) applying geometry skinning or (ii) 'density_blocks' is empty");
@@ -286,23 +288,70 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   if (!has_dag)
     checkUnusedParam(
         params, "skinner", "the OpenMC model does not contain any DagMC universes", true);
-  else if (isParamValid("skinner"))
+  else if (_using_skinner)
   {
-    // TODO: we currently delete the entire OpenMC geometry, and only re-build the cells
-    // bounded by the skins. We can generalize this later to only regenerate DAGMC universes,
-    // so that CSG cells are untouched by the skinner. We'd also need to be careful with the
-    // relationships between the DAGMC universes and the CSG cells, because the DAGMC universes
-    // could be filled inside of the CSG cells.
-    if (has_csg && has_dag)
-      mooseError("The 'skinner' can only be used with OpenMC geometries that are entirely DAGMC based.\n"
-        "Your model contains a combination of both CSG and DAG cells.");
-
-    // We know there will be a single DAGMC universe, because we already impose
-    // above that there cannot be CSG cells (and the only way to get >1 DAGMC
-    // universe is to fill it inside a CSG cell).
+    // Loop over all universes to find the DAGMC universe and to check and make sure we only have
+    // the one.
+    unsigned int num_dag_universes = 0;
     for (const auto & universe : openmc::model::universes)
+    {
       if (universe->geom_type() == openmc::GeometryType::DAG)
-        _dagmc_universe_index = openmc::model::universe_map.at(universe->id_);
+      {
+        _dagmc_universe_id = universe->id_;
+        num_dag_universes++;
+      }
+    }
+
+    if (num_dag_universes != 1)
+      mooseError("The 'skinner' can only be used when the OpenMC geometry contains a single DAGMC "
+                 "universe.\n"
+                 "Your geometry contains " +
+                 Moose::stringify(num_dag_universes) + " DAGMC universes.");
+
+    // Loop over each element of each lattice to make sure that it doesn't contain the DAGMC
+    // universe.
+    for (const auto & lattice : openmc::model::lattices)
+    {
+      for (openmc::LatticeIter it = lattice->begin(); it != lattice->end(); ++it)
+        if (openmc::model::universes[*it]->id_ == _dagmc_universe_id)
+          mooseError("The 'skinner' cannot be used when the DAGMC universe is contained in lattice "
+                     "geometry.");
+
+      if (lattice->outer_ != openmc::NO_OUTER_UNIVERSE &&
+          openmc::model::universes[lattice->outer_]->id_ == _dagmc_universe_id)
+        mooseError("The 'skinner' cannot be used when the DAGMC universe is used as the outer "
+                   "universe of a lattice.");
+    }
+
+    // Need to make sure that there is only a single cell which uses the DAGMC universe as it's
+    // fill. The root universe must contain that cell, otherwise the DAGMC universe may be
+    // replicated across the problem.
+    unsigned int num_dag_instances = 0;
+    for (const auto & cell : openmc::model::cells)
+    {
+      if (cell->type_ == openmc::Fill::UNIVERSE &&
+          cell->fill_ == openmc::model::universe_map.at(_dagmc_universe_id))
+      {
+        _dagmc_root_universe = false;
+        num_dag_instances++;
+        _cell_using_dagmc_universe_id = cell->id_;
+      }
+    }
+
+    if (num_dag_instances > 1)
+      mooseError("The 'skinner' can only be used when the DAGMC universe in the OpenMC geometry is "
+                 "used as a cell "
+                 "fill at most once.\n Your geometry contains " +
+                 Moose::stringify(num_dag_instances) +
+                 " cells which "
+                 "use the DAGMC universe as their fill.");
+
+    if (!_dagmc_root_universe &&
+        openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]
+                ->universe_ != openmc::model::root_universe)
+      mooseError("The 'skinner' can only be used when the cell using the DAGMC universe as a fill "
+                 "is contained in the "
+                 "root universe.");
 
     // The newly-generated DAGMC cells could be disjoint in space, in which case
     // it is impossible for us to know with 100% certainty a priori how many materials
@@ -464,10 +513,18 @@ OpenMCCellAverageProblem::initialSetup()
   setupProblem();
 
 #ifdef ENABLE_DAGMC
-  if (isParamValid("skinner"))
+  if (_using_skinner)
   {
     std::set<SubdomainID> t(_temp_blocks.begin(), _temp_blocks.end());
     std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
+
+    if (t != _mesh.meshSubdomains())
+      mooseError("The 'skinner' requires temperature feedback to be applied over the entire mesh. "
+                 "Please update `temperature_blocks` to include all blocks.");
+
+    if (d != _mesh.meshSubdomains() && _specified_density_feedback)
+      mooseError("The 'skinner' requires density feedback to be applied over the entire mesh. "
+                 "Please update `density_blocks` to include all blocks.");
 
     if (t != d && _specified_density_feedback)
       mooseError("The 'skinner' will apply skinning over the entire domain, and requires that the "
@@ -1716,6 +1773,16 @@ OpenMCCellAverageProblem::mapElemsToCells()
     }
 
     auto cell_index = _particle.coord(level).cell;
+
+    // Error if the user is attempting to use a skinner when mapping both CSG cells and DAGMC
+    // geometry to the MOOSE mesh. The skinner is currently not set up to ignore elements that
+    // map to cells and will generate DAGMC geometry that overlaps with pre-existing CSG cells.
+    // TODO: This would be nice to fix, but would require a rework of the skinner.
+    if (openmc::model::cells[cell_index]->geom_type_ == openmc::GeometryType::CSG && _using_skinner)
+      mooseError("At present, the 'skinner' can only be used when the only OpenMC geometry "
+                 "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
+                 "cells which map to the MOOSE mesh.");
+
     auto cell_instance = cell_instance_at_level(_particle, level);
 
     cellInfo cell_info = {cell_index, cell_instance};
@@ -2370,30 +2437,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 #ifdef ENABLE_DAGMC
       if (_skinner)
       {
-        // skin the mesh geometry according to contours in temperature, density, and subdomain
-        _skinner->update();
-
-        openmc::model::universe_cell_counts.clear();
-        openmc::model::universe_level_counts.clear();
-
-        // Clear nuclides and elements, these will get reset in read_ce_cross_sections
-        // Horrible circular logic means that clearing nuclides clears nuclide_map, but
-        // which is needed before nuclides gets reset (similar for elements)
-        std::unordered_map<std::string, int> nuclide_map_copy = openmc::data::nuclide_map;
-        openmc::data::nuclides.clear();
-        openmc::data::nuclide_map = nuclide_map_copy;
-
-        std::unordered_map<std::string, int> element_map_copy = openmc::data::element_map;
-        openmc::data::elements.clear();
-        openmc::data::element_map = element_map_copy;
-
-        // Clear existing cell data
-        openmc::model::cells.clear();
-        openmc::model::cell_map.clear();
-
-        // Clear existing surface data
-        openmc::model::surfaces.clear();
-        openmc::model::surface_map.clear();
+        // Update the OpenMC geometry to take into account skinning. This also calls
+        // _skinner->update().
+        updateOpenMCGeometry();
 
         // Update the OpenMC materials (creating new ones as-needed to support the density binning)
         updateMaterials();
@@ -2403,12 +2449,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 
         // we need to then re-establish the data structures that map from OpenMC cells to the [Mesh]
         // (because the cells changed)
+        resetTallies();
         setupProblem();
       }
-#else
-      // re-establish the mapping from the OpenMC cells to the [Mesh] (because the mesh changed)
-      if (_need_to_reinit_coupling)
-        setupProblem();
 #endif
 
       // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
@@ -2631,14 +2674,23 @@ OpenMCCellAverageProblem::reloadDAGMC()
   _dagmc->init_OBBTree();
 
   // Get an iterator to the DAGMC universe unique ptr
-  auto univ_it = openmc::model::universes.begin() + _dagmc_universe_index;
+  auto univ_it =
+      openmc::model::universes.begin() + openmc::model::universe_map.at(_dagmc_universe_id);
 
   // Remove the old universe
   openmc::model::universes.erase(univ_it);
 
   // Create new DAGMC universe
-  openmc::DAGUniverse* dag_univ_ptr = new openmc::DAGUniverse(_dagmc);
-  openmc::model::universes.push_back(std::unique_ptr<openmc::DAGUniverse>(dag_univ_ptr));
+  openmc::model::universes.emplace_back(std::make_unique<openmc::DAGUniverse>(_dagmc, "", true));
+  _dagmc_universe_id = openmc::model::universes.back()->id_;
+
+  openmc::model::universe_map.clear();
+  for (int32_t i = 0; i < openmc::model::universes.size(); ++i)
+    openmc::model::universe_map[openmc::model::universes[i]->id_] = i;
+
+  if (!_dagmc_root_universe)
+    openmc::model::cells[openmc::model::cell_map.at(_cell_using_dagmc_universe_id)]->fill_ =
+        _dagmc_universe_id;
 
   _console << "Re-generating OpenMC model with " << openmc::model::cells.size() << " cells... ";
 
@@ -2805,6 +2857,150 @@ OpenMCCellAverageProblem::validateLocalTallies()
     mooseWarning(
         "When either running in fixed-source mode, or all tallies have units of eV/src, the "
         "'source_rate_normalization' parameter is unused!");
+}
+
+void
+OpenMCCellAverageProblem::updateOpenMCGeometry()
+{
+#ifdef ENABLE_DAGMC
+  // Need to swap array indices back to ids as OpenMC swapped these when preparing geometry.
+  for (const auto & cell : openmc::model::cells)
+  {
+    if (cell->type_ == openmc::Fill::MATERIAL)
+    {
+      std::vector<int32_t> mat_ids;
+      for (const auto & mat_index : cell->material_)
+        mat_ids.push_back(mat_index == openmc::MATERIAL_VOID
+                              ? openmc::MATERIAL_VOID
+                              : openmc::model::materials[mat_index]->id_);
+      cell->material_ = mat_ids;
+    }
+    if (cell->type_ == openmc::Fill::UNIVERSE && cell->fill_ != openmc::C_NONE)
+      cell->fill_ = openmc::model::universes[cell->fill_]->id_;
+    if (cell->type_ == openmc::Fill::LATTICE && cell->fill_ != openmc::C_NONE)
+      cell->fill_ = openmc::model::lattices[cell->fill_]->id_;
+
+    cell->universe_ = openmc::model::universes[cell->universe_]->id_;
+  }
+
+  for (const auto & lattice : openmc::model::lattices)
+  {
+    for (openmc::LatticeIter it = lattice->begin(); it != lattice->end(); ++it)
+    {
+      int u_index = *it;
+      *it = openmc::model::universes[u_index]->id_;
+    }
+
+    if (lattice->outer_ != openmc::NO_OUTER_UNIVERSE)
+      lattice->outer_ = openmc::model::universes[lattice->outer_]->id_;
+  }
+
+  // skin the mesh geometry according to contours in temperature, density, and subdomain
+  _skinner->update();
+
+  openmc::model::universe_cell_counts.clear();
+  openmc::model::universe_level_counts.clear();
+
+  // Clear nuclides and elements, these will get reset in read_ce_cross_sections
+  // Horrible circular logic means that clearing nuclides clears nuclide_map, but
+  // which is needed before nuclides gets reset (similar for elements)
+  std::unordered_map<std::string, int> nuclide_map_copy = openmc::data::nuclide_map;
+  openmc::data::nuclides.clear();
+  openmc::data::nuclide_map = nuclide_map_copy;
+
+  std::unordered_map<std::string, int> element_map_copy = openmc::data::element_map;
+  openmc::data::elements.clear();
+  openmc::data::element_map = element_map_copy;
+
+  // Clear existing DAGMC cell data. Cells cannot be deleted in-place as that invalidates
+  // all pointers and iterators, so we loop over the cell map to store a list of DAGMC cells.
+  // Afterwards, the cells contained in the list can be deleted.
+  std::vector<int32_t> cells_to_delete;
+  for (auto [id, index] : openmc::model::cell_map)
+    if (openmc::model::cells[index]->geom_type_ == openmc::GeometryType::DAG)
+      cells_to_delete.push_back(openmc::model::cells[index]->id_);
+
+  for (auto cell : cells_to_delete)
+  {
+    for (int32_t i = 0; i < openmc::model::cells.size(); ++i)
+    {
+      if (openmc::model::cells[i]->id_ == cell)
+      {
+        openmc::model::cells.erase(openmc::model::cells.begin() + i);
+        break;
+      }
+    }
+  }
+  cells_to_delete.clear();
+
+  // Clear existing surface data. Similar to cells, deletion of the DAGMC surfaces must be
+  // deferred.
+  std::vector<int> surfaces_to_delete;
+  for (auto [id, index] : openmc::model::surface_map)
+    if (openmc::model::surfaces[index]->geom_type_ == openmc::GeometryType::DAG)
+      surfaces_to_delete.push_back(openmc::model::surfaces[index]->id_);
+
+  for (auto surface : surfaces_to_delete)
+  {
+    for (int i = 0; i < openmc::model::surfaces.size(); ++i)
+    {
+      if (openmc::model::surfaces[i]->id_ == surface)
+      {
+        openmc::model::surface_map.erase(surface);
+        openmc::model::surfaces.erase(openmc::model::surfaces.begin() + i);
+        break;
+      }
+    }
+  }
+  surfaces_to_delete.clear();
+
+  // Need to rebuild the cell_map and surface_map since the indices have changed.
+  openmc::model::cell_map.clear();
+  for (int32_t i = 0; i < openmc::model::cells.size(); ++i)
+    openmc::model::cell_map[openmc::model::cells[i]->id_] = i;
+
+  // Horrible hack since we can't undo the surface id -> index swap that happens in
+  // CSGCell.region_.expression_, and so the 'surface_map' cannot be rebuilt. Intead, 'surfaces' is
+  // resized to the original length and the positions of each surface are shuffled such that they
+  // correspond to their indices in the original 'surface_map'. This results in the addition of N
+  // extra null 'DAGSurface' objects in 'surfaces', where N is the number of DAGMC surfaces in the
+  // geometry. These null surfaces aren't linked to a DAGMC universe and so they do not participate
+  // in particle transport, they just take up memory. CSGCell::region_ and Region::expression_ need
+  // to be made public in OpenMC to avoid this, or an appropriate series of C-API functions / member
+  // functions need to be added to OpenMC.
+  if (openmc::model::surfaces.size() > 0)
+  {
+    for (int i = openmc::model::surfaces.size(); i < _initial_num_openmc_surfaces; ++i)
+      openmc::model::surfaces.push_back(
+          std::move(std::make_unique<openmc::DAGSurface>(nullptr, 0)));
+    for (const auto & [id, index] : openmc::model::surface_map)
+    {
+      // If the surface at the index exists and the id is the same, do nothing.
+      if (openmc::model::surfaces[index]->id_ == id)
+        continue;
+      else
+      {
+        // Otherwise we need to find the filter and swap it with the filter at the current location.
+        for (int i = 0; i < openmc::model::surfaces.size(); ++i)
+        {
+          if (openmc::model::surfaces[i]->id_ == id)
+          {
+            auto temp = std::move(openmc::model::surfaces[index]);
+            openmc::model::surfaces[index] = std::move(openmc::model::surfaces[i]);
+            openmc::model::surfaces[i] = std::move(temp);
+            break;
+          }
+        }
+      }
+    }
+
+    // Sanity check by looping over the surface_map to make sure the indices correspond to the
+    // surface ids.
+    for (const auto & [id, index] : openmc::model::surface_map)
+      if (openmc::model::surfaces[index]->id_ != id)
+        mooseError("Internal error: mismatch between surfaces[surface_map[id]]->id_ and id.");
+  }
+#endif
 }
 
 void
