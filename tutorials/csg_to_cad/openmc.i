@@ -1,21 +1,11 @@
 power = 3000
 
-[Mesh]
-  [fuel]
-    type = FileMeshGenerator
-    file = krusty_fuel.e
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   power = ${power}
 
   temperature_blocks = '1'
   cell_level = 1
-
-  relaxation = dufek_gudowski
-  first_iteration_particles = 1000
 
   skinner = skinner
 
@@ -30,6 +20,13 @@ power = 3000
   []
 []
 
+[Mesh]
+  [fuel]
+    type = FileMeshGenerator
+    file = krusty_fuel.e
+  []
+[]
+
 [UserObjects]
   [skinner]
     type = MoabSkinner
@@ -38,25 +35,7 @@ power = 3000
     temperature_min = 800
     temperature_max = 1000
     build_graveyard = true
-    output_skins = true
   []
-[]
-
-[Postprocessors]
-  [tally_integral]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    execute_on = 'initial transfer timestep_end'
-  []
-[]
-
-[Executioner]
-  type = Transient
-  num_steps = 3
-[]
-
-[Outputs]
-  exodus = true
 []
 
 [MultiApps]
@@ -111,4 +90,21 @@ power = 3000
     type = CellTemperatureAux
     variable = cell_temperature
   []
+[]
+
+[Postprocessors]
+  [tally_integral]
+    type = ElementIntegralVariablePostprocessor
+    variable = kappa_fission
+    execute_on = 'initial transfer timestep_end'
+  []
+[]
+
+[Executioner]
+  type = Transient
+  num_steps = 3
+[]
+
+[Outputs]
+  exodus = true
 []
