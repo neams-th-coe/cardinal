@@ -20,8 +20,12 @@
 
 #include "TallyBase.h"
 #include "OpenMCCellAverageProblem.h"
+#include "MooseMesh.h"
 
 #include "openmc/tallies/filter_cell.h"
+
+class OpenMCCellAverageProblem;
+class MooseMesh;
 
 class CellTally : public TallyBase
 {
@@ -99,4 +103,10 @@ protected:
 
   /// Absolute tolerance for checking equal tally mapped volumes
   const Real & _equal_tally_volume_abs_tol;
+
+  /// Whether the skinned mesh should be generated from a displaced mesh
+  const bool & _use_displaced;
+
+  /// Moose mesh
+  MooseMesh & getMooseMesh();
 };
