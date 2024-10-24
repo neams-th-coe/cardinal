@@ -93,7 +93,8 @@ Think you're ready for the tutorials? Take our [OpenMC Cardinal quiz](https://ww
 
 ## Miscellaneous
 
-11. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
-12. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
-13. [Assessing convergence](tutorials/convergence.md)
-14. [What Transfer should I use?](tutorials/transfers.md)
+11. [Converting CSG to CAD for multiphysics](tutorials/csg_to_cad.md)
+12. [Restarting coupled NekRS and MOOSE simulations](tutorials/restart_nek_moose.md)
+13. [Coupling to arbitrary MOOSE applications](tutorials/other_apps.md)
+14. [Assessing convergence](tutorials/convergence.md)
+15. [What Transfer should I use?](tutorials/transfers.md)

@@ -1,0 +1,293 @@
+<?xml version='1.0' encoding='utf-8'?>
+<model>
+  <materials>
+    <material depletable="true" id="1" name="U-7.65Mo Fuel">
+      <density units="g/cm3" value="17.5"/>
+      <nuclide ao="0.9235" name="U234"/>
+      <nuclide ao="85.97785" name="U235"/>
+      <nuclide ao="0.46175" name="U236"/>
+      <nuclide ao="4.9868999999999994" name="U238"/>
+      <nuclide ao="1.1206485000000002" name="Mo92"/>
+      <nuclide ao="0.7028055" name="Mo94"/>
+      <nuclide ao="1.2142845000000002" name="Mo95"/>
+      <nuclide ao="1.2754845" name="Mo96"/>
+      <nuclide ao="0.7330230000000001" name="Mo97"/>
+      <nuclide ao="1.858338" name="Mo98"/>
+      <nuclide ao="0.7454160000000001" name="Mo100"/>
+      <nuclide ao="0.0002966766" name="C0"/>
+    </material>
+    <material id="2" name="B4C rod">
+      <density units="g/cm3" value="2.15"/>
+      <nuclide ao="0.988922" name="C0"/>
+      <nuclide ao="3.84" name="B10"/>
+      <nuclide ao="0.16" name="B11"/>
+    </material>
+    <material id="3" name="Haynes230">
+      <density units="g/cm3" value="8.97"/>
+      <nuclide ao="44.7265233" name="Ni58"/>
+      <nuclide ao="17.2285767" name="Ni60"/>
+      <nuclide ao="0.7489143" name="Ni61"/>
+      <nuclide ao="2.3878665000000003" name="Ni62"/>
+      <nuclide ao="0.6081192000000001" name="Ni64"/>
+      <nuclide ao="1.0428000000000002" name="Cr50"/>
+      <nuclide ao="20.109360000000002" name="Cr52"/>
+      <nuclide ao="2.28024" name="Cr53"/>
+      <nuclide ao="0.5676" name="Cr54"/>
+      <nuclide ao="0.018" name="W180"/>
+      <nuclide ao="3.975" name="W182"/>
+      <nuclide ao="2.1465" name="W183"/>
+      <nuclide ao="4.596" name="W184"/>
+      <nuclide ao="4.2645" name="W186"/>
+      <nuclide ao="0.43947" name="Mo92"/>
+      <nuclide ao="0.27560999999999997" name="Mo94"/>
+      <nuclide ao="0.47619" name="Mo95"/>
+      <nuclide ao="0.5001899999999999" name="Mo96"/>
+      <nuclide ao="0.28746" name="Mo97"/>
+      <nuclide ao="0.72876" name="Mo98"/>
+      <nuclide ao="0.29232" name="Mo100"/>
+      <nuclide ao="1.0" name="Mn55"/>
+      <nuclide ao="0.6917226000000001" name="Si28"/>
+      <nuclide ao="0.0351237" name="Si29"/>
+      <nuclide ao="0.0231537" name="Si30"/>
+      <nuclide ao="0.08900298" name="C0"/>
+    </material>
+    <material id="4" name="Mo Foil">
+      <density units="g/cm3" value="10.2"/>
+      <nuclide ao="0.14649" name="Mo92"/>
+      <nuclide ao="0.09187" name="Mo94"/>
+      <nuclide ao="0.15873" name="Mo95"/>
+      <nuclide ao="0.16673" name="Mo96"/>
+      <nuclide ao="0.09582" name="Mo97"/>
+      <nuclide ao="0.24292" name="Mo98"/>
+      <nuclide ao="0.09744" name="Mo100"/>
+    </material>
+    <material id="5" name="Cu Foil">
+      <density units="g/cm3" value="8.9"/>
+      <nuclide ao="0.6915" name="Cu63"/>
+      <nuclide ao="0.3085" name="Cu65"/>
+    </material>
+    <material id="6" name="Ni heat pipe wick">
+      <density units="g/cm3" value="8.9"/>
+      <nuclide ao="0.680769" name="Ni58"/>
+      <nuclide ao="0.262231" name="Ni60"/>
+      <nuclide ao="0.011399" name="Ni61"/>
+      <nuclide ao="0.036345" name="Ni62"/>
+      <nuclide ao="0.009256" name="Ni64"/>
+    </material>
+    <material id="7" name="heat pipe fluid">
+      <density units="g/cm3" value="0.1941"/>
+      <nuclide ao="1.0" name="Na23"/>
+    </material>
+    <material id="8" name="SS">
+      <density units="g/cm3" value="7.99"/>
+      <nuclide ao="0.0018789517999999999" name="C0"/>
+      <nuclide ao="0.0092672382464" name="Si28"/>
+      <nuclide ao="0.00047056391679999997" name="Si29"/>
+      <nuclide ao="0.00031019783679999996" name="Si30"/>
+      <nuclide ao="0.000413" name="P31"/>
+      <nuclide ao="0.000247105924" name="S32"/>
+      <nuclide ao="1.946594e-06" name="S33"/>
+      <nuclide ao="1.0909573999999999e-05" name="S34"/>
+      <nuclide ao="3.7908e-08" name="S36"/>
+      <nuclide ao="0.007907291700000001" name="Cr50"/>
+      <nuclide ao="0.15248424954" name="Cr52"/>
+      <nuclide ao="0.01729048986" name="Cr53"/>
+      <nuclide ao="0.004303968900000001" name="Cr54"/>
+      <nuclide ao="0.010274" name="Mn55"/>
+      <nuclide ao="0.0389751614" name="Fe54"/>
+      <nuclide ao="0.6118266824799999" name="Fe56"/>
+      <nuclide ao="0.01412974628" name="Fe57"/>
+      <nuclide ao="0.0018804098399999999" name="Fe58"/>
+      <nuclide ao="0.077473554507" name="Ni58"/>
+      <nuclide ao="0.029842674492999998" name="Ni60"/>
+      <nuclide ao="0.001297240397" name="Ni61"/>
+      <nuclide ao="0.004136170035" name="Ni62"/>
+      <nuclide ao="0.001053360568" name="Ni64"/>
+      <nuclide ao="0.00212469096" name="Mo92"/>
+      <nuclide ao="0.0013324824799999999" name="Mo94"/>
+      <nuclide ao="0.00230221992" name="Mo95"/>
+      <nuclide ao="0.00241825192" name="Mo96"/>
+      <nuclide ao="0.00138977328" name="Mo97"/>
+      <nuclide ao="0.0035233116799999998" name="Mo98"/>
+      <nuclide ao="0.00141326976" name="Mo100"/>
+    </material>
+    <material id="9" name="Helium for gap">
+      <density units="g/cm3" value="0.001598"/>
+      <nuclide ao="4.8088e-10" name="He3"/>
+      <nuclide ao="0.00024043951912" name="He4"/>
+    </material>
+    <material id="10" name="BeO reflector">
+      <density units="g/cm3" value="2.85"/>
+      <nuclide ao="1.0" name="Be9"/>
+      <nuclide ao="0.9976206" name="O16"/>
+      <nuclide ao="0.000379" name="O17"/>
+    </material>
+    <material id="11" name="Shield">
+      <density units="g/cm3" value="7.99"/>
+      <nuclide ao="0.0018789517999999999" name="C0"/>
+      <nuclide ao="0.0092672382464" name="Si28"/>
+      <nuclide ao="0.00047056391679999997" name="Si29"/>
+      <nuclide ao="0.00031019783679999996" name="Si30"/>
+      <nuclide ao="0.000413" name="P31"/>
+      <nuclide ao="0.000247105924" name="S32"/>
+      <nuclide ao="1.946594e-06" name="S33"/>
+      <nuclide ao="1.0909573999999999e-05" name="S34"/>
+      <nuclide ao="3.7908e-08" name="S36"/>
+      <nuclide ao="0.007907291700000001" name="Cr50"/>
+      <nuclide ao="0.15248424954" name="Cr52"/>
+      <nuclide ao="0.01729048986" name="Cr53"/>
+      <nuclide ao="0.004303968900000001" name="Cr54"/>
+      <nuclide ao="0.010274" name="Mn55"/>
+      <nuclide ao="0.0389751614" name="Fe54"/>
+      <nuclide ao="0.6118266824799999" name="Fe56"/>
+      <nuclide ao="0.01412974628" name="Fe57"/>
+      <nuclide ao="0.0018804098399999999" name="Fe58"/>
+      <nuclide ao="0.077473554507" name="Ni58"/>
+      <nuclide ao="0.029842674492999998" name="Ni60"/>
+      <nuclide ao="0.001297240397" name="Ni61"/>
+      <nuclide ao="0.004136170035" name="Ni62"/>
+      <nuclide ao="0.001053360568" name="Ni64"/>
+      <nuclide ao="0.00212469096" name="Mo92"/>
+      <nuclide ao="0.0013324824799999999" name="Mo94"/>
+      <nuclide ao="0.00230221992" name="Mo95"/>
+      <nuclide ao="0.00241825192" name="Mo96"/>
+      <nuclide ao="0.00138977328" name="Mo97"/>
+      <nuclide ao="0.0035233116799999998" name="Mo98"/>
+      <nuclide ao="0.00141326976" name="Mo100"/>
+    </material>
+  </materials>
+  <geometry>
+    <cell fill="2" id="1" name="fuel" region="-104 103 -48 47 14 18 22 26 30 34 38 42" universe="1"/>
+    <cell id="578" material="void" name="B4C_region" region="-2 46 -52" universe="1"/>
+    <cell id="579" material="void" name="empty_top" region="-1 2 14 18 22 26 30 34 38 42 49 -52" universe="1"/>
+    <cell id="580" material="10" name="reflector_top" region="-1 2 14 18 22 26 30 34 38 42 48 -49" universe="1"/>
+    <cell id="581" material="10" name="reflector_bottom" region="-1 2 14 18 22 26 30 34 38 42 -47 46" universe="1"/>
+    <cell id="582" material="7" name="HP0_fld" region="-17 46 -52" universe="1"/>
+    <cell id="583" material="6" name="HP0_wck" region="17 -16 46 -52" universe="1"/>
+    <cell id="584" material="8" name="HP0_wall" region="16 -15 46 -52" universe="1"/>
+    <cell id="585" material="5" name="HP0_foil" region="15 -14 46 -52" universe="1"/>
+    <cell id="586" material="7" name="HP45_fld" region="-21 46 -52" universe="1"/>
+    <cell id="587" material="6" name="HP45_wck" region="21 -20 46 -52" universe="1"/>
+    <cell id="588" material="8" name="HP45_wall" region="20 -19 46 -52" universe="1"/>
+    <cell id="589" material="5" name="HP45_foil" region="19 -18 46 -52" universe="1"/>
+    <cell id="590" material="7" name="HP90_fld" region="-25 46 -52" universe="1"/>
+    <cell id="591" material="6" name="HP90_wck" region="25 -24 46 -52" universe="1"/>
+    <cell id="592" material="8" name="HP90_wall" region="24 -23 46 -52" universe="1"/>
+    <cell id="593" material="5" name="HP90_foil" region="23 -22 46 -52" universe="1"/>
+    <cell id="594" material="7" name="HP135_fld" region="-29 46 -52" universe="1"/>
+    <cell id="595" material="6" name="HP135_wck" region="29 -28 46 -52" universe="1"/>
+    <cell id="596" material="8" name="HP135_wall" region="28 -27 46 -52" universe="1"/>
+    <cell id="597" material="5" name="HP135_foil" region="27 -26 46 -52" universe="1"/>
+    <cell id="598" material="7" name="HP180_fld" region="-33 46 -52" universe="1"/>
+    <cell id="599" material="6" name="HP180_wck" region="33 -32 46 -52" universe="1"/>
+    <cell id="600" material="8" name="HP180_wall" region="32 -31 46 -52" universe="1"/>
+    <cell id="601" material="5" name="HP180_foil" region="31 -30 46 -52" universe="1"/>
+    <cell id="602" material="7" name="HP225_fld" region="-37 46 -52" universe="1"/>
+    <cell id="603" material="6" name="HP225_wck" region="37 -36 46 -52" universe="1"/>
+    <cell id="604" material="8" name="HP225_wall" region="36 -35 46 -52" universe="1"/>
+    <cell id="605" material="5" name="HP225_foil" region="35 -34 46 -52" universe="1"/>
+    <cell id="606" material="7" name="HP270_fld" region="-41 46 -52" universe="1"/>
+    <cell id="607" material="6" name="HP270_wck" region="41 -40 46 -52" universe="1"/>
+    <cell id="608" material="8" name="HP270_wall" region="40 -39 46 -52" universe="1"/>
+    <cell id="609" material="5" name="HP270_foil" region="39 -38 46 -52" universe="1"/>
+    <cell id="610" material="7" name="HP315_fld" region="-45 46 -52" universe="1"/>
+    <cell id="611" material="6" name="HP315_wck" region="45 -44 46 -52" universe="1"/>
+    <cell id="612" material="8" name="HP315_wall" region="44 -43 46 -52" universe="1"/>
+    <cell id="613" material="5" name="HP315_foil" region="43 -42 46 -52" universe="1"/>
+    <cell id="614" material="9" name="gap_clamp" region="1 -4 14 18 22 26 30 34 38 42 46 -52" universe="1"/>
+    <cell id="615" material="3" name="ring_clamp" region="-3 4 14 18 22 26 30 34 38 42 46 -52" universe="1"/>
+    <cell id="616" material="9" name="gap_vacuumcan" region="-7 3 46 -52" universe="1"/>
+    <cell id="617" material="4" name="MLI_region" region="-6 7 46 -52" universe="1"/>
+    <cell id="618" material="8" name="vacuum_can" region="-5 6 46 -52" universe="1"/>
+    <cell id="619" material="9" name="gap_sleeve" region="5 -10 46 -52" universe="1"/>
+    <cell id="620" material="8" name="sleeve" region="10 -9 46 -52" universe="1"/>
+    <cell id="621" material="9" name="gap_reflector" region="9 -8 46 -52" universe="1"/>
+    <cell id="622" material="10" name="reflector" region="8 -11 51 -50" universe="1"/>
+    <cell id="623" material="9" name="reflector_ring_top" region="8 -11 50 -52" universe="1"/>
+    <cell id="624" material="11" name="reflector_ring_bottom" region="8 -11 46 -51" universe="1"/>
+    <cell id="625" material="9" name="gap_shield" region="11 -12 46 -52" universe="1"/>
+    <cell id="626" material="11" name="gap_shield" region="12 -13 46 -52" universe="1"/>
+    <dagmc_universe filename="krusty_fuel.h5m" id="2"/>
+    <surface coeffs="0.0 0.0 5.5" id="1" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 2.0" id="2" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 6.065" id="3" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 5.747000000000001" id="4" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 6.65" id="5" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 6.345000000000001" id="6" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 6.218000000000001" id="7" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 7.25" id="8" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 7.15" id="9" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 7.061" id="10" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 19.05" id="11" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 20.5" id="12" type="z-cylinder"/>
+    <surface boundary="vacuum" coeffs="0.0 0.0 50.95" id="13" type="z-cylinder"/>
+    <surface coeffs="0.0 5.175 0.6475" id="14" type="z-cylinder"/>
+    <surface coeffs="0.0 5.175 0.635" id="15" type="z-cylinder"/>
+    <surface coeffs="0.0 5.175 0.546" id="16" type="z-cylinder"/>
+    <surface coeffs="0.0 5.175 0.49600000000000005" id="17" type="z-cylinder"/>
+    <surface coeffs="3.659 3.659 0.6475" id="18" type="z-cylinder"/>
+    <surface coeffs="3.659 3.659 0.635" id="19" type="z-cylinder"/>
+    <surface coeffs="3.659 3.659 0.546" id="20" type="z-cylinder"/>
+    <surface coeffs="3.659 3.659 0.49600000000000005" id="21" type="z-cylinder"/>
+    <surface coeffs="5.175 0.0 0.6475" id="22" type="z-cylinder"/>
+    <surface coeffs="5.175 0.0 0.635" id="23" type="z-cylinder"/>
+    <surface coeffs="5.175 0.0 0.546" id="24" type="z-cylinder"/>
+    <surface coeffs="5.175 0.0 0.49600000000000005" id="25" type="z-cylinder"/>
+    <surface coeffs="3.659 -3.659 0.6475" id="26" type="z-cylinder"/>
+    <surface coeffs="3.659 -3.659 0.635" id="27" type="z-cylinder"/>
+    <surface coeffs="3.659 -3.659 0.546" id="28" type="z-cylinder"/>
+    <surface coeffs="3.659 -3.659 0.49600000000000005" id="29" type="z-cylinder"/>
+    <surface coeffs="0.0 -5.175 0.6475" id="30" type="z-cylinder"/>
+    <surface coeffs="0.0 -5.175 0.635" id="31" type="z-cylinder"/>
+    <surface coeffs="0.0 -5.175 0.546" id="32" type="z-cylinder"/>
+    <surface coeffs="0.0 -5.175 0.49600000000000005" id="33" type="z-cylinder"/>
+    <surface coeffs="-3.659 -3.659 0.6475" id="34" type="z-cylinder"/>
+    <surface coeffs="-3.659 -3.659 0.635" id="35" type="z-cylinder"/>
+    <surface coeffs="-3.659 -3.659 0.546" id="36" type="z-cylinder"/>
+    <surface coeffs="-3.659 -3.659 0.49600000000000005" id="37" type="z-cylinder"/>
+    <surface coeffs="-5.175 0.0 0.6475" id="38" type="z-cylinder"/>
+    <surface coeffs="-5.175 0.0 0.635" id="39" type="z-cylinder"/>
+    <surface coeffs="-5.175 0.0 0.546" id="40" type="z-cylinder"/>
+    <surface coeffs="-5.175 0.0 0.49600000000000005" id="41" type="z-cylinder"/>
+    <surface coeffs="-3.659 3.659 0.6475" id="42" type="z-cylinder"/>
+    <surface coeffs="-3.659 3.659 0.635" id="43" type="z-cylinder"/>
+    <surface coeffs="-3.659 3.659 0.546" id="44" type="z-cylinder"/>
+    <surface coeffs="-3.659 3.659 0.49600000000000005" id="45" type="z-cylinder"/>
+    <surface boundary="vacuum" coeffs="0.0" id="46" type="z-plane"/>
+    <surface coeffs="12.49" id="47" type="z-plane"/>
+    <surface coeffs="37.49" id="48" type="z-plane"/>
+    <surface coeffs="49.980000000000004" id="49" type="z-plane"/>
+    <surface coeffs="37.8925" id="50" type="z-plane"/>
+    <surface coeffs="9.0" id="51" type="z-plane"/>
+    <surface boundary="vacuum" coeffs="50.0" id="52" type="z-plane"/>
+    <surface coeffs="0.0 0.0 2.0" id="103" type="z-cylinder"/>
+    <surface coeffs="0.0 0.0 5.5" id="104" type="z-cylinder"/>
+  </geometry>
+  <settings>
+    <run_mode>eigenvalue</run_mode>
+    <particles>10000</particles>
+    <batches>150</batches>
+    <inactive>50</inactive>
+    <source particle="neutron" strength="1.0" type="independent">
+      <space type="box">
+        <parameters>-5.5 -5.5 20.0 5.5 5.5 45.0</parameters>
+      </space>
+    </source>
+    <temperature_default>800.0</temperature_default>
+    <temperature_method>interpolation</temperature_method>
+    <temperature_range>294.0 3000.0</temperature_range>
+    <temperature_tolerance>1000.0</temperature_tolerance>
+  </settings>
+  <plots>
+    <plot basis="xy" color_by="material" filename="plot1" id="1" type="slice">
+      <pixels>4000 4000</pixels>
+      <origin>0.0 0.0 30.0</origin>
+      <width>15.0 15.0</width>
+    </plot>
+    <plot basis="xz" color_by="cell" filename="plot2" id="2" type="slice">
+      <pixels>10000 10000</pixels>
+      <origin>0.0 0.0 25.0</origin>
+      <width>60.0 60.0</width>
+    </plot>
+  </plots>
+</model>
