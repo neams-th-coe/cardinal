@@ -14,7 +14,7 @@ cd cardinal/tutorials/csg_to_cad
 
 This tutorial also requires you to download
 some mesh files from Box. Please download the files
-from the `csg_to_cad` folder [here](https://anl.app.box.com/folder/290460582816)
+from the `csg_to_cad` folder [here](https://anl.app.box.com/folder/141527707499?s=irryqrx97n5vi4jmct1e3roqgmhzic89)
 and place these files within `tutorials/csg_to_cad`.
 
 !alert! note title=DAGMC build
@@ -63,11 +63,11 @@ Cubit> playback "openmc.jou"
 The quotes around the file name in the block above are meaningful in Cubit's console and should not be omitted.
 !alert-end!
 
-The model should then appear in Cubit
+The model should then appear in Cubit.
 
 !media krusty_full_model_cubit.png
   id=krusty_full
-  style=width:40%
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 The model can then be examined for accuracy, with the material assignments appering
 as groups in the model tree.
@@ -89,13 +89,13 @@ Cubit> playback "openmc_cell1.jou"
 !media krusty_fuel_cad.png
   caption=Fuel volume of the KRUSTY reactor imported into Cubit.
   id=krusty_fuel_only
-  style=width:40%
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 Next we'll create 2 meshes:
 
-  1. A surface mesh of triangle for the DAGMC geometry. This will represent the
-     geometry boundaries for particle transport
-  2. A volumetric mesh for a heating tally and decomposition based on the temperature field produced by heat conduction in MOOSE.
+1. A surface mesh of triangle for the DAGMC geometry. This will represent the
+   geometry boundaries for particle transport
+2. A volumetric mesh for a heating tally and decomposition based on the temperature field produced by heat conduction in MOOSE.
 
 ### Generate the DAGMC Surface Mesh
 
@@ -115,7 +115,7 @@ Cubit> mesh surface all
 !media krusty_fuel_surface_mesh.png
   caption=The surface mesh of the fuel volume.
   id=krusty_surface_mesh
-  style=width:40%
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 Now that this is complete, we'll want to make sure the metadata converted from
 the OpenMC model is handled appropriately. To do this we'll use some capabilites
@@ -129,7 +129,7 @@ in previous Coreform Cubit webinars on modern DAGMC workflows.**
 !media krusty_mat_convert.png
   caption=DAGMC group-based material assignments (legacy) to block assignments.
   id=dagmc_mats_to_block
-  style=width:40%
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 This mesh can now be exported to the `.h5m` format supported by DAGMC.
 
@@ -155,7 +155,7 @@ Cubit> tetmesh tri all make block
 !media krusty_fuel_vol_mesh.png
   caption=Tetrahedral mesh of the fuel volume.
   id=krusty_fuel_vol_mesh
-  style=40%
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 Next, the mesh sideset "heat_pipes" can be added. Cardinal will expect to find
 on this sideset on the mesh.
@@ -168,7 +168,7 @@ Cubit> sideset 1 name "heat_pipes"
 !media heat_pipes_sideset.png
   caption=Generation of the sideset for Cardinal's heat conduction boundary condition.
   id=heat_pipes_sideset
-  style=40%
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 This mesh can now be exported for use in multiphysics copuling.
 
