@@ -74,8 +74,8 @@ The model should then appear in Cubit.
 
 !media krusty_full_model_cubit.png
   id=krusty_full
-  label=OpenMC CSG model, converted into CAD and loaded into Cubit
-  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+  caption=OpenMC CSG model, converted into CAD and loaded into Cubit
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
 The model can then be examined for accuracy, with the material assignments appering
 as groups in the model tree.
@@ -97,7 +97,7 @@ Cubit> playback "openmc_cell1.jou"
 !media krusty_fuel_cad.png
   caption=Fuel volume of the KRUSTY reactor imported into Cubit.
   id=krusty_fuel_only
-  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
 Next we'll create 2 meshes:
 
@@ -123,7 +123,7 @@ Cubit> mesh surface all
 !media krusty_fuel_surface_mesh.png
   caption=The surface mesh of the fuel volume.
   id=krusty_surface_mesh
-  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
 Now that this is complete, we'll want to make sure the metadata converted from
 the OpenMC model is handled appropriately. To do this we'll use some capabilites
@@ -137,7 +137,7 @@ in previous Coreform Cubit webinars on modern DAGMC workflows.**
 !media krusty_mat_convert.png
   caption=DAGMC group-based material assignments (legacy) to block assignments.
   id=dagmc_mats_to_block
-  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
 This mesh can now be exported to the `.h5m` format supported by DAGMC.
 
@@ -176,7 +176,7 @@ Cubit> sideset 1 name "heat_pipes"
 !media heat_pipes_sideset.png
   caption=Generation of the sideset for Cardinal's heat conduction boundary condition.
   id=heat_pipes_sideset
-  style=width:70%;margin-left:auto;margin-right:auto;halign:center
+  style=width:100%;margin-left:auto;margin-right:auto;halign:center
 
 This mesh can now be exported for use in multiphysics copuling.
 
