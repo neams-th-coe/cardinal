@@ -24,7 +24,14 @@ To run this tutorial, you need to have built Cardinal with DAGMC support enabled
 
 ## Geometry and Computational Models
 
-This model consists of a simplified version of the KRUSTY reactor.
+This model consists of a simplified version of the KRUSTY reactor. The neutronics model contains the fuel, heat pipes, and several layers of radial insulation and reflector materials. Simplified material compositions have been used, and many ex-core components have been removed for the sake of a simpler tutorial.
+
+A conceptual image of the (i) fully-detailed KRUSTY model (background transparent image) and the simplified [!ac](CSG) models used in this tutorial (foreground) is shown below.
+
+!media krusty_geom_openmc.png
+  id=krusty_geom_omc
+  caption=OpenMC CSG model with which we will start from
+  style=width:40%;margin-left:auto;margin-right:auto;halign:center
 
 ## Converting CSG to CAD using Coreform Cubit
 
