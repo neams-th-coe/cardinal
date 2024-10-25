@@ -275,9 +275,7 @@ names in each file and which postprocessors to use to ensure power conservation.
   end=ICs
 
 Next, we set some initial conditions, since OpenMC will run first. We set a
-constant initial temperature of 800 K. We also add an auxiliary variable,
-[CellTemperatureAux](https://cardinal.cels.anl.gov/source/auxkernels/CellTemperatureAux.html), so that we can see the temperature field actually applied to OpenMC
-(this will hold the cell temperatures). Lastly, we indicate the run settings -
+constant initial temperature of 800 K. Lastly, we indicate the run settings -
 we will run OpenMC three times, and output all results to Exodus.
 
 !listing /tutorials/csg_to_cad/openmc.i

@@ -78,20 +78,6 @@ power = 3000
   []
 []
 
-[AuxVariables]
-  [cell_temperature]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_temperature]
-    type = CellTemperatureAux
-    variable = cell_temperature
-  []
-[]
-
 [Postprocessors]
   [tally_integral]
     type = ElementIntegralVariablePostprocessor
