@@ -52,7 +52,7 @@ To generate a journal file of the KRUSTY model provided here with the CAD adapte
 run the following command:
 
 ```
-openmc_to_cad model.xml -w 1000 1000 1000 -c 1
+openmc_to_cad original_model.xml -w 1000 1000 1000 -c 1
 ```
 
 This will produce two files, `openmc.jou` and `openmc_cell1.jou`, that contain
