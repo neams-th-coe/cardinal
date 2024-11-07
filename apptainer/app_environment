@@ -1,2 +1,4 @@
 export NEKRS_HOME=/opt/cardinal/contrib
-export OPENMC_CROSS_SECTIONS=/opt/cardinal/share/cardinal/endfb-vii.1-hdf5/cross_sections.xml
+if [ -z "$OPENMC_CROSS_SECTIONS" ]; then
+  export OPENMC_CROSS_SECTIONS=/opt/cardinal/share/cardinal/endfb-vii.1-hdf5/cross_sections.xml
+fi
