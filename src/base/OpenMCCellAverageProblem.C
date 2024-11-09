@@ -537,8 +537,8 @@ OpenMCCellAverageProblem::initialSetup()
         "the [Mesh] must exactly match the underlying OpenMC model, so there is\n"
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
 
-    // Rudimentary error checking to make sure all non-void DAGMC cells are mapped. This helps catch errors
-    // where the skinned MOOSE mesh deletes DAGMC geometry.
+    // Rudimentary error checking to make sure all non-void DAGMC cells are mapped. This helps catch
+    // errors where the skinned MOOSE mesh deletes DAGMC geometry.
     std::set<int32_t> mapped_dag_cells;
     for (const auto & c : openmc::model::cells)
       for (const auto & [c_info, elem] : _cell_to_elem)
@@ -550,8 +550,10 @@ OpenMCCellAverageProblem::initialSetup()
     unsigned int num_dag_cells = 0;
     for (const auto & c : openmc::model::cells)
     {
-      auto no_void = std::find(c->material_.begin(), c->material_.end(), MATERIAL_VOID) == c->material_.end();
-      if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type_ == openmc::GeometryType::DAG && no_void)
+      auto no_void =
+          std::find(c->material_.begin(), c->material_.end(), MATERIAL_VOID) == c->material_.end();
+      if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type_ == openmc::GeometryType::DAG &&
+          no_void)
         num_unmapped++;
       if (c->geom_type_ == openmc::GeometryType::DAG)
         num_dag_cells++;
