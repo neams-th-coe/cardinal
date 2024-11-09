@@ -556,7 +556,8 @@ OpenMCCellAverageProblem::initialSetup()
       unsigned int num_dag_cells = 0;
       for (const auto & c : openmc::model::cells)
       {
-        if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type_ == openmc::GeometryType::DAG)
+        auto no_void = std::find(c->material_.begin(), c->material_.end(), MATERIAL_VOID) == c->material_.end();
+        if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type_ == openmc::GeometryType::DAG && no_void)
           num_unmapped++;
         if (c->geom_type_ == openmc::GeometryType::DAG)
           num_dag_cells++;
