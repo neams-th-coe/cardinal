@@ -46,4 +46,14 @@
     mesh_mode = 'replicated'
     required_objects = 'MoabSkinner'
   []
+  [unmapped_cells]
+    type = RunException
+    input = unmapped_cells.i
+    cli_args = '--error'
+    expect_err = "Your DAGMC geometry contains unmapped cells! The skinner assumes that the DAG geometry used in the OpenMC"
+                 " model maps one to one to the mesh mirror; if that is not the case the skinner may delete some parts of your "
+                 "OpenMC model when the underlying geometry is regenerated. You have 1 unmapped DAGMC cells out of 3 DAGMC cells."
+    requirement = "The system shall warn the user when there is a mismatch between the mesh mirror and the initial OpenMC DAGMC geometry."
+    required_objects = 'MoabSkinner'
+  []
 []

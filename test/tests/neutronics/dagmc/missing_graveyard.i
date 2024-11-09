@@ -15,8 +15,6 @@
   power = 1000.0
   skinner = moab
 
-  ignore_dag_mapping_warning = true
-
   [Tallies]
     [Mesh]
       type = MeshTally

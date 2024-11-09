@@ -1,7 +1,12 @@
 [Mesh]
   [file]
     type = FileMeshGenerator
-    file = ../meshes/tet_cube.e
+    file = ../mesh_tallies/slab.e
+  []
+  [delete]
+    type = BlockDeletionGenerator
+    input = file
+    block = '2'
   []
 
   allow_renumbering = false
@@ -12,14 +17,7 @@
   type = OpenMCCellAverageProblem
   cell_level = 0
   temperature_blocks = '1'
-  power = 1000.0
   skinner = moab
-
-  [Tallies]
-    [Mesh]
-      type = MeshTally
-    []
-  []
 []
 
 [UserObjects]
