@@ -7,7 +7,7 @@ in the `[Problem]` block. Otherwise, attempting to add this filter will result i
 ## Description
 
 The `FromXMLFilter` object provides a thin wrapper around an arbitrary OpenMC filter which
-has been added to the problem through the problem through the `tallies.xml` OpenMC input
+has been added to the problem through the `tallies.xml` OpenMC input
 file. `FromXMLFilter` fetches the filter through a filter id provided in `filter_id` which
 must match the id of a filter in `tallies.xml`. The bins of this filter are labelled with
 a string provided in `bin_label`.

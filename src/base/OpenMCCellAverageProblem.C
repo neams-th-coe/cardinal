@@ -178,6 +178,7 @@ OpenMCCellAverageProblem::validParams()
       "of approximately the same volume as the true cells.");
   params.addParam<UserObjectName>("skinner", "When using DAGMC geometries, an optional skinner that will "
     "regenerate the OpenMC geometry on-the-fly according to iso-contours of temperature and density");
+
   return params;
 }
 
@@ -535,6 +536,36 @@ OpenMCCellAverageProblem::initialSetup()
       mooseError("Cannot combine the 'skinner' with 'symmetry_mapper'!\n\nWhen using a skinner, "
         "the [Mesh] must exactly match the underlying OpenMC model, so there is\n"
         "no need to transform spatial coordinates to map between OpenMC and the [Mesh].");
+
+    // Rudimentary error checking to make sure all non-void DAGMC cells are mapped. This helps catch
+    // errors where the skinned MOOSE mesh deletes DAGMC geometry.
+    std::set<int32_t> mapped_dag_cells;
+    for (const auto & c : openmc::model::cells)
+      for (const auto & [c_info, elem] : _cell_to_elem)
+        if (c->geom_type_ == openmc::GeometryType::DAG &&
+            c_info.first == openmc::model::cell_map.at(c->id_))
+          mapped_dag_cells.insert(c->id_);
+
+    unsigned int num_unmapped = 0;
+    unsigned int num_dag_cells = 0;
+    for (const auto & c : openmc::model::cells)
+    {
+      auto no_void =
+          std::find(c->material_.begin(), c->material_.end(), MATERIAL_VOID) == c->material_.end();
+      if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type_ == openmc::GeometryType::DAG &&
+          no_void)
+        num_unmapped++;
+      if (c->geom_type_ == openmc::GeometryType::DAG)
+        num_dag_cells++;
+    }
+
+    if (num_unmapped > 0)
+      mooseWarning("Your DAGMC geometry contains unmapped cells! The skinner assumes that "
+                   "the DAG geometry used in the OpenMC model maps one to one to the mesh "
+                   "mirror; if that is not the case the skinner may delete some parts of "
+                   "your OpenMC model when the underlying geometry is regenerated. You have " +
+                   Moose::stringify(num_unmapped) + " unmapped DAGMC cells out of " +
+                   Moose::stringify(num_dag_cells) + " DAGMC cells.");
 
     const auto & name = getParam<UserObjectName>("skinner");
     auto base = &getUserObject<UserObject>(name);
