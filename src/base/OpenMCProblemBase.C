@@ -118,7 +118,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "power", "running in k-eigenvalue mode");
-        _power = &getPostprocessorValue("power");
+        _power = getPostprocessorValue("power");
       }
       else
         checkUnusedParam(params, "power", "no tallies have been added");
@@ -131,7 +131,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "source_strength", "running in fixed source mode");
-        _source_strength = &getPostprocessorValue("source_strength");
+        _source_strength = getPostprocessorValue("source_strength");
       }
       else
         checkUnusedParam(params, "source_strength", "no tallies have been added");
