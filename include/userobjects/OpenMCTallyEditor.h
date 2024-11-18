@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -18,31 +18,37 @@
 
 #pragma once
 
-#include "GeneralUserObject.h"
+#include "OpenMCUserObject.h"
+
+// forward declarations
+class OpenMCProblemBase;
 
 /**
- * User object to modify the nuclides in an OpenMC tally.
+ * User object to modify an OpenMC tally
  */
-class OpenMCTallyNuclides : public GeneralUserObject
+class OpenMCTallyEditor : public OpenMCUserObject
 {
 public:
   static InputParameters validParams();
 
-  OpenMCTallyNuclides(const InputParameters & parameters);
+  OpenMCTallyEditor(const InputParameters & parameters);
+
+  bool tally_exists() const;
+
+  // get the index of the tally in OpenMC's data space, creating it if necessary according to the
+  // input parameters
+  int32_t tally_index() const;
 
   /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override {}
-
-  virtual void initialize() override {}
+  virtual void execute() override;
+  virtual void initialize() override;
   virtual void finalize() override {}
 
-  /// Instead, we want to have a separate method that we can call from the OpenMC problem
-  virtual void setValue();
+  std::string long_name() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
+
+  // Accessors
+  int32_t tally_id() const { return _tally_id; }
 
 protected:
-  /// The tally index
-  int32_t _tally_index;
-
-  /// Nuclide names
-  const std::vector<std::string> & _names;
+  int32_t _tally_id;
 };
