@@ -151,7 +151,7 @@
   [block_restrict_no_blocks]
     type = RunException
     input = one_mesh_no_input_file.i
-    cli_args = "Problem/Tallies/Mesh/blocks=''"
+    cli_args = "Problem/Tallies/Mesh/blocks='' Mesh/parallel_type=replicated"
     expect_err = "Subdomain names must be provided if using 'blocks'!"
     requirement = "Mesh tallies shall error if the user attempts to apply a block restriction with no blocks."
     required_objects = 'OpenMCCellAverageProblem'

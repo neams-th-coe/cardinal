@@ -153,8 +153,9 @@ MeshTally::spatialFilter()
       if (!msh)
         mooseError("Internal error: The mesh is not a replicated mesh.");
 
-      msh->create_submesh(
-          *_libmesh_mesh_copy.get(), msh->active_subdomain_set_elements_begin(_tally_blocks), msh->active_subdomain_set_elements_end(_tally_blocks));
+      msh->create_submesh(*_libmesh_mesh_copy.get(),
+                          msh->active_subdomain_set_elements_begin(_tally_blocks),
+                          msh->active_subdomain_set_elements_end(_tally_blocks));
       _libmesh_mesh_copy->allow_find_neighbors(true);
       _libmesh_mesh_copy->allow_renumbering(false);
       _libmesh_mesh_copy->prepare_for_use();
@@ -162,7 +163,8 @@ MeshTally::spatialFilter()
       _active_to_total_mapping.clear();
       _active_to_total_mapping.reserve(_libmesh_mesh_copy->n_active_elem());
       for (const auto & old_elem :
-           libMesh::as_range(msh->active_subdomain_set_elements_begin(_tally_blocks), msh->active_subdomain_set_elements_end(_tally_blocks)))
+           libMesh::as_range(msh->active_subdomain_set_elements_begin(_tally_blocks),
+                             msh->active_subdomain_set_elements_end(_tally_blocks)))
         _active_to_total_mapping.push_back(old_elem->id());
 
       openmc::model::meshes.emplace_back(
