@@ -49,37 +49,12 @@
   []
 []
 
-[Postprocessors]
-  [Pebble_1_Heat]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '100'
-  []
-  [Pebble_2_Heat]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '101'
-  []
-  [Pebble_3_Heat]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '102'
-  []
-
-  [Num_Elem]
-    type = NumElements
-    elem_filter = total
-  []
-  [Num_Active_Elem]
-    type = NumElements
-    elem_filter = active
-  []
-[]
-
 [Executioner]
   type = Steady
 []
 
 [Outputs]
-  csv = true
+  exodus = true
+  execute_on = timestep_end
+  hide = 'temp  cell_instance cell_id'
 []

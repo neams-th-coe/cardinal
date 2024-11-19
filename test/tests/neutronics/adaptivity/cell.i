@@ -27,21 +27,6 @@
   []
 []
 
-[AuxVariables]
-  [cell_volume]
-    family = MONOMIAL
-    order = CONSTANT
-  []
-[]
-
-[AuxKernels]
-  [cell_volume]
-    type = CellVolumeAux
-    variable = cell_volume
-    volume_type = mapped
-  []
-[]
-
 [Problem]
   type = OpenMCCellAverageProblem
   verbose = true
@@ -61,53 +46,12 @@
   []
 []
 
-[Postprocessors]
-  [Pebble_1_Vol]
-    type = PointValue
-    point = '0 0 0'
-    variable = cell_volume
-  []
-  [Pebble_2_Vol]
-    type = PointValue
-    point = '0 0 4'
-    variable = cell_volume
-  []
-  [Pebble_3_Vol]
-    type = PointValue
-    point = '0 0 8'
-    variable = cell_volume
-  []
-
-  [Pebble_1_Heat]
-    type = PointValue
-    point = '0 0 0'
-    variable = kappa_fission
-  []
-  [Pebble_2_Heat]
-    type = PointValue
-    point = '0 0 4'
-    variable = kappa_fission
-  []
-  [Pebble_3_Heat]
-    type = PointValue
-    point = '0 0 8'
-    variable = kappa_fission
-  []
-
-  [Num_Elem]
-    type = NumElements
-    elem_filter = total
-  []
-  [Num_Active_Elem]
-    type = NumElements
-    elem_filter = active
-  []
-[]
-
 [Executioner]
   type = Steady
 []
 
 [Outputs]
-  csv = true
+  exodus = true
+  execute_on = timestep_end
+  hide = 'temp  cell_instance cell_id'
 []

@@ -1,16 +1,25 @@
 [Tests]
   [adaptive_cell]
-    type = CSVDiff
+    type = Exodiff
     input = cell.i
-    csvdiff = cell_out.csv
+    exodiff = cell_out.e
     requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for cell tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [adaptive_mesh]
-    type = CSVDiff
+    type = Exodiff
     input = mesh.i
-    csvdiff = mesh_out.csv
+    exodiff = mesh_out.e
     mesh_mode = 'replicated'
+    requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for mesh tallies."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [adaptive_mesh_restrict]
+    type = Exodiff
+    input = mesh.i
+    exodiff = mesh_restrict_out.e
+    mesh_mode = 'replicated'
+    cli_args = "Problem/Tallies/Mesh/blocks='101 102' Outputs/file_base=mesh_restrict_out"
     requirement = "The system shall allow problems which contain adaptivity on the mesh mirror for mesh tallies."
     required_objects = 'OpenMCCellAverageProblem'
   []
