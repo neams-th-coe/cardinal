@@ -36,6 +36,10 @@ MeshTally::validParams()
   params.addParam<Point>("mesh_translation",
                          "Coordinate to which this mesh should be "
                          "translated. Units must match those used to define the [Mesh].");
+  params.addParam<std::vector<SubdomainName>>(
+      "blocks",
+      "Subdomains for which to add tallies in OpenMC. If not provided, this mesh "
+      "tally will be applied over the entire mesh.");
 
   // The index of this tally into an array of mesh translations. Defaults to zero.
   params.addPrivateParam<unsigned int>("instance", 0);
@@ -47,7 +51,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
   : TallyBase(parameters),
     _mesh_translation(isParamValid("mesh_translation") ? getParam<Point>("mesh_translation")
                                                        : Point(0.0, 0.0, 0.0)),
-    _instance(getParam<unsigned int>("instance"))
+    _instance(getParam<unsigned int>("instance")),
+    _use_dof_map(_is_adaptive || isParamValid("blocks"))
 {
   // Error check the estimators.
   if (isParamValid("estimator"))
@@ -64,7 +69,16 @@ MeshTally::MeshTally(const InputParameters & parameters)
         "Mesh tallies currently require 'allow_renumbering = false' to be set in the [Mesh]!");
 
   if (isParamValid("mesh_template"))
+  {
+    if (_is_adaptive)
+      mooseError("Adaptivity is only supported when tallying on the mesh in the [Mesh] block!");
+
+    if (isParamValid("blocks"))
+      mooseError("Block restriction is currently not supported for mesh tallies which load a "
+                 "mesh from a file!");
+
     _mesh_template_filename = &getParam<std::string>("mesh_template");
+  }
   else
   {
     if (std::abs(_openmc_problem.scaling() - 1.0) > 1e-6)
@@ -84,10 +98,31 @@ MeshTally::MeshTally(const InputParameters & parameters)
     if (isParamValid("mesh_translation"))
       mooseError("The mesh filter cannot be translated if directly tallying on the mesh "
                  "provided in the [Mesh] block!");
-  }
 
-  if (_mesh_template_filename && _is_adaptive)
-    mooseError("Adaptivity is only supported when tallying on the mesh in the [Mesh] block!");
+    // Fetch subdomain IDs for block restrictions.
+    if (isParamValid("blocks"))
+    {
+      auto block_names = getParam<std::vector<SubdomainName>>("blocks");
+      if (block_names.empty())
+        mooseError("Subdomain names must be provided if using 'blocks'!");
+
+      auto block_ids = _mesh.getSubdomainIDs(block_names);
+      std::copy(
+          block_ids.begin(), block_ids.end(), std::inserter(_tally_blocks, _tally_blocks.end()));
+
+      // Check to make sure all of the blocks are in the mesh.
+      const auto & subdomains = _mesh.meshSubdomains();
+      for (std::size_t b = 0; b < block_names.size(); ++b)
+        if (subdomains.find(block_ids[b]) == subdomains.end())
+          mooseError("Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
+    }
+    else
+    {
+      // Tally over all mesh blocks if no blocks are provided.
+      for (const auto & s : _mesh.meshSubdomains())
+        _tally_blocks.insert(s);
+    }
+  }
 
   /**
    * If the instance isn't zero this variable is a translated mesh tally. It will accumulate it's
@@ -104,7 +139,7 @@ MeshTally::spatialFilter()
   // Create the OpenMC mesh which will be tallied on.
   if (!_mesh_template_filename)
   {
-    if (_is_adaptive)
+    if (_use_dof_map)
     {
       /**
        * Need to create a copy of the mesh which only contains active elements. If this isn't
@@ -119,15 +154,15 @@ MeshTally::spatialFilter()
         mooseError("Internal error: The mesh is not a replicated mesh.");
 
       msh->create_submesh(
-          *_libmesh_mesh_copy.get(), msh->active_elements_begin(), msh->active_elements_end());
+          *_libmesh_mesh_copy.get(), msh->active_subdomain_set_elements_begin(_tally_blocks), msh->active_subdomain_set_elements_end(_tally_blocks));
       _libmesh_mesh_copy->allow_find_neighbors(true);
       _libmesh_mesh_copy->allow_renumbering(false);
       _libmesh_mesh_copy->prepare_for_use();
 
       _active_to_total_mapping.clear();
-      _active_to_total_mapping.reserve(msh->n_active_elem());
+      _active_to_total_mapping.reserve(_libmesh_mesh_copy->n_active_elem());
       for (const auto & old_elem :
-           libMesh::as_range(msh->active_elements_begin(), msh->active_elements_end()))
+           libMesh::as_range(msh->active_subdomain_set_elements_begin(_tally_blocks), msh->active_subdomain_set_elements_end(_tally_blocks)))
         _active_to_total_mapping.push_back(old_elem->id());
 
       openmc::model::meshes.emplace_back(
@@ -196,7 +231,7 @@ MeshTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       total += power_fraction;
 
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
-      auto elem_id = _is_adaptive ? _active_to_total_mapping[e] : mesh_offset + e;
+      auto elem_id = _use_dof_map ? _active_to_total_mapping[e] : mesh_offset + e;
       fillElementalAuxVariable(var, {elem_id}, volumetric_power);
     }
   }
@@ -215,7 +250,7 @@ MeshTally::checkMeshTemplateAndTranslations() const
   unsigned int mesh_offset = _instance * _mesh_filter->n_bins();
   for (int e = 0; e < _mesh_filter->n_bins(); ++e)
   {
-    auto elem_id = _is_adaptive ? _active_to_total_mapping[e] : mesh_offset + e;
+    auto elem_id = _use_dof_map ? _active_to_total_mapping[e] : mesh_offset + e;
     auto elem_ptr = _mesh.queryElemPtr(elem_id);
 
     // if element is not on this part of the distributed mesh, skip it

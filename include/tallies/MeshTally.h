@@ -98,6 +98,12 @@ protected:
   /// OpenMC unstructured mesh instance for use with mesh tallies
   openmc::LibMesh * _mesh_template;
 
+  /// Blocks for which to add mesh tallies.
+  std::set<SubdomainID> _tally_blocks;
+
+  /// Whether we're using an indirection layer to map between the OpenMC mesh tally and the MOOSE mesh.
+  const bool _use_dof_map;
+
   /**
    * For use with AMR only. A copy of the mesh which only contains active elements.
    * This removes the link between the MooseMesh that has an auxvariable equation system and the
