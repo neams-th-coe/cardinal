@@ -27,7 +27,7 @@ SpatialBinUserObject::validParams()
 }
 
 SpatialBinUserObject::SpatialBinUserObject(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters)
+  : GeneralUserObject(parameters)
 {
 }
 
