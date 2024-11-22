@@ -1,8 +1,7 @@
 [Mesh]
   [sphere]
-    # Mesh of a single pebble with outer radius of 1.5 (cm)
     type = FileMeshGenerator
-    file = ../../neutronics/meshes/sphere.e
+    file = ../meshes/sphere.e
   []
   [solid]
     type = CombinerGenerator
@@ -16,35 +15,41 @@
   []
 []
 
+[Adaptivity]
+  steps = 1
+  marker = uniform
+
+  [Markers/uniform]
+    type = UniformMarker
+    mark = refine
+  []
+[]
+
 [Problem]
   type = OpenMCCellAverageProblem
-  power = 70.0
+  verbose = true
+  power = 1e4
   temperature_blocks = '100'
   cell_level = 0
-  fixed_mesh = true
+  initial_properties = xml
+
+  normalize_by_global_tally = false
 
   [Tallies]
     [Cell]
       type = CellTally
+      score = kappa_fission
       blocks = '100'
     []
   []
 []
 
 [Executioner]
-  type = Transient
-  num_steps = 1
-[]
-
-[Adaptivity]
-  [Markers]
-    [error_tol_marker]
-      type = UniformMarker
-      mark = refine
-    []
-  []
+  type = Steady
 []
 
 [Outputs]
   exodus = true
+  execute_on = timestep_end
+  hide = 'temp cell_instance'
 []

@@ -66,16 +66,17 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
     if (it != added_scores.end())
       _tally_index = it - added_scores.begin();
     else
-      mooseError("To extract the relative error of the '" + std::string(tally_score[0]) +
-                 "' score,"
-                 "that score must be included in the\n'tally_score' parameter of '" +
-                 _openmc_problem->type() + "'!");
+      paramError(
+          "tally_score",
+          "To extract the relative error of the '" + std::string(tally_score[0]) +
+              "' score, it must be included in one of the [Tallies] added in your input file!");
   }
   else
   {
-    if (added_scores.size() > 1)
-      checkRequiredParam(parameters, "tally_score", "'" + _openmc_problem->type() +
-        "' has more than one 'tally_score'");
+    if (added_scores.size() > 1 && !isParamValid("tally_score"))
+      paramError("tally_score",
+                 "When multiple scores have been added by tally objects, you must specify a score "
+                 "from which the relative error will be extracted.");
 
     _tally_index = 0;
   }
