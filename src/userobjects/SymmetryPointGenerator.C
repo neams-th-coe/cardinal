@@ -56,11 +56,11 @@ SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
 
     // the symmetry axis needs to be perpendicular to the plane normal
     if (!MooseUtils::absoluteFuzzyEqual(_rotational_axis * _normal, 0.0))
-      mooseError("The 'rotation_axis' must be perpendicular to the 'normal'!");
+      paramError("rotation_axis", "The 'rotation_axis' must be perpendicular to the 'normal'!");
 
     // unit circle must be divisible by angle
     if (!MooseUtils::absoluteFuzzyEqual(fmod(360.0, angle), 0))
-      mooseError("The unit circle must be evenly divisible by the 'rotation_angle'!");
+      paramError("rotation_angle", "The unit circle must be evenly divisible by the 'rotation_angle'!");
 
     _angle = angle * M_PI / 180.0;
 

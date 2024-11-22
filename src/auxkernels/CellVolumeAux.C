@@ -49,7 +49,7 @@ Real
 CellVolumeAux::computeValue()
 {
   if (_volume_type == "actual" && !_openmc_problem->volumeCalculation())
-    mooseError("To display the actual OpenMC cell volumes, the [Problem] block needs to set the\n"
+    paramError("volume_type", "To display the actual OpenMC cell volumes, the [Problem] block needs to set the\n"
       "'volume_calculation' parameter.");
 
   // if the element doesn't map to an OpenMC cell, return a volume of -1; this is required

@@ -51,7 +51,7 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
 {
   // Check to make sure the filter exists.
   if (openmc::model::filter_map.count(_filter_id) == 0)
-    mooseError("A filter with the id " + Moose::stringify(_filter_id) +
+    paramError("filter_id", "A filter with the id " + Moose::stringify(_filter_id) +
                " does not exist in the OpenMC model! Please make sure the filter has been "
                "added in the OpenMC model and you've supplied the correct filter id.");
 
@@ -76,7 +76,7 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
     case openmc::FilterType::UNIVERSE:
     case openmc::FilterType::ZERNIKE:
     case openmc::FilterType::ZERNIKE_RADIAL:
-      mooseError(
+      paramError("filter_id",
           "The filter with the id " + Moose::stringify(_filter_id) +
           " is a spatial filter. "
           "FromXMLFilter currently does not support the addition of spatial filters from the "
@@ -106,7 +106,7 @@ FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
                  "may fail normalization as the sum over all tally bins may not be well posed "
                  "if any bins contain functional expansion coefficients.");
   else if (is_exp && !getParam<bool>("allow_expansion_filters"))
-    mooseError("You have selected a functional expansion filter. Tallies which use this filter "
+    paramError("filter_id", "You have selected a functional expansion filter. Tallies which use this filter "
                "may fail normalization as the sum over all tally bins may not be well posed "
                "if any bins contain functional expansion coefficients. If you still wish to "
                "use this filter, set 'allow_expansion_filters' to true.");
