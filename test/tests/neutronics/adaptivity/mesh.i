@@ -11,9 +11,7 @@
   [solid]
     type = CombinerGenerator
     inputs = solid_ids
-    positions = '0 0 0
-                 0 0 4
-                 0 0 8'
+    positions = '0 0 0'
     avoid_merging_subdomains = true
   []
 
@@ -34,7 +32,7 @@
   type = OpenMCCellAverageProblem
   verbose = true
   power = 1e4
-  temperature_blocks = '100 101 102'
+  temperature_blocks = '100'
   cell_level = 0
   initial_properties = xml
 
@@ -56,5 +54,5 @@
 [Outputs]
   exodus = true
   execute_on = timestep_end
-  hide = 'temp  cell_instance cell_id'
+  hide = 'temp cell_instance'
 []

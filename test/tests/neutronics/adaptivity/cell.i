@@ -6,9 +6,7 @@
   [solid]
     type = CombinerGenerator
     inputs = sphere
-    positions = '0 0 0
-                 0 0 4
-                 0 0 8'
+    positions = '0 0 0'
   []
   [solid_ids]
     type = SubdomainIDGenerator
@@ -53,5 +51,5 @@
 [Outputs]
   exodus = true
   execute_on = timestep_end
-  hide = 'temp  cell_instance cell_id'
+  hide = 'temp cell_instance'
 []
