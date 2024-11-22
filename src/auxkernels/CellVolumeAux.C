@@ -49,8 +49,9 @@ Real
 CellVolumeAux::computeValue()
 {
   if (_volume_type == "actual" && !_openmc_problem->volumeCalculation())
-    paramError("volume_type", "To display the actual OpenMC cell volumes, the [Problem] block needs to set the\n"
-      "'volume_calculation' parameter.");
+    paramError("volume_type",
+               "To display the actual OpenMC cell volumes, the [Problem] block needs to set the\n"
+               "'volume_calculation' parameter.");
 
   // if the element doesn't map to an OpenMC cell, return a volume of -1; this is required
   // because otherwise OpenMC would throw an error for an invalid instance, index pair passed to the

@@ -60,7 +60,8 @@ SymmetryPointGenerator::SymmetryPointGenerator(const InputParameters & params)
 
     // unit circle must be divisible by angle
     if (!MooseUtils::absoluteFuzzyEqual(fmod(360.0, angle), 0))
-      paramError("rotation_angle", "The unit circle must be evenly divisible by the 'rotation_angle'!");
+      paramError("rotation_angle",
+                 "The unit circle must be evenly divisible by the 'rotation_angle'!");
 
     _angle = angle * M_PI / 180.0;
 

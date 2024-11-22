@@ -110,7 +110,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
     // Photon heating tallies cannot use tracklength estimators.
     if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
-      paramError("estimator", "Tracklength estimators are currently incompatible with photon transport and "
+      paramError("estimator",
+                 "Tracklength estimators are currently incompatible with photon transport and "
                  "heating scores! For more information: https://tinyurl.com/3wre3kwt");
 
     _estimator = _openmc_problem.tallyEstimator(estimator);
@@ -137,7 +138,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
         "Otherwise, you will underpredict the true energy deposition.");
 
   if (isParamValid("trigger") != isParamValid("trigger_threshold"))
-    paramError("trigger", "You must either specify none or both of 'trigger' and "
+    paramError("trigger",
+               "You must either specify none or both of 'trigger' and "
                "'trigger_threshold'. You have specified only one.");
 
   if (_tally_trigger)
@@ -146,21 +148,24 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
 
     if (_tally_trigger->size() != _tally_score.size())
-      paramError("trigger", "'trigger' (size " + std::to_string(_tally_trigger->size()) +
-                 ") must have the same length as 'score' (size " +
-                 std::to_string(_tally_score.size()) + ")");
+      paramError("trigger",
+                 "'trigger' (size " + std::to_string(_tally_trigger->size()) +
+                     ") must have the same length as 'score' (size " +
+                     std::to_string(_tally_score.size()) + ")");
 
     if (_tally_trigger_threshold.size() != _tally_score.size())
-      paramError("trigger_threshold", "'trigger_threshold' (size " + std::to_string(_tally_trigger_threshold.size()) +
-                 ") must have the same length as 'score' (size " +
-                 std::to_string(_tally_score.size()) + ")");
+      paramError("trigger_threshold",
+                 "'trigger_threshold' (size " + std::to_string(_tally_trigger_threshold.size()) +
+                     ") must have the same length as 'score' (size " +
+                     std::to_string(_tally_score.size()) + ")");
 
     if (_trigger_ignore_zeros.size() > 1)
     {
       if (_tally_score.size() != _trigger_ignore_zeros.size())
-        paramError("trigger_ignore_zeros", "'trigger_ignore_zeros' (size " + std::to_string(_trigger_ignore_zeros.size()) +
-                   ") must have the same length as 'score' (size " +
-                   std::to_string(_tally_score.size()) + ")");
+        paramError("trigger_ignore_zeros",
+                   "'trigger_ignore_zeros' (size " + std::to_string(_trigger_ignore_zeros.size()) +
+                       ") must have the same length as 'score' (size " +
+                       std::to_string(_tally_score.size()) + ")");
     }
     else if (_trigger_ignore_zeros.size() == 1)
       _trigger_ignore_zeros.resize(_tally_score.size(), _trigger_ignore_zeros[0]);

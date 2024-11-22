@@ -58,7 +58,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
   if (isParamValid("estimator"))
   {
     if (_estimator == openmc::TallyEstimator::TRACKLENGTH)
-      paramError("estimator", "Tracklength estimators are currently incompatible with mesh tallies!");
+      paramError("estimator",
+                 "Tracklength estimators are currently incompatible with mesh tallies!");
   }
   else
     _estimator = openmc::TallyEstimator::COLLISION;
@@ -71,10 +72,12 @@ MeshTally::MeshTally(const InputParameters & parameters)
   if (isParamValid("mesh_template"))
   {
     if (_is_adaptive)
-      paramError("mesh_template", "Adaptivity is not supported when loading a mesh from 'mesh_template'!");
+      paramError("mesh_template",
+                 "Adaptivity is not supported when loading a mesh from 'mesh_template'!");
 
     if (isParamValid("blocks"))
-      paramError("blocks", "Block restriction is currently not supported for mesh tallies which load a "
+      paramError("blocks",
+                 "Block restriction is currently not supported for mesh tallies which load a "
                  "mesh from a file!");
 
     _mesh_template_filename = &getParam<std::string>("mesh_template");
@@ -96,7 +99,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "for distributed meshes!");
 
     if (isParamValid("mesh_translation"))
-      paramError("mesh_translation", "The mesh filter cannot be translated if directly tallying on the mesh "
+      paramError("mesh_translation",
+                 "The mesh filter cannot be translated if directly tallying on the mesh "
                  "provided in the [Mesh] block!");
 
     // Fetch subdomain IDs for block restrictions.
@@ -114,7 +118,8 @@ MeshTally::MeshTally(const InputParameters & parameters)
       const auto & subdomains = _mesh.meshSubdomains();
       for (std::size_t b = 0; b < block_names.size(); ++b)
         if (subdomains.find(block_ids[b]) == subdomains.end())
-          paramError("blocks", "Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
+          paramError("blocks",
+                     "Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
     }
     else
     {
@@ -285,11 +290,12 @@ MeshTally::checkMeshTemplateAndTranslations() const
       }
 
       if (incorrect_scaling)
-        paramError("mesh_template", "The centroids of the 'mesh_template' differ from the "
+        paramError("mesh_template",
+                   "The centroids of the 'mesh_template' differ from the "
                    "centroids of the [Mesh] by a factor of " +
-                   Moose::stringify(centroid_mesh(0) / centroid_template(0)) +
-                   ".\nDid you forget that the 'mesh_template' must be in "
-                   "the same units as the [Mesh]?");
+                       Moose::stringify(centroid_mesh(0) / centroid_template(0)) +
+                       ".\nDid you forget that the 'mesh_template' must be in "
+                       "the same units as the [Mesh]?");
     }
 
     // check if centroids are the same
@@ -299,12 +305,14 @@ MeshTally::checkMeshTemplateAndTranslations() const
                             !MooseUtils::absoluteFuzzyEqual(centroid_mesh(j), centroid_template(j));
 
     if (different_centroids)
-      paramError("mesh_template",
-          "Centroid for element " + Moose::stringify(elem_id) + " in the [Mesh] (cm): " +
-          _openmc_problem.printPoint(centroid_mesh) + "\ndoes not match centroid for element " +
-          Moose::stringify(e) + " in the 'mesh_template' with instance " +
-          Moose::stringify(_instance) + " (cm): " + _openmc_problem.printPoint(centroid_template) +
-          "!\n\nThe copy transfer requires that the [Mesh] and 'mesh_template' be identical.");
+      paramError(
+          "mesh_template",
+          "Centroid for element " + Moose::stringify(elem_id) +
+              " in the [Mesh] (cm): " + _openmc_problem.printPoint(centroid_mesh) +
+              "\ndoes not match centroid for element " + Moose::stringify(e) +
+              " in the 'mesh_template' with instance " + Moose::stringify(_instance) +
+              " (cm): " + _openmc_problem.printPoint(centroid_template) +
+              "!\n\nThe copy transfer requires that the [Mesh] and 'mesh_template' be identical.");
   }
 }
 #endif

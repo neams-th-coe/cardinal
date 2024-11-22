@@ -64,7 +64,8 @@ CellTally::CellTally(const InputParameters & parameters)
     const auto & subdomains = _mesh.meshSubdomains();
     for (std::size_t b = 0; b < block_names.size(); ++b)
       if (subdomains.find(block_ids[b]) == subdomains.end())
-        paramError("blocks", "Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
+        paramError("blocks",
+                   "Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
   }
   else
   {
