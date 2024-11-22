@@ -34,8 +34,7 @@ NekUserObject::validParams()
 }
 
 NekUserObject::NekUserObject(const InputParameters & parameters)
-  : ThreadedGeneralUserObject(parameters),
-    _interval(getParam<unsigned int>("interval"))
+  : GeneralUserObject(parameters), _interval(getParam<unsigned int>("interval"))
 {
   _nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!_nek_problem)
