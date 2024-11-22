@@ -69,15 +69,14 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
       paramError(
           "tally_score",
           "To extract the relative error of the '" + std::string(tally_score[0]) +
-          "' score, it must be included in one of the [Tallies] added in your input file!");
+              "' score, it must be included in one of the [Tallies] added in your input file!");
   }
   else
   {
     if (added_scores.size() > 1 && !isParamValid("tally_score"))
-      paramError(
-          "tally_score",
-          "When multiple scores have been added by tally objects, you must specify a score "
-          "from which the relative error will be extracted.");
+      paramError("tally_score",
+                 "When multiple scores have been added by tally objects, you must specify a score "
+                 "from which the relative error will be extracted.");
 
     _tally_index = 0;
   }
