@@ -148,8 +148,9 @@ MeshTally::spatialFilter()
     {
       _active_to_total_mapping.clear();
 
-      auto begin = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_begin(_tally_blocks)
-                                            : msh->active_elements_begin();
+      auto begin = _tally_blocks.size() > 0
+                       ? msh->active_subdomain_set_elements_begin(_tally_blocks)
+                       : msh->active_elements_begin();
       auto end = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_end(_tally_blocks)
                                           : msh->active_elements_end();
       for (const auto & old_elem : libMesh::as_range(begin, end))
