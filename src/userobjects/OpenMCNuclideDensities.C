@@ -62,7 +62,7 @@ void
 OpenMCNuclideDensities::setValue()
 {
   if (_names.size() == 0)
-    mooseError("'names' cannot be of length zero!");
+    paramError("names", "'names' cannot be of length zero!");
 
   if (_names.size() != _densities.size())
     mooseError("'names' and 'densities' must be the same length!");

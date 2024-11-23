@@ -255,7 +255,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   // the same number of bins or to exactly the same regions of space, so we must
   // disable relaxation.
   if (_need_to_reinit_coupling && _relaxation != relaxation::none)
-    mooseError(
+    paramError(
+        "relaxation",
         "When adaptivity is requested or a displaced problem is used, the mapping from the "
         "OpenMC model to the [Mesh] may vary in time. This means that we have no guarantee that "
         "the "
@@ -267,7 +268,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     checkUnusedParam(params, "normalize_by_global_tally", "running OpenMC in fixed source mode");
 
   if (_run_mode != openmc::RunMode::EIGENVALUE && _k_trigger != trigger::none)
-    mooseError("Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
+    paramError("k_trigger",
+               "Cannot specify a 'k_trigger' for OpenMC runs that are not eigenvalue mode!");
 
   if (_assume_separate_tallies && _needs_global_tally)
     paramError("assume_separate_tallies",
@@ -390,7 +392,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 
   for (const auto & i : _identical_cell_fill_blocks)
     if (std::find(_density_blocks.begin(), _density_blocks.end(), i) != _density_blocks.end())
-      mooseError(
+      paramError(
+          "identical_cell_fills",
           "Entries in 'identical_cell_fills' cannot be contained in 'density_blocks'; the\n"
           "identical fill universe optimization is not yet implemented for density feedback.");
 
@@ -513,7 +516,8 @@ OpenMCCellAverageProblem::initialSetup()
     _symmetry = dynamic_cast<SymmetryPointGenerator *>(base);
 
     if (!_symmetry)
-      mooseError("The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!");
+      paramError("symmetry_mapper",
+                 "The 'symmetry_mapper' user object has to be of type SymmetryPointGenerator!");
   }
 
   // Get triggers.
@@ -528,11 +532,13 @@ OpenMCCellAverageProblem::initialSetup()
     std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
 
     if (t != _mesh.meshSubdomains())
-      mooseError("The 'skinner' requires temperature feedback to be applied over the entire mesh. "
+      paramError("temperature_blocks",
+                 "The 'skinner' requires temperature feedback to be applied over the entire mesh. "
                  "Please update `temperature_blocks` to include all blocks.");
 
     if (d != _mesh.meshSubdomains() && _specified_density_feedback)
-      mooseError("The 'skinner' requires density feedback to be applied over the entire mesh. "
+      paramError("density_blocks",
+                 "The 'skinner' requires density feedback to be applied over the entire mesh. "
                  "Please update `density_blocks` to include all blocks.");
 
     if (t != d && _specified_density_feedback)
