@@ -121,12 +121,6 @@ MeshTally::MeshTally(const InputParameters & parameters)
           paramError("blocks",
                      "Block '" + block_names[b] + "' specified in 'blocks' not found in mesh!");
     }
-    else
-    {
-      // Tally over all mesh blocks if no blocks are provided.
-      for (const auto & s : _mesh.meshSubdomains())
-        _tally_blocks.insert(s);
-    }
   }
 
   /**
@@ -144,19 +138,33 @@ MeshTally::spatialFilter()
   // Create the OpenMC mesh which will be tallied on.
   if (!_mesh_template_filename)
   {
+    auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(_mesh.getMeshPtr());
+    if (!msh)
+      mooseError("Internal error: The mesh is not a replicated mesh.");
+
+    // Adaptivity and block restriction both require a map from the element subsets we want to
+    // tally on to the full mesh.
     if (_use_dof_map)
     {
-      /**
-       * Need to create a copy of the mesh which only contains active elements. If this isn't
-       * done, the equation system added by the OpenMC mesh object will throw an error during
-       * the refinement / coarsening process as it has no idea that AMR is required.
-       */
+      _active_to_total_mapping.clear();
+
+      auto begin = _tally_blocks.size() > 0
+                       ? msh->active_subdomain_set_elements_begin(_tally_blocks)
+                       : msh->active_elements_begin();
+      auto end = _tally_blocks.size() > 0 ? msh->active_subdomain_set_elements_end(_tally_blocks)
+                                          : msh->active_elements_end();
+      for (const auto & old_elem : libMesh::as_range(begin, end))
+        _active_to_total_mapping.push_back(old_elem->id());
+
+      _active_to_total_mapping.shrink_to_fit();
+    }
+
+    // When block restriction is active we need to create a copy of the mesh which only contains
+    // elements in the desired blocks.
+    if (_tally_blocks.size() > 0)
+    {
       _libmesh_mesh_copy =
           std::make_unique<libMesh::ReplicatedMesh>(_openmc_problem.comm(), _mesh.dimension());
-
-      auto msh = dynamic_cast<const libMesh::ReplicatedMesh *>(_mesh.getMeshPtr());
-      if (!msh)
-        mooseError("Internal error: The mesh is not a replicated mesh.");
 
       msh->create_submesh(*_libmesh_mesh_copy.get(),
                           msh->active_subdomain_set_elements_begin(_tally_blocks),
@@ -164,13 +172,6 @@ MeshTally::spatialFilter()
       _libmesh_mesh_copy->allow_find_neighbors(true);
       _libmesh_mesh_copy->allow_renumbering(false);
       _libmesh_mesh_copy->prepare_for_use();
-
-      _active_to_total_mapping.clear();
-      _active_to_total_mapping.reserve(_libmesh_mesh_copy->n_active_elem());
-      for (const auto & old_elem :
-           libMesh::as_range(msh->active_subdomain_set_elements_begin(_tally_blocks),
-                             msh->active_subdomain_set_elements_end(_tally_blocks)))
-        _active_to_total_mapping.push_back(old_elem->id());
 
       openmc::model::meshes.emplace_back(
           std::make_unique<openmc::LibMesh>(*_libmesh_mesh_copy.get(), _openmc_problem.scaling()));

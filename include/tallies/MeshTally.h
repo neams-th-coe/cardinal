@@ -105,13 +105,10 @@ protected:
   const bool _use_dof_map;
 
   /**
-   * For use with AMR only. A copy of the mesh which only contains active elements.
-   * This removes the link between the MooseMesh that has an auxvariable equation system and the
-   * OpenMC mesh which has an equation system that is tallied on. The OpenMC equation system throws
-   * errors when attempting to project solution vectors as it has not been initialized with
-   * the data structures required for adaptivity.
-   * TODO: Fix this in OpenMC (enable adaptivity in the equation systems added by openmc::LibMesh
-   * meshes).
+   * For use with block restriction only. A copy of the mesh is made which only contains elements in
+   * the blocks the user wishes to tally on. This is necessary at the moment as the point locators
+   * used in OpenMC to find collision sites are not passed a set of block IDs to filter elements.
+   * TODO: Fix this in OpenMC
    */
   std::unique_ptr<libMesh::ReplicatedMesh> _libmesh_mesh_copy;
   /// A mapping between the elements in '_libmesh_mesh_copy' and the elements in the MooseMesh.
