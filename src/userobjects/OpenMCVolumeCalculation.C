@@ -78,8 +78,21 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   _upper_right = isParamValid("upper_right") ? getParam<Point>("upper_right") : box.max();
 
   if (_lower_left >= _upper_right)
-    mooseError("The 'upper_right' (", _upper_right(0), ", ", _upper_right(1), ", ", _upper_right(2), ") "
-      "must be greater than the 'lower_left' (", _lower_left(0), ", ", _lower_left(1), ", ", _lower_left(2), ")!");
+    paramError("upper_right",
+               "The 'upper_right' (",
+               _upper_right(0),
+               ", ",
+               _upper_right(1),
+               ", ",
+               _upper_right(2),
+               ") "
+               "must be greater than the 'lower_left' (",
+               _lower_left(0),
+               ", ",
+               _lower_left(1),
+               ", ",
+               _lower_left(2),
+               ")!");
 }
 
 openmc::Position

@@ -57,8 +57,9 @@ BulkEnergyConservationIC::initialSetup()
 {
   const UserObject & pp = _fe_problem.getUserObject<UserObject>(_pp_name);
   if (!pp.getExecuteOnEnum().contains(EXEC_INITIAL))
-    mooseError("The 'execute_on' parameter for the '" + _pp_name +
-               "' postprocessor must include 'initial'!");
+    paramError("execute_on",
+               "The 'execute_on' parameter for the '" + _pp_name +
+                   "' postprocessor must include 'initial'!");
 }
 
 Real

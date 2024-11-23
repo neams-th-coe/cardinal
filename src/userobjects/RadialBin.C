@@ -57,7 +57,8 @@ RadialBin::RadialBin(const InputParameters & parameters)
     _growth_r(getParam<Real>("growth_r"))
 {
   if (_rmax <= _rmin)
-    mooseError("Maximum radial coordinate 'rmax' must be greater than the minimum radial "
+    paramError("rmax",
+               "Maximum radial coordinate 'rmax' must be greater than the minimum radial "
                "coordinate 'rmin'!");
 
   Real first_width = _growth_r == 1.0 ? (_rmax - _rmin) / _nr

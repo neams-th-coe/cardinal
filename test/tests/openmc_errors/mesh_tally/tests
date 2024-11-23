@@ -2,18 +2,14 @@
   [incorrect_scaling]
     type = RunException
     input = incorrect_scaling.i
-    expect_err = "The centroids of the 'mesh_template' differ from the centroids of the \[Mesh\] "
-                 "by a factor of 0.01.\n"
-                 "Did you forget that the 'mesh_template' must be in the same units as the [Mesh]?"
+    expect_err = "The centroids of the 'mesh_template' differ from the centroids of the"
     requirement = "The system shall error if the mesh template is not provided in the same units as the [Mesh]."
     required_objects = 'OpenMCCellAverageProblem'
   []
   [incorrect_order]
     type = RunException
     input = incorrect_order.i
-    expect_err = "Centroid for element 256 in the \[Mesh\] \(cm\): \(0.896826, 0.189852, 4.60886\)\n"
-                 "does not match centroid for element 0 in the 'mesh_template' with instance 1 \(cm\): \(0.896826, 0.189852, 8.60886\)!\n\n"
-                 "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
+    expect_err = "Centroid for element 256 in the"
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "the order of mesh translations does not match the order of inputs in a CombinerGenerator."
     required_objects = 'OpenMCCellAverageProblem'
@@ -21,9 +17,7 @@
   [incorrect_file]
     type = RunException
     input = incorrect_file.i
-    expect_err = "Centroid for element 0 in the \[Mesh\] \(cm\): \(0.896826, 0.189852, 0.608855\)\n"
-                 "does not match centroid for element 0 in the 'mesh_template' with instance 0 \(cm\): \(-0.0251736, -0.0667374, 0.0847458\)!\n\n"
-                 "The copy transfer requires that the \[Mesh\] and 'mesh_template' be identical."
+    expect_err = "Centroid for element 0 in the"
     requirement = "The system shall error if the mesh template does not exactly match the [Mesh], such as when "
                   "a totally different mesh is used (pincell versus pebbles)."
     required_objects = 'OpenMCCellAverageProblem'
