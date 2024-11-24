@@ -36,12 +36,12 @@ NekRSProblemBase::validParams()
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
-    "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+    "Number of slots to allocate in nekrs::usrwrk to hold fields either related to coupling "
     "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
   params.addParam<unsigned int>(
       "first_reserved_usrwrk_slot",
       0,
-      "Slice (zero-indexed) in nrs->usrwrk where Cardinal will begin reading/writing data; this "
+      "Slice (zero-indexed) in nekrs::usrwrk where Cardinal will begin reading/writing data; this "
       "can be used to shift the usrwrk slots reserved by Cardinal, so that you can use earlier "
       "slices for custom purposes");
 
@@ -530,7 +530,7 @@ NekRSProblemBase::initialSetup()
   for (int i = 0; i < end; ++i)
     vt.addRow(_usrwrk_indices[i],
               "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
-              "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
+              "nekrs::usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
   // add rows for the NekScalarValue(s)
   for (const auto & uo : _nek_uos)
@@ -540,7 +540,7 @@ NekRSProblemBase::initialSetup()
     vt.addRow(uo->name(),
               "bc->usrwrk[" + std::to_string(slot) + " * bc->fieldOffset + " +
                   std::to_string(count) + "]",
-              "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " +
+              "nekrs::usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " +
                   std::to_string(count) + "]");
   }
 
@@ -548,7 +548,7 @@ NekRSProblemBase::initialSetup()
   for (unsigned int i = end + _n_uo_slots; i < _n_usrwrk_slots; ++i)
     vt.addRow("unused",
               "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
-              "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
+              "nekrs::usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
   if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot)
     mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
@@ -616,7 +616,7 @@ NekRSProblemBase::externalSolve()
   _is_output_step = isOutputStep();
 
   // tell NekRS what the value of nrs->isOutputStep should be
-  nekrs::outputStep(_is_output_step);
+  nekrs::checkpointStep(_is_output_step);
 
   // NekRS prints out verbose info for the first 1000 time steps
   if (_t_step <= 1000)
@@ -732,11 +732,9 @@ NekRSProblemBase::sendScalarValuesToNek()
   for (const auto & uo : _nek_uos)
     uo->setValue();
 
-  if (udf.properties)
-  {
-    nrs_t * nrs = (nrs_t *) nekrs::nrsPtr();
-    evaluateProperties(nrs, _timestepper->nondimensionalDT(_time));
-  }
+  nrs_t * nrs = nekrs::nrsPtr();
+  if (nrs->userProperties) // CHECK
+    nrs->evaluateProperties(_timestepper->nondimensionalDT(_time));
 }
 
 void
@@ -863,7 +861,7 @@ NekRSProblemBase::isOutputStep() const
 
   // this routine does not check if we are on the last step - just whether we have
   // met the requested runtime or time step interval
-  return nekrs::outputStep(_timestepper->nondimensionalDT(_time), _t_step);
+  return nekrs::checkpointStep(_timestepper->nondimensionalDT(_time), _t_step);
 }
 
 void
@@ -1347,8 +1345,8 @@ NekRSProblemBase::copyScratchToDevice()
     auto n = nekrs::scalarFieldOffset();
     auto nbytes = n * sizeof(dfloat);
 
-    nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
-    nrs->o_usrwrk.copyFrom(nrs->usrwrk + _first_reserved_usrwrk_slot * n,
+    nrs_t * nrs = nekrs::nrsPtr();
+    nrs->o_usrwrk.copyFrom(nekrs::usrwrk + _first_reserved_usrwrk_slot * n,
                            (_minimum_scratch_size_for_coupling + _n_uo_slots) * nbytes,
                            _first_reserved_usrwrk_slot * nbytes);
   }

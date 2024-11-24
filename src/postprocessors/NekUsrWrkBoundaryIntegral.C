@@ -26,7 +26,7 @@ InputParameters
 NekUsrWrkBoundaryIntegral::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
-  params.addRequiredParam<unsigned int>("usrwrk_slot", "Slot in nrs->usrwrk to integrate (zero-indexed)");
+  params.addRequiredParam<unsigned int>("usrwrk_slot", "Slot in nekrs::usrwrk to integrate (zero-indexed)");
   params.addClassDescription("Compute integral of usrwrk over a boundary in the NekRS mesh");
   return params;
 }

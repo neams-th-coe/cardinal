@@ -40,7 +40,7 @@ NekInitAction::validParams()
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
-    "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+    "Number of slots to allocate in nekrs::usrwrk to hold fields either related to coupling "
     "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
 
   return params;

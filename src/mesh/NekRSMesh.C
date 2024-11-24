@@ -693,7 +693,7 @@ NekRSMesh::faceVertices()
   double * y = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  nrs_t * nrs = nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
@@ -716,7 +716,7 @@ NekRSMesh::faceVertices()
       mesh = _nek_internal_mesh;
     else
       mesh =
-          createMesh(platform->comm.mpiComm, _order + 1, 0, nrs->cht, *(nrs->kernelInfo));
+          createMesh(platform->comm.mpiComm, _order + 1, 0, nrs->cht, platform->kernelInfo);
 
     Nfp_mirror = mesh->Nfp;
   }
@@ -781,7 +781,7 @@ NekRSMesh::volumeVertices()
   double * z = (double *) malloc(n_vertices_in_mirror * sizeof(double));
   double * p = (double *) malloc(_n_build_per_volume_elem * _n_volume_elems * sizeof(double));
 
-  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  nrs_t * nrs = nekrs::nrsPtr();
   int rank = nekrs::commRank();
 
   mesh_t * mesh;
@@ -803,7 +803,7 @@ NekRSMesh::volumeVertices()
     if (_nek_internal_mesh->N == 2)
       mesh = _nek_internal_mesh;
     else
-      mesh = createMesh(platform->comm.mpiComm, _order + 1, 0, nrs->cht, *(nrs->kernelInfo));
+      mesh = createMesh(platform->comm.mpiComm, _order + 1, 0, nrs->cht, platform->kernelInfo);
     Np_mirror = mesh->Np;
   }
 
