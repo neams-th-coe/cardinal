@@ -178,6 +178,7 @@ export NEKRS_HOME=$CARDINAL_DIR/install
 
 export LIBMESH_JOBS=80
 export MOOSE_JOBS=80
+export JOBS=80
 export HDF5_ROOT=/software/HDF5-1.14.3-ubuntu22
 
 # revise for your cross section location
