@@ -49,7 +49,7 @@ FROM cardinal-clone AS cardinal-deps
 
 WORKDIR /cardinal-build/cardinal
 
-ENV LIBMESH_JOBS=16
+ENV MOOSE_JOBS=16
 
 RUN ./scripts/get-dependencies.sh && \
     ./contrib/moose/scripts/update_and_rebuild_petsc.sh && \
