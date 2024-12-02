@@ -30,8 +30,10 @@ fi
 
 if [[ -z "${LIBMESH_JOBS}" ]]; then
   echo ""
-  echo -e "\033[32mTo compile faster, you can build libMesh in parallel with 8 cores (just an example) by setting:\033[0m"
+  echo -e "\033[32mTo compile faster, you can build MOOSE's dependencies in parallel with 8 cores (just an example) by setting:\033[0m"
   echo ""
   echo "export LIBMESH_JOBS=8"
+  echo "export MOOSE_JOBS=8"
+  echo "export JOBS=8"
   echo ""
 fi
