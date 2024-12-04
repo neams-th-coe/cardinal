@@ -14,53 +14,22 @@
 # cardinal-build:
 #     * make cardinal using specific environment variables
 #
-FROM ubuntu:24.04 AS cardinal-base
+FROM idaholab/moose-dev 
 
-# Install necessary dependencies
-RUN apt-get update --yes && \
-    apt-get install --yes \
-        git \
-        make \
-        autoconf \
-        automake \
-        libtool \
-        flex \
-        bison \
-        cmake \
-        g++ \
-        gfortran \
-        libhdf5-dev \
-        mpich \
-        libtirpc-dev \
-        python3 \
-        python3-pip \
-        python3-packaging \
-        python3-jinja2 \
-        python3-yaml \
-        python3-pkgconfig
-
-FROM cardinal-base AS cardinal-clone
-
-# COPY . /cardinal    
 WORKDIR /cardinal-build
+
 RUN git clone https://github.com/neams-th-coe/cardinal.git
 
-FROM cardinal-clone AS cardinal-deps
-
 WORKDIR /cardinal-build/cardinal
+SHELL ["/bin/bash", "-i", "-c"]
 
-ENV MOOSE_JOBS=16
+RUN export PATH=/opt/miniforge3/envs/moose/bin:$PATH && \
+    ./scripts/get-dependencies.sh
 
-RUN ./scripts/get-dependencies.sh && \
-    ./contrib/moose/scripts/update_and_rebuild_petsc.sh && \
-    ./contrib/moose/scripts/update_and_rebuild_libmesh.sh && \
-    ./contrib/moose/scripts/update_and_rebuild_wasp.sh
-
-FROM cardinal-deps AS cardinal-build
-
-WORKDIR /cardinal-build/cardinal
-
-RUN export NEKRS_HOME=/cardinal-build/cardinal/install && \
-    make -j8
+RUN export PATH=/opt/miniforge3/envs/moose/bin:$PATH && \
+    export HDF5_ROOT=${PETSC_DIR} && \
+    export PATH=/opt/miniforge3/envs/moose/bin:$PATH && \
+    export NEKRS_HOME=/cardinal-build/cardinal/install && \
+    make -j 16
     
     
