@@ -14,11 +14,10 @@ WORKDIR /cardinal-build/cardinal
 # with each invocation of the shell
 SHELL ["/bin/bash", "-i", "-c"]
 
-RUN export PATH=/opt/miniforge3/envs/moose/bin:$PATH && \
-    ./scripts/get-dependencies.sh
+ENV PATH=/opt/miniforge3/envs/moose/bin:$PATH
+RUN ./scripts/get-dependencies.sh
 
-RUN export PATH=/opt/miniforge3/envs/moose/bin:$PATH && \
-    export HDF5_ROOT=${PETSC_DIR} && \
+RUN export HDF5_ROOT=${PETSC_DIR} && \
     export PATH=/opt/miniforge3/envs/moose/bin:$PATH && \
     export NEKRS_HOME=/cardinal-build/cardinal/install && \
     make -j 16
