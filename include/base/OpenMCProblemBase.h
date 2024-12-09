@@ -376,10 +376,10 @@ protected:
   const bool & _verbose;
 
   /// Power by which to normalize the OpenMC results, for k-eigenvalue mode
-  const Real * _power;
+  const Real & _power;
 
   /// Source strength by which to normalize the OpenMC results, for fixed source mode
-  const Real * _source_strength;
+  const Real & _source_strength;
 
   /**
    * Whether to take the starting fission source from iteration \f$n\f$ as the

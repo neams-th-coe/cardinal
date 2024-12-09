@@ -2330,9 +2330,9 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
     // normalize the tally
     Real source = _local_mean_tally[global_score];
     if (_run_mode == openmc::RunMode::EIGENVALUE)
-      source *= *_power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
+      source *= _power / EV_TO_JOULE / _local_mean_tally[_source_rate_index];
     else
-      source *= *_source_strength;
+      source *= _source_strength;
 
     // Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
     if (isReactionRateScore(_all_tally_scores[global_score]))
@@ -2347,9 +2347,9 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
   {
     // Heating tallies have units of eV / source particle
     if (_run_mode == openmc::RunMode::EIGENVALUE)
-      return *_power;
+      return _power;
     else
-      return *_source_strength * EV_TO_JOULE * _local_mean_tally[global_score];
+      return _source_strength * EV_TO_JOULE * _local_mean_tally[global_score];
   }
 }
 
