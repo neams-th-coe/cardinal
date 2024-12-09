@@ -80,6 +80,12 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
   : CardinalProblem(params),
     PostprocessorInterface(this),
     _verbose(getParam<bool>("verbose")),
+    _power(openmc::settings::run_mode == openmc::RunMode::EIGENVALUE
+               ? getPostprocessorValue("power")
+               : 0),
+    _source_strength(openmc::settings::run_mode == openmc::RunMode::FIXED_SOURCE
+                         ? getPostprocessorValue("source_strength")
+                         : 0),
     _reuse_source(getParam<bool>("reuse_source")),
     _specified_scaling(params.isParamSetByUser("scaling")),
     _scaling(getParam<Real>("scaling")),
@@ -118,7 +124,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "power", "running in k-eigenvalue mode");
-        _power = getPostprocessorValue("power");
       }
       else
         checkUnusedParam(params, "power", "no tallies have been added");
@@ -131,7 +136,6 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
       if (tally_actions.size() > 0)
       {
         checkRequiredParam(params, "source_strength", "running in fixed source mode");
-        _source_strength = getPostprocessorValue("source_strength");
       }
       else
         checkUnusedParam(params, "source_strength", "no tallies have been added");
