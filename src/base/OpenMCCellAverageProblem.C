@@ -1992,6 +1992,9 @@ OpenMCCellAverageProblem::initializeTallies()
   // Initialize all of the [Problem/Tallies].
   for (auto & local_tally : _local_tallies)
     local_tally->initializeTally();
+
+  // Ensure that any tally editors don't apply to mapped tallies
+  checkTallyEditorIDs();
 }
 
 void

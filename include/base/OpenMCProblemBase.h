@@ -356,6 +356,9 @@ protected:
   /// Ensure that the IDs of OpenMC objects in UserObjects don't clash
   void checkOpenMCUserObjectIDs() const;
 
+  /// Ensure that any tally editors don't apply to Cardinal-mapped tallies
+  void checkTallyEditorIDs() const;
+
   /// Execute all filter editor userobjects
   void executeFilterEditors();
 
