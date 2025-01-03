@@ -24,6 +24,10 @@
  * Interpolate a NekRS solution field onto a point, using NekRS's
  * pointInterpolation. The provided point does not need to be a grid point;
  * interpolation happens on GPU.
+ *
+ * NOTE: NekRS does not provide an interface to capture any errors if a point
+ * provided is not actually contained. They only print to the console. Any
+ * point specified, but which is outside the mesh, will silently return zero.
  */
 class NekPointValue : public NekFieldPostprocessor
 {

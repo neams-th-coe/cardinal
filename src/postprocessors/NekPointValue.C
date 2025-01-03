@@ -46,9 +46,9 @@ NekPointValue::NekPointValue(const InputParameters & parameters)
 void
 NekPointValue::execute()
 {
-  std::vector<dfloat> x = {_point(0)};
-  std::vector<dfloat> y = {_point(1)};
-  std::vector<dfloat> z = {_point(2)};
+  std::vector<dfloat> x = {_point(0) / nekrs::referenceLength()};
+  std::vector<dfloat> y = {_point(1) / nekrs::referenceLength()};
+  std::vector<dfloat> z = {_point(2) / nekrs::referenceLength()};
   int n = x.size();
 
   nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
