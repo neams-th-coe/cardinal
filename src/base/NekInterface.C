@@ -1499,7 +1499,8 @@ mesh_velocity_z(const int id, const dfloat value)
   nrs->usrwrk[indices.mesh_velocity_z + id] = value;
 }
 
-void checkFieldValidity(const field::NekFieldEnum & field)
+void
+checkFieldValidity(const field::NekFieldEnum & field)
 {
   switch (field)
   {

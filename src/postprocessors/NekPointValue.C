@@ -28,19 +28,21 @@ NekPointValue::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
   params.addRequiredParam<Point>("point", "The physical point where the field will be evaluated");
-  params.addClassDescription("Uses NekRS's pointInterpolation to query the NekRS solution at a point (does not need to be a grid point).");
+  params.addClassDescription("Uses NekRS's pointInterpolation to query the NekRS solution at a "
+                             "point (does not need to be a grid point).");
   return params;
 }
 
 NekPointValue::NekPointValue(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters),
-    _point(getParam<Point>("point")),
-    _value(0)
+  : NekFieldPostprocessor(parameters), _point(getParam<Point>("point")), _value(0)
 {
   nekrs::checkFieldValidity(_field);
 
   if (_field == field::velocity_component)
-    paramError("field", "The 'velocity_component' option is not currently enabled. If you would like to interpolate V*hat(n), you should instead interpolate the three velocity components individually and then post-apply the unit normal");
+    paramError("field",
+               "The 'velocity_component' option is not currently enabled. If you would like to "
+               "interpolate V*hat(n), you should instead interpolate the three velocity components "
+               "individually and then post-apply the unit normal");
 }
 
 void
@@ -92,7 +94,6 @@ NekPointValue::execute()
       mooseError("Unhandled NekFieldEnum in NekPointValue!");
   }
 
-
   // the interpolation happens on device, so we need to copy it back to the host
   std::vector<dfloat> interpolated(n_values);
   o_interpolated.copyTo(interpolated.data(), n_values);
@@ -111,7 +112,8 @@ NekPointValue::execute()
       _value = interpolated[2];
       break;
     case field::velocity:
-      _value = std::sqrt(interpolated[0]*interpolated[0] + interpolated[1]*interpolated[1]+interpolated[2]*interpolated[2]);
+      _value = std::sqrt(interpolated[0] * interpolated[0] + interpolated[1] * interpolated[1] +
+                         interpolated[2] * interpolated[2]);
       break;
     case field::pressure:
       _value = interpolated[0];
