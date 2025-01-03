@@ -1499,8 +1499,37 @@ mesh_velocity_z(const int id, const dfloat value)
   nrs->usrwrk[indices.mesh_velocity_z + id] = value;
 }
 
+void checkFieldValidity(const field::NekFieldEnum & field)
+{
+  switch (field)
+  {
+    case field::temperature:
+      if (!hasTemperatureVariable())
+        mooseError("Cardinal cannot find 'temperature' "
+                   "because your Nek case files do not have a temperature variable!");
+      break;
+    case field::scalar01:
+      if (!hasScalarVariable(1))
+        mooseError("Cardinal cannot find 'scalar01' "
+                   "because your Nek case files do not have a scalar01 variable!");
+      break;
+    case field::scalar02:
+      if (!hasScalarVariable(2))
+        mooseError("Cardinal cannot find 'scalar02' "
+                   "because your Nek case files do not have a scalar02 variable!");
+      break;
+    case field::scalar03:
+      if (!hasScalarVariable(3))
+        mooseError("Cardinal cannot find 'scalar03' "
+                   "because your Nek case files do not have a scalar03 variable!");
+      break;
+  }
+}
+
 double (*solutionPointer(const field::NekFieldEnum & field))(int)
 {
+  checkFieldValidity(field);
+
   double (*f)(int);
 
   switch (field)
@@ -1522,30 +1551,18 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
                  "interface!");
       break;
     case field::temperature:
-      if (!hasTemperatureVariable())
-        mooseError("Cardinal cannot find 'temperature' "
-                   "because your Nek case files do not have a temperature variable!");
       f = &temperature;
       break;
     case field::pressure:
       f = &pressure;
       break;
     case field::scalar01:
-      if (!hasScalarVariable(1))
-        mooseError("Cardinal cannot find 'scalar01' "
-                   "because your Nek case files do not have a scalar01 variable!");
       f = &scalar01;
       break;
     case field::scalar02:
-      if (!hasScalarVariable(2))
-        mooseError("Cardinal cannot find 'scalar02' "
-                   "because your Nek case files do not have a scalar02 variable!");
       f = &scalar02;
       break;
     case field::scalar03:
-      if (!hasScalarVariable(3))
-        mooseError("Cardinal cannot find 'scalar03' "
-                   "because your Nek case files do not have a scalar03 variable!");
       f = &scalar03;
       break;
     case field::unity:
@@ -1666,8 +1683,7 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       value = value * scales.U_ref;
       break;
     case field::velocity_component:
-      mooseError(
-          "The 'velocity_component' field is incompatible with the dimensionalize interface!");
+      value = value * scales.U_ref;
       break;
     case field::temperature:
       value = value * scales.dT_ref;

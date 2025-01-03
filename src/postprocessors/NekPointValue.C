@@ -1,0 +1,146 @@
+/********************************************************************/
+/*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
+/*                             Cardinal                             */
+/*                                                                  */
+/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                        ALL RIGHTS RESERVED                       */
+/*                                                                  */
+/*                 Prepared by UChicago Argonne, LLC                */
+/*               Under Contract No. DE-AC02-06CH11357               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*             Prepared by Battelle Energy Alliance, LLC            */
+/*               Under Contract No. DE-AC07-05ID14517               */
+/*                With the U. S. Department of Energy               */
+/*                                                                  */
+/*                 See LICENSE for full restrictions                */
+/********************************************************************/
+
+#ifdef ENABLE_NEK_COUPLING
+
+#include "NekPointValue.h"
+#include "pointInterpolation.hpp"
+
+registerMooseObject("CardinalApp", NekPointValue);
+
+InputParameters
+NekPointValue::validParams()
+{
+  InputParameters params = NekFieldPostprocessor::validParams();
+  params.addRequiredParam<Point>("point", "The physical point where the field will be evaluated");
+  params.addClassDescription("Uses NekRS's pointInterpolation to query the NekRS solution at a point (does not need to be a grid point).");
+  return params;
+}
+
+NekPointValue::NekPointValue(const InputParameters & parameters)
+  : NekFieldPostprocessor(parameters),
+    _point(getParam<Point>("point")),
+    _value(0)
+{
+  nekrs::checkFieldValidity(_field);
+
+  if (_field == field::velocity_component)
+    paramError("field", "The 'velocity_component' option is not currently enabled. If you would like to interpolate V*hat(n), you should instead interpolate the three velocity components individually and then post-apply the unit normal");
+}
+
+void
+NekPointValue::execute()
+{
+  std::vector<dfloat> x = {_point(0)};
+  std::vector<dfloat> y = {_point(1)};
+  std::vector<dfloat> z = {_point(2)};
+  int n = x.size();
+
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+
+  // set the points to be interpolated; we include this every time we call the
+  // interpolator, in case the mesh is moving. TODO: auto-detect for efficiency
+  auto interp = pointInterpolation_t(nrs);
+  interp.setPoints(n, x.data(), y.data(), z.data());
+  const auto verbosity = pointInterpolation_t::VerbosityLevel::Basic;
+  interp.find(verbosity);
+
+  // interpolate the field onto those points
+  occa::memory o_interpolated;
+  int n_values = n;
+  switch (_field)
+  {
+    case field::velocity_x:
+    case field::velocity_y:
+    case field::velocity_z:
+    case field::velocity:
+      n_values = n * nrs->NVfields;
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      interp.eval(n_values, nrs->fieldOffset, nrs->cds->o_U, n, o_interpolated);
+      break;
+    case field::pressure:
+      o_interpolated = platform->device.malloc<dfloat>(n);
+      interp.eval(1, nrs->fieldOffset, nrs->o_P, n, o_interpolated);
+      break;
+    case field::temperature:
+    case field::scalar01:
+    case field::scalar02:
+    case field::scalar03:
+      n_values = n * nrs->Nscalar;
+      o_interpolated = platform->device.malloc<dfloat>(n_values);
+      interp.eval(n_values, nrs->fieldOffset, nrs->cds->o_S, n, o_interpolated);
+      break;
+    case field::unity:
+      _value = 1;
+      break;
+    default:
+      mooseError("Unhandled NekFieldEnum in NekPointValue!");
+  }
+
+
+  // the interpolation happens on device, so we need to copy it back to the host
+  std::vector<dfloat> interpolated(n_values);
+  o_interpolated.copyTo(interpolated.data(), n_values);
+
+  // because of NekRS's way of storing solution, we need extra steps to actually
+  // return what the user wants
+  switch (_field)
+  {
+    case field::velocity_x:
+      _value = interpolated[0];
+      break;
+    case field::velocity_y:
+      _value = interpolated[1];
+      break;
+    case field::velocity_z:
+      _value = interpolated[2];
+      break;
+    case field::velocity:
+      _value = std::sqrt(interpolated[0]*interpolated[0] + interpolated[1]*interpolated[1]+interpolated[2]*interpolated[2]);
+      break;
+    case field::pressure:
+      _value = interpolated[0];
+      break;
+    case field::temperature:
+      _value = interpolated[0];
+      break;
+    case field::scalar01:
+      _value = interpolated[1];
+      break;
+    case field::scalar02:
+      _value = interpolated[2];
+      break;
+    case field::scalar03:
+      _value = interpolated[3];
+      break;
+    case field::unity:
+      break;
+    default:
+      mooseError("Unhandled NekFieldEnum in NekPointValue!");
+  }
+
+  nekrs::dimensionalize(_field, _value);
+}
+
+Real
+NekPointValue::getValue() const
+{
+  return _value;
+}
+
+#endif
