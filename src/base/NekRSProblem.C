@@ -185,10 +185,7 @@ NekRSProblem::initialSetup()
   if (!has_temperature_solve)
     mooseWarning(
         "By setting 'solver = none' for temperature in '" + _casename +
-        ".par', nekRS "
-        "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
-        "fixed at its initial condition, and the heat flux\nand power transferred to nekRS will be "
-        "unused.");
+        ".par', nekRS will not solve for temperature.\n\nThe fluid wall temperature transferred to MOOSE will remain fixed at its initial condition, and the heat flux and power transferred to nekRS will be unused.");
 
   // For boundary-based coupling, we should check that the correct flux boundary
   // condition is set on all of nekRS's boundaries. To avoid throwing this

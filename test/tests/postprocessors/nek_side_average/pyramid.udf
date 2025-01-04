@@ -15,7 +15,7 @@ void UDF_Setup(nrs_t *nrs)
     dfloat y = mesh->y[n];
     dfloat z = mesh->z[n];
 
-    nrs->U[n + 0 * nrs->fieldOffset] = sin(x);     // x-velocity
+    nrs->U[n + 0 * nrs->fieldOffset] = sin(x) + 2; // x-velocity
     nrs->U[n + 1 * nrs->fieldOffset] = y + 1;      // y-velocity
     nrs->U[n + 2 * nrs->fieldOffset] = exp(x*y*z); // z-velocity
 

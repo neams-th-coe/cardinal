@@ -1443,6 +1443,24 @@ velocity(const int id)
                    nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
 }
 
+double
+velocity_x_squared(const int id)
+{
+  return std::pow(velocity_x(id), 2);
+}
+
+double
+velocity_y_squared(const int id)
+{
+  return std::pow(velocity_y(id), 2);
+}
+
+double
+velocity_z_squared(const int id)
+{
+  return std::pow(velocity_z(id), 2);
+}
+
 void
 flux(const int id, const dfloat value)
 {
@@ -1550,6 +1568,15 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
     case field::velocity_component:
       mooseError("The 'velocity_component' field is not compatible with the solutionPointer "
                  "interface!");
+      break;
+    case field::velocity_x_squared:
+      f = &velocity_x_squared;
+      break;
+    case field::velocity_y_squared:
+      f = &velocity_y_squared;
+      break;
+    case field::velocity_z_squared:
+      f = &velocity_z_squared;
       break;
     case field::temperature:
       f = &temperature;
@@ -1672,19 +1699,16 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
   switch (field)
   {
     case field::velocity_x:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_y:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_z:
-      value = value * scales.U_ref;
-      break;
     case field::velocity:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_component:
       value = value * scales.U_ref;
+      break;
+    case field::velocity_x_squared:
+    case field::velocity_y_squared:
+    case field::velocity_z_squared:
+      value = value * scales.U_ref * scales.U_ref;
       break;
     case field::temperature:
       value = value * scales.dT_ref;
@@ -1693,14 +1717,8 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::scalar01:
-      // no dimensionalization needed
-      break;
     case field::scalar02:
-      // no dimensionalization needed
-      break;
     case field::scalar03:
-      // no dimensionalization needed
-      break;
     case field::unity:
       // no dimensionalization needed
       break;

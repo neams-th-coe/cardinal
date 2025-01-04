@@ -88,11 +88,14 @@ namespace field
 /// Enumeration of possible fields to read from nekRS
 enum NekFieldEnum
 {
-  velocity_component,
   velocity_x,
   velocity_y,
   velocity_z,
   velocity,
+  velocity_component,
+  velocity_x_squared,
+  velocity_y_squared,
+  velocity_z_squared,
   temperature,
   pressure,
   scalar01,
