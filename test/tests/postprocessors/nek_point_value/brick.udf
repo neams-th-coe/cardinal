@@ -22,9 +22,9 @@ void UDF_Setup(nrs_t *nrs)
     nrs->P[n] = sin(x*y) + exp(z); // pressure
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z;
-    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z * 2;
-    nrs->cds->S[n + 2 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z * 3;
-    nrs->cds->S[n + 3 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z * 4;
+    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 2;
+    nrs->cds->S[n + 2 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 3;
+    nrs->cds->S[n + 3 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 4;
   }
 }
 

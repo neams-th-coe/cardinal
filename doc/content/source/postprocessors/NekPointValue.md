@@ -17,7 +17,7 @@ not need to be a [!ac](GLL) point.
 As an example, the following code snippet will interpolate the spectral
 NekRS solution onto a provided point.
 
-!listing test/tests/postprocessors/point_interpolation/points.i
+!listing test/tests/postprocessors/nek_point_value/points.i
   block=Postprocessors
 
 !syntax parameters /Postprocessors/NekPointValue
