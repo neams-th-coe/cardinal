@@ -102,7 +102,3 @@ to learn about code capabilities
 Find instructions for building on common
 [HPC systems](hpc.md) across the National Laboratories
 !col-end!
-
-
-
-!bibtex bibliography

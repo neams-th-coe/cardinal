@@ -442,5 +442,3 @@ mpirun -np 4 cardinal-opt -i solid_vpp.i
 ```
 
 The physics predictions are nearly identical to those displayed earlier.
-
-!bibtex bibliography

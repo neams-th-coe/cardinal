@@ -446,5 +446,3 @@ below the core mid-plane, as shown in [heat_source].
   id=temperature_axial
   caption=Radially-averaged fuel and graphite block temperatures in 30 axial layers
   style=width:50%;margin-left:auto;margin-right:auto
-
-!bibtex bibliography
