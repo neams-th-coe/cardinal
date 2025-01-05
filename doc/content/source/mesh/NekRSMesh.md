@@ -5,10 +5,10 @@
 ## Description
 
 This class constructs a "mirror" mesh of the NekRS domain as a
-[MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html) so that
+[MooseMesh](MooseMesh.md) so that
 other MOOSE applications can send/receive data to/from this mesh using
-MOOSE [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html).
-When data is *read* from NekRS, [NekRSProblem](/problems/NekRSProblem.md) directly
+MOOSE [Transfers](Transfers/index.md).
+When data is *read* from NekRS, [NekRSProblem](NekRSProblem.md) directly
 accesses solution arrays in NekRS and interpolates them onto the `NekRSMesh` mirror. When
 data is *written* into NekRS, it is read from a `MooseVariable` on the `NekRSMesh`
 and interpolated directly into boundary condition and source arrays in NekRS.

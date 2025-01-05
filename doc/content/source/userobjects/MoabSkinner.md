@@ -31,7 +31,7 @@ shown in [moab_skinner].
   block=UserObjects
 
 The binning, colored on a per-element basis as shown in [moab_skinner] can be visualized
-with the [SkinnedBins](/auxkernels/SkinnedBins.md) auxiliary kernel.
+with the [SkinnedBins](SkinnedBins.md) auxiliary kernel.
 
 !syntax parameters /UserObjects/MoabSkinner
 

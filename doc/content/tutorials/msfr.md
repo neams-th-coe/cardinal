@@ -179,10 +179,10 @@ Next, we set some initial conditions for temperature and density, because we wil
   block=ICs
 
 Next, we define a number of auxiliary variables to be used for diagnostic purposes.
-With the exception of the [ParsedAux](https://mooseframework.inl.gov/source/auxkernels/ParsedAux.html)
+With the exception of the [ParsedAux](ParsedAux.md)
 used to compute a fluid density in terms of temperature,
-none of the following variables are necessary for coupling, but they will allow us to visualize how data is mapped from OpenMC to the mesh mirror. The [CellTemperatureAux](https://cardinal.cels.anl.gov/source/auxkernels/CellTemperatureAux.html)
-and [CellDensityAux](https://cardinal.cels.anl.gov/source/auxkernels/CellDensityAux.html)
+none of the following variables are necessary for coupling, but they will allow us to visualize how data is mapped from OpenMC to the mesh mirror. The [CellTemperatureAux](CellTemperatureAux.md)
+and [CellDensityAux](CellDensityAux.md)
 will display the OpenMC cell temperatures and densities (after volume-averaging from Cardinal).
 
 !listing tutorials/msfr/openmc.i
@@ -191,13 +191,13 @@ will display the OpenMC cell temperatures and densities (after volume-averaging 
 
 Next, the `[Problem]` and `[Tallies]` blocks define all the parameters related to coupling
 OpenMC to MOOSE. We will send temperature and density to OpenMC, and extract
-power using a [MeshTally](/tallies/MeshTally.md). We set a number of relaxation settings to use
+power using a [MeshTally](MeshTally.md). We set a number of relaxation settings to use
 Dufek-Gudowski relaxation, which will progressively ramp the number of
 particles used in the simulation (starting at 5000) so that we selectively
 apply computational effort only after the thermal-fluid physics are reasonably
 well converged. Finally, we will be "skinning" the geometry on-the-fly
 by providing the `skinner` user object (of type
-[MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html)).
+[MoabSkinner](MoabSkinner.md)).
 
 !listing tutorials/msfr/openmc.i
   block=Problem
@@ -219,7 +219,7 @@ by using the `synchronize_in` postprocessor transfer.
   start=MultiApps
   end=Postprocessors
 
-Finally, we will use a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html) executioner and add a number of postprocessors for diagnostic purposes. We set the "time step" size in OpenMC
+Finally, we will use a [Transient](Transient.md) executioner and add a number of postprocessors for diagnostic purposes. We set the "time step" size in OpenMC
 to be equal to 2000 times the (dimensional) NekRS time step size, so we are essentially
 running 2000 NekRS time steps for each OpenMC $k$-eigenvalue solve.
 
@@ -230,15 +230,14 @@ running 2000 NekRS time steps for each OpenMC $k$-eigenvalue solve.
 
 The fluid mass, momentum, and energy transport physics are solved using NekRS. The input file
 for this portion of the physics is `nek.i`. We begin by defining a number of file-local constants and by setting
-up the [NekRSMesh](mesh/NekRSMesh.md) mesh mirror. Because we are coupling NekRS via volumetric heating
+up the [NekRSMesh](NekRSMesh.md) mesh mirror. Because we are coupling NekRS via volumetric heating
 to OepNMC, we need to use a volumetric mesh mirror. The characteristic length chosen for
 the NekRS files is already 1 m, so we do not need to scale the mesh in any way.
 
 !listing tutorials/msfr/nek.i
   end=Problem
 
-The bulk of the NekRS wrapping is specified with
-[NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html).
+The bulk of the NekRS wrapping is specified with [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in non-dimensional form, whereas all other coupled applications
 use dimensional units. The various `*_ref` and `*_0` parameters define the characteristic
 scales that were used to non-dimensionalize the NekRS input.
@@ -246,8 +245,8 @@ scales that were used to non-dimensionalize the NekRS input.
 !listing /tutorials/msfr/nek.i
   block=Problem
 
-Then, we simply set up a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
-executioner with the [NekTimeStepper](https://cardinal.cels.anl.gov/source/timesteppers/NekTimeStepper.html).
+Then, we simply set up a [Transient](Transient.md)
+executioner with the [NekTimeStepper](NekTimeStepper.md).
 
 !listing tutorials/msfr/nek.i
   start=Executioner

@@ -23,8 +23,8 @@ by using a smaller `writeInterval`.
 !listing /tutorials/restart_nek_and_moose/create_checkpoints/pyramid.par
 
 MOOSE checkpoint file output is controlled
-using [Outputs/Checkpoint](https://mooseframework.inl.gov/source/outputs/Checkpoint.html).
-This is one of the [Restart and Recover](https://mooseframework.inl.gov/application_usage/restart_recover.html)
+using [Outputs/Checkpoint](Checkpoint.md).
+This is one of the [Restart and Recover](restart_recover.md)
 options in the MOOSE framework. This checkpoint method requires N to N restarting, where the number of processors
 for the previous and current MOOSE simulations must match.
 

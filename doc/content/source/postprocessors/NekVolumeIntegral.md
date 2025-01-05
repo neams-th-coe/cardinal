@@ -15,7 +15,7 @@ where $p$ is the value of the postprocessor,
 $\Omega$ is the volume of the nekrs mesh, and
 $f$ is the specified field.
 To be clear, this postprocessor is *not* evaluated on the
-[NekRSMesh](/mesh/NekRSMesh.md) mesh mirror, but instead on the mesh actually
+[NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
 used for computation in NekRS.
 
 !include /field_specs.md

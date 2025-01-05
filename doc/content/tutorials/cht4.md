@@ -190,7 +190,7 @@ In this section, MOOSE and NekRS are coupled for [!ac](CHT).
 ### Solid Input Files
 
 The solid phase is solved with the MOOSE heat transfer module, and is described in
-the `moose.i` input. First we set up the mesh using a [SphereMeshGenerator](https://mooseframework.inl.gov/source/meshgenerators/SphereMeshGenerator.html) for each pebble and then repeating it 67 times
+the `moose.i` input. First we set up the mesh using a [SphereMeshGenerator](SphereMeshGenerator.md) for each pebble and then repeating it 67 times
 at each pebble location.
 
 !listing /tutorials/pebble_67/moose.i
@@ -204,12 +204,12 @@ boundary conditions we will apply.
   end=Functions
 
 The MOOSE heat transfer module will receive a wall temperature from NekRS in
-the form of an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
+the form of an [AuxVariable](AuxVariables/index.md),
 so we define a receiver variable for the temperature, as `nek_temp`. The MOOSE
 heat transfer module will also send heat flux to NekRS, which we compute as
-another [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
+another [AuxVariable](AuxVariables/index.md)
 named `flux`, which we compute with a
-[DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)
+[DiffusionFluxAux](DiffusionFluxAux.md)
 auxiliary kernel.
 
 !listing /tutorials/pebble_67/moose.i
@@ -222,15 +222,15 @@ normalizing the heat flux.
 !listing /tutorials/pebble_67/moose.i
   block=Postprocessors
 
-Finally, we add a [TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html)
+Finally, we add a [TransientMultiApp](TransientMultiApp.md)
 that will run a MOOSE-wrapped NekRS simulation. Then, we add three different
 transfers to/from NekRS:
 
-- [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+- [MultiAppNearestNodeTransfer](MultiAppNearestNodeTransfer.md)
   to send the heat flux from MOOSE to NekRS
-- [MultiAppNearestNodeTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppNearestNodeTransfer.html)
+- [MultiAppNearestNodeTransfer](MultiAppNearestNodeTransfer.md)
   to send temperature from NekRS to MOOSE
-- [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
+- [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md)
   to normalize the heat flux sent to NekRS
 
 !listing /tutorials/pebble_67/moose.i
@@ -243,14 +243,14 @@ transfers to/from NekRS:
 The Nek wrapping is described in the `nek.i` input file.
 We first define
 a few file-local variables, and then build a mesh mirror with a
-[NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html). By setting
+[NekRSMesh](NekRSMesh.md). By setting
 `boundary = '4'`, we indicate that boundary 4 will be coupled via [!ac](CHT).
 
 !listing /tutorials/pebble_67/nek.i
   end=Problem
 
 Next, we define additional parameters to describe how NekRS interacts with MOOSE
-with the [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html).
+with the [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in nondimensional form, so we must indicate all the characteristic
 scales so that data transfers with a dimensional MOOSE application are performed
 correctly.
@@ -259,7 +259,7 @@ correctly.
   block=Problem
 
 For time stepping, we will allow NekRS to control its own time stepping
-by using the [NekTimeStepper](https://cardinal.cels.anl.gov/source/timesteppers/NekTimeStepper.html).
+by using the [NekTimeStepper](NekTimeStepper.md).
 
 !listing /tutorials/pebble_67/nek.i
   start=Executioner

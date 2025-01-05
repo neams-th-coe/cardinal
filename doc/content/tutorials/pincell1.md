@@ -13,10 +13,10 @@ cd cardinal/tutorials/lwr_solid
 ```
 
 At a high level, Cardinal's wrapping of OpenMC consists of two major stages - first, establishing
-the mapping between OpenMC's geometry and the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+the mapping between OpenMC's geometry and the [MooseMesh](MooseMesh.md)
 with which OpenMC communicates. This stage consists of:
 
-1. Map the elements in a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+1. Map the elements in a [MooseMesh](MooseMesh.md)
   to OpenMC cells by identifying the OpenMC cell that resides at each element's centroid.
   The mapping does not place any requirements on geometry alignment.
 2. Identify which MOOSE mesh blocks are providing temperature and density feedback.
@@ -26,14 +26,14 @@ with which OpenMC communicates. This stage consists of:
 
 The second stage of the wrapping encompasses the actual multiphysics solve:
 
-1. Add a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+1. Add a [MooseVariable](MooseVariable.md)
   to represent OpenMC's heat source. In other words, if OpenMC stores the fission heating tally
   as a `std::vector<double>`,
-  then a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
-  is created that represents the same data, but mapped to the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
+  then a [MooseVariable](MooseVariable.md)
+  is created that represents the same data, but mapped to the [MooseMesh](MooseMesh.md).
 2. Write multiphysics feedback fields in/out of OpenMC's internal cell and material representations.
   In other words, if OpenMC represents cell temperature as `std::vector<double>`, this involves reading
-  from a [MooseVariable](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+  from a [MooseVariable](MooseVariable.md)
   representing temperature and writing into OpenMC's internal data structures. A similar process occurs for
   density feedback.
 
@@ -74,13 +74,13 @@ per bundle.
 
 !include steady_hc.md
 
-[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
+[MeshGenerators](Mesh/index.md) are used to construct
 the solid mesh. [solid_mesh] shows the solid mesh with block IDs and sidesets.
 Different block IDs are used for the hexahedral and prism elements
 in the pellet region because libMesh does not allow different element types
 to exist on the same block ID.
 Because this mesh is generated using
-the [MeshGenerator](https://mooseframework.inl.gov/syntax/Mesh/)
+the [MeshGenerator](Mesh/index.md)
 system in MOOSE, the mesh is created at runtime. If you want to generate a mesh file,
 you can do so by running the solid input file in mesh generation mode:
 
@@ -154,9 +154,9 @@ MOOSE elements and should help provide a grasp on the "level" concept.
 Cardinal also automatically outputs `cell_id` and `cell_instance`, which hold
 info on how the OpenMC cells (IDs and instances) map to the mesh.
 Cardinal will also automatically output a variable named `cell_id`
-([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+([CellIDAux](CellIDAux.md))
 and a variable named `cell_instance` (
-[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
+[CellInstanceAux](CellInstanceAux.md)) to show the spatial mapping.
 
 OpenMC's Python [!ac](API)
 is used to create the pincell model with the script shown below. First, we define
@@ -240,7 +240,7 @@ as a nonlinear variable and apply a simple uniform initial condition.
 !listing /tutorials/lwr_solid/solid.i
   block=Variables
 
-The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+The [Transfer](Transfers/index.md)
 system in MOOSE is used to communicate variables across applications; a
 heat source will be computed by OpenMC and applied as a source term in MOOSE.
 In the opposite direction, MOOSE will compute a temperature that will be
@@ -251,8 +251,7 @@ simply need to add an auxiliary variable to receive the heat source from OpenMC.
   block=AuxVariables
 
 The governing equation solved by MOOSE is specified in the `[Kernels]` block with the
-[HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
-and [CoupledForce](https://mooseframework.inl.gov/source/kernels/CoupledForce.html) kernels.
+[HeatConduction](HeatConduction.md) and [CoupledForce](CoupledForce.md) kernels.
 The heat source provided by OpenMC is given by the receiver `heat_source` auxiliary variable.
 
 !listing /tutorials/lwr_solid/solid.i
@@ -283,8 +282,7 @@ In this example, the overall calculation workflow is as follows:
   to all the MOOSE elements that mapped to each cell.
 
 The above sequence is repeated until desired convergence of the coupled domain is achieved.
-The [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+The [MultiApps](MultiApps/index.md) and [Transfers](Transfers/index.md)
 blocks describe the interaction between Cardinal and MOOSE. The MOOSE
 heat conduction application is run as the main application, with
 OpenMC run as the sub-application. We specify that MOOSE will run
@@ -331,24 +329,24 @@ in other tutorials.
 !listing /tutorials/lwr_solid/openmc.i
   end=AuxVariables
 
-Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
-and [Tallies](/actions/AddTallyAction.md) blocks describe all objects necessary for the
+Next, the [Problem](Problem/index.md)
+and [Tallies](AddTallyAction.md) blocks describe all objects necessary for the
 actual neutronics solve. To replace MOOSE finite element calculations
 with OpenMC particle transport calculations, the
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class is used.
+[OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) class is used.
 
 !listing /tutorials/lwr_solid/openmc.i
   block=Problem
 
 For this example, we first start by specifying that we wish to add a
-[CellTally](/tallies/CellTally.md) in `[Tallies]`. The `blocks` are
+[CellTally](CellTally.md) in `[Tallies]`. The `blocks` are
 then used to indicate which OpenMC cells to add tallies to
 (as inferred from the mapping of MOOSE elements to OpenMC cells). If not specified,
 we add tallies to all OpenMC cells. But for this problem, we already know that the
 cladding doesn't have any fissile material, so we can save some effort with the
 tallies by skipping tallies in those regions by setting
 `blocks` to blocks 2 and 3.
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) will then
+[OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) will then
 take the information provided in the `[Tallies]` block and add the necessary OpenMC tally.
 
 For this example, we specify the total fission power by which to normalize OpenMC's
@@ -356,7 +354,7 @@ tally results (because OpenMC's tally results are in units of eV/source particle
 Next, we indicate which blocks in the `[Mesh]` should be considered for
 temperature feedback using the `temperature_blocks` parameter.
 Here, we specify temperature feedback for the pellet (blocks 2 and 3) and the cladding
-(block 1). During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+(block 1). During the initialization, [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
 are providing feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
 a volume-average temperature to apply to each OpenMC cell. We specify the level in the geometry on which the cells
@@ -373,7 +371,7 @@ mapping should show close agreement between these two values.
 Next, we add a series of auxiliary variables for solution visualization
 (these are not requried for coupling). To help with understanding
 how Cardinal volume-averages temperature over the mesh, we add a
-[CellTemperatureAux](/auxkernels/CellTemperatureAux.md).
+[CellTemperatureAux](CellTemperatureAux.md).
 
 !listing /tutorials/lwr_solid/openmc.i
   start=AuxVariables
@@ -389,7 +387,7 @@ main application via subcycling, we would have a way to control that.
   end=Postprocessors
 
 Finally, we add a postprocessor to evaluate the total heat source computed by OpenMC.
-We also include a [TallyRelativeError](/postprocessors/TallyRelativeError.md)
+We also include a [TallyRelativeError](TallyRelativeError.md)
 postprocessor to evaluate the maximum relative error of the cell tally and a third postprocessor
 to evaluate the maximum heat source.
 
@@ -397,7 +395,7 @@ to evaluate the maximum heat source.
   block=Postprocessors
 
 You will likely notice that many of the always-included MOOSE blocks are not
-present in the `openmc.i` input. [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+present in the `openmc.i` input. [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 automatically adds the `heat_source`, `temp`, and `density` (if density is coupled
 to OpenMC) variables in the `openmc.i` input, so these will never appear in the OpenMC
 wrapper file explicitly. It is as if the following is included in the input file:
@@ -591,8 +589,8 @@ point to a different input file.
 !listing /tutorials/lwr_solid/solid_um.i
   block=MultiApps
 
-Then, in `openmc_um.i`, we change the [CellTally](/tallies/CellTally.md)
-to a [MeshTally](/tallies/MeshTally.md). By default, OpenMC will then just
+Then, in `openmc_um.i`, we change the [CellTally](CellTally.md)
+to a [MeshTally](MeshTally.md). By default, OpenMC will then just
 tally directly on the MOOSE `[Mesh]` (though we could have specified a
 different mesh by providing a`mesh_template` file name).
 
@@ -635,7 +633,7 @@ the heat source tally is simply written to the corresponding mesh element in the
 `[Mesh]` by element index (as opposed to doing a nearest-element search). If the mesh in the
 `[Mesh]` block contains both solid and fluid elements, for instance, and you only want to
 tally on an unstructured mesh in the solid, all the solid elements in the `[Mesh]` should
-appear first in the total combined mesh. You can use a [CombinerGenerator](https://mooseframework.inl.gov/source/meshgenerators/CombinerGenerator.html)
+appear first in the total combined mesh. You can use a [CombinerGenerator](CombinerGenerator.md)
 to achieve this if your fluid and solid meshes are saved in separate files
 or if you use separate mesh generators for the phases. We have
 checks in place to make sure you don't inadvertently bypass this requirement.

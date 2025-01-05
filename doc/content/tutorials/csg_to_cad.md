@@ -217,7 +217,7 @@ for the steady-state temperature distribution
 -\nabla\cdot k\nabla T=\dot{q}
 \end{equation}
 
-We use the [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html) and [CoupledForce](https://mooseframework.inl.gov/source/kernels/CoupledForce.html) kernels to define the Laplacian
+We use the [HeatConduction](HeatConduction.md) and [CoupledForce](CoupledForce.md) kernels to define the Laplacian
 kernel and the coupled power term, respectively. For boundary conditions, we apply
 a constant temperature of 800 on the surface of the heat pipes.
 
@@ -257,7 +257,7 @@ and neutrons/area/time for flux).
   end=UserObjects
 
 We will dynamically modify the OpenMC geometry by "skinning" with the
-[MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html) object. For simplicity, we will lump elements into new cells by contouring into 4 intervals between temperatures of 800 K and 1000 K.
+[MoabSkinner](MoabSkinner.md) object. For simplicity, we will lump elements into new cells by contouring into 4 intervals between temperatures of 800 K and 1000 K.
 
 !listing /tutorials/csg_to_cad/openmc.i
   block=UserObjects

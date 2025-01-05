@@ -4,7 +4,7 @@
 
 ## Description
 
-This postprocessor will display the value of a [NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html),
+This postprocessor will display the value of a [NekScalarValue](NekScalarValue.md),
 for diagnostic purposes.
 
 ## Example Input Syntax
