@@ -536,5 +536,3 @@ before sending temperatures and densities to OpenMC. Please consult the
 !syntax parameters /Problem/OpenMCCellAverageProblem
 
 !syntax inputs /Problem/OpenMCCellAverageProblem
-
-!syntax children /Problem/OpenMCCellAverageProblem

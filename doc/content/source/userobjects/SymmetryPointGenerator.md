@@ -61,5 +61,3 @@ shown in [symmetry_b].
 !syntax parameters /UserObjects/SymmetryPointGenerator
 
 !syntax inputs /UserObjects/SymmetryPointGenerator
-
-!syntax children /UserObjects/SymmetryPointGenerator

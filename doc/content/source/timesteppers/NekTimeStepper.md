@@ -49,5 +49,3 @@ the `min_dt` parameter.
 !syntax parameters /Executioner/TimeStepper/NekTimeStepper
 
 !syntax inputs /Executioner/TimeStepper/NekTimeStepper
-
-!syntax children /Executioner/TimeStepper/NekTimeStepper

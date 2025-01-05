@@ -19,5 +19,3 @@ As an example, the `c` Controls object will modify the
 !syntax parameters /Controls/OpenMCNuclideDensitiesControl
 
 !syntax inputs /Controls/OpenMCNuclideDensitiesControl
-
-!syntax children /Controls/OpenMCNuclideDensitiesControl

@@ -631,5 +631,3 @@ The no-slip condition on the solid surface,
 and the symmetry condition on the $y=0$ surface, are clear in [velocity_cht]. The pressure
 loss is highest in the gap along the $\theta=7.5^\circ$ boundary due to the imposition of
 no-slip conditions on both sides of the half-gap width.
-
-!bibtex bibliography

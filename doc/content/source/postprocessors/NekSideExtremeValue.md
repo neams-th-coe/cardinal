@@ -42,5 +42,3 @@ pressure, velocity magnitude, and velocity components on the boundaries of the N
 !syntax parameters /Postprocessors/NekSideExtremeValue
 
 !syntax inputs /Postprocessors/NekSideExtremeValue
-
-!syntax children /Postprocessors/NekSideExtremeValue

@@ -35,5 +35,3 @@ on the boundaries of the NekRS mesh.
 !syntax parameters /Postprocessors/NekSideIntegral
 
 !syntax inputs /Postprocessors/NekSideIntegral
-
-!syntax children /Postprocessors/NekSideIntegral

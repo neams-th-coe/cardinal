@@ -25,5 +25,3 @@ Shown below is an example for each of the four available estimators.
 !syntax parameters /Postprocessors/KStandardDeviation
 
 !syntax inputs /Postprocessors/KStandardDeviation
-
-!syntax children /Postprocessors/KStandardDeviation

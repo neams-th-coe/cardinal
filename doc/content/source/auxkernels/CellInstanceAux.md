@@ -36,5 +36,3 @@ $N$ is the number of times the cell is repeated through the geometry.
 !syntax parameters /AuxKernels/CellInstanceAux
 
 !syntax inputs /AuxKernels/CellInstanceAux
-
-!syntax children /AuxKernels/CellInstanceAux

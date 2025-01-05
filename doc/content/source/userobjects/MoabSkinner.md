@@ -36,5 +36,3 @@ with the [SkinnedBins](/auxkernels/SkinnedBins.md) auxiliary kernel.
 !syntax parameters /UserObjects/MoabSkinner
 
 !syntax inputs /UserObjects/MoabSkinner
-
-!syntax children /UserObjects/MoabSkinner

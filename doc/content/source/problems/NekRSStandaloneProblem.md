@@ -155,5 +155,3 @@ the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html) to l
 !syntax parameters /Problem/NekRSStandaloneProblem
 
 !syntax inputs /Problem/NekRSStandaloneProblem
-
-!syntax children /Problem/NekRSStandaloneProblem

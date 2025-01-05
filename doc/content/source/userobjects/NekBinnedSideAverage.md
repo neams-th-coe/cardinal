@@ -47,5 +47,3 @@ The result of the user object can then be visualized with a
 !syntax parameters /UserObjects/NekBinnedSideAverage
 
 !syntax inputs /UserObjects/NekBinnedSideAverage
-
-!syntax children /UserObjects/NekBinnedSideAverage

@@ -535,5 +535,3 @@ the [NekRSMesh](/mesh/NekRSMesh.md) is adjusted to the range $\left\lbrack T_{mi
 !syntax parameters /Problem/NekRSProblem
 
 !syntax inputs /Problem/NekRSProblem
-
-!syntax children /Problem/NekRSProblem

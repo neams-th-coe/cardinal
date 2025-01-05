@@ -49,5 +49,3 @@ to the velocity through boundary 1 of the NekRS mesh.
 !syntax parameters /Postprocessors/ReynoldsNumber
 
 !syntax inputs /Postprocessors/ReynoldsNumber
-
-!syntax children /Postprocessors/ReynoldsNumber

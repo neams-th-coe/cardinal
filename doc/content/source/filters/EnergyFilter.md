@@ -23,5 +23,3 @@ into multi-group fluxes using the CASMO-2 group structure.
 !syntax parameters /Problem/Filters/EnergyFilter
 
 !syntax inputs /Problem/Filters/EnergyFilter
-
-!syntax children /Problem/Filters/EnergyFilter

@@ -36,5 +36,3 @@ on various sidesets in the NekRS mesh.
 !syntax parameters /Postprocessors/NekPressureSurfaceForce
 
 !syntax inputs /Postprocessors/NekPressureSurfaceForce
-
-!syntax children /Postprocessors/NekPressureSurfaceForce

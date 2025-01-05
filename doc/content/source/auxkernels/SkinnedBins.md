@@ -32,5 +32,3 @@ for all different choices of `skin_by`.
 !syntax parameters /AuxKernels/SkinnedBins
 
 !syntax inputs /AuxKernels/SkinnedBins
-
-!syntax children /AuxKernels/SkinnedBins

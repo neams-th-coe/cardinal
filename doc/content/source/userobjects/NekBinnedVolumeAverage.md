@@ -46,5 +46,3 @@ The result of the user object can then be visualized with a
 !syntax parameters /UserObjects/NekBinnedVolumeAverage
 
 !syntax inputs /UserObjects/NekBinnedVolumeAverage
-
-!syntax children /UserObjects/NekBinnedVolumeAverage

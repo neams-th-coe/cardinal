@@ -28,5 +28,3 @@ several times in the geometry.
 !syntax parameters /AuxKernels/CellIDAux
 
 !syntax inputs /AuxKernels/CellIDAux
-
-!syntax children /AuxKernels/CellIDAux

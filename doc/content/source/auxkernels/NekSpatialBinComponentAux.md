@@ -38,5 +38,3 @@ component that increases with $r$ and zero radial component.
 !syntax parameters /AuxKernels/NekSpatialBinComponentAux
 
 !syntax inputs /AuxKernels/NekSpatialBinComponentAux
-
-!syntax children /AuxKernels/NekSpatialBinComponentAux

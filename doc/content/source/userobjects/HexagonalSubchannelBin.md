@@ -55,5 +55,3 @@ region) for this 19-pin geometry.
 !syntax parameters /UserObjects/HexagonalSubchannelBin
 
 !syntax inputs /UserObjects/HexagonalSubchannelBin
-
-!syntax children /UserObjects/HexagonalSubchannelBin

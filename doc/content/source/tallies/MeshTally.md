@@ -52,5 +52,3 @@ to the centroid of a fuel pebble.
 !syntax parameters /Problem/Tallies/MeshTally
 
 !syntax inputs /Problem/Tallies/MeshTally
-
-!syntax children /Problem/Tallies/MeshTally

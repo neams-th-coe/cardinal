@@ -47,5 +47,3 @@ The result of the user object can then be visualized with a
 !syntax parameters /UserObjects/NekBinnedSideIntegral
 
 !syntax inputs /UserObjects/NekBinnedSideIntegral
-
-!syntax children /UserObjects/NekBinnedSideIntegral

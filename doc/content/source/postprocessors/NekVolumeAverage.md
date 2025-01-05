@@ -34,5 +34,3 @@ temperature, pressure, velocity magnitude, and velocity components over NekRS's 
 !syntax parameters /Postprocessors/NekVolumeAverage
 
 !syntax inputs /Postprocessors/NekVolumeAverage
-
-!syntax children /Postprocessors/NekVolumeAverage

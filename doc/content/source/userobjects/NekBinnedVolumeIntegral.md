@@ -44,5 +44,3 @@ The result of the user object can then be visualized with a
 !syntax parameters /UserObjects/NekBinnedVolumeIntegral
 
 !syntax inputs /UserObjects/NekBinnedVolumeIntegral
-
-!syntax children /UserObjects/NekBinnedVolumeIntegral

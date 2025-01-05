@@ -25,5 +25,3 @@ and map it to the MOOSE elements corresponding to each OpenMC cell.
 !syntax parameters /AuxKernels/CellTemperatureAux
 
 !syntax inputs /AuxKernels/CellTemperatureAux
-
-!syntax children /AuxKernels/CellTemperatureAux
