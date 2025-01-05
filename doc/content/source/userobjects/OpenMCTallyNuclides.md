@@ -21,5 +21,3 @@ portion from U-235 in this particular tally).
 !syntax parameters /UserObjects/OpenMCTallyNuclides
 
 !syntax inputs /UserObjects/OpenMCTallyNuclides
-
-!syntax children /UserObjects/OpenMCTallyNuclides

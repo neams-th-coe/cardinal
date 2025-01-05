@@ -49,5 +49,3 @@ the same time that we have already loaded `three_rings_out.e` and slice along th
 !syntax parameters /Mesh/HexagonalSubchannelGapMesh
 
 !syntax inputs /Mesh/HexagonalSubchannelGapMesh
-
-!syntax children /Mesh/HexagonalSubchannelGapMesh

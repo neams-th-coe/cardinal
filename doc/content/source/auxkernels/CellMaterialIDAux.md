@@ -21,5 +21,3 @@ and map it to the MOOSE elements corresponding to each OpenMC cell.
 !syntax parameters /AuxKernels/CellMaterialIDAux
 
 !syntax inputs /AuxKernels/CellMaterialIDAux
-
-!syntax children /AuxKernels/CellMaterialIDAux

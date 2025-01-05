@@ -61,5 +61,3 @@ are again colored by block ID.
 !syntax parameters /Mesh/HexagonalSubchannelMesh
 
 !syntax inputs /Mesh/HexagonalSubchannelMesh
-
-!syntax children /Mesh/HexagonalSubchannelMesh

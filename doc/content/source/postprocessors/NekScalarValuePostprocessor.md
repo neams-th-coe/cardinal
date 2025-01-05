@@ -19,5 +19,3 @@ As an example, the `s1` postprocessor will grab the value held by the
 !syntax parameters /Postprocessors/NekScalarValuePostprocessor
 
 !syntax inputs /Postprocessors/NekScalarValuePostprocessor
-
-!syntax children /Postprocessors/NekScalarValuePostprocessor

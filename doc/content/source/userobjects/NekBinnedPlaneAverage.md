@@ -70,5 +70,3 @@ The result of the user object can then be visualized with a
 !syntax parameters /UserObjects/NekBinnedPlaneAverage
 
 !syntax inputs /UserObjects/NekBinnedPlaneAverage
-
-!syntax children /UserObjects/NekBinnedPlaneAverage

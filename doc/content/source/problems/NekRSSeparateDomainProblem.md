@@ -242,5 +242,3 @@ described in this section.
 
 !syntax inputs /Problem/NekRSSeparateDomainProblem
 
-!syntax children /Problem/NekRSSeparateDomainProblem
-

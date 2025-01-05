@@ -50,5 +50,3 @@ to the velocity through boundary 1 of the NekRS mesh.
 !syntax parameters /Postprocessors/PecletNumber
 
 !syntax inputs /Postprocessors/PecletNumber
-
-!syntax children /Postprocessors/PecletNumber

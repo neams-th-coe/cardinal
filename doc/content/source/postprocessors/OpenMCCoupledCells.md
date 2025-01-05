@@ -19,5 +19,3 @@ Shown below is an example for depicting the number of OpenMC cells coupled to MO
 !syntax parameters /Postprocessors/OpenMCCoupledCells
 
 !syntax inputs /Postprocessors/OpenMCCoupledCells
-
-!syntax children /Postprocessors/OpenMCCoupledCells

@@ -166,5 +166,3 @@ using the `exo2nek` program.
 !syntax parameters /Mesh/NekRSMesh
 
 !syntax inputs /Mesh/NekRSMesh
-
-!syntax children /Mesh/NekRSMesh

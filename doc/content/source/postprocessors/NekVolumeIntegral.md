@@ -36,5 +36,3 @@ on the volume of the NekRS mesh.
 !syntax parameters /Postprocessors/NekVolumeIntegral
 
 !syntax inputs /Postprocessors/NekVolumeIntegral
-
-!syntax children /Postprocessors/NekVolumeIntegral

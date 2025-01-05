@@ -41,5 +41,3 @@ and `rotation_angle` to properly map to the OpenMC domain.
 !syntax parameters /AuxKernels/PointTransformationAux
 
 !syntax inputs /AuxKernels/PointTransformationAux
-
-!syntax children /AuxKernels/PointTransformationAux

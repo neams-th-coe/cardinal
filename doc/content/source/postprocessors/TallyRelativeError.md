@@ -19,5 +19,3 @@ evaluate the maximum, minimum and average tally relative error, respectively.
 !syntax parameters /Postprocessors/TallyRelativeError
 
 !syntax inputs /Postprocessors/TallyRelativeError
-
-!syntax children /Postprocessors/TallyRelativeError

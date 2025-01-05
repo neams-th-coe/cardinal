@@ -30,5 +30,3 @@ on various sidesets in the NekRS mesh.
 !syntax parameters /Postprocessors/NekViscousSurfaceForce
 
 !syntax inputs /Postprocessors/NekViscousSurfaceForce
-
-!syntax children /Postprocessors/NekViscousSurfaceForce

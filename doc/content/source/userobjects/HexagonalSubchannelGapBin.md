@@ -54,5 +54,3 @@ the gaps.
 !syntax parameters /UserObjects/HexagonalSubchannelGapBin
 
 !syntax inputs /UserObjects/HexagonalSubchannelGapBin
-
-!syntax children /UserObjects/HexagonalSubchannelGapBin

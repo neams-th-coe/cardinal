@@ -21,5 +21,3 @@ into two hemispheres.
 !syntax parameters /Problem/Filters/PolarAngleFilter
 
 !syntax inputs /Problem/Filters/PolarAngleFilter
-
-!syntax children /Problem/Filters/PolarAngleFilter

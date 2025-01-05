@@ -155,5 +155,3 @@ surface to a new radius, say $r=0.6$.
 !syntax parameters /Mesh/NekMeshGenerator
 
 !syntax inputs /Mesh/NekMeshGenerator
-
-!syntax children /Mesh/NekMeshGenerator

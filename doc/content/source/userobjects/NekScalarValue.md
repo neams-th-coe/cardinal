@@ -59,5 +59,3 @@ condition in NekRS. We would simply follow the instructions for the `.oudf`, and
 !syntax parameters /UserObjects/NekScalarValue
 
 !syntax inputs /UserObjects/NekScalarValue
-
-!syntax children /UserObjects/NekScalarValue

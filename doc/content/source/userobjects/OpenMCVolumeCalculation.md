@@ -29,5 +29,3 @@ MOOSE.
 !syntax parameters /UserObjects/OpenMCVolumeCalculation
 
 !syntax inputs /UserObjects/OpenMCVolumeCalculation
-
-!syntax children /UserObjects/OpenMCVolumeCalculation

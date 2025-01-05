@@ -21,5 +21,3 @@ used to solve NekRS.
 !syntax parameters /Postprocessors/NekNumRanks
 
 !syntax inputs /Postprocessors/NekNumRanks
-
-!syntax children /Postprocessors/NekNumRanks

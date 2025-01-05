@@ -41,5 +41,3 @@ is performed so the computed spherical harmonics moments are erroneous.
 !syntax parameters /Problem/Filters/FromXMLFilter
 
 !syntax inputs /Problem/Filters/FromXMLFilter
-
-!syntax children /Problem/Filters/FromXMLFilter

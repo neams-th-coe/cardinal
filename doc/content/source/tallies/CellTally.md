@@ -29,5 +29,3 @@ fuel pebbles.
 !syntax parameters /Problem/Tallies/CellTally
 
 !syntax inputs /Problem/Tallies/CellTally
-
-!syntax children /Problem/Tallies/CellTally

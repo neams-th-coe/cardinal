@@ -32,5 +32,3 @@ by bin ID.
 !syntax parameters /UserObjects/RadialBin
 
 !syntax inputs /UserObjects/RadialBin
-
-!syntax children /UserObjects/RadialBin

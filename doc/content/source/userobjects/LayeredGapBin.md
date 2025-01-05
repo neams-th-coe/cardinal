@@ -32,5 +32,3 @@ the gaps.
 !syntax parameters /UserObjects/LayeredGapBin
 
 !syntax inputs /UserObjects/LayeredGapBin
-
-!syntax children /UserObjects/LayeredGapBin

@@ -44,5 +44,3 @@ over the volume of the NekRS mesh.
 !syntax parameters /Postprocessors/NekVolumeExtremeValue
 
 !syntax inputs /Postprocessors/NekVolumeExtremeValue
-
-!syntax children /Postprocessors/NekVolumeExtremeValue

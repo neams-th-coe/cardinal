@@ -101,5 +101,3 @@ The result of the user object can then be visualized with a
 !syntax parameters /UserObjects/NekBinnedPlaneIntegral
 
 !syntax inputs /UserObjects/NekBinnedPlaneIntegral
-
-!syntax children /UserObjects/NekBinnedPlaneIntegral
