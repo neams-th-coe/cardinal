@@ -102,3 +102,6 @@ to learn about code capabilities
 Find instructions for building on common
 [HPC systems](hpc.md) across the National Laboratories
 !col-end!
+
+!alert note
+This documentation page was last built on [!datetime!today format=%B %d, %Y] for git commit [!git!commit].
