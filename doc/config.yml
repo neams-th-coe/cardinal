@@ -24,10 +24,7 @@ Content:
     modules:
         root_dir: ${MOOSE_DIR}/modules/doc/content
         content:
-            - help/development/VSCode.md
             - help/development/analyze_jacobian.md
-            - help/finite_element_concepts/nodal_patch_recovery.md
-            - application_development/performance_benchmarking.md
             - application_usage/restart_recover.md
             - application_usage/command_line_usage.md
     python:
