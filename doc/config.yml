@@ -52,7 +52,7 @@ Extensions:
                 How to Contribute: contributing_cardinal.md
             Documentation:
                 Tutorials: /tutorials/index.md
-                Input Syntax: source/index.md
+                Input Syntax: /source/index.md
                 CFD Meshing: tutorials/meshing.md
                 Code Theory: theory/index.md
                 Doxygen: doxygen.md

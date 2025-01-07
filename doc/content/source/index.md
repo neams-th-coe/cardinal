@@ -8,4 +8,4 @@ These classes include
 all of the classes in Cardinal - for all other classes in MOOSE, please consult
 the [MOOSE documentation](https://mooseframework.inl.gov/source/index.html).
 
-!content location=source
+!syntax complete groups=CardinalApp
