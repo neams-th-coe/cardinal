@@ -1,4 +1,5 @@
 [Tests]
+  design = 'NekSideAverage.md'
   [nek_side_average]
     type = CSVDiff
     input = nek.i
@@ -13,5 +14,6 @@
                   "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
                   "variables - we just require that they are reasonably close."
     required_objects = 'NekRSProblem'
+    issues = '#1015' # not finished
   []
 []
