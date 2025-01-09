@@ -1,0 +1,69 @@
+[Problem]
+  type = NekRSStandaloneProblem
+  casename = 'brick'
+[]
+
+[Mesh]
+  type = NekRSMesh
+  volume = true
+[]
+
+[Executioner]
+  type = Transient
+
+  [TimeStepper]
+    type = NekTimeStepper
+  []
+[]
+
+[Postprocessors]
+  [temp]
+    type = NekPointValue
+    field = temperature
+    point = '0.25 0.3 0.27'
+  []
+  [vx]
+    type = NekPointValue
+    field = velocity_x
+    point = '0.25 0.3 0.27'
+  []
+  [vy]
+    type = NekPointValue
+    field = velocity_y
+    point = '0.25 0.3 0.27'
+  []
+  [vz]
+    type = NekPointValue
+    field = velocity_z
+    point = '0.25 0.3 0.27'
+  []
+  [vel]
+    type = NekPointValue
+    field = velocity
+    point = '0.25 0.3 0.27'
+  []
+  [p]
+    type = NekPointValue
+    field = pressure
+    point = '0.25 0.3 0.27'
+  []
+  [scalar01]
+    type = NekPointValue
+    field = scalar01
+    point = '0.25 0.3 0.27'
+  []
+  [scalar02]
+    type = NekPointValue
+    field = scalar02
+    point = '0.25 0.3 0.27'
+  []
+  [scalar03]
+    type = NekPointValue
+    field = scalar03
+    point = '0.25 0.3 0.27'
+  []
+[]
+
+[Outputs]
+  csv = true
+[]

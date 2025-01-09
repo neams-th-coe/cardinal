@@ -57,6 +57,13 @@ dfloat * getSgeo();
 dfloat * getVgeo();
 
 /**
+ * Check that the field specified can be accessed, e.g., if a user is requesting
+ * to access temperature, the problem must have a temperature variable
+ * @param[in] field field to check
+ */
+void checkFieldValidity(const field::NekFieldEnum & field);
+
+/**
  * Set the absolute tolerance for checking energy conservation in data transfers to Nek
  * @param[in] tol tolerance
  */
