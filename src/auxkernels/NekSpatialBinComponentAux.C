@@ -30,8 +30,7 @@ NekSpatialBinComponentAux::validParams()
   params.addRequiredRangeCheckedParam<unsigned int>(
       "component", "component < 3", "Component of user object");
   params.addClassDescription(
-      "Populates an auxiliary variable with a component-wise spatial value returned from a "
-      "UserObject spatialValue method.");
+      "Component-wise (x, y, z) spatial value returned from a Nek user object");
   return params;
 }
 

@@ -26,7 +26,7 @@ InputParameters
 NekVolumeIntegral::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
-  params.addClassDescription("Compute the integral of a field over the NekRS mesh");
+  params.addClassDescription("Integral of a field over the NekRS volume mesh");
   return params;
 }
 

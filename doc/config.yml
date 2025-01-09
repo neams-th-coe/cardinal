@@ -69,6 +69,8 @@ Extensions:
                 - /ICs/BulkEnergyConservationIC
                 - /Cardinal/ICs/BulkEnergyConservation/BulkEnergyConservationICAction
                 - /Cardinal/ICs/VolumetricHeatSource/VolumetricHeatSourceICAction
+        unregister:
+            framework: !include framework/doc/unregister.yml
 
     MooseDocs.extensions.acronym:
         acronyms:
