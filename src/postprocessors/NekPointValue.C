@@ -61,10 +61,11 @@ NekPointValue::execute()
   switch (_field)
   {
     case field::velocity_component:
-      paramError("field",
-                 "The 'velocity_component' option is not currently enabled. If you would like to "
-                 "interpolate V*hat(n), you should instead interpolate the three velocity components "
-                 "individually and then post-apply the unit normal");
+      paramError(
+          "field",
+          "The 'velocity_component' option is not currently enabled. If you would like to "
+          "interpolate V*hat(n), you should instead interpolate the three velocity components "
+          "individually and then post-apply the unit normal");
     case field::velocity_x:
     case field::velocity_y:
     case field::velocity_z:
