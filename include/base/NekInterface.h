@@ -830,6 +830,27 @@ double velocity_z(const int id);
 double velocity(const int id);
 
 /**
+ * Get the x-velocity squared at given GLL index
+ * @param[in] id GLL index
+ * @return square of x-velocity at index
+ */
+double velocity_x_squared(const int id);
+
+/**
+ * Get the y-velocity squared at given GLL index
+ * @param[in] id GLL index
+ * @return square of y-velocity at index
+ */
+double velocity_y_squared(const int id);
+
+/**
+ * Get the z-velocity squared at given GLL index
+ * @param[in] id GLL index
+ * @return square of z-velocity at index
+ */
+double velocity_z_squared(const int id);
+
+/**
  * Write a value into the user scratch space that holds the flux
  * @param[in] id index
  * @param[in] value value to write

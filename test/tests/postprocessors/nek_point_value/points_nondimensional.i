@@ -45,6 +45,21 @@
     field = velocity_z
     point = '0.25 0.3 0.27'
   []
+  [vx2]
+    type = NekPointValue
+    field = velocity_x_squared
+    point = '0.25 0.3 0.27'
+  []
+  [vy2]
+    type = NekPointValue
+    field = velocity_y_squared
+    point = '0.25 0.3 0.27'
+  []
+  [vz2]
+    type = NekPointValue
+    field = velocity_z_squared
+    point = '0.25 0.3 0.27'
+  []
   [vel]
     type = NekPointValue
     field = velocity

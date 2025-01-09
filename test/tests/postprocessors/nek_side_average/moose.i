@@ -16,6 +16,12 @@
   []
   [z_velocity_test]
   []
+  [x_velocity_test2]
+  []
+  [y_velocity_test2]
+  []
+  [z_velocity_test2]
+  []
   [velocity_component]
   []
 []
@@ -50,6 +56,21 @@
     type = FunctionIC
     variable = z_velocity_test
     function = z_velocity
+  []
+  [x_velocity_test2]
+    type = FunctionIC
+    variable = x_velocity_test2
+    function = x_velocity2
+  []
+  [y_velocity_test2]
+    type = FunctionIC
+    variable = y_velocity_test2
+    function = y_velocity2
+  []
+  [z_velocity_test2]
+    type = FunctionIC
+    variable = z_velocity_test2
+    function = z_velocity2
   []
   [velocity_component]
     type = FunctionIC
@@ -90,11 +111,13 @@
   []
   [velocity]
      type = ParsedFunction
-     expression = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
+     expression = 'sqrt(vel_x2 + vel_y2 + vel_z2)'
+     symbol_names = 'vel_x2 vel_y2 vel_z2'
+     symbol_values = 'x_velocity2 y_velocity2 z_velocity2'
   []
   [x_velocity]
     type = ParsedFunction
-    expression = 'sin(x)'
+    expression = 'sin(x)+2'
   []
   [y_velocity]
     type = ParsedFunction
@@ -103,6 +126,18 @@
   [z_velocity]
     type = ParsedFunction
     expression = 'exp(x*y*z)'
+  []
+  [x_velocity2]
+    type = ParsedFunction
+    expression = '(sin(x)+2)*(sin(x)+2)'
+  []
+  [y_velocity2]
+    type = ParsedFunction
+    expression = '(y+1)*(y+1)'
+  []
+  [z_velocity2]
+    type = ParsedFunction
+    expression = 'exp(x*y*z)*exp(x*y*z)'
   []
   [velocity_component] # velocity along some generic direction (0.1, -0.2, 0.3)
     type = ParsedFunction
@@ -402,6 +437,126 @@
   [velocity_comp8]
     type = SideIntegralVariablePostprocessor
     variable = velocity_component
+    boundary = '8'
+  []
+  [x_velocity2_avg1]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '1'
+  []
+  [x_velocity2_avg2]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '2'
+  []
+  [x_velocity2_avg3]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '3'
+  []
+  [x_velocity2_avg4]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '4'
+  []
+  [x_velocity2_avg5]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '5'
+  []
+  [x_velocity2_avg6]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '6'
+  []
+  [x_velocity2_avg7]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '7'
+  []
+  [x_velocity2_avg8]
+    type = SideAverageValue
+    variable = x_velocity_test2
+    boundary = '8'
+  []
+  [y_velocity2_avg1]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '1'
+  []
+  [y_velocity2_avg2]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '2'
+  []
+  [y_velocity2_avg3]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '3'
+  []
+  [y_velocity2_avg4]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '4'
+  []
+  [y_velocity2_avg5]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '5'
+  []
+  [y_velocity2_avg6]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '6'
+  []
+  [y_velocity2_avg7]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '7'
+  []
+  [y_velocity2_avg8]
+    type = SideAverageValue
+    variable = y_velocity_test2
+    boundary = '8'
+  []
+  [z_velocity2_avg1]
+    type = SideAverageValue
+    variable = z_velocity_test2
+    boundary = '1'
+  []
+  [z_velocity2_avg2]
+    type = SideAverageValue
+    variable = z_velocity_test2
+    boundary = '2'
+  []
+  [z_velocity2_avg3]
+    type = SideAverageValue
+    variable = z_velocity_test2
+    boundary = '3'
+  []
+  [z_velocity2_avg4]
+    type = SideAverageValue
+    variable = z_velocity_test2
+    boundary = '4'
+  []
+  [z_velocity2_avg5]
+    type = SideAverageValue
+    variable = z_velocity_test2
+    boundary = '5'
+  []
+  [z_velocity2_avg6]
+    type = SideAverageValue
+    variable = z_velocity_test2
+    boundary = '6'
+  []
+  [z_velocity2_avg7]
+    type = SideAverageValue
+    variable = z_velocity_test2
+    boundary = '7'
+  []
+  [z_velocity2_avg8]
+    type = SideAverageValue
+    variable = z_velocity_test2
     boundary = '8'
   []
 []

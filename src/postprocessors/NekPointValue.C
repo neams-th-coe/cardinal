@@ -36,13 +36,6 @@ NekPointValue::validParams()
 NekPointValue::NekPointValue(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters), _point(getParam<Point>("point")), _value(0)
 {
-  nekrs::checkFieldValidity(_field);
-
-  if (_field == field::velocity_component)
-    paramError("field",
-               "The 'velocity_component' option is not currently enabled. If you would like to "
-               "interpolate V*hat(n), you should instead interpolate the three velocity components "
-               "individually and then post-apply the unit normal");
 }
 
 void
@@ -67,10 +60,19 @@ NekPointValue::execute()
   int n_values = n;
   switch (_field)
   {
+    case field::velocity_component:
+      paramError(
+          "field",
+          "The 'velocity_component' option is not currently enabled. If you would like to "
+          "interpolate V*hat(n), you should instead interpolate the three velocity components "
+          "individually and then post-apply the unit normal");
     case field::velocity_x:
     case field::velocity_y:
     case field::velocity_z:
     case field::velocity:
+    case field::velocity_x_squared:
+    case field::velocity_y_squared:
+    case field::velocity_z_squared:
       n_values = n * nrs->NVfields;
       o_interpolated = platform->device.malloc<dfloat>(n_values);
       interp.eval(n_values, nrs->fieldOffset, nrs->cds->o_U, n, o_interpolated);
@@ -102,6 +104,9 @@ NekPointValue::execute()
   // return what the user wants
   switch (_field)
   {
+    case field::velocity_component:
+      // error already handled earlier
+      break;
     case field::velocity_x:
       _value = interpolated[0];
       break;
@@ -114,6 +119,15 @@ NekPointValue::execute()
     case field::velocity:
       _value = std::sqrt(interpolated[0] * interpolated[0] + interpolated[1] * interpolated[1] +
                          interpolated[2] * interpolated[2]);
+      break;
+    case field::velocity_x_squared:
+      _value = interpolated[0] * interpolated[0];
+      break;
+    case field::velocity_y_squared:
+      _value = interpolated[1] * interpolated[1];
+      break;
+    case field::velocity_z_squared:
+      _value = interpolated[2] * interpolated[2];
       break;
     case field::pressure:
       _value = interpolated[0];
