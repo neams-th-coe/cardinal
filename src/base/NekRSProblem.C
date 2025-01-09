@@ -57,7 +57,8 @@ NekRSProblem::validParams()
     "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
     "together). Setting this option to true requires syntax changes in the input file to use "
     "vector postprocessors, and places restrictions on how the sidesets are set up.");
-  params.addClassDescription("Couple NekRS to MOOSE through 3-D boundary or volume data transfers for temperature, heat flux, and geometry");
+  params.addClassDescription("Couple NekRS to MOOSE through 3-D boundary or volume data transfers "
+                             "for temperature, heat flux, and geometry");
   return params;
 }
 

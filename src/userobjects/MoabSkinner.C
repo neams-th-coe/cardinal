@@ -80,7 +80,8 @@ MoabSkinner::validParams()
   params.addParam<bool>("use_displaced_mesh",
                         false,
                         "Whether the skinned mesh should be generated from a displaced mesh ");
-  params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in the mesh geometry and/or contours in temperature and density");
+  params.addClassDescription("Re-generate the OpenMC geometry on-the-fly according to changes in "
+                             "the mesh geometry and/or contours in temperature and density");
   return params;
 }
 

@@ -26,7 +26,8 @@ InputParameters
 NekRSStandaloneProblem::validParams()
 {
   InputParameters params = NekRSProblemBase::validParams();
-  params.addClassDescription("Run NekRS as a MOOSE application, without coupling, such as for data postprocessing");
+  params.addClassDescription(
+      "Run NekRS as a MOOSE application, without coupling, such as for data postprocessing");
   return params;
 }
 
