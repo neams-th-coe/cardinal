@@ -39,6 +39,7 @@ NekRSSeparateDomainProblem::validParams()
 
   params.addRequiredParam<std::vector<int>>("outlet_boundary", "NekRS outlet boundary ID");
   params.addRequiredParam<std::vector<int>>("inlet_boundary", "NekRS inlet boundary ID");
+  params.addClassDescription("Couple NekRS to MOOSE for integration of 3-D CFD with 1-D systems-level codes");
 
   return params;
 }

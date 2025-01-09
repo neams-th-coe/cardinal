@@ -172,6 +172,7 @@ OpenMCCellAverageProblem::validParams()
       "of approximately the same volume as the true cells.");
   params.addParam<UserObjectName>("skinner", "When using DAGMC geometries, an optional skinner that will "
     "regenerate the OpenMC geometry on-the-fly according to iso-contours of temperature and density");
+  params.addClassDescription("Couple OpenMC to MOOSE through cell-averaged temperature, density, and tallies.");
 
   return params;
 }
