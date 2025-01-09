@@ -27,8 +27,7 @@ InputParameters
 CellDensityAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription(
-      "OpenMC fluid density (kg/m$^3$), mapped to each MOOSE element");
+  params.addClassDescription("OpenMC fluid density (kg/m$^3$), mapped to each MOOSE element");
   return params;
 }
 
