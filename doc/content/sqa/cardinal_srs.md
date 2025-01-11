@@ -4,7 +4,7 @@
 !! system-scope-begin
 Cardinal is an application for performing high-fidelity simulation of nuclear systems
 incorporating Monte Carlo neutron-photon transport and/or spectral element [!ac](CFD).
-These physics can be combined with one another and with the [MOOSE modules](modules/index.md) to accomplish "multiphysics" simulation. High-fidelity simulations can also be
+These physics can be combined with one another and with the [MOOSE modules](Modules/index.md) to accomplish "multiphysics" simulation. High-fidelity simulations can also be
 performed independently, for the purpose of data postprocessing, to generate constitutive
 models suitable for lower-fidelity tools, a process referred to as "multiscale" simulation.
 
@@ -14,7 +14,7 @@ to support Cardinal simulations. Cardinal enables high-fidelity modeling of
 heat transfer, fluid flow, passive scalar transport, fluid-structure interaction,
 nuclear heating, tritium breeding, shielding effectiveness, material activation,
 material damage, and sensor response. The [syntax/MultiApps/index.md]
-is leveraged to allow for the multiscale, multiphysics coupling. Further, other MOOSE capabilities in the [modules](modules/index.md), such as the [Stochastic Tools Module](stochastic_tools/index.md) enable engineering studies with uncertainty quantification
+is leveraged to allow for the multiscale, multiphysics coupling. Further, other MOOSE capabilities in the [modules](Modules/index.md), such as the [Stochastic Tools Module](stochastic_tools/index.md) enable engineering studies with uncertainty quantification
 and sensitivity analysis.
 Cardinal therefore supports design, safety, engineering, and research projects.
 !! system-scope-finish
@@ -26,18 +26,18 @@ The purpose of Cardinal is to perform fully integrated, high-fidelity, multiphys
 variety of materials, system configurations,
 and component designs in order to better understand system performance.
 Cardinal's main goal is to bring together the combined multiphysics capabilities of
-the [!ac](MOOSE) ecosystem with leading high-performance tools for radiation transport
+the MOOSE ecosystem with leading high-performance tools for radiation transport
 (OpenMC) and Navier-Stokes fluid flow (NekRS) in an open platform for research,
 safety assessment, engineering, and design studies of nuclear energy systems.
 !! system-purpose-finish
 !template-end!
 
 !template! item key=assumptions-and-dependencies
-[!ac]({{app}}) has no constraints on hardware and software beyond those of the MOOSE framework, MOOSE modules, OpenMC, NekRS, and DAGMC, as listed in their
+{{app}} has no constraints on hardware and software beyond those of the MOOSE framework, MOOSE modules, OpenMC, NekRS, and DAGMC, as listed in their
 respective [!ac](SRS) documents, which are accessible through the links at
 the beginning of this document.
 
-[!ac]({{app}}) provides access to a number of code objects that perform computations, such as particle
+{{app}} provides access to a number of code objects that perform computations, such as particle
 transport, material behavior, and boundary conditions. These objects each make their own physics-based
 assumptions, such as the units of the inputs and outputs. Those assumptions are described in the
 documentation for those individual objects.
@@ -68,7 +68,8 @@ services can be found on the following page: [sqa/github_backup.md]
 !template-end!
 
 !template! item key=packaging
-No special requirements are needed for packaging or shipping any media containing the Cardinal source code. However, some other applications that use {{app}} may be export-controlled, in which case all export control restrictions must be adhered to when
+No special requirements are needed for packaging or shipping any media containing the {{app}} source code.
+However, some other applications that use {{app}} may be export-controlled, in which case all export control restrictions must be adhered to when
 packaging and shipping media.
 !template-end!
 

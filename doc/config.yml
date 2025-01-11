@@ -91,3 +91,21 @@ Extensions:
         duplicates:
             - hales15homogenization
             - petersen
+
+    MooseDocs.extensions.sqa:
+        active: true
+        categories: # commented-out categories are not available
+            cardinal: !include ${ROOT_DIR}/doc/sqa_cardinal.yml
+            framework: !include ${MOOSE_DIR}/framework/doc/sqa_framework.yml
+            fluid_properties: !include ${MOOSE_DIR}/modules/fluid_properties/doc/sqa_fluid_properties.yml
+            heat_transfer: !include ${MOOSE_DIR}/modules/heat_transfer/doc/sqa_heat_transfer.yml
+            navier_stokes: !include ${MOOSE_DIR}/modules/navier_stokes/doc/sqa_navier_stokes.yml
+            ray_tracing: !include ${MOOSE_DIR}/modules/ray_tracing/doc/sqa_ray_tracing.yml
+            reactor: !include ${MOOSE_DIR}/modules/reactor/doc/sqa_reactor.yml
+            solid_mechanics: !include ${MOOSE_DIR}/modules/solid_mechanics/doc/sqa_solid_mechanics.yml
+            solid_properties: !include ${MOOSE_DIR}/modules/solid_properties/doc/sqa_solid_properties.yml
+            stochastic_tools: !include ${MOOSE_DIR}/modules/stochastic_tools/doc/sqa_stochastic_tools.yml
+            thermal_hydraulics: !include ${MOOSE_DIR}/modules/thermal_hydraulics/doc/sqa_thermal_hydraulics.yml
+        reports: !include ${ROOT_DIR}/doc/sqa_reports.yml
+        repos:
+            default: https://github.com/neams-th-coe/cardinal

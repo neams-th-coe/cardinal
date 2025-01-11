@@ -28,9 +28,9 @@ No additional dependencies are present.
 !template-end!
 
 !template! item key=design-stakeholders
-Stakeholders for [!ac]({{app}}) include several of the funding sources including [!ac](DOE), [!ac](INL), and [!ac](ANL).
-However, since [!ac]({{app}}) is an open-source project, several universities, companies, and foreign
-governments have an interest in the development and maintenance of the [!ac]({{app}}) project.
+Stakeholders for {{app}} include several of the funding sources including [!ac](DOE), [!ac](INL), and [!ac](ANL).
+However, since {{app}} is an open-source project, several universities, companies, and foreign
+governments have an interest in the development and maintenance of the {{app}} project.
 !template-end!
 
 !template! item key=system-design
@@ -40,10 +40,9 @@ governments have an interest in the development and maintenance of the [!ac]({{a
 for fluid flow, heat transfer, and species transport. {{app}} integrates these
 external libraries within the structure of a MOOSE application, allowing these
 external libraries to be coupled to existing capabilities and interfaces in the MOOSE
-framework, such as for physics modeling (e.g., with the [MOOSE modules](modules/index.md) or with other MOOSE applications)
+framework, such as for physics modeling (e.g., with the [MOOSE modules](Modules/index.md) or with other MOOSE applications)
 or data processing. Because {{app}} is based upon MOOSE, it employs the same concept
 of modular code objects that define all aspects of the solutions for physics.
-
 {{app}} provides specialized
 
  - [AuxKernels](syntax/AuxKernels/index.md) classes that extract internal solution fields in NekRS and OpenMC
@@ -51,26 +50,26 @@ of modular code objects that define all aspects of the solutions for physics.
  - [Mesh](syntax/Mesh/index.md) classes to build the NekRS and OpenMC geometries in a MOOSE-compatible format, and modify existing meshes useful for postprocessing NekRS and OpenMC simulations
  - [Postprocessors](syntax/Postprocessors/index.md) classes that query the NekRS and OpenMC simulations at points, through spatial integrals, etc.
  - [Problem](syntax/Problem/index.md) classes to execute NekRS and OpenMC as MOOSE applications and facilitate data transfer
- - [TimeStepper](syntax/TimeStepper/index.md) classes to control time stepping based on NekRS's adaptive time stepping routines
- - [UserObjects](syntax/UserObjects.md) classes that spatially process the NekRS and OpenMC simulations
+ - [TimeStepper](TimeStepper/index.md) classes to control time stepping based on NekRS's adaptive time stepping routines
+ - [UserObjects](syntax/UserObjects/index.md) classes that spatially process the NekRS and OpenMC simulations
 
 {{app}} also provides custom syntax for creating OpenMC tallies needed for multiphysics.
 !template-end!
 
 !template! item key=system-structure
-[!ac]({{app}}) relies on the MOOSE framework to provide the core functionality of solving multiphysics problems. {{app}} replaces the actual physics solves with external [!ac](API) calls to OpenMC and NekRS, but relies on MOOSE for timestepping, synchronization, data transfers, and overall parallelization. Additional physics needed beyond OpenMC and NekRS are obtained from the [MOOSE modules](modules/index.md).
+{{app}} relies on the MOOSE framework to provide the core functionality of solving multiphysics problems. {{app}} replaces the actual physics solves with external [!ac](API) calls to OpenMC and NekRS, but relies on MOOSE for timestepping, synchronization, data transfers, and overall parallelization. Additional physics needed beyond OpenMC and NekRS are obtained from the [MOOSE modules](Modules/index.md).
 
-A summary listing of the current modules required for complete [!ac]({{app}}) operation are shown below:
+A summary listing of the current modules required for complete {{app}} operation are shown below:
 
 - [Reactor](reactor/index.md)
 
 {{app}}'s Makefile also includes other modules which are by default enabled, due to
 their common usage with Cardinal (though they are not strictly required).
 
-The structure of [!ac]({{app}}) is based on defining C++ classes that derive from classes in the MOOSE
+The structure of {{app}} is based on defining C++ classes that derive from classes in the MOOSE
 framework or modules that provide functionality that is specifically tailored to nuclear
 modeling and simulation. By using the interfaces defined in MOOSE base classes for these classes,
-[!ac]({{app}}) is able to rely on MOOSE to execute these models at the appropriate times during the
+{{app}} is able to rely on MOOSE to execute these models at the appropriate times during the
 simulation and use their results in the desired ways.
 !template-end!
 
