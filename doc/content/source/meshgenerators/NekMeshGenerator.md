@@ -1,6 +1,6 @@
 # NekMeshGenerator
 
-!syntax description /MeshGenerators/NekMeshGenerator
+!syntax description /Mesh/NekMeshGenerator
 
 ## Description
 
