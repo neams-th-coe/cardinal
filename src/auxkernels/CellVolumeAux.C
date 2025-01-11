@@ -35,7 +35,7 @@ CellVolumeAux::validParams()
     "MOOSE elements which map to each cell (this is mostly for testing). For 'actual', this "
     "will map to the [Mesh] the actual volumes of OpenMC cells obtained from a stochastic "
     "calculation");
-  params.addClassDescription("Display the OpenMC cell volumes mapped to MOOSE");
+  params.addClassDescription("OpenMC cell volumes, mapped to MOOSE");
   return params;
 }
 

@@ -42,7 +42,7 @@ TallyRelativeError::validParams()
       getTallyScoreEnum(),
       "Score to report the relative error. If there is just a single score, "
       "this defaults to that value");
-  params.addClassDescription("Extract the maximum/minimum tally relative error");
+  params.addClassDescription("Maximum/minimum tally relative error");
   return params;
 }
 

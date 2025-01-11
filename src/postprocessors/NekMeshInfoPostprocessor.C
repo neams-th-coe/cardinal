@@ -39,8 +39,7 @@ NekMeshInfoPostprocessor::validParams()
   params.addParam<libMesh::dof_id_type>("node", "Element-local node ID");
   params.addParam<Point>("point", "Point used to locate element");
 
-  params.addClassDescription("Perform various tests on the construction of a nekRS mesh on "
-                             "a particular boundary to give a surface mesh.");
+  params.addClassDescription("Extract properties of the NekRS mesh");
   return params;
 }
 

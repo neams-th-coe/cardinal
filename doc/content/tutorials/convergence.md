@@ -38,7 +38,7 @@ the convergence:
   OpenMC are converged in terms of the effect on the Monte Carlo transport physics
 
 To ensure that a sufficient number of active batches are used, we recommend
-using the [trigger system](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html)
+using the [trigger system](OpenMCCellAverageProblem.html#trigger_docs)
 in the OpenMC wrapping, which will terminate the number of active batches once
 reaching a desired uncertainty in $k$ and/or the `kappa-fission` tally. To
 determine an appropriate nuber of inactive batches and a cell discretization,
@@ -62,7 +62,7 @@ To determine an appropriate number of inactive batches, you can use the
   temperature and density distribution
 
 For example, to run an inactive cycle study for the model developed
-for [the gas compact tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
+for [the gas compact tutorial](gas_compact.md),
 we would run:
 
 ```
@@ -180,10 +180,10 @@ You will also need to copy and paste the following into your input file:
 When copying the above into your input file, be sure to update the `block` for the
 various power postprocessors and user objects
 to be the blocks on which the heat source is defined, as well as the `direction`
-for the [LayeredAverage](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html).
+for the [LayeredAverage](LayeredAverage.md).
 
 For example, to run a cell discretization study for the model developed
-for [the gas compact tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html),
+for [the gas compact tutorial](gas_compact.md),
 we would run:
 
 ```

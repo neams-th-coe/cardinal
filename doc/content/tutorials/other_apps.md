@@ -48,7 +48,7 @@ You can couple Cardinal to an arbitrary MOOSE application and run Cardinal eithe
 as the main application or as a sub-application. There is a very small difference
 between the two, so we will describe both. To run Cardinal as the main application,
 we need to create an input file that runs Cardinal. In this file, we include a
-[TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html),
+[TransientMultiApp](TransientMultiApp.md),
 which will run Chickadee at the end of each Cardinal time step; in this particular
 example, we run a Nek-wrapped input file for Cardinal.
 

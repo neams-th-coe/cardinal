@@ -34,20 +34,19 @@ All `inlet_XX` are single values passed from the 1D T/H domain to the NekRS inle
  `inlet_boundary`. For information on implementing these transferred values,
  refer to [this section](#using-transferred-data-to-inform-nekrs-inlet-boundary-conditions) of the documentation.
 
-All `outlet_XX` values are automated [NekSideAverage](/postprocessors/NekSideAverage.md) postProcessors
+All `outlet_XX` values are automated [NekSideAverage](NekSideAverage.md) postProcessors
  that are created on the NekRS boundary ID given by `outlet_boundary`.
 These postProcessors can then be transferred to the 1D T/H code using the
- [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html)
-system.
+ [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md) system.
 
 ### Pressure coupling
 
 Pressure information is transferred between NekRS and the 1D T/H code using a global pressure drop because
  the 1D T/H code only needs the overall pressure drop over the NekRS domain.
-`inlet_P` and `outlet_P` [NekSideAverage](/postprocessors/NekSideAverage.md) postProcessors are created along
+`inlet_P` and `outlet_P` [NekSideAverage](NekSideAverage.md) postProcessors are created along
  with the pressure drop `dP` postProcessor.
 [dP] shows this process, which is performed no matter what `coupling_type` is given. `dP` can be transferred
- to the 1D T/H code using the [MultiAppPostprocessorTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppPostprocessorTransfer.html) system.
+ to the 1D T/H code using the [MultiAppPostprocessorTransfer](MultiAppPostprocessorTransfer.md) system.
 
 
 !media NekRSSeparateDomainProblem_dP.png

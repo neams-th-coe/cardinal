@@ -59,7 +59,7 @@ simplification over a realistic fusion device, and therefore the results obtaine
 should not be taken as representative of a realistic device. However, for the purposes of a tutorial.
 there is minimal differences to establishing multiphysics feedback to OpenMC when adding
 a fluid solver. Other tutorials which apply density feedback, in addition to temperature feedback,
-can be found [here](https://cardinal.cels.anl.gov/tutorials/openmc_fluid.html) and [here](https://cardinal.cels.anl.gov/tutorials/coupled.html).
+can be found [here](openmc_fluid.md) and [here](coupled.md).
 
 To approximate some cooling in the breeder and divertor, we apply a uniform heat sink kernel. The magnitude of this heat sink is automatically computed in-line to obtain an approximate energy balance, by evaluating the difference in the heat deposition and heat flux on the vacuum vessel outer wall, divided by the volume in which the cooling is to be applied.
 
@@ -110,8 +110,7 @@ The variables, kernels, thermal conductivities, and boundary conditions are show
   start=Variables
   end=Executioner
 
-The [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+The [MultiApps](MultiApps/index.md) and [Transfers](Transfers/index.md)
 blocks describe the interaction between Cardinal and MOOSE. The MOOSE
 heat conduction application is run as the main application, with
 OpenMC run as the sub-application. We specify that MOOSE will run
@@ -161,11 +160,10 @@ will write the nuclear heating.
 !listing /tutorials/tokamak/openmc.i
   end=AuxVariables
 
-Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
+Next, the [Problem](Problem/index.md)
 block describes all objects necessary for the actual physics solve. To replace
 MOOSE finite element calculations with OpenMC particle transport calculations,
-the [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class
-is used.
+the [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) class is used.
 
 !listing /tutorials/tokamak/openmc.i
   block=Problem
@@ -175,13 +173,13 @@ tally results (because OpenMC's heating tally results are in units of eV/source 
 Next, we indicate which blocks in the `[Mesh]` should be considered
 for temperature feedback using `temperature_blocks`.
 Here, we specify temperature feedback for all blocks in the mesh.
-During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+During the initialization, [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
 are providing temperature feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
 a volume-average temperature to apply to each OpenMC cell.
 
-This example uses mesh tallies, as indicated by the [MeshTally](tallies/MeshTally.md)
-in the [Tallies](actions/AddTallyAction.md) block. In this example, we will tally on
+This example uses mesh tallies, as indicated by the [MeshTally](MeshTally.md)
+in the [Tallies](AddTallyAction.md) block. In this example, we will tally on
 the same mesh given in the `[Mesh]` block.
 Finally, we specify the level in the geometry on which the cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,
@@ -198,7 +196,7 @@ impose a significant constraint that the temperature and density of each of thes
 regions would be homogeneous (constant). However, there will exist gradients in
 temperature and/or density in these components as computed by the thermal-fluid
 physics. In order to more finely capture these feedback effects, we add a
-[MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html)
+[MoabSkinner](MoabSkinner.md)
 object in order to on-the-fly regenerated the OpenMC cells according to contours
  in temperature and/or density. Here, we will re-generate the Monte Carlo model
 to create new cells for every 50 K in temperature difference.
@@ -210,11 +208,11 @@ Next, we add a series of auxiliary variables for solution visualization
 (these are not requried for coupling). To help with understanding
 how the OpenMC model maps to the mesh in the `[Mesh]` block, we add auxiliary
 variables to visualize OpenMC's
-cell temperature ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md)).
+cell temperature ([CellTemperatureAux](CellTemperatureAux.md)).
 Cardinal will also automatically output a variable named `cell_id`
-([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+([CellIDAux](CellIDAux.md))
 and a variable named `cell_instance` (
-[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
+[CellInstanceAux](CellInstanceAux.md)) to show the spatial mapping.
 
 !listing /tutorials/tokamak/openmc.i
   start=AuxVariables

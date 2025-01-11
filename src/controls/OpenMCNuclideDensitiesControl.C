@@ -29,7 +29,7 @@ InputParameters
 OpenMCNuclideDensitiesControl::validParams()
 {
   InputParameters params = Control::validParams();
-  params.addClassDescription("Controls the densities in a OpeNMCNuclideDensities object.");
+  params.addClassDescription("Controls the densities in a OpenMCNuclideDensities object.");
   params.addRequiredParam<UserObjectName>("user_object",
                                           "The name of the associated OpenMCNuclideDensities");
 

@@ -12,9 +12,9 @@ a vector-type postprocessed quantity.
 
 ## Example Input Syntax
 
-As an example, suppose we use a [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md)
+As an example, suppose we use a [NekBinnedPlaneAverage](NekBinnedPlaneAverage.md)
 user object to compute the average velocity normal to a set of planes within the
-NekRS domain. The actual result of the [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md)
+NekRS domain. The actual result of the [NekBinnedPlaneAverage](NekBinnedPlaneAverage.md)
 user object will be the *magnitude* of the average normal velocity in the direction
 of the unit normal vectors. But to be able to visualize these vectors
 in Paraview, we can use the `NekSpatialBinComponentAux` to extract each of the
@@ -25,7 +25,7 @@ three components into variables, that we can then show in a glyph mode.
   end=MultiApps
 
 In the example above, you can use a "glyph" filter in Paraview to visualize
-the directional component of [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md),
+the directional component of [NekBinnedPlaneAverage](NekBinnedPlaneAverage.md),
 as shown below. In this example, the velocity is a swirl velocity in the counterclockwise
 direction with an angular
 component that increases with $r$ and zero radial component.

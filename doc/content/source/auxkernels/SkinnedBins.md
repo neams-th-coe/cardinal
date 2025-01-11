@@ -5,7 +5,7 @@
 ## Description
 
 Displays how each element in the `[Mesh]` maps to a skinned bin distribution
-(created by a [MoabSkinner](/userobjects/MoabSkinner.md)). You can either
+(created by a [MoabSkinner](MoabSkinner.md)). You can either
 view the entire individualized bin distribution with `skin_by = all` (the default),
 or inspect how elements map to the binning in temperature, density, and subdomain
 by setting `skin_by` to `temperature`, `density`, or `subdomain`, respectively.

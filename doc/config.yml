@@ -3,11 +3,40 @@ Content:
         root_dir: doc/content
     moose:
         root_dir: ${MOOSE_DIR}/framework/doc/content
+    fluid_properties:
+        root_dir: ${MOOSE_DIR}/modules/fluid_properties/doc/content
+    heat_transfer:
+        root_dir: ${MOOSE_DIR}/modules/heat_transfer/doc/content
+    navier_stokes:
+        root_dir: ${MOOSE_DIR}/modules/navier_stokes/doc/content
+    ray_tracing:
+        root_dir: ${MOOSE_DIR}/modules/ray_tracing/doc/content
+    reactor:
+        root_dir: ${MOOSE_DIR}/modules/reactor/doc/content
+    solid_mechanics:
+        root_dir: ${MOOSE_DIR}/modules/solid_mechanics/doc/content
+    solid_properties:
+        root_dir: ${MOOSE_DIR}/modules/solid_properties/doc/content
+    stochastic_tools:
+        root_dir: ${MOOSE_DIR}/modules/stochastic_tools/doc/content
+    thermal_hydraulics:
+        root_dir: ${MOOSE_DIR}/modules/thermal_hydraulics/doc/content
+    modules:
+        root_dir: ${MOOSE_DIR}/modules/doc/content
         content:
-            - contrib/**
-            - css/**
-            - js/**
-            - media/**
+            - help/development/analyze_jacobian.md
+            - application_usage/restart_recover.md
+            - application_usage/command_line_usage.md
+    python:
+        root_dir: ${MOOSE_DIR}/python/doc/content
+        content:
+            - python/mms.md
+            - python/MooseDocs/**
+            - python/moosesqa/index.md
+            - python/source/moosetree/Node.md
+            - python/testers/**
+            - python/CSVDiff.md
+            - python/TestHarness.md
 
 Renderer:
     type: MooseDocs.base.MaterializeRenderer
@@ -18,28 +47,47 @@ Extensions:
         repo: https://github.com/neams-th-coe/cardinal
         menu:
             Getting Started:
-                Installing Cardinal: start.md
-                How to Contribute: contributing.md
+                Installation: start.md
+                Running on HPC: hpc.md
+                How to Contribute: contributing_cardinal.md
             Documentation:
-                Tutorials: tutorials/index.md
-                Input Syntax: source/index.md
+                Tutorials: /tutorials/index.md
+                Input Syntax: /source/index.md
                 CFD Meshing: tutorials/meshing.md
                 Code Theory: theory/index.md
-                Running on HPC: hpc.md
                 Doxygen: doxygen.md
             Publications: publications.md
             Contact: contact.md
             Help: faq.md
             News: news.md
+
     MooseDocs.extensions.appsyntax:
         executable: ${ROOT_DIR}
-        includes:
-            - include
-        active: true
+        remove:
+            framework: !include ${MOOSE_DIR}/framework/doc/remove.yml
+            cardinal:
+                - /ICs/BulkEnergyConservationIC
+                - /Cardinal/ICs/BulkEnergyConservation/BulkEnergyConservationICAction
+                - /Cardinal/ICs/VolumetricHeatSource/VolumetricHeatSourceICAction
+        unregister:
+            framework: !include ${MOOSE_DIR}/framework/doc/unregister.yml
+
     MooseDocs.extensions.acronym:
         acronyms:
             moose: !include ${MOOSE_DIR}/framework/doc/acronyms.yml
-            vtb: !include ${ROOT_DIR}/doc/acronyms.yml
+            cardinal: !include ${ROOT_DIR}/doc/acronyms.yml
+
     MooseDocs.extensions.analytics:
         active: True
         google_measurement_id: G-FDCX1GZ9HF
+
+    MooseDocs.extensions.common:
+        shortcuts: !include ${MOOSE_DIR}/framework/doc/globals.yml
+
+    MooseDocs.extensions.template:
+        active: true
+
+    MooseDocs.extensions.bibtex:
+        duplicates:
+            - hales15homogenization
+            - petersen

@@ -27,7 +27,7 @@ InputParameters
 PecletNumber::validParams()
 {
   InputParameters params = ReynoldsNumber::validParams();
-  params.addClassDescription("Compute the Peclet number characteristic of the NekRS solution");
+  params.addClassDescription("Peclet number characteristic of the NekRS solution");
   return params;
 }
 

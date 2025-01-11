@@ -34,7 +34,7 @@ one the curve, which is what this mesh generator does for you).
 If you have a HEX8 mesh, you can convert it to a HEX27 mesh by adding
 `second_order = true` in a separate MOOSE file that generates your mesh
 (which can be as simple as just reading the mesh from a file with a
-[FileMeshGenerator](https://mooseframework.inl.gov/source/meshgenerators/FileMeshGenerator.html), like this
+[FileMeshGenerator](FileMeshGenerator.md), like this
 
 ```
 [Mesh]

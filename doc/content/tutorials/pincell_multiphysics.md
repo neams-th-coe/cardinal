@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to:
 
 - Couple OpenMC, NekRS, and MOOSE for modeling an [!ac](SFR) pincell
-- Use MOOSE's [reactor](https://mooseframework.inl.gov/modules/reactor/index.html) module
+- Use MOOSE's [reactor](reactor/index.md) module
   to make meshes for common reactor geometries
 - Use subcycling to efficiently allocate computational resources
 
@@ -53,8 +53,7 @@ that first have to pass through an "intermediate" application.
 Like with all Cardinal simulations, Picard iterations are achieved "in time." We have not expounded
 greatly upon this notion in previous tutorials, so we dedicate some space here.
 The overall Cardinal simulation has a notion of "time" and a time step index,
-because all code applications will use a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
-executioner. However,
+because all code applications will use a [Transient](Transient.md) executioner. However,
 usually only NekRS is solved with non-zero time derivatives. The notion of time-stepping is then used to
 customize how frequently (i.e., in units of time steps) data is exchanged.
 To help explain the strategy, represent the time step sizes in NekRS, MOOSE, and OpenMC as
@@ -118,7 +117,7 @@ python pincell.py
 
 The MOOSE heat transfer module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
 The solid mesh is shown in [solid_mesh]. This mesh is generated using MOOSE's
-[reactor module](https://mooseframework.inl.gov/modules/reactor/index.html), which can be used to make
+[reactor module](reactor/index.md), which can be used to make
 sophisticated meshes of typical reactor geometries such as pin lattices, ducts, and reactor vessels.
 In this example, we use this module to set up just a single pincell.
 
@@ -163,7 +162,7 @@ cases for these input files is available on the
 Because the purpose of this analysis is to demonstrate Cardinal's capabilities, only the aspects
 of NekRS required to understand the present case will be covered.
 
-We first create the mesh using MOOSE's [reactor module](https://mooseframework.inl.gov/modules/reactor/index.html).
+We first create the mesh using MOOSE's [reactor module](reactor/index.md).
 The syntax used to build a HEX27 fluid mesh is shown below. A major difference from the dummy
 fluid receiving portion of the solid mesh is that we now set up some
 boundary layers on the pincell surfaces, by providing `ring_radii` (and other parameters) as vectors.
@@ -172,7 +171,7 @@ boundary layers on the pincell surfaces, by providing `ring_radii` (and other pa
   block=Mesh
 
 However, NekRS requires a HEX20 mesh format. Therefore, we use a
-[NekMeshGenerator](/meshgenerators/NekMeshGenerator.md) to convert from HEX27 to HEX20 format,
+[NekMeshGenerator](NekMeshGenerator.md) to convert from HEX27 to HEX20 format,
 while also moving the higher-order side nodes on the pincell surface to match the curvilinear elements.
 The syntax used to convert from the HEX27 fluid mesh to a HEX20 fluid mesh, while preserving
 the pincell surface, is shown below.
@@ -187,7 +186,7 @@ cardinal-opt -i convert.i --mesh-only
 mv convert_in.e convert.exo
 ```
 
-and then use the `exo2nek` [utility](https://cardinal.cels.anl.gov/nek_tools.html)
+and then use the `exo2nek` [utility](nek_tools.md)
 to convert from the exodus file format (`convert.exo`) into the custom `.re2` format
 required for NekRS. A depiction of the outputs of the two stages of the mesh generator
 process are shown in [fluid_convert]. Boundary 2 is the inlet, boundary 3 is the outlet,
@@ -234,10 +233,10 @@ The neutron transport is solved using OpenMC. The input file for this portion of
 !listing tutorials/pincell_multiphysics/openmc.i
   end=AuxVariables
 
-Next, we define a number of auxiliary variables to be used for diagnostic purposes. With the exception of the [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html), none of the following variables are necessary for coupling, but they will allow us to visualize how data is mapped from OpenMC to the mesh mirror. The [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html)
+Next, we define a number of auxiliary variables to be used for diagnostic purposes. With the exception of the [FluidDensityAux](FluidDensityAux.md), none of the following variables are necessary for coupling, but they will allow us to visualize how data is mapped from OpenMC to the mesh mirror. The [FluidDensityAux](FluidDensityAux.md)
 auxiliary kernel on the other hand is used to compute the fluid density, given the temperature
 variable `temp` (into which we will write the MOOSE and NekRS temperatures, into different regions of space). Note that we will not send fluid density from NekRS to OpenMC, because the NekRS model uses an incompressible Navier-Stokes model. But to a decent approximation, the fluid density can be approximated solely as a function of temperature using the
-[SodiumSaturationFluidProperties](https://mooseframework.inl.gov/source/userobjects/SodiumSaturationFluidProperties.html)
+[SodiumSaturationFluidProperties](SodiumSaturationFluidProperties.md)
 (so named because these properties represent sodium properties at
 saturation temperature).
 
@@ -249,7 +248,7 @@ Next, the `[Problem]` and `[Tallies]` blocks define all the parameters related t
 OpenMC to MOOSE. We will send temperature to OpenMC from blocks 2 and 3
 (which represent the solid regions) and we will send temperature and density
 to OpenMC from block 1 (which represents the fluid region). We add a
-[CellTally](/tallies/CellTally.md) to tally the heat source in the fuel.
+[CellTally](CellTally.md) to tally the heat source in the fuel.
 
 For this problem, the temperature that gets mapped into OpenMC is sourced
 from two different applications, which we can customize using the
@@ -277,7 +276,7 @@ Next, we create a MOOSE heat conduction sub-application, and set up transfers of
   start=MultiApps
   end=Outputs
 
-Finally, we will use a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html) executioner and add a number of postprocessors for diagnostic purposes.
+Finally, we will use a [Transient](Transient.md) executioner and add a number of postprocessors for diagnostic purposes.
 
 !listing tutorials/pincell_multiphysics/openmc.i
   start=Outputs
@@ -303,11 +302,11 @@ to checking for material properties on every mesh block.
 Next, we set up a nonlinear variable `T` to represent solid temperature
 and create kernels representing heat conduction with a volumetric heating
 in the pellet region. In the fluid region, we need to use a
-[NullKernel](https://mooseframework.inl.gov/source/kernels/NullKernel.html)
+[NullKernel](NullKernel.md)
 to indicate that no actual solve happens on this block. On the
 cladding surface, we will impose a Dirichlet boundary condition given
 the NekRS fluid temperature. Finally, we set up material properties for
-the solid blocks using [HeatConductionMaterial](https://mooseframework.inl.gov/source/materials/HeatConductionMaterial.html).
+the solid blocks using [HeatConductionMaterial](HeatConductionMaterial.md).
 
 !listing tutorials/pincell_multiphysics/bison.i
   start=Variables
@@ -322,7 +321,7 @@ Next, we declare auxiliary variables to be used for:
 On each MOOSE-NekRS substep, we will run MOOSE first. For the very first
 time step, this means we should set an initial condition for the NekRS
 fluid temperature, which we simply set to a linear function of height.
-Finally, we create a [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)
+Finally, we create a [DiffusionFluxAux](DiffusionFluxAux.md)
 to compute the heat flux on the pin surface.
 
 !listing tutorials/pincell_multiphysics/bison.i
@@ -343,8 +342,7 @@ total power sent from MOOSE to NekRS, as well as a few diagnostic terms.
 !listing tutorials/pincell_multiphysics/bison.i
   block=Postprocessors
 
-Finally, we set up the MOOSE heat conduction solver to use a
-[Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+Finally, we set up the MOOSE heat conduction solver to use a [Transient](Transient.md)
 exeuctioner and specify the output format. Important to note here is that a user-provided choice of `M` will determine how many NekRS time steps are run for *each* MOOSE time step.
 
 !listing tutorials/pincell_multiphysics/bison.i
@@ -354,7 +352,7 @@ exeuctioner and specify the output format. Important to note here is that a user
 
 The fluid mass, momentum, and energy transport physics are solved using NekRS. The input file
 for this portion of the physics is `nek.i`. We begin by defining a number of constants and by setting
-up the [NekRSMesh](mesh/NekRSMesh.md) mesh mirror. Because we are coupling NekRS via boundary heat
+up the [NekRSMesh](NekRSMesh.md) mesh mirror. Because we are coupling NekRS via boundary heat
 transfer to MOOSE, but via volumetric temperature and densities to OpenMC, we need to use a combined
 boundary *and* volumetric mesh mirror, so both `boundary` and `volume = true` are provided. Because
 this problem is set up in non-dimensional form, we also need to rescale the mesh to match the units
@@ -364,7 +362,7 @@ expected by our solid and OpenMC input files.
   end=Problem
 
 The bulk of the NekRS wrapping is specified with
-[NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html).
+[NekRSProblem](NekRSProblem.md).
 The NekRS input files are in non-dimensional form, whereas all other coupled applications
 use dimensional units. The various `*_ref` and `*_0` parameters define the characteristic
 scales that were used to non-dimensionalize the NekRS input. In order to simplify the input
@@ -376,8 +374,8 @@ then we would instead send a heating term into NekRS, but this is neglected for 
 !listing /tutorials/pincell_multiphysics/nek.i
   block=Problem
 
-Then, we simply set up a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
-executioner with the [NekTimeStepper](https://cardinal.cels.anl.gov/source/timesteppers/NekTimeStepper.html).
+Then, we simply set up a [Transient](Transient.md)
+executioner with the [NekTimeStepper](NekTimeStepper.md).
 For postprocessing purposes, we also create two postprocessors to evaluate the average outlet
 temperature and the maximum fluid temperature. Finally, in order to not overly saturate the screen
 output, we will only write the Exodus output files and print to the console every 10 Nek time steps.
@@ -401,7 +399,7 @@ This will produce a number of output files,
 - `fluid0.f*`, NekRS output files
 
 [pincell_temp] shows the temperature (a) imposed in OpenMC (the output
-of the [CellTemperatureAux](https://cardinal.cels.anl.gov/source/auxkernels/CellTemperatureAux.html))
+of the [CellTemperatureAux](CellTemperatureAux.md))
 auxiliary kernel; (b) the NekRS fluid temperature; and (c) the MOOSE
 solid temperature.
 

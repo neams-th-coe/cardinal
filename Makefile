@@ -99,10 +99,11 @@ ALL_MODULES         := no
 FLUID_PROPERTIES    := yes
 HEAT_TRANSFER       := yes
 NAVIER_STOKES       := yes
+RAY_TRACING         := yes
 REACTOR             := yes
+SOLID_MECHANICS     := yes
 SOLID_PROPERTIES    := yes
 STOCHASTIC_TOOLS    := yes
-SOLID_MECHANICS     := yes
 THERMAL_HYDRAULICS  := yes
 
 # Configure the optional dependencies (NekRS, OpenMC, submodules, etc.)

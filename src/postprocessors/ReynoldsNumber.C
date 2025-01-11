@@ -29,7 +29,7 @@ ReynoldsNumber::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
   params.addRangeCheckedParam<Real>("L_ref", "L_ref > 0.0", "Reference length scale");
-  params.addClassDescription("Compute the Reynolds number characteristic of the NekRS solution");
+  params.addClassDescription("Reynolds number characteristic of the NekRS solution");
   return params;
 }
 

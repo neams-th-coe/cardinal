@@ -44,7 +44,7 @@ where $\dagger$ superscripts indicate nondimensional quantities.
 `rho_0` is used to specify $\rho_0$, and `Cp_0` is used to specify $C_{p,0}$
 (which does not appear above, but is necessary for scaling a volumetric heat source).
 Finally, the mesh mirror must be in the same units as used in the coupled MOOSE application,
-so the `scaling` parameter on [NekRSMesh](/mesh/NekRSMesh.md) must be set to
+so the `scaling` parameter on [NekRSMesh](NekRSMesh.md) must be set to
 dimensionalize the nondimensional `.re2` mesh. In other words,
 `scaling` must be set to $1/L_{ref}$.
 
@@ -56,7 +56,7 @@ simply specify the non-dimensional scales in this class and expect a *dimsension
 NekRS input specification to be converted to non-dimensional form.
 
 For example, suppose your NekRS input is in non-dimensional form. Applying a
-[NekVolumeAverage](/postprocessors/NekVolumeAverage.md) postprocessor to temperature
+[NekVolumeAverage](NekVolumeAverage.md) postprocessor to temperature
 would be used to evaluate a volume average of temperature.
 
 !listing
@@ -76,9 +76,8 @@ to [eq:T_ref] and volume is non-dimensionalized according to [eq:x_ref], or
 V^\dagger=\frac{V}{L_{ref}^3}
 \end{equation}
 
-The [NekVolumeAverage](/postprocessors/NekVolumeAverage.md) postprocessor
-is then computed directly on the NekRS solution (in non-dimensional form)
-to give
+The [NekVolumeAverage](NekVolumeAverage.md) postprocessor
+is then computed directly on the NekRS solution (in non-dimensional form) to give
 
 \begin{equation}
 \label{eq:pp}

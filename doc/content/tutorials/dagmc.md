@@ -47,7 +47,7 @@ built this way, since we are just fetching it from an existing OpenMC tutorial.
 
 !include steady_hc.md
 
-[MeshGenerators](https://mooseframework.inl.gov/syntax/Mesh/index.html) are used to construct
+[MeshGenerators](Mesh/index.md) are used to construct
 the solid mesh. [solid_mesh2] shows the solid mesh with block IDs and sidesets. We will
 not model any heat transfer in the water region, for simplicity.
 Different block IDs are used for the hexahedral and prism elements
@@ -117,14 +117,14 @@ The variables, kernels, and boundary conditions are shown below.
   start=Variables
   end=Executioner
 
-The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+The [Transfer](Transfers/index.md)
 system in MOOSE is used to communicate variables across applications; a
 heat source will be computed by OpenMC and applied as a source term in MOOSE.
 In the opposite direction, MOOSE will compute a temperature that will be
 applied to the OpenMC geometry. The `heat_source` auxiliary variable will simply
 receive the heat source from OpenMC.
-The [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+The [MultiApps](MultiApps/index.md)
+and [Transfers](Transfers/index.md)
 blocks describe the interaction between Cardinal and MOOSE. The MOOSE
 heat conduction application is run as the main application, with
 OpenMC run as the sub-application. We specify that MOOSE will run
@@ -171,11 +171,11 @@ in other tutorials.
 !listing /tutorials/dagmc/openmc.i
   end=AuxVariables
 
-Next, the [Problem](https://mooseframework.inl.gov/syntax/Problem/index.html)
-and [Tallies](/actions/AddTallyAction.md) blocks describe all objects necessary
+Next, the [Problem](Problem/index.md)
+and [Tallies](AddTallyAction.md) blocks describe all objects necessary
 for the actual neutronics solve. To replace MOOSE finite element calculations
 with OpenMC particle transport calculations, the
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) class is used.
+[OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) class is used.
 
 !listing /tutorials/dagmc/openmc.i
   block=Problem
@@ -185,13 +185,13 @@ tally results (because OpenMC's tally results are in units of eV/source particle
 Next, we indicate which blocks in the `[Mesh]` should be considered
 for temperature feedback using `temperature_blocks`.
 Here, we specify temperature feedback for the pellet (blocks 2 and 3).
-During the initialization, [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+During the initialization, [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 will automatically map from MOOSE elements to OpenMC cells, and store which MOOSE elements
 are providing temperature feedback. Then when temperature is sent into OpenMC, that mapping is used to compute
 a volume-average temperature to apply to each OpenMC cell.
 
-This example uses mesh tallies, as indicated by the [MeshTally](/tallies/MeshTally.md)
-in the `[Tallies]` block. [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)
+This example uses mesh tallies, as indicated by the [MeshTally](MeshTally.md)
+in the `[Tallies]` block. [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 will then automatically add the OpenMC mesh tally using the information provided.
 Finally, we specify the level in the geometry on which the cells
 exist. Because we don't have any lattices or filled universes in our OpenMC model,
@@ -208,11 +208,11 @@ Next, we add a series of auxiliary variables for solution visualization
 (these are not requried for coupling). To help with understanding
 how the OpenMC model maps to the mesh in the `[Mesh]` block, we add auxiliary
 variables to visualize OpenMC's
-cell temperature ([CellTemperatureAux](/auxkernels/CellTemperatureAux.md)).
+cell temperature ([CellTemperatureAux](CellTemperatureAux.md)).
 Cardinal will also automatically output a variable named `cell_id`
-([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+([CellIDAux](CellIDAux.md))
 and a variable named `cell_instance` (
-[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
+[CellInstanceAux](CellInstanceAux.md)) to show the spatial mapping.
 
 !listing /tutorials/dagmc/openmc.i
   start=AuxVariables
@@ -259,7 +259,7 @@ over the elements corresponding to each of those two cells.
 If you want to resolve the solid temperature
 with more detail in the OpenMC model, simply add OpenMC cells where finer feedback
 is desired - *or*, you can adaptively re-generate the OpenMC cells using
-the [MoabSkinner](https://cardinal.cels.anl.gov/source/userobjects/MoabSkinner.html).
+the [MoabSkinner](MoabSkinner.md).
 
 !media dagmc_heat_source.png
   id=dagmc_heat_source

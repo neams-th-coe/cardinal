@@ -28,7 +28,7 @@ InputParameters
 CellTemperatureAux::validParams()
 {
   InputParameters params = OpenMCAuxKernel::validParams();
-  params.addClassDescription("Display the OpenMC cell temperature (K) at each MOOSE element");
+  params.addClassDescription("OpenMC cell temperature (K), mapped to each MOOSE element");
   return params;
 }
 
