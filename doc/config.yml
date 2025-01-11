@@ -56,6 +56,10 @@ Extensions:
                 CFD Meshing: tutorials/meshing.md
                 Code Theory: theory/index.md
                 Doxygen: doxygen.md
+            Software Quality:
+                Software Quality Assurance (SQA) Information: /sqa/index.md
+                Code Standards: sqa/cardinal_scs.md
+                Code Coverage: https://mooseframework.inl.gov/cardinal/docs/coverage
             Publications: publications.md
             Contact: contact.md
             Help: faq.md
