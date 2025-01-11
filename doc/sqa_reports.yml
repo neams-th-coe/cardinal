@@ -36,17 +36,11 @@ Requirements:
         working_dirs:
             - ${ROOT_DIR}/doc/content
             - ${MOOSE_DIR}/framework/doc/content
-            - ${MOOSE_DIR}/modules/chemical_reactions/doc/content
-            - ${MOOSE_DIR}/modules/electromagnetics/doc/content
             - ${MOOSE_DIR}/modules/fluid_properties/doc/content
             - ${MOOSE_DIR}/modules/heat_transfer/doc/content
-            - ${MOOSE_DIR}/modules/misc/doc/content
             - ${MOOSE_DIR}/modules/navier_stokes/doc/content
-            - ${MOOSE_DIR}/modules/phase_field/doc/content
             - ${MOOSE_DIR}/modules/reactor/doc/content
-            - ${MOOSE_DIR}/modules/rdg/doc/content
             - ${MOOSE_DIR}/modules/ray_tracing/doc/content
-            - ${MOOSE_DIR}/modules/scalar_transport/doc/content
             - ${MOOSE_DIR}/modules/solid_mechanics/doc/content
             - ${MOOSE_DIR}/modules/solid_properties/doc/content
             - ${MOOSE_DIR}/modules/stochastic_tools/doc/content

@@ -4,17 +4,11 @@ specs:
     - tests
 dependencies: # commented-out categories are not available
     - framework
-    #- chemical_reactions
-    - electromagnetics
     - fluid_properties
     - heat_transfer
-    - misc
     - navier_stokes
-    - phase_field
     - reactor
-    - rdg
     - ray_tracing
-    - scalar_transport
     - solid_mechanics
     - solid_properties
     - stochastic_tools
