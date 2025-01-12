@@ -20,7 +20,7 @@ This document describes the system design of {{app}}.
 {{app}} inherits the software dependencies of:
  - [MOOSE framework](framework_sdd.md#dependencies-and-limitations)
  - [OpenMC](https://docs.openmc.org/en/stable/usersguide/install.html#prerequisites)
- - [NekRS](https://nekrsdoc.readthedocs.io/en/latest/requirements.html)
+ - [NekRS](https://github.com/Nek5000/nekRS/tree/next)
  - [DAGMC](https://svalinn.github.io/DAGMC/install/dependencies.html)
 
 No additional dependencies are present.
