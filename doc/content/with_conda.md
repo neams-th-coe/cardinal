@@ -49,15 +49,7 @@ To get MOOSE's conda environment, follow the instructions [here](https://moosefr
 
 ## Prerequisites
 
-The basic prerequisites for building Cardinal are summarized in [prereq_table].
-
-!table id=prereq_table caption=Summary of prerequisites needed for Cardinal.
-|    | Building with NekRS | Building with OpenMC | Both |
-| :- | :- | :- | :- |
-| CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
-| GNU fortran >= 9.0 compiler | $\checkmark$ | &nbsp; | $\checkmark$  |
-| HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
-| MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+!include cardinal_prereqs.md
 
 !alert! tip title=How do I know if I have these dependencies?
 You will already have all of these if using MOOSE's conda environment.
