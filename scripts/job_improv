@@ -6,13 +6,13 @@
 # 3. qsub job_improv
 
 #PBS -A startup
-#PBS -l select=<NUM_NODES>:ncpus=128:mpiprocs=128
+#PBS -l select=1:ncpus=128:mpiprocs=128
 #PBS -l walltime=00:10:00
 #PBS -q compute
 #PBS -j n
 #PBS -N cardinal
 
-#PBS -m be
+#PBS -m bea
 #PBS -M <your_email_address>
 
 module purge
