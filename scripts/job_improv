@@ -1,0 +1,35 @@
+#!/bin/bash -l
+
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input file names in this script
+# 3. qsub job_improv
+
+#PBS -A startup
+#PBS -l select=<NUM_NODES>:ncpus=128:mpiprocs=128
+#PBS -l walltime=00:10:00
+#PBS -q compute
+#PBS -j n
+#PBS -N cardinal
+
+#PBS -m be
+#PBS -M <your_email_address>
+
+module purge
+module load gcc/11.4.0
+module load openmpi/5.0.0-gcc-11.4.0
+module load cmake/3.27.4
+module load anaconda3/2024.10
+
+# Revise for your repository and cross section data locations
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
+
+# The name of the input file you want to run
+input_file=openmc.i
+
+# Run a Cardinal case
+mpirun $CARDINAL_DIR/cardinal-opt -i $input_file > logfile
