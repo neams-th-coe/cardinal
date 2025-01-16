@@ -45,7 +45,9 @@ OpenMCUserObject::execute()
 {
   if (!_first_execution)
     return;
+
   initialize();
+
   _first_execution = false;
 }
 

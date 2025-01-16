@@ -34,8 +34,10 @@ public:
 
   bool tallyExists() const;
 
-  // get the index of the tally in OpenMC's data space, creating it if necessary according to the
-  // input parameters
+  /**
+   * Get the index of the tally in OpenMC's data space, creating it if necessary
+   * @return tally index
+   */
   int32_t tallyIndex() const;
 
   /// We don't want this user object to execute in MOOSE's control
@@ -43,11 +45,26 @@ public:
   virtual void initialize() override;
   virtual void finalize() override {}
 
-  std::string longName() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
+  /**
+   * Error to throw if multiple tally editor objects have the same tally id
+   * @param[in] id ID to use in error message
+   */
+  void duplicateTallyError(const int32_t & id) const;
 
-  // Accessors
+  /**
+   * Error to throw if tally editor is trying to edit a tally Cardinal is
+   * controlling for multiphysics
+   * @param[in] id ID to use in error message
+   */
+  void mappedTallyError(const int32_t & id) const;
+
+  /**
+   * Get the tally ID
+   * @return tally ID
+   */
   int32_t tallyId() const { return _tally_id; }
 
 protected:
-  int32_t _tally_id;
+  /// Tally ID to modify
+  const int32_t & _tally_id;
 };

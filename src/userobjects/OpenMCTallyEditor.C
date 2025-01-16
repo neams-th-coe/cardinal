@@ -92,10 +92,7 @@ void
 OpenMCTallyEditor::execute()
 {
   if (!tallyExists())
-  {
-    mooseError(longName() + ": Tally " + std::to_string(_tally_id) +
-               " does not exist in the OpenMC model");
-  }
+    paramError("tally_id", "Tally " + std::to_string(_tally_id) + " does not exist in the OpenMC model");
 
   openmc::Tally * tally = openmc::model::tallies[tallyIndex()].get();
 
@@ -108,8 +105,8 @@ OpenMCTallyEditor::execute()
     }
     catch (const std::exception & e)
     {
-      mooseError("In attempting to set tally scores in the '" + name() +
-                 "' UserObject, OpenMC reported:\n\n" + e.what());
+      std::string s = e.what();
+      paramError("scores", "In attempting to set tally scores, OpenMC reported:\n\n" + s);
     }
   }
 
@@ -122,8 +119,8 @@ OpenMCTallyEditor::execute()
     }
     catch (const std::exception & e)
     {
-      mooseError("In attempting to set tally nuclides in the '" + name() +
-                 "' UserObject, OpenMC reported:\n\n" + e.what());
+      std::string s = e.what();
+      paramError("nuclides", "In attempting to set tally nuclides, OpenMC reported:\n\n" + s);
     }
   }
 
@@ -139,6 +136,18 @@ OpenMCTallyEditor::execute()
   }
 
   tally->set_multiply_density(getParam<bool>("multiply_density"));
+}
+
+void
+OpenMCTallyEditor::duplicateTallyError(const int32_t & id) const
+{
+  paramError("tally_id", "Duplicate tally ID (" + std::to_string(id) + ") found in multiple OpenMCTallyEditors");
+}
+
+void
+OpenMCTallyEditor::mappedTallyError(const int32_t & id) const
+{
+  paramError("tally_id", "This tally ID (" + std::to_string(id) + ") is a tally which Cardinal is automatically creating and controlling from the Problem/Tallies block. OpenMCTallyEditor cannot be used for these types of tallies.");
 }
 
 #endif

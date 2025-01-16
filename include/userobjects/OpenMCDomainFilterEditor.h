@@ -54,6 +54,12 @@ public:
    */
   void checkFilterTypeMatch() const;
 
+  /**
+   * Error to throw if a filter ID is used in multiple editors
+   * @param[in] id ID to use in error message
+   */
+  void duplicateFilterError(const int32_t & id) const;
+
   std::string filterTypeEnumToString(OpenMCFilterType t) const;
   OpenMCFilterType stringToFilterTypeEnum(const std::string & s) const;
 

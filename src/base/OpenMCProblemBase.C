@@ -772,8 +772,7 @@ OpenMCProblemBase::checkOpenMCUserObjectIDs() const
   {
     int32_t tally_id = te->tallyId();
     if (tally_ids.count(tally_id) != 0)
-      mooseError("Duplicate tally ID \"" + std::to_string(tally_id) + "\" found in " +
-                 te->longName());
+      te->duplicateTallyError(tally_id);
     tally_ids.insert(tally_id);
   }
 
@@ -782,8 +781,7 @@ OpenMCProblemBase::checkOpenMCUserObjectIDs() const
   {
     int32_t filter_id = fe->filterId();
     if (filter_ids.count(filter_id) != 0)
-      mooseError("Duplicate filter ID \"" + std::to_string(filter_id) + "\" found in " +
-                 fe->longName());
+      fe->duplicateFilterError(filter_id);
     filter_ids.insert(filter_id);
   }
 }
@@ -800,8 +798,7 @@ OpenMCProblemBase::checkTallyEditorIDs() const
     // ensure that the TallyEditor IDs don't apply to any mapped tally objects
     if (std::find(mapped_tally_ids.begin(), mapped_tally_ids.end(), tally_id) !=
         mapped_tally_ids.end())
-      mooseError("Tally Editor for tally \"" + std::to_string(tally_id) +
-                 "\" is applied to a Cardinal-mapped tally.");
+      te->mappedTallyError(tally_id);
   }
 }
 

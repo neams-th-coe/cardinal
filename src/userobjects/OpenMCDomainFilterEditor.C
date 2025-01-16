@@ -70,18 +70,12 @@ OpenMCDomainFilterEditor::initialize()
   }
 
   if (!_create_filter && !filter_exists)
-  {
-    mooseError(longName() + ": Filter " + std::to_string(_filter_id) +
-               " does not exist and create_filter is false");
-  }
+    paramError("filter_id", "Filter " + std::to_string(_filter_id) + " does not exist and create_filter is false");
 
   // if the filter doesn't exist at this point and no other errors have been raised,
   // create the filter
   if (!filter_exists)
-  {
-    _console << longName() << ": Creating Filter " << _filter_id << std::endl;
     openmc::Filter::create(filterTypeEnumToString(_filter_type), _filter_id);
-  }
 
   // at this point the filter exists and the filter type is set, check that the type is valid
   checkFilterTypeMatch();
@@ -96,11 +90,7 @@ OpenMCDomainFilterEditor::checkFilterTypeMatch() const
   _console << "CHECKING FILTER TYPE..." << std::endl;
 
   if (existing_type != _filter_type)
-  {
-    mooseError(longName() + ": An existing filter, Filter " + std::to_string(_filter_id) +
-               ", is of type \"" + existing_type_str + "\" and cannot be changed to type \"" +
-               filterTypeEnumToString(_filter_type) + "\"");
-  }
+    paramError("filter_id", "An existing filter, Filter " + std::to_string(_filter_id) + ", is of type \"" + existing_type_str + "\" and cannot be changed to type \"" + filterTypeEnumToString(_filter_type) + "\"");
 }
 
 bool
@@ -201,6 +191,12 @@ OpenMCDomainFilterEditor::stringToFilterTypeEnum(const std::string & s) const
     return OpenMCFilterType::mesh;
   else
     mooseError("Invalid filter type");
+}
+
+void
+OpenMCDomainFilterEditor::duplicateFilterError(const int32_t & id) const
+{
+  paramError("filter_id", "Duplicate filter ID (" + std::to_string(id) + ") found across multiple OpenMCDomainFilterEditors");
 }
 
 #endif
