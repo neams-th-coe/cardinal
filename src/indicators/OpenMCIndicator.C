@@ -54,7 +54,8 @@ OpenMCIndicator::getTallyScoreVariableValues(const std::string & score)
     {
       auto vars = t->getScoreVars(score);
       for (const auto & v : vars)
-        score_vars.emplace_back(&(dynamic_cast<MooseVariableFE<Real>*>(&_subproblem.getVariable(_tid, v))->sln()));
+        score_vars.emplace_back(
+            &(dynamic_cast<MooseVariableFE<Real> *>(&_subproblem.getVariable(_tid, v))->sln()));
     }
   }
 

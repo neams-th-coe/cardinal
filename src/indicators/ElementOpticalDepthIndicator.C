@@ -30,42 +30,46 @@ ElementOpticalDepthIndicator::validParams()
 {
   auto params = OpenMCIndicator::validParams();
   params.addClassDescription(
-    "A class which returns the estimate of a given element's optical depth under the assumption that "
-    "elements with a large optical depth experience large solution gradients.");
-  params.addRequiredParam<MooseEnum>(
-    "rxn_rate", getSingleTallyScoreEnum(), "The reaction rate to use for computing the optical depth.");
+      "A class which returns the estimate of a given element's optical depth under the assumption "
+      "that "
+      "elements with a large optical depth experience large solution gradients.");
+  params.addRequiredParam<MooseEnum>("rxn_rate",
+                                     getSingleTallyScoreEnum(),
+                                     "The reaction rate to use for computing the optical depth.");
   params.addParam<MooseEnum>(
-    "h_type",
-    MooseEnum("min max cube_root", "max"),
-    "The estimate for the length of the element used to compute the optical depth. Options are the "
-    "minimum vertex separation (min), the maximum vertex separation (max), and the cube root of "
-    "the element volume (cube_root).");
+      "h_type",
+      MooseEnum("min max cube_root", "max"),
+      "The estimate for the length of the element used to compute the optical depth. Options are "
+      "the "
+      "minimum vertex separation (min), the maximum vertex separation (max), and the cube root of "
+      "the element volume (cube_root).");
 
   return params;
 }
 
 ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters & parameters)
-  : OpenMCIndicator(parameters),
-    _h_type(getParam<MooseEnum>("h_type").getEnum<HType>())
+  : OpenMCIndicator(parameters), _h_type(getParam<MooseEnum>("h_type").getEnum<HType>())
 {
   std::string score = getParam<MooseEnum>("rxn_rate");
   std::replace(score.begin(), score.end(), '_', '-');
 
-  // Error check to make sure the score is a reaction rate score and to make sure one of the [Tallies]
-  // has added the score and a flux score.
+  // Error check to make sure the score is a reaction rate score and to make sure one of the
+  // [Tallies] has added the score and a flux score.
   if (!_openmc_problem->isReactionRateScore(score))
     mooseError(
-      "At present the ElementOpticalDepthIndicator only works with reaction rate scores. "
-      + std::string(getParam<MooseEnum>("rxn_rate")) + " is not a valid reaction rate score.");
+        "At present the ElementOpticalDepthIndicator only works with reaction rate scores. " +
+        std::string(getParam<MooseEnum>("rxn_rate")) + " is not a valid reaction rate score.");
 
   const auto & all_scores = _openmc_problem->getTallyScores();
   if (std::find(all_scores.begin(), all_scores.end(), score) == all_scores.end())
-    mooseError(
-      "The problem does not contain any score named " + std::string(getParam<MooseEnum>("rxn_rate")) + "! Please "
-      "ensure that one of your [Tallies] is scoring the requested reaction rate.");
+    mooseError("The problem does not contain any score named " +
+               std::string(getParam<MooseEnum>("rxn_rate")) +
+               "! Please "
+               "ensure that one of your [Tallies] is scoring the requested reaction rate.");
 
   if (std::find(all_scores.begin(), all_scores.end(), "flux") == all_scores.end())
-    mooseError("In order to use an ElementOpticalDepthIndicator one of your [Tallies] must add a flux score.");
+    mooseError("In order to use an ElementOpticalDepthIndicator one of your [Tallies] must add a "
+               "flux score.");
 
   // Grab the reaction rate / flux variables from the [Tallies].
   _rxn_rates = getTallyScoreVariableValues(score);

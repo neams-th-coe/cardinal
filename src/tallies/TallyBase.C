@@ -408,7 +408,8 @@ TallyBase::getScoreVars(const std::string & score) const
   if (!hasScore(score))
     return score_vars;
 
-  unsigned int idx = std::find(_tally_score.begin(), _tally_score.end(), score) - _tally_score.begin();
+  unsigned int idx =
+      std::find(_tally_score.begin(), _tally_score.end(), score) - _tally_score.begin();
   std::copy(_tally_name.begin() + idx * _num_ext_filter_bins,
             _tally_name.begin() + (idx + 1) * _num_ext_filter_bins,
             std::back_inserter(score_vars));

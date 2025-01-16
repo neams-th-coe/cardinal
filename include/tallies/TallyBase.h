@@ -176,7 +176,10 @@ public:
    * @param[in] score the score to check
    * @return whether this tally has
    */
-  bool hasScore(const std::string & score) const { return std::find(_tally_score.begin(), _tally_score.end(), score) != _tally_score.end(); }
+  bool hasScore(const std::string & score) const
+  {
+    return std::find(_tally_score.begin(), _tally_score.end(), score) != _tally_score.end();
+  }
 
   /**
    * Check to see if the user has requested special names for the tallies.
