@@ -46,8 +46,7 @@ OpenMCTallyEditor::validParams()
 }
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
-  : OpenMCUserObject(parameters),
-    _tally_id(getParam<int32_t>("tally_id"))
+  : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
 {
   this->initialize();
 }
@@ -92,7 +91,8 @@ void
 OpenMCTallyEditor::execute()
 {
   if (!tallyExists())
-    paramError("tally_id", "Tally " + std::to_string(_tally_id) + " does not exist in the OpenMC model");
+    paramError("tally_id",
+               "Tally " + std::to_string(_tally_id) + " does not exist in the OpenMC model");
 
   openmc::Tally * tally = openmc::model::tallies[tallyIndex()].get();
 
@@ -141,13 +141,19 @@ OpenMCTallyEditor::execute()
 void
 OpenMCTallyEditor::duplicateTallyError(const int32_t & id) const
 {
-  paramError("tally_id", "Duplicate tally ID (" + std::to_string(id) + ") found in multiple OpenMCTallyEditors");
+  paramError("tally_id",
+             "Duplicate tally ID (" + std::to_string(id) +
+                 ") found in multiple OpenMCTallyEditors");
 }
 
 void
 OpenMCTallyEditor::mappedTallyError(const int32_t & id) const
 {
-  paramError("tally_id", "This tally ID (" + std::to_string(id) + ") is a tally which Cardinal is automatically creating and controlling from the Problem/Tallies block. OpenMCTallyEditor cannot be used for these types of tallies.");
+  paramError(
+      "tally_id",
+      "This tally ID (" + std::to_string(id) +
+          ") is a tally which Cardinal is automatically creating and controlling from the "
+          "Problem/Tallies block. OpenMCTallyEditor cannot be used for these types of tallies.");
 }
 
 #endif

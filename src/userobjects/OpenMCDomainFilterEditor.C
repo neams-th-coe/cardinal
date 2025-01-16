@@ -70,7 +70,9 @@ OpenMCDomainFilterEditor::initialize()
   }
 
   if (!_create_filter && !filter_exists)
-    paramError("filter_id", "Filter " + std::to_string(_filter_id) + " does not exist and create_filter is false");
+    paramError("filter_id",
+               "Filter " + std::to_string(_filter_id) +
+                   " does not exist and create_filter is false");
 
   // if the filter doesn't exist at this point and no other errors have been raised,
   // create the filter
@@ -90,7 +92,10 @@ OpenMCDomainFilterEditor::checkFilterTypeMatch() const
   _console << "CHECKING FILTER TYPE..." << std::endl;
 
   if (existing_type != _filter_type)
-    paramError("filter_id", "An existing filter, Filter " + std::to_string(_filter_id) + ", is of type \"" + existing_type_str + "\" and cannot be changed to type \"" + filterTypeEnumToString(_filter_type) + "\"");
+    paramError("filter_id",
+               "An existing filter, Filter " + std::to_string(_filter_id) + ", is of type \"" +
+                   existing_type_str + "\" and cannot be changed to type \"" +
+                   filterTypeEnumToString(_filter_type) + "\"");
 }
 
 bool
@@ -196,7 +201,9 @@ OpenMCDomainFilterEditor::stringToFilterTypeEnum(const std::string & s) const
 void
 OpenMCDomainFilterEditor::duplicateFilterError(const int32_t & id) const
 {
-  paramError("filter_id", "Duplicate filter ID (" + std::to_string(id) + ") found across multiple OpenMCDomainFilterEditors");
+  paramError("filter_id",
+             "Duplicate filter ID (" + std::to_string(id) +
+                 ") found across multiple OpenMCDomainFilterEditors");
 }
 
 #endif
