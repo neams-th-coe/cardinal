@@ -54,10 +54,11 @@ OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
 void
 OpenMCTallyEditor::initialize()
 {
-  // this is placed here, instead of the constructor, because Cardinal initializes
-  // some tallies. Depending on the order of initialization of UserObjects vs.
-  // other classes, those tallies might not exist yet in OpenMC's data space
-  // (but they will by the time this method is called).
+  // the tally creation/existence check is placed here, instead of the
+  // constructor, because Cardinal initializes some of it's own tallies.
+  // Depending on the order of initialization of UserObjects vs. other classes,
+  // those tallies might not exist yet in OpenMC's data space (but they will by
+  // the time this method is called).
   bool create_tally = getParam<bool>("create_tally");
 
   if (create_tally)

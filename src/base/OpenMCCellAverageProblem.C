@@ -1488,8 +1488,6 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
 
   // Check that each cell maps to a single phase
   checkCellMappedPhase();
-
-  openmc_set_seed(1);
 }
 
 void

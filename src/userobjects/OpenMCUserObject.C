@@ -29,7 +29,7 @@ OpenMCUserObject::validParams()
 }
 
 OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
-  : GeneralUserObject(parameters), _first_execution(true)
+  : GeneralUserObject(parameters)
 {
   if (!openmcProblem())
   {
@@ -38,17 +38,6 @@ OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
                "You need to change the\nproblem type from '" +
                _fe_problem.type() + "'" + extra_help + " to OpenMCCellAverageProblem.");
   }
-}
-
-void
-OpenMCUserObject::execute()
-{
-  if (!_first_execution)
-    return;
-
-  initialize();
-
-  _first_execution = false;
 }
 
 const OpenMCProblemBase *

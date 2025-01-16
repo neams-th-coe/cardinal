@@ -33,9 +33,9 @@ InputParameters
 OpenMCDomainFilterEditor::validParams()
 {
   InputParameters params = OpenMCUserObject::validParams();
-  params.addParam<bool>("create_filter", false, "Whether to create the tally if it doesn't exist");
+  params.addParam<bool>("create_filter", false, "Whether to create the filter if it doesn't exist");
   params.addRequiredParam<int32_t>("filter_id", "The ID of the filter to modify");
-  params.addParam<MooseEnum>("filter_type", getFilterTypeEnum(), "The type of filter to create");
+  params.addRequiredParam<MooseEnum>("filter_type", getFilterTypeEnum(), "The type of filter to create");
   params.addRequiredParam<std::vector<std::string>>("bins", "The bins to modify in the filter");
   params.declareControllable("bins");
   params.addClassDescription("A UserObject for creating and managing OpenMC domain tally filters");
@@ -48,12 +48,6 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
     _filter_id(getParam<int32_t>("filter_id")),
     _filter_type(getParam<MooseEnum>("filter_type").getEnum<OpenMCFilterType>())
 {
-
-  if (!parameters.isParamSetByUser("filter_type"))
-  {
-    mooseError(longName() + ": filter_type must be specified");
-  }
-
   this->initialize();
 }
 

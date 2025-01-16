@@ -33,12 +33,9 @@ public:
 
   OpenMCUserObject(const InputParameters & parameters);
 
-  void execute() override;
+  virtual void execute() = 0;
 
   std::string longName() const { return "OpenMCUserObject \"" + this->name() + "\""; }
 
   const OpenMCProblemBase * openmcProblem() const;
-
-protected:
-  bool _first_execution;
 };
