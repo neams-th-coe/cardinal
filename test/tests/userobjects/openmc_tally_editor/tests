@@ -1,4 +1,7 @@
 [Tests]
+  design = 'OpenMCTallyEditor.md OpenMCDomainFilterEditor.md'
+  issues = '#837'
+
   [wrong_problem]
     type = RunException
     input = wrong_problem.i
@@ -7,23 +10,72 @@
     requirement = 'The system shall error if a userobject is not used with a compatible problem class.'
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [nonexistent_tally]
-    type = RunException
-    input = tally_param_checks.i
-    cli_args = 'UserObjects/tally_editor_uo/tally_id=3000'
-    expect_err = 'Tally 3000 does not exist in the OpenMC model'
-    requirement = 'The system shall error if trying to change nuclides for a non-existing tally ID.'
-    required_objects = 'OpenMCCellAverageProblem'
+
+  [errors]
+    requirement = 'The system shall error if'
+    [nonexistent_tally]
+      type = RunException
+      input = tally_param_checks.i
+      cli_args = 'UserObjects/tally_editor_uo/tally_id=3000'
+      expect_err = 'Tally 3000 does not exist in the OpenMC model'
+      detail = 'trying to change nuclides for a non-existing tally ID'
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [nonexistent_nuclide]
+      type = RunException
+      input = tally_param_checks.i
+      cli_args = 'UserObjects/tally_editor_uo/nuclides="fake fake2"'
+      expect_err = "Nuclide 'fake' is not present in library."
+      detail = "trying to add a nuclide not accessible in the cross section library"
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [invalid_score]
+      type = RunException
+      input = tally_param_checks.i
+      cli_args = 'UserObjects/tally_editor_uo/scores="invalid"'
+      expect_err = 'Invalid tally score "invalid".'
+      detail = 'trying to add a score with an invalid type'
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [nonexistent_filter]
+      type = RunException
+      input = add_filter.i
+      cli_args = 'UserObjects/new_filter/create_filter=false'
+      expect_err = 'Filter 100 does not exist and create_filter is false'
+      detail = 'the filter does not exist and is not flagged for creation'
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [clashing_filter_types]
+      type = RunException
+      input = add_filter.i
+      cli_args = 'UserObjects/new_filter/filter_type="universe" UserObjects/new_filter/filter_id=1'
+      expect_err = 'An existing filter, Filter 1, is of type "cell" and cannot be changed to type "universe"'
+      detail = 'more than one OpenMCDomainFilterEditor eixsts with the same filter ID'
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [clashing_filter_ids]
+      type = RunException
+      input = clashing_filter_ids.i
+      expect_err = 'Duplicate filter ID \(10\) found across multiple OpenMCDomainFilterEditors'
+      detail = 'more than one OpenMCDomainFilterEditor eixsts with the same filter ID'
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [clashing_tally_ids]
+      type = RunException
+      input = clashing_tally_ids.i
+      expect_err = 'Duplicate tally ID \(10\) found in multiple OpenMCTallyEditors'
+      detail = 'more than one OpenMCTallyEditor eixsts with the same tally ID'
+      required_objects = 'OpenMCCellAverageProblem'
+    []
+    [clashing_mapped_tally]
+      type = RunException
+      input = clash_mapped_tally.i
+      expect_err = 'This tally ID \(3\) is a tally which Cardinal is automatically creating and controlling'
+      detail = 'an OpenMCTallyEditor eixsts for a mapped tally created by Cardinal'
+      required_objects = 'OpenMCCellAverageProblem'
+    []
   []
-  [nonexistent_nuclide]
-    type = RunException
-    input = tally_param_checks.i
-    cli_args = 'UserObjects/tally_editor_uo/nuclides="fake fake2"'
-    expect_err = "In attempting to set tally nuclides, OpenMC reported:\n\n"
-                 "Nuclide 'fake' is not present in library."
-    requirement = "The system shall error if trying to add a nuclide not accessible in the cross section library."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
+
   [nuclides]
     type = CheckFiles
     input = tally_param_checks.i
@@ -47,14 +99,6 @@
     check_files = tallies.out
     requirement = 'Ensure that scores specified by a tally editor UO are present in the tally output'
     file_expect_out = 'U238\n   Absorption Rate'
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [invalid_score]
-    type = RunException
-    input = tally_param_checks.i
-    cli_args = 'UserObjects/tally_editor_uo/scores="invalid"'
-    expect_err = 'Invalid tally score "invalid".'
-    requirement = 'The system shall error if trying to add a score with an invalid type.'
     required_objects = 'OpenMCCellAverageProblem'
   []
   [add_cell_filter]
@@ -81,43 +125,6 @@
     cli_args = 'UserObjects/new_filter/filter_type="universe"'
     requirement = 'Ensure that filters specified by a tally editor UO are present in the tally output'
     file_expect_out = 'Material'
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [nonexistent_filter]
-    type = RunException
-    input = add_filter.i
-    cli_args = 'UserObjects/new_filter/create_filter=false'
-    expect_err = 'Filter 100 does not exist and create_filter is false'
-    requirement = 'The system shall error if the filter does not exist and is not flagged for creation.'
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [clashing_filter_types]
-    type = RunException
-    input = add_filter.i
-    cli_args = 'UserObjects/new_filter/filter_type="universe" UserObjects/new_filter/filter_id=1'
-    expect_err = 'An existing filter, Filter 1, is of type "cell" and cannot be changed to type "universe"'
-    requirement = 'The system shall error if more than one OpenMCDomainFilterEditor eixsts with the same filter ID.'
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [clashing_filter_ids]
-    type = RunException
-    input = clashing_filter_ids.i
-    expect_err = 'Duplicate filter ID \(10\) found across multiple OpenMCDomainFilterEditors'
-    requirement = 'The system shall error if more than one OpenMCDomainFilterEditor eixsts with the same filter ID.'
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [clashing_tally_ids]
-    type = RunException
-    input = clashing_tally_ids.i
-    expect_err = 'Duplicate tally ID \(10\) found in multiple OpenMCTallyEditors'
-    requirement = 'The system shall error if more than one OpenMCTallyEditor eixsts with the same tally ID.'
-    required_objects = 'OpenMCCellAverageProblem'
-  []
-  [clashing_mapped_tally]
-    type = RunException
-    input = clash_mapped_tally.i
-    expect_err = 'This tally ID \(3\) is a tally which Cardinal is automatically creating and controlling'
-    requirement = 'The system shall error if a OpenMCTallyEditor eixsts for a mapped tally created by Cardinal.'
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
