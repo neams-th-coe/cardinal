@@ -101,8 +101,6 @@ OpenMCDomainFilterEditor::filterExists() const
 int32_t
 OpenMCDomainFilterEditor::filterIndex() const
 {
-  if (!filterExists())
-    mooseError(longName() + ": Filter " + std::to_string(_filter_id) + " does not exist");
   return openmc::model::filter_map.at(_filter_id);
 }
 

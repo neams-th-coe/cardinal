@@ -66,7 +66,8 @@ OpenMCTallyEditor::initialize()
     if (tallyExists())
     {
       mooseWarning(longName() + ": Tally " + std::to_string(_tally_id) +
-                   " already exists in the OpenMC model");
+                   " already exists in the OpenMC model and will be overriden"
+                   " by this UserObject");
     }
     else
     {
