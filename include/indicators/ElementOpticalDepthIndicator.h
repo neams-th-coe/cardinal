@@ -34,6 +34,7 @@ public:
   virtual void computeIndicator() override;
 
 protected:
+  /// The type of element length to use for estimating the optical depth.
   enum class HType
   {
     Min = 0,
