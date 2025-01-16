@@ -22,7 +22,6 @@
 
 #include "CardinalEnums.h"
 
-// forward declarations
 class OpenMCProblemBase;
 
 /**
@@ -43,27 +42,29 @@ public:
   /**
    * Get the index of the filter in OpenMC's data space
    */
-  bool filter_exists() const;
+  bool filterExists() const;
 
   /**
    * Return the index of the filter in the OpenMC data space
    */
-  int32_t filter_index() const;
+  int32_t filterIndex() const;
 
   /**
    * Check that this object's filter type is valid and matches the type in the OpenMC data space
    */
-  void check_filter_type_match() const;
+  void checkFilterTypeMatch() const;
 
   std::string filterTypeEnumToString(OpenMCFilterType t) const;
   OpenMCFilterType stringToFilterTypeEnum(const std::string & s) const;
 
-  std::string long_name() const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
+  std::string longName() const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
 
   // Accessors
-  int32_t filter_id() const { return _filter_id; }
+  int32_t filterId() const { return _filter_id; }
 
 protected:
+  const bool & _create_filter;
+
   int32_t _filter_id;
   OpenMCFilterType _filter_type;
 };

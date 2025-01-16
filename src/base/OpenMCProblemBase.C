@@ -770,20 +770,20 @@ OpenMCProblemBase::checkOpenMCUserObjectIDs() const
   std::set<int32_t> tally_ids;
   for (const auto & te : _tally_editor_uos)
   {
-    int32_t tally_id = te->tally_id();
+    int32_t tally_id = te->tallyId();
     if (tally_ids.count(tally_id) != 0)
       mooseError("Duplicate tally ID \"" + std::to_string(tally_id) + "\" found in " +
-                 te->long_name());
+                 te->longName());
     tally_ids.insert(tally_id);
   }
 
   std::set<int32_t> filter_ids;
   for (const auto & fe : _filter_editor_uos)
   {
-    int32_t filter_id = fe->filter_id();
+    int32_t filter_id = fe->filterId();
     if (filter_ids.count(filter_id) != 0)
       mooseError("Duplicate filter ID \"" + std::to_string(filter_id) + "\" found in " +
-                 fe->long_name());
+                 fe->longName());
     filter_ids.insert(filter_id);
   }
 }
@@ -795,7 +795,7 @@ OpenMCProblemBase::checkTallyEditorIDs() const
 
   for (const auto & te : _tally_editor_uos)
   {
-    int32_t tally_id = te->tally_id();
+    int32_t tally_id = te->tallyId();
 
     // ensure that the TallyEditor IDs don't apply to any mapped tally objects
     if (std::find(mapped_tally_ids.begin(), mapped_tally_ids.end(), tally_id) !=

@@ -20,7 +20,6 @@
 
 #include "OpenMCUserObject.h"
 
-// forward declarations
 class OpenMCProblemBase;
 
 /**
@@ -33,21 +32,21 @@ public:
 
   OpenMCTallyEditor(const InputParameters & parameters);
 
-  bool tally_exists() const;
+  bool tallyExists() const;
 
   // get the index of the tally in OpenMC's data space, creating it if necessary according to the
   // input parameters
-  int32_t tally_index() const;
+  int32_t tallyIndex() const;
 
   /// We don't want this user object to execute in MOOSE's control
   virtual void execute() override;
   virtual void initialize() override;
   virtual void finalize() override {}
 
-  std::string long_name() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
+  std::string longName() const { return "OpenMCTallyEditor \"" + this->name() + "\""; }
 
   // Accessors
-  int32_t tally_id() const { return _tally_id; }
+  int32_t tallyId() const { return _tally_id; }
 
 protected:
   int32_t _tally_id;

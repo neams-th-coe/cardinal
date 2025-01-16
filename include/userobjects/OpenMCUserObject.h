@@ -35,9 +35,9 @@ public:
 
   void execute() override;
 
-  std::string long_name() const { return "OpenMCUserObject \"" + this->name() + "\""; }
+  std::string longName() const { return "OpenMCUserObject \"" + this->name() + "\""; }
 
-  const OpenMCProblemBase * openmc_problem() const;
+  const OpenMCProblemBase * openmcProblem() const;
 
 protected:
   bool _first_execution;

@@ -31,7 +31,7 @@ OpenMCUserObject::validParams()
 OpenMCUserObject::OpenMCUserObject(const InputParameters & parameters)
   : GeneralUserObject(parameters), _first_execution(true)
 {
-  if (!openmc_problem())
+  if (!openmcProblem())
   {
     std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
     mooseError("This user object can only be used with wrapped OpenMC cases! "
@@ -50,7 +50,7 @@ OpenMCUserObject::execute()
 }
 
 const OpenMCProblemBase *
-OpenMCUserObject::openmc_problem() const
+OpenMCUserObject::openmcProblem() const
 {
   return dynamic_cast<const OpenMCProblemBase *>(&_fe_problem);
 }

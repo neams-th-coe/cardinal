@@ -46,7 +46,8 @@ OpenMCTallyEditor::validParams()
 }
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
-  : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
+  : OpenMCUserObject(parameters),
+    _tally_id(getParam<int32_t>("tally_id"))
 {
   this->initialize();
 }
@@ -59,31 +60,30 @@ OpenMCTallyEditor::initialize()
   // other classes, those tallies might not exist yet in OpenMC's data space
   // (but they will by the time this method is called).
   bool create_tally = getParam<bool>("create_tally");
-  bool tally_exists = openmc::model::tally_map.find(_tally_id) != openmc::model::tally_map.end();
 
   if (create_tally)
   {
-    if (tally_exists)
+    if (tallyExists())
     {
-      mooseWarning(long_name() + ": Tally " + std::to_string(_tally_id) +
+      mooseWarning(longName() + ": Tally " + std::to_string(_tally_id) +
                    " already exists in the OpenMC model");
     }
     else
     {
-      _console << long_name() << ": Creating tally " << _tally_id << std::endl;
+      _console << longName() << ": Creating tally " << _tally_id << std::endl;
       openmc::Tally::create(_tally_id);
     }
   }
 }
 
 bool
-OpenMCTallyEditor::tally_exists() const
+OpenMCTallyEditor::tallyExists() const
 {
   return openmc::model::tally_map.find(_tally_id) != openmc::model::tally_map.end();
 }
 
 int32_t
-OpenMCTallyEditor::tally_index() const
+OpenMCTallyEditor::tallyIndex() const
 {
   return openmc::model::tally_map.at(_tally_id);
 }
@@ -91,13 +91,13 @@ OpenMCTallyEditor::tally_index() const
 void
 OpenMCTallyEditor::execute()
 {
-  if (!tally_exists())
+  if (!tallyExists())
   {
-    mooseError(long_name() + ": Tally " + std::to_string(_tally_id) +
+    mooseError(longName() + ": Tally " + std::to_string(_tally_id) +
                " does not exist in the OpenMC model");
   }
 
-  openmc::Tally * tally = openmc::model::tallies[tally_index()].get();
+  openmc::Tally * tally = openmc::model::tallies[tallyIndex()].get();
 
   std::vector<std::string> scores = getParam<std::vector<std::string>>("scores");
   if (scores.size() > 0)
