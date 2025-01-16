@@ -153,6 +153,13 @@ public:
   const Real & getSum(unsigned int local_score) const { return _local_sum_tally[local_score]; }
 
   /**
+   * Get a vector of variable names corresponding to the provided score.
+   * @param[in] score the score that the user wishes to fetch variable names from
+   * @return a vector of variables corresponding to the score
+   */
+  std::vector<std::string> getScoreVars(const std::string & score) const;
+
+  /**
    * Check to see if this tally uses a trigger or not.
    * @return whether this tally uses a trigger or not
    */
@@ -163,6 +170,13 @@ public:
    * @return whether this tally adds additional output variables or not
    */
   bool hasOutputs() const { return _has_outputs; }
+
+  /**
+   * Check to see if this tally contains a specific score.
+   * @param[in] score the score to check
+   * @return whether this tally has
+   */
+  bool hasScore(const std::string & score) const { return std::find(_tally_score.begin(), _tally_score.end(), score) != _tally_score.end(); }
 
   /**
    * Check to see if the user has requested special names for the tallies.
