@@ -26,12 +26,15 @@ BooleanComboMarker::validParams()
   auto params = Marker::validParams();
   params.addClassDescription("A class which takes multiple markers and ANDs / ORs them together to "
                              "determine if an element should be refined or coarsened.");
-  params.addRequiredParam<std::vector<MarkerName>>("refine_markers", "A list of the marker names to be used for refinement.");
-  params.addRequiredParam<std::vector<MarkerName>>("coarsen_markers", "A list of the marker names to be used for coasening.");
-  params.addParam<MooseEnum>("boolean_operator",
-                             MooseEnum("and or", "and"),
-                             "How the different markers should be combined. Options are to AND each "
-                             "marker together or to OR them together.");
+  params.addRequiredParam<std::vector<MarkerName>>(
+      "refine_markers", "A list of the marker names to be used for refinement.");
+  params.addRequiredParam<std::vector<MarkerName>>(
+      "coarsen_markers", "A list of the marker names to be used for coasening.");
+  params.addParam<MooseEnum>(
+      "boolean_operator",
+      MooseEnum("and or", "and"),
+      "How the different markers should be combined. Options are to AND each "
+      "marker together or to OR them together.");
   params.addParam<MooseEnum>("priority",
                              MooseEnum("refinement coarsening", "refinement"),
                              "The operator to be prioritized when marking elements.");
@@ -56,7 +59,7 @@ BooleanComboMarker::BooleanComboMarker(const InputParameters & parameters)
 Marker::MarkerValue
 BooleanComboMarker::computeElementMarker()
 {
-  bool refine  = _use_and;
+  bool refine = _use_and;
   bool coarsen = _use_and;
 
   for (const auto m : _refine_markers)
