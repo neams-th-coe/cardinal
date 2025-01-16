@@ -117,18 +117,18 @@ CellTally::storeResultsInner(const std::vector<unsigned int> & var_numbers,
       if (!_cell_has_tally[cell_info])
         continue;
 
-      Real power_fraction = tally_vals[local_score](ext_bin * _cell_filter->n_bins() + i++);
+      Real unnormalized_tally = tally_vals[local_score](ext_bin * _cell_filter->n_bins() + i++);
 
       // divide each tally value by the volume that it corresponds to in MOOSE
       // because we will apply it as a volumetric tally
-      Real volumetric_power = power_fraction;
-      volumetric_power *= norm_by_src_rate ? _openmc_problem.tallyMultiplier(global_score) /
+      Real volumetric_tally = unnormalized_tally;
+      volumetric_tally *= norm_by_src_rate ? _openmc_problem.tallyMultiplier(global_score) /
                                                  _openmc_problem.cellMappedVolume(cell_info)
                                            : 1.0;
-      total += power_fraction;
+      total += unnormalized_tally;
 
       auto var = var_numbers[_num_ext_filter_bins * local_score + ext_bin];
-      fillElementalAuxVariable(var, c.second, volumetric_power);
+      fillElementalAuxVariable(var, c.second, volumetric_tally);
     }
   }
 
