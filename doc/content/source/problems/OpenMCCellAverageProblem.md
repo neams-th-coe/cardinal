@@ -295,8 +295,9 @@ regions where there are no cells at that level.
 ## Adding Tallies
 
 ### Mapped Tallies
+  id=mapped
 
-This class takes the tally objects initialized by the `[Tallies]` block and use them to construct
+This class takes the tally objects initialized by the `[Tallies]` block and uses them to construct
 tally auxvariables. At the moment there are two options for discretizing tallies spatially in Cardinal:
 
 1. cell tallies ([CellTally](CellTally.md))
@@ -384,12 +385,14 @@ used in OpenMC.
 
 ## Tally and Filter Editors
 
-Cardinal provides UserObjects for editing tallies and filters.
+Cardinal provides UserObjects for editing tallies and filters:
 
-  - [OpenMCTallyEditor](https://cardinal.cels.anl.gov/source/userobjects/OpenMCTallyEditor.html)
-  - [OpenMCDomainFilterEditor](https://cardinal.cels.anl.gov/source/userobjects/OpenMCTallyEditor.html)
+  - [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
+  - [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
 
-These objects provide online control of tally and filter parameters, respectively. These objects can be used to interact with tallies and/or filters that present in a `tallies.xml` file for the problem being run. These objects can be used to create tallies as well. In either case, these objects do not interact with tallies mapped to the mesh mirror.
+These objects can be used to interact with tallies and/or filters that are present in a `tallies.xml` file for the problem being run (in other words, tallies
+the user manually sets up when building the OpenMC model).
+These objects can be used to create tallies as well. In either case, these objects do not interact with tallies mapped to the mesh mirror ([#mapped]).
 
 ## Other Features
 

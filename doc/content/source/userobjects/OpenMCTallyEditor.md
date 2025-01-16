@@ -12,7 +12,7 @@ controllable parameters to account for changing compositions during depletion.
 ## Example Input Syntax
 
 Below is an example which will create an OpenMC tally with controllable parameters
-tally to only obtain the fission heating from U-238 (ignoring the
+to only obtain the fission heating from U-238 (ignoring the
 portion from U-235 in this particular tally).
 
 !listing test/tests/userobjects/openmc_tally_editor/nuclide_absorption.i
