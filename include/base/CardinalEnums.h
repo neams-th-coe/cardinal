@@ -33,6 +33,7 @@ MooseEnum getRelaxationEnum();
 MooseEnum getTallyTriggerEnum();
 MooseEnum getInitialPropertiesEnum();
 MultiMooseEnum getTallyScoreEnum();
+MooseEnum getSingleTallyScoreEnum();
 MooseEnum getEnergyGroupsEnum();
 MooseEnum getNekMeshEnum();
 

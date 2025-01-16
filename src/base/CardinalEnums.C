@@ -101,6 +101,14 @@ getTallyScoreEnum()
 }
 
 MooseEnum
+getSingleTallyScoreEnum()
+{
+  return MooseEnum(
+      "heating heating_local kappa_fission fission_q_prompt fission_q_recoverable damage_energy "
+      "flux H3_production total absorption scatter fission");
+}
+
+MooseEnum
 getEnergyGroupsEnum()
 {
   return MooseEnum(
