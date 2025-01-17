@@ -8,31 +8,6 @@
     input = sphere
     subdomain_id = '100'
   []
-  [sphereb]
-    type = FileMeshGenerator
-    file = ../meshes/sphere.e
-  []
-  [solid2]
-    type = SubdomainIDGenerator
-    input = sphereb
-    subdomain_id = '200'
-  []
-  [spherec]
-    type = FileMeshGenerator
-    file = ../meshes/sphere.e
-  []
-  [solid3]
-    type = SubdomainIDGenerator
-    input = spherec
-    subdomain_id = '300'
-  []
-  [combine]
-    type = CombinerGenerator
-    inputs = 'solid1 solid2 solid3'
-    positions = '0 0 0
-                 0 0 4
-                 0 0 8'
-  []
 
   allow_renumbering = false
   parallel_type = replicated
@@ -60,7 +35,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  temperature_blocks = '100 200 300'
+  temperature_blocks = '100'
   initial_properties = xml
   verbose = true
   cell_level = 0

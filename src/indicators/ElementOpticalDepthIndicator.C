@@ -56,13 +56,14 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
   // Error check to make sure the score is a reaction rate score and to make sure one of the
   // [Tallies] has added the score and a flux score.
   if (!_openmc_problem->isReactionRateScore(score))
-    mooseError(
-        "At present the ElementOpticalDepthIndicator only works with reaction rate scores. " +
-        std::string(getParam<MooseEnum>("rxn_rate")) + " is not a valid reaction rate score.");
+    paramError("rxn_rate",
+               "At present the ElementOpticalDepthIndicator only works with reaction rate scores. " +
+               std::string(getParam<MooseEnum>("rxn_rate")) + " is not a valid reaction rate score.");
 
   const auto & all_scores = _openmc_problem->getTallyScores();
   if (std::find(all_scores.begin(), all_scores.end(), score) == all_scores.end())
-    mooseError("The problem does not contain any score named " +
+    paramError("rxn_rate",
+               "The problem does not contain any score named " +
                std::string(getParam<MooseEnum>("rxn_rate")) +
                "! Please "
                "ensure that one of your [Tallies] is scoring the requested reaction rate.");
@@ -110,8 +111,13 @@ ElementOpticalDepthIndicator::computeIndicator()
       break;
     case HType::Max:
       od /= _current_elem->hmax();
+      break;
     case HType::CubeRoot:
       od /= std::cbrt(_current_elem->volume());
+      break;
+    default:
+      mooseError("Internal error: unhandled HType enum state in ElementOpticalDepthIndicator.");
+      break;
   }
 
   _field_var.setNodalValue(od);
