@@ -41,7 +41,7 @@ public:
   int32_t tallyIndex() const;
 
   virtual void execute() override;
-  virtual void initialize() override {};
+  virtual void initialize() override{};
   virtual void finalize() override {}
 
   /**
