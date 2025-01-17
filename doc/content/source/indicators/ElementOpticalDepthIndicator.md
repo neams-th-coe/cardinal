@@ -1,10 +1,6 @@
 # ElementOpticalDepthIndicator
   id=eodi
 
-!alert note
-`ElementOpticalDepthIndicator` can only be added to problems when the input files contains a [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
-in the `[Problem]` block. Otherwise, attempting to add this indicator will result in an error.
-
 ## Description
 
 `ElementOpticalDepthIndicator` computes an estimate of the per-element optical depth using a reaction rate and a score from a tally in the
