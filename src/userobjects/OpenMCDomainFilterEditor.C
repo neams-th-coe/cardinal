@@ -53,8 +53,9 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
 
   // if create_filter is set to true, but the filter already exists, display a warning
   if (_create_filter && filter_exists)
-    paramWarning("filter_id", "Filter " + std::to_string(_filter_id) +
-                 " already exists in the OpenMC XML model");
+    paramWarning("filter_id",
+                 "Filter " + std::to_string(_filter_id) +
+                     " already exists in the OpenMC XML model");
 
   if (!_create_filter && !filter_exists)
     paramError("filter_id",
@@ -146,7 +147,9 @@ OpenMCDomainFilterEditor::execute()
       paramError("filter_id", "Filter " + std::to_string(_filter_id) + " is not a mesh filter");
 
     if (bins.size() != 1)
-      paramError("filter_id", "Mesh filter must have exactly one bin; instead, it has " + std::to_string(bins.size()) + " bins");
+      paramError("filter_id",
+                 "Mesh filter must have exactly one bin; instead, it has " +
+                     std::to_string(bins.size()) + " bins");
 
     for (auto id : ids)
       bins.push_back(openmc::model::mesh_map.at(id));
