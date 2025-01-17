@@ -49,12 +49,6 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
     _filter_id(getParam<int32_t>("filter_id")),
     _filter_type(getParam<MooseEnum>("filter_type").getEnum<OpenMCFilterType>())
 {
-  this->initialize();
-}
-
-void
-OpenMCDomainFilterEditor::initialize()
-{
   bool filter_exists = this->filterExists();
 
   // if create_filter is set to true, but the filter already exists, display a warning
