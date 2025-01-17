@@ -40,10 +40,8 @@ public:
    */
   int32_t tallyIndex() const;
 
-  /// We don't want this user object to execute in MOOSE's control
   virtual void execute() override;
   virtual void initialize() override;
-  virtual void finalize() override {}
 
   /**
    * Error to throw if multiple tally editor objects have the same tally id

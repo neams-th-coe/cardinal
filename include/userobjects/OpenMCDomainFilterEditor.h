@@ -34,10 +34,8 @@ public:
 
   OpenMCDomainFilterEditor(const InputParameters & parameters);
 
-  /// Virtual method overrides
   virtual void execute() override;
   virtual void initialize() override;
-  virtual void finalize() override {}
 
   /**
    * Get the index of the filter in OpenMC's data space

@@ -20,11 +20,10 @@
 
 #include "GeneralUserObject.h"
 
-// forward declarations
 class OpenMCProblemBase;
 
 /**
- * User object to modify an OpenMC object
+ * User object that acts on aspects of the OpenMC simulation
  */
 class OpenMCUserObject : public GeneralUserObject
 {
@@ -33,7 +32,10 @@ public:
 
   OpenMCUserObject(const InputParameters & parameters);
 
-  virtual void execute() = 0;
+  /// We don't want this user object to execute in MOOSE's control
+  virtual void initialize() {}
+  virtual void finalize() {}
+  virtual void execute() {}
 
   std::string longName() const { return "OpenMCUserObject \"" + this->name() + "\""; }
 
