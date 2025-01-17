@@ -35,6 +35,13 @@ protected:
    * @param[in] score the OpenMC score
    * @return a vector of variable values associated with score
    */
+  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score);
+
+  /**
+   * Get the variable value(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
   std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score);
 
   /// The OpenMCCellAverageProblem associated with this indicator.

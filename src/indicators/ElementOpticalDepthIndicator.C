@@ -71,6 +71,19 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
     mooseError("In order to use an ElementOpticalDepthIndicator one of your [Tallies] must add a "
                "flux score.");
 
+  // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
+  bool const_mon = true;
+  for (const auto v : getTallyScoreVariables(score))
+    const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
+  for (const auto v : getTallyScoreVariables("flux"))
+    const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
+
+  if (!const_mon)
+    paramError("rxn_rate",
+               "ElementOpticalDepthIndicator only supports CONSTANT MONOMIAL field variables. "
+               "Please ensure your [Tallies] are adding CONSTANT MONOMIAL field variables.");
+
+
   // Grab the reaction rate / flux variables from the [Tallies].
   _rxn_rates = getTallyScoreVariableValues(score);
   _scalar_fluxes = getTallyScoreVariableValues("flux");
