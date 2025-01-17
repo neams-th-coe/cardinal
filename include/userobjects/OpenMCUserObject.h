@@ -37,7 +37,5 @@ public:
   virtual void finalize() {}
   virtual void execute() {}
 
-  std::string longName() const { return "OpenMCUserObject \"" + this->name() + "\""; }
-
   const OpenMCProblemBase * openmcProblem() const;
 };

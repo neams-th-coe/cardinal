@@ -53,14 +53,12 @@ OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
   if (create_tally)
   {
     if (tallyExists())
-    {
-      mooseWarning(longName() + ": Tally " + std::to_string(_tally_id) +
+      paramWarning("tally_id", "Tally " + std::to_string(_tally_id) +
                    " already exists in the OpenMC model and will be overriden"
                    " by this UserObject");
-    }
     else
     {
-      _console << longName() << ": Creating tally " << _tally_id << std::endl;
+      _console << "Creating tally " << _tally_id << std::endl;
       openmc::Tally::create(_tally_id);
     }
   }

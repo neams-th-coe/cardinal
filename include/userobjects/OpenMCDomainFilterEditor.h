@@ -62,8 +62,6 @@ public:
   std::string filterTypeEnumToString(OpenMCFilterType t) const;
   OpenMCFilterType stringToFilterTypeEnum(const std::string & s) const;
 
-  std::string longName() const { return "OpenMCDomainFilterEditor \"" + this->name() + "\""; }
-
   // Accessors
   int32_t filterId() const { return _filter_id; }
 

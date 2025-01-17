@@ -53,10 +53,8 @@ OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & param
 
   // if create_filter is set to true, but the filter already exists, display a warning
   if (_create_filter && filter_exists)
-  {
-    mooseWarning(longName() + ": Filter " + std::to_string(_filter_id) +
+    paramWarning("filter_id", "Filter " + std::to_string(_filter_id) +
                  " already exists in the OpenMC XML model");
-  }
 
   if (!_create_filter && !filter_exists)
     paramError("filter_id",
@@ -115,7 +113,8 @@ OpenMCDomainFilterEditor::execute()
   {
     openmc::CellFilter * cell_filter = dynamic_cast<openmc::CellFilter *>(filter);
     if (!cell_filter)
-      mooseError(longName() + ": Filter " + std::to_string(_filter_id) + " is not a cell filter");
+      paramError("filter_id", "Filter " + std::to_string(_filter_id) + " is not a cell filter");
+
     for (auto id : ids)
       bins.push_back(openmc::model::cell_map.at(id));
     cell_filter->set_cells(bins);
@@ -124,8 +123,8 @@ OpenMCDomainFilterEditor::execute()
   {
     openmc::MaterialFilter * material_filter = dynamic_cast<openmc::MaterialFilter *>(filter);
     if (!material_filter)
-      mooseError(longName() + ": Filter " + std::to_string(_filter_id) +
-                 " is not a material filter");
+      paramError("filter_id", "Filter " + std::to_string(_filter_id) + " is not a material filter");
+
     for (auto id : ids)
       bins.push_back(openmc::model::material_map.at(id));
     material_filter->set_materials(bins);
@@ -134,8 +133,8 @@ OpenMCDomainFilterEditor::execute()
   {
     openmc::UniverseFilter * universe_filter = dynamic_cast<openmc::UniverseFilter *>(filter);
     if (!universe_filter)
-      mooseError(longName() + ": Filter " + std::to_string(_filter_id) +
-                 " is not a universe filter");
+      paramError("filter_id", "Filter " + std::to_string(_filter_id) + " is not a universe filter");
+
     for (auto id : ids)
       bins.push_back(openmc::model::universe_map.at(id));
     universe_filter->set_universes(bins);
@@ -143,10 +142,12 @@ OpenMCDomainFilterEditor::execute()
   else if (_filter_type == OpenMCFilterType::mesh)
   {
     openmc::MeshFilter * mesh_filter = dynamic_cast<openmc::MeshFilter *>(filter);
-    if (bins.size() != 1)
-      mooseError(longName() + ": Mesh filter must have exactly one bin");
     if (!mesh_filter)
-      mooseError(longName() + ": Filter " + std::to_string(_filter_id) + " is not a mesh filter");
+      paramError("filter_id", "Filter " + std::to_string(_filter_id) + " is not a mesh filter");
+
+    if (bins.size() != 1)
+      paramError("filter_id", "Mesh filter must have exactly one bin; instead, it has " + std::to_string(bins.size()) + " bins");
+
     for (auto id : ids)
       bins.push_back(openmc::model::mesh_map.at(id));
     mesh_filter->set_mesh(bins[0]);
