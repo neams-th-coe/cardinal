@@ -37,11 +37,10 @@ TallyRelativeError::validParams()
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
 
-  params.addParam<MooseEnum>(
-      "tally_score",
-      getSingleTallyScoreEnum(),
-      "Score to report the relative error. If there is just a single score, "
-      "this defaults to that value");
+  params.addParam<MooseEnum>("tally_score",
+                             getSingleTallyScoreEnum(),
+                             "Score to report the relative error. If there is just a single score, "
+                             "this defaults to that value");
   params.addClassDescription("Maximum/minimum tally relative error");
   return params;
 }
