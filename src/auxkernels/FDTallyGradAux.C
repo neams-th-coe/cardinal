@@ -29,15 +29,20 @@ FDTallyGradAux::validParams()
 {
   auto params = OpenMCVectorAuxKernel::validParams();
   params.addClassDescription(
-    "An auxkernel which approximates tally gradients at element centroids using "
-    "forward finite differences.");
-  params.addRequiredParam<MooseEnum>("score",
-    getSingleTallyScoreEnum(), "The tally score this auxkernel should approximate the gradient of.");
-  params.addParam<unsigned int>("ext_filter_bin", 0, "The non-spatial filter bin for the tally score (with bin indices starting at 0).");
+      "An auxkernel which approximates tally gradients at element centroids using "
+      "forward finite differences.");
+  params.addRequiredParam<MooseEnum>(
+      "score",
+      getSingleTallyScoreEnum(),
+      "The tally score this auxkernel should approximate the gradient of.");
+  params.addParam<unsigned int>(
+      "ext_filter_bin",
+      0,
+      "The non-spatial filter bin for the tally score (with bin indices starting at 0).");
 
   params.addRelationshipManager("ElementSideNeighborLayers",
                                 Moose::RelationshipManagerType::ALGEBRAIC |
-                                Moose::RelationshipManagerType::GEOMETRIC,
+                                    Moose::RelationshipManagerType::GEOMETRIC,
                                 [](const InputParameters &, InputParameters & rm_params)
                                 { rm_params.set<unsigned short>("layers") = 2; });
 
@@ -51,10 +56,9 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
     _sum_y_du_dy(RealEigenVector::Zero(3))
 {
   if (_var.feType() != FEType(CONSTANT, MONOMIAL_VEC))
-    paramError(
-      "variable",
-      "FDTallyGradAux only supports CONSTANT MONOMIAL_VEC shape functions. Please "
-      "ensure that 'variable' is of type CONSTANT MONOMIAL_VEC.");
+    paramError("variable",
+               "FDTallyGradAux only supports CONSTANT MONOMIAL_VEC shape functions. Please "
+               "ensure that 'variable' is of type CONSTANT MONOMIAL_VEC.");
 
   std::string score = getParam<MooseEnum>("score");
   std::replace(score.begin(), score.end(), '_', '-');
@@ -62,10 +66,11 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
   // Error check and fetch the tally score.
   const auto & all_scores = _openmc_problem->getTallyScores();
   if (std::find(all_scores.begin(), all_scores.end(), score) == all_scores.end())
-    paramError("score", "The problem does not contain any score named " +
-               std::string(getParam<MooseEnum>("score")) +
-               "! Please "
-               "ensure that one of your [Tallies] is scoring the requested score.");
+    paramError("score",
+               "The problem does not contain any score named " +
+                   std::string(getParam<MooseEnum>("score")) +
+                   "! Please "
+                   "ensure that one of your [Tallies] is scoring the requested score.");
 
   auto score_vars = getTallyScoreVariables(score);
   auto score_bins = getTallyScoreVariableValues(score);
@@ -74,11 +79,16 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",
                "The external filter bin provided is invalid for the number of "
-               "external filter bins (" + std::to_string(score_bins.size()) + ") "
-               "applied to " + std::string(getParam<MooseEnum>("score")) + "!");
+               "external filter bins (" +
+                   std::to_string(score_bins.size()) +
+                   ") "
+                   "applied to " +
+                   std::string(getParam<MooseEnum>("score")) + "!");
 
   if (score_vars[_bin_index]->feType() != FEType(CONSTANT, MONOMIAL))
-    paramError("score", "FDTallyGradAux only supports CONSTANT MONOMIAL shape functions for tally variables.");
+    paramError(
+        "score",
+        "FDTallyGradAux only supports CONSTANT MONOMIAL shape functions for tally variables.");
 
   _tally_val = score_bins[_bin_index];
   _tally_neighbor_val = neighbor_score_bins[_bin_index];
@@ -116,7 +126,8 @@ FDTallyGradAux::compute()
 
     // Compute du/dy along the direction pointing towards the neighbor's centroid.
     // Add to the b vector.
-    _sum_y_du_dy += y_prime_eig * ((*_tally_neighbor_val)[0] - (*_tally_val)[0]) / y_prime.norm_sq();
+    _sum_y_du_dy +=
+        y_prime_eig * ((*_tally_neighbor_val)[0] - (*_tally_val)[0]) / y_prime.norm_sq();
     // Compute the outer product between y' and y'.T.
     // Add to the A matrix.
     _sum_y_y_t += y_prime_eig * y_prime_eig.transpose();
