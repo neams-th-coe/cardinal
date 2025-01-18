@@ -33,7 +33,7 @@ FDTallyGradAux::validParams()
     "forward finite differences.");
   params.addRequiredParam<MooseEnum>("score",
     getSingleTallyScoreEnum(), "The tally score this auxkernel should approximate the gradient of.");
-  params.addParam<unsigned int>("ext_filter_bin", 0, "The non-spatial filter bin for the tally score.");
+  params.addParam<unsigned int>("ext_filter_bin", 0, "The non-spatial filter bin for the tally score (with bin indices starting at 0).");
 
   params.addRelationshipManager("ElementSideNeighborLayers",
                                 Moose::RelationshipManagerType::ALGEBRAIC |
@@ -73,8 +73,9 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
 
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",
-               "The external filter bin for the score " + std::string(getParam<MooseEnum>("score")) +
-                " is larger than the number of external filter bins!");
+               "The external filter bin provided is invalid for the number of "
+               "external filter bins (" + std::to_string(score_bins.size()) + ") "
+               "applied to " + std::string(getParam<MooseEnum>("score")) + "!");
 
   if (score_vars[_bin_index]->feType() != FEType(CONSTANT, MONOMIAL))
     paramError("score", "FDTallyGradAux only supports CONSTANT MONOMIAL shape functions for tally variables.");
