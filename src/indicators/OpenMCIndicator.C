@@ -26,10 +26,6 @@ InputParameters
 OpenMCIndicator::validParams()
 {
   auto params = Indicator::validParams();
-  std::vector<SubdomainName> everywhere(1, "ANY_BLOCK_ID");
-  params.addParam<std::vector<SubdomainName>>(
-      "block", everywhere, "block ID or name where the object works");
-
   return params;
 }
 
