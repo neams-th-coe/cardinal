@@ -35,8 +35,7 @@ OpenMCDomainFilterEditor::validParams()
   InputParameters params = OpenMCUserObject::validParams();
   params.addParam<bool>("create_filter", false, "Whether to create the filter if it doesn't exist");
   params.addRequiredParam<int32_t>("filter_id", "The ID of the filter to modify");
-  params.addRequiredParam<MooseEnum>(
-      "filter_type", getFilterTypeEnum(), "The type of filter");
+  params.addRequiredParam<MooseEnum>("filter_type", getFilterTypeEnum(), "The type of filter");
   params.addRequiredParam<std::vector<std::string>>("bins", "The bins to apply in the filter");
   params.declareControllable("bins");
   params.addClassDescription("A UserObject for creating and managing OpenMC domain tally filters");
@@ -192,8 +191,7 @@ void
 OpenMCDomainFilterEditor::duplicateFilterError(const int32_t & id) const
 {
   paramError("filter_id",
-             "Filter ID (" + std::to_string(id) +
-                 ") found in multiple OpenMCDomainFilterEditors");
+             "Filter ID (" + std::to_string(id) + ") found in multiple OpenMCDomainFilterEditors");
 }
 
 #endif

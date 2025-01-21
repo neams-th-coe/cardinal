@@ -35,8 +35,9 @@ OpenMCTallyEditor::validParams()
                                                     "The nuclides to apply in the tally");
   params.addRequiredParam<std::vector<std::string>>("filter_ids",
                                                     "The filter IDs to apply in the tally");
-  params.addParam<bool>(
-      "multiply_density", true, "Whether to multiply the tally by the current material's atom density");
+  params.addParam<bool>("multiply_density",
+                        true,
+                        "Whether to multiply the tally by the current material's atom density");
   params.declareControllable("scores");
   params.declareControllable("nuclides");
   params.declareControllable("filter_ids");
@@ -132,8 +133,7 @@ void
 OpenMCTallyEditor::duplicateTallyError(const int32_t & id) const
 {
   paramError("tally_id",
-             "Tally ID (" + std::to_string(id) +
-                 ") found in multiple OpenMCTallyEditors");
+             "Tally ID (" + std::to_string(id) + ") found in multiple OpenMCTallyEditors");
 }
 
 void
