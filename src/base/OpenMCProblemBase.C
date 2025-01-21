@@ -805,7 +805,7 @@ OpenMCProblemBase::checkTallyEditorIDs() const
 void
 OpenMCProblemBase::executeFilterEditors()
 {
-  executeControls(EXEC_FILTER_GENERATORS);
+  executeControls(EXEC_FILTER_EDITORS);
   _console << "Executing filter editors...";
   for (const auto & fe : _filter_editor_uos)
     fe->execute();
@@ -815,7 +815,7 @@ OpenMCProblemBase::executeFilterEditors()
 void
 OpenMCProblemBase::executeTallyEditors()
 {
-  executeControls(EXEC_TALLY_GENERATORS);
+  executeControls(EXEC_TALLY_EDITORS);
   _console << "Executing tally editors...";
   for (const auto & te : _tally_editor_uos)
     te->execute();
