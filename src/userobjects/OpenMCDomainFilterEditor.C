@@ -36,8 +36,8 @@ OpenMCDomainFilterEditor::validParams()
   params.addParam<bool>("create_filter", false, "Whether to create the filter if it doesn't exist");
   params.addRequiredParam<int32_t>("filter_id", "The ID of the filter to modify");
   params.addRequiredParam<MooseEnum>(
-      "filter_type", getFilterTypeEnum(), "The type of filter to create");
-  params.addRequiredParam<std::vector<std::string>>("bins", "The bins to modify in the filter");
+      "filter_type", getFilterTypeEnum(), "The type of filter");
+  params.addRequiredParam<std::vector<std::string>>("bins", "The bins to apply in the filter");
   params.declareControllable("bins");
   params.addClassDescription("A UserObject for creating and managing OpenMC domain tally filters");
   return params;
@@ -77,7 +77,6 @@ OpenMCDomainFilterEditor::checkFilterTypeMatch() const
   // check this UO's filter type against the one in the OpenMC model
   std::string existing_type_str = openmc::model::tally_filters[filterIndex()]->type_str();
   OpenMCFilterType existing_type = stringToFilterTypeEnum(existing_type_str);
-  _console << "CHECKING FILTER TYPE..." << std::endl;
 
   if (existing_type != _filter_type)
     paramError("filter_id",
