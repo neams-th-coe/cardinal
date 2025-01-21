@@ -30,13 +30,13 @@ OpenMCTallyEditor::validParams()
   InputParameters params = GeneralUserObject::validParams();
   params.addParam<bool>("create_tally", false, "Whether to create the tally if it doesn't exist");
   params.addRequiredParam<int32_t>("tally_id", "The ID of the tally to modify");
-  params.addRequiredParam<std::vector<std::string>>("scores", "The scores to modify in the tally");
+  params.addRequiredParam<std::vector<std::string>>("scores", "The scores to apply in the tally");
   params.addRequiredParam<std::vector<std::string>>("nuclides",
-                                                    "The nuclides to modify in the tally");
+                                                    "The nuclides to apply in the tally");
   params.addRequiredParam<std::vector<std::string>>("filter_ids",
-                                                    "The filter IDs to modify in the tally");
+                                                    "The filter IDs to apply in the tally");
   params.addParam<bool>(
-      "multiply_density", true, "Whether to multiply the tally by the atom density");
+      "multiply_density", true, "Whether to multiply the tally by the current material's atom density");
   params.declareControllable("scores");
   params.declareControllable("nuclides");
   params.declareControllable("filter_ids");
@@ -132,7 +132,7 @@ void
 OpenMCTallyEditor::duplicateTallyError(const int32_t & id) const
 {
   paramError("tally_id",
-             "Duplicate tally ID (" + std::to_string(id) +
+             "Tally ID (" + std::to_string(id) +
                  ") found in multiple OpenMCTallyEditors");
 }
 
@@ -141,8 +141,8 @@ OpenMCTallyEditor::mappedTallyError(const int32_t & id) const
 {
   paramError(
       "tally_id",
-      "This tally ID (" + std::to_string(id) +
-          ") is a tally which Cardinal is automatically creating and controlling from the "
+      "Tally ID " + std::to_string(id) +
+          " is a tally which Cardinal has automatically created and is controlling from the "
           "Problem/Tallies block. OpenMCTallyEditor cannot be used for these types of tallies.");
 }
 

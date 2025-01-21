@@ -192,8 +192,8 @@ void
 OpenMCDomainFilterEditor::duplicateFilterError(const int32_t & id) const
 {
   paramError("filter_id",
-             "Duplicate filter ID (" + std::to_string(id) +
-                 ") found across multiple OpenMCDomainFilterEditors");
+             "Filter ID (" + std::to_string(id) +
+                 ") found in multiple OpenMCDomainFilterEditors");
 }
 
 #endif

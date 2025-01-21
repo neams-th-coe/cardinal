@@ -9,7 +9,7 @@
       input = tally_param_checks.i
       cli_args = 'UserObjects/tally_editor_uo/tally_id=3000'
       expect_err = 'Tally 3000 does not exist in the OpenMC model'
-      detail = 'trying to change nuclides for a non-existing tally ID'
+      detail = 'trying to edit a non-existant tally'
       required_objects = 'OpenMCCellAverageProblem'
     []
     [nonexistent_nuclide]
@@ -25,7 +25,7 @@
       input = tally_param_checks.i
       cli_args = 'UserObjects/tally_editor_uo/scores="invalid"'
       expect_err = 'Invalid tally score "invalid".'
-      detail = 'trying to add a score with an invalid type'
+      detail = 'trying to add an invalid score to a tally'
       required_objects = 'OpenMCCellAverageProblem'
     []
     [nonexistent_filter]
@@ -47,21 +47,21 @@
     [clashing_filter_ids]
       type = RunException
       input = clashing_filter_ids.i
-      expect_err = 'Duplicate filter ID \(10\) found across multiple OpenMCDomainFilterEditors'
+      expect_err = 'Filter ID \(10\) found in multiple OpenMCDomainFilterEditors'
       detail = 'more than one OpenMCDomainFilterEditor eixsts with the same filter ID'
       required_objects = 'OpenMCCellAverageProblem'
     []
     [clashing_tally_ids]
       type = RunException
       input = clashing_tally_ids.i
-      expect_err = 'Duplicate tally ID \(10\) found in multiple OpenMCTallyEditors'
+      expect_err = 'Tally ID \(10\) found in multiple OpenMCTallyEditors'
       detail = 'more than one OpenMCTallyEditor eixsts with the same tally ID'
       required_objects = 'OpenMCCellAverageProblem'
     []
     [clashing_mapped_tally]
       type = RunException
       input = clash_mapped_tally.i
-      expect_err = 'This tally ID \(3\) is a tally which Cardinal is automatically creating and controlling'
+      expect_err = 'Tally ID 3 is a tally which Cardinal has automatically created and is controlling'
       detail = 'an OpenMCTallyEditor eixsts for a mapped tally created by Cardinal'
       required_objects = 'OpenMCCellAverageProblem'
     []
