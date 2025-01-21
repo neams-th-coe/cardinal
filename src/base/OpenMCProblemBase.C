@@ -312,7 +312,7 @@ OpenMCProblemBase::externalSolve()
   }
 
   // update tallies as needed before starting the OpenMC run
-  executeTallyUpdates();
+  executeEditors();
 
   int err = openmc_run();
   if (err)
@@ -823,7 +823,7 @@ OpenMCProblemBase::executeTallyEditors()
 }
 
 void
-OpenMCProblemBase::executeTallyUpdates()
+OpenMCProblemBase::executeEditors()
 {
   executeFilterEditors();
   executeTallyEditors();

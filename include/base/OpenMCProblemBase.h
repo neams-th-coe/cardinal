@@ -365,8 +365,8 @@ protected:
   /// Execute all tally editor userobjects
   void executeTallyEditors();
 
-  // execute all userobjects that change OpenMC filters
-  void executeTallyUpdates();
+  // execute tallly and filte editors
+  void executeEditors();
 
   /// Set the nuclide densities for any materials being modified via MOOSE
   void sendNuclideDensitiesToOpenMC();
