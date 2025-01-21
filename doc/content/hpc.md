@@ -18,10 +18,39 @@ systems. We recommend precompiling NekRS (with the `nrspre` script) if you run i
 issues. See the [NekRS documentation](https://nekrsdoc.readthedocs.io/en/latest/just_in_time_compilation.html)
 for more information.
 
+## Improv
+
+[Improv](https://docs.lcrc.anl.gov/improv/getting-started-improv/)
+is an [!ac](HPC) system at [!ac](ANL) with 825 AMD EPYC dual-socket
+nodes (128 cores per node).
+
+!listing! language=bash caption=Sample `~/.bashrc` for Improv id=im1
+module purge
+module load gcc/11.4.0
+module load openmpi/5.0.0-gcc-11.4.0
+module load cmake/3.27.4
+module load anaconda3/2024.10
+
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Improv is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+!listing-end!
+
+!listing scripts/job_improv language=bash caption=Sample job script for Improv with the `startup` project code id=im2
 
 ## Bebop
 
-[Bebop](https://www.lcrc.anl.gov/systems/resources/bebop/)
+[Bebop](https://docs.lcrc.anl.gov/bebop/getting-started-bebop/)
 is an [!ac](HPC) system at [!ac](ANL) with an Intel Broadwell
 partition (36 cores/node) and an Intel Knights Landing partition
 (64 cores/node).

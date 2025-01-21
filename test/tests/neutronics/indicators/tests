@@ -1,0 +1,47 @@
+[Tests]
+  issues = '#1028'
+  design = 'ElementOpticalDepthIndicator.md'
+
+  [all_h]
+    type = Exodiff
+    input = 'openmc.i'
+    exodiff = 'openmc_out.e'
+    requirement = 'The system shall allow for the calculation of the optical depth using the min/max vertex separation or the cube root of the element volume.'
+    mesh_mode = 'replicated'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [not_rxn_rate]
+    type = RunException
+    input = 'openmc.i'
+    cli_args = 'Adaptivity/Indicators/optical_depth_hmin/rxn_rate=kappa_fission'
+    requirement = 'The system shall error if a non-reaction rate score is provided to ElementOpticalDepthIndicator.'
+    expect_err = 'At present the ElementOpticalDepthIndicator only works with reaction rate scores. kappa_fission is not a valid reaction rate score.'
+    mesh_mode = 'replicated'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [missing_score]
+    type = RunException
+    input = 'openmc.i'
+    cli_args = 'Adaptivity/Indicators/optical_depth_hmin/rxn_rate=fission'
+    requirement = 'The system shall error if a a reaction rate score is requested, but not available in a tally.'
+    expect_err = 'The problem does not contain any score named fission!'
+    mesh_mode = 'replicated'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [missing_flux]
+    type = RunException
+    input = 'openmc.i'
+    cli_args = 'Problem/Tallies/Mesh/score="kappa_fission total"'
+    requirement = 'The system shall error if the flux is not available in a tally.'
+    expect_err = 'In order to use an ElementOpticalDepthIndicator one of your'
+    mesh_mode = 'replicated'
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [wrong_problem]
+    type = RunException
+    input = 'wrong_problem.i'
+    requirement = 'The system shall error if the user attempts to add an ElementOpticalDepthIndicator without an OpenMCCellAverageProblem.'
+    expect_err = "This indicator can only be used with problems of type 'OpenMCCellAverageProblem'!"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]

@@ -407,6 +407,22 @@ TallyBase::getTallyID() const
   return getWrappedTally()->id();
 }
 
+std::vector<std::string>
+TallyBase::getScoreVars(const std::string & score) const
+{
+  std::vector<std::string> score_vars;
+  if (!hasScore(score))
+    return score_vars;
+
+  unsigned int idx =
+      std::find(_tally_score.begin(), _tally_score.end(), score) - _tally_score.begin();
+  std::copy(_tally_name.begin() + idx * _num_ext_filter_bins,
+            _tally_name.begin() + (idx + 1) * _num_ext_filter_bins,
+            std::back_inserter(score_vars));
+
+  return score_vars;
+}
+
 void
 TallyBase::fillElementalAuxVariable(const unsigned int & var_num,
                                     const std::vector<unsigned int> & elem_ids,

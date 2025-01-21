@@ -37,11 +37,10 @@ TallyRelativeError::validParams()
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
 
-  params.addParam<MultiMooseEnum>(
-      "tally_score",
-      getTallyScoreEnum(),
-      "Score to report the relative error. If there is just a single score, "
-      "this defaults to that value");
+  params.addParam<MooseEnum>("tally_score",
+                             getSingleTallyScoreEnum(),
+                             "Score to report the relative error. If there is just a single score, "
+                             "this defaults to that value");
   params.addClassDescription("Maximum/minimum tally relative error");
   return params;
 }
@@ -53,14 +52,8 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   auto added_scores = _openmc_problem->getTallyScores();
   if (isParamValid("tally_score"))
   {
-    const auto & tally_score = getParam<MultiMooseEnum>("tally_score");
-    if (tally_score.size() != 1)
-      paramError(
-          "tally_score",
-          "Can only specify a single tally score per postprocessor, but you have specified " +
-              std::to_string(tally_score.size()));
-
-    std::string score = _openmc_problem->enumToTallyScore(tally_score[0]);
+    const auto & tally_score = getParam<MooseEnum>("tally_score");
+    std::string score = _openmc_problem->enumToTallyScore(tally_score);
 
     auto it = std::find(added_scores.begin(), added_scores.end(), score);
     if (it != added_scores.end())
@@ -68,7 +61,7 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
     else
       paramError(
           "tally_score",
-          "To extract the relative error of the '" + std::string(tally_score[0]) +
+          "To extract the relative error of the '" + std::string(tally_score) +
               "' score, it must be included in one of the [Tallies] added in your input file!");
   }
   else

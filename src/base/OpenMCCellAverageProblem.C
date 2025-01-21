@@ -1407,7 +1407,9 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     for (const auto & item : _elem_to_cell)
       mapped_cells.push_back(item.first);
 
-    std::unique(mapped_cells.begin(), mapped_cells.end());
+    std::sort(mapped_cells.begin(), mapped_cells.end());
+    auto new_end = std::unique(mapped_cells.begin(), mapped_cells.end());
+    mapped_cells.erase(new_end, mapped_cells.end());
     openmc::prepare_distribcell(&mapped_cells);
 
     // perform element to cell mapping again to get correct instances
