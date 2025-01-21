@@ -390,9 +390,12 @@ Cardinal provides UserObjects for editing tallies and filters:
   - [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
   - [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
 
-These objects can be used to interact with tallies and/or filters that are present in a `tallies.xml` file for the problem being run (in other words, tallies
-the user manually sets up when building the OpenMC model).
-These objects can be used to create tallies as well. In either case, these objects do not interact with tallies mapped to the mesh mirror ([#mapped]).
+These objects can be used to interact with tallies and/or filters that are
+present in a `tallies.xml` file for the problem being run (in other words,
+tallies the user manually sets up when building the OpenMC model). These objects
+can be used to create tallies and/or filters as well. In either case, these
+objects do not interact with tallies and filters used to map data to the mesh
+mirror ([#mapped]).
 
 ## Other Features
 
