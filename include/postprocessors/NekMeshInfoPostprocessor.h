@@ -33,8 +33,7 @@
  *
  * for more information on the motivation for this object.
  */
-class NekMeshInfoPostprocessor : public GeneralPostprocessor,
-                                 public NekBase
+class NekMeshInfoPostprocessor : public GeneralPostprocessor, public NekBase
 {
 public:
   NekMeshInfoPostprocessor(const InputParameters & parameters);

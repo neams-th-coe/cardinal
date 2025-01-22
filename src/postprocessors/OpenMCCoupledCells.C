@@ -33,8 +33,7 @@ OpenMCCoupledCells::validParams()
 }
 
 OpenMCCoupledCells::OpenMCCoupledCells(const InputParameters & parameters)
-  : GeneralPostprocessor(parameters),
-    OpenMCBase(this, parameters)
+  : GeneralPostprocessor(parameters), OpenMCBase(this, parameters)
 {
 }
 

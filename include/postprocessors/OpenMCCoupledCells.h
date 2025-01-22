@@ -26,8 +26,7 @@
  * Get the number of cells for which OpenMC is receiving temperature and/or
  * density feedback from MOOSE, or which are sending a cell tally to MOOSE.
  */
-class OpenMCCoupledCells : public GeneralPostprocessor,
-                           public OpenMCBase
+class OpenMCCoupledCells : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();

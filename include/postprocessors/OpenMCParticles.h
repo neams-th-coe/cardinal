@@ -26,8 +26,7 @@
  * Get the total number of particles simulated in OpenMC, i.e. the product
  * of the particles/batch multiplied by number of batches.
  */
-class OpenMCParticles : public GeneralPostprocessor,
-                        public OpenMCBase
+class OpenMCParticles : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();

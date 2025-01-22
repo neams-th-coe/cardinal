@@ -26,8 +26,7 @@
 /**
  * Auxkernel to display the mapping of OpenMC cell instances to elements.
  */
-class CellInstanceAux : public AuxKernel,
-                        public OpenMCBase
+class CellInstanceAux : public AuxKernel, public OpenMCBase
 {
 public:
   CellInstanceAux(const InputParameters & parameters);

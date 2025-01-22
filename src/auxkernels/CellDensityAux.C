@@ -33,8 +33,7 @@ CellDensityAux::validParams()
 }
 
 CellDensityAux::CellDensityAux(const InputParameters & parameters)
-  : AuxKernel(parameters),
-    OpenMCBase(this, parameters)
+  : AuxKernel(parameters), OpenMCBase(this, parameters)
 {
 }
 

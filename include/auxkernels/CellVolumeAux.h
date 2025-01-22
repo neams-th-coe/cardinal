@@ -25,8 +25,7 @@
 /**
  * Auxkernel to display the OpenMC cell mapped volumes
  */
-class CellVolumeAux : public AuxKernel,
-                      public OpenMCBase
+class CellVolumeAux : public AuxKernel, public OpenMCBase
 {
 public:
   CellVolumeAux(const InputParameters & parameters);

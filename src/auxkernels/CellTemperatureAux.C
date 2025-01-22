@@ -34,8 +34,7 @@ CellTemperatureAux::validParams()
 }
 
 CellTemperatureAux::CellTemperatureAux(const InputParameters & parameters)
-  : AuxKernel(parameters),
-    OpenMCBase(this, parameters)
+  : AuxKernel(parameters), OpenMCBase(this, parameters)
 {
 }
 

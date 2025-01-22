@@ -26,8 +26,7 @@
 /**
  * Compute the max/min relative error of the tally coupling OpenMC to MOOSE.
  */
-class TallyRelativeError : public GeneralPostprocessor,
-                           public OpenMCBase
+class TallyRelativeError : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();

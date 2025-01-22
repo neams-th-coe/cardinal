@@ -28,8 +28,7 @@
  * Base class for NekRS postprocessors that operate on fields,
  * such as for taking averages of a field variable.
  */
-class NekFieldPostprocessor : public GeneralPostprocessor,
-                              public NekBase
+class NekFieldPostprocessor : public GeneralPostprocessor, public NekBase
 {
 public:
   static InputParameters validParams();

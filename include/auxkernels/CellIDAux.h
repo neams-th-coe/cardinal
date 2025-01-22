@@ -25,8 +25,7 @@
 /**
  * Auxkernel to display the mapping of OpenMC cell IDs to elements.
  */
-class CellIDAux : public AuxKernel,
-                  public OpenMCBase
+class CellIDAux : public AuxKernel, public OpenMCBase
 {
 public:
   CellIDAux(const InputParameters & parameters);

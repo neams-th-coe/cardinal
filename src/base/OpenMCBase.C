@@ -30,10 +30,12 @@ OpenMCBase::validParams()
 }
 
 OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters & parameters)
-  : _openmc_problem(dynamic_cast<OpenMCCellAverageProblem *>(&moose_object->getMooseApp().feProblem()))
+  : _openmc_problem(
+        dynamic_cast<OpenMCCellAverageProblem *>(&moose_object->getMooseApp().feProblem()))
 {
   if (!_openmc_problem)
-    mooseError(moose_object->type() + " can only be used with problems of type 'OpenMCCellAverageProblem'!");
+    mooseError(moose_object->type() +
+               " can only be used with problems of type 'OpenMCCellAverageProblem'!");
 
   // Check to make sure this object acts on a elemental variable (if it acts on a variable at all).
   if (parameters.isParamValid("variable"))
@@ -41,7 +43,7 @@ OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters &
     const auto var_name = parameters.getMooseType("variable");
     const auto sys = parameters.getCheckedPointerParam<SystemBase *>("_sys");
     const auto tid = parameters.get<THREAD_ID>("_tid");
-    if(sys->getVariable(tid, var_name).isNodal())
+    if (sys->getVariable(tid, var_name).isNodal())
       mooseError(moose_object->type() + " can only be used with elemental variables!");
   }
 }
@@ -49,8 +51,7 @@ OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters &
 bool
 OpenMCBase::mappedElement(const Elem * elem) const
 {
-  OpenMCCellAverageProblem::cellInfo cell_info =
-      _openmc_problem->elemToCellInfo(elem->id());
+  OpenMCCellAverageProblem::cellInfo cell_info = _openmc_problem->elemToCellInfo(elem->id());
   return !(cell_info.first == OpenMCCellAverageProblem::UNMAPPED);
 }
 
@@ -65,8 +66,8 @@ OpenMCBase::getTallyScoreVariables(const std::string & score, THREAD_ID t_id) co
     {
       auto vars = t->getScoreVars(score);
       for (const auto & v : vars)
-        score_vars.emplace_back(dynamic_cast<const MooseVariableFE<Real> *>(
-            &_openmc_problem->getVariable(t_id, v)));
+        score_vars.emplace_back(
+            dynamic_cast<const MooseVariableFE<Real> *>(&_openmc_problem->getVariable(t_id, v)));
     }
   }
 
@@ -88,7 +89,8 @@ OpenMCBase::getTallyScoreVariableValues(const std::string & score, THREAD_ID t_i
       auto vars = t->getScoreVars(score);
       for (const auto & v : vars)
         score_vars.emplace_back(
-            &(dynamic_cast<const MooseVariableFE<Real> *>(&_openmc_problem->getVariable(t_id, v))->sln()));
+            &(dynamic_cast<const MooseVariableFE<Real> *>(&_openmc_problem->getVariable(t_id, v))
+                  ->sln()));
     }
   }
 

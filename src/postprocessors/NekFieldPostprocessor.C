@@ -29,8 +29,7 @@ NekFieldPostprocessor::validParams()
   params.addRequiredParam<MooseEnum>("field",
                                      getNekFieldEnum(),
                                      "Field to integrate");
-  params.addParam<MooseEnum>(
-      "mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
+  params.addParam<MooseEnum>("mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
   params.addParam<Point>(
       "velocity_direction",
       "Direction in which to evaluate velocity, for 'field = velocity_component'. For "

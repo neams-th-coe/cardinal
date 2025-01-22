@@ -28,8 +28,7 @@
  * NekRS solution with a spatial binning formed as the product
  * of an arbitrary number of combined single-set bins.
  */
-class NekSpatialBinUserObject : public GeneralUserObject,
-                                public NekBase
+class NekSpatialBinUserObject : public GeneralUserObject, public NekBase
 {
 public:
   static InputParameters validParams();

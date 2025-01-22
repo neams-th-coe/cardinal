@@ -25,8 +25,7 @@ NekSidePostprocessor::validParams()
 {
   InputParameters params = GeneralPostprocessor::validParams();
   params += NekBase::validParams();
-  params.addParam<MooseEnum>(
-      "mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
+  params.addParam<MooseEnum>("mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
   params.addRequiredParam<std::vector<int>>(
       "boundary", "Boundary ID(s) for which to compute the postprocessor");
   return params;

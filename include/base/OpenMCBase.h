@@ -24,7 +24,7 @@
 
 namespace libMesh
 {
-  class Elem;
+class Elem;
 }
 
 class OpenMCBase
@@ -47,21 +47,24 @@ protected:
    * @param[in] score the OpenMC score
    * @return a vector of variable values associated with score
    */
-  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score, THREAD_ID t_id) const;
+  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score,
+                                                                    THREAD_ID t_id) const;
 
   /**
    * Get the variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @return a vector of variable values associated with score
    */
-  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score, THREAD_ID t_id) const;
+  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score,
+                                                                 THREAD_ID t_id) const;
 
   /**
    * Get the neighboring variable value(s) associated with an OpenMC tally score.
    * @param[in] score the OpenMC score
    * @return a vector of variable values associated with score
    */
-  std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(const std::string & score, THREAD_ID t_id) const;
+  std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(const std::string & score,
+                                                                         THREAD_ID t_id) const;
 
   /// The OpenMCCellAverageProblem required by all objects which inherit from OpenMCBase.
   const OpenMCCellAverageProblem * _openmc_problem;

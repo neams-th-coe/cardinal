@@ -32,8 +32,7 @@ NekNumRanks::validParams()
 }
 
 NekNumRanks::NekNumRanks(const InputParameters & parameters)
-  : GeneralPostprocessor(parameters),
-    NekBase(this, parameters)
+  : GeneralPostprocessor(parameters), NekBase(this, parameters)
 {
 }
 

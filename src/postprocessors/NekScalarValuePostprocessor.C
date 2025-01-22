@@ -27,7 +27,8 @@ NekScalarValuePostprocessor::validParams()
 {
   InputParameters params = GeneralPostprocessor::validParams();
   params += NekBase::validParams();
-  params.addRequiredParam<UserObjectName>("userobject", "NekScalarValue userobject to report value for");
+  params.addRequiredParam<UserObjectName>("userobject",
+                                          "NekScalarValue userobject to report value for");
   params.addClassDescription("Current value held by a NekScalarValue userobject");
   return params;
 }

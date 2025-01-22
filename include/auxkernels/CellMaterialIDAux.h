@@ -25,8 +25,7 @@
 /**
  * Auxkernel to display the mapping of OpenMC cell material IDs to MOOSE elements.
  */
-class CellMaterialIDAux : public AuxKernel,
-                          public OpenMCBase
+class CellMaterialIDAux : public AuxKernel, public OpenMCBase
 {
 public:
   CellMaterialIDAux(const InputParameters & parameters);

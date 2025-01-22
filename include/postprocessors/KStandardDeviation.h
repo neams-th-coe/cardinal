@@ -26,8 +26,7 @@
 /**
  * Get the k-effective eigenvalue standard deviation computed by OpenMC.
  */
-class KStandardDeviation : public GeneralPostprocessor,
-                           public OpenMCBase
+class KStandardDeviation : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();

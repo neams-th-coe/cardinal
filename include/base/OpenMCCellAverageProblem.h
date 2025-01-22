@@ -227,7 +227,10 @@ public:
    * @param[in] cell_info cell index, instance pair
    * @return material index
    */
-  int32_t cellToMaterialIndex(const cellInfo & cell_info) const { return _cell_to_material.at(cell_info); }
+  int32_t cellToMaterialIndex(const cellInfo & cell_info) const
+  {
+    return _cell_to_material.at(cell_info);
+  }
 
   /**
    * Get the fields coupled for each cell; because we require that each cell maps to a consistent

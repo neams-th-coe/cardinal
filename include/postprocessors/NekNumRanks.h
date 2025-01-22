@@ -28,8 +28,7 @@
  * more than one NekRS case is being run (either for physics multiapps
  * or in stochastic simulation, for instance).
  */
-class NekNumRanks : public GeneralPostprocessor,
-                    public NekBase
+class NekNumRanks : public GeneralPostprocessor, public NekBase
 {
 public:
   static InputParameters validParams();

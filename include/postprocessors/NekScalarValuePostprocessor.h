@@ -27,8 +27,7 @@
  * Displays the value held by a NekScalarValue userobject, for diagnosis
  * purposes.
  */
-class NekScalarValuePostprocessor : public GeneralPostprocessor,
-                                    public NekBase
+class NekScalarValuePostprocessor : public GeneralPostprocessor, public NekBase
 {
 public:
   static InputParameters validParams();

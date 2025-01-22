@@ -32,7 +32,8 @@ NekBase::NekBase(const MooseObject * moose_object, const InputParameters & param
 {
   if (!_nek_problem)
   {
-    std::string extra_help = moose_object->getMooseApp().feProblem().type() == "FEProblem" ? " (the default)" : "";
+    std::string extra_help =
+        moose_object->getMooseApp().feProblem().type() == "FEProblem" ? " (the default)" : "";
     mooseError("This object can only be used with wrapped Nek cases!\n"
                "You need to change the problem type from '" +
                moose_object->getMooseApp().feProblem().type() + "'" + extra_help +
@@ -46,7 +47,7 @@ NekBase::NekBase(const MooseObject * moose_object, const InputParameters & param
 
   if (moose_object->isParamSetByUser("use_displaced_mesh"))
     mooseWarning("'use_displaced_mesh' is unused, because this postprocessor acts directly\n"
-      "on the NekRS internal mesh");
+                 "on the NekRS internal mesh");
 }
 
 #endif

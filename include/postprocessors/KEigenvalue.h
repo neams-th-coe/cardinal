@@ -26,8 +26,7 @@
 /**
  * Get the k-effective eigenvalue computed by OpenMC.
  */
-class KEigenvalue : public GeneralPostprocessor,
-                    public OpenMCBase
+class KEigenvalue : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();

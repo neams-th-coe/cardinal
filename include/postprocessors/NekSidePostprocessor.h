@@ -27,8 +27,7 @@
  * This class just checks that the boundary supplied by the user is a valid
  * ID within the nekRS mesh.
  */
-class NekSidePostprocessor : public GeneralPostprocessor,
-                             public NekBase
+class NekSidePostprocessor : public GeneralPostprocessor, public NekBase
 {
 public:
   static InputParameters validParams();

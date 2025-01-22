@@ -28,8 +28,7 @@
  * can be used to ensure that you set the symmetry parameters on
  * OpenMCCellAverageProblem correctly
  */
-class PointTransformationAux : public AuxKernel,
-                               public OpenMCBase
+class PointTransformationAux : public AuxKernel, public OpenMCBase
 {
 public:
   PointTransformationAux(const InputParameters & parameters);

@@ -25,8 +25,7 @@
 /**
  * Auxkernel to display the mapping of OpenMC cell temperatures to elements.
  */
-class CellTemperatureAux : public AuxKernel,
-                           public OpenMCBase
+class CellTemperatureAux : public AuxKernel, public OpenMCBase
 {
 public:
   CellTemperatureAux(const InputParameters & parameters);

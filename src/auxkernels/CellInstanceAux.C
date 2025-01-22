@@ -32,8 +32,7 @@ CellInstanceAux::validParams()
 }
 
 CellInstanceAux::CellInstanceAux(const InputParameters & parameters)
-  : AuxKernel(parameters),
-    OpenMCBase(this, parameters)
+  : AuxKernel(parameters), OpenMCBase(this, parameters)
 {
 }
 
