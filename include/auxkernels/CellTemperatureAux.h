@@ -18,12 +18,15 @@
 
 #pragma once
 
-#include "OpenMCAuxKernel.h"
+#include "AuxKernel.h"
+
+#include "OpenMCBase.h"
 
 /**
  * Auxkernel to display the mapping of OpenMC cell temperatures to elements.
  */
-class CellTemperatureAux : public OpenMCAuxKernel
+class CellTemperatureAux : public AuxKernel,
+                           public OpenMCBase
 {
 public:
   CellTemperatureAux(const InputParameters & parameters);

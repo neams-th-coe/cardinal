@@ -18,13 +18,16 @@
 
 #pragma once
 
-#include "OpenMCAuxKernel.h"
+#include "AuxKernel.h"
+
+#include "OpenMCBase.h"
 #include "OpenMCCellAverageProblem.h"
 
 /**
  * Auxkernel to display the mapping of OpenMC cell instances to elements.
  */
-class CellInstanceAux : public OpenMCAuxKernel
+class CellInstanceAux : public AuxKernel,
+                        public OpenMCBase
 {
 public:
   CellInstanceAux(const InputParameters & parameters);

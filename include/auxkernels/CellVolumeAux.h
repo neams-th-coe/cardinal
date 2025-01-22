@@ -18,12 +18,15 @@
 
 #pragma once
 
-#include "OpenMCAuxKernel.h"
+#include "AuxKernel.h"
+
+#include "OpenMCBase.h"
 
 /**
  * Auxkernel to display the OpenMC cell mapped volumes
  */
-class CellVolumeAux : public OpenMCAuxKernel
+class CellVolumeAux : public AuxKernel,
+                      public OpenMCBase
 {
 public:
   CellVolumeAux(const InputParameters & parameters);

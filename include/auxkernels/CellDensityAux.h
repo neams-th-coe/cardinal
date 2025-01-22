@@ -18,12 +18,15 @@
 
 #pragma once
 
-#include "OpenMCAuxKernel.h"
+#include "AuxKernel.h"
+
+#include "OpenMCBase.h"
 
 /**
  * Auxkernel to display the mapping of OpenMC cell densities to MOOSE elements.
  */
-class CellDensityAux : public OpenMCAuxKernel
+class CellDensityAux : public AuxKernel,
+                       public OpenMCBase
 {
 public:
   CellDensityAux(const InputParameters & parameters);

@@ -26,13 +26,15 @@ registerMooseObject("CardinalApp", CellMaterialIDAux);
 InputParameters
 CellMaterialIDAux::validParams()
 {
-  InputParameters params = OpenMCAuxKernel::validParams();
+  InputParameters params = AuxKernel::validParams();
+  params += OpenMCBase::validParams();
   params.addClassDescription("OpenMC fluid material ID, mapped to each MOOSE element");
   return params;
 }
 
 CellMaterialIDAux::CellMaterialIDAux(const InputParameters & parameters)
-  : OpenMCAuxKernel(parameters)
+  : AuxKernel(parameters),
+    OpenMCBase(this, parameters)
 {
 }
 
@@ -42,7 +44,7 @@ CellMaterialIDAux::computeValue()
   // if the element doesn't map to an OpenMC cell, return a cell ID of -1; otherwise, we would
   // get an error in the call to cellCouplingFields and cellToMaterialIndex, since these
   // rely on a valid cell instance, index pair being passed to OpenMC's C-API
-  if (!mappedElement())
+  if (!mappedElement(_current_elem))
     return OpenMCCellAverageProblem::UNMAPPED;
 
   // we only extract the material information for fluid cells, because otherwise we don't

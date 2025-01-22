@@ -26,12 +26,18 @@ registerMooseObject("CardinalApp", CellDensityAux);
 InputParameters
 CellDensityAux::validParams()
 {
-  InputParameters params = OpenMCAuxKernel::validParams();
+  InputParameters params = AuxKernel::validParams();
+  params += OpenMCBase::validParams();
   params.addClassDescription("OpenMC fluid density (kg/m$^3$), mapped to each MOOSE element");
   return params;
 }
 
-CellDensityAux::CellDensityAux(const InputParameters & parameters) : OpenMCAuxKernel(parameters) {}
+CellDensityAux::CellDensityAux(const InputParameters & parameters)
+  : AuxKernel(parameters),
+    OpenMCBase(this, parameters)
+{
+
+}
 
 Real
 CellDensityAux::computeValue()
@@ -40,7 +46,7 @@ CellDensityAux::computeValue()
   // get an error in the call to cellCouplingFields, since it relies on the
   // OpenMCCellAverageProblem::_cell_to_elem std::map that wouldn't have an entry that corresponds
   // to an unmapped cell
-  if (!mappedElement())
+  if (!mappedElement(_current_elem))
     return OpenMCCellAverageProblem::UNMAPPED;
 
   OpenMCCellAverageProblem::cellInfo cell_info =

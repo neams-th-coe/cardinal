@@ -27,13 +27,15 @@ registerMooseObject("CardinalApp", CellTemperatureAux);
 InputParameters
 CellTemperatureAux::validParams()
 {
-  InputParameters params = OpenMCAuxKernel::validParams();
+  InputParameters params = AuxKernel::validParams();
+  params += OpenMCBase::validParams();
   params.addClassDescription("OpenMC cell temperature (K), mapped to each MOOSE element");
   return params;
 }
 
 CellTemperatureAux::CellTemperatureAux(const InputParameters & parameters)
-  : OpenMCAuxKernel(parameters)
+  : AuxKernel(parameters),
+    OpenMCBase(this, parameters)
 {
 }
 
@@ -43,7 +45,7 @@ CellTemperatureAux::computeValue()
   // if the element doesn't map to an OpenMC cell, return a temperature of -1; this is required
   // because otherwise OpenMC would throw an error for an invalid instance, index pair passed to the
   // C-API
-  if (!mappedElement())
+  if (!mappedElement(_current_elem))
     return OpenMCCellAverageProblem::UNMAPPED;
 
   OpenMCCellAverageProblem::cellInfo cell_info =

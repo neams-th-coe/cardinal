@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include "OpenMCAuxKernel.h"
+#include "AuxKernel.h"
+
+#include "OpenMCBase.h"
 
 /**
  * Auxkernel to display the reflected/rotated x, y, and z coordinates
@@ -26,7 +28,8 @@
  * can be used to ensure that you set the symmetry parameters on
  * OpenMCCellAverageProblem correctly
  */
-class PointTransformationAux : public OpenMCAuxKernel
+class PointTransformationAux : public AuxKernel,
+                               public OpenMCBase
 {
 public:
   PointTransformationAux(const InputParameters & parameters);
