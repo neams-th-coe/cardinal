@@ -32,7 +32,8 @@ registerMooseObjectRenamed("CardinalApp",
 InputParameters
 TallyRelativeError::validParams()
 {
-  InputParameters params = OpenMCPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += OpenMCBase::validParams();
   params.addParam<MooseEnum>("value_type",
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
@@ -46,7 +47,8 @@ TallyRelativeError::validParams()
 }
 
 TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
-  : OpenMCPostprocessor(parameters),
+  : GeneralPostprocessor(parameters),
+    OpenMCBase(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
   auto added_scores = _openmc_problem->getTallyScores();

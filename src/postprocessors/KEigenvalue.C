@@ -26,7 +26,8 @@ registerMooseObject("CardinalApp", KEigenvalue);
 InputParameters
 KEigenvalue::validParams()
 {
-  InputParameters params = OpenMCPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += OpenMCBase::validParams();
   params.addParam<MooseEnum>("value_type",
                              getEigenvalueEnum(),
                              "Type of eigenvalue global tally to report");
@@ -35,7 +36,8 @@ KEigenvalue::validParams()
 }
 
 KEigenvalue::KEigenvalue(const InputParameters & parameters)
-  : OpenMCPostprocessor(parameters),
+  : GeneralPostprocessor(parameters),
+    OpenMCBase(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<eigenvalue::EigenvalueEnum>())
 {
   if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
