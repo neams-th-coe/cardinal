@@ -18,19 +18,11 @@
     max_parallel = 12
     required_objects = 'NekRSProblem'
   []
-  [problem_pp]
+  [problem_base]
     type = RunException
-    input = problem_pp.i
-    expect_err = "This postprocessor can only be used with wrapped Nek cases!"
-    requirement = "The system shall error if a Nek postprocessor is not paired with the correct problem."
-    max_parallel = 12
-    required_objects = 'NekRSProblem'
-  []
-  [problem_uo]
-    type = RunException
-    input = problem_uo.i
-    expect_err = "This user object can only be used with wrapped Nek cases!"
-    requirement = "The system shall error if a Nek userobject is not paired with the correct problem."
+    input = problem_base.i
+    expect_err = "NekBinnedVolumeAverage can only be used with wrapped Nek cases!"
+    requirement = "The system shall error if a Nek object is not paired with the correct problem."
     max_parallel = 12
     required_objects = 'NekRSProblem'
   []
