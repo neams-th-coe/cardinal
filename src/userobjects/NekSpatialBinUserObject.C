@@ -24,12 +24,19 @@
 InputParameters
 NekSpatialBinUserObject::validParams()
 {
-  InputParameters params = NekUserObject::validParams();
+  InputParameters params = GeneralUserObject::validParams();
+  params += NekBase::validParams();
   params.addRequiredParam<std::vector<UserObjectName>>(
       "bins", "Userobjects providing a spatial bin given a point");
   params.addRequiredParam<MooseEnum>("field",
                                      getNekFieldEnum(),
                                      "Field to postprocess");
+  params.addParam<unsigned int>("interval", 1,
+    "Frequency (in number of time steps) with which to execute this user object; "
+    "because Nek uses very small time steps, you need many time steps to reach "
+    "steady state, and user objects can be expensive and not necessary to evaluate "
+    "on every single time step. NOTE: you probably want to match this 'interval' "
+    "in the Output");
   params.addParam<bool>(
       "map_space_by_qp",
       false,
@@ -56,7 +63,9 @@ NekSpatialBinUserObject::validParams()
 }
 
 NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & parameters)
-  : NekUserObject(parameters),
+  : GeneralUserObject(parameters),
+    NekBase(this, parameters),
+    _interval(getParam<unsigned int>("interval")),
     _bin_names(getParam<std::vector<UserObjectName>>("bins")),
     _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
     _map_space_by_qp(getParam<bool>("map_space_by_qp")),
@@ -70,6 +79,8 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
     _bin_partial_values(nullptr),
     _bin_partial_counts(nullptr)
 {
+  _fixed_mesh = !(_nek_problem->hasMovingNekMesh());
+
   if (_bin_names.size() == 0)
     paramError("bins", "Length of vector must be greater than zero!");
 
@@ -187,6 +198,13 @@ NekSpatialBinUserObject::~NekSpatialBinUserObject()
   freePointer(_bin_values_x);
   freePointer(_bin_values_y);
   freePointer(_bin_values_z);
+}
+
+void
+NekSpatialBinUserObject::execute()
+{
+  if (_fe_problem.timeStep() % _interval == 0)
+    executeUserObject();
 }
 
 Point
