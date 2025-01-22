@@ -19,6 +19,7 @@
 #pragma once
 
 #include "GeneralUserObject.h"
+#include "GeometryUtils.h"
 
 #include "NekBase.h"
 #include "SpatialBinUserObject.h"
