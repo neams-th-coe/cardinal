@@ -25,15 +25,16 @@ registerMooseObject("CardinalApp", NekScalarValuePostprocessor);
 InputParameters
 NekScalarValuePostprocessor::validParams()
 {
-  InputParameters params = NekPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += NekBase::validParams();
   params.addRequiredParam<UserObjectName>("userobject", "NekScalarValue userobject to report value for");
-  params.suppressParameter<MooseEnum>("mesh");
   params.addClassDescription("Current value held by a NekScalarValue userobject");
   return params;
 }
 
 NekScalarValuePostprocessor::NekScalarValuePostprocessor(const InputParameters & parameters)
-  : NekPostprocessor(parameters),
+  : GeneralPostprocessor(parameters),
+    NekBase(this, parameters),
     _uo(getUserObject<NekScalarValue>("userobject"))
 {
 }

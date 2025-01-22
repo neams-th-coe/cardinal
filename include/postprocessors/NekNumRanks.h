@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include "NekPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "NekBase.h"
 
 /**
  * Display the number of MPI ranks used to run NekRS. This can be
@@ -26,12 +28,16 @@
  * more than one NekRS case is being run (either for physics multiapps
  * or in stochastic simulation, for instance).
  */
-class NekNumRanks : public NekPostprocessor
+class NekNumRanks : public GeneralPostprocessor,
+                    public NekBase
 {
 public:
   static InputParameters validParams();
 
   NekNumRanks(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 };

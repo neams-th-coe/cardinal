@@ -18,21 +18,30 @@
 
 #pragma once
 
-#include "NekPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "NekBase.h"
 
 /**
  * Base class for performing sideset postprocessor operations within nekRS.
  * This class just checks that the boundary supplied by the user is a valid
  * ID within the nekRS mesh.
  */
-class NekSidePostprocessor : public NekPostprocessor
+class NekSidePostprocessor : public GeneralPostprocessor,
+                             public NekBase
 {
 public:
   static InputParameters validParams();
 
   NekSidePostprocessor(const InputParameters & parameters);
 
+  virtual void initialize() override {}
+  virtual void execute() override {}
+
 protected:
+  /// Which NekRS mesh to act on
+  const nek_mesh::NekMeshEnum _pp_mesh;
+
   /// boundary IDs of the nekRS mesh over which to find the extreme value
   const std::vector<int> & _boundary;
 };

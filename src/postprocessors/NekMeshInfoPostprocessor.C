@@ -27,7 +27,8 @@ registerMooseObject("CardinalApp", NekMeshInfoPostprocessor);
 InputParameters
 NekMeshInfoPostprocessor::validParams()
 {
-  InputParameters params = NekPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += NekBase::validParams();
 
   MooseEnum test_type("num_elems num_nodes node_x node_y node_z");
   params.addRequiredParam<MooseEnum>("test_type",
@@ -44,7 +45,9 @@ NekMeshInfoPostprocessor::validParams()
 }
 
 NekMeshInfoPostprocessor::NekMeshInfoPostprocessor(const InputParameters & parameters)
-  : NekPostprocessor(parameters), _test_type(getParam<MooseEnum>("test_type"))
+  : GeneralPostprocessor(parameters),
+    NekBase(this, parameters),
+    _test_type(getParam<MooseEnum>("test_type"))
 {
   if (!_nek_mesh)
     mooseError("This class is intended for testing the 'NekRSMesh' mesh, "
