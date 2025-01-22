@@ -18,13 +18,16 @@
 
 #pragma once
 
-#include "OpenMCIndicator.h"
+#include "Indicator.h"
+
+#include "OpenMCBase.h"
 
 /**
  * An Indicator which returns an estimate of the optical depth experienced by photons/neutrons which
  * traverse the element.
  */
-class ElementOpticalDepthIndicator : public OpenMCIndicator
+class ElementOpticalDepthIndicator : public Indicator,
+                                     public OpenMCBase
 {
 public:
   static InputParameters validParams();
@@ -34,6 +37,12 @@ public:
   virtual void computeIndicator() override;
 
 protected:
+  /// The field variable holding the results of this indicator.
+  MooseVariable & _field_var;
+
+  /// The current element.
+  const Elem * const & _current_elem;
+
   /// The type of element length to use for estimating the optical depth.
   enum class HType
   {
