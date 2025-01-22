@@ -33,7 +33,17 @@ OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters &
   : _openmc_problem(dynamic_cast<OpenMCCellAverageProblem *>(&moose_object->getMooseApp().feProblem()))
 {
   if (!_openmc_problem)
-    mooseError("The object " + moose_object->type() + " can only be used with problems of type 'OpenMCCellAverageProblem'!");
+    mooseError(moose_object->type() + " can only be used with problems of type 'OpenMCCellAverageProblem'!");
+
+  // Check to make sure this object acts on a elemental variable (if it acts on a variable at all).
+  if (parameters.isParamValid("variable"))
+  {
+    const auto var_name = parameters.getMooseType("variable");
+    const auto sys = parameters.getCheckedPointerParam<SystemBase *>("_sys");
+    const auto tid = parameters.get<THREAD_ID>("_tid");
+    if(sys->getVariable(tid, var_name).isNodal())
+      mooseError(moose_object->type() + " can only be used with elemental variables!");
+  }
 }
 
 bool

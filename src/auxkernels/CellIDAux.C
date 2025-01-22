@@ -35,7 +35,6 @@ CellIDAux::CellIDAux(const InputParameters & parameters)
   : AuxKernel(parameters),
     OpenMCBase(this, parameters)
 {
-
 }
 
 Real

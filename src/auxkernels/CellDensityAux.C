@@ -36,7 +36,6 @@ CellDensityAux::CellDensityAux(const InputParameters & parameters)
   : AuxKernel(parameters),
     OpenMCBase(this, parameters)
 {
-
 }
 
 Real

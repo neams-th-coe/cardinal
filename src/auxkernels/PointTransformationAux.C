@@ -40,6 +40,8 @@ PointTransformationAux::PointTransformationAux(const InputParameters & parameter
     OpenMCBase(this, parameters),
     _d(getParam<MooseEnum>("component"))
 {
+  if (isNodal())
+    mooseError("This auxkernel can only be used with elemental variables!");
 }
 
 Real

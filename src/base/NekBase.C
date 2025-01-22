@@ -33,7 +33,7 @@ NekBase::NekBase(const MooseObject * moose_object, const InputParameters & param
   if (!_nek_problem)
   {
     std::string extra_help = moose_object->getMooseApp().feProblem().type() == "FEProblem" ? " (the default)" : "";
-    mooseError("This user object can only be used with wrapped Nek cases!\n"
+    mooseError("This object can only be used with wrapped Nek cases!\n"
                "You need to change the problem type from '" +
                moose_object->getMooseApp().feProblem().type() + "'" + extra_help +
                " to a Nek-wrapped problem.\n\n"
