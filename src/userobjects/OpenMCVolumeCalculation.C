@@ -27,7 +27,7 @@ registerMooseObject("CardinalApp", OpenMCVolumeCalculation);
 InputParameters
 OpenMCVolumeCalculation::validParams()
 {
-  InputParameters params = GeneralUserObject::validParams();
+  InputParameters params = OpenMCUserObject::validParams();
   params.addParam<Point>("lower_left", "Lower left of the bounding box inside of which to "
     "compute volumes. If not specified, this will default to the lower left of the [Mesh] "
     "(which will NOT capture any OpenMC geometry that lies outside the [Mesh] extents.");
@@ -47,7 +47,7 @@ OpenMCVolumeCalculation::validParams()
 }
 
 OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & parameters)
-  : GeneralUserObject(parameters),
+  : OpenMCUserObject(parameters),
     _n_samples(getParam<unsigned int>("n_samples")),
     _trigger(getParam<MooseEnum>("trigger"))
 {
@@ -61,16 +61,7 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   else
     mooseError("Unhandled trigger enum in OpenMCCellVolumeCalculation!");
 
-  auto openmc_problem = dynamic_cast<const OpenMCCellAverageProblem *>(&_fe_problem);
-  if (!openmc_problem)
-  {
-    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
-    mooseError("This user object can only be used with wrapped OpenMC cases!\n"
-               "You need to change the problem type from '" +
-               _fe_problem.type() + "'" + extra_help +
-               " to 'OpenMCCellAverageProblem'");
-  }
-
+  auto openmc_problem = openmcProblem();
   _scaling = openmc_problem->scaling();
 
   BoundingBox box = MeshTools::create_bounding_box(_fe_problem.mesh());

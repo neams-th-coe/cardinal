@@ -16,7 +16,6 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-
   cell_level = 0
   power = 100.0
 
@@ -27,14 +26,6 @@
       type = CellTally
       blocks = '0'
     []
-  []
-[]
-
-[UserObjects]
-  [tally1]
-    type = OpenMCTallyNuclides
-    tally_id = 2
-    names = 'U238'
   []
 []
 

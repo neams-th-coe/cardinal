@@ -294,7 +294,10 @@ regions where there are no cells at that level.
 
 ## Adding Tallies
 
-This class takes the tally objects initialized by the `[Tallies]` block and use them to construct
+### Mapped Tallies
+  id=mapped
+
+This class takes the tally objects initialized by the `[Tallies]` block and uses them to construct
 tally auxvariables. At the moment there are two options for discretizing tallies spatially in Cardinal:
 
 1. cell tallies ([CellTally](CellTally.md))
@@ -305,6 +308,8 @@ according to the specified `power` or `source_strength` (depending on whether yo
 $k$-eigenvalue or fixed-source problem). By default, the normalization is done against a global
 tally added over the entire OpenMC domain. By setting `normalize_by_global_tally` to false, however,
 the tally is instead normalized by the sum of the tally itself.
+
+### Mapped Tally Scores
 
 You can customize the type of score that Cardinal uses to normalize tallies to `power` with the `source_rate_normalization`
 parameter. Options include:
@@ -339,7 +344,9 @@ by Cardinal. Note that for all area or volume units in [tally_units], that those
 | `flux` | particle - cm / source particle | particle / area / second |
 | `H3_production` | tritium / source particle | tritium / volume / second |
 
-This units-transformation
+### Tally Normalization
+
+The tally units-transformation
 process involves *division by a volume*. In Cardinal, there are two different notions of volume:
 
 - The volume of the `[Mesh]` elements which *map* to a tally bin region
@@ -375,6 +382,20 @@ If your OpenMC tally bins and corresponding `[Mesh]` elements
 already are exactly the same volume, then no special thought is needed for the tally
 normalization, and the value will be exactly consistent with the interpretation
 used in OpenMC.
+
+## Tally and Filter Editors
+
+Cardinal provides UserObjects for editing tallies and filters:
+
+  - [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
+  - [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
+
+These objects can be used to interact with tallies and/or filters that are
+present in a `tallies.xml` file for the problem being run (in other words,
+tallies the user manually sets up when building the OpenMC model). These objects
+can be used to create tallies and/or filters as well. In either case, these
+objects do not interact with tallies and filters used to map data to the mesh
+mirror ([#mapped]).
 
 ## Other Features
 

@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -16,11 +16,26 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "CardinalAppTypes.h"
-#include "ExecFlagRegistry.h"
+#pragma once
 
-#ifdef ENABLE_OPENMC_COUPLING
-const ExecFlagType EXEC_FILTER_EDITORS = registerExecFlag("EXEC_FILTER_EDITORS");
-const ExecFlagType EXEC_TALLY_EDITORS = registerExecFlag("EXEC_TALLY_EDITORS");
-const ExecFlagType EXEC_SEND_OPENMC_DENSITIES = registerExecFlag("SEND_OPENMC_DENSITIES");
-#endif
+#include "GeneralUserObject.h"
+
+class OpenMCProblemBase;
+
+/**
+ * User object that acts on aspects of the OpenMC simulation
+ */
+class OpenMCUserObject : public GeneralUserObject
+{
+public:
+  static InputParameters validParams();
+
+  OpenMCUserObject(const InputParameters & parameters);
+
+  /// We don't want this user object to execute in MOOSE's control
+  virtual void initialize() {}
+  virtual void finalize() {}
+  virtual void execute() {}
+
+  const OpenMCProblemBase * openmcProblem() const;
+};

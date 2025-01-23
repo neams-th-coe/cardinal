@@ -401,6 +401,12 @@ TallyBase::getWrappedTally() const
   return _local_tally;
 }
 
+int32_t
+TallyBase::getTallyID() const
+{
+  return getWrappedTally()->id();
+}
+
 std::vector<std::string>
 TallyBase::getScoreVars(const std::string & score) const
 {

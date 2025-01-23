@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -18,31 +18,56 @@
 
 #pragma once
 
-#include "GeneralUserObject.h"
+#include "OpenMCUserObject.h"
+
+#include "CardinalEnums.h"
+
+class OpenMCProblemBase;
 
 /**
- * User object to modify the nuclides in an OpenMC tally.
+ * User object to create and/or modify an OpenMC tally filter for a limited set of domain types.
  */
-class OpenMCTallyNuclides : public GeneralUserObject
+class OpenMCDomainFilterEditor : public OpenMCUserObject
 {
 public:
   static InputParameters validParams();
 
-  OpenMCTallyNuclides(const InputParameters & parameters);
+  OpenMCDomainFilterEditor(const InputParameters & parameters);
 
-  /// We don't want this user object to execute in MOOSE's control
-  virtual void execute() override {}
-
-  virtual void initialize() override {}
+  virtual void execute() override;
+  virtual void initialize() override{};
   virtual void finalize() override {}
 
-  /// Instead, we want to have a separate method that we can call from the OpenMC problem
-  virtual void setValue();
+  /**
+   * Get the index of the filter in OpenMC's data space
+   */
+  bool filterExists() const;
+
+  /**
+   * Return the index of the filter in the OpenMC data space
+   */
+  int32_t filterIndex() const;
+
+  /**
+   * Check that this object's filter type is valid and matches the type in the OpenMC data space
+   */
+  void checkFilterTypeMatch() const;
+
+  /**
+   * Error to throw if a filter ID is used in multiple editors
+   * @param[in] id ID to use in error message
+   */
+  void duplicateFilterError(const int32_t & id) const;
+
+  std::string filterTypeEnumToString(OpenMCFilterType t) const;
+  OpenMCFilterType stringToFilterTypeEnum(const std::string & s) const;
+
+  // Accessors
+  int32_t filterId() const { return _filter_id; }
 
 protected:
-  /// The tally index
-  int32_t _tally_index;
+  const bool & _create_filter;
 
-  /// Nuclide names
-  const std::vector<std::string> & _names;
+  int32_t _filter_id;
+  OpenMCFilterType _filter_type;
 };

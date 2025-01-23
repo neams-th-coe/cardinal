@@ -112,6 +112,11 @@ public:
   const openmc::Tally * getWrappedTally() const;
 
   /**
+   * Get the ID of the tally this object wraps.
+   */
+  int32_t getTallyID() const;
+
+  /**
    * Get the list of scores this tally uses.
    * @return list of scores this tally uses
    */

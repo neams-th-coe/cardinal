@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2021 UChicago Argonne, LLC                  */
+/*                  (c) 2024 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -20,29 +20,50 @@
 
 #include "OpenMCUserObject.h"
 
+class OpenMCProblemBase;
+
 /**
- * User object to modify the nuclide densities in an OpenMC material.
+ * User object to modify an OpenMC tally
  */
-class OpenMCNuclideDensities : public OpenMCUserObject
+class OpenMCTallyEditor : public OpenMCUserObject
 {
 public:
   static InputParameters validParams();
 
-  OpenMCNuclideDensities(const InputParameters & parameters);
+  OpenMCTallyEditor(const InputParameters & parameters);
 
-  /// Instead, we want to have a separate method that we can call from the OpenMC problem
-  virtual void setValue();
+  bool tallyExists() const;
+
+  /**
+   * Get the index of the tally in OpenMC's data space, creating it if necessary
+   * @return tally index
+   */
+  int32_t tallyIndex() const;
+
+  virtual void execute() override;
+  virtual void initialize() override{};
+  virtual void finalize() override {}
+
+  /**
+   * Error to throw if multiple tally editor objects have the same tally id
+   * @param[in] id ID to use in error message
+   */
+  void duplicateTallyError(const int32_t & id) const;
+
+  /**
+   * Error to throw if tally editor is trying to edit a tally Cardinal is
+   * controlling for multiphysics
+   * @param[in] id ID to use in error message
+   */
+  void mappedTallyError(const int32_t & id) const;
+
+  /**
+   * Get the tally ID
+   * @return tally ID
+   */
+  int32_t tallyId() const { return _tally_id; }
 
 protected:
-  /// The material ID
-  const int32_t & _material_id;
-
-  /// The material index
-  int32_t _material_index;
-
-  /// Nuclide names
-  const std::vector<std::string> & _names;
-
-  /// Nuclide densities
-  const std::vector<double> & _densities;
+  /// Tally ID to modify
+  const int32_t & _tally_id;
 };
