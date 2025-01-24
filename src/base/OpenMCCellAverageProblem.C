@@ -21,6 +21,7 @@
 #include "OpenMCCellAverageProblem.h"
 
 #include "DelimitedFileReader.h"
+#include "DisplacedProblem.h"
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
@@ -163,6 +164,10 @@ OpenMCCellAverageProblem::validParams()
                        "Number of particles to use for first iteration "
                        "when using Dufek-Gudowski relaxation");
 
+  params.addParam<bool>("use_displaced_mesh",
+                        false,
+                        "Whether OpenMCCellAverageProblem should use the displaced mesh ");
+
   params.addParam<UserObjectName>(
       "symmetry_mapper",
       "User object (of type SymmetryPointGenerator) "
@@ -209,6 +214,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
     _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
+    _use_displaced(getParam<bool>("use_displaced_mesh")),
     _volume_calc(nullptr),
     _symmetry(nullptr),
     _initial_num_openmc_surfaces(openmc::model::surfaces.size())
@@ -442,6 +448,16 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
   }
 }
 
+const MooseMesh &
+OpenMCCellAverageProblem::getMooseMesh() const
+{
+  if (_use_displaced && !_displaced_problem && !_first_transfer)
+    mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
+                 "Regular mesh will be returned");
+  return ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
+                                                                     : mesh());
+}
+
 void
 OpenMCCellAverageProblem::readBlockVariables(
     const std::string & param,
@@ -541,12 +557,12 @@ OpenMCCellAverageProblem::initialSetup()
     std::set<SubdomainID> t(_temp_blocks.begin(), _temp_blocks.end());
     std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
 
-    if (t != _mesh.meshSubdomains())
+    if (t != getMooseMesh().meshSubdomains())
       paramError("temperature_blocks",
                  "The 'skinner' requires temperature feedback to be applied over the entire mesh. "
                  "Please update `temperature_blocks` to include all blocks.");
 
-    if (d != _mesh.meshSubdomains() && _specified_density_feedback)
+    if (d != getMooseMesh().meshSubdomains() && _specified_density_feedback)
       paramError("density_blocks",
                  "The 'skinner' requires density feedback to be applied over the entire mesh. "
                  "Please update `density_blocks` to include all blocks.");
@@ -657,9 +673,9 @@ OpenMCCellAverageProblem::setupProblem()
 {
   // establish the local -> global element mapping for convenience
   _local_to_global_elem.clear();
-  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
   {
-    const auto * elem = _mesh.queryElemPtr(e);
+    const auto * elem = getMooseMesh().queryElemPtr(e);
     if (!isLocalElem(elem) || !elem->active())
       continue;
 
@@ -842,7 +858,7 @@ OpenMCCellAverageProblem::readBlockParameters(const std::string name,
     auto names = getParam<std::vector<SubdomainName>>(name);
     checkEmptyVector(names, "'" + name + "'");
 
-    auto b_ids = _mesh.getSubdomainIDs(names);
+    auto b_ids = getMooseMesh().getSubdomainIDs(names);
     std::copy(b_ids.begin(), b_ids.end(), std::inserter(blocks, blocks.end()));
     checkBlocksInMesh(name, b_ids, names);
   }
@@ -853,7 +869,7 @@ OpenMCCellAverageProblem::checkBlocksInMesh(const std::string name,
                                             const std::vector<SubdomainID> & ids,
                                             const std::vector<SubdomainName> & names) const
 {
-  const auto & subdomains = _mesh.meshSubdomains();
+  const auto & subdomains = getMooseMesh().meshSubdomains();
   for (std::size_t b = 0; b < names.size(); ++b)
     if (subdomains.find(ids[b]) == subdomains.end())
       mooseError("Block '" + names[b] + "' specified in '" + name + "' " + "not found in mesh!");
@@ -881,7 +897,7 @@ OpenMCCellAverageProblem::read2DBlockParameters(const std::string name,
       for (const auto & i : slice)
         flattened_names.push_back(i);
 
-    flattened_ids = _mesh.getSubdomainIDs(flattened_names);
+    flattened_ids = getMooseMesh().getSubdomainIDs(flattened_names);
     checkBlocksInMesh(name, flattened_ids, flattened_names);
 
     // should not be any duplicate blocks
@@ -951,7 +967,7 @@ OpenMCCellAverageProblem::storeElementPhase()
   for (const auto & s : excl_density_blocks)
     _n_moose_density_elems += numElemsInSubdomain(s);
 
-  _n_moose_none_elems = _mesh.getMesh().n_active_elem() - _n_moose_temp_density_elems -
+  _n_moose_none_elems = getMooseMesh().getMesh().n_active_elem() - _n_moose_temp_density_elems -
                         _n_moose_temp_elems - _n_moose_density_elems;
 }
 
@@ -966,7 +982,7 @@ OpenMCCellAverageProblem::computeCellMappedVolumes()
     for (const auto & e : c.second)
     {
       // we are looping over local elements, so no need to check for nullptr
-      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       vol += elem->volume();
     }
 
@@ -1046,7 +1062,7 @@ OpenMCCellAverageProblem::getCellMappedPhase()
 
     // we are looping over local elements, so no need to check for nullptr
     for (const auto & e : c.second)
-      f[elemFeedback(_mesh.queryElemPtr(globalElemID(e)))]++;
+      f[elemFeedback(getMooseMesh().queryElemPtr(globalElemID(e)))]++;
 
     cells_n_temp.push_back(f[coupling::temperature]);
     cells_n_temp_rho.push_back(f[coupling::density_and_temperature]);
@@ -1207,7 +1223,7 @@ OpenMCCellAverageProblem::printAuxVariableIO()
     VariadicTable<std::string, std::string, std::string> aux(
         {"Subdomain", "Temperature", "Density"});
 
-    for (const auto & s : _mesh.meshSubdomains())
+    for (const auto & s : getMooseMesh().meshSubdomains())
     {
       std::string temp = _subdomain_to_temp_vars.count(s) ? _subdomain_to_temp_vars[s].second : "";
       std::string rho =
@@ -1267,7 +1283,7 @@ OpenMCCellAverageProblem::getCellMappedSubdomains()
     for (const auto & e : c.second)
     {
       // we are looping over local elements, so no need to check for nullptr
-      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       elem_ids.push_back(elem->subdomain_id());
     }
   }
@@ -1536,7 +1552,7 @@ OpenMCCellAverageProblem::initializeElementToCellMapping()
     mooseError("Did not find any overlap between MOOSE elements and OpenMC cells for "
                "the specified blocks!");
 
-  _console << "\nMapping between " + Moose::stringify(_mesh.getMesh().n_active_elem()) +
+  _console << "\nMapping between " + Moose::stringify(getMooseMesh().getMesh().n_active_elem()) +
                   " MOOSE elements and " + Moose::stringify(_n_openmc_cells) +
                   " OpenMC cells (on " + Moose::stringify(openmc::model::n_coord_levels) +
                   " coordinate levels):"
@@ -1862,13 +1878,14 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // reset data structures
   _elem_to_cell.clear();
   _cell_to_elem.clear();
+  _subdomain_to_material.clear();
   _flattened_ids.clear();
   _flattened_instances.clear();
 
   int local_elem = -1;
-  for (unsigned int e = 0; e < _mesh.nElem(); ++e)
+  for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
   {
-    const auto * elem = _mesh.queryElemPtr(e);
+    const auto * elem = getMooseMesh().queryElemPtr(e);
 
     if (!isLocalElem(elem) || !elem->active())
       continue;
@@ -2006,7 +2023,7 @@ OpenMCCellAverageProblem::mapElemsToCells()
   // fill out the elem_to_cell structure
   // TODO: figure out how to shrink this so we only store the mapping for active
   // elements as opposed to the entire element hierarchy.
-  _elem_to_cell.resize(_mesh.nElem(), {UNMAPPED, UNMAPPED});
+  _elem_to_cell.resize(getMooseMesh().nElem(), {UNMAPPED, UNMAPPED});
   for (const auto & c : _cell_to_elem)
   {
     for (const auto & e : c.second)
@@ -2023,7 +2040,7 @@ OpenMCCellAverageProblem::getPointInCell()
   for (const auto & c : _local_cell_to_elem)
   {
     // we are only dealing with local elements here, no need to check for nullptr
-    const Elem * elem = _mesh.queryElemPtr(globalElemID(c.second[0]));
+    const Elem * elem = getMooseMesh().queryElemPtr(globalElemID(c.second[0]));
     const Point & p = elem->vertex_average();
 
     x.push_back(p(0));
@@ -2216,7 +2233,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     auto number = addExternalVariable(v.first, &v.second);
 
-    auto ids = _mesh.getSubdomainIDs(v.second);
+    auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
       _subdomain_to_density_vars[s] = {number, v.first};
   }
@@ -2226,7 +2243,7 @@ OpenMCCellAverageProblem::addExternalVariables()
   {
     auto number = addExternalVariable(v.first, &v.second);
 
-    auto ids = _mesh.getSubdomainIDs(v.second);
+    auto ids = getMooseMesh().getSubdomainIDs(v.second);
     for (const auto & s : ids)
       _subdomain_to_temp_vars[s] = {number, v.first};
   }
@@ -2291,7 +2308,7 @@ OpenMCCellAverageProblem::computeVolumeWeightedCellInput(
     for (const auto & e : c.second)
     {
       // we are only accessing local elements here, so no need to check for nullptr
-      const auto * elem = _mesh.queryElemPtr(globalElemID(e));
+      const auto * elem = getMooseMesh().queryElemPtr(globalElemID(e));
       auto v = var_num.at(elem->subdomain_id()).first;
       auto dof_idx = elem->dof_number(sys_number, v, 0);
       product += _serialized_solution(dof_idx) * elem->volume();
@@ -2596,7 +2613,10 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       {
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
-
+        if (_use_displaced)
+        {
+          _displaced_problem->updateMesh();
+        }
         resetTallies();
         setupProblem();
       }

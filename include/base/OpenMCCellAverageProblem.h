@@ -20,6 +20,8 @@
 
 #include "OpenMCProblemBase.h"
 #include "SymmetryPointGenerator.h"
+#include "OpenMCVolumeCalculation.h"
+#include "MooseMesh.h"
 
 /// Tally/filter includes.
 #include "TallyBase.h"
@@ -945,6 +947,9 @@ protected:
    */
   const bool _needs_global_tally;
 
+  /// Whether OpenMCCellAverageProblem should use the displaced mesh
+  const bool & _use_displaced;
+
   /**
    * A map of the filter objects created by the [Problem/Filters] block. The key for each filter is
    * it's corresponding MOOSE name to allow tallies to look up filters.
@@ -1104,6 +1109,9 @@ protected:
 
   /// Number of particles simulated in the first iteration
   unsigned int _n_particles_1;
+
+  /// Get a modifyable reference to the Moose mesh
+  virtual const MooseMesh & getMooseMesh() const;
 
   /// Mapping from temperature variable name to the subdomains on which to read it from
   std::map<std::string, std::vector<SubdomainName>> _temp_vars_to_blocks;
