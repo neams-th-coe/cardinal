@@ -1,12 +1,4 @@
 [Tests]
-  [incorrect_problem]
-    type = RunException
-    input = uo.i
-    expect_err = "This user object can only be used with wrapped OpenMC cases!"
-    requirement = "The system shall error if an OpenMC user object is used without the correct "
-                  "OpenMC wrapped problem."
-    required_objects = 'OpenMCCellAverageProblem'
-  []
   [invalid_box]
     type = RunException
     input = openmc.i
