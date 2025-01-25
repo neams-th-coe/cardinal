@@ -47,7 +47,9 @@ OpenMCTallyEditor::validParams()
 }
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
-  : GeneralUserObject(parameters), OpenMCBase(this, parameters), _tally_id(getParam<int32_t>("tally_id"))
+  : GeneralUserObject(parameters),
+    OpenMCBase(this, parameters),
+    _tally_id(getParam<int32_t>("tally_id"))
 {
   bool create_tally = getParam<bool>("create_tally");
 

@@ -25,8 +25,7 @@
 /**
  * User object to modify the nuclide densities in an OpenMC material.
  */
-class OpenMCNuclideDensities : public GeneralUserObject,
-                               public OpenMCBase
+class OpenMCNuclideDensities : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();

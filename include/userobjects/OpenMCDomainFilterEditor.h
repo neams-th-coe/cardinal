@@ -29,8 +29,7 @@ class OpenMCProblemBase;
 /**
  * User object to create and/or modify an OpenMC tally filter for a limited set of domain types.
  */
-class OpenMCDomainFilterEditor : public GeneralUserObject,
-                                 public OpenMCBase
+class OpenMCDomainFilterEditor : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();

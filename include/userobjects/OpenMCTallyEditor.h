@@ -27,8 +27,7 @@ class OpenMCProblemBase;
 /**
  * User object to modify an OpenMC tally
  */
-class OpenMCTallyEditor : public GeneralUserObject,
-                          public OpenMCBase
+class OpenMCTallyEditor : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();

@@ -27,8 +27,7 @@
  * Class that computes a volume calculation over the OpenMC model
  * based on information from the OpenMC wrapping (OpenMCCellAverageProblem).
  */
-class OpenMCVolumeCalculation : public GeneralUserObject,
-                                public OpenMCBase
+class OpenMCVolumeCalculation : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();
