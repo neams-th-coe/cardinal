@@ -27,7 +27,7 @@ module load spack-pe-base cmake
 module load cray-python/3.11.5
 
 # Revise for your Cardinal repository location
-DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME/projects
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
 
 # This is needed because your home directory on Polaris is actually a symlink
 HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
