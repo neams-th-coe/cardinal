@@ -22,6 +22,10 @@
 #include "CardinalAppTypes.h"
 #include "AddTallyAction.h"
 
+#include "OpenMCNuclideDensities.h"
+#include "OpenMCDomainFilterEditor.h"
+#include "OpenMCTallyEditor.h"
+
 InputParameters
 OpenMCProblemBase::validParams()
 {

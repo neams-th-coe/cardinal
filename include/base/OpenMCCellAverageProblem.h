@@ -20,7 +20,6 @@
 
 #include "OpenMCProblemBase.h"
 #include "SymmetryPointGenerator.h"
-#include "OpenMCVolumeCalculation.h"
 
 /// Tally/filter includes.
 #include "TallyBase.h"
@@ -30,6 +29,9 @@
 #include "MoabSkinner.h"
 #include "DagMC.hpp"
 #endif
+
+/// Forward declarations to avoid cyclic dependencies.
+class OpenMCVolumeCalculation;
 
 /**
  * Mapping of OpenMC to a collection of MOOSE elements, with temperature and/or

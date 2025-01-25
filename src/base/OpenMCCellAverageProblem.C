@@ -23,6 +23,7 @@
 #include "TallyBase.h"
 #include "CellTally.h"
 #include "AddTallyAction.h"
+#include "OpenMCVolumeCalculation.h"
 #include "CreateDisplacedProblemAction.h"
 
 #include "openmc/constants.h"
