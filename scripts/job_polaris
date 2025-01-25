@@ -1,0 +1,49 @@
+#!/bin/bash -l
+
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input file names in this script
+# 3. qsub job_polaris
+
+#PBS -A AFFINITY
+#PBS -l select=1:ncpus=32:mpiprocs=32
+#PBS -l walltime=00:10:00
+#PBS -q prod
+#PBS -j oe
+#PBS -N cardinal
+#PBS -l filesystems=home
+
+#PBS -m bea
+#PBS -M <your_email_address>
+
+module restore
+module use /soft/modulefiles
+module load PrgEnv-gnu
+module load nvhpc-mixed/23.9
+module load craype-accel-nvidia80
+module load cudatoolkit-standalone/12.5.0
+module load craype-x86-milan
+module load spack-pe-base cmake
+module load cray-python/3.11.5
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME/projects
+
+# This is needed because your home directory on Polaris is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
+export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
+
+# The name of the input file you want to run
+input_file=openmc.i
+
+# Moving into the working directory (where the job script was launched).
+echo "Working directory: $PBS_O_WORKDIR"
+cd $PBS_O_WORKDIR
+
+# Run a Cardinal case
+mpirun -np 32 $CARDINAL_DIR/cardinal-opt -i $input_file > logfile.txt
