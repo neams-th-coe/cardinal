@@ -19,7 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCTallyEditor.h"
-#include "OpenMCProblemBase.h"
 #include "openmc/tallies/tally.h"
 
 registerMooseObject("CardinalApp", OpenMCTallyEditor);
@@ -28,6 +27,7 @@ InputParameters
 OpenMCTallyEditor::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
+  params += OpenMCBase::validParams();
   params.addParam<bool>("create_tally", false, "Whether to create the tally if it doesn't exist");
   params.addRequiredParam<int32_t>("tally_id", "The ID of the tally to modify");
   params.addRequiredParam<std::vector<std::string>>("scores", "The scores to apply in the tally");
@@ -47,7 +47,7 @@ OpenMCTallyEditor::validParams()
 }
 
 OpenMCTallyEditor::OpenMCTallyEditor(const InputParameters & parameters)
-  : OpenMCUserObject(parameters), _tally_id(getParam<int32_t>("tally_id"))
+  : GeneralUserObject(parameters), OpenMCBase(this, parameters), _tally_id(getParam<int32_t>("tally_id"))
 {
   bool create_tally = getParam<bool>("create_tally");
 

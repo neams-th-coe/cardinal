@@ -27,7 +27,8 @@ registerMooseObject("CardinalApp", OpenMCVolumeCalculation);
 InputParameters
 OpenMCVolumeCalculation::validParams()
 {
-  InputParameters params = OpenMCUserObject::validParams();
+  InputParameters params = GeneralUserObject::validParams();
+  params += OpenMCBase::validParams();
   params.addParam<Point>("lower_left", "Lower left of the bounding box inside of which to "
     "compute volumes. If not specified, this will default to the lower left of the [Mesh] "
     "(which will NOT capture any OpenMC geometry that lies outside the [Mesh] extents.");
@@ -47,7 +48,8 @@ OpenMCVolumeCalculation::validParams()
 }
 
 OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & parameters)
-  : OpenMCUserObject(parameters),
+  : GeneralUserObject(parameters),
+    OpenMCBase(this, parameters),
     _n_samples(getParam<unsigned int>("n_samples")),
     _trigger(getParam<MooseEnum>("trigger"))
 {
@@ -61,8 +63,7 @@ OpenMCVolumeCalculation::OpenMCVolumeCalculation(const InputParameters & paramet
   else
     mooseError("Unhandled trigger enum in OpenMCCellVolumeCalculation!");
 
-  auto openmc_problem = openmcProblem();
-  _scaling = openmc_problem->scaling();
+  _scaling = _openmc_problem->scaling();
 
   BoundingBox box = MeshTools::create_bounding_box(_fe_problem.mesh());
   _lower_left = isParamValid("lower_left") ? getParam<Point>("lower_left") : box.min();
@@ -103,8 +104,6 @@ OpenMCVolumeCalculation::resetVolumeCalculation()
 void
 OpenMCVolumeCalculation::initializeVolumeCalculation()
 {
-  auto openmc_problem = dynamic_cast<const OpenMCCellAverageProblem *>(&_fe_problem);
-
   _volume_calc.reset(new openmc::VolumeCalculation());
   _volume_calc->domain_type_ = openmc::VolumeCalculation::TallyDomain::CELL;
   _volume_calc->lower_left_ = position(_lower_left * _scaling);
@@ -117,7 +116,7 @@ OpenMCVolumeCalculation::initializeVolumeCalculation()
     _volume_calc->trigger_type_ = openmc::TriggerMetric::relative_error;
   }
 
-  auto cell_to_elem = openmc_problem->cellToElem();
+  auto cell_to_elem = _openmc_problem->cellToElem();
 
   std::set<int> ids;
   _index_to_calc_index.clear();
