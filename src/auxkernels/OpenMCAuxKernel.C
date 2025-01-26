@@ -20,27 +20,104 @@
 
 #include "OpenMCAuxKernel.h"
 
+template <typename ComputeValueType>
 InputParameters
-OpenMCAuxKernel::validParams()
+OpenMCAuxKernelTempl<ComputeValueType>::validParams()
 {
-  InputParameters params = AuxKernel::validParams();
+  InputParameters params = AuxKernelTempl<ComputeValueType>::validParams();
   params += OpenMCBase::validParams();
   return params;
 }
 
-OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters)
-  : AuxKernel(parameters), OpenMCBase(this, parameters)
+template <typename ComputeValueType>
+OpenMCAuxKernelTempl<ComputeValueType>::OpenMCAuxKernelTempl(const InputParameters & parameters)
+  : AuxKernelTempl<ComputeValueType>(parameters), OpenMCBase(this, parameters)
 {
-  if (isNodal())
+  if (this->isNodal())
     mooseError("This auxkernel can only be used with elemental variables!");
 }
 
+template <typename ComputeValueType>
 bool
-OpenMCAuxKernel::mappedElement()
+OpenMCAuxKernelTempl<ComputeValueType>::mappedElement()
 {
   OpenMCCellAverageProblem::cellInfo cell_info =
-      _openmc_problem->elemToCellInfo(_current_elem->id());
+      _openmc_problem->elemToCellInfo(this->_current_elem->id());
   return !(cell_info.first == OpenMCCellAverageProblem::UNMAPPED);
 }
+
+template <typename ComputeValueType>
+std::vector<const MooseVariableFE<Real> *>
+OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreVariables(const std::string & score)
+{
+  std::vector<const MooseVariableFE<Real> *> score_vars;
+  const auto & tallies = _openmc_problem->getLocalTally();
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(dynamic_cast<const MooseVariableFE<Real> *>(
+            &this->_subproblem.getVariable(this->_tid, v)));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
+template <typename ComputeValueType>
+std::vector<const VariableValue *>
+OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreVariableValues(const std::string & score)
+{
+  std::vector<const VariableValue *> score_vars;
+  const auto & tallies = _openmc_problem->getLocalTally();
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(
+            &(dynamic_cast<MooseVariableFE<Real> *>(&this->_subproblem.getVariable(this->_tid, v))->sln()));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
+template <typename ComputeValueType>
+std::vector<const VariableValue *>
+OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreNeighborVariableValues(const std::string & score)
+{
+  std::vector<const VariableValue *> score_vars;
+  const auto & tallies = _openmc_problem->getLocalTally();
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(
+            &(dynamic_cast<MooseVariableFE<Real> *>(&this->_subproblem.getVariable(this->_tid, v))->slnNeighbor()));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
+// Explicitly instantiates the three versions of the OpenMCAuxKernelTempl class
+template class OpenMCAuxKernelTempl<Real>;
+template class OpenMCAuxKernelTempl<RealVectorValue>;
+template class OpenMCAuxKernelTempl<RealEigenVector>;
 
 #endif
