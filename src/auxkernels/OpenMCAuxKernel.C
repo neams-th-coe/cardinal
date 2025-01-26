@@ -82,7 +82,8 @@ OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreVariableValues(const std::s
       auto vars = t->getScoreVars(score);
       for (const auto & v : vars)
         score_vars.emplace_back(
-            &(dynamic_cast<MooseVariableFE<Real> *>(&this->_subproblem.getVariable(this->_tid, v))->sln()));
+            &(dynamic_cast<MooseVariableFE<Real> *>(&this->_subproblem.getVariable(this->_tid, v))
+                  ->sln()));
     }
   }
 
@@ -94,7 +95,8 @@ OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreVariableValues(const std::s
 
 template <typename ComputeValueType>
 std::vector<const VariableValue *>
-OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreNeighborVariableValues(const std::string & score)
+OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreNeighborVariableValues(
+    const std::string & score)
 {
   std::vector<const VariableValue *> score_vars;
   const auto & tallies = _openmc_problem->getLocalTally();
@@ -105,7 +107,8 @@ OpenMCAuxKernelTempl<ComputeValueType>::getTallyScoreNeighborVariableValues(cons
       auto vars = t->getScoreVars(score);
       for (const auto & v : vars)
         score_vars.emplace_back(
-            &(dynamic_cast<MooseVariableFE<Real> *>(&this->_subproblem.getVariable(this->_tid, v))->slnNeighbor()));
+            &(dynamic_cast<MooseVariableFE<Real> *>(&this->_subproblem.getVariable(this->_tid, v))
+                  ->slnNeighbor()));
     }
   }
 
