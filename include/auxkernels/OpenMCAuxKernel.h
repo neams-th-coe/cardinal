@@ -19,13 +19,14 @@
 #pragma once
 
 #include "AuxKernel.h"
+#include "OpenMCBase.h"
 #include "OpenMCCellAverageProblem.h"
 
 /**
  * Base auxkernel from which to inherit auxkernels that query
  * the OpenMC problem.
  */
-class OpenMCAuxKernel : public AuxKernel
+class OpenMCAuxKernel : public AuxKernel, public OpenMCBase
 {
 public:
   OpenMCAuxKernel(const InputParameters & parameters);
@@ -41,6 +42,4 @@ protected:
    * @return whether element maps to OpenMC
    */
   bool mappedElement();
-
-  OpenMCCellAverageProblem * _openmc_problem;
 };

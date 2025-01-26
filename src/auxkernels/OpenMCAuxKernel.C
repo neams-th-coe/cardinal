@@ -24,16 +24,12 @@ InputParameters
 OpenMCAuxKernel::validParams()
 {
   InputParameters params = AuxKernel::validParams();
+  params += OpenMCBase::validParams();
   return params;
 }
 
-OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) : AuxKernel(parameters)
+OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) : AuxKernel(parameters), OpenMCBase(this, parameters)
 {
-  _openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(&_subproblem);
-
-  if (!_openmc_problem)
-    mooseError("This auxkernel can only be used with problems of type 'OpenMCCellAverageProblem'!");
-
   if (isNodal())
     mooseError("This auxkernel can only be used with elemental variables!");
 }
