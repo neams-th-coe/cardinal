@@ -84,6 +84,73 @@ export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1
 
 !listing scripts/job_bebop language=bash caption=Sample job script for Bebop with the `startup` project code id=bb2
 
+## Polaris
+
+[Polaris](https://docs.alcf.anl.gov/polaris/getting-started/)
+is an [!ac](HPC) system at [!ac](ANL) with 560 AMD EPYC single-socket
+nodes (32 cores per node). Each node also contains four NVIDIA A100
+GPU accelerators. In order to build Cardinal with GPU support, set
+the appropriate variable in the `Makefile` to true (`1`):
+
+```
+OCCA_CUDA_ENABLED=1
+OCCA_HIP_ENABLED=0
+OCCA_OPENCL_ENABLED=0
+```
+
+Additionally, Polaris does not provide an MPI-wrapped F77 compiler and
+so the MOOSE solid mechanics module must be disabled in the `Makefile`:
+
+```
+SOLID_MECHANICS     := no
+```
+
+When building the PETSc, libMesh, and Wasp dependencies from the scripts, you'll also
+need to pass some additional settings to libMesh to disable XDR output.
+
+```
+./contrib/moose/scripts/update_and_rebuild_petsc.sh
+./contrib/moose/scripts/update_and_rebuild_libmesh.sh --disable-xdr-required --disable-xdr
+./contrib/moose/scripts/update_and_rebuild_wasp.sh
+```
+
+!listing! language=bash caption=Sample `~/.bashrc` for Polaris id=po1
+module restore
+module use /soft/modulefiles
+module load PrgEnv-gnu
+module load nvhpc-mixed/23.9
+module load craype-accel-nvidia80
+module load cudatoolkit-standalone/12.5.0
+module load craype-x86-milan
+module load spack-pe-base cmake
+module load cray-python/3.11.5
+
+export CC=cc
+export CXX=CC
+export FC=ftn
+
+export F77=ftn
+export F90=ftn
+
+export ENABLE_NEK=yes
+export ENABLE_OPENMC=yes
+export ENABLE_DAGMC=yes
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Polaris is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
+export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
+!listing-end!
+
+!listing scripts/job_polaris language=bash caption=Sample job script for Polaris id=po2
+
 ## Frontier
 
 Frontier is an [!ac](HPC) system at [!ac](ORNL) with 9408 AMD compute nodes, each with

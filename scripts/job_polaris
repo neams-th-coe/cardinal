@@ -1,0 +1,85 @@
+#!/bin/bash -l
+
+# Usage:
+# 1. Copy to the directory where you have your files
+# 2. Update any needed environment variables and input file names in this script
+# 3. qsub job_polaris
+
+#PBS -A AFFINITY
+#PBS -l select=1
+#PBS -l place=scatter
+#PBS -l walltime=00:30:00
+#PBS -q prod
+#PBS -j oe
+#PBS -N cardinal
+#PBS -l filesystems=home
+
+#PBS -m bea
+#PBS -M <your_email_address>
+
+set -e
+
+nodes=`wc -l < $PBS_NODEFILE`
+gpu_per_node=4
+cores_per_numa=8
+let threads_per_numa=$cores_per_numa*2
+let nn=$nodes*$gpu_per_node
+let ntasks=nn
+
+striping_unit=16777216
+max_striping_factor=128
+set +e; let striping_factor=$nodes/2; set -e
+if [ $striping_factor -gt $max_striping_factor ]; then
+  striping_factor=$max_striping_factor
+fi
+if [ $striping_factor -lt 1 ]; then
+  striping_factor=1
+fi
+
+module restore
+module use /soft/modulefiles
+module load PrgEnv-gnu
+module load nvhpc-mixed/23.9
+module load craype-accel-nvidia80
+module load cudatoolkit-standalone/12.5.0
+module load craype-x86-milan
+module load spack-pe-base cmake
+module load cray-python/3.11.5
+
+# Revise for your Cardinal repository location
+DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME
+
+# This is needed because your home directory on Polaris is actually a symlink
+HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
+export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
+
+# Revise for your cross sections location
+export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
+export CARDINAL_DIR=$HOME_DIRECTORY_SYM_LINK/cardinal
+
+export NEKRS_GPU_MPI=1
+export NEKRS_CACHE_BCAST=0
+export NEKRS_LOCAL_TMP_DIR=/local/scratch
+export MPICH_MPIIO_HINTS="*:striping_unit=${striping_unit}:striping_factor=${striping_factor}:romio_cb_write=enable:romio_ds_write=disable:romio_no_indep_rw=true"
+export MPICH_MPIIO_STATS=1
+export MPICH_GPU_SUPPORT_ENABLED=1
+export MPICH_OFI_NIC_POLICY=NUMA
+
+ulimit -s unlimited
+
+# Change the directory to work directory, which is the directory you submit the job.
+cd $PBS_O_WORKDIR
+
+CMD=.lhelper
+echo "#!/bin/bash" >$CMD
+echo "gpu_id=\$((${gpu_per_node} - 1 - \${PMI_LOCAL_RANK} % ${gpu_per_node}))" >>$CMD
+echo "export CUDA_VISIBLE_DEVICES=\$gpu_id" >>$CMD
+echo "\$*" >>$CMD
+chmod 755 $CMD
+
+# The name of the input file you want to run
+input_file=openmc.i
+
+# Run a Cardinal case
+mpiexec -n $ntasks -ppn $gpu_per_node -d $cores_per_numa --cpu-bind depth ./$CMD $CARDINAL_DIR/cardinal-opt -i $input_file --nekrs-backend CUDA --nekrs-device-id 0 --n-threads=$threads_per_numa > logfile.txt
