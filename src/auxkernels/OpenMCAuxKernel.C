@@ -28,7 +28,8 @@ OpenMCAuxKernel::validParams()
   return params;
 }
 
-OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters) : AuxKernel(parameters), OpenMCBase(this, parameters)
+OpenMCAuxKernel::OpenMCAuxKernel(const InputParameters & parameters)
+  : AuxKernel(parameters), OpenMCBase(this, parameters)
 {
   if (isNodal())
     mooseError("This auxkernel can only be used with elemental variables!");
