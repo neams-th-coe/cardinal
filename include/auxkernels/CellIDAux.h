@@ -18,14 +18,12 @@
 
 #pragma once
 
-#include "AuxKernel.h"
-
-#include "OpenMCBase.h"
+#include "OpenMCAuxKernel.h"
 
 /**
  * Auxkernel to display the mapping of OpenMC cell IDs to elements.
  */
-class CellIDAux : public AuxKernel, public OpenMCBase
+class CellIDAux : public OpenMCAuxKernel
 {
 public:
   CellIDAux(const InputParameters & parameters);

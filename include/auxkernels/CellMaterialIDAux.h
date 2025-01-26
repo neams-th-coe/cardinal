@@ -18,14 +18,12 @@
 
 #pragma once
 
-#include "AuxKernel.h"
-
-#include "OpenMCBase.h"
+#include "OpenMCAuxKernel.h"
 
 /**
  * Auxkernel to display the mapping of OpenMC cell material IDs to MOOSE elements.
  */
-class CellMaterialIDAux : public AuxKernel, public OpenMCBase
+class CellMaterialIDAux : public OpenMCAuxKernel
 {
 public:
   CellMaterialIDAux(const InputParameters & parameters);

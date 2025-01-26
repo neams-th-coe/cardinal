@@ -16,40 +16,31 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
+#pragma once
 
-#include "PointTransformationAux.h"
+#include "AuxKernel.h"
+#include "OpenMCCellAverageProblem.h"
 
-registerMooseObject("CardinalApp", PointTransformationAux);
-
-InputParameters
-PointTransformationAux::validParams()
+/**
+ * Base auxkernel from which to inherit auxkernels that query
+ * the OpenMC problem.
+ */
+class OpenMCAuxKernel : public AuxKernel
 {
-  InputParameters params = OpenMCAuxKernel::validParams();
-  MooseEnum direction("x y z");
-  params.addRequiredParam<MooseEnum>(
-      "component", direction, "Component to visualize with this auxiliary kernel");
+public:
+  OpenMCAuxKernel(const InputParameters & parameters);
 
-  params.addClassDescription("Spatial point transformation used for points sent in/out of OpenMC");
-  return params;
-}
+  static InputParameters validParams();
 
-PointTransformationAux::PointTransformationAux(const InputParameters & parameters)
-  : OpenMCAuxKernel(parameters), _d(getParam<MooseEnum>("component"))
-{
-}
+protected:
+  virtual Real computeValue() = 0;
 
-Real
-PointTransformationAux::computeValue()
-{
-  Point pt;
+  /**
+   * Determine whether the MOOSE element maps to an OpenMC cell to make sure we don't call
+   * accessor methods that rely on valid values for the cell instance and index
+   * @return whether element maps to OpenMC
+   */
+  bool mappedElement();
 
-  if (!_openmc_problem->hasPointTransformations())
-    pt = _current_elem->vertex_average();
-  else
-    pt = _openmc_problem->transformPoint(_current_elem->vertex_average());
-
-  return pt(_d);
-}
-
-#endif
+  OpenMCCellAverageProblem * _openmc_problem;
+};

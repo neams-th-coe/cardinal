@@ -27,8 +27,7 @@ registerMooseObject("CardinalApp", CellVolumeAux);
 InputParameters
 CellVolumeAux::validParams()
 {
-  InputParameters params = AuxKernel::validParams();
-  params += OpenMCBase::validParams();
+  InputParameters params = OpenMCAuxKernel::validParams();
 
   MooseEnum vol_type("mapped actual");
   params.addRequiredParam<MooseEnum>("volume_type", vol_type,
@@ -41,8 +40,7 @@ CellVolumeAux::validParams()
 }
 
 CellVolumeAux::CellVolumeAux(const InputParameters & parameters)
-  : AuxKernel(parameters),
-    OpenMCBase(this, parameters),
+  : OpenMCAuxKernel(parameters),
     _volume_type(getParam<MooseEnum>("volume_type"))
 {
 }
@@ -58,7 +56,7 @@ CellVolumeAux::computeValue()
   // if the element doesn't map to an OpenMC cell, return a volume of -1; this is required
   // because otherwise OpenMC would throw an error for an invalid instance, index pair passed to the
   // C-API
-  if (!mappedElement(_current_elem))
+  if (!mappedElement())
     return OpenMCCellAverageProblem::UNMAPPED;
 
   OpenMCCellAverageProblem::cellInfo cell_info =
