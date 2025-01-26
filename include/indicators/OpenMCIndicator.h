@@ -18,39 +18,38 @@
 
 #pragma once
 
-#include "OpenMCIndicator.h"
+#include "Indicator.h"
 
-/**
- * An Indicator which returns an estimate of the optical depth experienced by photons/neutrons which
- * traverse the element.
- */
-class ElementOpticalDepthIndicator : public OpenMCIndicator
+#include "OpenMCCellAverageProblem.h"
+
+class OpenMCIndicator : public Indicator
 {
 public:
   static InputParameters validParams();
 
-  ElementOpticalDepthIndicator(const InputParameters & parameters);
-
-  virtual void computeIndicator() override;
+  OpenMCIndicator(const InputParameters & parameters);
 
 protected:
-  /// The type of element length to use for estimating the optical depth.
-  enum class HType
-  {
-    Min = 0,
-    Max = 1,
-    CubeRoot = 2
-  } _h_type;
+  /**
+   * Get the variable(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score);
 
   /**
-   * The variables containing the reaction rate. This needs to be a vector because the reaction rate
-   * score may have filters applied, and so we need to sum the reaction rate over all filter bins.
+   * Get the variable value(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
    */
-  std::vector<const VariableValue *> _rxn_rates;
+  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score);
 
-  /**
-   * The variables containing the scalar flux. This needs to be a vector because the scalar flux
-   * score may have filters applied, and so we need to sum the scalar fluxes over all filter bins.
-   */
-  std::vector<const VariableValue *> _scalar_fluxes;
+  /// The OpenMCCellAverageProblem associated with this indicator.
+  const OpenMCCellAverageProblem * _openmc_problem;
+
+  /// The field variable holding the results of this indicator.
+  MooseVariable & _field_var;
+
+  /// The current element.
+  const Elem * const & _current_elem;
 };

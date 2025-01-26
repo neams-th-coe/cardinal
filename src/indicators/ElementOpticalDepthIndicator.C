@@ -28,8 +28,7 @@ registerMooseObject("CardinalApp", ElementOpticalDepthIndicator);
 InputParameters
 ElementOpticalDepthIndicator::validParams()
 {
-  auto params = Indicator::validParams();
-  params += OpenMCBase::validParams();
+  auto params = OpenMCIndicator::validParams();
   params.addClassDescription(
       "A class which returns the estimate of a given element's optical depth under the assumption "
       "that "
@@ -49,11 +48,7 @@ ElementOpticalDepthIndicator::validParams()
 }
 
 ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters & parameters)
-  : Indicator(parameters),
-    OpenMCBase(this, parameters),
-    _field_var(_subproblem.getStandardVariable(_tid, name())),
-    _current_elem(_field_var.currentElem()),
-    _h_type(getParam<MooseEnum>("h_type").getEnum<HType>())
+  : OpenMCIndicator(parameters), _h_type(getParam<MooseEnum>("h_type").getEnum<HType>())
 {
   std::string score = getParam<MooseEnum>("rxn_rate");
   std::replace(score.begin(), score.end(), '_', '-');
@@ -80,9 +75,9 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
 
   // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
   bool const_mon = true;
-  for (const auto v : getTallyScoreVariables(score, _tid))
+  for (const auto v : getTallyScoreVariables(score))
     const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
-  for (const auto v : getTallyScoreVariables("flux", _tid))
+  for (const auto v : getTallyScoreVariables("flux"))
     const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
 
   if (!const_mon)
@@ -91,8 +86,8 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
                "Please ensure your [Tallies] are adding CONSTANT MONOMIAL field variables.");
 
   // Grab the reaction rate / flux variables from the [Tallies].
-  _rxn_rates = getTallyScoreVariableValues(score, _tid);
-  _scalar_fluxes = getTallyScoreVariableValues("flux", _tid);
+  _rxn_rates = getTallyScoreVariableValues(score);
+  _scalar_fluxes = getTallyScoreVariableValues("flux");
 }
 
 void
