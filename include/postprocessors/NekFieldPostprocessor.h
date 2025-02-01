@@ -18,14 +18,14 @@
 
 #pragma once
 
-#include "NekPostprocessor.h"
+#include "NekVolumePostprocessor.h"
 #include "CardinalEnums.h"
 
 /**
- * Base class for NekRS postprocessors that operate on fields,
+ * Base class for NekRS postprocessors that operate on fields in volumes,
  * such as for taking averages of a field variable.
  */
-class NekFieldPostprocessor : public NekPostprocessor
+class NekFieldPostprocessor : public NekVolumePostprocessor
 {
 public:
   static InputParameters validParams();
