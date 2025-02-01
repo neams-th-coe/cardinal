@@ -29,7 +29,8 @@ NekFunctionNorm::validParams()
   InputParameters params = NekFieldPostprocessor::validParams();
   params.addRequiredParam<FunctionName>("function", "Function to use for computing the norm");
   params.addRangeCheckedParam<unsigned int>("N", 2, "N>0", "L$^N$ norm to use");
-  params.addClassDescription("Integrated L$^N$ norm of a NekRS solution field, relative to a provided function, over the NekRS mesh");
+  params.addClassDescription("Integrated L$^N$ norm of a NekRS solution field, relative to a "
+                             "provided function, over the NekRS mesh");
   return params;
 }
 
@@ -39,7 +40,9 @@ NekFunctionNorm::NekFunctionNorm(const InputParameters & parameters)
     _N(getParam<unsigned int>("N"))
 {
   if (_nek_problem->nondimensional())
-    mooseError("The NekFunctionNorm object does not yet support non-dimensional runs! Please contact the development team to accelerate this feature addition to support your use case.");
+    mooseError(
+        "The NekFunctionNorm object does not yet support non-dimensional runs! Please contact the "
+        "development team to accelerate this feature addition to support your use case.");
 }
 
 Real

@@ -517,7 +517,11 @@ double volumeIntegral(const field::NekFieldEnum & integrand,
  * @param[in] N order of the norm
  * @return integrated L^N norm of the NekRS field, relative to a function
  */
-double functionNorm(const field::NekFieldEnum & integrand, const nek_mesh::NekMeshEnum pp_mesh, const Function & function, const Real & time, const unsigned int & N);
+double functionNorm(const field::NekFieldEnum & integrand,
+                    const nek_mesh::NekMeshEnum pp_mesh,
+                    const Function & function,
+                    const Real & time,
+                    const unsigned int & N);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs

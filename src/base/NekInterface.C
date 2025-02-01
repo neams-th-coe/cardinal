@@ -916,7 +916,11 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 }
 
 double
-functionNorm(const field::NekFieldEnum & integrand, const nek_mesh::NekMeshEnum pp_mesh, const Function & function, const Real & time, const unsigned int & N)
+functionNorm(const field::NekFieldEnum & integrand,
+             const nek_mesh::NekMeshEnum pp_mesh,
+             const Function & function,
+             const Real & time,
+             const unsigned int & N)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
