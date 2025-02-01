@@ -18,32 +18,34 @@
 
 #ifdef ENABLE_NEK_COUPLING
 
-#include "NekFunctionL2Norm.h"
+#include "NekFunctionNorm.h"
 #include "NekInterface.h"
 
-registerMooseObject("CardinalApp", NekFunctionL2Norm);
+registerMooseObject("CardinalApp", NekFunctionNorm);
 
 InputParameters
-NekFunctionL2Norm::validParams()
+NekFunctionNorm::validParams()
 {
   InputParameters params = NekFieldPostprocessor::validParams();
   params.addRequiredParam<FunctionName>("function", "Function to use for computing the norm");
-  params.addClassDescription("Integrated L2 norm of a NekRS solution field, relative to a provided function, over the NekRS mesh");
+  params.addRangeCheckedParam<unsigned int>("N", 2, "N>0", "L$^N$ norm to use");
+  params.addClassDescription("Integrated L$^N$ norm of a NekRS solution field, relative to a provided function, over the NekRS mesh");
   return params;
 }
 
-NekFunctionL2Norm::NekFunctionL2Norm(const InputParameters & parameters)
+NekFunctionNorm::NekFunctionNorm(const InputParameters & parameters)
   : NekFieldPostprocessor(parameters),
-    _function(getFunction("function"))
+    _function(getFunction("function")),
+    _N(getParam<unsigned int>("N"))
 {
   if (_nek_problem->nondimensional())
-    mooseError("The NekFunctionL2Norm object does not yet support non-dimensional runs! Please contact the development team to accelerate this feature addition to support your use case.");
+    mooseError("The NekFunctionNorm object does not yet support non-dimensional runs! Please contact the development team to accelerate this feature addition to support your use case.");
 }
 
 Real
-NekFunctionL2Norm::getValue() const
+NekFunctionNorm::getValue() const
 {
-  return nekrs::functionL2Norm(_field, _pp_mesh, _function, _t);
+  return nekrs::functionNorm(_field, _pp_mesh, _function, _t, _N);
 }
 
 #endif

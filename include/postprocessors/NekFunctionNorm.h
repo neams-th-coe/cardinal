@@ -23,22 +23,25 @@
 #include "Function.h"
 
 /**
- * Compute the L2 norm of a NekRS solution field relative to a function,
+ * Compute the L$^N$ norm of a NekRS solution field relative to a function,
  * integrated over the NekRS mesh.
  *
  * Note that this calculation is done directly on the mesh that NekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekFunctionL2Norm : public NekFieldPostprocessor
+class NekFunctionNorm : public NekFieldPostprocessor
 {
 public:
   static InputParameters validParams();
 
-  NekFunctionL2Norm(const InputParameters & parameters);
+  NekFunctionNorm(const InputParameters & parameters);
 
   virtual Real getValue() const override;
 
 protected:
   /// Function to use for computing the norm
   const Function & _function;
+
+  /// Order of the norm
+  const unsigned int & _N;
 };

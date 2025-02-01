@@ -916,8 +916,7 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 }
 
 double
-functionL2Norm(const field::NekFieldEnum & integrand,
-               const nek_mesh::NekMeshEnum pp_mesh, const Function & function, const Real & time)
+functionNorm(const field::NekFieldEnum & integrand, const nek_mesh::NekMeshEnum pp_mesh, const Function & function, const Real & time, const unsigned int & N)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 
@@ -935,7 +934,7 @@ functionL2Norm(const field::NekFieldEnum & integrand,
       auto n = offset + v;
       const Point p(mesh->x[n], mesh->y[n], mesh->z[n]);
       auto f_value = function.value(time, p);
-      integral += (f(n) - f_value) * (f(n) - f_value) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+      integral += std::pow(f(n) - f_value, N) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
     }
   }
 
@@ -945,7 +944,7 @@ functionL2Norm(const field::NekFieldEnum & integrand,
 
   // TODO: this function does not have the dimensionalization implemented yet
 
-  return std::sqrt(total_integral);
+  return std::pow(total_integral, 1.0 / double(N));
 }
 
 double
