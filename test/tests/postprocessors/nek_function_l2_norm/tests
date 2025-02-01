@@ -1,0 +1,12 @@
+[Tests]
+  design = 'NekFunctionL2Norm.md'
+  issues = '#1043'
+
+  [nek_function_l2_norm]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = 'The system shall allow computing the integrated L2 norm of a NekRS solution field relative to a MOOSE function. The gold file was created by running the moose.i input, which computes the same integrals using existing MOOSE postprocessors on the same mesh used by NekRS. The underlying quadrature rule is forced to match that used in NekRS exactly to obtain perfect match.'
+    required_objects = 'NekRSProblem'
+  []
+[]

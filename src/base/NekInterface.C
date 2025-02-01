@@ -916,6 +916,39 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 }
 
 double
+functionL2Norm(const field::NekFieldEnum & integrand,
+               const nek_mesh::NekMeshEnum pp_mesh, const Function & function, const Real & time)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+
+  double integral = 0.0;
+
+  double (*f)(int);
+  f = solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      auto n = offset + v;
+      const Point p(mesh->x[n], mesh->y[n], mesh->z[n]);
+      auto f_value = function.value(time, p);
+      integral += (f(n) - f_value) * (f(n) - f_value) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  // TODO: this function does not have the dimensionalization implemented yet
+
+  return std::sqrt(total_integral);
+}
+
+double
 volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
                const nek_mesh::NekMeshEnum pp_mesh)
 {
