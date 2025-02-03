@@ -9,6 +9,9 @@
   writeControl = steps
   writeInterval = 2
 
+[MESH]
+  file = ../nek_side_average/pyramid.re2
+
 [VELOCITY]
   solver = none
 
