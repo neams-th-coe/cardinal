@@ -32,8 +32,7 @@ NekVolumeIntegral::validParams()
 }
 
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
-  : NekPostprocessor(parameters),
-    NekFieldInterface(this, parameters)
+  : NekPostprocessor(parameters), NekFieldInterface(this, parameters)
 {
 }
 
