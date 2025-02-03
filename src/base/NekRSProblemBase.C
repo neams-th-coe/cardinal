@@ -702,8 +702,6 @@ NekRSProblemBase::externalSolve()
   if (nekrs::runTimeStatFreq())
     if (_t_step % nekrs::runTimeStatFreq() == 0)
       nekrs::printRuntimeStatistics(_t_step);
-
-  _time += _dt;
 }
 
 bool
