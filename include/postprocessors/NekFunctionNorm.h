@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include "NekFieldPostprocessor.h"
+#include "NekPostprocessor.h"
+#include "NekFieldInterface.h"
 #include "CardinalEnums.h"
 #include "Function.h"
 
@@ -29,7 +30,7 @@
  * Note that this calculation is done directly on the mesh that NekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekFunctionNorm : public NekFieldPostprocessor
+class NekFunctionNorm : public NekPostprocessor, public NekFieldInterface
 {
 public:
   static InputParameters validParams();

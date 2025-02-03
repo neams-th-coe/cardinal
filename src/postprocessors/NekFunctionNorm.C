@@ -26,7 +26,8 @@ registerMooseObject("CardinalApp", NekFunctionNorm);
 InputParameters
 NekFunctionNorm::validParams()
 {
-  InputParameters params = NekFieldPostprocessor::validParams();
+  InputParameters params = NekPostprocessor::validParams();
+  params += NekFieldInterface::validParams();
   params.addRequiredParam<FunctionName>("function", "Function to use for computing the norm");
   params.addRangeCheckedParam<unsigned int>("N", 2, "N>0", "L$^N$ norm to use");
   params.addClassDescription("Integrated L$^N$ norm of a NekRS solution field, relative to a "
@@ -35,7 +36,8 @@ NekFunctionNorm::validParams()
 }
 
 NekFunctionNorm::NekFunctionNorm(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters),
+  : NekPostprocessor(parameters),
+    NekFieldInterface(this, parameters),
     _function(getFunction("function")),
     _N(getParam<unsigned int>("N"))
 {

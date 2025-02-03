@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include "NekFieldPostprocessor.h"
+#include "NekPostprocessor.h"
+#include "NekFieldInterface.h"
 
 /**
  * Interpolate a NekRS solution field onto a point, using NekRS's
@@ -29,7 +30,7 @@
  * provided is not actually contained. They only print to the console. Any
  * point specified, but which is outside the mesh, will silently return zero.
  */
-class NekPointValue : public NekFieldPostprocessor
+class NekPointValue : public NekPostprocessor, public NekFieldInterface
 {
 public:
   static InputParameters validParams();

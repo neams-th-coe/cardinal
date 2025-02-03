@@ -26,7 +26,8 @@ registerMooseObject("CardinalApp", NekPointValue);
 InputParameters
 NekPointValue::validParams()
 {
-  InputParameters params = NekFieldPostprocessor::validParams();
+  InputParameters params = NekFieldInterface::validParams();
+  params += NekPostprocessor::validParams();
   params.addRequiredParam<Point>("point", "The physical point where the field will be evaluated");
   params.addClassDescription("Uses NekRS's pointInterpolation to query the NekRS solution at a "
                              "point (does not need to be a grid point).");
@@ -34,7 +35,10 @@ NekPointValue::validParams()
 }
 
 NekPointValue::NekPointValue(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters), _point(getParam<Point>("point")), _value(0)
+  : NekPostprocessor(parameters),
+    NekFieldInterface(this, parameters),
+    _point(getParam<Point>("point")),
+    _value(0)
 {
 }
 
