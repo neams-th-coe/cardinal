@@ -1,7 +1,7 @@
 [Tests]
   design = 'NekPointValue.md'
   requirement = 'The system shall interpolate the NekRS solution onto a given point in'
-  issues = '#1015 #1016'
+  issues = '#1015 #1016 #1046'
 
   [points]
     type = CSVDiff
