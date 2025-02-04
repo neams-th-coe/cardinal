@@ -232,5 +232,5 @@ B. Feng, J. Fang, N. Stauff, T. Hua, L. Zou, R. Hu, D. Shaver, and A. Novak,
 *Argonne National Laboratory*, ANL-21/28 (2021)
 
 Mohamed Elkamash, Lise Charlot, Mustafa K. Jaradat, Shikhar Kumar, Joffrey Dorville, Emily Shemon, Paul Romano, and April J. Novak
-"Development of The DOME Shield Model for The NRIC Virtual Test Bed"
+["Development of The DOME Shield Model for The NRIC Virtual Test Bed"](https://www.ans.org/pubs/transactions/article-57160/)
 *Proceedings of ANS Winter Conference and Expo* (2024)
