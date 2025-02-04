@@ -308,9 +308,7 @@ fi
 
 module purge
 module load use.moose
-module load moose-tools
-module load openmpi/4.1.6-gcc-12.3.0-panw
-module load cmake/3.27.7-gcc-12.3.0-5cfk
+module load moose-dev
 
 # Revise for your repository location
 export NEKRS_HOME=$HOME/cardinal/install
