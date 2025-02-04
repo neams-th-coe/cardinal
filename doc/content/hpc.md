@@ -325,7 +325,7 @@ export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_section
  is an [!ac](HPC) system at [!ac](INL). It has over 2 Petaflops of performance and has over 43,000 cores. It is a 43008-core Dell Commodity Technology Systems-2 (CTS-2) with 384 total nodes. Bitterroot has 90 TB of total memory.
 
  
-!listing! language=bash caption=Sample `~/.bashrc` for Bitterroot id=st1
+!listing! language=bash caption=Sample `~/.bashrc` for Bitterroot id=bt1
 if [ -f /etc/bashrc ]; then
         . /etc/bashrc
 fi
@@ -343,9 +343,10 @@ module load cmake/3.30.1-gcc-13.3.0-6mtw
 # Revise for your repository location
 export NEKRS_HOME=$HOME/cardinal/install
 export OPENMC_CROSS_SECTIONS=$HOME/cross_sections/endfb-vii.1-hdf5/cross_sections.xml
+
 !listing-end!
 
-!listing scripts/job_bitterroot language=bash caption=Sample job script with the `moose` project code id=st2
+!listing scripts/job_bitterroot language=bash caption=Sample job script with the `moose` project code id=bt2
 
 
 ## Summit
