@@ -24,6 +24,13 @@
   []
 []
 
+[Functions]
+  [f]
+    type = ParsedFunction
+    expression = 'x+y+z'
+  []
+[]
+
 [Postprocessors]
   [temp]
     type = NekPointValue
@@ -83,6 +90,12 @@
   [scalar03]
     type = NekPointValue
     field = scalar03
+    point = '0.25 0.3 0.27'
+  []
+  [function]
+    type = NekPointValue
+    field = function
+    function = f
     point = '0.25 0.3 0.27'
   []
 []

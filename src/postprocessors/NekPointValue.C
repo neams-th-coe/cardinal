@@ -45,6 +45,14 @@ NekPointValue::NekPointValue(const InputParameters & parameters)
 void
 NekPointValue::execute()
 {
+  // if the field is just a function, we can evaluate directly without using
+  // the interpolation in NekRS
+  if (_field == field::function)
+  {
+    _value = _function->value(_t, _point / nekrs::referenceLength());
+    return;
+  }
+
   std::vector<dfloat> x = {_point(0) / nekrs::referenceLength()};
   std::vector<dfloat> y = {_point(1) / nekrs::referenceLength()};
   std::vector<dfloat> z = {_point(2) / nekrs::referenceLength()};
@@ -155,6 +163,10 @@ NekPointValue::execute()
   }
 
   nekrs::dimensionalize(_field, _value);
+
+  // need to add the temperature shift, if field is temperature
+  if (_field == field::temperature)
+    _value += nekrs::referenceTemperature();
 }
 
 Real
