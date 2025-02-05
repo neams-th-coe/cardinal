@@ -45,23 +45,12 @@ NekPointValue::NekPointValue(const InputParameters & parameters)
 void
 NekPointValue::execute()
 {
+  // if there is a shifting function, evaluate that function
+  auto shift = evaluateShiftFunction(_t, _point);
+
   // the input functions are dimensional quantities; first, need to transform
   // them into non-dimensional form before NekRS evaluates them
-  auto t = _t / nekrs::referenceTime();
   auto p = _point / nekrs::referenceLength();
-
-  // if there is a shifting function, evaluate that function
-  auto shift = _shift ? _shift->value(t, p) : 0.0;
-
-  // if the field is just a function, we can evaluate directly without using
-  // the interpolation in NekRS. We don't do any dimensionalization back from
-  // NekRS's non-dimensional form, because we don't know exactly what this
-  // function represents, physically (i.e., its units)
-  if (_field == field::function)
-  {
-    _value = _function->value(t, p) - shift;
-    return;
-  }
 
   std::vector<dfloat> x = {p(0)};
   std::vector<dfloat> y = {p(1)};

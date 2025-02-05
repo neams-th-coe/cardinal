@@ -25,10 +25,6 @@
 []
 
 [Functions]
-  [f]
-    type = ParsedFunction
-    expression = 'x+y+z+10*t'
-  []
   [s]
     type = ParsedFunction
     expression = 'sin(x)+sin(y)+z+10*t'
@@ -102,22 +98,16 @@
     velocity_direction = '1 1 1'
     point = '0.25 0.3 0.27'
   []
-  [function]
-    type = NekPointValue
-    field = function
-    function = f
-    point = '0.25 0.3 0.27'
-  []
   [vx_shift]
     type = NekPointValue
     field = velocity_x
-    shift_field_by = s
+    function = s
     point = '0.25 0.3 0.27'
   []
   [T_shift]
     type = NekPointValue
     field = temperature
-    shift_field_by = s
+    function = s
     point = '0.25 0.3 0.27'
   []
 []
