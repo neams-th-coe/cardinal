@@ -19,7 +19,11 @@
 [Functions]
   [f]
     type = ParsedFunction
-    expression = 'x+y+z'
+    expression = 'x+y+z+t*10'
+  []
+  [s]
+    type = ParsedFunction
+    expression = 'sin(x)+sin(y)+z+10*t'
   []
 []
 
@@ -84,10 +88,28 @@
     field = scalar03
     point = '0.25 0.3 0.27'
   []
+  [vc]
+    type = NekPointValue
+    field = velocity_component
+    velocity_direction = '1 1 1'
+    point = '0.25 0.3 0.27'
+  []
   [function]
     type = NekPointValue
     field = function
     function = f
+    point = '0.25 0.3 0.27'
+  []
+  [vx_shift]
+    type = NekPointValue
+    field = velocity_x
+    shift_field_by = s
+    point = '0.25 0.3 0.27'
+  []
+  [T_shift]
+    type = NekPointValue
+    field = temperature
+    shift_field_by = s
     point = '0.25 0.3 0.27'
   []
 []
