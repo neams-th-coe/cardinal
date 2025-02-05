@@ -230,3 +230,7 @@ B. Feng, J. Fang, T. Hua, N. Stauff, A. Novak, L. Zou, R. Hu, P. Balestra, D. Re
 B. Feng, J. Fang, N. Stauff, T. Hua, L. Zou, R. Hu, D. Shaver, and A. Novak,
 ["Development of Advanced Reactor Models for Virtual Test Bed Using NEAMS Tools"](https://www.osti.gov/biblio/1832109)
 *Argonne National Laboratory*, ANL-21/28 (2021)
+
+Mohamed Elkamash, Lise Charlot, Mustafa K. Jaradat, Shikhar Kumar, Joffrey Dorville, Emily Shemon, Paul Romano, and April J. Novak
+["Development of The DOME Shield Model for The NRIC Virtual Test Bed"](https://www.ans.org/pubs/transactions/article-57160/)
+*Proceedings of ANS Winter Conference and Expo* (2024)
