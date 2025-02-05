@@ -31,7 +31,7 @@
 
 [Postprocessors]
   [temp_l2]
-    type = NekFunctionNorm
+    type = NekVolumeNorm
     field = temperature
     function = function_to_compare
   []
@@ -45,7 +45,7 @@
     pp_names = 'temp_l2_comparison_b'
   []
   [temp_l1]
-    type = NekFunctionNorm
+    type = NekVolumeNorm
     field = temperature
     N = 1
     function = function_to_compare

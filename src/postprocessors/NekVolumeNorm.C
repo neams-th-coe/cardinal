@@ -18,39 +18,36 @@
 
 #ifdef ENABLE_NEK_COUPLING
 
-#include "NekFunctionNorm.h"
+#include "NekVolumeNorm.h"
 #include "NekInterface.h"
 
-registerMooseObject("CardinalApp", NekFunctionNorm);
+registerMooseObject("CardinalApp", NekVolumeNorm);
 
 InputParameters
-NekFunctionNorm::validParams()
+NekVolumeNorm::validParams()
 {
   InputParameters params = NekPostprocessor::validParams();
   params += NekFieldInterface::validParams();
-  params.addRequiredParam<FunctionName>("function", "Function to use for computing the norm");
   params.addRangeCheckedParam<unsigned int>("N", 2, "N>0", "L$^N$ norm to use");
-  params.addClassDescription("Integrated L$^N$ norm of a NekRS solution field, relative to a "
-                             "provided function, over the NekRS mesh");
+  params.addClassDescription("Integrated L$^N$ norm of a NekRS solution field over the NekRS mesh");
   return params;
 }
 
-NekFunctionNorm::NekFunctionNorm(const InputParameters & parameters)
+NekVolumeNorm::NekVolumeNorm(const InputParameters & parameters)
   : NekPostprocessor(parameters),
     NekFieldInterface(this, parameters),
-    _function(getFunction("function")),
     _N(getParam<unsigned int>("N"))
 {
   if (_nek_problem->nondimensional())
     mooseError(
-        "The NekFunctionNorm object does not yet support non-dimensional runs! Please contact the "
+        "The NekVolumeNorm object does not yet support non-dimensional runs! Please contact the "
         "development team to accelerate this feature addition to support your use case.");
 }
 
 Real
-NekFunctionNorm::getValue() const
+NekVolumeNorm::getValue() const
 {
-  return nekrs::functionNorm(_field, _pp_mesh, _function, _t, _N);
+  return nekrs::volumeNorm(_field, _pp_mesh, _function, _t, _N);
 }
 
 #endif

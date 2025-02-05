@@ -20,29 +20,25 @@
 
 #include "NekPostprocessor.h"
 #include "NekFieldInterface.h"
-#include "CardinalEnums.h"
 #include "Function.h"
 
 /**
- * Compute the L$^N$ norm of a NekRS solution field relative to a function,
- * integrated over the NekRS mesh.
+ * Compute the L$^N$ norm of a NekRS solution field,
+ * integrated over the NekRS volume mesh.
  *
  * Note that this calculation is done directly on the mesh that NekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekFunctionNorm : public NekPostprocessor, public NekFieldInterface
+class NekVolumeNorm : public NekPostprocessor, public NekFieldInterface
 {
 public:
   static InputParameters validParams();
 
-  NekFunctionNorm(const InputParameters & parameters);
+  NekVolumeNorm(const InputParameters & parameters);
 
   virtual Real getValue() const override;
 
 protected:
-  /// Function to use for computing the norm
-  const Function & _function;
-
   /// Order of the norm
   const unsigned int & _N;
 };

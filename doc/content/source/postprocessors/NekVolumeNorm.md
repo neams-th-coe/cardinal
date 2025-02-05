@@ -1,11 +1,11 @@
-# NekFunctionNorm
+# NekVolumeNorm
 
-!syntax description /Postprocessors/NekFunctionNorm
+!syntax description /Postprocessors/NekVolumeNorm
 
 ## Description
 
 This postprocessor computes the integrated L$^N$ norm of a specified
-field, relative to a function, over the volume of the NekRS mesh:
+field over the volume of the NekRS mesh:
 
 \begin{equation}
 p=\left(\int_{\Omega}(f-\tilde{f})^N\ d\Omega\right)^{1/N}
@@ -13,10 +13,8 @@ p=\left(\int_{\Omega}(f-\tilde{f})^N\ d\Omega\right)^{1/N}
 
 where $p$ is the value of the postprocessor,
 $\Omega$ is the volume of the NekRS mesh,
-$f$ is the specified field, and $\tilde{f}$ is the MOOSE function.
-To be clear, this postprocessor is *not* evaluated on the
-[NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
-used for computation in NekRS.
+$f$ is the specified field, and $\tilde{f}$ is an optional shifting function
+provided by `function`.
 
 !include /field_specs.md
 
@@ -28,6 +26,6 @@ of the temperature field from NekRS relative to a function provided in the input
 !listing test/tests/postprocessors/nek_function_norm/nek.i
   block=Postprocessors
 
-!syntax parameters /Postprocessors/NekFunctionNorm
+!syntax parameters /Postprocessors/NekVolumeNorm
 
-!syntax inputs /Postprocessors/NekFunctionNorm
+!syntax inputs /Postprocessors/NekVolumeNorm

@@ -15,3 +15,7 @@ The field is specified with the `field` parameter, which may be one of:
 - `scalar03` (3rd passive scalar)
 - `unity` (1.0)
 - `function` (a MOOSE-type function from the Cardinal input file)
+
+To be clear, this object is *not* evaluated on the
+[NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
+used for computation in NekRS.
