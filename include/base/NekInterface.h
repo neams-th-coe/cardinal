@@ -509,19 +509,19 @@ double volumeIntegral(const field::NekFieldEnum & integrand,
                       const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
- * Compute the L^N norm of a given integrand, relative to a function, over the mesh
+ * Compute the L^N norm of a given integrand over the mesh
  * @param[in] integrand field to integrate
  * @param[in] pp_mesh which NekRS mesh to operate on
- * @param[in] function MOOSE function to use for computing the norm
+ * @param[in] function MOOSE function to use to shift the field
  * @param[in] time time to evaluate function at
  * @param[in] N order of the norm
  * @return integrated L^N norm of the NekRS field, relative to a function
  */
-double functionNorm(const field::NekFieldEnum & integrand,
-                    const nek_mesh::NekMeshEnum pp_mesh,
-                    const Function & function,
-                    const Real & time,
-                    const unsigned int & N);
+double volumeNorm(const field::NekFieldEnum & integrand,
+                  const nek_mesh::NekMeshEnum pp_mesh,
+                  const Function * function,
+                  const Real & time,
+                  const unsigned int & N);
 
 /**
  * Compute the mass flowrate over a set of boundary IDs
@@ -585,11 +585,25 @@ void gradient(const int offset, const double * f, double * grad_f,
  * @param[in] field field to find the minimum value of
  * @param[in] pp_mesh which NekRS mesh to operate on
  * @param[in] max whether to take the maximum (or if false, the minimum)
+ * @param[in] function function to use to shift the field by
+ * @param[in] time time to evaluate shifting function at
  * @return max or min value of field in volume
  */
 double volumeExtremeValue(const field::NekFieldEnum & field,
                           const nek_mesh::NekMeshEnum pp_mesh,
-                          const bool max);
+                          const bool max, const Function * function, const Real time);
+
+/**
+ * Evaluate a MOOSE-provided function on the mesh; the MOOSE function is in
+ * dimensional form, so NekRS's non-dimensional coordinates are transformed
+ * @param[in] mesh which mesh to evaluate on
+ * @param[in] f function to evaluate
+ * @param[in] time time to evaluate at
+ * @param[in] id node index to evaluate at
+ * @return function evaluation
+ */
+double
+evaluateFunctionOnMesh(mesh_t * mesh, const Function * f, const Real time, const int id);
 
 /**
  * Find the extreme of a given field over a set of boundary IDs
@@ -747,6 +761,8 @@ struct characteristicScales
   double rho_ref;
 
   double Cp_ref;
+
+  double t_ref;
 
   double flux_ref;
 
@@ -951,6 +967,12 @@ double referenceSource();
 double referenceLength();
 
 /**
+ * Get the reference time scale
+ * @return reference time scale
+ */
+double referenceTime();
+
+/**
  * Get the reference area scale
  * @return reference area scale
  */
@@ -961,6 +983,12 @@ double referenceArea();
  * @return reference volume scale
  */
 double referenceVolume();
+
+/**
+ * Get the reference temperature
+ * @return reference temperature
+ */
+double referenceTemperature();
 
 // useful concept from Stack Overflow for templating MPI calls
 template <typename T>

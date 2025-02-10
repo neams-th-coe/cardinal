@@ -8,7 +8,11 @@ NekFieldInterface::validParams()
 {
   InputParameters params = emptyInputParameters();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to apply this object to");
-  params.addParam<FunctionName>("function", "Function to shift the field by, when applying this object. For example, if 'field = temperature', using this parameter will apply this object to the new combined quantity 'temperature - f', where 'f' is this shifting function.");
+  params.addParam<FunctionName>(
+      "function",
+      "Function to shift the field by, when applying this object. For example, if 'field = "
+      "temperature', using this parameter will apply this object to the new combined quantity "
+      "'temperature - f', where 'f' is this shifting function.");
   params.addParam<Point>(
       "velocity_direction",
       "Unit vector to dot with velocity, for 'field = velocity_component'. For "

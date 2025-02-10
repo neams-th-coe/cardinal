@@ -5,7 +5,7 @@
 #include "CardinalEnums.h"
 #include "FunctionInterface.h"
 
-class NekFieldInterface: public FunctionInterface
+class NekFieldInterface : public FunctionInterface
 {
 public:
   static InputParameters validParams();
