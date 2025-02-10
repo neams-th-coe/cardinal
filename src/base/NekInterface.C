@@ -721,7 +721,11 @@ evaluateFunctionOnMesh(mesh_t * mesh, const Function * f, const Real time, const
 }
 
 double
-volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const bool max, const Function * function, const Real time)
+volumeExtremeValue(const field::NekFieldEnum & field,
+                   const nek_mesh::NekMeshEnum pp_mesh,
+                   const bool max,
+                   const Function * function,
+                   const Real time)
 {
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
@@ -937,10 +941,10 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 
 double
 volumeNorm(const field::NekFieldEnum & integrand,
-             const nek_mesh::NekMeshEnum pp_mesh,
-             const Function * function,
-             const Real & time,
-             const unsigned int & N)
+           const nek_mesh::NekMeshEnum pp_mesh,
+           const Function * function,
+           const Real & time,
+           const unsigned int & N)
 {
   mesh_t * mesh = getMesh(pp_mesh);
 

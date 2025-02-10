@@ -591,7 +591,9 @@ void gradient(const int offset, const double * f, double * grad_f,
  */
 double volumeExtremeValue(const field::NekFieldEnum & field,
                           const nek_mesh::NekMeshEnum pp_mesh,
-                          const bool max, const Function * function, const Real time);
+                          const bool max,
+                          const Function * function,
+                          const Real time);
 
 /**
  * Evaluate a MOOSE-provided function on the mesh; the MOOSE function is in
@@ -602,8 +604,7 @@ double volumeExtremeValue(const field::NekFieldEnum & field,
  * @param[in] id node index to evaluate at
  * @return function evaluation
  */
-double
-evaluateFunctionOnMesh(mesh_t * mesh, const Function * f, const Real time, const int id);
+double evaluateFunctionOnMesh(mesh_t * mesh, const Function * f, const Real time, const int id);
 
 /**
  * Find the extreme of a given field over a set of boundary IDs
