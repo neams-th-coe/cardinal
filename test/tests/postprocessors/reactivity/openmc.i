@@ -40,11 +40,37 @@
 []
 
 [Postprocessors]
-  [reactivity]
-    type = Reactivity
-  []
-  [k]
+  [k_collision]
     type = KEigenvalue
+    value_type = 'collision'
+  []
+  [k_absorption]
+    type = KEigenvalue
+    value_type = 'absorption'
+  []
+  [k_tracklength]
+    type = KEigenvalue
+    value_type = 'tracklength'
+  []
+  [k_combined]
+    type = KEigenvalue
+    value_type = 'combined'
+  []
+  [reactivity_collision]
+    type = Reactivity
+    value_type = 'collision'
+  []
+  [reactivity_absorption]
+    type = Reactivity
+    value_type = 'absorption'
+  []
+  [reactivity_tracklength]
+    type = Reactivity
+    value_type = 'tracklength'
+  []
+  [reactivity_combined]
+    type = Reactivity
+    value_type = 'combined'
   []
 []
 
