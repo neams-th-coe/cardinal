@@ -1,4 +1,6 @@
 [Tests]
+  issues = '#1051'
+  design = 'Reactivity.md'
   [k_eigenvalue]
     type = CSVDiff
     input = openmc.i
