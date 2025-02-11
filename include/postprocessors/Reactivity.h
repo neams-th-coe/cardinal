@@ -22,7 +22,6 @@
 
 /**
  * Calculate the reactivity based on the k-effective value.
- * Reactivity is defined as (k_effective - 1) / k_effective.
  */
 class Reactivity : public KEigenvalue
 {
