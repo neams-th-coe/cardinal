@@ -18,12 +18,13 @@
 
 #pragma once
 
-#include "OpenMCPostprocessor.h"
-#include "CardinalEnums.h"
+#include "KEigenvalue.h"
+
 /**
- * Calculate the reactivity based on the combined k-effective value.
+ * Calculate the reactivity based on the k-effective value.
+ * Reactivity is defined as (k_effective - 1) / k_effective.
  */
-class Reactivity : public OpenMCPostprocessor
+class Reactivity : public KEigenvalue
 {
 public:
   static InputParameters validParams();
