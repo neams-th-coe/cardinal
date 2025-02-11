@@ -17,36 +17,29 @@
 /********************************************************************/
 
 #include "Reactivity.h"
-#include "openmc/eigenvalue.h"
 
 registerMooseObject("CardinalApp", Reactivity);
 
 InputParameters
 Reactivity::validParams()
 {
-  InputParameters params = OpenMCPostprocessor::validParams();
-  params.addClassDescription("Calculate the reactivity based on the combined k-effective value.");
+  InputParameters params = KEigenvalue::validParams();
+  params.addClassDescription("Calculate the reactivity based on the k-effective value.");
   return params;
 }
 
 Reactivity::Reactivity(const InputParameters & parameters)
-  : OpenMCPostprocessor(parameters)
+  : KEigenvalue(parameters)
 {
-  if (openmc::settings::run_mode != openmc::RunMode::EIGENVALUE)
-    mooseError("Reactivity can only be computed when running OpenMC in eigenvalue mode!");
+
 }
 
 Real
 Reactivity::getValue() const
 {
-  int n = openmc::simulation::n_realizations;
+  // Fetch the k-effective value using the parent class's getValue() method.
+  Real k_effective = KEigenvalue::getValue();
 
-  if (n <= 3)
-    mooseError("Cannot compute reactivity with fewer than 4 realizations!");
-
-  double k_eff[2];
-  openmc::openmc_get_keff(k_eff);
-  double combined_k_effective = k_eff[0];
-
-  return (combined_k_effective - 1.0) / combined_k_effective;
+  // Calculate and return the reactivity.
+  return (k_effective - 1.0) / k_effective;
 }
