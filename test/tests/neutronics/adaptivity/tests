@@ -37,3 +37,16 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
+
+[Tests]
+  [skip_openmc_unchanged]
+    type = Exodiff
+    input = unchanged_mesh.i
+    exodiff = unchanged_mesh_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall skip running OpenMC when the mesh is unchanged by adaptivity."
+    required_objects = 'OpenMCCellAverageProblem'
+    issues = '#1053'
+    design = 'OpenMCCellAverageProblem.md'
+  []
+[]
