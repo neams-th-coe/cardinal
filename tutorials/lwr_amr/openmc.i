@@ -1,0 +1,57 @@
+[Mesh]
+  [file]
+    type = FileMeshGenerator
+    file = mesh_in.e
+  []
+[]
+
+[Problem]
+  type = OpenMCCellAverageProblem
+  particles = 20000
+  inactive_batches = 500
+  batches = 10000
+
+  power = ${fparse 3000e6 / 273 * 4}
+
+  normalize_by_global_tally = false
+  assume_separate_tallies = true
+  skip_statepoint = true
+
+  [Tallies]
+    [heat_source]
+      type = MeshTally
+      score = 'kappa_fission'
+      name = 'heat_source'
+      output = 'unrelaxed_tally_std_dev'
+      blocks = 'uo2_center uo2'
+    []
+  []
+[]
+
+[Postprocessors]
+  [max_rel_err]
+    type = TallyRelativeError
+    value_type = max
+    tally_score = kappa_fission
+  []
+  [min_rel_err]
+    type = TallyRelativeError
+    value_type = min
+    tally_score = kappa_fission
+  []
+  [avg_rel_err]
+    type = TallyRelativeError
+    value_type = average
+    tally_score = kappa_fission
+  []
+[]
+
+[Executioner]
+  type = Steady
+[]
+
+[Outputs]
+  execute_on = 'timestep_end'
+  exodus = true
+  csv = true
+[]
