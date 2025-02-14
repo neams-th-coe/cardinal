@@ -2444,6 +2444,18 @@ OpenMCCellAverageProblem::checkNormalization(const Real & sum, unsigned int glob
 void
 OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 {
+  // Always run OpenMC on the first timestep in a steady solve. We have to set the flag here
+  // (as opposed to OpenMCProblemBase::externalSolve()) to ensure feedback fields are transferred
+  // to OpenMC.
+  if (timeStep() == 1 && !isTransient())
+    _should_run_openmc = true;
+
+  // We can skip syncronizing the solution when running with adaptivity
+  // and the mesh hasn't changed. This only applies to steady-state calculations
+  // as the mesh is adapted once per timestep in a transient calculation.
+  if (_adaptivity.isOn() && !_should_run_openmc && !isTransient())
+    return;
+
   _aux->serializeSolution();
 
   switch (direction)

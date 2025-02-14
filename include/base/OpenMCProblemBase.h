@@ -153,6 +153,9 @@ public:
   /// Run a k-eigenvalue OpenMC simulation
   void externalSolve() override;
 
+  /// Set the'mesh changed' adaptivity flag.
+  virtual bool adaptMesh() override;
+
   /// Import temperature and density from a properties.h5 file
   void importProperties() const;
 
@@ -477,6 +480,11 @@ protected:
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;
+
+  /// This flag is set to true if OpenMC should rerun after an adaptivity cycle.
+  /// This is a performance optimization to avoid rerunning OpenMC if the mesh
+  /// is unchanged.
+  bool _should_run_openmc;
 
   /// Conversion unit to transfer between kg/m3 and g/cm3
   static constexpr Real _density_conversion_factor{0.001};
