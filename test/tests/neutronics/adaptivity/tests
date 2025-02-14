@@ -1,4 +1,7 @@
 [Tests]
+  issues = '#1054'
+  design = 'MeshTally.md OpenMCCellAverageProblem.md'
+
   [adaptive_cell]
     type = Exodiff
     input = cell.i
