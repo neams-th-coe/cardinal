@@ -175,6 +175,12 @@ fission_chamber_cell.region = -tube_fill_or
 fission_chamber_cell.fill = fiss
 fis_u = openmc.Universe(cells=[fission_chamber_cell, tube_clad_cell_2, guide_tube_h2o_bb_cell_2])
 
+### An empty water cell to build the upper reflector.
+water_cell = openmc.Cell(name = 'Reflector Water')
+water_cell.region = -fuel_bb
+water_cell.fill = h2o
+wat_u = openmc.Universe(cells=[water_cell])
+
 ## The assembly.
 assembly_bb = openmc.model.RectangularPrism(origin = (0.0, 0.0), width = 16.9 * pitch, height = 16.9 * pitch, boundary_type = 'reflective')
 
@@ -215,8 +221,34 @@ for i in range(core_axial_slices):
   uo2_assembly_cells.append(openmc.Cell(name = 'UO2 Assembly Cell ' + str(i), region = -assembly_bb & +core_z_planes[i] & -core_z_planes[i + 1], fill = uo2_assembly))
   all_cells.append(uo2_assembly_cells[-1])
 
+### The upper reflector.
+ref_assembly_cells = [
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 1
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 2
+  [wat_u, wat_u, wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 3
+  [wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u], # 4
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 5
+  [wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u], # 6
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 7
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 8
+  [wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u], # 9
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 10
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 11
+  [wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u], # 12
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 13
+  [wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u], # 14
+  [wat_u, wat_u, wat_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, rod_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 15
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u], # 16
+  [wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u, wat_u]  # 17
+]# 1      2      3      4      5      6      7      8      9      10     11     12     13     14     15     16     17
+
+ref_assembly = openmc.RectLattice(name = 'Reflector Assembly')
+ref_assembly.pitch = (pitch, pitch)
+ref_assembly.lower_left = (-17.0 * pitch / 2.0, -17.0 * pitch / 2.0)
+ref_assembly.universes = ref_assembly_cells
+
 refl_top = openmc.ZPlane(z0 = core_height + reflector_t, boundary_type = 'vacuum')
-all_cells.append(openmc.Cell(name='Axial Reflector Cell', fill = h2o, region=-assembly_bb & -refl_top & +core_z_planes[-1]))
+all_cells.append(openmc.Cell(name='Axial Reflector Cell', fill = ref_assembly, region=-assembly_bb & -refl_top & +core_z_planes[-1]))
 
 #--------------------------------------------------------------------------------------------------------------------------#
 # Setup the model.
