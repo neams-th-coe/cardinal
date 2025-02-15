@@ -87,7 +87,8 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     _skip_statepoint(getParam<bool>("skip_statepoint")),
     _fixed_point_iteration(-1),
     _total_n_particles(0),
-    _should_run_openmc(true)
+    _has_adaptivity(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
+    _run_on_adaptivity_cycle(true)
 {
   if (isParamValid("tally_type"))
     mooseError("The tally system used by OpenMCProblemBase derived classes has been deprecated. "
@@ -309,7 +310,7 @@ OpenMCProblemBase::externalSolve()
 
   // Check to see if this is a steady solve. If so, we can skip extra OpenMC runs
   // once the mesh stops getting adapted.
-  if (_adaptivity.isOn() && !_should_run_openmc && !isTransient())
+  if (_has_adaptivity && !_run_on_adaptivity_cycle)
   {
     _console << " Skipping running OpenMC as the mesh has not changed!" << std::endl;
     return;
@@ -345,11 +346,19 @@ OpenMCProblemBase::externalSolve()
     writeSourceBank(sourceBankFileName());
 }
 
+void
+OpenMCProblemBase::syncSolutions(ExternalProblem::Direction direction)
+{
+  // Always run OpenMC on the first timestep in a steady solve with adaptivity. This
+  // ensures that OpenMC runs at least once during each Picard iteration.
+  _run_on_adaptivity_cycle |= (timeStep() == 1 && !isTransient());
+}
+
 bool
 OpenMCProblemBase::adaptMesh()
 {
-  _should_run_openmc = CardinalProblem::adaptMesh();
-  return _should_run_openmc;
+  _run_on_adaptivity_cycle = CardinalProblem::adaptMesh() || isTransient();
+  return _run_on_adaptivity_cycle;
 }
 
 void
