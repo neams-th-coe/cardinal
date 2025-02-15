@@ -16,38 +16,29 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_NEK_COUPLING
+#pragma once
 
-#include "NekFieldPostprocessor.h"
-#include "UserErrorChecking.h"
+#include "NekPostprocessor.h"
+#include "NekFieldInterface.h"
+#include "Function.h"
 
-InputParameters
-NekFieldPostprocessor::validParams()
+/**
+ * Compute the L$^N$ norm of a NekRS solution field,
+ * integrated over the NekRS volume mesh.
+ *
+ * Note that this calculation is done directly on the mesh that NekRS solves on,
+ * _not_ the mesh created for solution transfer in NekRSMesh.
+ */
+class NekVolumeNorm : public NekPostprocessor, public NekFieldInterface
 {
-  InputParameters params = NekPostprocessor::validParams();
-  params.addRequiredParam<MooseEnum>("field",
-                                     getNekFieldEnum(),
-                                     "Field to integrate");
-  params.addParam<Point>(
-      "velocity_direction",
-      "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
-      "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
-  return params;
-}
+public:
+  static InputParameters validParams();
 
-NekFieldPostprocessor::NekFieldPostprocessor(const InputParameters & parameters)
-  : NekPostprocessor(parameters),
-    _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>())
-{
-  if (_field == field::velocity_component)
-  {
-    checkRequiredParam(parameters, "velocity_direction", "using 'field = velocity_component'");
+  NekVolumeNorm(const InputParameters & parameters);
 
-    _velocity_direction =
-        geom_utils::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
-  }
-  else
-    checkUnusedParam(parameters, "velocity_direction", "not using 'field = velocity_component'");
-}
+  virtual Real getValue() const override;
 
-#endif
+protected:
+  /// Order of the norm
+  const unsigned int & _N;
+};

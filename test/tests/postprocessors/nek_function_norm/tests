@@ -1,0 +1,12 @@
+[Tests]
+  design = 'NekFunctionNorm.md'
+  issues = '#1043'
+
+  [nek_function_l2_norm]
+    type = CSVDiff
+    input = nek.i
+    csvdiff = nek_out.csv
+    requirement = 'The system shall allow computing the integrated L-norm of a NekRS solution field relative to a MOOSE function. The postprocessor value is checked against a (mathematically-equivalent) NekVolumeIntegral postprocessor for the L1 and L2 norms to show exact equivalence.'
+    required_objects = 'NekRSProblem'
+  []
+[]

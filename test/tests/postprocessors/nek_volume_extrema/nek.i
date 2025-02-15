@@ -17,10 +17,13 @@
 []
 
 [Outputs]
-  [out]
-    type = CSV
-    hide = 'flux_integral'
-    execute_on = 'final'
+  hide = 'flux_integral'
+[]
+
+[Functions]
+  [s]
+    type = ParsedFunction
+    expression = 'x*x+10*y+7*t'
   []
 []
 
@@ -84,5 +87,17 @@
     type = NekVolumeExtremeValue
     field = velocity_z
     value_type = min
+  []
+  [max_z_velocity_shift]
+    type = NekVolumeExtremeValue
+    field = velocity_z
+    value_type = max
+    function = s
+  []
+  [min_z_velocity_shift]
+    type = NekVolumeExtremeValue
+    field = velocity_z
+    value_type = min
+    function = s
   []
 []

@@ -16,26 +16,38 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#ifdef ENABLE_NEK_COUPLING
 
-#include "NekPostprocessor.h"
-#include "CardinalEnums.h"
+#include "NekVolumeNorm.h"
+#include "NekInterface.h"
 
-/**
- * Base class for NekRS postprocessors that operate on fields,
- * such as for taking averages of a field variable.
- */
-class NekFieldPostprocessor : public NekPostprocessor
+registerMooseObject("CardinalApp", NekVolumeNorm);
+
+InputParameters
+NekVolumeNorm::validParams()
 {
-public:
-  static InputParameters validParams();
+  InputParameters params = NekPostprocessor::validParams();
+  params += NekFieldInterface::validParams();
+  params.addRangeCheckedParam<unsigned int>("N", 2, "N>0", "L$^N$ norm to use");
+  params.addClassDescription("Integrated L$^N$ norm of a NekRS solution field over the NekRS mesh");
+  return params;
+}
 
-  NekFieldPostprocessor(const InputParameters & parameters);
+NekVolumeNorm::NekVolumeNorm(const InputParameters & parameters)
+  : NekPostprocessor(parameters),
+    NekFieldInterface(this, parameters),
+    _N(getParam<unsigned int>("N"))
+{
+  if (_nek_problem->nondimensional())
+    mooseError(
+        "The NekVolumeNorm object does not yet support non-dimensional runs! Please contact the "
+        "development team to accelerate this feature addition to support your use case.");
+}
 
-protected:
-  /// integrand of the surface integral
-  const field::NekFieldEnum _field;
+Real
+NekVolumeNorm::getValue() const
+{
+  return nekrs::volumeNorm(_field, _pp_mesh, _function, _t, _N);
+}
 
-  /// Direction in which to evaluate velocity, when field = velocity_component
-  Point _velocity_direction;
-};
+#endif

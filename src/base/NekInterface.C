@@ -704,7 +704,28 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 }
 
 double
-volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const bool max)
+evaluateFunctionOnMesh(mesh_t * mesh, const Function * f, const Real time, const int id)
+{
+  double shift = 0.0;
+  if (f)
+  {
+    // the function is given in dimensional form from MOOSE, so we need to
+    // convert to non-dimensional form before we shift the field
+    Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+    p *= scales.L_ref;
+    auto t = time * scales.t_ref;
+    shift = f->value(t, p);
+  }
+
+  return shift;
+}
+
+double
+volumeExtremeValue(const field::NekFieldEnum & field,
+                   const nek_mesh::NekMeshEnum pp_mesh,
+                   const bool max,
+                   const Function * function,
+                   const Real time)
 {
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
@@ -737,10 +758,13 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
   {
     for (int j = 0; j < mesh->Np; ++j)
     {
+      auto idx = i * mesh->Np + j;
+      auto shift = evaluateFunctionOnMesh(mesh, function, time, idx);
+
       if (max)
-        value = std::max(value, f(i * mesh->Np + j));
+        value = std::max(value, f(idx) - shift);
       else
-        value = std::min(value, f(i * mesh->Np + j));
+        value = std::min(value, f(idx) - shift);
     }
   }
 
@@ -913,6 +937,39 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // if temperature, we need to add the reference temperature multiplied by the area integral
   if (integrand == field::temperature)
     integral += scales.T_ref * area(boundary_id, pp_mesh);
+}
+
+double
+volumeNorm(const field::NekFieldEnum & integrand,
+           const nek_mesh::NekMeshEnum pp_mesh,
+           const Function * function,
+           const Real & time,
+           const unsigned int & N)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+
+  double integral = 0.0;
+
+  double (*f)(int);
+  f = solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      auto n = offset + v;
+      auto shift = evaluateFunctionOnMesh(mesh, function, time, n);
+      integral += std::pow(f(n) - shift, N) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  return std::pow(total_integral, 1.0 / double(N));
 }
 
 double
@@ -1657,6 +1714,7 @@ initializeDimensionalScales(const double U_ref,
   scales.rho_ref = rho_ref;
   scales.Cp_ref = Cp_ref;
 
+  scales.t_ref = L_ref / U_ref;
   scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
   scales.source_ref = scales.flux_ref / L_ref;
 
@@ -1670,6 +1728,12 @@ referenceFlux()
 }
 
 double
+referenceTemperature()
+{
+  return scales.T_ref;
+}
+
+double
 referenceSource()
 {
   return scales.source_ref;
@@ -1679,6 +1743,12 @@ double
 referenceLength()
 {
   return scales.L_ref;
+}
+
+double
+referenceTime()
+{
+  return scales.t_ref;
 }
 
 double
