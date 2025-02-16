@@ -126,7 +126,7 @@ cardinal-opt -i mesh.i --mesh-only
 
 !media assembly_amr_init_mesh.png
   id=assembly_amr_init_mesh
-  caption=Initial tally mesh colored by block ID shown in an isometric view and sliced on the x-y plane
+  caption=Initial tally mesh colored by block ID shown in an isometric view and sliced on the $x-y$ plane
   style=width:90%;margin-left:auto;margin-right:auto
 
 ### Neutronics Input File
@@ -144,14 +144,13 @@ MOOSE finite element calculation with an OpenMC neutronics solve. This is done w
 !listing /tutorials/lwr_amr/openmc.i
   block=Problem
 
-We specify that we wish to use `10000` particles per batch with `50` inactive batches (to converge the fission source) and `1000` total batches
-(`950` batches accumulating statistics) - this is due to the spatially small tally bins. We then specify the total power of the assembly
-in `power` to normalize tally results. We set `normalize_by_global_tally = false` because the unstructured mesh tally does not perfectly
-represent the [!ac](CSG) geometry, and so some scores will be missed. `assume_separate_tallies` and `skip_statepoint` are set to `true`
-as performance optimizations. A [MeshTally](MeshTally.md) is added in the `[Tallies]` block which will automatically score on `mesh_in.e`.
-This tally scores `kappa_fission` to a MOOSE variable named `heat_source` while also calculating the standard deviation of the tally field
-(stored in `heat_source_std_dev`). We specify that we only wish to tally on the fueled regions (`uo2_center` and `uo2`) as the remainder
-of the assembly will accumulate zero (or near-zero in the case of the fission chamber) tally scores for fission heating.
+We specify the number of particles to use alongside the assembly power to normalize tally results. We set `normalize_by_global_tally = false`
+as the unstructured mesh tally does not perfectly represent the [!ac](CSG) geometry, and so some scores will be missed compared to a global tally.
+`assume_separate_tallies` and `skip_statepoint` are set to `true` as performance optimizations. A [MeshTally](MeshTally.md) is added in the
+`[Tallies]` block which will automatically score on `mesh_in.e`. This tally scores `kappa_fission` to a MOOSE variable named `heat_source`
+while also calculating the standard deviation of the tally field (stored in `heat_source_std_dev`). We specify that we only wish to tally on
+the fueled regions (`uo2_center` and `uo2`) as the remainder of the assembly will accumulate zero (or near-zero in the case of the fission chamber)
+tally scores for fission heating.
 
 A steady-state executioner is selected as OpenMC will run a single criticality calculation. We then select exodus and [!ac](CSV) output (for our
 postprocessors) which will occur on the end of the simulation.
@@ -187,12 +186,74 @@ that the radial power distribution peaks near the corners of the assembly (due t
 depressed near the guide tubes due to the insertion of the control rods. The center of the assembly sees some additional power
 peaking due to the fission chamber. The power distribution within the assembly begins to decrease along the z-axis as one moves
 from the assembly centerline to the vacuum boundary condition. The coarse axial discretization makes it difficult to determine
-if this follows the standard cosine shape and the lack of radial refinement fails to capture gradients within each pincell. This
-motivates the use of [!ac](AMR) to automatically refine the tally mesh near these regions.
+if this follows the standard cosine shape, and the lack of radial refinement fails to capture gradients within each pincell. This
+motivates the use of [!ac](AMR) to automatically refine the tally mesh. This block consists of two sub-blocks. The first is the
+[Indicators](https://mooseframework.inl.gov/syntax/Adaptivity/Indicators/index.html) block, members of which are responsible for
+computing estimates of the spatial solution error for each element in the mesh. The second is the
+[Markers](https://mooseframework.inl.gov/syntax/Adaptivity/Markers/index.html) block, members of which take error estimates from
+indicators and use them to determine if an element should be isotropically refined or coarsened.
 
 !media assembly_amr_init_res.png
   id=assembly_amr_init_res
-  caption=Fission power computed with the unstructured mesh tally, shown with an isometric view and sliced on the x-y plane
+  caption=Fission power computed with the unstructured mesh tally, shown with an isometric view and sliced on the $x-y$ plane
   style=width:90%;margin-left:auto;margin-right:auto
 
 ## Adding Adaptive Mesh Refinement
+
+Next, we will adaptively refine the mesh using the adaptivity system included in MOOSE. The Cardinal input file for adaptivity is
+largely the same as the input file for the initial mesh tally - it can be found in `openmc_amr.i`. The main difference between
+`openmc.i` and `openmc_amr.i` is the addition of the [Adaptivity](https://mooseframework.inl.gov/syntax/Adaptivity/index.html)
+block (shown below), which is responsible for determining the refinement / coarsening behaviour of the mesh. The adaptivity block
+consists of two sub-blocks: [Indicators](https://mooseframework.inl.gov/syntax/Adaptivity/Indicators/index.html) which compute estimates
+of spatial discretization error, and [Markers](https://mooseframework.inl.gov/syntax/Adaptivity/Markers/index.html) which use
+these error estimates to mark elements for refinement or coarsening. Five steps of mesh adaptivity are selected with `steps = 5`,
+and `error_combo` is selected to be the marker to use when modifying the mesh.
+
+!listing /tutorials/lwr_amr/openmc_amr.i
+  block=Adaptivity
+
+In this adaptivity block we define a single indicator which
+assumes that the spatial error in an element is proportional to the mean optical depth within the element (`optical_depth`). This
+indicator requires a tally score to use for computing the energy-integrated reaction rate in an element - we select the `fission`
+reaction rate as we aim to optimize the spatial distribution of fission heating. It also requires an estimate of the mean chord
+length in the element (`h_type`) which we set to the cube root of the element volume to minimize the effect of the long aspect
+ratio elements in the mesh.
+
+We then add three markers, the first of which is a
+[ErrorFractionMarker](https://mooseframework.inl.gov/source/markers/ErrorFractionMarker.html) (`depth_frac`) which takes `optical_depth`
+as an input. This marker sorts all elements into descending order based on the indicator value, then iterates over the list
+(starting with the largest error estimate). Elements who's optical depth sum to a refinement fraction multiplied by the total
+error estimate are refined. The list is iterated in reverse to mark elements for coarsening. We set the refinement fraction
+`refine = 0.3`, while setting the coarsening threshold `coarsen = 0.0`. The next marker we add is a
+[ValueThresholdMarker](https://mooseframework.inl.gov/source/markers/ValueThresholdMarker.html) (`rel_error`), which marks elements for
+refinement if their value is above `refine` and marks elements to be coarsened if their value is above `coarsen`. We pass it
+the variable containing the relative error of the fission heating (`variable = heat_source_rel_error`) and set `invert = true`.
+This has the effect of marking an element for coarsening if the fission heating relative error is above `1e-1`, while allowing
+refinement of the relative error of the fission heating relative error is below `5e-2`. We set `third_state = DO_NOTHING` to
+indicate that elements in this region should not be refined or coarsened. The final marker we add is a
+[BooleanComboMarker](BooleanComboMarker.md) (`error_combo`) which combines the previous two markers based on a flag in `boolean_operator`.
+`refine_markers = 'rel_error depth_frac'` with the `and` boolean flag results in refinement only when the element is marked based
+on it's fraction of the optical depth and has a sufficiently low statistical relative error. `coarsen_markers = 'rel_error'`
+results in coarsening only if the element has a sufficiently hight statistical relative error.
+
+The remaining modifications that need to be made are done to support `[Adaptivity]`. We modify `heat_source` to also score `flux` and `fission`
+to allow for the calculation of the optical depth. This also necessitates the specification of `source_rate_normalization = 'kappa_fission'`
+as two non-heating scores have been added. `unrelaxed_tally_rel_error` is added to the `output` parameter to enable the `rel_error` marker.
+The modifications to the `[Problem]` and `[Tallies]` block can be found below.
+
+!listing /tutorials/lwr_amr/openmc_amr.i
+  block=Problem
+
+The final change we make is to add an extra postprocessor named `num_elem` to output the number of elements. This postprocessor filters for
+the number of *active* elements, which are the elements currently being tallied on. This is distinct from the *total* number of elements as
+MOOSE/libMesh maintains the entire refinement hierarchy, and so elements which aren't participating in the solve at the current refinement
+cycle still exist in memory (and therefore are included in the total element count).
+
+!listing /tutorials/lwr_amr/openmc_amr.i
+  block=Postprocessors
+
+To run the neutronic calculation with [!ac](AMR),
+
+```bash
+mpiexec -np 4 cardinal-opt -i openmc_amr.i --n-threads=32
+```

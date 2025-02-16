@@ -1,12 +1,3 @@
-# The number of refinement cycles.
-num_cycles = 5
-# The upper error fraction.
-r_error_fraction = 0.3
-# The upper limit of statistical relative error.
-r_stat_error = 5e-2
-# The lower limit of statistical relative error.
-c_stat_error = 1e-1
-
 [Mesh]
   [file]
     type = FileMeshGenerator
@@ -16,7 +7,7 @@ c_stat_error = 1e-1
 
 [Adaptivity]
   marker = error_combo
-  steps = ${num_cycles}
+  steps = 5
 
   [Indicators/optical_depth]
     type = ElementOpticalDepthIndicator
@@ -27,14 +18,14 @@ c_stat_error = 1e-1
     [depth_frac]
       type = ErrorFractionMarker
       indicator = optical_depth
-      refine = ${r_error_fraction}
+      refine = 0.3
       coarsen = 0.0
     []
     [rel_error]
       type = ValueThresholdMarker
       invert = true
-      coarsen = '${c_stat_error}'
-      refine = '${r_stat_error}'
+      coarsen = 1e-1
+      refine = 5e-2
       variable = heat_source_rel_error
       third_state = DO_NOTHING
     []
