@@ -4,8 +4,8 @@
 pitch        = 1.26
 fuel_height  = 192.78
 r_fuel       = 0.4095
-r_gap_1      = 0.4180
-r_clad_1     = 0.4750
+r_fuel_gap   = 0.4180
+r_fuel_clad  = 0.4750
 r_guide      = 0.3400
 r_guide_clad = 0.5400
 #----------------------------------------------------------------------------------------
@@ -24,12 +24,12 @@ AXIAL_DIVISIONS          = 5
     type = PolygonConcentricCircleMeshGenerator
     num_sides = 4
     num_sectors_per_side = '${NUM_SECTORS} ${NUM_SECTORS} ${NUM_SECTORS} ${NUM_SECTORS}'
-    ring_radii = '${r_fuel} ${r_gap_1} ${r_clad_1}'
+    ring_radii = '${r_fuel} ${r_fuel_gap} ${r_fuel_clad}'
     ring_intervals = '${FUEL_RADIAL_DIVISIONS} 1 1'
     polygon_size = ${fparse pitch / 2.0}
 
     ring_block_ids = '0 1 2 3'
-    ring_block_names = 'uo2_center uo2 gap_1 zr_clad'
+    ring_block_names = 'uo2_center uo2 fuel_gap zr_clad'
     background_block_ids = '17'
     background_block_names = 'water'
     background_intervals = ${BACKGROUND_DIVISIONS}
