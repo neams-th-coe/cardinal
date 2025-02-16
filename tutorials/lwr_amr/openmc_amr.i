@@ -3,7 +3,7 @@ num_cycles = 5
 # The upper error fraction.
 r_error_fraction = 0.3
 # The upper limit of statistical relative error.
-r_stat_error = 1e-2
+r_stat_error = 5e-2
 # The lower limit of statistical relative error.
 c_stat_error = 1e-1
 
@@ -33,8 +33,8 @@ c_stat_error = 1e-1
     [rel_error]
       type = ValueThresholdMarker
       invert = true
-      coarsen = ${r_stat_error}
-      refine = ${c_stat_error}
+      coarsen = '${c_stat_error}'
+      refine = '${r_stat_error}'
       variable = heat_source_rel_error
       third_state = DO_NOTHING
     []
@@ -52,11 +52,12 @@ c_stat_error = 1e-1
 
 [Problem]
   type = OpenMCCellAverageProblem
-  particles = 20000
-  inactive_batches = 500
-  batches = 10000
+  particles = 10000
+  inactive_batches = 50
+  batches = 1000
 
   power = ${fparse 3000e6 / 273 * 4}
+  source_rate_normalization = 'kappa_fission'
 
   normalize_by_global_tally = false
   assume_separate_tallies = true

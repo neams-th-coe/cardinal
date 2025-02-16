@@ -13,13 +13,14 @@ cd cardinal/tutorials/lwr_amr
 ```
 
 !alert! note title=Computing Needs
-This tutorial requires [!ac](HPC) due to the number of bins in the tally mesh, both before and after the application
-of [!ac](AMR).
+This tutorial requires [!ac](HPC) due to the number of elements in the tally mesh, both before and after the application
+of [!ac](AMR). You can run the OpenMC problem with a reduced number of particles, however the mesh may not refine due to
+the large tally relative errors caused by poor stastistics.
 !alert-end!
 
 ## Geometry and Computational Models
 
-This model consists of a single UO$_2$ assembly from the C5G7 [!ac](LWR) 3D extension case in [!cite](c5g7), where control
+This model consists of a single UO$_2$ assembly from the 3D C5G7 extension case in [!cite](c5g7), where control
 rods are fully inserted in the assembly to induce strong axial and radial gradients. Instead of using the multi-group
 cross sections from the C5G7 benchmark specifications, the material properties in [!cite](c5g7_materials) are used.
 At a high level the geometry consists of the following lattice elements (in a 17x17 grid):
@@ -44,7 +45,7 @@ reflector region which is penetrated by the inserted control rods. The relevant 
 | Fuel height | 192.78 |
 | Reflector thickness | 21.42 |
 
-A total core power of 3000 MWth is assumed uniformly distributed among 273 fuel assemblies, each with 264 pins (which do not have a
+A total core power of 3000 MWth is assumed uniformly distributed among 273 rodded fuel assemblies, each with 264 pins (which do not have a
 uniform power distribution due to the control rods). The unstructured mesh tallies added by Cardinal will therefore be normalized
 according to the per-assembly power:
 
@@ -57,7 +58,7 @@ where $n_a=273$ is the number of fuel assemblies in the core.
 
 ### OpenMC Model
 
-OpenMC's Python [!ac](API) is used to generate the model for this [!ac](LWR) assembly. We begin by defining the
+OpenMC's Python [!ac](API) is used to generate the [!ac](CSG) model for this [!ac](LWR) assembly. We begin by defining the
 geometric specification of the assembly. This is followed by the creation of materials for each of the regions
 described in the previous section, where the helium gap is assumed to be well represented by a void region. We then define the geometry
 for each pincell (fuel, control rod in guide tube, fission chamber, reflector water) which are used to define the 17x17 lattice
@@ -115,9 +116,9 @@ the origin, and extrude the geometry from the fuel centerline to the top of the 
 !listing /tutorials/lwr_amr/mesh.i
   start=[Delete_Blocks]
 
-We generate the mesh by running the command below, which creates the `mesh_in.e` file that is used in the Cardinal input file (`openmc.i`) for volumetric
-tallies. The final mesh can be found in [assembly_amr_init_mesh], which is a fairly coarse mesh in the axial direction. We will rely on [!ac](AMR) to
-refine both the radial andd axial power distribution.
+We generate the mesh by running the command below, which creates the `mesh_in.e` file that is used in the Cardinal input file for volumetric
+tallies. The final mesh can be found in [assembly_amr_init_mesh], which is a fairly coarse mesh in the axial direction. We will rely on
+[!ac](AMR) to refine both the radial and axial power distribution.
 
 ```bash
 cardinal-opt -i mesh.i --mesh-only
@@ -130,8 +131,68 @@ cardinal-opt -i mesh.i --mesh-only
 
 ### Neutronics Input File
 
+The neutronics calculation is performed over the entire assembly by OpenMC, and the wrapping of the OpenMC results in MOOSE is performed in
+`openmc.i`. We begin by defining the mesh which will be used by OpenMC to tally the volumetric fission power, which we generated in the
+previous step:
 
+!listing /tutorials/lwr_amr/openmc.i
+  block=Mesh
+
+Next, the [Problem](Problem/index.md) and [Tallies](AddTallyAction.md) blocks describe all of the syntax necessary to replace the normal
+MOOSE finite element calculation with an OpenMC neutronics solve. This is done with an [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md).
+
+!listing /tutorials/lwr_amr/openmc.i
+  block=Problem
+
+We specify that we wish to use `10000` particles per batch with `50` inactive batches (to converge the fission source) and `1000` total batches
+(`950` batches accumulating statistics) - this is due to the spatially small tally bins. We then specify the total power of the assembly
+in `power` to normalize tally results. We set `normalize_by_global_tally = false` because the unstructured mesh tally does not perfectly
+represent the [!ac](CSG) geometry, and so some scores will be missed. `assume_separate_tallies` and `skip_statepoint` are set to `true`
+as performance optimizations. A [MeshTally](MeshTally.md) is added in the `[Tallies]` block which will automatically score on `mesh_in.e`.
+This tally scores `kappa_fission` to a MOOSE variable named `heat_source` while also calculating the standard deviation of the tally field
+(stored in `heat_source_std_dev`). We specify that we only wish to tally on the fueled regions (`uo2_center` and `uo2`) as the remainder
+of the assembly will accumulate zero (or near-zero in the case of the fission chamber) tally scores for fission heating.
+
+A steady-state executioner is selected as OpenMC will run a single criticality calculation. We then select exodus and [!ac](CSV) output (for our
+postprocessors) which will occur on the end of the simulation.
+
+!listing /tutorials/lwr_amr/openmc.i
+  start=[Executioner]
+  end=[Postprocessors]
+
+Finally, we add three [TallyRelativeError](TallyRelativeError.md) postprocessors to evaluate the minimum, maximum, and average tally relative
+error of the `kappa_fission` score. These are useful for determining if the number of batches need to be increased when increasing the mesh
+resolution using [!ac](AMR).
+
+!listing /tutorials/lwr_amr/openmc.i
+  block=Postprocessors
 
 ## Execution and Postprocessing
+
+To run the wrapped neutronic calculation,
+
+```bash
+mpiexec -np 4 cardinal-opt -i openmc.i --n-threads=32
+```
+
+This will run OpenMC with 4 MPI ranks with 32 OpenMP threads per rank. To run the simulation faster, you can increase the parallel
+processes/threads, or simply decrease the number of particles used in OpenMC. When the simulation has completed, you will have created
+a number of different output files:
+
+- `openmc_out.e`: an Exodus mesh with the tally results;
+- `openmc_out.csv`: a [!ac](CSV) file with the results reported by the [TallyRelativeError](TallyRelativeError.md) postprocessors.
+
+[assembly_amr_init_res] shows the resulting fission power computed by OpenMC on the mesh tally added by Cardinal. We can see
+that the radial power distribution peaks near the corners of the assembly (due to the reflective boundary conditions), and is
+depressed near the guide tubes due to the insertion of the control rods. The center of the assembly sees some additional power
+peaking due to the fission chamber. The power distribution within the assembly begins to decrease along the z-axis as one moves
+from the assembly centerline to the vacuum boundary condition. The coarse axial discretization makes it difficult to determine
+if this follows the standard cosine shape and the lack of radial refinement fails to capture gradients within each pincell. This
+motivates the use of [!ac](AMR) to automatically refine the tally mesh near these regions.
+
+!media assembly_amr_init_res.png
+  id=assembly_amr_init_res
+  caption=Fission power computed with the unstructured mesh tally, shown with an isometric view and sliced on the x-y plane
+  style=width:90%;margin-left:auto;margin-right:auto
 
 ## Adding Adaptive Mesh Refinement
