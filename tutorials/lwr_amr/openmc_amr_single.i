@@ -1,7 +1,7 @@
 [Mesh]
   [file]
     type = FileMeshGenerator
-    file = mesh_in.e
+    file = mesh_pin_in.e
   []
 []
 
@@ -43,7 +43,7 @@
 
 [Problem]
   type = OpenMCCellAverageProblem
-  particles = 10000
+  particles = 1000
   inactive_batches = 50
   batches = 1000
 

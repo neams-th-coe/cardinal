@@ -13,12 +13,13 @@ cd cardinal/tutorials/lwr_amr
 ```
 
 !alert! note title=Computing Needs
-This tutorial requires [!ac](HPC) due to the number of elements in the tally mesh, both before and after the application
+The full assembly case requires [!ac](HPC) due to the number of elements in the tally mesh, both before and after the application
 of [!ac](AMR). You can run the OpenMC problem with a reduced number of particles, however the mesh may not refine due to
-the large tally relative errors caused by poor stastistics.
+the large tally relative errors caused by poor stastistics. We include a section on running [!ac](AMR) on a single pin of
+the assembly mesh if you don't have access to [!ac](HPC) resources - that can be found in [#pincell].
 !alert-end!
 
-## Geometry and Computational Models
+## Geometry and Computational Models id=model
 
 This model consists of a single UO$_2$ assembly from the 3D C5G7 extension case in [!cite](c5g7), where control
 rods are fully inserted in the assembly to induce strong axial and radial gradients. Instead of using the multi-group
@@ -29,7 +30,7 @@ At a high level the geometry consists of the following lattice elements (in a 17
 - 24 control rods composed of BC$_4$ pellets clad in aluminum (with no gap) which occupy the assembly guide tubes;
 - A single fission chamber in the center guide tube composed of borated water with a trace amount of U-235 clad in aluminum (with no gap).
 
-The remainder of the assembly which is not filled with these pincells is composed of water. Above the top of the fuel there is a
+The remainder of the assembly which is not filled with these pincells is composed of borated water. Above the top of the fuel there is a
 reflector region which is penetrated by the inserted control rods. The relevant dimensions can be found in [table1].
 
 !table id=table1 caption=Geometric specifications for a rodded [!ac](LWR) assembly
@@ -56,7 +57,7 @@ q_{as}=\frac{3000\text{\ MWth}}{n_a}
 
 where $n_a=273$ is the number of fuel assemblies in the core.
 
-### OpenMC Model
+### OpenMC Model id=openmc
 
 OpenMC's Python [!ac](API) is used to generate the [!ac](CSG) model for this [!ac](LWR) assembly. We begin by defining the
 geometric specification of the assembly. This is followed by the creation of materials for each of the regions
@@ -81,7 +82,7 @@ python make_openmc_model.py
 
 Or you can use the `model.xml` file that is included in the `tutorials/lwr_amr` directory.
 
-### Mesh Generation with the Reactor Module
+### Mesh Generation with the Reactor Module id=mesh
 
 The mesh used to tally the fission heating in this problem will be generated using the MOOSE
 [Reactor module](https://mooseframework.inl.gov/modules/reactor/index.html), which provides a suite of mesh generators suited for
@@ -126,10 +127,10 @@ cardinal-opt -i mesh.i --mesh-only
 
 !media assembly_amr_init_mesh.png
   id=assembly_amr_init_mesh
-  caption=Initial tally mesh colored by block ID shown in an isometric view and sliced on the $x-y$ plane
+  caption=Initial tally mesh colored by block ID, shown in an isometric view and sliced on the $x-y$ plane
   style=width:90%;margin-left:auto;margin-right:auto
 
-### Neutronics Input File
+### Neutronics Input File id=neutronics
 
 The neutronics calculation is performed over the entire assembly by OpenMC, and the wrapping of the OpenMC results in MOOSE is performed in
 `openmc.i`. We begin by defining the mesh which will be used by OpenMC to tally the volumetric fission power, which we generated in the
@@ -166,9 +167,9 @@ resolution using [!ac](AMR).
 !listing /tutorials/lwr_amr/openmc.i
   block=Postprocessors
 
-## Execution and Postprocessing
+### Execution and Postprocessing id=exec
 
-To run the wrapped neutronic calculation,
+To run the wrapped neutronics calculation,
 
 ```bash
 mpiexec -np 4 cardinal-opt -i openmc.i --n-threads=32
@@ -206,7 +207,7 @@ largely the same as the input file for the initial mesh tally - it can be found 
 block (shown below), which is responsible for determining the refinement / coarsening behaviour of the mesh. The adaptivity block
 consists of two sub-blocks: [Indicators](https://mooseframework.inl.gov/syntax/Adaptivity/Indicators/index.html) which compute estimates
 of spatial discretization error, and [Markers](https://mooseframework.inl.gov/syntax/Adaptivity/Markers/index.html) which use
-these error estimates to mark elements for refinement or coarsening. Five steps of mesh adaptivity are selected with `steps = 5`,
+these error estimates to mark elements for refinement or coarsening. Two steps of mesh adaptivity are selected with `steps = 2`,
 and `error_combo` is selected to be the marker to use when modifying the mesh.
 
 !listing /tutorials/lwr_amr/openmc_amr.i
@@ -216,8 +217,8 @@ In this adaptivity block we define a single indicator which
 assumes that the spatial error in an element is proportional to the mean optical depth within the element (`optical_depth`). This
 indicator requires a tally score to use for computing the energy-integrated reaction rate in an element - we select the `fission`
 reaction rate as we aim to optimize the spatial distribution of fission heating. It also requires an estimate of the mean chord
-length in the element (`h_type`) which we set to the cube root of the element volume to minimize the effect of the long aspect
-ratio elements in the mesh.
+length in the element (`h_type`) which we set to the maximum vertex separation in an element due to the coarse axial discretization
+in our initial mesh.
 
 We then add three markers, the first of which is a
 [ErrorFractionMarker](https://mooseframework.inl.gov/source/markers/ErrorFractionMarker.html) (`depth_frac`) which takes `optical_depth`
@@ -252,8 +253,20 @@ cycle still exist in memory (and therefore are included in the total element cou
 !listing /tutorials/lwr_amr/openmc_amr.i
   block=Postprocessors
 
-To run the neutronic calculation with [!ac](AMR),
+### Execution and Postprocessing
+
+To run the neutronics calculation with [!ac](AMR),
 
 ```bash
 mpiexec -np 4 cardinal-opt -i openmc_amr.i --n-threads=32
 ```
+
+## Single Pincell id=pincell
+
+In this section, we seggregate a single pin from the corner of the assembly mesh to tally and run adaptivity on. The mesh input file (`mesh_pin.i`)
+can be found below. We first generate a UO$_2$ pin, and translate it to the left to ensure it lines up with fuel (as the central pin is a fission chamber).
+This pin is then extruded to the full length of the fueled region and the gap block is deleted (as it will never be tallied on).
+
+!listing /tutorials/lwr_amr/mesh_pin.i
+
+s
