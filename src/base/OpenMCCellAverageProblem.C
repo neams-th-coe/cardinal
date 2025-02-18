@@ -192,7 +192,8 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
                              ? false
                              : getParam<bool>("normalize_by_global_tally")),
     _has_adaptivity(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
-    _need_to_reinit_coupling(_has_adaptivity),
+    _using_skinner(isParamValid("skinner")),
+    _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
     _check_tally_sum(
         isParamValid("check_tally_sum")
             ? getParam<bool>("check_tally_sum")
@@ -208,8 +209,7 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
     _volume_calc(nullptr),
     _symmetry(nullptr),
-    _initial_num_openmc_surfaces(openmc::model::surfaces.size()),
-    _using_skinner(isParamValid("skinner"))
+    _initial_num_openmc_surfaces(openmc::model::surfaces.size())
 {
   // Check to see if a displaced problem is being initialized.
   // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to
@@ -2448,8 +2448,32 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
   {
     case ExternalProblem::Direction::TO_EXTERNAL_APP:
     {
-      // re-establish the mapping from the OpenMC cells to the [Mesh], if needed
-      if (!_first_transfer && _need_to_reinit_coupling)
+#ifdef ENABLE_DAGMC
+      if (_skinner)
+      {
+        // Update the OpenMC geometry to take into account skinning. This also calls
+        // _skinner->update().
+        updateOpenMCGeometry();
+
+        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
+        updateMaterials();
+
+        // regenerate the DAGMC geometry
+        reloadDAGMC();
+      }
+#endif
+      /*
+       * We run the skinner on the first transfer as OpenMC may be a sub-application
+       * of a solid or fluids multiapp. If this is the case, then those other applications
+       * may execute ahead of OpenMC and provide updated temperatures/densities on the first
+       * transfer which the skinner can use to update the OpenMC geometry. This also holds for
+       * initial conditions provided by the user.
+       *
+       * If the problem doesn't use a skinner, then we can avoid reinitializing it on the first
+       * timestep as nothing will have changed from when the problem was initialized in
+       * initialSetup().
+       */
+      if ((!_first_transfer || _using_skinner) && _need_to_reinit_coupling)
       {
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
@@ -2496,26 +2520,6 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
             mooseError("Unhandled OpenMCInitialConditionEnum!");
         }
       }
-
-#ifdef ENABLE_DAGMC
-      if (_skinner)
-      {
-        // Update the OpenMC geometry to take into account skinning. This also calls
-        // _skinner->update().
-        updateOpenMCGeometry();
-
-        // Update the OpenMC materials (creating new ones as-needed to support the density binning)
-        updateMaterials();
-
-        // regenerate the DAGMC geometry
-        reloadDAGMC();
-
-        // we need to then re-establish the data structures that map from OpenMC cells to the [Mesh]
-        // (because the cells changed)
-        resetTallies();
-        setupProblem();
-      }
-#endif
 
       // Because we require at least one of fluid_blocks and solid_blocks, we are guaranteed
       // to be setting the temperature of all of the cells in cell_to_elem - only for the density

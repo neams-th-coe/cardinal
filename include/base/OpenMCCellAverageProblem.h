@@ -780,10 +780,11 @@ protected:
    */
   const bool _normalize_by_global;
 
-  /**
-   * Whether or not the problem contains mesh adaptivity.
-   */
-  bool _has_adaptivity;
+  /// Whether or not the problem contains mesh adaptivity.
+  const bool _has_adaptivity;
+
+  /// Whether or not the problem uses a skinner to regenerate the OpenMC geometry.
+  const bool _using_skinner;
 
   /**
    * When the mesh changes during the simulation (either from adaptive mesh refinement
@@ -1104,8 +1105,6 @@ protected:
   /// The number of OpenMC surfaces before skinning occurs. This is required to properly reinitialize
   /// the CSG geometry contained in the OpenMC model.
   const int32_t _initial_num_openmc_surfaces;
-
-  const bool _using_skinner;
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;
