@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include "OpenMCUserObject.h"
+#include "GeneralUserObject.h"
+
+#include "OpenMCBase.h"
 
 #include "CardinalEnums.h"
 
@@ -27,7 +29,7 @@ class OpenMCProblemBase;
 /**
  * User object to create and/or modify an OpenMC tally filter for a limited set of domain types.
  */
-class OpenMCDomainFilterEditor : public OpenMCUserObject
+class OpenMCDomainFilterEditor : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();

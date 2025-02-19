@@ -2,7 +2,7 @@
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
-/*                  (c) 2024 UChicago Argonne, LLC                  */
+/*                  (c) 2021 UChicago Argonne, LLC                  */
 /*                        ALL RIGHTS RESERVED                       */
 /*                                                                  */
 /*                 Prepared by UChicago Argonne, LLC                */
@@ -18,24 +18,21 @@
 
 #pragma once
 
-#include "GeneralUserObject.h"
+#include "MooseObject.h"
 
-class OpenMCProblemBase;
+#include "NekRSProblemBase.h"
 
-/**
- * User object that acts on aspects of the OpenMC simulation
- */
-class OpenMCUserObject : public GeneralUserObject
+class NekBase
 {
 public:
   static InputParameters validParams();
 
-  OpenMCUserObject(const InputParameters & parameters);
+  NekBase(const MooseObject * moose_object, const InputParameters & parameters);
 
-  /// We don't want this user object to execute in MOOSE's control
-  virtual void initialize() {}
-  virtual void finalize() {}
-  virtual void execute() {}
+protected:
+  /// The NekRSProblemBase required by all objects which inherit from NekBase.
+  const NekRSProblemBase * _nek_problem;
 
-  const OpenMCProblemBase * openmcProblem() const;
+  /// Underlying NekRSMesh, if present
+  const NekRSMesh * _nek_mesh;
 };

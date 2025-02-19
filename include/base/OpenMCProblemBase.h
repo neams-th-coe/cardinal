@@ -23,9 +23,6 @@
 #include "CardinalProblem.h"
 #include "PostprocessorInterface.h"
 #include "CardinalEnums.h"
-#include "OpenMCNuclideDensities.h"
-#include "OpenMCDomainFilterEditor.h"
-#include "OpenMCTallyEditor.h"
 
 #include "mpi.h"
 #include "openmc/bank.h"
@@ -43,6 +40,11 @@
 #include "openmc/tallies/tally.h"
 #include "openmc/tallies/filter_cell_instance.h"
 #include "xtensor/xview.hpp"
+
+// Forward declarations to avoid cyclic dependencies.
+class OpenMCNuclideDensities;
+class OpenMCDomainFilterEditor;
+class OpenMCTallyEditor;
 
 /**
  * Base class for all MOOSE wrappings of OpenMC

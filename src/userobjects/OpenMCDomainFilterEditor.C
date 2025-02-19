@@ -19,7 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCDomainFilterEditor.h"
-#include "OpenMCProblemBase.h"
 #include "openmc/tallies/tally.h"
 #include "openmc/tallies/filter.h"
 #include "openmc/tallies/filter_cell.h"
@@ -32,7 +31,8 @@ registerMooseObject("CardinalApp", OpenMCDomainFilterEditor);
 InputParameters
 OpenMCDomainFilterEditor::validParams()
 {
-  InputParameters params = OpenMCUserObject::validParams();
+  InputParameters params = GeneralUserObject::validParams();
+  params += OpenMCBase::validParams();
   params.addParam<bool>("create_filter", false, "Whether to create the filter if it doesn't exist");
   params.addRequiredParam<int32_t>("filter_id", "The ID of the filter to modify");
   params.addRequiredParam<MooseEnum>("filter_type", getFilterTypeEnum(), "The type of filter");
@@ -43,7 +43,8 @@ OpenMCDomainFilterEditor::validParams()
 }
 
 OpenMCDomainFilterEditor::OpenMCDomainFilterEditor(const InputParameters & parameters)
-  : OpenMCUserObject(parameters),
+  : GeneralUserObject(parameters),
+    OpenMCBase(this, parameters),
     _create_filter(getParam<bool>("create_filter")),
     _filter_id(getParam<int32_t>("filter_id")),
     _filter_type(getParam<MooseEnum>("filter_type").getEnum<OpenMCFilterType>())

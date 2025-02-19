@@ -23,14 +23,19 @@
 InputParameters
 NekSidePostprocessor::validParams()
 {
-  InputParameters params = NekPostprocessor::validParams();
+  InputParameters params = GeneralPostprocessor::validParams();
+  params += NekBase::validParams();
+  params.addParam<MooseEnum>("mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
   params.addRequiredParam<std::vector<int>>(
       "boundary", "Boundary ID(s) for which to compute the postprocessor");
   return params;
 }
 
 NekSidePostprocessor::NekSidePostprocessor(const InputParameters & parameters)
-  : NekPostprocessor(parameters), _boundary(getParam<std::vector<int>>("boundary"))
+  : GeneralPostprocessor(parameters),
+    NekBase(this, parameters),
+    _pp_mesh(getParam<MooseEnum>("mesh").getEnum<nek_mesh::NekMeshEnum>()),
+    _boundary(getParam<std::vector<int>>("boundary"))
 {
   const auto & filename = getMooseApp().getLastInputFileName();
 

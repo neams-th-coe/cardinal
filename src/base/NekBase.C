@@ -18,41 +18,37 @@
 
 #ifdef ENABLE_NEK_COUPLING
 
-#include "NekPostprocessor.h"
+#include "NekBase.h"
 
 InputParameters
-NekPostprocessor::validParams()
+NekBase::validParams()
 {
-  InputParameters params = GeneralPostprocessor::validParams();
-
-  params.addParam<MooseEnum>(
-      "mesh", getNekMeshEnum(), "NekRS mesh to compute postprocessor on");
+  InputParameters params = emptyInputParameters();
   return params;
 }
 
-NekPostprocessor::NekPostprocessor(const InputParameters & parameters)
-  : GeneralPostprocessor(parameters),
-    _mesh(_subproblem.mesh()),
-    _pp_mesh(getParam<MooseEnum>("mesh").getEnum<nek_mesh::NekMeshEnum>())
+NekBase::NekBase(const MooseObject * moose_object, const InputParameters & parameters)
+  : _nek_problem(dynamic_cast<NekRSProblemBase *>(&moose_object->getMooseApp().feProblem()))
 {
-  _nek_problem = dynamic_cast<const NekRSProblemBase *>(&_fe_problem);
   if (!_nek_problem)
   {
-    std::string extra_help = _fe_problem.type() == "FEProblem" ? " (the default)" : "";
-    mooseError("This postprocessor can only be used with wrapped Nek cases!\n"
+    std::string extra_help =
+        moose_object->getMooseApp().feProblem().type() == "FEProblem" ? " (the default)" : "";
+    mooseError(moose_object->type() +
+               " can only be used with wrapped Nek cases!\n"
                "You need to change the problem type from '" +
-               _fe_problem.type() + "'" + extra_help +
+               moose_object->getMooseApp().feProblem().type() + "'" + extra_help +
                " to a Nek-wrapped problem.\n\n"
                "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
   }
 
   // NekRSProblem enforces that we then use NekRSMesh, so we don't need to check that
   // this pointer isn't NULL
-  _nek_mesh = dynamic_cast<const NekRSMesh *>(&_mesh);
+  _nek_mesh = dynamic_cast<const NekRSMesh *>(&moose_object->getMooseApp().feProblem().mesh());
 
-  if (isParamSetByUser("use_displaced_mesh"))
+  if (moose_object->isParamSetByUser("use_displaced_mesh"))
     mooseWarning("'use_displaced_mesh' is unused, because this postprocessor acts directly\n"
-      "on the NekRS internal mesh");
+                 "on the NekRS internal mesh");
 }
 
 #endif

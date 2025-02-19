@@ -31,7 +31,7 @@ OpenMCIndicator::validParams()
 
 OpenMCIndicator::OpenMCIndicator(const InputParameters & parameters)
   : Indicator(parameters),
-    _openmc_problem(dynamic_cast<OpenMCCellAverageProblem *>(&_subproblem)),
+    OpenMCBase(this, parameters),
     _field_var(_subproblem.getStandardVariable(_tid, name())),
     _current_elem(_field_var.currentElem())
 {

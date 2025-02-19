@@ -18,18 +18,23 @@
 
 #pragma once
 
-#include "OpenMCPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "OpenMCBase.h"
 #include "CardinalEnums.h"
 
 /**
  * Compute the max/min relative error of the tally coupling OpenMC to MOOSE.
  */
-class TallyRelativeError : public OpenMCPostprocessor
+class TallyRelativeError : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   TallyRelativeError(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 

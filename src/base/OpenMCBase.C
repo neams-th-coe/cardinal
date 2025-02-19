@@ -16,26 +16,26 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#pragma once
+#ifdef ENABLE_OPENMC_COUPLING
 
-#include "GeneralPostprocessor.h"
-#include "OpenMCCellAverageProblem.h"
+#include "OpenMCBase.h"
 
-/**
- * Base class for providing common information to postprocessors
- * operating directly on the OpenMC solution and geometry.
- */
-class OpenMCPostprocessor : public GeneralPostprocessor
+#include "libmesh/elem.h"
+
+InputParameters
+OpenMCBase::validParams()
 {
-public:
-  static InputParameters validParams();
+  InputParameters params = emptyInputParameters();
+  return params;
+}
 
-  OpenMCPostprocessor(const InputParameters & parameters);
+OpenMCBase::OpenMCBase(const MooseObject * moose_object, const InputParameters & parameters)
+  : _openmc_problem(
+        dynamic_cast<OpenMCCellAverageProblem *>(&moose_object->getMooseApp().feProblem()))
+{
+  if (!_openmc_problem)
+    mooseError(moose_object->type() +
+               " can only be used with problems of type 'OpenMCCellAverageProblem'!");
+}
 
-  virtual void initialize() override {}
-  virtual void execute() override {}
-
-protected:
-  // Underlying problem
-  const OpenMCCellAverageProblem * _openmc_problem;
-};
+#endif

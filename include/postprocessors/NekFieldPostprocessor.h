@@ -18,21 +18,30 @@
 
 #pragma once
 
-#include "NekPostprocessor.h"
+#include "GeneralPostprocessor.h"
+#include "GeometryUtils.h"
+
+#include "NekBase.h"
 #include "CardinalEnums.h"
 
 /**
  * Base class for NekRS postprocessors that operate on fields,
  * such as for taking averages of a field variable.
  */
-class NekFieldPostprocessor : public NekPostprocessor
+class NekFieldPostprocessor : public GeneralPostprocessor, public NekBase
 {
 public:
   static InputParameters validParams();
 
   NekFieldPostprocessor(const InputParameters & parameters);
 
+  virtual void initialize() override {}
+  virtual void execute() override {}
+
 protected:
+  /// Which NekRS mesh to act on
+  const nek_mesh::NekMeshEnum _pp_mesh;
+
   /// integrand of the surface integral
   const field::NekFieldEnum _field;
 

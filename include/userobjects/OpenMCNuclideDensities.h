@@ -18,17 +18,23 @@
 
 #pragma once
 
-#include "OpenMCUserObject.h"
+#include "GeneralUserObject.h"
+
+#include "OpenMCBase.h"
 
 /**
  * User object to modify the nuclide densities in an OpenMC material.
  */
-class OpenMCNuclideDensities : public OpenMCUserObject
+class OpenMCNuclideDensities : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   OpenMCNuclideDensities(const InputParameters & parameters);
+
+  virtual void initialize() {}
+  virtual void finalize() {}
+  virtual void execute() {}
 
   /// Instead, we want to have a separate method that we can call from the OpenMC problem
   virtual void setValue();

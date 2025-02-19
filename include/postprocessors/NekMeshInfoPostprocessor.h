@@ -18,7 +18,9 @@
 
 #pragma once
 
-#include "NekPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "NekBase.h"
 
 /**
  * This postprocessor is used strictly for testing the construction
@@ -31,7 +33,7 @@
  *
  * for more information on the motivation for this object.
  */
-class NekMeshInfoPostprocessor : public NekPostprocessor
+class NekMeshInfoPostprocessor : public GeneralPostprocessor, public NekBase
 {
 public:
   NekMeshInfoPostprocessor(const InputParameters & parameters);

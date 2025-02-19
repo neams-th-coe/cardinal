@@ -18,7 +18,10 @@
 
 #pragma once
 
-#include "NekUserObject.h"
+#include "GeneralUserObject.h"
+#include "GeometryUtils.h"
+
+#include "NekBase.h"
 #include "SpatialBinUserObject.h"
 
 /**
@@ -26,7 +29,7 @@
  * NekRS solution with a spatial binning formed as the product
  * of an arbitrary number of combined single-set bins.
  */
-class NekSpatialBinUserObject : public NekUserObject
+class NekSpatialBinUserObject : public GeneralUserObject, public NekBase
 {
 public:
   static InputParameters validParams();
@@ -34,6 +37,17 @@ public:
   NekSpatialBinUserObject(const InputParameters & parameters);
 
   virtual ~NekSpatialBinUserObject();
+
+  virtual void initialize() {}
+  virtual void finalize() {}
+  virtual void execute() override;
+
+  /**
+   * Execute the user object; separating this call from execute() allows
+   * all derived classes to leverage this base class's 'interval' parameter
+   * to decide when to call the user object
+   */
+  virtual void executeUserObject() = 0;
 
   virtual Real spatialValue(const Point & p) const override final;
 
@@ -98,6 +112,12 @@ protected:
    * @param[out] p point at the (i, j, k) indices of the combined bins
    */
   void fillCoordinates(const std::vector<unsigned int> & indices, Point & p) const;
+
+  /// Interval with which to evaluate the user object
+  const unsigned int & _interval;
+
+  /// Whether the mesh this userobject operates on is fixed, allowing caching of volumes and areas
+  bool _fixed_mesh;
 
   /// Names of the userobjects providing the bins
   const std::vector<UserObjectName> & _bin_names;

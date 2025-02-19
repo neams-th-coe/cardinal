@@ -18,18 +18,23 @@
 
 #pragma once
 
-#include "OpenMCPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "OpenMCBase.h"
 #include "CardinalEnums.h"
 
 /**
  * Get the k-effective eigenvalue standard deviation computed by OpenMC.
  */
-class KStandardDeviation : public OpenMCPostprocessor
+class KStandardDeviation : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   KStandardDeviation(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 

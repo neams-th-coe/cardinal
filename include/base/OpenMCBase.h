@@ -16,24 +16,25 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#ifdef ENABLE_OPENMC_COUPLING
+#pragma once
 
-#include "OpenMCPostprocessor.h"
+#include "MooseObject.h"
 
-InputParameters
-OpenMCPostprocessor::validParams()
+#include "OpenMCCellAverageProblem.h"
+
+namespace libMesh
 {
-  InputParameters params = GeneralPostprocessor::validParams();
-  return params;
+class Elem;
 }
 
-OpenMCPostprocessor::OpenMCPostprocessor(const InputParameters & parameters)
-  : GeneralPostprocessor(parameters)
+class OpenMCBase
 {
-  _openmc_problem = dynamic_cast<OpenMCCellAverageProblem *>(&_fe_problem);
+public:
+  static InputParameters validParams();
 
-  if (!_openmc_problem)
-    mooseError("This postprocessor can only be used with OpenMCCellAverageProblem!");
-}
+  OpenMCBase(const MooseObject * moose_object, const InputParameters & parameters);
 
-#endif
+protected:
+  /// The OpenMCCellAverageProblem required by all objects which inherit from OpenMCBase.
+  OpenMCCellAverageProblem * _openmc_problem;
+};

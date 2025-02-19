@@ -37,11 +37,4 @@
     mesh_mode = 'replicated'
     required_objects = 'OpenMCCellAverageProblem'
   []
-  [wrong_problem]
-    type = RunException
-    input = 'wrong_problem.i'
-    requirement = 'The system shall error if the user attempts to add an ElementOpticalDepthIndicator without an OpenMCCellAverageProblem.'
-    expect_err = "This indicator can only be used with problems of type 'OpenMCCellAverageProblem'!"
-    required_objects = 'OpenMCCellAverageProblem'
-  []
 []

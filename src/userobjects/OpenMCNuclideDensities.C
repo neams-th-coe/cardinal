@@ -19,7 +19,6 @@
 #ifdef ENABLE_OPENMC_COUPLING
 
 #include "OpenMCNuclideDensities.h"
-#include "OpenMCProblemBase.h"
 #include "openmc/material.h"
 
 registerMooseObject("CardinalApp", OpenMCNuclideDensities);
@@ -27,7 +26,8 @@ registerMooseObject("CardinalApp", OpenMCNuclideDensities);
 InputParameters
 OpenMCNuclideDensities::validParams()
 {
-  InputParameters params = OpenMCUserObject::validParams();
+  InputParameters params = GeneralUserObject::validParams();
+  params += OpenMCBase::validParams();
   params.addRequiredParam<int32_t>("material_id", "ID of material to change nuclide densities");
   params.addRequiredParam<std::vector<std::string>>("names",
                                                     "Names of the nuclides to modify densities");
@@ -39,15 +39,15 @@ OpenMCNuclideDensities::validParams()
 }
 
 OpenMCNuclideDensities::OpenMCNuclideDensities(const InputParameters & parameters)
-  : OpenMCUserObject(parameters),
+  : GeneralUserObject(parameters),
+    OpenMCBase(this, parameters),
     _material_id(getParam<int32_t>("material_id")),
     _names(getParam<std::vector<std::string>>("names")),
     _densities(getParam<std::vector<double>>("densities"))
 {
-  const OpenMCProblemBase * openmc_problem = openmcProblem();
-  openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
-                                   "get the material index for material with ID " +
-                                       std::to_string(_material_id));
+  _openmc_problem->catchOpenMCError(openmc_get_material_index(_material_id, &_material_index),
+                                    "get the material index for material with ID " +
+                                        std::to_string(_material_id));
 }
 
 void

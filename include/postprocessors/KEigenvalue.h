@@ -18,18 +18,23 @@
 
 #pragma once
 
-#include "OpenMCPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "OpenMCBase.h"
 #include "CardinalEnums.h"
 
 /**
  * Get the k-effective eigenvalue computed by OpenMC.
  */
-class KEigenvalue : public OpenMCPostprocessor
+class KEigenvalue : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   KEigenvalue(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 

@@ -18,18 +18,23 @@
 
 #pragma once
 
-#include "OpenMCPostprocessor.h"
+#include "GeneralPostprocessor.h"
+
+#include "OpenMCBase.h"
 
 /**
  * Get the total number of particles simulated in OpenMC, i.e. the product
  * of the particles/batch multiplied by number of batches.
  */
-class OpenMCParticles : public OpenMCPostprocessor
+class OpenMCParticles : public GeneralPostprocessor, public OpenMCBase
 {
 public:
   static InputParameters validParams();
 
   OpenMCParticles(const InputParameters & parameters);
+
+  virtual void initialize() override {}
+  virtual void execute() override {}
 
   virtual Real getValue() const override;
 

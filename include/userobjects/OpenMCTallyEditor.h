@@ -18,14 +18,16 @@
 
 #pragma once
 
-#include "OpenMCUserObject.h"
+#include "GeneralUserObject.h"
+
+#include "OpenMCBase.h"
 
 class OpenMCProblemBase;
 
 /**
  * User object to modify an OpenMC tally
  */
-class OpenMCTallyEditor : public OpenMCUserObject
+class OpenMCTallyEditor : public GeneralUserObject, public OpenMCBase
 {
 public:
   static InputParameters validParams();
