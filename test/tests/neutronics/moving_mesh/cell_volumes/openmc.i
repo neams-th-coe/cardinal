@@ -6,25 +6,18 @@
 [Mesh]
   [f]
     type = FileMeshGenerator
-    file = volume.e
+    file = ../volume.e
   []
 []
 
 [Problem]
   type = OpenMCCellAverageProblem
   scaling = 100.0
-  power = 100
-
   cell_level = 0
   temperature_blocks = 'left right'
   skinner = skin
-
-  [Tallies]
-    [cell]
-      type = CellTally
-      blocks = 'left right'
-    []
-  []
+  volume_calculation = vol
+  verbose = true
 []
 
 [AuxVariables]
@@ -86,12 +79,11 @@
     build_graveyard = true
     temperature_min = 0
     temperature_max = 2000
-    output_skins = true
     verbose = True
   []
   [vol]
     type = OpenMCVolumeCalculation
-    n_samples = 100000
+    n_samples = 1000000
   []
 []
 
@@ -101,16 +93,36 @@
 []
 
 [Postprocessors]
-  [vol_left]
+  [moose_vol_left]
     type = VolumePostprocessor
     block = 'left'
   []
-  [vol_right]
+  [moose_vol_right]
     type = VolumePostprocessor
+    block = 'right'
+  []
+  [mapped_vol_left]
+    type = ElementExtremeValue
+    variable = mapped_vol
+    block = 'left'
+  []
+  [mapped_vol_right]
+    type = ElementExtremeValue
+    variable = mapped_vol
+    block = 'right'
+  []
+  [openmc_vol_left]
+    type = ElementExtremeValue
+    variable = actual_openmc_vol
+    block = 'left'
+  []
+  [openmc_vol_right]
+    type = ElementExtremeValue
+    variable = actual_openmc_vol
     block = 'right'
   []
 []
 
 [Outputs]
-  exodus = true
+  csv = true
 []
