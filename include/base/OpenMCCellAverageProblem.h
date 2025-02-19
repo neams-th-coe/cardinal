@@ -899,7 +899,7 @@ protected:
   const bool _needs_global_tally;
 
   /// Whether OpenMCCellAverageProblem should use the displaced mesh
-  const bool & _use_displaced;
+  const bool & _use_displaced_mesh;
 
   /**
    * A map of the filter objects created by the [Problem/Filters] block. The key for each filter is

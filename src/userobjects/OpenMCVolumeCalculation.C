@@ -96,16 +96,21 @@ OpenMCVolumeCalculation::getMooseMesh()
 void
 OpenMCVolumeCalculation::initializeVolumeCalculation()
 {
-  BoundingBox box = MeshTools::create_bounding_box(getMooseMesh().getMesh());
-  if (_fe_problem.getDisplacedProblem() != nullptr)
-    _fe_problem.getDisplacedProblem()->updateMesh();
+  // if user did not provide the lower left or upper right to define the
+  // volume calculation, we need to create a bounding box on the mesh to find them
+  if (!isParamValid("lower_left") || !isParamValid("upper_right"))
+  {
+    BoundingBox box = MeshTools::create_bounding_box(getMooseMesh().getMesh());
+    if (_fe_problem.getDisplacedProblem() != nullptr)
+      _fe_problem.getDisplacedProblem()->updateMesh();
 
-  if (!isParamValid("lower_left"))
-    _lower_left = box.min();
-  if (!isParamValid("upper_right"))
-    _upper_right = box.max();
+    if (!isParamValid("lower_left"))
+      _lower_left = box.min();
+    if (!isParamValid("upper_right"))
+      _upper_right = box.max();
+  }
 
-  if ((_lower_left >= _upper_right) && (isParamValid("lower_left") || isParamValid("lower_left")))
+  if (_lower_left >= _upper_right)
     mooseError("The 'upper_right' (",
                _upper_right(0),
                ", ",

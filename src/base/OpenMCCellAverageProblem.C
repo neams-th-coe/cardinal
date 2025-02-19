@@ -211,27 +211,23 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _specified_temperature_feedback(params.isParamSetByUser("temperature_blocks")),
     _needs_to_map_cells(_specified_density_feedback || _specified_temperature_feedback),
     _needs_global_tally(_check_tally_sum || _normalize_by_global),
-    _use_displaced(getParam<bool>("use_displaced_mesh")),
+    _use_displaced_mesh(getParam<bool>("use_displaced_mesh")),
     _volume_calc(nullptr),
     _symmetry(nullptr),
     _initial_num_openmc_surfaces(openmc::model::surfaces.size())
 {
-  // Check to see if a displaced problem is being initialized.
-  // TODO: this also needs to include a "use_displaced_mesh" parameter, alongside the ability to
-  // actually use the displaced mesh. See https://github.com/neams-th-coe/cardinal/pull/907 for more
-  // information.
+  // Check to see if a displaced problem is being initialized
   const auto & dis_actions =
       getMooseApp().actionWarehouse().getActions<CreateDisplacedProblemAction>();
   for (const auto & act : dis_actions)
   {
     auto has_displaced =
         act->isParamValid("displacements") && act->getParam<bool>("use_displaced_mesh");
-    _need_to_reinit_coupling |= has_displaced;
-    // Switch the above with: _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh);
+    _need_to_reinit_coupling |= (has_displaced && _use_displaced_mesh) || _using_skinner;
   }
 
-  // Look through the list of AddTallyActions to see if we have a CellTally. If so, we need to map
-  // cells.
+  // Look through the list of AddTallyActions to see if we have a CellTally.
+  // If so, we need to map cells.
   const auto & actions = getMooseApp().actionWarehouse().getActions<AddTallyAction>();
   for (const auto & act : actions)
     _has_cell_tallies |= act->getMooseObjectType() == "CellTally";
@@ -247,7 +243,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
         params, "initial_properties", "'temperature_blocks' and 'density_blocks' are unused");
 
   // We need to clear and re-initialize the OpenMC tallies if
-  // fixed_mesh is false, which indicates at least one of the following:
   //   - the [Mesh] is being adaptively refined
   //   - the [Mesh] is deforming in space
   //
@@ -443,10 +438,10 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
 const MooseMesh &
 OpenMCCellAverageProblem::getMooseMesh() const
 {
-  if (_use_displaced && !_displaced_problem && !_first_transfer)
+  if (_use_displaced_mesh && !_displaced_problem && !_first_transfer)
     mooseWarning("Displaced mesh was requested but the displaced problem does not exist. "
                  "Regular mesh will be returned");
-  return ((_use_displaced && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
+  return ((_use_displaced_mesh && _displaced_problem && !_first_transfer) ? _displaced_problem->mesh()
                                                                      : mesh());
 }
 
@@ -549,12 +544,12 @@ OpenMCCellAverageProblem::initialSetup()
     std::set<SubdomainID> t(_temp_blocks.begin(), _temp_blocks.end());
     std::set<SubdomainID> d(_density_blocks.begin(), _density_blocks.end());
 
-    if (t != _mesh.meshSubdomains())
+    if (t != getMooseMesh().meshSubdomains())
       paramError("temperature_blocks",
                  "The 'skinner' requires temperature feedback to be applied over the entire mesh. "
                  "Please update `temperature_blocks` to include all blocks.");
 
-    if (d != _mesh.meshSubdomains() && _specified_density_feedback)
+    if (d != getMooseMesh().meshSubdomains() && _specified_density_feedback)
       paramError("density_blocks",
                  "The 'skinner' requires density feedback to be applied over the entire mesh. "
                  "Please update `density_blocks` to include all blocks.");
@@ -667,7 +662,7 @@ OpenMCCellAverageProblem::setupProblem()
   _local_to_global_elem.clear();
   for (unsigned int e = 0; e < getMooseMesh().nElem(); ++e)
   {
-    const auto * elem = getMooseMesh.queryElemPtr(e);
+    const auto * elem = getMooseMesh().queryElemPtr(e);
     if (!isLocalElem(elem) || !elem->active())
       continue;
 
@@ -1300,8 +1295,7 @@ OpenMCCellAverageProblem::subdomainsToMaterials()
         << std::endl;
     _console << "      Subdomain:  Subdomain name; if unnamed, we show the ID" << std::endl;
     _console << "       Material:  OpenMC material name(s) in this subdomain; if unnamed, we\n"
-             << "                  show the ID. If N duplicate material names, we show the\n"
-             << "                  number in ( ).\n"
+             << "                  show the ID. If N duplicate materials, we show the # in ( ).\n"
              << std::endl;
     vt.print(_console);
     _console << std::endl;
@@ -2468,7 +2462,9 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       if (_skinner)
       {
         // Update the OpenMC geometry to take into account skinning. This also calls
-        // _skinner->update().
+        // _skinner->update(). This reads temperature, density, and material fields
+        // from the volume mesh and creates a new geometry, also taking into account
+        // mesh displacements (if present).
         updateOpenMCGeometry();
 
         // Update the OpenMC materials (creating new ones as-needed to support the density binning)
@@ -2478,6 +2474,7 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
         reloadDAGMC();
       }
 #endif
+
       /*
        * We run the skinner on the first transfer as OpenMC may be a sub-application
        * of a solid or fluids multiapp. If this is the case, then those other applications
@@ -2493,20 +2490,16 @@ OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
       {
         if (_volume_calc)
           _volume_calc->resetVolumeCalculation();
-
-        if (_use_displaced)
-        {
-          _displaced_problem->updateMesh();
-        }
         resetTallies();
         setupProblem();
       }
 
-      // Change nuclide composition of material; we put this here so that we can still then change
-      // the _overall_ density (like due to thermal expansion, which does not change the relative
-      // amounts of the different nuclides)
+      // Change nuclide composition of material; we put this here so that we can
+      // still then change the _overall_ density (like due to thermal expansion,
+      // which does not change the relative amounts of the different nuclides)
       sendNuclideDensitiesToOpenMC();
 
+      // Handle the initial conditions for temperature and density
       if (_first_transfer && (_specified_temperature_feedback || _specified_density_feedback))
       {
         std::string incoming_transfer =
