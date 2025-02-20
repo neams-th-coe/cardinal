@@ -16,7 +16,7 @@ cd cardinal/tutorials/lwr_amr
 The full assembly case requires [!ac](HPC) due to the number of elements in the tally mesh, both before and after the application
 of [!ac](AMR). You can run the OpenMC problem with a reduced number of particles, however the mesh may not refine due to
 the large tally relative errors caused by poor stastistics. We include a section on running [!ac](AMR) on a single pin of
-the assembly mesh if you don't have access to [!ac](HPC) resources - that can be found in [#pincell].
+the assembly mesh if you don't have access to [!ac](HPC) resources - this example can be found in [#pincell].
 !alert-end!
 
 ## Geometry and Computational Models id=model
@@ -28,7 +28,7 @@ At a high level the geometry consists of the following lattice elements (in a 17
 
 - 264 fuel pins composed of UO$_2$ pellets clad in zirconium with a helium gap;
 - 24 control rods composed of BC$_4$ pellets clad in aluminum (with no gap) which occupy the assembly guide tubes;
-- A single fission chamber in the center guide tube composed of borated water with a trace amount of U-235 clad in aluminum (with no gap).
+- A single fission chamber in the central guide tube composed of borated water with a trace amount of U-235 clad in aluminum (with no gap).
 
 The remainder of the assembly which is not filled with these pincells is composed of borated water. Above the top of the fuel there is a
 reflector region which is penetrated by the inserted control rods. The relevant dimensions can be found in [table1].
@@ -261,6 +261,39 @@ To run the neutronics calculation with [!ac](AMR),
 mpiexec -np 4 cardinal-opt -i openmc_amr.i --n-threads=32
 ```
 
+First, lets examine how the reported relative errors and the number of elements in the problem changes as the mesh is
+adaptively refined / coarsened:
+
+```
+Postprocessor Values:
++----------------+----------------+----------------+----------------+----------------+
+| time           | avg_rel_err    | max_rel_err    | min_rel_err    | num_elem       |
++----------------+----------------+----------------+----------------+----------------+
+|   1.000000e+00 |   1.721342e-02 |   3.750385e-02 |   8.727138e-03 |   4.624000e+04 |
+|   2.000000e+00 |   4.803123e-02 |   1.500115e-01 |   2.182817e-02 |   1.940800e+05 |
+|   3.000000e+00 |   6.194000e-02 |   1.979877e-01 |   2.188693e-02 |   2.466990e+05 |
++----------------+----------------+----------------+----------------+----------------+
+```
+
+We can see that `avg_rel_err` starts at ~1% on the first iteration and jumps to ~4% on the second iteration, which is corroborated by
+`num_elem` quadrupling on this step (from 46240 to 194080) indicating that a large amount of refinement is taking place.
+This behavior slows down on the third step as the number of elements remaining that meet both the spatial refinement criteria (optical depth)
+and the statistical error requirement (relative error less than 5%) are limited, and so the average relative error only increases to ~6% while another
+52619 elements are added. Looking at `max_rel_err` we can also see that some elements meet the statistical error criteria before refinement,
+but after refinement their relative error overshoots the maximum error threshold and so the maximum relative error in the problem jumps to
+~20%. We can see this behavior in [assembly_amr_res] where the heat source is initially refined semi-uniformly over the domain. Then, the
+elements near the core centerline and the edges of the assembly are marked for refinement due to an increase in the estimated optical depth
+from higher fission rates. After the third iteration the edge of the assembly nearest to the vacuum boundary and the corners of thee assembly
+are marked for coarsening due to the jump in relative error. Running the simulation with additional particles per batch or more active batches
+would further decrease the per-element relative error and allow for added refinement steps. The jumps in relative error above the upper limit of 10%
+can also be mitigated by decreasing the refinement threshold in `rel_error` from 5% to 1%.
+
+!media assembly_amr_res.gif
+  id=assembly_amr_res
+  caption=Elements marked for refinement (left), fission power (middle), and elements marked for coarsening (right) for the [!ac](LWR) assembly
+  over multiple adaptivity cycles.
+  style=width:100%;margin-left:auto;margin-right:auto
+
 ## Single Pincell id=pincell
 
 In this section, we seggregate a single pin from the corner of the assembly mesh to tally and run adaptivity on. The mesh input file
@@ -297,19 +330,24 @@ mpiexec -np 2 cardinal-opt -i openmc_amr_single.i --n-threads=2
 First, lets examine how the reported relative errors and the number of elements in the problem changes as the mesh is
 adaptively refined / coarsened:
 
-```csv
-time,avg_rel_err,max_rel_err,min_rel_err,num_elem
-1,0.054356918001461,0.1121199733244,0.02985789668524,160
-2,0.096964499006644,0.1707078727541,0.04991084803778,412
-3,0.091697956546843,0.15552183505232,0.04561517680349,377
+```
+Postprocessor Values:
++----------------+----------------+----------------+----------------+----------------+
+| time           | avg_rel_err    | max_rel_err    | min_rel_err    | num_elem       |
++----------------+----------------+----------------+----------------+----------------+
+|   1.000000e+00 |   5.435691e-02 |   1.121199e-01 |   2.985789e-02 |   1.600000e+02 |
+|   2.000000e+00 |   9.696449e-02 |   1.707078e-01 |   4.991084e-02 |   4.120000e+02 |
+|   3.000000e+00 |   9.169795e-02 |   1.555218e-01 |   4.561517e-02 |   3.770000e+02 |
++----------------+----------------+----------------+----------------+----------------+
 ```
 
-We can see that the average relative error starts at ~5% on the first iteration, and then jumps to ~9% due to the addition of more
-elements on the second iteration. The selected adaptivity scheme then coarsens those elements which results in a decrease in the
-maximum relative error from ~17% on iteration two to ~15% on iteration three - the maximum doesn't decrease a substantial amount
-as certain elements have a relative error less than 5% and refine to a relative error larger than 10%. We can see this behaviour
-in [pincell_amr_res], where the adaptivity algorithm initially over-refines and then coarsens to ensure the relative error of the
-tally bins is between 5% and 10%
+The behavior of the relative error for the single pincell is similar to the full assembly case, though the reduced number
+of particles per batch decreases the amount of refinement that the model can support. `avg_rel_err` starts at ~5% on the first
+iteration, and then jumps to ~9% due to the addition of more elements on the second iteration. The selected adaptivity scheme
+then coarsens those elements which results in a decrease in `max_rel_err` from ~17% on iteration two to ~15% on iteration three
+- the maximum doesn't decrease a substantial amount as certain elements have a relative error less than 5% and refine to a relative
+error larger than 10%. We can see this behaviourin [pincell_amr_res], where the adaptivity algorithm initially over-refines and
+then coarsens to ensure the relative error of the tally bins is between 5% and 10%
 
 !media pincell_amr_res.gif
   id=pincell_amr_res
