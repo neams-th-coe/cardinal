@@ -4,7 +4,7 @@
 
 [GENERAL]
   stopAt = numSteps
-  numSteps = 2000
+  numSteps = 4
   dt = 5e-3
   timeStepper = tombo2
   writeControl = steps

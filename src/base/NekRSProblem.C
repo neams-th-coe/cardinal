@@ -31,6 +31,7 @@ InputParameters
 NekRSProblem::validParams()
 {
   InputParameters params = NekRSProblemBase::validParams();
+  params.addParam<Real>("initial_flux_integral", 0, "Initial value to use for the 'flux_integral' postprocessor, to ensure power conservation; this initial value will be overridden once the coupled app executes its transfer of the boundary power into the 'flux_integral' postprocessor. You may want to use this parameter if NekRS runs first, or if you are running NekRS in isolation but still want to apply a heat flux boundary condition via Cardinal. Remember that this parameter is only used to normalize the 'avg_flux' variable, so you will need to populate an initial shape (magnitude is unimportant because it will be normalized by this parameter).");
 
   params.addParam<bool>("has_heat_source",
                         true,
@@ -67,7 +68,8 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _has_heat_source(getParam<bool>("has_heat_source")),
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _abs_tol(getParam<Real>("normalization_abs_tol")),
-    _rel_tol(getParam<Real>("normalization_rel_tol"))
+    _rel_tol(getParam<Real>("normalization_rel_tol")),
+    _initial_flux_integral(getParam<Real>("initial_flux_integral"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
@@ -742,6 +744,9 @@ NekRSProblem::addExternalVariables()
     // add the postprocessor that receives the flux integral for normalization
     if (_conserve_flux_by_sideset)
     {
+      if (isParamSetByUser("initial_flux_integral"))
+        mooseWarning("The 'initial_flux_integral' capability is not yet supported when 'conserve_flux_by_sideset' is enabled. Please contact a Cardinal developer if this is hindering your use case.");
+
       auto vpp_params = _factory.getValidParams("ConstantVectorPostprocessor");
 
       // create zero initial values
@@ -752,9 +757,12 @@ NekRSProblem::addExternalVariables()
     else
     {
       auto pp_params = _factory.getValidParams("Receiver");
+      pp_params.set<Real>("default") = _initial_flux_integral;
       addPostprocessor("Receiver", "flux_integral", pp_params);
     }
   }
+  else
+    checkUnusedParam(parameters(), "initial_flux_integral", "not coupling NekRS through a 'boundary'");
 
   if (_volume && _has_heat_source)
   {
