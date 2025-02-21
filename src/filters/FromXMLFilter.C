@@ -28,9 +28,8 @@ FromXMLFilter::validParams()
   auto params = FilterBase::validParams();
   params.addClassDescription(
       "A class which provides a thin wrapper around an arbitrary OpenMC filter.");
-  params.addRequiredRangeCheckedParam<int>(
+  params.addRequiredParam<unsigned int>(
       "filter_id",
-      "filter_id >= 0",
       "The id of the OpenMC filter that this class should provide to Cardinal tallies.");
   params.addRequiredParam<std::string>("bin_label",
                                        "The label that is used for this filter's bins.");
@@ -46,7 +45,7 @@ FromXMLFilter::validParams()
 
 FromXMLFilter::FromXMLFilter(const InputParameters & parameters)
   : FilterBase(parameters),
-    _filter_id(getParam<int>("filter_id")),
+    _filter_id(getParam<unsigned int>("filter_id")),
     _bin_label(getParam<std::string>("bin_label"))
 {
   // Check to make sure the filter exists.

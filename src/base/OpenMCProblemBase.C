@@ -56,10 +56,10 @@ OpenMCProblemBase::validParams()
       "inactive_batches",
       "inactive_batches >= 0",
       "Number of inactive batches to run in OpenMC; this overrides the setting in the XML files.");
-  params.addRangeCheckedParam<int>("particles",
-                                   "particles > 0 ",
-                                   "Number of particles to run in each OpenMC batch; this "
-                                   "overrides the setting in the XML files.");
+  params.addRangeCheckedParam<unsigned int>("particles",
+                                            "particles > 0 ",
+                                            "Number of particles to run in each OpenMC batch; this "
+                                            "overrides the setting in the XML files.");
   params.addRangeCheckedParam<unsigned int>(
       "batches",
       "batches > 0",
@@ -176,7 +176,7 @@ OpenMCProblemBase::OpenMCProblemBase(const InputParameters & params)
     openmc::settings::n_inactive = getParam<unsigned int>("inactive_batches");
 
   if (isParamValid("particles"))
-    openmc::settings::n_particles = getParam<int>("particles");
+    openmc::settings::n_particles = getParam<unsigned int>("particles");
 
   if (isParamValid("batches"))
   {
