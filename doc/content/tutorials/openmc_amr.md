@@ -27,7 +27,7 @@ cross sections from the C5G7 benchmark specifications, the material properties i
 At a high level the geometry consists of the following lattice elements (in a 17x17 grid):
 
 - 264 fuel pins composed of UO$_2$ pellets clad in zirconium with a helium gap;
-- 24 control rods composed of BC$_4$ pellets clad in aluminum (with no gap) which occupy the assembly guide tubes;
+- 24 control rods composed of B$_4$C pellets clad in aluminum (with no gap) which occupy the assembly guide tubes;
 - A single fission chamber in the central guide tube composed of borated water with a trace amount of U-235 clad in aluminum (with no gap).
 
 The remainder of the assembly which is not filled with these pincells is composed of borated water. Above the top of the fuel there is a
@@ -64,7 +64,7 @@ geometric specification of the assembly. This is followed by the creation of mat
 described in the previous section, where the helium gap is assumed to be well represented by a void region. We then define the geometry
 for each pincell (fuel, control rod in guide tube, fission chamber, reflector water) which are used to define the 17x17 lattice
 for both the active fuel region and the reflector. The sides and bottom of the assembly use reflective boundary conditions while
-the top of the assembly uses a vacuum boundary condition. The OpenMC model can be found in [assembly_amr_openmc]. The Python script used
+the top of the assembly uses a vacuum boundary condition (in other words, we are modeling only half the axial extent of the bundle). The OpenMC model can be found in [assembly_amr_openmc]. The Python script used
 to generate the `model.xml` file can be found below.
 
 !listing /tutorials/lwr_amr/make_openmc_model.py
@@ -111,7 +111,7 @@ After defining each pincell, these distinct regions are combined into a 2D assem
   end=[Delete_Blocks]
 
 The fuel-cladding gap blocks are deleted after the assembly mesh is generated - this is due to these regions being modelled as voids in OpenMC
-and so they will not receive any tallies. We finish the mesh generation process by translating the assembly mesh such that it's center is located at
+and so they will not receive any tallies (in other words, we are simply reducing some memory needed to keep unused parts of the mesh, though you could certainly keep those mesh blocks if you desired). We finish the mesh generation process by translating the assembly mesh such that its center is located at
 the origin, and extrude the geometry from the fuel centerline to the top of the active fuel region.
 
 !listing /tutorials/lwr_amr/mesh.i
@@ -188,7 +188,9 @@ depressed near the guide tubes due to the insertion of the control rods. The cen
 peaking due to the fission chamber. The power distribution within the assembly begins to decrease along the z-axis as one moves
 from the assembly centerline to the vacuum boundary condition. The coarse axial discretization makes it difficult to determine
 if this follows the standard cosine shape, and the lack of radial refinement fails to capture gradients within each pincell. This
-motivates the use of [!ac](AMR) to automatically refine the tally mesh. This block consists of two sub-blocks. The first is the
+motivates the use of [!ac](AMR) to automatically refine the tally mesh. 
+
+To add [!ac](AMR), we add two sub-blocks. The first is the
 [Indicators](https://mooseframework.inl.gov/syntax/Adaptivity/Indicators/index.html) block, members of which are responsible for
 computing estimates of the spatial solution error for each element in the mesh. The second is the
 [Markers](https://mooseframework.inl.gov/syntax/Adaptivity/Markers/index.html) block, members of which take error estimates from
@@ -223,7 +225,7 @@ in our initial mesh.
 We then add three markers, the first of which is a
 [ErrorFractionMarker](https://mooseframework.inl.gov/source/markers/ErrorFractionMarker.html) (`depth_frac`) which takes `optical_depth`
 as an input. This marker sorts all elements into descending order based on the indicator value, then iterates over the list
-(starting with the largest error estimate). Elements who's optical depth sum to a refinement fraction multiplied by the total
+(starting with the largest error estimate). Elements whose optical depth sum to a refinement fraction multiplied by the total
 error estimate are refined. The list is iterated in reverse to mark elements for coarsening. We set the refinement fraction
 `refine = 0.3`, while setting the coarsening threshold `coarsen = 0.0`. The next marker we add is a
 [ValueThresholdMarker](https://mooseframework.inl.gov/source/markers/ValueThresholdMarker.html) (`rel_error`), which marks elements for
@@ -283,7 +285,7 @@ and the statistical error requirement (relative error less than 5%) are limited,
 but after refinement their relative error overshoots the maximum error threshold and so the maximum relative error in the problem jumps to
 ~20%. We can see this behavior in [assembly_amr_res] where the heat source is initially refined semi-uniformly over the domain. Then, the
 elements near the core centerline and the edges of the assembly are marked for refinement due to an increase in the estimated optical depth
-from higher fission rates. After the third iteration the edge of the assembly nearest to the vacuum boundary and the corners of thee assembly
+from higher fission rates. After the third iteration the edge of the assembly nearest to the vacuum boundary and the corners of the assembly
 are marked for coarsening due to the jump in relative error. Running the simulation with additional particles per batch or more active batches
 would further decrease the per-element relative error and allow for added refinement steps. The jumps in relative error above the upper limit of 10%
 can also be mitigated by decreasing the refinement threshold in `rel_error` from 5% to 1%.
@@ -296,7 +298,7 @@ can also be mitigated by decreasing the refinement threshold in `rel_error` from
 
 ## Single Pincell id=pincell
 
-In this section, we seggregate a single pin from the corner of the assembly mesh to tally and run adaptivity on. The mesh input file
+In this section, we isolate a single pin from the corner of the assembly mesh to tally and run adaptivity on. The mesh input file
 (`mesh_pin.i`) can be found below. We first generate a UO$_2$ pin, and translate it to ensure it lines up with a fuel pin (as the
 central pin in the assembly is a fission chamber). This pin is then extruded to the full length of the fueled region and the gap
 block is deleted (as it will never be tallied on).
