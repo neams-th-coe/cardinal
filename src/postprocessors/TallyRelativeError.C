@@ -99,9 +99,14 @@ TallyRelativeError::getValue() const
   for (const auto tally : _openmc_problem->getTalliesByScore(_score))
   {
     const auto t = tally->getWrappedTally();
-    auto sum = xt::view(t->results_, xt::all(), tally->scoreIndex(_score), static_cast<int>(openmc::TallyResult::SUM));
-    auto sum_sq =
-        xt::view(t->results_, xt::all(), tally->scoreIndex(_score), static_cast<int>(openmc::TallyResult::SUM_SQ));
+    auto sum = xt::view(t->results_,
+                        xt::all(),
+                        tally->scoreIndex(_score),
+                        static_cast<int>(openmc::TallyResult::SUM));
+    auto sum_sq = xt::view(t->results_,
+                           xt::all(),
+                           tally->scoreIndex(_score),
+                           static_cast<int>(openmc::TallyResult::SUM_SQ));
 
     auto rel_err = _openmc_problem->relativeError(sum, sum_sq, t->n_realizations_);
     for (int i = 0; i < t->n_filter_bins(); ++i)

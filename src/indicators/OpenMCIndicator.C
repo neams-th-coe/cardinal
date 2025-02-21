@@ -34,6 +34,7 @@ OpenMCIndicator::OpenMCIndicator(const InputParameters & parameters)
     OpenMCBase(this, parameters),
     _field_var(_subproblem.getStandardVariable(_tid, name())),
     _current_elem(_field_var.currentElem())
-{ }
+{
+}
 
 #endif
