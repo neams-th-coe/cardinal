@@ -26,4 +26,12 @@
     required_objects = 'NekRSProblem'
     max_time = 500
   []
+  [impose_heat_flux]
+    type = CSVDiff
+    input = solid_dummy.i
+    csvdiff = solid_dummy_out_nek0.csv
+    min_parallel = 6
+    requirement = "The system shall allow imposing heat flux through a dummy main application, instead of coupling NekRS via conjugate heat transfer. This is verified by computing the heat flux on the NekRS mesh, which adequately matches an initial value set in a postprocessor."
+    required_objects = 'NekRSProblem'
+  []
 []
