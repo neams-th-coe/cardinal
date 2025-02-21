@@ -192,7 +192,6 @@ OpenMCCellAverageProblem::OpenMCCellAverageProblem(const InputParameters & param
     _normalize_by_global(_run_mode == openmc::RunMode::FIXED_SOURCE
                              ? false
                              : getParam<bool>("normalize_by_global_tally")),
-    _has_adaptivity(getMooseApp().actionWarehouse().hasActions("set_adaptivity_options")),
     _using_skinner(isParamValid("skinner")),
     _need_to_reinit_coupling(_has_adaptivity || _using_skinner),
     _check_tally_sum(
@@ -2444,6 +2443,14 @@ OpenMCCellAverageProblem::checkNormalization(const Real & sum, unsigned int glob
 void
 OpenMCCellAverageProblem::syncSolutions(ExternalProblem::Direction direction)
 {
+  OpenMCProblemBase::syncSolutions(direction);
+
+  // We can skip syncronizing the solution when running with adaptivity
+  // and the mesh hasn't changed. This only applies to steady-state calculations
+  // as the mesh is adapted once per timestep in a transient calculation.
+  if (_has_adaptivity && !_run_on_adaptivity_cycle)
+    return;
+
   _aux->serializeSolution();
 
   switch (direction)

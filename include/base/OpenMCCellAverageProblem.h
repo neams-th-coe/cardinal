@@ -785,9 +785,6 @@ protected:
    */
   const bool _normalize_by_global;
 
-  /// Whether or not the problem contains mesh adaptivity.
-  const bool _has_adaptivity;
-
   /// Whether or not the problem uses a skinner to regenerate the OpenMC geometry.
   const bool _using_skinner;
 

@@ -37,3 +37,26 @@
     required_objects = 'OpenMCCellAverageProblem'
   []
 []
+
+[Tests]
+  issues = '#1053'
+  design = 'OpenMCCellAverageProblem.md'
+
+  [skip_openmc_unchanged]
+    type = Exodiff
+    input = unchanged_mesh.i
+    exodiff = unchanged_mesh_out.e
+    mesh_mode = 'replicated'
+    requirement = "The system shall skip running OpenMC when the mesh is unchanged by adaptivity."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [skip_openmc_unchanged_picard]
+    type = Exodiff
+    input = unchanged_main.i
+    exodiff = unchanged_main_out.e
+    requirement = "The system shall run OpenMC on the first Picard iteration regardless of the mesh being previously"
+                  "unchanged by adaptivity. This test relies on noise in the solution; if OpenMC runs more than once"
+                  "per Picard iteration the PRNG seed changes and so the tally results will be different."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
