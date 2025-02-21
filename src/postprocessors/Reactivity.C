@@ -28,11 +28,7 @@ Reactivity::validParams()
   return params;
 }
 
-Reactivity::Reactivity(const InputParameters & parameters)
-  : KEigenvalue(parameters)
-{
-
-}
+Reactivity::Reactivity(const InputParameters & parameters) : KEigenvalue(parameters) {}
 
 Real
 Reactivity::getValue() const
