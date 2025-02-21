@@ -51,27 +51,6 @@ protected:
    * @return whether element maps to OpenMC
    */
   bool mappedElement();
-
-  /**
-   * Get the variable(s) associated with an OpenMC tally score.
-   * @param[in] score the OpenMC score
-   * @return a vector of variable values associated with score
-   */
-  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score);
-
-  /**
-   * Get the variable value(s) associated with an OpenMC tally score.
-   * @param[in] score the OpenMC score
-   * @return a vector of variable values associated with score
-   */
-  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score);
-
-  /**
-   * Get the variable value(s) associated with an OpenMC tally score.
-   * @param[in] score the OpenMC score
-   * @return a vector of variable values associated with score
-   */
-  std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(const std::string & score);
 };
 
 // Prevent implicit instantiation in other translation units where these classes are used

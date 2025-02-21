@@ -742,6 +742,74 @@ OpenMCCellAverageProblem::getTalliesByScore(const std::string & score)
   return tallies;
 }
 
+std::vector<const MooseVariableFE<Real> *>
+OpenMCCellAverageProblem::getTallyScoreVariables(const std::string & score, THREAD_ID tid)
+{
+  std::vector<const MooseVariableFE<Real> *> score_vars;
+  const auto & tallies = _local_tallies;
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(dynamic_cast<const MooseVariableFE<Real> *>(
+            &getVariable(tid, v)));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
+std::vector<const VariableValue *>
+OpenMCCellAverageProblem::getTallyScoreVariableValues(const std::string & score, THREAD_ID tid)
+{
+  std::vector<const VariableValue *> score_vars;
+  const auto & tallies = _local_tallies;
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(
+            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, v))
+                  ->sln()));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
+std::vector<const VariableValue *>
+OpenMCCellAverageProblem::getTallyScoreNeighborVariableValues(const std::string & score, THREAD_ID tid)
+{
+  std::vector<const VariableValue *> score_vars;
+  const auto & tallies = _local_tallies;
+  for (const auto & t : tallies)
+  {
+    if (t->hasScore(score))
+    {
+      auto vars = t->getScoreVars(score);
+      for (const auto & v : vars)
+        score_vars.emplace_back(
+            &(dynamic_cast<MooseVariableFE<Real> *>(&getVariable(tid, v))
+                  ->slnNeighbor()));
+    }
+  }
+
+  if (score_vars.size() == 0)
+    mooseError("No tallies contain the requested score " + score + "!");
+
+  return score_vars;
+}
+
 void
 OpenMCCellAverageProblem::readBlockParameters(const std::string name,
                                               std::unordered_set<SubdomainID> & blocks)

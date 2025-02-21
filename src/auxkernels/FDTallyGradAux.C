@@ -71,9 +71,9 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
                    "! Please "
                    "ensure that one of your [Tallies] is scoring the requested score.");
 
-  auto score_vars = getTallyScoreVariables(score);
-  auto score_bins = getTallyScoreVariableValues(score);
-  auto neighbor_score_bins = getTallyScoreNeighborVariableValues(score);
+  auto score_vars = _openmc_problem->getTallyScoreVariables(score, _tid);
+  auto score_bins = _openmc_problem->getTallyScoreVariableValues(score, _tid);
+  auto neighbor_score_bins = _openmc_problem->getTallyScoreNeighborVariableValues(score, _tid);
 
   if (_bin_index >= score_bins.size())
     paramError("ext_filter_bin",

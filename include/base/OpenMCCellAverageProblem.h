@@ -163,6 +163,27 @@ public:
   std::vector<const TallyBase *> getTalliesByScore(const std::string & score);
 
   /**
+   * Get the variable(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score, THREAD_ID tid);
+
+  /**
+   * Get the variable value(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score, THREAD_ID tid);
+
+  /**
+   * Get the variable value(s) associated with an OpenMC tally score.
+   * @param[in] score the OpenMC score
+   * @return a vector of variable values associated with score
+   */
+  std::vector<const VariableValue *> getTallyScoreNeighborVariableValues(const std::string & score, THREAD_ID tid);
+
+  /**
    * Apply transformations to point
    * @param[in] pt point
    * @return transformed point

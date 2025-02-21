@@ -31,20 +31,6 @@ public:
   OpenMCIndicator(const InputParameters & parameters);
 
 protected:
-  /**
-   * Get the variable(s) associated with an OpenMC tally score.
-   * @param[in] score the OpenMC score
-   * @return a vector of variable values associated with score
-   */
-  std::vector<const MooseVariableFE<Real> *> getTallyScoreVariables(const std::string & score);
-
-  /**
-   * Get the variable value(s) associated with an OpenMC tally score.
-   * @param[in] score the OpenMC score
-   * @return a vector of variable values associated with score
-   */
-  std::vector<const VariableValue *> getTallyScoreVariableValues(const std::string & score);
-
   /// The field variable holding the results of this indicator.
   MooseVariable & _field_var;
 
