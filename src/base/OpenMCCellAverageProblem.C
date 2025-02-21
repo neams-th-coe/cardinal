@@ -1847,7 +1847,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // geometry to the MOOSE mesh. The skinner is currently not set up to ignore elements that
     // map to cells and will generate DAGMC geometry that overlaps with pre-existing CSG cells.
     // TODO: This would be nice to fix, but would require a rework of the skinner.
-    if (openmc::model::cells[cell_index]->geom_type() == openmc::GeometryType::CSG && _using_skinner)
+    if (openmc::model::cells[cell_index]->geom_type() == openmc::GeometryType::CSG &&
+        _using_skinner)
       mooseError("At present, the 'skinner' can only be used when the only OpenMC geometry "
                  "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
                  "cells which map to the MOOSE mesh.");
