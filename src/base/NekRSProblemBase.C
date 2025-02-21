@@ -84,15 +84,6 @@ NekRSProblemBase::validParams()
       "disable_fld_file_output", false, "Whether to turn off all NekRS field file output writing "
       "(for the usual field file output - this does not affect writing the usrwrk with 'usrwrk_output')");
 
-  params.addParam<bool>("minimize_transfers_in",
-                        false,
-                        "Whether to only synchronize nekRS "
-                        "for the direction TO_EXTERNAL_APP on multiapp synchronization steps");
-  params.addParam<bool>("minimize_transfers_out",
-                        false,
-                        "Whether to only synchronize nekRS "
-                        "for the direction FROM_EXTERNAL_APP on multiapp synchronization steps");
-
   params.addParam<bool>("skip_final_field_file", false, "By default, we write a NekRS field file "
     "on the last time step; set this to true to disable");
 
@@ -129,14 +120,6 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _scratch_counter(0),
     _n_uo_slots(0)
 {
-  if (params.isParamSetByUser("minimize_transfers_in"))
-    mooseError("The 'minimize_transfers_in' parameter has been replaced by "
-      "'synchronization_interval = parent_app'! Please update your input files.");
-
-  if (params.isParamSetByUser("minimize_transfers_out"))
-    mooseError("The 'minimize_transfers_out' parameter has been replaced by "
-      "'synchronization_interval = parent_app'! Please update your input files.");
-
   if (_n_usrwrk_slots == 0)
     checkUnusedParam(params, "first_reserved_usrwrk_slot", "not reserving any scratch space");
   else if (_first_reserved_usrwrk_slot >= _n_usrwrk_slots)
