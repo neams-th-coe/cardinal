@@ -2,7 +2,7 @@
 
 ## Description
 
-`FDTallyGradAux` approximates tally gradients using forward finite differences between the current element and it's neighbors.
+`FDTallyGradAux` approximates tally gradients using forward finite differences between the current element and its neighbors.
 The approach used is based on the derivative approximation presented in [!cite](stolte):
 
 \begin{equation}

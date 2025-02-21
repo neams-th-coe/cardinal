@@ -58,7 +58,7 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
   if (_var.feType() != FEType(CONSTANT, MONOMIAL_VEC))
     paramError("variable",
                "FDTallyGradAux only supports CONSTANT MONOMIAL_VEC shape functions. Please "
-               "ensure that 'variable' is of type CONSTANT MONOMIAL_VEC.");
+               "ensure that 'variable' is of type MONOMIAL_VEC and order CONSTANT.");
 
   std::string score = getParam<MooseEnum>("score");
   std::replace(score.begin(), score.end(), '_', '-');
