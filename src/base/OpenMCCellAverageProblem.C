@@ -560,7 +560,7 @@ OpenMCCellAverageProblem::initialSetup()
     std::set<int32_t> mapped_dag_cells;
     for (const auto & c : openmc::model::cells)
       for (const auto & [c_info, elem] : _cell_to_elem)
-        if (c->geom_type_ == openmc::GeometryType::DAG &&
+        if (c->geom_type() == openmc::GeometryType::DAG &&
             c_info.first == openmc::model::cell_map.at(c->id_))
           mapped_dag_cells.insert(c->id_);
 
@@ -570,10 +570,10 @@ OpenMCCellAverageProblem::initialSetup()
     {
       auto no_void =
           std::find(c->material_.begin(), c->material_.end(), MATERIAL_VOID) == c->material_.end();
-      if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type_ == openmc::GeometryType::DAG &&
+      if (mapped_dag_cells.count(c->id_) == 0 && c->geom_type() == openmc::GeometryType::DAG &&
           no_void)
         num_unmapped++;
-      if (c->geom_type_ == openmc::GeometryType::DAG)
+      if (c->geom_type() == openmc::GeometryType::DAG)
         num_dag_cells++;
     }
 
@@ -1847,7 +1847,8 @@ OpenMCCellAverageProblem::mapElemsToCells()
     // geometry to the MOOSE mesh. The skinner is currently not set up to ignore elements that
     // map to cells and will generate DAGMC geometry that overlaps with pre-existing CSG cells.
     // TODO: This would be nice to fix, but would require a rework of the skinner.
-    if (openmc::model::cells[cell_index]->geom_type_ == openmc::GeometryType::CSG && _using_skinner)
+    if (openmc::model::cells[cell_index]->geom_type() == openmc::GeometryType::CSG &&
+        _using_skinner)
       mooseError("At present, the 'skinner' can only be used when the only OpenMC geometry "
                  "which maps to the MOOSE mesh is DAGMC geometry. Your geometry contains CSG "
                  "cells which map to the MOOSE mesh.");
@@ -2985,7 +2986,7 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
   // Afterwards, the cells contained in the list can be deleted.
   std::vector<int32_t> cells_to_delete;
   for (auto [id, index] : openmc::model::cell_map)
-    if (openmc::model::cells[index]->geom_type_ == openmc::GeometryType::DAG)
+    if (openmc::model::cells[index]->geom_type() == openmc::GeometryType::DAG)
       cells_to_delete.push_back(openmc::model::cells[index]->id_);
 
   for (auto cell : cells_to_delete)
@@ -3005,7 +3006,7 @@ OpenMCCellAverageProblem::updateOpenMCGeometry()
   // deferred.
   std::vector<int> surfaces_to_delete;
   for (auto [id, index] : openmc::model::surface_map)
-    if (openmc::model::surfaces[index]->geom_type_ == openmc::GeometryType::DAG)
+    if (openmc::model::surfaces[index]->geom_type() == openmc::GeometryType::DAG)
       surfaces_to_delete.push_back(openmc::model::surfaces[index]->id_);
 
   for (auto surface : surfaces_to_delete)
