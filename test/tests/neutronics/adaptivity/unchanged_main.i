@@ -1,10 +1,21 @@
-# Everything in this input file is in the CGS units expected by OpenMC, except
-# for density, which is given from the Flibe correlation as rho(K), where rho
-# is in units of kg/m3.
-
 [Mesh]
-  type = FileMesh
-  file = ../meshes/pincell.e
+  [sphere]
+    type = FileMeshGenerator
+    file = ../meshes/sphere.e
+  []
+  [solid_ids]
+    type = SubdomainIDGenerator
+    input = sphere
+    subdomain_id = '100'
+  []
+  [solid]
+    type = CombinerGenerator
+    inputs = solid_ids
+    positions = '0 0 0'
+    avoid_merging_subdomains = true
+  []
+
+  allow_renumbering = false
 []
 
 [Variables]
@@ -42,34 +53,16 @@
     type = CoupledForce
     variable = temp
     v = heat_source
-    block = '1'
-  []
-  [sink]
-    type = BodyForce
-    variable = temp
-    value = -20.0
-    block = '2'
+    block = '100'
   []
 []
 
 [BCs]
-  [top]
+  [outer]
     type = DirichletBC
     variable = temp
-    boundary = 'top'
+    boundary = '1'
     value = 1000.0
-  []
-  [bottom]
-    type = DirichletBC
-    variable = temp
-    boundary = 'bottom'
-    value = 400.0
-  []
-  [surface]
-    type = FunctionDirichletBC
-    variable = temp
-    boundary = 'surface'
-    function = axial
   []
 []
 
@@ -85,19 +78,7 @@
     type = GenericConstantMaterial
     prop_values = '0.5'
     prop_names = 'thermal_conductivity'
-    block = '1'
-  []
-  [k2]
-    type = GenericConstantMaterial
-    prop_values = '0.05'
-    prop_names = 'thermal_conductivity'
-    block = '2'
-  []
-  [k3]
-    type = GenericConstantMaterial
-    prop_values = '2.0'
-    prop_names = 'thermal_conductivity'
-    block = '3'
+    block = '100'
   []
 []
 

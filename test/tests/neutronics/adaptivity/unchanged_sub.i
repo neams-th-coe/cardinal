@@ -1,6 +1,21 @@
 [Mesh]
-  type = FileMesh
-  file = ../meshes/pincell.e
+  [sphere]
+    type = FileMeshGenerator
+    file = ../meshes/sphere.e
+  []
+  [solid_ids]
+    type = SubdomainIDGenerator
+    input = sphere
+    subdomain_id = '100'
+  []
+  [solid]
+    type = CombinerGenerator
+    inputs = solid_ids
+    positions = '0 0 0'
+    avoid_merging_subdomains = true
+  []
+
+  allow_renumbering = false
 []
 
 [AuxVariables]
@@ -48,15 +63,16 @@
 [Problem]
   type = OpenMCCellAverageProblem
   power = 500.0
-  temperature_blocks = '1 2 3'
-  density_blocks = '1 2 3'
+  temperature_blocks = '100'
+  density_blocks = '100'
   verbose = true
   cell_level = 0
+  check_tally_sum = false
 
   [Tallies]
     [Cell]
       type = CellTally
-      blocks = '1 2 3'
+      blocks = '100'
     []
   []
 []
@@ -69,16 +85,6 @@
   [kappa_fission]
     type = ElementIntegralVariablePostprocessor
     variable = kappa_fission
-  []
-  [fluid_kappa_fission]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '2'
-  []
-  [solid_kappa_fission]
-    type = ElementIntegralVariablePostprocessor
-    variable = kappa_fission
-    block = '1 3'
   []
 []
 
