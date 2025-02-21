@@ -51,16 +51,12 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
     OpenMCBase(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
-  auto added_scores = _openmc_problem->getTallyScores();
   if (isParamValid("tally_score"))
   {
     const auto & tally_score = getParam<MooseEnum>("tally_score");
-    std::string score = _openmc_problem->enumToTallyScore(tally_score);
+    _score = _openmc_problem->enumToTallyScore(tally_score);
 
-    auto it = std::find(added_scores.begin(), added_scores.end(), score);
-    if (it != added_scores.end())
-      _tally_index = it - added_scores.begin();
-    else
+    if (!_openmc_problem->hasScore(_score))
       paramError(
           "tally_score",
           "To extract the relative error of the '" + std::string(tally_score) +
@@ -68,22 +64,22 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   }
   else
   {
-    if (added_scores.size() > 1 && !isParamValid("tally_score"))
+    if (_openmc_problem->getTallyScores().size() != 1 && !isParamValid("tally_score"))
       paramError("tally_score",
                  "When multiple scores have been added by tally objects, you must specify a score "
                  "from which the relative error will be extracted.");
 
-    _tally_index = 0;
+    for (const auto & s : _openmc_problem->getTallyScores())
+      _console << s << std::endl;
+
+    _score = _openmc_problem->getTallyScores()[0];
   }
 }
 
 Real
 TallyRelativeError::getValue() const
 {
-  const auto & tallies = _openmc_problem->getLocalTally();
-
   Real post_processor_value;
-
   switch (_type)
   {
     case operation::max:
@@ -100,12 +96,12 @@ TallyRelativeError::getValue() const
   }
 
   unsigned int num_values = 0;
-  for (const auto & tally : tallies)
+  for (const auto tally : _openmc_problem->getTalliesByScore(_score))
   {
     const auto t = tally->getWrappedTally();
-    auto sum = xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM));
+    auto sum = xt::view(t->results_, xt::all(), tally->scoreIndex(_score), static_cast<int>(openmc::TallyResult::SUM));
     auto sum_sq =
-        xt::view(t->results_, xt::all(), _tally_index, static_cast<int>(openmc::TallyResult::SUM_SQ));
+        xt::view(t->results_, xt::all(), tally->scoreIndex(_score), static_cast<int>(openmc::TallyResult::SUM_SQ));
 
     auto rel_err = _openmc_problem->relativeError(sum, sum_sq, t->n_realizations_);
     for (int i = 0; i < t->n_filter_bins(); ++i)

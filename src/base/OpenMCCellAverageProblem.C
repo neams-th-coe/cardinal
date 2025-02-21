@@ -730,6 +730,18 @@ OpenMCCellAverageProblem::getTallyTriggerParameters(const InputParameters & para
   }
 }
 
+std::vector<const TallyBase *>
+OpenMCCellAverageProblem::getTalliesByScore(const std::string & score)
+{
+  // Loop over all of the tallies and check to see if they contain the requested score.
+  std::vector<const TallyBase *> tallies;
+  for (const auto & t : _local_tallies)
+    if (t->hasScore(score))
+      tallies.push_back(t.get());
+
+  return tallies;
+}
+
 void
 OpenMCCellAverageProblem::readBlockParameters(const std::string name,
                                               std::unordered_set<SubdomainID> & blocks)

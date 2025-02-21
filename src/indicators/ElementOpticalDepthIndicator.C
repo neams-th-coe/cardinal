@@ -61,15 +61,14 @@ ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters
         "At present the ElementOpticalDepthIndicator only works with reaction rate scores. " +
             std::string(getParam<MooseEnum>("rxn_rate")) + " is not a valid reaction rate score.");
 
-  const auto & all_scores = _openmc_problem->getTallyScores();
-  if (std::find(all_scores.begin(), all_scores.end(), score) == all_scores.end())
+  if (!_openmc_problem->hasScore(score))
     paramError("rxn_rate",
                "The problem does not contain any score named " +
                    std::string(getParam<MooseEnum>("rxn_rate")) +
                    "! Please "
                    "ensure that one of your [Tallies] is scoring the requested reaction rate.");
 
-  if (std::find(all_scores.begin(), all_scores.end(), "flux") == all_scores.end())
+  if (!_openmc_problem->hasScore("flux"))
     mooseError("In order to use an ElementOpticalDepthIndicator one of your [Tallies] must add a "
                "flux score.");
 

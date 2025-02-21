@@ -407,6 +407,15 @@ TallyBase::getTallyID() const
   return getWrappedTally()->id();
 }
 
+int
+TallyBase::scoreIndex(const std::string & score) const
+{
+  if (!hasScore(score))
+    return -1;
+
+  return std::find(_tally_score.begin(), _tally_score.end(), score) - _tally_score.begin();
+}
+
 std::vector<std::string>
 TallyBase::getScoreVars(const std::string & score) const
 {

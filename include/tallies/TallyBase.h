@@ -123,6 +123,13 @@ public:
   const std::vector<std::string> & getScores() const { return _tally_score; }
 
   /**
+   * Get the index corresponding to a specific score.
+   * @param[in] the score
+   * @return the index of the score, -1 indicates the score does not exist
+   */
+  int scoreIndex(const std::string & score) const;
+
+  /**
    * Gets the auxvariable names for use in creating and storing tally results.
    * This allows for the splitting of tally results into energy bins, angular bins, etc.
    *

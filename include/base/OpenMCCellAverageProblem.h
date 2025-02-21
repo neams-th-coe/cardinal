@@ -149,6 +149,20 @@ public:
   virtual const std::vector<std::string> & getTallyScores() const { return _all_tally_scores; }
 
   /**
+   * Check to see if this problem contains a specific tally score.
+   * @param[in] score the tally score
+   * @return whether this problem contains the tally score in a tally object
+   */
+  bool hasScore(const std::string & score) { return std::find(_all_tally_scores.begin(), _all_tally_scores.end(), score) != _all_tally_scores.end(); }
+
+  /**
+   * Fetch the tally that contains the requested score.
+   * @param[in] score the tally score
+   * @return a vector of Cardinal tally objects containing the scores
+   */
+  std::vector<const TallyBase *> getTalliesByScore(const std::string & score);
+
+  /**
    * Apply transformations to point
    * @param[in] pt point
    * @return transformed point

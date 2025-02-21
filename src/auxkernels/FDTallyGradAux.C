@@ -64,8 +64,7 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
   std::replace(score.begin(), score.end(), '_', '-');
 
   // Error check and fetch the tally score.
-  const auto & all_scores = _openmc_problem->getTallyScores();
-  if (std::find(all_scores.begin(), all_scores.end(), score) == all_scores.end())
+  if (!_openmc_problem->hasScore(score))
     paramError("score",
                "The problem does not contain any score named " +
                    std::string(getParam<MooseEnum>("score")) +
