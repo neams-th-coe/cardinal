@@ -15,6 +15,7 @@
 /*                                                                  */
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
+#ifdef ENABLE_OPENMC_COUPLING
 
 #include "Reactivity.h"
 
@@ -39,3 +40,4 @@ Reactivity::getValue() const
   // Calculate and return the reactivity.
   return (k_effective - 1.0) / k_effective;
 }
+#endif
