@@ -84,7 +84,10 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
 
   if (!_boundary)
-    checkUnusedParam(params, "conserve_flux_by_sideset", "coupling NekRS solely through a volume mesh mirror");
+  {
+    checkUnusedParam(params, "conserve_flux_by_sideset", "'boundary' is empty");
+    checkUnusedParam(parameters(), "initial_flux_integral", "'boundary' is empty");
+  }
 
   // Determine the usrwrk indexing; the ordering will always be as
   // follows (except that unused terms will be deleted if not needed for coupling)
@@ -772,9 +775,6 @@ NekRSProblem::addExternalVariables()
       addPostprocessor("Receiver", "flux_integral", pp_params);
     }
   }
-  else
-    checkUnusedParam(
-        parameters(), "initial_flux_integral", "not coupling NekRS through a 'boundary'");
 
   if (_volume && _has_heat_source)
   {
