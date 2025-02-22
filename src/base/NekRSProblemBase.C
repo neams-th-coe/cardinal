@@ -36,6 +36,8 @@ NekRSProblemBase::validParams()
       "Case name for the NekRS input files; "
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
+  params.addParam<bool>("nondimensional", false, "Whether NekRS is solved in non-dimensional form");
+
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
     "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation (which will be populated by the user from the case files)");
@@ -97,6 +99,9 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _scratch_counter(0),
     _n_uo_slots(0)
 {
+  if (isParamSetByUser("nondimensional"))
+    mooseError("The 'nondimensional' parameter has been deprecated. Please put the non-dimensional scales inside a [Dimensionalize] sub-block. Please consult the tutorials/tests for examples.");
+
   const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
   _nondimensional = actions.size();
 
