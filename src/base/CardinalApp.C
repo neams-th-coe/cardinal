@@ -197,7 +197,7 @@ CardinalApp::associateSyntaxInner(Syntax & syntax, ActionFactory & /* action_fac
   // Add the [Problem/Dimensionalize] block
   registerSyntax("DimensionalizeAction", "Problem/Dimensionalize");
   registerTask("add_dimensionalization", false /* is required */);
-  addTaskDependency("add_dimensionalization", "init_displaced_problem");
+  addTaskDependency("add_dimensionalization", "init_mesh");
 #endif
 
   registerTask("add_heat_source_ic", false /* is required */);

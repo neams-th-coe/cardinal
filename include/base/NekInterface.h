@@ -720,32 +720,33 @@ struct usrwrkIndices
   int boundary_scalar03;
 };
 
-/// Characteristic scales assumed in nekRS if using a non-dimensional solution
+/**
+ * Characteristic scales assumed in nekRS if using a non-dimensional solution; initial values
+ * are applied, which will be overridden by the DimensionalizeAction in Cardinal.
+ */
 struct characteristicScales
 {
-  double U_ref;
+  double U_ref = 1;
 
-  double T_ref;
+  double T_ref = 0;
 
-  double dT_ref;
+  double dT_ref = 1;
 
-  double L_ref;
+  double L_ref = 1;
 
-  double A_ref;
+  double A_ref = 1;
 
-  double V_ref;
+  double V_ref = 1;
 
-  double rho_ref;
+  double rho_ref = 1;
 
-  double Cp_ref;
+  double Cp_ref = 1;
 
-  double flux_ref;
+  double flux_ref = 1;
 
-  double source_ref;
+  double source_ref = 1;
 
-  double t_ref;
-
-  bool nondimensional_T;
+  double t_ref = 1;
 };
 
 /**

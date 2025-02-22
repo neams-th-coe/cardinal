@@ -1666,8 +1666,6 @@ initializeDimensionalScales(const double U_ref,
 
   scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
   scales.source_ref = scales.flux_ref / L_ref;
-
-  scales.nondimensional_T = (std::abs(dT_ref - 1.0) > 1e-6) || (std::abs(T_ref) > 1e-6);
 }
 
 double

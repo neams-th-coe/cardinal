@@ -433,9 +433,6 @@ NekRSProblemBase::initialSetup()
                "but you have specified the '" +
                stepper->type() + "' time stepper!");
 
-  // Set the reference time for use in dimensionalizing/non-dimensionalizing the time
-  _timestepper->setReferenceTime(nekrs::referenceTime());
-
   // Set the NekRS start time to whatever is set on Executioner/start_time; print
   // a message if those times don't match the .par file
   const auto moose_start_time = _transient_executioner->getStartTime();

@@ -51,6 +51,9 @@ DimensionalizeAction::DimensionalizeAction(const InputParameters & parameters) :
   _rho(getParam<Real>("rho")),
   _Cp(getParam<Real>("Cp"))
 {
+  // inform NekRS of the scaling that we are using; the NekInterface holds all
+  // the reference scales and provides accessor methods
+  nekrs::initializeDimensionalScales(_U, _T, _dT, _L, _rho, _Cp);
 }
 
 void
@@ -73,10 +76,6 @@ DimensionalizeAction::act()
                  "If solving NekRS in nondimensional form, you must choose "
                  "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L' "
                  "must match 'scaling' in 'NekRSMesh'.");
-
-    // inform NekRS of the scaling that we are using; the NekInterface holds all
-    // the reference scales and provides accessor methods
-    nekrs::initializeDimensionalScales(_U, _T, _dT, _L, _rho, _Cp);
 
     VariadicTable<std::string, std::string> vt({"Quantity (Non-Dimensional)", "Expression"});
 
