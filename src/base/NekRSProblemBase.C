@@ -38,9 +38,12 @@ NekRSProblemBase::validParams()
 
   params.addParam<bool>("nondimensional", false, "Whether NekRS is solved in non-dimensional form");
 
-  params.addParam<unsigned int>("n_usrwrk_slots", 7,
-    "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
-    "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation (which will be populated by the user from the case files)");
+  params.addParam<unsigned int>(
+      "n_usrwrk_slots",
+      7,
+      "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+      "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall "
+      "calculation (which will be populated by the user from the case files)");
   params.addParam<unsigned int>(
       "first_reserved_usrwrk_slot",
       0,
@@ -100,7 +103,9 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _n_uo_slots(0)
 {
   if (isParamSetByUser("nondimensional"))
-    mooseError("The 'nondimensional' parameter has been deprecated. Please put the non-dimensional scales inside a [Dimensionalize] sub-block. Please consult the tutorials/tests for examples.");
+    mooseError(
+        "The 'nondimensional' parameter has been deprecated. Please put the non-dimensional scales "
+        "inside a [Dimensionalize] sub-block. Please consult the tutorials/tests for examples.");
 
   const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
   _nondimensional = actions.size();
@@ -444,7 +449,8 @@ NekRSProblemBase::initialSetup()
 
   getNekScalarValueUserObjects();
 
-  VariadicTable<int, std::string, std::string, std::string> vt({"Slot", "Quantity", "How to Access (.oudf)", "How to Access (.udf)"});
+  VariadicTable<int, std::string, std::string, std::string> vt(
+      {"Slot", "Quantity", "How to Access (.oudf)", "How to Access (.udf)"});
 
   // add rows for the coupling data
   int end = _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot;
@@ -454,7 +460,8 @@ NekRSProblemBase::initialSetup()
     if (_usrwrk_indices[i] != "unused")
       extra = " (from MOOSE)";
 
-    vt.addRow(i, _usrwrk_indices[i] + extra,
+    vt.addRow(i,
+              _usrwrk_indices[i] + extra,
               "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
               "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
   }
@@ -464,7 +471,8 @@ NekRSProblemBase::initialSetup()
   {
     auto slot = uo->usrwrkSlot();
     auto count = uo->counter();
-    vt.addRow(slot, uo->name(),
+    vt.addRow(slot,
+              uo->name(),
               "bc->usrwrk[" + std::to_string(slot) + " * bc->fieldOffset + " +
                   std::to_string(count) + "]",
               "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " +
@@ -473,7 +481,8 @@ NekRSProblemBase::initialSetup()
 
   // add rows for the extra slices
   for (unsigned int i = end + _n_uo_slots; i < _n_usrwrk_slots; ++i)
-    vt.addRow(i, "unused",
+    vt.addRow(i,
+              "unused",
               "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
               "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 

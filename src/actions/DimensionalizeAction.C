@@ -29,7 +29,8 @@ InputParameters
 DimensionalizeAction::validParams()
 {
   auto params = Action::validParams();
-  params.addClassDescription("Defines how to dimensionalize the NekRS fields when accessing from MOOSE as AuxVariables, in Postprocessors, in UserObjects, etc.");
+  params.addClassDescription("Defines how to dimensionalize the NekRS fields when accessing from "
+                             "MOOSE as AuxVariables, in Postprocessors, in UserObjects, etc.");
 
   params.addRangeCheckedParam<Real>("U", 1.0, "U > 0.0", "Reference velocity");
   params.addRangeCheckedParam<Real>("L", 1.0, "L > 0.0", "Reference length");
@@ -42,14 +43,14 @@ DimensionalizeAction::validParams()
   return params;
 }
 
-DimensionalizeAction::DimensionalizeAction(const InputParameters & parameters) :
-  Action(parameters),
-  _U(getParam<Real>("U")),
-  _T(getParam<Real>("T")),
-  _dT(getParam<Real>("dT")),
-  _L(getParam<Real>("L")),
-  _rho(getParam<Real>("rho")),
-  _Cp(getParam<Real>("Cp"))
+DimensionalizeAction::DimensionalizeAction(const InputParameters & parameters)
+  : Action(parameters),
+    _U(getParam<Real>("U")),
+    _T(getParam<Real>("T")),
+    _dT(getParam<Real>("dT")),
+    _L(getParam<Real>("L")),
+    _rho(getParam<Real>("rho")),
+    _Cp(getParam<Real>("Cp"))
 {
   // inform NekRS of the scaling that we are using; the NekInterface holds all
   // the reference scales and provides accessor methods
@@ -79,7 +80,7 @@ DimensionalizeAction::act()
 
     VariadicTable<std::string, std::string> vt({"Quantity (Non-Dimensional)", "Expression"});
 
-    auto compress = [] (Real a)
+    auto compress = [](Real a)
     {
       std::ostringstream v;
       v << std::setprecision(3) << std::scientific << a;
