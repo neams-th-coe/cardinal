@@ -37,7 +37,7 @@ NekRSProblemBase::validParams()
 
   params.addParam<unsigned int>("n_usrwrk_slots", 7,
     "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
-    "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
+    "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation (which will be populated by the user from the case files)");
   params.addParam<unsigned int>(
       "first_reserved_usrwrk_slot",
       0,
@@ -506,21 +506,27 @@ NekRSProblemBase::initialSetup()
 
   getNekScalarValueUserObjects();
 
-  VariadicTable<std::string, std::string, std::string> vt({"Quantity", "How to Access (.oudf)", "How to Access (.udf)"});
+  VariadicTable<int, std::string, std::string, std::string> vt({"Slot", "Quantity", "How to Access (.oudf)", "How to Access (.udf)"});
 
   // add rows for the coupling data
   int end = _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot;
   for (int i = 0; i < end; ++i)
-    vt.addRow(_usrwrk_indices[i],
+  {
+    std::string extra = "";
+    if (_usrwrk_indices[i] != "unused")
+      extra = " (from MOOSE)";
+
+    vt.addRow(i, _usrwrk_indices[i] + extra,
               "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
               "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
+  }
 
   // add rows for the NekScalarValue(s)
   for (const auto & uo : _nek_uos)
   {
     auto slot = uo->usrwrkSlot();
     auto count = uo->counter();
-    vt.addRow(uo->name(),
+    vt.addRow(slot, uo->name(),
               "bc->usrwrk[" + std::to_string(slot) + " * bc->fieldOffset + " +
                   std::to_string(count) + "]",
               "nrs->usrwrk[" + std::to_string(slot) + " * nrs->fieldOffset + " +
@@ -529,7 +535,7 @@ NekRSProblemBase::initialSetup()
 
   // add rows for the extra slices
   for (unsigned int i = end + _n_uo_slots; i < _n_usrwrk_slots; ++i)
-    vt.addRow("unused",
+    vt.addRow(i, "unused",
               "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
               "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
 
@@ -546,12 +552,11 @@ NekRSProblemBase::initialSetup()
   else
   {
     _console << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n" << std::endl;
-    _console <<   "          Slice:  entry in NekRS scratch space" << std::endl;
-    _console << "       Quantity:  physical meaning or name of data in this slice. If 'unused',\n"
+    _console << "           Slot:  slice in scratch space holding the data" << std::endl;
+    _console << "       Quantity:  physical meaning or name of data. If 'unused'," << std::endl;
+    _console << "                  this means that the space has been allocated, but Cardinal"
              << std::endl;
-    _console << "                  this means that the space has been allocated, but Cardinal\n"
-             << std::endl;
-    _console << "                  is not otherwise using it for coupling\n" << std::endl;
+    _console << "                  is not otherwise using it for coupling" << std::endl;
     _console <<   "  How to Access:  C++ code to use in NekRS files; for the .udf instructions," << std::endl;
     _console <<   "                  'n' indicates a loop variable over GLL points\n" << std::endl;
     vt.print(_console);
