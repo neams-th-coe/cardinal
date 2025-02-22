@@ -20,6 +20,7 @@
 
 #include "NekRSProblemBase.h"
 #include "CardinalUtils.h"
+#include "DimensionalizeAction.h"
 
 #include "nekrs.hpp"
 #include "nekInterface/nekInterfaceAdapter.hpp"
@@ -44,23 +45,6 @@ NekRSProblemBase::validParams()
       "Slice (zero-indexed) in nrs->usrwrk where Cardinal will begin reading/writing data; this "
       "can be used to shift the usrwrk slots reserved by Cardinal, so that you can use earlier "
       "slices for custom purposes");
-
-  params.addParam<bool>("nondimensional", false, "Whether NekRS is solved in non-dimensional form");
-  params.addRangeCheckedParam<Real>(
-      "U_ref", 1.0, "U_ref > 0.0", "Reference velocity value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>(
-      "T_ref", 0.0, "T_ref >= 0.0", "Reference temperature value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>(
-      "dT_ref",
-      1.0,
-      "dT_ref > 0.0",
-      "Reference temperature range value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>(
-      "L_ref", 1.0, "L_ref > 0.0", "Reference length scale value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>(
-      "rho_0", 1.0, "rho_0 > 0.0", "Density parameter value for non-dimensional solution");
-  params.addRangeCheckedParam<Real>(
-      "Cp_0", 1.0, "Cp_0 > 0.0", "Heat capacity parameter value for non-dimensional solution");
 
   MultiMooseEnum nek_outputs("temperature pressure velocity scalar01 scalar02 scalar03");
   params.addParam<MultiMooseEnum>(
@@ -99,13 +83,6 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   : CardinalProblem(params),
     _serialized_solution(NumericVector<Number>::build(_communicator).release()),
     _casename(getParam<std::string>("casename")),
-    _nondimensional(getParam<bool>("nondimensional")),
-    _U_ref(getParam<Real>("U_ref")),
-    _T_ref(getParam<Real>("T_ref")),
-    _dT_ref(getParam<Real>("dT_ref")),
-    _L_ref(getParam<Real>("L_ref")),
-    _rho_0(getParam<Real>("rho_0")),
-    _Cp_0(getParam<Real>("Cp_0")),
     _write_fld_files(getParam<bool>("write_fld_files")),
     _disable_fld_file_output(getParam<bool>("disable_fld_file_output")),
     _n_usrwrk_slots(getParam<unsigned int>("n_usrwrk_slots")),
@@ -120,6 +97,9 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
     _scratch_counter(0),
     _n_uo_slots(0)
 {
+  const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
+  _nondimensional = actions.size();
+
   if (_n_usrwrk_slots == 0)
     checkUnusedParam(params, "first_reserved_usrwrk_slot", "not reserving any scratch space");
   else if (_first_reserved_usrwrk_slot >= _n_usrwrk_slots)
@@ -182,50 +162,6 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   // diagnostic info was never set, so the numbers that would be printed are garbage.
   if (!nekrs::buildOnly())
     _nek_mesh->printMeshInfo();
-
-  // if solving in nondimensional form, make sure that the user specified _all_ of the
-  // necessary scaling quantities to prevent errors from forgetting one, which would take
-  // a non-scaled default otherwise
-  std::vector<std::string> scales = {"U_ref", "T_ref", "dT_ref", "L_ref", "rho_0", "Cp_0"};
-  for (const auto & s : scales)
-  {
-    if (_nondimensional)
-      checkRequiredParam(params, s, "solving in non-dimensional form");
-    else
-      checkUnusedParam(params, s, "solving in dimensional form");
-  }
-
-  // inform NekRS of the scaling that we are using if solving in non-dimensional form
-  nekrs::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
-
-  if (_nondimensional)
-  {
-    VariadicTable<std::string, std::string, std::string, std::string,
-      std::string, std::string, std::string> vt(
-      {"Time", "Length", "Velocity", "Temperature", "d(Temperature)",
-       "Density", "Specific Heat"});
-
-    auto compress = [] (Real a)
-    {
-      std::ostringstream v;
-      v << std::setprecision(3) << std::scientific << a;
-      return v.str();
-    };
-
-    vt.addRow(compress(_L_ref / _U_ref), compress(_L_ref), compress(_U_ref),
-      compress(_T_ref), compress(_dT_ref), compress(_rho_0), compress(_Cp_0));
-    _console << "\nNekRS characteristic scales:" << std::endl;
-    vt.print(_console);
-    _console << std::endl;
-  }
-
-  // It's too complicated to make sure that the dimensional form _also_ works when our
-  // reference coordinates are different from what MOOSE is expecting, so just throw an error
-  if (_nondimensional && !MooseUtils::absoluteFuzzyEqual(_nek_mesh->scaling(), _L_ref))
-    paramError("L_ref",
-               "If solving NekRS in nondimensional form, you must choose "
-               "reference dimensional scales in the same units as expected by MOOSE, i.e. 'L_ref' "
-               "must match 'scaling' in 'NekRSMesh'.");
 
   // boundary-specific data
   _boundary = _nek_mesh->boundary();
@@ -493,7 +429,7 @@ NekRSProblemBase::initialSetup()
                stepper->type() + "' time stepper!");
 
   // Set the reference time for use in dimensionalizing/non-dimensionalizing the time
-  _timestepper->setReferenceTime(_L_ref, _U_ref);
+  _timestepper->setReferenceTime(nekrs::referenceTime());
 
   // Set the NekRS start time to whatever is set on Executioner/start_time; print
   // a message if those times don't match the .par file
@@ -1032,10 +968,7 @@ NekRSProblemBase::volumeSolution(const field::NekFieldEnum & field, double * T)
   for (int v = 0; v < n_to_write; ++v)
   {
     nekrs::dimensionalize(field, Ttmp[v]);
-
-    // if temperature, we need to add the reference temperature
-    if (field == field::temperature)
-      Ttmp[v] += _T_ref;
+    Ttmp[v] += nekrs::referenceAdditiveScale(field);
   }
 
   nekrs::allgatherv(vc.mirror_counts, Ttmp, T, end_3d);
@@ -1112,10 +1045,7 @@ NekRSProblemBase::boundarySolution(const field::NekFieldEnum & field, double * T
   for (int v = 0; v < n_to_write; ++v)
   {
     nekrs::dimensionalize(field, Ttmp[v]);
-
-    // if temperature, we need to add the reference temperature
-    if (field == field::temperature)
-      Ttmp[v] += _T_ref;
+    Ttmp[v] += nekrs::referenceAdditiveScale(field);
   }
 
   nekrs::allgatherv(bc.mirror_counts, Ttmp, T, end_2d);

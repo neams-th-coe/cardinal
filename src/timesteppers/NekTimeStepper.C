@@ -103,9 +103,9 @@ NekTimeStepper::minDT() const
 }
 
 void
-NekTimeStepper::setReferenceTime(const Real & L, const Real & U)
+NekTimeStepper::setReferenceTime(const Real & t)
 {
-  _t_ref = L / U;
+  _t_ref = t;
 }
 
 Real

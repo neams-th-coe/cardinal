@@ -45,10 +45,9 @@ public:
 
   /**
    * Set the reference time scale that nekRS's nondimensional form is based on
-   * @param[in] L characteristic length
-   * @param[in] U characteristic velocity
+   * @param[in] t characteristic time
    */
-  virtual void setReferenceTime(const Real & L, const Real & U);
+  virtual void setReferenceTime(const Real & t);
 
   /**
    * Compute the nondimensional version of a dt

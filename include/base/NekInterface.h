@@ -76,6 +76,13 @@ void setAbsoluteTol(double tol);
 void setRelativeTol(double tol);
 
 /**
+ * Get the reference additive scale for dimensionalizing a quantity
+ * @param[in] field field to fetch scale for
+ * @return additive scale
+ */
+Real referenceAdditiveScale(const field::NekFieldEnum & field);
+
+/**
  * Nek's runtime statistics are formed by collecting a timer of both the initialization
  * and accumulated run time. We unfortunately have to split this across multiple classes,
  * so if we want correct times we need to have NekInitAction save the value of the time
@@ -736,6 +743,8 @@ struct characteristicScales
 
   double source_ref;
 
+  double t_ref;
+
   bool nondimensional_T;
 };
 
@@ -933,6 +942,18 @@ double referenceSource();
  * @return reference length scale
  */
 double referenceLength();
+
+/**
+ * Get the reference time scale
+ * @return reference time scale
+ */
+double referenceTime();
+
+/**
+ * Get the reference velocity scale
+ * @return reference velocity scale
+ */
+double referenceVelocity();
 
 /**
  * Get the reference area scale
