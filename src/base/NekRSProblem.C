@@ -86,7 +86,7 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   if (!_boundary)
   {
     checkUnusedParam(params, "conserve_flux_by_sideset", "'boundary' is empty");
-    checkUnusedParam(parameters(), "initial_flux_integral", "'boundary' is empty");
+    checkUnusedParam(params, "initial_flux_integral", "'boundary' is empty");
   }
 
   // Determine the usrwrk indexing; the ordering will always be as
