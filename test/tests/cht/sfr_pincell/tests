@@ -31,7 +31,7 @@
   [impose_heat_flux]
     type = CSVDiff
     input = nek_isolated.i
-    csvdiff = nek_isolated_out_nek0.csv
+    csvdiff = nek_isolated_out.csv
     min_parallel = 6
     requirement = "The system shall allow imposing heat flux through a dummy main application, instead of coupling NekRS via conjugate heat transfer. This is verified by computing the heat flux on the NekRS mesh, which adequately matches an initial value set in a postprocessor. This gold file is also identical to that obtained by running a dummy main app (solid_dummy) that passes in the desired flux_integral initial condition."
     required_objects = 'NekRSProblem'
