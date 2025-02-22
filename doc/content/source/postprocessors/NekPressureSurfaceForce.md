@@ -20,10 +20,7 @@ $z$ component, or magnitude of this force.
 
 !include /boundary_specs.md
 
-If running NekRS in non-dimensional form (and you have indicated the
-appropriate nondimensional scales by setting `nondimensional = true`,
-for the `[Problem]`, then the value of this postprocessor is shown
-in *dimensional* units.
+!include /nondimensional.md
 
 ## Example Input Syntax
 

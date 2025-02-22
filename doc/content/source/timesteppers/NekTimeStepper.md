@@ -34,11 +34,9 @@ ignored. Instead, the simulation termination critera of the master application
 dictate the overall solve.
 
 If running NekRS in non-dimensional form (and you have indicated the
-appropriate nondimensional scales by setting `nondimensional = true`
-for [NekRSProblem](NekRSProblem.md)), then the time is converted to dimensional
-units when used in the [MultiApp](MultiApps/index.md) system,
-under the assumption that all other coupled MOOSE applications use a dimensional
-time unit. Finally, the minimum time step size that can be taken in NekRS is controlled via
+appropriate nondimensional scales with the [Dimensionalize](DimensionalizeAction.md) sub-block
+for the `[Problem]`) then this timestepper reports dimensional time.
+Finally, the minimum time step size that can be taken in NekRS is controlled via
 the `min_dt` parameter.
 
 ## Example Input Syntax
