@@ -141,6 +141,14 @@ protected:
    */
   void calculateMeshVelocity(int e, const field::NekWriteEnum & field);
 
+  /**
+   * Calculate mesh velocity for NekRS's elasticity solver using current and previous displacement
+   * values and write it to nrs->usrwrk, from where it can be accessed in nekRS's .oudf file.
+   * @param[in] e Boundary element that the displacement values belong to
+   * @param[in] field NekWriteEnum mesh_velocity_x/y/z field
+   */
+  void prev_disp_update(int e, const field::NekWriteEnum & field);
+
   /// Whether a heat source will be applied to NekRS from MOOSE
   const bool & _has_heat_source;
 

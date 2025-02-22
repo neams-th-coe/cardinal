@@ -333,6 +333,12 @@ protected:
   const Real & _Cp_0;
 
   /**
+   * If Nek is being run with fixed point iterations; this means that the NekRS
+   * runs themselves are repeated in a fixed point loop (for purposes of FSI).
+   */
+  const bool & _fp_iteration;
+
+  /**
    * Whether to disable output file writing by NekRS and replace it by output
    * file writing in Cardinal. Suppose the case name is 'channel'. If this parameter
    * is false, then NekRS will write output files as usual, with names like
