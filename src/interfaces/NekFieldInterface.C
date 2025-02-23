@@ -1,7 +1,6 @@
 #include "NekFieldInterface.h"
 #include "UserErrorChecking.h"
 #include "GeometryUtils.h"
-#include "NekRSProblemBase.h"
 
 InputParameters
 NekFieldInterface::validParams()
