@@ -22,19 +22,28 @@
 #include "OpenMCBase.h"
 #include "OpenMCCellAverageProblem.h"
 
+// forward declarations
+template <typename ComputeValueType>
+class OpenMCAuxKernelTempl;
+
+typedef OpenMCAuxKernelTempl<Real> OpenMCAuxKernel;
+typedef OpenMCAuxKernelTempl<RealVectorValue> OpenMCVectorAuxKernel;
+typedef OpenMCAuxKernelTempl<RealEigenVector> OpenMCArrayAuxKernel;
+
 /**
  * Base auxkernel from which to inherit auxkernels that query
  * the OpenMC problem.
  */
-class OpenMCAuxKernel : public AuxKernel, public OpenMCBase
+template <typename ComputeValueType>
+class OpenMCAuxKernelTempl : public AuxKernelTempl<ComputeValueType>, public OpenMCBase
 {
 public:
-  OpenMCAuxKernel(const InputParameters & parameters);
+  OpenMCAuxKernelTempl(const InputParameters & parameters);
 
   static InputParameters validParams();
 
 protected:
-  virtual Real computeValue() = 0;
+  virtual ComputeValueType computeValue() = 0;
 
   /**
    * Determine whether the MOOSE element maps to an OpenMC cell to make sure we don't call
@@ -43,3 +52,8 @@ protected:
    */
   bool mappedElement();
 };
+
+// Prevent implicit instantiation in other translation units where these classes are used
+extern template class OpenMCAuxKernelTempl<Real>;
+extern template class OpenMCAuxKernelTempl<RealVectorValue>;
+extern template class OpenMCAuxKernelTempl<RealEigenVector>;
