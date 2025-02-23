@@ -92,11 +92,19 @@ p=\frac{\int T^\dagger dV^\dagger}{\int dV^\dagger}+\frac{T_{ref}}{\Delta T}
 where $p$ is the value of the postprocessor in dimensional form (which
 is what is actually returned by the postprocessor).
 
+## Input Parameters
+
+The following are all optional input parameters for this object:
+
+- `U`: Reference velocity
+- `L`: Reference length
+- `T` and `dT`: Reference temperature and temperature delta, respectively
+- `rho`: Reference density
+- `Cp`: Reference isobaric specific heat
+
 ## Example Input File Syntax
 
 An example where the NekRS input files are set up in non-dimensional form,
 
 !listing /tutorials/msfr/nek.i
   block=Problem
-
-!syntax parameters /Problem/DimensionalizeAction
