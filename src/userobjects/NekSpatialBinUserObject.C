@@ -26,11 +26,9 @@ NekSpatialBinUserObject::validParams()
 {
   InputParameters params = GeneralUserObject::validParams();
   params += NekBase::validParams();
+  params += NekFieldInterface::validParams();
   params.addRequiredParam<std::vector<UserObjectName>>(
       "bins", "Userobjects providing a spatial bin given a point");
-  params.addRequiredParam<MooseEnum>("field",
-                                     getNekFieldEnum(),
-                                     "Field to postprocess");
   params.addParam<unsigned int>(
       "interval",
       1,
@@ -51,25 +49,15 @@ NekSpatialBinUserObject::validParams()
       "spatial bin; this "
       "can be used to ensure that the bins are sufficiently big to get at least one contributing "
       "point from the NekRS mesh.");
-  params.addParam<MooseEnum>(
-      "velocity_component",
-      getBinnedVelocityComponentEnum(),
-      "Direction with which to evaluate velocity when 'field = velocity_component.' "
-      "Options: user (specify a direction with 'velocity_direction'), normal (normal to side "
-      "bins)");
-  params.addParam<Point>(
-      "velocity_direction",
-      "Direction in which to evaluate velocity, for 'field = velocity_component'. For "
-      "example, velocity_direction = '1 0 0' will get the x-component of velocity.");
   return params;
 }
 
 NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & parameters)
   : GeneralUserObject(parameters),
     NekBase(this, parameters),
+    NekFieldInterface(this, parameters, true /* allow normal */),
     _interval(getParam<unsigned int>("interval")),
     _bin_names(getParam<std::vector<UserObjectName>>("bins")),
-    _field(getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
     _map_space_by_qp(getParam<bool>("map_space_by_qp")),
     _check_zero_contributions(getParam<bool>("check_zero_contributions")),
     _bin_values(nullptr),
@@ -158,35 +146,10 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   else
     computePoints3D();
 
-  if (_field == field::velocity_component)
-  {
-    if (!isParamValid("velocity_component"))
-      mooseError("The 'velocity_component' parameter must be provided when using 'field = "
-                 "velocity_component'!");
-
-    _velocity_component =
-        getParam<MooseEnum>("velocity_component").getEnum<component::BinnedVelocityComponentEnum>();
-  }
-  else if (isParamValid("velocity_component"))
-    mooseWarning(
-        "The 'velocity_component' parameter is unused unless 'field = velocity_component'!");
-
+  // with a user-specified direction, the direction for each bin is the same
   if (_field == field::velocity_component && _velocity_component == component::user)
-  {
-    if (!isParamValid("velocity_direction"))
-      mooseError("The 'velocity_direction' parameter must be provided when using "
-                 "'velocity_component = user'!");
-
-    Point direction =
-        geom_utils::unitVector(getParam<Point>("velocity_direction"), "velocity_direction");
-
-    // with a user-specified direction, the direction for each bin is the same
     for (unsigned int i = 0; i < _n_bins; ++i)
-      _velocity_bin_directions.push_back(direction);
-  }
-  else if (isParamValid("velocity_direction"))
-    mooseWarning(
-        "The 'velocity_direction' parameter is unused unless 'velocity_component = user'!");
+       _velocity_bin_directions.push_back(_velocity_direction);
 }
 
 NekSpatialBinUserObject::~NekSpatialBinUserObject()
