@@ -15,34 +15,30 @@
 /*                 See LICENSE for full restrictions                */
 /********************************************************************/
 
-#include "RelErrorLookAheadMarker.h"
+#pragma once
 
-registerMooseObject("MooseApp", RelErrorLookAheadMarker);
+#include "ErrorFractionMarker.h"
 
-InputParameters
-RelErrorLookAheadMarker::validParams()
+#include "OpenMCBase.h"
+
+class ErrorFractionLookAheadMarker : public ErrorFractionMarker,
+                                     public OpenMCBase
 {
-  auto params = QuadraturePointMarker::validParams();
-  params.addClassDescription(
-    "A class which looks ahead at the relative error if a tally field. "
-    "If the estimated tally field after the element is split is less than "
-    "a user specified threshold, then proceed with refinement.");
-  params.addRequiredRangeCheckedParam<Real>("refine", "0 <= refine <= 1", "The refinement threshold.");
+public:
+  static InputParameters validParams();
 
-  return params;
-}
+  ErrorFractionLookAheadMarker(const InputParameters & parameters);
 
-RelErrorLookAheadMarker::RelErrorLookAheadMarker(const InputParameters & parameters)
-  : QuadraturePointMarker(parameters),
-    _rel_error_limit(getParam<Real>("refine"))
-{ }
+protected:
+  virtual MarkerValue computeElementMarker() override;
 
-Marker::MarkerValue
-RelErrorLookAheadMarker::computeQpMarker()
-{
-  auto rel_e_after_split = _u[_qp] * _current_elem->n_children();
-  if (rel_e_after_split <= _rel_error_limit)
-    return Marker::MarkerValue::REFINE;
-  else
-    return Marker::MarkerValue::DO_NOTHING;
-}
+  /**
+   * The variables containing the tally relative error. This needs to be a vector because the tally
+   * may have filters applied, and so we need to take the max over all filter bins.
+   */
+  std::vector<const VariableValue *> _tally_rel_error;
+
+  /// Upper relative error limit for refinement. If the "lookahead" for an element exceeds this
+  /// limit, don't refine. Otherwise, mark for refinement.
+  const Real & _rel_error_limit;
+};
