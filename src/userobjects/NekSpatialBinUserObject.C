@@ -149,7 +149,7 @@ NekSpatialBinUserObject::NekSpatialBinUserObject(const InputParameters & paramet
   // with a user-specified direction, the direction for each bin is the same
   if (_field == field::velocity_component && _velocity_component == component::user)
     for (unsigned int i = 0; i < _n_bins; ++i)
-       _velocity_bin_directions.push_back(_velocity_direction);
+      _velocity_bin_directions.push_back(_velocity_direction);
 }
 
 NekSpatialBinUserObject::~NekSpatialBinUserObject()

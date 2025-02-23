@@ -29,8 +29,7 @@ NekSideFieldPostprocessor::validParams()
 }
 
 NekSideFieldPostprocessor::NekSideFieldPostprocessor(const InputParameters & parameters)
-  : NekSidePostprocessor(parameters),
-    NekFieldInterface(this, parameters)
+  : NekSidePostprocessor(parameters), NekFieldInterface(this, parameters)
 {
 }
 

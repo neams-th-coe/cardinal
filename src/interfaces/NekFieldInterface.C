@@ -8,10 +8,10 @@ NekFieldInterface::validParams()
 {
   InputParameters params = emptyInputParameters();
   params.addRequiredParam<MooseEnum>("field", getNekFieldEnum(), "Field to apply this object to");
-  params.addParam<Point>(
-      "velocity_direction",
-      "Unit vector to dot with velocity, for 'field = velocity_component'. For "
-      "example, velocity_direction = '1 1 0' will get the velocity dotted with (1/sqrt(2), 1/sqrt(2), 0).");
+  params.addParam<Point>("velocity_direction",
+                         "Unit vector to dot with velocity, for 'field = velocity_component'. For "
+                         "example, velocity_direction = '1 1 0' will get the velocity dotted with "
+                         "(1/sqrt(2), 1/sqrt(2), 0).");
   params.addParam<MooseEnum>(
       "velocity_component",
       getBinnedVelocityComponentEnum(),
@@ -24,7 +24,8 @@ NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
                                      const InputParameters & parameters,
                                      const bool allow_normal_velocity)
   : _field(moose_object->getParam<MooseEnum>("field").getEnum<field::NekFieldEnum>()),
-    _velocity_component(moose_object->getParam<MooseEnum>("velocity_component").getEnum<component::BinnedVelocityComponentEnum>())
+    _velocity_component(moose_object->getParam<MooseEnum>("velocity_component")
+                            .getEnum<component::BinnedVelocityComponentEnum>())
 {
   if (_field == field::velocity_component)
   {
@@ -39,7 +40,8 @@ NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
         break;
       case component::normal:
         if (!allow_normal_velocity)
-          mooseError("This object does not support 'velocity_component = normal'! Please contact the Cardinal development team if this is hindering your use case.");
+          mooseError("This object does not support 'velocity_component = normal'! Please contact "
+                     "the Cardinal development team if this is hindering your use case.");
 
         checkUnusedParam(parameters, "velocity_direction", "using 'velocity_component = normal'");
         break;

@@ -9,9 +9,11 @@ class NekFieldInterface
 public:
   static InputParameters validParams();
 
-  NekFieldInterface(const MooseObject * moose_object, const InputParameters & parameters, const bool allow_normal = false);
+  NekFieldInterface(const MooseObject * moose_object,
+                    const InputParameters & parameters,
+                    const bool allow_normal = false);
 
- /**
+  /**
    * Get the field
    * @return field
    */
