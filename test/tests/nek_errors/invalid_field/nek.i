@@ -17,7 +17,7 @@
 []
 
 [Postprocessors]
-  [max_T]
+  [max]
     type = NekVolumeExtremeValue
     field = temperature
   []

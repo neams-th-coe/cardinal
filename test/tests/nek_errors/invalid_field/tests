@@ -4,26 +4,34 @@
     input = nek.i
     expect_err = "Cardinal cannot find 'temperature' "
                  "because your Nek case files do not have a temperature variable!"
-    requirement = "The system shall throw an error if trying to use temperature postprocessors for inputs "
-                  "that don't have a temperature variable."
+    requirement = "The system shall throw an error if trying to use temperature as a field for cases that do not have a temperature variable"
     required_objects = 'NekRSProblem'
   []
-  [invalid_output]
+  [invalid_field_scalar01]
     type = RunException
-    input = nek_no_temp.i
-    expect_err = "Cardinal cannot find 'temperature' "
-                 "because your Nek case files do not have a temperature variable!"
-    requirement = "The system shall throw an error if trying to output temperature for inputs "
-                  "that don't have a temperature variable."
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=scalar01'
+    expect_err = "Cardinal cannot find 'scalar01' "
+                 "because your Nek case files do not have a scalar01 variable!"
+    requirement = "The system shall throw an error if trying to use scalar01 as a field for problems that don't have a scalar01 variable."
     required_objects = 'NekRSProblem'
   []
-  [invalid_field_uo]
+  [invalid_field_scalar02]
     type = RunException
-    input = nek_uo.i
-    expect_err = "Cardinal cannot find 'temperature' "
-                 "because your Nek case files do not have a temperature variable!"
-    requirement = "The system shall throw an error if trying to use temperature userobjects for inputs "
-                  "that don't have a temperature variable."
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=scalar02'
+    expect_err = "Cardinal cannot find 'scalar02' "
+                 "because your Nek case files do not have a scalar02 variable!"
+    requirement = "The system shall throw an error if trying to use scalar02 as a field for problems that don't have a scalar02 variable."
+    required_objects = 'NekRSProblem'
+  []
+  [invalid_field_scalar03]
+    type = RunException
+    input = nek.i
+    cli_args = 'Postprocessors/max/field=scalar03'
+    expect_err = "Cardinal cannot find 'scalar03' "
+                 "because your Nek case files do not have a scalar03 variable!"
+    requirement = "The system shall throw an error if trying to use scalar03 as a field for problems that don't have a scalar03 variable."
     required_objects = 'NekRSProblem'
   []
   [duplicate_auxvar]

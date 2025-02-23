@@ -1520,6 +1520,12 @@ mesh_velocity_z(const int id, const dfloat value)
 void
 checkFieldValidity(const field::NekFieldEnum & field)
 {
+  // by placing this check here, as opposed to inside the NekFieldInterface,
+  // we can also leverage this error checking for the 'outputs' of NekRSProblemBase,
+  // which does not inherit from NekFieldInterface but still accesses the solutionPointers.
+  // If this gets moved elsewhere, need to be sure to add dedicated testing for
+  // the 'outputs'.
+
   switch (field)
   {
     case field::temperature:
