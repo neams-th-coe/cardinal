@@ -42,7 +42,7 @@ where $\dagger$ superscripts indicate nondimensional quantities.
 Finally, the mesh mirror must be in the same units as used in the coupled MOOSE application,
 so the `scaling` parameter on [NekRSMesh](NekRSMesh.md) must be set to
 dimensionalize the nondimensional `.re2` mesh. In other words,
-`scaling` must be set to $1/L_{ref}$.
+`scaling` must be set to $L_{ref}$.
 
 !alert warning
 These characteristic scales are used by Cardinal to scale the NekRS solution

@@ -105,7 +105,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
   if (isParamSetByUser("nondimensional"))
     mooseError(
         "The 'nondimensional' parameter has been deprecated. Please put the non-dimensional scales "
-        "inside a [Dimensionalize] sub-block. Please consult the tutorials/tests for examples.");
+        "inside a [Dimensionalize] sub-block. Please consult the tutorials and/or tests for examples.");
 
   const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
   _nondimensional = actions.size();
