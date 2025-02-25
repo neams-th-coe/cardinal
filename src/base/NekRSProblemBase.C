@@ -110,6 +110,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
 
   const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
   _nondimensional = actions.size();
+  nekrs::nondimensional(_nondimensional);
 
   if (_n_usrwrk_slots == 0)
     checkUnusedParam(params, "first_reserved_usrwrk_slot", "not reserving any scratch space");
@@ -482,10 +483,13 @@ NekRSProblemBase::initialSetup()
 
   // add rows for the extra slices
   for (unsigned int i = end + _n_uo_slots; i < _n_usrwrk_slots; ++i)
+  {
+    _usrwrk_indices.push_back("unused");
     vt.addRow(i,
-              "unused",
+              _usrwrk_indices[i],
               "bc->usrwrk[" + std::to_string(i) + " * bc->fieldOffset + bc->idM]",
               "nrs->usrwrk[" + std::to_string(i) + " * nrs->fieldOffset + n]");
+  }
 
   if (_n_usrwrk_slots < _minimum_scratch_size_for_coupling + _first_reserved_usrwrk_slot)
     mooseError("You did not allocate enough scratch space for Cardinal to complete its coupling!\n"
@@ -501,10 +505,10 @@ NekRSProblemBase::initialSetup()
   {
     _console << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n" << std::endl;
     _console << "           Slot:  slice in scratch space holding the data" << std::endl;
-    _console << "       Quantity:  physical meaning or name of data. If 'unused'," << std::endl;
-    _console << "                  this means that the space has been allocated, but Cardinal"
+    _console << "       Quantity:  physical meaning of data. If 'unused', this means that the" << std::endl;
+    _console << "                  space has been allocated, but Cardinal is not otherwise"
              << std::endl;
-    _console << "                  is not otherwise using it for coupling" << std::endl;
+    _console << "                  using it for coupling" << std::endl;
     _console <<   "  How to Access:  C++ code to use in NekRS files; for the .udf instructions," << std::endl;
     _console <<   "                  'n' indicates a loop variable over GLL points\n" << std::endl;
     vt.print(_console);
@@ -1274,7 +1278,7 @@ NekRSProblemBase::copyScratchToDevice()
 {
   if (_minimum_scratch_size_for_coupling + _n_uo_slots > 0)
   {
-    auto n = nekrs::scalarFieldOffset();
+    auto n = nekrs::fieldOffset();
     auto nbytes = n * sizeof(dfloat);
 
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();

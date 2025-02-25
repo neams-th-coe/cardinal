@@ -26,6 +26,9 @@ NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
     _velocity_component(moose_object->getParam<MooseEnum>("velocity_component")
                             .getEnum<component::BinnedVelocityComponentEnum>())
 {
+  // check that this field can be used given the problem parameters
+  nekrs::checkFieldValidity(_field);
+
   if (_field == field::velocity_component)
   {
     switch (_velocity_component)

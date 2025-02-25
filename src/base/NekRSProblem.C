@@ -100,13 +100,13 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   if (_boundary)
   {
     indices.flux = start++ * nekrs::scalarFieldOffset();
-    _usrwrk_indices.push_back("flux");
+    _usrwrk_indices.push_back("heat flux");
   }
 
   if (_volume && _has_heat_source)
   {
     indices.heat_source = start++ * nekrs::scalarFieldOffset();
-    _usrwrk_indices.push_back("heat_source");
+    _usrwrk_indices.push_back("heat source");
   }
 
   if (nekrs::hasBlendingSolver())
@@ -114,9 +114,9 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     indices.mesh_velocity_x = start++ * nekrs::scalarFieldOffset();
     indices.mesh_velocity_y = start++ * nekrs::scalarFieldOffset();
     indices.mesh_velocity_z = start++ * nekrs::scalarFieldOffset();
-    _usrwrk_indices.push_back("mesh_velocity_x");
-    _usrwrk_indices.push_back("mesh_velocity_y");
-    _usrwrk_indices.push_back("mesh_velocity_z");
+    _usrwrk_indices.push_back("mesh velocity x");
+    _usrwrk_indices.push_back("mesh velocity y");
+    _usrwrk_indices.push_back("mesh velocity z");
   }
 
   _minimum_scratch_size_for_coupling = _usrwrk_indices.size() - _first_reserved_usrwrk_slot;
