@@ -19,8 +19,7 @@
 #pragma once
 
 #include "GeneralUserObject.h"
-#include "GeometryUtils.h"
-
+#include "NekFieldInterface.h"
 #include "NekBase.h"
 #include "SpatialBinUserObject.h"
 
@@ -29,7 +28,7 @@
  * NekRS solution with a spatial binning formed as the product
  * of an arbitrary number of combined single-set bins.
  */
-class NekSpatialBinUserObject : public GeneralUserObject, public NekBase
+class NekSpatialBinUserObject : public GeneralUserObject, public NekBase, public NekFieldInterface
 {
 public:
   static InputParameters validParams();
@@ -80,12 +79,6 @@ public:
   const std::vector<unsigned int> unrolledBin(const unsigned int & total_bin_index) const;
 
   /**
-   * Get the integrating field
-   * @return field
-   */
-  const field::NekFieldEnum & field() const { return _field; }
-
-  /**
    * Get the point at which to evaluate the user object
    * @param[in] local_elem_id local element ID on the Nek rank
    * @param[in] local_node_id local node ID on the element
@@ -122,9 +115,6 @@ protected:
   /// Names of the userobjects providing the bins
   const std::vector<UserObjectName> & _bin_names;
 
-  /// field to postprocess with the bins
-  const field::NekFieldEnum _field;
-
   /**
    * Whether to map the NekRS space to bins by element centroid (false)
    * or quadrature point (true).
@@ -146,13 +136,6 @@ protected:
 
   /// For each x, y, z direction, which bin provides that direction
   std::vector<unsigned int> _bin_providing_direction;
-
-  /**
-   * Direction in which to evaluate velocity, if using 'field = velocity_component'.
-   * Options: user (then provide a general vector direction with the 'velocity_direction' parameter
-   *          normal (normal to the gap planes, only valid for side bin user objects)
-   */
-  component::BinnedVelocityComponentEnum _velocity_component;
 
   /// total number of bins
   unsigned int _n_bins;

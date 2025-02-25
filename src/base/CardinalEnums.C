@@ -39,7 +39,7 @@ getNekOrderEnum()
 MooseEnum
 getBinnedVelocityComponentEnum()
 {
-  return MooseEnum("normal user");
+  return MooseEnum("normal user", "user");
 }
 
 MooseEnum
