@@ -9,6 +9,13 @@
     dT = 200.0
     rho = 1000
     Cp = 3000
+
+    s01 = 15.0
+    ds01 = 250.0
+    s02 = 20.0
+    ds02 = 300.0
+    s03 = 5.0
+    ds03 = 100.0
   []
 []
 
@@ -45,6 +52,12 @@
   [vz]
     type = NekPointValue
     field = velocity_z
+    point = '0.25 0.3 0.27'
+  []
+  [comp]
+    type = NekPointValue
+    field = velocity_component
+    velocity_direction = '0.5 0.5 0.5'
     point = '0.25 0.3 0.27'
   []
   [vx2]
@@ -85,6 +98,11 @@
   [scalar03]
     type = NekPointValue
     field = scalar03
+    point = '0.25 0.3 0.27'
+  []
+  [unity]
+    type = NekPointValue
+    field = unity
     point = '0.25 0.3 0.27'
   []
 []
