@@ -2,13 +2,14 @@
   type = NekRSProblem
   casename = 'cylinder'
 
-  nondimensional = true
-  T_ref = 500.0
-  dT_ref = 50.0
-  rho_0 = 5.0
-  Cp_0 = 6.0
-  L_ref = 0.5
-  U_ref = 1.0
+  [Dimensionalize]
+    T = 500.0
+    dT = 50.0
+    rho = 5.0
+    Cp = 6.0
+    L = 0.5
+    U = 1.0
+  []
 []
 
 [Mesh]

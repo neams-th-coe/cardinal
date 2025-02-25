@@ -2,11 +2,9 @@
   type = NekRSStandaloneProblem
   casename = 'pyramid'
 
-  nondimensional = true
-  U_ref = 0.1
-  L_ref = 1.0
-  rho_0 = 1.0
-  Cp_0 = 1.0
+  [Dimensionalize]
+    U = 0.1
+  []
 []
 
 [Mesh]

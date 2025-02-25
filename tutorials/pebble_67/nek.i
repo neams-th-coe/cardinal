@@ -20,14 +20,14 @@ inlet_area = ${fparse pi * cylinder_diameter^2 / 4.0}
   has_heat_source = false
   n_usrwrk_slots = 2
 
-  nondimensional = true
-  L_ref = ${dp}
-  U_ref = ${fparse Re * mu / rho / dp}
-  T_ref = 523.0
-  dT_ref = ${fparse power * dp / Re / inlet_area / mu / Cp}
-
-  rho_0 = ${rho}
-  Cp_0 = ${Cp}
+  [Dimensionalize]
+    L = ${dp}
+    U = ${fparse Re * mu / rho / dp}
+    T = 523.0
+    dT = ${fparse power * dp / Re / inlet_area / mu / Cp}
+    rho = ${rho}
+    Cp = ${Cp}
+  []
 
   synchronization_interval = parent_app
 []

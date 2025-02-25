@@ -76,6 +76,13 @@ void setAbsoluteTol(double tol);
 void setRelativeTol(double tol);
 
 /**
+ * Get the reference additive scale for dimensionalizing a quantity
+ * @param[in] field field to fetch scale for
+ * @return additive scale
+ */
+Real referenceAdditiveScale(const field::NekFieldEnum & field);
+
+/**
  * Nek's runtime statistics are formed by collecting a timer of both the initialization
  * and accumulated run time. We unfortunately have to split this across multiple classes,
  * so if we want correct times we need to have NekInitAction save the value of the time
@@ -713,30 +720,33 @@ struct usrwrkIndices
   int boundary_scalar03;
 };
 
-/// Characteristic scales assumed in nekRS if using a non-dimensional solution
+/**
+ * Characteristic scales assumed in nekRS if using a non-dimensional solution; initial values
+ * are applied, which will be overridden by the DimensionalizeAction in Cardinal.
+ */
 struct characteristicScales
 {
-  double U_ref;
+  double U_ref = 1;
 
-  double T_ref;
+  double T_ref = 0;
 
-  double dT_ref;
+  double dT_ref = 1;
 
-  double L_ref;
+  double L_ref = 1;
 
-  double A_ref;
+  double A_ref = 1;
 
-  double V_ref;
+  double V_ref = 1;
 
-  double rho_ref;
+  double rho_ref = 1;
 
-  double Cp_ref;
+  double Cp_ref = 1;
 
-  double flux_ref;
+  double flux_ref = 1;
 
-  double source_ref;
+  double source_ref = 1;
 
-  bool nondimensional_T;
+  double t_ref = 1;
 };
 
 /**
@@ -933,6 +943,18 @@ double referenceSource();
  * @return reference length scale
  */
 double referenceLength();
+
+/**
+ * Get the reference time scale
+ * @return reference time scale
+ */
+double referenceTime();
+
+/**
+ * Get the reference velocity scale
+ * @return reference velocity scale
+ */
+double referenceVelocity();
 
 /**
  * Get the reference area scale

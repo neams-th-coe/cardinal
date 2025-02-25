@@ -1662,11 +1662,10 @@ initializeDimensionalScales(const double U_ref,
   scales.V_ref = L_ref * L_ref * L_ref;
   scales.rho_ref = rho_ref;
   scales.Cp_ref = Cp_ref;
+  scales.t_ref = L_ref / U_ref;
 
   scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
   scales.source_ref = scales.flux_ref / L_ref;
-
-  scales.nondimensional_T = (std::abs(dT_ref - 1.0) > 1e-6) || (std::abs(T_ref) > 1e-6);
 }
 
 double
@@ -1688,6 +1687,18 @@ referenceLength()
 }
 
 double
+referenceTime()
+{
+  return scales.t_ref;
+}
+
+double
+referenceVelocity()
+{
+  return scales.U_ref;
+}
+
+double
 referenceArea()
 {
   return scales.A_ref;
@@ -1697,6 +1708,18 @@ double
 referenceVolume()
 {
   return scales.V_ref;
+}
+
+Real
+referenceAdditiveScale(const field::NekFieldEnum & field)
+{
+  switch (field)
+  {
+    case field::temperature:
+      return scales.T_ref;
+    default:
+      return 0;
+  }
 }
 
 void
