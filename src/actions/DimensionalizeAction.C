@@ -22,6 +22,7 @@
 #include "NekInterface.h"
 #include "VariadicTable.h"
 #include "NekRSMesh.h"
+#include "UserErrorChecking.h"
 
 registerMooseAction("CardinalApp", DimensionalizeAction, "add_dimensionalization");
 

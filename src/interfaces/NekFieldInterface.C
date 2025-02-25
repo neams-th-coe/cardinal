@@ -1,4 +1,5 @@
 #include "NekFieldInterface.h"
+#include "NekInterface.h"
 #include "UserErrorChecking.h"
 #include "GeometryUtils.h"
 

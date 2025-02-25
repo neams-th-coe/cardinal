@@ -1,36 +1,32 @@
 [Tests]
-  [invalid_field]
+  [temperature]
     type = RunException
     input = nek.i
-    expect_err = "Cardinal cannot find 'temperature' "
-                 "because your Nek case files do not have a temperature variable!"
+    expect_err = "Cannot find 'temperature' because your Nek case files do not have a temperature variable!"
     requirement = "The system shall throw an error if trying to use temperature as a field for cases that do not have a temperature variable"
     required_objects = 'NekRSProblem'
   []
-  [invalid_field_scalar01]
+  [scalar01]
     type = RunException
     input = nek.i
     cli_args = 'Postprocessors/max/field=scalar01'
-    expect_err = "Cardinal cannot find 'scalar01' "
-                 "because your Nek case files do not have a scalar01 variable!"
+    expect_err = "Cannot find 'scalar01' because your Nek case files do not have a scalar01 variable!"
     requirement = "The system shall throw an error if trying to use scalar01 as a field for problems that don't have a scalar01 variable."
     required_objects = 'NekRSProblem'
   []
-  [invalid_field_scalar02]
+  [scalar02]
     type = RunException
     input = nek.i
     cli_args = 'Postprocessors/max/field=scalar02'
-    expect_err = "Cardinal cannot find 'scalar02' "
-                 "because your Nek case files do not have a scalar02 variable!"
+    expect_err = "Cannot find 'scalar02' because your Nek case files do not have a scalar02 variable!"
     requirement = "The system shall throw an error if trying to use scalar02 as a field for problems that don't have a scalar02 variable."
     required_objects = 'NekRSProblem'
   []
-  [invalid_field_scalar03]
+  [scalar03]
     type = RunException
     input = nek.i
     cli_args = 'Postprocessors/max/field=scalar03'
-    expect_err = "Cardinal cannot find 'scalar03' "
-                 "because your Nek case files do not have a scalar03 variable!"
+    expect_err = "Cannot find 'scalar03' because your Nek case files do not have a scalar03 variable!"
     requirement = "The system shall throw an error if trying to use scalar03 as a field for problems that don't have a scalar03 variable."
     required_objects = 'NekRSProblem'
   []
