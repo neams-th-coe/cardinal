@@ -67,7 +67,8 @@ DimensionalizeAction::DimensionalizeAction(const InputParameters & parameters)
 {
   // inform NekRS of the scaling that we are using; the NekInterface holds all
   // the reference scales and provides accessor methods
-  nekrs::initializeDimensionalScales(_U, _T, _dT, _L, _rho, _Cp, _s01, _ds01, _s02, _ds02, _s03, _ds03);
+  nekrs::initializeDimensionalScales(
+      _U, _T, _dT, _L, _rho, _Cp, _s01, _ds01, _s02, _ds02, _s03, _ds03);
 }
 
 void

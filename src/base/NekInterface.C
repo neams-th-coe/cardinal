@@ -292,8 +292,7 @@ initializeScratch(const unsigned int & n_slots)
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
   nrs->usrwrk = (double *)calloc(n_slots * fieldOffset(), sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double),
-                                          nrs->usrwrk);
+  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double), nrs->usrwrk);
 
   n_usrwrk_slots = n_slots;
 }
@@ -1805,7 +1804,8 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
   }
 }
 
-void nondimensional(const bool n)
+void
+nondimensional(const bool n)
 {
   is_nondimensional = n;
 }

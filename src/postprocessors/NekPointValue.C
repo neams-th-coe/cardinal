@@ -100,7 +100,8 @@ NekPointValue::execute()
   switch (_field)
   {
     case field::velocity_component:
-      _value = interpolated[0] * _velocity_direction(0) + interpolated[1] * _velocity_direction(1) + interpolated[2] * _velocity_direction(2);
+      _value = interpolated[0] * _velocity_direction(0) + interpolated[1] * _velocity_direction(1) +
+               interpolated[2] * _velocity_direction(2);
       break;
     case field::velocity_x:
       _value = interpolated[0];

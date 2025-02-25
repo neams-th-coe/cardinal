@@ -69,7 +69,6 @@ void checkFieldValidity(const field::NekFieldEnum & field);
  */
 void setAbsoluteTol(double tol);
 
-
 /**
  * Set whether the problem is nondimensional
  * @param[in] n nondimensional setting

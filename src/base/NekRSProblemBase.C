@@ -505,7 +505,8 @@ NekRSProblemBase::initialSetup()
   {
     _console << "\n ===================>     MAPPING FROM MOOSE TO NEKRS      <===================\n" << std::endl;
     _console << "           Slot:  slice in scratch space holding the data" << std::endl;
-    _console << "       Quantity:  physical meaning of data. If 'unused', this means that the" << std::endl;
+    _console << "       Quantity:  physical meaning of data. If 'unused', this means that the"
+             << std::endl;
     _console << "                  space has been allocated, but Cardinal is not otherwise"
              << std::endl;
     _console << "                  using it for coupling" << std::endl;
