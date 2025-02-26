@@ -63,7 +63,7 @@ The best place to put these exports is your `.bashrc` to avoid needing to export
 
 If critical errors are reported at this stage, it is likely because your current module set does not meet MOOSE's requirements. If you receive an error stating that `jinja2` is missing, you can safely move on.
 
-**Note:** If you want to build NekRS with GPU support, you need GPU-enabled compilers (CUDA compilers, OpenCL compilers, etc.) on the login node. Some HPC systems only allow users to load those modules on nodes which contain GPUs. If that is the case for you, you'll need to build with a job script (see the next session). To enable a GPU build, set one of the following environment variables in Cardinal's makefile to `1` (depending on the specific GPUs on your system): `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED`. You'll also need to make sure you load modules with GPU compilers.
+**Note:** If you want to build NekRS with GPU support, you need GPU-enabled compilers (CUDA compilers, OpenCL compilers, etc.) on the login node. Some HPC systems only allow users to load those modules on nodes which contain GPUs. If that is the case for you, you'll need to build with a job script (see the next section). To enable a GPU build, set one of the following environment variables in Cardinal's makefile to `1` (depending on the specific GPUs on your system): `OCCA_CUDA_ENABLED`, `OCCA_HIP_ENABLED`, or `OCCA_OPENCL_ENABLED`. You'll also need to make sure you load modules with GPU compilers.
 
 From here, you can run the commands below to build MOOSE's submodules. We recommend building with `nohup` or `screen` to avoid getting timed out while you're connected to a login node.
 
@@ -84,7 +84,7 @@ Building libMesh may fail due to a lack of libraries that are normally included 
 ```
 ./contrib/moose/scripts/update_and_rebuild_libmesh.sh --disable-xdr-required --disable-xdr
 ```
-
+There are many similar flags like this, that can disable parts of libMesh or ask libMesh to install dependencies if it couldn't find them itself. If you encounter persistent errors, ask on the [MOOSE discussion page](https://github.com/idaholab/moose/discussions) for help, and they may be able to recommend a flag for you to set.
 If you didn't get any build errors when building PETSc/libMesh/WASP, you can run
 
 ```
@@ -92,7 +92,7 @@ nohup make -j8 MAKEFLAGS=-j8 &
 ```
 
 to build MOOSE, Cardinal, and all of Cardinal's dependencies. Occasionally the MOOSE Solid Mechanics module will fail to build due to missing `F77` compilers. If that is the case, you can either find mpif77 compilers in a different module set or disable the Solid Mechanics module by setting `SOLID_MECHANICS := no` in Cardinal's makefile.
-
+The only MOOSE module you absolutely must have enabled is the `REACTOR` module (some of Cardinal's source files link against utilities in that module). Otherwise, feel free to disable all others.
 ## Building on a Compute Node
 
 Some GPU systems will force you to build on a compute node to use GPU-specific compilers. This means you'll need to add all of the commands to a job script to be executed; an example of what this looks like can be found below:
