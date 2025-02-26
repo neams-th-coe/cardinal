@@ -1,3 +1,5 @@
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekFieldInterface.h"
 #include "NekInterface.h"
 #include "UserErrorChecking.h"
@@ -58,3 +60,4 @@ NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
     checkUnusedParam(parameters, "velocity_component", "not using 'field = velocity_component'");
   }
 }
+#endif
