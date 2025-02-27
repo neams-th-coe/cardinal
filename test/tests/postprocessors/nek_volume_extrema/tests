@@ -1,13 +1,12 @@
 [Tests]
+  design = 'NekVolumeExtremeValue.md'
+  issues = '#1046'
+
   [nek_volume_extrema]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
-    requirement = "NekVolumeExtremeValue shall correctly compute max/min values "
-                  "on the nekRS volume mesh. The gold file was created "
-                  "by running the moose.i input, which computes the same max/min operations using "
-                  "existing MOOSE postprocessors on the same mesh on auxvariables that match "
-                  "the functional form of the solution fields initialized in the pyramid.udf. "
+  requirement = 'The system shall compute max/min values of the NekRS solution fields on the NekRS volume mesh; this is verified by performing identical operations in MOOSE for a dimensional case.'
     required_objects = 'NekRSProblem'
   []
   [invalid_field]

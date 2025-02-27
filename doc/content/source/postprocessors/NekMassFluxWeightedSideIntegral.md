@@ -36,5 +36,3 @@ mass flowrate on the inlet and outlet boundaries of the NekRS mesh.
 !syntax parameters /Postprocessors/NekMassFluxWeightedSideIntegral
 
 !syntax inputs /Postprocessors/NekMassFluxWeightedSideIntegral
-
-!syntax children /Postprocessors/NekMassFluxWeightedSideIntegral

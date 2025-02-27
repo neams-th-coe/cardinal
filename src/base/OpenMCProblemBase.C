@@ -311,6 +311,9 @@ OpenMCProblemBase::externalSolve()
         std::make_unique<openmc::FileSource>(sourceBankFileName()));
   }
 
+  // update tallies as needed before starting the OpenMC run
+  executeEditors();
+
   int err = openmc_run();
   if (err)
     mooseError(openmc_err_msg);
@@ -346,7 +349,7 @@ OpenMCProblemBase::numElemsInSubdomain(const SubdomainID & id) const
   {
     const auto * elem = _mesh.queryElemPtr(e);
 
-    if (!isLocalElem(elem))
+    if (!isLocalElem(elem) || !elem->active())
       continue;
 
     const auto subdomain_id = elem->subdomain_id();
@@ -693,10 +696,22 @@ OpenMCProblemBase::numCells() const
 }
 
 bool
+OpenMCProblemBase::isReactionRateScore(const std::string & score) const
+{
+  const std::set<std::string> viable_scores = {
+      "H3-production", "total", "absorption", "scatter", "fission"};
+  return viable_scores.count(score);
+}
+
+bool
 OpenMCProblemBase::isHeatingScore(const std::string & score) const
 {
-  std::set<std::string> viable_scores = {"heating", "heating-local", "kappa-fission",
-    "fission-q-prompt", "fission-q-recoverable", "damage-energy"};
+  const std::set<std::string> viable_scores = {"heating",
+                                               "heating-local",
+                                               "kappa-fission",
+                                               "fission-q-prompt",
+                                               "fission-q-recoverable",
+                                               "damage-energy"};
   return viable_scores.count(score);
 }
 
@@ -737,10 +752,81 @@ OpenMCProblemBase::getOpenMCUserObjects()
     if (c)
       _nuclide_densities_uos.push_back(c);
 
-    OpenMCTallyNuclides * d = dynamic_cast<OpenMCTallyNuclides *>(u);
-    if (d)
-      _tally_nuclides_uos.push_back(d);
+    OpenMCTallyEditor * e = dynamic_cast<OpenMCTallyEditor *>(u);
+    if (e)
+      _tally_editor_uos.push_back(e);
+
+    OpenMCDomainFilterEditor * f = dynamic_cast<OpenMCDomainFilterEditor *>(u);
+    if (f)
+      _filter_editor_uos.push_back(f);
   }
+
+  checkOpenMCUserObjectIDs();
+}
+
+void
+OpenMCProblemBase::checkOpenMCUserObjectIDs() const
+{
+  std::set<int32_t> tally_ids;
+  for (const auto & te : _tally_editor_uos)
+  {
+    int32_t tally_id = te->tallyId();
+    if (tally_ids.count(tally_id) != 0)
+      te->duplicateTallyError(tally_id);
+    tally_ids.insert(tally_id);
+  }
+
+  std::set<int32_t> filter_ids;
+  for (const auto & fe : _filter_editor_uos)
+  {
+    int32_t filter_id = fe->filterId();
+    if (filter_ids.count(filter_id) != 0)
+      fe->duplicateFilterError(filter_id);
+    filter_ids.insert(filter_id);
+  }
+}
+
+void
+OpenMCProblemBase::checkTallyEditorIDs() const
+{
+  std::vector<int32_t> mapped_tally_ids = getMappedTallyIDs();
+
+  for (const auto & te : _tally_editor_uos)
+  {
+    int32_t tally_id = te->tallyId();
+
+    // ensure that the TallyEditor IDs don't apply to any mapped tally objects
+    if (std::find(mapped_tally_ids.begin(), mapped_tally_ids.end(), tally_id) !=
+        mapped_tally_ids.end())
+      te->mappedTallyError(tally_id);
+  }
+}
+
+void
+OpenMCProblemBase::executeFilterEditors()
+{
+  executeControls(EXEC_FILTER_EDITORS);
+  _console << "Executing filter editors...";
+  for (const auto & fe : _filter_editor_uos)
+    fe->execute();
+  _console << "done" << std::endl;
+}
+
+void
+OpenMCProblemBase::executeTallyEditors()
+{
+  executeControls(EXEC_TALLY_EDITORS);
+  _console << "Executing tally editors...";
+  for (const auto & te : _tally_editor_uos)
+    te->execute();
+  _console << "done" << std::endl;
+}
+
+void
+OpenMCProblemBase::executeEditors()
+{
+  executeFilterEditors();
+  executeTallyEditors();
 }
 
 void
@@ -754,21 +840,6 @@ OpenMCProblemBase::sendNuclideDensitiesToOpenMC()
 
   _console << "Sending nuclide compositions to OpenMC... ";
   for (const auto & uo : _nuclide_densities_uos)
-    uo->setValue();
-  _console << "done" << std::endl;
-}
-
-void
-OpenMCProblemBase::sendTallyNuclidesToOpenMC()
-{
-  if (_tally_nuclides_uos.size() == 0)
-    return;
-
-  // We could probably put this somewhere better, but it's good for now
-  executeControls(EXEC_SEND_OPENMC_TALLY_NUCLIDES);
-
-  _console << "Sending tally nuclides to OpenMC... ";
-  for (const auto & uo : _tally_nuclides_uos)
     uo->setValue();
   _console << "done" << std::endl;
 }

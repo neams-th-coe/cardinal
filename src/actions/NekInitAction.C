@@ -22,7 +22,6 @@
 #include "NekInterface.h"
 
 #include "MooseApp.h"
-#include "CommandLine.h"
 #include <chrono>
 
 registerMooseAction("CardinalApp", NekInitAction, "nek_init");
@@ -39,9 +38,12 @@ NekInitAction::validParams()
       "Case name for the NekRS input files; "
       "this is <case> in <case>.par, <case>.udf, <case>.oudf, and <case>.re2.");
 
-  params.addParam<unsigned int>("n_usrwrk_slots", 7,
-    "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
-    "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall calculation");
+  params.addParam<unsigned int>(
+      "n_usrwrk_slots",
+      7,
+      "Number of slots to allocate in nrs->usrwrk to hold fields either related to coupling "
+      "(which will be populated by Cardinal), or other custom usages, such as a distance-to-wall "
+      "calculation");
 
   return params;
 }
@@ -90,21 +92,15 @@ NekInitAction::act()
       mooseError("Failed to find '", casepath.c_str(), "'! Did you set the 'casename' correctly?");
   }
 
-  // we need to set the default values here because it seems that the default values
-  // that can be set via addCommandLineParam in CardinalApp aren't propagated through the 'search'
-  // function
-  int size_target = 0;
-  int ci_mode = 0;
-  std::string backend = "";
-  std::string device_id = "";
+  const int size_target =
+      _app.isParamValid("nekrs_build_only") ? _app.getParam<int>("nekrs_build_only") : 0;
+  const int ci_mode = _app.isParamValid("nekrs_cimode") ? _app.getParam<int>("nekrs_cimode") : 0;
+  const std::string backend =
+      _app.isParamValid("nekrs_backend") ? _app.getParam<std::string>("nekrs_backend") : "";
+  const std::string device_id =
+      _app.isParamValid("nekrs_device_id") ? _app.getParam<std::string>("nekrs_device_id") : "";
 
-  std::shared_ptr<CommandLine> cl = _app.commandLine();
-  cl->search("nekrs_buildonly", size_target);
-  cl->search("nekrs_cimode", ci_mode);
-  cl->search("nekrs_backend", backend);
-  cl->search("nekrs_device_id", device_id);
-
-  int build_only = size_target > 0 ? 1 : 0;
+  const int build_only = size_target > 0 ? 1 : 0;
   nekrs::buildOnly(build_only);
 
   MPI_Comm comm = *static_cast<const MPI_Comm *>(&_communicator.get());
@@ -119,17 +115,19 @@ NekInitAction::act()
   {
     int size;
     MPI_Comm_size(comm, &size);
-    mooseError("NekRS does not currently support setting up multiple cases with the same "
-               "MPI communicator.\nThat is, you need at least one MPI process in a master "
-               "application per Nek sub-application.\n\n"
-               "The MPI communicator has " +
-               std::to_string(size) +
-               " ranks and is trying to "
-               "construct " +
-               std::to_string(_n_cases + 1) + "+ cases.\n\n"
-               "If you are running a Stochastic Tools simulation in either 'normal' or 'batch-reset'\n"
-               "mode, you will need at least 'min_procs_per_app' * 'num_rows' MPI ranks. OR, we\n"
-               "recommend using the 'batch-restore' mode, which does not have any such limitations.");
+    mooseError(
+        "NekRS does not currently support setting up multiple cases with the same "
+        "MPI communicator.\nThat is, you need at least one MPI process in a master "
+        "application per Nek sub-application.\n\n"
+        "The MPI communicator has " +
+        std::to_string(size) +
+        " ranks and is trying to "
+        "construct " +
+        std::to_string(_n_cases + 1) +
+        "+ cases.\n\n"
+        "If you are running a Stochastic Tools simulation in either 'normal' or 'batch-reset'\n"
+        "mode, you will need at least 'min_procs_per_app' * 'num_rows' MPI ranks. OR, we\n"
+        "recommend using the 'batch-restore' mode, which does not have any such limitations.");
   }
 
   auto par = readPar(casename, comm);
@@ -166,11 +164,11 @@ NekInitAction::act()
     // First check we should do is that a temperature variable exists, or else many
     // of our indexes into `nrs->cds` would give seg faults
     if (!nekrs::hasTemperatureVariable())
-      mooseError(
-          "To properly transfer temperature and heat flux between nekRS and MOOSE, "
-          "your nekRS model must include a solution for temperature.\n\nDid you forget the "
-          "TEMPERATURE block in '" + setup_file + ".par'?\nNote: you can set 'solver = none' in '" +
-          setup_file + ".par' if you don't want to solve for temperature.");
+      mooseError("To properly transfer temperature and heat flux between nekRS and MOOSE, "
+                 "your nekRS model must include a solution for temperature.\n\nDid you forget the "
+                 "TEMPERATURE block in '" +
+                 setup_file + ".par'?\nNote: you can set 'solver = none' in '" + setup_file +
+                 ".par' if you don't want to solve for temperature.");
   }
 
   // Initialize default dimensional scales assuming a dimensional run is performed;
@@ -189,7 +187,8 @@ NekInitAction::act()
     if (!nekrs::scratchAvailable())
       mooseError(
           "The nrs_t.usrwrk and nrs_t.o_usrwrk arrays are automatically allocated by Cardinal,\n"
-          "but you have tried allocating them separately inside your case files. Please remove the\n"
+          "but you have tried allocating them separately inside your case files. Please remove "
+          "the\n"
           "manual allocation of the space in your user files, and be sure to only write such that\n"
           "the space reserved for coupling data is untouched.");
 

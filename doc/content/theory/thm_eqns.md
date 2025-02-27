@@ -1,4 +1,4 @@
-The [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+The [Thermal Hydraulics Module (THM)](thermal_hydraulics/index.md)
  solves for conservation of mass, momentum, and energy with 1-D area averages of the Navier-Stokes equations,
 
 \begin{equation}

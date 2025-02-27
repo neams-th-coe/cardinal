@@ -20,7 +20,9 @@
 #include "TallyBase.h"
 
 #include "OpenMCCellAverageProblem.h"
+#include "UserErrorChecking.h"
 #include "AuxiliarySystem.h"
+#include "FilterBase.h"
 
 #include "openmc/settings.h"
 
@@ -48,16 +50,28 @@ TallyBase::validParams()
       "this same trigger is applied to all scores.");
   params.addRangeCheckedParam<std::vector<Real>>(
       "trigger_threshold", "trigger_threshold > 0", "Threshold for the tally trigger");
+  params.addParam<std::vector<bool>>(
+      "trigger_ignore_zeros",
+      {false},
+      "Whether tally bins with zero scores are ignored when computing the tally trigger. If only "
+      "one "
+      "value of 'trigger_ignore_zeros' is provided, that value is applied to all tally scores.");
 
-  MultiMooseEnum openmc_outputs("unrelaxed_tally_std_dev unrelaxed_tally");
-  params.addParam<MultiMooseEnum>("output",
-                                  openmc_outputs,
-                                  "UNRELAXED field(s) to output from OpenMC for each tally score. "
-                                  "unrelaxed_tally_std_dev will write the standard deviation of "
-                                  "each tally into auxiliary variables "
-                                  "named *_std_dev. Unrelaxed_tally will write the raw unrelaxed "
-                                  "tally into auxiliary variables "
-                                  "named *_raw (replace * with 'name').");
+  MultiMooseEnum openmc_outputs(
+      "unrelaxed_tally_std_dev unrelaxed_tally_rel_error unrelaxed_tally");
+  params.addParam<MultiMooseEnum>(
+      "output",
+      openmc_outputs,
+      "UNRELAXED field(s) to output from OpenMC for each tally score. "
+      "unrelaxed_tally_std_dev will write the standard deviation of "
+      "each tally into auxiliary variables "
+      "named *_std_dev. unrelaxed_tally_rel_error will write the "
+      "relative standard deviation (unrelaxed_tally_std_dev / unrelaxed_tally) "
+      "of each tally into auxiliary variables named *_rel_error. "
+      "unrelaxed_tally will write the raw unrelaxed tally into auxiliary "
+      "variables named *_raw (replace * with 'name').");
+
+  params.addParam<std::vector<std::string>>("filters", "External filters to add to this tally.");
 
   params.addPrivateParam<OpenMCCellAverageProblem *>("_openmc_problem");
 
@@ -73,8 +87,10 @@ TallyBase::TallyBase(const InputParameters & parameters)
     _mesh(_openmc_problem.mesh()),
     _aux(_openmc_problem.getAuxiliarySystem()),
     _tally_trigger(isParamValid("trigger") ? &getParam<MultiMooseEnum>("trigger") : nullptr),
+    _trigger_ignore_zeros(getParam<std::vector<bool>>("trigger_ignore_zeros")),
     _renames_tally_vars(isParamValid("name")),
-    _has_outputs(isParamValid("output"))
+    _has_outputs(isParamValid("output")),
+    _is_adaptive(_openmc_problem.hasAdaptivity())
 {
   if (isParamValid("score"))
   {
@@ -94,7 +110,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
     // Photon heating tallies cannot use tracklength estimators.
     if (estimator == tally::tracklength && openmc::settings::photon_transport && heating)
-      mooseError("Tracklength estimators are currently incompatible with photon transport and "
+      paramError("estimator",
+                 "Tracklength estimators are currently incompatible with photon transport and "
                  "heating scores! For more information: https://tinyurl.com/3wre3kwt");
 
     _estimator = _openmc_problem.tallyEstimator(estimator);
@@ -121,27 +138,51 @@ TallyBase::TallyBase(const InputParameters & parameters)
         "Otherwise, you will underpredict the true energy deposition.");
 
   if (isParamValid("trigger") != isParamValid("trigger_threshold"))
-    mooseError("You must either specify none or both of 'trigger' and "
+    paramError("trigger",
+               "You must either specify none or both of 'trigger' and "
                "'trigger_threshold'. You have specified only one.");
 
-  bool has_tally_trigger = false;
   if (_tally_trigger)
   {
+    checkRequiredParam(parameters, "trigger_threshold", "using tally triggers");
     _tally_trigger_threshold = getParam<std::vector<Real>>("trigger_threshold");
 
     if (_tally_trigger->size() != _tally_score.size())
-      mooseError("'trigger' (size " + std::to_string(_tally_trigger->size()) +
-                 ") must have the same length as 'score' (size " +
-                 std::to_string(_tally_score.size()) + ")");
+      paramError("trigger",
+                 "'trigger' (size " + std::to_string(_tally_trigger->size()) +
+                     ") must have the same length as 'score' (size " +
+                     std::to_string(_tally_score.size()) + ")");
 
     if (_tally_trigger_threshold.size() != _tally_score.size())
-      mooseError("'trigger_threshold' (size " + std::to_string(_tally_trigger_threshold.size()) +
-                 ") must have the same length as 'score' (size " +
-                 std::to_string(_tally_score.size()) + ")");
+      paramError("trigger_threshold",
+                 "'trigger_threshold' (size " + std::to_string(_tally_trigger_threshold.size()) +
+                     ") must have the same length as 'score' (size " +
+                     std::to_string(_tally_score.size()) + ")");
 
-    for (unsigned int s = 0; s < _tally_trigger->size(); ++s)
-      if ((*_tally_trigger)[s] != "none")
-        has_tally_trigger = true;
+    if (_trigger_ignore_zeros.size() > 1)
+    {
+      if (_tally_score.size() != _trigger_ignore_zeros.size())
+        paramError("trigger_ignore_zeros",
+                   "'trigger_ignore_zeros' (size " + std::to_string(_trigger_ignore_zeros.size()) +
+                       ") must have the same length as 'score' (size " +
+                       std::to_string(_tally_score.size()) + ")");
+    }
+    else if (_trigger_ignore_zeros.size() == 1)
+      _trigger_ignore_zeros.resize(_tally_score.size(), _trigger_ignore_zeros[0]);
+
+    _openmc_problem.checkEmptyVector(_trigger_ignore_zeros, "trigger_ignore_zeros");
+  }
+
+  // Fetch the filters required by this tally. Error if the filter hasn't been added yet.
+  if (isParamValid("filters"))
+  {
+    for (const auto & filter_name : getParam<std::vector<std::string>>("filters"))
+    {
+      if (!_openmc_problem.hasFilter(filter_name))
+        paramError("filters", "Filter with the name " + filter_name + " does not exist!");
+
+      _ext_filters.push_back(_openmc_problem.getFilter(filter_name));
+    }
   }
 
   if (isParamValid("name"))
@@ -164,6 +205,8 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
       if (o == "UNRELAXED_TALLY_STD_DEV")
         _output_name.push_back("std_dev");
+      else if (o == "UNRELAXED_TALLY_REL_ERROR")
+        _output_name.push_back("rel_error");
       else if (o == "UNRELAXED_TALLY")
         _output_name.push_back("raw");
       else
@@ -172,7 +215,22 @@ TallyBase::TallyBase(const InputParameters & parameters)
   }
 
   if (_tally_name.size() != _tally_score.size())
-    mooseError("'name' must be the same length as 'score'!");
+    paramError("name", "'name' must be the same length as 'score'!");
+
+  // Modify the variable names so they take into account the bins in the external filters.
+  auto all_var_names = _tally_name;
+  for (const auto & filter : _ext_filters)
+  {
+    std::vector<std::string> n;
+    for (unsigned int i = 0; i < all_var_names.size(); ++i)
+      for (unsigned int j = 0; j < filter->numBins(); ++j)
+        n.push_back(all_var_names[i] + "_" + filter->binName(j));
+
+    all_var_names = n;
+
+    _num_ext_filter_bins *= filter->numBins();
+  }
+  _tally_name = all_var_names;
 
   _openmc_problem.checkDuplicateEntries(_tally_name, "name");
   _openmc_problem.checkDuplicateEntries(_tally_score, "score");
@@ -182,6 +240,7 @@ TallyBase::TallyBase(const InputParameters & parameters)
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_rel_error.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 }
@@ -197,14 +256,19 @@ TallyBase::initializeTally()
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_rel_error.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 
   auto [index, spatial_filter] = spatialFilter();
   _filter_index = index;
 
-  // TODO: Append to this to add other filters
-  std::vector<openmc::Filter *> filters = {spatial_filter};
+  std::vector<openmc::Filter *> filters;
+  for (auto & filter : _ext_filters)
+    filters.push_back(filter->getWrappedFilter());
+  // We add the spatial filter last to minimize the number of cache
+  // misses during the OpenMC -> Cardinal transfer.
+  filters.push_back(spatial_filter);
 
   // Create the tally, assign the required filters and apply the triggers.
   _local_tally_index = openmc::model::tallies.size();
@@ -225,20 +289,54 @@ TallyBase::resetTally()
   openmc::model::tally_filters.erase(openmc::model::tally_filters.begin() + _filter_index);
 }
 
+Real
+TallyBase::storeResults(const std::vector<unsigned int> & var_numbers,
+                        unsigned int local_score,
+                        unsigned int global_score,
+                        const std::string & output_type)
+{
+  Real total = 0.0;
+
+  if (output_type == "relaxed")
+    total += storeResultsInner(var_numbers, local_score, global_score, _current_tally);
+  else if (output_type == "rel_error")
+    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally_rel_error, false);
+  else if (output_type == "std_dev")
+    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally_std_dev);
+  else if (output_type == "raw")
+    storeResultsInner(var_numbers, local_score, global_score, _current_raw_tally);
+  else
+    mooseError("Unknown external output " + output_type);
+
+  return total;
+}
+
 void
 TallyBase::addScore(const std::string & score)
 {
   _tally_score.push_back(score);
 
-  std::string s = score;
-  std::replace(s.begin(), s.end(), '-', '_');
-  _tally_name.push_back(s);
+  std::vector<std::string> score_names({score});
+  std::replace(score_names.back().begin(), score_names.back().end(), '-', '_');
+
+  // Modify the variable name and add extra names for the external filter bins.
+  for (const auto & filter : _ext_filters)
+  {
+    std::vector<std::string> n;
+    for (unsigned int i = 0; i < score_names.size(); ++i)
+      for (unsigned int j = 0; j < filter->numBins(); ++j)
+        n.push_back(score_names[i] + "_" + filter->binName(j));
+
+    score_names = n;
+  }
+  std::copy(score_names.begin(), score_names.end(), std::back_inserter(_tally_name));
 
   _local_sum_tally.resize(_tally_score.size(), 0.0);
   _local_mean_tally.resize(_tally_score.size(), 0.0);
 
   _current_tally.resize(_tally_score.size());
   _current_raw_tally.resize(_tally_score.size());
+  _current_raw_tally_rel_error.resize(_tally_score.size());
   _current_raw_tally_std_dev.resize(_tally_score.size());
   _previous_tally.resize(_tally_score.size());
 }
@@ -259,6 +357,7 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
   auto & current = _current_tally[local_score];
   auto & previous = _previous_tally[local_score];
   auto & current_raw = _current_raw_tally[local_score];
+  auto & current_raw_rel_error = _current_raw_tally_rel_error[local_score];
   auto & current_raw_std_dev = _current_raw_tally_std_dev[local_score];
 
   auto mean_tally = _openmc_problem.tallySum(_local_tally, local_score);
@@ -274,8 +373,9 @@ TallyBase::relaxAndNormalizeTally(unsigned int local_score, const Real & alpha, 
                          xt::all(),
                          local_score,
                          static_cast<int>(openmc::TallyResult::SUM_SQ));
-  auto rel_err = _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
-  current_raw_std_dev = rel_err * current_raw;
+  current_raw_rel_error =
+      _openmc_problem.relativeError(mean_tally, sum_sq, _local_tally->n_realizations_);
+  current_raw_std_dev = current_raw_rel_error * current_raw;
 
   if (_openmc_problem.fixedPointIteration() == 0 || alpha == 1.0)
   {
@@ -299,6 +399,28 @@ TallyBase::getWrappedTally() const
     mooseError("This tally has not been initialized!");
 
   return _local_tally;
+}
+
+int32_t
+TallyBase::getTallyID() const
+{
+  return getWrappedTally()->id();
+}
+
+std::vector<std::string>
+TallyBase::getScoreVars(const std::string & score) const
+{
+  std::vector<std::string> score_vars;
+  if (!hasScore(score))
+    return score_vars;
+
+  unsigned int idx =
+      std::find(_tally_score.begin(), _tally_score.end(), score) - _tally_score.begin();
+  std::copy(_tally_name.begin() + idx * _num_ext_filter_bins,
+            _tally_name.begin() + (idx + 1) * _num_ext_filter_bins,
+            std::back_inserter(score_vars));
+
+  return score_vars;
 }
 
 void
@@ -329,7 +451,7 @@ TallyBase::applyTriggersToLocalTally(openmc::Tally * tally)
     for (int score = 0; score < _tally_score.size(); ++score)
       tally->triggers_.push_back({_openmc_problem.triggerMetric((*_tally_trigger)[score]),
                                   _tally_trigger_threshold[score],
-                                  false,
+                                  _trigger_ignore_zeros[score],
                                   score});
 }
 #endif

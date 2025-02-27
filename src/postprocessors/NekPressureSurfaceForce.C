@@ -26,16 +26,19 @@ InputParameters
 NekPressureSurfaceForce::validParams()
 {
   InputParameters params = NekSidePostprocessor::validParams();
-  params.addRequiredParam<Point>("direction", "Direction vector to dot with unit normal");
-  params.addClassDescription("Compute pressure force on a surface along a particular direction");
+  MooseEnum comp("x y z total", "total");
+  params.addParam<MooseEnum>(
+      "component",
+      comp,
+      "Component of pressure force to compute. 'total' takes the magnitude of the pressure force, "
+      "while 'x', 'y', or 'z' return individual components.");
+  params.addClassDescription("Pressure force that the fluid exerts on a surface");
   return params;
 }
 
 NekPressureSurfaceForce::NekPressureSurfaceForce(const InputParameters & parameters)
-  : NekSidePostprocessor(parameters)
+  : NekSidePostprocessor(parameters), _component(getParam<MooseEnum>("component"))
 {
-  _direction = geom_utils::unitVector(getParam<Point>("direction"), "direction");
-
   if (_pp_mesh != nek_mesh::fluid)
     mooseError("The 'NekPressureSurfaceForce' postprocessor can only be applied to the fluid mesh boundaries!\n"
       "Please change 'mesh' to 'fluid'.");
@@ -44,7 +47,21 @@ NekPressureSurfaceForce::NekPressureSurfaceForce(const InputParameters & paramet
 Real
 NekPressureSurfaceForce::getValue() const
 {
-  return nekrs::pressureSurfaceForce(_boundary, _direction, _pp_mesh);
+  if (_component == "x")
+    return nekrs::pressureSurfaceForce(_boundary, {1, 0, 0}, _pp_mesh);
+  else if (_component == "y")
+    return nekrs::pressureSurfaceForce(_boundary, {0, 1, 0}, _pp_mesh);
+  else if (_component == "z")
+    return nekrs::pressureSurfaceForce(_boundary, {0, 0, 1}, _pp_mesh);
+  else if (_component == "total")
+  {
+    Real x = nekrs::pressureSurfaceForce(_boundary, {1, 0, 0}, _pp_mesh);
+    Real y = nekrs::pressureSurfaceForce(_boundary, {0, 1, 0}, _pp_mesh);
+    Real z = nekrs::pressureSurfaceForce(_boundary, {0, 0, 1}, _pp_mesh);
+    return std::sqrt(x * x + y * y + z * z);
+  }
+  else
+    mooseError("Unhandled component enum in NekPressureSurfaceForce!");
 }
 
 #endif

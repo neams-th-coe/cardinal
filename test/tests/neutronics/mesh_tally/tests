@@ -63,6 +63,16 @@
                   "approaches the value of a cell tally as the difference in volume decreases."
     required_objects = 'OpenMCCellAverageProblem'
   []
+  [block_restrict]
+    type = Exodiff
+    input = block_restrict.i
+    exodiff = block_restrict_out.e
+    # This test has very few particles, and OpenMC will error if there aren't any particles
+    # on a particular process
+    max_parallel = 32
+    requirement = "Mesh tallies shall allow for block restrictions to be applied."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
   [multiple_meshes]
     type = Exodiff
     input = multiple_meshes.i
@@ -128,6 +138,22 @@
     cli_args = 'Mesh/allow_renumbering=true --distributed-mesh'
     expect_err = "Mesh tallies currently require 'allow_renumbering = false' to be set in the \[Mesh\]!"
     requirement = "Mesh tallies shall temporarily require disabled renumbering until capability is available"
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [file_mesh_block_restrict]
+    type = RunException
+    input = one_mesh.i
+    cli_args = 'Problem/Tallies/Mesh/blocks=100'
+    expect_err = "Block restriction is currently not supported for mesh tallies which load a mesh from a file!"
+    requirement = "Mesh tallies shall error if the user attempts to apply a block restriction when using a mesh template."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [block_restrict_no_blocks]
+    type = RunException
+    input = one_mesh_no_input_file.i
+    cli_args = "Problem/Tallies/Mesh/blocks='' Mesh/parallel_type=replicated"
+    expect_err = "Subdomain names must be provided if using 'blocks'!"
+    requirement = "Mesh tallies shall error if the user attempts to apply a block restriction with no blocks."
     required_objects = 'OpenMCCellAverageProblem'
   []
 []

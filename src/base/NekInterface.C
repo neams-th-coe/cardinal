@@ -704,7 +704,28 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 }
 
 double
-volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnum pp_mesh, const bool max)
+evaluateFunctionOnMesh(mesh_t * mesh, const Function * f, const Real time, const int id)
+{
+  double shift = 0.0;
+  if (f)
+  {
+    // the function is given in dimensional form from MOOSE, so we need to
+    // convert to non-dimensional form before we shift the field
+    Point p(mesh->x[id], mesh->y[id], mesh->z[id]);
+    p *= scales.L_ref;
+    auto t = time * scales.t_ref;
+    shift = f->value(t, p);
+  }
+
+  return shift;
+}
+
+double
+volumeExtremeValue(const field::NekFieldEnum & field,
+                   const nek_mesh::NekMeshEnum pp_mesh,
+                   const bool max,
+                   const Function * function,
+                   const Real time)
 {
   double value = max ? -std::numeric_limits<double>::max() : std::numeric_limits<double>::max();
 
@@ -737,10 +758,13 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
   {
     for (int j = 0; j < mesh->Np; ++j)
     {
+      auto idx = i * mesh->Np + j;
+      auto shift = evaluateFunctionOnMesh(mesh, function, time, idx);
+
       if (max)
-        value = std::max(value, f(i * mesh->Np + j));
+        value = std::max(value, f(idx) - shift);
       else
-        value = std::min(value, f(i * mesh->Np + j));
+        value = std::min(value, f(idx) - shift);
     }
   }
 
@@ -913,6 +937,39 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // if temperature, we need to add the reference temperature multiplied by the area integral
   if (integrand == field::temperature)
     integral += scales.T_ref * area(boundary_id, pp_mesh);
+}
+
+double
+volumeNorm(const field::NekFieldEnum & integrand,
+           const nek_mesh::NekMeshEnum pp_mesh,
+           const Function * function,
+           const Real & time,
+           const unsigned int & N)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+
+  double integral = 0.0;
+
+  double (*f)(int);
+  f = solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v)
+    {
+      auto n = offset + v;
+      auto shift = evaluateFunctionOnMesh(mesh, function, time, n);
+      integral += std::pow(f(n) - shift, N) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID];
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  return std::pow(total_integral, 1.0 / double(N));
 }
 
 double
@@ -1145,7 +1202,7 @@ pressureSurfaceForce(const std::vector<int> & boundary_id, const Point & directi
                                               sgeo[surf_offset + NYID] * direction(1) +
                                               sgeo[surf_offset + NZID] * direction(2));
 
-          integral += -1.0 * p_normal * sgeo[surf_offset + WSJID];
+          integral += p_normal * sgeo[surf_offset + WSJID];
         }
       }
     }
@@ -1443,6 +1500,24 @@ velocity(const int id)
                    nrs->U[id + 2 * offset] * nrs->U[id + 2 * offset]);
 }
 
+double
+velocity_x_squared(const int id)
+{
+  return std::pow(velocity_x(id), 2);
+}
+
+double
+velocity_y_squared(const int id)
+{
+  return std::pow(velocity_y(id), 2);
+}
+
+double
+velocity_z_squared(const int id)
+{
+  return std::pow(velocity_z(id), 2);
+}
+
 void
 flux(const int id, const dfloat value)
 {
@@ -1499,8 +1574,38 @@ mesh_velocity_z(const int id, const dfloat value)
   nrs->usrwrk[indices.mesh_velocity_z + id] = value;
 }
 
+void
+checkFieldValidity(const field::NekFieldEnum & field)
+{
+  switch (field)
+  {
+    case field::temperature:
+      if (!hasTemperatureVariable())
+        mooseError("Cardinal cannot find 'temperature' "
+                   "because your Nek case files do not have a temperature variable!");
+      break;
+    case field::scalar01:
+      if (!hasScalarVariable(1))
+        mooseError("Cardinal cannot find 'scalar01' "
+                   "because your Nek case files do not have a scalar01 variable!");
+      break;
+    case field::scalar02:
+      if (!hasScalarVariable(2))
+        mooseError("Cardinal cannot find 'scalar02' "
+                   "because your Nek case files do not have a scalar02 variable!");
+      break;
+    case field::scalar03:
+      if (!hasScalarVariable(3))
+        mooseError("Cardinal cannot find 'scalar03' "
+                   "because your Nek case files do not have a scalar03 variable!");
+      break;
+  }
+}
+
 double (*solutionPointer(const field::NekFieldEnum & field))(int)
 {
+  checkFieldValidity(field);
+
   double (*f)(int);
 
   switch (field)
@@ -1521,31 +1626,28 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
       mooseError("The 'velocity_component' field is not compatible with the solutionPointer "
                  "interface!");
       break;
+    case field::velocity_x_squared:
+      f = &velocity_x_squared;
+      break;
+    case field::velocity_y_squared:
+      f = &velocity_y_squared;
+      break;
+    case field::velocity_z_squared:
+      f = &velocity_z_squared;
+      break;
     case field::temperature:
-      if (!hasTemperatureVariable())
-        mooseError("Cardinal cannot find 'temperature' "
-                   "because your Nek case files do not have a temperature variable!");
       f = &temperature;
       break;
     case field::pressure:
       f = &pressure;
       break;
     case field::scalar01:
-      if (!hasScalarVariable(1))
-        mooseError("Cardinal cannot find 'scalar01' "
-                   "because your Nek case files do not have a scalar01 variable!");
       f = &scalar01;
       break;
     case field::scalar02:
-      if (!hasScalarVariable(2))
-        mooseError("Cardinal cannot find 'scalar02' "
-                   "because your Nek case files do not have a scalar02 variable!");
       f = &scalar02;
       break;
     case field::scalar03:
-      if (!hasScalarVariable(3))
-        mooseError("Cardinal cannot find 'scalar03' "
-                   "because your Nek case files do not have a scalar03 variable!");
       f = &scalar03;
       break;
     case field::unity:
@@ -1612,6 +1714,7 @@ initializeDimensionalScales(const double U_ref,
   scales.rho_ref = rho_ref;
   scales.Cp_ref = Cp_ref;
 
+  scales.t_ref = L_ref / U_ref;
   scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
   scales.source_ref = scales.flux_ref / L_ref;
 
@@ -1625,6 +1728,12 @@ referenceFlux()
 }
 
 double
+referenceTemperature()
+{
+  return scales.T_ref;
+}
+
+double
 referenceSource()
 {
   return scales.source_ref;
@@ -1634,6 +1743,12 @@ double
 referenceLength()
 {
   return scales.L_ref;
+}
+
+double
+referenceTime()
+{
+  return scales.t_ref;
 }
 
 double
@@ -1654,20 +1769,16 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
   switch (field)
   {
     case field::velocity_x:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_y:
-      value = value * scales.U_ref;
-      break;
     case field::velocity_z:
-      value = value * scales.U_ref;
-      break;
     case field::velocity:
+    case field::velocity_component:
       value = value * scales.U_ref;
       break;
-    case field::velocity_component:
-      mooseError(
-          "The 'velocity_component' field is incompatible with the dimensionalize interface!");
+    case field::velocity_x_squared:
+    case field::velocity_y_squared:
+    case field::velocity_z_squared:
+      value = value * scales.U_ref * scales.U_ref;
       break;
     case field::temperature:
       value = value * scales.dT_ref;
@@ -1676,14 +1787,8 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
       break;
     case field::scalar01:
-      // no dimensionalization needed
-      break;
     case field::scalar02:
-      // no dimensionalization needed
-      break;
     case field::scalar03:
-      // no dimensionalization needed
-      break;
     case field::unity:
       // no dimensionalization needed
       break;

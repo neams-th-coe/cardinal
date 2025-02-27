@@ -1,7 +1,7 @@
 # NekRSProblem
 
 This class performs all activities related to solving NekRS as a MOOSE application.
-This class also facilitates data transfers to/from [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+This class also facilitates data transfers to/from [MooseVariables](MooseVariable.md)
 in order to exchange field data between NekRS and MOOSE. This class allows NekRS to be
 coupled to MOOSE in several different manners:
 
@@ -26,12 +26,10 @@ The remainder of this page describes how `NekRSProblem` wraps NekRS as a MOOSE a
 
 When initializing a coupling of NekRS within the MOOSE framework, the first action
 taken by `NekRSProblem` is to initialize MOOSE-type variables
-([MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html))
-and [Postprocessors](https://mooseframework.inl.gov/syntax/Postprocessors/index.html) needed
+([MooseVariables](MooseVariable.md)) and [Postprocessors](Postprocessors/index.md) needed
 to communicate NekRS's solution with a general MOOSE application.
 
-First, `NekRSProblem` initializes
-[MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+First, `NekRSProblem` initializes [MooseVariables](MooseVariable.md)
 to receive and write spatial data necessary for multiphysics coupling. Depending on the settings for this class,
 the following variables will be added:
 
@@ -40,7 +38,7 @@ the following variables will be added:
 - `heat_source`, the MOOSE heat source to be sent to NekRS (this is created for volume coupling)
 
 Here, "boundary coupling" refers to the case when the `boundary` parameter is
-specified for the [NekRSMesh](/mesh/NekRSMesh.md), while "volume coupling" refers to
+specified for the [NekRSMesh](NekRSMesh.md), while "volume coupling" refers to
 the case when `volume = true` is specified for the `NekRSMesh`.
 The polynomial order of each of the variables listed above is set to match the `order` selected in the
 `NekRSMesh`.
@@ -72,7 +70,7 @@ to the input file:
 This auxiliary variable addition happens *automatically* in order to simplify the input file
 creation, so you don't need to add these variables yourself.
 In addition to these auxiliary variables, `NekRSProblem` also automatically
-adds several [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
+adds several [Receiver](Receiver.md)
 postprocessors that are used for ensuring conservation in the data transfers:
 
 - `flux_integral`, or the total integrated heat flux to be conserved from the coupled MOOSE application (boundary coupling)
@@ -93,7 +91,7 @@ to the input file:
 
 ## Overall Calculation Methodology
 
-`NekRSProblem` inherits from the [ExternalProblem](https://mooseframework.inl.gov/source/problems/ExternalProblem.html)
+`NekRSProblem` inherits from the [ExternalProblem](ExternalProblem.md)
 class. For each time step, the calculation proceeds according to the `ExternalProblem::solve()` function.
 Data gets sent into NekRS, NekRS runs a time step, and data gets extracted from NekRS.
 `NekRSProblem` mostly consists of defining the `syncSolutions` and `externalSolve` methods.
@@ -130,9 +128,8 @@ the last time it was sent to NekRS). A means by which to reduce some of these
 
 ### Transfers to NekRS
 
-In the `TO_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
- are read from the
-[NekRSMesh](/mesh/NekRSMesh.md) mesh mirror and interpolated onto the NekRS
+In the `TO_EXTERNAL_APP` data transfer, [MooseVariables](MooseVariable.md) are read from the
+[NekRSMesh](NekRSMesh.md) mesh mirror and interpolated onto the NekRS
 [!ac](GLL) points corresponding to each node using [Vandermonde matrices](vandermonde.md).
 The specific data transfers going into NekRS are determined based on how the
 `NekRSMesh` was constructed, i.e. whether boundary and/or volume coupling is used.
@@ -187,7 +184,7 @@ for custom purposes.
 
 #### Boundary Transfers
 
-If `boundary` was specified on [NekRSMesh](/mesh/NekRSMesh.md), then a heat flux
+If `boundary` was specified on [NekRSMesh](NekRSMesh.md), then a heat flux
 (stored in the variable `avg_flux`) and the total heat flux integral over the
 boundary for normalization (stored in the postprocessor `flux_integral`) are sent
 to NekRS.
@@ -201,7 +198,7 @@ device; this function applies the heat flux computed by MOOSE to the flux bounda
 
 #### Volume Transfers
 
-If `volume = true` is specified on [NekRSMesh](/mesh/NekRSMesh.md), then a volumetric heat source
+If `volume = true` is specified on [NekRSMesh](NekRSMesh.md), then a volumetric heat source
 (stored in the variable `heat_source`) and the total heat source integral over the
 volume for normalization (stored in the postprocessor `source_integral`) are sent
 to NekRS. Then, all that is required to use a volumetric heat source transferred by MOOSE is to
@@ -248,9 +245,9 @@ In NekRS's `.oudf` file, you will apply a heat flux in the `scalarNeumannConditi
 
 ### Transfer from NekRS
 
-In the `FROM_EXTERNAL_APP` data transfer, [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+In the `FROM_EXTERNAL_APP` data transfer, [MooseVariables](MooseVariable.md)
 are written to
-the [NekRSMesh](/mesh/NekRSMesh.md) by interpolating from NekRS's [!ac](GLL)
+the [NekRSMesh](NekRSMesh.md) by interpolating from NekRS's [!ac](GLL)
 points using [Vandermonde matrices](vandermonde.md).
 The data transfers coming from
 NekRS are determined based on how the `NekRSMesh` was constructed, i.e. whether
@@ -258,13 +255,13 @@ boundary and/or volume coupling is used.
 
 #### Boundary Transfers
 
-If `boundary` was specified on [NekRSMesh](/mesh/NekRSMesh.md), then a temperature (stored in the
+If `boundary` was specified on [NekRSMesh](NekRSMesh.md), then a temperature (stored in the
 variable `temp`) is written by NekRS by reading from the corresponding boundary in the array storing the
 passive scalars in NekRS, or `nrs->cds->S`.
 
 #### Volume Transfers
 
-If `volume = true` was specified on [NekRSMesh](/mesh/NekRSMesh.md), then the temperature (stored in
+If `volume = true` was specified on [NekRSMesh](NekRSMesh.md), then the temperature (stored in
 the variable `temp`) is written by NekRS by reading from the entire volume in
 the array storing the passive scalars in NekRS, or `nrs->cds->S`. In other words,
 the boundary and volume transfers are basically the same coming *from* NekRS -
@@ -306,7 +303,7 @@ We always recommend doing a sanity check on the flux sent from MOOSE to NekRS
 via the MOOSE output files.
 
 You can also monitor the heat flux in NekRS by computing $-k\nabla T$ using a
-[NekHeatFluxIntegral](postprocessors/NekHeatFluxIntegral.md) postprocessor. In general, the quantity
+[NekHeatFluxIntegral](NekHeatFluxIntegral.md) postprocessor. In general, the quantity
 computed by this postprocessor will *not* match the heat flux set by MOOSE because
 both the finite and spectral element methods solve weak forms where Neumann boundary
 conditions are only *weakly* imposed. That is, we set the heat flux but only enforce
@@ -344,7 +341,7 @@ described in this section.
 !include output_solution.md
 
 For example, consider a [!ac](CHT) simulation where NekRS is coupled to MOOSE
-through a boundary. Normally, the [NekRSMesh](/mesh/NekRSMesh.md) contains only the
+through a boundary. Normally, the [NekRSMesh](NekRSMesh.md) contains only the
 data that is used to couple NekRS to MOOSE - the NekRS wall temperature and the MOOSE
 heat flux. The input file below will interpolate the NekRS pressure and velocity
 solutions onto the mesh mirror. We set `volume = true` for the mesh mirror so that
@@ -398,7 +395,7 @@ the master application time step. The calculation procedure involves:
 1. Solve the master application from $t$ to $t+1$ seconds.
 1. Transfer a variable representing flux (and its integral) from the master
   application to the NekRS sub-application) at $t$.
-1. Interpolate the flux from the [NekRSMesh](/mesh/NekRSMesh.md)
+1. Interpolate the flux from the [NekRSMesh](NekRSMesh.md)
   onto NekRS's [!ac](GLL) points, then normalize it and copy it from host to device.
 1. Run a NekRS time step from $t$ to $t+0.4$ seconds.
 1. Copy the temperature from device to host and then interpolate NekRS's
@@ -413,12 +410,12 @@ the master application time step. The calculation procedure involves:
   step length of 1 second.
 
 If NekRS is run with a time step $N$ times smaller than its master
-application, this structuring of [ExternalProblem](https://mooseframework.inl.gov/source/problems/ExternalProblem.html)
+application, this structuring of [ExternalProblem](ExternalProblem.md)
  represents $N-1$ unnecessary
 interpolations and [!ac](CPU) to [!ac](GPU) copies of the flux, and $N-1$
 unnecessary [!ac](GPU) to [!ac](CPU) copies of the temperature and interpolations.
 `NekRSProblem` contains features that allow you to turn off these extra transfers.
-However, MOOSE's [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+However, MOOSE's [MultiApp](MultiApps/index.md)
 system is designed in such a way that sub-applications know very little about
 their master applications (and for good reason - such a design is what enables such
 flexible multiphysics couplings). So, the only way that NekRS can definitively
@@ -430,7 +427,7 @@ in the master application that just has a value of 1.
 !listing /tutorials/sfr_7pin/solid.i
   block=synchronize
 
-We define this postprocessor as a [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
+We define this postprocessor as a [Receiver](Receiver.md)
 postprocessor, but we won't actually use it to receive anything from other applications.
 Instead, we set the `default` value to 1 in order to indicate "true". Then,
 at the same time that we send *new* flux values to NekRS, we also pass
@@ -459,7 +456,7 @@ going in and out of NekRS.
 
 !alert warning
 When the `interpolate_transfers = true` option is used
-by the [TransientMultiApp](https://mooseframework.inl.gov/source/multiapps/TransientMultiApp.html),
+by the [TransientMultiApp](TransientMultiApp.md),
 MOOSE interpolates the heat flux that gets sent to NekRS
 for each NekRS time step based on the master application time steps bounding the NekRS
 step. That is, if MOOSE computes the heat flux at two successive time steps to be
@@ -509,7 +506,7 @@ on each NekRS sideset will instead be evaluated as:
 - NekRS boundary 2: $199.0 * \frac{200.0}{199.0}\equiv 200.0$
 
 This option requires using a vector postprocessor (we typically recommend the
-[VectorOfPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/VectorOfPostprocessors.html)
+[VectorOfPostprocessors](VectorOfPostprocessors.md)
 object) to send indiviudal boundary flux values to preserve. This more advanced option
 cannot be used if:
 
@@ -529,11 +526,9 @@ use to "clip" the temperature to prevent oscillations. The temperature extracted
 NekRS can be clipped before being transferred to a coupled MOOSE application by providing
 either one of both of
 the `min_T` and `max_T` postprocessors. With these specified, the temperature written to
-the [NekRSMesh](/mesh/NekRSMesh.md) is adjusted to the range $\left\lbrack T_{min},T_{max}\right\rbrack$.
+the [NekRSMesh](NekRSMesh.md) is adjusted to the range $\left\lbrack T_{min},T_{max}\right\rbrack$.
 `min_T` and `max_T` should be given in dimensional units.
 
 !syntax parameters /Problem/NekRSProblem
 
 !syntax inputs /Problem/NekRSProblem
-
-!syntax children /Problem/NekRSProblem

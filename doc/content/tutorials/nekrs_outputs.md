@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to:
 
 - Postprocess a NekRS simulation (both "live" runs as well as from field files)
-- Extract the NekRS solution into [MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html)
+- Extract the NekRS solution into [MooseVariables](MooseVariable.md)
   for use with other MOOSE objects
 
 Many of the features covered in this tutorial have already been touched upon
@@ -12,9 +12,9 @@ is to explain more specific use cases or complex combinations of postprocessing/
 features. We will use a variety of input cases, and will not focus too much
 on the physics setup - just the postprocessing and data extraction features.
 For simplicity, many of the examples shown here just deal with thin wrappings
-of NekRS via [NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md) -
+of NekRS via [NekRSStandaloneProblem](NekRSStandaloneProblem.md) -
 however, all features shown here can also be used in a coupled sense via
-[NekRSProblem](/problems/NekRSProblem.md).
+[NekRSProblem](NekRSProblem.md).
 
 ## Viewing the NekRS Mesh
 
@@ -25,7 +25,7 @@ users have to run at least one CFD time step, and then can only visualize the
 just to visualize a mesh.
 
 Cardinal provides a way to visualize the NekRS CFD mesh. Simply
-set `exact = true` for [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html)
+set `exact = true` for [NekRSMesh](NekRSMesh.md)
 and then run in `--mesh-only` mode. For example, you can create a small Cardinal
 input file,
 
@@ -62,8 +62,8 @@ use the following Cardinal input file:
 
 We incidate that we want to output the NekRS temperature onto a volume mesh mirror
 of second order and output to Exodus format. Then, we simply use a
-[NekRSStandaloneProblem](/problems/NekRSStandaloneProblem.md)
-and [NekTimeStepper](/timesteppers/NekTimeStepper.md) to run the NekRS CFD
+[NekRSStandaloneProblem](NekRSStandaloneProblem.md)
+and [NekTimeStepper](NekTimeStepper.md) to run the NekRS CFD
 calculation through the Cardinal wrapper. You can run this example with
 
 ```
@@ -86,27 +86,27 @@ we next need to turn the solve off.
   end=UserObjects
 
 Then, to load the solution from the `nek_out.e`, we use a
-[SolutionUserObject](https://mooseframework.inl.gov/source/userobject/SolutionUserObject.html).
+[SolutionUserObject](SolutionUserObject.md).
 This user object will read the `temp` variable from the provided `mesh` file
 (which we set to our output file from the NekRS run). We omit the `timestep` parameter
 that is sometimes provided to the
-[SolutionUserObject](https://mooseframework.inl.gov/source/userobject/SolutionUserObject.html)
+[SolutionUserObject](SolutionUserObject.md)
 so that this user object will *interpolate* in time based on the time stepping specified
 in the `[Executioner]` block.
 
 This user object only loads the Exodus file into a user object - to then get that
-solution into an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
+solution into an [AuxVariable](AuxVariables/index.md)
 appropriate for transferring to another application or using in other MOOSE objects,
 we simply convert the user object to an auxiliary variable using a
-[SolutionAux](https://mooseframework.inl.gov/source/auxkernels/SolutionAux.html).
-This will load the `temp` variable from the [SolutionUserObject](https://mooseframework.inl.gov/source/userobject/SolutionUserObject.html)
+[SolutionAux](SolutionAux.md).
+This will load the `temp` variable from the [SolutionUserObject](SolutionUserObject.md)
 and place it into the new variable we have named `nek_temp`.
 
 !listing /tutorials/load_from_exodus/load_nek.i
   start=UserObjects
   end=Executioner
 
-Finally, we "run" this application by specifying a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+Finally, we "run" this application by specifying a [Transient](Transient.md)
 executioner. The time stepping scheme we specify here just indicates at which time
 step the data in the `nek_out.e` file should be interpolated to. For instance, if you ran
 NekRS with a time step of 1e-3 seconds, but only want to couple NekRS's temperature to a
@@ -129,17 +129,17 @@ cd cardinal/tutorials/subchannel
 Cardinal contains features for postprocessing the NekRS solution in spatial
 "bins" using user objects. Available user objects include:
 
-- [NekBinnedPlaneIntegral](/userobjects/NekBinnedPlaneIntegral.md):
+- [NekBinnedPlaneIntegral](NekBinnedPlaneIntegral.md):
   compute plane integrals over regions of space
-- [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md):
+- [NekBinnedPlaneAverage](NekBinnedPlaneAverage.md):
   compute plane averages over regions of space
-- [NekBinnedSideIntegral](/userobjects/NekBinnedSideIntegral.md):
+- [NekBinnedSideIntegral](NekBinnedSideIntegral.md):
   compute integrals over sidesets with subdivisions in space
-- [NekBinnedSideAverage](/userobjects/NekBinnedSideAverage.md):
+- [NekBinnedSideAverage](NekBinnedSideAverage.md):
   compute averages over sidesets with subdivisions in space
-- [NekBinnedVolumeIntegral](/userobjects/NekBinnedVolumeIntegral.md):
+- [NekBinnedVolumeIntegral](NekBinnedVolumeIntegral.md):
   compute volume integrals over regions of space
-- [NekBinnedVolumeAverage](/userobjects/NekBinnedVolumeAverage.md):
+- [NekBinnedVolumeAverage](NekBinnedVolumeAverage.md):
   compute volume averages over regions of space
 
 These user objects can be used for operations such as:
@@ -151,7 +151,7 @@ These user objects can be used for operations such as:
   a finite volume discretization of a subchannel geometry
 
 An example of averaging over axisymmetric geometries was provided in
-[Tutorial 1](tutorials/nekrs_standalone.md). Here, we will demonstrate
+[Tutorial 1](nekrs_standalone.md). Here, we will demonstrate
 averaging the NekRS solution in a fuel bundle geometry according to a subchannel
 discretization.
 
@@ -202,13 +202,13 @@ three different postprocessing operations:
   We will use a user object to
   conduct a binned spatial average of the NekRS temperature. We first form these bins
   as the product of unique indices for each subchannel with unique indices for each
-  axial layer. The [HexagonalSubchannelBin](/userobjects/HexagonalSubchannelBin.md)
+  axial layer. The [HexagonalSubchannelBin](HexagonalSubchannelBin.md)
   object assigns a unique ID for each subchannel, for which
   we must provide various geometric parameters describing the fuel bundle. The
-  [LayeredBin](/userobjects/LayeredBin.md) object assigns a unique ID for equal-size
+  [LayeredBin](LayeredBin.md) object assigns a unique ID for equal-size
   layers in a given direction; here, we specify 7 axial layers. Finally, we
   will compute a volume average of the NekRS temperature with the
-  [NekBinnedVolumeAverage](/userobjects/NekBinnedVolumeAverage.md) object, which
+  [NekBinnedVolumeAverage](NekBinnedVolumeAverage.md) object, which
   constructs bins as the outer product of individual bin distributions. Because the NekRS mesh
   in [bundle] has 6 elements in the axial direction, but we have specified that we
   want to average across 7 axial layers, we set `map_space_by_qp = true`. This setting
@@ -221,21 +221,21 @@ three different postprocessing operations:
 - **Average temperature over subchannel gaps**:
   We form the bins as the product of unique
   indices for each subchannel gap with unique indices for each axial layers.
-  The [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
+  The [HexagonalSubchannelGapBin](HexagonalSubchannelGapBin.md)
   object assigns a unique ID for each subchannel gap ID in a hexagonal fuel bundle. The
-  [LayeredBin](/userobjects/LayeredBin.md) object then assigns a unique ID for equal-size
+  [LayeredBin](LayeredBin.md) object then assigns a unique ID for equal-size
   layers in the axial direction; for simplicity, we reuse the same axial binning distribution
   that we selected for the volume averages. Finally, we compute the planar averages of the
-  NekRS temperature with the [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md)
+  NekRS temperature with the [NekBinnedPlaneAverage](NekBinnedPlaneAverage.md)
   object, which takes an arbitrary number of individual bin distributions (with the
   only requirement being that one and only one of these distribution is a "side" distribution, which
   for this example is the `HexagonalSubchannelGapBin`).
 
 - **Average the normal velocity over subchannel gaps**:
   We reuse the same previous bins, but set
-  `field = velocity_component` for a [NekBinnedPlaneAverage](/userobjects/NekBinnedPlaneAverage.md).
+  `field = velocity_component` for a [NekBinnedPlaneAverage](NekBinnedPlaneAverage.md).
 
-The [SpatialUserObjectVectorPostprocessor](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html)
+The [SpatialUserObjectVectorPostprocessor](SpatialUserObjectVectorPostprocessor.md)
 outputs the bin values for the user object to the CSV format
 specified in the `[Outputs]` block. These values are ordered in the same manner
 that the bins are defined.
@@ -252,7 +252,7 @@ represents the *gaps* between the channels.
 The application that will be used
 to view the volume results on the channels is shown below.
 This sub-application
-constructs a subchannel mesh with the [HexagonalSubchannelMesh](/mesh/HexagonalSubchannelMesh.md)
+constructs a subchannel mesh with the [HexagonalSubchannelMesh](HexagonalSubchannelMesh.md)
 to receive the user object into a variable named `average_T`
 and the three components of the gap normal velocity as `uo_x`,
 `uo_y`, and `uo_z`. We set `solve = false` so that
@@ -262,7 +262,7 @@ no physics solve occurs.
 
 The application that will be used to view the gap results is shown below.
 This sub-application
-constructs a subchannel mesh with the [HexagonalSubchannelGapMesh](/mesh/HexagonalSubchannelGapMesh.md)
+constructs a subchannel mesh with the [HexagonalSubchannelGapMesh](HexagonalSubchannelGapMesh.md)
 to receive the user object into a variable named `average_T`. We set `solve = false` so that
 no physics solve occurs.
 
@@ -294,7 +294,7 @@ our axial bins, we perfectly represent the channel-wise average temperatures.
 By applying the "glyph" filter in Paraview, we can visualize the gap-normal
 velocity with arrows. Otherwise, the result of the `avg_gap_velocity` user object is a *magnitude*,
 which would need to be combined with the gap unit normals
-(defined in the [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md) documentation)
+(defined in the [HexagonalSubchannelGapBin](HexagonalSubchannelGapBin.md) documentation)
 to visualize the direction.
 
 !media subchannel_gap_avg.png
@@ -305,11 +305,11 @@ to visualize the direction.
 For other geometries, other binning strategies can be used.
 Available user objects for specifying spatial bins are:
 
-- [HexagonalSubchannelGapBin](/userobjects/HexagonalSubchannelGapBin.md)
-- [HexagonalSubchannelBin](/userobjects/HexagonalSubchannelBin.md)
-- [LayeredBin](/userobjects/LayeredBin.md)
-- [LayeredGapBin](/userobjects/LayeredGapBin.md)
-- [RadialBin](/userobjects/RadialBin.md)
+- [HexagonalSubchannelGapBin](HexagonalSubchannelGapBin.md)
+- [HexagonalSubchannelBin](HexagonalSubchannelBin.md)
+- [LayeredBin](LayeredBin.md)
+- [LayeredGapBin](LayeredGapBin.md)
+- [RadialBin](RadialBin.md)
 
 For example, you can compute an average over a number of planes perpendicular
 to the $x$ axis, split into two layers, by combining the two bin user objects

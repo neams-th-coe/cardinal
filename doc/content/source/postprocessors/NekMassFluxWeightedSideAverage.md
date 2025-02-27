@@ -38,5 +38,3 @@ average of temperature over the outlet boundary of NekRS's mesh.
 !syntax parameters /Postprocessors/NekMassFluxWeightedSideAverage
 
 !syntax inputs /Postprocessors/NekMassFluxWeightedSideAverage
-
-!syntax children /Postprocessors/NekMassFluxWeightedSideAverage

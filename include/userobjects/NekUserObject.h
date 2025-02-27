@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "ThreadedGeneralUserObject.h"
+#include "GeneralUserObject.h"
 #include "NekRSProblemBase.h"
 #include "CardinalEnums.h"
 #include "GeometryUtils.h"
@@ -27,7 +27,7 @@
  * Base class for providing common information to userobjects
  * operating directly on the NekRS solution and mesh.
  */
-class NekUserObject : public ThreadedGeneralUserObject
+class NekUserObject : public GeneralUserObject
 {
 public:
   static InputParameters validParams();

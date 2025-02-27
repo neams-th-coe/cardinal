@@ -18,5 +18,3 @@ and map it to the MOOSE elements corresponding to each OpenMC cell.
 !syntax parameters /AuxKernels/CellDensityAux
 
 !syntax inputs /AuxKernels/CellDensityAux
-
-!syntax children /AuxKernels/CellDensityAux

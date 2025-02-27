@@ -1,0 +1,16 @@
+directories:
+    - ${ROOT_DIR}/test/tests
+specs:
+    - tests
+dependencies: # commented-out categories are not available
+    - framework
+    - fluid_properties
+    - heat_transfer
+    - navier_stokes
+    - reactor
+    - ray_tracing
+    - solid_mechanics
+    - solid_properties
+    - stochastic_tools
+    - thermal_hydraulics
+reports: !include ${ROOT_DIR}/doc/sqa_reports.yml

@@ -38,7 +38,7 @@ interior channels are added to block 1, while all peripheral gaps are added to b
 While the `HexagonalSubchannelGapMesh` does *not* generate meshes of any other regions except for the gaps,
 it can be useful to display extra context/the shape of the assembly to better represent data.
 To do so in [tri_mesh], we created a separate input file using a
-[HexagonalSubchannelMesh](/mesh/HexagonalSubchannelMesh.md), with the same geometry
+[HexagonalSubchannelMesh](HexagonalSubchannelMesh.md), with the same geometry
 parameters as used above:
 
 !listing test/tests/mesh/hexagonal_gap_mesh/context_mesh3.i
@@ -49,5 +49,3 @@ the same time that we have already loaded `three_rings_out.e` and slice along th
 !syntax parameters /Mesh/HexagonalSubchannelGapMesh
 
 !syntax inputs /Mesh/HexagonalSubchannelGapMesh
-
-!syntax children /Mesh/HexagonalSubchannelGapMesh

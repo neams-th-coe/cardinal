@@ -57,6 +57,8 @@ NekRSProblem::validParams()
     "Whether to conserve the heat flux by individual sideset (as opposed to lumping all sidesets "
     "together). Setting this option to true requires syntax changes in the input file to use "
     "vector postprocessors, and places restrictions on how the sidesets are set up.");
+  params.addClassDescription("Couple NekRS to MOOSE through 3-D boundary or volume data transfers "
+                             "for temperature, heat flux, and geometry");
   return params;
 }
 
@@ -183,12 +185,10 @@ NekRSProblem::initialSetup()
   // the solve is turned off because this is really only a testing feature.
   bool has_temperature_solve = nekrs::hasTemperatureSolve();
   if (!has_temperature_solve)
-    mooseWarning(
-        "By setting 'solver = none' for temperature in '" + _casename +
-        ".par', nekRS "
-        "will not solve for temperature.\n\nThe temperature transferred to MOOSE will remain "
-        "fixed at its initial condition, and the heat flux\nand power transferred to nekRS will be "
-        "unused.");
+    mooseWarning("By setting 'solver = none' for temperature in '" + _casename +
+                 ".par', nekRS will not solve for temperature.\n\nThe fluid wall temperature "
+                 "transferred to MOOSE will remain fixed at its initial condition, and the heat "
+                 "flux and power transferred to nekRS will be unused.");
 
   // For boundary-based coupling, we should check that the correct flux boundary
   // condition is set on all of nekRS's boundaries. To avoid throwing this

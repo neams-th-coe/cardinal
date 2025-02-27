@@ -33,8 +33,7 @@
   [missing_vol]
     type = RunException
     input = no_vol.i
-    expect_err = "To display the actual OpenMC cell volumes, the \[Problem\] block needs to set the\n"
-                 "'volume_calculation' parameter."
+    expect_err = "To display the actual OpenMC cell volumes"
     requirement = "The system shall error if trying to view stochastic volumes without the stochastic "
                   "volume calculation having been created."
     required_objects = 'OpenMCCellAverageProblem'

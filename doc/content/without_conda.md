@@ -28,15 +28,7 @@ that follow.
 
 ## Prerequisites
 
-The basic prerequisites for building Cardinal are summarized in [prereq_table].
-
-!table id=prereq_table caption=Summary of prerequisites needed for Cardinal.
-|    | Building with NekRS | Building with OpenMC | Both |
-| :- | :- | :- | :- |
-| CMake | $\checkmark$ | $\checkmark$ | $\checkmark$ |
-| GNU fortran >= 9.0 compiler | $\checkmark$ | &nbsp; | $\checkmark$  |
-| HDF5 | &nbsp; | $\checkmark$ | $\checkmark$ |
-| MPI | $\checkmark$ | $\checkmark$ | $\checkmark$ |
+!include cardinal_prereqs.md
 
 !alert! tip title=How do I know if I have these dependencies?
 Most systems will already have these available.
@@ -103,9 +95,10 @@ To troubleshoot the PETSc or libMesh install, please consult our [PETSc and libM
 Building libMesh can be time consuming. You only need to build libMesh
 if the libMesh hash used by MOOSE has been updated or this is the first time you
 are building Cardinal.
-On systems with multiple processors, you can set the environment
-variables `JOBS`, `LIBMESH_JOBS`, and/or `MOOSE_JOBS` to be the number
-of processes to use in a parallel `make` to build libMesh.
+On systems with multiple processors, set the environment
+variables `JOBS`, `LIBMESH_JOBS`, and `MOOSE_JOBS` to be the number
+of processes to use in a parallel `make` to build libMesh. Please set all three
+of these variables, as various parts of MOOSE's dependencies use different variables.
 
 #### Compile Cardinal
   id=compiling

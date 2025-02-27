@@ -28,6 +28,7 @@
 class OpenMCCellAverageProblem;
 class MooseMesh;
 class AuxiliarySystem;
+class FilterBase;
 
 class TallyBase : public MooseObject
 {
@@ -56,18 +57,19 @@ public:
 
   /**
    * A function which stores the results of this tally into the created
-   * auxvariables. This must be implemented by a derived class.
+   * auxvariables. This calls storeResultsInner.
    * @param[in] var_numbers variables which the tally will store results in
    * @param[in] local_score index into the tally's local array of scores which represents the
    * current score being stored
    * @param[in] global_score index into the global array of tally results which represents the
    * current score being stored
    * @param[in] output_type the output type
+   * @return the sum of the tally over all bins. Only applicable for 'output_type = relaxed'
    */
-  virtual Real storeResults(const std::vector<unsigned int> & var_numbers,
-                            unsigned int local_score,
-                            unsigned int global_score,
-                            const std::string & output_type) = 0;
+  Real storeResults(const std::vector<unsigned int> & var_numbers,
+                    unsigned int local_score,
+                    unsigned int global_score,
+                    const std::string & output_type);
 
   /**
    * Add a score to this tally.
@@ -108,6 +110,11 @@ public:
    * @return the OpenMC tally object
    */
   const openmc::Tally * getWrappedTally() const;
+
+  /**
+   * Get the ID of the tally this object wraps.
+   */
+  int32_t getTallyID() const;
 
   /**
    * Get the list of scores this tally uses.
@@ -151,6 +158,13 @@ public:
   const Real & getSum(unsigned int local_score) const { return _local_sum_tally[local_score]; }
 
   /**
+   * Get a vector of variable names corresponding to the provided score.
+   * @param[in] score the score that the user wishes to fetch variable names from
+   * @return a vector of variables corresponding to the score
+   */
+  std::vector<std::string> getScoreVars(const std::string & score) const;
+
+  /**
    * Check to see if this tally uses a trigger or not.
    * @return whether this tally uses a trigger or not
    */
@@ -163,12 +177,46 @@ public:
   bool hasOutputs() const { return _has_outputs; }
 
   /**
+   * Check to see if this tally contains a specific score.
+   * @param[in] score the score to check
+   * @return whether this tally has
+   */
+  bool hasScore(const std::string & score) const
+  {
+    return std::find(_tally_score.begin(), _tally_score.end(), score) != _tally_score.end();
+  }
+
+  /**
    * Check to see if the user has requested special names for the tallies.
    * @return whether this tally names stored values something other than '_tally_score'
    */
   bool renamesTallyVars() const { return _renames_tally_vars; }
 
+  /**
+   * Get the total number of external filter bins applied to this tally.
+   * @return the total number of external filter bins.
+   */
+  unsigned int numExtFilterBins() const { return _num_ext_filter_bins; }
+
 protected:
+  /**
+   * A function which stores the results of this tally into the created
+   * auxvariables. This must be implemented by the derived class.
+   * @param[in] var_numbers variables which the tally will store results in
+   * @param[in] local_score index into the tally's local array of scores which represents the
+   * current score being stored
+   * @param[in] global_score index into the global array of tally results which represents the
+   * current score being stored
+   * @param[in] tally_vals the tally values to store
+   * @param[in] norm_by_src_rate whether or not tally_vals should be normalized by the source rate
+   * @return the sum of the tally over all bins.
+   */
+  virtual Real storeResultsInner(const std::vector<unsigned int> & var_numbers,
+                                 unsigned int local_score,
+                                 unsigned int global_score,
+                                 std::vector<xt::xtensor<double, 1>> tally_vals,
+                                 bool norm_by_src_rate = true) = 0;
+
   /**
    * Set an auxiliary elemental variable to a specified value
    * @param[in] var_num variable number
@@ -194,6 +242,9 @@ protected:
   /// The aux system.
   AuxiliarySystem & _aux;
 
+  /// The external filters added in the [Problem/Filters] block.
+  std::vector<std::shared_ptr<FilterBase>> _ext_filters;
+
   /// The OpenMC estimator to use with this tally.
   openmc::TallyEstimator _estimator;
 
@@ -211,6 +262,9 @@ protected:
 
   /// The index of the first filter added by this tally.
   unsigned int _filter_index;
+
+  /// The number of non-spatial bins in this tally.
+  unsigned int _num_ext_filter_bins = 1;
 
   /// Sum value of this tally across all bins. Indexed by score.
   std::vector<Real> _local_sum_tally;
@@ -236,6 +290,12 @@ protected:
   std::vector<Real> _tally_trigger_threshold;
 
   /**
+   * Whether tally bins for certain scores should ignore bins with zeros when computing
+   * trigger metrics. Indexed by the tally score.
+   */
+  std::vector<bool> _trigger_ignore_zeros;
+
+  /**
    * Current fixed point iteration tally result; for instance, when using constant
    * relaxation, the tally is updated as:
    * q(n+1) = (1-a) * q(n) + a * PHI(q(n), s)
@@ -251,6 +311,9 @@ protected:
   /// Current "raw" tally output from Monte Carlo solution
   std::vector<xt::xtensor<double, 1>> _current_raw_tally;
 
+  /// Current "raw" tally relative error.
+  std::vector<xt::xtensor<double, 1>> _current_raw_tally_rel_error;
+
   /// Current "raw" tally standard deviation
   std::vector<xt::xtensor<double, 1>> _current_raw_tally_std_dev;
 
@@ -262,6 +325,9 @@ protected:
 
   /// Suffixes to apply to 'tally_name' in order to name the fields in the 'output'.
   std::vector<std::string> _output_name;
+
+  /// Whether the problem uses adaptive mesh refinement or not.
+  const bool _is_adaptive;
 
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;

@@ -1,8 +1,10 @@
+!include common_input.i
+
 # This input file runs coupled OpenMC Monte Carlo transport, MOOSE heat
 # conduction, and THM fluid flow and heat transfer.
 # This input should be run with:
 #
-# cardinal-opt -i common_input.i openmc_thm.i
+# cardinal-opt -i openmc_thm.i
 
 num_layers_for_THM = 150
 num_layers = 50

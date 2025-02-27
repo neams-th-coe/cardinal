@@ -6,9 +6,9 @@
 
 This user object sends a scalar value from MOOSE into NekRS's scratch space.
 This can be used to control NekRS simulations using MOOSE's
-[Controls](https://mooseframework.inl.gov/syntax/Controls/index.html) system
+[Controls](Controls/index.md) system
 or stochastically perturb NekRS simulations using the
-[MOOSE stochastic tools module](https://mooseframework.inl.gov/modules/stochastic_tools/index.html).
+[MOOSE stochastic tools module](stochastic_tools/index.md).
 
 ## Example Input Syntax
 
@@ -19,7 +19,7 @@ to control a NekRS boundary condition from MOOSE using the `Controls` system.
   block=UserObjects
 
 We will control the `value` in each of these parameters using a
-[RealFunctionControl](https://mooseframework.inl.gov/source/controls/RealFunctionControl.html),
+[RealFunctionControl](RealFunctionControl.md),
 a MOOSE object that lets us define a scalar value using a function. Here, we will use a simple
 constant value function, which changes value partway through the simulation.
 
@@ -59,5 +59,3 @@ condition in NekRS. We would simply follow the instructions for the `.oudf`, and
 !syntax parameters /UserObjects/NekScalarValue
 
 !syntax inputs /UserObjects/NekScalarValue
-
-!syntax children /UserObjects/NekScalarValue

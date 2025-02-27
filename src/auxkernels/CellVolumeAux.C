@@ -35,7 +35,7 @@ CellVolumeAux::validParams()
     "MOOSE elements which map to each cell (this is mostly for testing). For 'actual', this "
     "will map to the [Mesh] the actual volumes of OpenMC cells obtained from a stochastic "
     "calculation");
-  params.addClassDescription("Display the OpenMC cell volumes mapped to MOOSE");
+  params.addClassDescription("OpenMC cell volumes, mapped to MOOSE");
   return params;
 }
 
@@ -49,8 +49,9 @@ Real
 CellVolumeAux::computeValue()
 {
   if (_volume_type == "actual" && !_openmc_problem->volumeCalculation())
-    mooseError("To display the actual OpenMC cell volumes, the [Problem] block needs to set the\n"
-      "'volume_calculation' parameter.");
+    paramError("volume_type",
+               "To display the actual OpenMC cell volumes, the [Problem] block needs to set the\n"
+               "'volume_calculation' parameter.");
 
   // if the element doesn't map to an OpenMC cell, return a volume of -1; this is required
   // because otherwise OpenMC would throw an error for an invalid instance, index pair passed to the

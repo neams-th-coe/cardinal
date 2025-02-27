@@ -103,6 +103,6 @@ Find instructions for building on common
 [HPC systems](hpc.md) across the National Laboratories
 !col-end!
 
+#### Website Version
 
-
-!bibtex bibliography
+This documentation page was last built on [!datetime!today format=%B %d, %Y].

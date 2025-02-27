@@ -30,8 +30,7 @@ PointTransformationAux::validParams()
   params.addRequiredParam<MooseEnum>(
       "component", direction, "Component to visualize with this auxiliary kernel");
 
-  params.addClassDescription("Auxkernel to visualize the point transformations "
-                             "used in OpenMC");
+  params.addClassDescription("Spatial point transformation used for points sent in/out of OpenMC");
   return params;
 }
 

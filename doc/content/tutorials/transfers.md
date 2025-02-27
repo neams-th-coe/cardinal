@@ -10,11 +10,11 @@ To access this tutorial,
 cd cardinal/tutorials/transfers
 ```
 
-The MOOSE [Transfer system](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+The MOOSE [Transfer system](Transfers/index.md)
 is used to send data between applications. In Cardinal, these transfers are used to
 communicate fields between NekRS, OpenMC, and MOOSE. When using Cardinal, we are most often
 communicating 3-D fields (temperature, heat flux, power, etc.) between our MultiApps, so
-we typically only use a subset of the [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+we typically only use a subset of the [Transfers](Transfers/index.md)
 available in MOOSE. When selecting a transfer, these are some considerations to be aware of;
 this page provides example use cases for all of the applicable field-based transfers in MOOSE.
 
@@ -57,9 +57,9 @@ We will then send this variable using a few different transfers to a sub-applica
 !listing /tutorials/transfers/main.i
   block=Transfers
 
-## [MultiAppGeometricInterpolationTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppGeometricInterpolationTransfer.html)
+## [MultiAppGeometricInterpolationTransfer [!icon!link]](MultiAppGeometricInterpolationTransfer.md)
 
-The [MultiAppGeometricInterpolationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeometricInterpolationTransfer.html) transfers the nearest node's source variable to the nearest node on the target mesh
+The [MultiAppGeometricInterpolationTransfer](MultiAppGeometricInterpolationTransfer.md) transfers the nearest node's source variable to the nearest node on the target mesh
 using mesh interpolation. Any non-overlapping domains are set values using extrapolation.
 
 !media volume_interpolation.png
@@ -67,9 +67,9 @@ using mesh interpolation. Any non-overlapping domains are set values using extra
   caption=Results of a `MultiAppGeometricInterpolationTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
-## [MultiAppShapeEvaluationTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
+## [MultiAppShapeEvaluationTransfer [!icon!link]](MultiAppShapeEvaluationTransfer.md)
 
-The [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
+The [MultiAppShapeEvaluationTransfer](MultiAppShapeEvaluationTransfer.md)
 queries the finite element solution from the source variable at each receiving point in
 the receiving application. Any non-overlapping domains will simply be set to a value of zero,
 so this transfer is only recommended for meshes that share the same outer boundary.
@@ -79,9 +79,9 @@ so this transfer is only recommended for meshes that share the same outer bounda
   caption=Results of a `MultiAppShapeEvaluationTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
-## [MultiAppGeneralFieldNearestLocationTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html)
+## [MultiAppGeneralFieldNearestLocationTransfer [!icon!link]](MultiAppGeneralFieldNearestLocationTransfer.md)
 
-The [MultiAppGeneralFieldNearestLocationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html) transfers a variable between the target and source domains using a nearest node lookup.
+The [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md) transfers a variable between the target and source domains using a nearest node lookup.
 For performance, we highly recommend setting the `fixed_meshes = true` parameter to cache
 the nearest node matches after the first transfer.
 
@@ -90,9 +90,9 @@ the nearest node matches after the first transfer.
   caption=Results of a `MultiAppGeneralFieldNearestLocationTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
-## [MultiAppProjectionTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppProjectionTransfer.html)
+## [MultiAppProjectionTransfer [!icon!link]](MultiAppProjectionTransfer.md)
 
-The [MultiAppProjectionTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppProjectionTransfer.html) transfers a variable between the target and source domains using a projection mapping.
+The [MultiAppProjectionTransfer](MultiAppProjectionTransfer.md) transfers a variable between the target and source domains using a projection mapping.
 For performance, we highly recommend setting the `fixed_meshes = true` parameter to cache
 the nearest node matches after the first transfer.
 
@@ -101,9 +101,9 @@ the nearest node matches after the first transfer.
   caption=Results of a `MultiAppProjectionTransfer` from the main app to the sub app
   style=width:80%;margin-left:auto;margin-right:auto
 
-## [MultiAppVariableValueSampleTransfer [!icon!link]](https://mooseframework.inl.gov/source/transfers/MultiAppVariableValueSampleTransfer.html)
+## [MultiAppVariableValueSampleTransfer [!icon!link]](MultiAppVariableValueSampleTransfer.md)
 
-The [MultiAppVariableValueSampleTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppVariableValueSampleTransfer.html) transfers the value of a variable within the source application at each
+The [MultiAppVariableValueSampleTransfer](MultiAppVariableValueSampleTransfer.md) transfers the value of a variable within the source application at each
 receiver application's position in the `positions` parameter on the MultiApp to a field variable.
 This transfer is mostly meant for multiscale simulations, where you want to send one value from a
 main application to $N$ sub-applications. The value sent to each sub-application is received as a

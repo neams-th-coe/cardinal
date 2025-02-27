@@ -1,0 +1,10 @@
+[Tests]
+  [csg_with_dag_feedback]
+    type = RunException
+    input = openmc.i
+    expect_err = "At present, the 'skinner' can only be used when the only OpenMC geometry which maps to "
+                 "the MOOSE mesh is DAGMC geometry. Your geometry contains CSG cells which map to the MOOSE mesh."
+    requirement = "The system shall error if the user attempts to map both CSG and DAGMC geometry to the MOOSE mesh."
+    required_objects = 'MoabSkinner'
+  []
+[]

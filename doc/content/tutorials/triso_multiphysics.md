@@ -27,10 +27,10 @@ In this tutorial, we couple OpenMC to the MOOSE heat transfer module, with fluid
 feedback provided by *either* NekRS or THM,
 
 - NekRS: wall-resolved $k$-$\tau$ [!ac](RANS) equations
-- [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html): 1-D area-averaged Navier-Stokes equations
+- [Thermal Hydraulics Module (THM)](thermal_hydraulics/index.md): 1-D area-averaged Navier-Stokes equations
 
 Two different multiapp hierarchies will be used in order
-to demonstrate the flexibility of the [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
+to demonstrate the flexibility of the [MultiApp](MultiApps/index.md)
 system. The same OpenMC model can be used to provide
 feedback to different combinations of MOOSE applications.
 
@@ -38,9 +38,9 @@ In this tutorial, OpenMC receives temperature feedback from the MOOSE heat
 conduction module (for the solid regions) and NekRS/THM (for the fluid regions). Density
 feedback is provided by NekRS/THM for the fluid regions. This tutorial models a
 partial-height [!ac](TRISO)-fueled unit cell of a prismatic gas reactor assembly, and is
-a continuation of the [conjugate heat transfer tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html)
+a continuation of the [conjugate heat transfer tutorial](cht3.md)
 (where we coupled NekRS and MOOSE heat conduction) and the
-[OpenMC-heat conduction tutorial](https://cardinal.cels.anl.gov/tutorials/gas_compact.html)
+[OpenMC-heat conduction tutorial](gas_compact.md)
 (where we coupled OpenMC and MOOSE heat conduction) for this geometry.
 
 This tutorial was developed with support from the NEAMS Thermal Fluids Center
@@ -80,8 +80,7 @@ Heat is produced in the [!ac](TRISO) particles to yield a total power of 38 kW.
 | Silicon carbide layer radius | 389.85e-4 |
 | Outer PyC layer radius | 429.85e-4 |
 
-Two different [MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
-hierarchies are used:
+Two different [MultiApp](MultiApps/index.md) hierarchies are used:
 
 - A "single stack" design where each application
   has either a single "parent" application or a single "child" application
@@ -233,7 +232,7 @@ that is of interest in this tutorial, the NekRS model is split into a series of 
 4. Finally, we use the converged [!ac](CHT) case as an initial condition for the multiphysics
    simulation with OpenMC and MOOSE feedback.
 
-Steps 1-3 were performed in [an earlier tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html) -
+Steps 1-3 were performed in [an earlier tutorial](cht3.md) -
 for brevity, we skip repeating the discussion of steps 1-3.
 
 For the multiphysics case, we will load the restart file produced from step 3, compute $k_T$ from the
@@ -353,7 +352,7 @@ and set up multiphysics coupling. We add `cell_temperature` and
 `cell_density` in order to read the cell temperatures and densities directly
 from OpenMC in order to visualize the temperatures and densities ultimately applied
 to OpenMC's cells. In order to compute density using the ideal gas [!ac](EOS) given a temperature
-and a fixed pressure, we use a [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html)
+and a fixed pressure, we use a [FluidDensityAux](FluidDensityAux.md)
 to set density.
 
 !listing /tutorials/gas_compact_multiphysics/openmc_nek.i
@@ -425,8 +424,8 @@ purposes.
   block=Postprocessors
 
 For postprocessing, we also compute the average power distribution in a number of layers
-using a [LayeredAverage](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html)
-and output to CSV using a [SpatialUserObjectVectorPostprocessor](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html),
+using a [LayeredAverage](LayeredAverage.md)
+and output to CSV using a [SpatialUserObjectVectorPostprocessor](SpatialUserObjectVectorPostprocessor.md),
 in combination with a CSV output.
 
 !listing /tutorials/gas_compact_multiphysics/openmc_nek.i
@@ -444,7 +443,7 @@ the mesh for solving heat conduction.
 
 Because we have a block in the problem that we don't need to define any material
 properties on, we technically need to turn off a material coverage check, or else we're
-going to get an error from MOOSE. [FEProblem](https://mooseframework.inl.gov/source/problems/FEProblem.html)
+going to get an error from MOOSE. [FEProblem](FEProblem.md)
 is just the default problem, which we need to list in order to turn off the
 material coverage check.
 
@@ -454,7 +453,7 @@ material coverage check.
 Next, we define the nonlinear variable that this application will solve for (`T`),
 the solid temperature. On the solid blocks, we solve the heat equation, but
 on the fluid blocks that exist exclusively for transferring data, we add a
-[NullKernel](https://mooseframework.inl.gov/source/kernels/NullKernel.html)
+[NullKernel](NullKernel.md)
 to skip the solve in those regions. On the channel wall, the temperature from
 NekRS is applied as a Dirichlet condition.
 
@@ -464,7 +463,7 @@ NekRS is applied as a Dirichlet condition.
 
 Next, we define a number of functions to set the solid material properties and define
 an initial condition for the wall temperature. The solid material properties are
-then applied with a [HeatConductionMaterial](https://mooseframework.inl.gov/source/materials/HeatConductionMaterial.html).
+then applied with a [HeatConductionMaterial](HeatConductionMaterial.md).
 
 !listing /tutorials/gas_compact_multiphysics/solid_nek.i
   start=ICs
@@ -484,11 +483,11 @@ the transfer of fluid temperature from the NekRS volume to the dummy coolant
 blocks in the MOOSE solid model. Because
 the NekRS mesh mirror will be a volume mirror (in order to extract volumetric temperatures
 for the neutronics feedback), a significant cost savings can be obtained by using
-the "minimal transfer" feature of [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
-(which requires sending a dummy [Receiver](https://mooseframework.inl.gov/source/postprocessors/Receiver.html)
+the "minimal transfer" feature of [NekRSProblem](NekRSProblem.md)
+(which requires sending a dummy [Receiver](Receiver.md)
 postprocessor, here named `synchronization_to_nek`, to indicate when data is to be exchanged).
 For more information, please consult the documentation for
-[NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html).
+[NekRSProblem](NekRSProblem.md).
 
 !listing /tutorials/gas_compact_multiphysics/solid_nek.i
   start=MultiApps
@@ -518,10 +517,10 @@ begin able to iterate the thermal-fluid physics on a finer granularity than the
 neutronics feedback can be essential to obtaining a stable solution without an inordinately
 high number of Monte Carlo solves.
 
-Finally, we add a number of [LayeredAverage](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html)
+Finally, we add a number of [LayeredAverage](LayeredAverage.md)
 user objects to compute averages of the fuel and graphite temperatures in the axial direction,
 which are output to CSV using a
-[SpatialUserObjectVectorPostprocessor](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html),
+[SpatialUserObjectVectorPostprocessor](SpatialUserObjectVectorPostprocessor.md),
 in combination with a CSV output.
 
 !listing /tutorials/gas_compact_multiphysics/solid_nek.i
@@ -531,7 +530,7 @@ in combination with a CSV output.
 
 The fluid mass, momentum, and energy transport physics are solved using NekRS. The input
 file for this portion of the physics is the `nek.i` input. We begin by defining a number of constants
-and by setting up the [NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html)
+and by setting up the [NekRSMesh](NekRSMesh.md)
 mesh mirror. Because we are coupling via boundary [!ac](CHT) to MOOSE, we
 set `boundary = '3'` so that we will be able to extract the boundary temperature
 from boundary 3 (the wall). We are *also* coupling via volumes to OpenMC higher
@@ -542,7 +541,7 @@ fluid temperature, we also set `volume = true`.
   end=Problem
 
 The bulk of the NekRS wrapping occurs in the `[Problem]` block
-with [NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html).
+with [NekRSProblem](NekRSProblem.md).
 The NekRS input files are in non-dimensional form, whereas all other coupled applications
 use dimensional units. The various `*_ref` and `*_0` parameters define the characteristic
 scales that were used to non-dimensionalize the NekRS input. In order to simplify the input
@@ -555,7 +554,7 @@ from the MOOSE heat transfer module with the `synchronization_interval = parent_
 !listing /tutorials/gas_compact_multiphysics/nek.i
   block=Problem
 
-Next, we will allow NekRS to select its own time step using the [NekTimeStepper](https://cardinal.cels.anl.gov/source/timesteppers/NekTimeStepper.html), combined with a transient executioner.
+Next, we will allow NekRS to select its own time step using the [NekTimeStepper](NekTimeStepper.md), combined with a transient executioner.
 
 !listing /tutorials/gas_compact_multiphysics/nek.i
   block=Executioner
@@ -630,12 +629,12 @@ for the "single-stack" hierarchy.
 !alert note
 The advantage of the "tree" MultiApp hierarhcy is in the simpler solid input file
 that we will see in [#solid2], which will not need to have a dummy part of the mesh
-for the fluid region or any [NullKernels](https://mooseframework.inl.gov/source/kernels/NullKernel.html).
+for the fluid region or any [NullKernels](NullKernel.md).
 
 Finally, because we are coupling to THM, we need to average the wall heat flux
 around the coolant channel into a number of layers to transfer from the 3-D MOOSE
 heat conduction model to the 1-D fluid flow model. Heat flux is averaged using
-a [LayeredSideAverage](https://mooseframework.inl.gov/source/userobject/LayeredSideAverage.html).
+a [LayeredSideAverage](LayeredSideAverage.md).
 
 !listing /tutorials/gas_compact_multiphysics/openmc_thm.i
   block=UserObjects
@@ -654,7 +653,7 @@ except for:
   MOOSE heat conduction file all necessary initial conditions for wall temperature
   and heat source
 - There is no need to explicitly turn off the material coverage check or add
-  a [NullKernel](https://mooseframework.inl.gov/source/kernels/NullKernel.html)
+  a [NullKernel](NullKernel.md)
   because there is not a dummy fluid block to receive fluid temperature from
   a sub-application
 
@@ -668,12 +667,12 @@ the discussion of the solid input file. For reference, the full file is below.
 The fluid mass, momentum, and energy transport physics are solved using THM. The input
 file for this portion of the physics is the `thm.i` input.
 The THM input file is built using syntax specific to THM - we will only briefly
-cover the syntax, and instead refer users to the [THM documentation](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+cover the syntax, and instead refer users to the [THM documentation](thermal_hydraulics/index.md)
  for more information.
 First, we define a number of constants at the beginning of the file and apply
 some global settings. We set the initial conditions for pressure, velocity, and
 temperature and indicate the fluid [!ac](EOS) object using
-[IdealGasFluidProperties](https://mooseframework.inl.gov/source/userobjects/IdealGasFluidProperties.html).
+[IdealGasFluidProperties](IdealGasFluidProperties.md).
 
 !listing /tutorials/gas_compact_multiphysics/thm.i
   end=AuxVariables
@@ -692,10 +691,10 @@ We set up the Churchill correlation for the friction factor and the Dittus-Boelt
 correlation for the convective heat transfer coefficient. For the Dittus-Boelter
 correlation, we use a corrected version of the closure (with the leading coefficient
 changed from 0.023 to 0.021) based on the NekRS simulations described in
-[an earlier tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html).
+[an earlier tutorial](cht3.md).
 Additional materials are
 created to represent dimensionless numbers and other auxiliary terms, such as the
-wall temperature. As can be seen here, the [Material](https://mooseframework.inl.gov/syntax/Materials/index.html)
+wall temperature. As can be seen here, the [Material](Materials/index.md)
 system is not always used to represent quantities traditioanlly thought of
 as "material properties."
 
@@ -704,13 +703,13 @@ as "material properties."
 
 THM computes the wall temperature to apply a boundary condition in the MOOSE
 heat transfer module. To convert the `T_wall` material into an
-auxiliary variable, we use the [ADMaterialRealAux](https://mooseframework.inl.gov/source/auxkernels/MaterialRealAux.html).
+auxiliary variable, we use the [ADMaterialRealAux](MaterialRealAux.md).
 
 !listing /tutorials/gas_compact_multiphysics/thm.i
   start=AuxVariables
   end=Materials
 
-Finally, we set the preconditioner, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+Finally, we set the preconditioner, a [Transient](Transient.md)
 executioner, and set an Exodus output. We will run THM to convergence based on a tight
 steady state relative tolerance of $10^{-8}$.
 
@@ -722,7 +721,7 @@ steady state relative tolerance of $10^{-8}$.
 To run the coupled OpenMC-NekRS-MOOSE calculation, run the following:
 
 ```
-mpiexec -np 500 cardinal-opt -i common_input.i openmc_nek.i
+mpiexec -np 500 cardinal-opt -i openmc_nek.i
 ```
 
 This will run with 500 [!ac](MPI) processes (you may run with other parallel
@@ -731,7 +730,7 @@ HPC resources due to the large mesh). To run the coupled OpenMC-THM-MOOSE
 calculation, run the following:
 
 ```
-mpiexec -np 2 cardinal-opt -i common_input.i openmc_thm.i --n-threads=36
+mpiexec -np 2 cardinal-opt -i openmc_thm.i --n-threads=36
 ```
 
 which will run with 2 [!ac](MPI) ranks with 36 threads each (again, these parallel
@@ -773,7 +772,7 @@ inlet do cause power to shift slightly downwards, the magnitude of the shift is
 moderated by the effect of pushing the fission source closer to external
 boundaries, where those neutrons would be more likely to exit the domain.
 
-In the earlier [conjugate heat transfer tutorial](https://cardinal.cels.anl.gov/tutorials/cht3.html),
+In the earlier [conjugate heat transfer tutorial](cht3.md),
 we showed that [!ac](CHT) calculations with NekRS-MOOSE and THM-MOOSE
 agree very well with one another in terms of fluid temperature, solid temperature, and fluid density.
 Especially when considering that the neutronics feedback due to fluid temperature

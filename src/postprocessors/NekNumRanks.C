@@ -27,7 +27,7 @@ NekNumRanks::validParams()
 {
   InputParameters params = NekPostprocessor::validParams();
   params.suppressParameter<MooseEnum>("mesh");
-  params.addClassDescription("Display number of MPI ranks used to run NekRS");
+  params.addClassDescription("Number of MPI ranks used to run NekRS");
   return params;
 }
 

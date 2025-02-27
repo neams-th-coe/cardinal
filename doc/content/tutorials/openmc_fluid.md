@@ -20,7 +20,7 @@ and place these files within the same directory structure
 in `tutorials/gas_assembly`.
 
 In this tutorial, we couple OpenMC to the MOOSE heat transfer module
-and the [Thermal Hydraulics Module (THM)](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+and the [Thermal Hydraulics Module (THM)](thermal_hydraulics/index.md)
 , a set of 1-D systems-level thermal-hydraulics kernels.
 OpenMC will receive temperature feedback from both
 the MOOSE heat transfer module (for the solid regions) and from THM
@@ -117,7 +117,7 @@ meshes are then combined together into a bundle pattern and extruded.
 You can create this mesh by running:
 
 ```
-cardinal-opt -i common_input.i solid_mesh.i --mesh-only
+cardinal-opt -i solid_mesh.i --mesh-only
 ```
 
 which will create a mesh named `solid_mesh_in.e`.
@@ -263,13 +263,13 @@ and boundary conditions we will apply.
   end=Functions
 
 The MOOSE heat transfer module will receive power from OpenMC in the form of an
-[AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
+[AuxVariable](AuxVariables/index.md),
 so we define a receiver variable for the fission power, as `power`. The MOOSE heat
 conduction module will also receive a fluid wall temperature from [!ac](THM)
-as another [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html)
+as another [AuxVariable](AuxVariables/index.md)
 which we name `thm_temp`. Finally, the MOOSE heat transfer module will send the heat
 flux to [!ac](THM), so we add a variable named `flux` that we will use to compute
-the heat flux using the [DiffusionFluxAux](https://mooseframework.inl.gov/source/auxkernels/DiffusionFluxAux.html)
+the heat flux using the [DiffusionFluxAux](DiffusionFluxAux.md)
 auxiliary kernel.
 
 !listing /tutorials/gas_assembly/solid.i
@@ -281,7 +281,7 @@ properties for the [!ac](TRISO) compacts are taken as volume averages of the var
 materials. We will evaluate the thermal conductivity for the boron carbide as a
 function of temperature by using `t` (which *usually* is interpeted as time) as
 a variable to represent temperature. This is syntax supported
-by the [HeatConductionMaterials](https://mooseframework.inl.gov/source/materials/HeatConductionMaterial.html)
+by the [HeatConductionMaterials](HeatConductionMaterial.md)
 used to apply these functions to the thermal conductivity.
 
 !listing /tutorials/gas_assembly/solid.i
@@ -296,18 +296,18 @@ length in [#n1].
   block=Postprocessors
 
 For visualization purposes only, we add
-[LayeredAverages](https://mooseframework.inl.gov/source/userobject/LayeredAverage.html)
+[LayeredAverages](LayeredAverage.md)
 for the fuel and block temperatures. These will average the temperature in layers
 oriented in the $z$ direction, which we will use for plotting axial temperature
 distributions. We output the results of these userobjects to CSV using
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html) and by setting `csv = true` in the output.
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md) and by setting `csv = true` in the output.
 
 !listing /tutorials/gas_assembly/solid.i
   start=UserObjects
 
-Finally, we specify a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+Finally, we specify a [Transient](Transient.md)
 executioner. Because there are no time-dependent kernels in this input file,
-this is equivalent in practice to using a [Steady](https://mooseframework.inl.gov/source/executioners/Steady.html)
+this is equivalent in practice to using a [Steady](Steady.md)
 executioner, but allows you to potentially sub-cycle the MOOSE heat conduction solve
 relative to the OpenMC solve
 (such as if you wanted to converge the
@@ -320,12 +320,12 @@ relative to the OpenMC solve
 
 The fluid phase is solved with [!ac](THM), and is described in the `thm.i` input.
 This input file is built using syntax specific to [!ac](THM) - we will only briefly
-cover this syntax, and instead refer users to the [THM documentation](https://mooseframework.inl.gov/modules/thermal_hydraulics/index.html)
+cover this syntax, and instead refer users to the [THM documentation](thermal_hydraulics/index.md)
  for more information.
 First we define a number of constants at the beginning of the file and apply
 some global settings. We set the initial conditions for pressure, velocity,
 and temperature and indicate the fluid [!ac](EOS) object
-using [IdealGasFluidProperties](https://mooseframework.inl.gov/source/userobjects/IdealGasFluidProperties.html).
+using [IdealGasFluidProperties](IdealGasFluidProperties.md).
 
 !listing /tutorials/gas_assembly/thm.i
   end=AuxVariables
@@ -344,7 +344,7 @@ We set up the Churchill correlation for the friction factor and the Dittus-Boelt
 correlation for the convective heat transfer coefficient. Additional materials are
 created to represent dimensionless numbers and other auxiliary terms, such as the
 wall temperature. As can be seen here,
-the [Material](https://mooseframework.inl.gov/syntax/Materials/index.html) system
+the [Material](Materials/index.md) system
 is not always used to represent quantities traditionally thought of as "material properties."
 
 !listing /tutorials/gas_assembly/thm.i
@@ -352,13 +352,13 @@ is not always used to represent quantities traditionally thought of as "material
 
 [!ac](THM) computes the wall temperature to apply a boundary condition in
 the MOOSE heat transfer module. To convert the `T_wall` material into an auxiliary
-variable, we use the [ADMaterialRealAux](https://mooseframework.inl.gov/source/auxkernels/MaterialRealAux.html).
+variable, we use the [ADMaterialRealAux](MaterialRealAux.md).
 
 !listing /tutorials/gas_assembly/thm.i
   start=AuxVariables
   end=Materials
 
-Finally, we set the preconditioner, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+Finally, we set the preconditioner, a [Transient](Transient.md)
 executioner,
 and set an Exodus output. The `steady_state_detection` and `steady_state_tolerance`
 parameters will automatically terminate the [!ac](THM) solution once the relative
@@ -413,15 +413,15 @@ model are shown below.
   end=ICs
 
 For visualization purposes,
-we use a [CellTemperatureAux](/auxkernels/CellTemperatureAux.md) to view
-the temperature set in each OpenMC cell and a [CellDensityAux](/auxkernels/CellDensityAux.md)
+we use a [CellTemperatureAux](CellTemperatureAux.md) to view
+the temperature set in each OpenMC cell and a [CellDensityAux](CellDensityAux.md)
 to view the density set in each fluid OpenMC cell. To understand how the OpenMC
 model maps to the `[Mesh]`, we also include
-[CellMaterialIDAux](/auxkernels/CellMaterialIDAux.md).
+[CellMaterialIDAux](CellMaterialIDAux.md).
 Cardinal will also automatically output a variable named `cell_id`
-([CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html))
+([CellIDAux](CellIDAux.md))
 and a variable named `cell_instance` (
-[CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html)) to show the spatial mapping.
+[CellInstanceAux](CellInstanceAux.md)) to show the spatial mapping.
 Next, we add a receiver
 `flux` variable that will hold the heat flux received from MOOSE (and sent
 to [!ac](THM)) and another receiver variable `thm_temp_wall` that will hold
@@ -430,7 +430,7 @@ the wall temperature received from [!ac](THM) (and sent to MOOSE).
 Finally, to reduce the number
 of transfers from [!ac](THM), we will receive fluid temperature from
 [!ac](THM), but re-compute the density locally in the OpenMC wrapping
-using a [FluidDensityAux](https://mooseframework.inl.gov/source/auxkernels/FluidDensityAux.html)
+using a [FluidDensityAux](FluidDensityAux.md)
 with the same [!ac](EOS) as used in the [!ac](THM) input files.
 
 !listing /tutorials/gas_assembly/openmc.i
@@ -447,7 +447,7 @@ conduction module and to [!ac](THM) occur, these initial conditions will be pass
 
 The `[Problem]` and `[Tallies]` blocks are then used to specify settings for the OpenMC wrapping. We
 define the total power for normalization, indicate that blocks 1, 2, and 4 are solid
-(graphite, compacts, and poison) while block 101 is fluid. We add a [CellTally](/tallies/CellTally.md)
+(graphite, compacts, and poison) while block 101 is fluid. We add a [CellTally](CellTally.md)
 to block 2, the fuel compacts. Because OpenMC solves in units of centimeters,
 we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
 `[Mesh]` to get into OpenMC's centimeter units.
@@ -459,13 +459,13 @@ Other features we use include an output of the fission tally standard deviation
 in units of W/m$^3$ to the `[Mesh]` by setting `output = 'unrelaxed_tally_std_dev'`.
 This is used to obtain uncertainty estimates of the heat source distribution from OpenMC
 in the same units as the heat source. We also leverage a helper utility
-in [CellTally](/tallies/CellTally.md) by setting `check_equal_mapped_tally_volumes = true`. This parameter will
+in [CellTally](CellTally.md) by setting `check_equal_mapped_tally_volumes = true`. This parameter will
 throw an error if the tallied OpenMC cells map to different volumes in the MOOSE domain.
 Because we know *a priori* that the equal-volume OpenMC tally cells *should* all map
 to equal volumes, this will help ensure that the volumes used for heat source normalization
 are also all equal. For further discussion of this setting and a pictorial description
 of the possible effect of non-equal mapped vlumes, please see the
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) documentation.
+[OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) documentation.
 
 We also set `identical_cell_fills` to the set of subdomains for which OpenMC's
 cells have identical fills. This is an optimization that greatly
@@ -492,7 +492,7 @@ to use this initialization speedup feature.
 Because the blocks in the OpenMC mesh mirror
 receive temperatures from different applications, we use the
 `temperature_variables` and `temperature_blocks` parameters of
-[OpenMCCellAverageProblem](https://cardinal.cels.anl.gov/source/problems/OpenMCCellAverageProblem.html)
+[OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)
 to automatically create separate variables for OpenMC to read temperature from
 in different parts of the domain.
 The `temperature_blocks` and
@@ -516,34 +516,34 @@ point iterations and achieve convergence in a reasonable time - otherwise oscill
 can occur in the coupled physics.
 
 We run OpenMC as the main application, so we next need to define
-[MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html) to run
+[MultiApps](MultiApps/index.md) to run
 the solid heat conduction model and the [!ac](THM) fluid model as the sub-applications.
 We also require a number of transfers both for 1) sending necessary coupling data between
 the three applications and 2) visualizing the combined [!ac](THM) output. To couple OpenMC
 to MOOSE heat conduction, we use four transfers:
 
-- [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
+- [MultiAppShapeEvaluationTransfer](MultiAppShapeEvaluationTransfer.md)
   to transfer:
 
   - power from OpenMC to MOOSE (with conservation of total power)
 
-- [MultiAppGeometricInterpolationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeometricInterpolationTransfer.html)
+- [MultiAppGeometricInterpolationTransfer](MultiAppGeometricInterpolationTransfer.md)
   to transfer:
 
   - solid temperature from MOOSE to OpenMC
   - wall temperature from OpenMC (which doesn't directly compute the wall temperature, but
     instead receives it from [!ac](THM) through a separate transfer) to MOOSE
 
-- [MultiAppGeneralFieldNearestLocationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html)
+- [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)
   to transfer and conserve heat flux from MOOSE to OpenMC (which isn't used directly in OpenMC, but instead
   gets sent later to [!ac](THM) through a separate transfer)
 
 To couple OpenMC to [!ac](THM), we require three transfers:
 
-- [MultiAppGeneralFieldUserObjectTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldUserObjectTransfer.html)
+- [MultiAppGeneralFieldUserObjectTransfer](MultiAppGeneralFieldUserObjectTransfer.md)
   to send the layer-averaged wall heat flux from OpenMC (which computes the layered-average heat flux from the heat
   flux received from MOOSE heat conduction) to [!ac](THM)
-- [MultiAppGeneralFieldNearestLocationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppGeneralFieldNearestLocationTransfer.html)
+- [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md)
   to transfer:
 
   - fluid wall temperature from [!ac](THM) to OpenMC (which isn't used directly in OpenMC, but instead
@@ -559,15 +559,15 @@ For visualization purposes, we also send the pressure and velocity computed by
 
 To compute the layer-averaged heat flux on the surface of each coolant channel
 (which is used as a boundary condition in [!ac](THM)), we use a
-[NearestPointLayeredSideAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredSideAverage.html)
+[NearestPointLayeredSideAverage](NearestPointLayeredSideAverage.md)
 user object, where by providing the center points of each of the coolant channels,
 we can get a unique heat flux along each channel wall.  We also add several
-[LayeredAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredAverage.html)
+[LayeredAverage](NearestPointLayeredAverage.md)
 user objects in order to compute radially-averaged power, temperatures,
 pressures, and velocities that we will use later in making axial plots
 of the solution. We can automatically output these user objects into
 CSV format by translating the user objects into
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html).
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md).
 A number of postprocessors are included related to the Monte Carlo
 solution, as well as inlet pressure and pressure drop. See the next section
 for further description.
@@ -576,7 +576,7 @@ for further description.
   start=UserObjects
   end=Executioner
 
-Finally, we use a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+Finally, we use a [Transient](Transient.md)
 executioner and specify Exodus and CSV output formats. Note that the time step size is
 inconsequential in this case, but instead represents the Picard iteration. We will run for 10
 "time steps," which represent fixed point iterations.
@@ -590,7 +590,7 @@ inconsequential in this case, but instead represents the Picard iteration. We wi
 To run the coupled calculation,
 
 ```
-mpiexec -np 4 cardinal-opt -i common_input.i openmc.i --n-threads=2
+mpiexec -np 4 cardinal-opt -i openmc.i --n-threads=2
 ```
 
 This will run with 4 MPI processes and 2 OpenMP threads per rank.

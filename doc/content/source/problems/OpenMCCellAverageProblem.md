@@ -1,13 +1,12 @@
 # OpenMCCellAverageProblem
 
-This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE. The crux is to identify a mapping between OpenMC cells and
-a [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html).
+This class couples OpenMC cell-based models (e.g. [!ac](CSG) or [!ac](DAGMC)) to MOOSE. The crux is to identify a mapping between OpenMC cells and a [MooseMesh](MooseMesh.md).
 The data flow contains two major steps:
 
-- Temperature and/or density field data on the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+- Temperature and/or density field data on the [MooseMesh](MooseMesh.md)
   are volume-averaged and applied to the corresponding OpenMC cells.
 - Tallies are mapped from OpenMC into `CONSTANT MONOMIAL` fields on the
-  [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html) through the [tally system](AddTallyAction.md).
+  [MooseMesh](MooseMesh.md) through the [tally system](AddTallyAction.md).
 
 The smallest possible input file to run OpenMC is shown below.
 This page describes this syntax, plus more advanced settings.
@@ -19,7 +18,7 @@ This page describes this syntax, plus more advanced settings.
 ## Initializing Variables
 
 We first initialize
-([MooseVariables](https://mooseframework.inl.gov/source/variables/MooseVariable.html))
+([MooseVariables](MooseVariable.md))
 to communicate OpenMC's solution with MOOSE. These variables will be viewable in
 the MOOSE output files (e.g., via Paraview).
 Depending on the user settings, the following `CONSTANT MONOMIAL` variables will be added:
@@ -157,7 +156,7 @@ Then Cardinal is instead building the following automatically for you:
 
 ## Cell to Element Mapping
 
-Next, a mapping from the elements in the [MooseMesh](https://mooseframework.inl.gov/source/mesh/MooseMesh.html)
+Next, a mapping from the elements in the [MooseMesh](MooseMesh.md)
 (i.e. the mesh in the `[Mesh]` block) is established to the OpenMC cell geometry.
 
 !alert note
@@ -187,8 +186,7 @@ such as reflectors from multiphysics feedback.
 You can visualize how the OpenMC cells map to the mesh by viewing the `cell_id`
 and `cell_instance` variables Cardinal automatically outputs. For more information
 on how to interpret these variables, see:
-[CellIDAux](https://cardinal.cels.anl.gov/source/auxkernels/CellIDAux.html)
-and [CellInstanceAux](https://cardinal.cels.anl.gov/source/auxkernels/CellInstanceAux.html).
+[CellIDAux](CellIDAux.md) and [CellInstanceAux](CellInstanceAux.md).
 
 The cell-to-element mapping should be established
 with care. There are two general behavior patterns that are typically undesirable.
@@ -212,7 +210,7 @@ of heat conduction, but you should be aware of it.
 You can
 monitor the mapping by checking the mesh volumes that each OpenMC cell maps to
 by setting `verbose = true`, which will print a mapping table. You can also
-add an [OpenMCVolumeCalculation](https://cardinal.cels.anl.gov/source/userobjects/OpenMCVolumeCalculation.html) which will run a stochastic volume calculation
+add an [OpenMCVolumeCalculation](OpenMCVolumeCalculation.md) which will run a stochastic volume calculation
 and print out the *actual* volume of the OpenMC cells in the "Actual Vol"
 column (not just the volume of the mesh elements the cells map to in the "Mapped Vol" column!).
 
@@ -274,7 +272,7 @@ OpenMC [plots](https://docs.openmc.org/en/stable/pythonapi/generated/openmc.Plot
 and setting the `level`.
 
 As an example, the figure below shows a TRISO-fueled [!ac](HTGR) fuel assembly
-from the [gas assembly](https://cardinal.cels.anl.gov/tutorials/openmc_fluid.html)
+from the [gas assembly](openmc_fluid.md)
 tutorial. This image shows the geomtery, colored by cell, at different levels in the
 geometry. If we wanted to apply a single temperature value to all the TRISO
 particles nested inside a compact, we would set `cell_level = 1` for this problem.
@@ -296,7 +294,10 @@ regions where there are no cells at that level.
 
 ## Adding Tallies
 
-This class takes the tally objects initialized by the `[Tallies]` block and use them to construct
+### Mapped Tallies
+  id=mapped
+
+This class takes the tally objects initialized by the `[Tallies]` block and uses them to construct
 tally auxvariables. At the moment there are two options for discretizing tallies spatially in Cardinal:
 
 1. cell tallies ([CellTally](CellTally.md))
@@ -307,6 +308,8 @@ according to the specified `power` or `source_strength` (depending on whether yo
 $k$-eigenvalue or fixed-source problem). By default, the normalization is done against a global
 tally added over the entire OpenMC domain. By setting `normalize_by_global_tally` to false, however,
 the tally is instead normalized by the sum of the tally itself.
+
+### Mapped Tally Scores
 
 You can customize the type of score that Cardinal uses to normalize tallies to `power` with the `source_rate_normalization`
 parameter. Options include:
@@ -341,7 +344,9 @@ by Cardinal. Note that for all area or volume units in [tally_units], that those
 | `flux` | particle - cm / source particle | particle / area / second |
 | `H3_production` | tritium / source particle | tritium / volume / second |
 
-This units-transformation
+### Tally Normalization
+
+The tally units-transformation
 process involves *division by a volume*. In Cardinal, there are two different notions of volume:
 
 - The volume of the `[Mesh]` elements which *map* to a tally bin region
@@ -378,6 +383,20 @@ already are exactly the same volume, then no special thought is needed for the t
 normalization, and the value will be exactly consistent with the interpretation
 used in OpenMC.
 
+## Tally and Filter Editors
+
+Cardinal provides UserObjects for editing tallies and filters:
+
+  - [OpenMCTallyEditor](OpenMCTallyEditor.md): online control of tally parameters
+  - [OpenMCDomainFilterEditor](OpenMCDomainFilterEditor.md): online control of domain filter parameters
+
+These objects can be used to interact with tallies and/or filters that are
+present in a `tallies.xml` file for the problem being run (in other words,
+tallies the user manually sets up when building the OpenMC model). These objects
+can be used to create tallies and/or filters as well. In either case, these
+objects do not interact with tallies and filters used to map data to the mesh
+mirror ([#mapped]).
+
 ## Other Features
 
 While this class mainly facilitates data transfers to and from OpenMC, a number of
@@ -392,7 +411,7 @@ the user needs to manually set up sub-divisions in the geometry in order to capt
 spatial variation in temperature and density.
 For DAGMC geometries, you can instead optionally re-generate the OpenMC cells after
 each Picard iteration according to contours in temperature and/or density. With this approach, the OpenMC model can receive spatially-varying temperature and density without the user needing to manually subdivide regions of space *a priori*. To use this feature,
-set the `skinner` parameter to the name of a [MoabSkinner](/userobjects/MoabSkinner.md) user object. For more information, consult the documentation for [MoabSkinner](/userobjects/MoabSkinner.md).
+set the `skinner` parameter to the name of a [MoabSkinner](MoabSkinner.md) user object. For more information, consult the documentation for [MoabSkinner](MoabSkinner.md).
 
 !alert note
 This skinning feature is only available for DAGMC geometries for which the `[Mesh]`
@@ -482,6 +501,7 @@ s^n=&\ \frac{s^0+\sqrt{s^0s^0+4s^0\sum_{i=0}^{n-1}s^i}}{2}
 \end{equation}
 
 #### Controlling OpenMC Termination
+id=trigger_docs
 
 OpenMC's [tally triggers](https://docs.openmc.org/en/latest/pythonapi/generated/openmc.Trigger.html?highlight=trigger)
 allow OpenMC to automatically end its active batches
@@ -515,7 +535,7 @@ It can be helpful for debugging problem setup to compare actual OpenMC cell volu
 the `[Mesh]` element volumes to which they map. A well-designed mapping should have good
 agreement between *actual* cell volumes and the `[Mesh]` volumes they map to. To add a
 volume calculation, set the `volume_calculation` parameter to the name of a
-[OpenMCVolumeCalculation](/userobjects/OpenMCVolumeCalculation.md) object. If you then set
+[OpenMCVolumeCalculation](OpenMCVolumeCalculation.md) object. If you then set
 `verbose = true`, you will be able to compare the cell volumes with the MOOSE elements.
 
 #### Symmetric Data Transfers
@@ -527,14 +547,12 @@ both half-symmetric OpenMC models and general $n$-th symmetric rotational models
 coupling symmetric OpenMC models to full-system thermal-fluid models.
 
 The symmetric mapping is specified with the `symmetry_mapper` parameter, a
-[SymmetryPointGenerator](/userobjects/SymmetryPointGenerator.md) user object.
+[SymmetryPointGenerator](SymmetryPointGenerator.md) user object.
 Note that if asymmetries exist in whatever
 physics OpenMC is coupled to, they will be averaged on both sides of the plane
 before sending temperatures and densities to OpenMC. Please consult the
-[SymmetryPointGenerator](/userobjects/SymmetryPointGenerator.md) for more information.
+[SymmetryPointGenerator](SymmetryPointGenerator.md) for more information.
 
 !syntax parameters /Problem/OpenMCCellAverageProblem
 
 !syntax inputs /Problem/OpenMCCellAverageProblem
-
-!syntax children /Problem/OpenMCCellAverageProblem

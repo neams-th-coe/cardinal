@@ -18,5 +18,3 @@ As an example, the syntax below subdivides a mesh into a 4x4x4 grid.
 !syntax parameters /AuxKernels/CartesianGrid
 
 !syntax inputs /AuxKernels/CartesianGrid
-
-!syntax children /AuxKernels/CartesianGrid

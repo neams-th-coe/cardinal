@@ -22,10 +22,9 @@
 #include "SymmetryPointGenerator.h"
 #include "OpenMCVolumeCalculation.h"
 
-/// Tally includes.
+/// Tally/filter includes.
 #include "TallyBase.h"
-
-#include "openmc/tallies/filter_mesh.h"
+#include "FilterBase.h"
 
 #ifdef ENABLE_DAGMC
 #include "MoabSkinner.h"
@@ -265,6 +264,23 @@ public:
   }
 
   /**
+   * Checks if the [Problem/Filters] block contains a specific filter.
+   * @param[in] filter_name the MOOSE object name of the filter
+   * @return whether the problem contains the specified filter
+   */
+  bool hasFilter(const std::string & filter_name) const { return _filters.count(filter_name) > 0; }
+
+  /**
+   * Get a filter added by the [Problem/Filters] block by it's MOOSE object name.
+   * @param[in] filter_name the MOOSE object name of the filter
+   * @return the filter object
+   */
+  std::shared_ptr<FilterBase> & getFilter(const std::string & filter_name)
+  {
+    return _filters.at(filter_name);
+  }
+
+  /**
    * Get the local tally
    * @return local tally
    */
@@ -287,15 +303,23 @@ public:
   void reloadDAGMC();
 
   /**
-   * Add a Tally object using the new tally system. TODO: rename to addTally once
-   * OpenMCCellAverageProblem and OpenMCProblemBase are refactored.
+   * Add a Filter object using the filter system.
    * @param[in] type the new tally type
    * @param[in] name the name of the new tally
    * @param[in] moose_object_pars the input parameters of the new tally
    */
-  void addTallyObject(const std::string & type,
-                      const std::string & name,
-                      InputParameters & moose_object_pars);
+  void addFilter(const std::string & type,
+                 const std::string & name,
+                 InputParameters & moose_object_pars);
+
+  /**
+   * Add a Tally object using the tally system.
+   * @param[in] type the new tally type
+   * @param[in] name the name of the new tally
+   * @param[in] moose_object_pars the input parameters of the new tally
+   */
+  void
+  addTally(const std::string & type, const std::string & name, InputParameters & moose_object_pars);
 
   /**
    * Multiplier on the normalized tally results; for fixed source runs,
@@ -307,7 +331,25 @@ public:
    */
   Real tallyMultiplier(unsigned int global_score) const;
 
+  /**
+   * Check whether a vector extracted with getParam is empty
+   * @param[in] vector vector
+   * @param[in] name name to use for printing error if empty
+   */
+  template <typename T>
+  void checkEmptyVector(const std::vector<T> & vector, const std::string & name) const
+  {
+    if (vector.empty())
+      mooseError(name + " cannot be empty!");
+  }
+
   int fixedPointIteration() const { return _fixed_point_iteration; }
+
+  /**
+   * Checks if the problem uses adaptivity or not.
+   * @return if the problem uses adaptivity.
+   */
+  bool hasAdaptivity() const { return _has_adaptivity; }
 
   /// Constant flag to indicate that a cell/element was unmapped
   static constexpr int32_t UNMAPPED{-1};
@@ -374,6 +416,11 @@ protected:
    * @return all material cells contained in the given cell
    */
   containedCells containedMaterialCells(const cellInfo & cell_info) const;
+
+  /**
+   * Delete the OpenMC DAGMC geometry and re-generate the CSG geometry data structures in-place.
+   */
+  void updateOpenMCGeometry();
 
   /**
    * Re-generate the OpenMC materials in-place, needed for skinning operation where
@@ -521,14 +568,6 @@ protected:
       return "";
   }
 
-  /**
-   * Check whether a vector extracted with getParam is empty
-   * @param[in] vector vector
-   * @param[in] name name to use for printing error if empty
-   */
-  template <typename T>
-  void checkEmptyVector(const std::vector<T> & vector, const std::string & name) const;
-
   /// Loop over the elements in the MOOSE mesh and store the type of feedback applied by each.
   void storeElementPhase();
 
@@ -674,7 +713,13 @@ protected:
   void compareContainedCells(std::map<cellInfo, containedCells> & reference,
                              std::map<cellInfo, containedCells> & compare) const;
 
-  std::unique_ptr<NumericVector<Number>> _serialized_solution;
+  NumericVector<Number> & _serialized_solution;
+
+  /**
+   * Return all IDs of all Cardinal-mapped Tallies
+   * @return all Cardinal-mapped Tally IDs
+   */
+  virtual std::vector<int32_t> getMappedTallyIDs() const override;
 
   /**
    * Whether to automatically compute the mapping of OpenMC cell IDs and
@@ -736,12 +781,16 @@ protected:
   const bool _normalize_by_global;
 
   /**
-   * If 'fixed_mesh' is false, this indicates that the [Mesh] is changing during
-   * the simulation (either from adaptive refinement or from deformation).
-   * When the mesh changes during the simulation, the mapping from OpenMC cells to
-   * the [Mesh] must be re-established after each OpenMC run.
+   * Whether or not the problem contains mesh adaptivity.
    */
-  const bool _need_to_reinit_coupling;
+  bool _has_adaptivity;
+
+  /**
+   * When the mesh changes during the simulation (either from adaptive mesh refinement
+   * or deformation), the mapping from OpenMC cells to the [Mesh] must be re-established
+   * after each OpenMC run.
+   */
+  bool _need_to_reinit_coupling;
 
   /**
    * Whether to check the tallies against the global tally;
@@ -842,7 +891,13 @@ protected:
    */
   const bool _needs_global_tally;
 
-  /// A vector of the tally objects created by the [Tallies] block.
+  /**
+   * A map of the filter objects created by the [Problem/Filters] block. The key for each filter is
+   * it's corresponding MOOSE name to allow tallies to look up filters.
+   */
+  std::map<std::string, std::shared_ptr<FilterBase>> _filters;
+
+  /// A vector of the tally objects created by the [Problem/Tallies] block.
   std::vector<std::shared_ptr<TallyBase>> _local_tallies;
 
   /// A list of all of the scores contained by the local tallies added in the [Tallies] block.
@@ -860,9 +915,6 @@ protected:
 
   /// A vector of external (output-based) auxvariable ids added by the [Tallies] block.
   std::vector<std::vector<std::vector<unsigned int>>> _tally_ext_var_ids;
-
-  /// Whether the problem contains a cell tally or not.
-  bool _contains_cell_tally = false;
 
   /// Blocks in MOOSE mesh that provide density feedback
   std::vector<SubdomainID> _density_blocks;
@@ -1040,8 +1092,20 @@ protected:
   /// Total number of unique OpenMC cell IDs + instances combinations
   long unsigned int _n_openmc_cells;
 
-  /// Index in the OpenMC universes corresponding to the DAGMC universe
-  int32_t _dagmc_universe_index;
+  /// ID of the OpenMC universe corresponding to the DAGMC universe
+  int32_t _dagmc_universe_id;
+
+  /// Whether the DAGMC universe is the root universe or not.
+  bool _dagmc_root_universe = true;
+
+  /// ID of the OpenMC cell corresponding to the cell which uses the DAGMC universe as a fill.
+  int32_t _cell_using_dagmc_universe_id;
+
+  /// The number of OpenMC surfaces before skinning occurs. This is required to properly reinitialize
+  /// the CSG geometry contained in the OpenMC model.
+  const int32_t _initial_num_openmc_surfaces;
+
+  const bool _using_skinner;
 
   /// Conversion rate from eV to Joule
   static constexpr Real EV_TO_JOULE = 1.6022e-19;

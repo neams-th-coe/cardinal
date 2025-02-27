@@ -1,7 +1,9 @@
+!include common_input.i
+
 # This input models conjugate heat transfer between MOOSE and NekRS for
 # a single coolant channel. This input file should be run with:
 #
-# cardinal-opt -i common_input.i solid_nek.i
+# cardinal-opt -i solid_nek.i
 
 unit_cell_power = ${fparse power / (n_bundles * n_coolant_channels_per_block) * unit_cell_height / height}
 unit_cell_mdot = ${fparse mdot / (n_bundles * n_coolant_channels_per_block)}

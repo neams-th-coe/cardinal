@@ -29,7 +29,7 @@ CartesianGrid::validParams()
   params.addRequiredRangeCheckedParam<unsigned int>("ny", "ny > 0", "Number of bins in y direction");
   params.addRequiredRangeCheckedParam<unsigned int>("nz", "nz > 0", "Number of bins in z direction");
   params.addParam<Real>("shift", 0.0, "Optional shift to add to bin value");
-  params.addClassDescription("Divide space into 3-D Cartesian bins");
+  params.addClassDescription("Indices to divide space into 3-D Cartesian bins");
   return params;
 }
 

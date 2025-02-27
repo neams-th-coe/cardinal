@@ -3,7 +3,7 @@
 In this tutorial, you will learn how to:
 
 - Stochastically perturb multiphysics NekRS simulations for forward [!ac](UQ)
-  using the MOOSE [Stochastic Tools Module](https://mooseframework.inl.gov/modules/stochastic_tools/).
+  using the MOOSE [Stochastic Tools Module](stochastic_tools/index.md).
 
 The MOOSE [!ac](STM)
 is an open-source module in the MOOSE framework for seamlessly integrating
@@ -28,11 +28,11 @@ perturb an arbitrary number of parameters. Other notable features include:
   value to a NekRS sub-sub app.
 - You can use a single perturbed value in multiple locations in dependent applications.
   For example, if you use a multiscale fluid model with NekRS in one part of the domain
-  and the MOOSE [Navier-Stokes module](https://mooseframework.inl.gov/modules/navier_stokes/index.html)
+  and the MOOSE [Navier-Stokes module](navier_stokes/index.md)
   in another region of space, you could send a single perturbed value for fluid density
   to both applications concurrently.
 
-Before reading this tutorial, we recommend reading through [Examples 1 through 3](https://mooseframework.inl.gov/modules/stochastic_tools/)
+Before reading this tutorial, we recommend reading through [Examples 1 through 3](stochastic_tools/index.md)
  on the [!ac](STM) page to familiarize yourself with the basic syntax for stochastic simulations.
 
 To access this tutorial,
@@ -87,7 +87,7 @@ predict $T_i$ as our [!ac](QOI).
 First, we need to build a mesh for NekRS. We use MOOSE mesh generators to build the
 rectangular prism with $L_n=1$. Because NekRS's sidesets must be numbered contiguously
 beginning from 1, we need to shift the default sideset IDs created by the
-[GeneratedMeshGenerator](https://mooseframework.inl.gov/source/meshgenerators/GeneratedMeshGenerator.html).
+[GeneratedMeshGenerator](GeneratedMeshGenerator.md).
 
 !listing /tutorials/nek_stochastic/channel.i
   block=Mesh
@@ -174,22 +174,22 @@ an extra call to ensure consistency.
 
 The last thing we need is the thin wrapper input file which runs NekRS.
 We start by building a mesh mirror of the NekRS mesh, as a
-[NekRSMesh](https://cardinal.cels.anl.gov/source/mesh/NekRSMesh.html). We will couple
+[NekRSMesh](NekRSMesh.md). We will couple
 via conjugate heat transfer through boundary 5 in the NekRS domain. Next, we use
-[NekRSProblem](https://cardinal.cels.anl.gov/source/problems/NekRSProblem.html)
+[NekRSProblem](NekRSProblem.md)
 to specify that we will replace MOOSE solves with NekRS solves. The
-[NekTimeStepper](https://cardinal.cels.anl.gov/source/timesteppers/NekTimeStepper.html)
+[NekTimeStepper](NekTimeStepper.md)
 finally will then allow NekRS to control its time stepping, aside from synchronization
 points imposed by the main app.
 
 !listing /tutorials/nek_stochastic/nek.i
   end=UserObjects
 
-Next, we add a [NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
+Next, we add a [NekScalarValue](NekScalarValue.md)
 to be the receiving point for a stochastic number coming from "higher up" in the multiapp
 hierarchy (to be described soon). Then, we define a number of postprocessors. The `max_temp`
 postprocessor will be our [!ac](QOI) evaluating $T_i$ which will get passed upwards in the multiapp
-hierarchy. The [NekScalarValuePostprocessor](https://cardinal.cels.anl.gov/source/postprocessors/NekScalarValuePostprocessor.html)
+hierarchy. The [NekScalarValuePostprocessor](NekScalarValuePostprocessor.md)
 is added for convenience to display the value held by the `NekScalarValue` userobject to the console
 so that we can easily see each random value for $k_n$ getting received. For sanity check, we also
 add `expect_max_T` to compute the analytic value for $T_i$ according to [analytic_ti].
@@ -198,8 +198,8 @@ add `expect_max_T` to compute the analytic value for $T_i$ according to [analyti
   start=UserObjects
   end=Controls
 
-Lastly, we need to have a [SamplerReceiver](https://mooseframework.inl.gov/source/controls/SamplerReceiver.html), which will actually facilitate receiving the stochastic data into the
-[NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
+Lastly, we need to have a [SamplerReceiver](SamplerReceiver.md), which will actually facilitate receiving the stochastic data into the
+[NekScalarValue](NekScalarValue.md)
 object. *Any* input file receiving stochastic data just needs to have one of these objects.
 
 !listing /tutorials/nek_stochastic/nek.i
@@ -221,7 +221,7 @@ feature here to ensure that each NekRS simulation has reached the pseudo-steady 
 Next, we add NekRS as a sub-app, and define the transfers. The `temperature`, `flux`,
 and `flux_integral` transfers we have seen many times before -- these are transferring
 data necessary to apply the heat flux and temperature coupled boundary conditions on the
-interfaces. The [MultiAppReporterTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppReporterTransfer.html)
+interfaces. The [MultiAppReporterTransfer](MultiAppReporterTransfer.md)
 is used to fetch the value held by the `max_temp` postprocessor in the `nek.i` input file.
 A Reporter is basically a vector-valued postprocessor which could be used to hold multiple
 [!ac](QOI)s. In this example, we are just interested in one value.
@@ -230,9 +230,9 @@ A Reporter is basically a vector-valued postprocessor which could be used to hol
   start=MultiApps
   end=Reporters
 
-Finally, we declare a [ConstantReporter](https://mooseframework.inl.gov/source/reporters/ConstantReporter.html)
+Finally, we declare a [ConstantReporter](ConstantReporter.md)
 to be the receiving point of the data fetched by the `get_qoi` transfer. Note that we do
-*not* need a [SamplerReceiver](https://mooseframework.inl.gov/source/controls/SamplerReceiver.html)
+*not* need a [SamplerReceiver](SamplerReceiver.md)
 in this input file because the MOOSE heat conduction model itself is not receiving any
 stochastic inputs - the NekRS thermal conductivity passes straight from the [!ac](STM)
 to NekRS.
@@ -245,21 +245,21 @@ to NekRS.
 For stochastic simulations, a [!ac](STM) input "drives" the entire simulation as the
 main app. First, we define random distributions and sampling methods for our random
 data. Here, we will use a normal distribution for $k_n$. We choose a
-[MonteCarlo](https://mooseframework.inl.gov/source/samplers/MonteCarloSampler.html) sampler
+[MonteCarlo](MonteCarloSampler.md) sampler
 to randomly sample from this normal distribution. Here, `num_rows` is the number
 of independent samples to take.
 
 !listing /tutorials/nek_stochastic/driver.i
   end=MultiApps
 
-Next, we add the MOOSE heat conduction model as a [SamplerFullSolveMultiApp](https://mooseframework.inl.gov/source/multiapps/SamplerFullSolveMultiApp.html),
+Next, we add the MOOSE heat conduction model as a [SamplerFullSolveMultiApp](SamplerFullSolveMultiApp.md),
 which will launch one new physics simulation for each random sample.
-We next use a [SamplerParameterTransfer](https://mooseframework.inl.gov/source/transfers/SamplerParameterTransfer.html)
+We next use a [SamplerParameterTransfer](SamplerParameterTransfer.md)
 to send the random numbers from the `sample` object into the `k` UserObject
 in the sub-sub app named `nek`. In order to fetch the [!ac](QOI) from the
-nested physics apps, we use a [SamplerReporterTransfer](https://mooseframework.inl.gov/source/transfers/SamplerReporterTransfer.html)
-to get the $T_i$ from the sub-app. This will be held by the `storage` [StochasticMatrix](https://mooseframework.inl.gov/source/reporters/StochasticMatrix.html). Finally, we
-use a [StatisticsReporter](https://mooseframework.inl.gov/source/reporters/StatisticsReporter.html)
+nested physics apps, we use a [SamplerReporterTransfer](SamplerReporterTransfer.md)
+to get the $T_i$ from the sub-app. This will be held by the `storage` [StochasticMatrix](StochasticMatrix.md). Finally, we
+use a [StatisticsReporter](StatisticsReporter.md)
 to conduct some statistical analysis on our [!ac](QOI).
 
 !listing /tutorials/nek_stochastic/driver.i
@@ -268,7 +268,7 @@ to conduct some statistical analysis on our [!ac](QOI).
 ## Summary
 
 [summary] summarizes the data flow for this stochastic simulation. The only specialization for
-NekRS is the use of [NekScalarValue](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
+NekRS is the use of [NekScalarValue](NekScalarValue.md)
 to receive the data, which the user is then responsible for applying in the NekRS input files
 as appropriate.
 
@@ -309,7 +309,7 @@ solve which shows:
  ------------------------------------------------------------------------------------------------
 ```
 
-This table will show you how the [NekScalarValues](https://cardinal.cels.anl.gov/source/userobjects/NekScalarValue.html)
+This table will show you how the [NekScalarValues](NekScalarValue.md)
 map to particular locations in the scratch space. It is from this table that we knew the
 value of thermal conductivity would be located at `nrs->usrwrk[1 * nrs->fieldOffset + 0]`,
 which is what we used in the `channel.udf`.
@@ -325,7 +325,7 @@ working on a better solution.
 Because we specified JSON output in the `driver.i`, this will create a number of output files:
 
 - `driver_out.json`, which contains the stochastic results for [!ac](QOI)s. We used
-  `parallel_type = ROOT` in the [StochasticMatrix](https://mooseframework.inl.gov/source/reporters/StochasticMatrix.html), which will collect all the stochastic data into one file at the end of
+  `parallel_type = ROOT` in the [StochasticMatrix](StochasticMatrix.md), which will collect all the stochastic data into one file at the end of
   the simulation. If you had omitted this value, you would end up with $n$ JSON output
   files, where $n$ is the number of processors.
 - `driver_out_ht<n>_nek0.csv`, CSV files with the NekRS postprocessors, where `<n>` is
@@ -335,7 +335,7 @@ Because we specified JSON output in the `driver.i`, this will create a number of
 We can use Python scripts in the MOOSE stochastic tools module to plot our
 [!ac](QOI) as a histogram. Using the `make_histogram.py` script, we can indicate
 that we want to plot the `results:receive:nek_max_T` data we fetched with the
-[StochasticMatrix](https://mooseframework.inl.gov/source/reporters/StochasticMatrix.html),
+[StochasticMatrix](StochasticMatrix.md),
 and save the histogram in a file named `Ti.pdf`, shown in [Ti_img] for 200 samples.
 
 ```
@@ -359,7 +359,7 @@ python ../../contrib/moose/modules/stochastic_tools/python/make_histogram.py dri
   caption=Actual sampled input distribution for $k_n$
   style=width:50%;margin-left:auto;margin-right:auto;halign:center
 
-Because we added the the [StatisticsReporter](https://mooseframework.inl.gov/source/reporters/StatisticsReporter.html),
+Because we added the the [StatisticsReporter](StatisticsReporter.md),
 we also have access to the mean, standard deviation, and confidence intervals automatically
 (of course, you could post-compute those as well). We can output this
 data as a table, using the `visualize_statistics.py` script.

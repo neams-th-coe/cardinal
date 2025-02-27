@@ -4,7 +4,7 @@
 
 Sets an initial condition while preserving a total specified volume integral.
 The `VolumetricHeatSource` is not an actual object in Cardinal, but only a convenience
-wrapper around the [IntegralPreservingFunctionIC](https://mooseframework.inl.gov/source/ics/IntegralPreservingFunctionIC.html)
+wrapper around the [IntegralPreservingFunctionIC](IntegralPreservingFunctionIC.md)
 in MOOSE, which defines an initial condition as the combination of a function and
 a total "magnitude" (integral) that should be preserved. This action applies the
 initial condition:

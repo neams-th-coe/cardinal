@@ -11,7 +11,7 @@
     input = nek.i
     cli_args = "Mesh/volume=false Mesh/displacements='disp_x disp_y disp_z'"
     required_objects = 'NekRSProblem'
-    expect_err ="'user.par' has 'solver = user' in the \[MESH\] block."
+    expect_err ="'user.par' has 'solver = user' in the"
     requirement = "The system shall error if Cardinal has solver=user in the par file's MESH block, but there is no volume mesh mirror."
   []
   [separate_domain]

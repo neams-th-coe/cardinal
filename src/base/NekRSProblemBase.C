@@ -212,8 +212,16 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
       checkUnusedParam(params, s, "solving in dimensional form");
   }
 
-  // inform NekRS of the scaling that we are using if solving in non-dimensional form
-  nekrs::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
+  if (_nondimensional)
+  {
+    // inform NekRS of the scaling that we are using if solving in non-dimensional form
+    nekrs::initializeDimensionalScales(_U_ref, _T_ref, _dT_ref, _L_ref, _rho_0, _Cp_0);
+  }
+  else
+  {
+    // otherwise, use the defaults and ignore whatever the user provided
+    nekrs::initializeDimensionalScales(1.0, 0.0, 1.0, 1.0, 1.0, 1.0);
+  }
 
   if (_nondimensional)
   {
@@ -702,8 +710,6 @@ NekRSProblemBase::externalSolve()
   if (nekrs::runTimeStatFreq())
     if (_t_step % nekrs::runTimeStatFreq() == 0)
       nekrs::printRuntimeStatistics(_t_step);
-
-  _time += _dt;
 }
 
 bool

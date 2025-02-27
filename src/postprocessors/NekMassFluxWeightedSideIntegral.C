@@ -27,7 +27,7 @@ NekMassFluxWeightedSideIntegral::validParams()
 {
   InputParameters params = NekSideIntegral::validParams();
   params.addClassDescription(
-      "Compute mass flux weighted integral of a field over a boundary of the NekRS mesh");
+      "Mass flux weighted integral of a field over a boundary of the NekRS mesh");
   return params;
 }
 

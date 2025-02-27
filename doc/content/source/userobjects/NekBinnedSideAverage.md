@@ -18,7 +18,7 @@ $f$ is the specified field. In other words, this object averages
 on a sideset in the NekRS domain, by splitting up the average according
 to a specified volume binning strategy.
 To be clear, this user object is *not* evaluated on the
-[NekRSMesh](/mesh/NekRSMesh.md) mesh mirror, but instead on the mesh actually
+[NekRSMesh](NekRSMesh.md) mesh mirror, but instead on the mesh actually
 used for computation in NekRS.
 
 !include /postprocessors/field_specs.md
@@ -42,10 +42,8 @@ over sideset 2 in $2*2*3$ equal-size spatial bins.
   block=UserObjects
 
 The result of the user object can then be visualized with a
-[SpatialUserObjectAux](https://mooseframework.inl.gov/source/auxkernels/SpatialUserObjectAux.html).
+[SpatialUserObjectAux](SpatialUserObjectAux.md).
 
 !syntax parameters /UserObjects/NekBinnedSideAverage
 
 !syntax inputs /UserObjects/NekBinnedSideAverage
-
-!syntax children /UserObjects/NekBinnedSideAverage

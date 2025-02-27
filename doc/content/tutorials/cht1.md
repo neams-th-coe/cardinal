@@ -277,7 +277,7 @@ variable.
   start=Variables
   end=AuxVariables
 
-The [Transfer](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+The [Transfer](Transfers/index.md)
  system is used to communicate auxiliary variables across applications;
 a boundary heat flux will be computed by MOOSE and applied as a boundary condition in NekRS.
 In the opposite direction, NekRS will compute a surface temperature that will be applied as
@@ -302,11 +302,11 @@ Next, the governing equation solved by MOOSE is specified with the `Kernels` blo
   end=BCs
 
 Next, the boundary conditions on the solid are applied. On the fluid-solid interface,
-a [MatchedValueBC](https://mooseframework.inl.gov/source/bcs/MatchedValueBC.html)
+a [MatchedValueBC](MatchedValueBC.md)
  applies the value of the `nek_temp` receiver auxiliary variable
 to the temperature in a strong Dirichlet sense. Insulated boundary conditions are applied on the `symmetry`,
 `top`, and `bottom` boundaries. On the boundary at the bed-reflector interface, the
-core heat flux is specified as a [NeumannBC](https://mooseframework.inl.gov/source/bcs/NeumannBC.html). Finally, on the surface of the barrel,
+core heat flux is specified as a [NeumannBC](NeumannBC.md). Finally, on the surface of the barrel,
 a heat flux of $h(T-T_\infty)$ is specified, where both $h$ and $T_\infty$ are specified
 as material properties.
 
@@ -314,10 +314,10 @@ as material properties.
   start=BCs
   end=Materials
 
-The [HeatConduction](https://mooseframework.inl.gov/source/kernels/HeatConduction.html)
+The [HeatConduction](HeatConduction.md)
  kernel requires a material property for the thermal conductivity;
 material properties are also required for the heat transfer coefficient and far-field
-temperature for the [ConvectiveHeatFluxBC](https://mooseframework.inl.gov/source/bcs/ConvectiveHeatFluxBC.html)
+temperature for the [ConvectiveHeatFluxBC](ConvectiveHeatFluxBC.md)
 boundary condition. These material properties are specified
 in the `Materials` block. Here, different values for thermal conductivity are used
 in the graphite and steel.
@@ -326,8 +326,8 @@ in the graphite and steel.
   start=Materials
   end=MultiApps
 
-Next, the [MultiApps](https://mooseframework.inl.gov/syntax/MultiApps/index.html)
- and [Transfers](https://mooseframework.inl.gov/syntax/Transfers/index.html)
+Next, the [MultiApps](MultiApps/index.md)
+ and [Transfers](Transfers/index.md)
 blocks describe the interaction between Cardinal
 and MOOSE. The MOOSE heat transfer module is here run as the main application, with
 the NekRS wrapping run as the sub-application. We specify that MOOSE will run first on each
@@ -346,7 +346,7 @@ interpolation onto NekRS's [!ac](GLL) points).
   end=Postprocessors
 
 Next, postprocessors are used to compute the integral heat flux as a
-[SideIntegralVariablePostprocessor](https://mooseframework.inl.gov/source/postprocessors/SideIntegralVariablePostprocessor.html).
+[SideIntegralVariablePostprocessor](SideIntegralVariablePostprocessor.md).
 
 !listing /tutorials/fhr_reflector/conduction/solid.i
   start=Postprocessors
@@ -369,7 +369,7 @@ application is specified in the `nek.i` file.
 
 First, a local variable, `fluid_solid_interface`, is used to define all the boundary IDs through which NekRS is coupled
 via [!ac](CHT) to MOOSE. A first-order mirror of the NekRS mesh
-is constructed using the [NekRSMesh](/mesh/NekRSMesh.md). By specifying the
+is constructed using the [NekRSMesh](NekRSMesh.md). By specifying the
 `boundary` parameter, we are indicating that NekRS will be coupled via [!ac](CHT) through
 boundaries 1, 2, and 7 to MOOSE.
 In order for MOOSE's transfers
@@ -381,7 +381,7 @@ application is in dimensional units). This scaling is specified by the
 !listing /tutorials/fhr_reflector/conduction/nek.i
   end=Problem
 
-Next, the [NekRSProblem](problems/NekRSProblem.md) specifies that NekRS simulations will be
+Next, the [NekRSProblem](NekRSProblem.md) specifies that NekRS simulations will be
 run in place of MOOSE.
 To allow conversion between a non-dimensional NekRS solve and a dimensional MOOSE coupled
 heat conduction application, the characteristic scales used to establish the non-dimensional
@@ -391,8 +391,8 @@ problem are provided.
   start=Problem
   end=Executioner
 
-Next, a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html) executioner
-is specified with the [NekTimeStepper](/timesteppers/NekTimeStepper.md), which allows NekRS
+Next, a [Transient](Transient.md) executioner
+is specified with the [NekTimeStepper](NekTimeStepper.md), which allows NekRS
 to control its own time stepping (except for synchronization points).
 
 !listing /tutorials/fhr_reflector/conduction/nek.i
@@ -401,9 +401,9 @@ to control its own time stepping (except for synchronization points).
 
 Finally, several postprocessors are included to perform
 integrals and global min/max calculations over the NekRS domain for diagnostic purposes.
-Here, the [NekHeatFluxIntegral](/postprocessors/NekHeatFluxIntegral.md)
+Here, the [NekHeatFluxIntegral](NekHeatFluxIntegral.md)
 postprocessor computes $-k\nabla T\cdot\hat{n}$ over a boundary in the NekRS mesh. The
-[NekVolumeExtremeValue](/postprocessors/NekVolumeExtremeValue.md) postprocessors then compute the maximum
+[NekVolumeExtremeValue](NekVolumeExtremeValue.md) postprocessors then compute the maximum
 and minimum temperatures throughout the entire NekRS domain (i.e. not only on the [!ac](CHT)
 coupling surfaces).
 
@@ -502,7 +502,7 @@ are shown below. Note that the fluid temperature is shown in nondimensional form
 the selected characteristic scales. The image of the fluid solution is rotated so as to
 better display the temperature variation around the inner reflector block.
 The domain shown in [solid_steady_flux] exactly corresponds to the "mirror" mesh
-constructed by [NekRSMesh](/mesh/NekRSMesh.md).
+constructed by [NekRSMesh](NekRSMesh.md).
 
 !media fhr_reflector_solid_conduction.png
   id=solid_steady
@@ -552,7 +552,7 @@ solution. The postprocessors are shown below.
   start=Postprocessors
 
 We have added postprocessors to compute the average inlet pressure and the average
-inlet and outlet mass flowrates. Like the [NekVolumeExtremeValue](/postprocessors/NekVolumeExtremeValue.md)
+inlet and outlet mass flowrates. Like the [NekVolumeExtremeValue](NekVolumeExtremeValue.md)
 postprocessor, these postprocessors
 operate directly on NekRS's internal solution arrays to provide diagnostic information.
 Because the outlet pressure is set to zero, `pressure_in` corresponds to the pressure
@@ -631,5 +631,3 @@ The no-slip condition on the solid surface,
 and the symmetry condition on the $y=0$ surface, are clear in [velocity_cht]. The pressure
 loss is highest in the gap along the $\theta=7.5^\circ$ boundary due to the imposition of
 no-slip conditions on both sides of the half-gap width.
-
-!bibtex bibliography

@@ -1,0 +1,20 @@
+[Tests]
+  design = 'NekPointValue.md'
+  requirement = 'The system shall interpolate the NekRS solution onto a given point; this is checked by analytically evaluating the interpolated value in comparison to the known functional form at the point of interest, in'
+  issues = '#1015 #1016 #1046'
+
+  [points]
+    type = CSVDiff
+    input = points.i
+    csvdiff = points_out.csv
+    detail = 'dimensional form'
+    required_objects = 'NekRSProblem'
+  []
+  [points_nondimensional]
+    type = CSVDiff
+    input = points_nondimensional.is
+    csvdiff = points_nondimensional_out.csv
+    detail = 'non-dimensional form'
+    required_objects = 'NekRSProblem'
+  []
+[]

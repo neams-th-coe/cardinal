@@ -27,7 +27,7 @@ NekMassFluxWeightedSideAverage::validParams()
 {
   InputParameters params = NekMassFluxWeightedSideIntegral::validParams();
   params.addClassDescription(
-      "Compute mass flux weighted average of a field over a boundary in the NekRS mesh");
+      "Mass flux weighted average of a field over a boundary in the NekRS mesh");
   return params;
 }
 

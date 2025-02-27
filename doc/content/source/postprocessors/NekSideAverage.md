@@ -36,5 +36,3 @@ on the NekRS inlet boundary.
 !syntax parameters /Postprocessors/NekSideAverage
 
 !syntax inputs /Postprocessors/NekSideAverage
-
-!syntax children /Postprocessors/NekSideAverage

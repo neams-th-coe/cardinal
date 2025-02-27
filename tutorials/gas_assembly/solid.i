@@ -1,17 +1,4 @@
-# copy-pasta from common_input.i
-inlet_T = 598.0                          # inlet fluid temperature (K)
-buffer_k = 0.5                           # buffer thermal conductivity (W/m/K)
-PyC_k = 4.0                              # PyC thermal conductivity (W/m/K)
-SiC_k = 13.9                             # SiC thermal conductivity (W/m/K)
-kernel_k = 3.5                           # fissil kernel thermal conductivity (W/m/K)
-matrix_k = 15.0                          # graphite matrix thermal conductivity (W/m/K)
-num_layers_for_plots = 50                # number of layers to average fields over for plotting
-triso_pf = 0.15                          # TRISO packing fraction (%)
-kernel_radius = 214.85e-6                # fissile kernel outer radius (m)
-buffer_radius = 314.85e-6                # buffer outer radius (m)
-iPyC_radius = 354.85e-6                  # inner PyC outer radius (m)
-SiC_radius = 389.85e-6                   # SiC outer radius (m)
-oPyC_radius = 429.85e-6                  # outer PyC outer radius (m)
+!include common_input.i
 
 # compute the volume fraction of each TRISO layer in a TRISO particle
 # for use in computing average thermophysical properties

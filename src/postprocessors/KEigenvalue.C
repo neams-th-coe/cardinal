@@ -30,7 +30,7 @@ KEigenvalue::validParams()
   params.addParam<MooseEnum>("value_type",
                              getEigenvalueEnum(),
                              "Type of eigenvalue global tally to report");
-  params.addClassDescription("Extract the k eigenvalue computed by OpenMC");
+  params.addClassDescription("k eigenvalue computed by OpenMC");
   return params;
 }
 

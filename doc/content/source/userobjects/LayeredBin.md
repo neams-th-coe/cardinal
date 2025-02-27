@@ -26,5 +26,3 @@ The bins in the $x$ direction are shown below, colored by bin ID.
 !syntax parameters /UserObjects/LayeredBin
 
 !syntax inputs /UserObjects/LayeredBin
-
-!syntax children /UserObjects/LayeredBin

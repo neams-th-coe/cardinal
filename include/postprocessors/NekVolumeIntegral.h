@@ -18,7 +18,8 @@
 
 #pragma once
 
-#include "NekFieldPostprocessor.h"
+#include "NekPostprocessor.h"
+#include "NekFieldInterface.h"
 
 /**
  * Compute the integral of a specified quantity over the scalar
@@ -28,7 +29,7 @@
  * Note that this calculation is done directly on the mesh that nekRS solves on,
  * _not_ the mesh created for solution transfer in NekRSMesh.
  */
-class NekVolumeIntegral : public NekFieldPostprocessor
+class NekVolumeIntegral : public NekPostprocessor, public NekFieldInterface
 {
 public:
   static InputParameters validParams();

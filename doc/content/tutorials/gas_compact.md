@@ -197,9 +197,9 @@ boundary conditions we will apply.
   end=AuxVariables
 
 The MOOSE heat transfer module will receive power from OpenMC in the form of
-an [AuxVariable](https://mooseframework.inl.gov/syntax/AuxVariables/index.html),
+an [AuxVariable](AuxVariables/index.md),
 so we define a receiver variable for the fission power, as `power`. We also define
-a variable `fluid_temp`, that we will use a [FunctionIC](https://mooseframework.inl.gov/source/ics/FunctionIC.html)
+a variable `fluid_temp`, that we will use a [FunctionIC](FunctionIC.md)
 to set to the distribution in [eq:fluid].
 
 !listing /tutorials/gas_compact/solid.i
@@ -222,7 +222,7 @@ normalizing the fission power, to be described at greater length in
   block=Postprocessors
 
 Even though there are no time-dependent kernels in [eq:hc], we use a
-[Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+[Transient](Transient.md)
 such that each Picard iteration between OpenMC and MOOSE heat conduction
 is essentially one "pseduo" time step
 ("pseudo" because neither the OpenMC or solid model have any notion of time derivatives).
@@ -232,13 +232,13 @@ is essentially one "pseduo" time step
   end=UserObjects
 
 Finally, for additional postprocessing we use a
-[NearestPointLayeredAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredAverage.html)
+[NearestPointLayeredAverage](NearestPointLayeredAverage.md)
 user object to perform averages in the $x$-$y$ plane in 30 equal-size layers
 oriented in the $z$ direction. We separate the average by blocks in order
 to compute separate averages for fuel and graphite temperatures.
 The layer-wise averages are then exported to the
 CSV output (in vector postprocessor form) by using two
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html).
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md).
 Note that these user objects are strictly for visualization and generating
 the plot in [temperature_axial] - temperatures sent to OpenMC will be
 taken from the `T` variable.
@@ -263,7 +263,7 @@ though a different mesh could also be used.
   end=AuxVariables
 
 Next, for visualization purposes
-we define an auxiliary variable and apply a [CellTemperatureAux](/auxkernels/CellTemperatureAux.md)
+we define an auxiliary variable and apply a [CellTemperatureAux](CellTemperatureAux.md)
 in order to get the temperature imposed on the OpenMC cells.
 This auxiliary variable will then display the volume-averaged temperature
 mapped to the OpenMC cells.
@@ -273,7 +273,7 @@ mapped to the OpenMC cells.
   end=ICs
 
 The `[Problem]` and `[Tallies]` blocks are then used to specify settings for the OpenMC wrapping. We define a total power
-of 30 kW and add a [CellTally](/tallies/CellTally.md) to the fuel compacts. The cell
+of 30 kW and add a [CellTally](CellTally.md) to the fuel compacts. The cell
 tally setup in Cardinal will then automatically add a tally for each unique cell ID+instance
 combination. By setting `temperature_blocks` to all blocks, OpenMC will then receive temperature
 from MOOSE for the entire domain (because the mesh mirror consists of these
@@ -288,14 +288,14 @@ we specify a `scaling` of 100, i.e. a multiplicative factor to apply to the
 Other features we use include an output of the fission tally standard deviation
 in units of W/m$^3$ to the `[Mesh]` by setting the `output` parameter. This is used to
 obtain the standard deviation of the heat source distribution from OpenMC in the same
-units as the heat source. We also leverage a helper utility in [CellTally](/tallies/CellTally.md) by setting
+units as the heat source. We also leverage a helper utility in [CellTally](CellTally.md) by setting
 `check_equal_mapped_tally_volumes` to `true`. This parameter will throw an error if
 the tallied OpenMC cells map to different volumes in the MOOSE domain. Because we know
 *a priori* that the equal-volume OpenMC tally cells *should* all map to equal volumes, this will
 help ensure that the volumes used for heat source normalization are also all equal.
 For further discussion of this setting and a pictorial description of the
 effect of non-equal mapped volumes, please see the
-[OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md) documentation.
+[OpenMCCellAverageProblem](OpenMCCellAverageProblem.md) documentation.
 
 Because
 the OpenMC model is formed by creating axial layers in a lattice nested one level
@@ -308,9 +308,9 @@ provided the solid mesh explicitly resolves the [!ac](TRISO) particles.
 
 Because OpenMC is coupled by temperature to MOOSE, Cardinal automatically
 adds a variable named `temp` that will be an intermediate receiver of temperatures from
-MOOSE (before volume averaging by cell within [OpenMCCellAverageProblem](/problems/OpenMCCellAverageProblem.md)).
+MOOSE (before volume averaging by cell within [OpenMCCellAverageProblem](OpenMCCellAverageProblem.md)).
 We set an initial condition for temperature in OpenMC by setting a
-[FunctionIC](https://mooseframework.inl.gov/source/ics/FunctionIC.html) to `temp`
+[FunctionIC](FunctionIC.md) to `temp`
 with the function given by [eq:fluid].
 
 !listing /tutorials/gas_compact/openmc.i
@@ -318,13 +318,13 @@ with the function given by [eq:fluid].
   end=Problem
 
 We run OpenMC as the main application, so we next need to define a
-[MultiApp](https://mooseframework.inl.gov/syntax/MultiApps/index.html) that will run
+[MultiApp](MultiApps/index.md) that will run
 the solid heat conduction model as the sub-application. We also require two transfers. To get the fission
-power into the solid model, we use a [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
+power into the solid model, we use a [MultiAppShapeEvaluationTransfer](MultiAppShapeEvaluationTransfer.md)
 and ensure conservation of the total power by specifying postprocessors
 to be preserved in the OpenMC wrapping (`heat_source`) and in the sub-application
 (`power`). To get the temperature into the OpenMC model, we also use
-a [MultiAppShapeEvaluationTransfer](https://mooseframework.inl.gov/source/transfers/MultiAppShapeEvaluationTransfer.html)
+a [MultiAppShapeEvaluationTransfer](MultiAppShapeEvaluationTransfer.md)
 in the reverse direction.
 
 !listing /tutorials/gas_compact/openmc.i
@@ -332,9 +332,9 @@ in the reverse direction.
   end=Postprocessors
 
 We define a number of postprocessors to query the solution. The
-[TallyRelativeError](/postprocessors/TallyRelativeError.md)
+[TallyRelativeError](TallyRelativeError.md)
 extracts the maximum fission tally relative error for monitoring active cycle convergence.
-The `max_power` and `min_power` [ElementExtremeValue](https://mooseframework.inl.gov/source/postprocessors/ElementExtremeValue.html)
+The `max_power` and `min_power` [ElementExtremeValue](ElementExtremeValue.md)
 postprocessors compute the maximum and minimum fission power. And as already
 discussed, the `heat_source` postprocessor computes the total power
 for normalization purposes.
@@ -342,11 +342,11 @@ for normalization purposes.
 !listing /tutorials/gas_compact/openmc.i
   block=Postprocessors
 
-We use a [NearestPointLayeredAverage](https://mooseframework.inl.gov/source/userobject/NearestPointLayeredAverage.html)
+We use a [NearestPointLayeredAverage](NearestPointLayeredAverage.md)
 to radially average the OpenMC heat source
 and its standard deviation in axial layers across the 6 compacts.
 We output the result to CSV using
-[SpatialUserObjectVectorPostprocessors](https://mooseframework.inl.gov/source/vectorpostprocessors/SpatialUserObjectVectorPostprocessor.html). Note that this user object is strictly used for visualization purposes
+[SpatialUserObjectVectorPostprocessors](SpatialUserObjectVectorPostprocessor.md). Note that this user object is strictly used for visualization purposes
 to generate the plot in [heat_source] - the heat source applied to the MOOSE
 heat conduction model is taken from the `heat_source` variable transferred with
 the `heat_source_to_solid` transfer.
@@ -357,7 +357,7 @@ the `heat_source_to_solid` transfer.
 
 This input will run OpenMC and the MOOSE heat conduction model in Picard iterations
 via pseudo time-stepping. We specify a fixed number of time steps by running
-OpenMC with a [Transient](https://mooseframework.inl.gov/source/executioners/Transient.html)
+OpenMC with a [Transient](Transient.md)
 executioner. Finally, we specify Exodus and CSV output formats. Note, only four Picard
 iterations are shown here, but generally, more will be necessary to converge the physics.
 
@@ -446,5 +446,3 @@ below the core mid-plane, as shown in [heat_source].
   id=temperature_axial
   caption=Radially-averaged fuel and graphite block temperatures in 30 axial layers
   style=width:50%;margin-left:auto;margin-right:auto
-
-!bibtex bibliography

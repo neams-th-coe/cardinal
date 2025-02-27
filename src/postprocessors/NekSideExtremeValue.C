@@ -31,7 +31,7 @@ NekSideExtremeValue::validParams()
       getOperationEnum(),
       "Whether to give the maximum or minimum extreme value");
   params.addClassDescription(
-      "Compute the extreme value (max/min) of a field over a boundary of the NekRS mesh");
+      "Extreme value (max/min) of a field over a boundary of the NekRS mesh");
   return params;
 }
 

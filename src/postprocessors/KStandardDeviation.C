@@ -32,7 +32,7 @@ KStandardDeviation::validParams()
   params.addParam<MooseEnum>("value_type",
                              getEigenvalueEnum(),
                              "Type of eigenvalue global tally to report");
-  params.addClassDescription("Extract the k standard deviation computed by OpenMC");
+  params.addClassDescription("k standard deviation computed by OpenMC");
   return params;
 }
 

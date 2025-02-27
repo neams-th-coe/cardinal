@@ -1,0 +1,50 @@
+Applications:
+    cardinal:
+        app_types:
+            - Cardinal
+        content_directory: ${ROOT_DIR}/doc/content
+        remove:
+            - ${MOOSE_DIR}/framework/doc/remove.yml
+        show_warning: false
+
+Documents:
+    software_quality_plan: sqa/inl_records.md#software_quality_plan
+    enterprise_architecture_entry: sqa/inl_records.md#enterprise_architecture_entry
+    safety_software_determination: sqa/inl_records.md#safety_software_determination
+    quality_level_determination: sqa/inl_records.md#quality_level_determination
+    configuration_management_plan: sqa/inl_records.md#configuration_management_plan
+    asset_management_plan: sqa/inl_records.md#asset_management_plan
+    verification_validation_plan: sqa/inl_records.md#verification_and_validation_plan
+    software_requirements_specification: sqa/cardinal_srs.md
+    software_design_description: sqa/cardinal_sdd.md
+    software_test_plan: sqa/cardinal_stp.md
+    requirements_traceability_matrix: sqa/cardinal_rtm.md
+    verification_validation_report: sqa/cardinal_vvr.md
+    failure_analysis_report: sqa/cardinal_far.md
+    software_library_list: sqa/cardinal_sll.md
+    communication_and_contact_information: sqa/cardinal_cci.md
+    software_coding_standards: sqa/cardinal_scs.md
+    #user_manual: sqa/user_manual.md
+    #theory_manual: sqa/theory_manual.md
+    show_warning: false
+    working_dirs:
+        - ${ROOT_DIR}/doc/content
+        - ${MOOSE_DIR}/framework/doc/content
+
+Requirements:
+    cardinal:
+        working_dirs:
+            - ${ROOT_DIR}/doc/content
+            - ${MOOSE_DIR}/framework/doc/content
+            - ${MOOSE_DIR}/modules/fluid_properties/doc/content
+            - ${MOOSE_DIR}/modules/heat_transfer/doc/content
+            - ${MOOSE_DIR}/modules/navier_stokes/doc/content
+            - ${MOOSE_DIR}/modules/reactor/doc/content
+            - ${MOOSE_DIR}/modules/ray_tracing/doc/content
+            - ${MOOSE_DIR}/modules/solid_mechanics/doc/content
+            - ${MOOSE_DIR}/modules/solid_properties/doc/content
+            - ${MOOSE_DIR}/modules/stochastic_tools/doc/content
+            - ${MOOSE_DIR}/modules/thermal_hydraulics/doc/content
+        directories:
+            - ${ROOT_DIR}/test
+        show_warning: false

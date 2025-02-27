@@ -18,12 +18,12 @@
 
 #pragma once
 
-#include "ThreadedGeneralUserObject.h"
+#include "GeneralUserObject.h"
 
 /**
  * Class that provides a bin index given a spatial coordinate
  */
-class SpatialBinUserObject : public ThreadedGeneralUserObject
+class SpatialBinUserObject : public GeneralUserObject
 {
 public:
   static InputParameters validParams();

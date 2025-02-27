@@ -24,7 +24,8 @@
 #include "PostprocessorInterface.h"
 #include "CardinalEnums.h"
 #include "OpenMCNuclideDensities.h"
-#include "OpenMCTallyNuclides.h"
+#include "OpenMCDomainFilterEditor.h"
+#include "OpenMCTallyEditor.h"
 
 #include "mpi.h"
 #include "openmc/bank.h"
@@ -70,8 +71,14 @@ public:
   void catchOpenMCError(const int & err, const std::string descriptor) const;
 
   /**
+   * Whether the score is a reaction rate score
+   * @return whether the tally from OpenMC has units of 1/src
+   */
+  bool isReactionRateScore(const std::string & score) const;
+
+  /**
    * Whether the score is a heating-type score
-   * @return whether tally from OpenMC has units of eV/src
+   * @return whether the tally from OpenMC has units of eV/src
    */
   bool isHeatingScore(const std::string & score) const;
 
@@ -336,9 +343,30 @@ public:
    */
   long unsigned int numCells() const;
 
+  /**
+   * Return all IDs of all Cardinal-mapped Tallies
+   * @return all Cardinal-mapped Tally IDs
+   */
+  virtual std::vector<int32_t> getMappedTallyIDs() const = 0;
+
 protected:
   /// Find all userobjects which are changing OpenMC data structures
   void getOpenMCUserObjects();
+
+  /// Ensure that the IDs of OpenMC objects in UserObjects don't clash
+  void checkOpenMCUserObjectIDs() const;
+
+  /// Ensure that any tally editors don't apply to Cardinal-mapped tallies
+  void checkTallyEditorIDs() const;
+
+  /// Execute all filter editor userobjects
+  void executeFilterEditors();
+
+  /// Execute all tally editor userobjects
+  void executeTallyEditors();
+
+  // execute tallly and filte editors
+  void executeEditors();
 
   /// Set the nuclide densities for any materials being modified via MOOSE
   void sendNuclideDensitiesToOpenMC();
@@ -439,8 +467,11 @@ protected:
   /// Userobjects for changing OpenMC material compositions
   std::vector<OpenMCNuclideDensities *> _nuclide_densities_uos;
 
-  /// Userobjects for changing OpenMC tally nuclides
-  std::vector<OpenMCTallyNuclides *> _tally_nuclides_uos;
+  /// Userobjects for creating/changing OpenMC filters
+  std::vector<OpenMCDomainFilterEditor *> _filter_editor_uos;
+
+  /// Userobjects for creating/changing OpenMC tallies
+  std::vector<OpenMCTallyEditor *> _tally_editor_uos;
 
   /// Mapping from local element indices to global element indices for this rank
   std::vector<unsigned int> _local_to_global_elem;

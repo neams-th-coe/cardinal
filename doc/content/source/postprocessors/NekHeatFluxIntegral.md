@@ -31,5 +31,3 @@ over two different boundaries in NekRS's mesh.
 !syntax parameters /Postprocessors/NekHeatFluxIntegral
 
 !syntax inputs /Postprocessors/NekHeatFluxIntegral
-
-!syntax children /Postprocessors/NekHeatFluxIntegral

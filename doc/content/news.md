@@ -5,6 +5,7 @@ significant changes to report.
 
 ### 2024
 
+- [October 2024](news/october2024.md)
 - [July 2024](news/july2024.md)
 - [March 2024](news/march2024.md)
 

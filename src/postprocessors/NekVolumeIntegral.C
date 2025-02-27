@@ -25,13 +25,14 @@ registerMooseObject("CardinalApp", NekVolumeIntegral);
 InputParameters
 NekVolumeIntegral::validParams()
 {
-  InputParameters params = NekFieldPostprocessor::validParams();
-  params.addClassDescription("Compute the integral of a field over the NekRS mesh");
+  InputParameters params = NekFieldInterface::validParams();
+  params += NekPostprocessor::validParams();
+  params.addClassDescription("Integral of a field over the NekRS volume mesh");
   return params;
 }
 
 NekVolumeIntegral::NekVolumeIntegral(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters)
+  : NekPostprocessor(parameters), NekFieldInterface(this, parameters)
 {
 }
 

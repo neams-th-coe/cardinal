@@ -37,12 +37,11 @@ TallyRelativeError::validParams()
                              getOperationEnum(),
                              "Whether to give the maximum or minimum tally relative error");
 
-  params.addParam<MultiMooseEnum>(
-      "tally_score",
-      getTallyScoreEnum(),
-      "Score to report the relative error. If there is just a single score, "
-      "this defaults to that value");
-  params.addClassDescription("Extract the maximum/minimum tally relative error");
+  params.addParam<MooseEnum>("tally_score",
+                             getSingleTallyScoreEnum(),
+                             "Score to report the relative error. If there is just a single score, "
+                             "this defaults to that value");
+  params.addClassDescription("Maximum/minimum tally relative error");
   return params;
 }
 
@@ -53,29 +52,24 @@ TallyRelativeError::TallyRelativeError(const InputParameters & parameters)
   auto added_scores = _openmc_problem->getTallyScores();
   if (isParamValid("tally_score"))
   {
-    const auto & tally_score = getParam<MultiMooseEnum>("tally_score");
-    if (tally_score.size() != 1)
-      paramError(
-          "tally_score",
-          "Can only specify a single tally score per postprocessor, but you have specified " +
-              std::to_string(tally_score.size()));
-
-    std::string score = _openmc_problem->enumToTallyScore(tally_score[0]);
+    const auto & tally_score = getParam<MooseEnum>("tally_score");
+    std::string score = _openmc_problem->enumToTallyScore(tally_score);
 
     auto it = std::find(added_scores.begin(), added_scores.end(), score);
     if (it != added_scores.end())
       _tally_index = it - added_scores.begin();
     else
-      mooseError("To extract the relative error of the '" + std::string(tally_score[0]) +
-                 "' score,"
-                 "that score must be included in the\n'tally_score' parameter of '" +
-                 _openmc_problem->type() + "'!");
+      paramError(
+          "tally_score",
+          "To extract the relative error of the '" + std::string(tally_score) +
+              "' score, it must be included in one of the [Tallies] added in your input file!");
   }
   else
   {
-    if (added_scores.size() > 1)
-      checkRequiredParam(parameters, "tally_score", "'" + _openmc_problem->type() +
-        "' has more than one 'tally_score'");
+    if (added_scores.size() > 1 && !isParamValid("tally_score"))
+      paramError("tally_score",
+                 "When multiple scores have been added by tally objects, you must specify a score "
+                 "from which the relative error will be extracted.");
 
     _tally_index = 0;
   }

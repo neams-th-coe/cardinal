@@ -1,8 +1,8 @@
 [Tests]
   [mesh]
     type = CSVDiff
-    input = common_input.i
-    cli_args = "solid_mesh.i Outputs/file_base=coarse_mesh n_layers=1"
+    input = solid_mesh.i
+    cli_args = "Outputs/file_base=coarse_mesh n_layers=1"
     csvdiff = coarse_mesh.csv
     requirement = "The MOOSE mesh generators shall be able to create the solid mesh for a TRISO gas compact."
   []

@@ -26,17 +26,19 @@ registerMooseObject("CardinalApp", NekVolumeExtremeValue);
 InputParameters
 NekVolumeExtremeValue::validParams()
 {
-  InputParameters params = NekFieldPostprocessor::validParams();
+  InputParameters params = NekFieldInterface::validParams();
+  params += NekPostprocessor::validParams();
   params.addParam<MooseEnum>(
       "value_type",
       getOperationEnum(),
       "Whether to give the maximum or minimum extreme value");
-  params.addClassDescription("Compute the extreme value (max/min) of a field over the NekRS mesh");
+  params.addClassDescription("Extreme value (max/min) of a field over the NekRS mesh");
   return params;
 }
 
 NekVolumeExtremeValue::NekVolumeExtremeValue(const InputParameters & parameters)
-  : NekFieldPostprocessor(parameters),
+  : NekPostprocessor(parameters),
+    NekFieldInterface(this, parameters),
     _type(getParam<MooseEnum>("value_type").getEnum<operation::OperationEnum>())
 {
   if (_field == field::velocity_component)
@@ -49,10 +51,10 @@ NekVolumeExtremeValue::getValue() const
   switch (_type)
   {
     case operation::max:
-      return nekrs::volumeExtremeValue(_field, _pp_mesh, true /* max */);
+      return nekrs::volumeExtremeValue(_field, _pp_mesh, true /* max */, _function, _t);
       break;
     case operation::min:
-      return nekrs::volumeExtremeValue(_field, _pp_mesh, false /* min */);
+      return nekrs::volumeExtremeValue(_field, _pp_mesh, false /* min */, _function, _t);
       break;
     default:
       mooseError("Unhandled 'OperationEnum'!");
