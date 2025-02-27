@@ -8,7 +8,7 @@ This postprocessor extracts the combined $k$ eigenvalue from the latest OpenMC e
 calculation and calculates reactivity as:
 \begin{equation}
 \label{line-eq2}
-reactivity = \frac{k_eff-1}{k_eff}
+reactivity = \frac{k-1}{k}
 \end{equation}
 
 ## Example Input Syntax
