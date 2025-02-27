@@ -19,12 +19,9 @@ Before you start loading modules, it's best to consult the minimum requirements 
 3. OpenMC: [https://docs.openmc.org/en/stable/usersguide/install.html#prerequisites](https://docs.openmc.org/en/stable/usersguide/install.html#prerequisites)
 4. DAGMC: [https://svalinn.github.io/DAGMC/install/dependencies.html](https://svalinn.github.io/DAGMC/install/dependencies.html)
 
-Out of the above requirements, MOOSE's are the strictest. At present the MOOSE minimum requirements are:
+Out of the above requirements MOOSE's are the strictest. They can be found below:
 
-- A "modern" C/C++ compiler: GCC 8.5.0 - 12.2.1 or LLVM/Clang 10.0.1 - 16.0.6;
-- MPI 3.1 or newer (either OpenMPI or MPIH);
-- OpenMP;
-- Python 3.9-3.11 with `packaging` and `pyaml`. MOOSE also lists `jinja2` as a mandatory dependency, but this is not required to build or run MOOSE applications.
+!include sqa/minimum_requirements.md
 
 From here, you will need to find a set of modules that satisfy these minimum requirements. This tends to involve a substantial amount of trial and error which depends a lot on what each HPC system offers. It's best to consult the documentation for your specific HPC system to see which modules they recommend for specific requirements of the MOOSE software stack.
 
