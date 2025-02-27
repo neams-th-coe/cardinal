@@ -4,52 +4,94 @@
 []
 
 [AuxVariables]
-  [temp_test]
+  [temp]
   []
-  [pressure_test]
+  [pressure]
   []
-  [velocity_test]
+  [velocity]
   []
-  [x_velocity_test]
+  [x_velocity]
   []
-  [y_velocity_test]
+  [y_velocity]
   []
-  [z_velocity_test]
+  [z_velocity]
+  []
+  [x_velocity2]
+  []
+  [y_velocity2]
+  []
+  [z_velocity2]
   []
   [velocity_component]
+  []
+  [scalar01]
+  []
+  [scalar02]
+  []
+  [scalar03]
   []
 []
 
 [ICs]
-  [temp_test]
+  [temp]
     type = FunctionIC
-    variable = temp_test
+    variable = temp
     function = temp
   []
-  [pressure_test]
+  [scalar01]
     type = FunctionIC
-    variable = pressure_test
+    variable = scalar01
+    function = scalar01
+  []
+  [scalar02]
+    type = FunctionIC
+    variable = scalar02
+    function = scalar02
+  []
+  [scalar03]
+    type = FunctionIC
+    variable = scalar03
+    function = scalar03
+  []
+  [pressure]
+    type = FunctionIC
+    variable = pressure
     function = pressure
   []
-  [velocity_test]
+  [velocity]
     type = FunctionIC
-    variable = velocity_test
+    variable = velocity
     function = velocity
   []
-  [x_velocity_test]
+  [x_velocity]
     type = FunctionIC
-    variable = x_velocity_test
+    variable = x_velocity
     function = x_velocity
   []
-  [y_velocity_test]
+  [y_velocity]
     type = FunctionIC
-    variable = y_velocity_test
+    variable = y_velocity
     function = y_velocity
   []
-  [z_velocity_test]
+  [z_velocity]
     type = FunctionIC
-    variable = z_velocity_test
+    variable = z_velocity
     function = z_velocity
+  []
+  [x_velocity2]
+    type = FunctionIC
+    variable = x_velocity2
+    function = x_velocity2
+  []
+  [y_velocity2]
+    type = FunctionIC
+    variable = y_velocity2
+    function = y_velocity2
+  []
+  [z_velocity2]
+    type = FunctionIC
+    variable = z_velocity2
+    function = z_velocity2
   []
   [velocity_component]
     type = FunctionIC
@@ -58,31 +100,27 @@
   []
 []
 
-[Variables]
-  [dummy]
-  []
-[]
-
-[Kernels]
-  [dummy]
-    type = Diffusion
-    variable = dummy
-  []
-[]
-
-[BCs]
-  [fixed]
-    type = DirichletBC
-    variable = dummy
-    value = 1.0
-    boundary = '1'
-  []
+[Problem]
+  type = FEProblem
+  solve = false
 []
 
 [Functions]
   [temp]
     type = ParsedFunction
     expression = 'exp(x)+sin(y)+x*y*z'
+  []
+  [scalar01]
+    type = ParsedFunction
+    expression = 'exp(x)+sin(y)+x*y*z+1'
+  []
+  [scalar02]
+    type = ParsedFunction
+    expression = 'exp(x)+sin(y)+x*y*z+2'
+  []
+  [scalar03]
+    type = ParsedFunction
+    expression = 'exp(x)+sin(y)+x*y*z+3'
   []
   [pressure]
     type = ParsedFunction
@@ -104,6 +142,18 @@
     type = ParsedFunction
     expression = 'exp(x*y*z)'
   []
+  [x_velocity2]
+    type = ParsedFunction
+    expression = '(sin(x))^2'
+  []
+  [y_velocity2]
+    type = ParsedFunction
+    expression = '(y+1)^2'
+  []
+  [z_velocity2]
+    type = ParsedFunction
+    expression = '(exp(x*y*z))^2'
+  []
   [velocity_component] # velocity along some generic direction (0.1, 0.2, -0.3)
     type = ParsedFunction
     expression = '(vel_x * 0.1 + vel_y * 0.2 + vel_z * -0.3) / sqrt(0.1*0.1 + 0.2*0.2 + 0.3*0.3)'
@@ -116,6 +166,11 @@
   type = Transient
   dt = 5e-4
   num_steps = 1
+
+  [Quadrature]
+    type = GAUSS_LOBATTO
+    order = FIRST
+  []
 []
 
 [Outputs]
@@ -126,27 +181,51 @@
 [Postprocessors]
   [temp_average]
     type = ElementAverageValue
-    variable = temp_test
+    variable = temp
+  []
+  [s01_average]
+    type = ElementAverageValue
+    variable = scalar01
+  []
+  [s02_average]
+    type = ElementAverageValue
+    variable = scalar02
+  []
+  [s03_average]
+    type = ElementAverageValue
+    variable = scalar03
   []
   [pressure_average]
     type = ElementAverageValue
-    variable = pressure_test
+    variable = pressure
   []
   [velocity_average]
     type = ElementAverageValue
-    variable = velocity_test
+    variable = velocity
   []
   [x_velocity_average]
     type = ElementAverageValue
-    variable = x_velocity_test
+    variable = x_velocity
   []
   [y_velocity_average]
     type = ElementAverageValue
-    variable = y_velocity_test
+    variable = y_velocity
   []
   [z_velocity_average]
     type = ElementAverageValue
-    variable = z_velocity_test
+    variable = z_velocity
+  []
+  [x_velocity_average2]
+    type = ElementAverageValue
+    variable = x_velocity2
+  []
+  [y_velocity_average2]
+    type = ElementAverageValue
+    variable = y_velocity2
+  []
+  [z_velocity_average2]
+    type = ElementAverageValue
+    variable = z_velocity2
   []
   [velocity_component]
     type = ElementAverageValue

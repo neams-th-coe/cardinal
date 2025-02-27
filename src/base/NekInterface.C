@@ -695,10 +695,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 
   // dimensionalize the field if needed
   dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
+  reduced_value += referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -751,10 +748,7 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
 
   // dimensionalize the field if needed
   dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
+  reduced_value += referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -877,9 +871,9 @@ dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand,
   // scale the volume integral
   integral *= scales.V_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the volume integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * volume;
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the volume integral
+  integral += referenceAdditiveScale(integrand) * volume;
 }
 
 void
@@ -893,9 +887,9 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // scale the boundary integral
   integral *= scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the area integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * area;
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the side integral
+  integral += referenceAdditiveScale(integrand) * area;
 }
 
 void
@@ -910,9 +904,11 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // scale the boundary integral
   integral *= scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the area integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * area(boundary_id, pp_mesh);
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the side integral; we need this form here to avoid a recursive loop
+  auto add = referenceAdditiveScale(integrand);
+  if (std::abs(add) > 1e-8)
+    integral += add * area(boundary_id, pp_mesh);
 }
 
 double
@@ -1112,9 +1108,12 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   // dimensionalize the mass flux and area
   total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the mass flux integral
-  if (integrand == field::temperature)
-    total_integral += scales.T_ref * massFlowrate(boundary_id, pp_mesh);
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the mass flux integral; we need this form here to avoid an infinite
+  // recursive loop
+  auto add = referenceAdditiveScale(integrand);
+  if (std::abs(add) > 1e-8)
+    total_integral += add * massFlowrate(boundary_id, pp_mesh);
 
   return total_integral;
 }
@@ -1524,28 +1523,31 @@ checkFieldValidity(const field::NekFieldEnum & field)
   // we can also leverage this error checking for the 'outputs' of NekRSProblemBase,
   // which does not inherit from NekFieldInterface but still accesses the solutionPointers.
   // If this gets moved elsewhere, need to be sure to add dedicated testing for
-  // the 'outputs'.
+  // the 'outputs' on NekRSProblemBase.
+
+  // TODO: would be nice for NekRSProblemBase to only access field information via the
+  // NekFieldInterface; refactor later
 
   switch (field)
   {
     case field::temperature:
       if (!hasTemperatureVariable())
-        mooseError("Cardinal cannot find 'temperature' "
+        mooseError("Cannot find 'temperature' "
                    "because your Nek case files do not have a temperature variable!");
       break;
     case field::scalar01:
       if (!hasScalarVariable(1))
-        mooseError("Cardinal cannot find 'scalar01' "
+        mooseError("Cannot find 'scalar01' "
                    "because your Nek case files do not have a scalar01 variable!");
       break;
     case field::scalar02:
       if (!hasScalarVariable(2))
-        mooseError("Cardinal cannot find 'scalar02' "
+        mooseError("Cannot find 'scalar02' "
                    "because your Nek case files do not have a scalar02 variable!");
       break;
     case field::scalar03:
       if (!hasScalarVariable(3))
-        mooseError("Cardinal cannot find 'scalar03' "
+        mooseError("Cannot find 'scalar03' "
                    "because your Nek case files do not have a scalar03 variable!");
       break;
   }
@@ -1553,6 +1555,8 @@ checkFieldValidity(const field::NekFieldEnum & field)
 
 double (*solutionPointer(const field::NekFieldEnum & field))(int)
 {
+  // we include this here as well, in addition to within the NekFieldInterface, because
+  // the NekRSProblemBase accesses these methods without inheriting from NekFieldInterface
   checkFieldValidity(field);
 
   double (*f)(int);
@@ -1647,25 +1651,39 @@ void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
 }
 
 void
-initializeDimensionalScales(const double U_ref,
-                            const double T_ref,
-                            const double dT_ref,
-                            const double L_ref,
-                            const double rho_ref,
-                            const double Cp_ref)
+initializeDimensionalScales(const double U,
+                            const double T,
+                            const double dT,
+                            const double L,
+                            const double rho,
+                            const double Cp,
+                            const double s01,
+                            const double ds01,
+                            const double s02,
+                            const double ds02,
+                            const double s03,
+                            const double ds03)
 {
-  scales.U_ref = U_ref;
-  scales.T_ref = T_ref;
-  scales.dT_ref = dT_ref;
-  scales.L_ref = L_ref;
-  scales.A_ref = L_ref * L_ref;
-  scales.V_ref = L_ref * L_ref * L_ref;
-  scales.rho_ref = rho_ref;
-  scales.Cp_ref = Cp_ref;
-  scales.t_ref = L_ref / U_ref;
+  scales.U_ref = U;
+  scales.T_ref = T;
+  scales.dT_ref = dT;
+  scales.L_ref = L;
+  scales.A_ref = L * L;
+  scales.V_ref = L * L * L;
+  scales.rho_ref = rho;
+  scales.Cp_ref = Cp;
+  scales.t_ref = L / U;
+  scales.P_ref = rho * U * U;
 
-  scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
-  scales.source_ref = scales.flux_ref / L_ref;
+  scales.s01_ref = s01;
+  scales.ds01_ref = ds01;
+  scales.s02_ref = s02;
+  scales.ds02_ref = ds02;
+  scales.s03_ref = s03;
+  scales.ds03_ref = ds03;
+
+  scales.flux_ref = rho * U * Cp * dT;
+  scales.source_ref = scales.flux_ref / L;
 }
 
 double
@@ -1684,6 +1702,12 @@ double
 referenceLength()
 {
   return scales.L_ref;
+}
+
+double
+referencePressure()
+{
+  return scales.P_ref;
 }
 
 double
@@ -1717,6 +1741,12 @@ referenceAdditiveScale(const field::NekFieldEnum & field)
   {
     case field::temperature:
       return scales.T_ref;
+    case field::scalar01:
+      return scales.s01_ref;
+    case field::scalar02:
+      return scales.s02_ref;
+    case field::scalar03:
+      return scales.s03_ref;
     default:
       return 0;
   }
@@ -1732,22 +1762,28 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
     case field::velocity_z:
     case field::velocity:
     case field::velocity_component:
-      value = value * scales.U_ref;
+      value *= scales.U_ref;
       break;
     case field::velocity_x_squared:
     case field::velocity_y_squared:
     case field::velocity_z_squared:
-      value = value * scales.U_ref * scales.U_ref;
+      value *= scales.U_ref * scales.U_ref;
       break;
     case field::temperature:
-      value = value * scales.dT_ref;
+      value *= scales.dT_ref;
       break;
     case field::pressure:
-      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      value *= scales.P_ref;
       break;
     case field::scalar01:
+      value *= scales.ds01_ref;
+      break;
     case field::scalar02:
+      value *= scales.ds02_ref;
+      break;
     case field::scalar03:
+      value *= scales.ds03_ref;
+      break;
     case field::unity:
       // no dimensionalization needed
       break;

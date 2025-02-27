@@ -2,11 +2,27 @@
   type = NekRSProblem
   casename = 'pyramid'
   has_heat_source = false
+
+  [Dimensionalize]
+    L = 2
+    U = 0.2
+    T = 10
+    dT = 100
+    s01 = 15
+    ds01 = 150
+    s02 = 20
+    ds02 = 200
+    s03 = 30
+    ds03 = 300
+    rho = 1000
+    Cp = 4000
+  []
 []
 
 [Mesh]
   type = NekRSMesh
   volume = true
+  scaling = 2
 []
 
 [Executioner]

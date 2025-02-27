@@ -1,17 +1,20 @@
 [Tests]
-  [nek_volume_integral]
+  design = 'NekVolumeIntegral.md'
+  issues = '#1065'
+  requirement = 'The system shall integrate the NekRS solution over a volume. This is tested by comparing against the output files of an identical setup in MOOSE, where identical integrals are computed using existing MOOSE postprocessors on the same mesh in'
+
+  [nek]
     type = CSVDiff
     input = nek.i
     csvdiff = nek_out.csv
-    rel_err = 2e-3
-    requirement = "NekVolumeIntegral shall correctly compute volumes"
-                  "and volume-integrated temperatures on the nekRS mesh. The gold file was created "
-                  "by running the moose.i input, which computes the same integrals using "
-                  "existing MOOSE postprocessors on the same mesh on auxvariables that match "
-                  "the functional form of the solution fields initialized in the pyramid.udf. "
-                  "Perfect agreement is not to be expected, since the underlying basis functions "
-                  "and quadrature rules are different between nekRS and MOOSE's linear Lagrange "
-                  "variables - we just require that they are reasonably close."
+    requirement = 'dimensional form'
+    required_objects = 'NekRSProblem'
+  []
+  [nondimensional]
+    type = CSVDiff
+    input = nondimensional.i
+    csvdiff = nondimensional_out.csv
+    requirement = 'nondimensional form'
     required_objects = 'NekRSProblem'
   []
 []

@@ -68,6 +68,24 @@ protected:
   /// Reference characteristic temperature delta
   const Real & _dT;
 
+  /// Reference characteristic scalar 1
+  const Real & _s01;
+
+  /// Reference characteristic scalar 1 delta
+  const Real & _ds01;
+
+  /// Reference characteristic scalar 2
+  const Real & _s02;
+
+  /// Reference characteristic scalar 2 delta
+  const Real & _ds02;
+
+  /// Reference characteristic scalar 3
+  const Real & _s03;
+
+  /// Reference characteristic scalar 3 delta
+  const Real & _ds03;
+
   /// Reference characteristic length
   const Real & _L;
 

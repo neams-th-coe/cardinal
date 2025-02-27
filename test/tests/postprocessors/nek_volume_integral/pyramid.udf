@@ -22,6 +22,9 @@ void UDF_Setup(nrs_t *nrs)
     nrs->P[n] = exp(x) + exp(y) + exp(z); // pressure
 
     nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z; // temperature
+    nrs->cds->S[n + 1 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 1; // scalar 01
+    nrs->cds->S[n + 2 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 2; // scalar 02
+    nrs->cds->S[n + 3 * nrs->cds->fieldOffset[0]] = exp(x) + sin(y) + x*y*z + 3; // scalar 03
   }
 }
 

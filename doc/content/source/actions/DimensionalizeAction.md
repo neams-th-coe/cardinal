@@ -44,6 +44,17 @@ so the `scaling` parameter on [NekRSMesh](NekRSMesh.md) must be set to
 dimensionalize the nondimensional `.re2` mesh. In other words,
 `scaling` must be set to $L_{ref}$.
 
+For passive scalars, NekRS allows each to be dimensionalized in a manner similar
+to temperature,
+
+\begin{equation}
+s_{i}^\dagger=\frac{s_i-s_{i,ref}}{\Delta s_i}
+\end{equation}
+
+`s01`, `s02`, and `s03` are used to indicate the $s_{i,ref}$ for scalars 1,
+2, and 3, respectively. `ds01`, `ds02`, and `ds03` are used to indicate the
+$\Delta s_i$ for scalars 1, 2, and 3, respectively.
+
 !alert warning
 These characteristic scales are used by Cardinal to scale the NekRS solution
 into the units that the coupled MOOSE application expects. *You* still need to properly
@@ -99,6 +110,9 @@ The following are all optional input parameters for this object:
 - `U`: Reference velocity
 - `L`: Reference length
 - `T` and `dT`: Reference temperature and temperature delta, respectively
+- `s01` and `ds01`: Reference scalar01 and scalar01 delta, respectively
+- `s02` and `ds02`: Reference scalar02 and scalar02 delta, respectively
+- `s03` and `ds03`: Reference scalar03 and scalar03 delta, respectively
 - `rho`: Reference density
 - `Cp`: Reference isobaric specific heat
 
