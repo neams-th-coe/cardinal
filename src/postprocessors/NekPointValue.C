@@ -147,6 +147,7 @@ NekPointValue::execute()
   }
 
   nekrs::dimensionalize(_field, _value);
+  _value += nekrs::referenceAdditiveScale(_field);
 }
 
 Real

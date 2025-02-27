@@ -695,10 +695,7 @@ sideExtremeValue(const std::vector<int> & boundary_id, const field::NekFieldEnum
 
   // dimensionalize the field if needed
   dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
+  reduced_value += referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -751,10 +748,7 @@ volumeExtremeValue(const field::NekFieldEnum & field, const nek_mesh::NekMeshEnu
 
   // dimensionalize the field if needed
   dimensionalize(field, reduced_value);
-
-  // if temperature, we need to add the reference temperature
-  if (field == field::temperature)
-    reduced_value += scales.T_ref;
+  reduced_value += referenceAdditiveScale(field);
 
   return reduced_value;
 }
@@ -877,9 +871,9 @@ dimensionalizeVolumeIntegral(const field::NekFieldEnum & integrand,
   // scale the volume integral
   integral *= scales.V_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the volume integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * volume;
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the volume integral
+  integral += referenceAdditiveScale(integrand) * volume;
 }
 
 void
@@ -893,9 +887,9 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // scale the boundary integral
   integral *= scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the area integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * area;
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the side integral
+  integral += referenceAdditiveScale(integrand) * area;
 }
 
 void
@@ -910,9 +904,11 @@ dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
   // scale the boundary integral
   integral *= scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the area integral
-  if (integrand == field::temperature)
-    integral += scales.T_ref * area(boundary_id, pp_mesh);
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the side integral; we need this form here to avoid a recursive loop
+  auto add = referenceAdditiveScale(integrand);
+  if (std::abs(add) > 1e-8)
+    integral += add * area(boundary_id, pp_mesh);
 }
 
 double
@@ -1112,9 +1108,12 @@ sideMassFluxWeightedIntegral(const std::vector<int> & boundary_id,
   // dimensionalize the mass flux and area
   total_integral *= scales.rho_ref * scales.U_ref * scales.A_ref;
 
-  // if temperature, we need to add the reference temperature multiplied by the mass flux integral
-  if (integrand == field::temperature)
-    total_integral += scales.T_ref * massFlowrate(boundary_id, pp_mesh);
+  // for quantities with a relative scaling, we need to add back the reference
+  // contribution to the mass flux integral; we need this form here to avoid an infinite
+  // recursive loop
+  auto add = referenceAdditiveScale(integrand);
+  if (std::abs(add) > 1e-8)
+    total_integral += add * massFlowrate(boundary_id, pp_mesh);
 
   return total_integral;
 }
