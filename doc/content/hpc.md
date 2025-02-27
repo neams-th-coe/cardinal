@@ -6,7 +6,8 @@ Because default modules and
 settings change on [!ac](HPC) systems with time, the instructions below may become deprecated, but
 we try to keep this information up-to-date.
 Note that the absence of a particular [!ac](HPC) system from this list does not imply that Cardinal will not
-build/run on that system - only that documentation has not yet been created.
+build/run on that system - only that documentation has not yet been created. If you can't find your system here,
+we provide some [resources and tips for building Cardinal on HPC systems](hpc_build_tips.md).
 
 In addition to these provided module and environment settings,
 you must follow the build instructions on the
@@ -423,4 +424,3 @@ export OPENMC_CROSS_SECTIONS=$HOME_DIRECTORY_SYM_LINK/cross_sections/endfb-vii.1
 !listing-end!
 
 !listing! scripts/job_eddy language=bash caption=Sample job script for Eddy with the 32-core partition id=e2
-
