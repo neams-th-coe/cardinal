@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSStandaloneProblem
   casename = 'brick'
+  n_usrwrk_slots = 4
 
   [Dimensionalize]
     L = 5.0
@@ -103,6 +104,21 @@
   [unity]
     type = NekPointValue
     field = unity
+    point = '0.25 0.3 0.27'
+  []
+  [usrwrk00]
+    type = NekPointValue
+    field = usrwrk00
+    point = '0.25 0.3 0.27'
+  []
+  [usrwrk01]
+    type = NekPointValue
+    field = usrwrk01
+    point = '0.25 0.3 0.27'
+  []
+  [usrwrk02]
+    type = NekPointValue
+    field = usrwrk02
     point = '0.25 0.3 0.27'
   []
 []
