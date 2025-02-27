@@ -1524,28 +1524,31 @@ checkFieldValidity(const field::NekFieldEnum & field)
   // we can also leverage this error checking for the 'outputs' of NekRSProblemBase,
   // which does not inherit from NekFieldInterface but still accesses the solutionPointers.
   // If this gets moved elsewhere, need to be sure to add dedicated testing for
-  // the 'outputs'.
+  // the 'outputs' on NekRSProblemBase.
+
+  // TODO: would be nice for NekRSProblemBase to only access field information via the
+  // NekFieldInterface; refactor later
 
   switch (field)
   {
     case field::temperature:
       if (!hasTemperatureVariable())
-        mooseError("Cardinal cannot find 'temperature' "
+        mooseError("Cannot find 'temperature' "
                    "because your Nek case files do not have a temperature variable!");
       break;
     case field::scalar01:
       if (!hasScalarVariable(1))
-        mooseError("Cardinal cannot find 'scalar01' "
+        mooseError("Cannot find 'scalar01' "
                    "because your Nek case files do not have a scalar01 variable!");
       break;
     case field::scalar02:
       if (!hasScalarVariable(2))
-        mooseError("Cardinal cannot find 'scalar02' "
+        mooseError("Cannot find 'scalar02' "
                    "because your Nek case files do not have a scalar02 variable!");
       break;
     case field::scalar03:
       if (!hasScalarVariable(3))
-        mooseError("Cardinal cannot find 'scalar03' "
+        mooseError("Cannot find 'scalar03' "
                    "because your Nek case files do not have a scalar03 variable!");
       break;
   }
@@ -1553,6 +1556,8 @@ checkFieldValidity(const field::NekFieldEnum & field)
 
 double (*solutionPointer(const field::NekFieldEnum & field))(int)
 {
+  // we include this here as well, in addition to within the NekFieldInterface, because
+  // the NekRSProblemBase accesses these methods without inheriting from NekFieldInterface
   checkFieldValidity(field);
 
   double (*f)(int);
@@ -1684,6 +1689,12 @@ double
 referenceLength()
 {
   return scales.L_ref;
+}
+
+double
+referencePressure()
+{
+  return scales.P_ref;
 }
 
 double

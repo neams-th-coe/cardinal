@@ -727,25 +727,16 @@ struct usrwrkIndices
 struct characteristicScales
 {
   double U_ref = 1;
-
   double T_ref = 0;
-
   double dT_ref = 1;
-
+  double P_ref = 1;
   double L_ref = 1;
-
   double A_ref = 1;
-
   double V_ref = 1;
-
   double rho_ref = 1;
-
   double Cp_ref = 1;
-
   double flux_ref = 1;
-
   double source_ref = 1;
-
   double t_ref = 1;
 };
 
@@ -763,24 +754,21 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int);
 void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat);
 
 /**
- * \brief Get the scalar01 solution at given GLL index
- *
+ * Get the scalar01 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar01 value at index
  */
 double scalar01(const int id);
 
 /**
- * \brief Get the scalar02 solution at given GLL index
- *
+ * Get the scalar02 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar02 value at index
  */
 double scalar02(const int id);
 
 /**
- * \brief Get the scalar03 solution at given GLL index
- *
+ * Get the scalar03 solution at given GLL index
  * @param[in] id GLL index
  * @return scalar03 value at index
  */
@@ -943,6 +931,12 @@ double referenceSource();
  * @return reference length scale
  */
 double referenceLength();
+
+/**
+ * Get the reference pressure scale
+ * @return reference pressure scale
+ */
+double referencePressure();
 
 /**
  * Get the reference time scale

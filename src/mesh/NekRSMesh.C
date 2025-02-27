@@ -163,6 +163,7 @@ NekRSMesh::printMeshInfo() const
     _n_volume_elems * _n_build_per_volume_elem);
 
   vt.print(_console);
+  _console << std::endl;
 }
 
 std::unique_ptr<MooseMesh>

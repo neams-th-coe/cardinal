@@ -22,6 +22,7 @@
 #include "NekInterface.h"
 #include "VariadicTable.h"
 #include "NekRSMesh.h"
+#include "UserErrorChecking.h"
 
 registerMooseAction("CardinalApp", DimensionalizeAction, "add_dimensionalization");
 
@@ -69,6 +70,13 @@ DimensionalizeAction::act()
                  "You need to change the [Problem] block to a Nek-wrapped problem.\n\n"
                  "options: 'NekRSProblem', 'NekRSSeparateDomainProblem', 'NekRSStandaloneProblem'");
 
+    // check if the temperature actually exists
+    if (!nekrs::hasTemperatureVariable())
+    {
+      checkUnusedParam(parameters(), "T", "NekRS case files do not have a temperature variable");
+      checkUnusedParam(parameters(), "dT", "NekRS case files do not have a temperature variable");
+    }
+
     // It's too complicated to make sure that the dimensional form _also_ works when our
     // reference coordinates are different from what MOOSE is expecting, so just throw an error
     auto nek_mesh = dynamic_cast<NekRSMesh *>(&(_problem->mesh()));
@@ -90,13 +98,19 @@ DimensionalizeAction::act()
     vt.addRow("Position", "x / " + compress(_L));
     vt.addRow("Time", "t / " + compress(nekrs::referenceTime()));
     vt.addRow("Velocity", "u / " + compress(_U));
-    vt.addRow("Temperature", "(T - " + compress(_T) + ") / " + compress(_dT));
-    vt.addRow("Heat flux", "q'' / " + compress(nekrs::referenceFlux()));
-    vt.addRow("Power density", "q / " + compress(nekrs::referenceSource()));
+    vt.addRow("Pressure", "P / " + compress(nekrs::referencePressure()));
+
+    if (nekrs::hasScalarVariable(0))
+    {
+      vt.addRow("Temperature", "(T - " + compress(_T) + ") / " + compress(_dT));
+      vt.addRow("Heat flux", "q'' / " + compress(nekrs::referenceFlux()));
+      vt.addRow("Power density", "q / " + compress(nekrs::referenceSource()));
+    }
+
     vt.addRow("Density", "rho / " + compress(_rho));
     vt.addRow("Specific heat", "Cp / " + compress(_Cp));
 
-    _console << "\nScales used for dimensionalizing the NekRS fields:" << std::endl;
+    _console << "Scales used for dimensionalizing the NekRS fields:" << std::endl;
     vt.print(_console);
     _console << std::endl;
   }
