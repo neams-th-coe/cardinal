@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+  n_usrwrk_slots = 4
   has_heat_source = false
 
   [Dimensionalize]
@@ -48,6 +49,18 @@
   [temp_int]
     type = NekVolumeIntegral
     field = temperature
+  []
+  [u00_int]
+    type = NekVolumeIntegral
+    field = usrwrk00
+  []
+  [u01_int]
+    type = NekVolumeIntegral
+    field = usrwrk01
+  []
+  [u02_int]
+    type = NekVolumeIntegral
+    field = usrwrk02
   []
   [s01_int]
     type = NekVolumeIntegral

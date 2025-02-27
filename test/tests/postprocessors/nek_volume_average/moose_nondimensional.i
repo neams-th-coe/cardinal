@@ -38,6 +38,12 @@
   []
   [scalar03]
   []
+  [usrwrk00]
+  []
+  [usrwrk01]
+  []
+  [usrwrk02]
+  []
 []
 
 [ICs]
@@ -60,6 +66,21 @@
     type = FunctionIC
     variable = scalar03
     function = scalar03
+  []
+  [usrwrk00]
+    type = FunctionIC
+    variable = usrwrk00
+    function = usrwrk00
+  []
+  [usrwrk01]
+    type = FunctionIC
+    variable = usrwrk01
+    function = usrwrk01
+  []
+  [usrwrk02]
+    type = FunctionIC
+    variable = usrwrk02
+    function = usrwrk02
   []
   [pressure]
     type = FunctionIC
@@ -204,6 +225,24 @@
     symbol_names = 'vel_x vel_y vel_z'
     symbol_values = 'x_velocity y_velocity z_velocity'
   []
+  [usrwrk00]
+    type = ParsedFunction
+    expression = 'exp(xx)+1'
+    symbol_names = 'xx'
+    symbol_values = 'xx'
+  []
+  [usrwrk01]
+    type = ParsedFunction
+    expression = 'exp(yy)+1'
+    symbol_names = 'yy'
+    symbol_values = 'yy'
+  []
+  [usrwrk02]
+    type = ParsedFunction
+    expression = 'exp(zz)+1'
+    symbol_names = 'zz'
+    symbol_values = 'zz'
+  []
 []
 
 [Executioner]
@@ -226,6 +265,18 @@
   [temp_average]
     type = ElementAverageValue
     variable = temp
+  []
+  [u00_average]
+    type = ElementAverageValue
+    variable = usrwrk00
+  []
+  [u01_average]
+    type = ElementAverageValue
+    variable = usrwrk01
+  []
+  [u02_average]
+    type = ElementAverageValue
+    variable = usrwrk02
   []
   [s01_average]
     type = ElementAverageValue
