@@ -45,8 +45,12 @@ DIRECTORY_WHERE_YOU_HAVE_CARDINAL=$HOME/projects
 HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
 export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 
-# These environment variables indicate how many processes you want to build with. Be careful with the number
-# of jobs specified, most HPC systems limit the number of processes you can run with on login nodes.
+# These environment variables indicate how many processes you want to build with. Keep in mind that the
+# more processes you specify the more memory is consumed during a build. Be careful with the number
+# of jobs, most HPC systems limit the number of processes and memory you can consume when
+# on a login node. If you find that your builds are crashing with an exit code of 1 while building,
+# you've likely exceeded either the CPU or memory limit on the machine - reducing the number of processes
+# should mitigate those crashes.
 export JOBS=8
 export LIBMESH_JOBS=8
 export MOOSE_JOBS=8
@@ -126,9 +130,9 @@ HOME_DIRECTORY_SYM_LINK=$(realpath -P $DIRECTORY_WHERE_YOU_HAVE_CARDINAL)
 export NEKRS_HOME=$HOME_DIRECTORY_SYM_LINK/cardinal/install
 
 # Change these to the number of processes you want to build with on a compute node.
-export JOBS=100
-export LIBMESH_JOBS=100
-export MOOSE_JOBS=100
+export JOBS=32
+export LIBMESH_JOBS=32
+export MOOSE_JOBS=32
 
 # You might need to change directories into the location where the job was launched,
 # which should be the Cardinal repo directory.
@@ -139,7 +143,7 @@ cd $PBS_O_WORKDIR
 ./contrib/moose/scripts/update_and_rebuild_wasp.sh > wasp_log.txt
 
 # Change this to the number of processes you want to build with on a compute node.
-make -j100 MAKEFLAGS=-j100 > cardinal_log.txt
+make -32 MAKEFLAGS=-32 > cardinal_log.txt
 ```
 
 You'd then submit your build job script to the HPC queue (for PBS the command is `qsub job_script_name`). We dump the output of each component of the build to different logfiles; this allows us to follow the build in real-time and makes it easier to parse for errors.
