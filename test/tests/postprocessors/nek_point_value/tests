@@ -10,10 +10,10 @@
     detail = 'dimensional form'
     required_objects = 'NekRSProblem'
   []
-  [points_nondimensional]
+  [nondimensional]
     type = CSVDiff
-    input = points.i
-    csvdiff = points_out.csv
+    input = points_nondimensional.i
+    csvdiff = points_nondimensional_out.csv
     detail = 'non-dimensional form'
     required_objects = 'NekRSProblem'
   []

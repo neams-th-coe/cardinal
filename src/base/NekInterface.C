@@ -1651,25 +1651,39 @@ void (*solutionPointer(const field::NekWriteEnum & field))(int, dfloat)
 }
 
 void
-initializeDimensionalScales(const double U_ref,
-                            const double T_ref,
-                            const double dT_ref,
-                            const double L_ref,
-                            const double rho_ref,
-                            const double Cp_ref)
+initializeDimensionalScales(const double U,
+                            const double T,
+                            const double dT,
+                            const double L,
+                            const double rho,
+                            const double Cp,
+                            const double s01,
+                            const double ds01,
+                            const double s02,
+                            const double ds02,
+                            const double s03,
+                            const double ds03)
 {
-  scales.U_ref = U_ref;
-  scales.T_ref = T_ref;
-  scales.dT_ref = dT_ref;
-  scales.L_ref = L_ref;
-  scales.A_ref = L_ref * L_ref;
-  scales.V_ref = L_ref * L_ref * L_ref;
-  scales.rho_ref = rho_ref;
-  scales.Cp_ref = Cp_ref;
-  scales.t_ref = L_ref / U_ref;
+  scales.U_ref = U;
+  scales.T_ref = T;
+  scales.dT_ref = dT;
+  scales.L_ref = L;
+  scales.A_ref = L * L;
+  scales.V_ref = L * L * L;
+  scales.rho_ref = rho;
+  scales.Cp_ref = Cp;
+  scales.t_ref = L / U;
+  scales.P_ref = rho * U * U;
 
-  scales.flux_ref = rho_ref * U_ref * Cp_ref * dT_ref;
-  scales.source_ref = scales.flux_ref / L_ref;
+  scales.s01_ref = s01;
+  scales.ds01_ref = ds01;
+  scales.s02_ref = s02;
+  scales.ds02_ref = ds02;
+  scales.s03_ref = s03;
+  scales.ds03_ref = ds03;
+
+  scales.flux_ref = rho * U * Cp * dT;
+  scales.source_ref = scales.flux_ref / L;
 }
 
 double
@@ -1727,6 +1741,12 @@ referenceAdditiveScale(const field::NekFieldEnum & field)
   {
     case field::temperature:
       return scales.T_ref;
+    case field::scalar01:
+      return scales.s01_ref;
+    case field::scalar02:
+      return scales.s02_ref;
+    case field::scalar03:
+      return scales.s03_ref;
     default:
       return 0;
   }
@@ -1742,22 +1762,28 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
     case field::velocity_z:
     case field::velocity:
     case field::velocity_component:
-      value = value * scales.U_ref;
+      value *= scales.U_ref;
       break;
     case field::velocity_x_squared:
     case field::velocity_y_squared:
     case field::velocity_z_squared:
-      value = value * scales.U_ref * scales.U_ref;
+      value *= scales.U_ref * scales.U_ref;
       break;
     case field::temperature:
-      value = value * scales.dT_ref;
+      value *= scales.dT_ref;
       break;
     case field::pressure:
-      value = value * scales.rho_ref * scales.U_ref * scales.U_ref;
+      value *= scales.P_ref;
       break;
     case field::scalar01:
+      value *= scales.ds01_ref;
+      break;
     case field::scalar02:
+      value *= scales.ds02_ref;
+      break;
     case field::scalar03:
+      value *= scales.ds03_ref;
+      break;
     case field::unity:
       // no dimensionalization needed
       break;

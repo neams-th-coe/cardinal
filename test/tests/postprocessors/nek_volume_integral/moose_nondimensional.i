@@ -1,6 +1,14 @@
 [Mesh]
-  type = FileMesh
-  file = ../meshes/pyramid.exo
+  [f]
+    type = FileMeshGenerator
+    file = ../meshes/pyramid.exo
+  []
+  [scale]
+    type = TransformGenerator
+    input = f
+    transform = scale
+    vector_value = '2 2 2'
+  []
 []
 
 [AuxVariables]
@@ -106,53 +114,89 @@
 []
 
 [Functions]
+  [xx]
+    type = ParsedFunction
+    expression = 'x/2'
+  []
+  [yy]
+    type = ParsedFunction
+    expression = 'y/2'
+  []
+  [zz]
+    type = ParsedFunction
+    expression = 'z/2'
+  []
   [temp]
     type = ParsedFunction
-    expression = 'exp(x)+sin(y)+x*y*z'
+    expression = '(exp(xx)+sin(yy)+xx*yy*zz)*100+10'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [scalar01]
     type = ParsedFunction
-    expression = 'exp(x)+sin(y)+x*y*z+1'
+    expression = '(exp(xx)+sin(yy)+xx*yy*zz+1)*150+15'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [scalar02]
     type = ParsedFunction
-    expression = 'exp(x)+sin(y)+x*y*z+2'
+    expression = '(exp(xx)+sin(yy)+xx*yy*zz+2)*200+20'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [scalar03]
     type = ParsedFunction
-    expression = 'exp(x)+sin(y)+x*y*z+3'
+    expression = '(exp(xx)+sin(yy)+xx*yy*zz+3)*300+30'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [pressure]
     type = ParsedFunction
-    expression = 'exp(x) + exp(y) + exp(z)'
+    expression = '(exp(xx) + exp(yy) + exp(zz))*(1000*0.2*0.2)'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [velocity]
      type = ParsedFunction
-     expression = 'sqrt(sin(x)*sin(x)+(y+1)*(y+1)+exp(x*y*z)*exp(x*y*z))'
+     expression = 'sqrt(vx^2+vy^2+vz^2)'
+     symbol_names = 'vx vy vz'
+     symbol_values = 'x_velocity y_velocity z_velocity'
   []
   [x_velocity]
     type = ParsedFunction
-    expression = 'sin(x)'
+    expression = 'sin(xx)*.2'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [y_velocity]
     type = ParsedFunction
-    expression = 'y+1'
+    expression = '(yy+1)*.2'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [z_velocity]
     type = ParsedFunction
-    expression = 'exp(x*y*z)'
+    expression = 'exp(xx*yy*zz)*.2'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [x_velocity2]
     type = ParsedFunction
-    expression = '(sin(x))^2'
+    expression = '(sin(xx)*.2)^2'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [y_velocity2]
     type = ParsedFunction
-    expression = '(y+1)^2'
+    expression = '((yy+1)*.2)^2'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [z_velocity2]
     type = ParsedFunction
-    expression = '(exp(x*y*z))^2'
+    expression = '(exp(xx*yy*zz)*.2)^2'
+    symbol_names = 'xx yy zz'
+    symbol_values = 'xx yy zz'
   []
   [velocity_component] # velocity along some generic direction (0.1, 0.2, -0.3)
     type = ParsedFunction
@@ -179,6 +223,9 @@
 []
 
 [Postprocessors]
+  [volume]
+    type = VolumePostprocessor
+  []
   [temp_int]
     type = ElementIntegralVariablePostprocessor
     variable = temp
@@ -230,8 +277,5 @@
   [velocity_component]
     type = ElementIntegralVariablePostprocessor
     variable = velocity_component
-  []
-  [volume]
-    type = VolumePostprocessor
   []
 []

@@ -41,6 +41,12 @@ DimensionalizeAction::validParams()
   // for passive scalars, these are typically dimensionalized as (T - T0) / dT
   params.addRangeCheckedParam<Real>("T", 0.0, "T >= 0.0", "Reference temperature");
   params.addRangeCheckedParam<Real>("dT", 1.0, "dT > 0.0", "Reference temperature difference");
+  params.addRangeCheckedParam<Real>("s01", 0.0, "s01 >= 0.0", "Reference scalar 1");
+  params.addRangeCheckedParam<Real>("ds01", 1.0, "ds01 > 0.0", "Reference scalar 1 difference");
+  params.addRangeCheckedParam<Real>("s02", 0.0, "s02 >= 0.0", "Reference scalar 2");
+  params.addRangeCheckedParam<Real>("ds02", 2.0, "ds02 > 0.0", "Reference scalar 2 difference");
+  params.addRangeCheckedParam<Real>("s03", 0.0, "s03 >= 0.0", "Reference scalar 3");
+  params.addRangeCheckedParam<Real>("ds03", 3.0, "ds03 > 0.0", "Reference scalar 3 difference");
   return params;
 }
 
@@ -49,13 +55,20 @@ DimensionalizeAction::DimensionalizeAction(const InputParameters & parameters)
     _U(getParam<Real>("U")),
     _T(getParam<Real>("T")),
     _dT(getParam<Real>("dT")),
+    _s01(getParam<Real>("s01")),
+    _ds01(getParam<Real>("ds01")),
+    _s02(getParam<Real>("s02")),
+    _ds02(getParam<Real>("ds02")),
+    _s03(getParam<Real>("s03")),
+    _ds03(getParam<Real>("ds03")),
     _L(getParam<Real>("L")),
     _rho(getParam<Real>("rho")),
     _Cp(getParam<Real>("Cp"))
 {
   // inform NekRS of the scaling that we are using; the NekInterface holds all
   // the reference scales and provides accessor methods
-  nekrs::initializeDimensionalScales(_U, _T, _dT, _L, _rho, _Cp);
+  nekrs::initializeDimensionalScales(
+      _U, _T, _dT, _L, _rho, _Cp, _s01, _ds01, _s02, _ds02, _s03, _ds03);
 }
 
 void
@@ -75,6 +88,17 @@ DimensionalizeAction::act()
     {
       checkUnusedParam(parameters(), "T", "NekRS case files do not have a temperature variable");
       checkUnusedParam(parameters(), "dT", "NekRS case files do not have a temperature variable");
+    }
+
+    // check if the scalars actually exist; we currently support 3 scalars
+    for (int i = 0; i < 3; ++i)
+    {
+      if (!nekrs::hasScalarVariable(i))
+      {
+        auto is = std::to_string(i);
+        checkUnusedParam(parameters(), "s0" + is, "NekRS case files do not have a SCALAR" + is);
+        checkUnusedParam(parameters(), "ds0" + is, "NekRS case files do not have a SCALAR" + is);
+      }
     }
 
     // It's too complicated to make sure that the dimensional form _also_ works when our
@@ -106,6 +130,16 @@ DimensionalizeAction::act()
       vt.addRow("Heat flux", "q'' / " + compress(nekrs::referenceFlux()));
       vt.addRow("Power density", "q / " + compress(nekrs::referenceSource()));
     }
+
+    // TODO: when we add coupling for scalars, we will need to add internal variables
+    // to hold reference scales for flux and source terms, in addition to the
+    // collecting the material property info for properly obtaining those values
+    if (nekrs::hasScalarVariable(1))
+      vt.addRow("Scalar 01", "(s - " + compress(_s01) + ") /" + compress(_ds01));
+    if (nekrs::hasScalarVariable(2))
+      vt.addRow("Scalar 02", "(s - " + compress(_s02) + ") /" + compress(_ds02));
+    if (nekrs::hasScalarVariable(3))
+      vt.addRow("Scalar 03", "(s - " + compress(_s03) + ") /" + compress(_ds03));
 
     vt.addRow("Density", "rho / " + compress(_rho));
     vt.addRow("Specific heat", "Cp / " + compress(_Cp));

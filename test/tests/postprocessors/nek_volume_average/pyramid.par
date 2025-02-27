@@ -5,7 +5,7 @@
   stopAt = numSteps
   numSteps = 1
   dt = 5.0e-4
-  polynomialOrder = 5
+  polynomialOrder = 1
   writeControl = steps
   writeInterval = 2
 
@@ -16,3 +16,13 @@
 
 [TEMPERATURE]
   solver = none
+
+[SCALAR01]
+  solver = none
+
+[SCALAR02]
+  solver = none
+
+[SCALAR03]
+  solver = none
+
