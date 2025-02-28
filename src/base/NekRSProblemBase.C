@@ -1313,7 +1313,8 @@ NekRSProblemBase::copyIndividualScratchSlot(const unsigned int & slot) const
 std::pair<unsigned int, unsigned int>
 NekRSProblemBase::scratchSpaceReservedForCoupling() const
 {
-  return std::make_pair(_first_reserved_usrwrk_slot, _first_reserved_usrwrk_slot + _minimum_scratch_size_for_coupling);
+  return std::make_pair(_first_reserved_usrwrk_slot,
+                        _first_reserved_usrwrk_slot + _minimum_scratch_size_for_coupling);
 }
 
 #endif

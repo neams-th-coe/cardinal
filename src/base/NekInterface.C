@@ -292,8 +292,7 @@ initializeScratch(const unsigned int & n_slots)
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
   nrs->usrwrk = (double *)calloc(n_slots * fieldOffset(), sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double),
-                                          nrs->usrwrk);
+  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double), nrs->usrwrk);
 
   n_usrwrk_slots = n_slots;
 }
@@ -1586,15 +1585,18 @@ checkFieldValidity(const field::NekFieldEnum & field)
       break;
     case field::usrwrk00:
       if (n_usrwrk_slots < 1)
-        mooseError("Cannot find 'usrwrk00' because you have only allocated 'n_usrwrk_slots = " + std::to_string(n_usrwrk_slots) + "'");
+        mooseError("Cannot find 'usrwrk00' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
       break;
     case field::usrwrk01:
       if (n_usrwrk_slots < 2)
-        mooseError("Cannot find 'usrwrk01' because you have only allocated 'n_usrwrk_slots = " + std::to_string(n_usrwrk_slots) + "'");
+        mooseError("Cannot find 'usrwrk01' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
       break;
     case field::usrwrk02:
       if (n_usrwrk_slots < 3)
-        mooseError("Cannot find 'usrwrk02' because you have only allocated 'n_usrwrk_slots = " + std::to_string(n_usrwrk_slots) + "'");
+        mooseError("Cannot find 'usrwrk02' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
       break;
   }
 }
@@ -1845,22 +1847,35 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
 
     case field::usrwrk00:
       if (is_nondimensional)
-        mooseDoOnce(mooseWarning("The units of 'usrwrk00' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk00'. The output for this quantity will be given in non-dimensional form.\n\nYou will need to manipulate the data manually from Cardinal if you need to dimensionalize it."));
+        mooseDoOnce(
+            mooseWarning("The units of 'usrwrk00' are unknown, so we cannot dimensionalize any "
+                         "objects using 'field = usrwrk00'. The output for this quantity will be "
+                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
+                         "manually from Cardinal if you need to dimensionalize it."));
       break;
     case field::usrwrk01:
       if (is_nondimensional)
-        mooseDoOnce(mooseWarning("The units of 'usrwrk01' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk01'. The output for this quantity will be given in non-dimensional form.\n\nYou will need to manipulate the data manually from Cardinal if you need to dimensionalize it."));
+        mooseDoOnce(
+            mooseWarning("The units of 'usrwrk01' are unknown, so we cannot dimensionalize any "
+                         "objects using 'field = usrwrk01'. The output for this quantity will be "
+                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
+                         "manually from Cardinal if you need to dimensionalize it."));
       break;
     case field::usrwrk02:
       if (is_nondimensional)
-        mooseDoOnce(mooseWarning("The units of 'usrwrk02' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk02'. The output for this quantity will be given in non-dimensional form.\n\nYou will need to manipulate the data manually from Cardinal if you need to dimensionalize it."));
+        mooseDoOnce(
+            mooseWarning("The units of 'usrwrk02' are unknown, so we cannot dimensionalize any "
+                         "objects using 'field = usrwrk02'. The output for this quantity will be "
+                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
+                         "manually from Cardinal if you need to dimensionalize it."));
       break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
 }
 
-void nondimensional(const bool n)
+void
+nondimensional(const bool n)
 {
   is_nondimensional = n;
 }
