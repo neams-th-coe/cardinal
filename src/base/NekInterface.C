@@ -24,6 +24,8 @@
 static nekrs::characteristicScales scales;
 static dfloat * sgeo;
 static dfloat * vgeo;
+static unsigned int n_usrwrk_slots;
+static bool is_nondimensional;
 nekrs::usrwrkIndices indices;
 
 namespace nekrs
@@ -67,7 +69,7 @@ setStartTime(const double & start)
 void
 write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
-  int num_bytes = scalarFieldOffset() * sizeof(dfloat);
+  int num_bytes = fieldOffset() * sizeof(dfloat);
 
   nrs_t * nrs = (nrs_t *)nrsPtr();
   occa::memory o_write = platform->device.malloc(num_bytes);
@@ -203,6 +205,15 @@ velocityFieldOffset()
   return nrs->fieldOffset;
 }
 
+int
+fieldOffset()
+{
+  if (hasTemperatureVariable())
+    return scalarFieldOffset();
+  else
+    return velocityFieldOffset();
+}
+
 mesh_t *
 entireMesh()
 {
@@ -272,7 +283,7 @@ void
 initializeScratch(const unsigned int & n_slots)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   // clear them just to be sure
   freeScratch();
@@ -280,9 +291,10 @@ initializeScratch(const unsigned int & n_slots)
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
-  nrs->usrwrk = (double *)calloc(n_slots * scalarFieldOffset(), sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(n_slots * scalarFieldOffset() * sizeof(double),
-                                          nrs->usrwrk);
+  nrs->usrwrk = (double *)calloc(n_slots * fieldOffset(), sizeof(double));
+  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double), nrs->usrwrk);
+
+  n_usrwrk_slots = n_slots;
 }
 
 void
@@ -1391,6 +1403,27 @@ scalar03(const int id)
 }
 
 double
+usrwrk00(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->usrwrk[id];
+}
+
+double
+usrwrk01(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->usrwrk[id + nrs->fieldOffset];
+}
+
+double
+usrwrk02(const int id)
+{
+  nrs_t * nrs = (nrs_t *)nrsPtr();
+  return nrs->usrwrk[id + 2 * nrs->fieldOffset];
+}
+
+double
 temperature(const int id)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
@@ -1550,6 +1583,21 @@ checkFieldValidity(const field::NekFieldEnum & field)
         mooseError("Cannot find 'scalar03' "
                    "because your Nek case files do not have a scalar03 variable!");
       break;
+    case field::usrwrk00:
+      if (n_usrwrk_slots < 1)
+        mooseError("Cannot find 'usrwrk00' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
+      break;
+    case field::usrwrk01:
+      if (n_usrwrk_slots < 2)
+        mooseError("Cannot find 'usrwrk01' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
+      break;
+    case field::usrwrk02:
+      if (n_usrwrk_slots < 3)
+        mooseError("Cannot find 'usrwrk02' because you have only allocated 'n_usrwrk_slots = " +
+                   std::to_string(n_usrwrk_slots) + "'");
+      break;
   }
 }
 
@@ -1605,6 +1653,15 @@ double (*solutionPointer(const field::NekFieldEnum & field))(int)
       break;
     case field::unity:
       f = &unity;
+      break;
+    case field::usrwrk00:
+      f = &usrwrk00;
+      break;
+    case field::usrwrk01:
+      f = &usrwrk01;
+      break;
+    case field::usrwrk02:
+      f = &usrwrk02;
       break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
@@ -1787,9 +1844,40 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
     case field::unity:
       // no dimensionalization needed
       break;
+
+    case field::usrwrk00:
+      if (is_nondimensional)
+        mooseDoOnce(
+            mooseWarning("The units of 'usrwrk00' are unknown, so we cannot dimensionalize any "
+                         "objects using 'field = usrwrk00'. The output for this quantity will be "
+                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
+                         "manually from Cardinal if you need to dimensionalize it."));
+      break;
+    case field::usrwrk01:
+      if (is_nondimensional)
+        mooseDoOnce(
+            mooseWarning("The units of 'usrwrk01' are unknown, so we cannot dimensionalize any "
+                         "objects using 'field = usrwrk01'. The output for this quantity will be "
+                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
+                         "manually from Cardinal if you need to dimensionalize it."));
+      break;
+    case field::usrwrk02:
+      if (is_nondimensional)
+        mooseDoOnce(
+            mooseWarning("The units of 'usrwrk02' are unknown, so we cannot dimensionalize any "
+                         "objects using 'field = usrwrk02'. The output for this quantity will be "
+                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
+                         "manually from Cardinal if you need to dimensionalize it."));
+      break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
+}
+
+void
+nondimensional(const bool n)
+{
+  is_nondimensional = n;
 }
 
 template <>

@@ -110,6 +110,7 @@ NekRSProblemBase::NekRSProblemBase(const InputParameters & params)
 
   const auto & actions = getMooseApp().actionWarehouse().getActions<DimensionalizeAction>();
   _nondimensional = actions.size();
+  nekrs::nondimensional(_nondimensional);
 
   if (_n_usrwrk_slots == 0)
     checkUnusedParam(params, "first_reserved_usrwrk_slot", "not reserving any scratch space");
@@ -1275,7 +1276,7 @@ NekRSProblemBase::copyScratchToDevice()
 {
   if (_minimum_scratch_size_for_coupling + _n_uo_slots > 0)
   {
-    auto n = nekrs::scalarFieldOffset();
+    auto n = nekrs::fieldOffset();
     auto nbytes = n * sizeof(dfloat);
 
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
@@ -1286,6 +1287,34 @@ NekRSProblemBase::copyScratchToDevice()
 
   if (nekrs::hasMovingMesh())
     nekrs::copyDeformationToDevice();
+}
+
+bool
+NekRSProblemBase::isUsrWrkSlotReservedForCoupling(const unsigned int & slot) const
+{
+  // if no slots have been allocated, then we know this slot has not been reserved
+  if (_minimum_scratch_size_for_coupling + _n_uo_slots == 0)
+    return false;
+
+  auto reserved = scratchSpaceReservedForCoupling();
+  return slot >= reserved.first && slot <= reserved.second;
+}
+
+void
+NekRSProblemBase::copyIndividualScratchSlot(const unsigned int & slot) const
+{
+  auto n = nekrs::fieldOffset();
+  auto nbytes = n * sizeof(dfloat);
+
+  nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();
+  nrs->o_usrwrk.copyFrom(nrs->usrwrk + slot * n, nbytes, slot * nbytes);
+}
+
+std::pair<unsigned int, unsigned int>
+NekRSProblemBase::scratchSpaceReservedForCoupling() const
+{
+  return std::make_pair(_first_reserved_usrwrk_slot,
+                        _first_reserved_usrwrk_slot + _minimum_scratch_size_for_coupling);
 }
 
 #endif

@@ -1,4 +1,7 @@
+#ifdef ENABLE_NEK_COUPLING
+
 #include "NekFieldInterface.h"
+#include "NekInterface.h"
 #include "UserErrorChecking.h"
 #include "GeometryUtils.h"
 
@@ -26,6 +29,9 @@ NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
     _velocity_component(moose_object->getParam<MooseEnum>("velocity_component")
                             .getEnum<component::BinnedVelocityComponentEnum>())
 {
+  // check that this field can be used given the problem parameters
+  nekrs::checkFieldValidity(_field);
+
   if (_field == field::velocity_component)
   {
     switch (_velocity_component)
@@ -54,3 +60,4 @@ NekFieldInterface::NekFieldInterface(const MooseObject * moose_object,
     checkUnusedParam(parameters, "velocity_component", "not using 'field = velocity_component'");
   }
 }
+#endif

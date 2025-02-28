@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+  n_usrwrk_slots = 4
   has_heat_source = false
 
   [Dimensionalize]
@@ -48,6 +49,18 @@
   [temp_average]
     type = NekVolumeAverage
     field = temperature
+  []
+  [u00_average]
+    type = NekVolumeAverage
+    field = usrwrk00
+  []
+  [u01_average]
+    type = NekVolumeAverage
+    field = usrwrk01
+  []
+  [u02_average]
+    type = NekVolumeAverage
+    field = usrwrk02
   []
   [s01_average]
     type = NekVolumeAverage

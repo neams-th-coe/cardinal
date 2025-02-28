@@ -1,6 +1,7 @@
 [Problem]
   type = NekRSProblem
   casename = 'pyramid'
+  n_usrwrk_slots = 4
   has_heat_source = false
 []
 
@@ -25,6 +26,18 @@
 []
 
 [Postprocessors]
+  [usrwrk00]
+    type = NekVolumeIntegral
+    field = usrwrk00
+  []
+  [usrwrk01]
+    type = NekVolumeIntegral
+    field = usrwrk01
+  []
+  [usrwrk02]
+    type = NekVolumeIntegral
+    field = usrwrk02
+  []
   [unity_int]
     type = NekVolumeIntegral
     field = unity

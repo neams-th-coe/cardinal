@@ -70,6 +70,12 @@ void checkFieldValidity(const field::NekFieldEnum & field);
 void setAbsoluteTol(double tol);
 
 /**
+ * Inform backend if dimensionalization should be performed
+ * @param[in] n if dimensionalize should be performed
+ */
+void nondimensional(const bool n);
+
+/**
  * Set the relative tolerance for checking energy conservation in data transfers to Nek
  * @param[in] tol tolerance
  */
@@ -208,6 +214,12 @@ int scalarFieldOffset();
  * @return velocity field offset
  */
 int velocityFieldOffset();
+
+/**
+ * Offset increment to use for generic slice indexing
+ * @return field offset
+ */
+int fieldOffset();
 
 /**
  * Get the "entire" NekRS mesh. For cases with a temperature scalar, this returns
@@ -781,11 +793,28 @@ double scalar02(const int id);
 double scalar03(const int id);
 
 /**
- * \brief Get the temperature solution at given GLL index
- *
- * Because nekRS stores all the passive scalars together in one flat array, this routine
- * simply indices into the entire passive scalar solution. In order to get temperature, you should
- * only index up to nrs->cds->fieldOffset.
+ * Get the usrwrk zeroth slice at given GLL index
+ * @param[in] id GLL index
+ * @return zeroth slice of usrwrk value at index
+ */
+double usrwrk00(const int id);
+
+/**
+ * Get the usrwrk first slice at given GLL index
+ * @param[in] id GLL index
+ * @return first slice of usrwrk value at index
+ */
+double usrwrk01(const int id);
+
+/**
+ * Get the usrwrk second slice at given GLL index
+ * @param[in] id GLL index
+ * @return second slice of usrwrk value at index
+ */
+double usrwrk02(const int id);
+
+/**
+ * Get the temperature solution at given GLL index
  * @param[in] id GLL index
  * @return temperature value at index
  */

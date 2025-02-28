@@ -54,17 +54,23 @@ public:
   bool isDataTransferHappening(ExternalProblem::Direction direction);
 
   /**
-   * Get the minimum scratch space required for coupling; this space is guaranteed to be filled
-   * with data incoming from MOOSE, like heat flux boundary conditions or mesh displacements
-   * @return minimum scratch space reserved for coupling
+   * Get the usrwrk slot indices that Cardinal plans to use for coupling
+   * @return [start, stop) of usrwrk slots used for coupling
    */
-  unsigned int minimumScratchSizeForCoupling() const { return _minimum_scratch_size_for_coupling; }
+  std::pair<unsigned int, unsigned int> scratchSpaceReservedForCoupling() const;
 
   /**
-   * Get the index of the first slot in the usrwrk that Cardinal is managing
-   * @return index of first slot
+   * Whether a given slot space is reserved for coupling
+   * @param[in] slot slot in usrwrk array
+   * @return whether a usrwrk slot space is reserved by Cardinal
    */
-  unsigned int firstReservedUsrwrkSlot() const { return _first_reserved_usrwrk_slot; }
+  bool isUsrWrkSlotReservedForCoupling(const unsigned int & slot) const;
+
+  /**
+   * Copy an individual slice in the usrwrk array from host to device
+   * @param[in] slot slot in usrwrk array
+   */
+  void copyIndividualScratchSlot(const unsigned int & slot) const;
 
   /// Send values from NekScalarValue userobjects to NekRS
   void sendScalarValuesToNek();

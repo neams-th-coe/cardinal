@@ -4,6 +4,12 @@
 []
 
 [AuxVariables]
+  [usrwrk00]
+  []
+  [usrwrk01]
+  []
+  [usrwrk02]
+  []
   [temp]
   []
   [pressure]
@@ -33,6 +39,21 @@
 []
 
 [ICs]
+  [usrwrk00]
+    type = FunctionIC
+    variable = usrwrk00
+    function = usrwrk00
+  []
+  [usrwrk01]
+    type = FunctionIC
+    variable = usrwrk01
+    function = usrwrk01
+  []
+  [usrwrk02]
+    type = FunctionIC
+    variable = usrwrk02
+    function = usrwrk02
+  []
   [temp]
     type = FunctionIC
     variable = temp
@@ -106,6 +127,18 @@
 []
 
 [Functions]
+  [usrwrk00]
+    type = ParsedFunction
+    expression = 'exp(x)+1'
+  []
+  [usrwrk01]
+    type = ParsedFunction
+    expression = 'exp(y)+1'
+  []
+  [usrwrk02]
+    type = ParsedFunction
+    expression = 'exp(z)+1'
+  []
   [temp]
     type = ParsedFunction
     expression = 'exp(x)+sin(y)+x*y*z'
@@ -179,6 +212,18 @@
 []
 
 [Postprocessors]
+  [usrwrk00_int]
+    type = ElementIntegralVariablePostprocessor
+    variable = usrwrk00
+  []
+  [usrwrk01_int]
+    type = ElementIntegralVariablePostprocessor
+    variable = usrwrk01
+  []
+  [usrwrk02_int]
+    type = ElementIntegralVariablePostprocessor
+    variable = usrwrk02
+  []
   [temp_int]
     type = ElementIntegralVariablePostprocessor
     variable = temp
