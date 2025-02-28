@@ -26,7 +26,7 @@
       type = RunException
       input = unknown.i
       cli_args = 'Postprocessors/usrwrk/field=usrwrk00 --error'
-      expect_err = 'The units of 'usrwrk00' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk00'.'
+      expect_err = "The units of 'usrwrk00' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk00'."
       detail = 'usrwrk slot 0'
       required_objects = 'NekRSProblem'
     []
@@ -34,7 +34,7 @@
       type = RunException
       input = unknown.i
       cli_args = 'Postprocessors/usrwrk/field=usrwrk01 --error'
-      expect_err = 'The units of 'usrwrk01' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk00'.'
+      expect_err = "The units of 'usrwrk01' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk01'."
       detail = 'usrwrk slot 1'
       required_objects = 'NekRSProblem'
     []
@@ -42,8 +42,8 @@
       type = RunException
       input = unknown.i
       cli_args = '--error'
-      expect_err = 'The units of 'usrwrk02' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk02'.'
-      detail = 'usrwrk slot 0'
+      expect_err = "The units of 'usrwrk02' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk02'."
+      detail = 'usrwrk slot 2'
       required_objects = 'NekRSProblem'
     []
   []

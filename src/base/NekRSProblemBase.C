@@ -1276,7 +1276,7 @@ NekRSProblemBase::copyScratchToDevice()
 {
   if (_minimum_scratch_size_for_coupling + _n_uo_slots > 0)
   {
-    auto n = nekrs::scalarFieldOffset();
+    auto n = nekrs::fieldOffset();
     auto nbytes = n * sizeof(dfloat);
 
     nrs_t * nrs = (nrs_t *)nekrs::nrsPtr();

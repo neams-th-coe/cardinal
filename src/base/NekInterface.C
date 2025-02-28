@@ -69,7 +69,7 @@ setStartTime(const double & start)
 void
 write_usrwrk_field_file(const int & slot, const std::string & prefix, const dfloat & time, const int & step, const bool & write_coords)
 {
-  int num_bytes = scalarFieldOffset() * sizeof(dfloat);
+  int num_bytes = fieldOffset() * sizeof(dfloat);
 
   nrs_t * nrs = (nrs_t *)nrsPtr();
   occa::memory o_write = platform->device.malloc(num_bytes);
@@ -205,6 +205,15 @@ velocityFieldOffset()
   return nrs->fieldOffset;
 }
 
+int
+fieldOffset()
+{
+  if (hasTemperatureVariable())
+    return scalarFieldOffset();
+  else
+    return velocityFieldOffset();
+}
+
 mesh_t *
 entireMesh()
 {
@@ -274,7 +283,7 @@ void
 initializeScratch(const unsigned int & n_slots)
 {
   nrs_t * nrs = (nrs_t *)nrsPtr();
-  mesh_t * mesh = temperatureMesh();
+  mesh_t * mesh = entireMesh();
 
   // clear them just to be sure
   freeScratch();
@@ -282,8 +291,8 @@ initializeScratch(const unsigned int & n_slots)
   // In order to make indexing simpler in the device user functions (which is where the
   // boundary conditions are then actually applied), we define these scratch arrays
   // as volume arrays.
-  nrs->usrwrk = (double *)calloc(n_slots * scalarFieldOffset(), sizeof(double));
-  nrs->o_usrwrk = platform->device.malloc(n_slots * scalarFieldOffset() * sizeof(double),
+  nrs->usrwrk = (double *)calloc(n_slots * fieldOffset(), sizeof(double));
+  nrs->o_usrwrk = platform->device.malloc(n_slots * fieldOffset() * sizeof(double),
                                           nrs->usrwrk);
 
   n_usrwrk_slots = n_slots;
