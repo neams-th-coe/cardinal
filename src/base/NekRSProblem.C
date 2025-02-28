@@ -99,21 +99,21 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
   int start = _usrwrk_indices.size();
   if (_boundary)
   {
-    indices.flux = start++ * nekrs::scalarFieldOffset();
+    indices.flux = start++ * nekrs::fieldOffset();
     _usrwrk_indices.push_back("heat flux");
   }
 
   if (_volume && _has_heat_source)
   {
-    indices.heat_source = start++ * nekrs::scalarFieldOffset();
+    indices.heat_source = start++ * nekrs::fieldOffset();
     _usrwrk_indices.push_back("heat source");
   }
 
   if (nekrs::hasBlendingSolver())
   {
-    indices.mesh_velocity_x = start++ * nekrs::scalarFieldOffset();
-    indices.mesh_velocity_y = start++ * nekrs::scalarFieldOffset();
-    indices.mesh_velocity_z = start++ * nekrs::scalarFieldOffset();
+    indices.mesh_velocity_x = start++ * nekrs::fieldOffset();
+    indices.mesh_velocity_y = start++ * nekrs::fieldOffset();
+    indices.mesh_velocity_z = start++ * nekrs::fieldOffset();
     _usrwrk_indices.push_back("mesh velocity x");
     _usrwrk_indices.push_back("mesh velocity y");
     _usrwrk_indices.push_back("mesh velocity z");
