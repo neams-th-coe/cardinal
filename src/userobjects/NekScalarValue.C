@@ -58,8 +58,7 @@ NekScalarValue::NekScalarValue(const InputParameters & parameters)
   }
 
   // pick a reasonable default if not specified
-  auto first_available_slot =
-      nek_problem->minimumScratchSizeForCoupling() + nek_problem->firstReservedUsrwrkSlot();
+  auto first_available_slot = nek_problem->scratchSpaceReservedForCoupling().second;
   if (isParamValid("usrwrk_slot"))
     _usrwrk_slot = getParam<unsigned int>("usrwrk_slot");
   else
