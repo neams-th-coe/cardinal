@@ -70,6 +70,13 @@ void checkFieldValidity(const field::NekFieldEnum & field);
 void setAbsoluteTol(double tol);
 
 /**
+ * Return the reference units for a usrwrk slot
+ * @param[in] slot usrwrk slot
+ * @return value by which to multiply the usrwrk slot to go from non-dimensional form into dimensional form
+ */
+Real scratchUnits(const int slot);
+
+/**
  * Inform backend if dimensionalization should be performed
  * @param[in] n if dimensionalize should be performed
  */
@@ -702,34 +709,34 @@ void storeBoundaryCoupling(const std::vector<int> & boundary_id, int & N);
 struct usrwrkIndices
 {
   /// boundary heat flux (for conjugate heat transfer)
-  int flux;
+  int flux = -1;
 
   /// volumetric heat source (for volumetric heating)
-  int heat_source;
+  int heat_source = -1;
 
   /// x-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_x;
+  int mesh_velocity_x = -1;
 
   /// y-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_y;
+  int mesh_velocity_y = -1;
 
   /// z-velocity of moving boundary (for mesh blending solver)
-  int mesh_velocity_z;
+  int mesh_velocity_z = -1;
 
   /// boundary velocity (for separate domain coupling)
-  int boundary_velocity;
+  int boundary_velocity = -1;
 
   /// boundary temperature (for separate domain coupling)
-  int boundary_temperature;
+  int boundary_temperature = -1;
 
   /// boundary scalar01 (for separate domain coupling)
-  int boundary_scalar01;
+  int boundary_scalar01 = -1;
 
   /// boundary scalar02 (for separate domain coupling)
-  int boundary_scalar02;
+  int boundary_scalar02 = -1;
 
   /// boundary scalar03 (for separate domain coupling)
-  int boundary_scalar03;
+  int boundary_scalar03 = -1;
 };
 
 /**

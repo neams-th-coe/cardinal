@@ -41,6 +41,16 @@ NekRSProblem::validParams()
       "heat flux boundary condition via Cardinal. Remember that this parameter is only used to "
       "normalize the 'avg_flux' variable, so you will need to populate an initial shape (magnitude "
       "is unimportant because it will be normalized by this parameter).");
+  params.addParam<Real>(
+      "initial_source_integral",
+      0,
+      "Initial value to use for the 'source_integral' postprocessor, to ensure power conservation; "
+      "this initial value will be overridden once the coupled app executes its transfer of the "
+      "volumetric power into the 'source_integral' postprocessor. You may want to use this parameter "
+      "if NekRS runs first, or if you are running NekRS in isolation but still want to apply a "
+      "power density via Cardinal. Remember that this parameter is only used to "
+      "normalize the 'heat_source' variable, so you will need to populate an initial shape (magnitude "
+      "is unimportant because it will be normalized by this parameter).");
 
   params.addParam<bool>("has_heat_source",
                         true,
@@ -78,7 +88,8 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     _conserve_flux_by_sideset(getParam<bool>("conserve_flux_by_sideset")),
     _abs_tol(getParam<Real>("normalization_abs_tol")),
     _rel_tol(getParam<Real>("normalization_rel_tol")),
-    _initial_flux_integral(getParam<Real>("initial_flux_integral"))
+    _initial_flux_integral(getParam<Real>("initial_flux_integral")),
+    _initial_source_integral(getParam<Real>("initial_source_integral"))
 {
   nekrs::setAbsoluteTol(getParam<Real>("normalization_abs_tol"));
   nekrs::setRelativeTol(getParam<Real>("normalization_rel_tol"));
@@ -88,6 +99,9 @@ NekRSProblem::NekRSProblem(const InputParameters & params)
     checkUnusedParam(params, "conserve_flux_by_sideset", "'boundary' is empty");
     checkUnusedParam(params, "initial_flux_integral", "'boundary' is empty");
   }
+
+  if (!_volume && !_has_heat_source)
+    checkUnusedParam(params, "initial_source_integral", "'volume' is false");
 
   // Determine the usrwrk indexing; the ordering will always be as
   // follows (except that unused terms will be deleted if not needed for coupling)
@@ -551,7 +565,7 @@ NekRSProblem::normalizeHeatSource(const double moose, double nek, double & norma
 void
 NekRSProblem::sendVolumeHeatSourceToNek()
 {
-  _console << "Sending volumetric heat source to NekRS" << std::endl;
+  _console << "Sending volumetric heat source to NekRS..." << std::endl;
 
   for (unsigned int e = 0; e < _n_volume_elems; e++)
   {
@@ -576,7 +590,7 @@ NekRSProblem::sendVolumeHeatSourceToNek()
   double normalized_nek_source = 0.0;
   bool successful_normalization;
 
-  _console << "Normalizing total NekRS heat source of "
+  _console << "[volume]: Normalizing total NekRS heat source of "
            << Moose::stringify(nek_source * nek_source_print_mult)
            << " to the conserved MOOSE value of " + Moose::stringify(moose_source) << std::endl;
 
@@ -784,6 +798,7 @@ NekRSProblem::addExternalVariables()
 
     // add the postprocessor that receives the source integral for normalization
     auto pp_params = _factory.getValidParams("Receiver");
+    pp_params.set<Real>("default") = _initial_source_integral;
     addPostprocessor("Receiver", "source_integral", pp_params);
   }
 
