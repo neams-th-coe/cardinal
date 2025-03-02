@@ -72,7 +72,8 @@ void setAbsoluteTol(double tol);
 /**
  * Return the reference units for a usrwrk slot
  * @param[in] slot usrwrk slot
- * @return value by which to multiply the usrwrk slot to go from non-dimensional form into dimensional form
+ * @return value by which to multiply the usrwrk slot to go from non-dimensional form into
+ * dimensional form
  */
 Real scratchUnits(const int slot);
 

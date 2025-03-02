@@ -46,10 +46,12 @@ NekRSProblem::validParams()
       0,
       "Initial value to use for the 'source_integral' postprocessor, to ensure power conservation; "
       "this initial value will be overridden once the coupled app executes its transfer of the "
-      "volumetric power into the 'source_integral' postprocessor. You may want to use this parameter "
+      "volumetric power into the 'source_integral' postprocessor. You may want to use this "
+      "parameter "
       "if NekRS runs first, or if you are running NekRS in isolation but still want to apply a "
       "power density via Cardinal. Remember that this parameter is only used to "
-      "normalize the 'heat_source' variable, so you will need to populate an initial shape (magnitude "
+      "normalize the 'heat_source' variable, so you will need to populate an initial shape "
+      "(magnitude "
       "is unimportant because it will be normalized by this parameter).");
 
   params.addParam<bool>("has_heat_source",

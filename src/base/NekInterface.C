@@ -1871,9 +1871,13 @@ scratchUnits(const int slot)
     // TODO: we are lazy and did not include all the usrwrk indices
 
     if (is_nondimensional)
-      mooseDoOnce(
-        mooseWarning("The units of 'usrwrk0" + std::to_string(slot) + "' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk0" + std::to_string(slot) + "'. The output for this quantity will be given in non-dimensional form.\n\nYou will need to manipulate the data manually from Cardinal if you need to dimensionalize it."));
-     return 1.0;
+      mooseDoOnce(mooseWarning(
+          "The units of 'usrwrk0" + std::to_string(slot) +
+          "' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk0" +
+          std::to_string(slot) +
+          "'. The output for this quantity will be given in non-dimensional form.\n\nYou will need "
+          "to manipulate the data manually from Cardinal if you need to dimensionalize it."));
+    return 1.0;
   }
 }
 
