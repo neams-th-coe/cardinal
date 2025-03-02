@@ -1846,32 +1846,38 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
       break;
 
     case field::usrwrk00:
-      if (is_nondimensional)
-        mooseDoOnce(
-            mooseWarning("The units of 'usrwrk00' are unknown, so we cannot dimensionalize any "
-                         "objects using 'field = usrwrk00'. The output for this quantity will be "
-                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
-                         "manually from Cardinal if you need to dimensionalize it."));
+      value *= scratchUnits(0);
       break;
     case field::usrwrk01:
-      if (is_nondimensional)
-        mooseDoOnce(
-            mooseWarning("The units of 'usrwrk01' are unknown, so we cannot dimensionalize any "
-                         "objects using 'field = usrwrk01'. The output for this quantity will be "
-                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
-                         "manually from Cardinal if you need to dimensionalize it."));
+      value *= scratchUnits(1);
       break;
     case field::usrwrk02:
-      if (is_nondimensional)
-        mooseDoOnce(
-            mooseWarning("The units of 'usrwrk02' are unknown, so we cannot dimensionalize any "
-                         "objects using 'field = usrwrk02'. The output for this quantity will be "
-                         "given in non-dimensional form.\n\nYou will need to manipulate the data "
-                         "manually from Cardinal if you need to dimensionalize it."));
+      value *= scratchUnits(2);
       break;
     default:
       throw std::runtime_error("Unhandled 'NekFieldEnum'!");
   }
+}
+
+Real
+scratchUnits(const int slot)
+{
+  if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
+    return scales.flux_ref;
+  else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
+    return scales.source_ref;
+  else if (is_nondimensional)
+  {
+    // TODO: we are lazy and did not include all the usrwrk indices
+    mooseDoOnce(mooseWarning(
+        "The units of 'usrwrk0" + std::to_string(slot) +
+        "' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk0" +
+        std::to_string(slot) +
+        "'. The output for this quantity will be given in non-dimensional form.\n\nYou will need "
+        "to manipulate the data manually from Cardinal if you need to dimensionalize it."));
+  }
+
+  return 1.0;
 }
 
 void

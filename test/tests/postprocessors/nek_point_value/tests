@@ -1,6 +1,6 @@
 [Tests]
   design = 'NekPointValue.md'
-  issues = '#1015 #1016'
+  issues = '#1015 #1016 #1079'
 
   [pp]
     requirement = 'The system shall interpolate the NekRS solution onto a given point. This is tested by analytically comparing known initial conditions from NekRS against function evaluations for'
@@ -18,7 +18,15 @@
       detail = 'non-dimensional form'
       required_objects = 'NekRSProblem'
     []
+    [usrwrk_units]
+      type = CSVDiff
+      input = usrwrk_units.i
+      csvdiff = usrwrk_units_out.csv
+      requirement = 'non-dimensional scaling of usrwrk slots for which the units are known'
+      required_objects = 'NekRSProblem'
+    []
   []
+
 
   [warn]
     requirement = 'The system shall warn the user if dimensionalization is requested and cannot be performed, for'
