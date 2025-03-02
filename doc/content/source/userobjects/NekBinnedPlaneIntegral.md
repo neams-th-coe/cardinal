@@ -85,6 +85,10 @@ It is recommended to set `map_space_by_qp = true` for this user object; otherwis
 all the GLL points in an element with centroid closer than $\Delta/2$ to the gap
 plane will contribute to the plane integral.
 
+!alert tip
+You can visualize this user object (i.e., the bin
+integrals) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 As an example, the input below defines side bins as the gap planes in

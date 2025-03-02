@@ -30,6 +30,10 @@ of more use for other postprocessors).
 
 !include spatial_bins.md
 
+!alert tip
+To help with debugging, you can visualize this user object (i.e., the bin
+averages) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 As an example, the input below defines three individual bin distributions

@@ -31,6 +31,10 @@ Setting `field = unity` is equivalent to computing the area.
 
 !include spatial_bins.md
 
+!alert tip
+You can visualize this user object (i.e., the bin
+averages) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 As an example, the input below defines three individual bin distributions

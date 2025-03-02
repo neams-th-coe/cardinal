@@ -1,0 +1,46 @@
+#include "udf.hpp"
+
+#define Re 500
+#define pin_outer_radius 0.4e-2
+#define pin_pitch 0.908e-2
+#define flow_area 2.11354E-5
+#define mu 2.37e-4
+#define rho 834.5
+
+dfloat inlet_velocity()
+{
+  dfloat wetted_perimeter = 6 * pin_pitch / std::sqrt(3.0) + M_PI * 2.0 * pin_outer_radius;
+  dfloat hydraulic_d = 4 * flow_area / wetted_perimeter;
+
+  return Re * mu / hydraulic_d / rho;
+}
+
+void UDF_LoadKernels(occa::properties & kernelInfo)
+{
+  kernelInfo["defines/Vz"] = inlet_velocity();
+
+  // inlet temperature
+  kernelInfo["defines/inlet_T"] = 628.15;
+}
+
+void UDF_Setup(nrs_t *nrs)
+{
+  auto mesh = nrs->cds->mesh[0];
+
+  dfloat inlet_Vz = inlet_velocity();
+
+  // loop over all the GLL points and assign directly to the solution arrays by
+  // indexing according to the field offset necessary to hold the data for each
+  // solution component
+  int n_gll_points = mesh->Np * mesh->Nelements;
+  for (int n = 0; n < n_gll_points; ++n)
+  {
+    nrs->U[n + 0 * nrs->fieldOffset] = 0.0; // x-velocity
+    nrs->U[n + 1 * nrs->fieldOffset] = 0.0; // y-velocity
+    nrs->U[n + 2 * nrs->fieldOffset] = inlet_Vz; // z-velocity
+
+    nrs->P[n] = 0.0; // pressure
+
+    nrs->cds->S[n + 0 * nrs->cds->fieldOffset[0]] = 628.15; // temperature
+  }
+}
