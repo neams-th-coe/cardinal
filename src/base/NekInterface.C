@@ -1862,23 +1862,22 @@ dimensionalize(const field::NekFieldEnum & field, double & value)
 Real
 scratchUnits(const int slot)
 {
-  if (slot == indices.flux / nekrs::fieldOffset())
+  if (indices.flux != -1 && slot == indices.flux / nekrs::fieldOffset())
     return scales.flux_ref;
-  else if (slot == indices.heat_source / nekrs::fieldOffset())
+  else if (indices.heat_source != -1 && slot == indices.heat_source / nekrs::fieldOffset())
     return scales.source_ref;
-  else
+  else if (is_nondimensional)
   {
     // TODO: we are lazy and did not include all the usrwrk indices
-
-    if (is_nondimensional)
-      mooseDoOnce(mooseWarning(
-          "The units of 'usrwrk0" + std::to_string(slot) +
-          "' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk0" +
-          std::to_string(slot) +
-          "'. The output for this quantity will be given in non-dimensional form.\n\nYou will need "
-          "to manipulate the data manually from Cardinal if you need to dimensionalize it."));
-    return 1.0;
+    mooseDoOnce(mooseWarning(
+        "The units of 'usrwrk0" + std::to_string(slot) +
+        "' are unknown, so we cannot dimensionalize any objects using 'field = usrwrk0" +
+        std::to_string(slot) +
+        "'. The output for this quantity will be given in non-dimensional form.\n\nYou will need "
+        "to manipulate the data manually from Cardinal if you need to dimensionalize it."));
   }
+
+  return 1.0;
 }
 
 void
