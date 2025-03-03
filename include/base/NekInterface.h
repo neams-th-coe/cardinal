@@ -507,6 +507,18 @@ void dimensionalizeSideIntegral(const field::NekFieldEnum & integrand,
 double volumeIntegral(const field::NekFieldEnum & integrand,
                       const double & volume,
                       const nek_mesh::NekMeshEnum pp_mesh);
+/**
+ * Compute the volume integral of a given integrand over the mesh
+ * @param[in] integrand field to integrate
+ * @param[in] volume volume of the domain (only used for dimensionalizing temperature)
+ * @param[in] pp_mesh which NekRS mesh to operate on
+ * @return volume integral of a field
+ */
+double volumeIntegral(const field::NekFieldEnum & integrand,
+                      const Function * function,
+                      const double & volume,
+                      const Real & time,
+                      const nek_mesh::NekMeshEnum pp_mesh);
 
 /**
  * Compute the L^N norm of a given integrand over the mesh

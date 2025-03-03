@@ -19,6 +19,7 @@
 #ifdef ENABLE_NEK_COUPLING
 
 #include "NekVolumeIntegral.h"
+#include "NekInterface.h"
 
 registerMooseObject("CardinalApp", NekVolumeIntegral);
 
@@ -80,6 +81,10 @@ NekVolumeIntegral::getIntegralOnMesh(const nek_mesh::NekMeshEnum & mesh) const
     Real vz = nekrs::volumeIntegral(field::velocity_z, vol, mesh);
     Point velocity(vx, vy, vz);
     return _velocity_direction * velocity;
+  }
+  else if(_field == field::unity)
+  {
+    return nekrs::volumeIntegral(_field, _function, vol, _t, mesh);
   }
 
   return nekrs::volumeIntegral(_field, vol, mesh);

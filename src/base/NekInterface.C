@@ -1001,6 +1001,40 @@ volumeIntegral(const field::NekFieldEnum & integrand, const Real & volume,
 }
 
 double
+volumeIntegral(const field::NekFieldEnum & integrand,
+               const Function * function,
+               const Real & volume,
+               const Real & time,
+               const nek_mesh::NekMeshEnum pp_mesh)
+{
+  mesh_t * mesh = getMesh(pp_mesh);
+
+  double integral = 0.0;
+
+  double (*f)(int);
+  f = solutionPointer(integrand);
+
+  for (int k = 0; k < mesh->Nelements; ++k)
+  {
+    int offset = k * mesh->Np;
+
+    for (int v = 0; v < mesh->Np; ++v){
+      auto n = offset + v;
+      auto shift = evaluateFunctionOnMesh(mesh, function, time, n);
+      integral += f(offset + v) * vgeo[mesh->Nvgeo * offset + v + mesh->Np * JWID] * shift;
+    }
+  }
+
+  // sum across all processes
+  double total_integral;
+  MPI_Allreduce(&integral, &total_integral, 1, MPI_DOUBLE, MPI_SUM, platform->comm.mpiComm);
+
+  dimensionalizeVolumeIntegral(integrand, volume, total_integral);
+
+  return total_integral;
+}
+
+double
 area(const std::vector<int> & boundary_id, const nek_mesh::NekMeshEnum pp_mesh)
 {
   mesh_t * mesh = getMesh(pp_mesh);
