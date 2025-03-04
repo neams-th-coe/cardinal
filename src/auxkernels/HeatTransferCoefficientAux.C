@@ -24,11 +24,14 @@ InputParameters
 HeatTransferCoefficientAux::validParams()
 {
   InputParameters params = AuxKernel::validParams();
-  params.addRequiredParam<UserObjectName>("heat_flux", "User object containing the wall-average heat flux");
-  params.addRequiredParam<UserObjectName>("wall_T", "User object containing the wall-averaged temperature");
-  params.addRequiredParam<UserObjectName>("bulk_T", "User object containing the averaged bulk temperature");
-  params.addClassDescription(
-      "Helper auxiliary kernel to compute a heat transfer coefficient given user objects for heat flux, wall temperature, and bulk temperature.");
+  params.addRequiredParam<UserObjectName>("heat_flux",
+                                          "User object containing the wall-average heat flux");
+  params.addRequiredParam<UserObjectName>("wall_T",
+                                          "User object containing the wall-averaged temperature");
+  params.addRequiredParam<UserObjectName>("bulk_T",
+                                          "User object containing the averaged bulk temperature");
+  params.addClassDescription("Helper auxiliary kernel to compute a heat transfer coefficient given "
+                             "user objects for heat flux, wall temperature, and bulk temperature.");
   return params;
 }
 
