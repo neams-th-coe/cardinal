@@ -8,9 +8,13 @@ pin_power = 10e3                              # bundle power (kW)
 
 !include mesh.i
 
+[GlobalParams]
+  search_value_conflicts = false
+[]
+
 [Variables]
   [T]
-    initial_condition = 500.0
+    initial_condition = 1000.0
   []
 []
 
@@ -19,7 +23,7 @@ pin_power = 10e3                              # bundle power (kW)
     type = HeatConduction
     variable = T
   []
-  [source]
+  [source] # the "units" of a kernel in the heat equation are W/m^3, so we need to divide the power by the pellet volumes
     type = BodyForce
     variable = T
     function = ${fparse pin_power / (pi * (d_pellet * d_pellet / 4.0) * L)}
@@ -49,8 +53,7 @@ pin_power = 10e3                              # bundle power (kW)
     emissivity_secondary = 0.8
 
     # thermal conductivity of the gap material
-    gap_conductivity_function = k_sodium
-    gap_conductivity_function_variable = T
+    gap_conductivity = 60.0
 
     # geometric terms related to the gap
     gap_geometry_type = CYLINDER
@@ -60,72 +63,42 @@ pin_power = 10e3                              # bundle power (kW)
 []
 
 [BCs]
-  [pin_outer]
+  [duct]
     type = MatchedValueBC
     variable = T
-    v = nek_temp
-    boundary = '5'
-  []
-  [duct_inner]
-    type = MatchedValueBC
-    variable = T
-    v = nek_temp
+    v = nek_wall_temp
     boundary = '10'
   []
-[]
-
-[Functions]
-  [k_sodium]
-    type = ParsedFunction
-    expression = '1.1045e2 + -6.5112e-2 * t + 1.5430e-5 * t * t + -2.4617e-9 * t * t * t'
-  []
-  [k_HT9]
-    type = ParsedFunction
-    expression = 'if (t < 1030, 17.622 + 2.428e-2 * t - 1.696e-5 * t * t,
-                           12.027 + 1.218e-2 * t)'
-  []
-  [k_U]
-    type = ParsedFunction
-    expression = 'if (t < 255.4, 16.170,
-                            if (t < 1173.2, (5.907e-6 * t * t + 1.591e-2 * t + 11.712),
-                                             38.508))'
+  [pins]
+    type = CoupledConvectiveHeatFluxBC
+    variable = T
+    boundary = '5'
+    T_infinity = nek_bulk_temp
+    htc = h
   []
 []
 
 [Materials]
   [clad_and_duct]
-    type = HeatConductionMaterial
-    thermal_conductivity_temperature_function = k_HT9
-    temp = T
+    type = GenericConstantMaterial
+    prop_names = 'thermal_conductivity'
+    prop_values = '26'
     block = '1 10'
   []
   [pellet]
-    type = HeatConductionMaterial
-    thermal_conductivity_temperature_function = k_U
-    temp = T
+    type = GenericConstantMaterial
+    prop_names = 'thermal_conductivity'
+    prop_values = '23'
     block = '2 3'
   []
 []
 
-[VectorPostprocessors]
-  [flux]
-    type = VectorOfPostprocessors
-    postprocessors = 'pin_flux duct_flux'
-  []
-[]
-
 [Postprocessors]
-  [pin_flux]
+  [flux_integral] # evaluate the total heat flux for normalization
     type = SideDiffusiveFluxIntegral
     diffusivity = thermal_conductivity
     variable = T
-    boundary = '5'
-  []
-  [duct_flux]
-    type = SideDiffusiveFluxIntegral
-    diffusivity = thermal_conductivity
-    variable = T
-    boundary = '10'
+    boundary = '5 10'
   []
   [max_fuel_T]
     type = NodalExtremeValue
@@ -154,29 +127,45 @@ pin_power = 10e3                              # bundle power (kW)
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    input_files = 'nek_vpp.i'
+    input_files = 'nek_fluxflux.i'
     sub_cycling = true
     execute_on = timestep_end
   []
 []
 
 [Transfers]
-  [nek_temp] # grabs temperature from nekRS and stores it in nek_temp
+  [nek_bulk_temp] # grabs the Nek Tinf and stores it in nek_bulk_temp
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = bulk_temp
+    from_multi_app = nek
+    variable = nek_bulk_temp
+    to_blocks = '1'
+  []
+  [nek_wall_temp] # grabs the Nek wall temperature and stores it in nek_wall_temp
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     from_multi_app = nek
-    variable = nek_temp
+    variable = nek_wall_temp
+    to_boundaries = '5 10'
+  []
+  [h] # grabs the heat transfer coefficient and stores it in h
+    type = MultiAppGeneralFieldNearestLocationTransfer
+    source_variable = h
+    from_multi_app = nek
+    variable = h
+    to_boundaries = '5'
   []
   [avg_flux] # sends heat flux in avg_flux to nekRS
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = avg_flux
     to_multi_app = nek
     variable = avg_flux
+    from_boundaries = '5 10'
   []
   [flux_integral_to_nek] # sends the heat flux integral (for normalization) to nekRS
-    type = MultiAppReporterTransfer
-    to_reporters = 'flux_integral/value'
-    from_reporters = 'flux/flux'
+    type = MultiAppPostprocessorTransfer
+    to_postprocessor = flux_integral
+    from_postprocessor = flux_integral
     to_multi_app = nek
   []
   [synchronize_in]
@@ -188,15 +177,21 @@ pin_power = 10e3                              # bundle power (kW)
 []
 
 [AuxVariables]
-  [nek_temp]
+  [nek_wall_temp]
     initial_condition = 500.0
+  []
+  [nek_bulk_temp]
+    initial_condition = 400.0
+  []
+  [h]
+    initial_condition = 1000
   []
   [avg_flux]
     family = MONOMIAL
     order = CONSTANT
+    block = '1 10'
   []
 []
-
 
 [AuxKernels]
   [avg_flux]
@@ -211,15 +206,16 @@ pin_power = 10e3                              # bundle power (kW)
 
 [Executioner]
   type = Transient
-  dt = 5e-3
-  num_steps = 10
+  dt = 5e-2
   nl_abs_tol = 1e-5
   nl_rel_tol = 1e-16
   petsc_options_value = 'hypre boomeramg'
   petsc_options_iname = '-pc_type -pc_hypre_type'
+
+  steady_state_detection = true
+  steady_state_tolerance = 1e-2
 []
 
 [Outputs]
   exodus = true
-  execute_on = 'final'
 []

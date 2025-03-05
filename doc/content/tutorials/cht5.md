@@ -387,7 +387,7 @@ heat transfer coefficient computed by NekRS is somewhere in the vicinity of 198.
 Nusselt number - but for more realistic engineering geometries, such correlations
 may not yet exist!
 
-We need to compute three quantities - $q^{''}$, $T_{\text{wall}$, and $T_{\text{bulk}}$.
+We need to compute three quantities - $q^{''}$, $T_{\text{wall}}$, and $T_{\text{bulk}}$.
 For illustration, we'll compute these as a function of space, and divide up the sphere into 5 axial layers. This is shown conceptually below for the fluid domain (left) and solid domain (right). For each layer, we'll compute (i) the average wall temperature from NekRS, (ii) the average bulk temperature from NekRS, and (iii) the average wall heat flux from MOOSE.
 
 !media pebble_htc.png

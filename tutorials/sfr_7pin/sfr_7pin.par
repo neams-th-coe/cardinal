@@ -4,7 +4,7 @@
   dt = 5.0e-4
   timeStepper = tombo2
   writeControl = steps
-  writeInterval = 25
+  writeInterval = 1000
   polynomialOrder = 3
 
 [VELOCITY]
