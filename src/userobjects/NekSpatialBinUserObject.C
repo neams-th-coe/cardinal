@@ -203,11 +203,7 @@ NekSpatialBinUserObject::computeBinVolumes()
         std::string map = _map_space_by_qp ? "GLL points" : "element centroids";
         mooseError("Failed to map any " + map + " to bin " + Moose::stringify(i) +
                    "!\n\n"
-                   "This can happen if the bins are much finer than the NekRS mesh or if the bins "
-                   "are defined\n"
-                   "in a way that results in bins entirely outside the NekRS domain. You can turn "
-                   "this error\n"
-                   "off by setting 'check_zero_contributions = false'.");
+                   "This can happen if the bins are much finer than the NekRS mesh or if the bins are defined in a way that results in bins entirely outside the NekRS domain. You can turn this error off by setting 'check_zero_contributions = false' (at your own risk!).");
       }
     }
   }
