@@ -5,20 +5,17 @@
     input = solid.i
     cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Mesh/fuel/nt=4 Mesh/extrude/num_layers=5'
     detail = "temperature and flux boundary conditions."
-    prereq = mesh
   []
   [solid_fluxflux]
     type = RunApp
     input = solid_fluxflux.i
     cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Mesh/fuel/nt=4 Mesh/extrude/num_layers=5'
     detail = "conductive and convective flux boundary conditions."
-    prereq = mesh
   []
   [solid_vpp]
     type = RunApp
     input = solid_vpp.i
     cli_args = 'MultiApps/active="" Transfers/active="" Executioner/num_steps=1 Mesh/fuel/nt=4 Mesh/extrude/num_layers=5'
     detail = "temperature and flux boundary conditions with power conservation on a per-sideset basis."
-    prereq = mesh
   []
 []
