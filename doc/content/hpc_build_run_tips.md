@@ -6,7 +6,7 @@ Cardinal has several dependancies, and so compiling it on HPC systems can be a d
 
 ## Resources and Tips for Building
 
-Almost all HPC systems use [Lmod](https://lmod.readthedocs.io/en/latest/), which is a Lua-based environment management system. Whenever you load modules using Lmod the binary location for each program or library is added to your system `PATH`. When you remove modules the location is remove from your system `PATH`. You'll use Lmod to load the modules you need to build Cardinal - some helpful commands include:
+Almost all HPC systems use [Lmod](https://lmod.readthedocs.io/en/latest/), which is a Lua-based environment management system. Whenever you load modules using Lmod the binary location for each program or library is added to your system `PATH`. When you remove modules the location is removed from your system `PATH`. You'll use Lmod to load the modules you need to build Cardinal - some helpful commands include:
 
 - `module list MOD_NAME`, shows you any modules currently loaded which include `MOD_NAME`. If you don't specify a module name it shows all currently loaded modules.
 - `module spider MOD_NAME`, shows you all available modules which include `MOD_NAME`. If you don't specify a module name it will show you all available modules on the HPC (not recommended!).
@@ -124,7 +124,7 @@ nohup make -j8 MAKEFLAGS=-j8 &
 
 to build MOOSE, Cardinal, and all of Cardinal's dependencies. Occasionally the MOOSE Solid Mechanics module will fail to build due to missing `F77` compilers. If that is the case, you can either find mpif77 compilers in a different module set or disable the Solid Mechanics module by setting `SOLID_MECHANICS := no` in Cardinal's makefile. The only MOOSE module you absolutely must have enabled is the `REACTOR` module (some of Cardinal's source files link against utilities in that module). Otherwise, feel free to disable all others.
 
-If you got an exeutable after following this guide (`cardinal-opt` or `cardinal-dbg`), congratulations! You have successfully built Cardinal on a new HPC system.
+If you got an executable after following this guide (`cardinal-opt` or `cardinal-dbg`), congratulations! You have successfully built Cardinal on a new HPC system.
 
 ## Building on a Compute Node id=build_compute
 
@@ -263,7 +263,7 @@ general tips for running Cardinal with reasonable performance:
   - As an example: for 10 compute node job on a HPC system with 8 numa nodes per compute node and 128 hardware threads per compute node you would use
     `mpirun -np 80 --bind-to numa --map-by numa $CARDINAL_DIR/cardinal-opt -i $input_file --num-threads=16`
 
-- If running exclusively with NekRS, consule the [scripts directory of the NekRS repository](https://github.com/Nek5000/nekRS/tree/master/scripts). They
+- If running exclusively with NekRS, consult the [scripts directory of the NekRS repository](https://github.com/Nek5000/nekRS/tree/master/scripts). They
   have jobscripts for several performance-optimized GPU enabled HPC systems which can serve as a template for writing your own. Note that you will
   need to swap the `nekrs` executables with `cardinal-opt` to use these.
 - If running a OpenMC-NekRS simulation optimize performance for NekRS.
