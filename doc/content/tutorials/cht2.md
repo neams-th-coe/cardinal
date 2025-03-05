@@ -49,7 +49,7 @@ coupling options with NekRS -- for NekRS to send a convective heat flux to the s
 (the "flux-flux" coupling option) or for NekRS to send a wall temperature to
 the solid (the "flux-temperature" coupling option). We will first describe the
 "flux-temperature" option, and only show the input file modifications needed to
-achieve the "flux-flux" coupling towards the end in [fluxflux].
+achieve the "flux-flux" coupling towards the end in [#fluxflux].
 
 The gap region between the pellet and the cladding is unmeshed, and a quadrature-based
 thermal contact model is applied based on the sum of thermal conduction and thermal radiation
@@ -96,7 +96,6 @@ The initial pressure is set to zero. Both the velocity and temperature
 are set to uniform initial conditions that match the inlet conditions.
 
 ## Meshing
-  id=meshing
 
 ### Solid Mesh
 
@@ -443,7 +442,7 @@ The physics predictions are nearly identical to those displayed earlier.
 ## Flux-Flux Coupling Option
   id=fluxflux
 
-In this section, we modify the flux-temperature coupling from [fluxtemperature]
+In this section, we modify the flux-temperature coupling from [#fluxtemperature]
 to instead compute a convective heat flux with NekRS to apply to MOOSE as a Robin-type
 boundary condition,
 
