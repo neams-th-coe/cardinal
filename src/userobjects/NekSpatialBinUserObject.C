@@ -32,11 +32,9 @@ NekSpatialBinUserObject::validParams()
   params.addParam<unsigned int>(
       "interval",
       1,
-      "Frequency (in number of time steps) with which to execute this user object; "
-      "because Nek uses very small time steps, you need many time steps to reach "
-      "steady state, and user objects can be expensive and not necessary to evaluate "
-      "on every single time step. NOTE: you probably want to match this 'interval' "
-      "in the Output");
+      "Frequency (in number of time steps) with which to execute this user object; user objects "
+      "can be expensive and not necessary to evaluate on every single time step. NOTE: you "
+      "probably want to match with 'time_step_interval' in the Output");
   params.addParam<bool>(
       "map_space_by_qp",
       false,

@@ -13,6 +13,10 @@ or `growth_r` less than unity (layers shrink in size in increasing radial coordi
 For defining bins in an annular radial coordinate system, set `rmin` to the inner
 radial coordinate.
 
+!alert tip
+To help with debugging, you can visualize this user object (i.e., the bin
+indices) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 Below is an example input file that constructs layered bins in the radial

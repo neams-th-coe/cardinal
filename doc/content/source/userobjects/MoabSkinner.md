@@ -22,6 +22,10 @@ which to track particles.
   caption=Mesh skinning operation
   style=width:90%;margin-left:auto;margin-right:auto
 
+!alert tip
+You can visualize this user object (i.e., the bin
+indices) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 Below is an example input file that skins a mesh, generating the bin distributions

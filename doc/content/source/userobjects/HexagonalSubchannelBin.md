@@ -21,6 +21,10 @@ integrals/averages over subchannels. When using `pin_centered_bins = true`,
 this user object can be paired with side integrals/averages to compute quantities
 on the pin surfaces.
 
+!alert tip
+To help with debugging, you can visualize this user object (i.e., the bin
+indices) using a [SpatialUserObjectAux](SpatialUserObjectAux.md).
+
 ## Example Input Syntax
 
 Below is an example input file that computes channel indices (bins)
