@@ -3,8 +3,8 @@
 In this tutorial, you will learn how to:
 
 - Couple NekRS with MOOSE for [!ac](CHT) in a 7-pin bundle
-- Control how flux normalization is performed in NekRS (by either lumping all sidesets together,
-  or preserving for each sideset individually)
+- Use either the "flux-temperature" or "flux-flux" coupling modes
+- Control how flux normalization is performed in NekRS (by either lumping all sidesets together, or preserving for each sideset individually)
 - Reduce the amount of copy to/from commands between host and device for NekRS
   (an advanced user feature)
 
@@ -44,8 +44,12 @@ Relevant dimensions are summarized in
 
 The MOOSE heat transfer module is used to solve for [energy conservation in the solid](theory/heat_eqn.md).
 The outer surface of the duct and the tops and bottoms of the
-pins and ducts are insulated. At fluid-solid interfaces, the solid temperature
-is imposed as a Dirichlet condition (computed by NekRS).
+pins and ducts are insulated. In this tutorial, we will demonstrate two different
+coupling options with NekRS -- for NekRS to send a convective heat flux to the solid
+(the "flux-flux" coupling option) or for NekRS to send a wall temperature to
+the solid (the "flux-temperature" coupling option). We will first describe the
+"flux-temperature" option, and only show the input file modifications needed to
+achieve the "flux-flux" coupling towards the end in [#fluxflux].
 
 The gap region between the pellet and the cladding is unmeshed, and a quadrature-based
 thermal contact model is applied based on the sum of thermal conduction and thermal radiation
@@ -92,23 +96,28 @@ The initial pressure is set to zero. Both the velocity and temperature
 are set to uniform initial conditions that match the inlet conditions.
 
 ## Meshing
-  id=meshing
-
-MOOSE [MeshGenerators](Mesh/index.md) are used to generate the meshes for the fluid and solid phases.
 
 ### Solid Mesh
 
+MOOSE [MeshGenerators](Mesh/index.md) are used to generate the meshes for the solid.
+The same solid mesh will be used in the various different models in this tutorial,
+so we place the content to generate the mesh in `mesh.i`, and then include it
+from within the other files.
+
+!listing /tutorials/sfr_7pin/mesh.i
+
+!listing /tutorials/sfr_7pin/solid.i
+  end=Variables
+
 The solid mesh is shown in [solid_mesh]; the different regions in this mesh are first
-created in 2-D, and then extruded into 3-D.
-You can view this mesh by either (i) running the
-simulation (and viewing the mesh on which the results are displayed), or (ii) by running
-the solid input file in mesh generation mode, which will create an output file named
-`solid_in.e`:
+created in 2-D, and then extruded into 3-D. You can visualize the mesh when you
+run the simulations (in the output files), or you can generate it without running
+the simulation (if you wanted to view it separately from a simulation) by doing
 
 !listing
 cardinal-opt -i solid.i --mesh-only
 
-The boundary names are illustrated towards
+which will create the mesh as `solid_in.e`. The boundary names are illustrated towards
 the right by showing the highlighted surface to which each boundary corresponds.
 A unique block ID is used for the set of elements in the cladding,
 the duct, and for the pellet elements. Two block IDs are required to describe the pellet
@@ -141,9 +150,10 @@ using MOOSE's [Transfers](Transfers/index.md) handle any differences in the mesh
   caption=Mesh for the fluid portions of the 7-pin bare [!ac](SFR) bundle
   style=halign:center
 
-## CHT Coupling
+## Flux-Temperature CHT Coupling
+  id=fluxtemperature
 
-In this section, NekRS and MOOSE are coupled for [!ac](CHT).
+In this section, NekRS and MOOSE are coupled for [!ac](CHT) using the "flux-temperature" coupling mode.
 
 ### Solid Input Files
 
@@ -153,14 +163,7 @@ are defined as file-local variables to help with setting up the uniform heat
 source in the fuel.
 
 !listing tutorials/sfr_7pin/solid.i
-  end=Mesh
-
-Next, the solid mesh is specified through a combination of [MeshGenerators](Mesh/index.md).
-First, we make the geometry in 2-D, and then extrude it into 3-D. Many of the mesh
-generator objects are customizing the sideset names.
-
-!listing tutorials/sfr_7pin/solid.i
-  block=Mesh
+  end=Variables
 
 The heat transfer module will solve for temperature, which is defined as a nonlinear
 variable.
@@ -189,8 +192,7 @@ top of the file, with `${fparse <math statement>}` syntax.
   block=Kernels
 
 For computing the heat flux on the boundaries coupled to NekRS (the clad outer surface
-and the duct inner surface), the [DiffusionFluxAux](DiffusionFluxAux.md)
-auxiliary kernel is used.
+and the duct inner surface), we use a [DiffusionFluxAux](DiffusionFluxAux.md).
 
 !listing tutorials/sfr_7pin/solid.i
   block=AuxKernels
@@ -230,7 +232,9 @@ interpolation onto its [!ac](GLL) points).
 
 In addition to these three transfers necessary to couple NekRS with MOOSE,
 there is a fourth transfer - `synchronize_in`, which transfers the `synchronize`
-postprocessor to NekRS. The `synchronize` postprocessor
+postprocessor to NekRS. This is an *optional* transfer and is only used for
+performance reasons to reduce the number of data transfers.
+The `synchronize` postprocessor
 is simply a [Receiver](Receiver.md)
 postprocessor that is set to a value of 1. No applications will transfer anything
 *in* to `synchronize`, so the value of this postprocessor remains always fixed
@@ -434,3 +438,93 @@ mpirun -np 4 cardinal-opt -i solid_vpp.i
 ```
 
 The physics predictions are nearly identical to those displayed earlier.
+
+## Flux-Flux Coupling Option
+  id=fluxflux
+
+In this section, we modify the flux-temperature coupling from [#fluxtemperature]
+to instead compute a convective heat flux with NekRS to apply to MOOSE as a Robin-type
+boundary condition,
+
+\begin{equation}
+\label{eq:hf}
+q''=h(T_w-T_\infty)
+\end{equation}
+
+where $q''$ is the heat flux that will be imposed on the solid boundaries, $h$
+is the convective heat transfer coefficient, $T_w$ is NekRS's wall temperature,
+and $T_\infty$ is NekRS's bulk temperature. To use this flux-flux coupling option,
+we don't need any changes to Cardinal's source code -- instead, we simply need to
+add user objects to the fluid input files to comput $h$ and $T_\infty$.
+A [previous tutorial](cht5.md) showed how to compute a heat transfer coefficient
+with NekRS; we will use this same foundation now to compute $h$ and then apply this
+alternative boundary condition to our solid app.
+
+### Fluid Input Files
+
+The fluid input files are mostly the same as the case with temperature-flux coupling,
+so we will only focus on the aspects which are different.
+
+To compute the quantities in Eq. \eqref{eq:hf}, we need to add a few user objects to
+our Nek wrapping file. We will do so in the `nek_fluxflux.i` file. For our
+heat transfer coefficient, we will compute the heat transfer coefficient (ideally
+as a function of space, since it varies with position and this will yield a more
+accurate coupling).
+First, we need to define how NekRS's mesh will be "chunked" for this calculation.
+We will add a [HexagonalSubchannelBin](HexagonalSubchannelBin.md) to define
+the volumetric regions of space in the $x-y$ plane and a
+[LayeredBin](LayeredBin.md) to define the volumetric regions of space in the
+axial direction. Together, these binnings are combined to chunk 3-D space.
+Then, we simply add additional user objects to compute the necessary terms
+in Eq. \eqref{eq:hf}:
+
+- [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average heat flux on the pin surfaces (one unique calculation for each axial layer and for each subchannel). The heat flux from MOOSE is written into the zeroth slot in the `nrs->usrwrk` array, which we indicate as the field we want to average by setting `field = usrwrk00`.
+- [NekBinnedSideAverage](NekBinnedSideAverage.md) to compute the average wall temperature on the pin surfaces (one unique calculation for each axial layer and for each subchannel). We indicate temperature by setting `field = temperature`.
+- [NekBinnedVolumeAverage](NekBinnedVolumeAverage.md) to compute the average bulk temperature over the subchannel volumes (one unique calculation for each axial layer and for each subchannel). We indicate temperature by setting `field = temperature`.
+
+!listing /tutorials/sfr_7pin/nek_fluxflux.i
+  block=UserObjects
+
+Then, we use these user objects to compute a heat transfer coefficient using
+[HeatTransferCoefficientAux](HeatTransferCoefficientAux.md). This heat transfer
+coefficient will get passed to the solid input file, along the the bulk
+temperature, for use in the convective flux boundary condition.
+
+### Solid Input Files
+
+The solid input files are mostly the same as the case with temperature-flux coupling,
+so we will only focus on the aspects which are different. First, we will use
+a convective heat flux boundary condition on the pin surfaces (for illustration,
+we'll leave the Dirichlet temperature condition on the duct inner surface to show
+that you can mix-and-match as you please).
+
+!listing /tutorials/sfr_7pin/solid_fluxflux.i
+  block=BCs
+
+The variables, `h` and `nek_bulk_temp`, are fetched from transfers with the NekRS
+sub-application. The [MultiAppGeneralFieldUserObjectTransfer](MultiAppGeneralFieldUserObjectTransfer.md) object will directly evaluate the userobject which computed
+the bulk temperature, at the quadrature points in the solid mesh. The only
+other new transfer is passing the variable containing the heat transfer
+coefficient, using a [MultiAppGeneralFieldNearestLocationTransfer](MultiAppGeneralFieldNearestLocationTransfer.md).
+
+!listing /tutorials/sfr_7pin/solid_fluxflux.i
+  block=Transfers
+
+### Execution and Postprocessing
+
+To run the pseudo-steady model,
+
+```
+mpiexec -np 4 cardinal-opt -i solid_fluxflux.i
+```
+
+The results are very similar (though not identical) to the flux-temperature coupling
+case, because we have to chunk up space in order to compute a heat transfer
+coefficient. This discretization can be faintly seen in the flux-flux results
+(though can be diminished by simply using a finer spatial chunking for the
+heat transfer coefficient).
+
+!media flux_temp.png
+  id=flux_temp
+  caption=Solid temperature predicted when solving conjugate heat transfer with NekRS using (i) flux-temperature coupling from the earlier part of this tutorial or (ii) flux-flux coupling.
+  style=halign:center

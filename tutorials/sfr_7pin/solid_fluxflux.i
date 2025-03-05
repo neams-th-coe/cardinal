@@ -14,7 +14,7 @@ pin_power = 10e3                              # bundle power (kW)
 
 [Variables]
   [T]
-    initial_condition = 500.0
+    initial_condition = 1000.0
   []
 []
 
@@ -63,11 +63,18 @@ pin_power = 10e3                              # bundle power (kW)
 []
 
 [BCs]
-  [pin_and_duct]
+  [duct]
     type = MatchedValueBC
     variable = T
-    v = nek_temp
-    boundary = '5 10'
+    v = nek_wall_temp
+    boundary = '10'
+  []
+  [pins]
+    type = CoupledConvectiveHeatFluxBC
+    variable = T
+    boundary = '5'
+    T_infinity = nek_bulk_temp
+    htc = h
   []
 []
 
@@ -120,19 +127,33 @@ pin_power = 10e3                              # bundle power (kW)
 [MultiApps]
   [nek]
     type = TransientMultiApp
-    input_files = 'nek.i'
+    input_files = 'nek_fluxflux.i'
     sub_cycling = true
     execute_on = timestep_end
   []
 []
 
 [Transfers]
-  [nek_temp] # grabs temperature from nekRS and stores it in nek_temp
+  [nek_bulk_temp] # grabs the Nek Tinf and stores it in nek_bulk_temp
+    type = MultiAppGeneralFieldUserObjectTransfer
+    source_user_object = bulk_temp
+    from_multi_app = nek
+    variable = nek_bulk_temp
+    to_blocks = '1'
+  []
+  [nek_wall_temp] # grabs the Nek wall temperature and stores it in nek_wall_temp
     type = MultiAppGeneralFieldNearestLocationTransfer
     source_variable = temp
     from_multi_app = nek
-    variable = nek_temp
+    variable = nek_wall_temp
     to_boundaries = '5 10'
+  []
+  [h] # grabs the heat transfer coefficient and stores it in h
+    type = MultiAppGeneralFieldNearestLocationTransfer
+    source_variable = h
+    from_multi_app = nek
+    variable = h
+    to_boundaries = '5'
   []
   [avg_flux] # sends heat flux in avg_flux to nekRS
     type = MultiAppGeneralFieldNearestLocationTransfer
@@ -156,8 +177,14 @@ pin_power = 10e3                              # bundle power (kW)
 []
 
 [AuxVariables]
-  [nek_temp]
+  [nek_wall_temp]
     initial_condition = 500.0
+  []
+  [nek_bulk_temp]
+    initial_condition = 400.0
+  []
+  [h]
+    initial_condition = 1000
   []
   [avg_flux]
     family = MONOMIAL
