@@ -22,7 +22,7 @@
       type = CSVDiff
       input = usrwrk_units.i
       csvdiff = usrwrk_units_out.csv
-      requirement = 'non-dimensional scaling of usrwrk slots for which the units are known'
+      detail = 'non-dimensional scaling of usrwrk slots for which the units are known'
       required_objects = 'NekRSProblem'
     []
   []
