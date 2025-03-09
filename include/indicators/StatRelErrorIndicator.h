@@ -1,3 +1,4 @@
+/********************************************************************/
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
@@ -17,27 +18,23 @@
 
 #pragma once
 
-#include "ErrorFractionMarker.h"
+#include "OpenMCIndicator.h"
 
-#include "OpenMCBase.h"
+/**
+ * An Indicator which returns the maximum statistical error of a tally score in an element.
+ */
+ class StatRelErrorIndicator : public OpenMCIndicator
+ {
+ public:
+   static InputParameters validParams();
 
-class ErrorFractionLookAheadMarker : public ErrorFractionMarker,
-                                     public OpenMCBase
-{
-public:
-  static InputParameters validParams();
+   StatRelErrorIndicator(const InputParameters & parameters);
 
-  ErrorFractionLookAheadMarker(const InputParameters & parameters);
+   virtual void computeIndicator() override;
 
-  virtual void markerSetup() override;
-
-protected:
-  virtual MarkerValue computeElementMarker() override;
-
-  /// Upper relative error limit for refinement. If the "lookahead" for an element exceeds this
-  /// limit, don't refine. Otherwise, mark for refinement.
-  const Real & _rel_error_limit;
-
-  /// The relative error reported by an indicator.
-  ErrorVector & _rel_error_vec;
-};
+ protected:
+   /**
+    * The variables containing the tally score relative errors.
+    */
+   std::vector<const VariableValue *> _tally_rel_error;
+ };

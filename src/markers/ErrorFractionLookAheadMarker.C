@@ -28,9 +28,7 @@ ErrorFractionLookAheadMarker::validParams()
   params.addClassDescription("Marks elements for refinement or coarsening based on the fraction of "
                              "the min/max error from the supplied indicator and the relative error of a tally value.");
   params.addRequiredRangeCheckedParam<Real>("rel_error_refine", "0 <= rel_error_refine <= 1", "The relative error refinement threshold.");
-  params.addRequiredParam<MooseEnum>("tally_score",
-                                     getSingleTallyScoreEnum(),
-                                     "The tally score used for the relative error.");
+  params.addRequiredParam<IndicatorName>("stat_error_indicator", "The name of the statistical relative error Indicator that this Marker uses.");
 
   return params;
 }
@@ -38,44 +36,42 @@ ErrorFractionLookAheadMarker::validParams()
 ErrorFractionLookAheadMarker::ErrorFractionLookAheadMarker(const InputParameters & parameters)
   : ErrorFractionMarker(parameters),
     OpenMCBase(this, parameters),
-    _rel_error_limit(getParam<Real>("rel_error_refine"))
+    _rel_error_limit(getParam<Real>("rel_error_refine")),
+    _rel_error_vec(getErrorVector(parameters.get<IndicatorName>("stat_error_indicator")))
 {
-  std::string score = getParam<MooseEnum>("tally_score");
-  std::replace(score.begin(), score.end(), '_', '-');
+  if (_rel_error_vec.size() != _error_vector.size())
+    mooseError("The statistical relative error indicator and the spatial error indicator must act on the same subset of the mesh!");
+}
 
-  if (!_openmc_problem->hasScore(score))
-    paramError("tally_score",
-               "The problem does not contain any score named " +
-               std::string(getParam<MooseEnum>("tally_score")) +
-               "! Please "
-               "ensure that one of your [Tallies] is scoring the requested reaction rate.");
+void
+ErrorFractionLookAheadMarker::markerSetup()
+{
+  if (_clear_extremes)
+  {
+    _min = std::numeric_limits<Real>::max();
+    _max = 0;
+  }
 
-  if (!_openmc_problem->hasOutput(score, "rel_error"))
-    mooseError("The problem does not contain any tallies that output the relative error for the score "
-               + std::string(getParam<MooseEnum>("tally_score")) + "!");
+  // First find the max and min error
+  for (unsigned int i = 0; i < _rel_error_vec.size(); ++i)
+  {
+    if (_rel_error_vec[i] < _rel_error_limit)
+    {
+      _min = std::min(_min, static_cast<Real>(_error_vector[i]));
+      _max = std::max(_max, static_cast<Real>(_error_vector[i]));
+    }
+  }
 
-  // Check to ensure the reaction rate / flux variables are CONSTANT MONOMIALS.
-  bool const_mon = true;
-  for (const auto v : _openmc_problem->getTallyScoreVariables(score, _tid, "_rel_error"))
-    const_mon &= v->feType() == FEType(CONSTANT, MONOMIAL);
-
-  if (!const_mon)
-    paramError("tally_score",
-               "ElementOpticalDepthIndicator only supports CONSTANT MONOMIAL field variables. "
-               "Please ensure your [Tallies] are adding CONSTANT MONOMIAL field variables.");
-
-  // Grab the relative error from the [Tallies].
-  _tally_rel_error = _openmc_problem->getTallyScoreVariableValues(score, _tid, "_rel_error");
+  _delta = _max - _min;
+  _refine_cutoff = (1.0 - _refine) * _max;
+  _coarsen_cutoff = _coarsen * _delta + _min;
 }
 
 Marker::MarkerValue
 ErrorFractionLookAheadMarker::computeElementMarker()
 {
-  Real max_rel_error = 0.0;
-  for (const auto & var : _tally_rel_error)
-    max_rel_error = std::max((*var)[0], max_rel_error);
-  max_rel_error *= _current_elem->n_children();
-
+  //Real max_rel_error = _rel_error_vec[_current_elem->id()] * _current_elem->n_children();
+  Real max_rel_error = _rel_error_vec[_current_elem->id()];
   Real error = _error_vector[_current_elem->id()];
 
   if (error > _refine_cutoff && max_rel_error <= _rel_error_limit)
