@@ -43,12 +43,13 @@ ElementOpticalDepthIndicator::validParams()
       "the "
       "minimum vertex separation (min), the maximum vertex separation (max), and the cube root of "
       "the element volume (cube_root).");
+  params.addParam<bool>("invert", false, "Whether the optical depth is stored as 1 / OD or OD.");
 
   return params;
 }
 
 ElementOpticalDepthIndicator::ElementOpticalDepthIndicator(const InputParameters & parameters)
-  : OpenMCIndicator(parameters), _h_type(getParam<MooseEnum>("h_type").getEnum<HType>())
+  : OpenMCIndicator(parameters), _h_type(getParam<MooseEnum>("h_type").getEnum<HType>()), _invert(getParam<bool>("invert"))
 {
   std::string score = getParam<MooseEnum>("rxn_rate");
   std::replace(score.begin(), score.end(), '_', '-');
@@ -101,7 +102,7 @@ ElementOpticalDepthIndicator::computeIndicator()
   for (const auto & var : _scalar_fluxes)
     scalar_flux += (*var)[0];
 
-  auto od = scalar_flux < libMesh::TOLERANCE ? 0.0 : rxn_rate / scalar_flux;
+  auto od = scalar_flux < (libMesh::TOLERANCE * libMesh::TOLERANCE) ? 0.0 : rxn_rate / scalar_flux;
 
   switch (_h_type)
   {
@@ -119,6 +120,9 @@ ElementOpticalDepthIndicator::computeIndicator()
       break;
   }
 
+  if (_invert && scalar_flux > libMesh::TOLERANCE * libMesh::TOLERANCE)
+    _field_var.setNodalValue(1.0 / od);
+  else
   _field_var.setNodalValue(od);
 }
 

@@ -40,4 +40,12 @@ protected:
 
   /// The relative error reported by an indicator.
   ErrorVector & _rel_error_vec;
+
+  /// The exponent applied to the number of children of the element.
+  enum class LookAheadOrder
+  {
+    Constant = 0,
+    Linear = 1,
+    Quadratic = 2
+  } _order;
 };

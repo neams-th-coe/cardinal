@@ -53,4 +53,7 @@ protected:
    * score may have filters applied, and so we need to sum the scalar fluxes over all filter bins.
    */
   std::vector<const VariableValue *> _scalar_fluxes;
+
+  /// Whether or not the optical depth should be inverted or not.
+  const bool _invert;
 };
