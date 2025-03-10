@@ -1,3 +1,4 @@
+/********************************************************************/
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
@@ -45,7 +46,8 @@ protected:
   enum class LookAheadOrder
   {
     Constant = 0,
-    Linear = 1,
-    Quadratic = 2
+    Root = 1,
+    Linear = 2,
+    Quadratic = 3
   } _order;
 };

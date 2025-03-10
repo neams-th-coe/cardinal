@@ -1,3 +1,4 @@
+/********************************************************************/
 /*                  SOFTWARE COPYRIGHT NOTIFICATION                 */
 /*                             Cardinal                             */
 /*                                                                  */
@@ -31,9 +32,9 @@ ErrorFractionLookAheadMarker::validParams()
   params.addRequiredParam<IndicatorName>("stat_error_indicator", "The name of the statistical relative error Indicator that this Marker uses.");
   params.addParam<MooseEnum>(
     "lh_order",
-    MooseEnum("constant linear quadratic", "linear"),
+    MooseEnum("constant root linear quadratic", "linear"),
     "The exponent applied to the number of child elements when estimating the "
-    "relative error post-refinement. Options are constant (0), linear (1), "
+    "relative error post-refinement. Options are constant (0), root (1/2), linear (1), "
     "and quadratic (2).");
 
   return params;
@@ -82,6 +83,9 @@ ErrorFractionLookAheadMarker::computeElementMarker()
   {
     case LookAheadOrder::Constant:
       m = 1.0;
+      break;
+    case LookAheadOrder::Root:
+      m = std::sqrt(_current_elem->n_children());
       break;
     case LookAheadOrder::Linear:
       m = _current_elem->n_children();
