@@ -72,7 +72,7 @@ height = 6.343                           # height of the full core (m)
     rotate_angle = 0
 
     background_block_id = '1'
-    background_block_names = 'graphite'
+    background_block_name = 'graphite'
     background_intervals = 1
   []
   [extrude]
