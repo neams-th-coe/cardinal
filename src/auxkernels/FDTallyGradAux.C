@@ -55,7 +55,7 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
     _sum_y_y_t(RealEigenMatrix::Zero(3, 3)),
     _sum_y_du_dy(RealEigenVector::Zero(3))
 {
-  if (_var.feType() != FEType(CONSTANT, MONOMIAL_VEC))
+  if (_var.feType() != FEType(libMesh::CONSTANT, libMesh::MONOMIAL_VEC))
     paramError("variable",
                "FDTallyGradAux only supports CONSTANT MONOMIAL_VEC shape functions. Please "
                "ensure that 'variable' is of type MONOMIAL_VEC and order CONSTANT.");
@@ -84,7 +84,7 @@ FDTallyGradAux::FDTallyGradAux(const InputParameters & parameters)
                    "applied to " +
                    std::string(getParam<MooseEnum>("score")) + "!");
 
-  if (score_vars[_bin_index]->feType() != FEType(CONSTANT, MONOMIAL))
+  if (score_vars[_bin_index]->feType() != FEType(libMesh::CONSTANT, libMesh::MONOMIAL))
     paramError(
         "score",
         "FDTallyGradAux only supports CONSTANT MONOMIAL shape functions for tally variables.");
