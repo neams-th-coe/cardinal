@@ -2439,7 +2439,8 @@ OpenMCCellAverageProblem::tallyMultiplier(unsigned int global_score) const
       source *= *_source_strength;
 
     // Reaction rate scores have units of reactions/src (OpenMC) or reactions/s (Cardinal).
-    if (isReactionRateScore(_all_tally_scores[global_score]) || _all_tally_scores[global_score] == "inverse-velocity")
+    if (isReactionRateScore(_all_tally_scores[global_score]) ||
+        _all_tally_scores[global_score] == "inverse-velocity")
       return source;
 
     if (_all_tally_scores[global_score] == "flux")

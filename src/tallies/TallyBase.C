@@ -124,19 +124,21 @@ TallyBase::TallyBase(const InputParameters & parameters)
   else
   {
     /**
-     * Set a default of tracklength for all tallies other then heating tallies in photon transport and nu_scatter tallies.
-     * This behavior must be overridden in derived tallies that implement mesh filters.
+     * Set a default of tracklength for all tallies other then heating tallies in photon transport
+     * and nu_scatter tallies. This behavior must be overridden in derived tallies that implement
+     * mesh filters.
      */
     _estimator = openmc::TallyEstimator::TRACKLENGTH;
 
     if (nu_scatter && !(heating && openmc::settings::photon_transport))
       _estimator = openmc::TallyEstimator::ANALOG;
     else if (nu_scatter && heating && openmc::settings::photon_transport)
-      paramError("estimator",
-                 "A single tally cannot score both nu_scatter and heating when photon transport is "
-                 "enabled, as both scores require different estimators. Consider adding one tally "
-                 "which scores nu_scatter (with an analog estimator), and a second tally that scores "
-                 "heating (with a collision estimator).");
+      paramError(
+          "estimator",
+          "A single tally cannot score both nu_scatter and heating when photon transport is "
+          "enabled, as both scores require different estimators. Consider adding one tally "
+          "which scores nu_scatter (with an analog estimator), and a second tally that scores "
+          "heating (with a collision estimator).");
 
     if (heating && openmc::settings::photon_transport)
       _estimator = openmc::TallyEstimator::COLLISION;
