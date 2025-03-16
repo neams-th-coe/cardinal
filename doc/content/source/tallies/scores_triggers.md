@@ -18,7 +18,10 @@ a tally. Options include:
 - `total`: the total reaction rate
 - `absorption`: the absorption reaction rate
 - `scatter`: the scattering reaction rate
+- `nu_scatter`: the scattering reaction rate combined with the total (n, xn) reaction rate
 - `fission`: the fission reaction rate
+- `nu_fission`: the fission neutron production rate
+- `inverse_velocity`: one over the particle velocity
 
 For more information on the specific meanings of these various scores,
 please consult the [OpenMC tally documentation](https://docs.openmc.org/en/stable/usersguide/tallies.html). The names of
