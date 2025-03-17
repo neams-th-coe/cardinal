@@ -38,6 +38,7 @@ public:
    * @return a short name for the bin represented by bin_index
    */
   virtual std::string binName(unsigned int bin_index) const override;
+
 protected:
   /// The spherical harmonics order.
   const unsigned int _order;

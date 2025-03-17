@@ -365,7 +365,11 @@ TallyBase::computeSumAndMean()
     for (unsigned int ext = 0; ext < _num_ext_filter_bins; ++ext)
       for (unsigned int m = 0; m < mapped_bins; ++m)
         if (!_ext_bins_to_skip[ext])
-          _local_sum_tally[score] += xt::view(_local_tally->results_, xt::all(), score, static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
+          _local_sum_tally[score] +=
+              xt::view(_local_tally->results_,
+                       xt::all(),
+                       score,
+                       static_cast<int>(openmc::TallyResult::SUM))[ext * mapped_bins + m];
 
     _local_mean_tally[score] = _local_sum_tally[score] / _local_tally->n_realizations_;
   }
