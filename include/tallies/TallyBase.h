@@ -336,6 +336,9 @@ protected:
   /// Whether the problem uses adaptive mesh refinement or not.
   const bool _is_adaptive;
 
+  /// External filter bins to skip while computing the tally sum and mean for normalization.
+  std::vector<bool> _ext_bins_to_skip;
+
   /// Tolerance for setting zero tally
   static constexpr Real ZERO_TALLY_THRESHOLD = 1e-12;
 };
