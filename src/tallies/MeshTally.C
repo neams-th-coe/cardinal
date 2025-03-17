@@ -54,6 +54,9 @@ MeshTally::MeshTally(const InputParameters & parameters)
     _instance(getParam<unsigned int>("instance")),
     _use_dof_map(_is_adaptive || isParamValid("blocks"))
 {
+  bool nu_scatter =
+      std::find(_tally_score.begin(), _tally_score.end(), "nu-scatter") != _tally_score.end();
+
   // Error check the estimators.
   if (isParamValid("estimator"))
   {
@@ -62,7 +65,7 @@ MeshTally::MeshTally(const InputParameters & parameters)
                  "Tracklength estimators are currently incompatible with mesh tallies!");
   }
   else
-    _estimator = openmc::TallyEstimator::COLLISION;
+    _estimator = nu_scatter ? openmc::TallyEstimator::ANALOG : openmc::TallyEstimator::COLLISION;
 
   // Error check the mesh template.
   if (_mesh.getMesh().allow_renumbering() && !_mesh.getMesh().is_replicated())
