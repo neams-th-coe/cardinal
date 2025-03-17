@@ -81,25 +81,11 @@ def elements_in_ring(ring):
 
 # Get the 'pattern' needed for the pins
 n_rings = rings(n_pins)
-first_row = int(elements_in_ring(n_rings) / 6) + 1
-last_row = first_row + n_rings - 1
-
-pattern = "'"
-for i in range(n_rings):
-  for j in range(first_row + i):
-    pattern += " 0"
-  pattern += ";"
-for i in range(n_rings - 1):
-  for j in range(last_row - 1 - i):
-    pattern += " 0"
-  pattern += ";"
-pattern += "'"
+pin_pattern = build_pattern(n_rings)
 
 # Get the 'pattern' needed for the core by assuming a simple hex grid of bundles
 n_rings = rings(n_bundles)
-first_row = int(elements_in_ring(n_rings) / 6) + 1
-last_row = first_row + n_rings - 1
-bundle_pattern = build_pattern(n_rings, first_row, last_row)
+bundle_pattern = build_pattern(n_rings)
 
 # Write a file that contains all the essential meshing pre-processor definitions
 with open('mesh_info.i', 'w') as f:
@@ -115,7 +101,7 @@ with open('mesh_info.i', 'w') as f:
   f.write(str.format('fluid_id={0}\n', fluid_id))
   f.write(str.format('fuel_id={0}\n', fuel_id))
   f.write(str.format('clad_id={0}\n', clad_id))
-  f.write("pattern=" + str(pattern) + "\n")
+  f.write("pattern=" + str(pin_pattern) + "\n")
   f.write("bundle_pattern=" + str(bundle_pattern) + "\n")
 
 if (args.generate):

@@ -192,9 +192,7 @@ def hydraulic_diameter(nrings, bundle_pitch, pin_diameter, wire_diameter = 0, wi
 
 # Get the 'pattern' needed for the pins
 n_rings = rings(n_pins)
-first_row = int(elements_in_ring(n_rings) / 6) + 1
-last_row = first_row + n_rings - 1
-pattern = build_pattern(n_rings, first_row, last_row)
+pattern = build_pattern(n_rings)
 
 # Get the coordinates of the pin centers
 pin_centers = lattice_centers(n_rings, pin_pitch)

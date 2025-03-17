@@ -142,9 +142,7 @@ def lattice_centers(nrings, pitch):
 
 # Get the 'pattern' needed for the core by assuming a simple hex grid of bundles
 n_rings = rings(n_bundles)
-first_row = int(elements_in_ring(n_rings) / 6) + 1
-last_row = first_row + n_rings - 1
-pattern = build_pattern(n_rings, first_row, last_row)
+pattern = build_pattern(n_rings)
 
 # This is the half-thickness of the gap
 outer_flat_to_flat = flat_to_flat + 2.0 * thickness

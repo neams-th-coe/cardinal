@@ -1,11 +1,13 @@
 # Meshing utilities
 
-def build_pattern(n_rings: int,
-                  first_row: int,
-                  last_row: int) -> str:
+def build_pattern(n_rings: int) -> str:
+  """Build 'pattern' input parameter for PatternedHexMeshGenerator, assuming single input assembly type"""
   pattern = []
+  # Build top half of pattern vector, including middle row
   for i in range(n_rings):
-    pattern.append(' ' .join(['0'] * (first_row + i)))
-  for i in range(n_rings - 1):
-    pattern.append(' ' .join(['0'] * (last_row - 1 - i)))
+    pattern.append(' ' .join(['0'] * (n_rings + i)))
+
+  # Build bottom half of pattern vector by reversing top half, excluding middle row
+  pattern += list(reversed(pattern[:-1]))
+
   return "'" + '; '.join(pattern) + "'"

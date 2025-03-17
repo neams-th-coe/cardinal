@@ -188,8 +188,6 @@ def lattice_centers(nrings, pitch):
 
 # Get the 'pattern' needed for the core by assuming a simple hex grid of bundles
 n_rings = rings(n_bundles)
-first_row = int(elements_in_ring(n_rings) / 6) + 1
-last_row = first_row + n_rings - 1
 
 def layer_dx(first, growth, n):
   """Get the dx of a series of boundary layers"""
@@ -225,7 +223,7 @@ def bl_points(first, growth, n, start):
 
 # Get the origins of the bundles
 bundle_origins = lattice_centers(n_rings, bundle_pitch)
-bundle_pattern = build_pattern(n_rings, first_row, last_row)
+bundle_pattern = build_pattern(n_rings)
 
 # Get the boundary layers on the duct surface
 bl, bl_outer_dx = bl_points(bl_height, growth_factor, e_per_bl, flat_to_flat / 2.0 + thickness)
