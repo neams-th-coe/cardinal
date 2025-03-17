@@ -3,6 +3,11 @@ import os
 import sys
 from argparse import ArgumentParser
 
+# Common meshing utilities
+this_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_dir, '..'))
+from mesh_utils import build_pattern
+
 # Create a mesh for bare (no wire) solid fuel pins inside a hexagonal assembly.
 # The sideset IDs are:
 
@@ -94,17 +99,7 @@ pattern += "'"
 n_rings = rings(n_bundles)
 first_row = int(elements_in_ring(n_rings) / 6) + 1
 last_row = first_row + n_rings - 1
-
-bundle_pattern = "'"
-for i in range(n_rings):
-  for j in range(first_row + i):
-    bundle_pattern += " 0"
-  bundle_pattern += ";"
-for i in range(n_rings - 1):
-  for j in range(last_row - 1 - i):
-    bundle_pattern += " 0"
-  bundle_pattern += ";"
-bundle_pattern += "'"
+bundle_pattern = build_pattern(n_rings, first_row, last_row)
 
 # Write a file that contains all the essential meshing pre-processor definitions
 with open('mesh_info.i', 'w') as f:

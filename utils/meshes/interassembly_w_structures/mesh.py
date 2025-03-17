@@ -5,6 +5,11 @@ import sys
 import numpy as np
 from argparse import ArgumentParser
 
+# Common meshing utilities
+this_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_dir, '..'))
+from mesh_utils import build_pattern
+
 # Create a mesh of the gap region between hexagonal ducts enclosed in a cylindrical
 # barrel, with the load pad and restraint ring structural components. The sideset IDs are:
 
@@ -183,20 +188,8 @@ def lattice_centers(nrings, pitch):
 
 # Get the 'pattern' needed for the core by assuming a simple hex grid of bundles
 n_rings = rings(n_bundles)
-
-def pat(nr):
-  pattern = "'"
-  first_row = int(elements_in_ring(nr) / 6) + 1
-  last_row = first_row + n_rings - 1
-  for i in range(n_rings):
-    for j in range(first_row + i):
-      pattern += " 0"
-    pattern += ";"
-  for i in range(n_rings - 1):
-    for j in range(last_row - 1 - i):
-      pattern += " 0"
-    pattern += ";"
-  return pattern + "'"
+first_row = int(elements_in_ring(n_rings) / 6) + 1
+last_row = first_row + n_rings - 1
 
 def layer_dx(first, growth, n):
   """Get the dx of a series of boundary layers"""
@@ -232,7 +225,7 @@ def bl_points(first, growth, n, start):
 
 # Get the origins of the bundles
 bundle_origins = lattice_centers(n_rings, bundle_pitch)
-bundle_pattern = pat(n_rings)
+bundle_pattern = build_pattern(n_rings, first_row, last_row)
 
 # Get the boundary layers on the duct surface
 bl, bl_outer_dx = bl_points(bl_height, growth_factor, e_per_bl, flat_to_flat / 2.0 + thickness)

@@ -4,7 +4,11 @@ import math
 import sys
 import numpy as np
 from argparse import ArgumentParser
-import csv
+
+# Common meshing utilities
+this_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(this_dir, '..'))
+from mesh_utils import build_pattern
 
 # Create a mesh for the fluid region inside a hexagonal duct.
 # The sideset IDs are:
@@ -190,17 +194,7 @@ def hydraulic_diameter(nrings, bundle_pitch, pin_diameter, wire_diameter = 0, wi
 n_rings = rings(n_pins)
 first_row = int(elements_in_ring(n_rings) / 6) + 1
 last_row = first_row + n_rings - 1
-
-pattern = "'"
-for i in range(n_rings):
-  for j in range(first_row + i):
-    pattern += " 0"
-  pattern += ";"
-for i in range(n_rings - 1):
-  for j in range(last_row - 1 - i):
-    pattern += " 0"
-  pattern += ";"
-pattern += "'"
+pattern = build_pattern(n_rings, first_row, last_row)
 
 # Get the coordinates of the pin centers
 pin_centers = lattice_centers(n_rings, pin_pitch)
