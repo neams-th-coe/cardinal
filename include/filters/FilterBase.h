@@ -45,6 +45,14 @@ public:
   FilterBase(const InputParameters & parameters);
 
   /**
+   * Whether a specific bin should be skipped when computing sums and means for normalization.
+   * This is useful for functional expansion filters, where not all bins represent an average.
+   * @param[in] bin the filter bin
+   * @return whether the bin should be skipped.
+   */
+  virtual bool skipBin(const unsigned int bin) const = 0;
+
+  /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
    * Each derived filter must override this function.

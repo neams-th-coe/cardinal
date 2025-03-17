@@ -27,6 +27,9 @@ public:
 
   PolarAngleFilter(const InputParameters & parameters);
 
+  /// Override to return false as this is a discrete filter.
+  virtual bool skipBin(const unsigned int bin) const override { return false; }
+
   /**
    * A function which returns the short-form name for each bin of
    * this filter. Used to label auxvariables a TallyBase scores in.
