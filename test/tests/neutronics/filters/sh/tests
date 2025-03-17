@@ -1,0 +1,28 @@
+[Tests]
+  issues = '#1091'
+  design = 'SphericalHarmonicsFilter.md'
+
+  [sh_l1]
+    type = CSVDiff
+    input = openmc_l1.i
+    csvdiff = openmc_l1_out.csv
+    requirement = "The system shall support spherical harmonics filters."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [sh_l1_mult]
+    type = CSVDiff
+    input = openmc_l1_mult.i
+    csvdiff = openmc_l1_mult_out.csv
+    requirement = "The system shall support spherical harmonics filters composed with other filters."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+  [sh_l0_in_l1_vs_no_sh]
+    type = CSVDiff
+    input = openmc_l0_from_l1.i
+    csvdiff = openmc_l0_from_l1_out.csv
+    requirement = "The L0 spherical harmonics moment in a L>0 SH expansion shall match the scalar fluxes computed "
+                  "without a spherical harmonics filter. This ensures that the L>0 SH moments are skipped during normalization."
+                  "The gold file for this test was generated without a SH filter."
+    required_objects = 'OpenMCCellAverageProblem'
+  []
+[]
